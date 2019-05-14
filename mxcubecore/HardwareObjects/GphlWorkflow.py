@@ -73,7 +73,7 @@ class GphlWorkflow(HardwareObject, object):
     ]
 
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
+        super(GphlWorkflow, self).__init__(name)
         self._state = States.OFF
 
         # HO that handles connection to GPhL workflow runner
@@ -108,9 +108,10 @@ class GphlWorkflow(HardwareObject, object):
         self.file_paths = {}
 
     def _init(self):
-        pass
+        super(GphlWorkflow, self)._init()
 
     def init(self):
+        super(GphlWorkflow, self).init()
 
         # Set up processing functions map
         self._processor_functions = {
@@ -169,16 +170,16 @@ class GphlWorkflow(HardwareObject, object):
 
         result = OrderedDict()
         if self.hasObject("workflow_properties"):
-            properties = self["workflow_properties"].getProperties()
+            properties = self["workflow_properties"].getProperties().copy()
         else:
             properties = {}
         if self.hasObject("invocation_properties"):
-            invocation_properties = self["invocation_properties"].getProperties()
+            invocation_properties = self["invocation_properties"].getProperties().copy()
         else:
             invocation_properties = {}
 
         if self.hasObject("all_workflow_options"):
-            all_workflow_options = self["all_workflow_options"].getProperties()
+            all_workflow_options = self["all_workflow_options"].getProperties().copy()
             if "beamline" in all_workflow_options:
                 pass
             elif api.gphl_connection.hasObject("ssh_options"):
@@ -525,8 +526,10 @@ class GphlWorkflow(HardwareObject, object):
                 "variableName": "imageWidth",
                 "uiLabel": "Oscillation range",
                 "type": "combo",
-                "defaultValue": str(allowed_widths[default_width_index]),
-                "textChoices": [str(x) for x in allowed_widths],
+                "defaultValue": ConvertUtils.text_type(
+                    allowed_widths[default_width_index]
+                ),
+                "textChoices": [ConvertUtils.text_type(x) for x in allowed_widths],
             }
         )
 
@@ -713,7 +716,7 @@ class GphlWorkflow(HardwareObject, object):
                 okp = tuple(initial_settings[x] for x in self.rotation_axis_roles)
                 dd0 = self.calculate_recentring(okp, **recen_parameters)
                 logging.getLogger("HWR").debug(
-                    "GPHL Recentring. okp, motors" + str(okp) + str(sorted(dd0.items()))
+                    "GPHL Recentring. okp, motors, %s, %s" + okp + sorted(dd0.items())
                 )
                 if centre_at_start:
                     motor_settings = initial_settings.copy()
@@ -795,10 +798,15 @@ class GphlWorkflow(HardwareObject, object):
         else:
             # TODO Clarify if set_position does not ahve a built-in wait
             # TODO whether you need towait for somethign else too, ...
+
+            
             api.resolution.set_position(new_resolution)
+            #TODO it should be set_position, fix TineMotor (resolution at EMBL)
+            # api.resolution.move(new_resolution)
             api.detector.wait_ready()
             # NBNB Wait till value has settled
             id_ = None
+        # orgxy = collect_hwobj.get_beam_centre_pix()
         orgxy = collect_hwobj.get_beam_centre()
         detectorSetting = GphlMessages.BcsDetectorSetting(
             new_resolution,
@@ -1146,7 +1154,7 @@ class GphlWorkflow(HardwareObject, object):
             )
 
         params = self._return_parameters.get()
-        ll0 = str(params["_cplx"][0]).split()
+        ll0 = ConvertUtils.text_type(params["_cplx"][0]).split()
         if ll0[0] == "*":
             del ll0[0]
         #
@@ -1265,7 +1273,7 @@ class GphlWorkflow(HardwareObject, object):
 
         # Rotate sample to RotationSetting
         goniostatRotation = request_centring.goniostatRotation
-        # goniostatTranslation = goniostatRotation.translation
+        goniostatTranslation = goniostatRotation.translation
         #
 
         if self._data_collection_group is None:
@@ -1326,9 +1334,11 @@ class GphlWorkflow(HardwareObject, object):
                 # We do not need the result, just to end they waiting
                 self._return_parameters.get()
                 self._return_parameters = None
-
+        settings=goniostatRotation.axisSettings.copy()
+        if goniostatTranslation:
+           settings.update(goniostatTranslation.axisSettings)
         centring_queue_entry = self.enqueue_sample_centring(
-            motor_settings=goniostatRotation.axisSettings
+            motor_settings=settings
         )
         goniostatTranslation = self.execute_sample_centring(
             centring_queue_entry, goniostatRotation
@@ -1498,7 +1508,7 @@ class GphlWorkflow(HardwareObject, object):
                 or sample_model.code
                 or sample_model.lims_code
                 or workflow_model.path_template.get_prefix()
-                or str(sampleId)
+                or ConvertUtils.text_type(sampleId)
             ),
             rootDirectory=image_root,
             userProvidedInfo=userProvidedInfo,

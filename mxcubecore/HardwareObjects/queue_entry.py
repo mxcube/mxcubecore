@@ -30,7 +30,9 @@ from copy import copy
 from collections import namedtuple
 
 from HardwareRepository.HardwareObjects import queue_model_objects
-from HardwareRepository.HardwareObjects. queue_model_enumerables import EXPERIMENT_TYPE, COLLECTION_ORIGIN_STR, CENTRING_METHOD, States
+from HardwareRepository.HardwareObjects.queue_model_enumerables import (
+    EXPERIMENT_TYPE, COLLECTION_ORIGIN_STR, CENTRING_METHOD, States
+)
 from HardwareRepository.dispatcher import dispatcher
 from HardwareRepository import HardwareRepository
 

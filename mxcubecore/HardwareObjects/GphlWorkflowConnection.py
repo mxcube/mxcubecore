@@ -85,7 +85,7 @@ class GphlWorkflowConnection(HardwareObject, object):
     ]
 
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
+        super(GphlWorkflowConnection, self).__init__(name)
 
         # Py4J gateway to external workflow program
         self._gateway = None
@@ -113,9 +113,10 @@ class GphlWorkflowConnection(HardwareObject, object):
         self.java_properties = {}
 
     def _init(self):
-        pass
+        super(GphlWorkflowConnection, self)._init()
 
     def init(self):
+        super(GphlWorkflowConnection, self).init()
         if self.hasObject("connection_parameters"):
             self._connection_parameters.update(
                 self["connection_parameters"].getProperties()
@@ -240,7 +241,7 @@ class GphlWorkflowConnection(HardwareObject, object):
 
         in_shell = self.hasObject("ssh_options")
         if in_shell:
-            dd0 = self["ssh_options"].getProperties()
+            dd0 = self["ssh_options"].getProperties().copy()
             #
             host = dd0.pop("Host")
             command_list = ["ssh"]
@@ -692,7 +693,8 @@ class GphlWorkflowConnection(HardwareObject, object):
         strategy = self._GeometricStrategy_to_python(
             py4jCollectionProposal.getStrategy()
         )
-        id2Sweep = dict((str(x.id_), x) for x in strategy.sweeps)
+        text_type = ConvertUtils.text_type
+        id2Sweep = dict((text_type(x.id_), x) for x in strategy.sweeps)
         scans = []
         for py4jScan in py4jCollectionProposal.getScans():
             sweep = id2Sweep[py4jScan.getSweep().getId().toString()]
@@ -1016,7 +1018,9 @@ class GphlWorkflowConnection(HardwareObject, object):
     def _PriorInformation_to_java(self, priorInformation):
         jvm = self._gateway.jvm
         buildr = jvm.astra.messagebus.messages.information.PriorInformationImpl.Builder(
-            jvm.java.util.UUID.fromString(str(priorInformation.sampleId))
+            jvm.java.util.UUID.fromString(
+                ConvertUtils.text_type(priorInformation.sampleId)
+            )
         )
         xx0 = priorInformation.sampleName
         if xx0:
@@ -1075,7 +1079,9 @@ class GphlWorkflowConnection(HardwareObject, object):
 
     def _CollectionDone_to_java(self, collectionDone):
         jvm = self._gateway.jvm
-        proposalId = jvm.java.util.UUID.fromString(str(collectionDone.proposalId))
+        proposalId = jvm.java.util.UUID.fromString(
+            ConvertUtils.text_type(collectionDone.proposalId)
+        )
         return jvm.astra.messagebus.messages.information.CollectionDoneImpl(
             proposalId, collectionDone.imageRoot, collectionDone.status
         )
@@ -1170,7 +1176,7 @@ class GphlWorkflowConnection(HardwareObject, object):
             return None
 
         javaUuid = self._gateway.jvm.java.util.UUID.fromString(
-            str(phasingWavelength.id_)
+            ConvertUtils.text_type(phasingWavelength.id_)
         )
         return jvm.astra.messagebus.messages.information.PhasingWavelengthImpl(
             javaUuid, float(phasingWavelength.wavelength), phasingWavelength.role
@@ -1191,7 +1197,9 @@ class GphlWorkflowConnection(HardwareObject, object):
         axisSettings = dict(
             ((x, float(y)) for x, y in bcsDetectorSetting.axisSettings.items())
         )
-        javaUuid = jvm.java.util.UUID.fromString(str(bcsDetectorSetting.id_))
+        javaUuid = jvm.java.util.UUID.fromString(
+            ConvertUtils.text_type(bcsDetectorSetting.id_)
+        )
         return jvm.astra.messagebus.messages.instrumentation.BcsDetectorSettingImpl(
             float(bcsDetectorSetting.resolution), orgxy_array, axisSettings, javaUuid
         )
@@ -1203,8 +1211,10 @@ class GphlWorkflowConnection(HardwareObject, object):
             return None
 
         gts = goniostatTranslation
-        javaUuid = jvm.java.util.UUID.fromString(str(gts.id_))
-        javaRotationId = jvm.java.util.UUID.fromString(str(gts.requestedRotationId))
+        javaUuid = jvm.java.util.UUID.fromString(ConvertUtils.text_type(gts.id_))
+        javaRotationId = jvm.java.util.UUID.fromString(
+            ConvertUtils.text_type(gts.requestedRotationId)
+        )
         axisSettings = dict(((x, float(y)) for x, y in gts.axisSettings.items()))
         newRotation = gts.newRotation
         if newRotation:
@@ -1224,7 +1234,7 @@ class GphlWorkflowConnection(HardwareObject, object):
             return None
 
         grs = goniostatRotation
-        javaUuid = jvm.java.util.UUID.fromString(str(grs.id_))
+        javaUuid = jvm.java.util.UUID.fromString(ConvertUtils.text_type(grs.id_))
         axisSettings = dict(((x, float(y)) for x, y in grs.axisSettings.items()))
         # NBNB The final None is necessary because there is no non-deprecated
         # constructor that takes two UUIDs. Eventually the deprecated
@@ -1239,7 +1249,9 @@ class GphlWorkflowConnection(HardwareObject, object):
         if beamStopSetting is None:
             return None
 
-        javaUuid = jvm.java.util.UUID.fromString(str(beamStopSetting.id_))
+        javaUuid = jvm.java.util.UUID.fromString(
+            ConvertUtils.text_type(beamStopSetting.id_)
+        )
         axisSettings = dict(
             ((x, float(y)) for x, y in beamStopSetting.axisSettings.items())
         )
