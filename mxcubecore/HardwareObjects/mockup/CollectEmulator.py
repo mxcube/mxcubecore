@@ -204,10 +204,8 @@ class CollectEmulator(CollectMockup):
 
             # Extract format statement from template,
             # and convert to fortran format
-            text_type =  ConvertUtils.text_type
-            template = text_type(
-                data_collect_parameters["fileinfo"]["template"]
-            )
+            text_type = ConvertUtils.text_type
+            template = text_type(data_collect_parameters["fileinfo"]["template"])
             ss0 = re.search("(%[0-9]+d)", template).group(0)
             template = template.replace(ss0, "?" * int(ss0[1:-1]))
             name_template = os.path.join(

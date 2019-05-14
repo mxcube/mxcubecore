@@ -261,7 +261,7 @@ class AbstractCollect(HardwareObject, object):
                 self.set_energy(self.current_dc_parameters["energy"])
 
             dd0 = self.current_dc_parameters.get("resolution")
-            if dd0 and dd0.get('upper'):
+            if dd0 and dd0.get("upper"):
                 resolution = dd0["upper"]
                 log.info("Collection: Setting resolution to %.3f", resolution)
                 self.set_resolution(resolution)
@@ -505,6 +505,7 @@ class AbstractCollect(HardwareObject, object):
             return None, None
 
     def get_beam_centre_pix(self):
+        """Get beam center in pixels"""
         return self.detector_hwobj.get_beam_centre_pix()
 
     def get_resolution_at_corner(self):
@@ -647,7 +648,9 @@ class AbstractCollect(HardwareObject, object):
         if self.lims_client_hwobj and not self.current_dc_parameters["in_interleave"]:
             self.current_dc_parameters["flux"] = self.get_flux()
             self.current_dc_parameters["flux_end"] = self.get_flux()
-            # self.current_dc_parameters["totalAbsorbedDose"] = self.get_total_absorbed_dose()
+            # self.current_dc_parameters["totalAbsorbedDose"] = (
+            #     self.get_total_absorbed_dose()
+            # )
             self.current_dc_parameters["wavelength"] = self.get_wavelength()
             self.current_dc_parameters[
                 "detectorDistance"
@@ -795,16 +798,12 @@ class AbstractCollect(HardwareObject, object):
         Descript. :
         """
         dd0 = self.diffractometer_hwobj.get_positions()
-        logging.getLogger('HWR').debug(
-            'MOTORS-premove ' +
-            ', '.join('%s:%s' % tt0 for tt0 in sorted(dd0.items()))
-
+        logging.getLogger("HWR").debug(
+            "MOTORS-premove " + ", ".join("%s:%s" % tt0 for tt0 in sorted(dd0.items()))
         )
-        dd0 = self.current_dc_parameters['motors']
-        logging.getLogger('HWR').debug(
-            'MOTORS-target ' +
-            ', '.join('%s:%s' % tt0 for tt0 in sorted(dd0.items()))
-
+        dd0 = self.current_dc_parameters["motors"]
+        logging.getLogger("HWR").debug(
+            "MOTORS-target " + ", ".join("%s:%s" % tt0 for tt0 in sorted(dd0.items()))
         )
         positions_str = ""
         for motor, position in self.current_dc_parameters["motors"].items():
@@ -816,9 +815,8 @@ class AbstractCollect(HardwareObject, object):
         self.current_dc_parameters["actualCenteringPosition"] = positions_str
         self.move_motors(self.current_dc_parameters["motors"])
         dd0 = self.diffractometer_hwobj.get_positions()
-        logging.getLogger('HWR').debug(
-            'MOTORS-postmove ' +
-            ', '.join('%s:%s' % tt0 for tt0 in sorted(dd0.items()))
+        logging.getLogger("HWR").debug(
+            "MOTORS-postmove " + ", ".join("%s:%s" % tt0 for tt0 in sorted(dd0.items()))
         )
 
     @abc.abstractmethod
