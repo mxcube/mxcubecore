@@ -26,7 +26,7 @@
 
     <software_paths>
         <!-- Location of Java binary to execute for workflow application -->
-        <java_binary>/usr/bin/java</java_binary>
+        <java_binary>java</java_binary>
         <!-- Debug mode:  -->
         <!--<java_binary>ssh -i /home/rhfogh/.ssh/wf_test_id -o StrictHostKeyChecking=no lonsdale java</java_binary>-->
 
