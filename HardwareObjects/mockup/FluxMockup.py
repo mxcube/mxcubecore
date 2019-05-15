@@ -70,7 +70,7 @@ class FluxMockup(AbstractFlux):
     def set_flux_info_list(self, flux_info_list):
         self.measured_flux_list = flux_info_list
         self.measured_flux_dict = self.measured_flux_list[0]
-        #TODO Udjust to beamsize and transmission
+        #TODO Adjust to beamsize and transmission
         self.current_flux_dict = self.measured_flux_list[0]
         self.emit(
             "fluxInfoChanged",

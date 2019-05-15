@@ -116,7 +116,7 @@
     <!-- Properties applied after the java command - syntax as above-->
     <!-- Note that irtrelevant properties are simply ignored.-->
     <workflow_properties>
-        <!-- Switch off pre-start checks for directory existence -->
+        <!-- Set to false to switch off pre-start checks for directory existence -->
         <!--<co.gphl.wf.blRootCheck>false</co.gphl.wf.blRootCheck>-->
         <!--<co.gphl.wf.procRootCheck>false</co.gphl.wf.procRootCheck>-->
         <!-- Dummy sample properties. -->

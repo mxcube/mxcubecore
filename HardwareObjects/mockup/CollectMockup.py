@@ -16,6 +16,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import division, absolute_import
+from __future__ import print_function, unicode_literals
+
 import os
 import time
 from HardwareRepository.TaskUtils import task
