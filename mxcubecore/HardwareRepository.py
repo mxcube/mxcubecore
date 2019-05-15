@@ -719,13 +719,13 @@ class __HardwareRepositoryClient:
             ["{:<" + str(longest_col) + "}" for longest_col in longest_cols]
         )
 
-        print("+", "=" * (sum(longest_cols) + 2))
+        print("+", "=" * sum(longest_cols), "+")
         print("| %s" % row_format.format(*("xml", "Class", "Load time", "Comment")))
-        print("+", "=" * (sum(longest_cols) + 2))
+        print("+", "=" * sum(longest_cols), "+")
 
         for row in sorted(self.hwobj_info_list):
             print("| %s" % row_format.format(*row))
-        print("+", "=" * (sum(longest_cols) + 2))
+        print("+", "=" * sum(longest_cols), "+")
 
     def reloadHardwareObjects(self):
         """

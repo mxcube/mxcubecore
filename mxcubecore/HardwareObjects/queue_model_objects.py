@@ -1272,8 +1272,8 @@ class PathTemplate(object):
         PathTemplate.archive_folder = archive_folder
 
     @staticmethod
-    def set_path_template_style(synchotron_name, template=None):
-        PathTemplate.synchotron_name = synchotron_name
+    def set_path_template_style(synchrotron_name, template=None):
+        PathTemplate.synchrotron_name = synchrotron_name
         PathTemplate.template = template
 
     @staticmethod
@@ -1371,7 +1371,7 @@ class PathTemplate(object):
 
     def get_archive_directory(self):
         """
-        Returns the archive directory, for longer term storage. synchotron_name
+        Returns the archive directory, for longer term storage. synchrotron_name
         is set via static function calles from session hwobj
 
         :rtype: str
@@ -1379,7 +1379,7 @@ class PathTemplate(object):
         """
         folders = self.directory.split("/")
 
-        if PathTemplate.synchotron_name == "MAXLAB":
+        if PathTemplate.synchrotron_name == "MAXLAB":
             archive_directory = self.directory
             archive_directory = archive_directory.replace(
                 "/data/data1/visitor", "/data/ispyb"
@@ -1388,12 +1388,12 @@ class PathTemplate(object):
                 "/data/data1/inhouse", "/data/ispyb"
             )
             archive_directory = archive_directory.replace("/data/data1", "/data/ispyb")
-        elif PathTemplate.synchotron_name == "EMBL-HH":
+        elif PathTemplate.synchrotron_name == "EMBL-HH":
             archive_directory = os.path.join(
                 PathTemplate.archive_base_directory, PathTemplate.archive_folder
             )
             archive_directory = os.path.join(archive_directory, *folders[4:])
-        elif PathTemplate.synchotron_name == "ALBA":
+        elif PathTemplate.synchrotron_name == "ALBA":
             logging.getLogger("HWR").debug(
                 "PathTemplate (ALBA) - directory is %s" % self.directory
             )

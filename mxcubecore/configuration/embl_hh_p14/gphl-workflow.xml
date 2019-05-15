@@ -17,6 +17,10 @@
     <!-- Sets default value only -->
     <!--<centre_at_start>True</centre_at_start>-->
 
+    <!-- Force GPhL workflow to use current energy value always.  -->
+    <!-- Any non-empty value is True -->
+    <disable_energy_change>True</disable_energy_change>
+
     <!-- Describes the test crystals used for diffractometer calibration -->
     <test_crystals>
         <test_crystal>
@@ -81,7 +85,7 @@
         <!-- The default value is 'py4j::' if teh workflow is run on the same computer -->
         <!-- and 'py4j:%s:' % socket.gethostname() if workflow is run remotely via ssh -->
         <!-- <beamline>py4j:fourier.globalphasing.com:</beamline> -->
-        <beamline>py4j::</beamline>
+        <!-- <beamline>py4j::</beamline> -->
         <!-- Location of persistence layer (workflow application data files -->
         <!-- The main data file is : <wdir>/<persistname>.xml -->
         <persistname>persistence</persistname>
@@ -140,9 +144,9 @@
     <!-- Properties applied after the java command - syntax as above-->
     <!-- Note that irtrelevant properties are simply ignored.-->
     <workflow_properties>
-        <!-- Switch off pre-start checks for directory existence -->
-        <!--<co.gphl.wf.blRootCheck>false</co.gphl.wf.blRootCheck>-->
-        <!--<co.gphl.wf.procRootCheck>false</co.gphl.wf.procRootCheck>-->
+        <!-- Set to false to switch off pre-start checks for directory existence -->
+        <co.gphl.wf.blRootCheck>false</co.gphl.wf.blRootCheck>
+        <!-- <co.gphl.wf.procRootCheck>false</co.gphl.wf.procRootCheck> -->
         <!-- Dummy sample properties. -->
         <!-- Choose values for these to make the
         predictions for the characterisation strategy look reasonable (they
