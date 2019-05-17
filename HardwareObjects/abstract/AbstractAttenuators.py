@@ -11,11 +11,11 @@
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 Defines abstract attenuators (transmission)
@@ -30,7 +30,6 @@ __category__ = "General"
 
 
 class AbstractAttenuators(HardwareObject):
-
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
@@ -96,6 +95,18 @@ class AbstractAttenuators(HardwareObject):
         self.emit("limitsChanged", (self.get_limits(),))
         self.emit("stateChanged", self.get_state())
 
-    transmission_value = property(get_transmission, set_transmission, doc="Transmission in % (0 - 100)")
-    transmission_limits = property(get_limits, set_limits, doc="Transmission limits as list of two floats")
-    transmission_state = property(get_state, set_state, doc="State as str")
+    transmission_value = property(
+        get_transmission,
+        set_transmission,
+        doc="Transmission in % (0 - 100)"
+    )
+    transmission_limits = property(
+        get_limits,
+        set_limits,
+        doc="Transmission limits as list of two floats"
+    )
+    transmission_state = property(
+        get_state,
+        set_state,
+        doc="State as str"
+    )
