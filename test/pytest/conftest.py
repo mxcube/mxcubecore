@@ -25,6 +25,12 @@ hwr_web.connect()
 
 
 @pytest.fixture(scope="session")
+def transmission_list():
+    return (hwr_qt.getHardwareObject("attenuators-mockup"),
+            hwr_web.getHardwareObject("attenuators-mockup"))
+
+
+@pytest.fixture(scope="session")
 def energy_list():
     return (hwr_qt.getHardwareObject("energy-mockup"),
             hwr_web.getHardwareObject("energy-mockup"))
