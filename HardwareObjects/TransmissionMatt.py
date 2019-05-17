@@ -27,9 +27,9 @@ Based on existing HardwarObjects.Transmission
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
-import gevent
-
+import api
 from HardwareRepository.HardwareObjects.abstract import AbstractTransmission
+from PyTransmission import matt_control
 
 __credits__ = [" Copyright © 2016 - 2019 by Global Phasing Ltd. All rights reserved"]
 __license__ = "LGPLv3+"
@@ -38,21 +38,46 @@ __author__ = "rhfogh"
 __date__ = "17/05/2019"
 
 
-class TransmissionMockup(AbstractTransmission.AbstractTransmission):
-    """MockTransmission implementation using new AbstractTransmission
+class Transmission(AbstractTransmission.AbstractTransmission):
+    """Example of Transmission implementation using new AbstractTransmission
+
+    Based on pre-existing HardwarObjects.Transmission
     """
 
     def __init__(self, name):
-        super(TransmissionMockup, self).__init__(name)
+        super(Transmission, self).__init__(name)
 
-        self._transmission = None
-        self._state = None
         self._limits = (None, None)
+        self.__matt = None
+
+        # Example of maps from channel states to self.STATE states.
+        # Note that numbers need not match,
+        # and several input states can map to same output state
+        STATE = self.STATE
+        self.__matt_state_to_state = {
+            0: STATE.UNKOWN,
+            1: STATE.READY,
+            4: STATE.MOVING,
+            6: STATE.MOVING,
+            -1: STATE.FAULT,
+            -2: STATE.ERROR,
+        }
 
     def init(self):
+
+        self.__matt = matt_control.MattControl(
+            self.getProperty("wago_ip"),
+            len(self["filter"]),
+            0,
+            self.getProperty("type"),
+            self.getProperty("alternate"),
+            self.getProperty("status_module"),
+            self.getProperty("control_module"),
+            self.getProperty("datafile"),
+        )
+        self.__matt.connect()
+
         # NB should be set from configuration
-        self._transmission = 100
-        self._state = self.STATE.READY
         self._limits = (0, 100)
 
         self.update_values()
@@ -62,27 +87,21 @@ class TransmissionMockup(AbstractTransmission.AbstractTransmission):
         Returns current transmission in %
         :return: float (0 - 100)
         """
-        return self._transmission
+        self.__matt.set_energy(api.energy.get_current_energy())
+        return self.__matt.transmission_get()
 
     def _set_transmission(self, value):
         """
         Sets transmission.  NB actual value set may differ from input value
         :param value: float (0 - 100)
-        :param timeout: timeout is seconds. If None function will not wait
         :return:
         """
-        delay = 2.0
-        self._state = self.STATE.MOVING
-        self.emit("stateChanged", self.STATE.MOVING)
-        self._transmission = value
+        # NB These functions should emit stateChanged and transmissionChanged
+        # At appropriate times, i.e. when the changes are done,
+        # even if this is after this function has returned.
 
-        def delayed_state_change(self, delay):
-            # Function to dellay state_change till after _set_transmission returns
-            gevent.sleep(delay)
-            self._state = self.STATE.READY
-            self.emit("stateChanged", self.STATE.READY)
-            self.emit("transmissionChanged", self.get_transmission())
-        gevent.spawn(delayed_state_change, self, delay)
+        self.__matt.set_energy(api.energy.get_current_energy())
+        self.__matt.transmission_set(value)
 
     def get_limits(self):
         """
@@ -98,11 +117,11 @@ class TransmissionMockup(AbstractTransmission.AbstractTransmission):
         :return:
         """
         self._limits = tuple(value)
+        self.emit("limitsChanged", (value,))
 
     def get_state(self):
         """
         Returns current transmission state
         :return: STATE
         """
-        return self._state
-
+        return self._state_map.get(self.__matt.GETSTATESOMEHOW(), self.STATE.UNKOWN)
