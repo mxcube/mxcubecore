@@ -581,3 +581,10 @@ class EMBLFlux(AbstractFlux):
         }
 
         return result
+
+    def get_dose_rate(self):
+        """Get current dose rate in KGy/s at current transmission"""
+        if self.current_flux_dict is not None:
+            return self.current_flux_dict["dose_rate"]
+        else:
+            return 1
