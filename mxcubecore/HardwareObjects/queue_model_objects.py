@@ -1747,6 +1747,7 @@ class GphlWorkflow(TaskNode):
         self.path_template = PathTemplate()
         self._name = str()
         self._type = str()
+        self._characterisation_strategy = str()
         self._interleave_order = str()
         self._number = 0
         self._beam_energies = OrderedDict()
@@ -1757,8 +1758,11 @@ class GphlWorkflow(TaskNode):
         self._cell_parameters = None
         self._snapshot_count = None
         self._centre_before_sweep = None
+        self._centre_before_scan = None
 
         self._dose_budget = None
+        self._characterisation_budget_fraction = 1.0
+        self._relative_rad_sensitivity = 1.0
 
         # HACK - to differentiate between characterisation and acquisition
         # TODO remove when workflow gives relevant information
@@ -1823,6 +1827,13 @@ class GphlWorkflow(TaskNode):
     def set_space_group(self, value):
         self._space_group = value
 
+    # Characterisation strategy.
+    def get_characterisation_strategy(self):
+        return self._characterisation_strategy
+
+    def set_characterisation_strategy(self, value):
+        self._characterisation_strategy = value
+
     # Crystal system.
     def get_crystal_system(self):
         return self._crystal_system
@@ -1843,6 +1854,20 @@ class GphlWorkflow(TaskNode):
 
     def set_dose_budget(self, value):
         self._dose_budget = value
+
+    # Fraction of dose budget intended for characterisation.
+    def get_characterisation_budget_fraction(self):
+        return self._characterisation_budget_fraction
+
+    def set_characterisation_budget_fraction(self, value):
+        self._characterisation_budget_fraction = value
+
+    # Radiation sensitivity of crystal, relative to a 'standard crystal'.
+    def get_relative_rad_sensitivity(self):
+        return self._relative_rad_sensitivity
+
+    def set_relative_rad_sensitivity(self, value):
+        self._relative_rad_sensitivity = value
 
     # Cell parameters - sequence of six floats (a,b,c,alpha,beta,gamma)
     def get_cell_parameters(self):
@@ -1868,6 +1893,12 @@ class GphlWorkflow(TaskNode):
         return self._centre_before_sweep
     def set_centre_before_sweep(self, value):
         self._centre_before_sweep = bool(value)
+
+    # (Re)centre before each scan?.
+    def get_centre_before_scan(self):
+        return self._centre_before_scan
+    def set_centre_before_scan(self, value):
+        self._centre_before_scan = bool(value)
 
     def get_path_template(self):
         return self.path_template
