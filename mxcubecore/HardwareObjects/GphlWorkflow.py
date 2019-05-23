@@ -59,6 +59,7 @@ States = queue_model_enumerables.States
 # Used to pass to priorInformation when no wavelengths are set (DiffractCal)
 DUMMY_WAVELENGTH = 999.999
 
+
 class GphlWorkflow(HardwareObject, object):
     """Global Phasing workflow runner.
     """
@@ -72,7 +73,7 @@ class GphlWorkflow(HardwareObject, object):
     ]
 
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
+        super(GphlWorkflow, self).__init__(name)
         self._state = States.OFF
 
         # HO that handles connection to GPhL workflow runner
@@ -106,18 +107,25 @@ class GphlWorkflow(HardwareObject, object):
         # Configurable file paths
         self.file_paths = {}
 
-        self.dose_budgets = OrderedDict(
-            (
-                ("Sensitive Crystal:  5.0 MGy", 5.0),
-                ("Standard Crystal: 10.0 MGy", 10.0),
-                ("Robust Crystal:  20.0 MGy", 20.0),
-            )
-        )
+        # Dose budget pulldown labels and default
+        self.dose_budgets = OrderedDict()
+        self.default_dose_budget_label = None
 
     def _init(self):
-        pass
+        super(GphlWorkflow, self)._init()
 
     def init(self):
+        super(GphlWorkflow, self).init()
+
+        # Get dose budget data
+        default_dose_budget_label = None
+        xx0 = next(self.getObjects("dose_budgets"))
+        for pulldown_item in xx0.getObjects("pulldown_item"):
+            dd0 = pulldown_item.getProperties()
+            self.dose_budgets[dd0["label"]] = float(dd0["value"])
+            if default_dose_budget_label is None or dd0.get("is_default"):
+                default_dose_budget_label = dd0["label"]
+        self.default_dose_budget_label = default_dose_budget_label
 
         # Set up processing functions map
         self._processor_functions = {
@@ -176,16 +184,16 @@ class GphlWorkflow(HardwareObject, object):
 
         result = OrderedDict()
         if self.hasObject("workflow_properties"):
-            properties = self["workflow_properties"].getProperties()
+            properties = self["workflow_properties"].getProperties().copy()
         else:
             properties = {}
         if self.hasObject("invocation_properties"):
-            invocation_properties = self["invocation_properties"].getProperties()
+            invocation_properties = self["invocation_properties"].getProperties().copy()
         else:
             invocation_properties = {}
 
         if self.hasObject("all_workflow_options"):
-            all_workflow_options = self["all_workflow_options"].getProperties()
+            all_workflow_options = self["all_workflow_options"].getProperties().copy()
             if "beamline" in all_workflow_options:
                 pass
             elif api.gphl_connection.hasObject("ssh_options"):
@@ -372,9 +380,7 @@ class GphlWorkflow(HardwareObject, object):
     def get_configuration_data(self, payload, correlation_id):
         return GphlMessages.ConfigurationData(self.file_paths["gphl_beamline_config"])
 
-    def query_collection_strategy(
-        self, geometric_strategy, default_energy
-    ):
+    def query_collection_strategy(self, geometric_strategy, default_energy):
         """Display collection strategy for user approval,
         and query parameters needed"""
 
@@ -411,7 +417,9 @@ class GphlWorkflow(HardwareObject, object):
             sweeps = orientations.setdefault(rotation_id, [])
             sweeps.append(sweep)
 
-        max_dose_rate = 0.0
+        char_budget_fraction = data_model.get_characterisation_budget_fraction()
+        relative_sensitivity = data_model.get_relative_rad_sensitivity()
+        full_dose_budget = data_model.get_dose_budget() / relative_sensitivity
         lines = ["Geometric strategy   :"]
         if data_model.lattice_selected:
             # Data collection TODO: Use workflow info to distinguish
@@ -429,19 +437,24 @@ class GphlWorkflow(HardwareObject, object):
             lines.append(
                 "%-18s:  %6.1f degrees" % ("Total rotation", total_strategy_length)
             )
+            # This is not characterisation but acuisition
+            dose_budget = full_dose_budget = full_dose_budget * (
+                1 - char_budget_fraction
+            )
 
         else:
             # Charcterisation TODO: Use workflow info to distinguish h_o
             beam_energies = OrderedDict((("Characterisation", default_energy),))
             lines.append("    - Total rotation : %7.1f degrees" % strategy_length)
             total_strategy_length = strategy_length
+            dose_budget = char_budget_fraction * full_dose_budget
 
         # For calculating dose-budget transmission
-        flux_hwobj = api.flux
-        if hasattr(flux_hwobj, "get_dose_rate"):
-            max_dose_rate = api.flux.get_dose_rate(transmission=100.0)
+        std_dose_rate = api.flux.get_dose_rate()
+        if std_dose_rate:
+            std_dose_rate = std_dose_rate * 100.0 / api.transmission.get_value()
             # Convert from KGy/s to MGy/s
-            max_dose_rate /= 1000
+            std_dose_rate /= 1000
 
         for rotation_id, sweeps in orientations.items():
             goniostatRotation = sweeps[0].goniostatSweepSetting
@@ -469,18 +482,15 @@ class GphlWorkflow(HardwareObject, object):
 
         default_image_width = float(allowed_widths[default_width_index])
         default_exposure = acq_parameters.exp_time
-        default_dose_budget = data_model.get_dose_budget()
         exposure_limits = api.detector.get_exposure_time_limits()
-        if max_dose_rate:
-            experiment_time = (
-                    total_strategy_length * default_exposure / default_image_width
-            )
-            transmission = (
-                100.0 * default_dose_budget / (max_dose_rate * experiment_time)
-            )
+        experiment_time = (
+                total_strategy_length * default_exposure / default_image_width
+        )
+        if std_dose_rate:
+            transmission = 100.0 * dose_budget / (std_dose_rate * experiment_time)
             transmission = min(transmission, 100.0)
 
-            def  update_function(field_widget, experiment_length=total_strategy_length):
+            def update_function(field_widget, experiment_length=total_strategy_length):
                 """Function to update rotation_rate and budget_used fields
                 In parameter popup"""
                 parameters = field_widget.get_parameters_map()
@@ -489,27 +499,27 @@ class GphlWorkflow(HardwareObject, object):
                 dose_budget = float(parameters.get("dose_budget", 0))
                 transmission = float(parameters.get("transmission", 0))
                 if image_width and exposure_time:
-                    rotation_rate = image_width/exposure_time
+                    rotation_rate = image_width / exposure_time
                     experiment_time = experiment_length / rotation_rate
                 else:
                     rotation_rate = experiment_time = 0.0
                 if dose_budget:
                     budget_required = (
-                            experiment_time * max_dose_rate * transmission / dose_budget
+                        experiment_time * std_dose_rate * transmission / dose_budget
                     )
                 else:
                     budget_required = 0
 
                 dd0 = {
-                    "rotation_rate":rotation_rate,
-                    "experiment_time":experiment_time,
-                    "budget_required":budget_required,
+                    "rotation_rate": rotation_rate,
+                    "experiment_time": experiment_time,
+                    "budget_required": budget_required,
                 }
                 field_widget.set_values(dd0)
 
         else:
             update_function = None
-            transmission = (acq_parameters.transmission,)
+            transmission = acq_parameters.transmission
 
         field_list = [
             {
@@ -524,7 +534,7 @@ class GphlWorkflow(HardwareObject, object):
                 "type": "combo",
                 "defaultValue": str(default_image_width),
                 "textChoices": [str(x) for x in allowed_widths],
-                "update_function":update_function,
+                "update_function": update_function,
             },
             {
                 "variableName": "exposure",
@@ -535,7 +545,7 @@ class GphlWorkflow(HardwareObject, object):
                 "lowerBound": exposure_limits[0],
                 "upperBound": exposure_limits[1],
                 "decimals": 4,
-                "update_function":update_function,
+                "update_function": update_function,
             },
             # NB Transmission is in % in UI, but in 0-1 in workflow
             {
@@ -546,32 +556,32 @@ class GphlWorkflow(HardwareObject, object):
                 "lowerBound": 0.0,
                 "upperBound": 100.0,
                 "decimals": 2,
-                "update_function":update_function,
+                "update_function": update_function,
             },
             {
                 "variableName": "experiment_time",
                 "uiLabel": "Experiment duration (s)",
                 "type": "floatstring",
-                "defaultValue": experiment_time ,
+                "defaultValue": experiment_time,
                 "decimals": 1,
-                "readOnly":True
+                "readOnly": True,
             },
             {
                 "variableName": "rotation_rate",
                 "uiLabel": "Rotation speed (deg/s)",
                 "type": "floatstring",
-                "defaultValue": (float(default_image_width/default_exposure)),
+                "defaultValue": (float(default_image_width / default_exposure)),
                 "decimals": 1,
-                "readOnly":True
+                "readOnly": True,
             },
             {
                 "variableName": "dose_budget",
                 "uiLabel": "Dose budget (MGy)",
                 "type": "floatstring",
-                "defaultValue": default_dose_budget,
+                "defaultValue": full_dose_budget,
                 "lowerBound": 0.0,
                 "decimals": 1,
-                "readOnly":True
+                "readOnly": True,
             },
             {
                 "variableName": "budget_required",
@@ -581,7 +591,7 @@ class GphlWorkflow(HardwareObject, object):
                 "lowerBound": 0.0,
                 "upperBound": 100.0,
                 "decimals": 2,
-                "readOnly":True
+                "readOnly": True,
             },
         ]
 
@@ -624,18 +634,20 @@ class GphlWorkflow(HardwareObject, object):
             or "calibration" in data_model.get_type().lower()
         ):
 
-            if isInterleaved and data_model.get_interleave_order() not in ("gs", ""):
+            if isInterleaved:
                 field_list.append(
                     {
                         "variableName": "wedgeWidth",
-                        "uiLabel": "Images per wedge",
+                        "uiLabel": "Wedge width (deg)",
                         "type": "text",
-                        "defaultValue": "10",
+                        "defaultValue": (
+                            "%s" % self.getProperty("default_wedge_width", 15)
+                        ),
                         "lowerBound": 0,
-                        "upperBound": 1000,
+                        "upperBound": 7200,
                         "decimals": 1,
                     }
-            )
+                )
 
             field_list.append(
                 {
@@ -650,9 +662,18 @@ class GphlWorkflow(HardwareObject, object):
                 field_list.append(
                     {
                         "variableName": "centre_before_sweep",
-                        "uiLabel": "(Re)centre crystal before the start of each sweep?",
+                        "uiLabel": "(Re)centre crystal when orientation changes?",
                         "type": "boolean",
                         "defaultValue": bool(self.getProperty("centre_before_sweep")),
+                    }
+                )
+            if isInterleaved:
+                field_list.append(
+                    {
+                        "variableName": "centre_before_scan",
+                        "uiLabel": "(Re)centre crystal at the start of each scan?",
+                        "type": "boolean",
+                        "defaultValue": bool(self.getProperty("centre_before_scan")),
                     }
                 )
             if data_model.get_snapshot_count():
@@ -675,14 +696,14 @@ class GphlWorkflow(HardwareObject, object):
             )
 
         params = self._return_parameters.get()
-        if isInterleaved and data_model.get_interleave_order() in ("gs", ""):
-            params["wedgeWidth"] = 10
         self._return_parameters = None
         result = {}
         tag = "imageWidth"
         value = params.get(tag)
         if value:
-            result[tag] = float(value)
+            image_width = result[tag] = float(value)
+        else:
+            image_width = self.getProperty("default_image_width", 15)
         tag = "exposure"
         value = params.get(tag)
         if value:
@@ -695,7 +716,7 @@ class GphlWorkflow(HardwareObject, object):
         tag = "wedgeWidth"
         value = params.get(tag)
         if value:
-            result[tag] = int(value)
+            result[tag] = int(float(value) / image_width)
         tag = "resolution"
         value = params.get(tag)
         if value:
@@ -709,9 +730,20 @@ class GphlWorkflow(HardwareObject, object):
             beam_energies[tag] = float(params.get(tag, 0))
         result["beam_energies"] = beam_energies
 
-        for tag in ("centre_before_sweep", "centre_at_start", "centring_snapshots"):
+        for tag in (
+            "centre_before_sweep",
+            "centre_at_start",
+            "centre_before_scan",
+            "centring_snapshots",
+        ):
             # This defaults to False if parameter is not queried
             result[tag] = bool(params.get(tag))
+
+        if not data_model.lattice_selected:
+            # About to collect characterisation or calibration data
+            # Update char_budget_fraction to reflect remaining dose budget
+            budget_used = float(params.get("budget_required", 0.0))
+            data_model.set_characterisation_budget_fraction(budget_used / 100.0)
 
         return result
 
@@ -789,8 +821,15 @@ class GphlWorkflow(HardwareObject, object):
         centre_at_start = parameters.pop("centre_at_start", False)
         centring_snapshots = parameters.pop("centring_snapshots", False)
         centre_before_sweep = parameters.pop("centre_before_sweep", False)
+        centre_before_scan = parameters.pop("centre_before_scan", False)
         gphl_workflow_model.set_centre_before_sweep(centre_before_sweep)
-        if not (centre_before_sweep or centre_at_start or transcal_parameters):
+        gphl_workflow_model.set_centre_before_scan(centre_before_scan)
+        if not (
+            centre_before_sweep
+            or centre_before_scan
+            or centre_at_start
+            or transcal_parameters
+        ):
             centre_at_start = True
 
         # Loop over first sweep occurrences and (re)centre
@@ -817,7 +856,7 @@ class GphlWorkflow(HardwareObject, object):
                 okp = tuple(initial_settings[x] for x in self.rotation_axis_roles)
                 dd0 = self.calculate_recentring(okp, **recen_parameters)
                 logging.getLogger("HWR").debug(
-                    "GPHL Recentring. okp, motors" + str(okp) + str(sorted(dd0.items()))
+                    "GPHL Recentring. okp, motors, %s, %s" + okp + sorted(dd0.items())
                 )
                 if centre_at_start:
                     motor_settings = initial_settings.copy()
@@ -834,7 +873,7 @@ class GphlWorkflow(HardwareObject, object):
                         **dd0
                     )
                     logging.getLogger("HWR").debug(
-                        "Recentring. okp=%s, %s" % (okp, sorted(dd0.items()))
+                        "Recentring. okp=%s, %s", okp, sorted(dd0.items())
                     )
                     goniostatTranslations.append(translation)
 
@@ -899,16 +938,17 @@ class GphlWorkflow(HardwareObject, object):
         else:
             # TODO Clarify if set_position does not have a built-in wait
             # TODO whether you need towait for somethign else too, ...
+
             api.resolution.set_position(new_resolution)
+            # TODO it should be set_position, fix TineMotor (resolution at EMBL)
+            # api.resolution.move(new_resolution)
             api.detector.wait_ready()
             # NBNB Wait till value has settled
             id_ = None
+        # orgxy = collect_hwobj.get_beam_centre_pix()
         orgxy = collect_hwobj.get_beam_centre()
         detectorSetting = GphlMessages.BcsDetectorSetting(
-            new_resolution,
-            id_=id_,
-            orgxy=orgxy,
-            Distance=api.detector.get_distance(),
+            new_resolution, id_=id_, orgxy=orgxy, Distance=api.detector.get_distance()
         )
 
         sampleCentred = GphlMessages.SampleCentred(
@@ -1016,8 +1056,9 @@ class GphlWorkflow(HardwareObject, object):
             )
         except subprocess.CalledProcessError as err:
             logging.getLogger("HWR").error(
-                "Recen failed with returncode %s. Output was:\n%s"
-                % (err.returncode, err.output)
+                "Recen failed with returncode %s. Output was:\n%s",
+                err.returncode,
+                err.output,
             )
             return result
 
@@ -1061,7 +1102,10 @@ class GphlWorkflow(HardwareObject, object):
         else:
             # Do not make snapshots during chareacterisation
             snapshot_count = 0
-        enqueue_centring = bool(gphl_workflow_model.get_centre_before_sweep())
+        centre_before_scan = bool(gphl_workflow_model.get_centre_before_scan())
+        enqueue_centring = (
+            bool(gphl_workflow_model.get_centre_before_sweep()) or centre_before_scan
+        )
         data_collections = []
         snapshot_counts = dict()
         found_orientations = set()
@@ -1078,13 +1122,11 @@ class GphlWorkflow(HardwareObject, object):
             acq_parameters.osc_start = scan.start
             acq_parameters.osc_range = scan.width.imageWidth
             logging.getLogger("HWR").info(
-                "Scan: %s images of %s deg. starting at %s (%s deg)"
-                % (
-                    acq_parameters.num_images,
-                    acq_parameters.osc_range,
-                    acq_parameters.first_image,
-                    acq_parameters.osc_start,
-                )
+                "Scan: %s images of %s deg. starting at %s (%s deg)",
+                acq_parameters.num_images,
+                acq_parameters.osc_range,
+                acq_parameters.first_image,
+                acq_parameters.osc_start,
             )
             # acq_parameters.kappa = self._get_kappa_axis_position()
             # acq_parameters.kappa_phi = self._get_kappa_phi_axis_position()
@@ -1145,7 +1187,9 @@ class GphlWorkflow(HardwareObject, object):
             path_template.num_files = acq_parameters.num_images
 
             goniostatRotation = sweep.goniostatSweepSetting
-            if enqueue_centring and goniostatRotation.id_ not in found_orientations:
+            if (
+                enqueue_centring and goniostatRotation.id_ not in found_orientations
+            ) or centre_before_scan:
                 # Put centring on queue and collect using the resulting position
                 # NB this means that the actual translational axis positions
                 # will NOT be known to the workflow
@@ -1250,7 +1294,7 @@ class GphlWorkflow(HardwareObject, object):
             )
 
         params = self._return_parameters.get()
-        ll0 = str(params["_cplx"][0]).split()
+        ll0 = ConvertUtils.text_type(params["_cplx"][0]).split()
         if ll0[0] == "*":
             del ll0[0]
         #
@@ -1331,10 +1375,10 @@ class GphlWorkflow(HardwareObject, object):
         solutions = []
         if solution_format == "IDXREF":
             lines = text.splitlines()
-            for indx in range(len(lines)):
-                if "BRAVAIS-" in lines[indx]:
+            for indx, line in enumerate(lines):
+                if "BRAVAIS-" in line:
                     # Used as marker for first header line
-                    header = ["%s\n%s" % (lines[indx], lines[indx + 1])]
+                    header = ["%s\n%s" % (line, lines[indx + 1])]
                     break
             else:
                 raise ValueError("Substring 'BRAVAIS-' missing in %s indexing solution")
@@ -1363,8 +1407,9 @@ class GphlWorkflow(HardwareObject, object):
         request_centring = payload
 
         logging.getLogger("user_level_log").info(
-            "Start centring no. %s of %s"
-            % (request_centring.currentSettingNo, request_centring.totalRotations)
+            "Start centring no. %s of %s",
+            request_centring.currentSettingNo,
+            request_centring.totalRotations,
         )
 
         # Rotate sample to RotationSetting
@@ -1383,7 +1428,6 @@ class GphlWorkflow(HardwareObject, object):
             )
             self._data_collection_group = new_dcg_model
             self._add_to_queue(gphl_workflow_model, new_dcg_model)
-
 
         if request_centring.currentSettingNo < 2:
             # Start without fine zoom setting
@@ -1603,7 +1647,7 @@ class GphlWorkflow(HardwareObject, object):
                 or sample_model.code
                 or sample_model.lims_code
                 or workflow_model.path_template.get_prefix()
-                or str(sampleId)
+                or ConvertUtils.text_type(sampleId)
             ),
             rootDirectory=image_root,
             userProvidedInfo=userProvidedInfo,
