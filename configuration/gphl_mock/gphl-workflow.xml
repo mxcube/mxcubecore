@@ -4,7 +4,7 @@
     <!-- combined with instcfgout parameter (see below); see also <newinstr> -->
     <!--<instcfgout_dir>/MXCuBE/mxcube</instcfgout_dir>-->
 
-    <!-- default image width selection  if None are given by the workflow-->
+    <!-- default image width selection if None are given by the workflow-->
     <!-- First value is the default; values are sorted before use -->
     <default_image_widths> 0.1 0.05 0.2</default_image_widths>
 
@@ -60,10 +60,11 @@
     <test_crystals>
         <test_crystal>
             <name>Thaumatin</name>
+            <!-- From PDB 1RQW -->
             <space_group>P41212</space_group>
-            <a>57.6</a>
-            <b>57.6</b>
-            <c>149.6</c>
+            <a>57.847</a>
+            <b>57.847</b>
+            <c>150.125</c>
             <alpha>90</alpha>
             <beta>90</beta>
             <gamma>90</gamma>
@@ -79,11 +80,34 @@
             <gamma>90</gamma>
         </test_crystal>
         <test_crystal>
+            <name>CubicInsulin</name>
+            <!-- From PDB 2BN3 -->
+            <space_group>I213</space_group>
+            <a>77.9</a>
+            <b>77.9</b>
+            <c>77.9</c>
+            <alpha>90</alpha>
+            <beta>90</beta>
+            <gamma>90</gamma>
+        </test_crystal>
+        <test_crystal>
             <name>HEWLysozyme</name>
+            <!-- From PDB 193L -->
             <space_group>P43212</space_group>
-            <a>77.05</a>
-            <b>77.05</b>
-            <c>37.21</c>
+            <a>78.54</a>
+            <b>78.45</b>
+            <c>37.70</c>
+            <alpha>90</alpha>
+            <beta>90</beta>
+            <gamma>90</gamma>
+        </test_crystal>
+        <test_crystal>
+            <name>Se-Met_FAE</name>
+            <!-- From PDB 1GKK -->
+            <space_group>P212121</space_group>
+            <a>65.381</a>
+            <b>108.793</b>
+            <c>113.877</c>
             <alpha>90</alpha>
             <beta>90</beta>
             <gamma>90</gamma>
@@ -93,10 +117,10 @@
     <!--  Workflow options common to all workflows - can be overridden for individual workflows-->
     <all_workflow_options>
         <!-- URL for beamline connection, as seen from the workflow application -->
-        <!-- The default value is 'py4j::' if teh workflow is run on the same computer -->
+        <!-- The default value is 'py4j::' if the workflow is run on the same computer -->
         <!-- and 'py4j:%s:' % socket.gethostname() if workflow is run remotely via ssh -->
         <!-- <beamline>py4j:fourier.globalphasing.com:</beamline> -->
-        <beamline>py4j::</beamline>
+        <!-- <beamline>py4j::</beamline> -->
         <!-- Location of persistence layer (workflow application data files -->
         <!-- The main data file is : <wdir>/<persistname>.xml -->
         <persistname>persistence</persistname>
@@ -383,7 +407,7 @@
                 <wfprefix>Dcalib2_</wfprefix>
                 <!-- Name of strategy from library to use -->
                 <strategy>DiffractCal_ex</strategy>
-                <!--&lt;!&ndash; Working subdirectory for workflow-side application data&ndash;&gt;-->
+                <!-- Working subdirectory for workflow-side application data-->
                 <!--<appdir>calculations</appdir>-->
                 <!-- Name for diffractometer calibration output -->
                 <calibration>diffractcal</calibration>
@@ -407,7 +431,7 @@
                 <wfprefix>Dcalib1_</wfprefix>
                 <!-- Name of strategy from library to use -->
                 <strategy>DiffractCal</strategy>
-                <!--&lt;!&ndash; Working subdirectory for workflow-side application data&ndash;&gt;-->
+                <!-- Working subdirectory for workflow-side application data-->
                 <!--<appdir>calculations</appdir>-->
                 <!-- Name for diffractometer calibration output -->
                 <calibration>diffractcal</calibration>
