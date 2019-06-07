@@ -13,26 +13,51 @@
     <!-- May not work well if you interleave! -->
     <!-- Sets default value only -->
     <centre_before_sweep>True</centre_before_sweep>
+    <!-- NB Adds a sample centring for every scan -->
+    <!-- Would not work well with too many scans -->
+    <!-- Sets default value only -->
+<!--    <centre_before_scan>True</centre_before_scan>-->
     <!-- Centre all orientations before acquisition start -->
     <!-- Sets default value only -->
     <!--<centre_at_start>True</centre_at_start>-->
 
     <!-- Force GPhL workflow to use current energy value always.  -->
     <!-- Any non-empty value is True -->
-    <disable_energy_change>True</disable_energy_change>
+    <disable_energy_change>False</disable_energy_change>
+
+    <!-- Default wedge width in degrees, for interleaved data collection -->
+    <default_wedge_width>15</default_wedge_width>
+
+    <!-- Force GPhL workflow to use current energy value always.  -->
+    <!-- Any non-empty value is True -->
+    <characterisation_budget_percent>5</characterisation_budget_percent>
+
+    <characterisation_strategies>
+        InitialCharacterisation_6_5
+        InitialCharacterisation_12_3
+        InitialCharacterisation_12_4
+        InitialCharacterisation_12_5
+    </characterisation_strategies>
+
+    <!-- Dose budgets (in MGy) for Pulldown in GphlAcquisitionWidget -->
+    <dose_budgets>
+        <pulldown_item>
+            <label>Sensitive Crystal:  5.0 MGy</label>
+            <value>5.0</value>
+        </pulldown_item>
+        <pulldown_item>
+            <label>Standard Crystal: 10.0 MGy</label>
+            <value>10.0</value>
+            <is_default>True</is_default>
+        </pulldown_item>
+        <pulldown_item>
+            <label>Robust Crystal: 20.0 MGy</label>
+            <value>20.0</value>
+        </pulldown_item>
+    </dose_budgets>
 
     <!-- Describes the test crystals used for diffractometer calibration -->
     <test_crystals>
-        <test_crystal>
-            <name>Germanate</name>
-            <space_group>Ia-3d</space_group>
-            <a>51.2487</a>
-            <b>51.2487</b>
-            <c>51.2487</c>
-            <alpha>90</alpha>
-            <beta>90</beta>
-            <gamma>90</gamma>
-        </test_crystal>
         <test_crystal>
             <name>Thaumatin</name>
             <!-- From PDB 1RQW -->
@@ -40,6 +65,16 @@
             <a>57.847</a>
             <b>57.847</b>
             <c>150.125</c>
+            <alpha>90</alpha>
+            <beta>90</beta>
+            <gamma>90</gamma>
+        </test_crystal>
+        <test_crystal>
+            <name>Germanate</name>
+            <space_group>Ia-3d</space_group>
+            <a>51.2487</a>
+            <b>51.2487</b>
+            <c>51.2487</c>
             <alpha>90</alpha>
             <beta>90</beta>
             <gamma>90</gamma>
@@ -82,7 +117,7 @@
     <!--  Workflow options common to all workflows - can be overridden for individual workflows-->
     <all_workflow_options>
         <!-- URL for beamline connection, as seen from the workflow application -->
-        <!-- The default value is 'py4j::' if teh workflow is run on the same computer -->
+        <!-- The default value is 'py4j::' if the workflow is run on the same computer -->
         <!-- and 'py4j:%s:' % socket.gethostname() if workflow is run remotely via ssh -->
         <!-- <beamline>py4j:fourier.globalphasing.com:</beamline> -->
         <!-- <beamline>py4j::</beamline> -->
@@ -110,8 +145,6 @@
         <!--<rootsubdir>Not Used</rootsubdir>-->
         <!-- File name pattern for characterisation data collection -->
         <charpattern>generic</charpattern>
-        <!-- Strategy name for characterisation data collection -->
-        <strategy>InitialCharacterisation</strategy>
     </acq_workflow_options>
 
     <mx_workflow_options>
@@ -145,8 +178,8 @@
     <!-- Note that irtrelevant properties are simply ignored.-->
     <workflow_properties>
         <!-- Set to false to switch off pre-start checks for directory existence -->
-        <co.gphl.wf.blRootCheck>false</co.gphl.wf.blRootCheck>
-        <!-- <co.gphl.wf.procRootCheck>false</co.gphl.wf.procRootCheck> -->
+        <!--<co.gphl.wf.blRootCheck>false</co.gphl.wf.blRootCheck>-->
+        <!--<co.gphl.wf.procRootCheck>false</co.gphl.wf.procRootCheck>-->
         <!-- Dummy sample properties. -->
         <!-- Choose values for these to make the
         predictions for the characterisation strategy look reasonable (they
