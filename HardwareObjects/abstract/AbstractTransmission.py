@@ -19,42 +19,24 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Defines abstract Transmission
+"""Defines abstract Transmission - example of an abstract class
 """
 
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
-from abc import ABCMeta, abstractmethod
-from enum import Enum, unique
+from abc import ABCMeta, abstractmethod, abstractproperty
 import gevent
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-__credits__ = [" Copyright © 2016 - 2019 by Global Phasing Ltd. All rights reserved"]
+# We should make a standard set of states and use that wherever possible
+from somewhere import GeneralState
+
+__credits__ = [" Copyright © 2019 by MXCuBE collaboration. All rights reserved"]
 __license__ = "LGPLv3+"
 __category__ = "General"
 __author__ = "rhfogh"
-__date__ = "20190517"
-
-
-# NB we need a set of general motor states, with a minimum number of possibilities
-# which can be shared among many abstract classes
-# This is just a placeholder, based on ShutterStateprobably we need different values
-@unique
-class MotorState(Enum):
-    """
-    Defines the valid General motor states
-
-    NB We want Enum, NOT IntEnum, because we want MotorState.READY == 2 to be False
-    """
-
-    UNKOWN = 0
-    READY = 1
-    MOVING = 2
-    AUTOMATIC = 3
-    DISABLED = 4
-    FAULT = -1
-    ERROR = -2
+__date__ = "20190607"
 
 
 class AbstractTransmission(HardwareObject):
@@ -62,17 +44,25 @@ class AbstractTransmission(HardwareObject):
 
     __metaclass__ = ABCMeta
 
-    STATE = MotorState
+    STATE = GeneralState
 
     def __init__(self, name):
         super(AbstractTransmission, self).__init__(name)
 
-    def set_transmission(self, value, timeout=None):
+    def set_value_to(self, value, timeout=None):
         """
-        Sets transmission. NB actual value set may differ from input value
+        Sets value and waits for completion.
+        NB actual value set may differ from input value
+
         :param value: float (0 - 100)
+        :param timeout: float
         :return:
         """
+        if not isinstance(timeout, (int, float)) or timeout <= 0:
+            raise ValueError("Invalid value for timeout: %s" % timeout)
+        gevent.with_timeout(timeout, setattr, self, value)
+
+
         limits = self.get_limits()
         if None not in limits and (value >= limits[0]) != (value <= limits[1]):
             raise ValueError("transmission value %s outside imits %s" % (value, limits))
