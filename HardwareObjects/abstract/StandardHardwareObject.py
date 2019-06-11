@@ -62,7 +62,7 @@ class StandardHardwareObject(HardwareObject):
 
     def init(self):
         super(StandardHardwareObject, self).init()
-        self.ready_event = gevent.event.Event()
+        self._ready_event = gevent.event.Event()
 
     def accept_new_value(self, value):
         """
@@ -145,19 +145,33 @@ class StandardHardwareObject(HardwareObject):
         if not success:
             raise RuntimeError("Timeout waiting for status ready")
 
-    def set_value_to(self, value, timeout):
+    def set_value_relative(self, increment, timeout=None):
         """
-        Sets value and waits for completion.
-        NB actual value set may differ from input value
+        Sets value relative to current valure.
+        If timeout is set, waits up to timeout for completion.
 
-        :param value: float (0 - 100)
-        :param timeout: float
+        :param increment: float increment to value
+        :param timeout: float non-negative timeout in seconds
         :return:
         """
-        if not isinstance(timeout, (int, float)) or timeout <= 0:
-            raise ValueError("Invalid value for timeout: %s" % timeout)
+        self.set_value_to(self.value + increment, timeout)
+
+    def set_value_to(self, value, timeout=None):
+        """
+        Sets value. If timeout is set, waits up to timeout for completion.
+
+        :param value: float
+        :param timeout: float non-negative timeout in seconds
+        :return:
+        """
+        if timeout:
+            if not isinstance(timeout, (int, float)):
+                raise TypeError("Invalid data type for timeout: %s" % timeout)
+            elif timeout < 0:
+                raise ValueError("Negative value for timeout: %s" % timeout)
         self.value = value
-        self.wait_ready(timeout)
+        if timeout:
+            self.wait_ready(timeout)
 
     def update_values(self):
         """

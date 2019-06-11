@@ -46,9 +46,8 @@ class StandardMockupObject(StandardHardwareObject.StandardHardwareObject):
         super(StandardMockupObject, self).__init__(name)
 
         self._value = None
-        self._limits = (None,None)
+        self._limits = (None, None)
         self._value_set_delay = 1.0
-
 
     @property
     def value(self):

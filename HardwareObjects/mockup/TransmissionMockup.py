@@ -35,6 +35,7 @@ __category__ = "General"
 __author__ = "rhfogh"
 __date__ = "17/05/2019"
 
+
 class TransmissionMockup(StandardMockupObject.StandardMockupObject):
     """MockTransmission implementation using new StandardHardwareObject
     """
