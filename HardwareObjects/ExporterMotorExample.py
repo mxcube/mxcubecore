@@ -56,7 +56,7 @@ class ExporterMotorExample(StandardHardwareObject.StandardHardwareObject):
             {"type": "exporter", "name": "%sPosition" % self.motor_name},
             self.motor_name + self.motor_pos_attr_suffix,
         )
-        self.chan_position.connectSignal("update", self._set_value)
+        self.chan_position.connectSignal("update", self.set_value_to)
 
         self.chan_state = self.addChannel(
             {"type": "exporter", "name": "state"}, "State"
@@ -141,19 +141,19 @@ class ExporterMotorExample(StandardHardwareObject.StandardHardwareObject):
         """
         return self.cmd_get_max_speed(self.motor_name)
 
-    def _get_value(self):
+    @property
+    def value(self):
         """
         current value (float or None) of object.
         :return: Optional[float]
         """
         return self.chan_position.getValue()
 
-    def _set_value(self, value):
+    @value.setter
+    def value(self, value):
         if self.accept_new_value(value):
             self.state = self.STATE.BUSY
             self.chan_position.setValue(value)
-
-    value = property(_get_value, _set_value, doc=_get_value.__doc__)
 
     def get_dynamic_limits(self):
         try:
