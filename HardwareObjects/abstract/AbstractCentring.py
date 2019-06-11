@@ -35,13 +35,18 @@ Example xml file
     kappa
     kappa_phi
   </centring_motors>
+  <grid_directions>
+    <holderlength>-1</holderlength>
+    <horizontal_centring>-1</horizontal_centring>
+  </grid_directions>
 </object>
 """
 from __future__ import print_function
+import math
+import numpy
 import gevent
 import logging
 import enum
-from warnings import warn
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
@@ -57,6 +62,8 @@ class AbstractCentring(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self.centring_motors = None
+        self.directions = {}
+
     
     def init(self):
         self.diffr_hwobj = self.getObjectByRole("diffractometer")
@@ -69,29 +76,94 @@ class AbstractCentring(HardwareObject):
         except IndexError:
             pass
 
+        for role in self.centring_motors:
+            self.directions[role] = 1
+
+        # get the grid directions, if any
+        try:
+            directions = self["grid_directions"].getProperties()
+            for role, value in directions.items():
+                self.directions[role] = value
+        except IndexError:
+            pass
+
     def motor_positions_to_screen(self, centred_positions_dict):
+        """ Retirns x, y coordinates of the centred point, calculated
+            from positions of the centring motors
+        Args:
+            centred_positions_dict (dict): role:position dictionary
+        Returns:
+            (tuple): x, y [pixels]
         """
-        Descript. :
-        """
-        c = centred_positions_dict
+        # update the zoom calibration and get pixeld/mm
+        self.update_zoom_calibration()
+        pixels_mm_x, pixels_mm_y = self.diffr_hwobj.get_pixels_per_mm()
+        if None in (pixels_mm_x, pixels_mm_y):
+            return 0, 0
 
-        if self.head_type == GenericDiffractometer.HEAD_TYPE_MINIKAPPA:
-            kappa = self.motor_hwobj_dict["kappa"]
-            phi = self.motor_hwobj_dict["kappa_phi"]
+        # read the motor positions
+        motors_pos_dict = dict(self.diffr_hwobj.get_motor_positions())
 
-        xy = self.centring_hwobj.centringToScreen(c)
-        x = xy["X"] * self.pixels_per_mm_x + self.zoom_centre["x"]
-        y = xy["Y"] * self.pixels_per_mm_y + self.zoom_centre["y"]
+        omega_angle = math.radians(motors_pos_list["omega"] * self.directions["omega"])
+        sampx = self.direction["horizontal_centring"] * (
+            centred_positions_dict["horizontal_centring"] -
+            motors_pos_dict["horizontal_centring"]
+        )
+        sampy = self.direction["vertical_centring"] * (
+            centred_positions_dict["vertical_centring"] -
+            motors_pos_dict["vertical_centring"]
+        )
+        phiy = self.direction["horizontal_alignment"] * (
+            centred_positions_dict["horizontal_alignment"] -
+            motors_pos_dict["horizontal_alignment"]
+        )
+        phiz = self.direction["vertical_alignment"] * (
+            centred_positions_dict["vertical_alignment"] -
+            motors_pos_dict["vertical_alignment"]
+        )
+
+        rot_matrix = numpy.matrix(
+            [
+                math.cos(omega_angle),
+                -math.sin(omega_angle),
+                math.sin(omega_angle),
+                math.cos(omega_angle),
+            ]
+        )
+        rot_matrix.shape = (2, 2)
+        inv_rot_matrix = numpy.array(rot_matrix.I)
+        dx, dy = (
+            numpy.dot(numpy.array([sampx, sampy]), inv_rot_matrix) * pixels_mm_x
+        )
+        beam_x, beam_y = self.beaminfo_hwobj.get_beam_position()
+        x = (phiy * pixels_mm_x) + beam_x
+        y = dy + (phiz * pixels_mm_y) + beam_y
+
         return x, y
 
-    def manual_centring(self, nb_clicks=3):
-        """ Do centring based on nb_clicks
+    def automatic_centring(self, motors_list):
+        """ Do automatic centring, using the motors, defined in the motors_list
         Args:
-           nb_clicks (int): number of clicks, default value is 3
+            motors_list (list): lis of motor roles
         Returns:
-           (dict): Motor hardware object as key, position as value
+            (dict): motor_role:position dictionary
         """
+    def start_centring(self, method, sample_info=None, wait=False):
+        """ Start centring """
 
+    def cancel_centring(self):
+        """ Cancel centring """
+
+    def manual_centring(self, motors_list, nb_positions=3, rotation_angle=90):
+        """ Do manual centring, using the motors, defined in the motors_list
+        Args:
+            motors_list (list): lis of motor roles
+            nb_rotations (int): Number of different positions, needed to
+                                calculate the centre position.
+            rotation_angle (float): Angle to rotate between each position [deg]
+        Returns:
+            (dict): motor_role:position dictionary
+        """
         omega = self.diffr_hwobj.centring_motors["omega"]
         self.centring_hwobj.initCentringProcedure()
         for click in range(nb_clicks):
@@ -101,9 +173,8 @@ class AbstractCentring(HardwareObject):
             self.user_clicked_event = gevent.event.AsyncResult()
             x, y = self.user_clicked_event.get()
             self.centring_hwobj.appendCentringDataPoint(
-                {
-                    "X": (x - beam_x) / pixels_mm_x,
-                    "Y": (y - beam_y) / pixels_mm_y,
+                {"X": (x - beam_x) / pixels_mm_x,
+                 "Y": (y - beam_y) / pixels_mm_y,
                 }
             )
 
@@ -118,3 +189,15 @@ class AbstractCentring(HardwareObject):
                     omega.move_relative(90, wait=True)
         self.omega_reference_add_constraint()
         return self.centring_hwobj.centeredPosition(return_by_name=False)
+
+        def move_to_beam(self, coord_x, coord_y, wait=False):
+        """ Move the diffractometer to coordinates
+        Args:
+            coord_x (int): X coordinate [pixels]
+            coord_y (int): Y coordinate [pixels]
+            waith (bool): wait (True) or not (False) until the end of the movement
+        """
+        self.start_centring(
+            CentringMethod.MOVE_TO_BEAM, coordinates=[coord_x, coord_y],
+            wait=wait
+        )
