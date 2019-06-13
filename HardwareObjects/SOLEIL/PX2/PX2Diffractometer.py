@@ -487,27 +487,15 @@ class PX2Diffractometer(GenericDiffractometer):
         """
         Moves diffractometer motors to the requested positions
 
-        :param motors_dict: dictionary with motor names or hwobj
+        :param motors_dict:  with motor names or hwobj
                             and target values.
         :type motors_dict: dict
         """
-        start = time.time()
-        # self.log.info('in move_motors')
-        # self.log.info('motor_positions %s' % motor_positions)
 
         position = self.translate_from_mxcube_to_md2(motor_positions)
 
-        # position = {}
-        # for motor in motor_positions:
-        # if hasattr(motor, 'motor_name'):
-        # position[motor.motor_name] = motor_positions[motor]
-        # elif motor in self.motor_name_mapping:
-        # position[motor] = motor_positions[motor]
-
-        # self.log.info('position %s' % position)
         self.goniometer.set_position(position, timeout=timeout)
 
-        # self.log.info('move_motors took %.3f seconds' % (time.time()-start))
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
         """
