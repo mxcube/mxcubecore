@@ -124,7 +124,8 @@ class PX2Diffractometer(GenericDiffractometer):
         self.cmd_start_auto_focus = None
         self.cmd_get_omega_scan_limits = None
         self.cmd_save_centring_positions = None
-
+        self.centring_time = None
+        
         # Internal values -----------------------------------------------------
         self.use_sc = False
         self.omega_reference_pos = [0, 0]
@@ -466,7 +467,6 @@ class PX2Diffractometer(GenericDiffractometer):
         else:
             self.emit_progress_message("Moving sample to centred position...")
             self.emit_centring_moving()
-            s_move = time.time()
             try:
                 self.move_to_motors_positions(motor_pos)
             except BaseException:
