@@ -19,9 +19,13 @@
 
 import os
 import time
-import gevent
 import logging
 import traceback
+import gevent
+import pickle
+
+import numpy as np
+from scipy.optimize import minimize
 
 from math import sqrt
 from goniometer import goniometer
@@ -32,9 +36,6 @@ from film import film
 import beam_align
 import scan_and_align
 import optical_alignment
-import pickle
-import numpy as np
-from scipy.optimize import minimize
 import copy
 from anneal import anneal as anneal_procedure
 import datetime
