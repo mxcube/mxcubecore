@@ -23,18 +23,18 @@ import logging
 import traceback
 import pickle
 import copy
+import datetime
+import h5py
+
 import numpy as np
 from scipy.optimize import minimize
 from math import sqrt
-import datetime
-import h5py
 
 import gevent
 
 from goniometer import goniometer
 from detector import detector
 from camera import camera
-from film import film
 
 import beam_align
 import scan_and_align
