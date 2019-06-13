@@ -21,8 +21,8 @@ import os
 import time
 import logging
 import traceback
-import gevent
 import pickle
+import gevent
 
 import numpy as np
 from scipy.optimize import minimize
