@@ -455,7 +455,6 @@ class PX2Diffractometer(GenericDiffractometer):
         """
         Descript. :
         """
-        start = time.time()
         try:
             motor_pos = centring_procedure.get()
             # if isinstance(motor_pos, gevent.GreenletExit):
