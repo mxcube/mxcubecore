@@ -22,12 +22,15 @@ import time
 import logging
 import traceback
 import pickle
-import gevent
-
+import copy
 import numpy as np
 from scipy.optimize import minimize
-
 from math import sqrt
+import datetime
+import h5py
+
+import gevent
+
 from goniometer import goniometer
 from detector import detector
 from camera import camera
@@ -36,10 +39,8 @@ from film import film
 import beam_align
 import scan_and_align
 import optical_alignment
-import copy
+
 from anneal import anneal as anneal_procedure
-import datetime
-import h5py
 from queue_model_enumerables_v1 import CENTRING_METHOD
 
 try:
