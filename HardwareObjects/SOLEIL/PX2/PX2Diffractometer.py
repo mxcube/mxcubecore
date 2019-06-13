@@ -505,7 +505,7 @@ class PX2Diffractometer(GenericDiffractometer):
         # position[motor] = motor_positions[motor]
 
         # self.log.info('position %s' % position)
-        self.goniometer.set_position(position)
+        self.goniometer.set_position(position, timeout=timeout)
 
         # self.log.info('move_motors took %.3f seconds' % (time.time()-start))
 
