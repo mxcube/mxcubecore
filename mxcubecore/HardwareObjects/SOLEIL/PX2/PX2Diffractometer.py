@@ -17,10 +17,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import time
 import gevent
 import logging
-import os
 import traceback
 
 from math import sqrt
