@@ -709,21 +709,6 @@ class PX2Diffractometer(GenericDiffractometer):
             c *= 1e-3
             r *= 1.0e-3
             v = {"c": c, "r": r, "alpha": alpha}
-            # initial_parameters = lmfit.Parameters()
-            # initial_parameters.add_many(('c', 0., True, -5e3, +5e3, None, None),
-            # ('r', 0., True, 0., 4e3, None, None),
-            # ('alpha', -np.pi/3, True, -2*np.pi, 2*np.pi, None, None))
-
-            # fit_y = lmfit.minimize(self.circle_model_residual2, initial_parameters, method='nelder', args=(angles, vertical_discplacements)) #, kws={'data': vertical_discplacements})
-            # self.log.info(fit_report(fit_y))
-            # optimal_params = fit_y.params
-            # v = optimal_params.valuesdict()
-            # c = v['c']
-            # r = v['r']
-            # alpha = v['alpha']
-
-            # c *= 1e-3
-            # r *=1.e-3
 
         else:
             initial_parameters = lmfit.Parameters()
@@ -742,7 +727,7 @@ class PX2Diffractometer(GenericDiffractometer):
                 initial_parameters,
                 method="nelder",
                 args=(angles, vertical_discplacements),
-            )  # , kws={'data': vertical_discplacements})
+            )
             self.log.info(fit_report(fit_y))
             optimal_params = fit_y.params
             v = optimal_params.valuesdict()
