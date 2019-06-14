@@ -60,8 +60,8 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.cmd_restart_daq = None
         self.binding_mode = 1
         self.tolerance = None
-        self.temperature = None
-        self.humidity = None
+        self.temperature = 0
+        self.humidity = 0
         self.actual_frame_rate = None
         self.pixel_min = None
         self.pixel_max = None
@@ -71,8 +71,20 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.distance_motor_hwobj = None
 
     def init(self):
-
         self.cover_state = "unknown"
+        self.collect_name = self.getProperty("collectName")
+        self.shutter_name = self.getProperty("shutterName")
+        self.tolerance = self.getProperty("tolerance")
+        self.temp_treshold = self.getProperty("tempThreshold")
+        self.hum_treshold = self.getProperty("humidityThreshold")
+        self.pixel_min = self.getProperty("px_min")
+        self.pixel_max = self.getProperty("px_max")
+        self.roi_modes_list = eval(self.getProperty("roiModes"))
+        self.binning_mode = "Unbinned"
+
+        self.pixel_size_mm_x = self.getProperty("px")
+        self.pixel_size_mm_y = self.getProperty("py")
+
         self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
 
         self.chan_cover_state = self.getChannelObject("chanCoverState", optional=True)
@@ -103,15 +115,6 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.cmd_close_cover = self.getCommandObject("cmdCloseCover")
         self.cmd_restart_daq = self.getCommandObject("cmdRestartDaq")
 
-        self.collect_name = self.getProperty("collectName")
-        self.shutter_name = self.getProperty("shutterName")
-        self.tolerance = self.getProperty("tolerance")
-        self.temp_treshold = self.getProperty("tempThreshold")
-        self.hum_treshold = self.getProperty("humidityThreshold")
-        self.pixel_min = self.getProperty("px_min")
-        self.pixel_max = self.getProperty("px_max")
-        self.roi_modes_list = eval(self.getProperty("roiModes"))
-
     def get_distance(self):
         """Returns detector distance in mm"""
         return self.distance_motor_hwobj.getPosition()
@@ -125,7 +128,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         :type timeout: float
         :return: None
         """
-        return self.distance_motor_hwobj.move(position, timeout)
+        return self.distance_motor_hwobj.move(position, timeout=timeout)
 
     def get_distance_limits(self):
         """Returns detector distance limits"""
@@ -194,7 +197,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
     def roi_mode_changed(self, mode):
         """ROI mode change event"""
-        self.roi_mode = self.roi_modes_list.index(mode)
+        self.roi_mode = self.roi_modes_list.index(str(mode))
         self.emit("detectorRoiModeChanged", (self.roi_mode,))
 
     def frame_rate_changed(self, frame_rate):
@@ -227,6 +230,9 @@ class EMBLDetector(AbstractDetector, HardwareObject):
             beam_x = value[0]
             beam_y = value[1]
         return beam_x, beam_y
+
+    def get_pixel_size_mm(self):
+        return self.pixel_size_mm_x, self.pixel_size_mm_y
 
     def cover_state_changed(self, state):
         """Updates guillotine state"

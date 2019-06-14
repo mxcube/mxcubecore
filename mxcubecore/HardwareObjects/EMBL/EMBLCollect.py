@@ -388,16 +388,15 @@ class EMBLCollect(AbstractCollect):
 
     def set_energy(self, value):
         """Sets energy"""
-        if abs(value - self.get_energy()) > 0.001 and not self.break_bragg_released:
+        if abs(value - self.get_energy()) > 0.005 and not self.break_bragg_released:
             self.break_bragg_released = True
             if hasattr(self.energy_hwobj, "release_break_bragg"):
                 self.energy_hwobj.release_break_bragg()
-
         self.cmd_collect_energy(value * 1000.0)
 
     def get_energy(self):
         """Returns energy value in keV"""
-        return self.energy_hwobj.getCurrentEnergy()
+        return self.energy_hwobj.get_current_energy()
 
     def set_resolution(self, value):
         """Sets resolution in A"""
@@ -443,7 +442,7 @@ class EMBLCollect(AbstractCollect):
 
     def get_wavelength(self):
         """Returns wavelength"""
-        return self.energy_hwobj.getCurrentWavelength()
+        return self.energy_hwobj.get_current_wavelength()
 
     def get_detector_distance(self):
         """Returns detector distance in mm"""
