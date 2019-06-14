@@ -374,9 +374,6 @@ class EMBLParallelProcessing(GenericParallelProcessing):
 
         # self.detector_hwobj.getProperty("type")
 
-        print proc_params.resolution_cutoff
-        print proc_params.pdb_file
-
         # Eiger 4M:
         detector_size_x = 2070
         detector_size_y = 2167
