@@ -46,6 +46,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.temp_treshold = None
         self.hum_treshold = None
         self.cover_state = None
+        self.binning_mode = None
 
         self.chan_beam_xy = None
         self.chan_cover_state = None
@@ -232,6 +233,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         return beam_x, beam_y
 
     def get_pixel_size_mm(self):
+        """Returns pixel size in mm"""
         return self.pixel_size_mm_x, self.pixel_size_mm_y
 
     def cover_state_changed(self, state):

@@ -21,11 +21,9 @@
 import os
 import tine
 import json
-import time
 import Image
 import logging
 import threading
-import collections
 from queue import Queue
 
 import gevent

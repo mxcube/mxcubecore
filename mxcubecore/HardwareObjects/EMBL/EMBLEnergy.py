@@ -44,6 +44,11 @@ class EMBLEnergy(AbstractEnergy):
         self.bragg_break_status = None
         self.do_beam_alignment = False
         self.delta = 0
+        self._tunable = True
+        self._energy_value = None
+        self._wavelength_value = None
+        self._energy_limits = []
+        self._moving = None
 
         self.chan_energy = None
         self.chan_limit_low = None
@@ -96,10 +101,6 @@ class EMBLEnergy(AbstractEnergy):
                 "update", self.bragg_break_status_changed
             )
 
-        try:
-            self._tunable = self.getProperty("tunableEnergy", True)
-        except BaseException:
-            logging.getLogger("HWR").warning("Energy: will set to fixed energy")
         try:
             self._default_energy = self.getProperty("defaultEnergy")
         except BaseException:
