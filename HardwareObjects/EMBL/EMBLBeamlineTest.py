@@ -685,7 +685,7 @@ class EMBLBeamlineTest(HardwareObject):
                     delta_ver = -0.03
 
                 msg = "Beam centering: Applying %.4f mm horizontal " % delta_hor
-                +"and %.4f mm vertical correction" % delta_ver
+                msg += "and %.4f mm vertical correction" % delta_ver
                 log.info(msg)
 
                 if abs(delta_hor) > 0.0001:
