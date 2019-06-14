@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,7 +15,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import time
@@ -24,7 +24,12 @@ import gevent
 import subprocess
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects.XSDataCommon import XSDataDouble, XSDataFile, XSDataInteger, XSDataString
+from HardwareRepository.HardwareObjects.XSDataCommon import (
+    XSDataDouble,
+    XSDataFile,
+    XSDataInteger,
+    XSDataString,
+)
 from HardwareRepository.HardwareObjects.XSDataAutoprocv1_0 import XSDataAutoprocInput
 
 
@@ -39,7 +44,7 @@ class EMBLAutoProcessing(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self.result = None
-        self.autoproc_programs = None
+        self.autoproc_programs = []
 
     def init(self):
         try:
@@ -110,7 +115,9 @@ class EMBLAutoProcessing(HardwareObject):
                 if process_event == "after":
                     will_execute = run_processing
                     end_of_line_to_execute = " %s %s " % (
-                        params_dict["xds_dir"], params_dict.get("collection_id"))
+                        params_dict["xds_dir"],
+                        params_dict.get("collection_id"),
+                    )
                 elif process_event == "image":
                     filename = params_dict["fileinfo"]["template"] % frame_number
                     end_of_line_to_execute = " %s %s/%s" % (

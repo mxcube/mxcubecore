@@ -19,6 +19,7 @@
 
 import os
 import time
+import gevent
 import logging
 import tempfile
 from datetime import datetime
@@ -207,6 +208,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         AbstractSampleChanger.SampleChanger.init(self)
 
         self._setState(AbstractSampleChanger.SampleChangerState.Ready)
+        self.status_list_changed(self.chan_status.getValue())
         self.puck_switches_changed(self.chan_puck_switches.getValue())
         self.mounted_sample_puck_changed(self.chan_mounted_sample_puck.getValue())
         self.sample_is_loaded_changed(self.chan_sample_is_loaded.getValue())
@@ -297,8 +299,11 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         self._process_step_info = process_step_info
         if "error" in process_step_info.lower():
             logging.getLogger("GUI").error("Sample changer: %s" % self._process_step_info)
-            self._in_error_state = True
-            self._setState(AbstractSampleChanger.SampleChangerState.Alarm)
+	    # GB: 20190304: this seemd to lock mxcube forever on any marvin error
+            #self._in_error_state = True
+            #self._setState(AbstractSampleChanger.SampleChangerState.Alarm)
+            
+        
         else:
             logging.getLogger("GUI").info("Sample changer: %s" % self._process_step_info) 
         self._info_dict["process_step"] = self._process_step_info
@@ -344,7 +349,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         sample = None
         if basket_no is not None and basket_no>0 and \
            basket_no <=self._num_basket:
-            basket = self.getComponentByAddress(Basket.getBasketAddress(basket_no))
+            basket = self.getComponentByAddress(Container.Basket.getBasketAddress(basket_no))
             if sample_no is not None and sample_no>0 and \
                sample_no <= len(basket.getSampleList()):
                 sample = self.getComponentByAddress(Container.Pin.getSampleAddress(basket_no, sample_no))            
@@ -359,7 +364,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         if type(component) in (Container.Pin, Sample.Sample):
             selected_basket_no = component.getBasketNo()
             selected_sample_no = component.getIndex()+1
-        elif isinstance(component, Container.Container) and ( component.getType() == Basket.__TYPE__):
+        elif isinstance(component, Container.Container) and ( component.getType() == Container.Basket.__TYPE__):
             selected_basket_no = component.getIndex()+1
             selected_sample_no = None
 
@@ -381,7 +386,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         self._setState(AbstractSampleChanger.SampleChangerState.Ready)
         log = logging.getLogger("GUI")
 
-        if self._focusing_mode not in ("Collimated", "Double", "P13mode"):
+        if self._focusing_mode not in ("Collimated", "Double", "Imaging","P13mode"):
             error_msg = "Focusing mode is undefined. Sample loading is disabled"
             log.error(error_msg)
             return
@@ -466,7 +471,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                                     int(sample_index),
                                     int(basket_index))
         else:
-            if self._focusing_mode == "Collimated":
+            if self._focusing_mode == "Collimated" or self._focusing_mode == "Imaging":
                 self._executeServerTask(self.cmd_mount_sample,
                                         int(sample_index),
                                         int(basket_index),
@@ -521,7 +526,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         """ Load a sample"""
         #self._setState(AbstractSampleChanger.SampleChangerState.Ready)
         if self._focusing_mode == "P13mode":
-            SampleChanger.load(self, sample, wait)
+            AbstractSampleChanger.SampleChanger.load(self, sample, wait)
         else:
             sample = self._resolveComponent(sample)
             self.assertNotCharging()
@@ -532,7 +537,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         log = logging.getLogger("GUI")
  
         self._setState(AbstractSampleChanger.SampleChangerState.Ready)
-        if self._focusing_mode not in ("Collimated", "Double", "P13mode"):
+        if self._focusing_mode not in ("Collimated", "Double", "Imaging", "P13mode"):
             error_msg = "Focusing mode is undefined. Sample loading is disabled"
             log.error(error_msg)
             return
@@ -584,7 +589,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                                     sample_index,
                                     basket_index)
         else:
-            if self._focusing_mode == "Collimated":
+            if self._focusing_mode == "Collimated" or self._focusing_mode == "Imaging" :
                 self._executeServerTask(self.cmd_unmount_sample,
                                         sample_index,
                                         basket_index,
@@ -741,10 +746,10 @@ class Marvin(AbstractSampleChanger.SampleChanger):
           if basket_no is not None and basket_no>0 and \
              basket_no <= self._num_basket:
               basket = self.getComponentByAddress(\
-                 Basket.getBasketAddress(basket_no))
+                 Container.Basket.getBasketAddress(basket_no))
               sample_no = self._selected_sample
               if sample_no is not None and sample_no>0 and \
-                 sample_no <= Basket.NO_OF_SAMPLES_PER_PUCK:
+                 sample_no <= Container.Basket.NO_OF_SAMPLES_PER_PUCK:
                   sample = self.getComponentByAddress(\
                       Container.Pin.getSampleAddress(basket_no, sample_no))            
         except:
@@ -933,7 +938,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
 
         self.emit("statusListChanged", self._status_list)
         self.emit("infoDictChanged", self._info_dict) 
-
     
     def update_values(self):
         self.emit("statusListChanged", self._status_list)
