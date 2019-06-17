@@ -86,83 +86,23 @@ class Beamline(object):
                 (role, xml_filename) = line.replace(" ", "").split(",")
                 self._config_dict[str(role)] = str(xml_filename)
 
-        self.transmission = self._hwr.loadHardwareObject(
-            self._config_dict["transmission"]
-        )
-        self.energy = self._hwr.loadHardwareObject(
-            self._config_dict["energy"]
-        )
-        self.flux = self._hwr.loadHardwareObject(
-            self._config_dict["flux"]
-        )
-        self.resolution = self._hwr.loadHardwareObject(
-            self._config_dict["resolution"]
-        )
+                setattr(self, role, self._hwr.loadHardwareObject(self._config_dict[role]))
 
-        self.machine_info = self._hwr.loadHardwareObject(
-            self._config_dict["machine_info"]
-        )
-        self.beam = self._hwr.loadHardwareObject(
-            self._config_dict["beam"]
-        )
+    def __getattribute__(self, name):
+        try:
+            return object.__getattribute__(self, name)
+        except  AttributeError:
+            print("Unable to access beamline attribute %s" % name)
+            return None
 
-        self.safety_shutter = self._hwr.loadHardwareObject(
-            self._config_dict["safety_shutter"]
-        )
-        self.fast_shutter = self._hwr.loadHardwareObject(
-            self._config_dict["fast_shutter"]
-        )
-        self.detector = self._hwr.loadHardwareObject(
-            self._config_dict["detector"]
-        )
-        self.sample_changer = self._hwr.loadHardwareObject(
-            self._config_dict["sample_changer"]
-        )
-        self.plate_manipulator = self._hwr.loadHardwareObject(
-            self._config_dict["plate_manipulator"]
-        )
-        self.diffractometer = self._hwr.loadHardwareObject(
-            self._config_dict["diffractometer"]
-        )
-        self.beamstop = self._hwr.loadHardwareObject(
-            self._config_dict["beamstop"]
-        )
+    def has_online_processing(self):
+        return True
 
-        self.session = self._hwr.loadHardwareObject(
-            self._config_dict["session"]
-        )
-        self.lims = self._hwr.loadHardwareObject(
-            self._config_dict["lims"]
-        )
-        self.graphics = self._hwr.loadHardwareObject(
-            self._config_dict["graphics"]
-        )
-        self.queue_manager = self._hwr.getHardwareObject(
-            self._config_dict["queue_manager"]
-        )
-        self.queue_model = self._hwr.getHardwareObject(
-            self._config_dict["queue_model"]
-        )
+    def has_offline_processing(self):
+        return True
 
-        self.collect = self._hwr.loadHardwareObject(
-            self._config_dict["collect"]
-        )
-        self.energy_scan = self._hwr.loadHardwareObject(
-            self._config_dict["energy_scan"]
-        )
-        self.xrf_spectrum = self._hwr.loadHardwareObject(
-            self._config_dict["xrf_spectrum"]
-        )
+    def get_available_online_processing(self):
+        return ()
 
-        self.offline_processing = self._hwr.getHardwareObject(
-            self._config_dict["offline_processing"]
-        )
-        self.online_processing = self._hwr.getHardwareObject(
-            self._config_dict["online_processing"]
-        )
-        self.data_analysis = self._hwr.getHardwareObject(
-            self._config_dict["data_analysis"]
-        )
-        self.xml_rpc_server = self._hwr.getHardwareObject(
-            self._config_dict["xml_rpc_server"]
-        )
+    def get_available_offline_processing(self):
+        return ()
