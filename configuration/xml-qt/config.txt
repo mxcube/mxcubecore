@@ -1,0 +1,32 @@
+#############################################
+#Role,			xml-filename
+
+#has get_value
+transmission,           transmission-mockup
+energy,                 energy-mockup
+flux,                   flux-mockup
+resolution,             resolution-mockup
+
+machine_info,		mach-info-mockup
+beam,			beam-info
+hutch_interlock,	hutch-interlock-mockup
+safety_shutter,		safety-shutter-mockup
+fast_shutter,		fast-shutter-mockup
+detector,		detector-mockup
+sample_changer,		sc-mockup
+plate_manipulator,	plate-manipulator-mockup
+diffractometer,		mini-diff-mockup
+
+session,		session
+lims,			lims-client-mockup
+graphics,		graphics
+queue_model,		queue-model
+queue_manager,		queue
+
+#############################################
+# Collect methods
+collect,		collect-mockup
+
+offline_processing,	offline-processing-mockup
+online-processing,	online-processing-mockup
+

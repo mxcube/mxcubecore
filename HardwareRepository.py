@@ -16,26 +16,33 @@ import time
 import gevent.monkey
 from datetime import datetime
 
-try:
-    from SpecClient_gevent import SpecEventsDispatcher
-    from SpecClient_gevent import SpecConnectionsManager
-    from SpecClient_gevent import SpecWaitObject
-    from SpecClient_gevent import SpecClientError
-except ImportError:
-    pass
-
 from . import BaseHardwareObjects
 from . import HardwareObjectFileParser
+from . import Beamline
+
 from HardwareRepository.dispatcher import dispatcher
 from HardwareRepository.ConvertUtils import string_types
 
 __author__ = "Matias Guijarro"
 __version__ = 1.3
 
-_instance = None
-_hwrserver = None
+_hwr_instance = None
+_hwr_path = None
 _timers = []
 
+beamline = None
+
+def init_beamline():
+    global _hwr_instance
+    global beamline
+
+    _hwr_instance = getHardwareRepository(_hwr_path)
+    beamline = Beamline.Beamline(_hwr_path, _hwr_instance)
+
+    return beamline
+
+def get_beamline_instance():
+    return beamline
 
 def addHardwareObjectsDirs(hoDirs):
     if isinstance(hoDirs, list):
@@ -51,15 +58,15 @@ def setUserFileDirectory(user_file_directory):
 
 
 def setHardwareRepositoryServer(hwrserver):
-    global _hwrserver
+    global _hwr_path
 
     xml_dirs_list = [os.path.abspath(x) for x in hwrserver.split(os.path.pathsep)]
     xml_dirs_list = [x for x in xml_dirs_list if os.path.exists(x)]
 
     if xml_dirs_list:
-        _hwrserver = xml_dirs_list
+        _hwr_path = xml_dirs_list
     else:
-        _hwrserver = hwrserver
+        _hwr_path = hwrserver
 
 
 def getHardwareRepository(xml_dir=None):
@@ -73,19 +80,19 @@ def getHardwareRepository(xml_dir=None):
         HardwareRepository: The Singleton instance of HardwareRepository
                             (in reality __HardwareRepositoryClient)
     """
-    global _instance
+    global _hwr_instance
 
-    if _instance is None:
-        if _hwrserver is None:
+    if _hwr_instance is None:
+        if _hwr_path is None:
             if xml_dir is None:
                 # Default to environment variable
                 xml_dir = os.path.abspath(os.environ["XML_FILES_PATH"])
 
             setHardwareRepositoryServer(xml_dir)
 
-        _instance = __HardwareRepositoryClient(_hwrserver)
+        _hwr_instance = __HardwareRepositoryClient(_hwr_path)
 
-    return _instance
+    return _hwr_instance
 
 
 class __HardwareRepositoryClient:
@@ -106,33 +113,15 @@ class __HardwareRepositoryClient:
         self.__connected = False
         self.server = None
         self.hwobj_info_list = []
+        self.invalidHardwareObjects = None
+        self.hardwareObjects = None
 
     def connect(self):
         if self.__connected:
             return
-        try:
-            self.invalidHardwareObjects = set()
-            self.hardwareObjects = weakref.WeakValueDictionary()
-
-            if isinstance(self.serverAddress, bytes):
-                mngr = SpecConnectionsManager.SpecConnectionsManager()
-                self.server = mngr.getConnection(self.serverAddress)
-
-                with gevent.Timeout(3):
-                    while not self.server.isSpecConnected():
-                        time.sleep(0.5)
-
-                # in case of update of a Hardware Object, we discard it => bricks will
-                # receive a signal and can reload it
-                self.server.registerChannel(
-                    "update",
-                    self.discardHardwareObject,
-                    dispatchMode=SpecEventsDispatcher.FIREEVENT,
-                )
-            else:
-                self.server = None
-        finally:
-            self.__connected = True
+        self.invalidHardwareObjects = set()
+        self.hardwareObjects = weakref.WeakValueDictionary()
+        self.__connected = True
 
     def findInRepository(self, relative_path):
         """Finds absolute path of a file or directory matching relativePath

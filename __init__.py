@@ -39,6 +39,7 @@ _hwr_logger.setLevel(logging.DEBUG)
 _oldLevel = logging.DEBUG
 _hwr_formatter = logging.Formatter("%(asctime)s |%(levelname)-7s| %(message)s")
 
+
 if len(logging.root.handlers) == 0:
     #
     # log to stdout
