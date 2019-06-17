@@ -1,6 +1,3 @@
-#! /usr/bin/env python
-# encoding: utf-8
-#
 #  Project: MXCuBE
 #  https://github.com/mxcube
 #
@@ -17,7 +14,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """Beamline class serving as singleton container for links to top-level HardwareObjects
 
@@ -27,9 +24,7 @@ energy: AbstractEnergy
 fast_shutter: AbstractNState
 safety_shutter: AbstractNState
 door_interlock: AbstractNState
-
 diffractometer: AbstractDiffractometer
-    # The diffractometer and related motors and actuators
     omega: AbstractMotor
     kappa: AbstractMotor
     chi: AbstractMotor
@@ -38,11 +33,10 @@ diffractometer: AbstractDiffractometer
     alignmentz: AbstractMotor
     centringx: AbstractMotor
     centringy: AbstractMotor
-graphics
+graphics: AbstractGraphics
     camera: AbstractVideoDevice
     zoom: AbstractNState
 detector: AbstractDetector
-    # The detector and attached motors and actuators
     distance: AbstractMotor
     resolution: AbstractMotor
     two_theta: AbstractMotor
@@ -58,14 +52,9 @@ xrf_spectrum
 xray_imaging
 gphl_workflow
 centring
-
-    rpc_server
-    redis_client
-Software procedures
-    # Top level objects? Dictionary?
-    auto_processing
-    data_analysis
-    parallel_processing
+offline_processing
+online_processing
+data_analysis
 """
 
 from __future__ import division, absolute_import
@@ -78,14 +67,10 @@ __license__ = "LGPLv3+"
 
 class Beamline(object):
     """Beamline class serving as singleton container for links to HardwareObjects
-    NB This is deliberately NOT a HardwareObjewct - I think we need somethings simpler here"""
-
+    """
 
     def __init__(self, hwr_path, hwr_server):
         """
-        In the longer term if might be worth it refactoring the configuration system
-        Also, we should move the hwr_repository_server here
-        and stop using the api module
         Param :
         :param hwr_repository_server: HardwareRepository.HardwareRepository.__HardwareRepositoryClient
         """
@@ -100,23 +85,84 @@ class Beamline(object):
             if line and not line.startswith("#"):
                 (role, xml_filename) = line.replace(" ", "").split(",")
                 self._config_dict[str(role)] = str(xml_filename)
-      
 
-        self.transmission = self._hwr.loadHardwareObject(self._config_dict["transmission"])
-        self.energy = self._hwr.loadHardwareObject(self._config_dict["energy"])
-        self.flux = self._hwr.loadHardwareObject(self._config_dict["flux"])
-        self.resolution = self._hwr.loadHardwareObject(self._config_dict["resolution"])
-        
-        self.machine_info = self._hwr.loadHardwareObject(self._config_dict["machine_info"]) 
-        self.beam = self._hwr.loadHardwareObject(self._config_dict["beam"])
-        self.safety_shutter = self._hwr.loadHardwareObject(self._config_dict["safety_shutter"])
+        self.transmission = self._hwr.loadHardwareObject(
+            self._config_dict["transmission"]
+        )
+        self.energy = self._hwr.loadHardwareObject(
+            self._config_dict["energy"]
+        )
+        self.flux = self._hwr.loadHardwareObject(
+            self._config_dict["flux"]
+        )
+        self.resolution = self._hwr.loadHardwareObject(
+            self._config_dict["resolution"]
+        )
 
-        self.diffractometer = self._hwr.loadHardwareObject(self._config_dict["diffractometer"])
-        self.graphics = self._hwr.loadHardwareObject(self._config_dict["graphics"])
-        self.detector = self._hwr.loadHardwareObject(self._config_dict["detector"])
-        self.sample_changer = self._hwr.loadHardwareObject(self._config_dict["sample_changer"])
-        self.plate_manipulator = self._hwr.loadHardwareObject(self._config_dict["plate_manipulator"])
-        self.queue_manager = self._hwr.getHardwareObject(self._config_dict["queue_manager"])
-        self.queue_model = self._hwr.getHardwareObject(self._config_dict["queue_model"])
-        self.session = self._hwr.loadHardwareObject(self._config_dict["session"])
-        self.lims = self._hwr.loadHardwareObject(self._config_dict["lims"])
+        self.machine_info = self._hwr.loadHardwareObject(
+            self._config_dict["machine_info"]
+        )
+        self.beam = self._hwr.loadHardwareObject(
+            self._config_dict["beam"]
+        )
+
+        self.safety_shutter = self._hwr.loadHardwareObject(
+            self._config_dict["safety_shutter"]
+        )
+        self.fast_shutter = self._hwr.loadHardwareObject(
+            self._config_dict["fast_shutter"]
+        )
+        self.detector = self._hwr.loadHardwareObject(
+            self._config_dict["detector"]
+        )
+        self.sample_changer = self._hwr.loadHardwareObject(
+            self._config_dict["sample_changer"]
+        )
+        self.plate_manipulator = self._hwr.loadHardwareObject(
+            self._config_dict["plate_manipulator"]
+        )
+        self.diffractometer = self._hwr.loadHardwareObject(
+            self._config_dict["diffractometer"]
+        )
+        self.beamstop = self._hwr.loadHardwareObject(
+            self._config_dict["beamstop"]
+        )
+
+        self.session = self._hwr.loadHardwareObject(
+            self._config_dict["session"]
+        )
+        self.lims = self._hwr.loadHardwareObject(
+            self._config_dict["lims"]
+        )
+        self.graphics = self._hwr.loadHardwareObject(
+            self._config_dict["graphics"]
+        )
+        self.queue_manager = self._hwr.getHardwareObject(
+            self._config_dict["queue_manager"]
+        )
+        self.queue_model = self._hwr.getHardwareObject(
+            self._config_dict["queue_model"]
+        )
+
+        self.collect = self._hwr.loadHardwareObject(
+            self._config_dict["collect"]
+        )
+        self.energy_scan = self._hwr.loadHardwareObject(
+            self._config_dict["energy_scan"]
+        )
+        self.xrf_spectrum = self._hwr.loadHardwareObject(
+            self._config_dict["xrf_spectrum"]
+        )
+
+        self.offline_processing = self._hwr.getHardwareObject(
+            self._config_dict["offline_processing"]
+        )
+        self.online_processing = self._hwr.getHardwareObject(
+            self._config_dict["online_processing"]
+        )
+        self.data_analysis = self._hwr.getHardwareObject(
+            self._config_dict["data_analysis"]
+        )
+        self.xml_rpc_server = self._hwr.getHardwareObject(
+            self._config_dict["xml_rpc_server"]
+        )
