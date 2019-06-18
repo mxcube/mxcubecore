@@ -8,10 +8,8 @@ goniostat_axis_settings= 0.0 0.0 0.0
 id= 'dset01'
 !detector_axis_settings= 291.0
 !detector_axis_settings= 260.96
-detector_axis_settings= 392.36 ! 2.0A
-! detector_axis_settings= 345.00 ! 1.8A
-! detector_axis_settings= 296.50 ! 1.6A
-
+! Matches 2.3A resolution at 1.0A wavelength
+detector_axis_settings= 470.00
 /
 
 &beam_setting_list
@@ -20,10 +18,10 @@ id= 'bset01'
 lambda= 0.97625196850393714
 /
 
-! ################### Default characteristation strategy
+! ################### 6deg/5 characteristation strategy
 
 &sdcp_strategy_list
-strategy_name= 'InitialCharacterisation'
+strategy_name= 'InitialCharacterisation_6_5'
 type= 'geometric'
 allowed_widths= 0.02 0.03 0.04 0.05 0.06 0.08 0.1 0.12 0.15 0.2 0.3 0.4
 default_width_idx= 6
@@ -66,6 +64,129 @@ goniostat_setting_id= 'gset01'
 detector_setting_id= 'dset01'
 beam_setting_id= 'bset01'
 length_deg= 1.2
+start_deg= 180.0
+/
+
+! ################### 12deg/5 characteristation strategy
+
+&sdcp_strategy_list
+strategy_name= 'InitialCharacterisation_12_5'
+type= 'geometric'
+allowed_widths= 0.02 0.03 0.04 0.05 0.06 0.08 0.1 0.12 0.15 0.2 0.3 0.4
+default_width_idx= 6
+/
+
+&stratcal_sweep_list
+goniostat_setting_id= 'gset01'
+detector_setting_id= 'dset01'
+beam_setting_id= 'bset01'
+length_deg= 2.4
+start_deg= 0.0
+/
+
+&stratcal_sweep_list
+goniostat_setting_id= 'gset01'
+detector_setting_id= 'dset01'
+beam_setting_id= 'bset01'
+length_deg= 2.4
+start_deg= 60.0
+/
+
+&stratcal_sweep_list
+goniostat_setting_id= 'gset01'
+detector_setting_id= 'dset01'
+beam_setting_id= 'bset01'
+length_deg= 2.4
+start_deg= 90.0
+/
+
+&stratcal_sweep_list
+goniostat_setting_id= 'gset01'
+detector_setting_id= 'dset01'
+beam_setting_id= 'bset01'
+length_deg= 2.4
+start_deg= 120.0
+/
+
+&stratcal_sweep_list
+goniostat_setting_id= 'gset01'
+detector_setting_id= 'dset01'
+beam_setting_id= 'bset01'
+length_deg= 2.4
+start_deg= 180.0
+/
+
+! ################### 12deg/4 characteristation strategy
+
+&sdcp_strategy_list
+strategy_name= 'InitialCharacterisation_12_4'
+type= 'geometric'
+allowed_widths= 0.02 0.03 0.04 0.05 0.06 0.08 0.1 0.12 0.15 0.2 0.3 0.4
+default_width_idx= 6
+/
+
+&stratcal_sweep_list
+goniostat_setting_id= 'gset01'
+detector_setting_id= 'dset01'
+beam_setting_id= 'bset01'
+length_deg= 3.0
+start_deg= 0.0
+/
+
+&stratcal_sweep_list
+goniostat_setting_id= 'gset01'
+detector_setting_id= 'dset01'
+beam_setting_id= 'bset01'
+length_deg= 3.0
+start_deg= 60.0
+/
+
+&stratcal_sweep_list
+goniostat_setting_id= 'gset01'
+detector_setting_id= 'dset01'
+beam_setting_id= 'bset01'
+length_deg= 3.0
+start_deg= 120.0
+/
+
+&stratcal_sweep_list
+goniostat_setting_id= 'gset01'
+detector_setting_id= 'dset01'
+beam_setting_id= 'bset01'
+length_deg= 3.0
+start_deg= 180.0
+/
+
+! ################### 12deg/3 characteristation strategy
+
+&sdcp_strategy_list
+strategy_name= 'InitialCharacterisation_12_3'
+type= 'geometric'
+allowed_widths= 0.02 0.03 0.04 0.05 0.06 0.08 0.1 0.12 0.15 0.2 0.3 0.4
+default_width_idx= 6
+/
+
+&stratcal_sweep_list
+goniostat_setting_id= 'gset01'
+detector_setting_id= 'dset01'
+beam_setting_id= 'bset01'
+length_deg= 4.0
+start_deg= 0.0
+/
+
+&stratcal_sweep_list
+goniostat_setting_id= 'gset01'
+detector_setting_id= 'dset01'
+beam_setting_id= 'bset01'
+length_deg= 4.0
+start_deg= 90.0
+/
+
+&stratcal_sweep_list
+goniostat_setting_id= 'gset01'
+detector_setting_id= 'dset01'
+beam_setting_id= 'bset01'
+length_deg= 4.0
 start_deg= 180.0
 /
 
