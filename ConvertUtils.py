@@ -1,50 +1,56 @@
 #! /usr/bin/env python
-# encoding: utf-8#
-#  Project: MXCuBE
-#  https://github.com/mxcube.
+# encoding: utf-8
 #
-#  This file is part of MXCuBE software.
+# License:
+#
+# This file is part of MXCuBE.
+#
+# MXCuBE is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# MXCuBE is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
 
 """General data and functions, that can be shared between different HardwareObjects
-
-WARNING This must *always* be imported directly:
-'import General', 'from General import', ...
-Using from HardwareObjects import General (etc.) causes it to be imported twice
-so that States.On == States.ON is *not* always true.
 """
 
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
-import sys
-
 __author__ = "rhfogh"
 __date__ = "19/06/17"
+__credits__ = ["MXCuBE collaboration"]
 
 # Constants
 
-
-# 'Borrowed' from six, pending installation as a dependency
-PYVERSION = sys.version_info[0]
-if PYVERSION > 2:
+try:
+    # Python 2
+    string_types = (basestring,)
+    text_type = unicode
+    binary_type = str
+except:
+    # Python 3+
     string_types = (str,)
     text_type = str
     binary_type = bytes
 
-    MAXSIZE = sys.maxsize
-else:
-    string_types = (basestring,)
-    text_type = unicode
-    binary_type = str
-
 # Conversion from kEv to A, wavelength = H_OVER_E/energy
 H_OVER_E = 12.3984
 
+
 # Utility functions:
 
-
 def java_property(keyword, value, quote_value=False):
-    """Return argument list for command line invocation setting java property"""
+    """Return argument list for command line invocation setting java property
+
+    keyword, value are stringtypes"""
     if value is None:
         return ["-D" + keyword]
     else:
@@ -71,7 +77,7 @@ def quoted_string(text):
     Intended for command line arguments.
     Will work for Python 2 str or unicode, OR Python 3 str and (some) bytes).
     Somewhat fragile, will definitely break for multiline strings
-    or strings containint both single and double quotes
+    or strings containing both single and double quotes
     """
     result = ensure_text(text)
     if not '"' in result:
@@ -86,15 +92,6 @@ def quoted_string(text):
             break
     #
     return result[ind:]
-
-
-# def to_ascii(text):
-#     """Rough-and-ready conversion to bytes, intended for ascii contexts"""
-#
-#
-#     if hasattr(text, "encode"):
-#         text = text.encode("utf8", "replace")
-#     return text
 
 
 def convert_string_value(text):
@@ -124,22 +121,3 @@ def ensure_text(chars, encoding="utf-8", errors="strict"):
         return chars
     else:
         raise TypeError("not expecting type '%s'" % type(chars))
-
-
-# # 'Borrowed' from six, pending installation as a dependency
-# def ensure_str(chars, encoding='utf-8', errors='strict'):
-#     """Coerce *s* to `str`.
-#     For Python 2:
-#       - `unicode` -> encoded to `str`
-#       - `str` -> `str`
-#     For Python 3:
-#       - `str` -> `str`
-#       - `bytes` -> decoded to `str`
-#     """
-#     if not isinstance(chars, (text_type, binary_type)):
-#         raise TypeError("not expecting type '%chars'" % type(s))
-#     if PYVERSION < 3 and isinstance(chars, text_type):
-#         chars = chars.encode(encoding, errors)
-#     elif PYVERSION > 2 and isinstance(chars, binary_type):
-#         chars = chars.decode(encoding, errors)
-#     return chars
