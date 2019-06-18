@@ -39,7 +39,7 @@ class EMBLEnergy(AbstractEnergy):
         AbstractEnergy.__init__(self, name)
 
         self.ready_event = None
-        self.undulator_gaps = []
+        self.undulator_gaps = ()
         self.ctrl_bytes = None
         self.bragg_break_status = None
         self.do_beam_alignment = False
@@ -47,7 +47,7 @@ class EMBLEnergy(AbstractEnergy):
         self._tunable = True
         self._energy_value = None
         self._wavelength_value = None
-        self._energy_limits = []
+        self._energy_limits = ()
         self._moving = None
 
         self.chan_energy = None
@@ -109,7 +109,7 @@ class EMBLEnergy(AbstractEnergy):
         try:
             self._energy_limits = eval(self.getProperty("staticLimits"))
         except BaseException:
-            self._energy_limits = [None, None]
+            self._energy_limits = (None, None)
         self.ctrl_bytes = eval(self.getProperty("ctrlBytes"))
 
         if not self.chan_energy:
@@ -160,8 +160,10 @@ class EMBLEnergy(AbstractEnergy):
         """
         if self.chan_limit_low is not None and self.chan_limit_high is not None:
             try:
-                self._energy_limits[0] = self.chan_limit_low.getValue()
-                self._energy_limits[1] = self.chan_limit_high.getValue()
+                self._energy_limits = (
+                    self.chan_limit_low.getValue(),
+                    self.chan_limit_high.getValue()
+                )
             except BaseException:
                 logging.getLogger("HWR").exception(
                     "Energy: could not read energy limits"
@@ -406,9 +408,9 @@ class EMBLEnergy(AbstractEnergy):
         :return:
         """
         if isinstance(value, (list, tuple)):
-            self.undulator_gaps = [value[0]]
+            self.undulator_gaps = (value[0])
         else:
-            self.undulator_gaps = [value]
+            self.undulator_gaps = (value)
 
     def get_undulator_gaps(self):
         """

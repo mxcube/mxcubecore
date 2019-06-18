@@ -87,6 +87,9 @@ dose_rate_per_10to14_ph_per_mmsq = interp1d(
 )
 
 
+MIN_DETECTOR_DISTANCE = 501
+
+
 class EMBLFlux(AbstractFlux):
     def __init__(self, name):
 
@@ -286,7 +289,7 @@ class EMBLFlux(AbstractFlux):
             return
 
         if self.session_hwobj.beamline_name == "P14":
-            if self.detector_distance_hwobj.get_position() > 501:
+            if self.detector_distance_hwobj.get_position() > MIN_DETECTOR_DISTANCE:
                 self.print_log(
                     "GUI",
                     "error",

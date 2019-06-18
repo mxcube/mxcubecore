@@ -50,14 +50,16 @@ class XrayImagingQueueEntry(BaseQueueEntry):
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
 
-        qc = self.get_queue_controller()
-        qc.connect(
+        queue_controller = self.get_queue_controller()
+        queue_controller.connect(
             self.beamline_setup.xray_imaging_hwobj,
             "collectImageTaken",
             self.image_taken,
         )
-        qc.connect(
-            self.beamline_setup.xray_imaging_hwobj, "collectFailed", self.collect_failed
+        queue_controller.connect(
+            self.beamline_setup.xray_imaging_hwobj,
+            "collectFailed",
+            self.collect_failed
         )
 
         data_model = self.get_data_model()
@@ -72,14 +74,16 @@ class XrayImagingQueueEntry(BaseQueueEntry):
         BaseQueueEntry.post_execute(self)
         self.beamline_setup.xray_imaging_hwobj.post_execute(self.get_data_model())
 
-        qc = self.get_queue_controller()
-        qc.disconnect(
+        queue_controller = self.get_queue_controller()
+        queue_controller.disconnect(
             self.beamline_setup.xray_imaging_hwobj,
             "collectImageTaken",
             self.image_taken,
         )
-        qc.disconnect(
-            self.beamline_setup.xray_imaging_hwobj, "collectFailed", self.collect_failed
+        queue_controller.disconnect(
+            self.beamline_setup.xray_imaging_hwobj,
+            "collectFailed",
+            self.collect_failed
         )
 
     def stop(self):

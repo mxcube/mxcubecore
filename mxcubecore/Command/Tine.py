@@ -189,12 +189,6 @@ class TineChannel(ChannelObject):
             self.oldvalue = value
 
     def getValue(self, force=False):
-        # logging.getLogger("HWR").debug('TINE channel %s, %s get at val=%s'%(self.tineName,self.attributeName,self.value))
-        # if self.tineName == "/P14/BCUIntensity/Device0":
-        #   print self.attributeName, self.value
-
-        # GB: if forced while having a value already, i.e. well after connecting a
-        # channel, do a real synchronous get and return
         if force:
             if self.value is not None:
                 logging.getLogger("HWR").warning(
