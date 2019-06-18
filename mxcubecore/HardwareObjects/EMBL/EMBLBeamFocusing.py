@@ -15,7 +15,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 
@@ -186,6 +186,11 @@ class EMBLBeamFocusing(HardwareObject):
                 return focus_mode["lensCombination"]
 
     def get_focus_mode_aperture(self, focus_mode_name=None):
+        """
+        Returns aperture associated to the current beam focus mode
+        :param focus_mode_name: diameter in micons
+        :return:
+        """
         if focus_mode_name is None:
             focus_mode_name, beam_size = self.get_active_focus_mode()
 
