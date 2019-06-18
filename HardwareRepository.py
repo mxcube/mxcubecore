@@ -114,7 +114,7 @@ class __HardwareRepositoryClient:
             self.invalidHardwareObjects = set()
             self.hardwareObjects = weakref.WeakValueDictionary()
 
-            if isinstance(self.serverAddress, bytes):
+            if isinstance(self.serverAddress, string_types):
                 mngr = SpecConnectionsManager.SpecConnectionsManager()
                 self.server = mngr.getConnection(self.serverAddress)
 
