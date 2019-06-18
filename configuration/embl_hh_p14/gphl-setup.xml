@@ -4,7 +4,7 @@
     - file names below are set as file_name.format(directory_locations) -->
     <directory_locations>
         <!-- Wrapper scripts for GPhL programs - must be reachable from workflow and procesing -->
-        <GPHL_SETUP>/data/users/p3l-gleb1/gphl/</GPHL_SETUP>
+        <GPHL_SETUP>/data/users/p3l-gleb1/gphl</GPHL_SETUP>
         <GPHL_RELEASE>/data/users/p3l-gleb1/gphl/GPhL-EMBLHH-20190430/latest/</GPHL_RELEASE>
         <!--<GPHL_SETUP>/mnt/scratch/rhfogh/mxcube_setup/</GPHL_SETUP>-->
         <!--<GPHL_RELEASE>/mnt/scratch/rhfogh/gphl_release/latest</GPHL_RELEASE>-->
@@ -15,7 +15,7 @@
     <!-- ConfigFile is the ssh configuratino file, passed to ssh with the -F option -->
     <ssh_options>
         <Host>p14dd01</Host>
-        <IdentityFile>/home/p3l-gleb1/.ssh/id_rsa.pub</IdentityFile>
+        <IdentityFile>/home/p3l-gleb1/.ssh/id_rsa</IdentityFile>
         <User>p3l-gleb1</User>
         <StrictHostKeyChecking>no</StrictHostKeyChecking>
         <!--<ConfigFile>/path/to/ssh/config/file</ConfigFile>-->
@@ -26,7 +26,7 @@
 
     <software_paths>
         <!-- Location of Java binary to execute for workflow application -->
-        <java_binary>/usr/bin/java</java_binary>
+        <java_binary>java</java_binary>
         <!-- Debug mode:  -->
         <!--<java_binary>ssh -i /home/rhfogh/.ssh/wf_test_id -o StrictHostKeyChecking=no lonsdale java</java_binary>-->
 
@@ -87,8 +87,7 @@
         <!-- Path of application that analyses diffractcal (aka rotational
         calibration) data. In practice, this will almost always be a wrapper
         script that sets up the environment properly. -->
-        <co.gphl.wf.diffractcal.bin>{GPHL_RELEASE}/../exe/sub_diffractcal.sh</co.gphl.wf.diffractcal.bin>
-        <co.gphl.wf.process.bin>{GPHL_RELEASE}/../exe/sub_process.sh</co.gphl.wf.process.bin>
+        <co.gphl.wf.diffractcal.bin>{GPHL_SETUP}/scripts/aP_wf_rotcal</co.gphl.wf.diffractcal.bin>
 <!--        <co.gphl.wf.diffractcal.bin>scripts/aP_wf_rotcal</co.gphl.wf.diffractcal.bin>-->
 
     </software_properties>

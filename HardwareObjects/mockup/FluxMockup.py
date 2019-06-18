@@ -26,6 +26,10 @@ __category__ = "General"
 
 
 class FluxMockup(AbstractFlux):
+
+    # default_flux - for initialising mockup
+    default_flux = 1e10
+
     def __init__(self, name):
         AbstractFlux.__init__(self, name)
 
@@ -40,16 +44,17 @@ class FluxMockup(AbstractFlux):
         self.beam_info_hwobj = self.getObjectByRole("beam_info")
         self.transmission_hwobj = self.getObjectByRole("transmission")
 
-        self.measure_flux()  
+        self.measure_flux()
 
     def get_flux(self):
+        """Get flux at current transmission in units of photons/s"""
         return self.current_flux_dict["flux"]
 
     def measure_flux(self):
         """Measures intesity"""
         beam_size = self.beam_info_hwobj.get_beam_size()
-        transmission = self.transmission_hwobj.getAttFactor()
-        flux = 1e12 + random() * 1e12
+        transmission = self.transmission_hwobj.get_value()
+        flux = self.default_flux * (1 + random())
 
         self.measured_flux_list = [{"size_x": beam_size[0],
                                     "size_y": beam_size[1],
@@ -63,18 +68,3 @@ class FluxMockup(AbstractFlux):
             "fluxInfoChanged",
             {"measured": self.measured_flux_dict, "current": self.current_flux_dict},
         )
-
-    def get_flux_info_list(self):
-        return self.measured_flux_list
-
-    def set_flux_info_list(self, flux_info_list):
-        self.measured_flux_list = flux_info_list
-        self.measured_flux_dict = self.measured_flux_list[0]
-        #TODO Adjust to beamsize and transmission
-        self.current_flux_dict = self.measured_flux_list[0]
-        self.emit(
-            "fluxInfoChanged",
-            {"measured": self.measured_flux_dict, "current": self.current_flux_dict},
-        )
-        
-          
