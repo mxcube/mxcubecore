@@ -496,3 +496,10 @@ class EMBLFlux(AbstractFlux):
             "frames_to_reach_limit": int(max_frame_rate * 20000.0 / dose_rate),
             "max_frame_rate": max_frame_rate,
         }
+
+    def get_dose_rate(self):
+        """Get current dose rate in KGy/s at current transmission"""
+        if self.current_flux_dict is not None:
+            return self.current_flux_dict["dose_rate"]
+        else:
+            return 1
