@@ -31,7 +31,6 @@ __category__ = "Task"
 
 
 class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
-
     def __init__(self, name):
         AbstractXRFSpectrum.__init__(self)
         HardwareObject.__init__(self, name)

@@ -40,7 +40,6 @@ __category__ = "General"
 
 
 class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
-
     def __init__(self, name):
 
         AbstractEnergyScan.__init__(self)

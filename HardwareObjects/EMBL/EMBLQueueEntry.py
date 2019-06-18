@@ -37,15 +37,14 @@ __category__ = "queue"
 
 
 class XrayImagingQueueEntry(BaseQueueEntry):
+    """
+    """
 
     def __init__(self, view=None, data_model=None, view_set_queue_entry=True):
         BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
 
-        self.status = QUEUE_ENTRY_STATUS.SUCCESS
-
     def execute(self):
         BaseQueueEntry.execute(self)
-
         self.beamline_setup.xray_imaging_hwobj.execute(self.get_data_model())
 
     def pre_execute(self):
@@ -63,11 +62,16 @@ class XrayImagingQueueEntry(BaseQueueEntry):
             self.collect_failed
         )
 
+        data_model = self.get_data_model()
+
+        if data_model.get_parent():
+            gid = data_model.get_parent().lims_group_id
+            data_model.lims_group_id = gid
+
         self.beamline_setup.xray_imaging_hwobj.pre_execute(self.get_data_model())
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
-
         self.beamline_setup.xray_imaging_hwobj.post_execute(self.get_data_model())
 
         queue_controller = self.get_queue_controller()
@@ -87,6 +91,7 @@ class XrayImagingQueueEntry(BaseQueueEntry):
         self.beamline_setup.xray_imaging_hwobj.stop_collect()
 
     def collect_failed(self, message):
+        # this is to work around the remote access problem
         dispatcher.send("collect_finished")
         self.get_view().setText(1, "Failed")
         self.status = QUEUE_ENTRY_STATUS.FAILED
@@ -94,9 +99,8 @@ class XrayImagingQueueEntry(BaseQueueEntry):
         raise QueueExecutionException(message.replace("\n", " "), self)
 
     def image_taken(self, image_number):
-        """Updates taken image number next to the queue entry in the tree"""
         if image_number > 0:
             num_images = (
-                self.get_data_model().acquisition.acquisition_parameters.num_images
+                self.get_data_model().acquisitions[0].acquisition_parameters.num_images
             )
             self.get_view().setText(1, str(image_number) + "/" + str(num_images))
