@@ -718,6 +718,7 @@ class ProcessingParameters(object):
         self.anomalous = False
         self.pdb_code = None
         self.pdb_file = str()
+        self.resolution_cutoff = 2.0
 
     def get_cell_str(self):
         return ",".join(
