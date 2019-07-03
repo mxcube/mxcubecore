@@ -400,7 +400,7 @@ class BeamlineSubclass(Beamline):
         Adds slots for non-object configuration parameters
 
         """
-        super(self, BeamlineSubclass).__init__(self)
+        super(BeamlineSubclass, self).__init__(self)
 
         self.mode = mode
 
@@ -424,7 +424,7 @@ class BeamlineSubclass(Beamline):
             OrderedDict[text_str, text_str]
         """
         # Copy roles from superclass and add those form this class
-        result = super(self, BeamlineSubclass).role_to_category
+        result = super(BeamlineSubclass, self).role_to_category
         result.update(self.__object_role_categories)
         return result
 
