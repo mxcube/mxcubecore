@@ -1,6 +1,5 @@
----
 # The class to initialise, and init parameters
-initialise_class:
+_initialise_class:
     class: HardwareRepository.HardwareObjects.Beamline.BeamlineSubclass
     # Further key-value pairs here will be passed to the class init
     mode: devel
@@ -57,7 +56,9 @@ _objects:
     # NB this one does not yet exist, but should be written:
     default_characterisation_parameters: default_characterisation_parameters.xml
 # Non-object attributes:
-advanced_methods: ["MeshScan", "XrayCentering"]
+advanced_methods:
+  - MeshScan
+  - XrayCentering
 tunable_wavelength: true
 disable_num_passes: false
 
