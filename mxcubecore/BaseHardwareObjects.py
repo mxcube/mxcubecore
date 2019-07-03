@@ -1,10 +1,78 @@
 from __future__ import absolute_import
 
 import logging
+from collections import OrderedDict
 
 from HardwareRepository.dispatcher import dispatcher
 from HardwareRepository.CommandContainer import CommandContainer
 from HardwareRepository.ConvertUtils import string_types
+
+
+class ConfiguredObject(object):
+    """Superclass for classes that take configuration from YAML files"""
+
+    # Roles of defined objects and the category they belong to
+    # NB the double underscore is deliberate - attribute must be hidden from subclasses
+    __object_role_categories = OrderedDict()
+
+    def __init__(self):
+
+        self._objects = OrderedDict((role, None) for role in self.role_to_category)
+
+    def replace_object(self, role, new_object):
+        """Replace already defined Object with a new one - for runtime use
+
+        Args:
+            role (text_str): Role name of contained Object
+            new_object (Optional[ConfiguredObject]): New contained Object
+
+        Returns:
+
+        """
+        if role in self._objects:
+            self._objects[role] = new_object
+        else:
+            raise ValueError("Unknown contained Object role: %s" % role)
+
+    @property
+    def role_to_category(self):
+        """Mapping from role to category
+
+        Returns:
+            OrderedDict[text_str, text_str]
+        """
+        return self.__object_role_categories.copy()
+
+    @property
+    def all_objects_by_role(self):
+        """All contained Objects mapped by role (in specification order).
+            Includes objects defined in subclasses.
+
+        Returns:
+            OrderedDict[text_str, ConfiguredObject]:
+
+        """
+        return self._objects.copy()
+
+    # NB Use super(self.__class__, self).all_contained_objects in nested subclasses
+
+    @property
+    def objects_by_category(self):
+        """Loaded contained Objects grouped by category, mapped by role
+            (in specification order). Includes objects defined in subclasses.
+
+        Returns:
+            dict[text_str,  OrderedDict[text_str, ConfiguredObject]]:
+
+        """
+        result = dict()
+        for role, cat in self.role_to_category.items():
+            obj = self._objects.get(role)
+            if obj is not None:
+                ddcat = result.setdefault(cat, OrderedDict())
+                ddcat[role] = obj
+        #
+        return result
 
 
 class PropertySet(dict):
@@ -146,14 +214,13 @@ class HardwareObjectNode:
     def resolveReferences(self):
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import getHardwareRepository
+
         while len(self.__references) > 0:
             reference, name, role, objectsNamesIndex, objectsIndex, objectsIndex2 = (
                 self.__references.pop()
             )
 
-            hw_object =getHardwareRepository().getHardwareObject(
-                reference
-            )
+            hw_object = getHardwareRepository().getHardwareObject(reference)
 
             if hw_object is not None:
                 self._objectsByRole[role] = hw_object
@@ -306,6 +373,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
     def __setstate__(self, name):
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import getHardwareRepository
+
         o = getHardwareRepository().getHardwareObject(name)
         self.__dict__.update(o.__dict__)
 
@@ -411,12 +479,14 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         """Rewrite XML file"""
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import getHardwareRepository
+
         getHardwareRepository().rewrite_xml(self.name(), xml)
 
     def xml_source(self):
         """Get XML source code"""
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import getHardwareRepository
+
         return getHardwareRepository().xml_source[self.name()]
 
 

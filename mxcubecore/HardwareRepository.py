@@ -13,6 +13,7 @@ import weakref
 import sys
 import os
 import time
+import yaml
 import gevent.monkey
 from datetime import datetime
 
@@ -35,6 +36,97 @@ __version__ = 1.3
 _instance = None
 _hwrserver = None
 _timers = []
+
+_beamline = None
+BEAMLINE_CONFIG_FILE = "beamline_config.yml"
+
+
+def get_beamline():
+    """
+    Always use this function to get hold of the beamline object
+
+    Assumes that repositories have been initialised first
+
+    Returns:
+        HardwareRepository.HardwareObjects.Beamline.Beamline: Beamline object
+    """
+    global _beamline
+    if _beamline is None:
+        _beamline = load_from_yaml(BEAMLINE_CONFIG_FILE)
+    else:
+        return _beamline
+
+
+def load_from_yaml(configuration_file):
+    """Loads yaml configuration file,
+    and recursively loads contained objects from their configuration files
+
+    Args:
+        configuration_file (str): The path to the configuration file,
+        relative to the har_server lookup path
+
+    Returns:
+        HardwareRepository.BaseHardwareObjects.ConfiguredObject:
+        configured object
+
+    """
+
+    # Get full path for configuration file
+    if _instance is None:
+        raise RuntimeError("HardwareRepository has not been initialised")
+    configuration_path = _instance.findInRepository(configuration_file)
+    if configuration_path is None:
+        raise IOError("File %s not found in repository path" % configuration_file)
+
+    # Load the configuration file
+    with open(configuration_path, "r") as fp0:
+        configuration = yaml.safe_load(fp0)
+        yaml.dump()
+
+    # Get actual class
+    initialise_class = configuration.pop("initialise_class", None)
+    if not initialise_class:
+        raise ValueError(
+            "Configuration file %s lacks 'initialise_class' tag" % configuration_path
+        )
+    class_import = initialise_class.pop("class", None)
+    if not class_import:
+        raise ValueError(
+            "Configuration file %s 'initialise_class' lacks 'class' tag"
+            % configuration_path
+        )
+    ll0 = class_import.split(".")
+    # For "a.b.c" equivalent to absolute import of "from a.b import c"
+    cls = __import__(ll0[-1], fromlist=ll0[:-1], level=0)
+
+    # instantiate object
+    result = cls(**initialise_class)
+
+    # Initialise object
+    result.init()
+
+    # Recursively load contained objects (of any type that the system can supprt)
+    _objects = configuration.pop("_objects", {})
+    for role, config_file in _objects.items():
+        if os.path.splitext(config_file)[1] == ".yml":
+            hwobj = load_from_yaml(config_file)
+            hwobj.init()
+        elif os.path.splitext(config_file)[1] == ".xml":
+            hwobj = _instance.loadHardwareObject(config_file)
+        result.replace_hardware_object(role, hwobj)
+
+    # Set simple, miscellaneous properties.
+    # NB the attribute must have been initialied in the class init first.
+    # If you need data for further processing during init
+    # that should not remain as attributes
+    # load them into a pre-defined attribute called '_tmp'
+    for key, val in configuration.items():
+        if hasattr(result, key):
+            setattr(result, key, val)
+        else:
+            raise ValueError("Object %s has no attribute named %s" % (result, key))
+    #
+    return result
 
 
 def addHardwareObjectsDirs(hoDirs):
@@ -698,7 +790,7 @@ class __HardwareRepositoryClient:
             func = func_ref()
 
             if func is None:
-                #self.killTimer(t_ev.timerId())
+                # self.killTimer(t_ev.timerId())
                 del _timers[t_ev.timerId()]
             else:
                 try:
