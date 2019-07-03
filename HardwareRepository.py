@@ -13,7 +13,6 @@ import weakref
 import sys
 import os
 import time
-import yaml
 import gevent.monkey
 from datetime import datetime
 
@@ -29,6 +28,14 @@ from . import BaseHardwareObjects
 from . import HardwareObjectFileParser
 from HardwareRepository.dispatcher import dispatcher
 from HardwareRepository.ConvertUtils import string_types
+
+from ruamel.yaml import YAML
+# If you want to write out copies of the file, use typ="rt" instead
+# pure=True uses yaml version 1.2, with fewere gotchas for strange type conversions
+yaml  = YAML(typ="safe", pure=True)
+# The following are not needed for load, but define the default style.
+yaml.default_flow_style = False
+yaml.indent(mapping=4, sequence=4, offset=2)
 
 __author__ = "Matias Guijarro"
 __version__ = 1.3
@@ -80,19 +87,18 @@ def load_from_yaml(configuration_file):
 
     # Load the configuration file
     with open(configuration_path, "r") as fp0:
-        configuration = yaml.safe_load(fp0)
-        yaml.dump()
+        configuration = yaml.load(fp0)
 
     # Get actual class
-    initialise_class = configuration.pop("initialise_class", None)
+    initialise_class = configuration.pop("_initialise_class", None)
     if not initialise_class:
         raise ValueError(
-            "Configuration file %s lacks 'initialise_class' tag" % configuration_path
+            "Configuration file %s lacks '_initialise_class' tag" % configuration_path
         )
     class_import = initialise_class.pop("class", None)
     if not class_import:
         raise ValueError(
-            "Configuration file %s 'initialise_class' lacks 'class' tag"
+            "Configuration file %s '_initialise_class' lacks 'class' tag"
             % configuration_path
         )
     ll0 = class_import.split(".")
