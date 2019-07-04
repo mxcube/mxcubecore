@@ -29,16 +29,16 @@ from __future__ import print_function, unicode_literals
 
 import gevent
 
-from HardwareRepository.HardwareObjects.abstract import StandardHardwareObject
+from HardwareRepository.HardwareObjects.abstract import AbstractActuator2
 
-__credits__ = [" Copyright © 2016 - 2019 by Global Phasing Ltd. All rights reserved"]
+__credits__ = [" Copyright © 2019 - by MXCuBE collaboration. All rights reserved"]
 __license__ = "LGPLv3+"
 __category__ = "General"
 __author__ = "rhfogh"
 __date__ = "17/05/2019"
 
 
-class StandardMockupObject(StandardHardwareObject.StandardHardwareObject):
+class StandardMockupObject(AbstractActuator2.StandardHardwareObject):
     """MockTransmission implementation using new StandardHardwareObject
     """
 
@@ -49,41 +49,42 @@ class StandardMockupObject(StandardHardwareObject.StandardHardwareObject):
         self._limits = (None, None)
         self._value_set_delay = 1.0
 
-    @property
-    def value(self):
-        """
-        Returns current transmission in %
-        :return: float (0 - 100)
+    def get_value(self):
+        """Get current value
+
+        Returns:
+            Optional[float]
         """
         return self._value
 
-    @value.setter
-    def value(self, value):
-        """
-        Sets transmission.  NB actual value set may differ from input value
-        :param value: float (0 - 100)
-        :return:
-        """
+    def _set_value(self, value):
 
-        if self.accept_new_value(value):
-            gevent.spawn(self._delayed_set_value, value, self._value_set_delay)
+        gevent.spawn(self._delayed_set_value, value, self._value_set_delay)
 
-    def _set_limits(self, value):
+    def _set_limits(self, limits):
+        """Set value limits to (lowerbound, upperlound)
+
+        Args:
+            limits (Tuple[Optional[float], Optional[float]]): limits to set
+
+        Returns:
+
         """
-        Sets transmission limits
-        :param value: Sequence[float] # length two
-        :return:
-        """
-        self._limits = tuple(value)
+        self._limits = tuple(limits)
+        self.emit("limitsChanged", (limits,))
 
     def _delayed_set_value(self, value, delay):
-        """
+        """Set value after delay, to mimick hardware operation
 
-        :param value: Optional[float]
-        :param delay: float, delay time in seconds.
-        :return:
+        Args:
+            value (Optional[float]): New value
+            delay (float): delay time in seconds.
+
+        Returns:
+
         """
+        self.set_state(self.STATE.BUSY)
         gevent.sleep(delay)
         self._value = value
-        self.state = self.STATE.READY
+        self.set_state(self.STATE.READY)
         self.emit("valueChanged", self.value)

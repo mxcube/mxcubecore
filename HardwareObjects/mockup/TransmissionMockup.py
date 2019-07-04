@@ -27,16 +27,16 @@ Based on existing HardwarObjects.Transmission
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
-from HardwareRepository.HardwareObjects.mockup import StandardMockupObject
+from HardwareRepository.HardwareObjects.mockup import AbstractMockActuator
 
-__credits__ = [" Copyright © 2016 - 2019 by Global Phasing Ltd. All rights reserved"]
+__credits__ = [" Copyright © 2019 -  by MXCuBE collaboration. All rights reserved"]
 __license__ = "LGPLv3+"
 __category__ = "General"
 __author__ = "rhfogh"
 __date__ = "17/05/2019"
 
 
-class TransmissionMockup(StandardMockupObject.StandardMockupObject):
+class TransmissionMockup(AbstractMockActuator.StandardMockupObject):
     """MockTransmission implementation using new StandardHardwareObject
     """
 
@@ -45,5 +45,5 @@ class TransmissionMockup(StandardMockupObject.StandardMockupObject):
         self.value_resolution = 0.01
         self._limits = (0, 100)
         self._value_set_delay = 2.0
-        self.value = 100
-        self.state = self.STATE.READY
+        self._value = 100
+        self._state =self.STATE.READY

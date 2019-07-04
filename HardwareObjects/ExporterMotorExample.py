@@ -22,7 +22,7 @@
 """Example of using StandardHardwareObject: ExporterMotorExample (from ExporterMotor)
 """
 
-from HardwareRepository.HardwareObjects.abstract import StandardHardwareObject
+from HardwareRepository.HardwareObjects.abstract import AbstractActuator2
 
 """
 Example xml file:
@@ -37,7 +37,7 @@ Example xml file:
 """
 
 
-class ExporterMotorExample(StandardHardwareObject.StandardHardwareObject):
+class ExporterMotorExample(AbstractActuator2.StandardHardwareObject):
     def __init__(self, name):
         super(ExporterMotorExample, self).__init__(name)
 
@@ -56,7 +56,7 @@ class ExporterMotorExample(StandardHardwareObject.StandardHardwareObject):
             {"type": "exporter", "name": "%sPosition" % self.motor_name},
             self.motor_name + self.motor_pos_attr_suffix,
         )
-        self.chan_position.connectSignal("update", self.set_value_to)
+        self.chan_position.connectSignal("update", self.value_changed)
 
         self.chan_state = self.addChannel(
             {"type": "exporter", "name": "state"}, "State"
@@ -94,17 +94,16 @@ class ExporterMotorExample(StandardHardwareObject.StandardHardwareObject):
             "NotInitialized": STATE.NOTINITIALIZED,
         }
 
-        # Initislise values from channel
-        self.value = self.chan_position.getValue()
-        self.state = self.STATE.READY
+        # Initialise values from channel
+        self.set_state(self.STATE.READY)
 
     def connectNotify(self, signal):
         if signal == "valueChanged":
-            self.emit("valueChanged", (self.value,))
+            self.emit("valueChanged", (self.get_value(),))
         elif signal == "stateChanged":
-            self.emit("stateChanged", (self.state,))
+            self.emit("stateChanged", (self.get_state(),))
         elif signal == "limitsChanged":
-            self.emit("limitsChanged", (self.limits,))
+            self.emit("limitsChanged", (self.get_limits(),))
 
     def all_motor_states_changed(self, all_motor_states):
         """Get state for all known motors"""
@@ -119,12 +118,15 @@ class ExporterMotorExample(StandardHardwareObject.StandardHardwareObject):
 
         self.state = new_state
 
-    @property
-    def limits(self):
+    def get_limits(self):
+        """ Get current limits, dynamic or static
+
+        Returns:
+            Tuple[float,float]
+
+        """
         dynamic_limits = self.get_dynamic_limits()
-        if dynamic_limits != (-1e4, 1e4):
-            return dynamic_limits
-        else:
+        if dynamic_limits == (-1e4, 1e4):
             try:
                 low_lim, hi_lim = map(float, self.cmd_get_limits(self.motor_name))
                 if low_lim == float(1e999) or hi_lim == float(1e999):
@@ -132,28 +134,28 @@ class ExporterMotorExample(StandardHardwareObject.StandardHardwareObject):
                 return low_lim, hi_lim
             except BaseException:
                 return (-1e4, 1e4)
+        else:
+            return dynamic_limits
 
-    @property
-    def max_speed(self):
-        """
-        Maximum change speed in relevant units / s
-        :return: Optional[float]
+    def get_max_speed(self):
+        """Maximum change speed in relevant units / s
+
+        Returns:
+            Optional[float]
         """
         return self.cmd_get_max_speed(self.motor_name)
 
-    @property
-    def value(self):
-        """
-        current value (float or None) of object.
-        :return: Optional[float]
+    def get_value(self):
+        """Get current value
+
+        Returns:
+            Optional[float]
         """
         return self.chan_position.getValue()
 
-    @value.setter
-    def value(self, value):
-        if self.accept_new_value(value):
-            self.state = self.STATE.BUSY
-            self.chan_position.setValue(value)
+    def _set_value(self, value):
+        self.set_state(self.STATE.BUSY)
+        self.chan_position.setValue(value)
 
     def get_dynamic_limits(self):
         try:
@@ -173,3 +175,6 @@ class ExporterMotorExample(StandardHardwareObject.StandardHardwareObject):
             raise ValueError("Invalid value for timeout: %s" % timeout)
         self.cmd_home(self.motor_name)
         self.wait_ready(timeout)
+
+    def value_changed(self, value, private={}):
+        self.emit("valueChanged", (value,))
