@@ -27,7 +27,7 @@ All HardwareObjects
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
-__copyright__ = """ Copyright © 2019 by Global Phasing Ltd. """
+__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
