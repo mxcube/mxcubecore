@@ -29,6 +29,8 @@ import logging
 from abc import ABCMeta, abstractmethod
 import gevent.event
 
+from HardwareRepository.BaseHardwareObjects import HardwareObject, HardwareObjectNode
+
 # We should make a standard set of states and use that wherever possible
 from somewhere import GeneralState
 
@@ -39,8 +41,10 @@ __author__ = "rhfogh"
 __date__ = "20190607"
 
 
-class AbstractActuator(object):
+class AbstractActuator(HardwareObject, HardwareObjectNode):
     """Abstract base class for Abstract actuators"""
+
+    # NB we should separate HardwareObjectNode and HardwareObject for future refactoring
 
     __metaclass__ = ABCMeta
 
@@ -154,8 +158,11 @@ class AbstractActuator(object):
                 upper is not None and value > upper
             ):
                 logging.getLogger("HWR").warning(
-                    "%s value %s not in range %s to %s"
-                    % (self.__class__.__name__, value, lower, upper)
+                    "%s value %s not in range %s to %s",
+                    self.__class__.__name__,
+                    value,
+                    lower,
+                    upper,
                 )
                 return False
         return True

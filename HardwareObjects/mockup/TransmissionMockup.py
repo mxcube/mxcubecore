@@ -36,7 +36,7 @@ __author__ = "rhfogh"
 __date__ = "17/05/2019"
 
 
-class TransmissionMockup(AbstractMockActuator.StandardMockupObject):
+class TransmissionMockup(AbstractMockActuator.AbstractMockActuator):
     """MockTransmission implementation using new StandardHardwareObject
     """
 
@@ -46,4 +46,4 @@ class TransmissionMockup(AbstractMockActuator.StandardMockupObject):
         self._limits = (0, 100)
         self._value_set_delay = 2.0
         self._value = 100
-        self._state =self.STATE.READY
+        self._state = self.STATE.READY

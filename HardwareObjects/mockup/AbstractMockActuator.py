@@ -38,12 +38,12 @@ __author__ = "rhfogh"
 __date__ = "17/05/2019"
 
 
-class StandardMockupObject(AbstractActuator2.StandardHardwareObject):
-    """MockTransmission implementation using new StandardHardwareObject
+class AbstractMockActuator(AbstractActuator2.AbstractActuator):
+    """MockTransmission implementation using new AbstractActuator
     """
 
     def __init__(self, name):
-        super(StandardMockupObject, self).__init__(name)
+        super(AbstractMockActuator, self).__init__(name)
 
         self._value = None
         self._limits = (None, None)

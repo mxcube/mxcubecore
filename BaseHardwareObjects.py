@@ -264,22 +264,24 @@ class HardwareObjectNode:
     def getProperties(self):
         return self._propertySet
 
-    def update_values(self):
-        """Method called from Qt bricks to ensure that bricks have values
-           after the initialization.
-           Problem arrise when a hardware object is used by several bricks.
-           If first brick connects to some signal emited by a brick then
-           other bricks connecting to the same signal will no receive the
-           values on the startup.
-           The easiest solution is to call update_values method directly
-           after getHardwareObject and connect.
+    # Moved to HarwareObject, DeviceContainerNode for refactoring
+    # def update_values(self):
+    #     """Method called from Qt bricks to ensure that bricks have values
+    #        after the initialization.
+    #        Problem arrise when a hardware object is used by several bricks.
+    #        If first brick connects to some signal emited by a brick then
+    #        other bricks connecting to the same signal will no receive the
+    #        values on the startup.
+    #        The easiest solution is to call update_values method directly
+    #        after getHardwareObject and connect.
+    #
+    #        Normaly this method would emit all values
+    #     """
+    #     return
 
-           Normaly this method would emit all values
-        """
-        return
-
-    def clear_gevent(self):
-        pass
+    # Moved to HarwareObject, DeviceContainerNode for refactoring
+    # def clear_gevent(self):
+    #     pass
 
     def print_log(self, log_type="HWR", level="debug", msg=""):
         if hasattr(logging.getLogger(log_type), level):
@@ -419,6 +421,29 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         from .HardwareRepository import getHardwareRepository
         return getHardwareRepository().xml_source[self.name()]
 
+    # Moved from HardwareObjectNode
+    def clear_gevent(self):
+        """Clear gevent tasks
+
+        Returns:
+
+        """
+        pass
+
+    def update_values(self):
+        """Method called from Qt bricks to ensure that bricks have values
+           after the initialization.
+           Problem arrise when a hardware object is used by several bricks.
+           If first brick connects to some signal emited by a brick then
+           other bricks connecting to the same signal will no receive the
+           values on the startup.
+           The easiest solution is to call update_values method directly
+           after getHardwareObject and connect.
+
+           Normaly this method would emit all values
+        """
+        return
+
 
 class Procedure(HardwareObject):
     def __init__(self, name):
@@ -498,7 +523,30 @@ class DeviceContainer:
 
 
 class DeviceContainerNode(HardwareObjectNode, DeviceContainer):
-    pass
+
+    # Moved from HardwareObjectNode
+
+    def clear_gevent(self):
+        """Clear gevent tasks
+
+        Returns:
+
+        """
+        pass
+
+    def update_values(self):
+        """Method called from Qt bricks to ensure that bricks have values
+           after the initialization.
+           Problem arrise when a hardware object is used by several bricks.
+           If first brick connects to some signal emited by a brick then
+           other bricks connecting to the same signal will no receive the
+           values on the startup.
+           The easiest solution is to call update_values method directly
+           after getHardwareObject and connect.
+
+           Normaly this method would emit all values
+        """
+        return
 
 
 class Equipment(HardwareObject, DeviceContainer):

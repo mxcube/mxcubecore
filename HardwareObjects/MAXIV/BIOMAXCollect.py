@@ -1389,7 +1389,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         try:
-            self.transmission_hwobj.set_value(float(value), True)
+            self.transmission_hwobj.set_value(float(value), timeout=30)
         except Exception as ex:
             raise Exception("cannot set transmission", ex)
 
