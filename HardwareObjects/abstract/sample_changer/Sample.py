@@ -73,7 +73,7 @@ class Sample(Component):
                 img = f.read()
                 return img
         except BaseException:
-            print(sys.exc_info()[1])
+            print((sys.exc_info()[1]))
 
     def clearInfo(self):
         Component.clearInfo(self)

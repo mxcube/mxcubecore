@@ -175,4 +175,4 @@ def test_hwo(hwo):
     odir = "/tmp/edna"
     test_input_file = "/beamlines/bl13/projects/cycle2018-I/2018012551-bcalisto/mx2018012551/DATA/20180131/PROCESS_DATA/characterisation_ref-Thrombin-TB-TTI1_A_run1_1/EDNAInput_2004391.xml"
     result = hwo.run_edna(test_input_file, ofile, odir)
-    print result
+    print(result)

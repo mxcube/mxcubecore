@@ -9,7 +9,7 @@ class CyberStar(TacoDevice.TacoDevice):
         self.scaling_factor = None
 
     def init(self):
-        print(">>>", self.getProperty("scaling_factor"))
+        print((">>>", self.getProperty("scaling_factor")))
         self.idx = int(self.getProperty("idx") or 1)
         self.scaling_factor = float(self.getProperty("scaling_factor") or 1)
 

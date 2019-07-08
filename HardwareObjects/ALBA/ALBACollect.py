@@ -971,12 +971,12 @@ class ALBACollect(AbstractCollect):
 
 
 def test_hwo(hwo):
-    print "Energy: ", hwo.get_energy()
-    print "Transm: ", hwo.get_transmission()
-    print "Resol: ", hwo.get_resolution()
-    print "Shutters (ready for collect): ", hwo.check_shutters()
-    print "Supervisor(collect phase): ", hwo.is_collect_phase()
+    print("Energy: ", hwo.get_energy())
+    print("Transm: ", hwo.get_transmission())
+    print("Resol: ", hwo.get_resolution())
+    print("Shutters (ready for collect): ", hwo.check_shutters())
+    print("Supervisor(collect phase): ", hwo.is_collect_phase())
 
-    print "Flux ", hwo.get_flux()
-    print "Kappa ", hwo.kappapos_chan.getValue()
-    print "Phi ", hwo.phipos_chan.getValue()
+    print("Flux ", hwo.get_flux())
+    print("Kappa ", hwo.kappapos_chan.getValue())
+    print("Phi ", hwo.phipos_chan.getValue())

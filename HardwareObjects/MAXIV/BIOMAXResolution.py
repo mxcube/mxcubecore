@@ -43,7 +43,7 @@ class BIOMAXResolution(Resolution.Resolution):
             ttheta = 2 * math.asin(current_wavelength / (2 * res))
             return self.det_radius / math.tan(ttheta)
         except Exception as ex:
-            print ex
+            print(ex)
             return None
 
     def dist2res(self, dist=None):

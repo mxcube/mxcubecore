@@ -79,37 +79,37 @@ class Mcce(Equipment):
     #######################
 
     def updateMcceDev(self, device):
-        print("--McceHwObj--updateMcceDev--", device, " number=", self.mcce_number)
+        print(("--McceHwObj--updateMcceDev--", device, " number=", self.mcce_number))
         self.mcce_dev = device
         self.emit("hwoConnected", (device,))
         self.emit("updateDev", (device,))
 
     def updateMcceName(self, name):
-        print("--McceHwObj--updateMcceName--, ", name, " number=", self.mcce_number)
+        print(("--McceHwObj--updateMcceName--, ", name, " number=", self.mcce_number))
         self.mcce_name = name
         self.emit("nameChanged", (name,))
 
     def updateMcceType(self, mtype):
-        print("--McceHwObj--updateMcceType-- ", mtype, " number=", self.mcce_number)
+        print(("--McceHwObj--updateMcceType-- ", mtype, " number=", self.mcce_number))
         self.mcce_type = mtype
         self.emit("updateType", (mtype,))
 
     def updateMcceRange(self, range):
-        print("--McceHwObj--updateMcceRange-- ", range, " number=", self.mcce_number)
+        print(("--McceHwObj--updateMcceRange-- ", range, " number=", self.mcce_number))
         self.mcce_range = range
         self.emit("updateRange", (range,))
 
     def updateMcceFreq(self, freq):
-        print("--McceHwObj--updateMcceFreq-- ", freq, " number=", self.mcce_number)
+        print(("--McceHwObj--updateMcceFreq-- ", freq, " number=", self.mcce_number))
         self.mcce_freq = freq
         self.emit("updateFreq", (freq,))
 
     def updateMcceGain(self, gain):
-        print("--McceHwObj--updateMcceGain-- ", gain, " number=", self.mcce_number)
+        print(("--McceHwObj--updateMcceGain-- ", gain, " number=", self.mcce_number))
         self.mcce_gain = gain
         self.emit("updateGain", (gain,))
 
     def updateMccePol(self, pol):
-        print("--McceHwObj--updateMccePol-- ", pol, " number=", self.mcce_number)
+        print(("--McceHwObj--updateMccePol-- ", pol, " number=", self.mcce_number))
         self.mcce_pol = pol
         self.emit("updatePol", (pol,))

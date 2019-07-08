@@ -92,7 +92,7 @@ class MicrodiffHutchTrigger(BaseHardwareObjects.HardwareObject):
         ctrl_obj = self.getObjectByRole("controller")
         if not entering_hutch:
             if old["dtox"] is not None:
-                print "Moving %s to %g" % (dtox.name(), old["dtox"])
+                print("Moving %s to %g" % (dtox.name(), old["dtox"]))
                 dtox.move(old["dtox"])
             self.flex_device.eval("flex.user_port(0)")
             self.flex_device.eval("flex.robot_port(1)")

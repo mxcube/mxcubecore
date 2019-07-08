@@ -557,11 +557,11 @@ if __name__ == "__main__":
 
     req_handler = which[options.server]
     s = Server("", options.port, req_handler)
-    print(
+    print((
         req_handler.__name__,
         "running on port",
         options.port,
         "with root path",
         options.root,
-    )
+    ))
     asyncore.loop()

@@ -180,7 +180,7 @@ class MaxIVSession(Session):
                 self.get_user_category(self.login), self.endstation_name
             )
         except Exception as ex:
-            print ex
+            print(ex)
             # this creates the path for the data and ensures proper permissions.
             # e.g. /data/visitors/biomax/<proposal>/<visit>/{raw, process}
         if self.is_commissioning:

@@ -238,7 +238,7 @@ class Microdiff(MiniDiff.MiniDiff):
                         timeout = 40
                     self._wait_ready(timeout)
         else:
-            print "moveToPhase - Ready is: ", self._ready()
+            print("moveToPhase - Ready is: ", self._ready())
 
     def getPhase(self):
         return self.readPhase.getValue()
@@ -294,12 +294,12 @@ class Microdiff(MiniDiff.MiniDiff):
             "startScanEx",
         )
         scan(scan_params)
-        print "oscil scan started at ----------->", time.time()
+        print("oscil scan started at ----------->", time.time())
         if wait:
             self._wait_ready(
                 600
             )  # timeout of 10 min # Changed on 20180406 Daniele, because of long exposure time set by users
-            print "finished at ---------->", time.time()
+            print("finished at ---------->", time.time())
 
     def oscilScan4d(self, start, end, exptime, motors_pos, wait=False):
         if self.in_plate_mode():
@@ -329,10 +329,10 @@ class Microdiff(MiniDiff.MiniDiff):
             "startScan4DEx",
         )
         scan(scan_params)
-        print "helical scan started at ----------->", time.time()
+        print("helical scan started at ----------->", time.time())
         if wait:
             self._wait_ready(900)  # timeout of 15 min
-            print "finished at ---------->", time.time()
+            print("finished at ---------->", time.time())
 
     def oscilScanMesh(
         self,
@@ -379,10 +379,10 @@ class Microdiff(MiniDiff.MiniDiff):
             "startRasterScan",
         )
         scan(scan_params)
-        print "mesh scan started at ----------->", time.time()
+        print("mesh scan started at ----------->", time.time())
         if wait:
             self._wait_ready(1800)  # timeout of 30 min
-            print "finished at ---------->", time.time()
+            print("finished at ---------->", time.time())
 
     def stillScan(self, pulse_duration, pulse_period, pulse_nb, wait=False):
         scan_params = "%0.6f\t%0.6f\t%d" % (pulse_duration, pulse_period, pulse_nb)
@@ -395,10 +395,10 @@ class Microdiff(MiniDiff.MiniDiff):
             "startStillScan",
         )
         scan(scan_params)
-        print "still scan started at ----------->", time.time()
+        print("still scan started at ----------->", time.time())
         if wait:
             self._wait_ready(1800)  # timeout of 30 min
-            print "finished at ---------->", time.time()
+            print("finished at ---------->", time.time())
 
     def in_plate_mode(self):
         try:

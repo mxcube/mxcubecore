@@ -585,7 +585,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
             self.mosflm_template_buf = open(self.mosflm_template).read()
             self.write_files = True
         except BaseException:
-            print "Cannot find template for xds and mosflm input files "
+            print("Cannot find template for xds and mosflm input files ")
             self.write_files = False
 
         while True:
@@ -638,10 +638,10 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
 
         dp_pars = self.collect_pars_dp
 
-        print "\nDATA COLLECT PARS"
-        print "-------------------------------------------"
+        print("\nDATA COLLECT PARS")
+        print("-------------------------------------------")
         pprint.pprint(dp_pars)
-        print "-------------------------------------------"
+        print("-------------------------------------------")
 
         # get info from HWR server (is this updated when file is changed?)
         # GET some info from beamline control and beamline config objects
@@ -809,7 +809,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
         try:
             stac_template_buf = open(stac_template).read()
         except BaseException:
-            print "Cannot find template for stac input files "
+            print("Cannot find template for stac input files ")
             return
 
         omega = self.bl_control.diffractometer.phiMotor.getPosition()
