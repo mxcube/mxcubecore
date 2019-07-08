@@ -1,5 +1,5 @@
 import base64
-import cPickle
+import pickle
 from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import *
 from PyTango.gevent import DeviceProxy
 
@@ -196,7 +196,7 @@ class FlexHCD(SampleChanger):
 
         res = self.robot.get_result(cmd_id)
         if res:
-            res = cPickle.loads(base64.decodestring(res))
+            res = pickle.loads(base64.decodestring(res))
             if isinstance(res, Exception):
                 raise res
             else:
