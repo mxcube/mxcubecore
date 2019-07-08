@@ -32,7 +32,7 @@ __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
 from collections import OrderedDict
-from BaseHardwareObjects import ConfiguredObject
+from HardwareRepository.BaseHardwareObjects import ConfiguredObject
 
 
 class Beamline(ConfiguredObject):
