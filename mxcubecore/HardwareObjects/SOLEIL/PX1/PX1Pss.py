@@ -29,4 +29,4 @@ class PX1Pss(Device):
 
 
 def test_hwo(hwo):
-    print hwo.getState()
+    print(hwo.getState())

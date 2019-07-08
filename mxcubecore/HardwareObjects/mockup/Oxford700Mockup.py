@@ -90,15 +90,15 @@ class OxfordDummy:
 
     def get_temperature(self):
         self.temp = random.uniform(0, 100)
-        print(self.temp)
+        print((self.temp))
         return self.temp
 
     def ramp(self, temp, rate):
-        print("ramp ", temp)
+        print(("ramp ", temp))
         print(rate)
 
     def set(self, temp):
-        print("set ", temp)
+        print(("set ", temp))
 
     def hold(self):
         print("hold called")

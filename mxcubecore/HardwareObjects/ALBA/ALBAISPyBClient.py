@@ -83,10 +83,10 @@ def test_hwo(hwo):
     info = hwo.login(proposal, pasw)
     # info = hwo.get_proposal(proposal_code, proposal_number)
     # info = hwo.get_proposal_by_username("u2020000007")
-    print info["status"]
+    print(info["status"])
 
-    print "Getting associated samples"
+    print("Getting associated samples")
     session_id = 58248
     proposal_id = 8250
     samples = hwo.get_samples(proposal_id, session_id)
-    print samples
+    print(samples)

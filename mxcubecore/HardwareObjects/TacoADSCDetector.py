@@ -78,7 +78,7 @@ class ADSC:
     def set_detector_filenames(
         self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
     ):
-        print "frame", frame_number, " - setting detector filename", filename, "phi=", start
+        print("frame", frame_number, " - setting detector filename", filename, "phi=", start)
         ccd_set_filepar = self.getCommandObject("detector_setfilepar")
         self._send_params(
             ccd_set_filepar,
@@ -142,7 +142,7 @@ class ADSC:
 
         self._send_params(ccd_set_filepar, "axis", 1, "kind", 5, "lastimage", 0)
 
-        print "detector start exposure"
+        print("detector start exposure")
         self.execute_command("detector_start_exposure")
         self.wait_detector(1)
 
@@ -154,12 +154,12 @@ class ADSC:
 
         self.wait_detector(0)
 
-        print "calling write_image"
+        print("calling write_image")
         self.execute_command("detector_write_image")
 
     @task
     def stop_acquisition(self):
-        print "calling stop"
+        print("calling stop")
         self.execute_command("detector_stop")
 
     @task
@@ -169,11 +169,11 @@ class ADSC:
     def wait_detector(self, until_state):
         with gevent.Timeout(20, RuntimeError("Timeout waiting for detector")):
             state = self.execute_command("detector_state")
-            print state, until_state
+            print(state, until_state)
             while state != until_state:
                 time.sleep(0.2)
                 state = self.execute_command("detector_state")
-                print "DET. WAITING FOR STATE ;", state, until_state
+                print("DET. WAITING FOR STATE ;", state, until_state)
                 if state in (-1, 3):
                     status = self.execute_command("detector_status")
                     raise RuntimeError(

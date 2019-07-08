@@ -195,5 +195,5 @@ class ALBABeamInfo(Equipment):
 
 
 def test_hwo(hwo):
-    print hwo.get_beam_info()
-    print hwo.get_beam_position()
+    print(hwo.get_beam_info())
+    print(hwo.get_beam_position())

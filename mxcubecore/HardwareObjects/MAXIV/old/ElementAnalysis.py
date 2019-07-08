@@ -9,7 +9,7 @@ from SpecClient import SpecClientError
 from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Procedure
 
-print "Custom ElementAnalysis loaded"
+print("Custom ElementAnalysis loaded")
 
 
 class ElementAnalysis(Procedure):

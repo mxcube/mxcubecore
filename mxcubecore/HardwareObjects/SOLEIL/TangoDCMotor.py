@@ -325,7 +325,7 @@ def test():
     hwr.connect()
 
     motor = hwr.getHardwareObject("/phi")
-    print motor.getPosition()
+    print(motor.getPosition())
 
 
 if __name__ == "__main__":

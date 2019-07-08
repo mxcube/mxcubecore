@@ -144,5 +144,5 @@ class PX1BeamInfo(Equipment):
 
 
 def test_hwo(hwo):
-    print "BEAM info: ", hwo.get_beam_info()
-    print "BEAM position: ", hwo.get_beam_position()
+    print("BEAM info: ", hwo.get_beam_info())
+    print("BEAM position: ", hwo.get_beam_position())

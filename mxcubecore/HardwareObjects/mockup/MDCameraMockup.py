@@ -43,7 +43,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
 
     def udiffVersionChanged(self, value):
         if value == "MD2_2":
-            print("start polling MD camera with poll interval=", self.pollInterval)
+            print(("start polling MD camera with poll interval=", self.pollInterval))
             # self.pollingTimer.start(self.pollInterval)
             # self.startPolling()
         else:

@@ -66,6 +66,6 @@ class ALBASession(Session.Session):
 
 
 def test_hwo(hwo):
-    print hwo.get_base_data_directory()
-    print hwo.get_process_directory()
-    print hwo.get_archive_directory()
+    print(hwo.get_base_data_directory())
+    print(hwo.get_process_directory())
+    print(hwo.get_archive_directory())
