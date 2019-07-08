@@ -76,13 +76,13 @@ class PX2Attenuator(Device):
     def getAttState(self):
         try:
             value1 = Ps_attenuatorPX2.stateAttenuator[self.Ps_hdevice.State().name]
-            print "State hslit : ", Ps_attenuatorPX2.stateAttenuator[
+            print("State hslit : ", Ps_attenuatorPX2.stateAttenuator[
                 self.Ps_hdevice.State().name
-            ]
+            ])
             value2 = Ps_attenuatorPX2.stateAttenuator[self.Ps_vdevice.State().name]
-            print "State vslit : ", Ps_attenuatorPX2.stateAttenuator[
+            print("State vslit : ", Ps_attenuatorPX2.stateAttenuator[
                 self.Ps_vdevice.State().name
-            ]
+            ])
             if value1 == "ready" and value2 == "ready":
                 value = "ready"
             elif value1 == "error" or value2 == "error":
@@ -185,16 +185,16 @@ class PX2Attenuator(Device):
                 self.Constdevice.Ratio_FP_Gap = 0.5
 
             truevalue = (2.0 - math.sqrt(4 - 0.04 * value)) / 0.02
-            print " truevalue : ", truevalue
+            print(" truevalue : ", truevalue)
             newGapFP_H = math.sqrt(
                 (truevalue / 100.0)
                 * self.Constdevice.FP_Area_FWHM
                 / self.Constdevice.Ratio_FP_Gap
             )
-            print " Gap FP_H : ", newGapFP_H
+            print(" Gap FP_H : ", newGapFP_H)
             self.Ps_hdevice.gap = newGapFP_H
             newGapFP_V = newGapFP_H * self.Constdevice.Ratio_FP_Gap
-            print " Gap FP_V : ", newGapFP_V
+            print(" Gap FP_V : ", newGapFP_V)
             self.Ps_vdevice.gap = newGapFP_V
             # self.attFactorChanged(channelValue)
         except BaseException:
@@ -217,4 +217,4 @@ class PX2Attenuator(Device):
 
 
 def test_hwo(hwo):
-    print "Atten. factor", hwo.getAttFactor()
+    print("Atten. factor", hwo.getAttFactor())

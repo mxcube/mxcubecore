@@ -146,9 +146,9 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
 
 
 def test_hwo(hwo):
-    print "Name is: ", hwo.getUserName()
-    print "Shutter state is: ", hwo.getState()
-    print "Shutter status is: ", hwo.getStatus()
+    print("Name is: ", hwo.getUserName())
+    print("Shutter state is: ", hwo.getState())
+    print("Shutter status is: ", hwo.getStatus())
 
     # print "Opening it"
     # print hwo.open()

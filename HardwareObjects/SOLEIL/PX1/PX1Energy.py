@@ -288,7 +288,7 @@ class PX1Energy(Device):
 
 
 def test_hwo(hwo):
-    print hwo.getPosition()
-    print hwo.getCurrentWavelength()
-    print hwo.get_energy_limits()
-    print hwo.getCurrentUndulatorGap()
+    print(hwo.getPosition())
+    print(hwo.getCurrentWavelength())
+    print(hwo.get_energy_limits())
+    print(hwo.getCurrentUndulatorGap())

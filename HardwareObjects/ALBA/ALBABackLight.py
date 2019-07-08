@@ -153,19 +153,19 @@ class ALBABackLight(Device):
 def test_hwo(hwo):
     import sys
 
-    print '\nLight control for "%s"\n' % hwo.getUserName()
-    print "   Level limits are:", hwo.getLimits()
-    print "   Current level is:", hwo.getLevel()
-    print "   Current state is:", hwo.getState()
-    print "   Setting backlight in"
+    print('\nLight control for "%s"\n' % hwo.getUserName())
+    print("   Level limits are:", hwo.getLimits())
+    print("   Current level is:", hwo.getLevel())
+    print("   Current state is:", hwo.getState())
+    print("   Setting backlight in")
 
-    print sys.argv
+    print(sys.argv)
     if sys.argv[3] == "0":
-        print "Setting backlight off"
+        print("Setting backlight off")
         n = False
         hwo.setOff()
     else:
-        print "Setting backlight on"
+        print("Setting backlight on")
         n = True
         hwo.setOn()
 
@@ -174,4 +174,4 @@ def test_hwo(hwo):
     #    print "Waiting"
     #    gevent.sleep(0.1)
 
-    print "   Current state is:", hwo.getState()
+    print("   Current state is:", hwo.getState())

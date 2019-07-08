@@ -33,7 +33,7 @@ class SOLEILISPyBClient(ISPyBClient):
         ISPyBClient.__init__(self, name)
 
         logger = logging.getLogger("ispyb_client")
-        print "ISPYB"
+        print("ISPYB")
 
         try:
             formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
@@ -62,7 +62,7 @@ class SOLEILISPyBClient(ISPyBClient):
         self.loginTranslate = self.getProperty("loginTranslate") or True
         self.session_hwobj = self.getObjectByRole("session")
         self.beamline_name = self.session_hwobj.beamline_name
-        print "self.beamline_name init", self.beamline_name
+        print("self.beamline_name init", self.beamline_name)
 
         self.ws_root = self.getProperty("ws_root")
         self.ws_username = self.getProperty("ws_username")
@@ -85,7 +85,7 @@ class SOLEILISPyBClient(ISPyBClient):
                 logging.info(
                     "SOLEILISPyBClient: attempting to connect to %s" % self.ws_root
                 )
-                print "SOLEILISPyBClient: attempting to connect to %s" % self.ws_root
+                print("SOLEILISPyBClient: attempting to connect to %s" % self.ws_root)
 
                 try:
                     self._shipping = self._wsdl_shipping_client()
@@ -95,11 +95,11 @@ class SOLEILISPyBClient(ISPyBClient):
                         "SOLEILISPyBClient: extracted from ISPyB values for shipping, collection and tools"
                     )
                 except BaseException:
-                    print traceback.print_exc()
+                    print(traceback.print_exc())
                     logging.exception("SOLEILISPyBClient: %s" % _CONNECTION_ERROR_MSG)
                     return
         except BaseException:
-            print traceback.print_exc()
+            print(traceback.print_exc())
             logging.getLogger("HWR").exception(_CONNECTION_ERROR_MSG)
             return
         try:
@@ -151,7 +151,7 @@ class SOLEILISPyBClient(ISPyBClient):
 
         trans = HttpAuthenticated(username=self.ws_username, password=self.ws_password)
         logging.info("_wsdl_client service_name %s - trans %s" % (service_name, trans))
-        print "_wsdl_client service_name %s - trans %s" % (service_name, trans)
+        print("_wsdl_client service_name %s - trans %s" % (service_name, trans))
 
         trans.urlopener = url_opener
         urlbase = service_name + "?wsdl"
@@ -162,7 +162,7 @@ class SOLEILISPyBClient(ISPyBClient):
         url = ws_root + urlbase
         loc = ws_root + locbase
 
-        print "_wsdl_client, url", url
+        print("_wsdl_client, url", url)
         ws_client = Client(url, transport=trans, timeout=3, location=loc, cache=None)
 
         return ws_client
@@ -208,9 +208,9 @@ def test_hwo(hwo):
     # proposal_number = '20160745'
     # proposal_psd = '087D2P3252'
 
-    print "Trying to login to ispyb"
+    print("Trying to login to ispyb")
     info = hwo.login(proposal_number, proposal_psd)
-    print "logging in returns: ", str(info)
+    print("logging in returns: ", str(info))
 
 
 def test():
@@ -219,8 +219,8 @@ def test():
 
     db = hwr.getHardwareObject("/singleton_objects/dbconnection")
 
-    print "db", db
-    print "dir(db)", dir(db)
+    print("db", db)
+    print("dir(db)", dir(db))
     # print 'db._SOLEILISPyBClientShipping', db._SOLEILISPyBClientShipping
     # print 'db.Shipping', db.Shipping
 
@@ -229,10 +229,10 @@ def test():
     proposal_psd = "tisabet"
 
     info = db.get_proposal(proposal_code, proposal_number)  # proposal_number)
-    print info
+    print(info)
 
     info = db.login(proposal_number, proposal_psd)
-    print info
+    print(info)
 
 
 if __name__ == "__main__":

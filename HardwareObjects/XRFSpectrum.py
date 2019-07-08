@@ -419,7 +419,7 @@ class XRFSpectrum(Equipment):
         self.mca_hwobj.start_acq()
         time.sleep(ct)
         ic = sum(self.mca_hwobj.read_roi_data()) / ct
-        print ic
+        print(ic)
         if ic > max_cnt:
             self.ctrl_hwobj.diffractometer.msclose()
             logging.getLogger("user_level_log").exception(
@@ -434,7 +434,7 @@ class XRFSpectrum(Equipment):
             self.mca_hwobj.start_acq()
             time.sleep(ct)
             ic = sum(self.mca_hwobj.read_roi_data()) / ct
-            print ic
+            print(ic)
             if ic > min_cnt:
                 self.ctrl_hwobj.diffractometer.msclose()
                 self.spectrumInfo[

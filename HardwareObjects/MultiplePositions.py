@@ -307,7 +307,7 @@ class MultiplePositions(Equipment):
                 else:
                     key_el = cElementTree.SubElement(pos, key)
                     key_el.text = value
-                    print(cElementTree.tostring(xml_tree))
+                    print((cElementTree.tostring(xml_tree)))
                     self.rewrite_xml(cElementTree.tostring(xml_tree))
                     return True
 

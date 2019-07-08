@@ -58,12 +58,12 @@ class GetStaticParameters:
 if __name__ == "__main__":
 
     if len(sys.argv) != 3:
-        print "Usage: element edge"
+        print("Usage: element edge")
         sys.exit(0)
 
     cg = GetStaticParameters(sys.argv[1], sys.argv[2])
-    print cg.STATICPARS_DICT
+    print(cg.STATICPARS_DICT)
     bb = cg.STATICPARS_DICT
     bb["element"] = sys.argv[1]
     bb["edge"] = sys.argv[2]
-    print bb
+    print(bb)
