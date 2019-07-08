@@ -140,10 +140,10 @@ def test():
 
     conn = hwr.getHardwareObject(sys.argv[1])
 
-    print "Machine current: ", conn.getCurrent()
-    print "Life time: ", conn.getLifeTime()
-    print "TopUp remaining: ", conn.getTopUpRemaining()
-    print "Message: ", conn.getMessage()
+    print("Machine current: ", conn.getCurrent())
+    print("Life time: ", conn.getLifeTime())
+    print("TopUp remaining: ", conn.getTopUpRemaining())
+    print("Message: ", conn.getMessage())
 
     while True:
         gevent.wait(timeout=0.1)

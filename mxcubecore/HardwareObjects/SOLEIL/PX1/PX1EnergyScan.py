@@ -771,7 +771,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
                 if in_header:
                     continue
                 else:
-                    print "Wrong line in data file"
+                    print("Wrong line in data file")
 
             data.append((x, y))
 
@@ -780,7 +780,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
 
 
 def test_hwo(scan):
-    print "ELEMENTS:"
-    print "---------"
-    print scan.getElements()
-    print scan.get_scan_data()
+    print("ELEMENTS:")
+    print("---------")
+    print(scan.getElements())
+    print(scan.get_scan_data())

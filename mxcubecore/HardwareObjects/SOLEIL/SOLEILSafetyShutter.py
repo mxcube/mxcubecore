@@ -22,7 +22,7 @@ class SOLEILSafetyShutter(HardwareObject):
         except BaseException:
             import traceback
 
-            print traceback.print_exc()
+            print(traceback.print_exc())
             logging.debug(traceback.format_exc())
             logging.getLogger().warning("pss device not configured")
 

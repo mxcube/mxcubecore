@@ -167,5 +167,5 @@ class PX1Resolution(Equipment):
 
 
 def test_hwo(hwo):
-    print "Distance [limits]", hwo.getDistance(), hwo.getDistanceLimits()
-    print "Resolution [limits]", hwo.getResolution(), hwo.getResolutionLimits()
+    print("Distance [limits]", hwo.getDistance(), hwo.getDistanceLimits())
+    print("Resolution [limits]", hwo.getResolution(), hwo.getResolutionLimits())

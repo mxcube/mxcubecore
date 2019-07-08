@@ -177,13 +177,13 @@ class ALBAZoomMotor(BaseHardwareObjects.Device):
 
 def test_hwo(zoom):
 
-    print type(zoom.getState())
+    print(type(zoom.getState()))
 
-    print "     Zoom position is : ", zoom.getPosition()
-    print "Zoom position name is : ", zoom.getCurrentPositionName()
-    print "               Moving : ", zoom.motorIsMoving()
-    print "                State : ", zoom.getState()
-    print "            Positions : ", zoom.getPredefinedPositionsList()
+    print("     Zoom position is : ", zoom.getPosition())
+    print("Zoom position name is : ", zoom.getCurrentPositionName())
+    print("               Moving : ", zoom.motorIsMoving())
+    print("                State : ", zoom.getState())
+    print("            Positions : ", zoom.getPredefinedPositionsList())
 
 
 if __name__ == "__main__":

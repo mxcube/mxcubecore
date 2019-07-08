@@ -581,7 +581,7 @@ class BIOMAXMD3(GenericDiffractometer):
                 "[BIOMAXMD3] Removing kappa and kappa_phi motors."
             )
         except Exception as ex:
-            print ex
+            print(ex)
         logging.getLogger("HWR").debug(
             "BIOMAXMD3: in move_sync_motors, wait: %s, motors: %s, tims: %s "
             % (wait, motors_dict, time.time())

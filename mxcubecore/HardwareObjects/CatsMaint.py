@@ -837,4 +837,4 @@ class CatsMaint(Equipment):
 
 
 def test_hwo(hwo):
-    print(hwo.get_current_tool())
+    print((hwo.get_current_tool()))

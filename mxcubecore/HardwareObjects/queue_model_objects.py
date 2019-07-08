@@ -266,7 +266,7 @@ class Sample(TaskNode):
         return s
 
     def _print(self):
-        print("sample: %s" % self.loc_str)
+        print(("sample: %s" % self.loc_str))
 
     def has_lims_data(self):
         if self.lims_id > -1:

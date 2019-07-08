@@ -78,7 +78,7 @@ def test():
     hwr.connect()
 
     calib = hwr.getHardwareObject("/calibration")
-    print "Calibration is: ", calib.getCalibration()
+    print("Calibration is: ", calib.getCalibration())
 
 
 if __name__ == "__main__":

@@ -201,5 +201,5 @@ class PX1DetectorDistance(Device):
 
 
 def test_hwo(hwo):
-    print hwo.getPosition()
-    print hwo.getLimits()
+    print(hwo.getPosition())
+    print(hwo.getLimits())

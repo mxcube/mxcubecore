@@ -569,4 +569,4 @@ class ALBAMiniDiff(GenericDiffractometer):
 
 
 def test_hwo(hwo):
-    print hwo.get_phase_list()
+    print(hwo.get_phase_list())

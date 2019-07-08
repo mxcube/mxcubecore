@@ -74,21 +74,21 @@ class BIOMAXMD2(GenericDiffractometer):
         scan = self.command_dict["startScanEx"]
         self.wait_device_ready(200)
         scan(scan_params)
-        print "scan started at ----------->", time.time()
+        print("scan started at ----------->", time.time())
         if wait:
             self.wait_device_ready(300)  # timeout of 5 min
-            print "finished at ---------->", time.time()
+            print("finished at ---------->", time.time())
 
     def set_phase(self, phase, wait=False, timeout=None):
         if self.is_ready():
-            print "current state is", self.current_state
+            print("current state is", self.current_state)
             self.command_dict["startSetPhase"](phase)
             if wait:
                 if not timeout:
                     timeout = 40
                 self.wait_device_ready(timeout)
         else:
-            print "moveToPhase - Ready is: ", self.is_ready()
+            print("moveToPhase - Ready is: ", self.is_ready())
 
     def move_sync_motors(self, motors_dict, wait=False, timeout=None):
         argin = ""

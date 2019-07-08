@@ -1046,17 +1046,17 @@ class U20(object):
 
 
 def test_hwo(hwo):
-    print "Energy: ", hwo.get_energy()
-    print "Transm: ", hwo.get_transmission()
-    print "Resol: ", hwo.get_resolution()
-    print "PX1Environemnt (collect phase): ", hwo.is_collect_phase()
-    print "Shutters (ready for collect): ", hwo.check_shutters()
-    print "Flux: ", hwo.get_measured_intensity()
-    print "is collect? ", hwo.is_collect_phase()
-    print "is samplevisu? ", hwo.is_sampleview_phase()
-    print "goint to sample visu"
+    print("Energy: ", hwo.get_energy())
+    print("Transm: ", hwo.get_transmission())
+    print("Resol: ", hwo.get_resolution())
+    print("PX1Environemnt (collect phase): ", hwo.is_collect_phase())
+    print("Shutters (ready for collect): ", hwo.check_shutters())
+    print("Flux: ", hwo.get_measured_intensity())
+    print("is collect? ", hwo.is_collect_phase())
+    print("is samplevisu? ", hwo.is_sampleview_phase())
+    print("goint to sample visu")
     hwo.go_to_sampleview()
     # print "goint to collect"
     # hwo.go_to_collect()
-    print "is collect? ", hwo.is_collect_phase()
-    print "is samplevisu? ", hwo.is_sampleview_phase()
+    print("is collect? ", hwo.is_collect_phase())
+    print("is samplevisu? ", hwo.is_sampleview_phase())

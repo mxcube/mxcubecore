@@ -86,7 +86,7 @@ class Camera(BaseHardwareObjects.Device):
                     BaseHardwareObjects.Device.__init__(self, name)
 
                 def oprint(self, msg):
-                    print("Camera.py--tango device-- %s" % msg)
+                    print(("Camera.py--tango device-- %s" % msg))
 
                 def _init(self):
                     self.forceUpdate = False
@@ -744,7 +744,7 @@ class Camera(BaseHardwareObjects.Device):
                         self.setIsReady(True)
 
                 def oprint(self, msg):
-                    print("Camera.py--taco device--%s" % msg)
+                    print(("Camera.py--taco device--%s" % msg))
 
                 def imageType(self):
                     """Returns a 'jpeg' or 'bayer' type object depending on the image type"""
