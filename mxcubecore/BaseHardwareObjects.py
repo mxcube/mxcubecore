@@ -15,7 +15,9 @@ class ConfiguredObject(object):
     # NB the double underscore is deliberate - attribute must be hidden from subclasses
     __object_role_categories = OrderedDict()
 
-    def __init__(self):
+    def __init__(self, name):
+
+        self.name = name
 
         self._objects = OrderedDict((role, None) for role in self.role_to_category)
 

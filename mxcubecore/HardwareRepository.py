@@ -59,12 +59,12 @@ def get_beamline():
     """
     global _beamline
     if _beamline is None:
-        _beamline = load_from_yaml(BEAMLINE_CONFIG_FILE)
+        _beamline = load_from_yaml(BEAMLINE_CONFIG_FILE, role='beamline')
     else:
         return _beamline
 
 
-def load_from_yaml(configuration_file):
+def load_from_yaml(configuration_file, role):
     """Loads yaml configuration file,
     and recursively loads contained objects from their configuration files
 
@@ -106,7 +106,7 @@ def load_from_yaml(configuration_file):
     cls = __import__(ll0[-1], fromlist=ll0[:-1], level=0)
 
     # instantiate object
-    result = cls(**initialise_class)
+    result = cls(name=role, **initialise_class)
 
     # Initialise object
     result.init()
@@ -115,7 +115,7 @@ def load_from_yaml(configuration_file):
     _objects = configuration.pop("_objects", {})
     for role, config_file in _objects.items():
         if os.path.splitext(config_file)[1] == ".yml":
-            hwobj = load_from_yaml(config_file)
+            hwobj = load_from_yaml(config_file, role=role)
             hwobj.init()
         elif os.path.splitext(config_file)[1] == ".xml":
             hwobj = _instance.loadHardwareObject(config_file)
