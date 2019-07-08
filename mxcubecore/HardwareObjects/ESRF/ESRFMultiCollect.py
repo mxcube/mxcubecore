@@ -3,14 +3,24 @@ from HardwareRepository.HardwareObjects.abstract.AbstractMultiCollect import *
 import logging
 import time
 import os
-import httplib
-import urllib
 import math
 from HardwareRepository.HardwareObjects.queue_model_objects import PathTemplate
 from HardwareRepository.ConvertUtils import string_types
 
 from ESRFMetadataManagerClient import MXCuBEMetadataClient
 
+
+try:
+    from httplib import HTTPConnection
+except:
+    # Python3
+    from http.client import HTTPConnection
+
+try:
+    from urllib import urlencode
+except:
+    # Python3
+    from urllib.parse import urlencode
 
 class FixedEnergy:
     def __init__(self, wavelength, energy):
@@ -671,7 +681,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     @task
     def write_input_files(self, collection_id):
         # assumes self.xds_directory and self.mosflm_directory are valid
-        conn = httplib.HTTPConnection(self.bl_config.input_files_server)
+        conn = HTTPConnection(self.bl_config.input_files_server)
 
         # hkl input files
         input_file_dir = self.raw_hkl2000_dir
@@ -906,9 +916,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             beamline = "unknown"
             proposal = "unknown"
         host, port = self.getProperty("bes_jpeg_hostport").split(":")
-        conn = httplib.HTTPConnection(host, int(port))
+        conn = HTTPConnection(host, int(port))
 
-        params = urllib.urlencode(
+        params = urlencode(
             {
                 "image_path": filename,
                 "jpeg_path": jpeg_path,

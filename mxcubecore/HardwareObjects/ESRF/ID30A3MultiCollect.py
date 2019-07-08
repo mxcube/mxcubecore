@@ -1,7 +1,7 @@
 import gevent
 import socket
 import logging
-import cPickle as pickle
+import pickle as pickle
 
 from HardwareRepository.TaskUtils import task
 
