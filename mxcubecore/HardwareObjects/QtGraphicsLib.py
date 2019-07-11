@@ -877,6 +877,19 @@ class GraphicsItemGrid(GraphicsItem):
         :param adjust_size: boolean
         :return:
         """
+        
+        # Create a copy of start and end coordinates
+        # Using local copy of coordinates allows to account for a situation when
+        # grid is drawn from other then top left corner
+        start_coord = copy.copy(self.start_coord)
+        end_coord = copy.copy(self.end_coord)
+            
+        if start_coord[0] > end_coord[0]:
+            start_coord[0], end_coord[0] = end_coord[0], start_coord[0]
+        
+        if start_coord[1] > end_coord[1]:
+            start_coord[1], end_coord[1] = end_coord[1], start_coord[1]
+            
         if in_draw or not adjust_size:
             # Number of columns and rows is calculated
             num_cols = int(
@@ -902,10 +915,10 @@ class GraphicsItemGrid(GraphicsItem):
                 self.__grid_size_pix[1] = self.__spacing_pix[1] * self.__num_rows
 
                 self.__center_coord.setX(
-                    self.start_coord[0] + self.__grid_size_pix[0] / 2.0
+                    start_coord[0] + self.__grid_size_pix[0] / 2.0
                 )
                 self.__center_coord.setY(
-                    self.start_coord[1] + self.__grid_size_pix[1] / 2.0
+                    start_coord[1] + self.__grid_size_pix[1] / 2.0
                 )
 
         if in_draw or adjust_size:
@@ -914,22 +927,22 @@ class GraphicsItemGrid(GraphicsItem):
             # 0 1
             # 3 2
             self.__frame_polygon.setPoint(
-                GraphicsItemGrid.TOP_LEFT, self.start_coord[0], self.start_coord[1]
+                GraphicsItemGrid.TOP_LEFT, start_coord[0], start_coord[1]
             )
             self.__frame_polygon.setPoint(
                 GraphicsItemGrid.TOP_RIGHT,
-                self.start_coord[0] + self.__grid_size_pix[0],
-                self.start_coord[1],
+                start_coord[0] + self.__grid_size_pix[0],
+                start_coord[1],
             )
             self.__frame_polygon.setPoint(
                 GraphicsItemGrid.BOT_LEFT,
-                self.start_coord[0] + self.__grid_size_pix[0],
-                self.start_coord[1] + self.__grid_size_pix[1],
+                start_coord[0] + self.__grid_size_pix[0],
+                start_coord[1] + self.__grid_size_pix[1],
             )
             self.__frame_polygon.setPoint(
                 GraphicsItemGrid.BOT_RIGHT,
-                self.start_coord[0],
-                self.start_coord[1] + self.__grid_size_pix[1],
+                start_coord[0],
+                start_coord[1] + self.__grid_size_pix[1],
             )
 
             # self.__num_cols = int(self.__grid_size_pix[0] / self.__spacing_pix[0])
