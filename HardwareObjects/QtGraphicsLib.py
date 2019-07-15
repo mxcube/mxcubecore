@@ -227,6 +227,7 @@ class GraphicsItem(QtImport.QGraphicsItem):
         """Defines custom pen color"""
         self.custom_pen_color = color
 
+
 class GraphicsItemBeam(GraphicsItem):
     """Beam base class
     """
@@ -821,12 +822,22 @@ class GraphicsItemGrid(GraphicsItem):
         Returns scan area in mm
         :return: (float, float)
         """
-        fast_mm = abs(self.grid_direction['fast'][0] * self.__spacing_mm[0] *
-                      (self.__num_cols - 1) + self.grid_direction['fast'][1] *
-                      self.__spacing_mm[1] * (self.__num_rows - 1))
-        slow_mm = abs(self.grid_direction['slow'][0] * self.__spacing_mm[0] *
-                      (self.__num_cols - 1) + self.grid_direction['slow'][1] *
-                      self.__spacing_mm[1] * (self.__num_rows - 1))
+        fast_mm = abs(
+            self.grid_direction["fast"][0]
+            * self.__spacing_mm[0]
+            * (self.__num_cols - 1)
+            + self.grid_direction["fast"][1]
+            * self.__spacing_mm[1]
+            * (self.__num_rows - 1)
+        )
+        slow_mm = abs(
+            self.grid_direction["slow"][0]
+            * self.__spacing_mm[0]
+            * (self.__num_cols - 1)
+            + self.grid_direction["slow"][1]
+            * self.__spacing_mm[1]
+            * (self.__num_rows - 1)
+        )
         return (fast_mm, slow_mm)
 
     def get_grid_size_mm(self):
@@ -877,6 +888,19 @@ class GraphicsItemGrid(GraphicsItem):
         :param adjust_size: boolean
         :return:
         """
+
+        # Create a copy of start and end coordinates
+        # Using local copy of coordinates allows to account for a situation when
+        # grid is drawn from other then top left corner
+        start_coord = copy.copy(self.start_coord)
+        end_coord = copy.copy(self.end_coord)
+
+        if start_coord[0] > end_coord[0]:
+            start_coord[0], end_coord[0] = end_coord[0], start_coord[0]
+
+        if start_coord[1] > end_coord[1]:
+            start_coord[1], end_coord[1] = end_coord[1], start_coord[1]
+
         if in_draw or not adjust_size:
             # Number of columns and rows is calculated
             num_cols = int(
@@ -901,12 +925,8 @@ class GraphicsItemGrid(GraphicsItem):
                 self.__grid_size_pix[0] = self.__spacing_pix[0] * self.__num_cols
                 self.__grid_size_pix[1] = self.__spacing_pix[1] * self.__num_rows
 
-                self.__center_coord.setX(
-                    self.start_coord[0] + self.__grid_size_pix[0] / 2.0
-                )
-                self.__center_coord.setY(
-                    self.start_coord[1] + self.__grid_size_pix[1] / 2.0
-                )
+                self.__center_coord.setX(start_coord[0] + self.__grid_size_pix[0] / 2.0)
+                self.__center_coord.setY(start_coord[1] + self.__grid_size_pix[1] / 2.0)
 
         if in_draw or adjust_size:
             # if True:
@@ -914,22 +934,22 @@ class GraphicsItemGrid(GraphicsItem):
             # 0 1
             # 3 2
             self.__frame_polygon.setPoint(
-                GraphicsItemGrid.TOP_LEFT, self.start_coord[0], self.start_coord[1]
+                GraphicsItemGrid.TOP_LEFT, start_coord[0], start_coord[1]
             )
             self.__frame_polygon.setPoint(
                 GraphicsItemGrid.TOP_RIGHT,
-                self.start_coord[0] + self.__grid_size_pix[0],
-                self.start_coord[1],
+                start_coord[0] + self.__grid_size_pix[0],
+                start_coord[1],
             )
             self.__frame_polygon.setPoint(
                 GraphicsItemGrid.BOT_LEFT,
-                self.start_coord[0] + self.__grid_size_pix[0],
-                self.start_coord[1] + self.__grid_size_pix[1],
+                start_coord[0] + self.__grid_size_pix[0],
+                start_coord[1] + self.__grid_size_pix[1],
             )
             self.__frame_polygon.setPoint(
                 GraphicsItemGrid.BOT_RIGHT,
-                self.start_coord[0],
-                self.start_coord[1] + self.__grid_size_pix[1],
+                start_coord[0],
+                start_coord[1] + self.__grid_size_pix[1],
             )
 
             # self.__num_cols = int(self.__grid_size_pix[0] / self.__spacing_pix[0])
@@ -1077,20 +1097,21 @@ class GraphicsItemGrid(GraphicsItem):
         """
         (dx_mm, dy_mm) = self.get_grid_range_mm()
         (fast_mm, slow_mm) = self.get_grid_scan_mm()
-        return {"name": "Mesh %d" % (self.index + 1),
-                "direction":  self.grid_direction,
-                "reversing_rotation": self.__reversing_rotation,
-                "steps_x": self.__num_cols,
-                "steps_y": self.__num_rows,
-                "xOffset": self.__spacing_mm[0],
-                "yOffset": self.__spacing_mm[1],
-                "dx_mm": dx_mm,
-                "dy_mm": dy_mm,
-                "fast_mm": fast_mm,
-                "slow_mm": slow_mm,
-                "num_lines": self.__num_lines,
-                "num_images_per_line": self.__num_images_per_line,
-                "first_image_num": self.__first_image_num
+        return {
+            "name": "Mesh %d" % (self.index + 1),
+            "direction": self.grid_direction,
+            "reversing_rotation": self.__reversing_rotation,
+            "steps_x": self.__num_cols,
+            "steps_y": self.__num_rows,
+            "xOffset": self.__spacing_mm[0],
+            "yOffset": self.__spacing_mm[1],
+            "dx_mm": dx_mm,
+            "dy_mm": dy_mm,
+            "fast_mm": fast_mm,
+            "slow_mm": slow_mm,
+            "num_lines": self.__num_lines,
+            "num_images_per_line": self.__num_images_per_line,
+            "first_image_num": self.__first_image_num,
         }
 
     def update_auto_grid(self, beam_info, beam_position, spacing_mm):
@@ -1605,13 +1626,15 @@ class GraphicsItemScale(GraphicsItem):
         scene_width = self.scene().width()
         scene_height = self.scene().height()
 
-        #self.custom_pen.setStyle(SOLID_LINE_STYLE)
-        #self.custom_pen.setColor(self.custom_pen_color)
+        # self.custom_pen.setStyle(SOLID_LINE_STYLE)
+        # self.custom_pen.setColor(self.custom_pen_color)
         painter.setPen(self.custom_pen)
 
         painter.drawLine(
-            7, self.start_coord[1] - 15,
-            7 + self.__scale_len_pix, self.start_coord[1] - 15
+            7,
+            self.start_coord[1] - 15,
+            7 + self.__scale_len_pix,
+            self.start_coord[1] - 15,
         )
         painter.drawText(
             self.__scale_len_pix - 18,
@@ -1619,8 +1642,10 @@ class GraphicsItemScale(GraphicsItem):
             "%d %s" % (self.__scale_len, self.__scale_unit),
         )
         painter.drawLine(
-            7, self.start_coord[1] - 15,
-            7, self.start_coord[1] - 15 - self.__scale_len_pix / 2
+            7,
+            self.start_coord[1] - 15,
+            7,
+            self.start_coord[1] - 15 - self.__scale_len_pix / 2,
         )
         painter.drawText(
             12,
@@ -1685,8 +1710,10 @@ class GraphicsItemScale(GraphicsItem):
         """
         self.pixels_per_mm = pixels_per_mm
         for line_len in GraphicsItemScale.HOR_LINE_LEN_MICRONS:
-            if self.pixels_per_mm[0] * line_len / 1000 <= 200 and \
-               self.pixels_per_mm[0] * line_len / 1000 > 50:
+            if (
+                self.pixels_per_mm[0] * line_len / 1000 <= 200
+                and self.pixels_per_mm[0] * line_len / 1000 > 50
+            ):
                 self.__scale_len = line_len
                 self.__scale_unit = u"\u00B5"
                 self.__scale_len_pix = int(
@@ -1776,6 +1803,7 @@ class GraphicsItemOmegaReference(GraphicsItem):
             self.start_coord = [0, int(omega_reference[1])]
             self.end_coord = [self.scene().width(), int(omega_reference[1])]
 
+
 class GraphicsItemText(GraphicsItem):
     """Reference line of the rotation axis"""
 
@@ -1810,6 +1838,7 @@ class GraphicsItemText(GraphicsItem):
         :return:
         """
         self.text = text
+
 
 class GraphicsSelectTool(GraphicsItem):
     """Draws a rectangle and selects centring points"""
@@ -2160,11 +2189,9 @@ class GraphicsItemMeasureDistance(GraphicsItem):
         :return:
         """
         if len(self.measure_points) == 2:
-            measured_pixels = (
-                math.sqrt(
-                    pow((self.measure_points[0].x() - self.measure_points[1].x()), 2)
-                    + pow((self.measure_points[0].y() - self.measure_points[1].y()), 2)
-                )
+            measured_pixels = math.sqrt(
+                pow((self.measure_points[0].x() - self.measure_points[1].x()), 2)
+                + pow((self.measure_points[0].y() - self.measure_points[1].y()), 2)
             )
             self.scene().measureItemChanged.emit(
                 self.measure_points, int(measured_pixels)
