@@ -133,8 +133,7 @@ import types
 
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.HardwareObjects.abstract.sample_changer import Container
-
+from HardwareRepository.HardwareObjects.abstract.sample_changer.Container import Container, Sample
 
 
 class SampleChangerState:
@@ -195,7 +194,7 @@ class SampleChangerMode:
     Disabled = 11
 
 
-class SampleChanger(Container.Container, Equipment):
+class SampleChanger(Container, Equipment):
     """
     Abstract base class for sample changers
     """
@@ -693,13 +692,13 @@ class SampleChanger(Container.Container, Equipment):
     def _setSelectedSample(self, sample):
         cur = self.getSelectedSample()
         if cur != sample:
-            Container.Container._setSelectedSample(self, sample)
+            Container._setSelectedSample(self, sample)
             self._triggerSelectionChangedEvent()
 
     def _setSelectedComponent(self, component):
         cur = self.getSelectedComponent()
         if cur != component:
-            Container.Container._setSelectedComponent(self, component)
+            Container._setSelectedComponent(self, component)
             self._triggerSelectionChangedEvent()
 
     # ########################    PRIVATE    #########################
