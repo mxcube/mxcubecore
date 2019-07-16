@@ -1,6 +1,8 @@
 import base64
 import pickle
-from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import *
+from HardwareRepository.TaskUtils import task
+from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import SampleChanger, SampleChangerState
+from HardwareRepository.HardwareObjects.abstract.sample_changer.Container import Container, Sample
 from PyTango.gevent import DeviceProxy
 
 
