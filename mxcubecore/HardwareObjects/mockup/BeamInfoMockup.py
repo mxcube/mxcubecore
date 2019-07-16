@@ -41,7 +41,7 @@ class BeamInfoMockup(Equipment):
                 self.aperture_diameter_changed,
             )
 
-            ad = self.aperture_hwobj.get_diameter_size() / 1000.0
+            ad = self.aperture_hwobj.get_diameter_size_mm() / 1000.0
             self.beam_size_aperture = [ad, ad]
 
         self.slits_hwobj = self.getObjectByRole("slits")
