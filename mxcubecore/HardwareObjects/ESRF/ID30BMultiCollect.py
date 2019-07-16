@@ -140,7 +140,7 @@ class ID30BMultiCollect(ESRFMultiCollect):
     def prepare_acquisition(
         self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""
     ):
-        self._tunable_bl.getCurrentEnergy()
+        self._tunable_bl.get_current_energy()
         trigger_mode = "EXTERNAL_GATE" if self.mesh else None
         return ESRFMultiCollect.prepare_acquisition(
             self,

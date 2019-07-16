@@ -26,7 +26,7 @@ class ESRFBeamInfo(BeamInfo.BeamInfo):
 
         beam_size_slits = self.getProperty("beam_size_slits")
         if beam_size_slits:
-            self.beam_size_slits = map(float, beam_size_slits.split())
+            self.beam_size_slits = tuple(map(float, beam_size_slits.split()))
         self.camera = self.getDeviceByRole("camera")
 
         beam_position = self.getProperty("beam_position")
