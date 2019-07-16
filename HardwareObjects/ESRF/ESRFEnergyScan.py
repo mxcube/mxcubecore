@@ -25,7 +25,7 @@ class FixedEnergy:
 class TunableEnergy:
     @task
     def get_energy(self):
-        return self._tunable_bl.energy_obj.getCurrentEnergy()
+        return self._tunable_bl.energy_obj.get_current_energy()
 
     @task
     def move_energy(self, energy):

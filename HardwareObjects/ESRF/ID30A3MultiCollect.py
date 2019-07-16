@@ -151,7 +151,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
     def prepare_acquisition(
         self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""
     ):
-        energy = self._tunable_bl.getCurrentEnergy()
+        energy = self._tunable_bl.get_current_energy()
         return self._detector.prepare_acquisition(
             take_dark,
             start,

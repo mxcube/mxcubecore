@@ -7,7 +7,7 @@ import math
 from HardwareRepository.HardwareObjects.queue_model_objects import PathTemplate
 from HardwareRepository.ConvertUtils import string_types
 
-from ESRFMetadataManagerClient import MXCuBEMetadataClient
+from ESRF.ESRFMetadataManagerClient import MXCuBEMetadataClient
 
 
 try:
@@ -33,7 +33,7 @@ class FixedEnergy:
     def set_energy(self, energy):
         return
 
-    def getCurrentEnergy(self):
+    def get_current_energy(self):
         return self.energy
 
     def get_wavelength(self):
@@ -52,11 +52,11 @@ class TunableEnergy:
         energy_obj = self.bl_control.energy
         return energy_obj.startMoveEnergy(energy)
 
-    def getCurrentEnergy(self):
-        return self.bl_control.energy.getCurrentEnergy()
+    def get_current_energy(self):
+        return self.bl_control.energy.get_current_energy()
 
     def get_wavelength(self):
-        return self.bl_control.energy.getCurrentWavelength()
+        return self.bl_control.energy.get_current_wavelength()
 
 
 class CcdDetector:
@@ -580,7 +580,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         comment="",
         trigger_mode=None,
     ):
-        energy = self._tunable_bl.getCurrentEnergy()
+        energy = self._tunable_bl.get_current_energy()
         return self._detector.prepare_acquisition(
             take_dark,
             start,
@@ -843,8 +843,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             else:
                 return T
 
-    def getCurrentEnergy(self):
-        return self._tunable_bl.getCurrentEnergy()
+    def get_current_energy(self):
+        return self._tunable_bl.get_current_energy()
 
     def get_beam_centre(self):
         return (
