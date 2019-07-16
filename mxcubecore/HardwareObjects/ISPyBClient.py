@@ -14,6 +14,7 @@ except:
 from suds.sudsobject import asdict
 from suds import WebFault
 from suds.client import Client
+import sys
 import json
 import time
 import itertools
@@ -28,6 +29,12 @@ A client for ISPyB Webservices.
 import logging
 import gevent
 import suds
+
+
+suds_encode = str.encode
+
+if sys.version_info > (3, 0):
+    suds_encode = bytes.decode
 
 logging.getLogger("suds").setLevel(logging.INFO)
 
@@ -111,7 +118,9 @@ def utf_encode(res_d):
             utf_encode(value)
 
         try:
-            res_d[key] = value.encode("utf8", "ignore")
+            # Decode bytes object or encode str object depending
+            # on Python version
+            res_d[key] = suds_encode("utf8", "ignore")
         except BaseException:
             # If not primitive or Text data, complext type, try to convert to
             # dict or str if the first fails
