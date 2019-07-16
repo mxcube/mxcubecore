@@ -687,7 +687,7 @@ class SOLEILEnergyScan(Equipment):
     def canMoveEnergy(self):
         return self.canScanEnergy()
 
-    def getCurrentEnergy(self):
+    def get_current_energy(self):
         if self.energyMotor is not None:
             try:
                 return self.energyMotor.getPosition()
@@ -703,7 +703,7 @@ class SOLEILEnergyScan(Equipment):
         return None
 
     def get_value(self):
-        return self.getCurrentEnergy()
+        return self.get_current_energy()
 
     def getEnergyLimits(self):
         lims = None
@@ -712,7 +712,7 @@ class SOLEILEnergyScan(Equipment):
                 lims = self.energyMotor.getLimits()
         return lims
 
-    def getCurrentWavelength(self):
+    def get_current_wavelength(self):
         if self.energyMotor is not None:
             try:
                 return self.energy2wavelength(self.energyMotor.getPosition())

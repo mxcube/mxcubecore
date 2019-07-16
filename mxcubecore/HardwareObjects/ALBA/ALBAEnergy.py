@@ -30,7 +30,7 @@ class ALBAEnergy(Device):
             self.energy_position = self.energy_hwobj.getPosition()
         return self.energy_position
 
-    getCurrentEnergy = get_energy
+    get_current_energy = get_energy
 
     def get_wavelength(self):
         if self.wavelength_position is None:
