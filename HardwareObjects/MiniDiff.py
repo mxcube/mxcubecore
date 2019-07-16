@@ -156,18 +156,19 @@ class MiniDiff(Equipment):
         except BaseException:
             phiz_ref = None
 
-        self.phiMotor = self.getDeviceByRole("phi")
-        self.phizMotor = self.getDeviceByRole("phiz")
+        self.phiMotor = self.getObjectByRole("phi")
+        self.phizMotor = self.getObjectByRole("phiz")
         self.phiyMotor = self.getObjectByRole("phiy")
-        self.zoomMotor = self.getDeviceByRole("zoom")
-        self.lightMotor = self.getDeviceByRole("light")
-        self.focusMotor = self.getDeviceByRole("focus")
-        self.sampleXMotor = self.getDeviceByRole("sampx")
-        self.sampleYMotor = self.getDeviceByRole("sampy")
-        self.camera = self.getDeviceByRole("camera")
-        self.kappaMotor = self.getDeviceByRole("kappa")
-        self.kappaPhiMotor = self.getDeviceByRole("kappa_phi")
+        self.zoomMotor = self.getObjectByRole("zoom")
+        self.lightMotor = self.getObjectByRole("light")
+        self.focusMotor = self.getObjectByRole("focus")
+        self.sampleXMotor = self.getObjectByRole("sampx")
+        self.sampleYMotor = self.getObjectByRole("sampy")
+        self.camera = self.getObjectByRole("camera")
+        self.kappaMotor = self.getObjectByRole("kappa")
+        self.kappaPhiMotor = self.getObjectByRole("kappa_phi")
         self.beam_info = self.getObjectByRole("beam_info")
+
 
         # mh 2013-11-05:why is the channel read directly? disabled for the moment
         # self.camera.addChannel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
@@ -798,7 +799,7 @@ class MiniDiff(Equipment):
             self.centringStatus["motors"] = self.getPositions()
             centred_pos = self.currentCentringProcedure.get()
             for role in self.centringStatus["motors"].iterkeys():
-                motor = self.getDeviceByRole(role)
+                motor = self.getObjectByRole(role)
                 try:
                     self.centringStatus["motors"][role] = centred_pos[motor]
                 except KeyError:
