@@ -259,7 +259,7 @@ class XRFSpectrum(Equipment):
                 self.spectrumInfo[
                     "beamTransmission"
                 ] = self.transmission_hwobj.get_value()
-                self.spectrumInfo["energy"] = self.energy_hwobj.getCurrentEnergy()
+                self.spectrumInfo["energy"] = self.energy_hwobj.get_current_energy()
                 if self.flux_hwobj:
                     self.spectrumInfo["flux"] = self.flux_hwobj.getCurrentFlux()
 
@@ -363,7 +363,7 @@ class XRFSpectrum(Equipment):
         return os.path.join(self.cfg_path, "%skeV.cfg" % cfgname)
 
     def _doSpectrum(self, ct, filename, wait=True):
-        en = self.energy_hwobj.getCurrentEnergy()
+        en = self.energy_hwobj.get_current_energy()
         if not ct:
             ct = 5
         safshut = self.getObjectByRole("safety_shutter")

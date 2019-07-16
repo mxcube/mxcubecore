@@ -44,7 +44,7 @@ class Transmission(HardwareObject):
         return self.__matt.pos_read()
 
     def set_value(self, trans):
-        self.__matt.set_energy(self.energy.getCurrentEnergy())
+        self.__matt.set_energy(self.energy.get_current_energy())
         self.__matt.transmission_set(trans)
         self._update()
 
@@ -61,7 +61,7 @@ class Transmission(HardwareObject):
         self._update()
 
     def get_value(self):
-        self.__matt.set_energy(self.energy.getCurrentEnergy())
+        self.__matt.set_energy(self.energy.get_current_energy())
         return self.__matt.transmission_get()
 
     def is_in(self, attenuator_index):
