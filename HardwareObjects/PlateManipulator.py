@@ -34,11 +34,11 @@ each drop could have several crystals.
 import time
 import gevent
 
-from HardwareRepository.HardwareObjects.abstract.sample_changer import Crims
+from HardwareRepository.HardwareObjects.abstract.sample_changer import Crims, Container
 from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import *
 
 
-class Xtal(Sample):
+class Xtal(Container.Sample):
     __NAME_PROPERTY__ = "Name"
     __LOGIN_PROPERTY__ = "Login"
 
@@ -101,7 +101,7 @@ class Xtal(Sample):
         )
 
 
-class Drop(Container):
+class Drop(Container.Container):
     __TYPE__ = "Drop"
 
     def __init__(self, cell, drops_num):
@@ -143,11 +143,11 @@ class Drop(Container):
     #    return self._well_no
 
 
-class Cell(Container):
+class Cell(Container.Container):
     __TYPE__ = "Cell"
 
     def __init__(self, row, row_chr, col_index, drops_num):
-        Container.__init__(
+        Container.Container.__init__(
             self, self.__TYPE__, row, Cell._getCellAddress(row_chr, col_index), False
         )
         self._row = row
@@ -199,6 +199,9 @@ class PlateManipulator(SampleChanger):
         self.plate_location = None
         self.crims_url = None
 
+        self.stored_pos_x = None
+        self.stored_pos_y = None
+
         self.cmd_move_to_drop = None
         self.cmd_move_to_location = None
 
@@ -219,6 +222,9 @@ class PlateManipulator(SampleChanger):
             self.reference_pos_x = self.getProperty("referencePosX")
             if not self.reference_pos_x:
                 self.reference_pos_x = 0.5
+
+        self.stored_pos_x = self.reference_pos_x
+        self.stored_pos_y = 0.5
 
         self.crims_url = self.getProperty("crimsWsRoot")
 
@@ -288,7 +294,7 @@ class PlateManipulator(SampleChanger):
         self._clearComponents()
         for row in range(self.num_rows):
             # row is like a basket
-            basket = Basket(self, row + 1, samples_num=0, name="Row")
+            basket = Container.Basket(self, row + 1, samples_num=0, name="Row")
             present = True
             datamatrix = ""
             scanned = False
@@ -335,9 +341,15 @@ class PlateManipulator(SampleChanger):
         drop = sample_location[1] - self.num_drops * col
 
         if not pos_x:
-            pos_x = self.reference_pos_x
+            #pos_x = self.reference_pos_x
+            pos_x = self.stored_pos_x
+        else:
+            self.stored_pos_x = pos_x
         if not pos_y:
-            pos_y = float(drop) / (self.num_drops + 1)
+            pos_y = self.stored_pos_y
+        else:
+            self.stored_pos_y = pos_y
+            #pos_y = float(drop) / (self.num_drops + 1)
 
         if self.cmd_move_to_location:
             self.cmd_move_to_location(row, col, pos_x, pos_y)
@@ -531,7 +543,7 @@ class PlateManipulator(SampleChanger):
         """
         sample_list = []
         for basket in self.getComponents():
-            if isinstance(basket, Basket):
+            if isinstance(basket, Container.Basket):
                 for cell in basket.getComponents():
                     if isinstance(cell, Cell):
                         for drop in cell.getComponents():
