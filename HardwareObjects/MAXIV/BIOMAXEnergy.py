@@ -40,7 +40,7 @@ class BIOMAXEnergy(Energy.Energy):
             self.energy_motor.connect("positionChanged", self.energyPositionChanged)
             self.energy_motor.connect("stateChanged", self.energyStateChanged)
 
-    def getCurrentEnergy(self):
+    def get_current_energy(self):
         if self.energy_motor is not None:
             try:
                 return self.energy_motor.getPosition() / 1000
