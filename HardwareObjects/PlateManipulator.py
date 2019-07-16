@@ -34,11 +34,13 @@ each drop could have several crystals.
 import time
 import gevent
 
-from HardwareRepository.HardwareObjects.abstract.sample_changer import Crims, Container
-from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import *
+from HardwareRepository.HardwareObjects.abstract.sample_changer import Crims
+from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import SampleChanger, SampleChangerState
+from HardwareRepository.HardwareObjects.abstract.sample_changer.Container import Container, Sample, Basket
 
 
-class Xtal(Container.Sample):
+
+class Xtal(Sample):
     __NAME_PROPERTY__ = "Name"
     __LOGIN_PROPERTY__ = "Login"
 
@@ -101,7 +103,7 @@ class Xtal(Container.Sample):
         )
 
 
-class Drop(Container.Container):
+class Drop(Container):
     __TYPE__ = "Drop"
 
     def __init__(self, cell, drops_num):
@@ -143,11 +145,11 @@ class Drop(Container.Container):
     #    return self._well_no
 
 
-class Cell(Container.Container):
+class Cell(Container):
     __TYPE__ = "Cell"
 
     def __init__(self, row, row_chr, col_index, drops_num):
-        Container.Container.__init__(
+        Container.__init__(
             self, self.__TYPE__, row, Cell._getCellAddress(row_chr, col_index), False
         )
         self._row = row
@@ -294,7 +296,7 @@ class PlateManipulator(SampleChanger):
         self._clearComponents()
         for row in range(self.num_rows):
             # row is like a basket
-            basket = Container.Basket(self, row + 1, samples_num=0, name="Row")
+            basket = Basket(self, row + 1, samples_num=0, name="Row")
             present = True
             datamatrix = ""
             scanned = False
@@ -543,7 +545,7 @@ class PlateManipulator(SampleChanger):
         """
         sample_list = []
         for basket in self.getComponents():
-            if isinstance(basket, Container.Basket):
+            if isinstance(basket, Basket):
                 for cell in basket.getComponents():
                     if isinstance(cell, Cell):
                         for drop in cell.getComponents():
