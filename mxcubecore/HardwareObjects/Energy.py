@@ -56,17 +56,13 @@ class Energy(Equipment):
             self.energy_motor.connect("positionChanged", self.energyPositionChanged)
             self.energy_motor.connect("stateChanged", self.energyStateChanged)
 
-    """
-    read tunable_energy from the HO, return True/False
-    """
-
-    def canMoveEnergy(self):
+    def can_move_energy(self):
         return self.tunable
 
     def isConnected(self):
         return True
 
-    def getCurrentEnergy(self):
+    def get_current_energy(self):
         if self.energy_motor is not None:
             try:
                 return self.energy_motor.getPosition()
@@ -77,17 +73,16 @@ class Energy(Equipment):
                 return None
         return self.default_en
 
-    def getCurrentWavelength(self):
-        # logging.getLogger('user_level_log').debug("Get current wavelength")
-        current_en = self.getCurrentEnergy()
+    def get_current_wavelength(self):
+        current_en = self.get_current_energy()
         if current_en:
             return 12.3984 / current_en
         return None
 
-    def getEnergyLimits(self):
+    def get_energy_limits(self):
         logging.getLogger("HWR").debug("Get energy limits")
         if not self.tunable:
-            energy = self.getCurrentEnergy()
+            energy = self.get_current_energy()
             return (energy, energy)
 
         if self.energy_motor is not None:
@@ -101,20 +96,16 @@ class Energy(Equipment):
                 return None
         return None
 
-    def getWavelengthLimits(self):
+    def get_wavelength_limits(self):
         logging.getLogger("HWR").debug("Get wavelength limits")
         if not self.tunable:
             return None
-        self.en_lims = self.getEnergyLimits()
+        self.en_lims = self.get_energy_limits()
         if self.en_lims:
             lims = (12.3984 / self.en_lims[1], 12.3984 / self.en_lims[0])
         return lims
 
-    """
-    the energy is in keV
-    """
-
-    def startMoveEnergy(self, value, wait=True):
+    def start_move_energy(self, value, wait=True):
         if not self.tunable:
             return False
 
@@ -126,7 +117,7 @@ class Energy(Equipment):
             )
             return False
 
-        current_en = self.getCurrentEnergy()
+        current_en = self.get_current_energy()
         if current_en:
             if math.fabs(value - current_en) < 0.001:
                 self.moveEnergyCmdFinished(True)
@@ -159,8 +150,6 @@ class Energy(Equipment):
 
     def moveEnergyCmdAborted(self):
         pass
-        # self.moving = False
-        # self.emit('moveEnergyFailed', ())
 
     def moveEnergyCmdFinished(self, result):
         self.moving = False
@@ -168,14 +157,14 @@ class Energy(Equipment):
 
     def checkLimits(self, value):
         logging.getLogger("HWR").debug("Checking the move limits")
-        if self.getEnergyLimits():
+        if self.get_energy_limits():
             if value >= self.en_lims[0] and value <= self.en_lims[1]:
                 logging.getLogger("HWR").info("Limits ok")
                 return True
             logging.getLogger("user_level_log").info("Requested value is out of limits")
         return False
 
-    def startMoveWavelength(self, value, wait=True):
+    def start_move_wavelength(self, value, wait=True):
         logging.getLogger("HWR").info("Moving wavelength to (%s)" % value)
         return self.startMoveEnergy(12.3984 / value, wait)
 
@@ -184,7 +173,7 @@ class Energy(Equipment):
         self.moveEnergy.abort()
 
     def move_energy(self, energy, wait=True):
-        current_en = self.getCurrentEnergy()
+        current_en = self.get_current_energy()
         pos = math.fabs(current_en - energy)
         if pos < 0.001:
             logging.getLogger("user_level_log").debug(
@@ -216,4 +205,4 @@ class Energy(Equipment):
 
     def get_value(self):
         # generic method used by the beamline setup
-        return self.getCurrentEnergy()
+        return self.get_current_energy()

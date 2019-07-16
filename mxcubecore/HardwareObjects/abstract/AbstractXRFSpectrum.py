@@ -294,6 +294,6 @@ class AbstractXRFSpectrum(object):
         """
         if self.energy_hwobj is not None:
             try:
-                return self.energy_hwobj.getCurrentEnergy()
+                return self.energy_hwobj.get_current_energy()
             except BaseException:
                 logging.getLogger("HWR").exception("XRFSpectrum: couldn't read energy")

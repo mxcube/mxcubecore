@@ -42,7 +42,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         self.newResolution(self.dist2res(pos))
 
     def getWavelength(self):
-        return self.energy.getCurrentWavelength()
+        return self.energy.get_current_wavelength()
 
     def wavelengthChanged(self, pos=None):
         self.recalculateResolution()
