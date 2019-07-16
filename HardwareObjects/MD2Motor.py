@@ -1,7 +1,7 @@
 import logging
 from gevent import Timeout, sleep
 from warnings import warn
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor, MotorStates
 
 
 class MD2TimeoutError(Exception):
@@ -11,12 +11,11 @@ class MD2TimeoutError(Exception):
 class MD2Motor(AbstractMotor):
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
-
         self.motor_pos_attr_suffix = "Position"
 
     def init(self):
-        self.motor_state = MD2Motor.NOTINITIALIZED
-        if self.motor_name is None:
+        self.motor_state = MotorStates.NOTINITIALIZED
+        if self.motor_name in [None, ""]:
             self.motor_name = self.getProperty("motor_name")
 
         self.motor_resolution = self.getProperty("resolution")
@@ -27,6 +26,7 @@ class MD2Motor(AbstractMotor):
             {"type": "exporter", "name": "position"},
             self.motor_name + self.motor_pos_attr_suffix,
         )
+
         if self.position_attr is not None:
             self.position_attr.connectSignal("update", self.motorPositionChanged)
 
@@ -67,13 +67,17 @@ class MD2Motor(AbstractMotor):
             self.motorLimitsChanged()
 
     def updateState(self):
-        self.setIsReady(self.motor_state > MD2Motor.UNUSABLE)
+        pass
+    #    self.setIsReady(self.motor_state > MotorStates.UNUSABLE)
 
     def updateMotorState(self, motor_states):
         d = dict([x.split("=") for x in motor_states])
-        new_motor_state = MD2Motor.EXPORTER_TO_MOTOR_STATE[d[self.motor_name]]
+
+        new_motor_state = MotorStates.DESC_TO_STATE[d[self.motor_name]]
+
         if self.motor_state == new_motor_state:
             return
+
         self.motor_state = new_motor_state
         self.updateState()
         self.motorStateChanged(new_motor_state)
@@ -85,6 +89,9 @@ class MD2Motor(AbstractMotor):
         self.emit("stateChanged", (state,))
 
     def motorPositionChanged(self, absolutePosition, private={}):
+        logging.getLogger().debug(
+            "%s: in motorPositionChanged: motor state changed to %s", self.name(), absolutePosition
+        )
         if (
             abs(absolutePosition - private.get("old_pos", 1e12))
             <= self.motor_resolution
@@ -126,7 +133,7 @@ class MD2Motor(AbstractMotor):
 
     def move(self, position, wait=False, timeout=None):
         self.position_attr.set_value(position)
-        self.motorStateChanged(MD2Motor.MOVING)
+        # self.motorStateChanged(MotorStates.MOVING)
 
         if wait:
             try:
@@ -135,19 +142,23 @@ class MD2Motor(AbstractMotor):
                 raise MD2TimeoutError
 
     def waitEndOfMove(self, timeout=None):
+        self.wait_end_of_move(timeout)
+
+    def wait_end_of_move(self, timeout=None):
         with Timeout(timeout):
             sleep(0.1)
-            while self.motor_state == MD2Motor.MOVING:
+            while self.motor_state == MotorStates.MOVING:
                 sleep(0.1)
 
     def motorIsMoving(self):
-        return self.isReady() and self.motor_state == MD2Motor.MOVING
+        warn("motorIsMoving is deprecated. Use is_ready instead", DeprecationWarning)
+        return self.isReady() and self.motor_state == MotorStates.MOVING
 
     def getMotorMnemonic(self):
         return self.motor_name
 
     def stop(self):
-        if self.getState() != MD2Motor.NOTINITIALIZED:
+        if self.getState() != MotorStates.NOTINITIALIZED:
             self._motor_abort()
 
     def home_motor(self, timeout=None):
