@@ -269,7 +269,7 @@ class HardwareObjectHandler(ContentHandler):
 
         if self.elementIsAReference:
             if len(self.objects) > 0:
-                self.objects[-1].addReference(
+                self.objects[0].addReference(
                     name, self.reference, role=self.elementRole
                 )
         else:
