@@ -12,10 +12,10 @@ class Microdiff(MiniDiff.MiniDiff):
     def init(self):
         global MICRODIFF
         MICRODIFF = self
-        self.timeout = 3
-        self.phiMotor = self.getDeviceByRole("phi")
-        self.exporter_addr = self.phiMotor.exporter_address
-        self.x_calib = self.addChannel(
+        self.phiMotor = self.getObjectByRole("phi")
+        self.exporter_addr = self.getProperty("exporter_address")
+
+        self.x_calib = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -23,7 +23,7 @@ class Microdiff(MiniDiff.MiniDiff):
             },
             "CoaxCamScaleX",
         )
-        self.y_calib = self.addChannel(
+        self.y_calib = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -169,14 +169,13 @@ class Microdiff(MiniDiff.MiniDiff):
         self.MOTOR_TO_EXPORTER_NAME = self.getMotorToExporterNames()
         self.move_to_coord = self.moveToBeam
 
-        self.centringVertical = self.getDeviceByRole("centringVertical")
-        self.centringFocus = self.getDeviceByRole("centringFocus")
+        self.centringVertical = self.getObjectByRole("centringVertical")
+        self.centringFocus = self.getObjectByRole("centringFocus")
 
-        self.frontLight = self.getDeviceByRole("FrontLight")
-        self.backLight = self.getDeviceByRole("BackLight")
+        self.frontLight = self.getObjectByRole("FrontLight")
+        self.backLight = self.getObjectByRole("BackLight")
 
         self.beam_info = self.getObjectByRole("beam_info")
-
         self.wait_ready = self._wait_ready
 
     def getMotorToExporterNames(self):
@@ -456,7 +455,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def start3ClickCentring(self, sample_info=None):
         if self.in_plate_mode():
-            plateTranslation = self.getDeviceByRole("plateTranslation")
+            plateTranslation = self.getObjectByRole("plateTranslation")
             cmd_set_plate_vertical = self.addCommand(
                 {
                     "type": "exporter",
@@ -526,7 +525,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
 def set_light_in(light, light_motor, zoom):
     self.frontlight.move(0)
-    MICRODIFF.getDeviceByRole("BackLightSwitch").actuatorIn()
+    MICRODIFF.getObjectByRole("BackLightSwitch").actuatorIn()
 
 
 MiniDiff.set_light_in = set_light_in
