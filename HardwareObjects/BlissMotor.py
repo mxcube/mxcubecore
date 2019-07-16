@@ -35,7 +35,7 @@ class BlissMotor(Device):
 
     def updateState(self, state=None):
         if state is None:
-            state = self.motor.state()
+            state = self.motor.state
         # convert from grob state to Hardware Object motor state
         if state == "MOVING":
             state = BlissMotor.MOVING
@@ -64,7 +64,7 @@ class BlissMotor(Device):
         # for some GUI components (like MotorSpinBox), so
         # in case of None it is much easier to return very
         # large limits
-        ll, hl = self.motor.limits()
+        ll, hl = self.motor.limits
         return ll if ll is not None else -1e6, hl if hl is not None else 1e6
 
     def positionChanged(self, absolutePosition):
@@ -72,7 +72,7 @@ class BlissMotor(Device):
         self.emit("positionChanged", (absolutePosition,))
 
     def getPosition(self):
-        return self.motor.position()
+        return self.motor.position
 
     def getDialPosition(self):
         return self.getPosition()
