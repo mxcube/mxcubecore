@@ -34,6 +34,8 @@ if sys.version_info > (3, 0):
 
     _bytes = bytes
 
+    encode = bytes.encode
+
 else:
     STX = chr(2)
     ETX = chr(3)
@@ -43,6 +45,7 @@ else:
 
     _bytes = str
 
+    encode = str
 
 MAX_SIZE_STREAM_MSG = 500000
 
@@ -117,7 +120,7 @@ class StandardClient:
             msg_number = "%04d " % self.__msg_index__
             msg = msg_number + cmd
             try:
-                self.__sock__.sendto(msg.encode(), (self.server_ip, self.server_port))
+                self.__sock__.sendto(encode(msg), (self.server_ip, self.server_port))
             except:
                 raise SocketError("Socket error:" + str(sys.exc_info()[1]))
             received = False
@@ -148,7 +151,7 @@ class StandardClient:
             self.__msg_index__ = 1
         for i in range(0, self.retries):
             try:
-                ret = self.__sendReceiveDatagramSingle__(cmd.encode())
+                ret = self.__sendReceiveDatagramSingle__(encode(cmd))
                 return ret
             except TimeoutError:
                 if i >= self.retries - 1:
@@ -229,7 +232,7 @@ class StandardClient:
             self.connect()
 
         try:
-            pack = _bytes([STX]) + cmd.encode() + _bytes([ETX])
+            pack = _bytes([STX]) + encode(cmd) + _bytes([ETX])
             self.__sock__.send(pack)
         except SocketError:
             self.disconnect()
