@@ -53,7 +53,7 @@ class MicrodiffMotor(AbstractMotor):
     def init(self):
         self.position = None
         # assign value to motor_name
-        self.motor_name = self.getProperty("motor_name")
+        self.motor_name = self.getProperty("motor_name", "")
 
         self.GUIstep = self.getProperty("GUIstep")
 

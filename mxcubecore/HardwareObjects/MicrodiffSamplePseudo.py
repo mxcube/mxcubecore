@@ -1,4 +1,5 @@
 from HardwareRepository.HardwareObjects.MD2Motor import MD2Motor
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
 import logging
 import math
 
@@ -13,7 +14,7 @@ class MicrodiffSamplePseudo(MD2Motor):
         self.phi = None
         self.direction = None
 
-        self.motorState = MD2Motor.NOTINITIALIZED
+        self.motorState = MotorStates.NOTINITIALIZED
 
     def init(self):
         self.direction = self.getProperty("direction")
@@ -34,19 +35,19 @@ class MicrodiffSamplePseudo(MD2Motor):
     def updateMotorState(self):
         states = [m.getState() for m in (self.sampx, self.sampy, self.phi)]
         error_states = [
-            state in (MD2Motor.UNUSABLE, MD2Motor.NOTINITIALIZED, MD2Motor.ONLIMIT)
+            state in (MotorStates.UNUSABLE, MotorStates.NOTINITIALIZED, MotorStates.ONLIMIT)
             for state in states
         ]
         moving_state = [
-            state in (MD2Motor.MOVING, MD2Motor.MOVESTARTED) for state in states
+            state in (MotorStates.MOVING, MotorStates.MOVESTARTED) for state in states
         ]
 
         if any(error_states):
-            self.motorState = MD2Motor.UNUSABLE
+            self.motorState = MotorStates.UNUSABLE
         elif any(moving_state):
-            self.motorState = MD2Motor.MOVING
+            self.motorState = MotorStates.MOVING
         else:
-            self.motorState = MD2Motor.READY
+            self.motorState = MotorStates.READY
 
         self.motorStateChanged(self.motorState)
 
@@ -69,7 +70,7 @@ class MicrodiffSamplePseudo(MD2Motor):
             return new_pos
 
     def getState(self):
-        if self.motorState == MD2Motor.NOTINITIALIZED:
+        if self.motorState == MotorStates.NOTINITIALIZED:
             self.updateMotorState()
         return self.motorState
 

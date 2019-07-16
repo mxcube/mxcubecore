@@ -28,7 +28,7 @@ class MicrodiffInOut(Device):
     def init(self):
         self.cmdname = self.getProperty("cmd_name")
         self.username = self.getProperty("username")
-        self.cmd_attr = self.addChannel(
+        self.cmd_attr = self.add_channel(
             {"type": "exporter", "name": "move"}, self.cmdname
         )
         self.cmd_attr.connectSignal("update", self.valueChanged)
@@ -37,13 +37,13 @@ class MicrodiffInOut(Device):
         if self.statecmdname is None:
             self.statecmdname = self.cmdname
 
-        self.state_attr = self.addChannel(
+        self.state_attr = self.add_channel(
             {"type": "exporter", "name": "state"}, self.statecmdname
         )
         self.state_attr.connectSignal("update", self.valueChanged)
 
         self.states = {True: "in", False: "out"}
-        self.offset = self.getProperty("offset")
+        self.offset = self.getProperty("offset", 0)
         if self.offset > 0:
             self.states = {self.offset: "out", self.offset - 1: "in"}
 
