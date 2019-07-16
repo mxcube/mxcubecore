@@ -38,8 +38,8 @@ class AbstractEnergy(HardwareObject):
         self.getEnergyLimits = self.get_energy_limits
         self.getWavelengthLimits = self.get_wavelength_limits
         self.isReady = self.is_ready
-        self.getCurrentEnergy = self.get_current_energy
-        self.getCurrentWavelength = self.get_current_wavelength
+        self.get_current_energy = self.get_current_energy
+        self.get_current_wavelength = self.get_current_wavelength
 
     def is_ready(self):
         return not self._moving

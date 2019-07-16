@@ -421,7 +421,7 @@ class BeamlineSetup(HardwareObject):
 
     def _get_energy(self):
         try:
-            energy = self.energy_hwobj.getCurrentEnergy()
+            energy = self.energy_hwobj.get_current_energy()
         except AttributeError:
             energy = 0
         except TypeError:

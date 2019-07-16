@@ -214,7 +214,7 @@ class BeamlineTestMockup(HardwareObject):
         """Text one"""
         result = {}
 
-        current_energy = self.bl_hwobj.energy_hwobj.getCurrentEnergy()
+        current_energy = self.bl_hwobj.energy_hwobj.get_current_energy()
 
         result["result_bit"] = current_energy < 12
         result["result_short"] = "Test passed (energy = %.2f)" % current_energy
