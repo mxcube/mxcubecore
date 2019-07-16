@@ -1122,7 +1122,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
     def set_wavelength(self, value):
         self.energy_hwobj.startMoveWavelength(value)
-        current_energy = self.energy_hwobj.getCurrentEnergy()
+        current_energy = self.energy_hwobj.get_current_energy()
         self.detector_hwobj.set_photon_energy(current_energy * 1000)
 
     @task
@@ -1263,7 +1263,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         else:
             config['RoiMode'] = "disabled" #disabled means 16M
 
-        config['PhotonEnergy'] = self._tunable_bl.getCurrentEnergy()
+        config['PhotonEnergy'] = self._tunable_bl.get_current_energy()
         """
         config["OmegaStart"] = osc_start  # oscillation_parameters['start']
         config["OmegaIncrement"] = osc_range  # oscillation_parameters["range"]
