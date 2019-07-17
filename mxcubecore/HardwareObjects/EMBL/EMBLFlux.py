@@ -354,7 +354,7 @@ class EMBLFlux(AbstractFlux):
             self.fast_shutter_hwobj.openShutter(wait=True)
 
             for index, diameter_size in enumerate(
-                self.aperture_hwobj.get_diameter_size_mm_list()
+                self.aperture_hwobj.get_diameter_size_list()
             ):
                 # 5. open the fast shutter -----------------------------------------
                 self.emit(

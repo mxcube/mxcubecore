@@ -54,14 +54,14 @@ class TestMethods(unittest.TestCase):
 
         logging.getLogger("HWR").debug("UnitTest: Testing aperture hwobj")
         self.assertIn(
-            type(BL_SETUP.beam_info_hwobj.aperture_hwobj.get_diameter_size_mm()),
+            type(BL_SETUP.beam_info_hwobj.aperture_hwobj.get_diameter_size()),
             (float, int),
-            "Aperture | get_diameter_size_mm() returns float",
+            "Aperture | get_diameter_size() returns float",
         )
         self.assertIn(
-            type(BL_SETUP.beam_info_hwobj.aperture_hwobj.get_diameter_size_mm_list()),
+            type(BL_SETUP.beam_info_hwobj.aperture_hwobj.get_diameter_size_list()),
             (list, tuple),
-            "Aperture | get_diameter_size_mm_list() returns list or tuple",
+            "Aperture | get_diameter_size_list() returns list or tuple",
         )
         self.assertIn(
             type(BL_SETUP.beam_info_hwobj.aperture_hwobj.get_position_list()),
