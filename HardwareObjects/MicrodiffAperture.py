@@ -72,7 +72,7 @@ class MicrodiffAperture(MD2Motor):
         )
         self.emit("apertureChanged", (self.getApertureSize(),))
 
-    def get_diameter_size_mm(self, pos=None):
+    def get_diameter_size(self, pos=None):
         if self.getPosition() is not None:
             pos = pos or self.getPosition()
         else:
@@ -87,11 +87,11 @@ class MicrodiffAperture(MD2Motor):
 
     def getCurrentPositionName(self, pos=None):
         warn(
-          "getCurrentPositionName is deprecated. Use get_diameter_size_mm() instead",
+          "getCurrentPositionName is deprecated. Use get_diameter_size() instead",
           DeprecationWarning,
         )
 
-        return self.get_diameter_size_mm(pos)
+        return self.get_diameter_size(pos)
 
 
     def moveToPosition(self, positionName):
