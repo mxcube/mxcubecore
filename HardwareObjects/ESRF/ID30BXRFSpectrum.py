@@ -283,7 +283,7 @@ class XrfSpectrum(Equipment):
             except BaseException:
                 mcaConfig = {}
                 # self.spectrumInfo["beamTransmission"] =  self.transmission_hwobj.get_value()
-                self.spectrumInfo["energy"] = self.energy_hwobj.getCurrentEnergy()
+                self.spectrumInfo["energy"] = self.energy_hwobj.get_current_energy()
                 beam_info = self.beam_info_hwobj.get_beam_info()
                 self.spectrumInfo["beamSizeHorizontal"] = beam_info["size_x"]
                 self.spectrumInfo["beamSizeVertical"] = beam_info["size_y"]
@@ -365,7 +365,7 @@ class XrfSpectrum(Equipment):
         return os.path.join(self.cfgpath, "%skeV.cfg" % cfgname)
 
     def _doSpectrum(self, ct, filename, wait=True):
-        self.energy_hwobj.getCurrentEnergy()
+        self.energy_hwobj.get_current_energy()
         if not ct:
             ct = 5
         safshut = self.getObjectByRole("safety_shutter")
@@ -393,7 +393,7 @@ class XrfSpectrum(Equipment):
         min_cnt = self.getProperty("min_cnt")
         max_cnt = self.getProperty("max_cnt")
         self.mca_hwobj.set_roi(2, 15, channel=1)
-        print self.spectrumInfo["filename"]
+        print(self.spectrumInfo["filename"])
         self.mca_hwobj.set_presets(
             erange=1, ctime=ct, fname=self.spectrumInfo["filename"]
         )
@@ -405,7 +405,7 @@ class XrfSpectrum(Equipment):
         self.mca_hwobj.start_acq()
         time.sleep(ct)
         ic = sum(self.mca_hwobj.read_roi_data()) / ct
-        print ic
+        print(ic)
         if ic > max_cnt:
             self.ctrl_hwobj.diffractometer.msclose()
             logging.getLogger("user_level_log").exception(
@@ -419,7 +419,7 @@ class XrfSpectrum(Equipment):
             self.mca_hwobj.start_acq()
             time.sleep(ct)
             ic = sum(self.mca_hwobj.read_roi_data()) / ct
-            print ic
+            print(ic)
             if ic > min_cnt:
                 self.ctrl_hwobj.diffractometer.msclose()
                 self.spectrumInfo[

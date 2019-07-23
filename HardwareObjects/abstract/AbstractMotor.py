@@ -42,6 +42,8 @@ class MotorStates(object):
     HIGHLIMIT = 14
     NOTINITIALIZED = 15
     MOVESTARTED = 16
+    UNUSABLE = 17
+    ONLIMIT = 18
 
     STATE_DESC = {
         INITIALIZING: "Initializing",
@@ -61,6 +63,30 @@ class MotorStates(object):
         HIGHLIMIT: "HighLimit",
         NOTINITIALIZED: "NotInitialized",
         MOVESTARTED: "MoveStarted",
+        UNUSABLE: "Unusable",
+        ONLIMIT: "OnLimit"
+    }
+
+    DESC_TO_STATE = {
+        "Initializing": INITIALIZING,
+        "On": ON,
+        "Off": OFF,
+        "Ready": READY,
+        "Busy": BUSY,
+        "Moving": MOVING,
+        "Standby": STANDBY,
+        "Disabled": DISABLED,
+        "Unknown": UNKNOWN,
+        "Alarm": ALARM,
+        "Fault": FAULT,
+        "Invalid": INVALID,
+        "Offline": OFFLINE,
+        "LowLimit": LOWLIMIT,
+        "HighLimit": HIGHLIMIT,
+        "NotInitialized": NOTINITIALIZED,
+        "MoveStarted": MOVESTARTED,
+        "Unusable": UNUSABLE,
+        "OnLimit": ONLIMIT
     }
 
     @staticmethod

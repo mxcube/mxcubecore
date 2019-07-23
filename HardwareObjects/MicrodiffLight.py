@@ -1,4 +1,4 @@
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor, MotorStates
 
 
 class MicrodiffLight(AbstractMotor):
@@ -15,7 +15,7 @@ class MicrodiffLight(AbstractMotor):
         self.chan_value.connectSignal("update", self.value_changed)
         self.chan_light_is_on = self.getChannelObject("chanLightIsOn")
 
-        self.set_state(self.motor_states.READY)
+        self.set_state(MotorStates.READY)
         self.value_changed(self.chan_value.getValue())
 
     def connectNotify(self, signal):

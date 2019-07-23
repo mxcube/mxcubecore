@@ -171,10 +171,10 @@ def test():
     yag_pos = hwr.getHardwareObject("/scintillator")
     md2_phase = hwr.getHardwareObject("/md2j_phase")
 
-    print "Aperture Position: ", ap_pos.getState()
-    print "Aperture Diameter: ", ap_diam.getState()
-    print "Yag Posiion: ", yag_pos.getState()
-    print "MD2 Phase: ", md2_phase.getState()
+    print("Aperture Position: ", ap_pos.getState())
+    print("Aperture Diameter: ", ap_diam.getState())
+    print("Yag Posiion: ", yag_pos.getState())
+    print("MD2 Phase: ", md2_phase.getState())
 
 
 if __name__ == "__main__":

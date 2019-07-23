@@ -375,7 +375,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
            complete sample changer.
            Not implemented
         """
-        print "_doScan TODO"
+        print("_doScan TODO")
     
     def _doLoad(self,sample=None):
         """Loads a sample on the diffractometer. Performs a simple put operation

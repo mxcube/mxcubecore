@@ -30,7 +30,7 @@ class ALBAEnergy(Device):
             self.energy_position = self.energy_hwobj.getPosition()
         return self.energy_position
 
-    getCurrentEnergy = get_energy
+    get_current_energy = get_energy
 
     def get_wavelength(self):
         if self.wavelength_position is None:
@@ -76,10 +76,10 @@ class ALBAEnergy(Device):
 
 def test_hwo(hwo):
 
-    print "Energy is: ", hwo.get_energy()
-    print "Wavelength is: ", hwo.get_wavelength()
-    print "Energy limits are: ", hwo.get_energy_limits()
-    print "Wavelength limits are: ", hwo.get_wavelength_limits()
+    print("Energy is: ", hwo.get_energy())
+    print("Wavelength is: ", hwo.get_wavelength())
+    print("Energy limits are: ", hwo.get_energy_limits())
+    print("Wavelength limits are: ", hwo.get_wavelength_limits())
 
 
 if __name__ == "__main__":

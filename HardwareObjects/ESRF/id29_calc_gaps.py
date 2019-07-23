@@ -65,7 +65,7 @@ class CalculateGaps:
             self.GAPS = dict(zip(labels, gaps))
         else:
             logging.exception("Undulators file format error")
-        print p_gap
+        print(p_gap)
         return self.GAPS
 
     def _calc_gap(self, energy, arr):
@@ -134,4 +134,4 @@ if __name__ == "__main__":
 
     cg = CalculateGaps(float(sys.argv[1]))
     gg = cg._calc_gaps(float(sys.argv[1]), "u21d")
-    print gg
+    print(gg)

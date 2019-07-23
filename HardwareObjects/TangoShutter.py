@@ -206,7 +206,7 @@ def test():
 
     shut = hwr.getHardwareObject("/fastshutter")
 
-    print("Shutter State is: ", shut.readShutterState())
+    print(("Shutter State is: ", shut.readShutterState()))
 
 
 if __name__ == "__main__":

@@ -25,7 +25,7 @@ class FixedEnergy:
 class TunableEnergy:
     @task
     def get_energy(self):
-        return self._tunable_bl.energy_obj.getCurrentEnergy()
+        return self._tunable_bl.energy_obj.get_current_energy()
 
     @task
     def move_energy(self, energy):
@@ -74,7 +74,7 @@ class GetStaticParameters:
                 static_pars["remoteEnergy"] = th_energy + 1
                 return static_pars
             except Exception as e:
-                print e
+                print(e)
                 return {}
 
 
@@ -245,7 +245,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         # PyChooch occasionally returns an error and the result
         # the sleep command assures that we get the result
         time.sleep(1)
-        print result[0]
+        print(result[0])
         pk = result[0] / 1000.0
         fppPeak = result[1]
         fpPeak = result[2]
@@ -400,4 +400,4 @@ def StoreEnergyScanThread(db_conn, scan_info):
                 asso = {"blSampleId": blsample_id, "energyScanId": escan_id}
                 db_conn.associateBLSampleAndEnergyScan(asso)
     except Exception as e:
-        print e
+        print(e)

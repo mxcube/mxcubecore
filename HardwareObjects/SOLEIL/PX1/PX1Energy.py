@@ -91,7 +91,7 @@ class PX1Energy(Device):
 
         self.current_energy = value
 
-        wav = self.getCurrentWavelength()
+        wav = self.get_current_wavelength()
         if wav is not None:
             self.emit("energyChanged", (value, wav))
 
@@ -115,9 +115,9 @@ class PX1Energy(Device):
         return True
 
     def getPosition(self):
-        return self.getCurrentEnergy()
+        return self.get_current_energy()
 
-    def getCurrentEnergy(self):
+    def get_current_energy(self):
         return self.get_energy()
 
     def get_energy(self):
@@ -138,7 +138,7 @@ class PX1Energy(Device):
     def get_wavelength(self):
         return self.monodevice.read_attribute("lambda").value
 
-    def getCurrentWavelength(self):
+    def get_current_wavelength(self):
         return self.get_wavelength()
 
     def getLimits(self):
@@ -288,7 +288,7 @@ class PX1Energy(Device):
 
 
 def test_hwo(hwo):
-    print hwo.getPosition()
-    print hwo.getCurrentWavelength()
-    print hwo.get_energy_limits()
-    print hwo.getCurrentUndulatorGap()
+    print(hwo.getPosition())
+    print(hwo.get_current_wavelength())
+    print(hwo.get_energy_limits())
+    print(hwo.getCurrentUndulatorGap())

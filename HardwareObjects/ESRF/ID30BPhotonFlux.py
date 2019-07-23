@@ -45,7 +45,7 @@ class ID30BPhotonFlux(Equipment):
             counts = 0
             logging.getLogger("HWR").exception("%s: could not get counts", self.name())
         try:
-            egy = self.energy_motor.getCurrentEnergy() * 1000.0
+            egy = self.energy_motor.get_current_energy() * 1000.0
             calib = self.flux_calc.calc_flux_factor(egy)
         except BaseException:
             logging.getLogger("HWR").exception("%s: could not get energy", self.name())

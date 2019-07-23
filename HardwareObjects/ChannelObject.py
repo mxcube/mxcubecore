@@ -37,4 +37,4 @@ class ChannelObject(Device):
 
 
 def test_hwo(hwo):
-    print hwo.getValue()
+    print(hwo.getValue())

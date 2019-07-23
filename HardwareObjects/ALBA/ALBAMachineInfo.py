@@ -205,4 +205,4 @@ class ALBAMachineInfo(Equipment):
 
 
 def test_hwo(hwo):
-    print "Current is", hwo.get_current()
+    print("Current is", hwo.get_current())

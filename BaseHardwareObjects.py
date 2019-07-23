@@ -151,7 +151,7 @@ class HardwareObjectNode:
                 self.__references.pop()
             )
 
-            hw_object =getHardwareRepository().getHardwareObject(
+            hw_object = getHardwareRepository().getHardwareObject(
                 reference
             )
 

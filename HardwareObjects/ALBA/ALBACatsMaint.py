@@ -61,4 +61,4 @@ class ALBACatsMaint(CatsMaint):
 
 
 def test_hwo(hwo):
-    print hwo._get_shifts()
+    print(hwo._get_shifts())
