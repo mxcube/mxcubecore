@@ -48,7 +48,7 @@ class AbstractAperture(HardwareObject):
         except BaseException:
             logging.getLogger("HWR").error("Aperture: no position list defined")
 
-    def get_diameter_size_mm_list(self):
+    def get_diameter_size_list(self):
         """
         Returns:
             list: list of diameter sizes in microns
@@ -91,14 +91,14 @@ class AbstractAperture(HardwareObject):
                 "Aperture: Diameter index %d is not valid" % diameter_index
             )
 
-    def get_diameter_size_mm(self):
+    def get_diameter_size(self):
         """
         Returns:
             float: current diameter size in mm
         """
         return self._diameter_size_list[self._current_diameter_index]
 
-    def set_diameter_size_mm(self, diameter_size):
+    def set_diameter_size(self, diameter_size):
         """
         Args:
             diameter_size (int): selected diameter index
