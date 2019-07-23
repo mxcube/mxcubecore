@@ -472,7 +472,7 @@ class AbstractCollect(HardwareObject, object):
         Descript. :
         """
         if self.energy_hwobj is not None:
-            return self.energy_hwobj.getCurrentWavelength()
+            return self.energy_hwobj.get_current_wavelength()
 
     def get_detector_distance(self):
         """

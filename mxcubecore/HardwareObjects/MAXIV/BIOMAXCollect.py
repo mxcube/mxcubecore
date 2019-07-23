@@ -263,7 +263,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 for file in snapshots_files:
                     os.chmod(file, 0o777)
             except Exception as ex:
-                print ex
+                print(ex)
             # prepare beamline for data acquisiion
             self.prepare_acquisition()
             self.emit(
@@ -737,7 +737,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                     self.current_dc_parameters["fileinfo"]["filename"], 1
                 )
             except Exception as ex:
-                print ex
+                print(ex)
 
             last_frame = self.current_dc_parameters["oscillation_sequence"][0][
                 "number_of_images"
@@ -752,7 +752,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                         self.current_dc_parameters["fileinfo"]["filename"], last_frame
                     )
                 except Exception as ex:
-                    print ex
+                    print(ex)
 
         if self.datacatalog_enabled:
             self.store_datacollection_datacatalog()
@@ -814,13 +814,13 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 rings=rings,
             )
         except Exception as ex:
-            print ex
+            print(ex)
 
         try:
             os.chmod(os.path.dirname(jpeg_thumbnail_full_path), 0o777)
             os.chmod(jpeg_thumbnail_full_path, 0o777)
         except Exception as ex:
-            print ex
+            print(ex)
 
     def wait_for_file_copied(self, full_file_path):
         # first wait for the file being created
@@ -891,13 +891,13 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             try:
                 image_id = self.lims_client_hwobj.store_image(lims_image)
             except Exception as ex:
-                print ex
+                print(ex)
             # temp fix for ispyb permission issues
             try:
                 session_dir = os.path.join(archive_directory, "../../../")
                 os.system("chmod -R 777 %s" % (session_dir))
             except Exception as ex:
-                print ex
+                print(ex)
 
             return image_id
 
@@ -1122,7 +1122,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
     def set_wavelength(self, value):
         self.energy_hwobj.startMoveWavelength(value)
-        current_energy = self.energy_hwobj.getCurrentEnergy()
+        current_energy = self.energy_hwobj.get_current_energy()
         self.detector_hwobj.set_photon_energy(current_energy * 1000)
 
     @task
@@ -1263,7 +1263,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         else:
             config['RoiMode'] = "disabled" #disabled means 16M
 
-        config['PhotonEnergy'] = self._tunable_bl.getCurrentEnergy()
+        config['PhotonEnergy'] = self._tunable_bl.get_current_energy()
         """
         config["OmegaStart"] = osc_start  # oscillation_parameters['start']
         config["OmegaIncrement"] = osc_range  # oscillation_parameters["range"]
@@ -1473,7 +1473,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 os.system("echo %s, %s > %s" % (self.display["file_name1"], i, fname1))
                 os.system("echo %s, %s > %s" % (self.display["file_name2"], i, fname2))
             except Exception as ex:
-                print ex
+                print(ex)
                 if self.stop_display:
                     break
                 time.sleep(frequency)

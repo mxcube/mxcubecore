@@ -36,7 +36,7 @@ class MaxLabMDCamera(BaseHardwareObjects.Device):
             self.device = PyTango.DeviceProxy(self.tangoname)
         except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
-            print "last error ", str(last_error)
+            print("last error ", str(last_error))
             logging.getLogger("HWR").error(
                 "%s: %s", str(self.name()), last_error["desc"]
             )
@@ -48,7 +48,7 @@ class MaxLabMDCamera(BaseHardwareObjects.Device):
     def init(self):
 
         if self.device is not None:
-            print "initializing camera object"
+            print("initializing camera object")
 
             self.pollingTimer = qt.QTimer()
             self.pollingTimer.connect(
@@ -64,32 +64,32 @@ class MaxLabMDCamera(BaseHardwareObjects.Device):
 
     def udiffVersionChanged(self, value):
 
-        print "udiff version is ", value
+        print("udiff version is ", value)
         if value == "MD2_2":
-            print "start polling MD camera with poll interval=", self.pollInterval
+            print("start polling MD camera with poll interval=", self.pollInterval)
             self.pollingTimer.start(self.pollInterval)
             # self.startPolling()
         else:
-            print "stop polling the camera. This microdiff version does not support a camera"
+            print("stop polling the camera. This microdiff version does not support a camera")
             self.pollingTimer.stop()
 
     def connectToDevice(self):
 
-        print "Connecting to camera device"
+        print("Connecting to camera device")
 
         try:
             cmds = self.device.command_list_query()
             self.connected = True
         except PyTango.ConnectionFailed:
-            print "Microdiff DS not running or bad name in config"
+            print("Microdiff DS not running or bad name in config")
             self.connected = False
         except BaseException:
             self.connected = False
 
         if "getImageJPG" in cmds:
-            print "YES"
+            print("YES")
         else:
-            print "NO"
+            print("NO")
 
         return self.connected
 
@@ -136,16 +136,16 @@ class MaxLabMDCamera(BaseHardwareObjects.Device):
                 if self.badimg > MAX_TRIES:
                     self.badimg = 0
             else:
-                print "bad"
+                print("bad")
                 self.badimg += 1
 
             if self.badimg > MAX_TRIES:
-                print "seems too bad. polling with a slow interval now"
+                print("seems too bad. polling with a slow interval now")
                 self.pollingTimer.changeInterval(SLOW_INTERVAL)
 
     def imageUpdated(self, value):
-        print "<HW> got new image"
-        print value
+        print("<HW> got new image")
+        print(value)
 
     def gammaExists(self):
         return False

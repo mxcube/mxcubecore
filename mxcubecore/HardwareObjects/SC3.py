@@ -360,7 +360,7 @@ class SC3(SampleChanger):
 if __name__ == "__main__":
 
     def onStateChanged(state, former):
-        print("State Change:  " + str(former) + " => " + str(state))
+        print(("State Change:  " + str(former) + " => " + str(state)))
 
     def onInfoChanged():
         print("Info Changed")
@@ -407,4 +407,4 @@ if __name__ == "__main__":
             sc.scan("3", wait=True)
             sc.scan("4", recursive=True, wait=True)
         except BaseException:
-            print(sys.exc_info()[1])
+            print((sys.exc_info()[1]))

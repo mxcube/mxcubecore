@@ -25,8 +25,28 @@ class SocketError(Exception):
     pass
 
 
-STX = chr(2)
-ETX = chr(3)
+if sys.version_info > (3, 0):
+    STX = 2  # b'\x02'
+    ETX = 3  # b'\x03'
+
+    def empty_buffer():
+        return b""
+
+    _bytes = bytes
+
+    encode = bytes.encode
+
+else:
+    STX = chr(2)
+    ETX = chr(3)
+
+    def empty_buffer():
+        return ""
+
+    _bytes = str
+
+    encode = str
+
 MAX_SIZE_STREAM_MSG = 500000
 
 
@@ -100,13 +120,13 @@ class StandardClient:
             msg_number = "%04d " % self.__msg_index__
             msg = msg_number + cmd
             try:
-                self.__sock__.sendto(msg, (self.server_ip, self.server_port))
-            except BaseException:
+                self.__sock__.sendto(encode(msg), (self.server_ip, self.server_port))
+            except:
                 raise SocketError("Socket error:" + str(sys.exc_info()[1]))
             received = False
             while received is False:
                 try:
-                    ret = self.__sock__.recv(4096)
+                    ret = self.__sock__.recv(4096).decode()
                 except socket.timeout:
                     raise TimeoutError("Timeout error:" + str(sys.exc_info()[1]))
                 except BaseException:
@@ -131,7 +151,7 @@ class StandardClient:
             self.__msg_index__ = 1
         for i in range(0, self.retries):
             try:
-                ret = self.__sendReceiveDatagramSingle__(cmd)
+                ret = self.__sendReceiveDatagramSingle__(encode(cmd))
                 return ret
             except TimeoutError:
                 if i >= self.retries - 1:
@@ -172,7 +192,7 @@ class StandardClient:
             self.onConnected()
         except BaseException:
             pass
-        buffer = ""
+        buffer = empty_buffer()
         mReceivedSTX = False
         while True:
             ret = self.__sock__.recv(4096)
@@ -183,20 +203,25 @@ class StandardClient:
                 break
             for b in ret:
                 if b == STX:
-                    buffer = ""
+                    buffer = empty_buffer()
                     mReceivedSTX = True
                 elif b == ETX:
-                    if mReceivedSTX is True:
-                        self.onMessageReceived(buffer)
+                    if mReceivedSTX == True:
+                        try:
+                            # Unicode decoding exception catching, consider errors='ignore'
+                            buffer_utf8 = buffer.decode()
+                        except UnicodeDecodeError as e:
+                            raise ProtocolError from e
+                        self.onMessageReceived(buffer_utf8)
                         mReceivedSTX = False
-                        buffer = ""
+                        buffer = empty_buffer()
                 else:
-                    if mReceivedSTX is True:
-                        buffer = buffer + b
+                    if mReceivedSTX:
+                        buffer = buffer + _bytes([b])
 
             if len(buffer) > MAX_SIZE_STREAM_MSG:
                 mReceivedSTX = False
-                buffer = ""
+                buffer = empty_buffer()
         try:
             self.onDisconnected()
         except BaseException:
@@ -207,7 +232,7 @@ class StandardClient:
             self.connect()
 
         try:
-            pack = STX + cmd + ETX
+            pack = _bytes([STX]) + encode(cmd) + _bytes([ETX])
             self.__sock__.send(pack)
         except SocketError:
             self.disconnect()

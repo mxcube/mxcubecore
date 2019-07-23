@@ -12,10 +12,10 @@ class Microdiff(MiniDiff.MiniDiff):
     def init(self):
         global MICRODIFF
         MICRODIFF = self
-        self.timeout = 3
-        self.phiMotor = self.getDeviceByRole("phi")
-        self.exporter_addr = self.phiMotor.exporter_address
-        self.x_calib = self.addChannel(
+        self.phiMotor = self.getObjectByRole("phi")
+        self.exporter_addr = self.getProperty("exporter_address")
+
+        self.x_calib = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -23,7 +23,7 @@ class Microdiff(MiniDiff.MiniDiff):
             },
             "CoaxCamScaleX",
         )
-        self.y_calib = self.addChannel(
+        self.y_calib = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -169,14 +169,13 @@ class Microdiff(MiniDiff.MiniDiff):
         self.MOTOR_TO_EXPORTER_NAME = self.getMotorToExporterNames()
         self.move_to_coord = self.moveToBeam
 
-        self.centringVertical = self.getDeviceByRole("centringVertical")
-        self.centringFocus = self.getDeviceByRole("centringFocus")
+        self.centringVertical = self.getObjectByRole("centringVertical")
+        self.centringFocus = self.getObjectByRole("centringFocus")
 
-        self.frontLight = self.getDeviceByRole("FrontLight")
-        self.backLight = self.getDeviceByRole("BackLight")
+        self.frontLight = self.getObjectByRole("FrontLight")
+        self.backLight = self.getObjectByRole("BackLight")
 
         self.beam_info = self.getObjectByRole("beam_info")
-
         self.wait_ready = self._wait_ready
 
     def getMotorToExporterNames(self):
@@ -238,7 +237,7 @@ class Microdiff(MiniDiff.MiniDiff):
                         timeout = 40
                     self._wait_ready(timeout)
         else:
-            print "moveToPhase - Ready is: ", self._ready()
+            print("moveToPhase - Ready is: ", self._ready())
 
     def getPhase(self):
         return self.readPhase.getValue()
@@ -294,12 +293,12 @@ class Microdiff(MiniDiff.MiniDiff):
             "startScanEx",
         )
         scan(scan_params)
-        print "oscil scan started at ----------->", time.time()
+        print("oscil scan started at ----------->", time.time())
         if wait:
             self._wait_ready(
                 600
             )  # timeout of 10 min # Changed on 20180406 Daniele, because of long exposure time set by users
-            print "finished at ---------->", time.time()
+            print("finished at ---------->", time.time())
 
     def oscilScan4d(self, start, end, exptime, motors_pos, wait=False):
         if self.in_plate_mode():
@@ -329,10 +328,10 @@ class Microdiff(MiniDiff.MiniDiff):
             "startScan4DEx",
         )
         scan(scan_params)
-        print "helical scan started at ----------->", time.time()
+        print("helical scan started at ----------->", time.time())
         if wait:
             self._wait_ready(900)  # timeout of 15 min
-            print "finished at ---------->", time.time()
+            print("finished at ---------->", time.time())
 
     def oscilScanMesh(
         self,
@@ -379,10 +378,10 @@ class Microdiff(MiniDiff.MiniDiff):
             "startRasterScan",
         )
         scan(scan_params)
-        print "mesh scan started at ----------->", time.time()
+        print("mesh scan started at ----------->", time.time())
         if wait:
             self._wait_ready(1800)  # timeout of 30 min
-            print "finished at ---------->", time.time()
+            print("finished at ---------->", time.time())
 
     def stillScan(self, pulse_duration, pulse_period, pulse_nb, wait=False):
         scan_params = "%0.6f\t%0.6f\t%d" % (pulse_duration, pulse_period, pulse_nb)
@@ -395,10 +394,10 @@ class Microdiff(MiniDiff.MiniDiff):
             "startStillScan",
         )
         scan(scan_params)
-        print "still scan started at ----------->", time.time()
+        print("still scan started at ----------->", time.time())
         if wait:
             self._wait_ready(1800)  # timeout of 30 min
-            print "finished at ---------->", time.time()
+            print("finished at ---------->", time.time())
 
     def in_plate_mode(self):
         try:
@@ -456,7 +455,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def start3ClickCentring(self, sample_info=None):
         if self.in_plate_mode():
-            plateTranslation = self.getDeviceByRole("plateTranslation")
+            plateTranslation = self.getObjectByRole("plateTranslation")
             cmd_set_plate_vertical = self.addCommand(
                 {
                     "type": "exporter",
@@ -526,7 +525,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
 def set_light_in(light, light_motor, zoom):
     self.frontlight.move(0)
-    MICRODIFF.getDeviceByRole("BackLightSwitch").actuatorIn()
+    MICRODIFF.getObjectByRole("BackLightSwitch").actuatorIn()
 
 
 MiniDiff.set_light_in = set_light_in

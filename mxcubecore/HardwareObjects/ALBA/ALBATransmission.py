@@ -49,4 +49,4 @@ class ALBATransmission(Device):
 
 
 def test_hwo(hwo):
-    print "Transmission is: ", hwo.get_value()
+    print("Transmission is: ", hwo.get_value())

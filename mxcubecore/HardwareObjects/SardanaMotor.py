@@ -309,9 +309,9 @@ class SardanaMotor(AbstractMotor):
 
 
 def test_hwo(hwo):
-    print("Position for %s is: %s" % (hwo.username, hwo.getPosition()))
-    print("Velocity for %s is: %s" % (hwo.username, hwo.get_velocity()))
-    print("Acceleration for %s is: %s" % (hwo.username, hwo.get_acceleration()))
+    print(("Position for %s is: %s" % (hwo.username, hwo.getPosition())))
+    print(("Velocity for %s is: %s" % (hwo.username, hwo.get_velocity())))
+    print(("Acceleration for %s is: %s" % (hwo.username, hwo.get_acceleration())))
 
 
 #    print("Moving motor to %s" % newpos)

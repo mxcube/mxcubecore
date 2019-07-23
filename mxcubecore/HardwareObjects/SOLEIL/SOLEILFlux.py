@@ -24,7 +24,7 @@ def test():
 
     flux = hwr.getHardwareObject("/flux")
 
-    print "PX1 Flux is ", flux.getCurrentFlux()
+    print("PX1 Flux is ", flux.getCurrentFlux())
 
 
 if __name__ == "__main__":

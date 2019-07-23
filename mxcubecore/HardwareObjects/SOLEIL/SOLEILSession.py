@@ -154,9 +154,9 @@ def test():
     path = "/927bis/ccd/2015_Run2/visitor/mx2014/px2/20150120/ARCHIVE/mx2014/mx2014_2_4.snapshot.jpeg"
     ispyb_path = sess.path_to_ispyb(path)
 
-    print path
-    print "  will become "
-    print ispyb_path
+    print(path)
+    print("  will become ")
+    print(ispyb_path)
 
     # print sess.get_ruche_info(path)
 

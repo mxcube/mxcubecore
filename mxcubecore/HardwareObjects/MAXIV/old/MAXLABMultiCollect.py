@@ -23,7 +23,7 @@ class FixedEnergy:
     def set_energy(self, energy):
         return
 
-    def getCurrentEnergy(self):
+    def get_current_energy(self):
         return self.energy
 
     def get_wavelength(self):
@@ -42,11 +42,11 @@ class TunableEnergy:
         energy_obj = self.bl_control.energy
         return energy_obj.startMoveEnergy(energy)
 
-    def getCurrentEnergy(self):
-        return self.bl_control.energy.getCurrentEnergy()
+    def get_current_energy(self):
+        return self.bl_control.energy.get_current_energy()
 
     def get_wavelength(self):
-        return self.bl_control.energy.getCurrentWavelength()
+        return self.bl_control.energy.get_current_wavelength()
 
 
 class CcdDetector:
@@ -529,7 +529,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
     def prepare_acquisition(
         self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""
     ):
-        energy = self._tunable_bl.getCurrentEnergy()
+        energy = self._tunable_bl.get_current_energy()
         return self._detector.prepare_acquisition(
             take_dark,
             start,
@@ -585,7 +585,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
             self.mosflm_template_buf = open(self.mosflm_template).read()
             self.write_files = True
         except BaseException:
-            print "Cannot find template for xds and mosflm input files "
+            print("Cannot find template for xds and mosflm input files ")
             self.write_files = False
 
         while True:
@@ -638,10 +638,10 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
 
         dp_pars = self.collect_pars_dp
 
-        print "\nDATA COLLECT PARS"
-        print "-------------------------------------------"
+        print("\nDATA COLLECT PARS")
+        print("-------------------------------------------")
         pprint.pprint(dp_pars)
-        print "-------------------------------------------"
+        print("-------------------------------------------")
 
         # get info from HWR server (is this updated when file is changed?)
         # GET some info from beamline control and beamline config objects
@@ -666,7 +666,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
         YBeam = (AYBeam * detdistpos) + BYBeam
 
         # obtained from energy hardware object configured in mxcollect.xml
-        wavelength = self.bl_control.energy.getCurrentWavelength()
+        wavelength = self.bl_control.energy.get_current_wavelength()
 
         # FROM SPEC - FOR XDS - DP_INPUTS (pixel size) are set in setup file with dp_files_setup macro
         #  bcmpars["beam"]["x"] and "y" are those just calculated above XBeam, YBeam
@@ -809,7 +809,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
         try:
             stac_template_buf = open(stac_template).read()
         except BaseException:
-            print "Cannot find template for stac input files "
+            print("Cannot find template for stac input files ")
             return
 
         omega = self.bl_control.diffractometer.phiMotor.getPosition()
@@ -934,8 +934,8 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
         except BaseException:
             return 0
 
-    def getCurrentEnergy(self):
-        return self._tunable_bl.getCurrentEnergy()
+    def get_current_energy(self):
+        return self._tunable_bl.get_current_energy()
 
     def get_beam_centre(self):
         return (

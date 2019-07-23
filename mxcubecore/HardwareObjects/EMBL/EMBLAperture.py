@@ -86,7 +86,7 @@ class EMBLAperture(AbstractAperture):
             self._diameter_size_list[self._current_diameter_index] / 1000.0,
         )
 
-    def get_diameter_size(self):
+    def get_diameter_size_mm(self):
         """Returns: diameter size in mm"""
         return self._diameter_size_list[self._current_diameter_index] / 1000.0
 

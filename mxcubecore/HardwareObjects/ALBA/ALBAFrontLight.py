@@ -122,10 +122,10 @@ def test():
     hwr.connect()
 
     light = hwr.getHardwareObject("/frontlight")
-    print '\nLight control for "%s"\n' % light.getUserName()
-    print "   Level limits are:", light.getLimits()
-    print "   Current level is:", light.getLevel()
-    print "   Current state is:", light.getState()
+    print('\nLight control for "%s"\n' % light.getUserName())
+    print("   Level limits are:", light.getLimits())
+    print("   Current level is:", light.getLevel())
+    print("   Current state is:", light.getState())
 
 
 if __name__ == "__main__":

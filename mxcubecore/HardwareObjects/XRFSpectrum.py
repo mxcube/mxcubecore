@@ -259,7 +259,7 @@ class XRFSpectrum(Equipment):
                 self.spectrumInfo[
                     "beamTransmission"
                 ] = self.transmission_hwobj.get_value()
-                self.spectrumInfo["energy"] = self.energy_hwobj.getCurrentEnergy()
+                self.spectrumInfo["energy"] = self.energy_hwobj.get_current_energy()
                 if self.flux_hwobj:
                     self.spectrumInfo["flux"] = self.flux_hwobj.getCurrentFlux()
 
@@ -363,7 +363,7 @@ class XRFSpectrum(Equipment):
         return os.path.join(self.cfg_path, "%skeV.cfg" % cfgname)
 
     def _doSpectrum(self, ct, filename, wait=True):
-        en = self.energy_hwobj.getCurrentEnergy()
+        en = self.energy_hwobj.get_current_energy()
         if not ct:
             ct = 5
         safshut = self.getObjectByRole("safety_shutter")
@@ -419,7 +419,7 @@ class XRFSpectrum(Equipment):
         self.mca_hwobj.start_acq()
         time.sleep(ct)
         ic = sum(self.mca_hwobj.read_roi_data()) / ct
-        print ic
+        print(ic)
         if ic > max_cnt:
             self.ctrl_hwobj.diffractometer.msclose()
             logging.getLogger("user_level_log").exception(
@@ -434,7 +434,7 @@ class XRFSpectrum(Equipment):
             self.mca_hwobj.start_acq()
             time.sleep(ct)
             ic = sum(self.mca_hwobj.read_roi_data()) / ct
-            print ic
+            print(ic)
             if ic > min_cnt:
                 self.ctrl_hwobj.diffractometer.msclose()
                 self.spectrumInfo[

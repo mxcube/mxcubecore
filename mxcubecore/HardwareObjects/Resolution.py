@@ -55,7 +55,7 @@ class Resolution(AbstractMotor):
 
     def getWavelength(self):
         try:
-            return self.energy.getCurrentWavelength()
+            return self.energy.get_current_wavelength()
         except BaseException:
             current_en = self.energy.getPosition()
             if current_en:

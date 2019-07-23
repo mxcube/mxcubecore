@@ -130,10 +130,10 @@ class Exporter(ExporterClient.ExporterClient):
         if "\x1f" in value:
             value = self.parseArray(value)
             try:
-                value = map(int, value)
+                value = list(map(int, value))
             except BaseException:
                 try:
-                    value = map(float, value)
+                    value = list(map(float, value))
                 except BaseException:
                     pass
         else:

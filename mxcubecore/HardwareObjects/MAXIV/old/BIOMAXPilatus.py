@@ -44,7 +44,7 @@ class BIOMAXPilatus(Pilatus):
         try:
             self.getChannelObject("saving_directory").setValue(saving_directory)
         except Exception as ex:
-            print ex
+            print(ex)
         self.getChannelObject("saving_prefix").setValue(prefix)
         self.getChannelObject("saving_suffix").setValue(suffix)
         self.getChannelObject("saving_next_number").setValue(frame_number)
