@@ -9,6 +9,8 @@ import logging
 from collections import OrderedDict
 
 from HardwareRepository.HardwareObjects import queue_model_enumerables
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 class TaskNode(object):
@@ -523,7 +525,7 @@ class DataCollection(TaskNode):
         self.id = int()
         self.lims_group_id = None
         self.run_processing_after = None
-        self.run_processing_parallel = False
+        self.run_processing_parallel = None  # This is a string field, not a Boolean
         self.grid = None
         self.parallel_processing_result = None
         self.processing_msg_list = []
@@ -2101,7 +2103,7 @@ def dc_from_edna_output(
 
             acq = Acquisition()
             acq.acquisition_parameters = (
-                beamline_setup_hwobj.get_default_acquisition_parameters()
+                beamline_object.get_default_acquisition_parameters()
             )
             acquisition_parameters = acq.acquisition_parameters
 
@@ -2109,7 +2111,7 @@ def dc_from_edna_output(
                 0
             ].acquisition_parameters.centred_position
 
-            acq.path_template = beamline_setup_hwobj.get_default_path_template()
+            acq.path_template = beamline_object.get_default_path_template()
 
             # Use the same path template as the reference_collection
             # and update the members the needs to be changed. Keeping

@@ -1,5 +1,13 @@
 import abc
 
+from HardwareRepository.HardwareObjects import queue_model_objects
+from HardwareRepository.HardwareObjects import queue_model_enumerables
+
+from XSDataMXCuBEv1_3 import XSDataInputMXCuBE, XSDataResultMXCuBE
+
+from HardwareRepository.HardwareRepository import getHardwareRepository
+
+
 
 class AbstractDataAnalysis(object):
     __metaclass__ = abc.ABCMeta
@@ -209,3 +217,73 @@ def dc_from_edna_output(edna_output, sample, dcg, session, char_params=None):
             dc.char_params = char_params
 
     return data_collections
+
+def get_default_characterisation_parameters(edna_default_file):
+    """
+    :returns: A CharacterisationsParameters object with default parameters.
+    """
+
+    # input_fname = self.data_analysis_hwobj.edna_default_file
+    fpath = getHardwareRepository().findInRepository(edna_default_file)
+    if fpath is None:
+        raise ValueError("File %s not found in repository" % edna_default_file)
+    with open(fpath, "r") as fp0:
+        edna_default_input = "".join(fp0.readlines())
+
+    edna_input = XSDataInputMXCuBE.parseString(edna_default_input)
+    diff_plan = edna_input.getDiffractionPlan()
+
+    edna_sample = edna_input.getSample()
+    char_params = queue_model_objects.CharacterisationParameters()
+    char_params.experiment_type = queue_model_enumerables.EXPERIMENT_TYPE.OSC
+
+    # Optimisation parameters
+    char_params.use_aimed_resolution = False
+    try:
+        char_params.aimed_resolution = diff_plan.getAimedResolution().getValue()
+    except BaseException:
+        char_params.aimed_resolution = None
+
+    char_params.use_aimed_multiplicity = False
+    try:
+        char_params.aimed_i_sigma = (
+            diff_plan.getAimedIOverSigmaAtHighestResolution().getValue()
+        )
+        char_params.aimed_completness = diff_plan.getAimedCompleteness().getValue()
+    except BaseException:
+        char_params.aimed_i_sigma = None
+        char_params.aimed_completness = None
+
+    char_params.strategy_complexity = 0
+    char_params.induce_burn = False
+    char_params.use_permitted_rotation = False
+    char_params.permitted_phi_start = 0.0
+    char_params.permitted_phi_end = 360
+    char_params.low_res_pass_strat = False
+
+    # Crystal
+    char_params.max_crystal_vdim = edna_sample.getSize().getY().getValue()
+    char_params.min_crystal_vdim = edna_sample.getSize().getZ().getValue()
+    char_params.max_crystal_vphi = 90
+    char_params.min_crystal_vphi = 0.0
+    char_params.space_group = ""
+
+    # Characterisation type
+    char_params.use_min_dose = True
+    char_params.use_min_time = False
+    char_params.min_dose = 30.0
+    char_params.min_time = 0.0
+    char_params.account_rad_damage = True
+    char_params.auto_res = True
+    char_params.opt_sad = False
+    char_params.sad_res = 0.5
+    char_params.determine_rad_params = False
+    char_params.burn_osc_start = 0.0
+    char_params.burn_osc_interval = 3
+
+    # Radiation damage model
+    char_params.rad_suscept = edna_sample.getSusceptibility().getValue()
+    char_params.beta = 1
+    char_params.gamma = 0.06
+
+    return char_params

@@ -76,7 +76,7 @@ class MachineInfoMockup(HardwareObject):
 
         self.values_ordered_dict["flux"] = {
              "value": None,
-             "value_str": "Reamesure flux!",
+             "value_str": "Remeasure flux!",
              "in_range": False,
              "title": "Flux"
         }

@@ -44,7 +44,7 @@ class SOLEILBeamlineSetup(BeamlineSetup):
         acq_parameters.energy = self._get_energy()
         acq_parameters.transmission = self._get_transmission()
 
-        acq_parameters.shutterless = self._has_shutterless()
+        acq_parameters.shutterless = self.detector_has_shutterless()
         acq_parameters.detector_mode = self._get_roi_modes()
 
         acq_parameters.inverse_beam = False

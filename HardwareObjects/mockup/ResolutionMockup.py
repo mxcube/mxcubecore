@@ -14,7 +14,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         self.currentResolution = 3
         self.detmState = None
         self.state = 2
-        self.dtox = self.getObjectByRole("dtox")
+        self.dtox = self.getObjectByRole("detector_distance")
         self.energy = self.getObjectByRole("energy")
         self.detector = self.getObjectByRole("detector")
         self.connect(self.dtox, "positionChanged", self.dtoxPositionChanged)

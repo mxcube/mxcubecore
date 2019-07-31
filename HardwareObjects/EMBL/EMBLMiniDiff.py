@@ -154,7 +154,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.imaging_centring_hwobj = self.getObjectByRole("imaging-centring")
         self.minikappa_correction_hwobj = self.getObjectByRole("minikappa_correction")
         self.detector_distance_motor_hwobj = self.getObjectByRole(
-            "detector_distance_motor"
+            "detector_distance"
         )
 
         self.zoom_motor_hwobj = self.getObjectByRole("zoom")

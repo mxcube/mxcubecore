@@ -24,6 +24,9 @@ import os
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
+
 
 __credits__ = ["EMBL Hamburg"]
 __category__ = "General"
@@ -84,7 +87,7 @@ class EMBLCollect(AbstractCollect):
 
         self.flux_hwobj = None
         self.graphics_manager_hwobj = None
-        self.image_tracking_hwobj = None
+        # self.image_tracking_hwobj = None
 
     def init(self):
         """Main init method"""
@@ -93,7 +96,7 @@ class EMBLCollect(AbstractCollect):
 
         self.flux_hwobj = self.getObjectByRole("flux")
         self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
-        self.image_tracking_hwobj = self.getObjectByRole("image_tracking")
+        # self.image_tracking_hwobj = beamline_object.image_tracking
 
         self._exp_type_dict = {"Mesh": "raster", "Helical": "Helical"}
 
@@ -167,8 +170,8 @@ class EMBLCollect(AbstractCollect):
             file_info = self.current_dc_parameters["fileinfo"]
             sample_ref = self.current_dc_parameters["sample_reference"]
 
-            if self.image_tracking_hwobj is not None:
-                self.image_tracking_hwobj.set_image_tracking_state(True)
+            if beamline_object.image_tracking is not None:
+                beamline_object.image_tracking.set_image_tracking_state(True)
 
             if self.cmd_collect_compression is not None:
                 self.cmd_collect_compression(file_info["compression"])

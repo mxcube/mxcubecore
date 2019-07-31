@@ -307,6 +307,7 @@ class GenericDiffractometer(HardwareObject):
         )
 
         for motor_name in self.centring_motors_list:
+            # NBNB TODO refactor configuration, and set properties directly (see below)
             temp_motor_hwobj = self.getObjectByRole(motor_name)
             if temp_motor_hwobj is not None:
                 logging.getLogger("HWR").debug(
@@ -450,6 +451,93 @@ class GenericDiffractometer(HardwareObject):
             if attr == "pixelsPerMmZ":
                 return self.pixels_per_mm_y
             return HardwareObject.__getattr__(self, attr)
+
+    # Contained Objects
+    # NBNB Temp[orary hack - should be cleaned up together with configuration
+    @property
+    def omega(self):
+        """omega motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.motor_hwobj_dict.get("phi")
+
+    @property
+    def kappa(self):
+        """kappa motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.motor_hwobj_dict.get("kappa")
+
+    @property
+    def kappa_phi(self):
+        """kappa_phi motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.motor_hwobj_dict.get("kappa_phi")
+
+    @property
+    def centring_x(self):
+        """centring_x motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.motor_hwobj_dict.get("sampx")
+
+    @property
+    def centring_y(self):
+        """centring_y motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.motor_hwobj_dict.get("sampy")
+
+    @property
+    def alignment_x(self):
+        """alignment_x motor object (also used as graphics.focus)
+
+        Returns:
+            AbstractActuator
+        """
+        return self.motor_hwobj_dict.get("focus")
+
+    @property
+    def alignment_y(self):
+        """alignment_y motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.motor_hwobj_dict.get("phiy")
+
+    @property
+    def alignment_z(self):
+        """alignment_z motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.motor_hwobj_dict.get("phiz")
+
+    @property
+    def zoom(self):
+        """zoom motor object
+
+        NBNB HACK TODO - ocnfigure this in graphics object
+        (which now calls this property)
+
+        Returns:
+            AbstractActuator
+        """
+        return self.motor_hwobj_dict.get("zoom")
+
 
     def is_ready(self):
         """

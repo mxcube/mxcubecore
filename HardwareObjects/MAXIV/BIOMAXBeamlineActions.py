@@ -141,7 +141,7 @@ class BIOMAXBeamlineActions(HardwareObject):
         self.sample_changer_maint_hwobj = self.getObjectByRole(
             "sample_changer_maintenance"
         )
-        self.dtox_hwobj = self.getObjectByRole("dtox")
+        self.dtox_hwobj = self.getObjectByRole("detector_distance")
         self.detector_cover_hwobj = self.getObjectByRole("detector_cover")
         self.safety_shutter_hwobj = self.getObjectByRole("safety_shutter")
         self.diffractometer_hwobj = self.getObjectByRole("diffractometer")

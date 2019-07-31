@@ -13,6 +13,7 @@ import weakref
 import sys
 import os
 import time
+import importlib
 import gevent.monkey
 from datetime import datetime
 
@@ -27,12 +28,13 @@ except ImportError:
 from . import BaseHardwareObjects
 from . import HardwareObjectFileParser
 from HardwareRepository.dispatcher import dispatcher
-from HardwareRepository.ConvertUtils import string_types
+from HardwareRepository.ConvertUtils import string_types, make_table
 
 from ruamel.yaml import YAML
+
 # If you want to write out copies of the file, use typ="rt" instead
 # pure=True uses yaml version 1.2, with fewere gotchas for strange type conversions
-yaml  = YAML(typ="safe", pure=True)
+yaml = YAML(typ="safe", pure=True)
 # The following are not needed for load, but define the default style.
 yaml.default_flow_style = False
 yaml.indent(mapping=4, sequence=4, offset=2)
@@ -41,7 +43,7 @@ __author__ = "Matias Guijarro"
 __version__ = 1.3
 
 _instance = None
-_hwrserver = None
+_configuration_path = None
 _timers = []
 
 _beamline = None
@@ -57,80 +59,179 @@ def get_beamline():
     Returns:
         HardwareRepository.HardwareObjects.Beamline.Beamline: Beamline object
     """
-    global _beamline
     if _beamline is None:
-        _beamline = load_from_yaml(BEAMLINE_CONFIG_FILE, role='beamline')
-    else:
-        return _beamline
+        raise RuntimeError("HardwareRepository and Beamline have not been initialised")
+    return _beamline
 
 
-def load_from_yaml(configuration_file, role):
-    """Loads yaml configuration file,
-    and recursively loads contained objects from their configuration files
+def load_from_yaml(configuration_file, role, _container=None, _table=None):
+    """
 
     Args:
-        configuration_file (str): The path to the configuration file,
-        relative to the har_server lookup path
+        configuration_file (str):
+        role (str): Role name of configured object, used as its name
+        _container (ConfiguredObject): Container object for recursive loading
+        _table Optional[List]: Internal, collecting summary output
 
     Returns:
-        HardwareRepository.BaseHardwareObjects.ConfiguredObject:
-        configured object
 
     """
+    global _beamline
+
+    column_names = ("role", "Class", "file", "Time (ms)", "Comment")
+    if _table is None:
+        # This is the topmopst call
+        _table = []
+
+    start_time = time.time()
+    msg0 = ""
+    result = None
+    class_name = None
 
     # Get full path for configuration file
     if _instance is None:
         raise RuntimeError("HardwareRepository has not been initialised")
     configuration_path = _instance.findInRepository(configuration_file)
     if configuration_path is None:
-        raise IOError("File %s not found in repository path" % configuration_file)
+        msg0 = "File not found"
 
-    # Load the configuration file
-    with open(configuration_path, "r") as fp0:
-        configuration = yaml.load(fp0)
+    if not msg0:
+        # Load the configuration file
+        with open(configuration_path, "r") as fp0:
+            configuration = yaml.load(fp0)
 
-    # Get actual class
-    initialise_class = configuration.pop("_initialise_class", None)
-    if not initialise_class:
-        raise ValueError(
-            "Configuration file %s lacks '_initialise_class' tag" % configuration_path
-        )
-    class_import = initialise_class.pop("class", None)
-    if not class_import:
-        raise ValueError(
-            "Configuration file %s '_initialise_class' lacks 'class' tag"
-            % configuration_path
-        )
-    ll0 = class_import.split(".")
-    # For "a.b.c" equivalent to absolute import of "from a.b import c"
-    cls = __import__(ll0[-1], fromlist=ll0[:-1], level=0)
+        # Get actual class
+        initialise_class = configuration.pop("_initialise_class", None)
+        if not initialise_class:
+            if _container:
+                msg0 = "No '_initialise_class' tag"
+            else:
+                # at top lavel we want to get the actual error
+                raise ValueError(
+                    "%s file lacks  '_initialise_class' tag" % configuration_file
+                )
 
-    # instantiate object
-    result = cls(name=role, **initialise_class)
+    if not msg0:
+        class_import = initialise_class.pop("class", None)
+        if not class_import:
+            if _container:
+                msg0 = "No 'class' tag"
+            else:
+                # at top lavel we want to get the actual error
+                raise ValueError("%s file lacks  'class' tag" % configuration_file)
 
-    # Initialise object
-    result.init()
+    if not msg0:
+        module_name, class_name = class_import.rsplit(".", 1)
+        # For "a.b.c" equivalent to absolute import of "from a.b import c"
+        try:
+            cls = getattr(importlib.import_module(module_name), class_name)
+        except:
+            if _container:
+                msg0 = "Error importing class"
+                class_name = class_import
+            else:
+                # at top lavel we want to get the actual error
+                raise
 
-    # Recursively load contained objects (of any type that the system can supprt)
-    _objects = configuration.pop("_objects", {})
-    for role, config_file in _objects.items():
-        if os.path.splitext(config_file)[1] == ".yml":
-            hwobj = load_from_yaml(config_file, role=role)
-            hwobj.init()
-        elif os.path.splitext(config_file)[1] == ".xml":
-            hwobj = _instance.loadHardwareObject(config_file)
-        result.replace_hardware_object(role, hwobj)
+    if not msg0:
+        try:
+            # instantiate object
+            result = cls(name=role, **initialise_class)
+        except:
+            if _container:
+                msg0 = "Error instantiating %s" % cls.__name__
+            else:
+                # at top lavel we want to get the actual error
+                raise
 
-    # Set simple, miscellaneous properties.
-    # NB the attribute must have been initialied in the class init first.
-    # If you need data for further processing during init
-    # that should not remain as attributes
-    # load them into a pre-defined attribute called '_tmp'
-    for key, val in configuration.items():
-        if hasattr(result, key):
-            setattr(result, key, val)
-        else:
-            raise ValueError("Object %s has no attribute named %s" % (result, key))
+    if _container is None:
+        # We are loading the beamline object into HardwarePepository
+        # and want the link to be set before _init or content loading
+        _beamline = result
+
+    if not msg0:
+        try:
+            # Initialise object
+            result._init()
+        except:
+            if _container:
+                msg0 = "Error in %s._init()" % cls.__name__
+            else:
+                # at top lavel we want to get the actual error
+                raise
+
+    if not msg0:
+        # Recursively load contained objects (of any type that the system can supprt)
+        _objects = configuration.pop("_objects", {})
+        if _objects:
+            load_time = 1000 * (time.time() - start_time)
+            msg1 = "Start loading contents:"
+            _table.append(
+                (role, class_name, configuration_file, "%.1d" % load_time, msg1)
+            )
+            msg0 = "Done loading contents"
+        for role1, config_file in _objects.items():
+            fname, fext = os.path.splitext(config_file)
+            if fext == ".yml":
+                load_from_yaml(
+                    config_file, role=role1, _container=result, _table=_table
+                )
+            elif fext == ".xml":
+                msg1 = ""
+                time0 = time.time()
+                try:
+                    hwobj = _instance.loadHardwareObject(fname)
+                    if hwobj is None:
+                        msg1 = "No object loaded"
+                        class_name1 ="None"
+                    else:
+                        class_name1 = hwobj.__class__.__name__
+                        if hasattr(result, role1):
+                            result.replace_object(role1, hwobj)
+                        else:
+                            msg1 = "No such role: %s.%s" % (class_name, role1)
+                except:
+                    msg1 = "Loading error"
+                    class_name = ""
+                load_time = 1000 * (time.time() - time0)
+                _table.append(
+                    (role1, class_name1, config_file, "%.1d" % load_time, msg1)
+                )
+
+        # Set simple, miscellaneous properties.
+        # NB the attribute must have been initialied in the class init first.
+        # If you need data for further processing during init
+        # that should not remain as attributes
+        # load them into a pre-defined attribute called '_tmp'
+        for key, val in configuration.items():
+            if hasattr(result, key):
+                setattr(result, key, val)
+            else:
+                logging.getLogger("HWR").error(
+                    "%s has no attribute '%s'", class_name, key
+                )
+
+    if not msg0:
+        if _container:
+            if hasattr(_container, role):
+                _container.replace_object(role, result)
+            else:
+                msg0 = "No such role: %s.%s" % (_container.__class__.__name__, role)
+        try:
+            # Initialise object
+            result.init()
+        except:
+            if _container:
+                msg0 = "Error in %s.init()" % cls.__name__
+            else:
+                # at top lavel we want to get the actual error
+                raise
+
+    load_time = 1000 * (time.time() - start_time)
+    _table.append((role, class_name, configuration_file, "%.1d" % load_time, msg0))
+
+    if _container is None:
+        print(make_table(column_names, _table))
     #
     return result
 
@@ -148,40 +249,49 @@ def setUserFileDirectory(user_file_directory):
     BaseHardwareObjects.HardwareObjectNode.setUserFileDirectory(user_file_directory)
 
 
-def setHardwareRepositoryServer(hwrserver):
-    global _hwrserver
-
-    xml_dirs_list = [os.path.abspath(x) for x in hwrserver.split(os.path.pathsep)]
-    xml_dirs_list = [x for x in xml_dirs_list if os.path.exists(x)]
-
-    if xml_dirs_list:
-        _hwrserver = xml_dirs_list
-    else:
-        _hwrserver = hwrserver
-
-
-def getHardwareRepository(xml_dir=None):
-    """
-    Get the HardwareRepository (singleton) instance, instantiates it if necessary.
+def init_hardware_repository(configuration_path):
+    """Initialise hardweare repository - must be run at program start
 
     Args:
-        xml_dir (str): Path to XML configuration files for HardwareObject's
+        configuration_path (str): PATHSEP-separated string of directories
+        giving configuration file lookup path
+
+    Returns:
+
+    """
+    global _configuration_path
+    global _instance
+    global _beamline
+
+    lookup_path = [
+        os.path.abspath(x) for x in configuration_path.split(os.path.pathsep)
+    ]
+    lookup_path = [x for x in lookup_path if os.path.exists(x)]
+
+    print("@~@~", configuration_path, lookup_path)
+
+    if lookup_path:
+        _configuration_path = lookup_path
+    else:
+        _configuration_path = configuration_path
+
+    logging.getLogger("HWR").info("Hardware repository: %s" % _configuration_path)
+    _instance = __HardwareRepositoryClient(_configuration_path)
+    _instance.connect()
+    _beamline = load_from_yaml(BEAMLINE_CONFIG_FILE, role="beamline")
+
+
+def getHardwareRepository():
+    """
+    Get the HardwareRepository (singleton) instance,
 
     Returns:
         HardwareRepository: The Singleton instance of HardwareRepository
                             (in reality __HardwareRepositoryClient)
     """
-    global _instance
 
     if _instance is None:
-        if _hwrserver is None:
-            if xml_dir is None:
-                # Default to environment variable
-                xml_dir = os.path.abspath(os.environ["XML_FILES_PATH"])
-
-            setHardwareRepositoryServer(xml_dir)
-
-        _instance = __HardwareRepositoryClient(_hwrserver)
+        raise RuntimeError("The HardwareRepository has not been initialised")
 
     return _instance
 

@@ -1,6 +1,6 @@
 <object class="EMBLDetector">
   <!-- generic devices -->
-  <object hwrid="/eh1/detector-distance" role="distance_motor"/>
+  <object hwrid="/eh1/detector-distance" role="detector_distance"/>
   <!-- site specific devices -->
 
   <!-- generic channels and commands -->

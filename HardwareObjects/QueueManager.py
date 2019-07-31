@@ -55,10 +55,12 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         """
         Starts execution of the queue.
         """
+        print ('@~@~ QueueManager.execute, self.is_disabled is ', self.is_disabled())
         if not self.is_disabled():
             self.emit("statusMessage", ("status", "Queue running", "running"))
             self._is_stopped = False
             self._set_in_queue_flag()
+            print ('@~@~ about to spawn')
             self._root_task = gevent.spawn(self.__execute_task)
 
     def _set_in_queue_flag(self):
@@ -118,6 +120,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
     def __execute_task(self):
         self._running = True
         # self.emit('centringAllowed', (False, ))
+        print ('@~@~ __execute_task',  self._queue_entry_list)
         try:
             for qe in self._queue_entry_list:
                 try:

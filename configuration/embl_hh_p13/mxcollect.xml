@@ -11,7 +11,7 @@
   <object href="/attenuators" role="transmission"/>
   <object href="/auto-processing" role="auto_processing"/>
   <object href="/dbconnection" role="lims_client"/>
-  <object href="/image-tracking" role="image_tracking"/>
+<!--  <object href="/image-tracking" role="image_tracking"/>-->
 
   <channel type="tine" name="collectFrame" tinename="/P13/collection/mx-standard" attach="event">frame</channel>
   <channel type="tine" name="collectStatus" tinename="/P13/collection/mx-standard" attach="event">status</channel>

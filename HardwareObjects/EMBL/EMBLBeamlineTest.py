@@ -30,6 +30,8 @@ from scipy.interpolate import interp1d
 
 from HardwareRepository.HardwareObjects import SimpleHTML
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 __credits__ = ["EMBL Hamburg"]
 __category__ = "General"
@@ -141,9 +143,9 @@ class EMBLBeamlineTest(HardwareObject):
                 "BeamlineTest: Beam focusing hwobj is not defined"
             )
 
-        if hasattr(self.bl_hwobj, "ppu_control_hwobj"):
+        if beamline_object.ppu_control is not None:
             self.connect(
-                self.bl_hwobj.ppu_control_hwobj,
+                beamline_object.ppu_control,
                 "ppuStatusChanged",
                 self.ppu_status_changed,
             )
@@ -349,8 +351,8 @@ class EMBLBeamlineTest(HardwareObject):
 
     def ppu_restart_all(self):
         """Restart ppu processes"""
-        if self.bl_hwobj.ppu_control_hwobj is not None:
-            self.bl_hwobj.ppu_control_hwobj.restart_all()
+        if beamline_object.ppu_control is not None:
+           beamline_object.ppu_control.restart_all()
 
     def pitch_scan(self):
         """
@@ -631,7 +633,7 @@ class EMBLBeamlineTest(HardwareObject):
             self.emit("testProgress", (3, progress_info))
             self.emit("progressStep", 3, "Executing pitch scan")
 
-            if self.bl_hwobj._get_energy() <= 8.75:
+            if beamline_object.energy.get_current_energy() <= 8.75:
                 self.cmd_set_qbmp_range(0)
             else:
                 self.cmd_set_qbmp_range(1)
@@ -720,7 +722,7 @@ class EMBLBeamlineTest(HardwareObject):
                         self.cmd_set_pitch(1)
                         gevent.sleep(0.1)
 
-                        if self.bl_hwobj._get_energy() < 10:
+                        if beamline_object.energy.get_current_energy() < 10:
                             crl_value = self.crl_hwobj.get_crl_value()
                             self.crl_hwobj.set_crl_value([1, 1, 1, 1, 1, 1], timeout=30)
 
@@ -740,7 +742,7 @@ class EMBLBeamlineTest(HardwareObject):
                         self.cmd_set_vmax_pitch(1)
 
                         # GB : return original lenses only after scan finished
-                        if self.bl_hwobj._get_energy() < 10:
+                        if beamline_object.energy.get_current_energy()  < 10:
                             self.crl_hwobj.set_crl_value(crl_value, timeout=30)
                         sleep(2)
 
@@ -759,7 +761,7 @@ class EMBLBeamlineTest(HardwareObject):
                         delta_hor = (
                             beam_pos_displacement[0]
                             * self.scale_hor
-                            * self.bl_hwobj._get_energy()
+                            * beamline_object.energy.get_current_energy()
                             / 12.70
                         )
                         delta_ver = beam_pos_displacement[1] * self.scale_ver

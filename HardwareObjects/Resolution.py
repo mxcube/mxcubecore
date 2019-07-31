@@ -14,7 +14,7 @@ class Resolution(AbstractMotor):
         self.currentResolution = None
         self.energy = None
 
-        self.dtox = self.getObjectByRole("dtox")
+        self.dtox = self.getObjectByRole("detector_distance")
         self.energy = self.getObjectByRole("energy")
         self.detector = self.getObjectByRole("detector")
         if self.detector:
