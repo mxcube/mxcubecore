@@ -180,7 +180,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
                 msg1 = ""
                 time0 = time.time()
                 try:
-                    hwobj = _instance.loadHardwareObject(fname)
+                    hwobj = _instance.getHardwareObject(fname)
                     if hwobj is None:
                         msg1 = "No object loaded"
                         class_name1 ="None"
@@ -267,8 +267,6 @@ def init_hardware_repository(configuration_path):
         os.path.abspath(x) for x in configuration_path.split(os.path.pathsep)
     ]
     lookup_path = [x for x in lookup_path if os.path.exists(x)]
-
-    print("@~@~", configuration_path, lookup_path)
 
     if lookup_path:
         _configuration_path = lookup_path
@@ -459,7 +457,13 @@ class __HardwareRepositoryClient:
             try:
                 hwobj_instance = self.parseXML(xml_data, hwobj_name)
                 if isinstance(hwobj_instance, string_types):
-                    return self.loadHardwareObject(hwobj_instance)
+                    # We have redirection to another file
+                    # Enter in dictionaries also under original names
+                    result = self.loadHardwareObject(hwobj_instance)
+                    if hwobj_name in self.invalidHardwareObjects:
+                        self.invalidHardwareObjects.remove(hwobj_name)
+                    self.hardwareObjects[hwobj_name] = result
+                    return result
             except BaseException:
                 comment = "Cannot parse xml"
                 logging.getLogger("HWR").exception(

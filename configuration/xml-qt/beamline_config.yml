@@ -27,7 +27,7 @@ _objects:
     - beam: beam-info.xml
     - hutch_interlock: door-interlock-mockup.xml
     - safety_shutter: safshut.xml
-    - fast_shutter: fast-shutter-mockup.xml
+    - fast_shutter: shutter-mockup.xml
     - diffractometer: mini-diff-mockup.xml
     - detector: detector-mockup.xml
     - resolution: resolution-mockup.xml
