@@ -150,7 +150,7 @@ class BIOMAXPatches(HardwareObject):
         self.__load = self.sample_changer.load
         self.__unload = self.sample_changer.unload
         self.curr_dtox_pos = None
-        self.dtox_hwobj = self.getObjectByRole("dtox")
+        self.dtox_hwobj = self.getObjectByRole("detector_distance")
 
         self.sample_changer.load = types.MethodType(self.new_load, self.sample_changer)
         self.sample_changer.unload = types.MethodType(

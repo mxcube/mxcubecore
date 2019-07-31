@@ -86,7 +86,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.pixel_size_mm_x = self.getProperty("px")
         self.pixel_size_mm_y = self.getProperty("py")
 
-        self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
+        self.distance_motor_hwobj = self.getObjectByRole("detector_distance")
 
         self.chan_cover_state = self.getChannelObject("chanCoverState", optional=True)
         if self.chan_cover_state is not None:

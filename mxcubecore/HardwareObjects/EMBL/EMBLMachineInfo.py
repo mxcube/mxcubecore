@@ -38,6 +38,9 @@ from gevent import spawn
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
+
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
@@ -115,7 +118,6 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_sc_dewar_overflow_alarm = None
 
         self.flux_hwobj = None
-        self.ppu_control_hwobj = None
 
     def init(self):
 
@@ -188,8 +190,7 @@ class EMBLMachineInfo(HardwareObject):
                 "update", self.overflow_alarm_changed
             )
 
-        self.ppu_control_hwobj = self.getObjectByRole("ppu_control")
-        if self.ppu_control_hwobj is not None:
+        if beamline_object.ppu_control is not None:
             self.values_ordered_dict["ppu"] = {
                 "value": "- - -",
                 "in_range": False,
@@ -197,7 +198,7 @@ class EMBLMachineInfo(HardwareObject):
             }
 
             self.connect(
-                self.ppu_control_hwobj,
+                beamline_object.ppu_control,
                 "fileTranferStatusChanged",
                 self.file_transfer_status_changed,
             )

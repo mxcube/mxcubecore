@@ -17,11 +17,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-import api
-
 from scipy.interpolate import interp1d
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 __credits__ = ["MXCuBE collaboration"]
@@ -68,10 +69,10 @@ class AbstractFlux(HardwareObject):
         :return: float
         """
 
-        energy = energy or api.energy.get_current_energy()
+        energy = energy or beamline_object.energy.get_current_energy()
 
         # NB   Calculation assumes beam sizes in mm
-        beam_size = api.beam_info.get_beam_size()
+        beam_size = beamline_object.beam.get_beam_size()
 
         # Result in kGy/s
         result = (

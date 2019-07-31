@@ -31,8 +31,14 @@ __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
+import warnings
 from collections import OrderedDict
 from HardwareRepository.BaseHardwareObjects import ConfiguredObject
+
+# NBNB The acq parameter names match the attributes of AcquisitionParameters
+# Whereas the limit parmeter values use more udnerstandable names
+#
+# TODO Make all tags consistent, including AcquisitionParameters attributes.
 
 
 class Beamline(ConfiguredObject):
@@ -41,6 +47,95 @@ class Beamline(ConfiguredObject):
     # Roles of defined objects and the category they belong to
     # NB the double underscore is deliberate - attribute must be hidden from subclasses
     __object_role_categories = OrderedDict()
+
+    # NBNB these should be accessed ONLY as beamline.SUPPORTED_..._PARAMETERS
+    # NBNB Subclasses may add local parameters but may NOT remove any
+    #
+    # Supported acquisition parameter tags:
+    SUPPORTED_ACQ_PARAMETERS = frozenset(
+        (
+            "exp_time",
+            "osc_range",
+            "num_passes",
+            "first_image",
+            "run_number",
+            "overlap",
+            "num_images",
+            "inverse_beam",
+            "take_dark_current",
+            "skip_existing_images",
+            "take_snapshots",
+        )
+    )
+    # Supported limit parameter tags:
+    SUPPORTED_LIMIT_PARAMETERS = frozenset(
+        ("exposure_time", "osc_range", "number_of_images", "kappa", "kappa_phi")
+    )
+
+    def __init__(self, name):
+        """
+
+        Args:
+            name (str) : Object name, generally saet to teh role name of the object
+        """
+        super(Beamline, self).__init__(name)
+
+        # List[str] of advanced method names
+        self.advanced_methods = []
+
+        # bool Is wavelength tunable
+        self.tunable_wavelength = False
+
+        # bool Disable number-of-passes widget NBNB TODO Move elsewhere??
+        self.disable_num_passes = False
+
+        # bool By default run processing of (certain?)data collections in aprallel?
+        self.run_processing_parallel = False
+
+        # Dictionary-of-dictionaries of default acquisition parameters
+        self.default_acquisition_parameters = {}
+
+        # Dictionary of acquisition parameter limits
+        self.acquisition_limit_values = {}
+
+        # int Starting run number for path_template
+        self.run_number = 1
+
+    def _init(self):
+        """Objetc initialisation - executed *before* loading contents"""
+        pass
+
+    def init(self):
+        """Object initialisation - executed *after* loading contents"""
+
+        # Validate acquisition parameters
+        for acquisition_type, params in self.default_acquisition_parameters.items():
+            unrecognised = [x for x in params if x not in self.SUPPORTED_ACQ_PARAMETERS]
+            if unrecognised:
+                warnings.warn(
+                    "Unrecognised acquisition parameters for %s: %s"
+                    % (acquisition_type, unrecognised)
+                )
+        # Validate limits parameters
+        unrecognised = [
+            x
+            for x in self.acquisition_limit_values
+            if x not in self.SUPPORTED_LIMIT_PARAMETERS
+        ]
+        if unrecognised:
+            warnings.warn("Unrecognised parameter limits for: %s" % unrecognised)
+
+    @property
+    def role_to_category(self):
+        """Mapping from role to category
+
+        Returns:
+            OrderedDict[text_str, text_str]
+        """
+        # Copy roles from superclass and add those form this class
+        result = super(Beamline, self).role_to_category
+        result.update(self.__object_role_categories)
+        return result
 
     @property
     def machine_info(self):
@@ -84,7 +179,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("flux")
 
-    __object_role_categories["fkux"] = "hardware"
+    __object_role_categories["flux"] = "hardware"
 
     @property
     def beam(self):
@@ -174,6 +269,23 @@ class Beamline(ConfiguredObject):
         return self._objects.get("sample_changer")
 
     __object_role_categories["sample_changer"] = "hardware"
+
+    @property
+    def plate_manipulator(self):
+        """Plate Manuipulator Hardware object
+        NBNB TODO REMOVE THIS and treat as an alternative sample changer instead.
+
+        Returns:
+            Optional[AbstractSampleChanger]:
+        """
+        warnings.warn(
+            DeprecationWarning(
+                "plate_manipulator role should be replaced by sample_changer"
+            )
+        )
+        return self._objects.get("plate_manipulator")
+
+    __object_role_categories["plate_manipulator"] = "hardware"
 
     @property
     def session(self):
@@ -304,48 +416,15 @@ class Beamline(ConfiguredObject):
     # NB Could centring be treated as procedures instesad?
 
     @property
-    def n_click_centring(self):
-        """Manual (n-click) centring procedure.
+    def centring(self):
+        """Centring procedures object. Includes X-ray, n-click, optical, move_to_beam
 
         Returns:
             Optional[AbstractCentring]:
         """
-        return self._objects.get("n_click_centring")
+        return self._objects.get("centring")
 
-    __object_role_categories["n_click_centring"] = "centring"
-
-    @property
-    def move_to_beam(self):
-        """Manual in-plane, double-click (move-to-beam) centring procedure.
-
-        Returns:
-            Optional[AbstractCentring]:
-        """
-        return self._objects.get("move_to_beam")
-
-    __object_role_categories["move_to_beam"] = "centring"
-
-    @property
-    def optical_centring(self):
-        """Automatic optical centring procedure.
-
-        Returns:
-            Optional[AbstractCentring]:
-        """
-        return self._objects.get("optical_centring")
-
-    __object_role_categories["optical_centring"] = "centring"
-
-    @property
-    def x_ray_centring(self):
-        """Automatic X-ray centring procedure.
-
-        Returns:
-            Optional[AbstractCentring]:
-        """
-        return self._objects.get("x_ray_centring")
-
-    __object_role_categories["x_ray_centring"] = "centring"
+    __object_role_categories["centring"] = "procedure"
 
     # Analysis (combines processing and data analysis)
 
@@ -372,8 +451,8 @@ class Beamline(ConfiguredObject):
     __object_role_categories["offline_processing"] = "analysis"
 
     @property
-    def edna_characterisation(self):
-        """EDNA charadterisatoin and analysis procedure.
+    def data_analysis(self):
+        """EDNA charadterisation and analysis procedure.
 
         NB the current code looks rather EDNA-specific
         to be called 'AbsatractCharacterisation'.
@@ -382,64 +461,9 @@ class Beamline(ConfiguredObject):
         Returns:
             Optional[EdnaCharacterisation]:
         """
-        return self._objects.get("edna_characterisation")
+        return self._objects.get("data_analysis")
 
-    __object_role_categories["edna_characterisation"] = "analysis"
-
-
-class BeamlineSubclass(Beamline):
-    """Example of Beamline subclass, for local enhancements"""
-
-    # Roles of defined objects and the category they belong to
-    # NB the double underscore is deliberate - attribute must be hidden from subclasses
-    __object_role_categories = OrderedDict()
-
-    def __init__(self, mode="production"):
-        """Subclass init
-
-        Adds slots for non-object configuration parameters
-
-        """
-        super(BeamlineSubclass, self).__init__(self)
-
-        self.mode = mode
-
-        # Add non-object attriiutes to configure
-
-        # List/tuple of advanced methods. Value set in config file
-        self.advanced_methods = None
-
-        # Boolean - is wavelength tunable? Value set in config file
-        self.tunable_wavelength = None
-
-        # Boolean - disable number-of-passes input box. Value set in config file
-        self.disable_num_passes = None
-
-    # NB This property is the only addition necessary to make the subclass finction
-    @property
-    def role_to_category(self):
-        """Mapping from role to category
-
-        Returns:
-            OrderedDict[text_str, text_str]
-        """
-        # Copy roles from superclass and add those form this class
-        result = super(BeamlineSubclass, self).role_to_category
-        result.update(self.__object_role_categories)
-        return result
-
-    # Additional properties
-
-    @property
-    def beam_definer(self):
-        """Beam-definer Hardware object
-
-        Returns:
-            Optional[AbstractMotor]:
-        """
-        return self._objects.get("beam_definer")
-
-    __object_role_categories["beam_definer"] = "hardware"
+    __object_role_categories["data_analysis"] = "analysis"
 
     @property
     def beam_realign(self):
@@ -452,16 +476,107 @@ class BeamlineSubclass(Beamline):
 
     __object_role_categories["beam_realign"] = "procedure"
 
+    @property
+    def image_tracking(self):
+        """Imaging tracking object
+
+        Returns:
+            Optional[HardwareObject]:
+        """
+        return self._objects.get("image_tracking")
+
+    __object_role_categories["image_tracking"] = "hardware"
+
     # NB Objects need not be HardwareObjects
     # We still categorise them as'hardware' if they are not procedures, though
     # The attribute values will be given in the config.yml file
-    @property
-    def default_characterisation_parameters(self):
-        """Default characterisation parameters object
 
-        Returns:
-            Optional[queue_model_objects.CharacterisationParameters]:
+    def get_default_acquisition_parameters(self, acquisition_type="default"):
         """
-        return self._objects.get("default_characterisation_parameters")
+        :returns: A AcquisitionParameters object with all default parameters for the
+                  specified acquisition type. "default" is a standard acqquisition
+        """
+        # Imported here to avoid circular imports
+        from HardwareRepository.HardwareObjects import queue_model_objects
+        acq_parameters = queue_model_objects.AcquisitionParameters()
 
-    __object_role_categories["default_characterisation_parameters"] = "hardware"
+        params = self.default_acquisition_parameters["default"].copy()
+        if acquisition_type != "default":
+            dd0 = self.default_acquisition_parameters.get(acquisition_type)
+            if dd0 is None:
+                warnings.warn(
+                    "No separate parameters for acquisition type: %s - using default."
+                    % acquisition_type
+                )
+            else:
+                params.update(dd0)
+
+        for tag, val in params.items():
+            setattr(acq_parameters, tag, val)
+
+        motor_positions = self.diffractometer.get_positions()
+        osc_start = motor_positions.get("phi", params["osc_start"])
+        acq_parameters.osc_start = round(float(osc_start), 2)
+        kappa = motor_positions.get("kappa", 0.0)
+        acq_parameters.kappa = round(float(kappa), 2)
+        kappa_phi = motor_positions.get("kappa_phi", 0.0)
+        acq_parameters.kappa_phi = round(float(kappa_phi), 2)
+
+        try:
+            acq_parameters.resolution = self.resolution.getPosition()
+        except:
+            acq_parameters.resolution = 0.0
+
+        try:
+            acq_parameters.energy = self.energy.get_current_energy()
+        except:
+            acq_parameters.energy = 0.0
+
+        try:
+            acq_parameters.transmission = self.transmission.get_value()
+        except:
+            acq_parameters.transmission = 0.0
+
+        try:
+            acq_parameters.shutterless = self.detector.has_shutterless()
+        except:
+            acq_parameters.shutterless = False
+
+        try:
+            acq_parameters.detector_mode = self.detector.get_detector_mode()
+        except:
+            acq_parameters.detector_mode = ""
+
+        return acq_parameters
+
+    def get_default_path_template(self):
+        """
+        :returns: A PathTemplate object with default parameters.
+        """
+        # Imported here to avoid circular imports
+        from HardwareRepository.HardwareObjects import queue_model_objects
+        path_template = queue_model_objects.PathTemplate()
+
+        path_template.directory = str()
+        path_template.process_directory = str()
+        path_template.base_prefix = str()
+        path_template.mad_prefix = ""
+        path_template.reference_image_prefix = ""
+        path_template.wedge_prefix = ""
+
+        acq_params = self.get_default_acquisition_parameters()
+        path_template.start_num = acq_params.first_image
+        path_template.num_files = acq_params.num_images
+
+        path_template.run_number = self.run_number
+
+        file_info = self.session["file_info"]
+        path_template.suffix = file_info.getProperty("file_suffix")
+        path_template.precision = "04"
+        try:
+            if file_info.getProperty("precision"):
+                path_template.precision = eval(file_info.getProperty("precision"))
+        except BaseException:
+            pass
+
+        return path_template

@@ -99,9 +99,7 @@ class EMBLBSD(GenericDiffractometer):
         self.cmd_start_set_phase = self.getCommandObject("startSetPhase")
         self.cmd_start_auto_focus = self.getCommandObject("startAutoFocus")
 
-        self.detector_distance_motor_hwobj = self.getObjectByRole(
-            "detector_distance_motor"
-        )
+        self.detector_distance_motor_hwobj = self.getObjectByRole("detector_distance")
 
         self.zoom_motor_hwobj = self.getObjectByRole("zoom")
         self.connect(

@@ -65,6 +65,8 @@ from HardwareRepository.HardwareObjects.Gphl import GphlQueueEntry
 from HardwareRepository.HardwareObjects.EMBL import EMBLQueueEntry
 from HardwareRepository.HardwareObjects import autoprocessing
 
+beamline_object = HardwareRepository.get_beamline()
+
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"
@@ -376,7 +378,6 @@ class SampleQueueEntry(BaseQueueEntry):
                     self.sample_centring_result = gevent.event.AsyncResult()
                     try:
                         mount_sample(
-                            self.beamline_setup,
                             self._view,
                             self._data_model,
                             self.centring_done,
@@ -1783,11 +1784,9 @@ class OpticalCentringQueueEntry(BaseQueueEntry):
         return "Optical automatic centering"
 
 
-def mount_sample(
-    beamline_setup_hwobj, view, data_model, centring_done_cb, async_result
-):
+def mount_sample(view, data_model, centring_done_cb, async_result):
     view.setText(1, "Loading sample")
-    beamline_setup_hwobj.shape_history_hwobj.clear_all()
+    beamline_object.graphics.clear_all()
     log = logging.getLogger("queue_exec")
 
     loc = data_model.location
@@ -1802,7 +1801,7 @@ def mount_sample(
         "dewarLocation": loc[0],
         "sampleBarcode": data_model.code,
         "sampleId": data_model.lims_id,
-        "sessionId": beamline_setup_hwobj.session_hwobj.session_id,
+        "sessionId": beamline_object.session.session_id,
         "startTime": time.strftime("%Y-%m-%d %H:%M:%S"),
     }
     # "xtalSnapshotBefore": data_model.get_snapshot_filename(prefix="before"),
@@ -1812,10 +1811,10 @@ def mount_sample(
     # can move sample on beam (sample changer, plate holder, in future
     # also harvester)
     # TODO make sample_Changer_one, sample_changer_two
-    if beamline_setup_hwobj.diffractometer_hwobj.in_plate_mode():
-        sample_mount_device = beamline_setup_hwobj.plate_manipulator_hwobj
+    if beamline_object.diffractometer.in_plate_mode():
+        sample_mount_device = beamline_object.plate_manipulator
     else:
-        sample_mount_device = beamline_setup_hwobj.sample_changer_hwobj
+        sample_mount_device = beamline_object.sample_changer
 
     if hasattr(sample_mount_device, "__TYPE__"):
         if sample_mount_device.__TYPE__ in ["Marvin", "CATS"]:
@@ -1845,7 +1844,7 @@ def mount_sample(
         robot_action_dict["message"] = "Sample was not loaded"
         robot_action_dict["status"] = "ERROR"
 
-    beamline_setup_hwobj.lims_client_hwobj.store_robot_action(robot_action_dict)
+    beamline_object.lims.store_robot_action(robot_action_dict)
 
     if not sample_mount_device.hasLoadedSample():
         # Disables all related collections
@@ -1854,7 +1853,7 @@ def mount_sample(
         raise QueueSkippEntryException("Sample not loaded", "")
     else:
         view.setText(1, "Sample loaded")
-        dm = beamline_setup_hwobj.diffractometer_hwobj
+        dm = beamline_object.diffractometer
         if dm is not None:
             if hasattr(sample_mount_device, "__TYPE__"):
                 if sample_mount_device.__TYPE__ in (

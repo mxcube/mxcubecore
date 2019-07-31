@@ -56,7 +56,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         self.headers = {}
 
     def init(self):
-        self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
+        self.distance_motor_hwobj = self.getObjectByRole("detector_distance")
         self.devname = self.getProperty("tangoname")
 
         try:

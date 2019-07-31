@@ -50,9 +50,9 @@ class BeamlineSetup(HardwareObject):
         except BaseException:
             pass
 
-        self.run_processing_parallel = self.getProperty(
-            "run_processing_parallel", False
-        )
+        # self.run_processing_parallel = self.getProperty(
+        #     "run_processing_parallel", False
+        # )
 
     def _get_object_by_role(self, role):
         """
@@ -202,7 +202,7 @@ class BeamlineSetup(HardwareObject):
         acq_parameters.energy = self._get_energy()
         acq_parameters.transmission = self._get_transmission()
 
-        acq_parameters.shutterless = self._has_shutterless()
+        acq_parameters.shutterless = self.detector_has_shutterless()
         acq_parameters.detector_mode = self.detector_hwobj.get_detector_mode()
 
         acq_parameters.inverse_beam = False
@@ -325,7 +325,7 @@ class BeamlineSetup(HardwareObject):
         acq_parameters.energy = self._get_energy()
         acq_parameters.transmission = self._get_transmission()
 
-        acq_parameters.shutterless = self._has_shutterless()
+        acq_parameters.shutterless = self.detector_has_shutterless()
         acq_parameters.detector_mode = self._get_detector_mode()
 
         acq_parameters.inverse_beam = False
@@ -481,17 +481,6 @@ class BeamlineSetup(HardwareObject):
         result = 0
         try:
             result = round(float(self.kappa_phi_axis_hwobj.getPosition()), 2)
-        except BaseException:
-            pass
-        return result
-
-    def _has_shutterless(self):
-        """
-        Descript. :
-        """
-        result = False
-        try:
-            result = self.detector_hwobj.has_shutterless()
         except BaseException:
             pass
         return result

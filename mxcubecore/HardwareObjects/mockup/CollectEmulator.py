@@ -28,10 +28,12 @@ import logging
 import re
 from collections import OrderedDict
 import f90nml
-import api
 from HardwareRepository import ConvertUtils
 from HardwareRepository.HardwareObjects.mockup.CollectMockup import CollectMockup
 from HardwareRepository.TaskUtils import task
+
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 __copyright__ = """ Copyright © 2017 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"
@@ -56,7 +58,7 @@ class CollectEmulator(CollectMockup):
 
     def init(self):
         CollectMockup.init(self)
-        # NBNB you get an error if you use 'api.session'
+        # NBNB you get an error if you use 'beamline_object.session'
         session_hwobj = self.getObjectByRole("session")
         if session_hwobj and self.hasObject("override_data_directories"):
             dirs = self["override_data_directories"].getProperties()
@@ -70,7 +72,7 @@ class CollectEmulator(CollectMockup):
         setup_data = result["setup_list"] = crystal_data
 
         # update with instrument data
-        fp0 = api.gphl_workflow.file_paths.get("instrumentation_file")
+        fp0 = beamline_object.gphl_workflow.file_paths.get("instrumentation_file")
         instrument_input = f90nml.read(fp0)
 
         instrument_data = instrument_input["sdcp_instrument_list"]
@@ -161,7 +163,7 @@ class CollectEmulator(CollectMockup):
 
         # update with diffractcal data
         # TODO check that this works also for updating segment list
-        fp0 = api.gphl_workflow.file_paths.get("diffractcal_file")
+        fp0 = beamline_object.gphl_workflow.file_paths.get("diffractcal_file")
         if os.path.isfile(fp0):
             diffractcal_data = f90nml.read(fp0)["sdcp_instrument_list"]
             for tag in setup_data.keys():
@@ -188,7 +190,7 @@ class CollectEmulator(CollectMockup):
             sweep["lambda"] = ConvertUtils.H_OVER_E / data_collect_parameters["energy"]
             sweep["res_limit"] = setup_data["res_limit_def"]
             sweep["exposure"] = osc["exposure_time"]
-            ll0 = api.gphl_workflow.translation_axis_roles
+            ll0 = beamline_object.gphl_workflow.translation_axis_roles
             sweep["trans_xyz"] = list(motors.get(x) or 0.0 for x in ll0)
             sweep["det_coord"] = detector_distance
             # NBNB hardwired for omega scan TODO
@@ -242,9 +244,9 @@ class CollectEmulator(CollectMockup):
 
         data_collect_parameters = self.current_dc_parameters
 
-        if not api.gphl_workflow:
+        if not beamline_object.gphl_workflow:
             raise ValueError("Emulator requires GPhL workflow installation")
-        gphl_connection = api.gphl_connection
+        gphl_connection = beamline_object.gphl_connection
         if not gphl_connection:
             raise ValueError("Emulator requires GPhL connection installation")
 

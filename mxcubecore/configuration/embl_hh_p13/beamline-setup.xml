@@ -29,10 +29,10 @@
 
   <object href="/data-analysis" role="data_analysis"/>
   <object href="/parallel-processing" role="parallel_processing"/>
-  <object href="/image-tracking" role="image_tracking"/>
-  <object href="/ppu-control" role="ppu_control"/>
+<!--  <object href="/image-tracking" role="image_tracking"/>-->
+<!--  <object href="/ppu-control" role="ppu_control"/>-->
   <object href="/auto-processing" role="auto_processing"/>
-  <object href="/image-tracking" role="image_tracking"/>
+<!--  <object href="/image-tracking" role="image_tracking"/>-->
 
   <!-- advanced methods are defined as a list with method names.
        Each name is then converted to class name.

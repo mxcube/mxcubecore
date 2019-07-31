@@ -47,7 +47,7 @@ class Microdiff(MiniDiff.MiniDiff):
             },
             "HeadType",
         )
-        self.kappa = self.addChannel(
+        self.kappa_channel = self.addChannel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -406,7 +406,7 @@ class Microdiff(MiniDiff.MiniDiff):
             return False
 
     def in_kappa_mode(self):
-        return self.head_type.getValue() == "MiniKappa" and self.kappa.getValue()
+        return self.head_type.getValue() == "MiniKappa" and self.kappa_channel.getValue()
 
     def getPositions(self):
         pos = {

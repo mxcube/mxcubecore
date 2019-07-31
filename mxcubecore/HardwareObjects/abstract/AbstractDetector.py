@@ -165,3 +165,15 @@ class AbstractDetector(object):
         Descript. :
         """
         return
+
+
+    @property
+    def detector_distance(self):
+        """Property for contained detector_distance hwobj
+
+        NBNB Temnporary hack. This should eb configured pro[perly
+
+        Returns:
+            AbstratctActuator
+        """
+        return self.distance_motor_hwobj

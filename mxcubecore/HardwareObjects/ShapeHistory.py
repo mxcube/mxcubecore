@@ -39,6 +39,9 @@ from Qub.Objects.QubDrawingCanvasTools import QubCanvasTarget
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.dispatcher import dispatcher
 
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
+
 SELECTED_COLOR = qt.Qt.green
 NORMAL_COLOR = qt.Qt.yellow
 
@@ -303,6 +306,42 @@ class ShapeHistory(HardwareObject):
 
     def get_selected_shapes(self):
         return self.selected_shapes.values()
+
+    @property
+    def zoom(self):
+        """zoom motor object
+
+        NBNB HACK TODO - configure this here instead
+        (instead of calling to diffractometer)
+
+        Returns:
+            AbstractActuator
+        """
+        return beamline_object.diffractometer.zoom
+
+    @property
+    def focus(self):
+        """focus motor object
+
+        NBNB HACK TODO - configure this here instead
+        (instead of calling to diffractometer)
+
+        Returns:
+            AbstractActuator
+        """
+        return beamline_object.diffractometer.alignment_x
+
+    @property
+    def camera(self):
+        """camera object
+
+        NBNB TODO clean up and simplify configuration
+
+        Returns:
+            AbstractActuator
+        """
+        return beamline_object.diffractometer.camera_hwobj
+
 
 
 class DrawingEvent(QubDrawingEvent):

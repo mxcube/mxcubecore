@@ -17,6 +17,9 @@ from HardwareRepository.HardwareObjects import queue_model_objects
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
+
 
 class Shapes(HardwareObject):
     """Keeps track of Shapes."""
@@ -269,6 +272,41 @@ class Shapes(HardwareObject):
         method increments a counter if a position is used for data collection.
         """
         pass
+
+    @property
+    def zoom(self):
+        """zoom motor object
+
+        NBNB HACK TODO - configure this here instead
+        (instead of calling to diffractometer)
+
+        Returns:
+            AbstractActuator
+        """
+        return beamline_object.diffractometer.zoom
+
+    @property
+    def focus(self):
+        """focus motor object
+
+        NBNB HACK TODO - configure this here instead
+        (instead of calling to diffractometer)
+
+        Returns:
+            AbstractActuator
+        """
+        return beamline_object.diffractometer.alignment_x
+
+    @property
+    def camera(self):
+        """camera object
+
+        NBNB TODO clean up and simplify configuration
+
+        Returns:
+            AbstractActuator
+        """
+        return beamline_object.diffractometer.camera_hwobj
 
 
 class Shape(object):

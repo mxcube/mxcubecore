@@ -1,6 +1,6 @@
 # The class to initialise, and init parameters
 _initialise_class:
-    class: HardwareRepository.HardwareObjects.Beamline.Beamline
+    class: HardwareRepository.HardwareObjects.EMBL.EMBLBeamline.EMBLBeamline
     # Further key-value pairs here will be passed to the class init
 #    mode: devel
 
@@ -20,90 +20,93 @@ _objects:
     # object, relative to the configuration file path(s)
     #
     # Hardware:
-    - machine_info: mach-info-mockup.xml
-    - transmission: attenuators-mockup.xml
-    - energy: energy-mockup.xml
-    - flux: flux-mockup.xml
+    - machine_info: mach-info.xml
+    - transmission: attenuators.xml
+    - energy: energy.xml
+    - flux: flux.xml
     - beam: beam-info.xml
-    - hutch_interlock: door-interlock-mockup.xml
+    - hutch_interlock: door-interlock.xml
     - safety_shutter: safshut.xml
-    - fast_shutter: fast-shutter-mockup.xml
-    - diffractometer: mini-diff-mockup.xml
-    - detector: detector-mockup.xml
-    - resolution: resolution-mockup.xml
-    - sample_changer: sc-mockup.xml
+    - fast_shutter: fast-shut.xml
+    - diffractometer: mini-diff.xml
+    - detector: eh1/detector.xml
+    - resolution: eh1/resolution.xml
+    - sample_changer: sc-generic.xml
     # NBNB TODO remove plate_manipulater and treat as another smaple changer
     - plate_manipulator: plate-manipulator.xml
     - session: session.xml
-    - lims: lims-client-mockup.xml
+    - lims: dbconnection.xml
     - graphics: graphics.xml
     - queue_manager: queue.xml
     - queue_model: queue-model.xml
     # Procedures:
     - collect: mxcollect.xml
-    - xrf_spectrum: xrf-spectrum-mockup.xml
-    - energy_scan: energyscan-mockup.xml
-#    - imaging: xray-imaging.xml # Only in EMBL as of 201907
+    - xrf_spectrum: xrf-spectrum.xml
+    - energy_scan: energyscan.xml
+    - imaging: xray-imaging.xml
+    - image_tracking: image-tracking.xml
     - gphl_workflow: gphl-workflow.xml
     - gphl_connection: gphl-setup.xml
-    # - centring: centring.xml
+#    - centring: centring.xml
     # Analysis:
-    - online_processing: auto-processing-mockup.xml
+    - online_processing: auto-processing.xml
     - offline_processing: parallel-processing.xml
     - data_analysis: data-analysis.xml
     # - beam_realign: # Skipped - optional
+    # EMBL-specific objects:
+    - beam_definer: eh1/beamFocusing.xml
+    - ppu_control: ppu_control.xml
 # Non-object attributes:
 advanced_methods:
   - MeshScan
   - XrayCentering
 tunable_wavelength: true
 disable_num_passes: false
-run_processing_parallel: false
+run_processing_parallel: true
 run_number: 1
 
 default_acquisition_parameters:
     default:
         # Default values, also used for standard acquisition.
         # Values not given in other dictionaries are taken from here
-        exp_time: 0.04              # (s) exposure time
-        osc_start: 0.0            # (degrees) Only used if no current angle found
-        osc_range: 0.1              # (degrees)
-        num_passes: 1               # (int)
-        first_image: 1              # (int)
+        exp_time: 0.01        # exposure time
+        osc_start: 0.0  # Only used if no current angle can be found
+        osc_range: 0.1
+        num_passes: 1
+        first_image: 1
         overlap: 0
-        num_images: 1               # (int)
-        # detector_mode: 1          # Removed as not in practice used.
-        inverse_beam: false         # (bool)
-        take_dark_current: true     # (bool)
-        skip_existing_images: true  # (bool)
-        take_snapshots: true        # (bool)
+        num_images: 1
+        # detector_mode: 1 # Removed as not in practice used.
+        inverse_beam: false
+        take_dark_current: true
+        skip_existing_images: true
+        take_snapshots: true
+        # NB 'compression' not added as apparently never used
 
     helical:
         # Defaults for helical scan. Missing values are taken from default
-        num_images: 100
+        number_of_images: 100
 
     characterisation:
         # Defaults for chareacterisation. Missing values are taken from default
-        osc_range: 1
+        exp_time: 0.04       # exposure time
+        osc_range: 0.0062
 
     advanced:
         # Defaults for 'advanced' acquisition. Missing values are taken from default
-        osc_range: 0.5
+        exp_time: 0.0014       # exposure time
+        range: 0.5
         num_images: 100
 
+    imaging:
+        osc_range: 1.0
+        num_images: 360
+        # detector_mode: "0"
+
 acquisition_limit_values:
-    exposure_time:     # (s)
-        - 0.04
-        - 6000.0
-    osc_range:         # (degrees)
-        - -1000.0
-        - 10000.0
-    number_of_images:  # (int)
+    number_of_images:
         - 1
         - 99999
-    kappa:             # (degrees)
-        - 0.0
-        - 180.0
-#    kappa_phi:         # (degrees)
-#        - 0.0
-#        - 360.0
+    kappa:
+        - -5.0
+        - 240.0

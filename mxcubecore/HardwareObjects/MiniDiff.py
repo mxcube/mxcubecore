@@ -311,6 +311,92 @@ class MiniDiff(Equipment):
         # Agree on a correct method name, inconsistent arguments for moveToBeam, disabled temporarily
         # self.move_to_coord = self.moveToBeam()
 
+    # Contained Objects
+    # NBNB Temp[orary hack - should be cleaned up together with configuration
+    @property
+    def omega(self):
+        """omega motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.phiMotor
+
+    @property
+    def kappa(self):
+        """kappa motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.kappaMotor
+
+    @property
+    def kappa_phi(self):
+        """kappa_phi motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.kappaPhiMotor
+
+    @property
+    def centring_x(self):
+        """centring_x motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.sampleXMotor
+
+    @property
+    def centring_y(self):
+        """centring_y motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.sampleYMotor
+
+    @property
+    def alignment_x(self):
+        """alignment_x motor object (also used as graphics.focus)
+
+        Returns:
+            AbstractActuator
+        """
+        return self.focusMotor
+
+    @property
+    def alignment_y(self):
+        """alignment_y motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.phiyMotor
+
+    @property
+    def alignment_z(self):
+        """alignment_z motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.phizMotor
+
+    @property
+    def zoom(self):
+        """zoom motor object
+
+        NBNB HACK TODO - ocnfigure this in graphics object
+        (which now calls this property)
+
+        Returns:
+            AbstractActuator
+        """
+        return self.zoomMotor
+
     def save_snapshot(self, filename):
         set_light_in(self.lightWago, self.lightMotor, self.zoomMotor)
         img = myimage(self._drawing)
