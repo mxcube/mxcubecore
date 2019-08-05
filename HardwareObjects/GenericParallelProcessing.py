@@ -20,10 +20,10 @@
 import os
 import time
 import logging
+import json
 import gevent
 import subprocess
 import numpy as np
-import json
 
 from copy import copy
 from scipy import ndimage

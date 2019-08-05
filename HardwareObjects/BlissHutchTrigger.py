@@ -1,8 +1,8 @@
 import sys
 import gevent
 import logging
-from HardwareRepository import BaseHardwareObjects
 import PyTango.gevent
+from HardwareRepository import BaseHardwareObjects
 from HardwareRepository import HardwareRepository
 beamline_object = HardwareRepository.get_beamline()
 

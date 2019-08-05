@@ -1,12 +1,15 @@
 """
 BIOMAXMinidiff (MD2)
 """
-import os
 import time
 import logging
 import math
 
-from HardwareRepository.HardwareObjects.GenericDiffractometer import *
+from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+    GenericDiffractometer, DiffractometerState
+)
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 class BIOMAXMD2(GenericDiffractometer):

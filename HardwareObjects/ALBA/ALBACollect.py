@@ -337,7 +337,8 @@ class ALBACollect(AbstractCollect):
         beamline_object.diffractometer.omega.wait_end_of_move(timeout=10)
 
         logging.getLogger("HWR").info(
-            "Moving omega finished at %s" % beamline_object.diffractometer.omega.getPosition()
+            "Moving omega finished at %s"
+            % beamline_object.diffractometer.omega.getPosition()
         )
 
         # program omega speed depending on exposure time
@@ -451,7 +452,7 @@ class ALBACollect(AbstractCollect):
 
         start_wait = time.time()
 
-        logging.getLogger("HWR").debug("   waiting for image on disk: %s" % fullpath)
+        logging.getLogger("HWR").debug("   waiting for image on disk: %s", fullpath)
 
         while not os.path.exists(fullpath):
             dirlist = os.listdir(basedir)  # forces directory flush ?

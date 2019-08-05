@@ -1,7 +1,9 @@
-from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import task
 import time
 import logging
+from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository.TaskUtils import task
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 class ID30BPhotonFlux(Equipment):

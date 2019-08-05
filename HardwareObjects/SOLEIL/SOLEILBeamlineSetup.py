@@ -1,10 +1,12 @@
 from HardwareRepository.HardwareObjects import queue_model_objects
 
 from HardwareRepository.HardwareObjects.BeamlineSetup import BeamlineSetup
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 class SOLEILBeamlineSetup(BeamlineSetup):
-    def __init__(self):
+    def __init__(self, name):
         BeamlineSetup.__init__(self, name)
 
     def get_default_char_acq_parameters(self):

@@ -21,6 +21,7 @@ XML example file
 class ESRFBeamInfo(BeamInfo.BeamInfo):
     def __init__(self, *args):
         BeamInfo.BeamInfo.__init__(self, *args)
+        self.beam_position = (0, 0)
 
     def init(self):
         self.chan_beam_size_microns = None
@@ -44,7 +45,6 @@ class ESRFBeamInfo(BeamInfo.BeamInfo):
                 "ESRFBeamInfo: "
                 + "beam position not configured"
             )
-            self.beam_position = (0, 0)
 
         self.flux = self.getObjectByRole("flux")
 

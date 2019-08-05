@@ -18,15 +18,17 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from HardwareRepository.HardwareObjects.GenericParallelProcessing import (
-    GenericParallelProcessing
-)
-
 from XSDataCommon import XSDataBoolean
 from XSDataCommon import XSDataDouble
 from XSDataCommon import XSDataInteger
 from XSDataCommon import XSDataString
 from XSDataControlDozorv1_1 import XSDataInputControlDozor
+
+from HardwareRepository.HardwareObjects.GenericParallelProcessing import (
+    GenericParallelProcessing
+)
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 __credits__ = ["MXCuBE collaboration"]

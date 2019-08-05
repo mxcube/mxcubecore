@@ -106,7 +106,9 @@ class Mar225:
     def set_detector_filenames(
         self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
     ):
-        self.header["xtal_to_detector"] = beamline_object.detector.detector_distance.getPosition()
+        self.header["xtal_to_detector"] = (
+            beamline_object.detector.detector_distance.getPosition()
+        )
         self.header["source_wavelength"] = beamline_object.energy.get_wavelength()
         bx, by = beamline_object.detector.get_beam_centre()
         self.header["beam_x"] = bx

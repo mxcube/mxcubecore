@@ -139,7 +139,9 @@ class EMBLMachineInfo(HardwareObject):
         self.frontend_status_changed(self.chan_frontend_status.getValue())
 
         if beamline_object.flux is not None:
-            self.connect(beamline_object.flux, "fluxInfoChanged", self.flux_info_changed)
+            self.connect(
+                beamline_object.flux, "fluxInfoChanged", self.flux_info_changed
+            )
             self.values_ordered_dict["flux"] = {
                 "value": 1,
                 "value_str": "Remeasure flux!",

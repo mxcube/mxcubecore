@@ -1,5 +1,4 @@
 import gevent
-import logging
 from HardwareRepository.BaseHardwareObjects import Equipment
 from HardwareRepository import HardwareRepository
 beamline_object = HardwareRepository.get_beamline()

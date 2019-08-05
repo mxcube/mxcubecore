@@ -15,7 +15,11 @@ from PIL import Image
 import io
 import math
 
-from HardwareRepository.HardwareObjects.GenericDiffractometer import *
+from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+    GenericDiffractometer, DiffractometerState
+)
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 class BIOMAXMD3(GenericDiffractometer):

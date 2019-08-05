@@ -349,7 +349,7 @@ class EMBLBeamlineTest(HardwareObject):
     def ppu_restart_all(self):
         """Restart ppu processes"""
         if beamline_object.ppu_control is not None:
-           beamline_object.ppu_control.restart_all()
+            beamline_object.ppu_control.restart_all()
 
     def pitch_scan(self):
         """
@@ -739,7 +739,7 @@ class EMBLBeamlineTest(HardwareObject):
                         self.cmd_set_vmax_pitch(1)
 
                         # GB : return original lenses only after scan finished
-                        if beamline_object.energy.get_current_energy()  < 10:
+                        if beamline_object.energy.get_current_energy() < 10:
                             self.crl_hwobj.set_crl_value(crl_value, timeout=30)
                         sleep(2)
 

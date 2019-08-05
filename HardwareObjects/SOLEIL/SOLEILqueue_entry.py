@@ -17,7 +17,8 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
         log = logging.getLogger("user_level_log")
 
         log.info(
-            "queue_entry. Start data collection on object %s" % str(beamline_object.collect)
+            "queue_entry. Start data collection on object %s"
+            % str(beamline_object.collect)
         )
 
         if beamline_object.collect:

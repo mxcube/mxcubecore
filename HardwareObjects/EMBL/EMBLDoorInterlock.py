@@ -166,17 +166,18 @@ class EMBLDoorInterlock(Device):
            as long as it is a one char
         """
         if beamline_object.diffractometer is not None:
+            detector_distance = beamline_object.detector.detector_distance
             if beamline_object.diffractometer.in_plate_mode():
-                if beamline_object.detector.detector_distance  is not None:
-                    if beamline_object.detector.detector_distance .getPosition() < 780:
-                        beamline_object.detector.detector_distance .move(800, timeout=None)
-                        while beamline_object.detector.detector_distance .getPosition() < 360:
+                if detector_distance  is not None:
+                    if detector_distance .getPosition() < 780:
+                        detector_distance .move(800, timeout=None)
+                        while detector_distance.getPosition() < 360:
                             gevent.sleep(0.01)
                         gevent.sleep(2)
             else:
-                if beamline_object.detector.detector_distance is not None:
-                    if beamline_object.detector.detector_distance .getPosition() < 1099:
-                        beamline_object.detector.detector_distance .move(1100)
+                if detector_distance is not None:
+                    if detector_distance .getPosition() < 1099:
+                        detector_distance .move(1100)
                         gevent.sleep(1)
             try:
                 beamline_object.diffractometer.set_phase(

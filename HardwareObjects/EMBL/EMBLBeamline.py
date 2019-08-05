@@ -50,8 +50,6 @@ class EMBLBeamline(Beamline):
         """
         super(EMBLBeamline, self).__init__(name)
 
-        # Boolean switch to
-
     @property
     def role_to_category(self):
         """Mapping from role to category

@@ -576,7 +576,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         d = dict(self.__dict__)
         d["collect_task"] = None
         d["centring_task"] = None
-        d["shape_history"] = beamline_object.graphics.name() if beamline_object.graphics else None
+        d["shape_history"] = (
+            beamline_object.graphics.name() if beamline_object.graphics else None
+        )
         d["session"] = (
             beamline_object.session.name() if beamline_object.session else None
         )

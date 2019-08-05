@@ -180,12 +180,6 @@ class BeamlineSetup(HardwareObject):
         overlap = round(float(self[parent_key].getProperty("overlap")), 2)
         exp_time = round(float(self[parent_key].getProperty("exposure_time")), 5)
         num_passes = int(self[parent_key].getProperty("number_of_passes"))
-        shutterless = self.detector_has_shutterless()
-
-        try:
-            detector_mode = beamline_object.detector.get_detector_mode()
-        except AttributeError:
-            detector_mode = None
 
         acq_parameters.first_image = int(img_start_num)
         acq_parameters.num_images = int(num_images)
@@ -303,12 +297,6 @@ class BeamlineSetup(HardwareObject):
         overlap = round(float(self[parent_key].getProperty("overlap")), 2)
         exp_time = round(float(self[parent_key].getProperty("exposure_time")), 5)
         num_passes = int(self[parent_key].getProperty("number_of_passes"))
-        shutterless = self.detector_has_shutterless()
-
-        try:
-            detector_mode = beamline_object.detector.default_mode()
-        except AttributeError:
-            detector_mode = None
 
         acq_parameters.first_image = img_start_num
         acq_parameters.num_images = num_images

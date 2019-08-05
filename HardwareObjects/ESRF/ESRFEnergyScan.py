@@ -7,6 +7,9 @@ import math
 import gevent
 import PyChooch
 
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects.abstract.AbstractEnergyScan import (
@@ -14,8 +17,6 @@ from HardwareRepository.HardwareObjects.abstract.AbstractEnergyScan import (
 from HardwareRepository import HardwareRepository
 beamline_object = HardwareRepository.get_beamline()
 
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 
 class FixedEnergy:

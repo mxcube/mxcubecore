@@ -1,10 +1,6 @@
-from HardwareRepository import HardwareRepository
 import logging
-import urllib2
-import os
-
-from suds.transport.http import HttpAuthenticated
-from suds.client import Client
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 from ISPyBClient import ISPyBClient
 

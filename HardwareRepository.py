@@ -8,14 +8,15 @@ connections to the Control Software (Spec or Taco Device Servers).
 from __future__ import print_function, absolute_import
 
 import logging
-import gevent
 import weakref
 import sys
 import os
 import time
 import importlib
+import gevent
 import gevent.monkey
 from datetime import datetime
+from ruamel.yaml import YAML
 
 try:
     from SpecClient_gevent import SpecEventsDispatcher
@@ -25,12 +26,11 @@ try:
 except ImportError:
     pass
 
+from HardwareRepository.ConvertUtils import string_types, make_table
 from . import BaseHardwareObjects
 from . import HardwareObjectFileParser
 from HardwareRepository.dispatcher import dispatcher
-from HardwareRepository.ConvertUtils import string_types, make_table
 
-from ruamel.yaml import YAML
 
 # If you want to write out copies of the file, use typ="rt" instead
 # pure=True uses yaml version 1.2, with fewere gotchas for strange type conversions

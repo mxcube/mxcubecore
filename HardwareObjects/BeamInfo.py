@@ -75,7 +75,9 @@ class BeamInfo(Equipment):
 
         if beamline_object.beam_definer is not None:
             self.connect(
-                beamline_object.beam_definer, "definerPosChanged", self.definer_pos_changed
+                beamline_object.beam_definer,
+                "definerPosChanged",
+                self.definer_pos_changed
             )
         else:
             logging.getLogger("HWR").debug("BeamInfo: Beam definer hwobj not defined")
