@@ -194,8 +194,6 @@ class GenericDiffractometer(HardwareObject):
         self.zoom_centre = None
         self.pixels_per_mm_x = None
         self.pixels_per_mm_y = None
-        self.image_width = None
-        self.image_height = None
 
         self.current_state = None
         self.current_phase = None
@@ -231,13 +229,13 @@ class GenericDiffractometer(HardwareObject):
         self.user_confirms_centring = True
 
         # Hardware objects ----------------------------------------------------
-        if beamline_object.graphics.camera is not None:
-            self.image_height = beamline_object.graphics.camera.getHeight()
-            self.image_width = beamline_object.graphics.camera.getWidth()
-        else:
-            logging.getLogger("HWR").debug(
-                "Diffractometer: " + "Camera hwobj is not defined"
-            )
+        # if beamline_object.graphics.camera is not None:
+        #     self.image_height = beamline_object.graphics.camera.getHeight()
+        #     self.image_width = beamline_object.graphics.camera.getWidth()
+        # else:
+        #     logging.getLogger("HWR").debug(
+        #         "Diffractometer: " + "Camera hwobj is not defined"
+        #     )
 
         if beamline_object.beam is not None:
             self.beam_position = beamline_object.beam.get_beam_position()
@@ -245,7 +243,7 @@ class GenericDiffractometer(HardwareObject):
                 beamline_object.beam, "beamPosChanged", self.beam_position_changed
             )
         else:
-            self.beam_position = [self.image_width / 2, self.image_height / 2]
+            self.beam_position = [0, 0]
             logging.getLogger("HWR").warning(
                 "Diffractometer: " + "BeamInfo hwobj is not defined"
             )
@@ -381,22 +379,11 @@ class GenericDiffractometer(HardwareObject):
         try:
             self.zoom_centre = eval(self.getProperty("zoom_centre"))
         except BaseException:
-            if self.image_width is not None and self.image_height is not None:
-                self.zoom_centre = {
-                    "x": self.image_width / 2,
-                    "y": self.image_height / 2,
-                }
-                self.beam_position = [self.image_width / 2, self.image_height / 2]
-                logging.getLogger("HWR").warning(
-                    "Diffractometer: Zoom center is "
-                    + "not defined. Continuing with the middle: %s" % self.zoom_centre
-                )
-            else:
-                self.zoom_centre = {"x": 0, "y": 0}
-                logging.getLogger("HWR").warning(
-                    "Diffractometer: "
-                    + "Neither zoom centre nor camera size is defined"
-                )
+            self.zoom_centre = {"x": 0, "y": 0}
+            logging.getLogger("HWR").warning(
+                "Diffractometer: "
+                + "zoom centre not configured"
+            )
 
         self.reversing_rotation = self.getProperty("reversing_rotation")
         try:

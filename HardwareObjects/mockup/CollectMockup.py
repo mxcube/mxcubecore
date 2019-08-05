@@ -23,6 +23,8 @@ import os
 import time
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.HardwareObjects.abstract import AbstractCollect
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 __credits__ = ["MXCuBE collaboration"]

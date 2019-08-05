@@ -19,6 +19,9 @@ _objects:
     # The values are the file paths to the configuration file for the
     # object, relative to the configuration file path(s)
     #
+    # NB - the order is *NOT* arbitrary, as signal connnections are set
+    # on one object that require the other to be already loaded.
+    #
     # Hardware:
     - session: session.xml
     - machine_info: mach-info-mockup.xml
@@ -26,16 +29,16 @@ _objects:
     - energy: energy-mockup.xml
     - beam: beam-info.xml
     - flux: flux-mockup.xml
+    - detector: detector-mockup.xml
+    - resolution: resolution-mockup.xml
     - hutch_interlock: door-interlock-mockup.xml
     - safety_shutter: safshut.xml
     - fast_shutter: shutter-mockup.xml
-    - diffractometer: mini-diff-mockup.xml
-    - graphics: graphics.xml
-    - detector: detector-mockup.xml
-    - resolution: resolution-mockup.xml
     - sample_changer: sc-mockup.xml
     # NBNB TODO remove plate_manipulater and treat as another smaple changer
     - plate_manipulator: plate-manipulator.xml
+    - diffractometer: mini-diff-mockup.xml
+    - graphics: graphics.xml
     - lims: lims-client-mockup.xml
     - queue_manager: queue.xml
     - queue_model: queue-model.xml

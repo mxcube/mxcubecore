@@ -4,6 +4,8 @@ import logging
 
 from HardwareRepository.HardwareObjects import Microdiff
 from HardwareRepository.HardwareObjects.sample_centring import CentringMotor
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 class MD3UP(Microdiff.Microdiff):
@@ -71,11 +73,11 @@ class MD3UP(Microdiff.Microdiff):
             "DetectorGatePulseReadoutTime",
         )
 
-    def getBeamPosX(self):
-        return self.beam_info.get_beam_position()[0]
-
-    def getBeamPosY(self):
-        return self.beam_info.get_beam_position()[1]
+    # def getBeamPosX(self):
+    #     return self.beam_info.get_beam_position()[0]
+    #
+    # def getBeamPosY(self):
+    #     return self.beam_info.get_beam_position()[1]
 
     def setNbImages(self, number_of_images):
         self.scan_nb_frames = number_of_images
@@ -208,8 +210,9 @@ class MD3UP(Microdiff.Microdiff):
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
 
-        dx = (x - self.getBeamPosX()) / self.pixelsPerMmY
-        dy = (y - self.getBeamPosY()) / self.pixelsPerMmZ
+        beam_pos_x, beam_pos_y = beamline_object.beam.get_beam_position()
+        dx = (x - beam_pos_x) / self.pixelsPerMmY
+        dy = (y - beam_pos_y) / self.pixelsPerMmZ
 
         phi_angle = math.radians(
             self.centringPhi.direction * self.centringPhi.getPosition()
@@ -303,9 +306,7 @@ class MD3UP(Microdiff.Microdiff):
 
         sx, sy = numpy.dot(numpy.array([0, dsy]), numpy.array(chiRot))
 
-        beam_pos_x = self.getBeamPosX()
-        beam_pos_y = self.getBeamPosY()
-
+        beam_pos_x, beam_pos_y = beamline_object.beam.get_beam_position()
         x = (sx + phiy) * self.pixelsPerMmY + beam_pos_x
         y = (sy + phiz) * self.pixelsPerMmZ + beam_pos_y
 
@@ -319,8 +320,9 @@ class MD3UP(Microdiff.Microdiff):
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
 
-        dx = (x - self.getBeamPosX()) / self.pixelsPerMmY
-        dy = (y - self.getBeamPosY()) / self.pixelsPerMmZ
+        beam_pos_x, beam_pos_y = beamline_object.beam.get_beam_position()
+        dx = (x - beam_pos_x) / self.pixelsPerMmY
+        dy = (y - beam_pos_y) / self.pixelsPerMmZ
 
         phi_angle = math.radians(
             self.centringPhi.direction * self.centringPhi.getPosition()

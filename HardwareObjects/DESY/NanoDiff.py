@@ -102,8 +102,7 @@ class NanoDiff(HardwareObject):
         self.zoom_centre = None
         self.pixels_per_mm_x = None
         self.pixels_per_mm_y = None
-        self.image_width = None
-        self.image_height = None
+
         self.current_sample_info = None
         self.cancel_centring_methods = None
         self.current_centring_procedure = None
@@ -275,29 +274,20 @@ class NanoDiff(HardwareObject):
                 self.focus_motor_hwobj, "positionChanged", self.focus_motor_moved
             )
 
-        if beamline_object.graphics.camera is None:
-            logging.getLogger("HWR").error("NanoDiff: Camera is not defined")
-        else:
-            self.image_height = beamline_object.graphics.camera.getHeight()
-            self.image_width = beamline_object.graphics.camera.getWidth()
+        # if beamline_object.graphics.camera is None:
+        #     logging.getLogger("HWR").error("NanoDiff: Camera is not defined")
+        # else:
+        #     self.image_height = beamline_object.graphics.camera.getHeight()
+        #     self.image_width = beamline_object.graphics.camera.getWidth()
 
         try:
-            self.zoom_centre = eval(self.getProperty("zoomCentre"))
+            self.zoom_centre = eval(self.getProperty("zoom_centre"))
         except BaseException:
-            if self.image_width is not None and self.image_height is not None:
-                self.zoom_centre = {
-                    "x": self.image_width / 2,
-                    "y": self.image_height / 2,
-                }
-                self.beam_position = [self.image_width / 2, self.image_height / 2]
-                logging.getLogger("HWR").warning(
-                    "NanoDiff: Zoom center is "
-                    + "not defined continuing with the middle: %s" % self.zoom_centre
-                )
-            else:
-                logging.getLogger("HWR").warning(
-                    "NanoDiff: Neither zoom centre nor camera size iz defined"
-                )
+            self.zoom_centre = {"x": 0, "y": 0}
+            logging.getLogger("HWR").warning(
+                "NanoDiff: "
+                + "zoom centre not configured"
+            )
 
         # Compatibility
         self.getCentringStatus = self.get_centring_status

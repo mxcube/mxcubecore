@@ -45,8 +45,8 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         Descript. :
         """
-        self.image_width = 100
-        self.image_height = 100
+        # self.image_width = 100
+        # self.image_height = 100
 
         GenericDiffractometer.init(self)
         self.x_calib = 0.000444
@@ -77,8 +77,8 @@ class DiffractometerMockup(GenericDiffractometer):
         self.centring_status = {"valid": False}
         self.centring_time = 0
 
-        self.image_width = 400
-        self.image_height = 400
+        # self.image_width = 400
+        # self.image_height = 400
 
         self.mount_mode = self.getProperty("sample_mount_mode")
         if self.mount_mode is None:

@@ -59,6 +59,7 @@ class ShapeHistory(HardwareObject):
         self.shapes = {}
         self.selected_shapes = {}
         self.point_index = 0
+        self.camera_hwobj = self.getObjectByRole("camera")
 
     def set_drawing(self, drawing):
         """
@@ -340,7 +341,7 @@ class ShapeHistory(HardwareObject):
         Returns:
             AbstractActuator
         """
-        return beamline_object.diffractometer.camera
+        return self.camera_hwobj
 
 
 

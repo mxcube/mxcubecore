@@ -4,6 +4,8 @@ import time
 from HardwareRepository.HardwareObjects import MiniDiff
 import gevent
 from HardwareRepository.HardwareObjects import sample_centring
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 MICRODIFF = None
 
@@ -175,7 +177,6 @@ class Microdiff(MiniDiff.MiniDiff):
         self.frontLight = self.getObjectByRole("FrontLight")
         self.backLight = self.getObjectByRole("BackLight")
 
-        self.beam_info = self.getObjectByRole("beam_info")
         self.wait_ready = self._wait_ready
 
     def getMotorToExporterNames(self):
@@ -434,17 +435,16 @@ class Microdiff(MiniDiff.MiniDiff):
             MiniDiff.MiniDiff.moveToBeam(self, x, y)
         else:
             try:
-                beam_xc = self.getBeamPosX()
-                beam_yc = self.getBeamPosY()
+                beam_pos_x, beam_pos_y = beamline_object.beam.get_beam_position()
 
                 self.centringVertical.moveRelative(
                     self.centringPhiz.direction
-                    * (y - beam_yc)
+                    * (y - beam_pos_y)
                     / float(self.pixelsPerMmZ)
                 )
                 self.centringPhiy.moveRelative(
                     self.centringPhiy.direction
-                    * (x - beam_xc)
+                    * (x - beam_pos_x)
                     / float(self.pixelsPerMmY)
                 )
 
@@ -454,6 +454,7 @@ class Microdiff(MiniDiff.MiniDiff):
                 )
 
     def start3ClickCentring(self, sample_info=None):
+        beam_pos_x, beam_pos_y = beamline_object.beam.get_beam_position()
         if self.in_plate_mode():
             plateTranslation = self.getObjectByRole("plateTranslation")
             cmd_set_plate_vertical = self.addCommand(
@@ -477,8 +478,8 @@ class Microdiff(MiniDiff.MiniDiff):
                 },
                 self.pixelsPerMmY,
                 self.pixelsPerMmZ,
-                self.getBeamPosX(),
-                self.getBeamPosY(),
+                beam_pos_x,
+                beam_pos_y,
                 cmd_set_plate_vertical,
                 low_lim + 0.5,
                 high_lim - 0.5,
@@ -494,8 +495,8 @@ class Microdiff(MiniDiff.MiniDiff):
                 },
                 self.pixelsPerMmY,
                 self.pixelsPerMmZ,
-                self.getBeamPosX(),
-                self.getBeamPosY(),
+                beam_pos_x,
+                beam_pos_x,
                 chi_angle=self.chiAngle,
             )
 
