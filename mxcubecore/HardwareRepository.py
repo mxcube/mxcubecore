@@ -199,7 +199,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
                 )
 
         # Set simple, miscellaneous properties.
-        # NB the attribute must have been initialied in the class init first.
+        # NB the attribute must have been initialied in the class __init__ first.
         # If you need data for further processing during init
         # that should not remain as attributes
         # load them into a pre-defined attribute called '_tmp'

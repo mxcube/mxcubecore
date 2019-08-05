@@ -525,9 +525,9 @@ class XMLRPCServer(HardwareObject):
         return float(flux)
 
     def set_aperture(self, pos_name, timeout=20):
-        beamline_object.diffractometer.beam_info.aperture_hwobj.moveToPosition(pos_name)
+        beamline_object.beam.aperture_hwobj.moveToPosition(pos_name)
         t0 = time.time()
-        while beamline_object.diffractometer.beam_info.aperture_hwobj.getState() == "MOVING":
+        while beamline_object.beam.aperture_hwobj.getState() == "MOVING":
             time.sleep(0.1)
             if time.time() - t0 > timeout:
                 raise RuntimeError("Timeout waiting for aperture to move")
@@ -535,12 +535,12 @@ class XMLRPCServer(HardwareObject):
 
     def get_aperture(self):
         return (
-            beamline_object.diffractometer.beam_info.aperture_hwobj.getCurrentPositionName()
+            beamline_object.beam.aperture_hwobj.getCurrentPositionName()
         )
 
     def get_aperture_list(self):
         return (
-            beamline_object.diffractometer.beam_info.aperture_hwobj.getPredefinedPositionsList()
+            beamline_object.beam.aperture_hwobj.getPredefinedPositionsList()
         )
 
     def open_dialog(self, dict_dialog):

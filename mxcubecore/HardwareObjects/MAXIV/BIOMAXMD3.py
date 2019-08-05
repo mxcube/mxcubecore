@@ -59,8 +59,8 @@ class BIOMAXMD3(GenericDiffractometer):
         # to make it comaptible
         self.acceptCentring = self.accept_centring
         self.startCentringMethod = self.start_centring_method
-        self.image_width = beamline_object.graphics.camera.getWidth()
-        self.image_height = beamline_object.graphics.camera.getHeight()
+        # self.image_width = beamline_object.graphics.camera.getWidth()
+        # self.image_height = beamline_object.graphics.camera.getHeight()
 
         self.phi_motor_hwobj = self.motor_hwobj_dict["phi"]
         self.phiz_motor_hwobj = self.motor_hwobj_dict["phiz"]
@@ -106,23 +106,13 @@ class BIOMAXMD3(GenericDiffractometer):
                 self.zoom_centre["x"] = self.zoom_centre["x"] * zoom
                 self.zoom_centre["y"] = self.zoom_centre["y"] * zoom
             self.beam_position = [self.zoom_centre["x"], self.zoom_centre["y"]]
-            beamline_object.beam.beam_position = self.beam_position
+            beamline_object.beam.set_beam_position(self.beam_position)
         except BaseException:
-            if self.image_width is not None and self.image_height is not None:
-                self.zoom_centre = {
-                    "x": self.image_width / 2,
-                    "y": self.image_height / 2,
-                }
-                self.beam_position = [self.image_width / 2, self.image_height / 2]
-                logging.getLogger("HWR").warning(
-                    "Diffractometer: Zoom center is ' +\
-                       'not defined. Continuing with the middle: %s"
-                    % self.zoom_centre
-                )
-            else:
-                logging.getLogger("HWR").warning(
-                    "Diffractometer: Neither zoom centre nor camera size are defined"
-                )
+            self.zoom_centre = {"x": 0, "y": 0}
+            logging.getLogger("HWR").warning(
+                "BIOMAXMD3: "
+                + "zoom centre not configured"
+            )
 
     def current_phase_changed(self, current_phase):
         """

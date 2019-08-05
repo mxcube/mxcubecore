@@ -124,12 +124,9 @@ class MiniDiff(Equipment):
         self.lightWago = None
         self.currentSampleInfo = None
         self.aperture = None
-        self.beam_info = None
 
         self.pixelsPerMmY = None
         self.pixelsPerMmZ = None
-        self.imgWidth = None
-        self.imgHeight = None
         self.centredTime = 0
         self.user_confirms_centring = True
         self.do_centring = True
@@ -167,7 +164,6 @@ class MiniDiff(Equipment):
         self.sampleYMotor = self.getObjectByRole("sampy")
         self.kappaMotor = self.getObjectByRole("kappa")
         self.kappaPhiMotor = self.getObjectByRole("kappa_phi")
-        self.beam_info = self.getObjectByRole("beam_info")
 
 
         # mh 2013-11-05:why is the channel read directly? disabled for the moment
@@ -263,16 +259,16 @@ class MiniDiff(Equipment):
                 "MiniDiff: sampx motor is not defined in minidiff equipment %s",
                 str(self.name()),
             )
-        if beamline_object.graphics.camera is None:
-            logging.getLogger("HWR").error(
-                "MiniDiff: camera is not defined in minidiff equipment %s",
-                str(self.name()),
-            )
-        else:
-            self.imgWidth, self.imgHeight = (
-                beamline_object.graphics.camera.getWidth(),
-                beamline_object.graphics.camera.getHeight(),
-            )
+        # if beamline_object.graphics.camera is None:
+        #     logging.getLogger("HWR").error(
+        #         "MiniDiff: camera is not defined in minidiff equipment %s",
+        #         str(self.name()),
+        #     )
+        # else:
+        #     self.imgWidth, self.imgHeight = (
+        #         beamline_object.graphics.camera.getWidth(),
+        #         beamline_object.graphics.camera.getHeight(),
+        #     )
         if beamline_object.sample_changer is None:
             logging.getLogger("HWR").warning(
                 "MiniDiff: sample changer is not defined in minidiff equipment %s",
@@ -475,7 +471,7 @@ class MiniDiff(Equipment):
         return (self.pixelsPerMmY, self.pixelsPerMmZ)
 
     def getBeamInfo(self, callback=None):
-        beam_info = self.beam_info.get_beam_info()
+        beam_info = beamline_object.beam.get_beam_info()
         if callable(callback):
             callback(beam_info)
         return beam_info
@@ -524,11 +520,11 @@ class MiniDiff(Equipment):
         if time.time() - self.centredTime > 1.0:
             self.invalidateCentring()
 
-    def getBeamPosX(self):
-        return self.imgWidth / 2
-
-    def getBeamPosY(self):
-        return self.imgHeight / 2
+    # def getBeamPosX(self):
+    #     return self.imgWidth / 2
+    #
+    # def getBeamPosY(self):
+    #     return self.imgHeight / 2
 
     def moveToBeam(self, x, y):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
@@ -537,9 +533,9 @@ class MiniDiff(Equipment):
 
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
-
-        dx = (x - self.getBeamPosX()) / self.pixelsPerMmY
-        dy = (y - self.getBeamPosY()) / self.pixelsPerMmZ
+        beam_pos_x, beam_pos_y = beamline_object.beam.get_beam_position()
+        dx = (x - beam_pos_x) / self.pixelsPerMmY
+        dy = (y - beam_pos_y) / self.pixelsPerMmZ
 
         phi_angle = math.radians(
             self.centringPhi.direction * self.centringPhi.getPosition()
@@ -656,6 +652,7 @@ class MiniDiff(Equipment):
         self.acceptCentring()
 
     def start3ClickCentring(self, sample_info=None):
+        beam_pos_x, beam_pos_y = beamline_object.beam.get_beam_position()
         self.currentCentringProcedure = sample_centring.start(
             {
                 "phi": self.centringPhi,
@@ -666,8 +663,8 @@ class MiniDiff(Equipment):
             },
             self.pixelsPerMmY,
             self.pixelsPerMmZ,
-            self.getBeamPosX(),
-            self.getBeamPosY(),
+            beam_pos_x,
+            beam_pos_y,
             chi_angle=self.chiAngle,
         )
 
@@ -718,8 +715,7 @@ class MiniDiff(Equipment):
         )
         chiRot.shape = (2, 2)
         sx, sy = numpy.dot(numpy.array([0, dsy]), numpy.array(chiRot))  # .I))
-        beam_pos_x = self.getBeamPosX()
-        beam_pos_y = self.getBeamPosY()
+        beam_pos_x, beam_pos_y = beamline_object.beam.get_beam_position()
 
         x = sx + (phiy * self.pixelsPerMmY) + beam_pos_x
         y = sy + (phiz * self.pixelsPerMmZ) + beam_pos_y
@@ -727,8 +723,9 @@ class MiniDiff(Equipment):
         return float(x), float(y)
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
-        dx = (x - self.getBeamPosX()) / self.pixelsPerMmY
-        dy = (y - self.getBeamPosY()) / self.pixelsPerMmZ
+        beam_pos_x, beam_pos_y = beamline_object.beam.get_beam_position()
+        dx = (x -  beam_pos_x) / self.pixelsPerMmY
+        dy = (y -  beam_pos_y) / self.pixelsPerMmZ
 
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
             self.zoomMotor.getPosition()
@@ -817,6 +814,7 @@ class MiniDiff(Equipment):
                     self.acceptCentring()
 
     def startAutoCentring(self, sample_info=None, loop_only=False):
+        beam_pos_x,  beam_pos_y = beamline_object.beam.get_beam_position()
         self.currentCentringProcedure = sample_centring.start_auto(
             beamline_object.graphics.camera,
             {
@@ -828,8 +826,8 @@ class MiniDiff(Equipment):
             },
             self.pixelsPerMmY,
             self.pixelsPerMmZ,
-            self.getBeamPosX(),
-            self.getBeamPosY(),
+            beam_pos_x,
+            beam_pos_y,
             chi_angle=float(self.chiAngle),
             msg_cb=self.emitProgressMessage,
             new_point_cb=lambda point: self.emit("newAutomaticCentringPoint", point),

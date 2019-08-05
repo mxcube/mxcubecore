@@ -1074,7 +1074,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         # take image from server
-        beamline_object.diffractometer.camera.takeSnapshot(filename)
+        beamline_object.graphics.camera.takeSnapshot(filename)
 
     def set_detector_roi(self, value):
         """

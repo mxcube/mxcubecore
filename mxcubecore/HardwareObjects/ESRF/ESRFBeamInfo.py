@@ -1,3 +1,4 @@
+import logging
 from HardwareRepository.HardwareObjects import BeamInfo
 from HardwareRepository import HardwareRepository
 beamline_object = HardwareRepository.get_beamline()
@@ -34,10 +35,16 @@ class ESRFBeamInfo(BeamInfo.BeamInfo):
         if beam_position:
             self.beam_position = tuple(map(float, beam_position.split()))
         else:
-            self.beam_position = (
-                beamline_object.graphics.camera.getWidth() / 2,
-                beamline_object.graphics.camera.getHeight() / 2,
+            # Cannot be done, as graphics HWOBJ is initialised after beam
+            # self.beam_position = (
+            #     beamline_object.graphics.camera.getWidth() / 2,
+            #     beamline_object.graphics.camera.getHeight() / 2,
+            # )
+            logging.getLogger("HWR").warning(
+                "ESRFBeamInfo: "
+                + "beam position not configured"
             )
+            self.beam_position = (0, 0)
 
         self.flux = self.getObjectByRole("flux")
 

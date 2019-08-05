@@ -287,7 +287,7 @@ class QtGraphicsManager(HardwareObject):
             graphics_scene_size = self.camera_hwobj.get_image_dimensions()
             self.set_graphics_scene_size(graphics_scene_size, False)
             self.camera_hwobj.start_camera()
-            self.connect(self.camera_hwobj, "imageReceived", self.camera_hwobj_image_received)
+            self.connect(self.camera_hwobj, "imageReceived", self.camera_image_received)
         else:
             logging.getLogger("HWR").error("GraphicsManager: Camera hwobj not defined")
 
@@ -391,7 +391,7 @@ class QtGraphicsManager(HardwareObject):
         Returns:
             AbstractActuator
         """
-        return beamline_object.diffractometer.camera
+        return self.camera_hwobj
 
 
     def save_graphics_config(self):
