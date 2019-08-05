@@ -29,6 +29,9 @@ import math
 import numpy
 from HardwareRepository.HardwareObjects import sample_centring
 from HardwareRepository.HardwareObjects import queue_model_objects
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 try:
     unicode
@@ -36,9 +39,6 @@ except:
     # A quick fix for python3
     unicode = str
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
 
 __credits__ = ["MXCuBE collaboration"]
 

@@ -2,8 +2,6 @@ import os
 import time
 import logging
 
-from HardwareRepository import HardwareRepository
-
 import Session
 from HardwareRepository import HardwareRepository
 beamline_object = HardwareRepository.get_beamline()

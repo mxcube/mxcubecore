@@ -1,5 +1,5 @@
-from HardwareRepository.BaseHardwareObjects import HardwareObject
 from PyTransmission import matt_control
+from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository import HardwareRepository
 beamline_object = HardwareRepository.get_beamline()
 

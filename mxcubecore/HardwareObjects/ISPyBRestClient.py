@@ -35,6 +35,7 @@ class ISPyBRestClient(HardwareObject):
         self.__rest_token = None
         self.__rest_token_timestamp = None
         self.base_result_url = None
+            self.beamline_name = None
 
     def init(self):
 

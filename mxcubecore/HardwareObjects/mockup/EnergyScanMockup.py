@@ -218,7 +218,9 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         self.scan_info["exposureTime"] = exptime
 
         if beamline_object.transmission is not None:
-            self.scan_info["transmissionFactor"] = beamline_object.transmission.get_value()
+            self.scan_info["transmissionFactor"] = (
+                beamline_object.transmission.get_value()
+            )
         else:
             self.scan_info["transmissionFactor"] = None
         size_hor = None

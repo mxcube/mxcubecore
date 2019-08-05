@@ -1,11 +1,11 @@
-from HardwareRepository import BaseHardwareObjects
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
 import logging
 import PyTango.gevent
 import gevent
 import time
 import sys
+from HardwareRepository import BaseHardwareObjects
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):

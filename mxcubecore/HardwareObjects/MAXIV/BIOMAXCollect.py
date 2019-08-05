@@ -21,11 +21,10 @@ import uuid
 import json
 import sys
 
+from EigerDataSet import EigerDataSet
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
-
-from EigerDataSet import EigerDataSet
 
 from HardwareRepository import HardwareRepository
 beamline_object = HardwareRepository.get_beamline()
@@ -128,7 +127,9 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 minimum_exposure_time=min_exp,
                 detector_fileext=beamline_object.detector.getProperty("file_suffix"),
                 detector_type=beamline_object.detector.getProperty("type"),
-                detector_manufacturer=beamline_object.detector.getProperty("manufacturer"),
+                detector_manufacturer=beamline_object.detector.getProperty(
+                    "manufacturer"
+                ),
                 detector_model=beamline_object.detector.getProperty("model"),
                 detector_px=pix_x,
                 detector_py=pix_y,
@@ -261,7 +262,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             self.data_collection_hook()
             self.emit_collection_finished()
         except Exception as ex:
-            logging.getLogger("HWR").error("[COLLECT] Data collection failed: %s" % ex)
+            logging.getLogger("HWR").error("[COLLECT] Data collection failed: %s", ex)
             self.emit_collection_failed()
             self.close_fast_shutter()
             self.close_detector_cover()
@@ -384,7 +385,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 self.store_datacollection_uuid_datacatalog()
             except Exception as ex:
                 logging.getLogger("HWR").warning(
-                    "[COLLECT] Error sending uuid to data catalog: %s" % ex
+                    "[COLLECT] Error sending uuid to data catalog: %s", ex
                 )
 
         try:
@@ -465,7 +466,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 beamline_object.detector.start_acquisition()
                 beamline_object.detector.wait_ready()
             except Exception as ex:
-                logging.getLogger("HWR").error("[COLLECT] Detector Error: %s" % ex)
+                logging.getLogger("HWR").error("[COLLECT] Detector Error: %s", ex)
                 raise RuntimeError("[COLLECT] Detector error while arming.")
 
             # call after start_acquisition (detector is armed), when all the config parameters are definitely

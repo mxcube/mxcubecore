@@ -157,7 +157,9 @@ class EMBLFlux(AbstractFlux):
         self.aperture_hwobj = beamline_object.beam.aperture_hwobj
 
         self.connect(beamline_object.beam, "beamInfoChanged", self.beam_info_changed)
-        self.connect(beamline_object.transmission, "valueChanged", self.transmission_changed)
+        self.connect(
+            beamline_object.transmission, "valueChanged", self.transmission_changed
+        )
         self.connect(
             self.aperture_hwobj, "diameterIndexChanged", self.aperture_diameter_changed
         )
@@ -260,6 +262,8 @@ class EMBLFlux(AbstractFlux):
         :param wait:
         :return:
         """
+        diffractometer = beamline_object.diffractometer
+
 
         if not beamline_object.safety_shutter.is_opened():
             msg = "Unable to measure flux! Safety shutter is closed."
@@ -273,7 +277,10 @@ class EMBLFlux(AbstractFlux):
             return
 
         if beamline_object.session.beamline_name == "P14":
-            if beamline_object.detector.detector_distance.get_position() > MIN_DETECTOR_DISTANCE:
+            if (
+                beamline_object.detector.detector_distance.get_position()
+                > MIN_DETECTOR_DISTANCE
+            ):
                 self.print_log(
                     "GUI",
                     "error",
@@ -285,7 +292,7 @@ class EMBLFlux(AbstractFlux):
         # intens_value = 0
         max_frame_rate = 1 / beamline_object.detector.get_exposure_time_limits()[0]
 
-        current_phase = beamline_object.diffractometer.current_phase
+        current_phase = diffractometer.current_phase
         current_transmission = beamline_object.transmission.getAttFactor()
         current_aperture_index = self.aperture_hwobj.get_diameter_index()
 
@@ -313,17 +320,17 @@ class EMBLFlux(AbstractFlux):
         if beamstop_position == "BEAM":
             self.emit("progressStep", 2, "Moving beamstop OFF")
             self.beamstop_hwobj.set_position("OFF")
-            beamline_object.diffractometer.wait_device_ready(30)
+            diffractometer.wait_device_ready(30)
             logging.getLogger("HWR").info("Measure flux: Beamstop moved off")
 
         # Check scintillator position
         # -----------------------------------------------------------------
-        scintillator_position = beamline_object.diffractometer.get_scintillator_position()
+        scintillator_position = diffractometer.get_scintillator_position()
         if scintillator_position == "SCINTILLATOR":
             self.emit("progressStep", 3, "Setting the photodiode")
-            beamline_object.diffractometer.set_scintillator_position("PHOTODIODE")
+            diffractometer.set_scintillator_position("PHOTODIODE")
             gevent.sleep(1)
-            beamline_object.diffractometer.wait_device_ready(30)
+            diffractometer.wait_device_ready(30)
             logging.getLogger("HWR").debug(
                 "Measure flux: Scintillator set to photodiode"
             )
@@ -333,7 +340,7 @@ class EMBLFlux(AbstractFlux):
         # -----------------------------------------------------------------
         if beamline_object.session.beamline_name == "P13":
             self.aperture_hwobj.set_in()
-            beamline_object.diffractometer.wait_device_ready(30)
+            diffractometer.wait_device_ready(30)
             self.aperture_hwobj.set_diameter_index(0)
             beamline_object.fast_shutter.openShutter(wait=True)
 
@@ -347,7 +354,7 @@ class EMBLFlux(AbstractFlux):
                     "Measuring flux with %d micron aperture" % diameter_size,
                 )
                 self.aperture_hwobj.set_diameter_index(index)
-                beamline_object.diffractometer.wait_device_ready(10)
+                diffractometer.wait_device_ready(10)
 
                 gevent.sleep(1)
                 intens_value = self.chan_intens_mean.getValue(force=True)
@@ -425,8 +432,8 @@ class EMBLFlux(AbstractFlux):
 
         # 7 Restoring previous states ----------------------------------------
         beamline_object.transmission.set_value(current_transmission)
-        beamline_object.diffractometer.set_phase(current_phase)
-        beamline_object.diffractometer.wait_device_ready(10)
+        diffractometer.set_phase(current_phase)
+        diffractometer.wait_device_ready(10)
         if beamline_object.session.beamline_name == "P13":
             self.aperture_hwobj.set_diameter_index(current_aperture_index)
         self.emit("progressStop", ())

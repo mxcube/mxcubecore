@@ -2,11 +2,6 @@ import os
 import logging
 import gevent.event
 import subprocess
-from HardwareRepository.HardwareObjects.abstract import AbstractDataAnalysis
-
-from HardwareRepository.HardwareObjects import queue_model_enumerables as qme
-
-from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
 from XSDataMXCuBEv1_3 import XSDataMXCuBEDataSet
@@ -24,6 +19,9 @@ from XSDataCommon import XSDataInteger
 from XSDataCommon import XSDataSize
 from XSDataCommon import XSDataString
 
+from HardwareRepository.HardwareObjects.abstract import AbstractDataAnalysis
+from HardwareRepository.HardwareObjects import queue_model_enumerables as qme
+from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository import HardwareRepository
 beamline_object = HardwareRepository.get_beamline()
 

@@ -30,4 +30,4 @@ class ID232BeamInfo(BeamInfo.BeamInfo):
         return self.beam_info_dict
 
     def get_flux(self):
-        return b.flux.getCurrentFlux()
+        return beamline_object.flux.getCurrentFlux()

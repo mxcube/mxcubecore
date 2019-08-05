@@ -3,8 +3,8 @@ import time
 import subprocess
 import os
 import math
-from HardwareRepository.TaskUtils import task
 from PyTango import DeviceProxy
+from HardwareRepository.TaskUtils import task
 from HardwareRepository import HardwareRepository
 beamline_object = HardwareRepository.get_beamline()
 

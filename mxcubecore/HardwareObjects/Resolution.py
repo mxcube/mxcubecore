@@ -11,6 +11,8 @@ class Resolution(AbstractMotor):
 
         # self.get_value = self.getPosition
         self.valid = True
+        self.det_width = None
+        self.det_height = None
 
     def init(self):
         self.currentResolution = None

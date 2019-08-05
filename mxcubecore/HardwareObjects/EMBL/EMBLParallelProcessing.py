@@ -44,6 +44,8 @@ from HardwareRepository.HardwareObjects.XSDataControlDozorv1_1 import (
     XSDataResultControlDozor,
     XSDataControlImageDozor,
 )
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 __credits__ = ["EMBL Hamburg"]

@@ -1,10 +1,10 @@
-from HardwareRepository.BaseHardwareObjects import Equipment
 import logging
 import os
 import shutil
 import time
 import gevent.event
 import gevent
+from HardwareRepository.BaseHardwareObjects import Equipment
 from HardwareRepository import HardwareRepository
 beamline_object = HardwareRepository.get_beamline()
 
@@ -104,7 +104,7 @@ class XRFSpectrum(Equipment):
         self.spectrumCommandStarted()
         if not os.path.isdir(directory):
             logging.getLogger("user_level_log").debug(
-                "XRFSpectrum: creating directory %s" % directory
+                "XRFSpectrum: creating directory %s", directory
             )
             try:
                 os.makedirs(directory)
@@ -142,8 +142,8 @@ class XRFSpectrum(Equipment):
                 os.makedirs(archive_directory)
             except OSError as diag:
                 logging.getLogger().error(
-                    "XRFSpectrum: error creating directory %s (%s)"
-                    % (archive_directory, str(diag))
+                    "XRFSpectrum: error creating directory %s (%s)",
+                    (archive_directory, str(diag))
                 )
                 self.spectrumStatusChanged("Error creating directory")
                 return False

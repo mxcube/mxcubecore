@@ -1,4 +1,9 @@
 from __future__ import print_function
+import sys
+import json
+import time
+import itertools
+import os
 import traceback
 from pprint import pformat
 from collections import namedtuple
@@ -14,11 +19,6 @@ except:
 from suds.sudsobject import asdict
 from suds import WebFault
 from suds.client import Client
-import sys
-import json
-import time
-import itertools
-import os
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.ConvertUtils import string_types
 from HardwareRepository import HardwareRepository
@@ -30,7 +30,6 @@ A client for ISPyB Webservices.
 
 import logging
 import gevent
-import suds
 
 
 suds_encode = str.encode

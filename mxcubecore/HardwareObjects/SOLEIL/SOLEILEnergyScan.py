@@ -1,18 +1,18 @@
-from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import cleanup
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
-
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-
 import logging
 import PyChooch
 import os
 import time
 import math
 import gevent
-import Xanes
+import Xane
+
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository.TaskUtils import cleanup
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 class SOLEILEnergyScan(Equipment):

@@ -105,7 +105,9 @@ class RedisClient(HardwareObject):
 
     def save_queue_task(self):
         """Queue saving tasks"""
-        selected_model, queue_list = beamline_object.queue_model.get_queue_as_json_list()
+        selected_model, queue_list = (
+            beamline_object.queue_model.get_queue_as_json_list()
+        )
         self.redis_client.set(
             "mxcube:%s:%s:queue_model" % (self.proposal_id, self.beamline_name),
             selected_model,

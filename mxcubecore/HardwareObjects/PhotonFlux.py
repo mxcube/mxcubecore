@@ -1,7 +1,8 @@
-from HardwareRepository.BaseHardwareObjects import Equipment
 import numpy
 import logging
-
+from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 class PhotonFlux(Equipment):
     def __init__(self, *args, **kwargs):

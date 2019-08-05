@@ -9,6 +9,7 @@ from HardwareRepository import HardwareRepository
 beamline_object = HardwareRepository.get_beamline()
 
 
+
 class XrfSpectrum(Equipment):
     def init(self):
 

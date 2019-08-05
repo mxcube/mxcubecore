@@ -1,4 +1,3 @@
-from HardwareRepository import HardwareRepository
 import logging
 import urllib2
 import os
@@ -8,7 +7,6 @@ from suds.transport.http import HttpAuthenticated
 from suds.client import Client
 
 from ISPyBClient import ISPyBClient, _CONNECTION_ERROR_MSG
-from urllib2 import URLError
 import traceback
 from collections import namedtuple
 from HardwareRepository import HardwareRepository

@@ -19,10 +19,10 @@
 
 import os
 import time
-import gevent
 import logging
 import tempfile
 from datetime import datetime
+import gevent
 
 
 from HardwareRepository.HardwareObjects.abstract import AbstractSampleChanger

@@ -419,8 +419,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             or self.current_phase
             in (GenericDiffractometer.PHASE_TRANSFER, GenericDiffractometer.PHASE_BEAM)
         ):
-            detector_distance = beamline_object.detector.detector_distance.get_position()
-            if detector_distance < 350:
+            if (beamline_object.detector.detector_distance.get_position() < 350):
                 logging.getLogger("GUI").info("Moving detector to safe distance")
                 beamline_object.detector.detector_distance.move(350, timeout=20)
 
