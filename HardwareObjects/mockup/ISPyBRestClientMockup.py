@@ -5,6 +5,8 @@ from __future__ import print_function
 import logging
 from datetime import datetime
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 try:
     from urlparse import urljoin
@@ -70,10 +72,9 @@ class ISPyBRestClientMockup(HardwareObject):
         }
 
     def init(self):
-        self.session_hwobj = self.getObjectByRole("session")
 
-        if self.session_hwobj:
-            self.beamline_name = self.session_hwobj.beamline_name
+        if beamline_object.session:
+            self.beamline_name = beamline_object.session.beamline_name
         else:
             self.beamline_name = "ID:TEST"
 
@@ -132,8 +133,8 @@ class ISPyBRestClientMockup(HardwareObject):
         if self.base_result_url is not None:
             path = "/#/mx/{pcode}{pnumber}/datacollection/datacollectionid/{did}/main"
             path = path.format(
-                pcode=self.session_hwobj.proposal_code,
-                pnumber=self.session_hwobj.proposal_number,
+                pcode=beamline_object.session.proposal_code,
+                pnumber=beamline_object.session.proposal_number,
                 did=did,
             )
 

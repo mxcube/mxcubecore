@@ -15,7 +15,6 @@ class PhotonFlux(Equipment):
             self.aperture = self.getObjectByRole("aperture")
         except BaseException:
             pass
-        self.energy_motor = self.getDeviceByRole("energy")
         self.shutter = self.getDeviceByRole("shutter")
         self.counter = self.getProperty("cnt")
         if self.counter == "i0":
@@ -52,7 +51,7 @@ class PhotonFlux(Equipment):
         flux = None
 
         try:
-            egy = self.energy_motor.getPosition() * 1000.0
+            egy = beamline_object.energy.getPosition() * 1000.0
         except BaseException:
             logging.getLogger("HWR").exception("%s: could not get energy", self.name())
         else:

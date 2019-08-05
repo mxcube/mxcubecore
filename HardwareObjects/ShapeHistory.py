@@ -340,7 +340,7 @@ class ShapeHistory(HardwareObject):
         Returns:
             AbstractActuator
         """
-        return beamline_object.diffractometer.camera_hwobj
+        return beamline_object.diffractometer.camera
 
 
 

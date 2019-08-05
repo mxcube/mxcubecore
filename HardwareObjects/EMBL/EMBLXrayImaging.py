@@ -43,6 +43,8 @@ from HardwareRepository.TaskUtils import task
 from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 from HardwareRepository.HardwareObjects.QtGraphicsManager import QtGraphicsManager
 from HardwareRepository.HardwareObjects import queue_model_objects as qmo
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 __credits__ = ["EMBL Hamburg"]
 __category__ = "Task"
@@ -118,7 +120,6 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.cmd_camera_ff_ssim = None
 
         self.beam_focusing_hwobj = None
-        self.session_hwobj = None
 
     def init(self):
         AbstractCollect.init(self)
@@ -127,51 +128,48 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
 
         QtGraphicsManager.init(self)
 
-        self.disconnect(self.camera_hwobj, "imageReceived", self.camera_image_received)
+        self.disconnect(beamline_object.graphics.camera, "imageReceived", self.camera_image_received)
 
         self.disconnect(
-            self.diffractometer_hwobj,
+            beamline_object.diffractometer,
             "minidiffStateChanged",
             self.diffractometer_state_changed,
         )
         self.disconnect(
-            self.diffractometer_hwobj,
+            beamline_object.diffractometer,
             "centringStarted",
             self.diffractometer_centring_started,
         )
         self.disconnect(
-            self.diffractometer_hwobj, "centringAccepted", self.create_centring_point
+            beamline_object.diffractometer, "centringAccepted", self.create_centring_point
         )
         self.disconnect(
-            self.diffractometer_hwobj,
+            beamline_object.diffractometer,
             "centringSuccessful",
             self.diffractometer_centring_successful,
         )
         self.disconnect(
-            self.diffractometer_hwobj,
+            beamline_object.diffractometer,
             "centringFailed",
             self.diffractometer_centring_failed,
         )
         self.disconnect(
-            self.diffractometer_hwobj,
+            beamline_object.diffractometer,
             "pixelsPerMmChanged",
             self.diffractometer_pixels_per_mm_changed,
         )
         self.disconnect(
-            self.diffractometer_hwobj,
+            beamline_object.diffractometer,
             "omegaReferenceChanged",
             self.diffractometer_omega_reference_changed,
         )
         self.disconnect(
-            self.diffractometer_hwobj,
+            beamline_object.diffractometer,
             "minidiffPhaseChanged",
             self.diffractometer_phase_changed,
         )
 
         self.diffractometer_pixels_per_mm_changed((20.0, 20.0))
-        self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
-
-        self.camera_hwobj = None
 
         self.graphics_scale_item.set_start_position(20, self.image_dimension[1] - 20)
 
@@ -236,7 +234,6 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.cmd_collect_abort = self.getCommandObject("collectAbort")
 
         self.beam_focusing_hwobj = self.getObjectByRole("beam_focusing")
-        self.session_hwobj = self.getObjectByRole("session")
 
     def frame_changed(self, data):
         if self._collecting:
@@ -257,9 +254,9 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         # self.mouse_hold = True
         # self.mouse_coord = [pos_x, pos_y]
         if self.centering_started:
-            self.diffractometer_hwobj.image_clicked(pos_x, pos_y)
+            beamline_object.diffractometer.image_clicked(pos_x, pos_y)
             self.play_image_relative(90)
-            # self.diffractometer_hwobj.move_omega_relative(90, timeout=5)
+            # beamline_object.diffractometer.move_omega_relative(90, timeout=5)
             self.centering_started -= 1
 
     def mouse_released(self, pos_x, pos_y):
@@ -339,7 +336,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self._number_of_images = acq_params.num_images
 
         self.current_dc_parameters = qmo.to_collect_dict(
-            data_model, self.session_hwobj, qmo.Sample()
+            data_model, beamline_object.session, qmo.Sample()
         )[0]
         self.current_dc_parameters["status"] = "Running"
         self.current_dc_parameters["comments"] = ""
@@ -349,7 +346,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         return
 
         if im_params.detector_distance:
-            delta = im_params.detector_distance - self.detector_hwobj.get_distance()
+            delta = im_params.detector_distance - beamline_object.detector.get_distance()
             if abs(delta) > 0.0001:
                 logging.getLogger("GUI").warning(
                     "Imaging: Setting detector distance to %d mm"
@@ -357,7 +354,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
                 )
                 # tine.set("/P14/P14DetTrans/P14detHor1","IncrementMove.START", -0.003482*delta)
                 # tine.set("/P14/P14DetTrans/P14detHor2","IncrementMove.START", -0.003482*delta)
-                # self.detector_hwobj.set_distance(im_params.detector_distance, timeout=30)
+                # beamline_object.detector.set_distance(im_params.detector_distance, timeout=30)
                 logging.getLogger("GUI").info("Imaging: Detector distance set")
 
         self.cmd_collect_detector("pco")
@@ -370,7 +367,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.cmd_collect_start_angle(acq_params.osc_start)
         self.cmd_collect_range(acq_params.osc_range)
         self.cmd_collect_in_queue(acq_params.in_queue != False)
-        shutter_name = self.detector_hwobj.get_shutter_name()
+        shutter_name = beamline_object.detector.get_shutter_name()
         self.cmd_collect_shutter(shutter_name)
 
         self.cmd_collect_ff_num_images(im_params.ff_num_images)
@@ -395,7 +392,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.set_osc_start(acq_params.osc_start)
 
         self.current_dc_parameters = qmo.to_collect_dict(
-            data_model, self.session_hwobj, qmo.Sample()
+            data_model, beamline_object.session, qmo.Sample()
         )[0]
         self.current_dc_parameters["status"] = "Running"
         self.current_dc_parameters["comments"] = ""
@@ -517,7 +514,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
     @task
     def _take_crystal_snapshot(self, filename):
         """Saves crystal snapshot"""
-        self.graphics_manager_hwobj.save_scene_snapshot(filename)
+        beamline_object.graphics.save_scene_snapshot(filename)
 
     def data_collection_hook(self):
         pass
@@ -696,7 +693,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         raw_filename_list = []
         ff_filename_list = []
         self.config_dict = {}
-        self.omega_start = self.diffractometer_hwobj.get_omega_position()
+        self.omega_start = beamline_object.diffractometer.get_omega_position()
 
         self.image_reading_thread = None
         self.image_processing_thread = None
@@ -856,14 +853,14 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
 
     def start_centering(self):
         self.centering_started = 3
-        self.diffractometer_hwobj.start_centring_method(
-            self.diffractometer_hwobj.CENTRING_METHOD_IMAGING
+        beamline_object.diffractometer.start_centring_method(
+            beamline_object.diffractometer.CENTRING_METHOD_IMAGING
         )
 
     def start_n_centering(self):
         self.centering_started = 100
-        self.diffractometer_hwobj.start_centring_method(
-            self.diffractometer_hwobj.CENTRING_METHOD_IMAGING_N
+        beamline_object.diffractometer.start_centring_method(
+            beamline_object.diffractometer.CENTRING_METHOD_IMAGING_N
         )
 
     def move_omega(self, image_index):
@@ -875,7 +872,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             if self.last_image_index > image_index:
                 omega_relative *= -1
 
-            self.diffractometer_hwobj.move_omega_relative(omega_relative)
+            beamline_object.diffractometer.move_omega_relative(omega_relative)
             self.last_image_index = image_index
 
     def move_omega_relative(self, relative_index):

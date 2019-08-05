@@ -1,4 +1,6 @@
 from HardwareRepository import BaseHardwareObjects
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 import logging
 import PyTango.gevent
 import gevent
@@ -87,7 +89,7 @@ class ID232HutchTrigger(BaseHardwareObjects.HardwareObject):
         logging.info(
             "%s: %s hutch", self.name(), "entering" if entering_hutch else "leaving"
         )
-        dtox = self.getObjectByRole("detector_distance")
+        dtox = beamline_object.detector.detector_distance
         udiff_ctrl = self.getObjectByRole("predefined")
         ctrl_obj = self.getObjectByRole("controller")
         if not entering_hutch:

@@ -10,9 +10,11 @@ Example XML:
 
 """
 
-from HardwareRepository import BaseHardwareObjects
 import logging
 import time
+from HardwareRepository import BaseHardwareObjects
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 class PX2Guillotine(BaseHardwareObjects.Device):
@@ -100,10 +102,17 @@ class PX2Guillotine(BaseHardwareObjects.Device):
             self.shutChannel.connectSignal("update", self.shutterStateChanged)
 
             self.pss = self.getObjectByRole("pss")
-            self.detector = self.getObjectByRole("detectordistance")
 
-            self.connect(self.detector, "positionChanged", self.shutterStateChanged)
-            self.connect(self.detector, "positionChanged", self.updateDetectorDistance)
+            self.connect(
+                beamline_object.detector.detector_distance,
+                "positionChanged",
+                self.shutterStateChanged
+            )
+            self.connect(
+                beamline_object.detector.detector_distance,
+                "positionChanged",
+                self.updateDetectorDistance
+            )
 
             for command_name in ("_Insert", "_Extract"):
                 setattr(self, command_name, self.getCommandObject(command_name))
@@ -144,13 +153,13 @@ class PX2Guillotine(BaseHardwareObjects.Device):
 
     def updateDetectorDistance(self, value):
         logging.info("UpdateDetectorDistance")
-        self._currentDistance = value  # self.detector.res2dist(value)
+        self._currentDistance = value  # self.detector_distance.res2dist(value)
 
     def moveGuillotine(self, state):
         if state == "Transfer":
             self.goToSecurityDistance()
         if state == "Collect":
-            self.detector.move(180)
+            beamline_object.detector.detector_distance.move(180)
 
     def updateGuillotine(self, value):
         # if open door close guillotine but test distance
@@ -163,7 +172,7 @@ class PX2Guillotine(BaseHardwareObjects.Device):
                 self._Insert()
             else:
                 self.goToSecurityDistance()
-                # self.detector.move(self._d_home)
+                # self.detector_distance.move(self._d_home)
                 # time.sleep(1.0)# wait distance minimum to insert guillotine
                 # self._Insert()
 
@@ -174,17 +183,15 @@ class PX2Guillotine(BaseHardwareObjects.Device):
         )
         if self.isInsert():
             if not self.checkDistance():
-                # self.detector.move(180)
-                self.detector.move(self._d_security)
+                beamline_object.detector.detector_distance.move(self._d_security)
                 time.sleep(2.0)
-                while self.detector.motorIsMoving():
+                while beamline_object.detector.detector_distance.motorIsMoving():
                     time.sleep(0.5)
                 self._Extract()
                 time.sleep(0.2)
-                # self.detector.move(150)
-                self.detector.move(currentDistance)
+                beamline_object.detector.detector_distance.move(currentDistance)
                 time.sleep(2.0)
-                while self.detector.motorIsMoving():
+                while beamline_object.detector.detector_distance.motorIsMoving():
                     time.sleep(0.5)
             else:
                 self._Extract()
@@ -205,10 +212,10 @@ class PX2Guillotine(BaseHardwareObjects.Device):
 
     def goToSecurityDistance(self):
         if self._currentDistance < self._d_home:
-            self.detector.move(self._d_home)
+            beamline_object.detector.detector_distance.move(self._d_home)
         if str(self.shutChannel.value) == "EXTRACT":
             self._Insert()
-        while self.detector.motorIsMoving():
+        while beamline_object.detector.detector_distance.motorIsMoving():
             time.sleep(0.5)
 
     def isShutterOk(self):

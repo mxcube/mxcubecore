@@ -21,6 +21,8 @@ import itertools
 import os
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.ConvertUtils import string_types
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 """
 A client for ISPyB Webservices.
@@ -186,8 +188,7 @@ class ISPyBClient(HardwareObject):
 
         self.loginType = self.getProperty("loginType") or "proposal"
         self.loginTranslate = self.getProperty("loginTranslate") or True
-        self.session_hwobj = self.getObjectByRole("session")
-        self.beamline_name = self.session_hwobj.beamline_name
+        self.beamline_name = beamline_object.session.beamline_name
 
         self.ws_root = self.getProperty("ws_root")
         self.ws_username = self.getProperty("ws_username")
@@ -300,8 +301,8 @@ class ISPyBClient(HardwareObject):
 
         # Add the porposal codes defined in the configuration xml file
         # to a directory. Used by translate()
-        if hasattr(self.session_hwobj, "proposals"):
-            for proposal in self.session_hwobj["proposals"]:
+        if hasattr(beamline_object.session, "proposals"):
+            for proposal in beamline_object.session["proposals"]:
                 code = proposal.code
                 self._translations[code] = {}
                 try:
@@ -874,7 +875,7 @@ class ISPyBClient(HardwareObject):
         else:
             todays_session = {}
 
-        is_inhouse = self.session_hwobj.is_inhouse(
+        is_inhouse = beamline_object.session.is_inhouse(
             prop["Proposal"]["code"], prop["Proposal"]["number"]
         )
         return {

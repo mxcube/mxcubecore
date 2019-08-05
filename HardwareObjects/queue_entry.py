@@ -77,9 +77,6 @@ class TaskGroupQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
 
-        self.collect_hwobj = None
-        self.lims_client_hwobj = None
-        self.session_hwobj = None
         self.interleave_task = None
         self.interleave_items = None
         self.interleave_sw_list = None
@@ -107,18 +104,18 @@ class TaskGroupQueueEntry(BaseQueueEntry):
             if task_model.interleave_num_images:
                 init_ref_images = task_model.interleave_num_images
                 group_data = {
-                    "sessionId": self.session_hwobj.session_id,
+                    "sessionId": beamline_object.session.session_id,
                     "experimentType": "Collect - Multiwedge",
                 }
             elif task_model.inverse_beam_num_images:
                 init_ref_images = task_model.inverse_beam_num_images
                 group_data = {
-                    "sessionId": self.session_hwobj.session_id,
+                    "sessionId": beamline_object.session.session_id,
                     "experimentType": "Collect - Multiwedge",
                 }
             else:
                 group_data = {
-                    "sessionId": self.session_hwobj.session_id,
+                    "sessionId": beamline_object.session.session_id,
                     "experimentType": "OSC",
                 }
 
@@ -134,7 +131,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                 ] = sample_model.lims_sample_location
 
             try:
-                gid = self.lims_client_hwobj._store_data_collection_group(group_data)
+                gid = beamline_object.lims._store_data_collection_group(group_data)
                 self.get_data_model().lims_group_id = gid
             except Exception as ex:
                 msg = (
@@ -230,11 +227,11 @@ class TaskGroupQueueEntry(BaseQueueEntry):
             empty_cpos = queue_model_objects.CentredPosition()
             param_list = queue_model_objects.to_collect_dict(
                 interleave_item["data_model"],
-                self.session_hwobj,
+                beamline_object.session,
                 sample,
                 cpos if cpos != empty_cpos else None,
             )
-            self.collect_hwobj.prepare_interleave(
+            beamline_object.collect.prepare_interleave(
                 interleave_item["data_model"], param_list
             )
 
@@ -320,9 +317,6 @@ class TaskGroupQueueEntry(BaseQueueEntry):
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
-        self.lims_client_hwobj = self.beamline_setup.lims_client_hwobj
-        self.session_hwobj = self.beamline_setup.session_hwobj
-        self.collect_hwobj = self.beamline_setup.collect_hwobj
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
@@ -344,9 +338,6 @@ class SampleQueueEntry(BaseQueueEntry):
 
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
-        self.sample_changer_hwobj = None
-        self.diffractometer_hwobj = None
-        self.plate_manipulator_hwobj = None
         self.sample_centring_result = None
 
     def __getstate__(self):
@@ -364,10 +355,10 @@ class SampleQueueEntry(BaseQueueEntry):
 
         # Only execute samples with collections and when sample changer is used
         if len(self.get_data_model().get_children()) != 0 and sc_used:
-            if self.diffractometer_hwobj.in_plate_mode():
+            if beamline_object.diffractometer.in_plate_mode():
                 return
             else:
-                mount_device = self.sample_changer_hwobj
+                mount_device = beamline_object.sample_changer
 
             if mount_device is not None:
                 log.info("Loading sample " + str(self._data_model.location))
@@ -383,9 +374,6 @@ class SampleQueueEntry(BaseQueueEntry):
                             self.centring_done,
                             self.sample_centring_result,
                         )
-                        # self.beamline_setup.diffractometer_hwobj.close_kappa_task()
-                        # self.beamline_setup.shape_history_hwobj.start_auto_centring(wait=True)
-                        # time.sleep(2)
                     except Exception as e:
                         self._view.setText(1, "Error loading")
                         msg = (
@@ -420,16 +408,6 @@ class SampleQueueEntry(BaseQueueEntry):
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
-        try:
-            self.sample_changer_hwobj = self.beamline_setup.sample_changer_hwobj
-        except AttributeError:
-            self.sample_changer_hwobj = None
-        self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
-        try:
-            self.plate_manipulator_hwobj = self.beamline_setup.plate_manipulator_hwobj
-        except AttributeError:
-            self.plate_manipulator_hwobj = None
-        self.shape_history = self.beamline_setup.shape_history_hwobj
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
@@ -462,7 +440,7 @@ class SampleQueueEntry(BaseQueueEntry):
                     )
 
         try:
-            programs = self.beamline_setup.collect_hwobj["auto_processing"]
+            programs = beamline_object.collect["auto_processing"]
             autoprocessing.start(programs, "end_multicollect", params)
         except KeyError:
             pass
@@ -489,9 +467,6 @@ class SampleCentringQueueEntry(BaseQueueEntry):
 
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
-        self.sample_changer_hwobj = None
-        self.diffractometer_hwobj = None
-        self.shape_history = None
 
     def __setstate__(self, d):
         self.__dict__.update(d)
@@ -528,10 +503,10 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             dd0["kappa_phi"] = kappa_phi
         if dd0:
             if (
-                not hasattr(self.diffractometer_hwobj, "in_kappa_mode")
-                or self.diffractometer_hwobj.in_kappa_mode()
+                not hasattr(beamline_object.diffractometer, "in_kappa_mode")
+                or beamline_object.diffractometer.in_kappa_mode()
             ):
-                self.diffractometer_hwobj.move_motors(dd0)
+                beamline_object.diffractometer.move_motors(dd0)
 
         motor_positions = data_model.get_other_motor_positions()
         dd0 = dict(
@@ -540,7 +515,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             if tt0[1] is not None
         )
         if motor_positions:
-            self.diffractometer_hwobj.move_motors(dd0)
+            beamline_object.diffractometer.move_motors(dd0)
 
         log.warning(
             "Please center a new or select an existing point and press continue."
@@ -548,7 +523,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         self.get_queue_controller().pause(True)
         pos = None
 
-        shapes = list(self.shape_history.get_selected_shapes())
+        shapes = list(beamline_object.graphics.get_selected_shapes())
         if shapes:
             pos = shapes[0]
             if hasattr(pos, "get_centred_position"):
@@ -560,7 +535,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             log.info(msg)
 
             # Create a centred positions of the current position
-            pos_dict = self.diffractometer_hwobj.getPositions()
+            pos_dict = beamline_object.diffractometer.getPositions()
             cpos = queue_model_objects.CentredPosition(pos_dict)
 
         self._data_model.set_centring_result(cpos)
@@ -569,9 +544,6 @@ class SampleCentringQueueEntry(BaseQueueEntry):
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
-        self.sample_changer_hwobj = self.beamline_setup.sample_changer_hwobj
-        self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
-        self.shape_history = self.beamline_setup.shape_history_hwobj
 
     def post_execute(self):
         # If centring is executed once then we dont have to execute it again
@@ -590,18 +562,12 @@ class DataCollectionQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None, view_set_queue_entry=True):
         BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
 
-        self.collect_hwobj = None
-        self.diffractometer_hwobj = None
         self.collect_task = None
         self.centring_task = None
-        self.shape_history = None
-        self.session = None
-        self.lims_client_hwobj = None
         self.enable_take_snapshots = True
         self.enable_store_in_lims = True
         self.in_queue = False
 
-        self.parallel_processing_hwobj = None
 
     def __setstate__(self, d):
         self.__dict__.update(d)
@@ -610,10 +576,12 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         d = dict(self.__dict__)
         d["collect_task"] = None
         d["centring_task"] = None
-        d["shape_history"] = self.shape_history.name() if self.shape_history else None
-        d["session"] = self.session.name() if self.session else None
+        d["shape_history"] = beamline_object.graphics.name() if beamline_object.graphics else None
+        d["session"] = (
+            beamline_object.session.name() if beamline_object.session else None
+        )
         d["lims_client_hwobj"] = (
-            self.lims_client_hwobj.name() if self.lims_client_hwobj else None
+            beamline_object.lims.name() if beamline_object.lims else None
         )
         return d
 
@@ -630,58 +598,46 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             if empty_cpos and data_collection.center_before_collect:
                 _p, _s = center_before_collect(
                     self.get_view(),
-                    self.diffractometer_hwobj,
+                    beamline_object.diffractometer,
                     self.get_queue_controller(),
-                    self.shape_history,
+                    beamline_object.graphics,
                 )
 
                 acq_params.centred_position = _p
 
             self.collect_dc(data_collection, self.get_view())
 
-        if self.shape_history:
-            self.shape_history.de_select_all()
+        if beamline_object.graphics:
+            beamline_object.graphics.de_select_all()
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
 
-        self.lims_client_hwobj = self.beamline_setup.lims_client_hwobj
-        self.collect_hwobj = self.beamline_setup.collect_hwobj
-        self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
-        self.shape_history = self.beamline_setup.shape_history_hwobj
-        self.session = self.beamline_setup.session_hwobj
-
-        try:
-            self.parallel_processing_hwobj = (
-                self.beamline_setup.parallel_processing_hwobj
-            )
-        except AttributeError:
-            self.parallel_processing_hwobj = None
 
         qc = self.get_queue_controller()
 
-        qc.connect(self.collect_hwobj, "collectStarted", self.collect_started)
-        qc.connect(self.collect_hwobj, "collectNumberOfFrames", self.preparing_collect)
+        qc.connect(beamline_object.collect, "collectStarted", self.collect_started)
+        qc.connect(beamline_object.collect, "collectNumberOfFrames", self.preparing_collect)
         qc.connect(
-            self.collect_hwobj, "collectOscillationStarted", self.collect_osc_started
+            beamline_object.collect, "collectOscillationStarted", self.collect_osc_started
         )
-        qc.connect(self.collect_hwobj, "collectOscillationFailed", self.collect_failed)
+        qc.connect(beamline_object.collect, "collectOscillationFailed", self.collect_failed)
         qc.connect(
-            self.collect_hwobj, "collectOscillationFinished", self.collect_finished
+            beamline_object.collect, "collectOscillationFinished", self.collect_finished
         )
-        qc.connect(self.collect_hwobj, "collectImageTaken", self.image_taken)
+        qc.connect(beamline_object.collect, "collectImageTaken", self.image_taken)
         qc.connect(
-            self.collect_hwobj, "collectNumberOfFrames", self.collect_number_of_frames
+            beamline_object.collect, "collectNumberOfFrames", self.collect_number_of_frames
         )
 
-        if self.parallel_processing_hwobj is not None:
+        if beamline_object.offline_processing is not None:
             qc.connect(
-                self.parallel_processing_hwobj,
+                beamline_object.offline_processing,
                 "processingFinished",
                 self.processing_finished,
             )
             qc.connect(
-                self.parallel_processing_hwobj,
+                beamline_object.offline_processing,
                 "processingFailed",
                 self.processing_failed,
             )
@@ -696,32 +652,32 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         BaseQueueEntry.post_execute(self)
         qc = self.get_queue_controller()
 
-        qc.disconnect(self.collect_hwobj, "collectStarted", self.collect_started)
+        qc.disconnect(beamline_object.collect, "collectStarted", self.collect_started)
         qc.disconnect(
-            self.collect_hwobj, "collectNumberOfFrames", self.preparing_collect
+            beamline_object.collect, "collectNumberOfFrames", self.preparing_collect
         )
         qc.disconnect(
-            self.collect_hwobj, "collectOscillationStarted", self.collect_osc_started
+            beamline_object.collect, "collectOscillationStarted", self.collect_osc_started
         )
         qc.disconnect(
-            self.collect_hwobj, "collectOscillationFailed", self.collect_failed
+            beamline_object.collect, "collectOscillationFailed", self.collect_failed
         )
         qc.disconnect(
-            self.collect_hwobj, "collectOscillationFinished", self.collect_finished
+            beamline_object.collect, "collectOscillationFinished", self.collect_finished
         )
-        qc.disconnect(self.collect_hwobj, "collectImageTaken", self.image_taken)
+        qc.disconnect(beamline_object.collect, "collectImageTaken", self.image_taken)
         qc.disconnect(
-            self.collect_hwobj, "collectNumberOfFrames", self.collect_number_of_frames
+            beamline_object.collect, "collectNumberOfFrames", self.collect_number_of_frames
         )
 
-        if self.parallel_processing_hwobj is not None:
+        if beamline_object.offline_processing is not None:
             qc.disconnect(
-                self.parallel_processing_hwobj,
+                beamline_object.offline_processing,
                 "processingFinished",
                 self.processing_finished,
             )
             qc.disconnect(
-                self.parallel_processing_hwobj,
+                beamline_object.offline_processing,
                 "processingFailed",
                 self.processing_failed,
             )
@@ -731,27 +687,27 @@ class DataCollectionQueueEntry(BaseQueueEntry):
     def collect_dc(self, dc, list_item):
         log = logging.getLogger("user_level_log")
 
-        if self.collect_hwobj:
+        if beamline_object.collect:
             acq_1 = dc.acquisitions[0]
             acq_1.acquisition_parameters.in_queue = self.in_queue
             cpos = acq_1.acquisition_parameters.centred_position
             sample = self.get_data_model().get_sample_node()
-            self.collect_hwobj.run_processing_after = dc.run_processing_after
-            self.collect_hwobj.aborted_by_user = None
+            beamline_object.collect.run_processing_after = dc.run_processing_after
+            beamline_object.collect.aborted_by_user = None
             self.processing_task = None
 
             try:
                 if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:
                     acq_1, acq_2 = (dc.acquisitions[0], dc.acquisitions[1])
-                    self.collect_hwobj.set_helical(True)
-                    self.collect_hwobj.set_mesh(False)
+                    beamline_object.collect.set_helical(True)
+                    beamline_object.collect.set_mesh(False)
                     start_cpos = acq_1.acquisition_parameters.centred_position
                     end_cpos = acq_2.acquisition_parameters.centred_position
                     helical_oscil_pos = {
                         "1": start_cpos.as_dict(),
                         "2": end_cpos.as_dict(),
                     }
-                    self.collect_hwobj.set_helical_pos(helical_oscil_pos)
+                    beamline_object.collect.set_helical_pos(helical_oscil_pos)
                     # msg = "Helical data collection, moving to start position"
                     # log.info(msg)
                     # list_item.setText(1, "Moving sample")
@@ -760,45 +716,48 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     mesh_total_nb_frames = acq_1.acquisition_parameters.num_images
                     mesh_range = acq_1.acquisition_parameters.mesh_range
                     mesh_center = acq_1.acquisition_parameters.centred_position
-                    self.collect_hwobj.set_mesh_scan_parameters(
+                    beamline_object.collect.set_mesh_scan_parameters(
                         mesh_nb_lines, mesh_total_nb_frames, mesh_center, mesh_range
                     )
-                    self.collect_hwobj.set_helical(False)
-                    self.collect_hwobj.set_mesh(True)
+                    beamline_object.collect.set_helical(False)
+                    beamline_object.collect.set_mesh(True)
                     dc.grid.used_count += 1
                 else:
-                    self.collect_hwobj.set_helical(False)
-                    self.collect_hwobj.set_mesh(False)
+                    beamline_object.collect.set_helical(False)
+                    beamline_object.collect.set_mesh(False)
 
                 if (
                     dc.run_processing_parallel
                     and acq_1.acquisition_parameters.num_images > 4
-                    and self.parallel_processing_hwobj is not None
+                    and beamline_object.offline_processing is not None
                 ):
                     self.processing_task = gevent.spawn(
-                        self.parallel_processing_hwobj.run_processing, dc
+                        beamline_object.offline_processing.run_processing, dc
                     )
 
                 empty_cpos = queue_model_objects.CentredPosition()
 
                 if cpos != empty_cpos:
-                    self.shape_history.select_shape_with_cpos(cpos)
+                    beamline_object.graphics.select_shape_with_cpos(cpos)
                 else:
-                    pos_dict = self.diffractometer_hwobj.getPositions()
+                    pos_dict = beamline_object.diffractometer.getPositions()
                     cpos = queue_model_objects.CentredPosition(pos_dict)
-                    snapshot = self.shape_history.get_snapshot()
+                    snapshot = beamline_object.graphics.get_snapshot()
                     acq_1.acquisition_parameters.centred_position = cpos
                     acq_1.acquisition_parameters.centred_position.snapshot_image = (
                         snapshot
                     )
 
-                self.shape_history.inc_used_for_collection(cpos)
+                beamline_object.graphics.inc_used_for_collection(cpos)
 
                 param_list = queue_model_objects.to_collect_dict(
-                    dc, self.session, sample, cpos if cpos != empty_cpos else None
+                    dc,
+                    beamline_object.session,
+                    sample,
+                    cpos if cpos != empty_cpos else None
                 )
 
-                self.collect_task = self.collect_hwobj.collect(
+                self.collect_task = beamline_object.collect.collect(
                     COLLECTION_ORIGIN_STR.MXCUBE, param_list
                 )
                 self.collect_task.get()
@@ -869,15 +828,15 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         if self.processing_task is not None:
             self.get_view().setText(1, "Processing...")
             logging.getLogger("user_level_log").warning("Processing: Please wait...")
-            self.parallel_processing_hwobj.done_event.wait(timeout=5)
-            self.parallel_processing_hwobj.done_event.clear()
+            beamline_object.offline_processing.done_event.wait(timeout=5)
+            beamline_object.offline_processing.done_event.clear()
 
     def stop(self):
         BaseQueueEntry.stop(self)
         try:
-            self.collect_hwobj.stopCollect("mxCuBE")
+            beamline_object.collect.stopCollect("mxCuBE")
             if self.processing_task is not None:
-                self.parallel_processing_hwobj.stop_processing()
+                beamline_object.offline_processing.stop_processing()
                 logging.getLogger("user_level_log").error("Processing: Stoppend")
             if self.centring_task is not None:
                 self.centring_task.kill(block=False)
@@ -982,10 +941,6 @@ class CharacterisationQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None, view_set_queue_entry=True):
 
         BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
-        self.data_analysis_hwobj = None
-        self.diffractometer_hwobj = None
-        self.queue_model_hwobj = None
-        self.session_hwobj = None
         self.edna_result = None
         self.auto_add_diff_plan = True
 
@@ -993,54 +948,26 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         d = BaseQueueEntry.__getstate__(self)
 
         d["data_analysis_hwobj"] = (
-            self.data_analysis_hwobj.name() if self.data_analysis_hwobj else None
+            beamline_object.data_analysis.name() if beamline_object.data_analysis else None
         )
         d["diffractometer_hwobj"] = (
-            self.diffractometer_hwobj.name() if self.diffractometer_hwobj else None
+            beamline_object.diffractometer.name() if beamline_object.diffractometer else None
         )
         d["queue_model_hwobj"] = (
-            self.queue_model_hwobj.name() if self.queue_model_hwobj else None
+            beamline_object.queue_model.name() if beamline_object.queue_model else None
         )
-        d["session_hwobj"] = self.session_hwobj.name() if self.session_hwobj else None
+        d["session_hwobj"] = beamline_object.session.name() if beamline_object.session else None
 
         return d
 
     def __setstate__(self, d):
         BaseQueueEntry.__setstate__(self, d)
 
-        self.data_analysis_hwobj = (
-            HardwareRepository.getHardwareRepository().getHardwareObject(
-                d["data_analysis_hwobj"]
-            )
-            if d["data_analysis_hwobj"]
-            else None
-        )
-        self.diffractometer_hwobj = (
-            HardwareRepository.getHardwareRepository().getHardwareObject(
-                d["diffractometer_hwobj"]
-            )
-            if d["diffractometer_hwobj"]
-            else None
-        )
-        self.queue_model_hwobj = (
-            HardwareRepository.getHardwareRepository().getHardwareObject(
-                d["queue_model_hwobj"]
-            )
-            if d["queue_model_hwobj"]
-            else None
-        )
-        self.session_hwobj = (
-            HardwareRepository.getHardwareRepository().getHardwareObject(
-                d["session_hwobj"]
-            )
-            if d["session_hwobj"]
-            else None
-        )
 
     def execute(self):
         BaseQueueEntry.execute(self)
 
-        if self.data_analysis_hwobj is not None:
+        if beamline_object.data_analysis is not None:
             if self.get_data_model().wait_result:
                 logging.getLogger("user_level_log").warning(
                     "Characterisation: Please wait ..."
@@ -1060,17 +987,17 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         reference_image_collection = char.reference_image_collection
         characterisation_parameters = char.characterisation_parameters
 
-        if self.data_analysis_hwobj is not None:
-            edna_input = self.data_analysis_hwobj.from_params(
+        if beamline_object.data_analysis is not None:
+            edna_input = beamline_object.data_analysis.from_params(
                 reference_image_collection, characterisation_parameters
             )
 
-            self.edna_result = self.data_analysis_hwobj.characterise(edna_input)
+            self.edna_result = beamline_object.data_analysis.characterise(edna_input)
 
         if self.edna_result:
             log.info("Characterisation completed.")
 
-            char.html_report = self.data_analysis_hwobj.get_html_report(
+            char.html_report = beamline_object.data_analysis.get_html_report(
                 self.edna_result
             )
 
@@ -1099,7 +1026,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                         self.beamline_setup,
                     )
                     char.diffraction_plan.append(collections)
-                    self.queue_model_hwobj.emit(
+                    beamline_object.queue_model.emit(
                         "diff_plan_available", (char, collections)
                     )
 
@@ -1114,7 +1041,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         else:
             self.get_view().setText(1, "Charact. Failed")
 
-            if self.data_analysis_hwobj.is_running():
+            if beamline_object.data_analysis.is_running():
                 log.error("EDNA-Characterisation, software is not responding.")
                 log.error(
                     "Characterisation completed with error: "
@@ -1143,7 +1070,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         new_dcg_model.set_number(new_dcg_num)
         new_dcg_model.set_origin(char._node_id)
 
-        self.queue_model_hwobj.add_child(sample_data_model, new_dcg_model)
+        beamline_object.queue_model.add_child(sample_data_model, new_dcg_model)
         if edna_collections is None:
             edna_collections = queue_model_objects.dc_from_edna_output(
                 edna_result,
@@ -1154,14 +1081,14 @@ class CharacterisationQueueEntry(BaseQueueEntry):
             )
         for edna_dc in edna_collections:
             path_template = edna_dc.acquisitions[0].path_template
-            run_number = self.queue_model_hwobj.get_next_run_number(path_template)
+            run_number = beamline_object.queue_model.get_next_run_number(path_template)
             path_template.run_number = run_number
             path_template.compression = char.diff_plan_compression
 
             edna_dc.set_enabled(char.run_diffraction_plan)
             edna_dc.set_name(path_template.get_prefix())
             edna_dc.set_number(path_template.run_number)
-            self.queue_model_hwobj.add_child(new_dcg_model, edna_dc)
+            beamline_object.queue_model.add_child(new_dcg_model, edna_dc)
 
         return edna_collections
 
@@ -1169,12 +1096,6 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         BaseQueueEntry.pre_execute(self)
         self.get_view().setOn(True)
         self.get_view().setHighlighted(False)
-
-        self.data_analysis_hwobj = self.beamline_setup.data_analysis_hwobj
-        self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
-        # should be an other way how to get queue_model_hwobj:
-        self.queue_model_hwobj = self._queue_controller.queue_model_hwobj
-        self.session_hwobj = self.beamline_setup.session_hwobj
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
@@ -1184,14 +1105,12 @@ class CharacterisationQueueEntry(BaseQueueEntry):
 
     def stop(self):
         BaseQueueEntry.stop(self)
-        self.data_analysis_hwobj.stop()
+        beamline_object.data_analysis.stop()
 
 
 class EnergyScanQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
-        self.energy_scan_hwobj = None
-        self.session_hwobj = None
         self.energy_scan_task = None
         self._failed = False
 
@@ -1206,7 +1125,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
     def execute(self):
         BaseQueueEntry.execute(self)
 
-        if self.energy_scan_hwobj:
+        if beamline_object.energy_scan:
             energy_scan = self.get_data_model()
             self.get_view().setText(1, "Starting energy scan")
 
@@ -1219,58 +1138,56 @@ class EnergyScanQueueEntry(BaseQueueEntry):
                 sample_lims_id = None
 
             self.energy_scan_task = gevent.spawn(
-                self.energy_scan_hwobj.startEnergyScan,
+                beamline_object.energy_scan.startEnergyScan,
                 energy_scan.element_symbol,
                 energy_scan.edge,
                 energy_scan.path_template.directory,
                 energy_scan.path_template.get_prefix(),
-                self.session_hwobj.session_id,
+                beamline_object.session.session_id,
                 sample_lims_id,
             )
 
-        self.energy_scan_hwobj.ready_event.wait()
-        self.energy_scan_hwobj.ready_event.clear()
+        beamline_object.energy_scan.ready_event.wait()
+        beamline_object.energy_scan.ready_event.clear()
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
         self._failed = False
-        self.energy_scan_hwobj = self.beamline_setup.energyscan_hwobj
-        self.session_hwobj = self.beamline_setup.session_hwobj
 
         qc = self.get_queue_controller()
 
         qc.connect(
-            self.energy_scan_hwobj, "scanStatusChanged", self.energy_scan_status_changed
+            beamline_object.energy_scan, "scanStatusChanged", self.energy_scan_status_changed
         )
 
         qc.connect(
-            self.energy_scan_hwobj, "energyScanStarted", self.energy_scan_started
+            beamline_object.energy_scan, "energyScanStarted", self.energy_scan_started
         )
 
         qc.connect(
-            self.energy_scan_hwobj, "energyScanFinished", self.energy_scan_finished
+            beamline_object.energy_scan, "energyScanFinished", self.energy_scan_finished
         )
 
-        qc.connect(self.energy_scan_hwobj, "energyScanFailed", self.energy_scan_failed)
+        qc.connect(beamline_object.energy_scan, "energyScanFailed", self.energy_scan_failed)
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
         qc = self.get_queue_controller()
 
         qc.disconnect(
-            self.energy_scan_hwobj, "scanStatusChanged", self.energy_scan_status_changed
+            beamline_object.energy_scan, "scanStatusChanged", self.energy_scan_status_changed
         )
 
         qc.disconnect(
-            self.energy_scan_hwobj, "energyScanStarted", self.energy_scan_started
+            beamline_object.energy_scan, "energyScanStarted", self.energy_scan_started
         )
 
         qc.disconnect(
-            self.energy_scan_hwobj, "energyScanFinished", self.energy_scan_finished
+            beamline_object.energy_scan, "energyScanFinished", self.energy_scan_finished
         )
 
         qc.disconnect(
-            self.energy_scan_hwobj, "energyScanFailed", self.energy_scan_failed
+            beamline_object.energy_scan, "energyScanFailed", self.energy_scan_failed
         )
 
         if self._failed:
@@ -1301,7 +1218,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
             chooch_graph_y1,
             chooch_graph_y2,
             title,
-        ) = self.energy_scan_hwobj.doChooch(
+        ) = beamline_object.energy_scan.doChooch(
             energy_scan.element_symbol,
             energy_scan.edge,
             energy_scan.path_template.directory,
@@ -1339,7 +1256,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         energy_scan.result.chooch_graph_y2 = chooch_graph_y2
         energy_scan.result.title = title
         try:
-            energy_scan.result.data = self.energy_scan_hwobj.get_scan_data()
+            energy_scan.result.data = beamline_object.energy_scan.get_scan_data()
         except BaseException:
             pass
 
@@ -1370,7 +1287,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 
         try:
             # self.get_view().setText(1, 'Stopping ...')
-            self.energy_scan_hwobj.cancelEnergyScan()
+            beamline_object.energy_scan.cancelEnergyScan()
 
             if self.centring_task:
                 self.centring_task.kill(block=False)
@@ -1390,8 +1307,6 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 class XRFSpectrumQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
-        self.xrf_spectrum_hwobj = None
-        self.session_hwobj = None
         self._failed = False
 
     def __getstate__(self):
@@ -1405,7 +1320,7 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
     def execute(self):
         BaseQueueEntry.execute(self)
 
-        if self.xrf_spectrum_hwobj is not None:
+        if beamline_object.xrf_spectrum is not None:
             xrf_spectrum = self.get_data_model()
             self.get_view().setText(1, "Starting xrf spectrum")
 
@@ -1417,7 +1332,7 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
             if sample_lims_id == -1:
                 sample_lims_id = None
 
-            self.xrf_spectrum_hwobj.startXrfSpectrum(
+            beamline_object.xrf_spectrum.startXrfSpectrum(
                 xrf_spectrum.count_time,
                 xrf_spectrum.path_template.directory,
                 xrf_spectrum.path_template.get_archive_directory(),
@@ -1426,11 +1341,11 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
                     xrf_spectrum.path_template.get_prefix(),
                     xrf_spectrum.path_template.run_number,
                 ),
-                self.session_hwobj.session_id,
+                beamline_object.session.session_id,
                 node_id,
             )
-            self.xrf_spectrum_hwobj.ready_event.wait()
-            self.xrf_spectrum_hwobj.ready_event.clear()
+            beamline_object.xrf_spectrum.ready_event.wait()
+            beamline_object.xrf_spectrum.ready_event.clear()
         else:
             logging.getLogger("user_level_log").info(
                 "XRFSpectrum not defined in beamline setup"
@@ -1440,44 +1355,42 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
         self._failed = False
-        self.xrf_spectrum_hwobj = self.beamline_setup.xrf_spectrum_hwobj
-        self.session_hwobj = self.beamline_setup.session_hwobj
         qc = self.get_queue_controller()
         qc.connect(
-            self.xrf_spectrum_hwobj,
+            beamline_object.xrf_spectrum,
             "xrfSpectrumStatusChanged",
             self.xrf_spectrum_status_changed,
         )
 
         qc.connect(
-            self.xrf_spectrum_hwobj, "xrfSpectrumStarted", self.xrf_spectrum_started
+            beamline_object.xrf_spectrum, "xrfSpectrumStarted", self.xrf_spectrum_started
         )
         qc.connect(
-            self.xrf_spectrum_hwobj, "xrfSpectrumFinished", self.xrf_spectrum_finished
+            beamline_object.xrf_spectrum, "xrfSpectrumFinished", self.xrf_spectrum_finished
         )
         qc.connect(
-            self.xrf_spectrum_hwobj, "xrfSpectrumFailed", self.xrf_spectrum_failed
+            beamline_object.xrf_spectrum, "xrfSpectrumFailed", self.xrf_spectrum_failed
         )
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
         qc = self.get_queue_controller()
         qc.disconnect(
-            self.xrf_spectrum_hwobj,
+            beamline_object.xrf_spectrum,
             "xrfSpectrumStatusChanged",
             self.xrf_spectrum_status_changed,
         )
 
         qc.disconnect(
-            self.xrf_spectrum_hwobj, "xrfSpectrumStarted", self.xrf_spectrum_started
+            beamline_object.xrf_spectrum, "xrfSpectrumStarted", self.xrf_spectrum_started
         )
 
         qc.disconnect(
-            self.xrf_spectrum_hwobj, "xrfSpectrumFinished", self.xrf_spectrum_finished
+            beamline_object.xrf_spectrum, "xrfSpectrumFinished", self.xrf_spectrum_finished
         )
 
         qc.disconnect(
-            self.xrf_spectrum_hwobj, "xrfSpectrumFailed", self.xrf_spectrum_failed
+            beamline_object.xrf_spectrum, "xrfSpectrumFailed", self.xrf_spectrum_failed
         )
         if self._failed:
             raise QueueAbortedException("Queue stopped", self)
@@ -1627,7 +1540,7 @@ class XrayCenteringQueueEntry(BaseQueueEntry):
         xray_centering = self.get_data_model()
         reference_image_collection = xray_centering.reference_image_collection
         reference_image_collection.grid = (
-            self.beamline_setup.shape_history_hwobj.create_auto_grid()
+            beamline_object.graphics.create_auto_grid()
         )
         reference_image_collection.acquisitions[
             0
@@ -1701,13 +1614,9 @@ class AdvancedConnectorQueueEntry(BaseQueueEntry):
         BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
         self.first_qe = None
         self.second_qe = None
-        self.diffractometer_hwobj = None
-        self.shape_history_hwobj = None
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
-        self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
-        self.shape_history_hwobj = self.beamline_setup.shape_history_hwobj
 
     def execute(self):
         BaseQueueEntry.execute(self)
@@ -1724,16 +1633,16 @@ class AdvancedConnectorQueueEntry(BaseQueueEntry):
 
                 # logging.getLogger("user_level_log").info(\
                 #    "Moving to the best position")
-                # self.diffractometer_hwobj.move_motors(best_cpos)
+                # beamline_object.diffractometer.move_motors(best_cpos)
                 # gevent.sleep(2)
 
                 logging.getLogger("user_level_log").info("Rotating 90 degrees")
-                self.diffractometer_hwobj.move_omega_relative(90)
+                beamline_object.diffractometer.move_omega_relative(90)
                 logging.getLogger("user_level_log").info("Creating a helical line")
 
                 gevent.sleep(2)
                 auto_line, cpos_one, cpos_two = (
-                    self.shape_history_hwobj.create_auto_line()
+                    beamline_object.graphics.create_auto_line()
                 )
                 helical_model.acquisitions[
                     0
@@ -1760,21 +1669,19 @@ class OpticalCentringQueueEntry(BaseQueueEntry):
 
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
-        self.diffractometer_hwobj = None
 
     def execute(self):
         BaseQueueEntry.execute(self)
-        self.diffractometer_hwobj.automatic_centring_try_count = (
+        beamline_object.diffractometer.automatic_centring_try_count = (
             self.get_data_model().try_count
         )
 
-        self.diffractometer_hwobj.start_centring_method(
-            self.diffractometer_hwobj.CENTRING_METHOD_AUTO, wait=True
+        beamline_object.diffractometer.start_centring_method(
+            beamline_object.diffractometer.CENTRING_METHOD_AUTO, wait=True
         )
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
-        self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
 
     def post_execute(self):
         self.get_view().set_checkable(False)

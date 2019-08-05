@@ -57,11 +57,10 @@ class BIOMAXMD3(GenericDiffractometer):
             logging.getLogger("HWR").debug("EMBLMinidiff: Centring math is not defined")
 
         # to make it comaptible
-        self.camera = self.camera_hwobj
         self.acceptCentring = self.accept_centring
         self.startCentringMethod = self.start_centring_method
-        self.image_width = self.camera.getWidth()
-        self.image_height = self.camera.getHeight()
+        self.image_width = beamline_object.graphics.camera.getWidth()
+        self.image_height = beamline_object.graphics.camera.getHeight()
 
         self.phi_motor_hwobj = self.motor_hwobj_dict["phi"]
         self.phiz_motor_hwobj = self.motor_hwobj_dict["phiz"]
@@ -102,12 +101,12 @@ class BIOMAXMD3(GenericDiffractometer):
 
         try:
             self.zoom_centre = eval(self.getProperty("zoom_centre"))
-            zoom = self.camera_hwobj.get_image_zoom()
+            zoom = beamline_object.graphics.camera.get_image_zoom()
             if zoom is not None:
                 self.zoom_centre["x"] = self.zoom_centre["x"] * zoom
                 self.zoom_centre["y"] = self.zoom_centre["y"] * zoom
             self.beam_position = [self.zoom_centre["x"], self.zoom_centre["y"]]
-            self.beam_info_hwobj.beam_position = self.beam_position
+            beamline_object.beam.beam_position = self.beam_position
         except BaseException:
             if self.image_width is not None and self.image_height is not None:
                 self.zoom_centre = {
@@ -145,7 +144,7 @@ class BIOMAXMD3(GenericDiffractometer):
 
         :returns: list with two floats
         """
-        zoom = self.camera_hwobj.get_image_zoom()
+        zoom = beamline_object.graphics.camera.get_image_zoom()
         # return (0.5/self.channel_dict["CoaxCamScaleX"].getValue(),
         # 0.5/self.channel_dict["CoaxCamScaleY"].getValue())
         return (
@@ -158,7 +157,7 @@ class BIOMAXMD3(GenericDiffractometer):
         """
         # self.pixels_per_mm_x = 0.5/self.channel_dict["CoaxCamScaleX"].getValue()
         # self.pixels_per_mm_y = 0.5/self.channel_dict["CoaxCamScaleY"].getValue()
-        zoom = self.camera_hwobj.get_image_zoom()
+        zoom = beamline_object.graphics.camera.get_image_zoom()
         self.pixels_per_mm_x = zoom / self.channel_dict["CoaxCamScaleX"].getValue()
         self.pixels_per_mm_y = zoom / self.channel_dict["CoaxCamScaleY"].getValue()
 
@@ -246,7 +245,7 @@ class BIOMAXMD3(GenericDiffractometer):
                         if -1 in (x, y):
                             continue
                         if y >= 0:
-                            if x < self.camera.getWidth() / 2:
+                            if x < beamline_object.graphics.camera.getWidth() / 2:
                                 x = 0
                                 self.centring_hwobj.appendCentringDataPoint(
                                     {
@@ -258,7 +257,7 @@ class BIOMAXMD3(GenericDiffractometer):
                                 )
                                 break
                             else:
-                                x = self.camera.getWidth()
+                                x = beamline_object.graphics.camera.getWidth()
                                 self.centring_hwobj.appendCentringDataPoint(
                                     {
                                         "X": (x - self.beam_position[0])
@@ -293,7 +292,7 @@ class BIOMAXMD3(GenericDiffractometer):
         """
         Description:
         """
-        imgStr = self.camera.get_snapshot_img_str()
+        imgStr = beamline_object.graphics.camera.get_snapshot_img_str()
         image = Image.open(io.BytesIO(imgStr))
         try:
             img = np.array(image)
@@ -301,7 +300,7 @@ class BIOMAXMD3(GenericDiffractometer):
             info, y, x = lucid.find_loop(
                 np.array(img_rot, order="C"), IterationClosing=6
             )
-            x = self.camera.getWidth() - x
+            x = beamline_object.graphics.camera.getWidth() - x
         except BaseException:
             return -1, -1, 0
         if info == "Coord":
@@ -602,7 +601,7 @@ class BIOMAXMD3(GenericDiffractometer):
     def moveToBeam(self, x, y):
         try:
             self.emit_progress_message("Move to beam...")
-            self.beam_position = self.beam_info_hwobj.get_beam_position()
+            self.beam_position = beamline_object.beam.get_beam_position()
             beam_xc = self.beam_position[0]
             beam_yc = self.beam_position[1]
             cent_vertical_to_move = self.cent_vertical_pseudo_motor.getValue() - (

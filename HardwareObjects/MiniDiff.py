@@ -8,9 +8,10 @@ import copy
 import numpy
 from HardwareRepository.BaseHardwareObjects import Equipment
 from HardwareRepository.TaskUtils import task
-from HardwareRepository import HardwareRepository
 from HardwareRepository.HardwareObjects import sample_centring
 from HardwareRepository.HardwareObjects import queue_model_objects as qmo
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 try:
     from Qub.Tools import QubImageSave
@@ -112,14 +113,14 @@ class MiniDiff(Equipment):
         )
 
         self.phiMotor = None
+        self.kappaMotor = None
+        self.kappaPhiMotor = None
         self.phizMotor = None
         self.phiyMotor = None
         self.lightMotor = None
         self.zoomMotor = None
         self.sampleXMotor = None
         self.sampleYMotor = None
-        self.camera = None
-        self.sampleChanger = None
         self.lightWago = None
         self.currentSampleInfo = None
         self.aperture = None
@@ -164,14 +165,13 @@ class MiniDiff(Equipment):
         self.focusMotor = self.getObjectByRole("focus")
         self.sampleXMotor = self.getObjectByRole("sampx")
         self.sampleYMotor = self.getObjectByRole("sampy")
-        self.camera = self.getObjectByRole("camera")
         self.kappaMotor = self.getObjectByRole("kappa")
         self.kappaPhiMotor = self.getObjectByRole("kappa_phi")
         self.beam_info = self.getObjectByRole("beam_info")
 
 
         # mh 2013-11-05:why is the channel read directly? disabled for the moment
-        # self.camera.addChannel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
+        # beamline_object.graphics.camera.addChannel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
 
         self.centringPhi = sample_centring.CentringMotor(self.phiMotor, direction=-1)
         self.centringPhiz = sample_centring.CentringMotor(
@@ -182,12 +182,6 @@ class MiniDiff(Equipment):
         self.centringSampley = sample_centring.CentringMotor(self.sampleYMotor)
 
         hwr = HardwareRepository.getHardwareRepository()
-        sc_prop = self.getProperty("samplechanger")
-        if sc_prop is not None:
-            try:
-                self.sampleChanger = hwr.getHardwareObject(sc_prop)
-            except BaseException:
-                pass
         wl_prop = self.getProperty("wagolight")
         if wl_prop is not None:
             try:
@@ -269,17 +263,17 @@ class MiniDiff(Equipment):
                 "MiniDiff: sampx motor is not defined in minidiff equipment %s",
                 str(self.name()),
             )
-        if self.camera is None:
+        if beamline_object.graphics.camera is None:
             logging.getLogger("HWR").error(
                 "MiniDiff: camera is not defined in minidiff equipment %s",
                 str(self.name()),
             )
         else:
             self.imgWidth, self.imgHeight = (
-                self.camera.getWidth(),
-                self.camera.getHeight(),
+                beamline_object.graphics.camera.getWidth(),
+                beamline_object.graphics.camera.getHeight(),
             )
-        if self.sampleChanger is None:
+        if beamline_object.sample_changer is None:
             logging.getLogger("HWR").warning(
                 "MiniDiff: sample changer is not defined in minidiff equipment %s",
                 str(self.name()),
@@ -287,7 +281,7 @@ class MiniDiff(Equipment):
         else:
             try:
                 self.connect(
-                    self.sampleChanger,
+                    beamline_object.sample_changer,
                     "sampleIsLoaded",
                     self.sampleChangerSampleIsLoaded,
                 )
@@ -434,7 +428,7 @@ class MiniDiff(Equipment):
             and self.phiMotor is not None
             and self.phizMotor is not None
             and self.phiyMotor is not None
-            and self.camera is not None
+            and beamline_object.graphics.camera is not None
         )
 
     def in_plate_mode(self):
@@ -824,7 +818,7 @@ class MiniDiff(Equipment):
 
     def startAutoCentring(self, sample_info=None, loop_only=False):
         self.currentCentringProcedure = sample_centring.start_auto(
-            self.camera,
+            beamline_object.graphics.camera,
             {
                 "phi": self.centringPhi,
                 "phiy": self.centringPhiy,
@@ -954,7 +948,7 @@ class MiniDiff(Equipment):
             time.sleep(0.1)
 
     def takeSnapshots(self, image_count, wait=False):
-        self.camera.forceUpdate = True
+        beamline_object.graphics.camera.forceUpdate = True
 
         snapshotsProcedure = gevent.spawn(
             take_snapshots,
@@ -974,7 +968,7 @@ class MiniDiff(Equipment):
             self.centringStatus["images"] = snapshotsProcedure.get()
 
     def snapshotsDone(self, snapshotsProcedure):
-        self.camera.forceUpdate = False
+        beamline_object.graphics.camera.forceUpdate = False
 
         try:
             self.centringStatus["images"] = snapshotsProcedure.get()

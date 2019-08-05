@@ -5,12 +5,13 @@ import os
 import math
 from HardwareRepository.TaskUtils import task
 from PyTango import DeviceProxy
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 class Pilatus:
-    def init(self, config, collect_obj):
+    def init(self, config, collect_obj=None):
         self.config = config
-        self.collect_obj = collect_obj
         self.header = dict()
 
         lima_device = config.getProperty("lima_device")
@@ -112,7 +113,7 @@ class Pilatus:
         trigger_mode,
     ):
         diffractometer_positions = (
-            self.collect_obj.bl_control.diffractometer.getPositions()
+            beamline_object.diffractometer.getPositions()
         )
         self.start_angles = list()
         for i in range(number_of_images):
@@ -130,21 +131,21 @@ class Pilatus:
         self.header["Phi"] = "%0.4f deg." % kappa_phi
         self.header["Kappa"] = "%0.4f deg." % kappa
         self.header["Alpha"] = "0.0000 deg."
-        self.header["Polarization"] = self.collect_obj.bl_config.polarisation
+        self.header["Polarization"] = beamline_object.collect.bl_config.polarisation
         self.header["Detector_2theta"] = "0.0000 deg."
         self.header["Angle_increment"] = "%0.4f deg." % osc_range
         # self.header["Start_angle"]="%0.4f deg." % start
-        self.header["Transmission"] = self.collect_obj.get_transmission()
-        self.header["Flux"] = self.collect_obj.get_flux()
+        self.header["Transmission"] = beamline_object.transmission.get_value()
+        self.header["Flux"] = beamline_object.flux.get_flux()
         self.header["Beam_xy"] = "(%.2f, %.2f) pixels" % tuple(
-            [value / 0.172 for value in self.collect_obj.get_beam_centre()]
+            [value / 0.172 for value in beamline_object.detector.get_beam_centre()]
         )
         self.header["Detector_Voffset"] = "0.0000 m"
         self.header["Energy_range"] = "(0, 0) eV"
         self.header["Detector_distance"] = "%f m" % (
-            self.collect_obj.get_detector_distance() / 1000.0
+            beamline_object.detector.get_detector_distance() / 1000.0
         )
-        self.header["Wavelength"] = "%f A" % self.collect_obj.get_wavelength()
+        self.header["Wavelength"] = "%f A" % beamline_object.energy.get_wavelength()
         self.header["Trim_directory:"] = "(nil)"
         self.header["Flat_field:"] = "(nil)"
         self.header["Excluded_pixels:"] = " badpix_mask.tif"

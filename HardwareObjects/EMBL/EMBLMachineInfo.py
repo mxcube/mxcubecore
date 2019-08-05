@@ -117,8 +117,6 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_sc_dewar_low_level_alarm = None
         self.chan_sc_dewar_overflow_alarm = None
 
-        self.flux_hwobj = None
-
     def init(self):
 
         self.update_interval = int(self.getProperty("updateIntervalS"))
@@ -140,9 +138,8 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_frontend_status.connectSignal("update", self.frontend_status_changed)
         self.frontend_status_changed(self.chan_frontend_status.getValue())
 
-        self.flux_hwobj = self.getObjectByRole("flux")
-        if self.flux_hwobj is not None:
-            self.connect(self.flux_hwobj, "fluxInfoChanged", self.flux_info_changed)
+        if beamline_object.flux is not None:
+            self.connect(beamline_object.flux, "fluxInfoChanged", self.flux_info_changed)
             self.values_ordered_dict["flux"] = {
                 "value": 1,
                 "value_str": "Remeasure flux!",

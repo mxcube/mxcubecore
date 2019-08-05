@@ -59,10 +59,10 @@ class CollectEmulator(CollectMockup):
     def init(self):
         CollectMockup.init(self)
         # NBNB you get an error if you use 'beamline_object.session'
-        session_hwobj = self.getObjectByRole("session")
-        if session_hwobj and self.hasObject("override_data_directories"):
+        session = beamline_object.session
+        if session and self.hasObject("override_data_directories"):
             dirs = self["override_data_directories"].getProperties()
-            session_hwobj.set_base_data_directories(**dirs)
+            session.set_base_data_directories(**dirs)
 
     def _get_simcal_input(self, data_collect_parameters, crystal_data):
         """Get ordered dict with simcal input from available data"""
@@ -180,7 +180,7 @@ class CollectEmulator(CollectMockup):
         if not detector_distance:
             resolution = data_collect_parameters["resolution"]["upper"]
             self.set_resolution(resolution)
-            detector_distance = self.get_detector_distance()
+            detector_distance = beamline_object.detector.detector_distance.getPosition()
         # Add sweeps
         sweeps = []
         for osc in data_collect_parameters["oscillation_sequence"]:
@@ -263,7 +263,7 @@ class CollectEmulator(CollectMockup):
 
         # get crystal data
         sample_name = self.getProperty("default_sample_name")
-        sample = self.sample_changer_hwobj.getLoadedSample()
+        sample = beamline_object.sample_changer.getLoadedSample()
         if sample:
             ss0 = sample.getName()
             if ss0 and ss0.startswith(self.TEST_SAMPLE_PREFIX):

@@ -9,6 +9,8 @@ from datetime import datetime
 from requests import post, get
 from urllib.parse import urljoin
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 _CONNECTION_ERROR_MSG = (
     "Could not connect to ISPyB, please verify that "
@@ -35,10 +37,9 @@ class ISPyBRestClient(HardwareObject):
         self.base_result_url = None
 
     def init(self):
-        self.session_hwobj = self.getObjectByRole("session")
 
-        if self.session_hwobj:
-            self.beamline_name = self.session_hwobj.beamline_name
+        if beamline_object.session:
+            self.beamline_name = beamline_object.session.beamline_name
         else:
             self.beamline_name = "ID:TEST"
 
@@ -124,8 +125,8 @@ class ISPyBRestClient(HardwareObject):
         if self.base_result_url is not None and did:
             path = "mx/#/mx/proposal/{pcode}{pnumber}/datacollection/datacollectionid/{did}/main"
             path = path.format(
-                pcode=self.session_hwobj.proposal_code,
-                pnumber=self.session_hwobj.proposal_number,
+                pcode=beamline_object.session.proposal_code,
+                pnumber=beamline_object.session.proposal_number,
                 did=did,
             )
 
@@ -147,9 +148,9 @@ class ISPyBRestClient(HardwareObject):
         url = url.format(
             rest_root=self.__rest_root,
             token=str(self.__rest_token),
-            pcode=self.session_hwobj.proposal_code,
-            pnumber=self.session_hwobj.proposal_number,
-            sid=self.session_hwobj.session_id,
+            pcode=beamline_object.session.proposal_code,
+            pnumber=beamline_object.session.proposal_number,
+            sid=beamline_object.session.session_id,
         )
 
         try:
@@ -174,8 +175,8 @@ class ISPyBRestClient(HardwareObject):
         url = url.format(
             rest_root=self.__rest_root,
             token=str(self.__rest_token),
-            pcode=self.session_hwobj.proposal_code,
-            pnumber=self.session_hwobj.proposal_number,
+            pcode=beamline_object.session.proposal_code,
+            pnumber=beamline_object.session.proposal_number,
             dc_id=dc_id,
         )
         try:
@@ -199,8 +200,8 @@ class ISPyBRestClient(HardwareObject):
                     url = url.format(
                         rest_root=self.__rest_root,
                         token=str(self.__rest_token),
-                        pcode=self.session_hwobj.proposal_code,
-                        pnumber=self.session_hwobj.proposal_number,
+                        pcode=beamline_object.session.proposal_code,
+                        pnumber=beamline_object.session.proposal_number,
                         step_id=step_id,
                     )
 
@@ -238,8 +239,8 @@ class ISPyBRestClient(HardwareObject):
         url = url.format(
             rest_root=self.__rest_root,
             token=str(self.__rest_token),
-            pcode=self.session_hwobj.proposal_code,
-            pnumber=self.session_hwobj.proposal_number,
+            pcode=beamline_object.session.proposal_code,
+            pnumber=beamline_object.session.proposal_number,
             dcid=collection_id,
         )
 
@@ -268,8 +269,8 @@ class ISPyBRestClient(HardwareObject):
         url = url.format(
             rest_root=self.__rest_root,
             token=str(self.__rest_token),
-            pcode=self.session_hwobj.proposal_code,
-            pnumber=self.session_hwobj.proposal_number,
+            pcode=beamline_object.session.proposal_code,
+            pnumber=beamline_object.session.proposal_number,
             image_id=image_id,
         )
 
@@ -301,8 +302,8 @@ class ISPyBRestClient(HardwareObject):
         url = url.format(
             rest_root=self.__rest_root,
             token=str(self.__rest_token),
-            pcode=self.session_hwobj.proposal_code,
-            pnumber=self.session_hwobj.proposal_number,
+            pcode=beamline_object.session.proposal_code,
+            pnumber=beamline_object.session.proposal_number,
             image_id=image_id,
         )
 

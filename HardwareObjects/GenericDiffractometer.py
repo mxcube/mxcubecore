@@ -25,9 +25,9 @@ import copy
 import time
 import gevent
 import logging
-from HardwareRepository.HardwareObjects import sample_centring
 import math
 import numpy
+from HardwareRepository.HardwareObjects import sample_centring
 from HardwareRepository.HardwareObjects import queue_model_objects
 
 try:
@@ -37,6 +37,8 @@ except:
     unicode = str
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 __credits__ = ["MXCuBE collaboration"]
 
@@ -161,9 +163,6 @@ class GenericDiffractometer(HardwareObject):
         self.centring_motors_list = None
         self.front_light_switch = None
         self.back_light_switch = None
-        self.camera_hwobj = None
-        self.beam_info_hwobj = None
-        self.sample_changer = None
         self.use_sc = False
 
         # Channels and commands -----------------------------------------------
@@ -232,21 +231,18 @@ class GenericDiffractometer(HardwareObject):
         self.user_confirms_centring = True
 
         # Hardware objects ----------------------------------------------------
-        self.camera_hwobj = self.getObjectByRole("camera")
-        self.camera = self.camera_hwobj
-        if self.camera_hwobj is not None:
-            self.image_height = self.camera_hwobj.getHeight()
-            self.image_width = self.camera_hwobj.getWidth()
+        if beamline_object.graphics.camera is not None:
+            self.image_height = beamline_object.graphics.camera.getHeight()
+            self.image_width = beamline_object.graphics.camera.getWidth()
         else:
             logging.getLogger("HWR").debug(
                 "Diffractometer: " + "Camera hwobj is not defined"
             )
 
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        if self.beam_info_hwobj is not None:
-            self.beam_position = self.beam_info_hwobj.get_beam_position()
+        if beamline_object.beam is not None:
+            self.beam_position = beamline_object.beam.get_beam_position()
             self.connect(
-                self.beam_info_hwobj, "beamPosChanged", self.beam_position_changed
+                beamline_object.beam, "beamPosChanged", self.beam_position_changed
             )
         else:
             self.beam_position = [self.image_width / 2, self.image_height / 2]
@@ -344,8 +340,7 @@ class GenericDiffractometer(HardwareObject):
                 )
 
         # sample changer -----------------------------------------------------
-        self.sample_changer = self.getObjectByRole("samplechanger")
-        if self.sample_changer is None:
+        if beamline_object.sample_changer is None:
             logging.getLogger("HWR").warning(
                 "Diffractometer: Sample Changer is not defined"
             )
@@ -608,7 +603,7 @@ class GenericDiffractometer(HardwareObject):
         """
         if flag:
             # check both transfer_mode and sample_Changer
-            if self.sample_changer is None:
+            if beamline_object.sample_changer is None:
                 logging.getLogger("HWR").error(
                     "Diffractometer: Sample " + "Changer is not available"
                 )
@@ -707,14 +702,14 @@ class GenericDiffractometer(HardwareObject):
     #     return self.current_positions_dict.get("phi")
 
     def get_snapshot(self):
-        if self.camera_hwobj:
-            return self.camera_hwobj.get_snapshot()
+        if beamline_object.graphics.camera:
+            return beamline_object.graphics.camera.get_snapshot()
 
     def save_snapshot(self, filename):
         """
         """
-        if self.camera_hwobj:
-            return self.camera_hwobj.save_snapshot(filename)
+        if beamline_object.graphics.camera:
+            return beamline_object.graphics.camera.save_snapshot(filename)
 
     def get_pixels_per_mm(self):
         """
@@ -829,7 +824,7 @@ class GenericDiffractometer(HardwareObject):
         while self.automatic_centring_try_count > 0:
             if self.use_sample_centring:
                 self.current_centring_procedure = sample_centring.start_auto(
-                    self.camera_hwobj,
+                    beamline_object.graphics.camera,
                     {
                         "phi": self.centring_phi,
                         "phiy": self.centring_phiy,

@@ -45,19 +45,19 @@ class XrayImagingQueueEntry(BaseQueueEntry):
 
     def execute(self):
         BaseQueueEntry.execute(self)
-        self.beamline_setup.xray_imaging_hwobj.execute(self.get_data_model())
+        beamline_object.imaging.execute(self.get_data_model())
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
 
         queue_controller = self.get_queue_controller()
         queue_controller.connect(
-            self.beamline_setup.xray_imaging_hwobj,
+            beamline_object.imaging,
             "collectImageTaken",
             self.image_taken,
         )
         queue_controller.connect(
-            self.beamline_setup.xray_imaging_hwobj,
+            beamline_object.imaging,
             "collectFailed",
             self.collect_failed
         )
@@ -68,27 +68,27 @@ class XrayImagingQueueEntry(BaseQueueEntry):
             gid = data_model.get_parent().lims_group_id
             data_model.lims_group_id = gid
 
-        self.beamline_setup.xray_imaging_hwobj.pre_execute(self.get_data_model())
+        beamline_object.imaging.pre_execute(self.get_data_model())
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
-        self.beamline_setup.xray_imaging_hwobj.post_execute(self.get_data_model())
+        beamline_object.imaging.post_execute(self.get_data_model())
 
         queue_controller = self.get_queue_controller()
         queue_controller.disconnect(
-            self.beamline_setup.xray_imaging_hwobj,
+            beamline_object.imaging,
             "collectImageTaken",
             self.image_taken,
         )
         queue_controller.disconnect(
-            self.beamline_setup.xray_imaging_hwobj,
+            beamline_object.imaging,
             "collectFailed",
             self.collect_failed
         )
 
     def stop(self):
         BaseQueueEntry.stop(self)
-        self.beamline_setup.xray_imaging_hwobj.stop_collect()
+        beamline_object.imaging.stop_collect()
 
     def collect_failed(self, message):
         # this is to work around the remote access problem

@@ -1,4 +1,6 @@
 from HardwareRepository.HardwareObjects import BeamInfo
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 """
 XML example file
@@ -27,15 +29,14 @@ class ESRFBeamInfo(BeamInfo.BeamInfo):
         beam_size_slits = self.getProperty("beam_size_slits")
         if beam_size_slits:
             self.beam_size_slits = tuple(map(float, beam_size_slits.split()))
-        self.camera = self.getDeviceByRole("camera")
 
         beam_position = self.getProperty("beam_position")
         if beam_position:
             self.beam_position = tuple(map(float, beam_position.split()))
         else:
             self.beam_position = (
-                self.camera.getWidth() / 2,
-                self.camera.getHeight() / 2,
+                beamline_object.graphics.camera.getWidth() / 2,
+                beamline_object.graphics.camera.getHeight() / 2,
             )
 
         self.flux = self.getObjectByRole("flux")

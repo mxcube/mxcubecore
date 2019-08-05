@@ -1,19 +1,16 @@
 # pylint: skip-file
 
-import gevent
 import time
-import subprocess
-import os
-import math
 from HardwareRepository.TaskUtils import task, cleanup, error_cleanup
 import logging
 from PyTango import DeviceProxy
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 class LimaDetectorMockup:
-    def init(self, config, collect_obj):
+    def init(self, config, collect_obj=None):
         self.config = config
-        self.collect_obj = collect_obj
         self.header = dict()
 
         lima_device = config.getProperty("lima_device")
@@ -109,7 +106,7 @@ class LimaDetectorMockup:
         still,
     ):
         diffractometer_positions = (
-            self.collect_obj.bl_control.diffractometer.getPositions()
+            beamline_object.diffractometer.getPositions()
         )
         self.start_angles = list()
         for i in range(number_of_images):

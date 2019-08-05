@@ -8,6 +8,8 @@ import uuid
 import re
 import requests
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 class BIOMAXKafka(HardwareObject):
@@ -24,7 +26,6 @@ class BIOMAXKafka(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self.kafka_server = None
-        self.session_hwobj = None
         self.topic = ""
 
     def init(self):
@@ -33,8 +34,7 @@ class BIOMAXKafka(HardwareObject):
         """
         self.kafka_server = self.getProperty("kafka_server")
         self.topic = self.getProperty("topic")
-        self.session_hwobj = self.getObjectByRole("session")
-        self.beamline_name = self.session_hwobj.beamline_name
+        self.beamline_name = beamline_object.session.beamline_name
         self.file = open("/tmp/kafka_errors.txt", "a")
         self.url = self.kafka_server + "/kafka"
 
@@ -53,9 +53,9 @@ class BIOMAXKafka(HardwareObject):
             {
                 "uuid": str(uuid.uuid4()),
                 "beamline": self.beamline_name,
-                "proposal": self.session_hwobj.get_proposal(),  # e.g. MX20170251
-                "session": self.session_hwobj.get_session_start_date(),  # 20171206
-                "userCategory": "visitors",  # self.session_hwobj.get_user_category()  #staff or visitors
+                "proposal": beamline_object.session.get_proposal(),  # e.g. MX20170251
+                "session": beamline_object.session.get_session_start_date(),  # 20171206
+                "userCategory": "visitors",  # beamline_object.session.get_user_category()  #staff or visitors
                 "_v": "0",
             }
         )

@@ -5,6 +5,8 @@ import logging
 from HardwareRepository import HardwareRepository
 
 import Session
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 class SOLEILSession(Session.Session):
@@ -147,7 +149,7 @@ def test():
     hwr = HardwareRepository.getHardwareRepository()
     hwr.connect()
 
-    sess = hwr.getHardwareObject("/session")
+    sess = beamline_object.session
 
     sess.set_user_info("mx2014", "143301", "14330", "20100023")
 

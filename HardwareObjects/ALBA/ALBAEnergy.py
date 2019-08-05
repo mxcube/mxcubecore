@@ -1,7 +1,8 @@
-from HardwareRepository import HardwareRepository
-from HardwareRepository.BaseHardwareObjects import Device
-
 import logging
+
+from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 class ALBAEnergy(Device):
@@ -11,10 +12,9 @@ class ALBAEnergy(Device):
         self.wavelength_position = None
 
     def init(self):
-        self.energy_hwobj = self.getObjectByRole("energy")
         self.wavelength_hwobj = self.getObjectByRole("wavelength")
 
-        self.energy_hwobj.connect("positionChanged", self.energy_position_changed)
+        beamline_object.energy.connect("positionChanged", self.energy_position_changed)
         self.wavelength_hwobj.connect(
             "positionChanged", self.wavelength_position_changed
         )
@@ -27,7 +27,7 @@ class ALBAEnergy(Device):
 
     def get_energy(self):
         if self.energy_position is None:
-            self.energy_position = self.energy_hwobj.getPosition()
+            self.energy_position = beamline_object.energy.getPosition()
         return self.energy_position
 
     get_current_energy = get_energy
@@ -38,7 +38,7 @@ class ALBAEnergy(Device):
         return self.wavelength_position
 
     def update_values(self):
-        self.energy_hwobj.update_values()
+        beamline_object.energy.update_values()
 
     def energy_position_changed(self, value):
         self.energy_position = value
@@ -56,16 +56,16 @@ class ALBAEnergy(Device):
         logging.getLogger("HWR").debug(
             "moving energy to %s. now is %s" % (value, current_egy)
         )
-        self.energy_hwobj.move(value)
+        beamline_object.energy.move(value)
 
     def wait_move_energy_done(self):
-        self.energy_hwobj.wait_end_of_move()
+        beamline_object.energy.wait_end_of_move()
 
     def move_wavelength(self, value):
         self.wavelength_hwobj.move(value)
 
     def get_energy_limits(self):
-        return self.energy_hwobj.getLimits()
+        return beamline_object.energy.getLimits()
 
     def getEnergyLimits(self):
         return self.get_energy_limits()
