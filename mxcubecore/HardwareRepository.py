@@ -391,9 +391,10 @@ class __HardwareRepositoryClient:
                 "Could not execute 'require' on Hardware Repository server"
             )
 
-    def loadHardwareObject(self, hwobj_name=""):
+    def _loadHardwareObject(self, hwobj_name=""):
         """
-        Load a Hardware Object
+        Load a Hardware Object. Do NOT use externally,
+        as this will mess up object tracking, signals, etc.
 
         :param hwobj_name:  string name of the Hardware Object to load, for example '/motors/m0'
         :return: the loaded Hardware Object, or None if it fails
@@ -459,7 +460,7 @@ class __HardwareRepositoryClient:
                 if isinstance(hwobj_instance, string_types):
                     # We have redirection to another file
                     # Enter in dictionaries also under original names
-                    result = self.loadHardwareObject(hwobj_instance)
+                    result = self._loadHardwareObject(hwobj_instance)
                     if hwobj_name in self.invalidHardwareObjects:
                         self.invalidHardwareObjects.remove(hwobj_name)
                     self.hardwareObjects[hwobj_name] = result
@@ -697,7 +698,7 @@ class __HardwareRepositoryClient:
                 if objectName in self.hardwareObjects:
                     ho = self.hardwareObjects[objectName]
                 else:
-                    ho = self.loadHardwareObject(objectName)
+                    ho = self._loadHardwareObject(objectName)
                 return ho
         except TypeError as err:
             logging.getLogger("HWR").exception(
@@ -952,6 +953,9 @@ class __HardwareRepositoryClient:
         # reimport is supported for python 2.x and not by python 3.x
         # if needed a similar package for 3x could be used. In this case
         # code depends on a platform: platform.python_version()[0] > 2 ...
+
+        # NB reloadHardwareObjects does NOT work with beamline_opbject
+        # and other yaml configs
 
         import reimport
 

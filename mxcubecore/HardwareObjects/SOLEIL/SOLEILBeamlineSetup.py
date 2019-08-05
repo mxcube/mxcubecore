@@ -25,7 +25,7 @@ class SOLEILBeamlineSetup(BeamlineSetup):
         shutterless = self.detector_has_shutterless()
 
         try:
-            detector_mode = self.detector_hwobj.default_mode()
+            detector_mode = beamline_object.detector.default_mode()
         except AttributeError:
             detector_mode = None
 

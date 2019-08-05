@@ -36,7 +36,6 @@ class ALBABeamInfo(Equipment):
 
         self.aperture_hwobj = None
         self.slits_hwobj = None
-        self.beam_definer_hwobj = None
 
         self.beam_size_slits = None
         self.beam_size_aperture = None

@@ -24,6 +24,8 @@ from HardwareRepository.HardwareObjects.abstract.AbstractXRFSpectrum import (
     AbstractXRFSpectrum,
 )
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
@@ -42,11 +44,6 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         self.spectrum_data = None
         self.mca_calib = None
 
-        self.energy_hwobj = None
-        self.transmission_hwobj = None
-        self.db_connection_hwobj = None
-        self.beam_info_hwobj = None
-
         self.chan_spectrum_status = None
         self.chan_spectrum_consts = None
         self.chan_scan_error = None
@@ -56,20 +53,16 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
     def init(self):
         self.ready_event = gevent.event.Event()
 
-        self.energy_hwobj = self.getObjectByRole("energy")
+        # self.transmission_hwobj = self.getObjectByRole("transmission")
+        # if self.transmission_hwobj is None:
+        #     logging.getLogger("HWR").warning(
+        #         "EMBLXRFSpectrum: Transmission hwobj not defined"
+        #     )
 
-        self.transmission_hwobj = self.getObjectByRole("transmission")
-        if self.transmission_hwobj is None:
-            logging.getLogger("HWR").warning(
-                "EMBLXRFSpectrum: Transmission hwobj not defined"
-            )
-
-        self.db_connection_hwobj = self.getObjectByRole("dbserver")
-        if self.db_connection_hwobj is None:
+        if beamline_object.lims is None:
             logging.getLogger().warning("EMBLXRFSpectrum: DB hwobj not defined")
 
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        if self.beam_info_hwobj is None:
+        if beamline_object.beam is None:
             logging.getLogger("HWR").warning(
                 "EMBLXRFSpectrum: Beam info hwobj not defined"
             )

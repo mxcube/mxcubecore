@@ -1,4 +1,6 @@
 from HardwareRepository import BaseHardwareObjects
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 import logging
 import PyTango.gevent
 import gevent
@@ -64,7 +66,7 @@ class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
         logging.info(
             "%s: %s hutch", self.name(), "entering" if entering_hutch else "leaving"
         )
-        dtox = self.getObjectByRole("detector_distance")
+        dtox = beamline_object.detector.detector_distance
         if not entering_hutch:
             if old["dtox"] is not None:
                 dtox.move(old["dtox"])

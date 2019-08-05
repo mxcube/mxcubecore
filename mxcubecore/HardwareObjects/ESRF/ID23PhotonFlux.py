@@ -19,7 +19,6 @@ class ID23PhotonFlux(Equipment):
         except AttributeError:
             self.threshold = [0, 9999]
         self.shutter = self.getDeviceByRole("shutter")
-        self.energy_motor = self.getObjectByRole("energy")
         self.aperture = self.getObjectByRole("aperture")
         fname = self.getProperty("calibrated_diodes_file")
 
@@ -49,7 +48,7 @@ class ID23PhotonFlux(Equipment):
             counts = 0
             logging.getLogger("HWR").exception("%s: could not get counts", self.name())
         try:
-            egy = self.energy_motor.get_current_energy() * 1000.0
+            egy = beamline_object.energy.get_current_energy() * 1000.0
             calib = self.flux_calc.calc_flux_coef(egy)
         except BaseException:
             logging.getLogger("HWR").exception("%s: could not get energy", self.name())

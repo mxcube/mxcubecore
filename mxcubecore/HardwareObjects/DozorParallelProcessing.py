@@ -52,8 +52,8 @@ class DozorParallelProcessing(GenericParallelProcessing):
         input_file.setReversing_rotation(
             XSDataBoolean(self.params_dict["reversing_rotation"])
         )
-        input_file.setPixelMin(XSDataInteger(self.detector_hwobj.get_pixel_min()))
-        input_file.setPixelMax(XSDataInteger(self.detector_hwobj.get_pixel_max()))
+        input_file.setPixelMin(XSDataInteger(beamline_object.detector.get_pixel_min()))
+        input_file.setPixelMax(XSDataInteger(beamline_object.detector.get_pixel_max()))
         input_file.setBeamstopSize(XSDataDouble(self.beamstop_hwobj.get_size()))
         input_file.setBeamstopDistance(XSDataDouble(self.beamstop_hwobj.get_distance()))
         input_file.setBeamstopDirection(

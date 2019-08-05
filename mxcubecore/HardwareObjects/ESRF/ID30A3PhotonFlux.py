@@ -11,7 +11,6 @@ class ID30A3PhotonFlux(Equipment):
     def init(self):
         controller = self.getObjectByRole("controller")
         self.musst = controller.musst
-        self.energy_motor = self.getDeviceByRole("energy")
         self.shutter = self.getDeviceByRole("shutter")
         self.factor = self.getProperty("current_photons_factor")
 
@@ -68,7 +67,7 @@ class ID30A3PhotonFlux(Equipment):
         flux = None
 
         try:
-          egy = self.energy_motor.getPosition()*1000.0
+          egy = beamline_object.energy.getPosition()*1000.0
         except:
           logging.getLogger("HWR").exception("%s: could not get energy", self.name())
         else:

@@ -223,7 +223,7 @@ def get_default_characterisation_parameters(edna_default_file):
     :returns: A CharacterisationsParameters object with default parameters.
     """
 
-    # input_fname = self.data_analysis_hwobj.edna_default_file
+    # input_fname = beamline_object.data_analysis.edna_default_file
     fpath = getHardwareRepository().findInRepository(edna_default_file)
     if fpath is None:
         raise ValueError("File %s not found in repository" % edna_default_file)

@@ -4,12 +4,13 @@ import os
 import math
 from HardwareRepository.TaskUtils import task
 import logging
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 class Eiger:
-    def init(self, config, collect_obj):
+    def init(self, config, collect_obj=None):
         self.config = config
-        self.collect_obj = collect_obj
         self.header = dict()
 
         lima_device = config.getProperty("lima_device")
@@ -93,7 +94,7 @@ class Eiger:
         gate=False,
     ):
         diffractometer_positions = (
-            self.collect_obj.bl_control.diffractometer.getPositions()
+            beamline_object.diffractometer.getPositions()
         )
         self.start_angles = list()
         for i in range(number_of_images):
@@ -113,12 +114,12 @@ class Eiger:
             self.header["Phi"] = "0.0000 deg."
             self.header["Kappa"] = "0.0000 deg."
         self.header["Alpha"] = "0.0000 deg."
-        self.header["Polarization"] = self.collect_obj.bl_config.polarisation
+        self.header["Polarization"] = beamline_object.collect.bl_config.polarisation
         self.header["Detector_2theta"] = "0.0000 deg."
         self.header["Angle_increment"] = "%0.4f deg." % osc_range
         # self.header["Start_angle"]="%0.4f deg." % start
-        self.header["Transmission"] = self.collect_obj.get_transmission()
-        self.header["Flux"] = self.collect_obj.get_flux()
+        self.header["Transmission"] = beamline_object.transmission.get_value()
+        self.header["Flux"] = beamline_object.flux.get_flux()
         self.header["Detector_Voffset"] = "0.0000 m"
         self.header["Energy_range"] = "(0, 0) eV"
         self.header["Trim_directory:"] = "(nil)"
@@ -133,13 +134,13 @@ class Eiger:
         self.header["Exposure_period"] = "%f s" % (exptime + self.get_deadtime())
         self.header["Exposure_time"] = "%f s" % exptime
 
-        beam_x, beam_y = self.collect_obj.get_beam_centre()
+        beam_x, beam_y = beamline_object.detector.get_beam_centre()
         header_info = [
             "beam_center_x=%s" % (beam_x / 7.5000003562308848e-02),
             "beam_center_y=%s" % (beam_y / 7.5000003562308848e-02),
-            "wavelength=%s" % self.collect_obj.get_wavelength(),
+            "wavelength=%s" % beamline_object.energy.get_wavelength(),
             "detector_distance=%s"
-            % (self.collect_obj.get_detector_distance() / 1000.0),
+            % (beamline_object.detector.get_detector_distance() / 1000.0),
             "omega_start=%0.4f" % start,
             "omega_increment=%0.4f" % osc_range,
         ]

@@ -38,9 +38,6 @@ class BIOMAXMD2(GenericDiffractometer):
         self.back_light_switch = self.getObjectByRole("backlightswitch")
         self.front_light_switch = self.getObjectByRole("frontlightswitch")
 
-        # to make it comaptible
-        self.camera = self.camera_hwobj
-
     def start3ClickCentring(self):
         self.start_centring_method(self.CENTRING_METHOD_MANUAL)
 
@@ -118,7 +115,7 @@ class BIOMAXMD2(GenericDiffractometer):
 
     def moveToBeam(self, x, y):
         try:
-            self.beam_position = self.beam_info_hwobj.get_beam_position()
+            self.beam_position = beamline_object.beam.get_beam_position()
             beam_xc = self.beam_position[0]
             beam_yc = self.beam_position[1]
             self.centring_phiz.moveRelative((y - beam_yc) / float(self.pixelsPerMmZ))

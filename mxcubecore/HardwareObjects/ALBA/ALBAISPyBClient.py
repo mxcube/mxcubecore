@@ -28,11 +28,11 @@ class ALBAISPyBClient(ISPyBClient):
                 logging.getLogger("HWR").debug(
                     "  homeDirectory for user %s is %s" % (login_name, home_dir)
                 )
-                # self.session_hwobj.set_base_data_directories(home_dir, home_dir, home_dir)
-                self.session_hwobj.set_ldap_homedir(home_dir)
+                # beamline_object.session.set_base_data_directories(home_dir, home_dir, home_dir)
+                beamline_object.session.set_ldap_homedir(home_dir)
         else:
             home_dir = "/tmp"
-            self.session_hwobj.set_ldap_homedir(home_dir)
+            beamline_object.session.set_ldap_homedir(home_dir)
 
         return ok, msg
 
@@ -59,7 +59,7 @@ class ALBAISPyBClient(ISPyBClient):
             try:
                 prop = "xtalSnapshotFullPath%d" % (i + 1)
                 path = mx_collect_dict[prop]
-                ispyb_path = self.session_hwobj.path_to_ispyb(path)
+                ispyb_path = beamline_object.session.path_to_ispyb(path)
                 logging.debug("ALBA ISPyBClient - %s is %s " % (prop, ispyb_path))
                 mx_collect_dict[prop] = ispyb_path
             except BaseException:
@@ -69,7 +69,7 @@ class ALBAISPyBClient(ISPyBClient):
         for prop in ["jpegThumbnailFileFullPath", "jpegFileFullPath"]:
             try:
                 path = image_dict[prop]
-                ispyb_path = self.session_hwobj.path_to_ispyb(path)
+                ispyb_path = beamline_object.session.path_to_ispyb(path)
                 image_dict[prop] = ispyb_path
             except BaseException:
                 pass

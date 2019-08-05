@@ -23,6 +23,7 @@ import logging
 import gevent
 import subprocess
 import numpy as np
+import json
 
 from copy import copy
 from scipy import ndimage
@@ -31,6 +32,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import SimpleHTML
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 __license__ = "LGPLv3+"
@@ -60,11 +63,7 @@ class GenericParallelProcessing(HardwareObject):
         HardwareObject.__init__(self, name)
 
         # Hardware objects ----------------------------------------------------
-        self.collect_hwobj = None
-        self.detector_hwobj = None
-        self.diffractometer_hwobj = None
         self.beamstop_hwobj = None
-        self.lims_hwobj = None
 
         # Internal variables --------------------------------------------------
         self.start_command = None
@@ -86,20 +85,7 @@ class GenericParallelProcessing(HardwareObject):
     def init(self):
         self.done_event = gevent.event.Event()
 
-        self.collect_hwobj = self.getObjectByRole("collect")
-        self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
-
-        try:
-            self.detector_hwobj = self.collect_hwobj.detector_hwobj
-            self.lims_hwobj = self.collect_hwobj.lims_client_hwobj
-        except BaseException:
-            try:
-                self.detector_hwobj = self.collect_hwobj.bl_config.detector_hwobj
-                self.lims_hwobj = self.collect_hwobj.cl_config.lims_client_hwobj
-            except BaseException:
-                pass
-
-        if self.detector_hwobj is None:
+        if beamline_object.detector is None:
             logging.info("ParallelProcessing: Detector hwobj not defined")
 
         self.beamstop_hwobj = self.getObjectByRole("beamstop")
@@ -192,7 +178,7 @@ class GenericParallelProcessing(HardwareObject):
         self.params_dict["process_root_directory"] = process_directory
         self.params_dict["archive_root_directory"] = archive_directory
         self.params_dict["result_file_path"] = archive_directory
-        self.params_dict["collection_id"] = self.collect_hwobj.collection_id
+        self.params_dict["collection_id"] = beamline_object.collect.collection_id
 
         if workflow_step_directory:
             process_directory += workflow_step_directory
@@ -375,7 +361,7 @@ class GenericParallelProcessing(HardwareObject):
                 snapshot = self.data_collection.grid.get_snapshot()
                 snapshot.save(snapshot_filename, "PNG")
             else:
-                self.collect_hwobj._take_crystal_snapshot(snapshot_filename)
+                beamline_object.collect._take_crystal_snapshot(snapshot_filename)
                 logging.getLogger("HWR").info(
                     "Parallel processing: Snapshot %s saved." % snapshot_filename
                 )
@@ -411,7 +397,7 @@ class GenericParallelProcessing(HardwareObject):
                 logging.getLogger("GUI").info(
                     "Xray centering: Moving to the best position"
                 )
-                self.diffractometer_hwobj.move_motors(
+                beamline_object.diffractometer.move_motors(
                     self.results_aligned["center_mass"], timeout=15
                 )
                 self.store_processing_results(status)
@@ -472,8 +458,8 @@ class GenericParallelProcessing(HardwareObject):
             if self.workflow_info is not None:
                 self.params_dict["workflow_id"] = self.workflow_info["workflow_id"]
 
-            workflow_id, workflow_mesh_id, grid_info_id = self.lims_hwobj.store_workflow(
-                self.params_dict
+            workflow_id, workflow_mesh_id, grid_info_id = (
+                beamline_object.lims.store_workflow(self.params_dict)
             )
 
             self.params_dict["workflow_id"] = workflow_id
@@ -496,20 +482,20 @@ class GenericParallelProcessing(HardwareObject):
             else:
                 self.workflow_info = None
 
-            self.collect_hwobj.update_lims_with_workflow(
+            beamline_object.collect.update_lims_with_workflow(
                 workflow_id,
                 os.path.join(self.params_dict["archive_directory"], "snapshot.png"),
             )
 
-            self.lims_hwobj.store_workflow_step(self.params_dict)
+            beamline_object.lims.store_workflow_step(self.params_dict)
             if len(best_positions) > 0:
-                self.collect_hwobj.store_image_in_lims_by_frame_num(
+                beamline_object.collect.store_image_in_lims_by_frame_num(
                     best_positions[0]["index"]
                 )
             log.info("Parallel processing: Results saved in ISPyB")
 
-        self.lims_hwobj.set_image_quality_indicators_plot(
-            self.collect_hwobj.collection_id,
+        beamline_object.lims.set_image_quality_indicators_plot(
+            beamline_object.collect.collection_id,
             self.params_dict["cartography_path"],
             self.params_dict["csv_file_path"],
         )
@@ -716,8 +702,8 @@ class GenericParallelProcessing(HardwareObject):
                                       self.params_dict["run_number"],
                                       self.params_dict["lines_num"],
                                       str(self.params_dict["reversing_rotation"]),
-                                      self.detector_hwobj.get_pixel_min(),
-                                      self.detector_hwobj.get_pixel_max(),
+                                      beamline_object.detector.get_pixel_min(),
+                                      beamline_object.detector.get_pixel_max(),
                                       self.beamstop_hwobj.get_size(),
                                       self.beamstop_hwobj.get_distance(),
                                       self.beamstop_hwobj.get_direction()))
@@ -777,7 +763,7 @@ class GenericParallelProcessing(HardwareObject):
                 )[0]
                 self.results_aligned[
                     "center_mass"
-                ] = self.diffractometer_hwobj.get_point_from_line(
+                ] = beamline_object.diffractometer.get_point_from_line(
                     centred_positions[0],
                     centred_positions[1],
                     center_x,
@@ -826,7 +812,7 @@ class GenericParallelProcessing(HardwareObject):
                         # TODO make this nicer
                         # num_images = self.data_collection.acquisitions[0].acquisition_parameters.num_images - 1
                         # (point_one, point_two) = self.data_collection.get_centred_positions()
-                        # cpos = self.diffractometer_hwobj.get_point_from_line(point_one, point_two, index, num_images)
+                        # cpos = beamline_object.diffractometer.get_point_from_line(point_one, point_two, index, num_images)
                     best_position["col"] = col
                     best_position["row"] = row
                     best_position["cpos"] = cpos

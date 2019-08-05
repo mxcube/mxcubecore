@@ -1,5 +1,7 @@
 #
 from HardwareRepository.HardwareObjects.CatsMaint import CatsMaint
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 import logging
 import time
@@ -36,8 +38,6 @@ class PX1CatsMaint(CatsMaint):
             "ResetError",
         )
 
-        self.cats_hwo = self.getObjectByRole("sample_changer")
-
     def update_home_opened(self, value):
         if value != self.home_opened:
             self.home_opened = value
@@ -53,7 +53,7 @@ class PX1CatsMaint(CatsMaint):
             logging.getLogger("HWR").debug("Unloading sample first")
             self.cats_hwo._doUnload()
             time.sleep(3)
-            while self.cats_hwo._isDeviceBusy():
+            while beamline_object.sample_changer._isDeviceBusy():
                 time.sleep(0.3)
 
         logging.getLogger("HWR").debug("Running the home command (home/open) now")

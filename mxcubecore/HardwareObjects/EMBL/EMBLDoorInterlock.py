@@ -20,6 +20,8 @@
 import logging
 import gevent
 from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 __credits__ = ["EMBL Hamburg"]
@@ -46,9 +48,6 @@ class EMBLDoorInterlock(Device):
         self.door_interlock_final_state = None
         self.door_interlock_breakabled = None
 
-        self.detector_distance_hwobj = None
-        self.diffractometer_hwobj = None
-
         self.before_unlock_commands_present = None
         self.before_unlock_commands = None
 
@@ -65,9 +64,6 @@ class EMBLDoorInterlock(Device):
     def init(self):
 
         self.door_interlock_state = "unknown"
-
-        self.detector_distance_hwobj = self.getObjectByRole("detector_distance")
-        self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
 
         self.before_unlock_commands_present = self.getProperty(
             "before_unlock_commands_present"
@@ -169,22 +165,22 @@ class EMBLDoorInterlock(Device):
            It doesn't matter what we are sending in the command
            as long as it is a one char
         """
-        if self.diffractometer_hwobj is not None:
-            if self.diffractometer_hwobj.in_plate_mode():
-                if self.detector_distance_hwobj is not None:
-                    if self.detector_distance_hwobj.getPosition() < 780:
-                        self.detector_distance_hwobj.move(800, timeout=None)
-                        while self.detector_distance_hwobj.getPosition() < 360:
+        if beamline_object.diffractometer is not None:
+            if beamline_object.diffractometer.in_plate_mode():
+                if beamline_object.detector.detector_distance  is not None:
+                    if beamline_object.detector.detector_distance .getPosition() < 780:
+                        beamline_object.detector.detector_distance .move(800, timeout=None)
+                        while beamline_object.detector.detector_distance .getPosition() < 360:
                             gevent.sleep(0.01)
                         gevent.sleep(2)
             else:
-                if self.detector_distance_hwobj is not None:
-                    if self.detector_distance_hwobj.getPosition() < 1099:
-                        self.detector_distance_hwobj.move(1100)
+                if beamline_object.detector.detector_distance is not None:
+                    if beamline_object.detector.detector_distance .getPosition() < 1099:
+                        beamline_object.detector.detector_distance .move(1100)
                         gevent.sleep(1)
             try:
-                self.diffractometer_hwobj.set_phase(
-                    self.diffractometer_hwobj.PHASE_TRANSFER, timeout=None
+                beamline_object.diffractometer.set_phase(
+                    beamline_object.diffractometer.PHASE_TRANSFER, timeout=None
                 )
             except BaseException:
                 logging.getLogger("GUI").error(

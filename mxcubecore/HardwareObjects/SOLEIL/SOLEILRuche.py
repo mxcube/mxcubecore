@@ -1,8 +1,9 @@
 import os
 import time
 import logging
-from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 class SOLEILRuche(HardwareObject):
@@ -10,7 +11,6 @@ class SOLEILRuche(HardwareObject):
         HardwareObject.__init__(self, *args, **kwargs)
 
     def init(self):
-        self.session_ho = self.getObjectByRole("session")
         self.sync_dir = self.getProperty("sync_dir")
 
     def trigger_sync(self, path):
@@ -20,12 +20,12 @@ class SOLEILRuche(HardwareObject):
             logging.getLogger().info(
                 "<SOLEIL Ruche> username: %s  user_id: %s projuser: %s"
                 % (
-                    self.session_ho.username,
-                    self.session_ho.user_id,
-                    self.session_ho.projuser,
+                    beamline_object.session.username,
+                    beamline_object.session.user_id,
+                    beamline_object.session.projuser,
                 )
             )
-            if self.session_ho.user_id is None:
+            if beamline_object.session.user_id is None:
                 return
         except BaseException:
             pass
@@ -43,7 +43,7 @@ class SOLEILRuche(HardwareObject):
         logging.getLogger().info(
             "<SOLEIL Ruche> - triggering data sync on directory %s" % path_to_sync
         )
-        ruche_info = self.session_ho.get_ruche_info(path_to_sync)
+        ruche_info = beamline_object.session.get_ruche_info(path_to_sync)
         try:
             sync_filename = time.strftime(
                 "%Y_%m_%d-%H_%M_%S", time.localtime(time.time())

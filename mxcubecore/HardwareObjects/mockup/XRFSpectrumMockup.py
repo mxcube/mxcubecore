@@ -23,6 +23,8 @@ from HardwareRepository.HardwareObjects.abstract.AbstractXRFSpectrum import (
     AbstractXRFSpectrum
 )
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 spectrum_test_data = [
@@ -58,10 +60,7 @@ class XRFSpectrumMockup(AbstractXRFSpectrum, HardwareObject):
         HardwareObject.__init__(self, name)
 
     def init(self):
-        self.energy_hwobj = self.getObjectByRole("energy")
-        self.transmission_hwobj = self.getObjectByRole("transmission")
-        self.db_connection_hwobj = self.getObjectByRole("dbserver")
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
+        pass
 
     def isConnected(self):
         return True

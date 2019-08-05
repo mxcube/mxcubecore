@@ -29,7 +29,6 @@ class Shapes(HardwareObject):
         self.shapes = {}
 
     def init(self):
-        self.diffractometer = self.getObjectByRole("diffractometer")
         self.hide_grid_threshold = self.getProperty("hide_grid_threshold", 5)
 
     def get_shapes(self):
@@ -306,7 +305,7 @@ class Shapes(HardwareObject):
         Returns:
             AbstractActuator
         """
-        return beamline_object.diffractometer.camera_hwobj
+        return beamline_object.diffractometer.camera
 
 
 class Shape(object):

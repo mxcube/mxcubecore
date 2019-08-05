@@ -11,6 +11,8 @@ from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects.abstract.AbstractEnergyScan import (
     AbstractEnergyScan)
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -91,12 +93,10 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
 
     def init(self):
         self.energy_obj = self.getObjectByRole("energy")
-        self.safety_shutter = self.getObjectByRole("safety_shutter")
         self.beamsize = self.getObjectByRole("beamsize")
         self.transmission = self.getObjectByRole("transmission")
         self.ready_event = gevent.event.Event()
-        self.dbConnection = self.getObjectByRole("dbserver")
-        if self.dbConnection is None:
+        if beamline_object.lims is None:
             logging.getLogger("HWR").warning(
                 "EnergyScan: you should specify the database hardware object"
             )
@@ -117,16 +117,16 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         return pars
 
     def open_safety_shutter(self, timeout=None):
-        self.safety_shutter.openShutter()
+        beamline_object.safety_shutter.openShutter()
         with gevent.Timeout(
             timeout, RuntimeError("Timeout waiting for safety shutter to open")
         ):
-            while self.safety_shutter.getShutterState() == "closed":
+            while beamline_object.safety_shutter.getShutterState() == "closed":
                 time.sleep(0.1)
 
     def close_safety_shutter(self, timeout=None):
-        self.safety_shutter.closeShutter()
-        while self.safety_shutter.getShutterState() == "opened":
+        beamline_object.safety_shutter.closeShutter()
+        while beamline_object.safety_shutter.getShutterState() == "opened":
             time.sleep(0.1)
 
     def escan_prepare(self):
@@ -174,7 +174,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         return elements
 
     def storeEnergyScan(self):
-        if self.dbConnection is None:
+        if beamline_object.lims is None:
             return
         try:
             int(self.energy_scan_parameters["sessionId"])
@@ -191,7 +191,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         self.energy_scan_parameters.pop("atomic_nb")
 
         gevent.spawn(
-            StoreEnergyScanThread, self.dbConnection, self.energy_scan_parameters
+            StoreEnergyScanThread, beamline_object.lims, self.energy_scan_parameters
         )
 
     def doChooch(self, elt, edge, directory, archive_directory, prefix):

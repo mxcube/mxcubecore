@@ -42,15 +42,12 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         AbstractCollect.AbstractCollect.__init__(self, name)
 
         self.aborted_by_user = False
-        self.graphics_manager_hwobj = None
 
     def init(self):
         """Main init method
         """
 
         AbstractCollect.AbstractCollect.init(self)
-
-        self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
 
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True,))
@@ -138,8 +135,8 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         """
         Descript. :
         """
-        if self.autoprocessing_hwobj is not None:
-            self.autoprocessing_hwobj.execute_autoprocessing(
+        if beamline_object.online_processing is not None:
+            beamline_object.online_processing.execute_autoprocessing(
                 process_event,
                 self.current_dc_parameters,
                 frame_number,
@@ -156,14 +153,14 @@ class CollectMockup(AbstractCollect.AbstractCollect):
 
     @task
     def _take_crystal_snapshot(self, filename):
-        self.graphics_manager_hwobj.save_scene_snapshot(filename)
+        beamline_object.graphics.save_scene_snapshot(filename)
 
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec=1):
         """Rotates sample by 360 and composes a gif file
            Animation is saved as the fourth snapshot
         """
-        self.graphics_manager_hwobj.save_scene_animation(
+        beamline_object.graphics.save_scene_animation(
             animation_filename, duration_sec
         )
 
@@ -178,7 +175,7 @@ class CollectMockup(AbstractCollect.AbstractCollect):
     def move_motors(self, motor_position_dict):
         # TODO We copy, as dictionary is reset in move_motors. CLEAR UP!!
         # TODO clear up this confusion between move_motors and moveMotors
-        self.diffractometer_hwobj.move_motors(motor_position_dict.copy())
+        beamline_object.diffractometer.move_motors(motor_position_dict.copy())
 
     def prepare_input_files(self):
         """
@@ -213,16 +210,16 @@ class CollectMockup(AbstractCollect.AbstractCollect):
 
     # rhfogh Added to improve interaction with UI and persistence of values
     def set_wavelength(self, wavelength):
-        self.energy_hwobj.move_wavelength(wavelength)
+        beamline_object.energy.move_wavelength(wavelength)
 
     def set_energy(self, energy):
-        self.energy_hwobj.move_energy(energy)
+        beamline_object.energy.move_energy(energy)
 
     def set_resolution(self, new_resolution):
-        self.resolution_hwobj.move(new_resolution)
+        beamline_object.resolution.move(new_resolution)
 
     def set_transmission(self, transmission):
-        self.transmission_hwobj.set_value(transmission)
+        beamline_object.transmission.set_value(transmission)
 
     def move_detector(self, detector_distance):
-        self.detector_hwobj.set_distance(detector_distance)
+        beamline_object.detector.set_distance(detector_distance)

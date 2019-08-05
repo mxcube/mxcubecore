@@ -755,7 +755,6 @@ class GphlWorkflow(HardwareObject, object):
         geometric_strategy = payload
 
         gphl_workflow_model = self._queue_entry.get_data_model()
-        collect_hwobj = beamline_object.collect
 
         # enqueue data collection group
         if gphl_workflow_model.lattice_selected:
@@ -950,7 +949,7 @@ class GphlWorkflow(HardwareObject, object):
             # NBNB Wait till value has settled
             id_ = None
         # orgxy = collect_hwobj.get_beam_centre_pix()
-        orgxy = collect_hwobj.get_beam_centre()
+        orgxy = beamline_object.collect.get_beam_centre()
         detectorSetting = GphlMessages.BcsDetectorSetting(
             new_resolution,
             id_=id_,
@@ -1520,8 +1519,6 @@ class GphlWorkflow(HardwareObject, object):
             logging.getLogger("user_level_log").info(
                 "Post-centring: Taking %d sample snapshot(s)", number_of_snapshots
             )
-            collect_hwobj = beamline_object.collect
-            # settings = goniostatRotation.axisSettings
             beamline_object.diffractometer.move_motors(motor_settings)
             okp = tuple(int(motor_settings[x]) for x in self.rotation_axis_roles)
             timestamp = datetime.datetime.now().isoformat().split(".")[0]
@@ -1537,7 +1534,7 @@ class GphlWorkflow(HardwareObject, object):
                 logging.getLogger("HWR").debug(
                     "Centring snapshot stored at %s", snapshot_filename
                 )
-                collect_hwobj._take_crystal_snapshot(snapshot_filename)
+                beamline_object.collect._take_crystal_snapshot(snapshot_filename)
             if summed_angle:
                 beamline_object.diffractometer.move_omega_relative(-summed_angle)
 

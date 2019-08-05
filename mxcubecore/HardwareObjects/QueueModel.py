@@ -33,6 +33,8 @@ import jsonpickle
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects import queue_entry, queue_model_objects
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 class Serializer(object):
@@ -76,9 +78,7 @@ class QueueModel(HardwareObject):
 
         You should normaly not need to call this method.
         """
-        self.queue_hwobj = self.getObjectByRole("queue")
-
-        self.queue_hwobj.queue_model_hwobj = self
+        pass
 
     def select_model(self, name):
         """
@@ -91,7 +91,7 @@ class QueueModel(HardwareObject):
         :rtype: NoneType
         """
         self._selected_model = self._models[name]
-        self.queue_hwobj.clear()
+        beamline_object.queue_manager.clear()
         self._re_emit(self._selected_model)
 
     def get_model_root(self):
@@ -112,7 +112,7 @@ class QueueModel(HardwareObject):
         :rtype: NoneType
         """
         self._models[name] = queue_model_objects.RootNode()
-        self.queue_hwobj.clear()
+        beamline_object.queue_manager.clear()
 
     def register_model(self, name, root_node):
         """
@@ -277,7 +277,7 @@ class QueueModel(HardwareObject):
         view_item.setOn(task_model.is_enabled())
 
         if isinstance(task_model, queue_model_objects.Sample):
-            self.queue_hwobj.enqueue(qe)
+            beamline_object.queue_manager.enqueue(qe)
         elif not isinstance(task_model, queue_model_objects.Basket):
             # else:
             view_item.parent().get_queue_entry().enqueue(qe)
@@ -401,7 +401,7 @@ class QueueModel(HardwareObject):
                 node_list.append(child)
                 get_nodes_list(child)
 
-        for qe in self.queue_hwobj._queue_entry_list:
+        for qe in beamline_object.queue_manager._queue_entry_list:
             get_nodes_list(qe)
 
         return node_list
@@ -429,7 +429,7 @@ class QueueModel(HardwareObject):
             if self._selected_model == self._models[key]:
                 selected_model = key
 
-        queue_entry_list = self.queue_hwobj.get_queue_entry_list()
+        queue_entry_list = beamline_object.queue_manager.get_queue_entry_list()
         for item in queue_entry_list:
             # On the top level is Sample or Basket
             if isinstance(item, queue_entry.SampleQueueEntry):
@@ -461,7 +461,7 @@ class QueueModel(HardwareObject):
             if self._selected_model == self._models[key]:
                 selected_model = key
 
-        queue_entry_list = self.queue_hwobj.get_queue_entry_list()
+        queue_entry_list = beamline_object.queue_manager.get_queue_entry_list()
         for item in queue_entry_list:
             # On the top level is Sample or Basket
             if isinstance(item, queue_entry.SampleQueueEntry):
@@ -479,7 +479,7 @@ class QueueModel(HardwareObject):
     def load_queue_from_json_list(self, queue_list, snapshot):
         # Prepare list of samplesL
         sample_dict = {}
-        for item in self.queue_hwobj.get_queue_entry_list():
+        for item in beamline_object.queue_manager.get_queue_entry_list():
             if isinstance(item, queue_entry.SampleQueueEntry):
                 sample_data_model = item.get_data_model()
                 sample_dict[sample_data_model.location] = sample_data_model
@@ -519,7 +519,7 @@ class QueueModel(HardwareObject):
 
             # Prepare list of samples
             sample_dict = {}
-            for item in self.queue_hwobj.get_queue_entry_list():
+            for item in beamline_object.queue_manager.get_queue_entry_list():
                 if isinstance(item, queue_entry.SampleQueueEntry):
                     sample_data_model = item.get_data_model()
                     sample_dict[sample_data_model.location] = sample_data_model

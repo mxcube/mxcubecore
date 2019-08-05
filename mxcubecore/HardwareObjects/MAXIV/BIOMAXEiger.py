@@ -28,6 +28,8 @@ import logging
 from HardwareRepository import HardwareRepository
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 class BIOMAXEiger(Equipment):
@@ -722,7 +724,7 @@ def test():
 
     hwr = HardwareRepository.getHardwareRepository()
     hwr.connect()
-    obj = hwr.getHardwareObject("/detector")
+    detector = beamline_object.detector
 
     config = {
         "OmegaStart": 0,
@@ -740,28 +742,28 @@ def test():
         "TriggerMode": trigmode,
     }
 
-    if obj.get_status() == "not_init":
+    if detector.get_status() == "not_init":
         print("Cannot initialize hardware object")
         sys.exit(0)
 
-    if not obj.is_idle():
-        obj.stop_acquisition()
-        obj.wait_idle()
+    if not detector.is_idle():
+        detector.stop_acquisition()
+        detector.wait_idle()
 
-    obj.prepare_acquisition(config)
+    detector.prepare_acquisition(config)
 
     print("Waiting for configuration finished")
 
-    while obj.is_preparing():
+    while detector.is_preparing():
         gevent.wait(timeout=0.1)
         gevent.sleep(0.1)
         print(".")
 
-    if obj.prepare_error():
+    if detector.prepare_error():
         print("Prepare went wrong. Aborting")
         sys.exit(0)
 
-    readout_time = obj.get_readout_time()
+    readout_time = detector.get_readout_time()
     print("EIGER configuration done")
 
     print("Starting acquisition (trigmode = %s)" % trigmode)
@@ -770,23 +772,23 @@ def test():
         print("Total exposure time (estimated) will be: %s", total_time)
 
     try:
-        obj.start_acquisition()
+        detector.start_acquisition()
 
         if trigmode == "exts":
             print("  - waiting for trigger.")
             sys.stdout.flush()
-            obj.wait_acquire()
+            detector.wait_acquire()
             print("  - trigger received. Acquiring")
-            obj.wait_ready_or_idle()
+            detector.wait_ready_or_idle()
         else:
-            obj.trigger()
-            obj.wait_ready_or_idle()
+            detector.trigger()
+            detector.wait_ready_or_idle()
 
-        obj.stop_acquisition()
+        detector.stop_acquisition()
         print("Acquisition done")
     except KeyboardInterrupt:
-        obj.abort()
-        obj.wait_idle()
+        detector.abort()
+        detector.wait_idle()
 
 
 if __name__ == "__main__":
