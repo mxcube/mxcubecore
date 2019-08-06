@@ -562,10 +562,10 @@ class XMLRPCServer(HardwareObject):
             self.workflow_hwobj.workflow_end()
 
     def dozor_batch_processed(self, dozor_batch_dict):
-        beamline_object.offline_processing.batch_processed(dozor_batch_dict)
+        beamline_object.online_processing.batch_processed(dozor_batch_dict)
 
     def dozor_status_changed(self, status):
-        beamline_object.offline_processing.set_processing_status(status)
+        beamline_object.online_processing.set_processing_status(status)
 
     def processing_status_changed(self, collection_id, method, status, msg=""):
         for queue_entry in beamline_object.queue_model.get_all_dc_queue_entries():

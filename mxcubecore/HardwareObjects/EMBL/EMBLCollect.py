@@ -323,7 +323,7 @@ class EMBLCollect(AbstractCollect):
 
     def trigger_auto_processing(self, process_event, frame_number):
         """Starts autoprocessing"""
-        beamline_object.online_processing.execute_autoprocessing(
+        beamline_object.offline_processing.execute_autoprocessing(
             process_event,
             self.current_dc_parameters,
             frame_number,

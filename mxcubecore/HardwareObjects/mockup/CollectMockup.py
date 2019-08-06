@@ -137,8 +137,8 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         """
         Descript. :
         """
-        if beamline_object.online_processing is not None:
-            beamline_object.online_processing.execute_autoprocessing(
+        if beamline_object.offline_processing is not None:
+            beamline_object.offline_processing.execute_autoprocessing(
                 process_event,
                 self.current_dc_parameters,
                 frame_number,
