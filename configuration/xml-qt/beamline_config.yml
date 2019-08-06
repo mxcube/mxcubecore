@@ -51,8 +51,8 @@ _objects:
     - gphl_connection: gphl-setup.xml
     # - centring: centring.xml
     # Analysis:
-    - online_processing: auto-processing-mockup.xml
-    - offline_processing: parallel-processing.xml
+    - offline_processing: auto-processing-mockup.xml
+    - online_processing: parallel-processing.xml
     - data_analysis: data-analysis.xml
     # - beam_realign: # Skipped - optional
 # Non-object attributes:

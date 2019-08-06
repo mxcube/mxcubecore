@@ -779,7 +779,7 @@ class ALBACollect(AbstractCollect):
         osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
         osc_pars["wavelength"] = self.get_wavelength()
 
-        beamline_object.online_processing.create_input_files(
+        beamline_object.offline_processing.create_input_files(
             xds_directory, auto_directory, self.current_dc_parameters
         )
 
@@ -952,7 +952,7 @@ class ALBACollect(AbstractCollect):
     def trigger_auto_processing(self, event, frame):
         if event == "after":
             dc_pars = self.current_dc_parameters
-            beamline_object.online_processing.trigger_auto_processing(dc_pars)
+            beamline_object.offline_processing.trigger_auto_processing(dc_pars)
 
 
 def test_hwo(hwo):

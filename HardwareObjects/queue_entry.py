@@ -632,14 +632,14 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             beamline_object.collect, "collectNumberOfFrames", self.collect_number_of_frames
         )
 
-        if beamline_object.offline_processing is not None:
+        if beamline_object.online_processing is not None:
             qc.connect(
-                beamline_object.offline_processing,
+                beamline_object.online_processing,
                 "processingFinished",
                 self.processing_finished,
             )
             qc.connect(
-                beamline_object.offline_processing,
+                beamline_object.online_processing,
                 "processingFailed",
                 self.processing_failed,
             )
@@ -672,14 +672,14 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             beamline_object.collect, "collectNumberOfFrames", self.collect_number_of_frames
         )
 
-        if beamline_object.offline_processing is not None:
+        if beamline_object.online_processing is not None:
             qc.disconnect(
-                beamline_object.offline_processing,
+                beamline_object.online_processing,
                 "processingFinished",
                 self.processing_finished,
             )
             qc.disconnect(
-                beamline_object.offline_processing,
+                beamline_object.online_processing,
                 "processingFailed",
                 self.processing_failed,
             )
@@ -731,10 +731,10 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 if (
                     dc.run_processing_parallel
                     and acq_1.acquisition_parameters.num_images > 4
-                    and beamline_object.offline_processing is not None
+                    and beamline_object.online_processing is not None
                 ):
                     self.processing_task = gevent.spawn(
-                        beamline_object.offline_processing.run_processing, dc
+                        beamline_object.online_processing.run_processing, dc
                     )
 
                 empty_cpos = queue_model_objects.CentredPosition()
@@ -830,15 +830,15 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         if self.processing_task is not None:
             self.get_view().setText(1, "Processing...")
             logging.getLogger("user_level_log").warning("Processing: Please wait...")
-            beamline_object.offline_processing.done_event.wait(timeout=5)
-            beamline_object.offline_processing.done_event.clear()
+            beamline_object.online_processing.done_event.wait(timeout=5)
+            beamline_object.online_processing.done_event.clear()
 
     def stop(self):
         BaseQueueEntry.stop(self)
         try:
             beamline_object.collect.stopCollect("mxCuBE")
             if self.processing_task is not None:
-                beamline_object.offline_processing.stop_processing()
+                beamline_object.online_processing.stop_processing()
                 logging.getLogger("user_level_log").error("Processing: Stoppend")
             if self.centring_task is not None:
                 self.centring_task.kill(block=False)
