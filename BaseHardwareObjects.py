@@ -355,7 +355,8 @@ class HardwareObjectNode:
             getattr(logging.getLogger(log_type), level)(msg)
 
 
-class HardwareObject(HardwareObjectNode, CommandContainer):
+class HardwareObjectMixin(HardwareObjectNode, CommandContainer):
+    """HardwareObject functionality, for either xml- or yaml-configured subclasses"""
     def __init__(self, rootName):
         HardwareObjectNode.__init__(self, rootName)
         CommandContainer.__init__(self)
@@ -491,6 +492,13 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
 
         return getHardwareRepository().xml_source[self.name()]
 
+class HardwareObject(HardwareObjectMixin, HardwareObjectNode, CommandContainer):
+    """Xml-configured hardware object"""
+    pass
+
+class HardwareObjectYaml(HardwareObjectMixin, ConfiguredObject, CommandContainer):
+    """Yaml-configured hardware object"""
+    pass
 
 class Procedure(HardwareObject):
     def __init__(self, name):
