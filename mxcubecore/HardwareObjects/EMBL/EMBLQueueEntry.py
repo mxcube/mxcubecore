@@ -29,6 +29,8 @@ from HardwareRepository.HardwareObjects.base_queue_entry import (
     QueueExecutionException,
     QUEUE_ENTRY_STATUS,
 )
+from HardwareRepository import HardwareRepository
+beamline_object = HardwareRepository.get_beamline()
 
 
 __credits__ = ["MXCuBE collaboration"]
