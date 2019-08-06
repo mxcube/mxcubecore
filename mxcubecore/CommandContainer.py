@@ -352,19 +352,23 @@ class CommandContainer:
         else:
             logging.getLogger().exception("Channel is None")
 
-    def set_value(self, channel_name, value):
+    def set_channel_value(self, channel_name, value):
         self.__channels[channel_name].setValue(value)
 
-    def get_value(self, channel_name):
+    def get_channel_value(self, channel_name):
         return self.__channels[channel_name].getValue()
 
     def setValue(self, channelName, value):
-        warn("setValue is deprecated. Use set_value instead", DeprecationWarning)
-        self.set_value(channelName, value)
+        warn(
+            "setValue is deprecated. Use set_channel_value instead", DeprecationWarning
+        )
+        self.set_channel_value(channelName, value)
 
     def getValue(self, channelName):
-        warn("getValue is deprecated. Use get_value instead", DeprecationWarning)
-        return self.get_value(channelName)
+        warn(
+            "getValue is deprecated. Use get_channel_value instead", DeprecationWarning
+        )
+        return self.get_channel_value(channelName)
 
     def getChannels(self):
         for chan in self.__channels.values():
