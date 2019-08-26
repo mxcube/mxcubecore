@@ -34,7 +34,7 @@ if sys.version_info > (3, 0):
 
     _bytes = bytes
 
-    encode = bytes.encode
+    encode = str.encode
 
 else:
     STX = chr(2)
