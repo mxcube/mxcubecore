@@ -88,4 +88,4 @@ class ApertureMockup(AbstractAperture):
         Returns:
             list: sizes of available apertures in microns
         """
-        return [5, 10, 20, 50, 100, 300]
+        return self._diameter_size_list
