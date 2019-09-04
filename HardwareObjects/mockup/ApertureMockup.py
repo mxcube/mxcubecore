@@ -82,3 +82,10 @@ class ApertureMockup(AbstractAperture):
             bool: True if aperture is in the beam, otherwise returns false
         """
         return self._current_position_name != "BEAM"
+
+    def get_diameter_list(self):
+        """
+        Returns:
+            list: sizes of available apertures in microns
+        """
+        return [5, 10, 20, 50, 100, 300]
