@@ -49,6 +49,11 @@ class ESRFBeamInfo(BeamInfo.BeamInfo):
         self.flux = self.getObjectByRole("flux")
 
     def get_beam_position(self):
+        if self.beam_position == (0, 0):
+            self.beam_position = (
+                beamline_object.graphics.camera.getWidth() / 2,
+                beamline_object.graphics.camera.getHeight() / 2,
+            )
         return self.beam_position
 
     def set_beam_position(self, beam_x, beam_y):
