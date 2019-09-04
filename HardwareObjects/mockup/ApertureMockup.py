@@ -89,3 +89,10 @@ class ApertureMockup(AbstractAperture):
             list: sizes of available apertures in microns
         """
         return self._diameter_size_list
+    
+    def get_position_list(self):
+        """
+        Returns:
+            list: strings designating named positions (e.g. "BEAM", "OFF", "PARK" ...)
+        """
+        return self._position_list
