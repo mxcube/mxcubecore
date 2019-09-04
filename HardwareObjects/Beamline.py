@@ -31,6 +31,7 @@ __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
+import logging
 import warnings
 from collections import OrderedDict
 from HardwareRepository.BaseHardwareObjects import ConfiguredObject
@@ -498,6 +499,7 @@ class Beamline(ConfiguredObject):
         """
         # Imported here to avoid circular imports
         from HardwareRepository.HardwareObjects import queue_model_objects
+
         acq_parameters = queue_model_objects.AcquisitionParameters()
 
         params = self.default_acquisition_parameters["default"].copy()
@@ -525,26 +527,46 @@ class Beamline(ConfiguredObject):
         try:
             acq_parameters.resolution = self.resolution.getPosition()
         except:
+            logging.getLogger("HWR").warning(
+                "get_default_acquisition_parameters: "
+                "No current resolution, setting to 0.0"
+            )
             acq_parameters.resolution = 0.0
 
         try:
             acq_parameters.energy = self.energy.get_current_energy()
         except:
+            logging.getLogger("HWR").warning(
+                "get_default_acquisition_parameters: "
+                "No current energy, setting to 0.0"
+            )
             acq_parameters.energy = 0.0
 
         try:
             acq_parameters.transmission = self.transmission.get_value()
         except:
+            logging.getLogger("HWR").warning(
+                "get_default_acquisition_parameters: "
+                "No current transmission, setting to 0.0"
+            )
             acq_parameters.transmission = 0.0
 
         try:
             acq_parameters.shutterless = self.detector.has_shutterless()
         except:
+            logging.getLogger("HWR").warning(
+                "get_default_acquisition_parameters: "
+                "Could not get has_shutterless, setting to False"
+            )
             acq_parameters.shutterless = False
 
         try:
             acq_parameters.detector_mode = self.detector.get_detector_mode()
         except:
+            logging.getLogger("HWR").warning(
+                "get_default_acquisition_parameters: "
+                "Could not get detector_mode, setting to ''"
+            )
             acq_parameters.detector_mode = ""
 
         return acq_parameters
@@ -555,6 +577,7 @@ class Beamline(ConfiguredObject):
         """
         # Imported here to avoid circular imports
         from HardwareRepository.HardwareObjects import queue_model_objects
+
         path_template = queue_model_objects.PathTemplate()
 
         path_template.directory = str()
