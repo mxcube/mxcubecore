@@ -175,7 +175,7 @@ class SOLEILLdapLogin(Procedure):
     def find_projectusers(self, username):
         groups = self.find_groups_for_username(username)
         projusers = []
-        for groupname, users in groups.iteritems():
+        for groupname, users in groups.items():
             for user in users:
                 if user == groupname[1:]:
                     projusers.append(user)
@@ -315,7 +315,7 @@ def test():
     # conn.find_groups_for_username('houdusse')
 
     # grps = conn.find_groups_for_username('houdusse')
-    # for grp,users in grps.iteritems():
+    # for grp,users in grps.items():
     # print grp, " :  " , users
     user = "20140088"  # '20100023'
     sess = conn.find_sessions_for_user("%s" % user)
