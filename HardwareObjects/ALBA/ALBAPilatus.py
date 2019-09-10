@@ -290,7 +290,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
 
             # Acquisition values (headers dictionary) but overwrites start angle
             image_headers["Start_angle"] = sa
-            for key, value in image_headers.iteritems():
+            for key, value in image_headers.items():
                 if key == "nb_images":
                     continue
                 header += "# %s %s\n" % (key, value)
