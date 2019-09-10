@@ -170,7 +170,7 @@ class ID29XRFSpectrum(XRFSpectrum):
         )
 
         # add the peaks labels
-        for key in peaks_dict.iterkeys():
+        for key in peaks_dict:
             header += delimiter + ('"%s"' % key)
 
         logging.getLogger("user_level_log").info("Writing %s" % fname)
@@ -194,6 +194,6 @@ class ID29XRFSpectrum(XRFSpectrum):
                         fitresult["result"]["pileup"][i],
                     )
                 )
-                for key in peaks_dict.iterkeys():
+                for key in peaks_dict:
                     csv_fd.write("%s%.7g" % (delimiter, peaks_dict[key][i]))
                 csv_fd.write("\n")
