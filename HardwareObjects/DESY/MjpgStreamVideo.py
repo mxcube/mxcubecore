@@ -358,7 +358,7 @@ class MjpgStreamVideo(GenericVideoDevice):
                 info = self.get_cmd_info(cmd, group)
                 if info and "menu" in info and option in info["menu"].values():
                     value = str(
-                        [k for k, v in info["menu"].iteritems() if (v == option)][0]
+                        [k for k, v in info["menu"].items() if (v == option)][0]
                     )
             if value is None:
                 return None
