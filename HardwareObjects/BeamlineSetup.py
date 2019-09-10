@@ -422,9 +422,8 @@ class BeamlineSetup(HardwareObject):
     def _get_energy(self):
         try:
             energy = self.energy_hwobj.get_current_energy()
-        except AttributeError:
-            energy = 0
-        except TypeError:
+        except Exception as ex:
+            logging.getLogger("HWR").exception("Could not read energy")
             energy = 0
 
         return energy
@@ -432,9 +431,8 @@ class BeamlineSetup(HardwareObject):
     def _get_transmission(self):
         try:
             transmission = self.transmission_hwobj.get_value()
-        except AttributeError:
-            transmission = 0
-        except TypeError:
+        except Exception as ex:
+            logging.getLogger("HWR").exception("Could not read transmission")
             transmission = 0
 
         return transmission
@@ -442,9 +440,8 @@ class BeamlineSetup(HardwareObject):
     def _get_resolution(self):
         try:
             resolution = self.resolution_hwobj.getPosition()
-        except AttributeError:
-            resolution = 0
-        except TypeError:
+        except Exception as ex:
+            logging.getLogger("HWR").exception("Could not read resolution")
             resolution = 0
 
         return resolution
