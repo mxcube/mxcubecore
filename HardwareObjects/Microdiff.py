@@ -167,7 +167,7 @@ class Microdiff(MiniDiff.MiniDiff):
         MiniDiff.MiniDiff.init(self)
         self.centringPhiy.direction = -1
         self.MOTOR_TO_EXPORTER_NAME = self.getMotorToExporterNames()
-        self.move_to_coord = self.moveToBeam
+        self.move_to_coord = self.move_to_beam
 
         self.centringVertical = self.getObjectByRole("centringVertical")
         self.centringFocus = self.getObjectByRole("centringFocus")
@@ -429,9 +429,9 @@ class Microdiff(MiniDiff.MiniDiff):
     def moveMotors(self, roles_positions_dict):
         self.moveSyncMotors(roles_positions_dict, wait=True)
 
-    def moveToBeam(self, x, y):
+    def move_to_beam(self, x, y):
         if not self.in_plate_mode():
-            MiniDiff.MiniDiff.moveToBeam(self, x, y)
+            MiniDiff.MiniDiff.move_to_beam(self, x, y)
         else:
             try:
                 beam_xc = self.getBeamPosX()
@@ -453,7 +453,7 @@ class Microdiff(MiniDiff.MiniDiff):
                     "Microdiff: could not move to beam, aborting"
                 )
 
-    def start3ClickCentring(self, sample_info=None):
+    def start_manual_centring(self, sample_info=None):
         if self.in_plate_mode():
             plateTranslation = self.getObjectByRole("plateTranslation")
             cmd_set_plate_vertical = self.addCommand(
@@ -466,7 +466,7 @@ class Microdiff(MiniDiff.MiniDiff):
             )
             low_lim, high_lim = self.phiMotor.getDynamicLimits()
             phi_range = math.fabs(high_lim - low_lim - 1)
-            self.currentCentringProcedure = sample_centring.start_plate_1_click(
+            self.current_centring_procedure = sample_centring.start_plate_1_click(
                 {
                     "phi": self.centringPhi,
                     "phiy": self.centringPhiy,
@@ -484,7 +484,7 @@ class Microdiff(MiniDiff.MiniDiff):
                 high_lim - 0.5,
             )
         else:
-            self.currentCentringProcedure = sample_centring.start(
+            self.current_centring_procedure = sample_centring.start(
                 {
                     "phi": self.centringPhi,
                     "phiy": self.centringPhiy,
@@ -499,15 +499,15 @@ class Microdiff(MiniDiff.MiniDiff):
                 chi_angle=self.chiAngle,
             )
 
-        self.currentCentringProcedure.link(self.manualCentringDone)
+        self.current_centring_procedure.link(self.manualCentringDone)
 
-    def interruptAndAcceptCentring(self):
+    def interruptAndaccept_centring(self):
         """ Used when plate. Kills the current 1 click centring infinite loop
         and accepts fake centring - only save the motor positions
         """
-        self.currentCentringProcedure.kill()
+        self.current_centring_procedure.kill()
         self.do_centring = False
-        self.startCentringMethod(self, self.MANUAL3CLICK_MODE)
+        self.start_centring_method(self, self.MANUAL3CLICK_MODE)
         self.do_centring = True
 
     def getFrontLightLevel(self):

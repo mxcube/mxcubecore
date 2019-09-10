@@ -311,7 +311,7 @@ class MD3UP(Microdiff.Microdiff):
 
         return float(x), float(y)
 
-    def moveToBeam(self, x, y):
+    def move_to_beam(self, x, y):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
             self.zoomMotor.getPosition()
         )

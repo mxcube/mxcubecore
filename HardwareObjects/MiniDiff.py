@@ -139,12 +139,12 @@ class MiniDiff(Equipment):
 
     def init(self):
         self.centringMethods = {
-            MiniDiff.MANUAL3CLICK_MODE: self.start3ClickCentring,
-            MiniDiff.C3D_MODE: self.startAutoCentring,
+            MiniDiff.MANUAL3CLICK_MODE: self.start_manual_centring,
+            MiniDiff.C3D_MODE: self.start_auto_centring,
         }
-        self.cancelCentringMethods = {}
+        self.cancel_centring_methods = {}
 
-        self.currentCentringProcedure = None
+        self.current_centring_procedure = None
         self.currentCentringMethod = None
 
         self.centringStatus = {"valid": False}
@@ -308,8 +308,8 @@ class MiniDiff(Equipment):
             )
             self.connect(self.aperture, "positionReached", self.apertureChanged)
 
-        # Agree on a correct method name, inconsistent arguments for moveToBeam, disabled temporarily
-        # self.move_to_coord = self.moveToBeam()
+        # Agree on a correct method name, inconsistent arguments for move_to_beam, disabled temporarily
+        # self.move_to_coord = self.move_to_beam()
 
     def save_snapshot(self, filename):
         set_light_in(self.lightWago, self.lightMotor, self.zoomMotor)
@@ -419,7 +419,7 @@ class MiniDiff(Equipment):
         self.emit("minidiffStateChanged", (state,))
 
     def invalidateCentring(self):
-        if self.currentCentringProcedure is None and self.centringStatus["valid"]:
+        if self.current_centring_procedure is None and self.centringStatus["valid"]:
             self.centringStatus = {"valid": False}
             self.emitProgressMessage("")
             self.emit("centringInvalid", ())
@@ -450,7 +450,7 @@ class MiniDiff(Equipment):
     def getBeamPosY(self):
         return self.imgHeight / 2
 
-    def moveToBeam(self, x, y):
+    def move_to_beam(self, x, y):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
             self.zoomMotor.getPosition()
         )
@@ -507,14 +507,14 @@ class MiniDiff(Equipment):
     def getAvailableCentringMethods(self):
         return self.centringMethods.keys()
 
-    def startCentringMethod(self, method, sample_info=None):
+    def start_centring_method(self, method, sample_info=None):
         if not self.do_centring:
             self.emitCentringStarted(method)
 
             def fake_centring_procedure():
                 return {"motors": {}, "method": method, "valid": True}
 
-            self.currentCentringProcedure = gevent.spawn(fake_centring_procedure)
+            self.current_centring_procedure = gevent.spawn(fake_centring_procedure)
             self.emitCentringSuccessful()
             return
 
@@ -543,16 +543,16 @@ class MiniDiff(Equipment):
                 logging.getLogger("HWR").exception("MiniDiff: problem while centring")
                 self.emitCentringFailed()
 
-    def cancelCentringMethod(self, reject=False):
-        if self.currentCentringProcedure is not None:
+    def cancel_centring_method(self, reject=False):
+        if self.current_centring_procedure is not None:
             try:
-                self.currentCentringProcedure.kill()
+                self.current_centring_procedure.kill()
             except BaseException:
                 logging.getLogger("HWR").exception(
                     "MiniDiff: problem aborting the centring method"
                 )
             try:
-                fun = self.cancelCentringMethods[self.currentCentringMethod]
+                fun = self.cancel_centring_methods[self.currentCentringMethod]
             except KeyError as diag:
                 self.emitCentringFailed()
             else:
@@ -573,10 +573,10 @@ class MiniDiff(Equipment):
 
     def saveCurrentPos(self):
         self.centringStatus["motors"] = self.getPositions()
-        self.acceptCentring()
+        self.accept_centring()
 
-    def start3ClickCentring(self, sample_info=None):
-        self.currentCentringProcedure = sample_centring.start(
+    def start_manual_centring(self, sample_info=None):
+        self.current_centring_procedure = sample_centring.start(
             {
                 "phi": self.centringPhi,
                 "phiy": self.centringPhiy,
@@ -591,7 +591,7 @@ class MiniDiff(Equipment):
             chi_angle=self.chiAngle,
         )
 
-        self.currentCentringProcedure.link(self.manualCentringDone)
+        self.current_centring_procedure.link(self.manualCentringDone)
 
     def motor_positions_to_screen(self, centred_positions_dict):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
@@ -734,10 +734,10 @@ class MiniDiff(Equipment):
             else:
                 self.emitCentringSuccessful()
                 if not self.user_confirms_centring:
-                    self.acceptCentring()
+                    self.accept_centring()
 
-    def startAutoCentring(self, sample_info=None, loop_only=False):
-        self.currentCentringProcedure = sample_centring.start_auto(
+    def start_auto_centring(self, sample_info=None, loop_only=False):
+        self.current_centring_procedure = sample_centring.start_auto(
             self.camera,
             {
                 "phi": self.centringPhi,
@@ -755,7 +755,7 @@ class MiniDiff(Equipment):
             new_point_cb=lambda point: self.emit("newAutomaticCentringPoint", point),
         )
 
-        self.currentCentringProcedure.link(self.autoCentringDone)
+        self.current_centring_procedure.link(self.autoCentringDone)
 
         self.emitProgressMessage("Starting automatic centring procedure...")
 
@@ -770,14 +770,14 @@ class MiniDiff(Equipment):
         self.currentCentringMethod = method
         self.emit("centringStarted", (method, False))
 
-    def acceptCentring(self):
+    def accept_centring(self):
         self.centringStatus["valid"] = True
         self.centringStatus["accepted"] = True
         self.emit("centringAccepted", (True, self.getCentringStatus()))
 
     def rejectCentring(self):
-        if self.currentCentringProcedure:
-            self.currentCentringProcedure.kill()
+        if self.current_centring_procedure:
+            self.current_centring_procedure.kill()
         self.centringStatus = {"valid": False}
         self.emitProgressMessage("")
         self.emit("centringAccepted", (False, self.getCentringStatus()))
@@ -789,15 +789,15 @@ class MiniDiff(Equipment):
         self.centringStatus = {"valid": False}
         method = self.currentCentringMethod
         self.currentCentringMethod = None
-        self.currentCentringProcedure = None
+        self.current_centring_procedure = None
         self.emit("centringFailed", (method, self.getCentringStatus()))
 
     def emitCentringSuccessful(self):
-        if self.currentCentringProcedure is not None:
+        if self.current_centring_procedure is not None:
             curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
             self.centringStatus["endTime"] = curr_time
             self.centringStatus["motors"] = self.getPositions()
-            centred_pos = self.currentCentringProcedure.get()
+            centred_pos = self.current_centring_procedure.get()
             for role in self.centringStatus["motors"].iterkeys():
                 motor = self.getObjectByRole(role)
                 try:
@@ -811,7 +811,7 @@ class MiniDiff(Equipment):
             method = self.currentCentringMethod
             self.emit("centringSuccessful", (method, self.getCentringStatus()))
             self.currentCentringMethod = None
-            self.currentCentringProcedure = None
+            self.current_centring_procedure = None
         else:
             logging.getLogger("HWR").debug(
                 "MiniDiff: trying to emit centringSuccessful outside of a centring"
