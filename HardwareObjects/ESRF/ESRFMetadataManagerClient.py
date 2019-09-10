@@ -349,7 +349,7 @@ class MXCuBEMetadataClient(object):
                 dictMetadata = self.getMetadata(data_collect_parameters)
                 # import pprint
                 # pprint.pprint(dictMetadata)
-                for attributeName, value in dictMetadata.iteritems():
+                for attributeName, value in dictMetadata.items():
                     logging.getLogger("HWR").info(
                         "Setting metadata client attribute '{0}' to '{1}'".format(
                             attributeName, value

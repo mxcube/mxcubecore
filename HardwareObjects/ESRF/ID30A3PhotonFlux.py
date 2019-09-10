@@ -76,7 +76,7 @@ class ID30A3PhotonFlux(Equipment):
             if calib_dict is None:
               logging.getLogger("HWR").error("%s: calibration is None", self.name())
             else:
-              calibs = [(float(c["energy"]), float(c[self.counter])) for c in calib_dict.itervalues()]
+              calibs = [(float(c["energy"]), float(c[self.counter])) for c in calib_dict.values()]
               calibs.sort()
               E = [c[0] for c in calibs]
               C = [c[1] for c in calibs]
