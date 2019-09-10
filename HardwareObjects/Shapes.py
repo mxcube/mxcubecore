@@ -337,7 +337,7 @@ class Shape(object):
         # We dont allow id updates
         shape_dict.pop("id", None)
 
-        for key, value in shape_dict.iteritems():
+        for key, value in shape_dict.items():
             if hasattr(self, key):
                 setattr(self, key, value)
 

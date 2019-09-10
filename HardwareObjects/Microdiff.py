@@ -200,7 +200,7 @@ class Microdiff(MiniDiff.MiniDiff):
         self._wait_ready(10)
 
         # save position in MD2 software
-        self.getCommandObject("save_centring_positions")()
+        #self.getCommandObject("save_centring_positions")()
 
         # do normal stuff
         return MiniDiff.MiniDiff.emitCentringSuccessful(self)
@@ -532,7 +532,7 @@ MiniDiff.set_light_in = set_light_in
 
 
 def to_float(d):
-    for k, v in d.iteritems():
+    for k, v in d.items():
         try:
             d[k] = float(v)
         except BaseException:

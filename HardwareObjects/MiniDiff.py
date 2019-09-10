@@ -798,7 +798,7 @@ class MiniDiff(Equipment):
             self.centringStatus["endTime"] = curr_time
             self.centringStatus["motors"] = self.getPositions()
             centred_pos = self.current_centring_procedure.get()
-            for role in self.centringStatus["motors"].iterkeys():
+            for role in self.centringStatus["motors"]:
                 motor = self.getObjectByRole(role)
                 try:
                     self.centringStatus["motors"][role] = centred_pos[motor]
@@ -852,7 +852,7 @@ class MiniDiff(Equipment):
             "zoom": self.zoomMotor,
         }
 
-        for role, pos in roles_positions_dict.iteritems():
+        for role, pos in roles_positions_dict.items():
             m = motor.get(role)
             if None not in (m, pos):
                 m.move(pos)
@@ -863,7 +863,7 @@ class MiniDiff(Equipment):
         time.sleep(1)
 
         while not all(
-            [m.getState() == m.READY for m in motor.itervalues() if m is not None]
+            [m.getState() == m.READY for m in motor.values() if m is not None]
         ):
             time.sleep(0.1)
 

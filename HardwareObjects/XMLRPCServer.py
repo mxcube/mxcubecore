@@ -455,7 +455,7 @@ class XMLRPCServer(HardwareObject):
 
     def shape_history_set_grid_data(self, key, result_data):
         int_based_result = {}
-        for result in result_data.iteritems():
+        for result in result_data.items():
             int_based_result[int(result[0])] = result[1]
 
         self.shape_history_hwobj.set_grid_data(key, int_based_result)
