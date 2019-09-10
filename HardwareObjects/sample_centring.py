@@ -59,13 +59,13 @@ def prepare(centring_motors_dict):
     USER_CLICKED_EVENT = gevent.event.AsyncResult()
 
     motors_to_move = dict()
-    for m in centring_motors_dict.itervalues():
+    for m in centring_motors_dict.values():
         if m.reference_position is not None:
             motors_to_move[m.motor] = m.reference_position
     move_motors(motors_to_move)
 
     SAVED_INITIAL_POSITIONS = dict(
-        [(m.motor, m.motor.getPosition()) for m in centring_motors_dict.itervalues()]
+        [(m.motor, m.motor.getPosition()) for m in centring_motors_dict.values()]
     )
 
     phi = centring_motors_dict["phi"]
@@ -388,7 +388,7 @@ def move_motors(motor_positions_dict):
     if not ready(*motor_positions_dict.keys()):
         raise RuntimeError("Motors not ready")
 
-    for motor, position in motor_positions_dict.iteritems():
+    for motor, position in motor_positions_dict.items():
         motor.move(position)
 
     wait_ready()
