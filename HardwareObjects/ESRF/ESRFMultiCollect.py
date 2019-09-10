@@ -4,7 +4,7 @@ import logging
 import time
 import os
 import math
-from HardwareRepository.HardwareObjects.queue_model_objects import PathTemplate
+from queue_model_objects import PathTemplate
 from HardwareRepository.ConvertUtils import string_types
 
 from ESRF.ESRFMetadataManagerClient import MXCuBEMetadataClient
@@ -889,7 +889,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                 return True
 
     def get_flux(self):
-        return self.bl_control.flux.getCurrentFlux()
+        return 0
+#       return self.bl_control.flux.getCurrentFlux()
 
     @task
     def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
