@@ -252,7 +252,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             # to fix permission issues
             snapshots_files = []
 
-            for key, value in self.current_dc_parameters.iteritems():
+            for key, value in self.current_dc_parameters.items():
                 if key.startswith("xtalSnapshotFullPath"):
                     snapshots_files.append(value)
             try:
