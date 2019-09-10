@@ -517,7 +517,7 @@ class AbstractMultiCollect(object):
         )  # .update(centring_info.get("extraMotors", {}))
         motors_to_move_before_collect = data_collect_parameters.setdefault("motors", {})
 
-        for motor, pos in motors.iteritems():
+        for motor, pos in motors.items():
             if motor in motors_to_move_before_collect:
                 continue
             motors_to_move_before_collect[motor] = pos
@@ -539,7 +539,7 @@ class AbstractMultiCollect(object):
         positions_str += " ".join(
             [
                 motor + ("=%f" % pos)
-                for motor, pos in motors_to_move_before_collect.iteritems()
+                for motor, pos in motors_to_move_before_collect.items()
             ]
         )
         data_collect_parameters["actualCenteringPosition"] = positions_str

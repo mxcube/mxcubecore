@@ -65,7 +65,7 @@ class PhotonFlux(Equipment):
                     calibs = sorted(
                         [
                             (float(c["energy"]), float(c[self.counter]))
-                            for c in calib_dict.itervalues()
+                            for c in calib_dict.values()
                         ]
                     )
                     E = [c[0] for c in calibs]

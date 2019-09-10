@@ -173,7 +173,7 @@ class Mar225:
 
     def _send_header(self):
         header = []
-        for header_info, value in self.header.iteritems():
+        for header_info, value in self.header.items():
             header.append("%s=%s" % (header_info, value))
         self.execute_command("detector_setheader", header)
 
