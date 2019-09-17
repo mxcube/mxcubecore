@@ -384,8 +384,8 @@ class CommandContainer:
         return list(self.__commands.keys())
 
     def addCommand(self, arg1, arg2=None, addNow=True):
-        warn("addCommand is deprecated. Use add_command instead", DeprecationWarning)
-        self.add_command(arg1, arg2, addNow)
+        warn("add_command is deprecated. Use add_command instead", DeprecationWarning)
+        return self.add_command(arg1, arg2, addNow)
 
     def add_command(self, arg1, arg2=None, addNow=True):
         if not addNow:
