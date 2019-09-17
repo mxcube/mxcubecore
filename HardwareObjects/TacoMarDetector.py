@@ -32,7 +32,7 @@ class Mar225:
             ("detector_dezinger", "DevCcdDezinger"),
             ("detector_write", "DevCcdWriteFile"),
         ):
-            self.addCommand(
+            self.add_command(
                 {"type": "taco", "name": cmdname, "taconame": taco_device}, taco_cmdname
             )
 

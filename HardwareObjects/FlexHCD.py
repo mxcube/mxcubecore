@@ -209,7 +209,7 @@ class FlexHCD(SampleChanger):
         if args:
             args_str = "%s" % "\t".join(map(repr, args))
         if kwargs.pop("command", None):
-            exp_cmd = self.addCommand(
+            exp_cmd = self.add_command(
                 {
                     "type": "exporter",
                     "exporter_address": self.exporter_addr,

@@ -43,17 +43,17 @@ class Eiger:
                 channel_name,
             )
 
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "prepare_acq", "tangoname": lima_device},
             "prepareAcq",
         )
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "start_acq", "tangoname": lima_device}, "startAcq"
         )
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "stop_acq", "tangoname": lima_device}, "stopAcq"
         )
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "reset", "tangoname": lima_device}, "reset"
         )
         self.addChannel(
