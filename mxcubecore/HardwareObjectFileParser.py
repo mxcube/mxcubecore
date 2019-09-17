@@ -277,12 +277,12 @@ class HardwareObjectHandler(ContentHandler):
                 if name == "command":
                     if len(self.command) > 0:
                         if len(self.objects) > 0:
-                            self.objects[-1].addCommand(
+                            self.objects[-1].add_command(
                                 self.command, self.buffer, addNow=False
                             )
                     else:
                         if len(self.objects) > 1:
-                            self.objects[-2].addCommand(
+                            self.objects[-2].add_command(
                                 self.objects.pop(), addNow=False
                             )
                 elif name == "channel":
