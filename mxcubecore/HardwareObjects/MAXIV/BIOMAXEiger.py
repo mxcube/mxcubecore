@@ -184,7 +184,7 @@ class BIOMAXEiger(Equipment):
             )
 
         for cmd_name in cmd_list:
-            self.addCommand(
+            self.add_command(
                 {
                     "type": "tango",
                     "name": cmd_name,
