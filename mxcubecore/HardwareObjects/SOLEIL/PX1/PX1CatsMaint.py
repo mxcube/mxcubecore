@@ -27,12 +27,12 @@ class PX1CatsMaint(CatsMaint):
 
         self._chnHomeOpened.connectSignal("update", self.update_home_opened)
 
-        self._cmdDrySoak = self.addCommand(
+        self._cmdDrySoak = self.add_command(
             {"type": "tango", "name": "_cmdDrySoak", "tangoname": self.tangoname},
             "DryAndSoak",
         )
 
-        self._cmdReset = self.addCommand(
+        self._cmdReset = self.add_command(
             {"type": "tango", "name": "_cmdReset", "tangoname": self.tangoname},
             "ResetError",
         )
