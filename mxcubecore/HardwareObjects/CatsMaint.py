@@ -198,111 +198,111 @@ class CatsMaint(Equipment):
             "Tool",
         )
         #
-        self._cmdPowerOn = self.addCommand(
+        self._cmdPowerOn = self.add_command(
             {"type": "tango", "name": "_cmdPowerOn", "tangoname": self.tangoname},
             "powerOn",
         )
-        self._cmdPowerOff = self.addCommand(
+        self._cmdPowerOff = self.add_command(
             {"type": "tango", "name": "_cmdPowerOff", "tangoname": self.tangoname},
             "powerOff",
         )
-        self._cmdOpenTool = self.addCommand(
+        self._cmdOpenTool = self.add_command(
             {"type": "tango", "name": "_cmdOpenTool", "tangoname": self.tangoname},
             "opentool",
         )
-        self._cmdCloseTool = self.addCommand(
+        self._cmdCloseTool = self.add_command(
             {"type": "tango", "name": "_cmdCloseTool", "tangoname": self.tangoname},
             "closetool",
         )
-        self._cmdMagnetOn = self.addCommand(
+        self._cmdMagnetOn = self.add_command(
             {"type": "tango", "name": "_cmdMagnetOn", "tangoname": self.tangoname},
             "magnetOn",
         )
-        self._cmdMagnetOff = self.addCommand(
+        self._cmdMagnetOff = self.add_command(
             {"type": "tango", "name": "_cmdMagnetOff", "tangoname": self.tangoname},
             "magnetOff",
         )
 
         # LIDs
-        self._cmdOpenLid1 = self.addCommand(
+        self._cmdOpenLid1 = self.add_command(
             {"type": "tango", "name": "_cmdOpenLid1", "tangoname": self.tangoname},
             "openlid1",
         )
-        self._cmdCloseLid1 = self.addCommand(
+        self._cmdCloseLid1 = self.add_command(
             {"type": "tango", "name": "_cmdCloseLid1", "tangoname": self.tangoname},
             "closelid1",
         )
 
         if self.nb_of_lids > 1:
-            self._cmdOpenLid2 = self.addCommand(
+            self._cmdOpenLid2 = self.add_command(
                 {"type": "tango", "name": "_cmdOpenLid1", "tangoname": self.tangoname},
                 "openlid2",
             )
-            self._cmdCloseLid2 = self.addCommand(
+            self._cmdCloseLid2 = self.add_command(
                 {"type": "tango", "name": "_cmdCloseLid1", "tangoname": self.tangoname},
                 "closelid2",
             )
 
         if self.nb_of_lids > 2:
-            self._cmdOpenLid3 = self.addCommand(
+            self._cmdOpenLid3 = self.add_command(
                 {"type": "tango", "name": "_cmdOpenLid1", "tangoname": self.tangoname},
                 "openlid3",
             )
-            self._cmdCloseLid3 = self.addCommand(
+            self._cmdCloseLid3 = self.add_command(
                 {"type": "tango", "name": "_cmdCloseLid1", "tangoname": self.tangoname},
                 "closelid3",
             )
 
-        self._cmdRegulOn = self.addCommand(
+        self._cmdRegulOn = self.add_command(
             {"type": "tango", "name": "_cmdRegulOn", "tangoname": self.tangoname},
             "regulon",
         )
-        self._cmdRegulOff = self.addCommand(
+        self._cmdRegulOff = self.add_command(
             {"type": "tango", "name": "_cmdRegulOff", "tangoname": self.tangoname},
             "reguloff",
         )
 
-        self._cmdToolOpen = self.addCommand(
+        self._cmdToolOpen = self.add_command(
             {"type": "tango", "name": "_cmdToolOpen", "tangoname": self.tangoname},
             "opentool",
         )
-        self._cmdToolClose = self.addCommand(
+        self._cmdToolClose = self.add_command(
             {"type": "tango", "name": "_cmdToolClose", "tangoname": self.tangoname},
             "closetool",
         )
 
         # Paths
-        self._cmdAbort = self.addCommand(
+        self._cmdAbort = self.add_command(
             {"type": "tango", "name": "_cmdAbort", "tangoname": self.tangoname}, "abort"
         )
-        self._cmdDry = self.addCommand(
+        self._cmdDry = self.add_command(
             {"type": "tango", "name": "_cmdDry", "tangoname": self.tangoname}, "dry"
         )
-        self._cmdSafe = self.addCommand(
+        self._cmdSafe = self.add_command(
             {"type": "tango", "name": "_cmdSafe", "tangoname": self.tangoname}, "safe"
         )
-        self._cmdHome = self.addCommand(
+        self._cmdHome = self.add_command(
             {"type": "tango", "name": "_cmdHome", "tangoname": self.tangoname}, "home"
         )
-        self._cmdSoak = self.addCommand(
+        self._cmdSoak = self.add_command(
             {"type": "tango", "name": "_cmdSoak", "tangoname": self.tangoname}, "soak"
         )
-        self._cmdBack = self.addCommand(
+        self._cmdBack = self.add_command(
             {"type": "tango", "name": "_cmdBack", "tangoname": self.tangoname}, "back"
         )
-        self._cmdCalibration = self.addCommand(
+        self._cmdCalibration = self.add_command(
             {"type": "tango", "name": "_cmdCalibration", "tangoname": self.tangoname},
             "toolcalibration",
         )
 
-        self._cmdClearMemory = self.addCommand(
+        self._cmdClearMemory = self.add_command(
             {"type": "tango", "name": "_cmdClearMemory", "tangoname": self.tangoname},
             "clear_memory",
         )
-        self._cmdReset = self.addCommand(
+        self._cmdReset = self.add_command(
             {"type": "tango", "name": "_cmdReset", "tangoname": self.tangoname}, "reset"
         )
-        self._cmdResetParameters = self.addCommand(
+        self._cmdResetParameters = self.add_command(
             {
                 "type": "tango",
                 "name": "_cmdResetParameters",
@@ -311,7 +311,7 @@ class CatsMaint(Equipment):
             "reset_parameters",
         )
 
-        self._cmdRecoverFailure = self.addCommand(
+        self._cmdRecoverFailure = self.add_command(
             {
                 "type": "tango",
                 "name": "_cmdRecoverFailure",
@@ -320,20 +320,20 @@ class CatsMaint(Equipment):
             "recoverFailure",
         )
 
-        self._cmdResetMotion = self.addCommand(
+        self._cmdResetMotion = self.add_command(
             {"type": "tango", "name": "_cmdResetMotion", "tangoname": self.tangoname},
             "resetmotion",
         )
 
-        self._cmdSetOnDiff = self.addCommand(
+        self._cmdSetOnDiff = self.add_command(
             {"type": "tango", "name": "_cmdSetOnDiff", "tangoname": self.tangoname},
             "setondiff",
         )
-        self._cmdSetOnTool = self.addCommand(
+        self._cmdSetOnTool = self.add_command(
             {"type": "tango", "name": "_cmdSetOnTool", "tangoname": self.tangoname},
             "settool",
         )
-        self._cmdSetOnTool2 = self.addCommand(
+        self._cmdSetOnTool2 = self.add_command(
             {"type": "tango", "name": "_cmdSetOnTool2", "tangoname": self.tangoname},
             "settool2",
         )
