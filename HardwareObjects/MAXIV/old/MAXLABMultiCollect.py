@@ -57,7 +57,7 @@ class CcdDetector:
         self.collect_obj = collect_obj
         if self._detector:
             self._detector.addChannel = self.addChannel
-            self._detector.addCommand = self.addCommand
+            self._detector.add_command = self.add_command
             self._detector.getChannelObject = self.getChannelObject
             self._detector.getCommandObject = self.getCommandObject
             self._detector.init(config, collect_obj)
@@ -197,7 +197,7 @@ class PixelDetector:
         self.collect_obj = collect_obj
         if self._detector:
             self._detector.addChannel = self.addChannel
-            self._detector.addCommand = self.addCommand
+            self._detector.add_command = self.add_command
             self._detector.getChannelObject = self.getChannelObject
             self._detector.getCommandObject = self.getCommandObject
             self._detector.init(config, collect_obj)
@@ -421,7 +421,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
             input_files_server=self.getProperty("input_files_server"),
         )
 
-        self._detector.addCommand = self.addCommand
+        self._detector.add_command = self.add_command
         self._detector.addChannel = self.addChannel
         self._detector.getCommandObject = self.getCommandObject
         self._detector.getChannelObject = self.getChannelObject
