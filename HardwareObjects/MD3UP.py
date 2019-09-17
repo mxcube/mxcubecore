@@ -93,7 +93,7 @@ class MD3UP(Microdiff.Microdiff):
 
         params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
 
-        scan = self.addCommand(
+        scan = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -128,7 +128,7 @@ class MD3UP(Microdiff.Microdiff):
         params += "%0.3f\t" % motors_pos["2"]["sampx"]
         params += "%0.3f" % motors_pos["2"]["sampy"]
 
-        scan = self.addCommand(
+        scan = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -186,7 +186,7 @@ class MD3UP(Microdiff.Microdiff):
         params += "%r\t" % True
         params += "%r\t" % True
 
-        scan = self.addCommand(
+        scan = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,

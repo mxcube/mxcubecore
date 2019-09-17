@@ -54,7 +54,7 @@ class MicrodiffBeamstop(Equipment):
         self.roles = self.motors.getRoles()
 
         save_cmd_name = self.getProperty("save_cmd_name")
-        self.beamstopSetInPosition = self.beamstop.addCommand(
+        self.beamstopSetInPosition = self.beamstop.add_command(
             {
                 "type": "exporter",
                 "name": "bs_set_in",

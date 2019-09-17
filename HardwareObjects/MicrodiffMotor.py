@@ -97,7 +97,7 @@ class MicrodiffMotor(AbstractMotor):
 
             self._motor_abort = self.getCommandObject("abort")
             if not self._motor_abort:
-                self._motor_abort = self.addCommand(
+                self._motor_abort = self.add_command(
                     {"type": "exporter", "name": "abort"}, "abort"
                 )
 
@@ -105,7 +105,7 @@ class MicrodiffMotor(AbstractMotor):
                 "get%sDynamicLimits" % self.motor_name
             )
             if not self.get_dynamic_limits_cmd:
-                self.get_dynamic_limits_cmd = self.addCommand(
+                self.get_dynamic_limits_cmd = self.add_command(
                     {
                         "type": "exporter",
                         "name": "get%sDynamicLimits" % self.motor_name,
@@ -115,19 +115,19 @@ class MicrodiffMotor(AbstractMotor):
 
             self.get_limits_cmd = self.getCommandObject("getMotorLimits")
             if not self.get_limits_cmd:
-                self.get_limits_cmd = self.addCommand(
+                self.get_limits_cmd = self.add_command(
                     {"type": "exporter", "name": "get_limits"}, "getMotorLimits"
                 )
 
             self.get_max_speed_cmd = self.getCommandObject("getMotorMaxSpeed")
             if not self.get_max_speed_cmd:
-                self.get_max_speed_cmd = self.addCommand(
+                self.get_max_speed_cmd = self.add_command(
                     {"type": "exporter", "name": "get_max_speed"}, "getMotorMaxSpeed"
                 )
 
             self.home_cmd = self.getCommandObject("homing")
             if not self.home_cmd:
-                self.home_cmd = self.addCommand(
+                self.home_cmd = self.add_command(
                     {"type": "exporter", "name": "homing"}, "startHomingMotor"
                 )
 

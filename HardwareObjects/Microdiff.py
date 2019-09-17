@@ -32,7 +32,7 @@ class Microdiff(MiniDiff.MiniDiff):
             },
             "CoaxCamScaleY",
         )
-        self.moveMultipleMotors = self.addCommand(
+        self.moveMultipleMotors = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -62,7 +62,7 @@ class Microdiff(MiniDiff.MiniDiff):
             "DataCollection": 3,
             "Transfer": 4,
         }
-        self.movePhase = self.addCommand(
+        self.movePhase = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -78,7 +78,7 @@ class Microdiff(MiniDiff.MiniDiff):
             },
             "CurrentPhase",
         )
-        self.scanLimits = self.addCommand(
+        self.scanLimits = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -156,13 +156,22 @@ class Microdiff(MiniDiff.MiniDiff):
             "DetectorGatePulseReadoutTime",
         )
 
-        self.abort_cmd = self.addCommand(
+        self.abort_cmd = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
                 "name": "abort",
             },
             "abort",
+        )
+
+        self.move_sync_motors = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "move_sync_motors",
+            },
+            "startSimultaneousMoveMotors",
         )
 
         MiniDiff.MiniDiff.init(self)
@@ -258,15 +267,8 @@ class Microdiff(MiniDiff.MiniDiff):
             argin += "%s=%0.3f;" % (name, position)
         if not argin:
             return
-        move_sync_motors = self.addCommand(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "move_sync_motors",
-            },
-            "startSimultaneousMoveMotors",
-        )
-        move_sync_motors(argin)
+
+        self.move_sync_motors(argin)
 
         if wait:
             time.sleep(0.1)
@@ -284,7 +286,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
         self.nb_frames.setValue(1)
         scan_params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
-        scan = self.addCommand(
+        scan = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -319,7 +321,7 @@ class Microdiff(MiniDiff.MiniDiff):
         scan_params += "%0.3f\t" % motors_pos["2"]["sampx"]
         scan_params += "%0.3f" % motors_pos["2"]["sampy"]
 
-        scan = self.addCommand(
+        scan = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -369,7 +371,7 @@ class Microdiff(MiniDiff.MiniDiff):
         # scan_params += "%d\t" % 1
         scan_params += "%r" % True  # TODO
 
-        scan = self.addCommand(
+        scan = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -385,7 +387,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def stillScan(self, pulse_duration, pulse_period, pulse_nb, wait=False):
         scan_params = "%0.6f\t%0.6f\t%d" % (pulse_duration, pulse_period, pulse_nb)
-        scan = self.addCommand(
+        scan = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -455,7 +457,7 @@ class Microdiff(MiniDiff.MiniDiff):
     def start_manual_centring(self, sample_info=None):
         if self.in_plate_mode():
             plateTranslation = self.getObjectByRole("plateTranslation")
-            cmd_set_plate_vertical = self.addCommand(
+            cmd_set_plate_vertical = self.add_command(
                 {
                     "type": "exporter",
                     "exporter_address": self.exporter_addr,

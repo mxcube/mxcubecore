@@ -734,7 +734,7 @@ class CommandContainer:
 
     def _addChannelsAndCommands(self):
         [self.addChannel(*args) for args in self.__channelsToAdd]
-        [self.addCommand(*args) for args in self.__commandsToAdd]
+        [self.add_command(*args) for args in self.__commandsToAdd]
         self.__channelsToAdd = []
         self.__commandsToAdd = []
 

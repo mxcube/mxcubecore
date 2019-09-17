@@ -44,7 +44,7 @@ class SpecState(Procedure):
         speccommand = SpecClient.SpecCommand.SpecCommand(
             "sleep", self.specConnection, None
         )
-        self.addCommand(
+        self.add_command(
             {"name": "SpecStateMacro", "type": "spec", "version": self.specversion},
             "sleep",
         )

@@ -13,7 +13,7 @@ class MicrodiffApertureAlign(Equipment):
             "AperturePredefinedPosition",
         )
         self.apertureAlignPosition.connectSignal("update", self.checkPosition)
-        self.apertureAlignSetInPosition = self.addCommand(
+        self.apertureAlignSetInPosition = self.add_command(
             {"type": "tango", "name": "bs_set_in", "tangoname": self.tangoname},
             "ApertureSaveInPosition",
         )
