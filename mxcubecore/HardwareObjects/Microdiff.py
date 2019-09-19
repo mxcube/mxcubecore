@@ -502,7 +502,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
         self.current_centring_procedure.link(self.manualCentringDone)
 
-    def interruptAndaccept_centring(self):
+    def interrupt_and_accept_centring(self):
         """ Used when plate. Kills the current 1 click centring infinite loop
         and accepts fake centring - only save the motor positions
         """
