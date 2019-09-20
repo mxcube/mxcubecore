@@ -1,6 +1,27 @@
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
+
 from __future__ import absolute_import
 
 import logging
+
+from warnings import warn
 
 from HardwareRepository.dispatcher import dispatcher
 from HardwareRepository.CommandContainer import CommandContainer
@@ -11,40 +32,40 @@ class PropertySet(dict):
     def __init__(self):
         dict.__init__(self)
 
-        self.__propertiesChanged = {}
-        self.__propertiesPath = {}
+        self.__properties_changed = {}
+        self.__properties_path = {}
 
-    def setPropertyPath(self, name, path):
+    def set_property_path(self, name, path):
         name = str(name)
-        self.__propertiesPath[name] = path
+        self.__properties_path[name] = path
 
-    def getPropertiesPath(self):
-        return iter(self.__propertiesPath.items())
+    def get_properties_path(self):
+        return iter(self.__properties_path.items())
 
     def __setitem__(self, name, value):
         name = str(name)
 
         if name in self and str(value) != str(self[name]):
-            self.__propertiesChanged[name] = str(value)
+            self.__properties_changed[name] = str(value)
 
         dict.__setitem__(self, str(name), value)
 
-    def getChanges(self):
-        for propertyName, value in self.__propertiesChanged.items():
-            yield (self.__propertiesPath[propertyName], value)
+    def get_changes(self):
+        for propertyName, value in self.__properties_changed.items():
+            yield (self.__properties_path[propertyName], value)
 
-        self.__propertiesChanged = {}  # reset changes at commit
+        self.__properties_changed = {}  # reset changes at commit
 
 
 class HardwareObjectNode:
-    def __init__(self, nodeName):
+    def __init__(self, node_name):
         """Constructor"""
-        self.__dict__["_propertySet"] = PropertySet()
-        self.__objectsNames = []
+        self.__dict__["_property_set"] = PropertySet()
+        self.__objects_names = []
         self.__objects = []
-        self._objectsByRole = {}
+        self._objects_by_role = {}
         self._path = ""
-        self.__name = nodeName
+        self.__name = node_name
         self.__references = []
 
     @staticmethod
@@ -58,7 +79,7 @@ class HardwareObjectNode:
         self.__name = name
 
     def getRoles(self):
-        return list(self._objectsByRole.keys())
+        return list(self._objects_by_role.keys())
 
     def setPath(self, path):
         """Set the 'path' of the Hardware Object in the XML file describing it
@@ -69,7 +90,7 @@ class HardwareObjectNode:
         self._path = path
 
     def __iter__(self):
-        for i in range(len(self.__objectsNames)):
+        for i in range(len(self.__objects_names)):
             for object in self.__objects[i]:
                 yield object
 
@@ -81,13 +102,13 @@ class HardwareObjectNode:
             raise AttributeError(attr)
 
         try:
-            return self.__dict__["_propertySet"][attr]
+            return self.__dict__["_property_set"][attr]
         except KeyError:
             raise AttributeError(attr)
 
     def __setattr__(self, attr, value):
         try:
-            if attr not in self.__dict__ and attr in self._propertySet:
+            if attr not in self.__dict__ and attr in self._property_set:
                 self.setProperty(attr, value)
             else:
                 self.__dict__[attr] = value
@@ -99,7 +120,7 @@ class HardwareObjectNode:
             objectName = key
 
             try:
-                i = self.__objectsNames.index(objectName)
+                i = self.__objects_names.index(objectName)
             except BaseException:
                 raise KeyError
             else:
@@ -111,7 +132,7 @@ class HardwareObjectNode:
         elif isinstance(key, int):
             i = key
 
-            if i < len(self.__objectsNames):
+            if i < len(self.__objects_names):
                 obj = self.__objects[i]
                 if len(obj) == 1:
                     return obj[0]
@@ -126,28 +147,28 @@ class HardwareObjectNode:
         role = str(role).lower()
 
         try:
-            i = self.__objectsNames.index(name)
+            i = self.__objects_names.index(name)
         except ValueError:
-            objectsNamesIndex = len(self.__objectsNames)
-            self.__objectsNames.append(None)
-            objectsIndex = len(self.__objects)
+            objects_names_index = len(self.__objects_names)
+            self.__objects_names.append(None)
+            objects_index = len(self.__objects)
             self.__objects.append(None)
-            objectsIndex2 = -1
+            objects_index_2 = -1
         else:
-            objectsNamesIndex = -1
-            objectsIndex = i
-            objectsIndex2 = len(self.__objects[i])
+            objects_names_index = -1
+            objects_index = i
+            objects_index_2 = len(self.__objects[i])
             self.__objects[i].append(None)
 
         self.__references.append(
-            (reference, name, role, objectsNamesIndex, objectsIndex, objectsIndex2)
+            (reference, name, role, objects_names_index, objects_index, objects_index_2)
         )
 
     def resolveReferences(self):
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import getHardwareRepository
         while len(self.__references) > 0:
-            reference, name, role, objectsNamesIndex, objectsIndex, objectsIndex2 = (
+            reference, name, role, objects_names_index, objects_index, objects_index_2 = (
                 self.__references.pop()
             )
 
@@ -156,22 +177,22 @@ class HardwareObjectNode:
             )
 
             if hw_object is not None:
-                self._objectsByRole[role] = hw_object
+                self._objects_by_role[role] = hw_object
                 hw_object.__role = role
 
-                if objectsNamesIndex >= 0:
-                    self.__objectsNames[objectsNamesIndex] = role
-                    self.__objects[objectsIndex] = [hw_object]
+                if objects_names_index >= 0:
+                    self.__objects_names[objects_names_index] = role
+                    self.__objects[objects_index] = [hw_object]
                 else:
-                    self.__objects[objectsIndex][objectsIndex2] = hw_object
+                    self.__objects[objects_index][objects_index_2] = hw_object
             else:
-                if objectsNamesIndex >= 0:
-                    del self.__objectsNames[objectsNamesIndex]
-                    del self.__objects[objectsIndex]
+                if objects_names_index >= 0:
+                    del self.__objects_names[objects_names_index]
+                    del self.__objects[objects_index]
                 else:
-                    del self.__objects[objectsIndex][objectsIndex2]
-                    if len(self.objects[objectsIndex]) == 0:
-                        del self.objects[objectsIndex]
+                    del self.__objects[objects_index][objects_index_2]
+                    if len(self.objects[objects_index]) == 0:
+                        del self.objects[objects_index]
 
         for hw_object in self:
             hw_object.resolveReferences()
@@ -181,23 +202,23 @@ class HardwareObjectNode:
             return
         elif role is not None:
             role = str(role).lower()
-            self._objectsByRole[role] = hw_object
+            self._objects_by_role[role] = hw_object
             hw_object.__role = role
 
         try:
-            i = self.__objectsNames.index(name)
+            i = self.__objects_names.index(name)
         except ValueError:
-            self.__objectsNames.append(name)
+            self.__objects_names.append(name)
             self.__objects.append([hw_object])
         else:
             self.__objects[i].append(hw_object)
 
     def hasObject(self, objectName):
-        return objectName in self.__objectsNames
+        return objectName in self.__objects_names
 
     def getObjects(self, objectName):
         try:
-            i = self.__objectsNames.index(objectName)
+            i = self.__objects_names.index(objectName)
         except ValueError:
             pass
         else:
@@ -211,8 +232,8 @@ class HardwareObjectNode:
         role = str(role).lower()
 
         while True:
-            if role in obj._objectsByRole:
-                return obj._objectsByRole[role]
+            if role in obj._objects_by_role:
+                return obj._objects_by_role[role]
 
             for object in obj:
                 objects.append(object)
@@ -232,7 +253,7 @@ class HardwareObjectNode:
                     break
 
     def objectsNames(self):
-        return self.__objectsNames[:]
+        return self.__objects_names[:]
 
     def setProperty(self, name, value):
         name = str(name)
@@ -255,14 +276,14 @@ class HardwareObjectNode:
                     elif value == "False":
                         value = False
 
-        self._propertySet[name] = value
-        self._propertySet.setPropertyPath(name, self._path + "/" + str(name))
+        self._property_set[name] = value
+        self._property_set.set_property_path(name, self._path + "/" + str(name))
 
     def getProperty(self, name, default_value=None):
-        return self._propertySet.get(str(name), default_value)
+        return self._property_set.get(str(name), default_value)
 
     def getProperties(self):
-        return self._propertySet
+        return self._property_set
 
     def update_values(self):
         """Method called from Qt bricks to ensure that bricks have values
@@ -381,22 +402,34 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         if hasattr(sender, "disconnectNotify"):
             sender.disconnectNotify(signal)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         pass
 
-    def disconnectNotify(self, signal):
+    def connectNotify(self, signal):
+        logging.getLogger("HWR").warning("DeprecationWarning: connectNotify is deprecated. Use connect_notify instead")
+        warn("connectNotify is deprecated. Use connect_notify instead", DeprecationWarning)
+
+        self.connect_notify(signal)
+
+    def disconnect_notify(self, signal):
         pass
+        
+    def disconnectNotify(self, signal):
+        logging.getLogger("HWR").warning("DeprecationWarning: disconnectNotify is deprecated. Use disconnect_notify instead")
+        warn("disconnectNotify is deprecated. Use disconnect_notify instead", DeprecationWarning)
+
+        self.disconnect_notify(signal)
 
     def commitChanges(self):
         """Commit last changes"""
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import getHardwareRepository
 
-        def getChanges(node):
-            updates = list(node._propertySet.getChanges())
+        def get_changes(node):
+            updates = list(node._property_set.get_changes())
             if len(node) > 0:
                 for n in node:
-                    updates += getChanges(n)
+                    updates += get_changes(n)
 
             if isinstance(node, HardwareObject):
                 if len(updates) > 0:
@@ -405,7 +438,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
             else:
                 return updates
 
-        getChanges(self)
+        get_changes(self)
 
     def rewrite_xml(self, xml):
         """Rewrite XML file"""
@@ -434,9 +467,6 @@ class Procedure(HardwareObject):
         else:
             return uname
 
-    def GUI(self, parent):
-        pass
-
 
 class Device(HardwareObject):
     (NOTREADY, READY) = (0, 1)  # device states
@@ -446,7 +476,7 @@ class Device(HardwareObject):
 
         self.state = Device.NOTREADY
 
-    def setIsReady(self, ready):
+    def set_is_ready(self, ready):
         if ready and self.state == Device.NOTREADY:
             self.state = Device.READY
             self.emit("deviceReady")
@@ -454,11 +484,18 @@ class Device(HardwareObject):
             self.state = Device.NOTREADY
             self.emit("deviceNotReady")
 
+    def setIsReady(self, ready):
+        logging.getLogger("HWR").warning("DeprecationWarning: setIsReady is deprecated. Use set_is_ready instead")
+        warn("setIsReady is deprecated. Use set_is_ready instead", DeprecationWarning)
+        self.set_is_ready(ready)
+
     def isReady(self):
-        return self.state == Device.READY
+        logging.getLogger("HWR").warning("DeprecationWarning: isReady is deprecated. Use is_ready instead")
+        warn("isReady is deprecated. Use is_ready instead", DeprecationWarning)
+        return self.is_ready()
 
     def is_ready(self):
-        return self.isReady()
+        return self.state == Device.READY
 
     def userName(self):
         uname = self.getProperty("username")
@@ -518,14 +555,14 @@ class Equipment(HardwareObject, DeviceContainer):
     def __deviceReady(self):
         ready = True
         for device in self.getDevices():
-            ready = ready and device.isReady()
+            ready = ready and device.is_ready()
             if not ready:
                 break
 
         if self.__ready != ready:
             self.__ready = ready
 
-            if self.isReady():
+            if self.is_ready():
                 self.emit("equipmentReady")
             else:
                 self.emit("equipmentNotReady")
@@ -536,13 +573,20 @@ class Equipment(HardwareObject, DeviceContainer):
             self.emit("equipmentNotReady")
 
     def isReady(self):
-        return self.isValid() and self.__ready
+        logging.getLogger("HWR").warning("DeprecationWarning: isReady is deprecated. Use is_ready instead")
+        warn("isReady is deprecated. Use is_ready instead", DeprecationWarning)
+        return self.is_ready()
 
     def is_ready(self):
-        return self.isReady()
+        return self.isValid() and self.__ready
+
+    def is_valid(self):
+        return True
 
     def isValid(self):
-        return True
+        logging.getLogger("HWR").warning("DeprecationWarning: isValid is deprecated. Use is_valid instead")
+        warn("isValid is deprecated. Use is_valid instead", DeprecationWarning)
+        return self.is_valid()
 
     def userName(self):
         uname = self.getProperty("username")
