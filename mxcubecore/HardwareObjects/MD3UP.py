@@ -4,8 +4,7 @@ import logging
 
 from HardwareRepository.HardwareObjects import Microdiff
 from HardwareRepository.HardwareObjects.sample_centring import CentringMotor
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class MD3UP(Microdiff.Microdiff):
@@ -210,7 +209,7 @@ class MD3UP(Microdiff.Microdiff):
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
 
-        beam_pos_x, beam_pos_y = beamline_object.beam.get_beam_position()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
         dx = (x - beam_pos_x) / self.pixelsPerMmY
         dy = (y - beam_pos_y) / self.pixelsPerMmZ
 
@@ -306,7 +305,7 @@ class MD3UP(Microdiff.Microdiff):
 
         sx, sy = numpy.dot(numpy.array([0, dsy]), numpy.array(chiRot))
 
-        beam_pos_x, beam_pos_y = beamline_object.beam.get_beam_position()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
         x = (sx + phiy) * self.pixelsPerMmY + beam_pos_x
         y = (sy + phiz) * self.pixelsPerMmZ + beam_pos_y
 
@@ -320,7 +319,7 @@ class MD3UP(Microdiff.Microdiff):
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
 
-        beam_pos_x, beam_pos_y = beamline_object.beam.get_beam_position()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
         dx = (x - beam_pos_x) / self.pixelsPerMmY
         dy = (y - beam_pos_y) / self.pixelsPerMmZ
 

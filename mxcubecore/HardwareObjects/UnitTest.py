@@ -22,7 +22,7 @@ import unittest
 import logging
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-beamline_object = None
+BEAMLINE = None
 
 
 class TestException(Exception):
@@ -40,31 +40,31 @@ class TestMethods(unittest.TestCase):
     def test_get_value(self):
         logging.getLogger("HWR").debug("UnitTest: Testing return values...")
         self.assertIn(
-            type(beamline_object.energy.get_current_energy()),
+            type(BEAMLINE.energy.get_current_energy()),
             (float, int),
             "Energy hwobj | get_current_energy() returns float",
         )
 
         logging.getLogger("HWR").debug("UnitTest: Testing transmission hwobj")
         self.assertIn(
-            type(beamline_object.transmission.getAttFactor()),
+            type(BEAMLINE.transmission.getAttFactor()),
             (float, int),
             "Transmission hwobj | getAttFactor() returns float",
         )
 
         logging.getLogger("HWR").debug("UnitTest: Testing aperture hwobj")
         self.assertIn(
-            type(beamline_object.beam.aperture.get_diameter_size()),
+            type(BEAMLINE.beam.aperture.get_diameter_size()),
             (float, int),
             "Aperture | get_diameter_size() returns float",
         )
         self.assertIn(
-            type(beamline_object.beam.aperture.get_diameter_size_list()),
+            type(BEAMLINE.beam.aperture.get_diameter_size_list()),
             (list, tuple),
             "Aperture | get_diameter_size_list() returns list or tuple",
         )
         self.assertIn(
-            type(beamline_object.beam.aperture.get_position_list()),
+            type(BEAMLINE.beam.aperture.get_position_list()),
             (list, tuple),
             "Aperture | get_position_list() returns list or tuple",
         )
@@ -72,7 +72,7 @@ class TestMethods(unittest.TestCase):
     def test_get_limits(self):
         logging.getLogger("HWR").debug("UnitTest: Testing limits...")
         self.assertIsInstance(
-            beamline_object.energy.get_energy_limits(),
+            BEAMLINE.energy.get_energy_limits(),
             list,
             "Energy hwobj | get_energy_limits() returns list with two floats",
         )
@@ -80,7 +80,7 @@ class TestMethods(unittest.TestCase):
     def test_get_state(self):
         logging.getLogger("HWR").debug("UnitTest: Testing states...")
         self.assertIsInstance(
-            beamline_object.transmission.getAttState(),
+            BEAMLINE.transmission.getAttState(),
             str,
             "Transmission hwobj | getAttState() returns int",
         )
@@ -91,9 +91,10 @@ class UnitTest(HardwareObject):
         HardwareObject.__init__(self, name)
 
     def init(self):
-        global beamline_object
-        from HardwareRepository import HardwareRepository
-        beamline_object = HardwareRepository.get_beamline()
+        global BEAMLINE
+        from HardwareRepository import HardwareRepository as HWR
+        BEAMLINE = HWR.beamline
+
         suite = unittest.TestLoader().loadTestsFromTestCase(TestMethods)
         test_result = unittest.TextTestRunner(verbosity=3).run(suite)
 

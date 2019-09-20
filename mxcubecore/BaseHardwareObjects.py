@@ -13,13 +13,13 @@ class ConfiguredObject(object):
 
     # Roles of defined objects and the category they belong to
     # NB the double underscore is deliberate - attribute must be hidden from subclasses
-    __object_role_categories = OrderedDict()
+    __content_roles = []
 
     def __init__(self, name):
 
         self.name = name
 
-        self._objects = OrderedDict((role, None) for role in self.role_to_category)
+        self._objects = OrderedDict((role, None) for role in self.all_roles)
 
     def replace_object(self, role, new_object):
         """Replace already defined Object with a new one - for runtime use
@@ -36,14 +36,15 @@ class ConfiguredObject(object):
         else:
             raise ValueError("Unknown contained Object role: %s" % role)
 
+    # NB this function must be re-implemented in nested subclasses
     @property
-    def role_to_category(self):
-        """Mapping from role to category
+    def all_roles(self):
+        """Tuple of all content object roles, indefinition and loading order
 
         Returns:
-            OrderedDict[text_str, text_str]
+            tuple[text_str, ...]
         """
-        return self.__object_role_categories.copy()
+        return tuple(self.__content_roles)
 
     @property
     def all_objects_by_role(self):
@@ -55,26 +56,6 @@ class ConfiguredObject(object):
 
         """
         return self._objects.copy()
-
-    # NB Use super(self.__class__, self).all_contained_objects in nested subclasses
-
-    @property
-    def objects_by_category(self):
-        """Loaded contained Objects grouped by category, mapped by role
-            (in specification order). Includes objects defined in subclasses.
-
-        Returns:
-            dict[text_str,  OrderedDict[text_str, ConfiguredObject]]:
-
-        """
-        result = dict()
-        for role, cat in self.role_to_category.items():
-            obj = self._objects.get(role)
-            if obj is not None:
-                ddcat = result.setdefault(cat, OrderedDict())
-                ddcat[role] = obj
-        #
-        return result
 
 
 class PropertySet(dict):

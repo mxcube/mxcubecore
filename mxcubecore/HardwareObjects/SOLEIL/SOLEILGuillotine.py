@@ -13,9 +13,7 @@ Example XML:
 from HardwareRepository import BaseHardwareObjects
 import logging
 import time
-import PyTango
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class SOLEILGuillotine(BaseHardwareObjects.Device):
@@ -104,8 +102,8 @@ class SOLEILGuillotine(BaseHardwareObjects.Device):
 
             self.pss = self.getObjectByRole("pss")
 
-            self.connect(beamline_object.detector.detector_distance, "positionChanged", self.shutterStateChanged)
-            self.connect(beamline_object.detector.detector_distance, "positionChanged", self.updateDetectorDistance)
+            self.connect(HWR.beamline.detector.detector_distance, "positionChanged", self.shutterStateChanged)
+            self.connect(HWR.beamline.detector.detector_distance, "positionChanged", self.updateDetectorDistance)
 
             for command_name in ("_Insert", "_Extract"):
                 setattr(self, command_name, self.getCommandObject(command_name))
@@ -156,7 +154,7 @@ class SOLEILGuillotine(BaseHardwareObjects.Device):
         if state == "Transfer":
             self.goToSecurityDistance()
         if state == "Collect":
-            beamline_object.detector.detector_distance.move(180)
+            HWR.beamline.detector.detector_distance.move(180)
 
     def updateGuillotine(self, value):
         # if open door close guillotine but test distance
@@ -181,16 +179,16 @@ class SOLEILGuillotine(BaseHardwareObjects.Device):
         if self.isInsert():
             if not self.checkDistance():
                 # self.detector.move(180)
-                beamline_object.detector.detector_distance.move(self._d_security)
+                HWR.beamline.detector.detector_distance.move(self._d_security)
                 time.sleep(2.0)
-                while beamline_object.detector.detector_distance.motorIsMoving():
+                while HWR.beamline.detector.detector_distance.motorIsMoving():
                     time.sleep(0.5)
                 self._Extract()
                 time.sleep(0.2)
                 # self.detector.move(150)
-                beamline_object.detector.detector_distance.move(currentDistance)
+                HWR.beamline.detector.detector_distance.move(currentDistance)
                 time.sleep(2.0)
-                while beamline_object.detector.detector_distance.motorIsMoving():
+                while HWR.beamline.detector.detector_distance.motorIsMoving():
                     time.sleep(0.5)
             else:
                 self._Extract()
@@ -211,10 +209,10 @@ class SOLEILGuillotine(BaseHardwareObjects.Device):
 
     def goToSecurityDistance(self):
         if self._currentDistance < self._d_home:
-            beamline_object.detector.detector_distance.move(self._d_home)
+            HWR.beamline.detector.detector_distance.move(self._d_home)
         if str(self.shutChannel.value) == "EXTRACT":
             self._Insert()
-        while beamline_object.detector.detector_distance.motorIsMoving():
+        while HWR.beamline.detector.detector_distance.motorIsMoving():
             time.sleep(0.5)
 
     def isShutterOk(self):

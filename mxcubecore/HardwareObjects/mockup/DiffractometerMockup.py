@@ -25,8 +25,7 @@ import warnings
 from HardwareRepository.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer
 )
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 from gevent.event import AsyncResult
 
 
@@ -301,9 +300,9 @@ class DiffractometerMockup(GenericDiffractometer):
         Descript. :
         """
         self.emit("minidiffStateChanged", "testState")
-        if beamline_object.beam:
-            beamline_object.beam.beam_pos_hor_changed(300)
-            beamline_object.beam.beam_pos_ver_changed(200)
+        if HWR.beamline.beam:
+            HWR.beamline.beam.beam_pos_hor_changed(300)
+            HWR.beamline.beam.beam_pos_ver_changed(200)
 
     def start_auto_focus(self):
         """

@@ -24,8 +24,7 @@ from HardwareRepository.HardwareObjects.abstract.AbstractXRFSpectrum import (
     AbstractXRFSpectrum,
 )
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
@@ -59,10 +58,10 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         #         "EMBLXRFSpectrum: Transmission hwobj not defined"
         #     )
 
-        if beamline_object.lims is None:
+        if HWR.beamline.lims is None:
             logging.getLogger().warning("EMBLXRFSpectrum: DB hwobj not defined")
 
-        if beamline_object.beam is None:
+        if HWR.beamline.beam is None:
             logging.getLogger("HWR").warning(
                 "EMBLXRFSpectrum: Beam info hwobj not defined"
             )

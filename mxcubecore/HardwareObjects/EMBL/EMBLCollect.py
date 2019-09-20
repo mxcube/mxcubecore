@@ -24,8 +24,7 @@ import os
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 __credits__ = ["EMBL Hamburg"]
@@ -150,7 +149,7 @@ class EMBLCollect(AbstractCollect):
             "error",
             "not available",
         ]:
-            beamline_object.diffractometer.save_centring_positions()
+            HWR.beamline.diffractometer.save_centring_positions()
             comment = "Comment: %s" % str(
                 self.current_dc_parameters.get("comments", "")
             )
@@ -162,19 +161,19 @@ class EMBLCollect(AbstractCollect):
             file_info = self.current_dc_parameters["fileinfo"]
             sample_ref = self.current_dc_parameters["sample_reference"]
 
-            if beamline_object.image_tracking is not None:
-                beamline_object.image_tracking.set_image_tracking_state(True)
+            if HWR.beamline.image_tracking is not None:
+                HWR.beamline.image_tracking.set_image_tracking_state(True)
 
             if self.cmd_collect_compression is not None:
                 self.cmd_collect_compression(file_info["compression"])
             self.cmd_collect_description(comment)
-            self.cmd_collect_detector(beamline_object.detector.get_collect_name())
+            self.cmd_collect_detector(HWR.beamline.detector.get_collect_name())
             self.cmd_collect_directory(str(file_info["directory"]))
             self.cmd_collect_exposure_time(osc_seq["exposure_time"])
             self.cmd_collect_in_queue(self.current_dc_parameters["in_queue"] != False)
             self.cmd_collect_overlap(osc_seq["overlap"])
             #            self.cmd_collect_overlap(-0.5)
-            shutter_name = beamline_object.detector.get_shutter_name()
+            shutter_name = HWR.beamline.detector.get_shutter_name()
             if shutter_name is not None:
                 self.cmd_collect_shutter(shutter_name)
 
@@ -290,7 +289,7 @@ class EMBLCollect(AbstractCollect):
             and self.break_bragg_released
         ):
             self.break_bragg_released = False
-            beamline_object.energy.set_break_bragg()
+            HWR.beamline.energy.set_break_bragg()
 
     def collect_frame_update(self, frame):
         """Image frame update
@@ -323,7 +322,7 @@ class EMBLCollect(AbstractCollect):
 
     def trigger_auto_processing(self, process_event, frame_number):
         """Starts autoprocessing"""
-        beamline_object.offline_processing.execute_autoprocessing(
+        HWR.beamline.offline_processing.execute_autoprocessing(
             process_event,
             self.current_dc_parameters,
             frame_number,
@@ -336,7 +335,7 @@ class EMBLCollect(AbstractCollect):
         self.aborted_by_user = True
         self.cmd_collect_abort()
         self.collection_failed("Aborted by user")
-        beamline_object.detector.close_cover()
+        HWR.beamline.detector.close_cover()
 
     def set_helical_pos(self, arg):
         """Sets helical positions
@@ -369,7 +368,7 @@ class EMBLCollect(AbstractCollect):
     @task
     def _take_crystal_snapshot(self, snapshot_filename):
         """Saves crystal snapshot"""
-        beamline_object.graphics.save_scene_snapshot(snapshot_filename)
+        HWR.beamline.graphics.save_scene_snapshot(snapshot_filename)
 
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec=1):
@@ -377,7 +376,7 @@ class EMBLCollect(AbstractCollect):
            Animation is saved as the fourth snapshot
         """
 
-        beamline_object.graphics.save_scene_animation(
+        HWR.beamline.graphics.save_scene_animation(
             animation_filename, duration_sec
         )
 
@@ -385,13 +384,13 @@ class EMBLCollect(AbstractCollect):
         """Sets energy"""
         if abs(value - self.get_energy()) > 0.005 and not self.break_bragg_released:
             self.break_bragg_released = True
-            if hasattr(beamline_object.energy, "release_break_bragg"):
-                beamline_object.energy.release_break_bragg()
+            if hasattr(HWR.beamline.energy, "release_break_bragg"):
+                HWR.beamline.energy.release_break_bragg()
         self.cmd_collect_energy(value * 1000.0)
 
     def get_energy(self):
         """Returns energy value in keV"""
-        return beamline_object.energy.get_current_energy()
+        return HWR.beamline.energy.get_current_energy()
 
     def set_resolution(self, value):
         """Sets resolution in A"""
@@ -407,12 +406,12 @@ class EMBLCollect(AbstractCollect):
         :param roi_mode: roi mode
         :type roi_mode: str (0, C2, ..)
         """
-        beamline_object.detector.set_collect_mode(roi_mode)
+        HWR.beamline.detector.set_collect_mode(roi_mode)
 
     @task
     def move_motors(self, motor_position_dict):
         """Move to centred position"""
-        beamline_object.diffractometer.move_motors(motor_position_dict)
+        HWR.beamline.diffractometer.move_motors(motor_position_dict)
 
     def prepare_input_files(self):
         """Prepares xds directory"""
@@ -437,23 +436,23 @@ class EMBLCollect(AbstractCollect):
 
     def get_wavelength(self):
         """Returns wavelength"""
-        return beamline_object.energy.get_current_wavelength()
+        return HWR.beamline.energy.get_current_wavelength()
 
     def get_detector_distance(self):
         """Returns detector distance in mm"""
-        return beamline_object.detector.get_distance()
+        return HWR.beamline.detector.get_distance()
 
     def get_detector_distance_limits(self):
         """Returns detector distance limits"""
-        return beamline_object.detector.get_distance_limits()
+        return HWR.beamline.detector.get_distance_limits()
 
     def get_resolution(self):
         """Returns resolution in A"""
-        return beamline_object.resolution.getPosition()
+        return HWR.beamline.resolution.getPosition()
 
     def get_transmission(self):
         """Returns transmision in %"""
-        return beamline_object.transmission.get_value()
+        return HWR.beamline.transmission.get_value()
 
     def get_undulators_gaps(self):
         """Return triplet with gaps. In our case we have one gap,
@@ -467,19 +466,19 @@ class EMBLCollect(AbstractCollect):
 
     def get_measured_intensity(self):
         """Returns flux"""
-        return float("%.3e" % beamline_object.flux.get_flux())
+        return float("%.3e" % HWR.beamline.flux.get_flux())
 
     def get_machine_current(self):
         """Returns flux"""
-        return beamline_object.machine_info.get_current()
+        return HWR.beamline.machine_info.get_current()
 
     def get_machine_message(self):
         """Returns machine message"""
-        return beamline_object.machine_info.get_message()
+        return HWR.beamline.machine_info.get_message()
 
     def get_machine_fill_mode(self):
         """Returns machine filling mode"""
-        fill_mode = str(beamline_object.machine_info.get_message())
+        fill_mode = str(HWR.beamline.machine_info.get_message())
         return fill_mode[:20]
 
     def getBeamlineConfiguration(self, *args):
@@ -491,7 +490,7 @@ class EMBLCollect(AbstractCollect):
         return self.get_measured_intensity()
 
     def get_total_absorbed_dose(self):
-        return float("%.3e" % beamline_object.flux.get_total_absorbed_dose())
+        return float("%.3e" % HWR.beamline.flux.get_total_absorbed_dose())
 
     def set_run_autoprocessing(self, status):
         """Enables or disables autoprocessing after a collection"""

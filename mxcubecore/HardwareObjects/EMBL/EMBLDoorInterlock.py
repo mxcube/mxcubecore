@@ -20,8 +20,7 @@
 import logging
 import gevent
 from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 __credits__ = ["EMBL Hamburg"]
@@ -165,9 +164,9 @@ class EMBLDoorInterlock(Device):
            It doesn't matter what we are sending in the command
            as long as it is a one char
         """
-        if beamline_object.diffractometer is not None:
-            detector_distance = beamline_object.detector.detector_distance
-            if beamline_object.diffractometer.in_plate_mode():
+        if HWR.beamline.diffractometer is not None:
+            detector_distance = HWR.beamline.detector.detector_distance
+            if HWR.beamline.diffractometer.in_plate_mode():
                 if detector_distance  is not None:
                     if detector_distance .getPosition() < 780:
                         detector_distance .move(800, timeout=None)
@@ -180,8 +179,8 @@ class EMBLDoorInterlock(Device):
                         detector_distance .move(1100)
                         gevent.sleep(1)
             try:
-                beamline_object.diffractometer.set_phase(
-                    beamline_object.diffractometer.PHASE_TRANSFER, timeout=None
+                HWR.beamline.diffractometer.set_phase(
+                    HWR.beamline.diffractometer.PHASE_TRANSFER, timeout=None
                 )
             except BaseException:
                 logging.getLogger("GUI").error(

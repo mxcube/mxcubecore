@@ -18,7 +18,7 @@ Example XML::
 
 """
 
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository import BaseHardwareObjects
 import logging
 

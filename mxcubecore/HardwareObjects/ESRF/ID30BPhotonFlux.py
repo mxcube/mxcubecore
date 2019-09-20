@@ -2,8 +2,7 @@ import time
 import logging
 from HardwareRepository.BaseHardwareObjects import Equipment
 from HardwareRepository.TaskUtils import task
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class ID30BPhotonFlux(Equipment):
@@ -46,7 +45,7 @@ class ID30BPhotonFlux(Equipment):
             counts = 0
             logging.getLogger("HWR").exception("%s: could not get counts", self.name())
         try:
-            egy = beamline_object.energy.get_current_energy() * 1000.0
+            egy = HWR.beamline.energy.get_current_energy() * 1000.0
             calib = self.flux_calc.calc_flux_factor(egy)
         except BaseException:
             logging.getLogger("HWR").exception("%s: could not get energy", self.name())

@@ -23,8 +23,7 @@ import os
 import time
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.HardwareObjects.abstract import AbstractCollect
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 __credits__ = ["MXCuBE collaboration"]
@@ -137,8 +136,8 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         """
         Descript. :
         """
-        if beamline_object.offline_processing is not None:
-            beamline_object.offline_processing.execute_autoprocessing(
+        if HWR.beamline.offline_processing is not None:
+            HWR.beamline.offline_processing.execute_autoprocessing(
                 process_event,
                 self.current_dc_parameters,
                 frame_number,
@@ -155,14 +154,14 @@ class CollectMockup(AbstractCollect.AbstractCollect):
 
     @task
     def _take_crystal_snapshot(self, filename):
-        beamline_object.graphics.save_scene_snapshot(filename)
+        HWR.beamline.graphics.save_scene_snapshot(filename)
 
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec=1):
         """Rotates sample by 360 and composes a gif file
            Animation is saved as the fourth snapshot
         """
-        beamline_object.graphics.save_scene_animation(
+        HWR.beamline.graphics.save_scene_animation(
             animation_filename, duration_sec
         )
 
@@ -177,7 +176,7 @@ class CollectMockup(AbstractCollect.AbstractCollect):
     def move_motors(self, motor_position_dict):
         # TODO We copy, as dictionary is reset in move_motors. CLEAR UP!!
         # TODO clear up this confusion between move_motors and moveMotors
-        beamline_object.diffractometer.move_motors(motor_position_dict.copy())
+        HWR.beamline.diffractometer.move_motors(motor_position_dict.copy())
 
     def prepare_input_files(self):
         """
@@ -212,16 +211,16 @@ class CollectMockup(AbstractCollect.AbstractCollect):
 
     # rhfogh Added to improve interaction with UI and persistence of values
     def set_wavelength(self, wavelength):
-        beamline_object.energy.move_wavelength(wavelength)
+        HWR.beamline.energy.move_wavelength(wavelength)
 
     def set_energy(self, energy):
-        beamline_object.energy.move_energy(energy)
+        HWR.beamline.energy.move_energy(energy)
 
     def set_resolution(self, new_resolution):
-        beamline_object.resolution.move(new_resolution)
+        HWR.beamline.resolution.move(new_resolution)
 
     def set_transmission(self, transmission):
-        beamline_object.transmission.set_value(transmission)
+        HWR.beamline.transmission.set_value(transmission)
 
     def move_detector(self, detector_distance):
-        beamline_object.detector.set_distance(detector_distance)
+        HWR.beamline.detector.set_distance(detector_distance)

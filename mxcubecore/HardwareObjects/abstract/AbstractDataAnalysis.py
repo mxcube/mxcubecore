@@ -5,7 +5,7 @@ from HardwareRepository.HardwareObjects import queue_model_enumerables
 
 from XSDataMXCuBEv1_3 import XSDataInputMXCuBE, XSDataResultMXCuBE
 
-from HardwareRepository.HardwareRepository import getHardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 
 
 
@@ -223,8 +223,8 @@ def get_default_characterisation_parameters(edna_default_file):
     :returns: A CharacterisationsParameters object with default parameters.
     """
 
-    # input_fname = beamline_object.data_analysis.edna_default_file
-    fpath = getHardwareRepository().findInRepository(edna_default_file)
+    # input_fname = HWR.beamline.data_analysis.edna_default_file
+    fpath = HWR.getHardwareRepository().findInRepository(edna_default_file)
     if fpath is None:
         raise ValueError("File %s not found in repository" % edna_default_file)
     with open(fpath, "r") as fp0:

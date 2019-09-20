@@ -25,11 +25,9 @@ import time
 import copy
 import logging
 
-from HardwareRepository import HardwareRepository
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class BIOMAXEiger(Equipment):
@@ -720,9 +718,9 @@ def test():
         print('Bad trigger mode. It should be "exts" or "ints"')
         sys.exit(0)
 
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
-    detector = beamline_object.detector
+    detector = HWR.beamline.detector
 
     config = {
         "OmegaStart": 0,

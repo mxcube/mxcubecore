@@ -5,8 +5,7 @@ from calc_flux import CalculateFlux
 from PyTango.gevent import DeviceProxy
 from HardwareRepository.BaseHardwareObjects import Equipment
 from HardwareRepository.TaskUtils import task
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class ID23PhotonFlux(Equipment):
@@ -50,7 +49,7 @@ class ID23PhotonFlux(Equipment):
             counts = 0
             logging.getLogger("HWR").exception("%s: could not get counts", self.name())
         try:
-            egy = beamline_object.energy.get_current_energy() * 1000.0
+            egy = HWR.beamline.energy.get_current_energy() * 1000.0
             calib = self.flux_calc.calc_flux_coef(egy)
         except BaseException:
             logging.getLogger("HWR").exception("%s: could not get energy", self.name())

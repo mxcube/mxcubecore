@@ -20,8 +20,7 @@
 from random import random
 from HardwareRepository.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 __credits__ = ["MXCuBE collaboration"]
 __category__ = "General"
@@ -49,8 +48,8 @@ class FluxMockup(AbstractFlux):
 
     def measure_flux(self):
         """Measures intesity"""
-        beam_size = beamline_object.beam.get_beam_size()
-        transmission = beamline_object.transmission.get_value()
+        beam_size = HWR.beamline.beam.get_beam_size()
+        transmission = HWR.beamline.transmission.get_value()
         flux = self.default_flux * (1 + random())
 
         self.measured_flux_list = [{"size_x": beam_size[0],

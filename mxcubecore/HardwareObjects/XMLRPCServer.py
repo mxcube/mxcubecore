@@ -19,8 +19,7 @@ import traceback
 
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 if sys.version_info > (3, 0):
     from xmlrpc.server import SimpleXMLRPCRequestHandler
@@ -355,7 +354,7 @@ class XMLRPCServer(HardwareObject):
         :rtype: int
         """
         try:
-            node_id = beamline_object.queue_model.add_child_at_id(parent_id, child)
+            node_id = HWR.beamline.queue_model.add_child_at_id(parent_id, child)
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
             raise
@@ -368,7 +367,7 @@ class XMLRPCServer(HardwareObject):
         :rtype: TaskNode
         """
         try:
-            node = beamline_object.queue_model.get_node(node_id)
+            node = HWR.beamline.queue_model.get_node(node_id)
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
             raise
@@ -383,11 +382,11 @@ class XMLRPCServer(HardwareObject):
         :type node_id: int
         """
         try:
-            model = beamline_object.queue_model.get_node(node_id)
-            entry = beamline_object.queue_manager.get_entry_with_model(model)
+            model = HWR.beamline.queue_model.get_node(node_id)
+            entry = HWR.beamline.queue_manager.get_entry_with_model(model)
 
             if entry:
-                self.current_entry_task = beamline_object.queue_manager.execute_entry(entry)
+                self.current_entry_task = HWR.beamline.queue_manager.execute_entry(entry)
 
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
@@ -405,7 +404,7 @@ class XMLRPCServer(HardwareObject):
         :type lims_id: int
         """
         try:
-            model = beamline_object.queue_model.get_node(node_id)
+            model = HWR.beamline.queue_model.get_node(node_id)
             model.lims_id = lims_id
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
@@ -419,7 +418,7 @@ class XMLRPCServer(HardwareObject):
         :rtype: bool
         """
         try:
-            return beamline_object.queue_manager.is_executing(node_id)
+            return HWR.beamline.queue_manager.is_executing(node_id)
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
             raise
@@ -444,7 +443,7 @@ class XMLRPCServer(HardwareObject):
          'angle': float}
 
         """
-        grid_dict = beamline_object.graphics.get_grid()
+        grid_dict = HWR.beamline.graphics.get_grid()
         # self.shape_history_set_grid_data(grid_dict['id'], {})
 
         return grid_dict
@@ -454,7 +453,7 @@ class XMLRPCServer(HardwareObject):
         for result in result_data.iteritems():
             int_based_result[int(result[0])] = result[1]
 
-        beamline_object.graphics.set_grid_data(key, int_based_result)
+        HWR.beamline.graphics.set_grid_data(key, int_based_result)
         return True
 
     def get_cp(self):
@@ -462,7 +461,7 @@ class XMLRPCServer(HardwareObject):
         :returns: a json encoded list with all centred positions
         """
         cplist = []
-        points = beamline_object.graphics.get_points()
+        points = HWR.beamline.graphics.get_points()
 
         for point in points:
             cp = point.get_centred_positions()[0].as_dict()
@@ -486,10 +485,10 @@ class XMLRPCServer(HardwareObject):
             self.wokflow_in_progress = False
 
     def get_diffractometer_positions(self):
-        return beamline_object.diffractometer.getPositions()
+        return HWR.beamline.diffractometer.getPositions()
 
     def move_diffractometer(self, roles_positions_dict):
-        beamline_object.diffractometer.moveMotors(roles_positions_dict)
+        HWR.beamline.diffractometer.moveMotors(roles_positions_dict)
         return True
 
     def save_snapshot(self, imgpath, showScale=False):
@@ -497,9 +496,9 @@ class XMLRPCServer(HardwareObject):
 
         try:
             if showScale:
-                beamline_object.diffractometer.save_snapshot(imgpath)
+                HWR.beamline.diffractometer.save_snapshot(imgpath)
             else:
-                beamline_object.diffractometer.getObjectByRole("camera").takeSnapshot(
+                HWR.beamline.diffractometer.getObjectByRole("camera").takeSnapshot(
                     imgpath
                 )
         except Exception as ex:
@@ -512,22 +511,22 @@ class XMLRPCServer(HardwareObject):
         """
         Saves the current position as a centered position.
         """
-        beamline_object.diffractometer.saveCurrentPos()
+        HWR.beamline.diffractometer.saveCurrentPos()
         return True
 
     def cryo_temperature(self):
-        return beamline_object.collect.get_cryo_temperature()
+        return HWR.beamline.collect.get_cryo_temperature()
 
     def flux(self):
-        flux = beamline_object.flux.get_flux()
+        flux = HWR.beamline.flux.get_flux()
         if flux is None:
             flux = 0
         return float(flux)
 
     def set_aperture(self, pos_name, timeout=20):
-        beamline_object.beam.aperture_hwobj.moveToPosition(pos_name)
+        HWR.beamline.beam.aperture_hwobj.moveToPosition(pos_name)
         t0 = time.time()
-        while beamline_object.beam.aperture_hwobj.getState() == "MOVING":
+        while HWR.beamline.beam.aperture_hwobj.getState() == "MOVING":
             time.sleep(0.1)
             if time.time() - t0 > timeout:
                 raise RuntimeError("Timeout waiting for aperture to move")
@@ -535,12 +534,12 @@ class XMLRPCServer(HardwareObject):
 
     def get_aperture(self):
         return (
-            beamline_object.beam.aperture_hwobj.getCurrentPositionName()
+            HWR.beamline.beam.aperture_hwobj.getCurrentPositionName()
         )
 
     def get_aperture_list(self):
         return (
-            beamline_object.beam.aperture_hwobj.getPredefinedPositionsList()
+            HWR.beamline.beam.aperture_hwobj.getPredefinedPositionsList()
         )
 
     def open_dialog(self, dict_dialog):
@@ -562,13 +561,13 @@ class XMLRPCServer(HardwareObject):
             self.workflow_hwobj.workflow_end()
 
     def dozor_batch_processed(self, dozor_batch_dict):
-        beamline_object.online_processing.batch_processed(dozor_batch_dict)
+        HWR.beamline.online_processing.batch_processed(dozor_batch_dict)
 
     def dozor_status_changed(self, status):
-        beamline_object.online_processing.set_processing_status(status)
+        HWR.beamline.online_processing.set_processing_status(status)
 
     def processing_status_changed(self, collection_id, method, status, msg=""):
-        for queue_entry in beamline_object.queue_model.get_all_dc_queue_entries():
+        for queue_entry in HWR.beamline.queue_model.get_all_dc_queue_entries():
             data_model = queue_entry.get_data_model()
             if data_model.id == collection_id:
                 prefix = data_model.acquisitions[0].path_template.get_image_file_name()
@@ -599,43 +598,43 @@ class XMLRPCServer(HardwareObject):
         """
         Sets the zoom to a pre-defined level.
         """
-        beamline_object.diffractometer.zoomMotor.moveToPosition(zoom_level)
+        HWR.beamline.diffractometer.zoomMotor.moveToPosition(zoom_level)
 
     def get_zoom_level(self):
         """
         Returns the zoom level.
         """
-        return beamline_object.diffractometer.zoomMotor.getCurrentPositionName()
+        return HWR.beamline.diffractometer.zoomMotor.getCurrentPositionName()
 
     def get_available_zoom_levels(self):
         """
         Returns the avaliable pre-defined zoom levels.
         """
-        return beamline_object.diffractometer.zoomMotor.getPredefinedPositionsList()
+        return HWR.beamline.diffractometer.zoomMotor.getPredefinedPositionsList()
 
     def set_front_light_level(self, level):
         """
         Sets the level of the front light
         """
-        beamline_object.diffractometer.setFrontLightLevel(level)
+        HWR.beamline.diffractometer.setFrontLightLevel(level)
 
     def get_front_light_level(self):
         """
         Gets the level of the front light
         """
-        return beamline_object.diffractometer.getFrontLightLevel()
+        return HWR.beamline.diffractometer.getFrontLightLevel()
 
     def set_back_light_level(self, level):
         """
         Sets the level of the back light
         """
-        beamline_object.diffractometer.setBackLightLevel(level)
+        HWR.beamline.diffractometer.setBackLightLevel(level)
 
     def get_back_light_level(self):
         """
         Gets the level of the back light
         """
-        return beamline_object.diffractometer.getBackLightLevel()
+        return HWR.beamline.diffractometer.getBackLightLevel()
 
     def centre_beam(self):
         """

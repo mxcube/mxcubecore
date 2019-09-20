@@ -1,6 +1,5 @@
 from HardwareRepository import BaseHardwareObjects
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class Q315dist(BaseHardwareObjects.Equipment):
@@ -15,7 +14,7 @@ class Q315dist(BaseHardwareObjects.Equipment):
 
         self.connect(self.detm, "stateChanged", self.detmStateChanged)
         self.connect(
-            beamline_object.detector.detector_distance,
+            HWR.beamline.detector.detector_distance,
             "limitsChanged",
             self.dtoxLimitsChanged
         )
@@ -41,7 +40,7 @@ class Q315dist(BaseHardwareObjects.Equipment):
                 return getattr(self.detm, attr)
             else:
                 # logging.getLogger().info("calling dtox %s", attr)
-                return getattr(beamline_object.detector.detector_distance, attr)
+                return getattr(HWR.beamline.detector.detector_distance, attr)
         else:
             raise AttributeError(attr)
 

@@ -6,7 +6,7 @@ import qt
 import logging
 from SpecClient.SpecCommand import SpecCommand
 from SpecClient import SpecClientError
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Procedure
 
 print("Custom ElementAnalysis loaded")

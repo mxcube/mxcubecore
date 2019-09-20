@@ -8,8 +8,7 @@ import math
 from HardwareRepository.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer, DiffractometerState
 )
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class BIOMAXMD2(GenericDiffractometer):
@@ -118,7 +117,7 @@ class BIOMAXMD2(GenericDiffractometer):
 
     def moveToBeam(self, x, y):
         try:
-            self.beam_position = beamline_object.beam.get_beam_position()
+            self.beam_position = HWR.beamline.beam.get_beam_position()
             beam_xc = self.beam_position[0]
             beam_yc = self.beam_position[1]
             self.centring_phiz.moveRelative((y - beam_yc) / float(self.pixelsPerMmZ))

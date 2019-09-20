@@ -40,7 +40,7 @@ class EMBLBeamline(Beamline):
 
     # Roles of defined objects and the category they belong to
     # NB the double underscore is deliberate - attribute must be hidden from subclasses
-    __object_role_categories = OrderedDict()
+    __content_roles = []
 
     def __init__(self, name):
         """
@@ -50,17 +50,15 @@ class EMBLBeamline(Beamline):
         """
         super(EMBLBeamline, self).__init__(name)
 
+    # NB this function must be re-implemented in nested subclasses
     @property
-    def role_to_category(self):
-        """Mapping from role to category
+    def all_roles(self):
+        """Tuple of all content object roles, indefinition and loading order
 
         Returns:
-            OrderedDict[text_str, text_str]
+            tuple[text_str, ...]
         """
-        # Copy roles from superclass and add those form this class
-        result = super(EMBLBeamline, self).role_to_category
-        result.update(self.__object_role_categories)
-        return result
+        return super(EMBLBeamline, self).all_roles + tuple(self.__content_roles)
 
 
     # Additional properties
@@ -73,7 +71,7 @@ class EMBLBeamline(Beamline):
             Optional[AbstractMotor]:
         """
         return self._objects.get("beam_definer")
-    __object_role_categories["beam_definer"] = "hardware"
+    __content_roles.append("beam_definer")
 
     @property
     def ppu_control(self):
@@ -83,4 +81,4 @@ class EMBLBeamline(Beamline):
             Optional[HardwareObject]:
         """
         return self._objects.get("ppu_control")
-    __object_role_categories["ppu_control"] = "hardware"
+    __content_roles.append("ppu_control")

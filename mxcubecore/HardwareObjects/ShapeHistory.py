@@ -39,8 +39,7 @@ from Qub.Objects.QubDrawingCanvasTools import QubCanvasTarget
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.dispatcher import dispatcher
 
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 SELECTED_COLOR = qt.Qt.green
 NORMAL_COLOR = qt.Qt.yellow
@@ -318,7 +317,7 @@ class ShapeHistory(HardwareObject):
         Returns:
             AbstractActuator
         """
-        return beamline_object.diffractometer.zoom
+        return HWR.beamline.diffractometer.zoom
 
     @property
     def focus(self):
@@ -330,7 +329,7 @@ class ShapeHistory(HardwareObject):
         Returns:
             AbstractActuator
         """
-        return beamline_object.diffractometer.alignment_x
+        return HWR.beamline.diffractometer.alignment_x
 
     @property
     def camera(self):

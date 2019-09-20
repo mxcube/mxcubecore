@@ -21,8 +21,7 @@ beamPosChanged
 
 import logging
 from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class BeamInfo(Equipment):
@@ -73,9 +72,9 @@ class BeamInfo(Equipment):
         else:
             logging.getLogger("HWR").debug("BeamInfo: Slits hwobj not defined")
 
-        if beamline_object.beam_definer is not None:
+        if HWR.beamline.beam_definer is not None:
             self.connect(
-                beamline_object.beam_definer,
+                HWR.beamline.beam_definer,
                 "definerPosChanged",
                 self.definer_pos_changed
             )
@@ -106,8 +105,8 @@ class BeamInfo(Equipment):
         """
         Descript. :
         """
-        if beamline_object.beam_definer is not None:
-            return beamline_object.beam_definer.get_divergence_hor()
+        if HWR.beamline.beam_definer is not None:
+            return HWR.beamline.beam_definer.get_divergence_hor()
         else:
             return self.default_beam_divergence[0]
 
@@ -115,8 +114,8 @@ class BeamInfo(Equipment):
         """
         Descript. :
         """
-        if beamline_object.beam_definer is not None:
-            return beamline_object.beam_definer.get_divergence_ver()
+        if HWR.beamline.beam_definer is not None:
+            return HWR.beamline.beam_definer.get_divergence_ver()
         else:
             return self.default_beam_divergence[1]
 

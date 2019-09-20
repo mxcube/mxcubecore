@@ -32,8 +32,7 @@ from HardwareRepository import ConvertUtils
 from HardwareRepository.HardwareObjects.mockup.CollectMockup import CollectMockup
 from HardwareRepository.TaskUtils import task
 
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 __copyright__ = """ Copyright © 2017 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"
@@ -58,8 +57,8 @@ class CollectEmulator(CollectMockup):
 
     def init(self):
         CollectMockup.init(self)
-        # NBNB you get an error if you use 'beamline_object.session'
-        session = beamline_object.session
+        # NBNB you get an error if you use 'HWR.beamline.session'
+        session = HWR.beamline.session
         if session and self.hasObject("override_data_directories"):
             dirs = self["override_data_directories"].getProperties()
             session.set_base_data_directories(**dirs)
@@ -72,7 +71,7 @@ class CollectEmulator(CollectMockup):
         setup_data = result["setup_list"] = crystal_data
 
         # update with instrument data
-        fp0 = beamline_object.gphl_workflow.file_paths.get("instrumentation_file")
+        fp0 = HWR.beamline.gphl_workflow.file_paths.get("instrumentation_file")
         instrument_input = f90nml.read(fp0)
 
         instrument_data = instrument_input["sdcp_instrument_list"]
@@ -163,7 +162,7 @@ class CollectEmulator(CollectMockup):
 
         # update with diffractcal data
         # TODO check that this works also for updating segment list
-        fp0 = beamline_object.gphl_workflow.file_paths.get("diffractcal_file")
+        fp0 = HWR.beamline.gphl_workflow.file_paths.get("diffractcal_file")
         if os.path.isfile(fp0):
             diffractcal_data = f90nml.read(fp0)["sdcp_instrument_list"]
             for tag in setup_data.keys():
@@ -180,7 +179,7 @@ class CollectEmulator(CollectMockup):
         if not detector_distance:
             resolution = data_collect_parameters["resolution"]["upper"]
             self.set_resolution(resolution)
-            detector_distance = beamline_object.detector.detector_distance.getPosition()
+            detector_distance = HWR.beamline.detector.detector_distance.getPosition()
         # Add sweeps
         sweeps = []
         for osc in data_collect_parameters["oscillation_sequence"]:
@@ -190,7 +189,7 @@ class CollectEmulator(CollectMockup):
             sweep["lambda"] = ConvertUtils.H_OVER_E / data_collect_parameters["energy"]
             sweep["res_limit"] = setup_data["res_limit_def"]
             sweep["exposure"] = osc["exposure_time"]
-            ll0 = beamline_object.gphl_workflow.translation_axis_roles
+            ll0 = HWR.beamline.gphl_workflow.translation_axis_roles
             sweep["trans_xyz"] = list(motors.get(x) or 0.0 for x in ll0)
             sweep["det_coord"] = detector_distance
             # NBNB hardwired for omega scan TODO
@@ -244,9 +243,9 @@ class CollectEmulator(CollectMockup):
 
         data_collect_parameters = self.current_dc_parameters
 
-        if not beamline_object.gphl_workflow:
+        if not HWR.beamline.gphl_workflow:
             raise ValueError("Emulator requires GPhL workflow installation")
-        gphl_connection = beamline_object.gphl_connection
+        gphl_connection = HWR.beamline.gphl_connection
         if not gphl_connection:
             raise ValueError("Emulator requires GPhL connection installation")
 
@@ -263,7 +262,7 @@ class CollectEmulator(CollectMockup):
 
         # get crystal data
         sample_name = self.getProperty("default_sample_name")
-        sample = beamline_object.sample_changer.getLoadedSample()
+        sample = HWR.beamline.sample_changer.getLoadedSample()
         if sample:
             ss0 = sample.getName()
             if ss0 and ss0.startswith(self.TEST_SAMPLE_PREFIX):

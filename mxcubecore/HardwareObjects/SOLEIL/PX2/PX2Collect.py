@@ -35,8 +35,7 @@ from raster_scan import raster_scan
 from nested_helical_acquisition import nested_helical_acquisition
 from tomography import tomography
 from film import film
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 from slits import slits1
 
@@ -103,23 +102,23 @@ class PX2Collect(AbstractCollect, HardwareObject):
         self.set_beamline_configuration(
             synchrotron_name="SOLEIL",
             directory_prefix=self.getProperty("directory_prefix"),
-            default_exposure_time=beamline_object.detector.getProperty(
+            default_exposure_time=HWR.beamline.detector.getProperty(
                 "default_exposure_time"
             ),
-            minimum_exposure_time=beamline_object.detector.getProperty(
+            minimum_exposure_time=HWR.beamline.detector.getProperty(
                 "minimum_exposure_time"
             ),
-            detector_fileext=beamline_object.detector.getProperty("fileSuffix"),
-            detector_type=beamline_object.detector.getProperty("type"),
-            detector_manufacturer=beamline_object.detector.getProperty("manufacturer"),
-            detector_model=beamline_object.detector.getProperty("model"),
-            detector_px=beamline_object.detector.getProperty("px"),
-            detector_py=beamline_object.detector.getProperty("py"),
+            detector_fileext=HWR.beamline.detector.getProperty("fileSuffix"),
+            detector_type=HWR.beamline.detector.getProperty("type"),
+            detector_manufacturer=HWR.beamline.detector.getProperty("manufacturer"),
+            detector_model=HWR.beamline.detector.getProperty("model"),
+            detector_px=HWR.beamline.detector.getProperty("px"),
+            detector_py=HWR.beamline.detector.getProperty("py"),
             undulators=undulators,
             focusing_optic=self.getProperty("focusing_optic"),
             monochromator_type=self.getProperty("monochromator"),
-            beam_divergence_vertical=beamline_object.beam.get_beam_divergence_hor(),
-            beam_divergence_horizontal=beamline_object.beam.get_beam_divergence_ver(),
+            beam_divergence_vertical=HWR.beamline.beam.get_beam_divergence_hor(),
+            beam_divergence_horizontal=HWR.beamline.beam.get_beam_divergence_ver(),
             polarisation=self.getProperty("polarisation"),
             input_files_server=self.getProperty("input_files_server"),
         )
@@ -313,8 +312,8 @@ class PX2Collect(AbstractCollect, HardwareObject):
         """
         Descript. :
         """
-        if beamline_object.offline_processing is not None:
-            beamline_object.offline_processing.execute_autoprocessing(
+        if HWR.beamline.offline_processing is not None:
+            HWR.beamline.offline_processing.execute_autoprocessing(
                 process_event,
                 self.current_dc_parameters,
                 frame_number,
@@ -323,14 +322,14 @@ class PX2Collect(AbstractCollect, HardwareObject):
 
     @task
     def _take_crystal_snapshot(self, filename):
-        beamline_object.graphics.save_scene_snapshot(filename)
+        HWR.beamline.graphics.save_scene_snapshot(filename)
 
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec):
         """Rotates sample by 360 and composes a gif file
            Animation is saved as the fourth snapshot
         """
-        beamline_object.graphics.save_scene_animation(
+        HWR.beamline.graphics.save_scene_animation(
             animation_filename, duration_sec
         )
 

@@ -21,8 +21,7 @@ from scipy.interpolate import interp1d
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 __credits__ = ["MXCuBE collaboration"]
@@ -69,10 +68,10 @@ class AbstractFlux(HardwareObject):
         :return: float
         """
 
-        energy = energy or beamline_object.energy.get_current_energy()
+        energy = energy or HWR.beamline.energy.get_current_energy()
 
         # NB   Calculation assumes beam sizes in mm
-        beam_size = beamline_object.beam.get_beam_size()
+        beam_size = HWR.beamline.beam.get_beam_size()
 
         # Result in kGy/s
         result = (

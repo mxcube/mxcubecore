@@ -1,6 +1,6 @@
 # $Id: FilterAxis.py,v 1.1 2004/08/10 12:27:36 guijarro Exp $
 from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 
 
 class FilterAxis(Device):
@@ -12,7 +12,7 @@ class FilterAxis(Device):
         motorname = self.getProperty("motor")
 
         if motorname:
-            hwmot = HardwareRepository.getHardwareRepository().getHardwareObject(
+            hwmot = HWR.getHardwareRepository().getHardwareObject(
                 motorname
             )
 

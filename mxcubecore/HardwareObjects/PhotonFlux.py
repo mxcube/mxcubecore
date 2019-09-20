@@ -1,8 +1,7 @@
 import numpy
 import logging
 from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 class PhotonFlux(Equipment):
     def __init__(self, *args, **kwargs):
@@ -52,7 +51,7 @@ class PhotonFlux(Equipment):
         flux = None
 
         try:
-            egy = beamline_object.energy.getPosition() * 1000.0
+            egy = HWR.beamline.energy.getPosition() * 1000.0
         except BaseException:
             logging.getLogger("HWR").exception("%s: could not get energy", self.name())
         else:

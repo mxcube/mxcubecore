@@ -42,8 +42,7 @@ from HardwareRepository.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
 )
 from HardwareRepository.TaskUtils import task
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 __credits__ = ["EMBL Hamburg"]
@@ -419,9 +418,9 @@ class EMBLMiniDiff(GenericDiffractometer):
             or self.current_phase
             in (GenericDiffractometer.PHASE_TRANSFER, GenericDiffractometer.PHASE_BEAM)
         ):
-            if (beamline_object.detector.detector_distance.get_position() < 350):
+            if (HWR.beamline.detector.detector_distance.get_position() < 350):
                 logging.getLogger("GUI").info("Moving detector to safe distance")
-                beamline_object.detector.detector_distance.move(350, timeout=20)
+                HWR.beamline.detector.detector_distance.move(350, timeout=20)
 
         if timeout is not None:
             _start = time.time()
@@ -827,7 +826,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         Finds loop
         :return: int, int, int
         """
-        image_array = beamline_object.graphics.camera.get_snapshot(return_as_array=True)
+        image_array = HWR.beamline.graphics.camera.get_snapshot(return_as_array=True)
         (info, x, y) = lucid.find_loop(image_array)
         surface_score = 10
         return x, y, surface_score

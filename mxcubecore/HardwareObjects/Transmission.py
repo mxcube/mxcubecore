@@ -1,7 +1,6 @@
 from PyTransmission import matt_control
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class Transmission(HardwareObject):
@@ -62,7 +61,7 @@ class Transmission(HardwareObject):
         self._update()
 
     def get_value(self):
-        self.__matt.set_energy(beamline_object.energy.get_current_energy())
+        self.__matt.set_energy(HWR.beamline.energy.get_current_energy())
         return self.__matt.transmission_get()
 
     def is_in(self, attenuator_index):

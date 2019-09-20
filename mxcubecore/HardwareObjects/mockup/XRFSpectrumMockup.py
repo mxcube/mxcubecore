@@ -23,8 +23,6 @@ from HardwareRepository.HardwareObjects.abstract.AbstractXRFSpectrum import (
     AbstractXRFSpectrum
 )
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
 
 
 spectrum_test_data = [

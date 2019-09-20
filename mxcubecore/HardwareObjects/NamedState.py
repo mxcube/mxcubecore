@@ -1,4 +1,4 @@
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Device
 
 import logging
@@ -163,7 +163,7 @@ class NamedState(Device):
 
 
 def test():
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     ap_pos = hwr.getHardwareObject("/aperture_position")

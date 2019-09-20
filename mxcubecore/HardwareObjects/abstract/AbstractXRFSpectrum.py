@@ -21,8 +21,7 @@ import abc
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from HardwareRepository.TaskUtils import cleanup
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class AbstractXRFSpectrum(object):
@@ -227,13 +226,13 @@ class AbstractXRFSpectrum(object):
                 archive_file_raw.close()
             calibrated_array = numpy.array(calibrated_data)
 
-            if beamline_object.transmission is not None:
+            if HWR.beamline.transmission is not None:
                 self.spectrum_info[
                     "beamTransmission"
-                ] = beamline_object.transmission.getAttFactor()
+                ] = HWR.beamline.transmission.getAttFactor()
             self.spectrum_info["energy"] = self.get_current_energy()
-            if beamline_object.beam is not None:
-                beam_size = beamline_object.beam.get_beam_size()
+            if HWR.beamline.beam is not None:
+                beam_size = HWR.beamline.beam.get_beam_size()
                 self.spectrum_info["beamSizeHorizontal"] = int(beam_size[0] * 1000)
                 self.spectrum_info["beamSizeVertical"] = int(beam_size[1] * 1000)
 
@@ -277,20 +276,20 @@ class AbstractXRFSpectrum(object):
         Descript. :
         """
         logging.getLogger().debug("XRFSpectrum info %r", self.spectrum_info)
-        if beamline_object.lims:
+        if HWR.beamline.lims:
             try:
                 session_id = int(self.spectrum_info["sessionId"])
             except BaseException:
                 return
             blsampleid = self.spectrum_info["blSampleId"]
-            beamline_object.lims.storeXfeSpectrum(self.spectrum_info)
+            HWR.beamline.lims.storeXfeSpectrum(self.spectrum_info)
 
     def get_current_energy(self):
         """
         Descript. :
         """
-        if beamline_object.energy is not None:
+        if HWR.beamline.energy is not None:
             try:
-                return beamline_object.energy.get_current_energy()
+                return HWR.beamline.energy.get_current_energy()
             except BaseException:
                 logging.getLogger("HWR").exception("XRFSpectrum: couldn't read energy")

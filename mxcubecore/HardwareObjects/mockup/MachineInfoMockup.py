@@ -25,8 +25,7 @@ from collections import OrderedDict
 from gevent import spawn
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 __credits__ = ["MXCuBE collaboration"]
@@ -97,7 +96,7 @@ class MachineInfoMockup(HardwareObject):
         self.min_current = self.getProperty("min_current", 80.1)
         self.min_current = self.getProperty("max_current", 90.1)
 
-        self.connect(beamline_object.flux, "fluxInfoChanged", self.flux_info_changed)
+        self.connect(HWR.beamline.flux, "fluxInfoChanged", self.flux_info_changed)
 
         self.update_values()
         spawn(self.change_mach_current)
@@ -149,7 +148,7 @@ class MachineInfoMockup(HardwareObject):
         self.update_values()
 
     def update_disk_space(self):
-        data_path = beamline_object.session.get_base_data_directory()
+        data_path = HWR.beamline.session.get_base_data_directory()
         data_path_root = "/%s" % data_path.split("/")[0]
 
         if os.path.exists(data_path_root):
