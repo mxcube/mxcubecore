@@ -75,8 +75,11 @@ class HardwareObjectNode:
     def name(self):
         return self.__name
 
-    def setName(self, name):
+    def set_name(self, name):
         self.__name = name
+
+    def get_name(self):
+        return self.__name
 
     def getRoles(self):
         return list(self._objects_by_role.keys())
@@ -406,8 +409,9 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         pass
 
     def connectNotify(self, signal):
-        logging.getLogger("HWR").warning("DeprecationWarning: connectNotify is deprecated. Use connect_notify instead")
-        warn("connectNotify is deprecated. Use connect_notify instead", DeprecationWarning)
+        msg = "(%s) connectNotify is deprecated. Use connect_notify instead" % self.get_name()
+        logging.getLogger("HWR").warning("DeprecationWarning %s" % msg)
+        warn(msg, DeprecationWarning)
 
         self.connect_notify(signal)
 
@@ -415,8 +419,9 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         pass
         
     def disconnectNotify(self, signal):
-        logging.getLogger("HWR").warning("DeprecationWarning: disconnectNotify is deprecated. Use disconnect_notify instead")
-        warn("disconnectNotify is deprecated. Use disconnect_notify instead", DeprecationWarning)
+        msg = "(%s) disconnectNotify is deprecated. Use disconnect_notify instead" % self.get_name()
+        logging.getLogger("HWR").warning("DeprecationWarning %s" % msg)
+        warn(msg, DeprecationWarning)
 
         self.disconnect_notify(signal)
 
@@ -485,13 +490,17 @@ class Device(HardwareObject):
             self.emit("deviceNotReady")
 
     def setIsReady(self, ready):
-        logging.getLogger("HWR").warning("DeprecationWarning: setIsReady is deprecated. Use set_is_ready instead")
-        warn("setIsReady is deprecated. Use set_is_ready instead", DeprecationWarning)
+        msg = "(%s) setIsReady is deprecated. Use set_is_ready instead" % self.get_name()
+        logging.getLogger("HWR").warning("DeprecationWarning %s" % msg)
+        warn(msg, DeprecationWarning)
+
         self.set_is_ready(ready)
 
     def isReady(self):
-        logging.getLogger("HWR").warning("DeprecationWarning: isReady is deprecated. Use is_ready instead")
-        warn("isReady is deprecated. Use is_ready instead", DeprecationWarning)
+        msg = "(%s) isReady is deprecated. Use is_ready instead" % self.get_name()
+        logging.getLogger("HWR").warning("DeprecationWarning %s" % msg)
+        warn(msg, DeprecationWarning)
+
         return self.is_ready()
 
     def is_ready(self):
@@ -547,12 +556,12 @@ class Equipment(HardwareObject, DeviceContainer):
 
     def _init(self):
         for device in self.getDevices():
-            self.connect(device, "deviceReady", self.__deviceReady)
-            self.connect(device, "deviceNotReady", self.__deviceNotReady)
+            self.connect(device, "deviceReady", self.set_device_ready)
+            self.connect(device, "deviceNotReady", self.set_device_not_ready)
 
-        self.__deviceReady()
+        self.set_device_ready()
 
-    def __deviceReady(self):
+    def set_device_ready(self):
         ready = True
         for device in self.getDevices():
             ready = ready and device.is_ready()
@@ -567,14 +576,16 @@ class Equipment(HardwareObject, DeviceContainer):
             else:
                 self.emit("equipmentNotReady")
 
-    def __deviceNotReady(self):
+    def set_device_not_ready(self):
         if self.__ready:
             self.__ready = False
             self.emit("equipmentNotReady")
 
     def isReady(self):
-        logging.getLogger("HWR").warning("DeprecationWarning: isReady is deprecated. Use is_ready instead")
-        warn("isReady is deprecated. Use is_ready instead", DeprecationWarning)
+        msg = "(%s) isReady is deprecated. Use is_ready instead" % self.get_name()
+        logging.getLogger("HWR").warning("DeprecationWarning %s" % msg)
+        warn(msg, DeprecationWarning)
+
         return self.is_ready()
 
     def is_ready(self):
@@ -584,8 +595,10 @@ class Equipment(HardwareObject, DeviceContainer):
         return True
 
     def isValid(self):
-        logging.getLogger("HWR").warning("DeprecationWarning: isValid is deprecated. Use is_valid instead")
-        warn("isValid is deprecated. Use is_valid instead", DeprecationWarning)
+        msg = "(%s) isValid is deprecated. Use is_valid instead" % self.get_name()
+        logging.getLogger("HWR").warning("DeprecationWarning %s" % msg)
+        warn(msg, DeprecationWarning)
+
         return self.is_valid()
 
     def userName(self):
