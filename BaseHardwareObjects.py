@@ -51,8 +51,8 @@ class PropertySet(dict):
         dict.__setitem__(self, str(name), value)
 
     def get_changes(self):
-        for propertyName, value in self.__properties_changed.items():
-            yield (self.__properties_path[propertyName], value)
+        for property_name, value in self.__properties_changed.items():
+            yield (self.__properties_path[property_name], value)
 
         self.__properties_changed = {}  # reset changes at commit
 
@@ -191,7 +191,7 @@ class HardwareObjectNode:
                     del self.__objects[objects_index]
                 else:
                     del self.__objects[objects_index][objects_index_2]
-                    if len(self.objects[objects_index]) == 0:
+                    if not self.objects[objects_index]:
                         del self.objects[objects_index]
 
         for hw_object in self:
@@ -247,7 +247,7 @@ class HardwareObjectNode:
                 if object is not None:
                     return object
 
-                if len(objects) > 0:
+                if objects:
                     obj = objects.pop()
                 else:
                     break
