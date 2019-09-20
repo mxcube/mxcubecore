@@ -2,8 +2,7 @@ import os
 import time
 import logging
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class SOLEILRuche(HardwareObject):
@@ -20,12 +19,12 @@ class SOLEILRuche(HardwareObject):
             logging.getLogger().info(
                 "<SOLEIL Ruche> username: %s  user_id: %s projuser: %s"
                 % (
-                    beamline_object.session.username,
-                    beamline_object.session.user_id,
-                    beamline_object.session.projuser,
+                    HWR.beamline.session.username,
+                    HWR.beamline.session.user_id,
+                    HWR.beamline.session.projuser,
                 )
             )
-            if beamline_object.session.user_id is None:
+            if HWR.beamline.session.user_id is None:
                 return
         except BaseException:
             pass
@@ -43,7 +42,7 @@ class SOLEILRuche(HardwareObject):
         logging.getLogger().info(
             "<SOLEIL Ruche> - triggering data sync on directory %s" % path_to_sync
         )
-        ruche_info = beamline_object.session.get_ruche_info(path_to_sync)
+        ruche_info = HWR.beamline.session.get_ruche_info(path_to_sync)
         try:
             sync_filename = time.strftime(
                 "%Y_%m_%d-%H_%M_%S", time.localtime(time.time())
@@ -59,7 +58,7 @@ class SOLEILRuche(HardwareObject):
 def test():
     import sys
 
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     ruche = hwr.getHardwareObject("/ruche")

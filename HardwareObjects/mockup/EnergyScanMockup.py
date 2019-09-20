@@ -12,8 +12,7 @@ from HardwareRepository.HardwareObjects.abstract.AbstractEnergyScan import (
     AbstractEnergyScan
 )
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 scan_test_data = [
     (10841.0, 20.0),
@@ -217,16 +216,16 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         }
         self.scan_info["exposureTime"] = exptime
 
-        if beamline_object.transmission is not None:
+        if HWR.beamline.transmission is not None:
             self.scan_info["transmissionFactor"] = (
-                beamline_object.transmission.get_value()
+                HWR.beamline.transmission.get_value()
             )
         else:
             self.scan_info["transmissionFactor"] = None
         size_hor = None
         size_ver = None
-        if beamline_object.beam is not None:
-            size_hor, size_ver = beamline_object.beam.get_beam_size()
+        if HWR.beamline.beam is not None:
+            size_hor, size_ver = HWR.beamline.beam.get_beam_size()
             size_hor = size_hor * 1000
             size_ver = size_ver * 1000
         self.scan_info["beamSizeHorizontal"] = size_hor
@@ -475,5 +474,5 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         """
         Descript. :
         """
-        if beamline_object.lims:
-            db_status = beamline_object.lims.storeEnergyScan(self.scan_info)
+        if HWR.beamline.lims:
+            db_status = HWR.beamline.lims.storeEnergyScan(self.scan_info)

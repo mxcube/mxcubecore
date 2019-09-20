@@ -239,9 +239,9 @@ class EdnaWorkflow(HardwareObject):
             "/BES", "bridge", "rest", "processes", self.workflowName, "RUN"
         )
         isFirstParameter = True
-        self.dictParameters["initiator"] = beamline_object.session.endstation_name
-        self.dictParameters["sessionId"] = beamline_object.session.session_id
-        self.dictParameters["externalRef"] = beamline_object.session.get_proposal()
+        self.dictParameters["initiator"] = HWR.beamline.session.endstation_name
+        self.dictParameters["sessionId"] = HWR.beamline.session.session_id
+        self.dictParameters["externalRef"] = HWR.beamline.session.get_proposal()
         self.dictParameters["token"] = self._token
         # Build the URL
         for key in self.dictParameters:

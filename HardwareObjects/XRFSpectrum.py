@@ -5,8 +5,7 @@ import time
 import gevent.event
 import gevent
 from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class XRFSpectrum(Equipment):
@@ -48,7 +47,7 @@ class XRFSpectrum(Equipment):
             self.doSpectrum.connectSignal("connected", self.sConnected)
             self.doSpectrum.connectSignal("disconnected", self.sDisconnected)
 
-        if beamline_object.lims is None:
+        if HWR.beamline.lims is None:
             logging.getLogger().warning(
                 "XRFSpectrum: you should specify the database hardware object"
             )
@@ -255,12 +254,12 @@ class XRFSpectrum(Equipment):
                 mcaConfig = {}
                 self.spectrumInfo[
                     "beamTransmission"
-                ] = beamline_object.transmission.get_value()
-                self.spectrumInfo["energy"] = beamline_object.energy.get_current_energy()
-                if beamline_object.flux:
-                    self.spectrumInfo["flux"] = beamline_object.flux.getCurrentFlux()
+                ] = HWR.beamline.transmission.get_value()
+                self.spectrumInfo["energy"] = HWR.beamline.energy.get_current_energy()
+                if HWR.beamline.flux:
+                    self.spectrumInfo["flux"] = HWR.beamline.flux.getCurrentFlux()
 
-                beam_info = beamline_object.beam.get_beam_info()
+                beam_info = HWR.beamline.beam.get_beam_info()
                 self.spectrumInfo["beamSizeHorizontal"] = beam_info["size_x"] * 1000.0
                 self.spectrumInfo["beamSizeVertical"] = beam_info["size_y"] * 1000.0
                 mcaConfig["att"] = self.spectrumInfo["beamTransmission"]
@@ -316,9 +315,9 @@ class XRFSpectrum(Equipment):
         self.emit("xrfSpectrumStatusChanged", (status,))
 
     def storeXrfSpectrum(self):
-        logging.getLogger().debug("db connection %r", beamline_object.lims)
+        logging.getLogger().debug("db connection %r", HWR.beamline.lims)
         logging.getLogger().debug("spectrum info %r", self.spectrumInfo)
-        if beamline_object.lims is None:
+        if HWR.beamline.lims is None:
             return
         try:
             session_id = int(self.spectrumInfo["sessionId"])
@@ -326,7 +325,7 @@ class XRFSpectrum(Equipment):
             return
         blsampleid = self.spectrumInfo["blSampleId"]
 
-        db_status = beamline_object.lims.storeXfeSpectrum(self.spectrumInfo)
+        db_status = HWR.beamline.lims.storeXfeSpectrum(self.spectrumInfo)
 
     def updateXrfSpectrum(self, spectrum_id, jpeg_spectrum_filename):
         pass
@@ -360,7 +359,7 @@ class XRFSpectrum(Equipment):
         return os.path.join(self.cfg_path, "%skeV.cfg" % cfgname)
 
     def _doSpectrum(self, ct, filename, wait=True):
-        en = beamline_object.energy.get_current_energy()
+        en = HWR.beamline.energy.get_current_energy()
         if not ct:
             ct = 5
         safshut = self.getObjectByRole("safety_shutter")
@@ -384,14 +383,14 @@ class XRFSpectrum(Equipment):
 
         # open the safety and the fast shutter
         safshut.openShutter()
-        init_transm = beamline_object.transmission.getValue()
+        init_transm = HWR.beamline.transmission.getValue()
         logging.getLogger("user_level_log").info(
             "Looking for maximum attenuation, please wait"
         )
         ret = self._findAttenuation(ct)
         self.ctrl_hwobj.diffractometer.msclose()
         fluodet_ctrl.actuatorOut()
-        beamline_object.transmission.setTransmission(init_transm)
+        HWR.beamline.transmission.setTransmission(init_transm)
         return ret
 
     def _findAttenuation(self, ct):
@@ -410,7 +409,7 @@ class XRFSpectrum(Equipment):
         self.mca_hwobj.set_presets(erange=1, ctime=ct, fname=fname)
 
         # put in max attenuation
-        beamline_object.transmission.setTransmission(0)
+        HWR.beamline.transmission.setTransmission(0)
 
         self.ctrl_hwobj.diffractometer.msopen()
         self.mca_hwobj.start_acq()
@@ -427,7 +426,7 @@ class XRFSpectrum(Equipment):
         for i in tf:
             self.mca_hwobj.clear_spectrum()
             logging.getLogger("user_level_log").info("Setting transmission to %g" % i)
-            beamline_object.transmission.setTransmission(i)
+            HWR.beamline.transmission.setTransmission(i)
             self.mca_hwobj.start_acq()
             time.sleep(ct)
             ic = sum(self.mca_hwobj.read_roi_data()) / ct
@@ -436,14 +435,14 @@ class XRFSpectrum(Equipment):
                 self.ctrl_hwobj.diffractometer.msclose()
                 self.spectrumInfo[
                     "beamTransmission"
-                ] = beamline_object.transmission.get_value()
+                ] = HWR.beamline.transmission.get_value()
                 logging.getLogger("user_level_log").info(
                     "Transmission used for spectra: %g"
                     % self.spectrumInfo["beamTransmission"]
                 )
                 break
 
-        self.spectrumInfo["beamTransmission"] = beamline_object.transmission.get_value()
+        self.spectrumInfo["beamTransmission"] = HWR.beamline.transmission.get_value()
         self.ctrl_hwobj.diffractometer.msclose()
         if ic < min_cnt:
             logging.getLogger("user_level_log").exception(

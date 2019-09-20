@@ -27,8 +27,7 @@ import gevent
 
 from HardwareRepository.HardwareObjects.abstract import AbstractSampleChanger
 from HardwareRepository.HardwareObjects.abstract.sample_changer import Container, Sample
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 POSITION_DESC = {"Park" : "Parked",
@@ -247,8 +246,8 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         #    while not self._sample_detected:
         #        gevent.sleep(0.05)
         with gevent.Timeout(timeout, Exception("Timeout waiting for centring phase")):
-            while beamline_object.diffractometer.get_current_phase() != \
-                  beamline_object.diffractometer.PHASE_CENTRING:
+            while HWR.beamline.diffractometer.get_current_phase() != \
+                  HWR.beamline.diffractometer.PHASE_CENTRING:
                 if not self._isDeviceBusy():
                     return
                 gevent.sleep(0.05)
@@ -433,33 +432,33 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         self.emit("progressInit", (msg, 100, False))
 
         # 2. Set diffractometer transfer phase
-        logging.getLogger("HWR").debug("%s %s"%(beamline_object.diffractometer.get_current_phase(),beamline_object.diffractometer.PHASE_TRANSFER))
-        if beamline_object.diffractometer.get_current_phase() != \
-           beamline_object.diffractometer.PHASE_TRANSFER:
+        logging.getLogger("HWR").debug("%s %s"%(HWR.beamline.diffractometer.get_current_phase(),HWR.beamline.diffractometer.PHASE_TRANSFER))
+        if HWR.beamline.diffractometer.get_current_phase() != \
+           HWR.beamline.diffractometer.PHASE_TRANSFER:
             logging.getLogger("HWR").debug("set transfer")
-            beamline_object.diffractometer.set_phase(beamline_object.diffractometer.PHASE_TRANSFER, 60.0)
+            HWR.beamline.diffractometer.set_phase(HWR.beamline.diffractometer.PHASE_TRANSFER, 60.0)
             time.sleep(2)
-            if beamline_object.diffractometer.get_current_phase() != \
-               beamline_object.diffractometer.PHASE_TRANSFER:
+            if HWR.beamline.diffractometer.get_current_phase() != \
+               HWR.beamline.diffractometer.PHASE_TRANSFER:
                 log.error("Diffractometer is not in the transfer phase. " +\
                           "Sample will not be mounted")
                 raise Exception("Unable to set Transfer phase")
 
         #logging.getLogger("HWR").debug("Sample changer: Closing guillotine...")
-        #beamline_object.detector.close_cover()
+        #HWR.beamline.detector.close_cover()
         #logging.getLogger("HWR").debug("Sample changer: Guillotine closed")
         # 3. If necessary move detector to save position
         if self._focusing_mode == "P13mode":
-            if beamline_object.detector.get_distance() < 399.0:
+            if HWR.beamline.detector.get_distance() < 399.0:
                 log.info("Sample changer: Moving detector to save position...")
                 self._veto = 1
-                beamline_object.detector.set_distance(400, timeout=45)
+                HWR.beamline.detector.set_distance(400, timeout=45)
                 time.sleep(1)
                 self.waitVeto(20.0)
                 log.info("Sample changer: Detector moved to save position")
         else:
             logging.getLogger("HWR").debug("Sample changer: Closing guillotine...")
-            beamline_object.detector.close_cover()
+            HWR.beamline.detector.close_cover()
             logging.getLogger("HWR").debug("Sample changer: Guillotine closed")
 
         # 4. Executed command and wait till device is ready 
@@ -511,9 +510,9 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             log.info("Sample changer: Sample %d:%d loaded" % \
                      (int(basket_index), int(sample_index)))
             if self._focusing_mode == "P13mode":
-                beamline_object.diffractometer.set_phase(\
-                    beamline_object.diffractometer.PHASE_CENTRING, 60.0)
-                #beamline_object.diffractometer.close_kappa()
+                HWR.beamline.diffractometer.set_phase(\
+                    HWR.beamline.diffractometer.PHASE_CENTRING, 60.0)
+                #HWR.beamline.diffractometer.close_kappa()
         else:
             log.error("Sample changer: Failed to load sample %d:%d" % \
                       (int(basket_index), int(sample_index)))
@@ -558,26 +557,26 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         log.warning(msg + ". Please wait...")
         self.emit("progressInit", (msg, 100, False))
 
-        if beamline_object.diffractometer.get_current_phase() != \
-           beamline_object.diffractometer.PHASE_TRANSFER:
-            beamline_object.diffractometer.set_phase(beamline_object.diffractometer.PHASE_TRANSFER, 60)
-            if beamline_object.diffractometer.get_current_phase() != \
-               beamline_object.diffractometer.PHASE_TRANSFER:
+        if HWR.beamline.diffractometer.get_current_phase() != \
+           HWR.beamline.diffractometer.PHASE_TRANSFER:
+            HWR.beamline.diffractometer.set_phase(HWR.beamline.diffractometer.PHASE_TRANSFER, 60)
+            if HWR.beamline.diffractometer.get_current_phase() != \
+               HWR.beamline.diffractometer.PHASE_TRANSFER:
                 log.error("Diffractometer is not in the transfer phase. " +\
                           "Sample will not be mounted")
                 raise Exception("Unable to set Transfer phase")
 
-        #beamline_object.detector.close_cover()
+        #HWR.beamline.detector.close_cover()
         if self._focusing_mode == "P13mode":  
-            if beamline_object.detector.get_distance() < 399.0:
+            if HWR.beamline.detector.get_distance() < 399.0:
                 log.info("Sample changer: Moving detector to save position ...")
                 self._veto = 1
-                beamline_object.detector.set_distance(400, timeout=45)
+                HWR.beamline.detector.set_distance(400, timeout=45)
                 time.sleep(1)
                 self.waitVeto(20.0)
                 log.info("Sample changer: Detector moved to save position")
         else:
-            beamline_object.detector.close_cover()
+            HWR.beamline.detector.close_cover()
 
         start_time = datetime.now()
 

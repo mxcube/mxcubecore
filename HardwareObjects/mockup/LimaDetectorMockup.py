@@ -1,11 +1,10 @@
 # pylint: skip-file
 
 import time
-from HardwareRepository.TaskUtils import task, cleanup, error_cleanup
+from HardwareRepository.TaskUtils import task
 import logging
 from PyTango import DeviceProxy
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class LimaDetectorMockup:
@@ -106,7 +105,7 @@ class LimaDetectorMockup:
         still,
     ):
         diffractometer_positions = (
-            beamline_object.diffractometer.getPositions()
+            HWR.beamline.diffractometer.getPositions()
         )
         self.start_angles = list()
         for i in range(number_of_images):

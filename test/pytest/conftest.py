@@ -8,7 +8,7 @@ HWR = os.path.join(MXCUBE, "HardwareRepository")
 
 sys.path.insert(0, MXCUBE)
 
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 
 # The below can NOT have worked - getHardwareRepository sets the hardcware_repository
 # only if it is not set already. It would have returned the xml-qt repository in both
@@ -28,8 +28,8 @@ from HardwareRepository import HardwareRepository
 
 hwr_qt_path = os.path.join(HWR, "configuration/xml-qt")
 # hwr_web_path = os.path.join(HWR, "configuration/xml-web")
-HardwareRepository.init_hardware_repository(hwr_qt_path)
-hwr_qt = HardwareRepository.getHardwareRepository()
+HWR.init_hardware_repository(hwr_qt_path)
+hwr_qt = HWR.getHardwareRepository()
 # hwr_web = HardwareRepository.getHardwareRepository(hwr_web_path)
 hwr_qt.connect()
 # hwr_web.connect()

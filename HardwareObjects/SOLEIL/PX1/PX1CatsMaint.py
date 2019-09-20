@@ -1,7 +1,6 @@
 #
 from HardwareRepository.HardwareObjects.CatsMaint import CatsMaint
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 import logging
 import time
@@ -53,7 +52,7 @@ class PX1CatsMaint(CatsMaint):
             logging.getLogger("HWR").debug("Unloading sample first")
             self.cats_hwo._doUnload()
             time.sleep(3)
-            while beamline_object.sample_changer._isDeviceBusy():
+            while HWR.beamline.sample_changer._isDeviceBusy():
                 time.sleep(0.3)
 
         logging.getLogger("HWR").debug("Running the home command (home/open) now")

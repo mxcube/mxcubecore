@@ -2,8 +2,7 @@ import time
 import logging
 import os
 from HardwareRepository.TaskUtils import error_cleanup
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 import gevent
 
 MAR_READ, MAR_CORRECT, MAR_WRITE, MAR_DEZINGER = 1, 2, 3, 4
@@ -107,10 +106,10 @@ class Mar225:
         self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
     ):
         self.header["xtal_to_detector"] = (
-            beamline_object.detector.detector_distance.getPosition()
+            HWR.beamline.detector.detector_distance.getPosition()
         )
-        self.header["source_wavelength"] = beamline_object.energy.get_wavelength()
-        bx, by = beamline_object.detector.get_beam_centre()
+        self.header["source_wavelength"] = HWR.beamline.energy.get_wavelength()
+        bx, by = HWR.beamline.detector.get_beam_centre()
         self.header["beam_x"] = bx
         self.header["beam_y"] = by
         self.header["file_comment"] = filename

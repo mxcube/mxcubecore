@@ -113,9 +113,9 @@ def test_hwo():
     from gui.utils.QtImport import *
     import time
 
-    from HardwareRepository.HardwareRepository import getHardwareRepository
+    from HardwareRepository import HardwareRepository as HWR
 
-    hwr = getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     hwo = hwr.getHardwareObject("/singleton_objects/limavideo")

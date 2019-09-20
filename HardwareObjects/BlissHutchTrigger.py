@@ -3,8 +3,7 @@ import gevent
 import logging
 import PyTango.gevent
 from HardwareRepository import BaseHardwareObjects
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 """
 Read the state of the hutch from the PSS device server and take actions
@@ -88,7 +87,7 @@ class BlissHutchTrigger(BaseHardwareObjects.HardwareObject):
         ctrl_obj.hutch_actions(entering_hutch, hutch_trigger=True, **kwargs)
 
         # open the flexHCD ports
-        sample_changer = beamline_object.sample_changer
+        sample_changer = HWR.beamline.sample_changer
         if sample_changer:
             if entering_hutch:
                 sample_changer.prepare_hutch(robot_port=0)

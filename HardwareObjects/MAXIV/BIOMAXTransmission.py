@@ -1,7 +1,6 @@
 import gevent
 from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class BIOMAXTransmission(Equipment):
@@ -11,8 +10,8 @@ class BIOMAXTransmission(Equipment):
         self.limits = [0, 100]
         self.threhold = 5
 
-        if beamline_object.transmission is not None:
-            beamline_object.transmission.connect(
+        if HWR.beamline.transmission is not None:
+            HWR.beamline.transmission.connect(
                 "positionChanged", self.transmissionPositionChanged
             )
 
@@ -20,10 +19,10 @@ class BIOMAXTransmission(Equipment):
         return True
 
     def get_value(self):
-        return "%.3f" % beamline_object.transmission.getPosition()
+        return "%.3f" % HWR.beamline.transmission.getPosition()
 
     def getAttFactor(self):
-        return "%.3f" % beamline_object.transmission.getPosition()
+        return "%.3f" % HWR.beamline.transmission.getPosition()
 
     def getAttState(self):
         return 1
@@ -38,7 +37,7 @@ class BIOMAXTransmission(Equipment):
     def set_value(self, value, wait=False):
         if value < self.limits[0] or value > self.limits[1]:
             raise Exception("Transmssion out of limits.")
-        beamline_object.transmission.move(value)
+        HWR.beamline.transmission.move(value)
         if wait:
             with gevent.Timeout(30, Exception("Timeout waiting for device ready")):
                 while not self.setpoint_reached(value):
@@ -54,4 +53,4 @@ class BIOMAXTransmission(Equipment):
         self.emit("valueChanged", (pos,))
 
     def stop(self):
-        beamline_object.transmission.stop()
+        HWR.beamline.transmission.stop()

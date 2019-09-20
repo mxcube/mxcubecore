@@ -2,8 +2,7 @@ import logging
 from HardwareRepository.HardwareObjects import Resolution
 import math
 
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 class BIOMAXResolution(Resolution.Resolution):
     def __init__(self, *args, **kwargs):
@@ -12,7 +11,7 @@ class BIOMAXResolution(Resolution.Resolution):
     def init(self):
         self.currentResolution = None
 
-        detector = beamline_object.detector
+        detector = HWR.beamline.detector
 
         if detector:
             try:
@@ -31,7 +30,7 @@ class BIOMAXResolution(Resolution.Resolution):
         self.connect(
             detector.detector_distance, "positionChanged", self.dtoxPositionChanged
         )
-        self.connect(beamline_object.energy, "valueChanged", self.energyChanged)
+        self.connect(HWR.beamline.energy, "valueChanged", self.energyChanged)
         self.connect(detector, "roiChanged", self.det_roi_changed)
 
     def res2dist(self, res=None):
@@ -49,15 +48,15 @@ class BIOMAXResolution(Resolution.Resolution):
 
     def dist2res(self, dist=None):
         if dist is None:
-            dist = beamline_object.detector.detector_distance.getPosition()
+            dist = HWR.beamline.detector.detector_distance.getPosition()
 
         return "%.3f" % self._calc_res(self.det_radius, dist)
 
     def det_roi_changed(self):
-        self.det_width = beamline_object.detector.get_x_pixels_in_detector()
-        self.det_height = beamline_object.detector.get_y_pixels_in_detector()
+        self.det_width = HWR.beamline.detector.get_x_pixels_in_detector()
+        self.det_height = HWR.beamline.detector.get_y_pixels_in_detector()
         self.update_beam_centre(
-            beamline_object.detector.detector_distance.getPosition()
+            HWR.beamline.detector.detector_distance.getPosition()
         )
         self.recalculateResolution()
 

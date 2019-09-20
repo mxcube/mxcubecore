@@ -36,7 +36,7 @@ import logging
 import gevent
 import time
 import PyTango
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Equipment
 
 
@@ -135,7 +135,7 @@ class MachInfo(Equipment):
 def test():
     import sys
 
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     conn = hwr.getHardwareObject(sys.argv[1])

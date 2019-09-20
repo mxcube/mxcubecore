@@ -65,8 +65,7 @@ except ImportError:
 from HardwareRepository.HardwareObjects.GenericDiffractometer import GenericDiffractometer
 
 from HardwareRepository.TaskUtils import task
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 __credits__ = ["SOLEIL"]
 __version__ = "2.3."
@@ -411,7 +410,7 @@ class PX2Diffractometer(GenericDiffractometer):
             GenericDiffractometer.PHASE_TRANSFER,
             GenericDiffractometer.PHASE_BEAM,
         ):
-            detector_distance = beamline_object.detector.detector_distance.getPosition()
+            detector_distance = HWR.beamline.detector.detector_distance.getPosition()
             logging.getLogger("HWR").debug(
                 "Diffractometer current phase: %s " % self.current_phase
                 + "selected phase: %s " % phase
@@ -419,7 +418,7 @@ class PX2Diffractometer(GenericDiffractometer):
             )
             if detector_distance < 350:
                 logging.getLogger("GUI").info("Moving detector to safe distance")
-                beamline_object.detector.detector_distance.move(350)
+                HWR.beamline.detector.detector_distance.move(350)
                 self.detector.insert_protective_cover()
 
         if timeout is not None:
@@ -638,7 +637,7 @@ class PX2Diffractometer(GenericDiffractometer):
         for k in range(n_clicks):
             self.user_clicked_event = gevent.event.AsyncResult()
             x, y = self.user_clicked_event.get()
-            image = beamline_object.graphics.camera.get_last_image()
+            image = HWR.beamline.graphics.camera.get_last_image()
             calibration = self.camera.get_calibration()
             omega = self.goniometer.get_omega_position()
 
@@ -1122,7 +1121,7 @@ class PX2Diffractometer(GenericDiffractometer):
         """
         Description:
         """
-        image_array = beamline_object.graphics.camera.get_snapshot(return_as_array=True)
+        image_array = HWR.beamline.graphics.camera.get_snapshot(return_as_array=True)
         (info, x, y) = lucid.find_loop(image_array)
         surface_score = 10
         return x, y, surface_score

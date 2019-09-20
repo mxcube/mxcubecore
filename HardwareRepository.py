@@ -13,9 +13,9 @@ import sys
 import os
 import time
 import importlib
+from datetime import datetime
 import gevent
 import gevent.monkey
-from datetime import datetime
 from ruamel.yaml import YAML
 
 try:
@@ -27,9 +27,9 @@ except ImportError:
     pass
 
 from HardwareRepository.ConvertUtils import string_types, make_table
+from HardwareRepository.dispatcher import dispatcher
 from . import BaseHardwareObjects
 from . import HardwareObjectFileParser
-from HardwareRepository.dispatcher import dispatcher
 
 
 # If you want to write out copies of the file, use typ="rt" instead
@@ -43,25 +43,10 @@ __author__ = "Matias Guijarro"
 __version__ = 1.3
 
 _instance = None
-_configuration_path = None
 _timers = []
 
-_beamline = None
+beamline = None
 BEAMLINE_CONFIG_FILE = "beamline_config.yml"
-
-
-def get_beamline():
-    """
-    Always use this function to get hold of the beamline object
-
-    Assumes that repositories have been initialised first
-
-    Returns:
-        HardwareRepository.HardwareObjects.Beamline.Beamline: Beamline object
-    """
-    if _beamline is None:
-        raise RuntimeError("HardwareRepository and Beamline have not been initialised")
-    return _beamline
 
 
 def load_from_yaml(configuration_file, role, _container=None, _table=None):
@@ -76,7 +61,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
     Returns:
 
     """
-    global _beamline
+    global beamline
 
     column_names = ("role", "Class", "file", "Time (ms)", "Comment")
     if _table is None:
@@ -147,7 +132,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
     if _container is None:
         # We are loading the beamline object into HardwarePepository
         # and want the link to be set before _init or content loading
-        _beamline = result
+        beamline = result
 
     if not msg0:
         try:
@@ -259,24 +244,26 @@ def init_hardware_repository(configuration_path):
     Returns:
 
     """
-    global _configuration_path
     global _instance
-    global _beamline
+    global beamline
 
+    if _instance is not None or beamline is not None:
+        raise RuntimeError(
+            "init_hardware_repository called on already initialised repository"
+        )
+
+    # If configuration_path is a string of combined paths, split it up
     lookup_path = [
         os.path.abspath(x) for x in configuration_path.split(os.path.pathsep)
     ]
     lookup_path = [x for x in lookup_path if os.path.exists(x)]
-
     if lookup_path:
-        _configuration_path = lookup_path
-    else:
-        _configuration_path = configuration_path
+        configuration_path = lookup_path
 
-    logging.getLogger("HWR").info("Hardware repository: %s" % _configuration_path)
-    _instance = __HardwareRepositoryClient(_configuration_path)
+    logging.getLogger("HWR").info("Hardware repository: %s", configuration_path)
+    _instance = __HardwareRepositoryClient(configuration_path)
     _instance.connect()
-    _beamline = load_from_yaml(BEAMLINE_CONFIG_FILE, role="beamline")
+    beamline = load_from_yaml(BEAMLINE_CONFIG_FILE, role="beamline")
 
 
 def getHardwareRepository():
@@ -297,7 +284,8 @@ def getHardwareRepository():
 class __HardwareRepositoryClient:
     """Hardware Repository class
 
-    Warning -- should not be instanciated directly ; call the module's level getHardwareRepository() function instead
+    Warning -- should not be instanciated directly ;
+    call the module's level getHardwareRepository() function instead
     """
 
     def __init__(self, serverAddress):
@@ -312,6 +300,8 @@ class __HardwareRepositoryClient:
         self.__connected = False
         self.server = None
         self.hwobj_info_list = []
+        self.invalidHardwareObjects = None
+        self.hardwareObjects = None
 
     def connect(self):
         if self.__connected:
@@ -396,7 +386,7 @@ class __HardwareRepositoryClient:
         Load a Hardware Object. Do NOT use externally,
         as this will mess up object tracking, signals, etc.
 
-        :param hwobj_name:  string name of the Hardware Object to load, for example '/motors/m0'
+        :param hwobj_name:  string name of the Hardware Object to load, e.g. /motors/m0
         :return: the loaded Hardware Object, or None if it fails
         """
 
@@ -418,7 +408,7 @@ class __HardwareRepositoryClient:
                         )
                 except BaseException:
                     logging.getLogger("HWR").exception(
-                        'Could not load Hardware Object "%s"' % hwobj_name
+                        'Could not load Hardware Object "%s"', hwobj_name
                     )
                 else:
                     try:
@@ -427,14 +417,14 @@ class __HardwareRepositoryClient:
                         mtime = int(reply_dict["mtime"])
                     except KeyError:
                         logging.getLogger("HWR").error(
-                            "Cannot load Hardware Object %s: file does not exist."
-                            % hwobj_name
+                            "Cannot load Hardware Object %s: file does not exist.",
+                            hwobj_name
                         )
                         return
             else:
                 logging.getLogger("HWR").error(
-                    'Cannot load Hardware Object "%s" : not connected to server.'
-                    % hwobj_name
+                    'Cannot load Hardware Object "%s" : not connected to server.',
+                    hwobj_name
                 )
         else:
             xml_data = ""
@@ -454,7 +444,7 @@ class __HardwareRepositoryClient:
 
         start_time = datetime.now()
 
-        if len(xml_data) > 0:
+        if xml_data:
             try:
                 hwobj_instance = self.parseXML(xml_data, hwobj_name)
                 if isinstance(hwobj_instance, string_types):
@@ -654,23 +644,23 @@ class __HardwareRepositoryClient:
 
     def getProcedures(self):
         """Return the list of the currently loaded Procedures Hardware Objects"""
-        list = []
+        result = []
 
         for hoName in self.hardwareObjects:
             if self.isProcedure(hoName):
-                list.append(self.hardwareObjects[hoName])
+                result.append(self.hardwareObjects[hoName])
 
-        return list
+        return result
 
     def getDevices(self):
         """Return the list of the currently loaded Devices Hardware Objects"""
-        list = []
+        result = []
 
         for hoName in self.hardwareObjects:
             if self.isDevice(hoName):
-                list.append(self.hardwareObjects[hoName])
+                result.append(self.hardwareObjects[hoName])
 
-        return list
+        return result
 
     def getHardwareObject(self, objectName):
         """Return a Hardware Object given its name
@@ -779,7 +769,7 @@ class __HardwareRepositoryClient:
           name -- name of the Hardware Object
 
         Return :
-          True if the Hardware Object is loaded in the Hardware Repository, False otherwise
+          True if HardwareObject is loaded in the Hardware Repository, False otherwise
         """
         return name in self.hardwareObjects
 
@@ -827,7 +817,7 @@ class __HardwareRepositoryClient:
                         dd = {"type": "taco", "device": cmd.deviceName}
 
                         try:
-                            dd["imported ?"] = cmd.device.imported and "yes" or "no"
+                            dd["imported ?"] = 'yes' if cmd.device.imported else 'no'
                         except BaseException:
                             dd["imported ?"] = "no, invalid Taco device"
 
@@ -838,9 +828,11 @@ class __HardwareRepositoryClient:
                         d["commands"][cmd.userName()] = {
                             "type": "tango",
                             "device": cmd.deviceName,
-                            "imported ?": cmd.device is not None
-                            and "yes"
-                            or "no, invalid Tango device",
+                            "imported ?": (
+                                "no, invalid Tango device"
+                                if cmd.device is None
+                                else "yes"
+                            ),
                             "device method": str(cmd.command),
                         }
 
@@ -872,7 +864,7 @@ class __HardwareRepositoryClient:
                 d["spec version"] = ho.specVersion
                 d["motor mnemonic"] = ho.specName
                 try:
-                    d["connected ?"] = ho.connection.isSpecConnected() and "yes" or "no"
+                    d["connected ?"] = "yes" if ho.connection.isSpecConnected() else "no"
                 except BaseException:
                     d["connected ?"] = "no"
 
@@ -972,12 +964,12 @@ class __HardwareRepositoryClient:
                                 connections[sender]["slot"],
                             )
                         logging.getLogger("HWR").debug(
-                            "HardwareRepository: %s disconnected from GUI" % item
+                            "HardwareRepository: %s disconnected from GUI", item
                         )
                         self.hardwareObjects[hwr_obj].clear_gevent()
                     except BaseException:
                         logging.getLogger("HWR").exception(
-                            "HardwareRepository: Unable to disconnect hwobj %s" % item
+                            "HardwareRepository: Unable to disconnect hwobj %s", item
                         )
                         continue
 
@@ -985,11 +977,11 @@ class __HardwareRepositoryClient:
                         __import__(item, globals(), locals(), [], -1)
                         reimport.reimport(item)
                         logging.getLogger("HWR").debug(
-                            "HardwareRepository: %s reloaded" % item
+                            "HardwareRepository: %s reloaded", item
                         )
                     except BaseException:
                         logging.getLogger("HWR").exception(
-                            "HardwareRepository: Unable to reload module %s" % item
+                            "HardwareRepository: Unable to reload module %s", item
                         )
 
                     try:
@@ -1000,19 +992,19 @@ class __HardwareRepositoryClient:
                                 connections[sender]["slot"],
                             )
                         logging.getLogger("HWR").debug(
-                            "HardwareRepository: %s connected to GUI" % item
+                            "HardwareRepository: %s connected to GUI", item
                         )
                     except BaseException:
                         logging.getLogger("HWR").exception(
-                            "HardwareRepository: Unable to connect hwobj %s" % item
+                            "HardwareRepository: Unable to connect hwobj %s", item
                         )
                     try:
                         self.hardwareObjects[hwr_obj].init()
                         self.hardwareObjects[hwr_obj].update_values()
                         logging.getLogger("HWR").debug(
-                            "HardwareRepository: %s initialized and updated" % item
+                            "HardwareRepository: %s initialized and updated", item
                         )
                     except BaseException:
                         logging.getLogger("HWR").exception(
-                            "HardwareRepository: Unable to initialize hwobj %s" % item
+                            "HardwareRepository: Unable to initialize hwobj %s", item
                         )

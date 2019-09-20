@@ -1,8 +1,7 @@
 import logging
 import math
 from HardwareRepository import BaseHardwareObjects
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class ResolutionMockup(BaseHardwareObjects.Equipment):
@@ -17,17 +16,17 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         self.detmState = None
         self.state = 2
         self.connect(
-            beamline_object.detector.detector_distance,
+            HWR.beamline.detector.detector_distance,
             "positionChanged",
             self.dtoxPositionChanged
         )
-        beamline_object.detector.detector_distance.move(
+        HWR.beamline.detector.detector_distance.move(
             self.res2dist(self.currentResolution)
         )
 
         # Default value detector radius - corresponds to Eiger 16M:
         self.det_radius = 155.625
-        detector = beamline_object.detector
+        detector = HWR.beamline.detector
         if detector is not None:
             # Calculate detector radius
             px = float(detector.getProperty("px", default_value=0))
@@ -47,7 +46,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         self.newResolution(self.dist2res(pos))
 
     def getWavelength(self):
-        return beamline_object.energy.get_current_wavelength()
+        return HWR.beamline.energy.get_current_wavelength()
 
     def wavelengthChanged(self, pos=None):
         self.recalculateResolution()
@@ -82,7 +81,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
 
     def recalculateResolution(self):
         self.currentResolution = self.dist2res(
-            beamline_object.detector.detector_distance.getPosition()
+            HWR.beamline.detector.detector_distance.getPosition()
         )
 
     def equipmentReady(self):
@@ -124,18 +123,18 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         return (0, 20)
 
     def set_position(self, pos, wait=True):
-        beamline_object.detector.detector_distance.move(self.res2dist(pos), wait=wait)
+        HWR.beamline.detector.detector_distance.move(self.res2dist(pos), wait=wait)
 
     move = set_position
 
     def motorIsMoving(self):
         return (
-            beamline_object.detector.detector_distance.motorIsMoving()
-            or beamline_object.energy.moving
+            HWR.beamline.detector.detector_distance.motorIsMoving()
+            or HWR.beamline.energy.moving
         )
 
     def newDistance(self, dist):
         pass
 
     def stop(self):
-        beamline_object.detector.detector_distance.stop()
+        HWR.beamline.detector.detector_distance.stop()

@@ -38,8 +38,7 @@ from gevent import spawn
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 __credits__ = ["EMBL Hamburg"]
@@ -138,9 +137,9 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_frontend_status.connectSignal("update", self.frontend_status_changed)
         self.frontend_status_changed(self.chan_frontend_status.getValue())
 
-        if beamline_object.flux is not None:
+        if HWR.beamline.flux is not None:
             self.connect(
-                beamline_object.flux, "fluxInfoChanged", self.flux_info_changed
+                HWR.beamline.flux, "fluxInfoChanged", self.flux_info_changed
             )
             self.values_ordered_dict["flux"] = {
                 "value": 1,
@@ -189,7 +188,7 @@ class EMBLMachineInfo(HardwareObject):
                 "update", self.overflow_alarm_changed
             )
 
-        if beamline_object.ppu_control is not None:
+        if HWR.beamline.ppu_control is not None:
             self.values_ordered_dict["ppu"] = {
                 "value": "- - -",
                 "in_range": False,
@@ -197,7 +196,7 @@ class EMBLMachineInfo(HardwareObject):
             }
 
             self.connect(
-                beamline_object.ppu_control,
+                HWR.beamline.ppu_control,
                 "fileTranferStatusChanged",
                 self.file_transfer_status_changed,
             )

@@ -33,7 +33,6 @@ __author__ = "Rasmus H Fogh"
 
 import logging
 import warnings
-from collections import OrderedDict
 from HardwareRepository.BaseHardwareObjects import ConfiguredObject
 
 # NBNB The acq parameter names match the attributes of AcquisitionParameters
@@ -47,7 +46,7 @@ class Beamline(ConfiguredObject):
 
     # Roles of defined objects and the category they belong to
     # NB the double underscore is deliberate - attribute must be hidden from subclasses
-    __object_role_categories = OrderedDict()
+    __content_roles = []
 
     # NBNB these should be accessed ONLY as beamline.SUPPORTED_..._PARAMETERS
     # NBNB Subclasses may add local parameters but may NOT remove any
@@ -126,17 +125,15 @@ class Beamline(ConfiguredObject):
         if unrecognised:
             warnings.warn("Unrecognised parameter limits for: %s" % unrecognised)
 
+    # NB this function must be re-implemented in nested subclasses
     @property
-    def role_to_category(self):
-        """Mapping from role to category
+    def all_roles(self):
+        """Tuple of all content object roles, indefinition and loading order
 
         Returns:
-            OrderedDict[text_str, text_str]
+            tuple[text_str, ...]
         """
-        # Copy roles from superclass and add those form this class
-        result = super(Beamline, self).role_to_category
-        result.update(self.__object_role_categories)
-        return result
+        return super(Beamline, self).all_roles + tuple(self.__content_roles)
 
     @property
     def machine_info(self):
@@ -147,7 +144,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("machine_info")
 
-    __object_role_categories["machine_info"] = "hardware"
+    __content_roles.append("machine_info")
 
     @property
     def transmission(self):
@@ -158,7 +155,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("transmission")
 
-    __object_role_categories["transmission"] = "hardware"
+    __content_roles.append("transmission")
 
     @property
     def energy(self):
@@ -169,7 +166,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("energy")
 
-    __object_role_categories["energy"] = "hardware"
+    __content_roles.append("energy")
 
     @property
     def flux(self):
@@ -180,7 +177,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("flux")
 
-    __object_role_categories["flux"] = "hardware"
+    __content_roles.append("flux")
 
     @property
     def beam(self):
@@ -191,7 +188,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("beam")
 
-    __object_role_categories["beam"] = "hardware"
+    __content_roles.append("beam")
 
     @property
     def hutch_interlock(self):
@@ -202,7 +199,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("hutch_interlock")
 
-    __object_role_categories["hutch_interlock"] = "hardware"
+    __content_roles.append("hutch_interlock")
 
     @property
     def safety_shutter(self):
@@ -213,7 +210,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("safety_shutter")
 
-    __object_role_categories["safety_shutter"] = "hardware"
+    __content_roles.append("safety_shutter")
 
     @property
     def fast_shutter(self):
@@ -224,7 +221,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("fast_shutter")
 
-    __object_role_categories["fast_shutter"] = "hardware"
+    __content_roles.append("fast_shutter")
 
     @property
     def diffractometer(self):
@@ -235,7 +232,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("diffractometer")
 
-    __object_role_categories["diffractometer"] = "hardware"
+    __content_roles.append("diffractometer")
 
     @property
     def detector(self):
@@ -246,7 +243,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("detector")
 
-    __object_role_categories["detector"] = "hardware"
+    __content_roles.append("detector")
 
     @property
     def resolution(self):
@@ -257,7 +254,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("resolution")
 
-    __object_role_categories["resolution"] = "hardware"
+    __content_roles.append("resolution")
 
     @property
     def sample_changer(self):
@@ -269,7 +266,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("sample_changer")
 
-    __object_role_categories["sample_changer"] = "hardware"
+    __content_roles.append("sample_changer")
 
     @property
     def plate_manipulator(self):
@@ -286,7 +283,7 @@ class Beamline(ConfiguredObject):
         )
         return self._objects.get("plate_manipulator")
 
-    __object_role_categories["plate_manipulator"] = "hardware"
+    __content_roles.append("plate_manipulator")
 
     @property
     def session(self):
@@ -297,7 +294,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("session")
 
-    __object_role_categories["session"] = "hardware"
+    __content_roles.append("session")
 
     @property
     def lims(self):
@@ -308,7 +305,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("lims")
 
-    __object_role_categories["lims"] = "hardware"
+    __content_roles.append("lims")
 
     @property
     def graphics(self):
@@ -319,7 +316,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("graphics")
 
-    __object_role_categories["graphics"] = "hardware"
+    __content_roles.append("graphics")
 
     @property
     def queue_manager(self):
@@ -330,7 +327,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("queue_manager")
 
-    __object_role_categories["queue_manager"] = "hardware"
+    __content_roles.append("queue_manager")
 
     @property
     def queue_model(self):
@@ -341,7 +338,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("queue_model")
 
-    __object_role_categories["queue_model"] = "hardware"
+    __content_roles.append("queue_model")
 
     # Procedures
 
@@ -354,7 +351,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("collect")
 
-    __object_role_categories["collect"] = "procedure"
+    __content_roles.append("collect")
 
     @property
     def xrf_spectrum(self):
@@ -365,7 +362,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("xrf_spectrum")
 
-    __object_role_categories["xrf_spectrum"] = "procedure"
+    __content_roles.append("xrf_spectrum")
 
     @property
     def energy_scan(self):
@@ -376,7 +373,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("energy_scan")
 
-    __object_role_categories["energy_scan"] = "procedure"
+    __content_roles.append("energy_scan")
 
     @property
     def imaging(self):
@@ -387,7 +384,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("imaging")
 
-    __object_role_categories["imaging"] = "procedure"
+    __content_roles.append("imaging")
 
     @property
     def gphl_workflow(self):
@@ -398,7 +395,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("gphl_workflow")
 
-    __object_role_categories["gphl_workflow"] = "procedure"
+    __content_roles.append("gphl_workflow")
 
     # This one is 'hardware', but it is put with its companion
     @property
@@ -410,7 +407,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("gphl_connection")
 
-    __object_role_categories["gphl_connection"] = "hardware"
+    __content_roles.append("gphl_connection")
 
     # centring
 
@@ -425,7 +422,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("centring")
 
-    __object_role_categories["centring"] = "procedure"
+    __content_roles.append("centring")
 
     # Analysis (combines processing and data analysis)
 
@@ -438,7 +435,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("online_processing")
 
-    __object_role_categories["online_processing"] = "analysis"
+    __content_roles.append("online_processing")
 
     @property
     def offline_processing(self):
@@ -449,7 +446,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("offline_processing")
 
-    __object_role_categories["offline_processing"] = "analysis"
+    __content_roles.append("offline_processing")
 
     @property
     def data_analysis(self):
@@ -464,7 +461,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("data_analysis")
 
-    __object_role_categories["data_analysis"] = "analysis"
+    __content_roles.append("data_analysis")
 
     @property
     def beam_realign(self):
@@ -475,7 +472,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("beam_realign")
 
-    __object_role_categories["beam_realign"] = "procedure"
+    __content_roles.append("beam_realign")
 
     @property
     def image_tracking(self):
@@ -486,7 +483,7 @@ class Beamline(ConfiguredObject):
         """
         return self._objects.get("image_tracking")
 
-    __object_role_categories["image_tracking"] = "hardware"
+    __content_roles.append("image_tracking")
 
     # NB Objects need not be HardwareObjects
     # We still categorise them as'hardware' if they are not procedures, though

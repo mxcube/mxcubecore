@@ -18,10 +18,10 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
 
         log.info(
             "queue_entry. Start data collection on object %s"
-            % str(beamline_object.collect)
+            % str(HWR.beamline.collect)
         )
 
-        if beamline_object.collect:
+        if HWR.beamline.collect:
             acq_1 = dc.acquisitions[0]
             cpos = acq_1.acquisition_parameters.centred_position
             # sample = self.get_data_model().get_parent().get_parent()
@@ -30,7 +30,7 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
             try:
                 if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:
                     acq_1, acq_2 = (dc.acquisitions[0], dc.acquisitions[1])
-                    # beamline_object.collect.getChannelObject("helical").setValue(1)
+                    # HWR.beamline.collect.getChannelObject("helical").setValue(1)
 
                     start_cpos = acq_1.acquisition_parameters.centred_position
                     end_cpos = acq_2.acquisition_parameters.centred_position
@@ -39,31 +39,31 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
                         "1": start_cpos.as_dict(),
                         "2": end_cpos.as_dict(),
                     }
-                    # beamline_object.collect.getChannelObject('helical_pos').setValue(helical_oscil_pos)
-                    beamline_object.collect.set_helical(True, helical_oscil_pos)
+                    # HWR.beamline.collect.getChannelObject('helical_pos').setValue(helical_oscil_pos)
+                    HWR.beamline.collect.set_helical(True, helical_oscil_pos)
 
                     msg = "Helical data collection, moving to start position"
                     log.info(msg)
                     log.info("Moving sample to given position ...")
                     list_item.setText(1, "Moving sample")
                 else:
-                    # beamline_object.collect.getChannelObject("helical").setValue(0)
-                    beamline_object.collect.set_helical(False)
+                    # HWR.beamline.collect.getChannelObject("helical").setValue(0)
+                    HWR.beamline.collect.set_helical(False)
 
                 empty_cpos = queue_model_objects.CentredPosition()
 
                 if cpos != empty_cpos:
                     log.info("Moving sample to given position ...")
                     list_item.setText(1, "Moving sample")
-                    beamline_object.graphics.select_shape_with_cpos(cpos)
-                    self.centring_task = beamline_object.diffractometer.moveToCentredPosition(
+                    HWR.beamline.graphics.select_shape_with_cpos(cpos)
+                    self.centring_task = HWR.beamline.diffractometer.moveToCentredPosition(
                         cpos, wait=False
                     )
                     self.centring_task.get()
                 else:
-                    pos_dict = beamline_object.diffractometer.getPositions()
+                    pos_dict = HWR.beamline.diffractometer.getPositions()
                     cpos = queue_model_objects.CentredPosition(pos_dict)
-                    snapshot = beamline_object.graphics.get_snapshot([])
+                    snapshot = HWR.beamline.graphics.get_snapshot([])
                     acq_1.acquisition_parameters.centred_position = cpos
                     acq_1.acquisition_parameters.centred_position.snapshot_image = (
                         snapshot
@@ -72,7 +72,7 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
                 param_list = queue_model_objects.to_collect_dict(
                     dc, self.session, sample
                 )
-                self.collect_task = beamline_object.collect.collect(
+                self.collect_task = HWR.beamline.collect.collect(
                     COLLECTION_ORIGIN_STR.MXCUBE, param_list
                 )
                 self.collect_task.get()
@@ -114,8 +114,8 @@ class PX2EnergyScanQueueEntry(EnergyScanQueueEntry):
             energy_scan.path_template.directory, energy_scan.path_template.get_prefix()
         )
         logging.info(
-            "beamline_object.energy_scan %s type %s"
-            % (beamline_object.energy_scan, type(beamline_object.energy_scan))
+            "HWR.beamline.energy_scan %s type %s"
+            % (HWR.beamline.energy_scan, type(HWR.beamline.energy_scan))
         )
         logging.info("energy_scan %s type %s" % (energy_scan, type(energy_scan)))
         scan_file_archive_path = os.path.join(
@@ -131,7 +131,7 @@ class PX2EnergyScanQueueEntry(EnergyScanQueueEntry):
                 scan_file_path,
             )
         )
-        egy_result = beamline_object.energy_scan.doChooch(
+        egy_result = HWR.beamline.energy_scan.doChooch(
             energy_scan.element_symbol,
             energy_scan.edge,
             scan_file_archive_path,
@@ -156,7 +156,7 @@ class PX2EnergyScanQueueEntry(EnergyScanQueueEntry):
             title,
         ) = egy_result
 
-        # scan_info = beamline_object.energy_scan.scanInfo
+        # scan_info = HWR.beamline.energy_scan.scanInfo
 
         # This does not always apply, update model so
         # that its possible to access the sample directly from

@@ -1,8 +1,7 @@
 from HardwareRepository.HardwareObjects import queue_model_objects
 
 from HardwareRepository.HardwareObjects.BeamlineSetup import BeamlineSetup
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class SOLEILBeamlineSetup(BeamlineSetup):
@@ -27,7 +26,7 @@ class SOLEILBeamlineSetup(BeamlineSetup):
         shutterless = self.detector_has_shutterless()
 
         try:
-            detector_mode = beamline_object.detector.default_mode()
+            detector_mode = HWR.beamline.detector.default_mode()
         except AttributeError:
             detector_mode = None
 

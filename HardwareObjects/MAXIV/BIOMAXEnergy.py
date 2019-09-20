@@ -1,8 +1,7 @@
 import logging
 import gevent
 from HardwareRepository.HardwareObjects import Energy
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class BIOMAXEnergy(Energy.Energy):
@@ -32,14 +31,14 @@ class BIOMAXEnergy(Energy.Energy):
         except KeyError:
             logging.getLogger("HWR").info("No controller used")
 
-        if beamline_object.energy is not None:
-            beamline_object.energy.connect("positionChanged", self.energyPositionChanged)
-            beamline_object.energy.connect("stateChanged", self.energyStateChanged)
+        if HWR.beamline.energy is not None:
+            HWR.beamline.energy.connect("positionChanged", self.energyPositionChanged)
+            HWR.beamline.energy.connect("stateChanged", self.energyStateChanged)
 
     def get_current_energy(self):
-        if beamline_object.energy is not None:
+        if HWR.beamline.energy is not None:
             try:
-                return beamline_object.energy.getPosition() / 1000
+                return HWR.beamline.energy.getPosition() / 1000
             except BaseException:
                 logging.getLogger("HWR").exception(
                     "EnergyHO: could not read current energy"
@@ -51,9 +50,9 @@ class BIOMAXEnergy(Energy.Energy):
         if not self.tunable:
             return None
 
-        if beamline_object.energy is not None:
+        if HWR.beamline.energy is not None:
             try:
-                self.en_lims = beamline_object.energy.getLimits()
+                self.en_lims = HWR.beamline.energy.getLimits()
                 self.en_lims = (
                     float(self.en_lims[0]) / 1000,
                     float(self.en_lims[1]) / 1000,

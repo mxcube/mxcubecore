@@ -67,7 +67,7 @@ class ID30A3PhotonFlux(Equipment):
         flux = None
 
         try:
-          egy = beamline_object.energy.getPosition()*1000.0
+          egy = HWR.beamline.energy.getPosition()*1000.0
         except:
           logging.getLogger("HWR").exception("%s: could not get energy", self.name())
         else:

@@ -4,8 +4,7 @@ import time
 from HardwareRepository.HardwareObjects import MiniDiff
 import gevent
 from HardwareRepository.HardwareObjects import sample_centring
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 MICRODIFF = None
 
@@ -435,7 +434,7 @@ class Microdiff(MiniDiff.MiniDiff):
             MiniDiff.MiniDiff.moveToBeam(self, x, y)
         else:
             try:
-                beam_pos_x, beam_pos_y = beamline_object.beam.get_beam_position()
+                beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
 
                 self.centringVertical.moveRelative(
                     self.centringPhiz.direction
@@ -454,7 +453,7 @@ class Microdiff(MiniDiff.MiniDiff):
                 )
 
     def start3ClickCentring(self, sample_info=None):
-        beam_pos_x, beam_pos_y = beamline_object.beam.get_beam_position()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
         if self.in_plate_mode():
             plateTranslation = self.getObjectByRole("plateTranslation")
             cmd_set_plate_vertical = self.addCommand(

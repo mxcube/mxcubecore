@@ -17,8 +17,7 @@ from HardwareRepository.HardwareObjects import queue_model_objects
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class Shapes(HardwareObject):
@@ -284,7 +283,7 @@ class Shapes(HardwareObject):
         Returns:
             AbstractActuator
         """
-        return beamline_object.diffractometer.zoom
+        return HWR.beamline.diffractometer.zoom
 
     @property
     def focus(self):
@@ -296,7 +295,7 @@ class Shapes(HardwareObject):
         Returns:
             AbstractActuator
         """
-        return beamline_object.diffractometer.alignment_x
+        return HWR.beamline.diffractometer.alignment_x
 
     @property
     def camera(self):

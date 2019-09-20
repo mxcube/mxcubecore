@@ -5,8 +5,7 @@ import os
 import math
 from PyTango import DeviceProxy
 from HardwareRepository.TaskUtils import task
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class Pilatus:
@@ -113,7 +112,7 @@ class Pilatus:
         trigger_mode,
     ):
         diffractometer_positions = (
-            beamline_object.diffractometer.getPositions()
+            HWR.beamline.diffractometer.getPositions()
         )
         self.start_angles = list()
         for i in range(number_of_images):
@@ -131,21 +130,21 @@ class Pilatus:
         self.header["Phi"] = "%0.4f deg." % kappa_phi
         self.header["Kappa"] = "%0.4f deg." % kappa
         self.header["Alpha"] = "0.0000 deg."
-        self.header["Polarization"] = beamline_object.collect.bl_config.polarisation
+        self.header["Polarization"] = HWR.beamline.collect.bl_config.polarisation
         self.header["Detector_2theta"] = "0.0000 deg."
         self.header["Angle_increment"] = "%0.4f deg." % osc_range
         # self.header["Start_angle"]="%0.4f deg." % start
-        self.header["Transmission"] = beamline_object.transmission.get_value()
-        self.header["Flux"] = beamline_object.flux.get_flux()
+        self.header["Transmission"] = HWR.beamline.transmission.get_value()
+        self.header["Flux"] = HWR.beamline.flux.get_flux()
         self.header["Beam_xy"] = "(%.2f, %.2f) pixels" % tuple(
-            [value / 0.172 for value in beamline_object.detector.get_beam_centre()]
+            [value / 0.172 for value in HWR.beamline.detector.get_beam_centre()]
         )
         self.header["Detector_Voffset"] = "0.0000 m"
         self.header["Energy_range"] = "(0, 0) eV"
         self.header["Detector_distance"] = "%f m" % (
-            beamline_object.detector.get_detector_distance() / 1000.0
+            HWR.beamline.detector.get_detector_distance() / 1000.0
         )
-        self.header["Wavelength"] = "%f A" % beamline_object.energy.get_wavelength()
+        self.header["Wavelength"] = "%f A" % HWR.beamline.energy.get_wavelength()
         self.header["Trim_directory:"] = "(nil)"
         self.header["Flat_field:"] = "(nil)"
         self.header["Excluded_pixels:"] = " badpix_mask.tif"

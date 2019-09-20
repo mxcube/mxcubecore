@@ -22,8 +22,7 @@ from XSDataCommon import XSDataString
 from HardwareRepository.HardwareObjects.abstract import AbstractDataAnalysis
 from HardwareRepository.HardwareObjects import queue_model_enumerables as qme
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 # from edna_test_data import EDNA_DEFAULT_INPUT
 # from edna_test_data import EDNA_TEST_DATA
@@ -56,7 +55,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         return html_report
 
     def get_beam_size(self):
-        return beamline_object.beam.get_beam_size()
+        return HWR.beamline.beam.get_beam_size()
 
     def modify_strategy_option(self, diff_plan, strategy_option):
         """Method for modifying the diffraction plan 'strategyOption' entry"""
@@ -78,7 +77,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         beam = edna_input.getExperimentalCondition().getBeam()
 
         try:
-            transmission = beamline_object.transmission.get_value()
+            transmission = HWR.beamline.transmission.get_value()
             beam.setTransmission(XSDataDouble(transmission))
         except AttributeError:
             import traceback
@@ -87,18 +86,18 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
             logging.getLogger("HWR").debug(traceback.format_exc())
 
         try:
-            wavelength = beamline_object.energy.get_current_wavelength()
+            wavelength = HWR.beamline.energy.get_current_wavelength()
             beam.setWavelength(XSDataWavelength(wavelength))
         except AttributeError:
             pass
 
         try:
-            beam.setFlux(XSDataFlux(beamline_object.flux.get_flux()))
+            beam.setFlux(XSDataFlux(HWR.beamline.flux.get_flux()))
         except AttributeError:
             pass
 
         try:
-            min_exp_time = beamline_object.detector.get_exposure_time_limits()[0]
+            min_exp_time = HWR.beamline.detector.get_exposure_time_limits()[0]
             beam.setMinExposureTimePerImage(XSDataTime(min_exp_time))
         except AttributeError:
             pass

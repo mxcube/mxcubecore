@@ -29,8 +29,7 @@ from HardwareRepository.HardwareObjects.base_queue_entry import (
     BaseQueueEntry,
     QueueAbortedException,
 )
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 __credits__ = ["MXCuBE collaboration"]
@@ -46,7 +45,7 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
     def execute(self):
         BaseQueueEntry.execute(self)
 
-        state = beamline_object.gphl_workflow.get_state()
+        state = HWR.beamline.gphl_workflow.get_state()
         logging.getLogger("queue_exec").info(
             "GphlWorkflowQueueEntry.execute, WF_hwobj state is %s" % state
         )
@@ -68,7 +67,7 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
         # group_node_id = self._parent_container._data_model._node_id
         # workflow_params.append("group_node_id")
         # workflow_params.append("%d" % group_node_id)
-        beamline_object.gphl_workflow.execute()
+        HWR.beamline.gphl_workflow.execute()
 
     def workflow_state_handler(self, state):
         if isinstance(state, tuple):
@@ -90,10 +89,10 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
         queue_controller = self.get_queue_controller()
 
         queue_controller.connect(
-            beamline_object.gphl_workflow, "stateChanged", self.workflow_state_handler
+            HWR.beamline.gphl_workflow, "stateChanged", self.workflow_state_handler
         )
 
-        beamline_object.gphl_workflow.pre_execute(self)
+        HWR.beamline.gphl_workflow.pre_execute(self)
 
         logging.getLogger("HWR").debug("Done GphlWorkflowQueueEntry.pre_execute")
 
@@ -102,14 +101,14 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
         queue_controller = self.get_queue_controller()
         msg = "Finishing workflow %s" % (self.get_data_model()._type)
         logging.getLogger("user_level_log").info(msg)
-        beamline_object.gphl_workflow.workflow_end()
+        HWR.beamline.gphl_workflow.workflow_end()
         queue_controller.disconnect(
-            beamline_object.gphl_workflow, "stateChanged", self.workflow_state_handler
+            HWR.beamline.gphl_workflow, "stateChanged", self.workflow_state_handler
         )
 
     def stop(self):
         BaseQueueEntry.stop(self)
         logging.getLogger("queue_exec").debug("In GphlWorkflowQueueEntry.stop")
-        beamline_object.gphl_workflow.abort()
+        HWR.beamline.gphl_workflow.abort()
         self.get_view().setText(1, "Stopped")
         raise QueueAbortedException("Queue stopped", self)

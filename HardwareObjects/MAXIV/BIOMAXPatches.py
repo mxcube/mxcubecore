@@ -3,8 +3,7 @@ import types
 import logging
 import gevent
 import time
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class BIOMAXPatches(HardwareObject):
@@ -16,7 +15,7 @@ class BIOMAXPatches(HardwareObject):
         """
         Ensure that the detector is in safe position and sample changer in SOAK
         """
-        if not beamline_object.sample_changer._chnPowered.getValue():
+        if not HWR.beamline.sample_changer._chnPowered.getValue():
             raise RuntimeError("Cannot load sample, sample changer not powered")
         if not self.sc_in_soak():
             logging.getLogger("HWR").info(
@@ -25,16 +24,16 @@ class BIOMAXPatches(HardwareObject):
             try:
                 self.sample_changer_maintenance.send_command("soak")
                 time.sleep(0.25)
-                beamline_object.sample_changer._waitDeviceReady(45)
+                HWR.beamline.sample_changer._waitDeviceReady(45)
             except Exception as ex:
                 raise RuntimeError(
                     "Cannot load sample, sample changer cannot go to SOAK position: %s"
                     % str(ex)
                 )
-        self.curr_dtox_pos = beamline_object.detector.detector_distance.getPosition()
+        self.curr_dtox_pos = HWR.beamline.detector.detector_distance.getPosition()
         if (
-            beamline_object.detector.detector_distance is not None
-            and beamline_object.detector.detector_distance.getPosition() < self.safe_position
+            HWR.beamline.detector.detector_distance is not None
+            and HWR.beamline.detector.detector_distance.getPosition() < self.safe_position
         ):
             logging.getLogger("HWR").info(
                 "Moving detector to safe position before loading a sample."
@@ -43,9 +42,9 @@ class BIOMAXPatches(HardwareObject):
                 "Moving detector to safe position before loading a sample."
             )
 
-        self.wait_motor_ready(beamline_object.detector.detector_distance)
+        self.wait_motor_ready(HWR.beamline.detector.detector_distance)
         try:
-            beamline_object.detector.detector_distance.syncMove(self.safe_position, timeout=30)
+            HWR.beamline.detector.detector_distance.syncMove(self.safe_position, timeout=30)
         except Exception:
             logging.getLogger("HWR").warning("Cannot move detector")
         else:
@@ -57,7 +56,7 @@ class BIOMAXPatches(HardwareObject):
             logging.getLogger("HWR").info(
                 "Waiting for Diffractometer to be ready before proceeding with the sample loading."
             )
-            beamline_object.diffractometer.wait_device_ready(15)
+            HWR.beamline.diffractometer.wait_device_ready(15)
         except Exception as ex:
             logging.getLogger("HWR").warning(
                 "Diffractometer not ready. Proceeding with the sample loading, good luck..."
@@ -72,26 +71,26 @@ class BIOMAXPatches(HardwareObject):
         """
         Move to centring after loading the sample
         """
-        if not beamline_object.sample_changer._chnPowered.getValue():
+        if not HWR.beamline.sample_changer._chnPowered.getValue():
             raise RuntimeError(
                 "Not proceeding with the steps after sample loading, sample changer not powered"
             )
         if (
-            beamline_object.diffractometer is not None
-            and beamline_object.diffractometer.get_current_phase() != "Centring"
+            HWR.beamline.diffractometer is not None
+            and HWR.beamline.diffractometer.get_current_phase() != "Centring"
         ):
             logging.getLogger("HWR").info("Changing diffractometer phase to Centring")
             logging.getLogger("user_level_log").info(
                 "Changing diffractometer phase to Centring"
             )
             try:
-                beamline_object.diffractometer.wait_device_ready(15)
+                HWR.beamline.diffractometer.wait_device_ready(15)
             except BaseException:
                 pass
-            beamline_object.diffractometer.set_phase("Centring")
+            HWR.beamline.diffractometer.set_phase("Centring")
             logging.getLogger("HWR").info(
                 "Diffractometer phase changed, current phase: %s"
-                % beamline_object.diffractometer.get_current_phase()
+                % HWR.beamline.diffractometer.get_current_phase()
             )
         else:
             logging.getLogger("HWR").info("Diffractometer already in Centring")
@@ -102,11 +101,11 @@ class BIOMAXPatches(HardwareObject):
             "Moving detector to pre-mount position %s" % self.curr_dtox_pos
         )
         try:
-            if not beamline_object.sample_changer._chnPowered.getValue():
+            if not HWR.beamline.sample_changer._chnPowered.getValue():
                 raise RuntimeError(
                     "Not moving detector to pre-mount position, sample changer not powered"
                 )
-            beamline_object.detector.detector_distance.syncMove(self.curr_dtox_pos, timeout=30)
+            HWR.beamline.detector.detector_distance.syncMove(self.curr_dtox_pos, timeout=30)
         except Exception:
             logging.getLogger("HWR").warning("Cannot move detector")
 
@@ -141,17 +140,17 @@ class BIOMAXPatches(HardwareObject):
                 gevent.sleep(0.5)
 
     def sc_in_soak(self):
-        return beamline_object.sample_changer._chnInSoak.getValue()
+        return HWR.beamline.sample_changer._chnInSoak.getValue()
 
     def init(self, *args):
         self.sample_changer_maintenance = self.getObjectByRole(
             "sample_changer_maintenance"
         )
-        self.__load = beamline_object.sample_changer.load
-        self.__unload = beamline_object.sample_changer.unload
+        self.__load = HWR.beamline.sample_changer.load
+        self.__unload = HWR.beamline.sample_changer.unload
         self.curr_dtox_pos = None
 
-        beamline_object.sample_changer.load = types.MethodType(self.new_load, beamline_object.sample_changer)
-        beamline_object.sample_changer.unload = types.MethodType(
-            self.new_unload, beamline_object.sample_changer
+        HWR.beamline.sample_changer.load = types.MethodType(self.new_load, HWR.beamline.sample_changer)
+        HWR.beamline.sample_changer.unload = types.MethodType(
+            self.new_unload, HWR.beamline.sample_changer
         )

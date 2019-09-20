@@ -1,6 +1,5 @@
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Procedure
-import os
 import logging
 import ldap
 import re
@@ -301,7 +300,7 @@ class SessionList(list):
 
 
 def test():
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     conn = hwr.getHardwareObject("/ldapconnection")

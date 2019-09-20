@@ -56,7 +56,7 @@ Example Hardware Object XML file :
 </device>
 """
 
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository import BaseHardwareObjects
 import logging
 import os

@@ -1,7 +1,6 @@
 import logging
 from HardwareRepository.HardwareObjects import BeamInfo
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 """
 XML example file
@@ -38,8 +37,8 @@ class ESRFBeamInfo(BeamInfo.BeamInfo):
         else:
             # Cannot be done, as graphics HWOBJ is initialised after beam
             # self.beam_position = (
-            #     beamline_object.graphics.camera.getWidth() / 2,
-            #     beamline_object.graphics.camera.getHeight() / 2,
+            #     HWR.beamline.graphics.camera.getWidth() / 2,
+            #     HWR.beamline.graphics.camera.getHeight() / 2,
             # )
             logging.getLogger("HWR").warning(
                 "ESRFBeamInfo: "
@@ -51,8 +50,8 @@ class ESRFBeamInfo(BeamInfo.BeamInfo):
     def get_beam_position(self):
         if self.beam_position == (0, 0):
             self.beam_position = (
-                beamline_object.graphics.camera.getWidth() / 2,
-                beamline_object.graphics.camera.getHeight() / 2,
+                HWR.beamline.graphics.camera.getWidth() / 2,
+                HWR.beamline.graphics.camera.getHeight() / 2,
             )
         return self.beam_position
 

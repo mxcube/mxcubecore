@@ -1,6 +1,6 @@
 # from qt import *
 
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Device
 
 from HardwareRepository.Command.Tango import DeviceProxy

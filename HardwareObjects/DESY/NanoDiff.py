@@ -35,8 +35,7 @@ from gevent.event import AsyncResult
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.ConvertUtils import string_types
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 # from HardwareRepository.HardwareObjects.GenericDiffractometer import GenericDiffractometer
 
@@ -195,9 +194,9 @@ class NanoDiff(HardwareObject):
         self.sample_x_motor_hwobj = self.getObjectByRole("sampx")
         self.sample_y_motor_hwobj = self.getObjectByRole("sampy")
 
-        if beamline_object.beam is not None:
+        if HWR.beamline.beam is not None:
             self.connect(
-                beamline_object.beam, "beamPosChanged", self.beam_position_changed
+                HWR.beamline.beam, "beamPosChanged", self.beam_position_changed
             )
         else:
             logging.getLogger("HWR").debug("NanoDiff: Beaminfo is not defined")
@@ -274,11 +273,11 @@ class NanoDiff(HardwareObject):
                 self.focus_motor_hwobj, "positionChanged", self.focus_motor_moved
             )
 
-        # if beamline_object.graphics.camera is None:
+        # if HWR.beamline.graphics.camera is None:
         #     logging.getLogger("HWR").error("NanoDiff: Camera is not defined")
         # else:
-        #     self.image_height = beamline_object.graphics.camera.getHeight()
-        #     self.image_width = beamline_object.graphics.camera.getWidth()
+        #     self.image_height = HWR.beamline.graphics.camera.getHeight()
+        #     self.image_width = HWR.beamline.graphics.camera.getWidth()
 
         try:
             self.zoom_centre = eval(self.getProperty("zoom_centre"))
@@ -634,11 +633,11 @@ class NanoDiff(HardwareObject):
         """
         Descript. :
         """
-        if beamline_object.graphics.camera is not None:
+        if HWR.beamline.graphics.camera is not None:
             if self.current_phase != "Unknown":
-                beamline_object.graphics.camera.refresh_video()
-        if beamline_object.beam is not None:
-            self.beam_position = beamline_object.beam.get_beam_position()
+                HWR.beamline.graphics.camera.refresh_video()
+        if HWR.beamline.beam is not None:
+            self.beam_position = HWR.beamline.beam.get_beam_position()
 
     def start_auto_focus(self):
         """
@@ -1357,6 +1356,6 @@ class NanoDiff(HardwareObject):
         snapshot_filename = os.path.join(
             tempfile.gettempdir(), "mxcube_sample_snapshot.png"
         )
-        beamline_object.graphics.camera.take_snapshot(snapshot_filename, bw=True)
+        HWR.beamline.graphics.camera.take_snapshot(snapshot_filename, bw=True)
         info, x, y = lucid.find_loop(snapshot_filename)
         return x, y

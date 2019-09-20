@@ -4,8 +4,7 @@ import gevent
 import time
 import sys
 from HardwareRepository import BaseHardwareObjects
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 
 class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
@@ -66,7 +65,7 @@ class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
         logging.info(
             "%s: %s hutch", self.name(), "entering" if entering_hutch else "leaving"
         )
-        dtox = beamline_object.detector.detector_distance
+        dtox = HWR.beamline.detector.detector_distance
         if not entering_hutch:
             if old["dtox"] is not None:
                 dtox.move(old["dtox"])

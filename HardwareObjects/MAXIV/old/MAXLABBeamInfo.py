@@ -1,5 +1,5 @@
 import logging
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 import BeamInfo
 
 

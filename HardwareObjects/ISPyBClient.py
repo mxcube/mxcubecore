@@ -21,8 +21,7 @@ from suds import WebFault
 from suds.client import Client
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.ConvertUtils import string_types
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 """
 A client for ISPyB Webservices.
@@ -187,7 +186,7 @@ class ISPyBClient(HardwareObject):
 
         self.loginType = self.getProperty("loginType") or "proposal"
         self.loginTranslate = self.getProperty("loginTranslate") or True
-        self.beamline_name = beamline_object.session.beamline_name
+        self.beamline_name = HWR.beamline.session.beamline_name
 
         self.ws_root = self.getProperty("ws_root")
         self.ws_username = self.getProperty("ws_username")
@@ -300,8 +299,8 @@ class ISPyBClient(HardwareObject):
 
         # Add the porposal codes defined in the configuration xml file
         # to a directory. Used by translate()
-        if hasattr(beamline_object.session, "proposals"):
-            for proposal in beamline_object.session["proposals"]:
+        if hasattr(HWR.beamline.session, "proposals"):
+            for proposal in HWR.beamline.session["proposals"]:
                 code = proposal.code
                 self._translations[code] = {}
                 try:
@@ -874,7 +873,7 @@ class ISPyBClient(HardwareObject):
         else:
             todays_session = {}
 
-        is_inhouse = beamline_object.session.is_inhouse(
+        is_inhouse = HWR.beamline.session.is_inhouse(
             prop["Proposal"]["code"], prop["Proposal"]["number"]
         )
         return {

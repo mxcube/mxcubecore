@@ -30,8 +30,7 @@ from scipy.interpolate import interp1d
 
 from HardwareRepository.HardwareObjects import SimpleHTML
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository import HardwareRepository
-beamline_object = HardwareRepository.get_beamline()
+from HardwareRepository import HardwareRepository as HWR
 
 __credits__ = ["EMBL Hamburg"]
 __category__ = "General"
@@ -122,14 +121,14 @@ class EMBLBeamlineTest(HardwareObject):
         self.bl_hwobj = self.getObjectByRole("beamline_setup")
         self.crl_hwobj = self.getObjectByRole("crl")
         self.connect(
-            beamline_object.graphics, "imageDoubleClicked", self.image_double_clicked
+            HWR.beamline.graphics, "imageDoubleClicked", self.image_double_clicked
         )
         self.connect(
-            beamline_object.energy, "beamAlignmentRequested", self.center_beam_test
+            HWR.beamline.energy, "beamAlignmentRequested", self.center_beam_test
         )
 
-        if hasattr(beamline_object.beam, "beam_focusing_hwobj"):
-            self.beam_focusing_hwobj = beamline_object.beam.beam_focusing_hwobj
+        if hasattr(HWR.beamline.beam, "beam_focusing_hwobj"):
+            self.beam_focusing_hwobj = HWR.beamline.beam.beam_focusing_hwobj
             self.connect(
                 self.beam_focusing_hwobj,
                 "focusingModeChanged",
@@ -140,9 +139,9 @@ class EMBLBeamlineTest(HardwareObject):
                 "BeamlineTest: Beam focusing hwobj is not defined"
             )
 
-        if beamline_object.ppu_control is not None:
+        if HWR.beamline.ppu_control is not None:
             self.connect(
-                beamline_object.ppu_control,
+                HWR.beamline.ppu_control,
                 "ppuStatusChanged",
                 self.ppu_status_changed,
             )
@@ -151,7 +150,7 @@ class EMBLBeamlineTest(HardwareObject):
                 "BeamlineTest: PPU control hwobj is not defined"
             )
 
-        self.beamline_name = beamline_object.session.beamline_name
+        self.beamline_name = HWR.beamline.session.beamline_name
 
         self.test_directory = self.getProperty("results_directory")
         if self.test_directory is None:
@@ -348,8 +347,8 @@ class EMBLBeamlineTest(HardwareObject):
 
     def ppu_restart_all(self):
         """Restart ppu processes"""
-        if beamline_object.ppu_control is not None:
-            beamline_object.ppu_control.restart_all()
+        if HWR.beamline.ppu_control is not None:
+            HWR.beamline.ppu_control.restart_all()
 
     def pitch_scan(self):
         """
@@ -383,9 +382,9 @@ class EMBLBeamlineTest(HardwareObject):
         table_values = "<tr>"
         table_result = "<tr>"
 
-        beamline_object.diffractometer.set_phase("BeamLocation", timeout=30)
+        HWR.beamline.diffractometer.set_phase("BeamLocation", timeout=30)
 
-        aperture_hwobj = beamline_object.beam.aperture_hwobj
+        aperture_hwobj = HWR.beamline.beam.aperture_hwobj
         aperture_list = aperture_hwobj.get_aperture_list(as_origin=True)
         current_aperture = aperture_hwobj.get_value()
 
@@ -400,12 +399,12 @@ class EMBLBeamlineTest(HardwareObject):
             table_values += (
                 "<td><img src=%s style=width:700px;></td>" % beam_image_filename
             )
-            beamline_object.graphics.save_scene_snapshot(beam_image_filename)
+            HWR.beamline.graphics.save_scene_snapshot(beam_image_filename)
             progress_info = {"progress_total": len(aperture_list), "progress_msg": msg}
             self.emit("testProgress", (index, progress_info))
 
-        beamline_object.diffractometer.set_phase(
-            beamline_object.diffractometer.PHASE_CENTRING, timeout=30
+        HWR.beamline.diffractometer.set_phase(
+            HWR.beamline.diffractometer.PHASE_CENTRING, timeout=30
         )
         aperture_hwobj.set_active_position(current_aperture)
         table_header += "</tr>"
@@ -479,7 +478,7 @@ class EMBLBeamlineTest(HardwareObject):
         """
         log = logging.getLogger("GUI")
 
-        if not beamline_object.safety_shutter.is_opened():
+        if not HWR.beamline.safety_shutter.is_opened():
             log.error(
                 "Beam centering failed! Safety shutter is closed! "
                 + "Open the shutter to continue."
@@ -487,9 +486,9 @@ class EMBLBeamlineTest(HardwareObject):
             self.ready_event.set()
             return
 
-        aperture_hwobj = beamline_object.beam.aperture_hwobj
-        current_energy = beamline_object.energy.get_current_energy()
-        current_transmission = beamline_object.transmission.get_transmission()
+        aperture_hwobj = HWR.beamline.beam.aperture_hwobj
+        current_energy = HWR.beamline.energy.get_current_energy()
+        current_transmission = HWR.beamline.transmission.get_transmission()
 
         msg = "Starting beam centring"
         progress_info = {"progress_total": 6, "progress_msg": msg}
@@ -504,12 +503,12 @@ class EMBLBeamlineTest(HardwareObject):
         self.emit("testProgress", (2, progress_info))
         self.emit("progressStep", 1, "Setting diffractometer in BeamLocation phase")
 
-        beamline_object.diffractometer.wait_device_ready(10)
-        beamline_object.diffractometer.set_phase(
-            beamline_object.diffractometer.PHASE_BEAM, timeout=45
+        HWR.beamline.diffractometer.wait_device_ready(10)
+        HWR.beamline.diffractometer.set_phase(
+            HWR.beamline.diffractometer.PHASE_BEAM, timeout=45
         )
 
-        beamline_object.fast_shutter.openShutter()
+        HWR.beamline.fast_shutter.openShutter()
         gevent.sleep(0.1)
         aperture_hwobj.set_out()
 
@@ -528,34 +527,34 @@ class EMBLBeamlineTest(HardwareObject):
             energy_transm = interp1d([6.9, 8.0, 12.7, 19.0], [100.0, 60.0, 15.0, 10])
             new_transmission = round(energy_transm(current_energy), 2)
 
-        if beamline_object.session.beamline_name == "P13":
-            beamline_object.transmission.set_transmission(
+        if HWR.beamline.session.beamline_name == "P13":
+            HWR.beamline.transmission.set_transmission(
                 new_transmission, timeout=45
             )
-            beamline_object.diffractometer.set_zoom("Zoom 4")
+            HWR.beamline.diffractometer.set_zoom("Zoom 4")
             # capillary_position = (
-            #    beamline_object.diffractometer.get_capillary_position()
+            #    HWR.beamline.diffractometer.get_capillary_position()
             # )
-            beamline_object.diffractometer.set_capillary_position("OFF")
+            HWR.beamline.diffractometer.set_capillary_position("OFF")
 
             gevent.sleep(1)
             self.center_beam_task()
         else:
-            slits_hwobj = beamline_object.beam.slits_hwobj
+            slits_hwobj = HWR.beamline.beam.slits_hwobj
 
             active_mode, beam_size = self.get_focus_mode()
 
             if active_mode in ("Collimated", "Imaging"):
-                beamline_object.transmission.set_transmission(
+                HWR.beamline.transmission.set_transmission(
                     new_transmission, timeout=45
                 )
-                beamline_object.diffractometer.set_zoom("Zoom 4")
+                HWR.beamline.diffractometer.set_zoom("Zoom 4")
             else:
                 # 2% transmission for beam centering in double foucused mode
-                beamline_object.transmission.set_value(
+                HWR.beamline.transmission.set_value(
                     2, timeout=45
                 )  # Transmission(2, timeout=45)
-                beamline_object.diffractometer.set_zoom("Zoom 8")
+                HWR.beamline.diffractometer.set_zoom("Zoom 8")
 
             msg = "3/6 : Opening slits to 1 x 1 mm"
             progress_info["progress_msg"] = msg
@@ -568,7 +567,7 @@ class EMBLBeamlineTest(HardwareObject):
                 slits_hwobj.set_vertical_gap(1.0)  # "Hor", 1.0)
                 slits_hwobj.set_horizontal_gap(1.0)  # "Ver", 1.0)
 
-            # beamline_object.graphics.save_scene_snapshot(beam_image_filename)
+            # HWR.beamline.graphics.save_scene_snapshot(beam_image_filename)
 
             # Actual centring procedure  ---------------
 
@@ -596,13 +595,13 @@ class EMBLBeamlineTest(HardwareObject):
             progress_info["progress_msg"] = msg
             log.info("Beam centering: %s" % msg)
             self.emit("testProgress", (6, progress_info))
-            beamline_object.graphics.move_beam_mark_auto()
+            HWR.beamline.graphics.move_beam_mark_auto()
 
-        beamline_object.transmission.set_transmission(
+        HWR.beamline.transmission.set_transmission(
             current_transmission
         )  # Transmission(current_transmission)
 
-        beamline_object.graphics.graphics_beam_item.set_detected_beam_position(
+        HWR.beamline.graphics.graphics_beam_item.set_detected_beam_position(
             None, None
         )
 
@@ -621,7 +620,7 @@ class EMBLBeamlineTest(HardwareObject):
         msg = ""
         progress_info = {"progress_total": 6, "progress_msg": msg}
 
-        if beamline_object.session.beamline_name == "P13":
+        if HWR.beamline.session.beamline_name == "P13":
             # Beam centering procedure for P13 ---------------------------------
 
             msg = "4/6 : Executing pitch scan"
@@ -630,7 +629,7 @@ class EMBLBeamlineTest(HardwareObject):
             self.emit("testProgress", (3, progress_info))
             self.emit("progressStep", 3, "Executing pitch scan")
 
-            if beamline_object.energy.get_current_energy() <= 8.75:
+            if HWR.beamline.energy.get_current_energy() <= 8.75:
                 self.cmd_set_qbmp_range(0)
             else:
                 self.cmd_set_qbmp_range(1)
@@ -662,7 +661,7 @@ class EMBLBeamlineTest(HardwareObject):
                 with gevent.Timeout(10, False):
                     beam_pos_displacement = [None, None]
                     while None in beam_pos_displacement:
-                        beam_pos_displacement = beamline_object.graphics.get_beam_displacement(
+                        beam_pos_displacement = HWR.beamline.graphics.get_beam_displacement(
                             reference="beam"
                         )
                         gevent.sleep(0.1)
@@ -719,7 +718,7 @@ class EMBLBeamlineTest(HardwareObject):
                         self.cmd_set_pitch(1)
                         gevent.sleep(0.1)
 
-                        if beamline_object.energy.get_current_energy() < 10:
+                        if HWR.beamline.energy.get_current_energy() < 10:
                             crl_value = self.crl_hwobj.get_crl_value()
                             self.crl_hwobj.set_crl_value([1, 1, 1, 1, 1, 1], timeout=30)
 
@@ -739,14 +738,14 @@ class EMBLBeamlineTest(HardwareObject):
                         self.cmd_set_vmax_pitch(1)
 
                         # GB : return original lenses only after scan finished
-                        if beamline_object.energy.get_current_energy() < 10:
+                        if HWR.beamline.energy.get_current_energy() < 10:
                             self.crl_hwobj.set_crl_value(crl_value, timeout=30)
                         sleep(2)
 
                     with gevent.Timeout(10, False):
                         beam_pos_displacement = [None, None]
                         while None in beam_pos_displacement:
-                            beam_pos_displacement = beamline_object.graphics.get_beam_displacement(
+                            beam_pos_displacement = HWR.beamline.graphics.get_beam_displacement(
                                 reference="screen"
                             )
                             gevent.sleep(0.1)
@@ -758,7 +757,7 @@ class EMBLBeamlineTest(HardwareObject):
                         delta_hor = (
                             beam_pos_displacement[0]
                             * self.scale_hor
-                            * beamline_object.energy.get_current_energy()
+                            * HWR.beamline.energy.get_current_energy()
                             / 12.70
                         )
                         delta_ver = beam_pos_displacement[1] * self.scale_ver
@@ -832,21 +831,21 @@ class EMBLBeamlineTest(HardwareObject):
         beam_image_filename = os.path.join(
             self.test_directory, "auto_centring_before.png"
         )
-        beamline_object.graphics.save_scene_snapshot(beam_image_filename)
+        HWR.beamline.graphics.save_scene_snapshot(beam_image_filename)
         gevent.sleep(0.1)
         result["result_details"].append(
             "<img src=%s style=width:300px;><br>" % beam_image_filename
         )
 
-        beamline_object.diffractometer.start_centring_method(
-            beamline_object.diffractometer.CENTRING_METHOD_AUTO, wait=True
+        HWR.beamline.diffractometer.start_centring_method(
+            HWR.beamline.diffractometer.CENTRING_METHOD_AUTO, wait=True
         )
 
         result["result_details"].append("After autocentring<br>")
         beam_image_filename = os.path.join(
             self.test_directory, "auto_centring_after.png"
         )
-        beamline_object.graphics.save_scene_snapshot(beam_image_filename)
+        HWR.beamline.graphics.save_scene_snapshot(beam_image_filename)
         result["result_details"].append(
             "<img src=%s style=width:300px;><br>" % beam_image_filename
         )
@@ -897,7 +896,7 @@ class EMBLBeamlineTest(HardwareObject):
 
     def measure_flux(self):
         """Measures intesity"""
-        beamline_object.flux.measure_flux()
+        HWR.beamline.flux.measure_flux()
 
     def test_file_system(self):
         result = {}

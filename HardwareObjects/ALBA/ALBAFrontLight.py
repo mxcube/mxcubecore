@@ -1,4 +1,4 @@
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Device
 import logging
 
@@ -118,7 +118,7 @@ class ALBAFrontLight(Device):
 
 
 def test():
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     light = hwr.getHardwareObject("/frontlight")
