@@ -277,7 +277,7 @@ class EMBLFlux(AbstractFlux):
 
         if HWR.beamline.session.beamline_name == "P14":
             if (
-                HWR.beamline.detector.detector_distance.get_position()
+                HWR.beamline.resolution.detector_distance.get_position()
                 > MIN_DETECTOR_DISTANCE
             ):
                 self.print_log(

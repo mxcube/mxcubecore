@@ -127,7 +127,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
 
         QtGraphicsManager.init(self)
 
-        self.disconnect(HWR.beamline.graphics.camera, "imageReceived", self.camera_image_received)
+        self.disconnect(HWR.beamline.microscope.camera, "imageReceived", self.camera_image_received)
 
         self.disconnect(
             HWR.beamline.diffractometer,
@@ -513,7 +513,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
     @task
     def _take_crystal_snapshot(self, filename):
         """Saves crystal snapshot"""
-        HWR.beamline.graphics.save_scene_snapshot(filename)
+        HWR.beamline.microscope.save_scene_snapshot(filename)
 
     def data_collection_hook(self):
         pass
