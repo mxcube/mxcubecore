@@ -299,6 +299,17 @@ class Beamline(ConfiguredObject):
     __content_roles.append("sample_changer")
 
     @property
+    def  sample_changer_maintenance(self):
+        """Sample Changer Maintnance Hardware object
+
+        Returns:
+            Optional[AbstractMaintnanceSampleChanger]:
+        """
+        return self._objects.get("sample_changer_maintenance")
+
+    __content_roles.append("sample_changer_maintenance")
+
+    @property
     def plate_manipulator(self):
         """Plate Manuipulator Hardware object
         NBNB TODO REMOVE THIS and treat as an alternative sample changer instead.
