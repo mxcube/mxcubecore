@@ -223,6 +223,30 @@ class Beamline(ConfiguredObject):
 
     __content_roles.append("fast_shutter")
 
+
+    @property
+    def beamstop(self):
+        """Beamstop Hardware object
+
+        Returns:
+            Optional[AbstractNState]:
+        """
+        return self._objects.get("beamstop")
+
+    __content_roles.append("beamstop")
+
+    @property
+    def capillary(self):
+        """Capillary Hardware object
+
+        Returns:
+            Optional[AbstractNState]:
+        """
+        return self._objects.get("capillary")
+
+    __content_roles.append("capillary")
+
+
     @property
     def diffractometer(self):
         """Diffractometer Hardware object
