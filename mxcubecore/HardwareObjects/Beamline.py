@@ -83,6 +83,12 @@ class Beamline(ConfiguredObject):
         # List[str] of advanced method names
         self.advanced_methods = []
 
+        # List[str] of available methods
+        self.available_methods = []
+
+        # int number of clicks used for click centring
+        self.click_centring_num_clicks = 3
+
         # bool Is wavelength tunable
         self.tunable_wavelength = False
 
