@@ -307,16 +307,17 @@ class Beamline(ConfiguredObject):
 
     __content_roles.append("lims")
 
+ 
     @property
-    def graphics(self):
-        """Graphics/OAV object. Includes defined shapes.
+    def microscope(self):
+        """Microscope object. Includes defined shapes.
 
         Returns:
-            Optional[AbstractGraphics]:
+            Optional[AbstractMmicroscope]:
         """
-        return self._objects.get("graphics")
+        return self._objects.get("microscope")
 
-    __content_roles.append("graphics")
+    __content_roles.append("microscope")
 
     @property
     def queue_manager(self):
