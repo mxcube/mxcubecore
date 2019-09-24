@@ -48,7 +48,7 @@ class BIOMAXResolution(Resolution.Resolution):
 
     def dist2res(self, dist=None):
         if dist is None:
-            dist = HWR.beamline.detector.detector_distance.getPosition()
+            dist = HWR.beamline.resolution.detector_distance.getPosition()
 
         return "%.3f" % self._calc_res(self.det_radius, dist)
 
@@ -56,7 +56,7 @@ class BIOMAXResolution(Resolution.Resolution):
         self.det_width = HWR.beamline.detector.get_x_pixels_in_detector()
         self.det_height = HWR.beamline.detector.get_y_pixels_in_detector()
         self.update_beam_centre(
-            HWR.beamline.detector.detector_distance.getPosition()
+            HWR.beamline.resolution.detector_distance.getPosition()
         )
         self.recalculateResolution()
 
