@@ -429,6 +429,28 @@ class Beamline(ConfiguredObject):
     __content_roles.append("imaging")
 
     @property
+    def xml_rpc_server(self):
+        """XMLRPCServer for RPC
+
+        Returns:
+            Optional[XMLRPCServer]:
+        """
+        return self._objects.get("xml_rpc_server")
+
+    __content_roles.append("xml_rpc_server")
+
+    @property
+    def workflow(self):
+        """Standarad EDNA workflow procedure.
+
+        Returns:
+            Optional[Workflow]:
+        """
+        return self._objects.get("workflow")
+
+    __content_roles.append("workflow")
+
+    @property
     def gphl_workflow(self):
         """Global phasing data collection workflow procedure.
 
