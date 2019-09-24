@@ -58,8 +58,13 @@ class AbstractProcedure(HardwareObject):
             self.procedure_failed = True
             msg = "Procedure execution failed (%s)" % str(ex)
             logging.getLogger("HWR").error(msg)
-        finally:
+
+        try: 
             self.post_execute(data_model)
+        except Exception as ex:
+            msg = "Procedure post execution failed (%s)" % str(ex)
+            logging.getLogger("HWR").error(msg)
+        finally:
             self.ready_event.set()
 
     def pre_execute(self, data_model):
