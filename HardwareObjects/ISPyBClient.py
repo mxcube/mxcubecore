@@ -156,6 +156,7 @@ class ISPyBClient(HardwareObject):
         HardwareObject.__init__(self, name)
         self.ldapConnection = None
         self.beamline_name = "unknown"
+        self.lims_rest = None
         self._shipping = None
         self._collection = None
         self._tools_ws = None
@@ -177,6 +178,7 @@ class ISPyBClient(HardwareObject):
         """
         Init method declared by HardwareObject.
         """
+        self.lims_rest = self.getObjectByRole("lims_rest")
         self.authServerType = self.getProperty("authServerType") or "ldap"
         if self.authServerType == "ldap":
             # Initialize ldap
