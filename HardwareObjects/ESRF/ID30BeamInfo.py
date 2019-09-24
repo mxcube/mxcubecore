@@ -15,8 +15,8 @@ class ID30BeamInfo(BeamInfo.BeamInfo):
             float, self.getProperty("beam_size_slits").split()
         ))  # [0.1, 0.05]
         self.beam_position = (
-            HWR.beamline.graphics.camera.getWidth() / 2,
-            HWR.beamline.graphics.camera.getHeight() / 2
+            HWR.beamline.microscope.camera.getWidth() / 2,
+            HWR.beamline.microscope.camera.getHeight() / 2
         )
 
     def get_beam_position(self):
