@@ -590,8 +590,10 @@ class Beamline(ConfiguredObject):
         osc_start = motor_positions.get("phi", params["osc_start"])
         acq_parameters.osc_start = round(float(osc_start), 2)
         kappa = motor_positions.get("kappa", 0.0)
+        kappa = kappa if kappa else 0.0
         acq_parameters.kappa = round(float(kappa), 2)
         kappa_phi = motor_positions.get("kappa_phi", 0.0)
+        kappa_phi = kappa_phi if kappa_phi else 0.0
         acq_parameters.kappa_phi = round(float(kappa_phi), 2)
 
         try:
