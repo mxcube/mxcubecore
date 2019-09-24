@@ -359,7 +359,6 @@ class Beamline(ConfiguredObject):
 
     __content_roles.append("lims")
 
- 
     @property
     def microscope(self):
         """Microscope object. Includes defined shapes.
@@ -563,7 +562,6 @@ class Beamline(ConfiguredObject):
     # NB Objects need not be HardwareObjects
     # We still categorise them as'hardware' if they are not procedures, though
     # The attribute values will be given in the config.yml file
-
     def get_default_acquisition_parameters(self, acquisition_type="default"):
         """
         :returns: A AcquisitionParameters object with all default parameters for the
