@@ -16,11 +16,11 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         self.detmState = None
         self.state = 2
         self.connect(
-            HWR.beamline.detector.detector_distance,
+            HWR.beamline.resolution.detector_distance,
             "positionChanged",
             self.dtoxPositionChanged
         )
-        HWR.beamline.detector.detector_distance.move(
+        HWR.beamline.resolution.detector_distance.move(
             self.res2dist(self.currentResolution)
         )
 
@@ -81,7 +81,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
 
     def recalculateResolution(self):
         self.currentResolution = self.dist2res(
-            HWR.beamline.detector.detector_distance.getPosition()
+            HWR.beamline.resolution.detector_distance.getPosition()
         )
 
     def equipmentReady(self):
@@ -123,13 +123,13 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         return (0, 20)
 
     def set_position(self, pos, wait=True):
-        HWR.beamline.detector.detector_distance.move(self.res2dist(pos), wait=wait)
+        HWR.beamline.resolution.detector_distance.move(self.res2dist(pos), wait=wait)
 
     move = set_position
 
     def motorIsMoving(self):
         return (
-            HWR.beamline.detector.detector_distance.motorIsMoving()
+            HWR.beamline.resolution.detector_distance.motorIsMoving()
             or HWR.beamline.energy.moving
         )
 
@@ -137,4 +137,4 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         pass
 
     def stop(self):
-        HWR.beamline.detector.detector_distance.stop()
+        HWR.beamline.resolution.detector_distance.stop()
