@@ -327,6 +327,17 @@ class Beamline(ConfiguredObject):
     __content_roles.append("session")
 
     @property
+    def cryo(self):
+        """Cryostream Hardware object.
+
+        Returns:
+            Optional[Cryo]:
+        """
+        return self._objects.get("cryo")
+
+    __content_roles.append("cryo")
+
+    @property
     def lims(self):
         """LIMS client object.
 
