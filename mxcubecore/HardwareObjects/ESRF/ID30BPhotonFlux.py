@@ -22,7 +22,11 @@ class ID30BPhotonFlux(Equipment):
             self.counter = getattr(self.controller, counter)
         else:
             self.counter = self.getObjectByRole("counter")
-        self.shutter.connect("shutterStateChanged", self.shutterStateChanged)
+
+        try:
+            self.shutter.connect("shutterStateChanged", self.shutterStateChanged)
+        except Exception:
+            logging.exception("Could not connect to shutterStateChanged")
 
         self.counts_reading_task = self._read_counts_task(wait=False)
 

@@ -88,7 +88,7 @@ class ID232HutchTrigger(BaseHardwareObjects.HardwareObject):
         logging.info(
             "%s: %s hutch", self.name(), "entering" if entering_hutch else "leaving"
         )
-        dtox = HWR.beamline.detector.detector_distance
+        dtox = HWR.beamline.resolution.detector_distance
         udiff_ctrl = self.getObjectByRole("predefined")
         ctrl_obj = self.getObjectByRole("controller")
         if not entering_hutch:
