@@ -197,6 +197,16 @@ class Beamline(ConfiguredObject):
     __content_roles.append("beam")
 
     @property
+    def beam_definer(self):
+        """Beam-definer Hardware object
+
+        Returns:
+            Optional[HardwareObject]:
+        """
+        return self._objects.get("beam_definer")
+    __content_roles.append("beam_definer")
+
+    @property
     def hutch_interlock(self):
         """Hutch Interlock Hardware object
 
