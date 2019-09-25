@@ -19,8 +19,8 @@ beamInfoChanged
 """
 
 import logging
-from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository import HardwareRepository as HWR
 
 
 class BeamInfo(Equipment):
@@ -34,30 +34,28 @@ class BeamInfo(Equipment):
 
         self.aperture_HO = None
         self.slits_HO = None
-        self.beam_definer_HO = None
         self.beam_info_dict = {}
 
     def init(self):
         try:
-            self.aperture_HO = HardwareRepository.getHardwareRepository().getHardwareObject(
+            self.aperture_HO = HWR.getHardwareRepository().getHardwareObject(
                 self.getProperty("aperture")
             )
             self.connect(self.aperture_HO, "apertureChanged", self.aperture_pos_changed)
         except BaseException:
             logging.getLogger("HWR").debug("BeamInfo: aperture not defined correctly")
         try:
-            self.slits_HO = HardwareRepository.getHardwareRepository().getHardwareObject(
+            self.slits_HO = HWR.getHardwareRepository().getHardwareObject(
                 self.getProperty("slits")
             )
             self.connect(self.slits_HO, "gapSizeChanged", self.slits_gap_changed)
         except BaseException:
             logging.getLogger("HWR").debug("BeamInfo: slits not defined correctly")
         try:
-            self.beam_definer_HO = HardwareRepository.getHardwareRepository().getHardwareObject(
-                self.getProperty("definer")
-            )
             self.connect(
-                self.beam_definer_HO, "definerPosChanged", self.definer_pos_changed
+                HWR.beamline.beam_definer,
+                "definerPosChanged",
+                self.definer_pos_changed
             )
         except BaseException:
             logging.getLogger("HWR").debug(

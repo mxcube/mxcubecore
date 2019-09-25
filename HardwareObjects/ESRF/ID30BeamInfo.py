@@ -1,4 +1,5 @@
 from HardwareRepository.HardwareObjects import BeamInfo
+from HardwareRepository import HardwareRepository as HWR
 
 
 class ID30BeamInfo(BeamInfo.BeamInfo):
@@ -13,10 +14,10 @@ class ID30BeamInfo(BeamInfo.BeamInfo):
         self.beam_size_slits = tuple(map(
             float, self.getProperty("beam_size_slits").split()
         ))  # [0.1, 0.05]
-        self.camera = self.getDeviceByRole("camera")
-        self.beam_position = (self.camera.getWidth() / 2, self.camera.getHeight() / 2)
-
-        self.flux = self.getObjectByRole("flux")
+        self.beam_position = (
+            HWR.beamline.graphics.camera.getWidth() / 2,
+            HWR.beamline.graphics.camera.getHeight() / 2
+        )
 
     def get_beam_position(self):
         return self.beam_position
@@ -30,4 +31,4 @@ class ID30BeamInfo(BeamInfo.BeamInfo):
         return self.beam_info_dict
 
     def get_flux(self):
-        return self.flux.getCurrentFlux()
+        return HWR.beamline.flux.getCurrentFlux()

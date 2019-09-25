@@ -38,6 +38,7 @@ import logging
 import jsonpickle
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository as HWR
 
 
 __version__ = "2.3."
@@ -54,9 +55,6 @@ class RedisClient(HardwareObject):
         self.proposal_id = None
         self.beamline_name = None
         self.redis_client = None
-
-        self.bl_setup_hwobj = None
-        self.queue_model_hwobj = None
 
     def init(self):
         self.host = self.getProperty("host")
@@ -86,18 +84,15 @@ class RedisClient(HardwareObject):
                 % (self.host, self.port)
             )
 
-        self.queue_model_hwobj = self.getObjectByRole("queue_model")
-        self.bl_setup_hwobj = self.getObjectByRole("beamline_setup")
-
         try:
             self.connect(
-                self.bl_setup_hwobj.flux_hwobj, "fluxChanged", self.flux_changed
+                HWR.beamline.flux, "fluxChanged", self.flux_changed
             )
         except BaseException:
             pass
 
-        self.proposal_id = self.bl_setup_hwobj.session_hwobj.get_proposal()
-        self.beamline_name = self.bl_setup_hwobj.session_hwobj.beamline_name
+        self.proposal_id = HWR.beamline.session.get_proposal()
+        self.beamline_name = HWR.beamline.session.beamline_name
 
         if self.active:
             self.init_beamline_setup()
@@ -109,7 +104,9 @@ class RedisClient(HardwareObject):
 
     def save_queue_task(self):
         """Queue saving tasks"""
-        selected_model, queue_list = self.queue_model_hwobj.get_queue_as_json_list()
+        selected_model, queue_list = (
+            HWR.beamline.queue_model.get_queue_as_json_list()
+        )
         self.redis_client.set(
             "mxcube:%s:%s:queue_model" % (self.proposal_id, self.beamline_name),
             selected_model,
@@ -133,10 +130,10 @@ class RedisClient(HardwareObject):
                 "mxcube:%s:%s:queue_current" % (self.proposal_id, self.beamline_name)
             )
             if selected_model is not None:
-                self.queue_model_hwobj.select_model(selected_model)
-                self.queue_model_hwobj.load_queue_from_json_list(
+                HWR.beamline.queue_model.select_model(selected_model)
+                HWR.beamline.queue_model.load_queue_from_json_list(
                     eval(serialized_queue),
-                    snapshot=self.bl_setup_hwobj.shape_history_hwobj.get_scene_snapshot(),
+                    snapshot=HWR.beamline.graphics.get_scene_snapshot(),
                 )
 
             self.active = True
@@ -150,7 +147,7 @@ class RedisClient(HardwareObject):
                 "RedisClient: Graphics saved at "
                 + "mxcube:%s:%s:graphics" % (self.proposal_id, self.beamline_name)
             )
-            graphic_objects = self.bl_setup_hwobj.shape_history_hwobj.dump_shapes()
+            graphic_objects = HWR.beamline.graphics.dump_shapes()
             self.redis_client.set(
                 "mxcube:%s:%s:graphics" % (self.proposal_id, self.beamline_name),
                 jsonpickle.encode(graphic_objects),
@@ -163,7 +160,7 @@ class RedisClient(HardwareObject):
                 graphics_objects = self.redis_client.get(
                     "mxcube:%s:%s:graphics" % (self.proposal_id, self.beamline_name)
                 )
-                self.bl_setup_hwobj.shape_history_hwobj.load_shapes(
+                HWR.beamline.graphics.load_shapes(
                     jsonpickle.decode(graphics_objects)
                 )
                 logging.getLogger("HWR").debug("RedisClient: Graphics loaded")

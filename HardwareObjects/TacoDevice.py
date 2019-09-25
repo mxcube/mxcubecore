@@ -38,7 +38,7 @@ class TacoDevice(Device):
         cmdDict = {"type": "taco", "name": "pollCmd", "taconame": self.tacoName()}
         if self.__dc:
             cmdDict["dc"] = True
-        cmdObject = self.addCommand(cmdDict, command)
+        cmdObject = self.add_command(cmdDict, command)
         self.__polling_args = args
         self.__polling_kwargs.update(kwargs)
 

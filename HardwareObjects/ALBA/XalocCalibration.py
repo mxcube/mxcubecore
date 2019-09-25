@@ -1,10 +1,8 @@
 """
 Class for reading images from Falcon camera OAV
 """
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository import BaseHardwareObjects
-import logging
-import os
 
 
 class XalocCalibration(BaseHardwareObjects.Device):
@@ -24,7 +22,7 @@ class XalocCalibration(BaseHardwareObjects.Device):
 
 
 def test():
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     calib = hwr.getHardwareObject("/calibration")

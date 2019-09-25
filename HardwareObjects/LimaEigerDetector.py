@@ -4,12 +4,12 @@ import os
 import math
 from HardwareRepository.TaskUtils import task
 import logging
+from HardwareRepository import HardwareRepository as HWR
 
 
 class Eiger:
-    def init(self, config, collect_obj):
+    def init(self, config, collect_obj=None):
         self.config = config
-        self.collect_obj = collect_obj
         self.header = dict()
 
         lima_device = config.getProperty("lima_device")
@@ -43,17 +43,17 @@ class Eiger:
                 channel_name,
             )
 
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "prepare_acq", "tangoname": lima_device},
             "prepareAcq",
         )
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "start_acq", "tangoname": lima_device}, "startAcq"
         )
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "stop_acq", "tangoname": lima_device}, "stopAcq"
         )
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "reset", "tangoname": lima_device}, "reset"
         )
         self.addChannel(
@@ -93,7 +93,7 @@ class Eiger:
         gate=False,
     ):
         diffractometer_positions = (
-            self.collect_obj.bl_control.diffractometer.getPositions()
+            HWR.beamline.diffractometer.getPositions()
         )
         self.start_angles = list()
         for i in range(number_of_images):
@@ -113,12 +113,12 @@ class Eiger:
             self.header["Phi"] = "0.0000 deg."
             self.header["Kappa"] = "0.0000 deg."
         self.header["Alpha"] = "0.0000 deg."
-        self.header["Polarization"] = self.collect_obj.bl_config.polarisation
+        self.header["Polarization"] = HWR.beamline.collect.bl_config.polarisation
         self.header["Detector_2theta"] = "0.0000 deg."
         self.header["Angle_increment"] = "%0.4f deg." % osc_range
         # self.header["Start_angle"]="%0.4f deg." % start
-        self.header["Transmission"] = self.collect_obj.get_transmission()
-        self.header["Flux"] = self.collect_obj.get_flux()
+        self.header["Transmission"] = HWR.beamline.transmission.get_value()
+        self.header["Flux"] = HWR.beamline.flux.get_flux()
         self.header["Detector_Voffset"] = "0.0000 m"
         self.header["Energy_range"] = "(0, 0) eV"
         self.header["Trim_directory:"] = "(nil)"
@@ -133,13 +133,13 @@ class Eiger:
         self.header["Exposure_period"] = "%f s" % (exptime + self.get_deadtime())
         self.header["Exposure_time"] = "%f s" % exptime
 
-        beam_x, beam_y = self.collect_obj.get_beam_centre()
+        beam_x, beam_y = HWR.beamline.detector.get_beam_centre()
         header_info = [
             "beam_center_x=%s" % (beam_x / 7.5000003562308848e-02),
             "beam_center_y=%s" % (beam_y / 7.5000003562308848e-02),
-            "wavelength=%s" % self.collect_obj.get_wavelength(),
+            "wavelength=%s" % HWR.beamline.energy.get_wavelength(),
             "detector_distance=%s"
-            % (self.collect_obj.get_detector_distance() / 1000.0),
+            % (HWR.beamline.detector.get_detector_distance() / 1000.0),
             "omega_start=%0.4f" % start,
             "omega_increment=%0.4f" % osc_range,
         ]

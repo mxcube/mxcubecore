@@ -1,5 +1,6 @@
 #
 from HardwareRepository.HardwareObjects.CatsMaint import CatsMaint
+from HardwareRepository import HardwareRepository as HWR
 
 import logging
 import time
@@ -26,17 +27,15 @@ class PX1CatsMaint(CatsMaint):
 
         self._chnHomeOpened.connectSignal("update", self.update_home_opened)
 
-        self._cmdDrySoak = self.addCommand(
+        self._cmdDrySoak = self.add_command(
             {"type": "tango", "name": "_cmdDrySoak", "tangoname": self.tangoname},
             "DryAndSoak",
         )
 
-        self._cmdReset = self.addCommand(
+        self._cmdReset = self.add_command(
             {"type": "tango", "name": "_cmdReset", "tangoname": self.tangoname},
             "ResetError",
         )
-
-        self.cats_hwo = self.getObjectByRole("sample_changer")
 
     def update_home_opened(self, value):
         if value != self.home_opened:
@@ -53,7 +52,7 @@ class PX1CatsMaint(CatsMaint):
             logging.getLogger("HWR").debug("Unloading sample first")
             self.cats_hwo._doUnload()
             time.sleep(3)
-            while self.cats_hwo._isDeviceBusy():
+            while HWR.beamline.sample_changer._isDeviceBusy():
                 time.sleep(0.3)
 
         logging.getLogger("HWR").debug("Running the home command (home/open) now")

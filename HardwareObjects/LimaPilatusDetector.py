@@ -3,14 +3,14 @@ import time
 import subprocess
 import os
 import math
-from HardwareRepository.TaskUtils import task
 from PyTango import DeviceProxy
+from HardwareRepository.TaskUtils import task
+from HardwareRepository import HardwareRepository as HWR
 
 
 class Pilatus:
-    def init(self, config, collect_obj):
+    def init(self, config, collect_obj=None):
         self.config = config
-        self.collect_obj = collect_obj
         self.header = dict()
 
         lima_device = config.getProperty("lima_device")
@@ -65,20 +65,20 @@ class Pilatus:
                 "energy_threshold",
             )
 
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "prepare_acq", "tangoname": lima_device},
             "prepareAcq",
         )
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "start_acq", "tangoname": lima_device}, "startAcq"
         )
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "stop_acq", "tangoname": lima_device}, "stopAcq"
         )
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "reset", "tangoname": lima_device}, "reset"
         )
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "set_image_header", "tangoname": lima_device},
             "SetImageHeader",
         )
@@ -112,7 +112,7 @@ class Pilatus:
         trigger_mode,
     ):
         diffractometer_positions = (
-            self.collect_obj.bl_control.diffractometer.getPositions()
+            HWR.beamline.diffractometer.getPositions()
         )
         self.start_angles = list()
         for i in range(number_of_images):
@@ -130,21 +130,21 @@ class Pilatus:
         self.header["Phi"] = "%0.4f deg." % kappa_phi
         self.header["Kappa"] = "%0.4f deg." % kappa
         self.header["Alpha"] = "0.0000 deg."
-        self.header["Polarization"] = self.collect_obj.bl_config.polarisation
+        self.header["Polarization"] = HWR.beamline.collect.bl_config.polarisation
         self.header["Detector_2theta"] = "0.0000 deg."
         self.header["Angle_increment"] = "%0.4f deg." % osc_range
         # self.header["Start_angle"]="%0.4f deg." % start
-        self.header["Transmission"] = self.collect_obj.get_transmission()
-        self.header["Flux"] = self.collect_obj.get_flux()
+        self.header["Transmission"] = HWR.beamline.transmission.get_value()
+        self.header["Flux"] = HWR.beamline.flux.get_flux()
         self.header["Beam_xy"] = "(%.2f, %.2f) pixels" % tuple(
-            [value / 0.172 for value in self.collect_obj.get_beam_centre()]
+            [value / 0.172 for value in HWR.beamline.detector.get_beam_centre()]
         )
         self.header["Detector_Voffset"] = "0.0000 m"
         self.header["Energy_range"] = "(0, 0) eV"
         self.header["Detector_distance"] = "%f m" % (
-            self.collect_obj.get_detector_distance() / 1000.0
+            HWR.beamline.detector.get_detector_distance() / 1000.0
         )
-        self.header["Wavelength"] = "%f A" % self.collect_obj.get_wavelength()
+        self.header["Wavelength"] = "%f A" % HWR.beamline.energy.get_wavelength()
         self.header["Trim_directory:"] = "(nil)"
         self.header["Flat_field:"] = "(nil)"
         self.header["Excluded_pixels:"] = " badpix_mask.tif"
@@ -226,7 +226,7 @@ class Pilatus:
             header += "# Pixel_size 172e-6 m x 172e-6 m\n"
             header += "# Silicon sensor, thickness 0.000320 m\n"
             self.header["Start_angle"] = start_angle
-            for key, value in self.header.iteritems():
+            for key, value in self.header.items():
                 header += "# %s %s\n" % (key, value)
             headers.append("%d : array_data/header_contents|%s;" % (i, header))
 

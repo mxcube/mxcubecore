@@ -121,3 +121,36 @@ def ensure_text(chars, encoding="utf-8", errors="strict"):
         return chars
     else:
         raise TypeError("not expecting type '%s'" % type(chars))
+
+
+def make_table(column_names, rows):
+    """Generate string with pretty-printed table
+
+    Args:
+        column_names (Sequence[str]) : Column names
+        rows (Sequence[Sequence[str]]) : List of row data
+
+    Returns:
+
+    """
+    lines = []
+    longest_cols = [
+        (max([len(str(row[i])) for row in rows]) + 3) for i in range(len(rows[0]))
+    ]
+    longest_cols = list(
+        max(longest_cols[ind], len(txt)) for ind, txt in enumerate(column_names)
+    )
+    ruler = "+" + "=" * sum(longest_cols) + "+"
+    row_format = "| ".join(
+        ["{:<" + str(longest_col) + "}" for longest_col in longest_cols]
+    )
+
+    lines.append(ruler)
+    lines.append("| %s" % row_format.format(*column_names))
+    lines.append(ruler)
+
+    for row in rows:
+        lines.append("| %s" % row_format.format(*row))
+    lines.append(ruler)
+    #
+    return "\n".join(lines)

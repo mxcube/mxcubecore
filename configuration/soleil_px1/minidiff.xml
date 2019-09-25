@@ -30,7 +30,7 @@
 
 
   <!-- DO THESE VALUES MAKE ANY SENSE AT PX1?? -->
-  <zoomCentre>{"x":340,"y":250}</zoomCentre>
+  <zoom_centre>{"x":340,"y":250}</zoom_centre>
   <omegaReference>{"motor_name": "phiz", "position":-0.2224, "camera_axis":"x"}</omegaReference>
   <phaseList>["Transfer","Centring","BeamLocation", "DataCollection"]</phaseList>
   <headType>MiniKappa</headType>

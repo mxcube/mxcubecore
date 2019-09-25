@@ -35,6 +35,7 @@ from raster_scan import raster_scan
 from nested_helical_acquisition import nested_helical_acquisition
 from tomography import tomography
 from film import film
+from HardwareRepository import HardwareRepository as HWR
 
 from slits import slits1
 
@@ -90,18 +91,6 @@ class PX2Collect(AbstractCollect, HardwareObject):
     def init(self):
 
         self.ready_event = gevent.event.Event()
-        self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
-        self.lims_client_hwobj = self.getObjectByRole("lims_client")
-        self.machine_info_hwobj = self.getObjectByRole("machine_info")
-        self.energy_hwobj = self.getObjectByRole("energy")
-        self.flux_hwobj = self.getObjectByRole("flux")
-        self.resolution_hwobj = self.getObjectByRole("resolution")
-        self.transmission_hwobj = self.getObjectByRole("transmission")
-        self.detector_hwobj = self.getObjectByRole("detector")
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        self.autoprocessing_hwobj = self.getObjectByRole("auto_processing")
-        self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
-        self.sample_changer_hwobj = self.getObjectByRole("sample_changer")
 
         undulators = []
         try:
@@ -113,23 +102,23 @@ class PX2Collect(AbstractCollect, HardwareObject):
         self.set_beamline_configuration(
             synchrotron_name="SOLEIL",
             directory_prefix=self.getProperty("directory_prefix"),
-            default_exposure_time=self.detector_hwobj.getProperty(
+            default_exposure_time=HWR.beamline.detector.getProperty(
                 "default_exposure_time"
             ),
-            minimum_exposure_time=self.detector_hwobj.getProperty(
+            minimum_exposure_time=HWR.beamline.detector.getProperty(
                 "minimum_exposure_time"
             ),
-            detector_fileext=self.detector_hwobj.getProperty("fileSuffix"),
-            detector_type=self.detector_hwobj.getProperty("type"),
-            detector_manufacturer=self.detector_hwobj.getProperty("manufacturer"),
-            detector_model=self.detector_hwobj.getProperty("model"),
-            detector_px=self.detector_hwobj.getProperty("px"),
-            detector_py=self.detector_hwobj.getProperty("py"),
+            detector_fileext=HWR.beamline.detector.getProperty("fileSuffix"),
+            detector_type=HWR.beamline.detector.getProperty("type"),
+            detector_manufacturer=HWR.beamline.detector.getProperty("manufacturer"),
+            detector_model=HWR.beamline.detector.getProperty("model"),
+            detector_px=HWR.beamline.detector.getProperty("px"),
+            detector_py=HWR.beamline.detector.getProperty("py"),
             undulators=undulators,
             focusing_optic=self.getProperty("focusing_optic"),
             monochromator_type=self.getProperty("monochromator"),
-            beam_divergence_vertical=self.beam_info_hwobj.get_beam_divergence_hor(),
-            beam_divergence_horizontal=self.beam_info_hwobj.get_beam_divergence_ver(),
+            beam_divergence_vertical=HWR.beamline.beam.get_beam_divergence_hor(),
+            beam_divergence_horizontal=HWR.beamline.beam.get_beam_divergence_ver(),
             polarisation=self.getProperty("polarisation"),
             input_files_server=self.getProperty("input_files_server"),
         )
@@ -323,8 +312,8 @@ class PX2Collect(AbstractCollect, HardwareObject):
         """
         Descript. :
         """
-        if self.autoprocessing_hwobj is not None:
-            self.autoprocessing_hwobj.execute_autoprocessing(
+        if HWR.beamline.offline_processing is not None:
+            HWR.beamline.offline_processing.execute_autoprocessing(
                 process_event,
                 self.current_dc_parameters,
                 frame_number,
@@ -333,14 +322,14 @@ class PX2Collect(AbstractCollect, HardwareObject):
 
     @task
     def _take_crystal_snapshot(self, filename):
-        self.graphics_manager_hwobj.save_scene_snapshot(filename)
+        HWR.beamline.graphics.save_scene_snapshot(filename)
 
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec):
         """Rotates sample by 360 and composes a gif file
            Animation is saved as the fourth snapshot
         """
-        self.graphics_manager_hwobj.save_scene_animation(
+        HWR.beamline.graphics.save_scene_animation(
             animation_filename, duration_sec
         )
 

@@ -3,12 +3,11 @@ A client for ISPyB Webservices.
 """
 
 import logging
-import os
 import datetime
 import time
 
-from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository as HWR
 
 try:
     from urlparse import urljoin
@@ -47,8 +46,7 @@ class ISPyBClientMockup(HardwareObject):
                 logging.getLogger("HWR").debug("LDAP Server is not available")
 
         self.loginType = self.getProperty("loginType") or "proposal"
-        self.session_hwobj = self.getObjectByRole("session")
-        self.beamline_name = self.session_hwobj.beamline_name
+        self.beamline_name = HWR.beamline.session.beamline_name
 
         try:
             self.base_result_url = self.getProperty("base_result_url").strip()
@@ -197,7 +195,7 @@ class ISPyBClientMockup(HardwareObject):
             logging.getLogger("HWR").debug("getting local contact for %s" % session_id)
             localcontact = self.get_session_local_contact(session_id)
 
-        is_inhouse = self.session_hwobj.is_inhouse(
+        is_inhouse = HWR.beamline.session.is_inhouse(
             prop["Proposal"]["code"], prop["Proposal"]["number"]
         )
         return {

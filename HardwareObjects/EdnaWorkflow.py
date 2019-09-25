@@ -77,7 +77,6 @@ class EdnaWorkflow(HardwareObject):
         pass
 
     def init(self):
-        self._session_object = self.getObjectByRole("session")
         self._gevent_event = gevent.event.Event()
         self._bes_host = self.getProperty("bes_host")
         self._bes_port = int(self.getProperty("bes_port"))
@@ -240,9 +239,9 @@ class EdnaWorkflow(HardwareObject):
             "/BES", "bridge", "rest", "processes", self.workflowName, "RUN"
         )
         isFirstParameter = True
-        self.dictParameters["initiator"] = self._session_object.endstation_name
-        self.dictParameters["sessionId"] = self._session_object.session_id
-        self.dictParameters["externalRef"] = self._session_object.get_proposal()
+        self.dictParameters["initiator"] = HWR.beamline.session.endstation_name
+        self.dictParameters["sessionId"] = HWR.beamline.session.session_id
+        self.dictParameters["externalRef"] = HWR.beamline.session.get_proposal()
         self.dictParameters["token"] = self._token
         # Build the URL
         for key in self.dictParameters:

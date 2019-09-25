@@ -1,4 +1,6 @@
+import logging
 from HardwareRepository.HardwareObjects import BeamInfo
+from HardwareRepository import HardwareRepository as HWR
 
 """
 XML example file
@@ -18,6 +20,7 @@ XML example file
 class ESRFBeamInfo(BeamInfo.BeamInfo):
     def __init__(self, *args):
         BeamInfo.BeamInfo.__init__(self, *args)
+        self.beam_position = (0, 0)
 
     def init(self):
         self.chan_beam_size_microns = None
@@ -27,20 +30,29 @@ class ESRFBeamInfo(BeamInfo.BeamInfo):
         beam_size_slits = self.getProperty("beam_size_slits")
         if beam_size_slits:
             self.beam_size_slits = tuple(map(float, beam_size_slits.split()))
-        self.camera = self.getDeviceByRole("camera")
 
         beam_position = self.getProperty("beam_position")
         if beam_position:
             self.beam_position = tuple(map(float, beam_position.split()))
         else:
-            self.beam_position = (
-                self.camera.getWidth() / 2,
-                self.camera.getHeight() / 2,
+            # Cannot be done, as graphics HWOBJ is initialised after beam
+            # self.beam_position = (
+            #     HWR.beamline.graphics.camera.getWidth() / 2,
+            #     HWR.beamline.graphics.camera.getHeight() / 2,
+            # )
+            logging.getLogger("HWR").warning(
+                "ESRFBeamInfo: "
+                + "beam position not configured"
             )
 
         self.flux = self.getObjectByRole("flux")
 
     def get_beam_position(self):
+        if self.beam_position == (0, 0):
+            self.beam_position = (
+                HWR.beamline.graphics.camera.getWidth() / 2,
+                HWR.beamline.graphics.camera.getHeight() / 2,
+            )
         return self.beam_position
 
     def set_beam_position(self, beam_x, beam_y):

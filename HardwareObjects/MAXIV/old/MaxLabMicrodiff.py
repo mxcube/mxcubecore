@@ -25,7 +25,7 @@ class MaxLabMicrodiff(MiniDiff.MiniDiff):
             },
             "CoaxCamScaleY",
         )
-        self.moveMultipleMotors = self.addCommand(
+        self.moveMultipleMotors = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.phiMotor.exporter_address,

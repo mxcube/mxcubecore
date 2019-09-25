@@ -29,6 +29,7 @@ from HardwareRepository.HardwareObjects.base_queue_entry import (
     QueueExecutionException,
     QUEUE_ENTRY_STATUS,
 )
+from HardwareRepository import HardwareRepository as HWR
 
 
 __credits__ = ["MXCuBE collaboration"]
@@ -45,19 +46,19 @@ class XrayImagingQueueEntry(BaseQueueEntry):
 
     def execute(self):
         BaseQueueEntry.execute(self)
-        self.beamline_setup.xray_imaging_hwobj.execute(self.get_data_model())
+        HWR.beamline.imaging.execute(self.get_data_model())
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
 
         queue_controller = self.get_queue_controller()
         queue_controller.connect(
-            self.beamline_setup.xray_imaging_hwobj,
+            HWR.beamline.imaging,
             "collectImageTaken",
             self.image_taken,
         )
         queue_controller.connect(
-            self.beamline_setup.xray_imaging_hwobj,
+            HWR.beamline.imaging,
             "collectFailed",
             self.collect_failed
         )
@@ -68,27 +69,27 @@ class XrayImagingQueueEntry(BaseQueueEntry):
             gid = data_model.get_parent().lims_group_id
             data_model.lims_group_id = gid
 
-        self.beamline_setup.xray_imaging_hwobj.pre_execute(self.get_data_model())
+        HWR.beamline.imaging.pre_execute(self.get_data_model())
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
-        self.beamline_setup.xray_imaging_hwobj.post_execute(self.get_data_model())
+        HWR.beamline.imaging.post_execute(self.get_data_model())
 
         queue_controller = self.get_queue_controller()
         queue_controller.disconnect(
-            self.beamline_setup.xray_imaging_hwobj,
+            HWR.beamline.imaging,
             "collectImageTaken",
             self.image_taken,
         )
         queue_controller.disconnect(
-            self.beamline_setup.xray_imaging_hwobj,
+            HWR.beamline.imaging,
             "collectFailed",
             self.collect_failed
         )
 
     def stop(self):
         BaseQueueEntry.stop(self)
-        self.beamline_setup.xray_imaging_hwobj.stop_collect()
+        HWR.beamline.imaging.stop_collect()
 
     def collect_failed(self, message):
         # this is to work around the remote access problem

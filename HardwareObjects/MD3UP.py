@@ -4,6 +4,7 @@ import logging
 
 from HardwareRepository.HardwareObjects import Microdiff
 from HardwareRepository.HardwareObjects.sample_centring import CentringMotor
+from HardwareRepository import HardwareRepository as HWR
 
 
 class MD3UP(Microdiff.Microdiff):
@@ -71,11 +72,11 @@ class MD3UP(Microdiff.Microdiff):
             "DetectorGatePulseReadoutTime",
         )
 
-    def getBeamPosX(self):
-        return self.beam_info.get_beam_position()[0]
-
-    def getBeamPosY(self):
-        return self.beam_info.get_beam_position()[1]
+    # def getBeamPosX(self):
+    #     return self.beam_info.get_beam_position()[0]
+    #
+    # def getBeamPosY(self):
+    #     return self.beam_info.get_beam_position()[1]
 
     def setNbImages(self, number_of_images):
         self.scan_nb_frames = number_of_images
@@ -92,7 +93,7 @@ class MD3UP(Microdiff.Microdiff):
 
         params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
 
-        scan = self.addCommand(
+        scan = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -127,7 +128,7 @@ class MD3UP(Microdiff.Microdiff):
         params += "%0.3f\t" % motors_pos["2"]["sampx"]
         params += "%0.3f" % motors_pos["2"]["sampy"]
 
-        scan = self.addCommand(
+        scan = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -185,7 +186,7 @@ class MD3UP(Microdiff.Microdiff):
         params += "%r\t" % True
         params += "%r\t" % True
 
-        scan = self.addCommand(
+        scan = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -208,8 +209,9 @@ class MD3UP(Microdiff.Microdiff):
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
 
-        dx = (x - self.getBeamPosX()) / self.pixelsPerMmY
-        dy = (y - self.getBeamPosY()) / self.pixelsPerMmZ
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
+        dx = (x - beam_pos_x) / self.pixelsPerMmY
+        dy = (y - beam_pos_y) / self.pixelsPerMmZ
 
         phi_angle = math.radians(
             self.centringPhi.direction * self.centringPhi.getPosition()
@@ -303,15 +305,13 @@ class MD3UP(Microdiff.Microdiff):
 
         sx, sy = numpy.dot(numpy.array([0, dsy]), numpy.array(chiRot))
 
-        beam_pos_x = self.getBeamPosX()
-        beam_pos_y = self.getBeamPosY()
-
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
         x = (sx + phiy) * self.pixelsPerMmY + beam_pos_x
         y = (sy + phiz) * self.pixelsPerMmZ + beam_pos_y
 
         return float(x), float(y)
 
-    def moveToBeam(self, x, y):
+    def move_to_beam(self, x, y):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
             self.zoomMotor.getPosition()
         )
@@ -319,8 +319,9 @@ class MD3UP(Microdiff.Microdiff):
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
 
-        dx = (x - self.getBeamPosX()) / self.pixelsPerMmY
-        dy = (y - self.getBeamPosY()) / self.pixelsPerMmZ
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
+        dx = (x - beam_pos_x) / self.pixelsPerMmY
+        dy = (y - beam_pos_y) / self.pixelsPerMmZ
 
         phi_angle = math.radians(
             self.centringPhi.direction * self.centringPhi.getPosition()

@@ -192,13 +192,13 @@ class Camera(BaseHardwareObjects.Device):
                             intensity = self.bpmDevice.addChannel(
                                 {"type": "tango", "name": "intensity"}, "Intensity"
                             )
-                            onCmd = self.bpmDevice.addCommand(
+                            onCmd = self.bpmDevice.add_command(
                                 {"type": "tango", "name": "on"}, "On"
                             )
-                            offCmd = self.bpmDevice.addCommand(
+                            offCmd = self.bpmDevice.add_command(
                                 {"type": "tango", "name": "off"}, "Off"
                             )
-                            stateCmd = self.bpmDevice.addCommand(
+                            stateCmd = self.bpmDevice.add_command(
                                 {"type": "tango", "name": "state"}, "State"
                             )
                         else:

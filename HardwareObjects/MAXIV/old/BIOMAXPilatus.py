@@ -59,7 +59,7 @@ class BIOMAXPilatus(Pilatus):
             header += "# Pixel_size 172e-6 m x 172e-6 m\n"
             header += "# Silicon sensor, thickness 0.000450 m\n"
             self.header["Start_angle"] = start_angle
-            for key, value in self.header.iteritems():
+            for key, value in self.header.items():
                 header += "# %s %s\n" % (key, value)
             headers.append("%d : array_data/header_contents|%s;" % (i, header))
 
