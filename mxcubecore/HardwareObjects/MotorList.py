@@ -46,7 +46,7 @@ class MotorList(Equipment):
             "def _ho_MotorList() '{local md[]; for (i=0; i<MOTORS; i++) {md[motor_mne(i)]=motor_name(i)}; return md}'",
             wait=True,
         )
-        self.addCommand(
+        self.add_command(
             {"name": "MotorListMacro", "type": "spec", "version": self.specversion},
             "_ho_MotorList()",
         )

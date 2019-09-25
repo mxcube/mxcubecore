@@ -9,7 +9,7 @@
   <object href="/eh2/resolution" role="resolution"/>
   <object href="/attenuators" role="transmission"/>
   <object href="/dbconnection" role="lims_client"/>
-  <object href="/image-tracking" role="image_tracking"/>
+<!--  <object href="/image-tracking" role="image_tracking"/>-->
   <object href="/auto-processing" role="auto_processing"/>
   <object href="/flux" role="flux"/>
 

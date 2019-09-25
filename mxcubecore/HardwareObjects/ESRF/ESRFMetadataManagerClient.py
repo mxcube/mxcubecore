@@ -13,6 +13,7 @@ from email.mime.text import MIMEText
 import smtplib
 
 from HardwareRepository.ConvertUtils import string_types
+from HardwareRepository import HardwareRepository as HWR
 
 
 class MetadataManagerClient(object):
@@ -157,9 +158,8 @@ class MXCuBEMetadataClient(object):
             self._emailReplyTo = self.esrf_multi_collect["metadata"].replyto_email
         else:
             self._emailReplyTo = None
-        self._sessionObject = self.esrf_multi_collect.getObjectByRole("session")
 
-        self._beamline = self._sessionObject.endstation_name
+        self._beamline = HWR.beamline.session.endstation_name
 
     def reportStackTrace(self):
         (exc_type, exc_value, exc_traceback) = sys.exc_info()
@@ -209,7 +209,7 @@ class MXCuBEMetadataClient(object):
             and self._metaExperimentName is not None
         ):
             try:
-                self._proposal = self._sessionObject.get_proposal()
+                self._proposal = HWR.beamline.session.get_proposal()
                 # Create proxy object
                 self._metadataManagerClient = MetadataManagerClient(
                     self._metadataManagerName, self._metaExperimentName
@@ -349,7 +349,7 @@ class MXCuBEMetadataClient(object):
                 dictMetadata = self.getMetadata(data_collect_parameters)
                 # import pprint
                 # pprint.pprint(dictMetadata)
-                for attributeName, value in dictMetadata.iteritems():
+                for attributeName, value in dictMetadata.items():
                     logging.getLogger("HWR").info(
                         "Setting metadata client attribute '{0}' to '{1}'".format(
                             attributeName, value

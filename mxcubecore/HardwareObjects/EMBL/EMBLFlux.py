@@ -26,6 +26,7 @@ from scipy.interpolate import interp1d
 
 from HardwareRepository.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 
+from HardwareRepository import HardwareRepository as HWR
 
 __credits__ = ["EMBL Hamburg"]
 __category__ = "General"
@@ -120,16 +121,7 @@ class EMBLFlux(AbstractFlux):
         self.aperture_hwobj = None
         self.back_light_hwobj = None
         self.beam_focusing_hwobj = None
-        self.beam_info_hwobj = None
         self.beamstop_hwobj = None
-        self.detector_hwobj = None
-        self.detector_distance_hwobj = None
-        self.diffractometer_hwobj = None
-        self.energy_hwobj = None
-        self.fast_shutter_hwobj = None
-        self.transmission_hwobj = None
-        self.session_hwobj = None
-        self.safety_shutter_hwobj = None
 
     def init(self):
         """Reads config xml, initiates all necessary hwobj, channels and cmds
@@ -161,19 +153,12 @@ class EMBLFlux(AbstractFlux):
 
         self.back_light_hwobj = self.getObjectByRole("backlight")
         self.beamstop_hwobj = self.getObjectByRole("beamstop")
-        self.detector_hwobj = self.getObjectByRole("detector")
-        self.detector_distance_hwobj = self.getObjectByRole("detector_distance")
-        self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
-        self.energy_hwobj = self.getObjectByRole("energy")
-        self.fast_shutter_hwobj = self.getObjectByRole("fast_shutter")
-        self.transmission_hwobj = self.getObjectByRole("transmission")
-        self.session_hwobj = self.getObjectByRole("session")
-        self.aperture_hwobj = self.beam_info_hwobj.aperture_hwobj
-        self.safety_shutter_hwobj = self.getObjectByRole("safety_shutter")
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
+        self.aperture_hwobj = HWR.beamline.beam.aperture_hwobj
 
-        self.connect(self.beam_info_hwobj, "beamInfoChanged", self.beam_info_changed)
-        self.connect(self.transmission_hwobj, "valueChanged", self.transmission_changed)
+        self.connect(HWR.beamline.beam, "beamInfoChanged", self.beam_info_changed)
+        self.connect(
+            HWR.beamline.transmission, "valueChanged", self.transmission_changed
+        )
         self.connect(
             self.aperture_hwobj, "diameterIndexChanged", self.aperture_diameter_changed
         )
@@ -276,20 +261,25 @@ class EMBLFlux(AbstractFlux):
         :param wait:
         :return:
         """
+        diffractometer = HWR.beamline.diffractometer
 
-        if not self.safety_shutter_hwobj.is_opened():
+
+        if not HWR.beamline.safety_shutter.is_opened():
             msg = "Unable to measure flux! Safety shutter is closed."
             self.print_log("GUI", "error", msg)
             return
 
-        if not self.detector_hwobj.is_cover_closed():
+        if not HWR.beamline.detector.is_cover_closed():
             msg = "Unable to measure flux! Detecor cover is open."
             self.print_log("GUI", "error", "Unable to measure flux!")
             self.print_log("GUI", "error", msg)
             return
 
-        if self.session_hwobj.beamline_name == "P14":
-            if self.detector_distance_hwobj.get_position() > MIN_DETECTOR_DISTANCE:
+        if HWR.beamline.session.beamline_name == "P14":
+            if (
+                HWR.beamline.detector.detector_distance.get_position()
+                > MIN_DETECTOR_DISTANCE
+            ):
                 self.print_log(
                     "GUI",
                     "error",
@@ -299,10 +289,10 @@ class EMBLFlux(AbstractFlux):
 
         self.measuring = True
         # intens_value = 0
-        max_frame_rate = 1 / self.detector_hwobj.get_exposure_time_limits()[0]
+        max_frame_rate = 1 / HWR.beamline.detector.get_exposure_time_limits()[0]
 
-        current_phase = self.diffractometer_hwobj.current_phase
-        current_transmission = self.transmission_hwobj.getAttFactor()
+        current_phase = diffractometer.current_phase
+        current_transmission = HWR.beamline.transmission.getAttFactor()
         current_aperture_index = self.aperture_hwobj.get_diameter_index()
 
         self.emit("progressInit", "Measuring flux. Please wait...", 10, True)
@@ -310,11 +300,11 @@ class EMBLFlux(AbstractFlux):
         # Set transmission to 100%
         # -----------------------------------------------------------------
         self.emit("progressStep", 1, "Setting transmission to 100%")
-        self.transmission_hwobj.set_value(100, timeout=20)
+        HWR.beamline.transmission.set_value(100, timeout=20)
 
         # Close the fast shutter
         # -----------------------------------------------------------------
-        self.fast_shutter_hwobj.closeShutter(wait=True)
+        HWR.beamline.fast_shutter.closeShutter(wait=True)
         logging.getLogger("HWR").debug("Measure flux: Fast shutter closed")
         gevent.sleep(0.1)
 
@@ -329,17 +319,17 @@ class EMBLFlux(AbstractFlux):
         if beamstop_position == "BEAM":
             self.emit("progressStep", 2, "Moving beamstop OFF")
             self.beamstop_hwobj.set_position("OFF")
-            self.diffractometer_hwobj.wait_device_ready(30)
+            diffractometer.wait_device_ready(30)
             logging.getLogger("HWR").info("Measure flux: Beamstop moved off")
 
         # Check scintillator position
         # -----------------------------------------------------------------
-        scintillator_position = self.diffractometer_hwobj.get_scintillator_position()
+        scintillator_position = diffractometer.get_scintillator_position()
         if scintillator_position == "SCINTILLATOR":
             self.emit("progressStep", 3, "Setting the photodiode")
-            self.diffractometer_hwobj.set_scintillator_position("PHOTODIODE")
+            diffractometer.set_scintillator_position("PHOTODIODE")
             gevent.sleep(1)
-            self.diffractometer_hwobj.wait_device_ready(30)
+            diffractometer.wait_device_ready(30)
             logging.getLogger("HWR").debug(
                 "Measure flux: Scintillator set to photodiode"
             )
@@ -347,11 +337,11 @@ class EMBLFlux(AbstractFlux):
         self.measured_flux_list = []
 
         # -----------------------------------------------------------------
-        if self.session_hwobj.beamline_name == "P13":
+        if HWR.beamline.session.beamline_name == "P13":
             self.aperture_hwobj.set_in()
-            self.diffractometer_hwobj.wait_device_ready(30)
+            diffractometer.wait_device_ready(30)
             self.aperture_hwobj.set_diameter_index(0)
-            self.fast_shutter_hwobj.openShutter(wait=True)
+            HWR.beamline.fast_shutter.openShutter(wait=True)
 
             for index, diameter_size in enumerate(
                 self.aperture_hwobj.get_diameter_size_list()
@@ -363,27 +353,27 @@ class EMBLFlux(AbstractFlux):
                     "Measuring flux with %d micron aperture" % diameter_size,
                 )
                 self.aperture_hwobj.set_diameter_index(index)
-                self.diffractometer_hwobj.wait_device_ready(10)
+                diffractometer.wait_device_ready(10)
 
                 gevent.sleep(1)
                 intens_value = self.chan_intens_mean.getValue(force=True)
-                # self.fast_shutter_hwobj.closeShutter(wait=True)
+                # HWR.beamline.fast_shutter.closeShutter(wait=True)
                 intensity_value = intens_value[0] + 1.860e-5  # 2.780e-6
                 self.measured_flux_list.append(self.get_flux_result(intensity_value))
                 gevent.sleep(1)
-            self.fast_shutter_hwobj.closeShutter(wait=True)
+            HWR.beamline.fast_shutter.closeShutter(wait=True)
             max_frame_rate = 25
         else:
             self.emit("progressStep", 5, "Measuring the intensity")
             current_aperture_index = 0
-            self.fast_shutter_hwobj.openShutter(wait=True)
+            HWR.beamline.fast_shutter.openShutter(wait=True)
             logging.getLogger("HWR").debug("Measure flux: Fast shutter opened")
 
             gevent.sleep(0.5)
             intens_value = self.chan_intens_mean.getValue()
 
             # intens_range_now = self.chan_intens_range.getValue()
-            self.fast_shutter_hwobj.closeShutter(wait=True)
+            HWR.beamline.fast_shutter.closeShutter(wait=True)
             logging.getLogger("HWR").debug("Measure flux: Fast shutter closed")
 
             intensity_value = intens_value[0] + 2.780e-6
@@ -440,10 +430,10 @@ class EMBLFlux(AbstractFlux):
         self.measuring = False
 
         # 7 Restoring previous states ----------------------------------------
-        self.transmission_hwobj.set_value(current_transmission)
-        self.diffractometer_hwobj.set_phase(current_phase)
-        self.diffractometer_hwobj.wait_device_ready(10)
-        if self.session_hwobj.beamline_name == "P13":
+        HWR.beamline.transmission.set_value(current_transmission)
+        diffractometer.set_phase(current_phase)
+        diffractometer.wait_device_ready(10)
+        if HWR.beamline.session.beamline_name == "P13":
             self.aperture_hwobj.set_diameter_index(current_aperture_index)
         self.emit("progressStop", ())
 
@@ -453,11 +443,11 @@ class EMBLFlux(AbstractFlux):
         :param intensity_value: in mA (float)
         :return: dict with converted results
         """
-        energy = self.energy_hwobj.get_current_energy()
-        detector_distance = self.detector_hwobj.get_distance()
-        beam_size = self.beam_info_hwobj.get_beam_size()
+        energy = HWR.beamline.energy.get_current_energy()
+        detector_distance = HWR.beamline.detector.get_distance()
+        beam_size = HWR.beamline.beam.get_beam_size()
 
-        transmission = self.transmission_hwobj.getAttFactor()
+        transmission = HWR.beamline.transmission.getAttFactor()
         air_trsm = numpy.exp(
             -air_absorption_coeff_per_meter(energy) * detector_distance / 1000.0
         )
@@ -481,7 +471,7 @@ class EMBLFlux(AbstractFlux):
             / beam_size[0]
             / beam_size[1]
         )
-        max_frame_rate = 1 / self.detector_hwobj.get_exposure_time_limits()[0]
+        max_frame_rate = 1 / HWR.beamline.detector.get_exposure_time_limits()[0]
 
         return {
             "energy": energy,

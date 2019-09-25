@@ -44,6 +44,7 @@ from HardwareRepository.HardwareObjects.XSDataControlDozorv1_1 import (
     XSDataResultControlDozor,
     XSDataControlImageDozor,
 )
+from HardwareRepository import HardwareRepository as HWR
 
 
 __credits__ = ["EMBL Hamburg"]
@@ -94,8 +95,8 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         input_file.setReversing_rotation(
             XSDataBoolean(self.params_dict["reversing_rotation"])
         )
-        input_file.setPixelMin(XSDataInteger(self.detector_hwobj.get_pixel_min()))
-        input_file.setPixelMax(XSDataInteger(self.detector_hwobj.get_pixel_max()))
+        input_file.setPixelMin(XSDataInteger(HWR.beamline.detector.get_pixel_min()))
+        input_file.setPixelMax(XSDataInteger(HWR.beamline.detector.get_pixel_max()))
         input_file.setBeamstopSize(XSDataDouble(self.beamstop_hwobj.get_size()))
         input_file.setBeamstopDistance(XSDataDouble(self.beamstop_hwobj.get_distance()))
         input_file.setBeamstopDirection(
@@ -369,10 +370,10 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         procdir_cluster = self.params_dict["process_directory"].replace(
             "/data/users/", "/home/")
 
-        beam_x, beam_y = self.detector_hwobj.get_beam_centre()
-        pixel_size_mm_x, pixel_size_mm_y = self.detector_hwobj.get_pixel_size_mm()
+        beam_x, beam_y = HWR.beamline.detector.get_beam_centre()
+        pixel_size_mm_x, pixel_size_mm_y = HWR.beamline.detector.get_pixel_size_mm()
 
-        # self.detector_hwobj.getProperty("type")
+        # HWR.beamline.detector.getProperty("type")
 
         # Eiger 4M:
         detector_size_x = 2070
@@ -396,7 +397,7 @@ panel0/corner_x = {:.2f}
 panel0/corner_y = {:.2f}
 panel0/fs = x
 panel0/ss = y
-""".format(self.detector_hwobj.get_distance() / 1000.,
+""".format(HWR.beamline.detector.get_distance() / 1000.,
            acq_params.energy * 1000,
            1000. / pixel_size_mm_x,
            detector_size_x - 1,
@@ -558,7 +559,7 @@ ga = {:.2f} deg
            detector_size_y,
            beam_x / pixel_size_mm_x,
            beam_y / pixel_size_mm_y,
-           self.detector_hwobj.get_distance()
+           HWR.beamline.detector.get_distance()
            )
 
         data_file = open(nxdsinp_filename, "w")

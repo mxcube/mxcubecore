@@ -17,7 +17,7 @@ class MAXLABResolution(BaseHardwareObjects.Equipment):
         self.energy = None
 
         self.detm = self.getDeviceByRole("detm")
-        self.dtox = self.getDeviceByRole("dtox")
+        self.dtox = self.getDeviceByRole("detector_distance")
         self.wavelength = self.getDeviceByRole("wavelength")
         self.energy = self.getDeviceByRole("energy")
         self.getradius = self.getCommandObject("detector_radius")

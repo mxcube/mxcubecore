@@ -7,8 +7,8 @@ from HardwareRepository.HardwareObjects import queue_model_enumerables
 from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareRepository import getHardwareRepository
 from HardwareRepository.ConvertUtils import string_types
+from HardwareRepository import HardwareRepository as HWR
 
 
 class BeamlineSetup(HardwareObject):
@@ -21,16 +21,12 @@ class BeamlineSetup(HardwareObject):
         """
         Framework 2 init, inherited from HardwareObject.
         """
-
-        self.sample_changer_hwobj = None
-        self.plate_manipulator_hwobj = None
-
         for role in self.getRoles():
             self._get_object_by_role(role)
 
-        self._object_by_path["/beamline/energy"] = self.energy_hwobj
-        self._object_by_path["/beamline/resolution"] = self.resolution_hwobj
-        self._object_by_path["/beamline/transmission"] = self.transmission_hwobj
+        self._object_by_path["/beamline/energy"] = HWR.beamline.energy
+        self._object_by_path["/beamline/resolution"] = HWR.beamline.resolution
+        self._object_by_path["/beamline/transmission"] = HWR.beamline.transmission
 
         self.advanced_methods = []
 
@@ -50,9 +46,9 @@ class BeamlineSetup(HardwareObject):
         except BaseException:
             pass
 
-        self.run_processing_parallel = self.getProperty(
-            "run_processing_parallel", False
-        )
+        # self.run_processing_parallel = self.getProperty(
+        #     "run_processing_parallel", False
+        # )
 
     def _get_object_by_role(self, role):
         """
@@ -119,7 +115,7 @@ class BeamlineSetup(HardwareObject):
         :rtype: bool
         """
         try:
-            return self.detector_hwobj.has_shutterless()
+            return HWR.beamline.detector.has_shutterless()
         except AttributeError:
             return False
 
@@ -182,12 +178,6 @@ class BeamlineSetup(HardwareObject):
         overlap = round(float(self[parent_key].getProperty("overlap")), 2)
         exp_time = round(float(self[parent_key].getProperty("exposure_time")), 5)
         num_passes = int(self[parent_key].getProperty("number_of_passes"))
-        shutterless = self.detector_has_shutterless()
-
-        try:
-            detector_mode = self.detector_hwobj.get_detector_mode()
-        except AttributeError:
-            detector_mode = None
 
         acq_parameters.first_image = int(img_start_num)
         acq_parameters.num_images = int(num_images)
@@ -202,8 +192,8 @@ class BeamlineSetup(HardwareObject):
         acq_parameters.energy = self._get_energy()
         acq_parameters.transmission = self._get_transmission()
 
-        acq_parameters.shutterless = self._has_shutterless()
-        acq_parameters.detector_mode = self.detector_hwobj.get_detector_mode()
+        acq_parameters.shutterless = self.detector_has_shutterless()
+        acq_parameters.detector_mode = HWR.beamline.detector.get_detector_mode()
 
         acq_parameters.inverse_beam = False
         acq_parameters.take_dark_current = True
@@ -216,8 +206,8 @@ class BeamlineSetup(HardwareObject):
         """
         :returns: A CharacterisationsParameters object with default parameters.
         """
-        input_fname = self.data_analysis_hwobj.edna_default_file
-        fpath = getHardwareRepository().findInRepository(input_fname)
+        input_fname = HWR.beamline.data_analysis.edna_default_file
+        fpath = HWR.getHardwareRepository().findInRepository(input_fname)
         if fpath is None:
             raise ValueError("File %s not found in repository" % input_fname)
         with open(fpath, "r") as fp0:
@@ -305,12 +295,6 @@ class BeamlineSetup(HardwareObject):
         overlap = round(float(self[parent_key].getProperty("overlap")), 2)
         exp_time = round(float(self[parent_key].getProperty("exposure_time")), 5)
         num_passes = int(self[parent_key].getProperty("number_of_passes"))
-        shutterless = self.detector_has_shutterless()
-
-        try:
-            detector_mode = self.detector_hwobj.default_mode()
-        except AttributeError:
-            detector_mode = None
 
         acq_parameters.first_image = img_start_num
         acq_parameters.num_images = num_images
@@ -325,7 +309,7 @@ class BeamlineSetup(HardwareObject):
         acq_parameters.energy = self._get_energy()
         acq_parameters.transmission = self._get_transmission()
 
-        acq_parameters.shutterless = self._has_shutterless()
+        acq_parameters.shutterless = self.detector_has_shutterless()
         acq_parameters.detector_mode = self._get_detector_mode()
 
         acq_parameters.inverse_beam = False
@@ -399,15 +383,15 @@ class BeamlineSetup(HardwareObject):
         path_template.reference_image_prefix = ""
         path_template.wedge_prefix = ""
         path_template.run_number = self[parent_key].getProperty("run_number")
-        path_template.suffix = self.session_hwobj["file_info"].getProperty(
+        path_template.suffix = HWR.beamline.session["file_info"].getProperty(
             "file_suffix"
         )
         path_template.precision = "04"
 
         try:
-            if self.session_hwobj["file_info"].getProperty("precision"):
+            if HWR.beamline.session["file_info"].getProperty("precision"):
                 path_template.precision = eval(
-                    self.session_hwobj["file_info"].getProperty("precision")
+                    HWR.beamline.session["file_info"].getProperty("precision")
                 )
         except BaseException:
             pass
@@ -421,30 +405,27 @@ class BeamlineSetup(HardwareObject):
 
     def _get_energy(self):
         try:
-            energy = self.energy_hwobj.get_current_energy()
-        except AttributeError:
-            energy = 0
-        except TypeError:
+            energy = HWR.beamline.energy.get_current_energy()
+        except Exception as ex:
+            logging.getLogger("HWR").exception("Could not read energy")
             energy = 0
 
         return energy
 
     def _get_transmission(self):
         try:
-            transmission = self.transmission_hwobj.get_value()
-        except AttributeError:
-            transmission = 0
-        except TypeError:
+            transmission = HWR.beamline.transmission.get_value()
+        except Exception as ex:
+            logging.getLogger("HWR").exception("Could not read transmission")
             transmission = 0
 
         return transmission
 
     def _get_resolution(self):
         try:
-            resolution = self.resolution_hwobj.getPosition()
-        except AttributeError:
-            resolution = 0
-        except TypeError:
+            resolution = HWR.beamline.resolution.getPosition()
+        except Exception as ex:
+            logging.getLogger("HWR").exception("Could not read resolution")
             resolution = 0
 
         return resolution
@@ -485,24 +466,13 @@ class BeamlineSetup(HardwareObject):
             pass
         return result
 
-    def _has_shutterless(self):
-        """
-        Descript. :
-        """
-        result = False
-        try:
-            result = self.detector_hwobj.has_shutterless()
-        except BaseException:
-            pass
-        return result
-
     def _get_detector_mode(self):
         """
         Descript. :
         """
         result = ""
         try:
-            result = self.detector_hwobj.get_detector_mode()
+            result = HWR.beamline.detector.get_detector_mode()
         except BaseException:
             pass
         return result
@@ -513,10 +483,10 @@ class BeamlineSetup(HardwareObject):
     def check_collection_parameters(self, parameters_list):
         invalid_parameters_list = []
         for parameter_item in parameters_list:
-            (bottom, top) = self.energy_hwobj.getEnergyLimits()
+            (bottom, top) = HWR.beamline.energy.getEnergyLimits()
             if parameter_item["energy"] > top or parameter_item["energy"] < bottom:
                 invalid_parameters_list.append("Energy")
-            [bottom, top] = self.detector_hwobj.get_exposure_time_limits()
+            [bottom, top] = HWR.beamline.detector.get_exposure_time_limits()
             if parameter_item["exp_time"] > top or parameter_item["exp_time"] < bottom:
                 invalid_parameters_list.append("Exposure time")
         return invalid_parameters_list

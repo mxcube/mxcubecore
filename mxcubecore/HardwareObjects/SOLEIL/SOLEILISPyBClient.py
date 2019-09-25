@@ -1,4 +1,3 @@
-from HardwareRepository import HardwareRepository
 import logging
 import urllib2
 import os
@@ -8,9 +7,9 @@ from suds.transport.http import HttpAuthenticated
 from suds.client import Client
 
 from ISPyBClient import ISPyBClient, _CONNECTION_ERROR_MSG
-from urllib2 import URLError
 import traceback
 from collections import namedtuple
+from HardwareRepository import HardwareRepository as HWR
 
 # The WSDL root is configured in the hardware object XML file.
 # _WS_USERNAME, _WS_PASSWORD have to be configured in the HardwareObject XML file.
@@ -60,8 +59,7 @@ class SOLEILISPyBClient(ISPyBClient):
 
         self.loginType = self.getProperty("loginType") or "proposal"
         self.loginTranslate = self.getProperty("loginTranslate") or True
-        self.session_hwobj = self.getObjectByRole("session")
-        self.beamline_name = self.session_hwobj.beamline_name
+        self.beamline_name = HWR.beamline.session.beamline_name
         print("self.beamline_name init", self.beamline_name)
 
         self.ws_root = self.getProperty("ws_root")
@@ -103,7 +101,7 @@ class SOLEILISPyBClient(ISPyBClient):
             logging.getLogger("HWR").exception(_CONNECTION_ERROR_MSG)
             return
         try:
-            proposals = self.session_hwobj["proposals"]
+            proposals = HWR.beamline.session["proposals"]
 
             for proposal in proposals:
                 code = proposal.code
@@ -172,19 +170,19 @@ class SOLEILISPyBClient(ISPyBClient):
 
         prop = "EDNA_files_dir"
         path = mx_collect_dict[prop]
-        ispyb_path = self.session_hwobj.path_to_ispyb(path)
+        ispyb_path = HWR.beamline.session.path_to_ispyb(path)
         mx_collect_dict[prop] = ispyb_path
 
         prop = "process_directory"
         path = mx_collect_dict["fileinfo"][prop]
-        ispyb_path = self.session_hwobj.path_to_ispyb(path)
+        ispyb_path = HWR.beamline.session.path_to_ispyb(path)
         mx_collect_dict["fileinfo"][prop] = ispyb_path
 
         for i in range(4):
             try:
                 prop = "xtalSnapshotFullPath%d" % (i + 1)
                 path = mx_collect_dict[prop]
-                ispyb_path = self.session_hwobj.path_to_ispyb(path)
+                ispyb_path = HWR.beamline.session.path_to_ispyb(path)
                 logging.debug("SOLEIL ISPyBClient - %s is %s " % (prop, ispyb_path))
                 mx_collect_dict[prop] = ispyb_path
             except BaseException:
@@ -194,7 +192,7 @@ class SOLEILISPyBClient(ISPyBClient):
         for prop in ["jpegThumbnailFileFullPath", "jpegFileFullPath"]:
             try:
                 path = image_dict[prop]
-                ispyb_path = self.session_hwobj.path_to_ispyb(path)
+                ispyb_path = HWR.beamline.session.path_to_ispyb(path)
                 image_dict[prop] = ispyb_path
             except BaseException:
                 pass
@@ -214,10 +212,10 @@ def test_hwo(hwo):
 
 
 def test():
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    db = hwr.getHardwareObject("/singleton_objects/dbconnection")
+    db = HWR.beamline.lims
 
     print("db", db)
     print("dir(db)", dir(db))

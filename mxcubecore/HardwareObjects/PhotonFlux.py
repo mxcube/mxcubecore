@@ -1,7 +1,7 @@
-from HardwareRepository.BaseHardwareObjects import Equipment
 import numpy
 import logging
-
+from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository import HardwareRepository as HWR
 
 class PhotonFlux(Equipment):
     def __init__(self, *args, **kwargs):
@@ -15,7 +15,6 @@ class PhotonFlux(Equipment):
             self.aperture = self.getObjectByRole("aperture")
         except BaseException:
             pass
-        self.energy_motor = self.getDeviceByRole("energy")
         self.shutter = self.getDeviceByRole("shutter")
         self.counter = self.getProperty("cnt")
         if self.counter == "i0":
@@ -52,7 +51,7 @@ class PhotonFlux(Equipment):
         flux = None
 
         try:
-            egy = self.energy_motor.getPosition() * 1000.0
+            egy = HWR.beamline.energy.getPosition() * 1000.0
         except BaseException:
             logging.getLogger("HWR").exception("%s: could not get energy", self.name())
         else:
@@ -66,7 +65,7 @@ class PhotonFlux(Equipment):
                     calibs = sorted(
                         [
                             (float(c["energy"]), float(c[self.counter]))
-                            for c in calib_dict.itervalues()
+                            for c in calib_dict.values()
                         ]
                     )
                     E = [c[0] for c in calibs]

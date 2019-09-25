@@ -1,4 +1,5 @@
 from HardwareRepository.HardwareObjects import BeamInfo
+from HardwareRepository import HardwareRepository as HWR
 
 
 class ID232BeamInfo(BeamInfo.BeamInfo):
@@ -28,4 +29,4 @@ class ID232BeamInfo(BeamInfo.BeamInfo):
         return self.beam_info_dict
 
     def get_flux(self):
-        return self.flux.getCurrentFlux()
+        return HWR.beamline.flux.getCurrentFlux()

@@ -92,7 +92,7 @@ class SardanaMotor(AbstractMotor):
             "Motor {0} polling = {1}".format(self.motor_name, self.polling)
         )
 
-        self.stop_command = self.addCommand(
+        self.stop_command = self.add_command(
             {
                 "type": "sardana",
                 "name": self.motor_name + SardanaMotor.suffix_stop,

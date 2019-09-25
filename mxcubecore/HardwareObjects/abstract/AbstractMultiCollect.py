@@ -517,15 +517,15 @@ class AbstractMultiCollect(object):
         )  # .update(centring_info.get("extraMotors", {}))
         motors_to_move_before_collect = data_collect_parameters.setdefault("motors", {})
 
-        for motor, pos in motors.iteritems():
+        for motor, pos in motors.items():
             if motor in motors_to_move_before_collect:
                 continue
             motors_to_move_before_collect[motor] = pos
 
         current_diffractometer_position = self.diffractometer().getPositions()
+
         for motor in motors_to_move_before_collect.keys():
-            if motors_to_move_before_collect[motor] is None:
-                del motors_to_move_before_collect[motor]
+            if motors_to_move_before_collect[motor] is not None:
                 try:
                     if current_diffractometer_position[motor] is not None:
                         positions_str += "%s=%f " % (
@@ -533,16 +533,15 @@ class AbstractMultiCollect(object):
                             current_diffractometer_position[motor],
                         )
                 except BaseException:
-                    pass
+                    logging.getLogger("HWR").exception("")
 
-        # this is for the LIMS
-        positions_str += " ".join(
-            [
-                motor + ("=%f" % pos)
-                for motor, pos in motors_to_move_before_collect.iteritems()
-            ]
-        )
-        data_collect_parameters["actualCenteringPosition"] = positions_str
+        positions_str = ""
+
+        for motor, pos in motors_to_move_before_collect.items():
+            if pos is not None and motor is not None:
+                positions_str += motor + ("=%f" % pos) + " "
+
+        data_collect_parameters["actualCenteringPosition"] = positions_str.strip()
 
         self.move_motors(motors_to_move_before_collect)
         # take snapshots, then assign centring status (which contains images) to

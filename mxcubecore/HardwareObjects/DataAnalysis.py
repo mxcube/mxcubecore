@@ -2,12 +2,6 @@ import os
 import logging
 import gevent.event
 import subprocess
-from HardwareRepository.HardwareObjects.abstract import AbstractDataAnalysis
-
-from HardwareRepository.HardwareObjects import queue_model_enumerables as qme
-
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareRepository import getHardwareRepository
 
 from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
 from XSDataMXCuBEv1_3 import XSDataMXCuBEDataSet
@@ -25,6 +19,11 @@ from XSDataCommon import XSDataInteger
 from XSDataCommon import XSDataSize
 from XSDataCommon import XSDataString
 
+from HardwareRepository.HardwareObjects.abstract import AbstractDataAnalysis
+from HardwareRepository.HardwareObjects import queue_model_enumerables as qme
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository as HWR
+
 # from edna_test_data import EDNA_DEFAULT_INPUT
 # from edna_test_data import EDNA_TEST_DATA
 
@@ -32,7 +31,6 @@ from XSDataCommon import XSDataString
 class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
-        self.collect_obj = None
         self.result = None
         self.processing_done_event = gevent.event.Event()
 
@@ -57,7 +55,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         return html_report
 
     def get_beam_size(self):
-        return self.collect_obj.beam_info_hwobj.get_beam_size()
+        return HWR.beamline.beam.get_beam_size()
 
     def modify_strategy_option(self, diff_plan, strategy_option):
         """Method for modifying the diffraction plan 'strategyOption' entry"""
@@ -79,7 +77,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         beam = edna_input.getExperimentalCondition().getBeam()
 
         try:
-            transmission = self.collect_obj.get_transmission()
+            transmission = HWR.beamline.transmission.get_value()
             beam.setTransmission(XSDataDouble(transmission))
         except AttributeError:
             import traceback
@@ -88,18 +86,18 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
             logging.getLogger("HWR").debug(traceback.format_exc())
 
         try:
-            wavelength = self.collect_obj.get_wavelength()
+            wavelength = HWR.beamline.energy.get_current_wavelength()
             beam.setWavelength(XSDataWavelength(wavelength))
         except AttributeError:
             pass
 
         try:
-            beam.setFlux(XSDataFlux(self.collect_obj.get_measured_intensity()))
+            beam.setFlux(XSDataFlux(HWR.beamline.flux.get_flux()))
         except AttributeError:
             pass
 
         try:
-            min_exp_time = self.collect_obj.detector_hwobj.get_exposure_time_limits()[0]
+            min_exp_time = HWR.beamline.detector.get_exposure_time_limits()[0]
             beam.setMinExposureTimePerImage(XSDataTime(min_exp_time))
         except AttributeError:
             pass

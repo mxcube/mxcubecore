@@ -20,6 +20,7 @@
 from random import random
 from HardwareRepository.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 
+from HardwareRepository import HardwareRepository as HWR
 
 __credits__ = ["MXCuBE collaboration"]
 __category__ = "General"
@@ -33,16 +34,11 @@ class FluxMockup(AbstractFlux):
     def __init__(self, name):
         AbstractFlux.__init__(self, name)
 
-        self.beam_info_hwobj = None
-        self.transmission_hwobj = None
-
         self.measured_flux_list = []
         self.measured_flux_dict = {}
         self.current_flux_dict = {}
 
     def init(self):
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        self.transmission_hwobj = self.getObjectByRole("transmission")
 
         self.measure_flux()
 
@@ -52,8 +48,8 @@ class FluxMockup(AbstractFlux):
 
     def measure_flux(self):
         """Measures intesity"""
-        beam_size = self.beam_info_hwobj.get_beam_size()
-        transmission = self.transmission_hwobj.get_value()
+        beam_size = HWR.beamline.beam.get_beam_size()
+        transmission = HWR.beamline.transmission.get_value()
         flux = self.default_flux * (1 + random())
 
         self.measured_flux_list = [{"size_x": beam_size[0],

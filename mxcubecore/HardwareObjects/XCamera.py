@@ -19,7 +19,7 @@ class XCamera(TacoDevice.TacoDevice):
             self.setPollCommand("DevCcdReadJpeg", 75)
 
             # add command for receiving statistics from Device Server
-            cmdObject = self.addCommand(
+            cmdObject = self.add_command(
                 {"type": "taco", "name": "statisticsCmd", "taconame": self.tacoName()},
                 "DevReadSigValues",
             )

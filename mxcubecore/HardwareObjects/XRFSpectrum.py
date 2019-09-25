@@ -1,10 +1,11 @@
-from HardwareRepository.BaseHardwareObjects import Equipment
 import logging
 import os
 import shutil
 import time
 import gevent.event
 import gevent
+from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository import HardwareRepository as HWR
 
 
 class XRFSpectrum(Equipment):
@@ -46,17 +47,12 @@ class XRFSpectrum(Equipment):
             self.doSpectrum.connectSignal("connected", self.sConnected)
             self.doSpectrum.connectSignal("disconnected", self.sDisconnected)
 
-        self.dbConnection = self.getObjectByRole("dbserver")
-        if self.dbConnection is None:
+        if HWR.beamline.lims is None:
             logging.getLogger().warning(
                 "XRFSpectrum: you should specify the database hardware object"
             )
         self.spectrumInfo = None
 
-        self.energy_hwobj = self.getObjectByRole("energy")
-        self.transmission_hwobj = self.getObjectByRole("transmission")
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        self.flux_hwobj = self.getObjectByRole("flux")
         self.ctrl_hwobj = self.getObjectByRole("controller")
         self.mca_hwobj = self.getObjectByRole("mca")
         if self.mca_hwobj:
@@ -107,7 +103,7 @@ class XRFSpectrum(Equipment):
         self.spectrumCommandStarted()
         if not os.path.isdir(directory):
             logging.getLogger("user_level_log").debug(
-                "XRFSpectrum: creating directory %s" % directory
+                "XRFSpectrum: creating directory %s", directory
             )
             try:
                 os.makedirs(directory)
@@ -145,8 +141,8 @@ class XRFSpectrum(Equipment):
                 os.makedirs(archive_directory)
             except OSError as diag:
                 logging.getLogger().error(
-                    "XRFSpectrum: error creating directory %s (%s)"
-                    % (archive_directory, str(diag))
+                    "XRFSpectrum: error creating directory %s (%s)",
+                    (archive_directory, str(diag))
                 )
                 self.spectrumStatusChanged("Error creating directory")
                 return False
@@ -258,12 +254,12 @@ class XRFSpectrum(Equipment):
                 mcaConfig = {}
                 self.spectrumInfo[
                     "beamTransmission"
-                ] = self.transmission_hwobj.get_value()
-                self.spectrumInfo["energy"] = self.energy_hwobj.get_current_energy()
-                if self.flux_hwobj:
-                    self.spectrumInfo["flux"] = self.flux_hwobj.getCurrentFlux()
+                ] = HWR.beamline.transmission.get_value()
+                self.spectrumInfo["energy"] = HWR.beamline.energy.get_current_energy()
+                if HWR.beamline.flux:
+                    self.spectrumInfo["flux"] = HWR.beamline.flux.getCurrentFlux()
 
-                beam_info = self.beam_info_hwobj.get_beam_info()
+                beam_info = HWR.beamline.beam.get_beam_info()
                 self.spectrumInfo["beamSizeHorizontal"] = beam_info["size_x"] * 1000.0
                 self.spectrumInfo["beamSizeVertical"] = beam_info["size_y"] * 1000.0
                 mcaConfig["att"] = self.spectrumInfo["beamTransmission"]
@@ -287,7 +283,7 @@ class XRFSpectrum(Equipment):
             pngfile = os.path.extsep.join((pf[0], "png"))
             if os.path.isfile(pngfile) is True:
                 try:
-                    copy(pngfile, self.spectrumInfo["jpegScanFileFullPath"])
+                    shutil.copyfile(pngfile, self.spectrumInfo["jpegScanFileFullPath"])
                 except BaseException:
                     logging.getLogger().error("XRFSpectrum: cannot copy %s", pngfile)
 
@@ -319,9 +315,9 @@ class XRFSpectrum(Equipment):
         self.emit("xrfSpectrumStatusChanged", (status,))
 
     def storeXrfSpectrum(self):
-        logging.getLogger().debug("db connection %r", self.dbConnection)
+        logging.getLogger().debug("db connection %r", HWR.beamline.lims)
         logging.getLogger().debug("spectrum info %r", self.spectrumInfo)
-        if self.dbConnection is None:
+        if HWR.beamline.lims is None:
             return
         try:
             session_id = int(self.spectrumInfo["sessionId"])
@@ -329,7 +325,7 @@ class XRFSpectrum(Equipment):
             return
         blsampleid = self.spectrumInfo["blSampleId"]
 
-        db_status = self.dbConnection.storeXfeSpectrum(self.spectrumInfo)
+        db_status = HWR.beamline.lims.storeXfeSpectrum(self.spectrumInfo)
 
     def updateXrfSpectrum(self, spectrum_id, jpeg_spectrum_filename):
         pass
@@ -363,7 +359,7 @@ class XRFSpectrum(Equipment):
         return os.path.join(self.cfg_path, "%skeV.cfg" % cfgname)
 
     def _doSpectrum(self, ct, filename, wait=True):
-        en = self.energy_hwobj.get_current_energy()
+        en = HWR.beamline.energy.get_current_energy()
         if not ct:
             ct = 5
         safshut = self.getObjectByRole("safety_shutter")
@@ -387,14 +383,14 @@ class XRFSpectrum(Equipment):
 
         # open the safety and the fast shutter
         safshut.openShutter()
-        init_transm = self.transmission_hwobj.getValue()
+        init_transm = HWR.beamline.transmission.getValue()
         logging.getLogger("user_level_log").info(
             "Looking for maximum attenuation, please wait"
         )
         ret = self._findAttenuation(ct)
         self.ctrl_hwobj.diffractometer.msclose()
         fluodet_ctrl.actuatorOut()
-        self.transmission_hwobj.setTransmission(init_transm)
+        HWR.beamline.transmission.setTransmission(init_transm)
         return ret
 
     def _findAttenuation(self, ct):
@@ -413,7 +409,7 @@ class XRFSpectrum(Equipment):
         self.mca_hwobj.set_presets(erange=1, ctime=ct, fname=fname)
 
         # put in max attenuation
-        self.transmission_hwobj.setTransmission(0)
+        HWR.beamline.transmission.setTransmission(0)
 
         self.ctrl_hwobj.diffractometer.msopen()
         self.mca_hwobj.start_acq()
@@ -430,7 +426,7 @@ class XRFSpectrum(Equipment):
         for i in tf:
             self.mca_hwobj.clear_spectrum()
             logging.getLogger("user_level_log").info("Setting transmission to %g" % i)
-            self.transmission_hwobj.setTransmission(i)
+            HWR.beamline.transmission.setTransmission(i)
             self.mca_hwobj.start_acq()
             time.sleep(ct)
             ic = sum(self.mca_hwobj.read_roi_data()) / ct
@@ -439,14 +435,14 @@ class XRFSpectrum(Equipment):
                 self.ctrl_hwobj.diffractometer.msclose()
                 self.spectrumInfo[
                     "beamTransmission"
-                ] = self.transmission_hwobj.get_value()
+                ] = HWR.beamline.transmission.get_value()
                 logging.getLogger("user_level_log").info(
                     "Transmission used for spectra: %g"
                     % self.spectrumInfo["beamTransmission"]
                 )
                 break
 
-        self.spectrumInfo["beamTransmission"] = self.transmission_hwobj.get_value()
+        self.spectrumInfo["beamTransmission"] = HWR.beamline.transmission.get_value()
         self.ctrl_hwobj.diffractometer.msclose()
         if ic < min_cnt:
             logging.getLogger("user_level_log").exception(

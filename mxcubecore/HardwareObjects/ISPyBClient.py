@@ -1,4 +1,9 @@
 from __future__ import print_function
+import sys
+import json
+import time
+import itertools
+import os
 import traceback
 from pprint import pformat
 from collections import namedtuple
@@ -14,13 +19,9 @@ except:
 from suds.sudsobject import asdict
 from suds import WebFault
 from suds.client import Client
-import sys
-import json
-import time
-import itertools
-import os
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.ConvertUtils import string_types
+from HardwareRepository import HardwareRepository as HWR
 
 """
 A client for ISPyB Webservices.
@@ -28,7 +29,6 @@ A client for ISPyB Webservices.
 
 import logging
 import gevent
-import suds
 
 
 suds_encode = str.encode
@@ -186,8 +186,7 @@ class ISPyBClient(HardwareObject):
 
         self.loginType = self.getProperty("loginType") or "proposal"
         self.loginTranslate = self.getProperty("loginTranslate") or True
-        self.session_hwobj = self.getObjectByRole("session")
-        self.beamline_name = self.session_hwobj.beamline_name
+        self.beamline_name = HWR.beamline.session.beamline_name
 
         self.ws_root = self.getProperty("ws_root")
         self.ws_username = self.getProperty("ws_username")
@@ -300,8 +299,8 @@ class ISPyBClient(HardwareObject):
 
         # Add the porposal codes defined in the configuration xml file
         # to a directory. Used by translate()
-        if hasattr(self.session_hwobj, "proposals"):
-            for proposal in self.session_hwobj["proposals"]:
+        if hasattr(HWR.beamline.session, "proposals"):
+            for proposal in HWR.beamline.session["proposals"]:
                 code = proposal.code
                 self._translations[code] = {}
                 try:
@@ -874,7 +873,7 @@ class ISPyBClient(HardwareObject):
         else:
             todays_session = {}
 
-        is_inhouse = self.session_hwobj.is_inhouse(
+        is_inhouse = HWR.beamline.session.is_inhouse(
             prop["Proposal"]["code"], prop["Proposal"]["number"]
         )
         return {

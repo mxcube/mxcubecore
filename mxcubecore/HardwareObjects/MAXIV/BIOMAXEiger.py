@@ -25,9 +25,9 @@ import time
 import copy
 import logging
 
-from HardwareRepository import HardwareRepository
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository import HardwareRepository as HWR
 
 
 class BIOMAXEiger(Equipment):
@@ -184,7 +184,7 @@ class BIOMAXEiger(Equipment):
             )
 
         for cmd_name in cmd_list:
-            self.addCommand(
+            self.add_command(
                 {
                     "type": "tango",
                     "name": cmd_name,
@@ -291,7 +291,7 @@ class BIOMAXEiger(Equipment):
         ):
             # format numbers to remove the precission comparison, 3 decimal enough?
             # if type(new_val)== 'str' or type(new_val) == 'unicode':
-            #   while self.get_value(att) != new_val:
+            #   while self.get_channel_value(att) != new_val:
             #       gevent.sleep(0.1)
             if att in [
                 "FilenamePattern",
@@ -299,22 +299,20 @@ class BIOMAXEiger(Equipment):
                 "HeaderAppendix",
                 "ImageAppendix",
             ]:
-                while self.get_value(att) != new_val:
+                while self.get_channel_value(att) != new_val:
                     gevent.sleep(0.1)
             elif "BeamCenter" in att:
-                while format(self.get_value(att), ".2f") != format(new_val, ".2f"):
+                while format(self.get_channel_value(att), ".2f") != format(new_val, ".2f"):
                     gevent.sleep(0.1)
             else:
-                while format(self.get_value(att), ".4f") != format(new_val, ".4f"):
+                while format(self.get_channel_value(att), ".4f") != format(new_val, ".4f"):
                     gevent.sleep(0.1)
 
     #  STATUS END
 
     #  GET INFORMATION
-    def get_value(self, name):
-        return self.getChannelObject(name).getValue()
 
-    def set_value(self, name, value):
+    def set_channel_value(self, name, value):
         try:
             logging.getLogger("HWR").debug(
                 "[DETECTOR] Setting value: %s for attribute %s" % (value, name)
@@ -328,12 +326,12 @@ class BIOMAXEiger(Equipment):
             )
 
     def get_readout_time(self):
-        return self.get_value("ReadoutTime")
+        return self.get_channel_value("ReadoutTime")
 
     def get_acquisition_time(self):
-        frame_time = self.get_value("FrameTime")
-        readout_time = self.get_value("ReadoutTime")
-        nb_images = self.get_value("NbImages")
+        frame_time = self.get_channel_value("FrameTime")
+        readout_time = self.get_channel_value("ReadoutTime")
+        nb_images = self.get_channel_value("NbImages")
         time = nb_images * frame_time - readout_time
         _count_time = self._config_vals.get("CountTime")
         _nb_images = self._config_vals.get("NbImages")
@@ -355,10 +353,10 @@ class BIOMAXEiger(Equipment):
         return time
 
     def get_buffer_free(self):
-        return self.get_value("BufferFree")
+        return self.get_channel_value("BufferFree")
 
     def get_roi_mode(self):
-        return self.get_value("RoiMode")
+        return self.get_channel_value("RoiMode")
 
     def get_pixel_size_x(self):
         """
@@ -383,17 +381,17 @@ class BIOMAXEiger(Equipment):
         number of pixels along x-axis
         numbers vary depending on the RoiMode
         """
-        return self.get_value("XPixelsDetector")
+        return self.get_channel_value("XPixelsDetector")
 
     def get_y_pixels_in_detector(self):
         """
         number of pixels along y-axis,
         numbers vary depending on the RoiMode
         """
-        return self.get_value("YPixelsDetector")
+        return self.get_channel_value("YPixelsDetector")
 
     def get_minimum_exposure_time(self):
-        return self.get_value("FrameTimeMin") - self.get_readout_time()
+        return self.get_channel_value("FrameTimeMin") - self.get_readout_time()
 
     def get_sensor_thickness(self):
         return  # not available, self.getChannelObject("").getValue()
@@ -402,31 +400,31 @@ class BIOMAXEiger(Equipment):
         return True
 
     def get_collection_uuid(self):
-        return self.get_value("CollectionUUID")
+        return self.get_channel_value("CollectionUUID")
 
     def get_header_detail(self):
         """
     Detail of header data to be sent.
         """
-        return self.get_value("HeaderDetail")
+        return self.get_channel_value("HeaderDetail")
 
     def get_header_appendix(self):
         """
         Data that is appended to the header data
         """
-        return self.get_value("HeaderAppendix")
+        return self.get_channel_value("HeaderAppendix")
 
     def get_image_appendix(self):
         """
         Data that is appended to the image data
         """
-        return self.get_value("ImageAppendix")
+        return self.get_channel_value("ImageAppendix")
 
     def get_stream_state(self):
         """
         "disabled", "ready", "acquire" or "error".
         """
-        return self.get_value("StreamState")
+        return self.get_channel_value("StreamState")
 
     #  GET INFORMATION END
 
@@ -444,7 +442,7 @@ class BIOMAXEiger(Equipment):
         elif valid == 0:
             return True  # is valid, but no need to change energy. continue
         else:
-            self.set_value("PhotonEnergy", energy)
+            self.set_channel_value("PhotonEnergy", energy)
             return True
 
     def _validate_energy_value(self, energy):
@@ -455,9 +453,9 @@ class BIOMAXEiger(Equipment):
             logging.getLogger("user_level_log").info("Wrong Energy value: %s" % energy)
             return -1
 
-        max_energy = self.get_value("PhotonEnergyMax")
-        min_energy = self.get_value("PhotonEnergyMin")
-        current_energy = self.get_value("PhotonEnergy")
+        max_energy = self.get_channel_value("PhotonEnergyMax")
+        min_energy = self.get_channel_value("PhotonEnergyMin")
+        current_energy = self.get_channel_value("PhotonEnergy")
 
         print("   - currently configured energy is: %s" % current_energy)
         print("   -    min val: %s / max val: %s " % (min_energy, max_energy))
@@ -485,10 +483,10 @@ class BIOMAXEiger(Equipment):
         this should be set after changing PhotonEnergy.
         Eengery, in eV
         """
-        self.set_value("EnergyThreshold", threshold)
+        self.set_channel_value("EnergyThreshold", threshold)
 
     def set_collection_uuid(self, col_uuid):
-        self.set_value("CollectionUUID", col_uuid)
+        self.set_channel_value("CollectionUUID", col_uuid)
 
     def set_header_detail(self, value):
         """
@@ -497,25 +495,25 @@ class BIOMAXEiger(Equipment):
         if value not in ["all", "basic", "none"]:
             logging.getLogger("HWR").error("Cannot set stream header detail")
             return
-        self.set_value("HeaderDetail", value)
+        self.set_channel_value("HeaderDetail", value)
 
     def set_header_appendix(self, value):
         """
         Data that is appended to the header data
         """
-        self.set_value("HeaderAppendix", value)
+        self.set_channel_value("HeaderAppendix", value)
 
     def set_image_appendix(self, value):
         """
         Data that is appended to the image data
         """
-        self.set_value("ImageAppendix", value)
+        self.set_channel_value("ImageAppendix", value)
 
     def set_roi_mode(self, value):
         if value not in ["4M", "disabled"]:
             logging.getLogger("HWR").error("Cannot set stream header detail")
             return
-        return self.get_value("RoiMode")
+        return self.get_channel_value("RoiMode")
 
     #  SET VALUES END
 
@@ -572,16 +570,16 @@ class BIOMAXEiger(Equipment):
                 if self.set_photon_energy(new_egy) is False:
                     raise Exception("Could not program energy in detector")
         if "CountTime" in self._config_vals.keys():
-            self.set_value("CountTime", self._config_vals["CountTime"])
+            self.set_channel_value("CountTime", self._config_vals["CountTime"])
             print(
                 "readout time and count time is ",
                 self.get_readout_time(),
-                self.get_value("CountTime"),
+                self.get_channel_value("CountTime"),
             )
-            self.set_value(
+            self.set_channel_value(
                 "FrameTime", self._config_vals["CountTime"] + self.get_readout_time()
             )
-            print("new frame time is ", self.get_value("FrameTime"))
+            print("new frame time is ", self.get_channel_value("FrameTime"))
             for cfg_name, cfg_value in self._config_vals.items():
                 t0 = time.time()
                 if cfg_name == "PhotonEnergy" or cfg_name == "CountTime":
@@ -594,8 +592,8 @@ class BIOMAXEiger(Equipment):
                     continue
 
                 if cfg_value is not None:
-                    if self.get_value(cfg_name) != cfg_value:
-                        self.set_value(cfg_name, cfg_value)
+                    if self.get_channel_value(cfg_name) != cfg_value:
+                        self.set_channel_value(cfg_name, cfg_value)
                         if cfg_name == "RoiMode":
                             self.emit("roiChanged")
                     else:
@@ -720,9 +718,9 @@ def test():
         print('Bad trigger mode. It should be "exts" or "ints"')
         sys.exit(0)
 
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
-    obj = hwr.getHardwareObject("/detector")
+    detector = HWR.beamline.detector
 
     config = {
         "OmegaStart": 0,
@@ -740,28 +738,28 @@ def test():
         "TriggerMode": trigmode,
     }
 
-    if obj.get_status() == "not_init":
+    if detector.get_status() == "not_init":
         print("Cannot initialize hardware object")
         sys.exit(0)
 
-    if not obj.is_idle():
-        obj.stop_acquisition()
-        obj.wait_idle()
+    if not detector.is_idle():
+        detector.stop_acquisition()
+        detector.wait_idle()
 
-    obj.prepare_acquisition(config)
+    detector.prepare_acquisition(config)
 
     print("Waiting for configuration finished")
 
-    while obj.is_preparing():
+    while detector.is_preparing():
         gevent.wait(timeout=0.1)
         gevent.sleep(0.1)
         print(".")
 
-    if obj.prepare_error():
+    if detector.prepare_error():
         print("Prepare went wrong. Aborting")
         sys.exit(0)
 
-    readout_time = obj.get_readout_time()
+    readout_time = detector.get_readout_time()
     print("EIGER configuration done")
 
     print("Starting acquisition (trigmode = %s)" % trigmode)
@@ -770,23 +768,23 @@ def test():
         print("Total exposure time (estimated) will be: %s", total_time)
 
     try:
-        obj.start_acquisition()
+        detector.start_acquisition()
 
         if trigmode == "exts":
             print("  - waiting for trigger.")
             sys.stdout.flush()
-            obj.wait_acquire()
+            detector.wait_acquire()
             print("  - trigger received. Acquiring")
-            obj.wait_ready_or_idle()
+            detector.wait_ready_or_idle()
         else:
-            obj.trigger()
-            obj.wait_ready_or_idle()
+            detector.trigger()
+            detector.wait_ready_or_idle()
 
-        obj.stop_acquisition()
+        detector.stop_acquisition()
         print("Acquisition done")
     except KeyboardInterrupt:
-        obj.abort()
-        obj.wait_idle()
+        detector.abort()
+        detector.wait_idle()
 
 
 if __name__ == "__main__":

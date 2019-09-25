@@ -49,10 +49,9 @@ Example Hardware Object XML file :
 </device>
 """
 
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository import BaseHardwareObjects
 import logging
-import os
 import PyTango
 
 __author__ = "Jordi Andreu"
@@ -154,7 +153,7 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device):
 
 
 def test():
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     zoom = hwr.getHardwareObject("/zoom-auto-brightness")

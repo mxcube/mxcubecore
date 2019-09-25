@@ -11,5 +11,5 @@
   <height>2527</height>
   <hasShutterless>True</hasShutterless>
   <fileSuffix>cbf</fileSuffix>
-  <object hwrid="/detector-distance-mockup" role="distance_motor"/>
+  <object hwrid="/detector-distance-mockup" role="detector_distance"/>
 </equipment>

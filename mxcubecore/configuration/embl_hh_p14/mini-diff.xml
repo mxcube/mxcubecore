@@ -25,7 +25,7 @@
   <object href="/eh1/diff-sampy" role="sampy"/>
   <object href="/eh1/diff-kappa" role="kappa"/>
   <object href="/eh1/diff-kappaphi" role="kappa_phi"/>
-  <object href="/eh1/detector-distance" role="detector_distance_motor"/>
+  <object href="/eh1/detector-distance" role="detector_distance"/>
   
   <object href="/camera" role="camera"/>
   <object href="/beam-info" role="beam_info"/> 

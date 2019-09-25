@@ -1,10 +1,11 @@
 from HardwareRepository.HardwareObjects import queue_model_objects
 
 from HardwareRepository.HardwareObjects.BeamlineSetup import BeamlineSetup
+from HardwareRepository import HardwareRepository as HWR
 
 
 class SOLEILBeamlineSetup(BeamlineSetup):
-    def __init__(self):
+    def __init__(self, name):
         BeamlineSetup.__init__(self, name)
 
     def get_default_char_acq_parameters(self):
@@ -25,7 +26,7 @@ class SOLEILBeamlineSetup(BeamlineSetup):
         shutterless = self.detector_has_shutterless()
 
         try:
-            detector_mode = self.detector_hwobj.default_mode()
+            detector_mode = HWR.beamline.detector.default_mode()
         except AttributeError:
             detector_mode = None
 
@@ -44,7 +45,7 @@ class SOLEILBeamlineSetup(BeamlineSetup):
         acq_parameters.energy = self._get_energy()
         acq_parameters.transmission = self._get_transmission()
 
-        acq_parameters.shutterless = self._has_shutterless()
+        acq_parameters.shutterless = self.detector_has_shutterless()
         acq_parameters.detector_mode = self._get_roi_modes()
 
         acq_parameters.inverse_beam = False

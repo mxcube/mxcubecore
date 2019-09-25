@@ -1,6 +1,6 @@
 import os
 
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Device
 
 
@@ -59,7 +59,7 @@ class PX1Configuration(Device):
 
 
 if __name__ == "__main__":
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     env = hwr.getHardwareObject("/px1configuration")

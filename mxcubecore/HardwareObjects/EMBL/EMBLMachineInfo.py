@@ -38,6 +38,8 @@ from gevent import spawn
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
+from HardwareRepository import HardwareRepository as HWR
+
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
@@ -114,9 +116,6 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_sc_dewar_low_level_alarm = None
         self.chan_sc_dewar_overflow_alarm = None
 
-        self.flux_hwobj = None
-        self.ppu_control_hwobj = None
-
     def init(self):
 
         self.update_interval = int(self.getProperty("updateIntervalS"))
@@ -138,9 +137,10 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_frontend_status.connectSignal("update", self.frontend_status_changed)
         self.frontend_status_changed(self.chan_frontend_status.getValue())
 
-        self.flux_hwobj = self.getObjectByRole("flux")
-        if self.flux_hwobj is not None:
-            self.connect(self.flux_hwobj, "fluxInfoChanged", self.flux_info_changed)
+        if HWR.beamline.flux is not None:
+            self.connect(
+                HWR.beamline.flux, "fluxInfoChanged", self.flux_info_changed
+            )
             self.values_ordered_dict["flux"] = {
                 "value": 1,
                 "value_str": "Remeasure flux!",
@@ -188,8 +188,7 @@ class EMBLMachineInfo(HardwareObject):
                 "update", self.overflow_alarm_changed
             )
 
-        self.ppu_control_hwobj = self.getObjectByRole("ppu_control")
-        if self.ppu_control_hwobj is not None:
+        if HWR.beamline.ppu_control is not None:
             self.values_ordered_dict["ppu"] = {
                 "value": "- - -",
                 "in_range": False,
@@ -197,7 +196,7 @@ class EMBLMachineInfo(HardwareObject):
             }
 
             self.connect(
-                self.ppu_control_hwobj,
+                HWR.beamline.ppu_control,
                 "fileTranferStatusChanged",
                 self.file_transfer_status_changed,
             )

@@ -60,10 +60,10 @@ class MicrodiffAperture(MD2Motor):
           DeprecationWarning,
         )
 
-        return get_diameter_size_list(self):
+        return get_diameter_size_list()
 
     def motorPositionChanged(self, absolutePosition, private={}):
-        MD2Motor.motorPositionChanged(bsolutePosition, private)
+        MD2Motor.motorPositionChanged(absolutePosition, private)
 
         positionName = self.getCurrentPositionName(absolutePosition)
         self.emit(

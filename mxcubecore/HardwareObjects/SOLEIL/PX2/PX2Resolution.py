@@ -33,9 +33,6 @@ class PX2Resolution(Resolution):
             "update", self.update_detector_position_state
         )
 
-        self.energy = self.getObjectByRole("energy")
-        self.dtox = self.getObjectByRole("detector_distance")
-
         self.det_radius = self.getProperty("detector_radius")
         self.det_width = self.getProperty("detector_width")
         self.det_height = self.getProperty("detector_height")
