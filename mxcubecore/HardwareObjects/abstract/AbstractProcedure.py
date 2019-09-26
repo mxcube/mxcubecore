@@ -67,6 +67,13 @@ class AbstractProcedure(HardwareObject):
         finally:
             self.ready_event.set()
 
+    def stop_procedure(self):
+        """
+        Stops the execution of procedure
+        Returns:
+        """
+        self.set_procedure_stopped()
+
     def pre_execute(self, data_model):
         """
         Pre execute task
@@ -130,3 +137,12 @@ class AbstractProcedure(HardwareObject):
         """
         self.is_running = False
         self.emit("procedureFailed", self.failed_msg)
+
+    def set_procedure_stopped(self):
+        """
+        Emits procedureStoped signal
+        Returns:
+
+        """
+        self.is_running = False
+        self.emit("procedureStopped", self.procedure_results)
