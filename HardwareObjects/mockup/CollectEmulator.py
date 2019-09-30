@@ -179,7 +179,7 @@ class CollectEmulator(CollectMockup):
         if not detector_distance:
             resolution = data_collect_parameters["resolution"]["upper"]
             self.set_resolution(resolution)
-            detector_distance = HWR.beamline.detector.detector_distance.getPosition()
+            detector_distance = HWR.beamline.detector.distance.getPosition()
         # Add sweeps
         sweeps = []
         for osc in data_collect_parameters["oscillation_sequence"]:
