@@ -1540,7 +1540,7 @@ class XrayCenteringQueueEntry(BaseQueueEntry):
         xray_centering = self.get_data_model()
         reference_image_collection = xray_centering.reference_image_collection
         reference_image_collection.grid = (
-            HWR.beamline.microscope.shapes.reate_auto_grid()
+            HWR.beamline.microscope.shapes.create_auto_grid()
         )
         reference_image_collection.acquisitions[
             0
