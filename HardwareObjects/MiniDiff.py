@@ -647,7 +647,7 @@ class MiniDiff(Equipment):
         return self.currentCentringMethod
 
     def saveCurrentPos(self):
-        self.centringStatus["motors"] = self.getPositions()
+        self.centringStatus["motors"] = self.get_positions()
         self.accept_centring()
 
     def start_manual_centring(self, sample_info=None):
@@ -874,7 +874,7 @@ class MiniDiff(Equipment):
         if self.current_centring_procedure is not None:
             curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
             self.centringStatus["endTime"] = curr_time
-            self.centringStatus["motors"] = self.getPositions()
+            self.centringStatus["motors"] = self.get_positions()
             centred_pos = self.current_centring_procedure.get()
             for role in self.centringStatus["motors"]:
                 motor = self.getObjectByRole(role)
@@ -902,7 +902,7 @@ class MiniDiff(Equipment):
     def getCentringStatus(self):
         return copy.deepcopy(self.centringStatus)
 
-    def getPositions(self):
+    def get_positions(self):
         return {
             "phi": float(self.phiMotor.getPosition()),
             "focus": float(self.focusMotor.getPosition()),
@@ -911,9 +911,7 @@ class MiniDiff(Equipment):
             "sampx": float(self.sampleXMotor.getPosition()),
             "sampy": float(self.sampleYMotor.getPosition()),
             "kappa": float(self.kappaMotor.getPosition()) if self.kappaMotor else None,
-            "kappa_phi": float(self.kappaPhiMotor.getPosition())
-            if self.kappaPhiMotor
-            else None,
+            "kappa_phi": float(self.kappaPhiMotor.getPosition()) if self.kappaPhiMotor else None,
             "zoom": float(self.zoomMotor.getPosition()),
         }
 
