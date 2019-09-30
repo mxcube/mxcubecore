@@ -197,16 +197,6 @@ class Beamline(ConfiguredObject):
     __content_roles.append("beam")
 
     @property
-    def beam_definer(self):
-        """Beam-definer Hardware object
-
-        Returns:
-            Optional[HardwareObject]:
-        """
-        return self._objects.get("beam_definer")
-    __content_roles.append("beam_definer")
-
-    @property
     def hutch_interlock(self):
         """Hutch Interlock Hardware object
 
@@ -238,30 +228,6 @@ class Beamline(ConfiguredObject):
         return self._objects.get("fast_shutter")
 
     __content_roles.append("fast_shutter")
-
-
-    @property
-    def beamstop(self):
-        """Beamstop Hardware object
-
-        Returns:
-            Optional[AbstractNState]:
-        """
-        return self._objects.get("beamstop")
-
-    __content_roles.append("beamstop")
-
-    @property
-    def capillary(self):
-        """Capillary Hardware object
-
-        Returns:
-            Optional[AbstractNState]:
-        """
-        return self._objects.get("capillary")
-
-    __content_roles.append("capillary")
-
 
     @property
     def diffractometer(self):
@@ -309,7 +275,7 @@ class Beamline(ConfiguredObject):
     __content_roles.append("sample_changer")
 
     @property
-    def  sample_changer_maintenance(self):
+    def sample_changer_maintenance(self):
         """Sample Changer Maintnance Hardware object
 
         Returns:
@@ -346,17 +312,6 @@ class Beamline(ConfiguredObject):
         return self._objects.get("session")
 
     __content_roles.append("session")
-
-    @property
-    def cryo(self):
-        """Cryostream Hardware object.
-
-        Returns:
-            Optional[Cryo]:
-        """
-        return self._objects.get("cryo")
-
-    __content_roles.append("cryo")
 
     @property
     def lims(self):

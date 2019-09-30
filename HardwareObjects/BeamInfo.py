@@ -36,6 +36,7 @@ class BeamInfo(Equipment):
         Equipment.__init__(self, *args)
 
         self.aperture_hwobj = None
+        self.beam_definer = None
         self.slits_hwobj = None
 
         self.beam_size_slits = None
@@ -72,9 +73,9 @@ class BeamInfo(Equipment):
         else:
             logging.getLogger("HWR").debug("BeamInfo: Slits hwobj not defined")
 
-        if HWR.beamline.beam_definer is not None:
+        if self.beam_definer is not None:
             self.connect(
-                HWR.beamline.beam_definer,
+                self.beam_definer,
                 "definerPosChanged",
                 self.definer_pos_changed
             )
@@ -105,8 +106,8 @@ class BeamInfo(Equipment):
         """
         Descript. :
         """
-        if HWR.beamline.beam_definer is not None:
-            return HWR.beamline.beam_definer.get_divergence_hor()
+        if self.beam_definer is not None:
+            return self.beam_definer.get_divergence_hor()
         else:
             return self.default_beam_divergence[0]
 
@@ -114,8 +115,8 @@ class BeamInfo(Equipment):
         """
         Descript. :
         """
-        if HWR.beamline.beam_definer is not None:
-            return HWR.beamline.beam_definer.get_divergence_ver()
+        if self.beam_definer is not None:
+            return self.beam_definer.get_divergence_ver()
         else:
             return self.default_beam_divergence[1]
 
