@@ -30,10 +30,10 @@ class BIOMAXPatches(HardwareObject):
                     "Cannot load sample, sample changer cannot go to SOAK position: %s"
                     % str(ex)
                 )
-        self.curr_dtox_pos = HWR.beamline.resolution.detector_distance.getPosition()
+        self.curr_dtox_pos = HWR.beamline.detector.detector_distance.getPosition()
         if (
-            HWR.beamline.resolution.detector_distance is not None
-            and HWR.beamline.resolution.detector_distance.getPosition() < self.safe_position
+            HWR.beamline.detector.detector_distance is not None
+            and HWR.beamline.detector.detector_distance.getPosition() < self.safe_position
         ):
             logging.getLogger("HWR").info(
                 "Moving detector to safe position before loading a sample."
@@ -42,9 +42,9 @@ class BIOMAXPatches(HardwareObject):
                 "Moving detector to safe position before loading a sample."
             )
 
-        self.wait_motor_ready(HWR.beamline.resolution.detector_distance)
+        self.wait_motor_ready(HWR.beamline.detector.detector_distance)
         try:
-            HWR.beamline.resolution.detector_distance.syncMove(self.safe_position, timeout=30)
+            HWR.beamline.detector.detector_distance.syncMove(self.safe_position, timeout=30)
         except Exception:
             logging.getLogger("HWR").warning("Cannot move detector")
         else:
@@ -105,7 +105,7 @@ class BIOMAXPatches(HardwareObject):
                 raise RuntimeError(
                     "Not moving detector to pre-mount position, sample changer not powered"
                 )
-            HWR.beamline.resolution.detector_distance.syncMove(self.curr_dtox_pos, timeout=30)
+            HWR.beamline.detector.detector_distance.syncMove(self.curr_dtox_pos, timeout=30)
         except Exception:
             logging.getLogger("HWR").warning("Cannot move detector")
 
