@@ -28,12 +28,12 @@ class AbstractMicroscope(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self):
-        self.camera_hwobj = None
-        self.shapes_hwobj = None
-        self.focus_hwobj = None
-        self.zoom_hwobj = None
-        self.frontlight_hwobj  = None
-        self.backlight_hwobj  = None
+        self._camera_hwobj = None
+        self._shapes_hwobj = None
+        self._focus_hwobj = None
+        self._zoom_hwobj = None
+        self._frontlight_hwobj  = None
+        self._backlight_hwobj  = None
 
     def get_snapshot(self, num=4):
         """ Get snappshot(s)
@@ -63,7 +63,7 @@ class AbstractMicroscope(object):
         Returns:
             (AbstractCamera): Camera hardware object.
         """
-        return self.camera_hwobj
+        return self._camera
 
     @property
     def shapes(self):
@@ -71,7 +71,7 @@ class AbstractMicroscope(object):
         Returns:
             (AbstractShapes): Shapes hardware object.
         """
-        return self.shapes_hwobj
+        return self._shapes
 
     @property
     def zoom(self):
@@ -79,7 +79,7 @@ class AbstractMicroscope(object):
         Returns:
             (AbstractZoom): Zoom gardware object.
         """
-        return self.zoom_hwobj
+        return self._zoom
 
     @property
     def frontlight(self):
@@ -87,7 +87,7 @@ class AbstractMicroscope(object):
         Returns:
             (AbstractLight): Front light hardware object.
         """
-        return self.frontlight_hwobj
+        return self._frontlight
 
     @property
     def backlight(self):
@@ -95,4 +95,4 @@ class AbstractMicroscope(object):
         Returns:
             (AbstractLight): Back light hardware object.
         """
-        return self.backlight_hwobj
+        return self._backlight

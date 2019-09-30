@@ -9,9 +9,9 @@ class Microscope(AbstractMicroscope, HardwareObject):
         HardwareObject.__init__(self, name)
 
     def init(self):
-        self.camera_hwobj = self.getObjectByRole("camera")
-        self.shapes_hwobj = self.getObjectByRole("shapes")
-        self.focus_hwobj = self.getObjectByRole("focus")
-        self.zoom_hwobj = self.getObjectByRole("zoom")
-        self.frontlight_hwobj = self.getObjectByRole("frontlight")
-        self.backlight_hwobj = self.getObjectByRole("backlight")
+        self._camera = self.getObjectByRole("camera")
+        self._shapes = self.getObjectByRole("shapes")
+        self._focus = self.getObjectByRole("focus")
+        self._zoom = self.getObjectByRole("zoom")
+        self._frontlight = self.getObjectByRole("frontlight")
+        self._backlight = self.getObjectByRole("backlight")
