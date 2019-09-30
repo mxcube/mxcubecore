@@ -410,7 +410,7 @@ class Microdiff(MiniDiff.MiniDiff):
     def in_kappa_mode(self):
         return self.head_type.getValue() == "MiniKappa" and self.kappa_channel.getValue()
 
-    def getPositions(self):
+    def get_positions(self):
         pos = {
             "phi": float(self.phiMotor.getPosition()),
             "focus": float(self.focusMotor.getPosition()),

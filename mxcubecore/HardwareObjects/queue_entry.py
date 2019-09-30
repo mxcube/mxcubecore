@@ -1825,7 +1825,7 @@ def center_before_collect(view, dm, queue, shapes):
         log.info(msg)
 
         # Create a centred postions of the current postion
-        pos = dm.getPositions()
+        pos = dm.get_positions()
         shape = shapes.add_shape_from_mpos([pos], (0, 0), "P")
 
     view(1, "Centring completed")
