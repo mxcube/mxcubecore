@@ -410,7 +410,7 @@ class PX2Diffractometer(GenericDiffractometer):
             GenericDiffractometer.PHASE_TRANSFER,
             GenericDiffractometer.PHASE_BEAM,
         ):
-            detector_distance = HWR.beamline.detector.detector_distance.getPosition()
+            detector_distance = HWR.beamline.detector.distance.getPosition()
             logging.getLogger("HWR").debug(
                 "Diffractometer current phase: %s " % self.current_phase
                 + "selected phase: %s " % phase
@@ -418,7 +418,7 @@ class PX2Diffractometer(GenericDiffractometer):
             )
             if detector_distance < 350:
                 logging.getLogger("GUI").info("Moving detector to safe distance")
-                HWR.beamline.detector.detector_distance.move(350)
+                HWR.beamline.detector.distance.move(350)
                 self.detector.insert_protective_cover()
 
         if timeout is not None:
