@@ -151,7 +151,7 @@ class Resolution(AbstractMotor):
 
     def connectNotify(self, signal):
         if signal == "stateChanged":
-            self.dtoxStateChanged( HWR.beamline.detector.detector_distance.getState())
+            self.dtoxStateChanged(HWR.beamline.detector.detector_distance.getState())
 
     def dtoxStateChanged(self, state):
         self.emit("stateChanged", (state,))
@@ -175,7 +175,7 @@ class Resolution(AbstractMotor):
         if wait:
             HWR.beamline.detector.detector_distance.syncMove(self.res2dist(pos))
         else:
-             HWR.beamline.detector.detector_distance.move(self.res2dist(pos))
+            HWR.beamline.detector.detector_distance.move(self.res2dist(pos))
 
     def motorIsMoving(self):
         return HWR.beamline.detector.detector_distance.motorIsMoving()
