@@ -77,9 +77,9 @@ class BIOMAXBeamlineActions(HardwareObject):
             logging.getLogger("HWR").info("Closing detector cover...")
             self.detector_cover_hwobj.closeShutter()
 
-        if HWR.beamline.resolution.detector_distance is not None:
+        if HWR.beamline.detector.detector_distance is not None:
             logging.getLogger("HWR").info("Moving detector to safe area...")
-            HWR.beamline.resolution.detector_distance.syncMove(800, timeout=50)
+            HWR.beamline.detector.detector_distance.syncMove(800, timeout=50)
 
         if HWR.beamline.sample_changer.isPowered():
             if HWR.beamline.sample_changer.getLoadedSample() is not None:
@@ -133,9 +133,9 @@ class BIOMAXBeamlineActions(HardwareObject):
                 while HWR.beamline.safety_shutter.getShutterState() == "opened":
                     gevent.sleep(0.1)
 
-        if HWR.beamline.resolution.detector_distance is not None:
+        if HWR.beamline.detector.detector_distance is not None:
             logging.getLogger("HWR").info("Moving detector to safe area...")
-            HWR.beamline.resolution.detector_distance.syncMove(800, timeout=50)
+            HWR.beamline.detector.detector_distance.syncMove(800, timeout=50)
 
     def init(self):
         self.sample_changer_maint_hwobj = self.getObjectByRole(
