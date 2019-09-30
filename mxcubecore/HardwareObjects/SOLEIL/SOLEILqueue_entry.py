@@ -61,7 +61,7 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
                     )
                     self.centring_task.get()
                 else:
-                    pos_dict = HWR.beamline.diffractometer.getPositions()
+                    pos_dict = HWR.beamline.diffractometer.get_positions()
                     cpos = queue_model_objects.CentredPosition(pos_dict)
                     snapshot = HWR.beamline.microscope.get_snapshot([])
                     acq_1.acquisition_parameters.centred_position = cpos
