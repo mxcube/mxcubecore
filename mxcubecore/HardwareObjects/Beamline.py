@@ -329,7 +329,7 @@ class Beamline(ConfiguredObject):
         """Microscope object. Includes defined shapes.
 
         Returns:
-            Optional[AbstractMmicroscope]:
+            Optional[AbstractMicroscope]:
         """
         return self._objects.get("microscope")
 
