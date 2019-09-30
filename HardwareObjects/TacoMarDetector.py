@@ -106,7 +106,7 @@ class Mar225:
         self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
     ):
         self.header["xtal_to_detector"] = (
-            HWR.beamline.resolution.detector_distance.getPosition()
+            HWR.beamline.detector.detector_distance.getPosition()
         )
         self.header["source_wavelength"] = HWR.beamline.energy.get_wavelength()
         bx, by = HWR.beamline.detector.get_beam_centre()
