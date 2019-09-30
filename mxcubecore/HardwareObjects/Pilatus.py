@@ -1,12 +1,16 @@
-from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
+    AbstractDetector,
+)
 
-
-class Pilatus(Device):
+class Pilatus(HardwareObject, AbstractDetector):
     def __init__(self, name):
-        Device.__init__(self, name)
+        AbstractDetector.__init__(self)
+        HardwareObject.__init__(self, name)
+
 
     def init(self):
-        pass
+        self.distance_motor_hwobj = self.getObjectByRole("detector_distance")
 
     def has_shutterless(self):
         return True
