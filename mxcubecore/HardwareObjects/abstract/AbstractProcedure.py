@@ -16,101 +16,53 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
-
-"""
-AbstractProcedure
-"""
-
 import logging
 import gevent
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.BaseHardwareObjects import ConfiguredObject
+from HardwareRepository.dispatcher import dispatcher
+
+# Using jsonschma for validating the JSCONSchemas
+# https://json-schema.org/
+# https://github.com/Julian/jsonschema
+
+from jsonschema import (validate, ValidationError)
 
 
 __credits__ = ["MXCuBE collaboration"]
 
 
-class AbstractProcedure(HardwareObject):
+class AbstractProcedure(ConfiguredObject):
+    _ALLOW_PARALLEL = False
+
+    # JSONSchema used for input and output validation and possibly
+    # form generation.
+    # https://json-schema.org/
+    _ARG_SCHEMA = None
+    _RESULT_SCHEMA = None
 
     def __init__(self):
-        self.is_running = None
-        self.ready_event = None
-        self.failed_msg = None
-        self.procedure_failed = None
-        self.procedure_results = None
+        self._is_running = None
+        self._ready_event = None
+        self._msg = None
+        self._failed = None
+        self._results = None
+        self._ready_event = gevent.event.Event()
+        self._task = None
 
-    def init(self):
-        self.ready_event = gevent.event.Event()
-
-    def start_procedure(self, data_model):
+    def _execute(self, data_model):
         """
-        Starts procedure
+        Task logic
         Args:
-            data_model: data model defined in the queue_model_objects
-
-        Returns: None
-
-        """
-        try:
-            self.pre_execute(data_model)
-            self.execute(data_model)
-        except Exception as ex:
-            self.procedure_failed = True
-            msg = "Procedure execution failed (%s)" % str(ex)
-            logging.getLogger("HWR").error(msg)
-
-        try: 
-            self.post_execute(data_model)
-        except Exception as ex:
-            msg = "Procedure post execution failed (%s)" % str(ex)
-            logging.getLogger("HWR").error(msg)
-        finally:
-            self.ready_event.set()
-
-    def stop_procedure(self):
-        """
-        Stops the execution of procedure
-        Returns:
-        """
-        self.set_procedure_stopped()
-
-    def pre_execute(self, data_model):
-        """
-        Pre execute task
-        Args:
-            data_model: data model defined in the queue_model_objects
-
-        Returns: None
-
-        """
-        self.set_procedure_started()
-
-    def execute(self, data_model):
-        """
-        Actual exection task
-        Args:
-            data_model: data model defined in the queue_model_objects
+            data_model: Immutable data model, frozen dict in
+            Python 2.7 and Data class in Python 3.7. Input validated
+            by schema defined in _ARG_SCHEMA
 
         Returns:
-
         """
         pass
 
-    def post_execute(self, data_model):
-        """
-        Post exectute
-        Args:
-            data_model: data model defined in the queue_model_objects
-
-        Returns:
-
-        """
-        if self.procedure_failed:
-            self.set_procedure_failed()
-        else:
-            self.set_procedure_successful()
-
-    def set_procedure_started(self):
+    def _set_started(self):
         """
         Emits procedureStarted signal
         Returns:
@@ -118,31 +70,119 @@ class AbstractProcedure(HardwareObject):
         """
         self.procedure_failed = False
         self.is_running = True
-        self.emit("procedureStarted")
+        dispatcher.send(self, "procedureStarted")
 
-    def set_procedure_successful(self):
+    def _set_successful(self):
         """
         Emits procedureSuccessful signal
         Returns:
 
         """
-        self.is_running = False
-        self.emit("procedureSuccessful", self.procedure_results)
+        self._is_running = False
+        dispatcher.send(self, "procedureSuccessful", self.results)
 
-    def set_procedure_failed(self):
+    def _set_failed(self):
         """
         Emits procedureFailed signal
         Returns:
 
         """
-        self.is_running = False
-        self.emit("procedureFailed", self.failed_msg)
+        self._is_running = False
+        dispatcher.send(self, "procedureFailed", self.msg)
 
-    def set_procedure_stopped(self):
+    def _set_stopped(self):
         """
         Emits procedureStoped signal
         Returns:
 
         """
-        self.is_running = False
-        self.emit("procedureStopped", self.procedure_results)
+        self._is_running = False
+        dispatcher.send(self, "procedureStopped", self.results)
+
+    def _start(self, data_model):
+        """
+        Internal start, for the moment executed in greenlet
+        """
+        try:
+            self._execute(data_model)
+        except Exception as ex:
+            self._failed = True
+            self._msg = "Procedure execution failed (%s)" % str(ex)
+            logging.getLogger("HWR").error(self._msg)
+        finally:
+            self.ready_event.set()
+            if self._failed:
+                self._set_failed()
+            else:
+                self._set_successful()
+
+    @property
+    def msg(self):
+        """
+        Last message produced by procedure
+        Returns:
+            str
+        """
+        return self._msg
+
+    @property
+    def running(self):
+        """
+        Execution state
+        Returns:
+            True if running otherwise false
+        """
+        return self._is_running
+
+    @property
+    def failed(self):
+        """
+        Execution state
+        Returns:
+            True if task exectuion failed false otherwise
+        """
+        return self._failed
+
+    @property
+    def results(self):
+        """
+        Results from procedure execution validated by RESULT_SCHEMA
+        if it is defined
+
+        Returns:
+            DataClass or frozendict
+        """
+        if self._RESULT_SCHEMA:
+            validate(self._results, schema=self._RESULT_SCHEMA)
+
+        return self._results
+
+    def start(self, data_model):
+        """
+        Starts procedure
+        Args:
+            data_model: Immutable data model, frozen dict in
+            Python 2.7 and Data class in Python 3.7. Input validated
+            by schema defined in _ARG_SCHEMA
+
+        Returns:
+            None
+        """
+        # This raises a ValidationException if validation fails
+        if self._ARG_SCHEMA:
+            validate(instance=data_model, schema=self._ARG_SCHEMA)
+
+        if not self._ALLOW_PARALLEL and self.is_running:
+            self._msg = "Procedure (%s) is already running" % str(self)
+            logging.getLogger("HWR").error(self._msg)
+        else:
+            self._task = gevent.spawn(self._start, data_model)
+
+    def stop(self):
+        """
+        Stops the execution of procedure
+        Returns:
+            None
+        """
+        gevent.kill(self._task)
+        self._set_procedure_stopped()
