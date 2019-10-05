@@ -50,6 +50,11 @@ class AbstractProcedure(ConfiguredObject):
         self._ready_event = gevent.event.Event()
         self._task = None
 
+        # YML configuration options
+        self.category = ""
+        self.name = "Procedure"
+        self.extra = {}
+
     def _execute(self, data_model):
         """
         Task logic
@@ -115,6 +120,24 @@ class AbstractProcedure(ConfiguredObject):
                 self._set_failed()
             else:
                 self._set_successful()
+
+    @property
+    def argument_schema(self):
+        """
+        Schema for argument passed to start
+        Returns:
+            str (JSONSchema)
+        """
+        return self._ARG_SCHEMA
+
+    @property
+    def result_schema(self):
+        """
+        Schema for result
+        Returns:
+            str (JSONSchema)
+        """
+        return self._RESULT_SCHEMA
 
     @property
     def msg(self):
