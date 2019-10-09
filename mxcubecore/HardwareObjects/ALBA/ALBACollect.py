@@ -692,7 +692,7 @@ class ALBACollect(AbstractCollect):
         if not self.is_sampleview_phase():
             self.go_to_sampleview()
 
-        HWR.beamline.graphics.save_scene_snapshot(filename)
+        HWR.beamline.microscope.save_scene_snapshot(filename)
         logging.getLogger("HWR").debug(" - snapshot saved to %s" % filename)
 
     def set_energy(self, value):

@@ -83,6 +83,12 @@ class Beamline(ConfiguredObject):
         # List[str] of advanced method names
         self.advanced_methods = []
 
+        # List[str] of available methods
+        self.available_methods = []
+
+        # int number of clicks used for click centring
+        self.click_centring_num_clicks = 3
+
         # bool Is wavelength tunable
         self.tunable_wavelength = False
 
@@ -269,6 +275,17 @@ class Beamline(ConfiguredObject):
     __content_roles.append("sample_changer")
 
     @property
+    def sample_changer_maintenance(self):
+        """Sample Changer Maintnance Hardware object
+
+        Returns:
+            Optional[AbstractMaintnanceSampleChanger]:
+        """
+        return self._objects.get("sample_changer_maintenance")
+
+    __content_roles.append("sample_changer_maintenance")
+
+    @property
     def plate_manipulator(self):
         """Plate Manuipulator Hardware object
         NBNB TODO REMOVE THIS and treat as an alternative sample changer instead.
@@ -308,15 +325,15 @@ class Beamline(ConfiguredObject):
     __content_roles.append("lims")
 
     @property
-    def graphics(self):
-        """Graphics/OAV object. Includes defined shapes.
+    def microscope(self):
+        """Microscope object. Includes defined shapes.
 
         Returns:
-            Optional[AbstractGraphics]:
+            Optional[AbstractMicroscope]:
         """
-        return self._objects.get("graphics")
+        return self._objects.get("microscope")
 
-    __content_roles.append("graphics")
+    __content_roles.append("microscope")
 
     @property
     def queue_manager(self):
@@ -385,6 +402,28 @@ class Beamline(ConfiguredObject):
         return self._objects.get("imaging")
 
     __content_roles.append("imaging")
+
+    @property
+    def xml_rpc_server(self):
+        """XMLRPCServer for RPC
+
+        Returns:
+            Optional[XMLRPCServer]:
+        """
+        return self._objects.get("xml_rpc_server")
+
+    __content_roles.append("xml_rpc_server")
+
+    @property
+    def workflow(self):
+        """Standarad EDNA workflow procedure.
+
+        Returns:
+            Optional[Workflow]:
+        """
+        return self._objects.get("workflow")
+
+    __content_roles.append("workflow")
 
     @property
     def gphl_workflow(self):
@@ -488,7 +527,6 @@ class Beamline(ConfiguredObject):
     # NB Objects need not be HardwareObjects
     # We still categorise them as'hardware' if they are not procedures, though
     # The attribute values will be given in the config.yml file
-
     def get_default_acquisition_parameters(self, acquisition_type="default"):
         """
         :returns: A AcquisitionParameters object with all default parameters for the
@@ -517,8 +555,10 @@ class Beamline(ConfiguredObject):
         osc_start = motor_positions.get("phi", params["osc_start"])
         acq_parameters.osc_start = round(float(osc_start), 2)
         kappa = motor_positions.get("kappa", 0.0)
+        kappa = kappa if kappa else 0.0
         acq_parameters.kappa = round(float(kappa), 2)
         kappa_phi = motor_positions.get("kappa_phi", 0.0)
+        kappa_phi = kappa_phi if kappa_phi else 0.0
         acq_parameters.kappa_phi = round(float(kappa_phi), 2)
 
         try:

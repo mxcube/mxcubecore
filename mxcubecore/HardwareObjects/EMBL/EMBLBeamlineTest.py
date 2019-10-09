@@ -121,7 +121,7 @@ class EMBLBeamlineTest(HardwareObject):
         self.bl_hwobj = self.getObjectByRole("beamline_setup")
         self.crl_hwobj = self.getObjectByRole("crl")
         self.connect(
-            HWR.beamline.graphics, "imageDoubleClicked", self.image_double_clicked
+            HWR.beamline.microscope, "imageDoubleClicked", self.image_double_clicked
         )
         self.connect(
             HWR.beamline.energy, "beamAlignmentRequested", self.center_beam_test
@@ -399,7 +399,7 @@ class EMBLBeamlineTest(HardwareObject):
             table_values += (
                 "<td><img src=%s style=width:700px;></td>" % beam_image_filename
             )
-            HWR.beamline.graphics.save_scene_snapshot(beam_image_filename)
+            HWR.beamline.microscope.save_scene_snapshot(beam_image_filename)
             progress_info = {"progress_total": len(aperture_list), "progress_msg": msg}
             self.emit("testProgress", (index, progress_info))
 
@@ -567,7 +567,7 @@ class EMBLBeamlineTest(HardwareObject):
                 slits_hwobj.set_vertical_gap(1.0)  # "Hor", 1.0)
                 slits_hwobj.set_horizontal_gap(1.0)  # "Ver", 1.0)
 
-            # HWR.beamline.graphics.save_scene_snapshot(beam_image_filename)
+            # HWR.beamline.microscope.save_scene_snapshot(beam_image_filename)
 
             # Actual centring procedure  ---------------
 
@@ -595,13 +595,13 @@ class EMBLBeamlineTest(HardwareObject):
             progress_info["progress_msg"] = msg
             log.info("Beam centering: %s" % msg)
             self.emit("testProgress", (6, progress_info))
-            HWR.beamline.graphics.move_beam_mark_auto()
+            HWR.beamline.microscope.move_beam_mark_auto()
 
         HWR.beamline.transmission.set_transmission(
             current_transmission
         )  # Transmission(current_transmission)
 
-        HWR.beamline.graphics.graphics_beam_item.set_detected_beam_position(
+        HWR.beamline.microscope.graphics_beam_item.set_detected_beam_position(
             None, None
         )
 
@@ -661,7 +661,7 @@ class EMBLBeamlineTest(HardwareObject):
                 with gevent.Timeout(10, False):
                     beam_pos_displacement = [None, None]
                     while None in beam_pos_displacement:
-                        beam_pos_displacement = HWR.beamline.graphics.get_beam_displacement(
+                        beam_pos_displacement = HWR.beamline.microscope.get_beam_displacement(
                             reference="beam"
                         )
                         gevent.sleep(0.1)
@@ -745,7 +745,7 @@ class EMBLBeamlineTest(HardwareObject):
                     with gevent.Timeout(10, False):
                         beam_pos_displacement = [None, None]
                         while None in beam_pos_displacement:
-                            beam_pos_displacement = HWR.beamline.graphics.get_beam_displacement(
+                            beam_pos_displacement = HWR.beamline.microscope.get_beam_displacement(
                                 reference="screen"
                             )
                             gevent.sleep(0.1)
@@ -831,7 +831,7 @@ class EMBLBeamlineTest(HardwareObject):
         beam_image_filename = os.path.join(
             self.test_directory, "auto_centring_before.png"
         )
-        HWR.beamline.graphics.save_scene_snapshot(beam_image_filename)
+        HWR.beamline.microscope.save_scene_snapshot(beam_image_filename)
         gevent.sleep(0.1)
         result["result_details"].append(
             "<img src=%s style=width:300px;><br>" % beam_image_filename
@@ -845,7 +845,7 @@ class EMBLBeamlineTest(HardwareObject):
         beam_image_filename = os.path.join(
             self.test_directory, "auto_centring_after.png"
         )
-        HWR.beamline.graphics.save_scene_snapshot(beam_image_filename)
+        HWR.beamline.microscope.save_scene_snapshot(beam_image_filename)
         result["result_details"].append(
             "<img src=%s style=width:300px;><br>" % beam_image_filename
         )

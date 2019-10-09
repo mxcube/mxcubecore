@@ -166,7 +166,7 @@ class MiniDiff(Equipment):
 
 
         # mh 2013-11-05:why is the channel read directly? disabled for the moment
-        # HWR.beamline.graphics.camera.addChannel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
+        # HWR.beamline.microscope.camera.addChannel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
 
         self.centringPhi = sample_centring.CentringMotor(self.phiMotor, direction=-1)
         self.centringPhiz = sample_centring.CentringMotor(
@@ -258,15 +258,15 @@ class MiniDiff(Equipment):
                 "MiniDiff: sampx motor is not defined in minidiff equipment %s",
                 str(self.name()),
             )
-        # if HWR.beamline.graphics.camera is None:
+        # if HWR.beamline.microscope.camera is None:
         #     logging.getLogger("HWR").error(
         #         "MiniDiff: camera is not defined in minidiff equipment %s",
         #         str(self.name()),
         #     )
         # else:
         #     self.imgWidth, self.imgHeight = (
-        #         HWR.beamline.graphics.camera.getWidth(),
-        #         HWR.beamline.graphics.camera.getHeight(),
+        #         HWR.beamline.microscope.camera.getWidth(),
+        #         HWR.beamline.microscope.camera.getHeight(),
         #     )
         if HWR.beamline.sample_changer is None:
             logging.getLogger("HWR").warning(
@@ -423,7 +423,7 @@ class MiniDiff(Equipment):
             and self.phiMotor is not None
             and self.phizMotor is not None
             and self.phiyMotor is not None
-            and HWR.beamline.graphics.camera is not None
+            and HWR.beamline.microscope.camera is not None
         )
 
     def in_plate_mode(self):
@@ -651,7 +651,7 @@ class MiniDiff(Equipment):
         self.accept_centring()
 
     def start_manual_centring(self, sample_info=None):
-	beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
         self.current_centring_procedure = sample_centring.start(
             {
                 "phi": self.centringPhi,
@@ -813,7 +813,7 @@ class MiniDiff(Equipment):
                     self.accept_centring()
 
     def start_auto_centring(self, sample_info=None, loop_only=False):
-	beam_pos_x,  beam_pos_y = HWR.beamline.beam.get_beam_position()
+        beam_pos_x,  beam_pos_y = HWR.beamline.beam.get_beam_position()
 
         self.current_centring_procedure = sample_centring.start_auto(
             self.camera,
@@ -946,7 +946,7 @@ class MiniDiff(Equipment):
             time.sleep(0.1)
 
     def takeSnapshots(self, image_count, wait=False):
-        HWR.beamline.graphics.camera.forceUpdate = True
+        HWR.beamline.microscope.camera.forceUpdate = True
 
         snapshotsProcedure = gevent.spawn(
             take_snapshots,
@@ -966,7 +966,7 @@ class MiniDiff(Equipment):
             self.centringStatus["images"] = snapshotsProcedure.get()
 
     def snapshotsDone(self, snapshotsProcedure):
-        HWR.beamline.graphics.camera.forceUpdate = False
+        HWR.beamline.microscope.camera.forceUpdate = False
 
         try:
             self.centringStatus["images"] = snapshotsProcedure.get()
