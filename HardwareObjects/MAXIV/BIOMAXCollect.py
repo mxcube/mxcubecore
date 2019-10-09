@@ -223,7 +223,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 # No centring point defined
                 # create point based on the current position
                 current_diffractometer_position = (
-                    HWR.beamline.diffractometer.getPositions()
+                    HWR.beamline.diffractometer.get_positions()
                 )
                 for motor in self.current_dc_parameters["motors"].keys():
                     self.current_dc_parameters["motors"][

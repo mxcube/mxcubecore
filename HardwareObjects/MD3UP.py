@@ -169,7 +169,7 @@ class MD3UP(Microdiff.Microdiff):
         # Prepositionning at the center of the grid
         self.moveMotors(mesh_center.as_dict())
 
-        positions = self.getPositions()
+        positions = self.get_positions()
 
         params = "%0.3f\t" % (end - start)
         params += "%0.3f\t" % mesh_range["vertical_range"]
