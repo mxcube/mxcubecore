@@ -1434,7 +1434,7 @@ class GphlWorkflow(HardwareObject, object):
             # We are moving to having recentered positions -
             # Set or prompt for fine zoom
             self._use_fine_zoom = True
-            zoom_motor = HWR.beamline.graphics.zoom
+            zoom_motor = HWR.beamline.microscope.zoom
             if zoom_motor:
                 # Zoom to the last predefined position
                 # - that should be the largest magnification

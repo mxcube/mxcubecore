@@ -228,9 +228,9 @@ class GenericDiffractometer(HardwareObject):
         self.user_confirms_centring = True
 
         # Hardware objects ----------------------------------------------------
-        # if HWR.beamline.graphics.camera is not None:
-        #     self.image_height = HWR.beamline.graphics.camera.getHeight()
-        #     self.image_width = HWR.beamline.graphics.camera.getWidth()
+        # if HWR.beamline.microscope.camera is not None:
+        #     self.image_height = HWR.beamline.microscope.camera.getHeight()
+        #     self.image_width = HWR.beamline.microscope.camera.getWidth()
         # else:
         #     logging.getLogger("HWR").debug(
         #         "Diffractometer: " + "Camera hwobj is not defined"
@@ -688,14 +688,14 @@ class GenericDiffractometer(HardwareObject):
     #     return self.current_positions_dict.get("phi")
 
     def get_snapshot(self):
-        if HWR.beamline.graphics.camera:
-            return HWR.beamline.graphics.camera.get_snapshot()
+        if HWR.beamline.microscope:
+            return HWR.beamline.microscope.take_snapshot()
 
     def save_snapshot(self, filename):
         """
         """
-        if HWR.beamline.graphics.camera:
-            return HWR.beamline.graphics.camera.save_snapshot(filename)
+        if HWR.beamline.microscope:
+            return HWR.beamline.microscope.save_snapshot(filename)
 
     def get_pixels_per_mm(self):
         """
@@ -810,7 +810,7 @@ class GenericDiffractometer(HardwareObject):
         while self.automatic_centring_try_count > 0:
             if self.use_sample_centring:
                 self.current_centring_procedure = sample_centring.start_auto(
-                    HWR.beamline.graphics.camera,
+                    HWR.beamline.microscope.camera,
                     {
                         "phi": self.centring_phi,
                         "phiy": self.centring_phiy,
