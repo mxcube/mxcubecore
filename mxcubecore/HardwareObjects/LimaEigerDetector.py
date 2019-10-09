@@ -93,7 +93,7 @@ class Eiger:
         gate=False,
     ):
         diffractometer_positions = (
-            HWR.beamline.diffractometer.getPositions()
+            HWR.beamline.diffractometer.get_positions()
         )
         self.start_angles = list()
         for i in range(number_of_images):

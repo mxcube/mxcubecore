@@ -410,7 +410,7 @@ class GenericDiffractometer(HardwareObject):
         # TODO remove this
         self.getCentringStatus = self.get_centring_status
 
-        self.getPositions = self.get_positions
+        self.get_positions = self.get_positions
         self.moveMotors = self.move_motors
         self.isReady = self.is_ready
 

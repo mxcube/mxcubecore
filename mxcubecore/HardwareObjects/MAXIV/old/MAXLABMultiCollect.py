@@ -1175,7 +1175,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
                 continue
             motors_to_move_before_collect[motor] = pos
 
-        current_diffractometer_position = self.diffractometer().getPositions()
+        current_diffractometer_position = self.diffractometer().get_positions()
         for motor in motors_to_move_before_collect.keys():
             if motors_to_move_before_collect[motor] is None:
                 del motors_to_move_before_collect[motor]

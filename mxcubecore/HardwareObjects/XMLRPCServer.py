@@ -485,7 +485,7 @@ class XMLRPCServer(HardwareObject):
             self.wokflow_in_progress = False
 
     def get_diffractometer_positions(self):
-        return HWR.beamline.diffractometer.getPositions()
+        return HWR.beamline.diffractometer.get_positions()
 
     def move_diffractometer(self, roles_positions_dict):
         HWR.beamline.diffractometer.moveMotors(roles_positions_dict)
