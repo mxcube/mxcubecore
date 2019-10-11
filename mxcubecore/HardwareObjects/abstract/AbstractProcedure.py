@@ -32,32 +32,68 @@ from jsonschema import (validate, ValidationError)
 __credits__ = ["MXCuBE collaboration"]
 
 
+@unique
+class ProcedureState(IntEnum):
+    """
+    Defines the valid Shutter states
+    """
+    RUNNING = 0
+    FAILED = 1
+    SUCCESFUL = 2
+    IDLE = 4
+
+
 class AbstractProcedure(ConfiguredObject):
+
+    __content_roles = []
+
     _ALLOW_PARALLEL = False
 
     # JSONSchema used for input and output validation and possibly
     # form generation.
     # https://json-schema.org/
+    # Needs to be defined by each subclass
     _ARG_SCHEMA = None
     _RESULT_SCHEMA = None
 
-    def __init__(self):
-        self._is_running = None
-        self._ready_event = None
-        self._msg = None
-        self._failed = None
-        self._results = None
+    def __init__(self, name):
+        super(AbstractProcedure, self).__init__(name)
+
+        self._msg=None
+        self._results=None
         self._ready_event = gevent.event.Event()
-        self._task = None
+        self._task=None
+        self._state = ProcedureState.IDLE
 
         # YML configuration options
-        self.category = ""
-        self.name = "Procedure"
-        self.extra = {}
+        # Category that the Procedure belongs to, configurable through
+        # YAML file and used by for listing and displaying the procedure
+        # in the right context.
+        self.category=""
+
+    def _init(self):
+        pass
+
+    def init(self):
+        pass
 
     def _execute(self, data_model):
         """
-        Task logic
+        Override to implement main task logic
+
+        Args:
+            data_model: Immutable data model, frozen dict in
+            Python 2.7 and Data class in Python 3.7. Input validated
+            by schema defined in _ARG_SCHEMA
+
+        Returns:
+        """
+        pass
+
+    def _post_execute(self, data_model):
+        """
+        Override to implement post execute task logic
+
         Args:
             data_model: Immutable data model, frozen dict in
             Python 2.7 and Data class in Python 3.7. Input validated
@@ -73,8 +109,7 @@ class AbstractProcedure(ConfiguredObject):
         Returns:
 
         """
-        self.procedure_failed = False
-        self.is_running = True
+        self._state = ProcedureState.RUNNING
         dispatcher.send(self, "procedureStarted")
 
     def _set_successful(self):
@@ -83,7 +118,7 @@ class AbstractProcedure(ConfiguredObject):
         Returns:
 
         """
-        self._is_running = False
+        self._state = ProcedureState.SUCCESFUL
         dispatcher.send(self, "procedureSuccessful", self.results)
 
     def _set_failed(self):
@@ -92,7 +127,7 @@ class AbstractProcedure(ConfiguredObject):
         Returns:
 
         """
-        self._is_running = False
+        self._state = ProcedureState.FAILED
         dispatcher.send(self, "procedureFailed", self.msg)
 
     def _set_stopped(self):
@@ -101,7 +136,7 @@ class AbstractProcedure(ConfiguredObject):
         Returns:
 
         """
-        self._is_running = False
+        self._state = ProcedureState.FAILED
         dispatcher.send(self, "procedureStopped", self.results)
 
     def _start(self, data_model):
@@ -109,14 +144,24 @@ class AbstractProcedure(ConfiguredObject):
         Internal start, for the moment executed in greenlet
         """
         try:
+            # The _pre_execute have been removed and can be done within
+            # execute if needed
             self._execute(data_model)
         except Exception as ex:
-            self._failed = True
+            self._state = ProcedureState.FAILED
             self._msg = "Procedure execution failed (%s)" % str(ex)
             logging.getLogger("HWR").error(self._msg)
         finally:
+            try:
+                self._post_execute(data_model)
+            except Exception as ex:
+                self._state = ProcedureState.FAILED
+                self._msg = "Procedure post_execute failed (%s)" % str(ex)
+                logging.getLogger("HWR").error(self._msg)
+
             self.ready_event.set()
-            if self._failed:
+
+            if self._state ==  ProcedureState.FAILED:
                 self._set_failed()
             else:
                 self._set_successful()
@@ -149,22 +194,13 @@ class AbstractProcedure(ConfiguredObject):
         return self._msg
 
     @property
-    def running(self):
+    def state(self):
         """
         Execution state
         Returns:
-            True if running otherwise false
+             ProcedureState: The current state of the procedure
         """
-        return self._is_running
-
-    @property
-    def failed(self):
-        """
-        Execution state
-        Returns:
-            True if task exectuion failed false otherwise
-        """
-        return self._failed
+        return self._state
 
     @property
     def results(self):
