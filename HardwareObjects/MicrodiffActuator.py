@@ -13,15 +13,15 @@ Example xml file:
 
 import logging
 import time
-from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator
+from HardwareRepository.HardwareObjects.abstract.AbstractTwoState import (
+    AbstractTwoState
 )
 from HardwareRepository.TaskUtils import task
 
 
-class MicrodiffActuator(AbstractActuator):
+class MicrodiffActuator(AbstractTwoState):
     def __init__(self, name):
-        AbstractActuator.__init__(self, name)
+        AbstractTwoState.__init__(self, name)
         self._hwstate_attr = None
 
     def init(self):
@@ -92,10 +92,10 @@ class MicrodiffActuator(AbstractActuator):
     def get_actuator_state(self, read=False):
         if read is True:
             value = self.state_attr.getValue()
-            self.actuator_state = self.states.get(value, AbstractActuator.UNKNOWN)
+            self.actuator_state = self.states.get(value, AbstractTwoState.UNKNOWN)
             # self.connectNotify("actuatorStateChanged")
         else:
-            if self.actuator_state == AbstractActuator.UNKNOWN:
+            if self.actuator_state == AbstractTwoState.UNKNOWN:
                 self.connectNotify("actuatorStateChanged")
         return self.actuator_state
 

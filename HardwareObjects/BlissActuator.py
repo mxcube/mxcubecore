@@ -9,15 +9,15 @@ Example xml file:
 """
 import logging
 
-from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator
+from HardwareRepository.HardwareObjects.abstract.AbstractTwoState import (
+    AbstractTwoState
 )
 from HardwareRepository.TaskUtils import task
 
 
-class BlissActuator(AbstractActuator):
+class BlissActuator(AbstractTwoState):
     def __init__(self, name):
-        AbstractActuator.__init__(self, name)
+        AbstractTwoState.__init__(self, name)
 
     def init(self):
         self.username = self.getProperty("username")
@@ -29,9 +29,9 @@ class BlissActuator(AbstractActuator):
     def get_actuator_state(self, read=False):
         if read is True:
             value = self._actuator.state()
-            self.actuator_state = self.states.get(value, AbstractActuator.UNKNOWN)
+            self.actuator_state = self.states.get(value, AbstractTwoState.UNKNOWN)
         else:
-            if self.actuator_state == AbstractActuator.UNKNOWN:
+            if self.actuator_state == AbstractTwoState.UNKNOWN:
                 self.connectNotify("actuatorStateChanged")
 
         logging.getLogger().debug("%s state: %s" % (self.username, self.actuator_state))

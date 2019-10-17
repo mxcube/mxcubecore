@@ -8,13 +8,13 @@ from HardwareRepository.BaseHardwareObjects import Device
 from HardwareRepository.TaskUtils import task
 
 
-class AbstractActuator(Device):
+class AbstractTwoState(Device):
 
     (UNKNOWN, IN, OUT, MOVING) = ("unknown", "in", "out", "moving")
 
     def __init__(self, name):
         Device.__init__(self, name)
-        self.actuator_state = AbstractActuator.UNKNOWN
+        self.actuator_state = AbstractTwoState.UNKNOWN
         self.username = "unknown"
         # default timeout - 3 sec
         self._timeout = 3
@@ -25,7 +25,7 @@ class AbstractActuator(Device):
             self.value_changed(self.get_actuator_state(read=True))
 
     def value_changed(self, value):
-        self.actuator_state = self.states.get(value, AbstractActuator.UNKNOWN)
+        self.actuator_state = self.states.get(value, AbstractTwoState.UNKNOWN)
         self.emit("actuatorStateChanged", (self.actuator_state.lower(),))
 
     def get_actuator_state(self, read=False):
@@ -63,9 +63,9 @@ class AbstractActuator(Device):
              wait (bool): wait for the movement to finish
              timeout (float): movement expires after timeout [s]
         """
-        if self.actuator_state == AbstractActuator.IN:
+        if self.actuator_state == AbstractTwoState.IN:
             self.actuator_out(wait, timeout)
-        elif self.actuator_state == AbstractActuator.OUT:
+        elif self.actuator_state == AbstractTwoState.OUT:
             self.actuator_in(wait, timeout)
 
     def getActuatorState(self, read=False):

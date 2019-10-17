@@ -14,13 +14,13 @@ from HardwareRepository.TaskUtils import task
 import logging
 
 from HardwareRepository.TaskUtils import task
-from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator
+from HardwareRepository.HardwareObjects.abstract.AbstractTwoState import (
+    AbstractTwoState
 )
 
-class MockupActuator(AbstractActuator):
+class MockupActuator(AbstractTwoState):
     def __init__(self, name):
-        AbstractActuator.__init__(self, name)
+        AbstractTwoState.__init__(self, name)
 
     def init(self):
         self.username = self.getProperty("username")
