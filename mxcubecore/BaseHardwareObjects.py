@@ -15,6 +15,11 @@ class ConfiguredObject(object):
     # NB the double underscore is deliberate - attribute must be hidden from subclasses
     __content_roles = []
 
+    # Procedure names - placeholder.
+    # Will be replaced by a set in any subclasses that can contain procedures
+    # Note that _procedure_names may *not* be set if it is already set in a superclass
+    _procedure_names = None
+
     def __init__(self, name):
 
         self.name = name
@@ -57,6 +62,17 @@ class ConfiguredObject(object):
         """
         return self._objects.copy()
 
+    @property
+    def procedures(self):
+        procedure_names = self.__class__._procedure_names
+        result = {}
+        if procedure_names:
+            for name in procedure_names:
+                procedure = getattr(self, name)
+                if procedure is not None:
+                    result[name] = procedure
+        #
+        return result
 
 class PropertySet(dict):
     def __init__(self):
