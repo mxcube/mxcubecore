@@ -34,14 +34,13 @@ class BIOMAXTransmission(Equipment):
         curr_pos = float(self.get_value())
         return abs(curr_pos - setpoint) < 5
 
-    def set_value(self, value, wait=False):
+    def set_value(self, value, timeout=30):
         if value < self.limits[0] or value > self.limits[1]:
             raise Exception("Transmssion out of limits.")
         HWR.beamline.transmission.move(value)
-        if wait:
-            with gevent.Timeout(30, Exception("Timeout waiting for device ready")):
-                while not self.setpoint_reached(value):
-                    gevent.sleep(0.1)
+        with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
+            while not self.setpoint_reached(value):
+                gevent.sleep(0.1)
 
         self._update()
 

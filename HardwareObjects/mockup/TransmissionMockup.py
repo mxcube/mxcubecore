@@ -1,46 +1,51 @@
-from HardwareRepository.BaseHardwareObjects import Device
+#! /usr/bin/env python
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
+"""
+Example of Transmission HardwareObject using new StandardHardwareObject
+Based on existing HardwarObjects.Transmission
+"""
+
+from __future__ import division, absolute_import
+from __future__ import print_function, unicode_literals
+
+from HardwareRepository.HardwareObjects.mockup import AbstractMockActuator
+
+__credits__ = [" Copyright © 2019 -  by MXCuBE collaboration. All rights reserved"]
+__license__ = "LGPLv3+"
+__category__ = "General"
+__author__ = "rhfogh"
+__date__ = "17/05/2019"
 
 
-class TransmissionMockup(Device):
-    def __init__(self, name):
-        Device.__init__(self, name)
+class TransmissionMockup(AbstractMockActuator.AbstractMockActuator):
+    """MockTransmission implementation using new AbstractMockActuator
+    """
 
-        self.labels = []
-        self.bits = []
-        self.attno = 0
-        self.getValue = self.get_value
-        self.value = 100
+    # Note that all the rest of the code is in the superclass!
 
     def init(self):
-        pass
-
-    def getAttState(self):
-        return 0
-
-    def getAttFactor(self):
-        return self.value
-
-    def setAttFactor(self, value):
-        self.value = value
-        self.emit("valueChanged", self.value)
-
-    def get_value(self):
-        return self.getAttFactor()
-
-    def set_value(self, value):
-        self.setAttFactor(value)
-
-    def connected(self):
-        self.setIsReady(True)
-
-    def disconnected(self):
-        self.setIsReady(False)
-
-    def attStateChanged(self, channelValue):
-        pass
-
-    def attFactorChanged(self, channelValue):
-        pass
-
-    def isReady(self):
-        return True
+        # NB should be set from configuration
+        self.value_resolution = 0.01
+        self._limits = (0, 100)
+        self._value_set_delay = 2.0
+        self._value = 100
+        self._state = self.STATE.READY

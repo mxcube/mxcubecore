@@ -164,7 +164,7 @@ class BIOMAXEiger(Equipment):
         )
 
         for channel_name in attr_list:
-            self.addChannel(
+            self.add_channel(
                 {
                     "type": "tango",
                     "name": channel_name,
@@ -178,7 +178,7 @@ class BIOMAXEiger(Equipment):
         # get any of the channels for that.
 
         for channel_name in fw_list:
-            self.addChannel(
+            self.add_channel(
                 {"type": "tango", "name": channel_name, "tangoname": filewriter_device},
                 channel_name,
             )
@@ -311,6 +311,8 @@ class BIOMAXEiger(Equipment):
     #  STATUS END
 
     #  GET INFORMATION
+    def get_channel_value(self, name):
+        return self.getChannelObject(name).getValue()
 
     def set_channel_value(self, name, value):
         try:

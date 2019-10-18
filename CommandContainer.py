@@ -358,18 +358,6 @@ class CommandContainer:
     def get_channel_value(self, channel_name):
         return self.__channels[channel_name].getValue()
 
-    def setValue(self, channelName, value):
-        warn(
-            "setValue is deprecated. Use set_channel_value instead", DeprecationWarning
-        )
-        self.set_channel_value(channelName, value)
-
-    def getValue(self, channelName):
-        warn(
-            "getValue is deprecated. Use get_channel_value instead", DeprecationWarning
-        )
-        return self.get_channel_value(channelName)
-
     def getChannels(self):
         for chan in self.__channels.values():
             yield chan
@@ -386,10 +374,6 @@ class CommandContainer:
 
     def getCommandNamesList(self):
         return list(self.__commands.keys())
-
-    def addCommand(self, arg1, arg2=None, addNow=True):
-        warn("addCommand is deprecated. Use add_command instead", DeprecationWarning)
-        return self.add_command(arg1, arg2, addNow)
 
     def add_command(self, arg1, arg2=None, addNow=True):
         if not addNow:

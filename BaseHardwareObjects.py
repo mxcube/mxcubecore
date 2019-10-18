@@ -197,7 +197,6 @@ class HardwareObjectNode:
     def resolveReferences(self):
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import getHardwareRepository
-
         while len(self.__references) > 0:
             reference, name, role, objectsNamesIndex, objectsIndex, objectsIndex2 = (
                 self.__references.pop()
@@ -314,23 +313,6 @@ class HardwareObjectNode:
     def getProperties(self):
         return self._propertySet
 
-    def update_values(self):
-        """Method called from Qt bricks to ensure that bricks have values
-           after the initialization.
-           Problem arrise when a hardware object is used by several bricks.
-           If first brick connects to some signal emited by a brick then
-           other bricks connecting to the same signal will no receive the
-           values on the startup.
-           The easiest solution is to call update_values method directly
-           after getHardwareObject and connect.
-
-           Normaly this method would emit all values
-        """
-        return
-
-    def clear_gevent(self):
-        pass
-
     def print_log(self, log_type="HWR", level="debug", msg=""):
         if hasattr(logging.getLogger(log_type), level):
             getattr(logging.getLogger(log_type), level)(msg)
@@ -357,7 +339,6 @@ class HardwareObjectMixin(HardwareObjectNode, CommandContainer):
     def __setstate__(self, name):
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import getHardwareRepository
-
         o = getHardwareRepository().getHardwareObject(name)
         self.__dict__.update(o.__dict__)
 
@@ -463,15 +444,36 @@ class HardwareObjectMixin(HardwareObjectNode, CommandContainer):
         """Rewrite XML file"""
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import getHardwareRepository
-
         getHardwareRepository().rewrite_xml(self.name(), xml)
 
     def xml_source(self):
         """Get XML source code"""
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import getHardwareRepository
-
         return getHardwareRepository().xml_source[self.name()]
+
+    # Moved from HardwareObjectNode
+    def clear_gevent(self):
+        """Clear gevent tasks
+
+        Returns:
+
+        """
+        pass
+
+    def update_values(self):
+        """Method called from Qt bricks to ensure that bricks have values
+           after the initialization.
+           Problem arrise when a hardware object is used by several bricks.
+           If first brick connects to some signal emited by a brick then
+           other bricks connecting to the same signal will no receive the
+           values on the startup.
+           The easiest solution is to call update_values method directly
+           after getHardwareObject and connect.
+
+           Normaly this method would emit all values
+        """
+        return
 
 class HardwareObject(HardwareObjectMixin, HardwareObjectNode, CommandContainer):
     """Xml-configured hardware object"""
@@ -559,7 +561,30 @@ class DeviceContainer:
 
 
 class DeviceContainerNode(HardwareObjectNode, DeviceContainer):
-    pass
+
+    # Moved from HardwareObjectNode
+
+    def clear_gevent(self):
+        """Clear gevent tasks
+
+        Returns:
+
+        """
+        pass
+
+    def update_values(self):
+        """Method called from Qt bricks to ensure that bricks have values
+           after the initialization.
+           Problem arrise when a hardware object is used by several bricks.
+           If first brick connects to some signal emited by a brick then
+           other bricks connecting to the same signal will no receive the
+           values on the startup.
+           The easiest solution is to call update_values method directly
+           after getHardwareObject and connect.
+
+           Normaly this method would emit all values
+        """
+        return
 
 
 class Equipment(HardwareObject, DeviceContainer):
