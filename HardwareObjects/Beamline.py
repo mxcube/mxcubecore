@@ -112,10 +112,6 @@ class Beamline(ConfiguredObject):
         # int Starting run number for path_template
         self.run_number = 1
 
-    def _init(self):
-        """Objetc initialisation - executed *before* loading contents"""
-        pass
-
     def init(self):
         """Object initialisation - executed *after* loading contents"""
 
