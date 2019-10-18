@@ -26,6 +26,14 @@ class ConfiguredObject(object):
 
         self._objects = OrderedDict((role, None) for role in self.all_roles)
 
+    def _init(self):
+        """Object initialisation - executed *before* loading contents"""
+        pass
+
+    def init(self):
+        """Object initialisation - executed *after* loading contents"""
+        pass
+
     def replace_object(self, role, new_object):
         """Replace already defined Object with a new one - for runtime use
 
