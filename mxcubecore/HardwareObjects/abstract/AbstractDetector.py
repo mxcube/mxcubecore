@@ -168,10 +168,10 @@ class AbstractDetector(object):
 
 
     @property
-    def detector_distance(self):
+    def distance(self):
         """Property for contained detector_distance hwobj
 
-        NBNB Temnporary hack. This should eb configured pro[perly
+        NBNB Temnporary hack. This should be configured properly
 
         Returns:
             AbstratctActuator
