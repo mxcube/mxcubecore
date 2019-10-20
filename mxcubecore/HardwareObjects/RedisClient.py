@@ -25,6 +25,7 @@ Start server on local pc: redis-server &
 It is recommended to start redis with mxcube
 
 example xml:
+NBNB OBSOLETE there is no longer a beamline_setup
 
 <object class="RedisClient">
    <object href="/beamline-setup" role="beamline_setup"/>

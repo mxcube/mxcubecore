@@ -201,7 +201,6 @@ class BaseQueueEntry(QueueEntryContainer):
         self.set_data_model(data_model)
         self.set_view(view, view_set_queue_entry)
         self._checked_for_exec = False
-        self.beamline_setup = None
         self.status = QUEUE_ENTRY_STATUS.SUCCESS
         self.type_str = ""
 
@@ -295,9 +294,6 @@ class BaseQueueEntry(QueueEntryContainer):
         """
         msg = "Calling pre_execute on: " + str(self)
         logging.getLogger("queue_exec").info(msg)
-        self.beamline_setup = self.get_queue_controller().getObjectByRole(
-            "beamline_setup"
-        )
         self.get_data_model().set_running(True)
 
     def post_execute(self):
