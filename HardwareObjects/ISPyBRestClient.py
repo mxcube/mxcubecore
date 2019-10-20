@@ -450,7 +450,7 @@ class ISPyBRestClient(HardwareObject):
 
         return translated
 
-    def store_data_collection(self, mx_collection, beamline_setup=None):
+    def store_data_collection(self, mx_collection, bl_config=None):
         """
         Stores the data collection mx_collection, and the beamline setup
         if provided.
@@ -458,8 +458,8 @@ class ISPyBRestClient(HardwareObject):
         :param mx_collection: The data collection parameters.
         :type mx_collection: dict
 
-        :param beamline_setup: The beamline setup.
-        :type beamline_setup: dict
+        :param bl_config: The beamline setup.
+        :type bl_config: dict
 
         :returns: None
 
@@ -467,21 +467,21 @@ class ISPyBRestClient(HardwareObject):
         print(("store_data_collection...", mx_collection))
         return None, None
 
-    def store_beamline_setup(self, session_id, beamline_setup):
+    def store_beamline_setup(self, session_id, bl_config):
         """
-        Stores the beamline setup dict <beamline_setup>.
+        Stores the beamline setup dict <bl_config>.
 
-        :param session_id: The session id that the beamline_setup
+        :param session_id: The session id that the bl_config
                            should be associated with.
         :type session_id: int
 
-        :param beamline_setup: The dictonary with beamline settings.
-        :type beamline_setup: dict
+        :param bl_config: The dictonary with beamline settings.
+        :type bl_config: dict
 
         :returns beamline_setup_id: The database id of the beamline setup.
         :rtype: str
         """
-        print(("store_beamline_setup...", beamline_setup))
+        print(("store_bl_config...", bl_config))
 
     def update_data_collection(self, mx_collection, wait=False):
         """

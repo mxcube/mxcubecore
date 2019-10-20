@@ -139,7 +139,6 @@ class XMLRPCServer(HardwareObject):
         self.all_interfaces = None
         self.enforceUseOfToken = None
 
-        self.beamline_setup_hwobj = None
         self.wokflow_in_progress = True
         self.xmlrpc_prefixes = set()
         self.current_entry_task = None
@@ -250,10 +249,7 @@ class XMLRPCServer(HardwareObject):
                     api.getProperty("module"), recurse=recurse
                 )
 
-        self.beamline_setup_hwobj = self.getObjectByRole("beamline_setup")
-
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
-        self.workflow_hwobj = self.getObjectByRole("workflow")
         self.beamcmds_hwobj = self.getObjectByRole("beamcmds")
 
     def anneal(self, time):
@@ -472,11 +468,14 @@ class XMLRPCServer(HardwareObject):
         return json_cplist
 
     def beamline_setup_read(self, path):
-        try:
-            return self.beamline_setup_hwobj.read_value(path)
-        except Exception as ex:
-            logging.getLogger("HWR").exception(str(ex))
-            raise
+        raise NotImplementedError(
+            "There is no longer a BeamlineSetup object. Please refactor code"
+        )
+        # try:
+        #     return self.beamline_setup_hwobj.read_value(path)
+        # except Exception as ex:
+        #     logging.getLogger("HWR").exception(str(ex))
+        #     raise
 
     def workflow_set_in_progress(self, state):
         if state:
@@ -548,8 +547,9 @@ class XMLRPCServer(HardwareObject):
         This call blocks util the dialog is ended by the user.
         """
         return_map = {}
-        if self.workflow_hwobj is not None:
-            return_map = self.workflow_hwobj.open_dialog(dict_dialog)
+        workflow_hwobj = HWR.beamline.workflow
+        if workflow_hwobj is not None:
+            return_map = workflow_hwobj.open_dialog(dict_dialog)
         self.emit("open_dialog", dict_dialog)
         return return_map
 
@@ -557,8 +557,9 @@ class XMLRPCServer(HardwareObject):
         """
         Notify the workflow HO that the workflow has finished.
         """
-        if self.workflow_hwobj is not None:
-            self.workflow_hwobj.workflow_end()
+        workflow_hwobj = HWR.beamline.workflow
+        if workflow_hwobj is not None:
+            workflow_hwobj.workflow_end()
 
     def dozor_batch_processed(self, dozor_batch_dict):
         HWR.beamline.online_processing.batch_processed(dozor_batch_dict)

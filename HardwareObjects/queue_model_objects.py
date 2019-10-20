@@ -1743,9 +1743,8 @@ class Workflow(TaskNode):
 
 
 class GphlWorkflow(TaskNode):
-    def __init__(self, workflow_hwobj):
+    def __init__(self):
         TaskNode.__init__(self)
-        self.workflow_hwobj = workflow_hwobj
         self.path_template = PathTemplate()
         self._name = str()
         self._type = str()
@@ -1906,7 +1905,9 @@ class GphlWorkflow(TaskNode):
         return self.path_template
 
     def get_workflow_parameters(self):
-        result = self.workflow_hwobj.get_available_workflows().get(self.get_type())
+        result = HWR.beamline.gphl_workflow.get_available_workflows().get(
+            self.get_type()
+        )
         if result is None:
             raise RuntimeError(
                 "No parameters for unknown workflow %s" % repr(self.get_type())
@@ -2056,9 +2057,6 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
 def dc_from_edna_output(
     edna_result,
     reference_image_collection,
-    dcg_model,
-    sample_data_model,
-    beamline_setup_hwobj,
     char_params=None,
 ):
     data_collections = []
