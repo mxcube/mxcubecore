@@ -45,9 +45,6 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
     def dtoxPositionChanged(self, pos):
         self.newResolution(self.dist2res(pos))
 
-    def getWavelength(self):
-        return HWR.beamline.energy.get_current_wavelength()
-
     def wavelengthChanged(self, pos=None):
         self.recalculateResolution()
 
@@ -60,7 +57,9 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
             res = self.currentResolution
 
         try:
-            ttheta = 2 * math.asin(self.getWavelength() / (2 * res))
+            ttheta = 2 * math.asin(
+                HWR.beamline.energy.get_current_wavelength() / (2 * res)
+            )
             return self.det_radius / math.tan(ttheta)
         except BaseException:
             return None
@@ -74,7 +73,10 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         try:
             ttheta = math.atan(self.det_radius / dist)
             if ttheta != 0:
-                return self.getWavelength() / (2 * math.sin(ttheta / 2))
+                return (
+                    HWR.beamline.energy.get_current_wavelength()
+                    / (2 * math.sin(ttheta / 2))
+                )
         except BaseException:
             logging.getLogger().exception("error while calculating resolution")
             return None

@@ -491,15 +491,6 @@ class AbstractCollect(HardwareObject, object):
         """
         return
 
-    def get_beam_size(self):
-        """
-        Descript. :
-        """
-        if HWR.beamline.beam is not None:
-            return HWR.beamline.beam.get_beam_size()
-        else:
-            return None, None
-
     def get_slit_gaps(self):
         """
         Descript. :
@@ -647,7 +638,7 @@ class AbstractCollect(HardwareObject, object):
             self.current_dc_parameters[
                 "resolutionAtCorner"
             ] = self.get_resolution_at_corner()
-            beam_size_x, beam_size_y = self.get_beam_size()
+            beam_size_x, beam_size_y = HWR.beamline.beam.get_beam_size()
             self.current_dc_parameters["beamSizeAtSampleX"] = beam_size_x
             self.current_dc_parameters["beamSizeAtSampleY"] = beam_size_y
             self.current_dc_parameters["beamShape"] = self.get_beam_shape()

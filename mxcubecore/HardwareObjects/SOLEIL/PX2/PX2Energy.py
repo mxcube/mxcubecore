@@ -23,7 +23,6 @@ class PX2Energy(EnergyMockup):
         self.current_energy = self.energy.get_energy() / kilo
         self.current_wavelength = self.get_wavelegth_from_energy(self.current_energy)
 
-        self.getWavelengthLimits = self.get_wavelength_limits
         self.getEnergyLimits = self.get_energy_limits
         self.get_current_energy = self.get_current_energy
         self.get_current_wavelength = self.get_current_wavelength
