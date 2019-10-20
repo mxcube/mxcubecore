@@ -82,7 +82,6 @@ class EMBLBeamlineTest(HardwareObject):
         self.cmd_set_vmax_pitch = None
         self.cmd_set_qbmp_range = None
 
-        self.bl_hwobj = None
         self.crl_hwobj = None
         self.beam_focusing_hwobj = None
         self.horizontal_motor_hwobj = None
@@ -118,7 +117,6 @@ class EMBLBeamlineTest(HardwareObject):
             "vertical_double_mode_motor"
         )
 
-        self.bl_hwobj = self.getObjectByRole("beamline_setup")
         self.crl_hwobj = self.getObjectByRole("crl")
         self.connect(
             HWR.beamline.microscope, "imageDoubleClicked", self.image_double_clicked
@@ -723,10 +721,6 @@ class EMBLBeamlineTest(HardwareObject):
                             self.crl_hwobj.set_crl_value([1, 1, 1, 1, 1, 1], timeout=30)
 
                         self.cmd_start_pitch_scan(1)
-
-                        # GB : keep lenses in the beam during the scan
-                        # if self.bl_hwobj._get_energy() < 10:
-                        #   self.crl_hwobj.set_crl_value(crl_value, timeout=30)
 
                         gevent.sleep(2.0)
 
