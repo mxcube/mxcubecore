@@ -61,20 +61,11 @@ class Resolution(AbstractMotor):
             self.det_width - beam_x, self.det_height - beam_y, beam_x, beam_y
         )
 
-    def getWavelength(self):
-        try:
-            return HWR.beamline.energy.get_current_wavelength()
-        except BaseException:
-            current_en = HWR.beamline.energy.getPosition()
-            if current_en:
-                return 12.3984 / current_en
-            return None
-
     def energyChanged(self, egy):
         return self.recalculateResolution()
 
     def res2dist(self, res=None):
-        current_wavelength = self.getWavelength()
+        current_wavelength = HWR.beamline.energy.get_current_wavelength()
 
         if res is None:
             res = self.currentResolution
@@ -97,7 +88,7 @@ class Resolution(AbstractMotor):
             return None
 
     def _calc_res(self, radius, dist):
-        current_wavelength = self.getWavelength()
+        current_wavelength = HWR.beamline.energy.get_current_wavelength()
 
         try:
             ttheta = math.atan(radius / dist)
