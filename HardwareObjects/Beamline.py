@@ -48,6 +48,11 @@ class Beamline(ConfiguredObject):
     # NB the double underscore is deliberate - attribute must be hidden from subclasses
     __content_roles = []
 
+    # Names of procedures under Beamline - set of sttrings.
+    # NB subclasses must add additional parocedures to this set,
+    # and may NOT override _procdeure_names
+    _procedure_names = set()
+
     # NBNB these should be accessed ONLY as beamline.SUPPORTED_..._PARAMETERS
     # NBNB Subclasses may add local parameters but may NOT remove any
     #
@@ -106,10 +111,6 @@ class Beamline(ConfiguredObject):
 
         # int Starting run number for path_template
         self.run_number = 1
-
-    def _init(self):
-        """Objetc initialisation - executed *before* loading contents"""
-        pass
 
     def init(self):
         """Object initialisation - executed *after* loading contents"""
@@ -523,6 +524,29 @@ class Beamline(ConfiguredObject):
         return self._objects.get("image_tracking")
 
     __content_roles.append("image_tracking")
+
+    # Procedures
+
+    # NB this is just an example of a globally shared procedure description
+    @property
+    def manual_centring(self):
+        """ Manual centring Procedure
+
+        NB AbstractManualCentring serves to define the parameters for manual centring
+        The actual implementation is set by configuration,
+        and can be given as an AbstractManualCentring subclass on each beamline
+
+        Returns:
+            Optional[AbstractManualCentring]
+        """
+        return self._objects.get("manual_centring")
+    __content_roles.append("manual_centring")
+    # Registers this object as a procedure:
+    _procedure_names.add("manual_centring")
+
+
+    # Additional functions
+
 
     # NB Objects need not be HardwareObjects
     # We still categorise them as'hardware' if they are not procedures, though
