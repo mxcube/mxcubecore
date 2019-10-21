@@ -82,3 +82,20 @@ class EMBLBeamline(Beamline):
         """
         return self._objects.get("ppu_control")
     __content_roles.append("ppu_control")
+
+    # Additional procedures
+
+    # NB this is just an example of a beamline-specific procedure description
+    @property
+    def xray_centring(self):
+        """ X-ray Centring Procedure
+
+        NB EMBLXrayCentring is defined in EMBL-specific code, like EMBLBeamline
+
+        Returns:
+            Optional[EMBLXrayCentring]
+        """
+        return self._objects.get("xray_centring")
+    __content_roles.append("xray_centring")
+    # Registers this object as a procedure:
+    Beamline._procedure_names.add("xray_centring")
