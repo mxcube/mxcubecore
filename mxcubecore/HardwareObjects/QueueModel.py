@@ -100,9 +100,9 @@ class QueueModel(HardwareObject):
         """
         return self._selected_model
 
-    def clear_model(self, name):
+    def clear_model(self, name=None):
         """
-        Clears the model with name <name>
+        Clears the model with name <name>, clears all if name is None
 
         :param name: The name of the model to clear.
         :type name: str
@@ -111,6 +111,11 @@ class QueueModel(HardwareObject):
         :rtype: NoneType
         """
         self._models[name] = queue_model_objects.RootNode()
+
+        if not name:
+            for name in self._models.keys():
+                self._models[name] = queue_model_objects.RootNode()
+
         HWR.beamline.queue_manager.clear()
 
     def register_model(self, name, root_node):
