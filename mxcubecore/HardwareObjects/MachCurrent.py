@@ -24,8 +24,8 @@ class MachCurrent(BaseHardwareObjects.Device):
             chanCurrent = self.getChannelObject("Current")
             chanCurrent.connectSignal("update", self.valueChanged)
             self.setIsReady(True)
-        except KeyError:
-            logging.getLogger().warning("%s: cannot read current", self.name())
+        except Exception as e:
+            logging.getLogger("HWR").exception(e)
 
     def valueChanged(self, value):
         mach = value
