@@ -1,6 +1,8 @@
-from HardwareRepository.HardwareObjects.MD2Motor import MD2Motor
 import logging
 import math
+
+from HardwareRepository.HardwareObjects.MD2Motor import MD2Motor
+from warnings import warn
 
 
 class MicrodiffAperture(MD2Motor):
