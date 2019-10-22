@@ -9,7 +9,6 @@ from HardwareRepository.TaskUtils import task
 
 
 class AbstractActuator(Device):
-
     (UNKNOWN, IN, OUT, MOVING) = ("unknown", "in", "out", "moving")
 
     def __init__(self, name):

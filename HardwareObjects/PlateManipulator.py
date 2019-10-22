@@ -245,13 +245,13 @@ class PlateManipulator(SampleChanger):
                 "update", self.plate_location_changed
             )
 
+            self.plate_location_changed(self.chan_plate_location.getValue())
+
         self.chan_state = self.getChannelObject("State")
         if self.chan_state is not None:
             self.chan_state.connectSignal("update", self.state_changed)
 
         SampleChanger.init(self)
-
-        self.plate_location_changed(self.chan_plate_location.getValue())
 
     def plate_location_changed(self, plate_location):
         self.plate_location = plate_location
@@ -333,14 +333,25 @@ class PlateManipulator(SampleChanger):
             if sample != selected:
                 self._doSelect(sample)
             self._setLoadedSample(sample)
+    
+    def load(self, sample=None, wait=True):
+        comp = self._resolveComponent(sample)
+        coords = comp.getCoords()
+        self._setLoadedSample(sample)
+        return self.load_sample(coords)
 
     def load_sample(self, sample_location=None, pos_x=None, pos_y=None, wait=True):
         """
         Location is estimated by sample location and reference positions.
         """
-        row = sample_location[0] - 1
-        col = (sample_location[1] - 1) / self.num_drops
-        drop = sample_location[1] - self.num_drops * col
+        if len(sample_location) == 3:
+            row = sample_location[0]
+            col = sample_location[1]
+            drop = sample_location[2]
+        else:
+            row = sample_location[0] - 1
+            col = (sample_location[1] - 1) / self.num_drops
+            drop = sample_location[1] - self.num_drops * col
 
         if not pos_x:
             #pos_x = self.reference_pos_x
@@ -375,6 +386,12 @@ class PlateManipulator(SampleChanger):
                     old_sample._setLoaded(False, True)
                 if new_sample is not None:
                     new_sample._setLoaded(True, True)
+
+       # Remove this when events are dispatched properly
+        drop_y_location = {1: 0.2, 2: 0.5, 3: 0.75}
+        self.plate_location_changed((row - 1, col - 1, 0, drop_y_location[drop]))
+
+        return True
 
     def _doUnload(self, sample_slot=None):
         """

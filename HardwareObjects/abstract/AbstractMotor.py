@@ -38,7 +38,7 @@ class MotorStates(object):
     FAULT = 10
     INVALID = 11
     OFFLINE = 12
-    LOWLIMIT = 13
+    LOWLIM = 13
     HIGHLIMIT = 14
     NOTINITIALIZED = 15
     MOVESTARTED = 16
@@ -59,12 +59,12 @@ class MotorStates(object):
         FAULT: "Fault",
         INVALID: "Invalid",
         OFFLINE: "Offline",
-        LOWLIMIT: "LowLimit",
+        LOWLIM: "LowLim",
         HIGHLIMIT: "HighLimit",
         NOTINITIALIZED: "NotInitialized",
         MOVESTARTED: "MoveStarted",
         UNUSABLE: "Unusable",
-        ONLIMIT: "OnLimit"
+        ONLIMIT: "OnLimit",
     }
 
     DESC_TO_STATE = {
@@ -81,7 +81,7 @@ class MotorStates(object):
         "Fault": FAULT,
         "Invalid": INVALID,
         "Offline": OFFLINE,
-        "LowLimit": LOWLIMIT,
+        "LowLim": LOWLIM,
         "HighLimit": HIGHLIMIT,
         "NotInitialized": NOTINITIALIZED,
         "MoveStarted": MOVESTARTED,
