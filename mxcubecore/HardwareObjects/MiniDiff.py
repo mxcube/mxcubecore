@@ -123,6 +123,9 @@ class MiniDiff(Equipment):
         self.lightWago = None
         self.currentSampleInfo = None
         self.aperture = None
+        self.cryo = None
+        self.beamstop = None
+        self.capillary = None
 
         self.pixelsPerMmY = None
         self.pixelsPerMmZ = None
@@ -134,11 +137,18 @@ class MiniDiff(Equipment):
         self.connect(self, "equipmentReady", self.equipmentReady)
         self.connect(self, "equipmentNotReady", self.equipmentNotReady)
 
+    def if_role_set_attr(self, role_name):
+        obj = self.getObjectByRole(role_name)
+
+        if obj is not None:
+            setattr(self, role_name, obj)
+
     def init(self):
         self.centringMethods = {
             MiniDiff.MANUAL3CLICK_MODE: self.start_manual_centring,
             MiniDiff.C3D_MODE: self.start_auto_centring,
         }
+
         self.cancel_centring_methods = {}
 
         self.current_centring_procedure = None
@@ -176,17 +186,16 @@ class MiniDiff(Equipment):
         self.centringSamplex = sample_centring.CentringMotor(self.sampleXMotor)
         self.centringSampley = sample_centring.CentringMotor(self.sampleYMotor)
 
+        roles_to_add = ['aperture', 'beamstop', 'cryostream', 'capillary']
+
+        for role in roles_to_add:
+            self.if_role_set_attr(role)
+
         hwr = HWR.getHardwareRepository()
         wl_prop = self.getProperty("wagolight")
         if wl_prop is not None:
             try:
                 self.lightWago = hwr.getHardwareObject(wl_prop)
-            except BaseException:
-                pass
-        aperture_prop = self.getProperty("aperture")
-        if aperture_prop is not None:
-            try:
-                self.aperture = hwr.getHardwareObject(aperture_prop)
             except BaseException:
                 pass
 
