@@ -28,12 +28,12 @@ class AbstractMicroscope(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self):
-        self._camera_hwobj = None
-        self._shapes_hwobj = None
-        self._focus_hwobj = None
-        self._zoom_hwobj = None
-        self._frontlight_hwobj  = None
-        self._backlight_hwobj  = None
+        self._camera = None
+        self._shapes = None
+        self._focus = None
+        self._zoom = None
+        self._frontlight = None
+        self._backlight = None
 
     def get_snapshot(self, num=4):
         """ Get snappshot(s)
