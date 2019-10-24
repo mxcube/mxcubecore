@@ -103,7 +103,6 @@ class AbstractShutter(HardwareObject, AbstractNState):
         """Closes shutter"""
         return
 
-
     def update_values(self):
         """Reemits signals"""
         self.emit("shutterStateChanged", self.current_state.name)
