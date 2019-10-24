@@ -166,7 +166,6 @@ class AbstractDetector(object):
         """
         return
 
-
     @property
     def detector_distance(self):
         """Property for contained detector_distance hwobj
