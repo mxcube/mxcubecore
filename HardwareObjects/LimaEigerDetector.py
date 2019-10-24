@@ -12,7 +12,7 @@ from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
 )
 
 
-class Eiger(HardwareObject, AbstractDetector):
+class LimaEigerDetector(HardwareObject, AbstractDetector):
     def __init__(self, name):
         AbstractDetector.__init__(self)
         HardwareObject.__init__(self, name)
