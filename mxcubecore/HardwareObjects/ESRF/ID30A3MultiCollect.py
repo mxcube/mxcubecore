@@ -13,7 +13,7 @@ from PyTango.gevent import DeviceProxy
 class ID30A3MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
         ESRFMultiCollect.__init__(
-            self, name, PixelDetector(Eiger), FixedEnergy(0.9677, 12.812)
+            self, name, FixedEnergy(0.9677, 12.812)
         )
 
         self._notify_greenlet = None
