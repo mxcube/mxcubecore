@@ -35,7 +35,7 @@ __credits__ = ["MXCuBE collaboration"]
 @unique
 class ProcedureState(IntEnum):
     """
-    Defines the valid Shutter states
+    Defines the valid Procedure states
     """
     FAILED = 0
     RUNNING = 1
