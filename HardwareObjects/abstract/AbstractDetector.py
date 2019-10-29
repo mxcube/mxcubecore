@@ -42,24 +42,6 @@ class AbstractDetector(object):
 
         self._distance_motor_hwobj = None
 
-    @abc.abstractmethod
-    def set_distance(self, value, timeout=None):
-        """
-        Args:
-            value (float): detector distance (in mm) to mvoe to
-            timeout: (None or float): Call blocks for timeout seconds if timeout given, 
-                     call is non blocking if timeout = None
-        """
-        return
-
-    @abc.abstractmethod
-    def get_distance(self):
-        """
-        Returns:
-            float: distance in mm from detector to sample
-        """
-        return
-
     @property
     def distance(self):
         """Property for contained detector_distance hwobj
