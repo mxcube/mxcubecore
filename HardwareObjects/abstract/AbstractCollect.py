@@ -32,7 +32,7 @@ import collections
 import gevent
 import gevent.event
 
-from HardwareRepository.TaskUtils import task, cleanup_and_handle_error
+from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.ConvertUtils import string_types
 from HardwareRepository import HardwareRepository as HWR
@@ -76,7 +76,6 @@ class AbstractCollect(HardwareObject, object):
         self.bl_config = BeamlineConfig(*[None] * 17)
 
         self._error_msg = ""
-        self.exp_type_dict = {}
 
         self.data_collect_task = None
         self.run_processing_after = None
@@ -137,12 +136,12 @@ class AbstractCollect(HardwareObject, object):
         """
         self.ready_event.clear()
         self.data_collect_task = gevent.spawn(
-            self._pre_collect, owner, DataObject(cp_dict)
+            self._collect, owner, DataObject(cp_dict)
         )
         self.ready_event.wait()
         self.ready_event.clear()
 
-    def _pre_collect(self, owner, cp):
+    def _collect(self, owner, cp):
         """
         Actual collect sequence
         """
@@ -201,7 +200,7 @@ class AbstractCollect(HardwareObject, object):
                 self.move_detector(cp["detector_distance"])
 
             # Method to be overridden for the actual image acquisition
-            self._collect(cp)
+            self._acquire(cp)
 
             # Update information in LIMS
             self._update_data_collection_in_lims(cp)
@@ -216,8 +215,11 @@ class AbstractCollect(HardwareObject, object):
 
         return cp
 
+    def _acquire(self, cp):
+        pass
+
     def _post_collect(self, cp):
-        """Collection finished beahviour"""
+        """Collection finished behaviour"""
         cp.dangerously_set("status", "Data collection successful")
 
         if cp["experiment_type"] != "Collect - Multiwedge":
@@ -270,7 +272,7 @@ class AbstractCollect(HardwareObject, object):
         self.emit("progressStop", ())
         self._update_data_collection_in_lims(cp)
 
-    def prepare(self, cp):
+    def _prepare(self, cp):
         cp.dangerously_set("status", "Running")
         cp.dangerously_set("collection_start_time", time.strftime("%Y-%m-%d %H:%M:%S"))
 
@@ -278,7 +280,7 @@ class AbstractCollect(HardwareObject, object):
         self.open_safety_shutter()
         self.open_fast_shutter()
 
-    def create_file_directories(self, cp):
+    def _create_file_directories(self, cp):
         """
         Method create directories for raw files and processing files.
         Directorie names for xds, mosflm and hkl are created
