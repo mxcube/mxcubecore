@@ -897,16 +897,13 @@ class ISPyBClient(HardwareObject):
             logging.exception("Could not store data collection")
             return (0, 0, 0)
 
-    def _store_data_collection(self, mx_collection, beamline_setup=None):
+    def _store_data_collection(self, mx_collection):
         """
         Stores the data collection mx_collection, and the beamline setup
         if provided.
 
         :param mx_collection: The data collection parameters.
         :type mx_collection: dict
-
-        :param beamline_setup: The beamline setup.
-        :type beamline_setup: dict
 
         :returns: None
 
@@ -925,27 +922,27 @@ class ISPyBClient(HardwareObject):
             )
 
             detector_id = 0
-            if beamline_setup:
-                lims_beamline_setup = ISPyBValueFactory.from_bl_config(
-                    self._collection, beamline_setup
-                )
 
-                lims_beamline_setup.synchrotronMode = data_collection.synchrotronMode
+            lims_beamline_setup = ISPyBValueFactory.get_beamline_setup(
+                self._collection
+            )
 
-                self.store_beamline_setup(
-                    mx_collection["sessionId"], lims_beamline_setup
-                )
+            lims_beamline_setup.synchrotronMode = data_collection.synchrotronMode
 
-                detector_params = ISPyBValueFactory().detector_from_blc(
-                    beamline_setup, mx_collection
-                )
+            self.store_beamline_setup(
+                mx_collection["sessionId"], lims_beamline_setup
+            )
 
-                detector = self.find_detector(*detector_params)
-                detector_id = 0
+            detector_params = ISPyBValueFactory().detector_from_blc(
+                mx_collection
+            )
 
-                if detector:
-                    detector_id = detector.detectorId
-                    data_collection.detectorId = detector_id
+            detector = self.find_detector(*detector_params)
+            detector_id = 0
+
+            if detector:
+                detector_id = detector.detectorId
+                data_collection.detectorId = detector_id
 
             collection_id = self._collection.service.storeOrUpdateDataCollection(
                 data_collection
@@ -1877,9 +1874,6 @@ class ISPyBClient(HardwareObject):
         :param mx_collection: The data collection parameters.
         :type mx_collection: dict
 
-        :param beamline_setup: The beamline setup.
-        :type beamline_setup: dict
-
         :returns: None
         """
         if self._disabled:
@@ -2057,9 +2051,9 @@ class ISPyBValueFactory:
     """
 
     @staticmethod
-    def detector_from_blc(bl_config, mx_collect_dict):
+    def detector_from_blc(mx_collect_dict):
         try:
-            detector_manufacturer = bl_config.detector_manufacturer
+            detector_manufacturer = HWR.beamline.detector.getProperty("manufacturer")
 
             if isinstance(detector_manufacturer, string_types):
                 detector_manufacturer = detector_manufacturer.upper()
@@ -2067,18 +2061,18 @@ class ISPyBValueFactory:
             detector_manufacturer = ""
 
         try:
-            detector_type = bl_config.detector_type
+            detector_type = HWR.beamline.detector.getProperty("type")
         except BaseException:
             detector_type = ""
 
         try:
-            detector_model = bl_config.detector_model
+            detector_model = HWR.beamline.detector.getProperty("model")
         except BaseException:
             detector_model = ""
 
         try:
             modes = ("Software binned", "Unbinned", "Hardware binned")
-            det_mode = int(mx_collect_dict["detector_mode"])
+            det_mode = HWR.beamline.detector.get_binning_mode()
             detector_mode = modes[det_mode]
         except (KeyError, IndexError, ValueError, TypeError):
             detector_mode = ""
@@ -2086,7 +2080,7 @@ class ISPyBValueFactory:
         return (detector_type, detector_manufacturer, detector_model, detector_mode)
 
     @staticmethod
-    def from_bl_config(ws_client, bl_config):
+    def get_beamline_setup(ws_client):
         """
         Creates a beamLineSetup3VO from the bl_config dictionary.
         :rtype: beamLineSetup3VO
@@ -2097,36 +2091,40 @@ class ISPyBValueFactory:
         except BaseException:
             raise
         try:
-            synchrotron_name = bl_config.synchrotron_name
-            beamline_setup.synchrotronName = synchrotron_name
+            beamline_setup.synchrotronName = HWR.beamline.session.getProperty("synchrotron_name", "UNKNOWN")
         except (IndexError, AttributeError):
-            beamline_setup.synchrotronName = "ESRF"
+            beamline_setup.synchrotronName = "UNKNOWN"
 
-        if bl_config.undulators:
+        if HWR.beamline.undelators:
             i = 1
-            for und in bl_config.undulators:
+            for und in HWR.beamline.undelators:
                 beamline_setup.__setattr__("undulatorType%d" % i, und.type)
                 i += 1
 
         try:
-            beamline_setup.monochromatorType = bl_config.monochromator_type
+            beamline_setup.monochromatorType = HWR.beamline.beam.monochromator_type
+            beamline_setup.focusingOptic = HWR.beamline.beam.focusing_optic
 
-            beamline_setup.focusingOptic = bl_config.focusing_optic
-
-            beamline_setup.beamDivergenceVertical = bl_config.beam_divergence_vertical
-
-            beamline_setup.beamDivergenceHorizontal = (
-                bl_config.beam_divergence_horizontal
+            beamline_setup.beamDivergenceVertical = (
+                HWR.beamline.beam.get_beam_divergence_ver()
             )
 
-            beamline_setup.polarisation = bl_config.polarisation
+            beamline_setup.beamDivergenceHorizontal = (
+                HWR.beamline.beam.get_beam_divergence_hor()
+            )
 
-            beamline_setup.minExposureTimePerImage = bl_config.minimum_exposure_time
+            beamline_setup.polarisation = HWR.beamline.beam.polarisation
 
-            beamline_setup.goniostatMaxOscillationSpeed = bl_config.maximum_phi_speed
+            beamline_setup.minExposureTimePerImage = HWR.beamline.detector.getProperty(
+                "minimum_exposure_time"
+            )
 
-            beamline_setup.goniostatMinOscillationWidth = (
-                bl_config.minimum_phi_oscillation
+            beamline_setup.goniostatMaxOscillationSpeed = HWR.beamline.detector.getProperty(
+                "maximum_oscillation_speed"
+            )
+
+            beamline_setup.goniostatMinOscillationWidth = HWR.beamline.detector.getProperty(
+                "minimum_oscillation_range"
             )
 
         except BaseException:

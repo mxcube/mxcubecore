@@ -73,62 +73,19 @@ class AbstractCollect(HardwareObject, object):
 
     def __init__(self, name):
         HardwareObject.__init__(self, name)
-        self.bl_config = BeamlineConfig(*[None] * 17)
-
-        self._error_msg = ""
-
         self.data_collect_task = None
         self.run_processing_after = None
-        self.run_processing_parallel = None
+
         self.ready_event = None
 
     def init(self):
         self.ready_event = gevent.event.Event()
-
-        undulators = []
-        try:
-            for undulator in self["undulators"]:
-                undulators.append(undulator)
-        except BaseException:
-            pass
-
         session = HWR.beamline.session
+
         if session:
             synchrotron_name = session.getProperty("synchrotron_name")
         else:
             synchrotron_name = "UNKNOWN"
-
-        self.set_beamline_configuration(
-            synchrotron_name=synchrotron_name,
-            directory_prefix=self.getProperty("directory_prefix"),
-            default_exposure_time=HWR.beamline.detector.getProperty(
-                "default_exposure_time"
-            ),
-            minimum_exposure_time=HWR.beamline.detector.getProperty(
-                "minimum_exposure_time"
-            ),
-            detector_fileext=HWR.beamline.detector.getProperty("fileSuffix"),
-            detector_type=HWR.beamline.detector.getProperty("type"),
-            detector_manufacturer=HWR.beamline.detector.getProperty("manufacturer"),
-            detector_model=HWR.beamline.detector.getProperty("model"),
-            detector_px=HWR.beamline.detector.getProperty("px"),
-            detector_py=HWR.beamline.detector.getProperty("py"),
-            undulators=undulators,
-            focusing_optic=self.getProperty("focusing_optic"),
-            monochromator_type=self.getProperty("monochromator"),
-            beam_divergence_vertical=HWR.beamline.beam.get_beam_divergence_hor(),
-            beam_divergence_horizontal=HWR.beamline.beam.get_beam_divergence_ver(),
-            polarisation=self.getProperty("polarisation"),
-            input_files_server=self.getProperty("input_files_server"),
-        )
-
-    def set_beamline_configuration(self, **configuration_parameters):
-        """Sets beamline configuration
-
-        :param configuration_parameters: dict with config param.
-        :type configuration_parameters: dict
-        """
-        self.bl_config = BeamlineConfig(**configuration_parameters)
 
     def collect(self, owner, cp_dict):
         """
@@ -358,7 +315,7 @@ class AbstractCollect(HardwareObject, object):
             try:
                 cp.dangerously_set("synchrotronMode", self.get_machine_fill_mode())
                 (collection_id, detector_id) = HWR.beamline.lims.store_data_collection(
-                    cp, self.bl_config
+                    cp
                 )
 
                 cp.dangerously_set(collection_id, collection_id)
@@ -471,14 +428,6 @@ class AbstractCollect(HardwareObject, object):
             beam_centre_x, beam_centre_y = self.get_beam_centre()
             cp.dangerously_set("xBeam", beam_centre_x)
             cp.dangerously_set("yBeam", beam_centre_y)
-
-            und = self.get_undulators_gaps()
-            i = 1
-            for jj in self.bl_config.undulators:
-                key = jj.type
-                if key in und:
-                    cp["undulatorGap%d" % (i)] = und[key]
-                    i += 1
 
             cp.dangerously_set("resolutionAtCorner", self.get_resolution_at_corner())
 
