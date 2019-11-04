@@ -82,6 +82,13 @@ class QtGraphicsManager(HardwareObject):
         """
         HardwareObject.__init__(self, name)
 
+        # FIXME! HORROR! HACK!
+        # After recent refactorings functions from this class are sometimes
+        # referenced as beamline.microscope, sometimes as
+        # beamline.microscope.shapes, This hack is NECESSARY to get te program to run
+        # FIXME FIXME
+        self.shapes = self
+
         self.camera_hwobj = None
 
         self.graphics_config_filename = None
