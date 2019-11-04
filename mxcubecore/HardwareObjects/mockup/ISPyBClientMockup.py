@@ -33,11 +33,13 @@ class ISPyBClientMockup(HardwareObject):
         self.__test_proposal = None
         self.loginType = None
         self.base_result_url = None
+        self.lims_rest = None
 
     def init(self):
         """
         Init method declared by HardwareObject.
         """
+        self.lims_rest = self.getObjectByRole("lims_rest")
         self.authServerType = self.getProperty("authServerType") or "ldap"
         if self.authServerType == "ldap":
             # Initialize ldap
