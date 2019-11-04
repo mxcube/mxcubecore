@@ -159,3 +159,4 @@ class AbstractDetector(object):
             value (int): binning mode
         """
         self._binning_mode = value
+    
