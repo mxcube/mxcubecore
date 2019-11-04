@@ -112,6 +112,9 @@ class Beamline(ConfiguredObject):
         # int Starting run number for path_template
         self.run_number = 1
 
+        # List of undelators
+        self.undelators = []
+
     def init(self):
         """Object initialisation - executed *after* loading contents"""
 
