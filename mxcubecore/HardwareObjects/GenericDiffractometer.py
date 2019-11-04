@@ -162,6 +162,10 @@ class GenericDiffractometer(HardwareObject):
         self.centring_motors_list = None
         self.front_light_switch = None
         self.back_light_switch = None
+        self.aperture = None
+        self.beamstop = None
+        self.cryo = None
+        self.capillary  = None
         self.use_sc = False
 
         # Channels and commands -----------------------------------------------
@@ -226,6 +230,11 @@ class GenericDiffractometer(HardwareObject):
         self.ready_event = gevent.event.Event()
         self.user_clicked_event = gevent.event.AsyncResult()
         self.user_confirms_centring = True
+
+        self.beamstop = self.getObjectByRole("beamstop")
+        self.aperture = self.getObjectByRole("aperture")
+        self.capillary = self.getObjectByRole("capillary")
+        self.cryo = self.getObjectByRole("cryo")
 
         # Hardware objects ----------------------------------------------------
         # if HWR.beamline.microscope.camera is not None:
