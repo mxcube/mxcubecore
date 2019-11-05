@@ -82,9 +82,7 @@ class QtVideoMockup(AbstractVideoDevice):
             ptr = qimage.bits()
             ptr.setsize(qimage.byteCount())
 
-            height = qimage.height()
-            width = qimage.width() 
-            image_array = np.array(ptr).reshape(height, width, 4)
+            image_array = np.array(ptr).reshape(qimage.height(), qimage.width(), 4)
             if bw:
                 return np.dot(image_array[..., :3], [0.299, 0.587, 0.144])
             else:
