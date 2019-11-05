@@ -21,12 +21,12 @@
 import os
 import tine
 import json
-
 import Image
-import gevent
 import logging
 import threading
 from queue import Queue
+
+import gevent
 
 import cv2 as cv
 import numpy as np
@@ -43,9 +43,9 @@ from HardwareRepository.TaskUtils import task
 from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 from HardwareRepository.HardwareObjects.QtGraphicsManager import QtGraphicsManager
 from HardwareRepository.HardwareObjects import queue_model_objects as qmo
+from HardwareRepository import HardwareRepository as HWR
 
 __credits__ = ["EMBL Hamburg"]
-__license__ = "LGPLv3+"
 __category__ = "Task"
 
 
@@ -53,10 +53,6 @@ image_processing_queue = Queue()
 
 
 class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
-    """
-    Based on the collection and graphics
-    """
-
     def __init__(self, *args):
         QtGraphicsManager.__init__(self, *args)
         AbstractCollect.__init__(self, *args)
@@ -73,7 +69,6 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.collect_omega_start = 0
         self.omega_start = 0
         self.omega_move_enabled = False
-        self.last_image_index = None
 
         self.image_dimension = (0, 0)
         self.graphics_camera_frame = None
@@ -84,12 +79,10 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.mouse_coord = [0, 0]
         self.centering_started = 0
 
-        self.current_dc_parameters = None
         self._previous_collect_status = None
         self._actual_collect_status = None
         self._failed = False
         self._number_of_images = 0
-        self._collect_frame = 0
         self.printed_warnings = []
         self.printed_errors = []
 
@@ -98,7 +91,6 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.chan_collect_error = None
         self.chan_camera_error = None
         self.chan_camera_warning = None
-        self.chan_frame = None
         self.chan_ff_ssim = None
 
         self.cmd_collect_compression = None
@@ -114,7 +106,6 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.cmd_collect_start_angle = None
         self.cmd_collect_template = None
         self.cmd_collect_start = None
-        self.cmd_collect_shutterless = None
         self.cmd_collect_abort = None
 
         self.cmd_collect_ff_num_images = None
@@ -128,7 +119,6 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.cmd_camera_ff_ssim = None
 
         self.beam_focusing_hwobj = None
-        self.session_hwobj = None
 
     def init(self):
         AbstractCollect.init(self)
@@ -137,50 +127,48 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
 
         QtGraphicsManager.init(self)
 
-        self.disconnect(self.camera_hwobj, "imageReceived", self.camera_image_received)
+        self.disconnect(HWR.beamline.microscope.camera, "imageReceived", self.camera_image_received)
 
         self.disconnect(
-            self.diffractometer_hwobj,
+            HWR.beamline.diffractometer,
             "minidiffStateChanged",
             self.diffractometer_state_changed,
         )
         self.disconnect(
-            self.diffractometer_hwobj,
+            HWR.beamline.diffractometer,
             "centringStarted",
             self.diffractometer_centring_started,
         )
         self.disconnect(
-            self.diffractometer_hwobj, "centringAccepted", self.create_centring_point
+            HWR.beamline.diffractometer, "centringAccepted", self.create_centring_point
         )
         self.disconnect(
-            self.diffractometer_hwobj,
+            HWR.beamline.diffractometer,
             "centringSuccessful",
             self.diffractometer_centring_successful,
         )
         self.disconnect(
-            self.diffractometer_hwobj,
+            HWR.beamline.diffractometer,
             "centringFailed",
             self.diffractometer_centring_failed,
         )
         self.disconnect(
-            self.diffractometer_hwobj,
+            HWR.beamline.diffractometer,
             "pixelsPerMmChanged",
             self.diffractometer_pixels_per_mm_changed,
         )
         self.disconnect(
-            self.diffractometer_hwobj,
+            HWR.beamline.diffractometer,
             "omegaReferenceChanged",
             self.diffractometer_omega_reference_changed,
         )
         self.disconnect(
-            self.diffractometer_hwobj,
+            HWR.beamline.diffractometer,
             "minidiffPhaseChanged",
             self.diffractometer_phase_changed,
         )
 
         self.diffractometer_pixels_per_mm_changed((20.0, 20.0))
-
-        self.camera_hwobj = None
 
         self.graphics_scale_item.set_start_position(20, self.image_dimension[1] - 20)
 
@@ -245,14 +233,8 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.cmd_collect_abort = self.getCommandObject("collectAbort")
 
         self.beam_focusing_hwobj = self.getObjectByRole("beam_focusing")
-        self.session_hwobj = self.getObjectByRole("session")
 
     def frame_changed(self, data):
-        """
-        Displays frame comming from camera
-        :param data:
-        :return:
-        """
         if self._collecting:
             jpgdata = StringIO(data)
             im = Image.open(jpgdata)
@@ -262,49 +244,25 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             )
 
     def ff_ssim_changed(self, value):
-        """
-        Updates ff ssim
-        :param value: list of lists
-        :return:
-        """
         if self._collecting:
             self.ff_ssim = list(value)
             self.ff_ssim.sort()
 
     def mouse_clicked(self, pos_x, pos_y, left_click):
-        """
-        Mouse click event for centering
-        :param pos_x: int
-        :param pos_y: int
-        :param left_click: boolean
-        :return:
-        """
         QtGraphicsManager.mouse_clicked(self, pos_x, pos_y, left_click)
         # self.mouse_hold = True
         # self.mouse_coord = [pos_x, pos_y]
         if self.centering_started:
-            self.diffractometer_hwobj.image_clicked(pos_x, pos_y)
+            HWR.beamline.diffractometer.image_clicked(pos_x, pos_y)
             self.play_image_relative(90)
-            # self.diffractometer_hwobj.move_omega_relative(90, timeout=5)
+            # HWR.beamline.diffractometer.move_omega_relative(90, timeout=5)
             self.centering_started -= 1
 
     def mouse_released(self, pos_x, pos_y):
-        """
-        Mouse release event
-        :param pos_x:
-        :param pos_y:
-        :return:
-        """
         QtGraphicsManager.mouse_released(self, pos_x, pos_y)
         self.mouse_hold = False
 
     def mouse_moved(self, pos_x, pos_y):
-        """
-        Mouse move event
-        :param pos_x:
-        :param pos_y:
-        :return:
-        """
         QtGraphicsManager.mouse_moved(self, pos_x, pos_y)
         if self.mouse_hold:
             if self.mouse_coord[0] - pos_x > 0:
@@ -322,12 +280,6 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             self.display_image(index)
 
     def measure_item_changed(self, measured_points, measured_pix_num):
-        """
-        Updates image measurement item
-        :param measured_points:
-        :param measured_pix_num:
-        :return:
-        """
         start_x = measured_points[0].x()
         start_y = measured_points[0].y()
         end_x = measured_points[1].x()
@@ -349,31 +301,16 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.emit("measureItemChanged", zi)
 
     def get_graphics_view(self):
-        """
-        Returns graphics view
-        :return:
-        """
         return self.graphics_view
 
     def set_repeate_image_play(self, value):
-        """
-        Sets repeat the image play
-        :param value:
-        :return:
-        """
         self.repeat_image_play = value
 
     def set_graphics_scene_size(self, size, fixed):
         pass
 
     def pre_execute(self, data_model):
-        """
-        Pre execute method
-        :param data_model:
-        :return:
-        """
         self._failed = False
-
         """
         if self.beam_focusing_hwobj.get_focus_mode() != "imaging":
             self._error_msg = "Beamline is not in Imaging mode"
@@ -395,20 +332,29 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         path_template = data_model.acquisitions[0].path_template
         acq_params = data_model.acquisitions[0].acquisition_parameters
         im_params = data_model.xray_imaging_parameters
-
         self._number_of_images = acq_params.num_images
 
+        self.current_dc_parameters = qmo.to_collect_dict(
+            data_model, HWR.beamline.session, qmo.Sample()
+        )[0]
+        self.current_dc_parameters["status"] = "Running"
+        self.current_dc_parameters["comments"] = ""
+
+        self.take_crystal_snapshots()
+        self.store_data_collection_in_lims()
+        return
+
         if im_params.detector_distance:
-            delta = im_params.detector_distance - self.detector_hwobj.get_distance()
+            delta = im_params.detector_distance - HWR.beamline.detector.get_distance()
             if abs(delta) > 0.0001:
-                tine.set(
-                    "/P14/P14DetTrans/ComHorTrans",
-                    "IncrementMove.START",
-                    -0.003482 * delta,
+                logging.getLogger("GUI").warning(
+                    "Imaging: Setting detector distance to %d mm"
+                    % int(im_params.detector_distance)
                 )
-                self.detector_hwobj.set_distance(
-                    im_params.detector_distance, wait=True, timeout=30
-                )
+                # tine.set("/P14/P14DetTrans/P14detHor1","IncrementMove.START", -0.003482*delta)
+                # tine.set("/P14/P14DetTrans/P14detHor2","IncrementMove.START", -0.003482*delta)
+                # HWR.beamline.detector.set_distance(im_params.detector_distance, timeout=30)
+                logging.getLogger("GUI").info("Imaging: Detector distance set")
 
         self.cmd_collect_detector("pco")
         self.cmd_collect_directory(str(path_template.directory))
@@ -420,7 +366,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.cmd_collect_start_angle(acq_params.osc_start)
         self.cmd_collect_range(acq_params.osc_range)
         self.cmd_collect_in_queue(acq_params.in_queue != False)
-        shutter_name = self.detector_hwobj.get_shutter_name()
+        shutter_name = HWR.beamline.detector.get_shutter_name()
         self.cmd_collect_shutter(shutter_name)
 
         self.cmd_collect_ff_num_images(im_params.ff_num_images)
@@ -445,23 +391,24 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.set_osc_start(acq_params.osc_start)
 
         self.current_dc_parameters = qmo.to_collect_dict(
-            data_model, self.session_hwobj, qmo.Sample()
+            data_model, HWR.beamline.session, qmo.Sample()
         )[0]
         self.current_dc_parameters["status"] = "Running"
         self.current_dc_parameters["comments"] = ""
 
-        self.store_data_collection_in_lims()
+        self.take_crystal_snapshots()
+
+        # self.store_data_collection_in_lims()
 
     def execute(self, data_model):
-        """
-        Main execute method
-        :param data_model:
-        :return:
-        """
         if not self._failed:
             self._collecting = True
             self.ready_event.clear()
-            gevent.spawn(self.cmd_collect_start)
+
+            self.ready_event.set()
+            self._collecting = False
+
+            # gevent.spawn(self.cmd_collect_start)
             # self.cmd_collect_start()
             # if data_model.xray_imaging_parameters.camera_write_data:
             #    self.read_images_task = gevent.spawn(self.load_images, None, None, None, data_model)
@@ -469,11 +416,6 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             self.ready_event.clear()
 
     def post_execute(self, data_model):
-        """
-        Stores results in ispyb
-        :param data_model:
-        :return:
-        """
         self.emit("progressStop", ())
         self._collecting = False
 
@@ -490,7 +432,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             )
             + ".json"
         )
-        #config_file_path = os.path.join(path_template.directory, config_filename)
+        config_file_path = os.path.join(path_template.directory, config_filename)
         archive_config_path = os.path.join(
             path_template.get_archive_directory(), config_filename
         )
@@ -536,51 +478,50 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             image_filename = os.path.join(
                 path_template.get_archive_directory(), image_filename
             )
-            # misc.imsave(image_filename, self.image_reading_thread.get_raw_image(0))
-            self.store_image_in_lims(0)
-        if acq_params.num_images > 1:
-            image_filename = (
-                filename_template
-                % (
-                    path_template.base_prefix,
-                    path_template.run_number,
-                    acq_params.num_images - 1,
+            raw_image = self.image_reading_thread.get_raw_image(0)
+            misc.imsave(image_filename, raw_image)
+            # Scale image from 2048x2048 to 256x256
+            misc.imsave(
+                image_filename.replace(".jpeg", ".thumb.jpeg"),
+                misc.imresize(raw_image, (256, 256)),
+            )
+            # self.store_image_in_lims(path_template.start_num)
+            if acq_params.num_images > 1:
+                image_filename = (
+                    filename_template
+                    % (
+                        path_template.base_prefix,
+                        path_template.run_number,
+                        acq_params.num_images - 1,
+                    )
+                    + ".jpeg"
                 )
-                + ".jpeg"
-            )
-            image_filename = os.path.join(
-                path_template.get_archive_directory(), image_filename
-            )
-            # misc.imsave(image_filename, self.image_reading_thread.get_raw_image(0))
-            self.store_image_in_lims(acq_params.num_images - 1)
+                image_filename = os.path.join(
+                    path_template.get_archive_directory(), image_filename
+                )
+
+                raw_image = self.image_reading_thread.get_raw_image(
+                    acq_params.num_images - path_template.start_num
+                )
+                misc.imsave(image_filename, raw_image)
+                misc.imsave(
+                    image_filename.replace(".jpeg", ".thumb.jpeg"),
+                    misc.imresize(raw_image, (256, 256)),
+                )
+                # self.store_image_in_lims(acq_params.num_images - path_template.start_num)
 
     @task
     def _take_crystal_snapshot(self, filename):
         """Saves crystal snapshot"""
-        self.graphics_manager_hwobj.save_scene_snapshot(filename)
+        HWR.beamline.microscope.save_scene_snapshot(filename)
 
     def data_collection_hook(self):
-        """
-        Not implemented
-        :return:
-        """
         pass
 
     def move_motors(self, motor_position_dict):
-        """
-        Not implemented
-        :param motor_position_dict:
-        :return:
-        """
         pass
 
     def trigger_auto_processing(self, process_event, frame_number):
-        """
-        Not implemented
-        :param process_event:
-        :param frame_number:
-        :return:
-        """
         pass
 
     def collect_status_update(self, status):
@@ -652,11 +593,6 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
                 self.emit("collectImageTaken", frame)
 
     def camera_warning_update(self, warning_str):
-        """
-        Displays camera warnings
-        :param warning_str:
-        :return:
-        """
         if self._collecting:
             if warning_str.endswith("\n"):
                 warning_str = warning_str[:-1]
@@ -672,11 +608,6 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
                     self.printed_warnings.append(warning)
 
     def camera_error_update(self, error_str):
-        """
-        Displays camera errors
-        :param error_str:
-        :return:
-        """
         if self._collecting:
             if error_str.endswith("\n"):
                 error_str = error_str[:-1]
@@ -692,20 +623,12 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
                     self.printed_errors.append(error)
 
     def set_ff_apply(self, state):
-        """
-        Apply ff to live view
-        :param state:
-        :return:
-        """
         self.ff_apply = state
         self.display_image(self.current_image_index)
 
     def display_image(self, index):
-        """
-        Displays image on the canvas
-        :param index: int
-        :return:
-        """
+        if self.image_reading_thread is None:
+            return
         angle = self.collect_omega_start + index * self.image_count / 360.0
         if angle > 360:
             angle -= 360
@@ -746,35 +669,15 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             self.emit("imageLoaded", index)
 
     def display_image_relative(self, relative_index):
-        """
-        Displays relative image
-        :param relative_index:
-        :return:
-        """
         self.display_image(self.current_image_index + relative_index)
 
     def play_image_relative(self, relative_angle):
-        """
-        Starts image video
-        :param relative_angle:
-        :return:
-        """
         self.play_images(0.04, relative_angle, False)
 
     def set_osc_start(self, osc_start):
-        """
-        Defines osc start
-        :param osc_start: float
-        :return:
-        """
         self.collect_omega_start = osc_start
 
     def set_omega_move_enabled(self, state):
-        """
-        Move omega if the image has been displayed
-        :param state:
-        :return:
-        """
         self.omega_move_enabled = state
 
     def load_images(
@@ -785,19 +688,11 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         data_model=None,
         load_all=True,
     ):
-        """
-        Load and process images via threads
-        :param data_path: str
-        :param flat_field_path: str
-        :param config_path: str
-        :param data_model:
-        :param load_all: boolean
-        :return:
-        """
-
         ff_ssim = None
+        raw_filename_list = []
+        ff_filename_list = []
         self.config_dict = {}
-        self.omega_start = self.diffractometer_hwobj.get_omega_position()
+        self.omega_start = HWR.beamline.diffractometer.get_omega_position()
 
         self.image_reading_thread = None
         self.image_processing_thread = None
@@ -829,6 +724,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
 
         if data_model:
             if data_model.xray_imaging_parameters.ff_pre:
+                acq_params = data_model.acquisitions[0].acquisition_parameters
                 path_template = data_model.acquisitions[0].path_template
                 for index in range(data_model.xray_imaging_parameters.ff_num_images):
                     ff_filename_list.append(
@@ -840,6 +736,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         elif os.path.exists(flat_field_path):
 
             base_name_list = os.path.splitext(os.path.basename(data_path))
+            ff_prefix = base_name_list[0][: -(ext_len + 1)]
             os.chdir(os.path.dirname(flat_field_path))
             ff_filename_list = sorted(
                 [
@@ -906,25 +803,11 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         # self.display_image(0)
 
     def play_images(self, exp_time=0.04, relative_index=None, repeat=True):
-        """
-        Play image video
-        :param exp_time:
-        :param relative_index:
-        :param repeat:
-        :return:
-        """
         self.image_polling = gevent.spawn(
             self.do_image_polling, exp_time, relative_index, repeat
         )
 
     def do_image_polling(self, exp_time=0.04, relative_index=1, repeat=False):
-        """
-        Image polling task
-        :param exp_time:
-        :param relative_index:
-        :param repeat:
-        :return:
-        """
         self.repeat_image_play = repeat
 
         direction = 1 if relative_index > 0 else -1
@@ -945,25 +828,12 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             index += step
 
     def stop_image_play(self):
-        """
-        Stop image video
-        :return:
-        """
         self.image_polling.kill()
 
     def stop_collect(self):
-        """
-        Stops image collection
-        :return:
-        """
         self.cmd_collect_abort()
 
     def mouse_wheel_scrolled(self, delta):
-        """
-        Handles mouse scroll
-        :param delta:
-        :return:
-        """
         if (
             self.image_reading_thread is None
             or self.image_reading_thread.get_raw_image(self.current_image_index) is None
@@ -981,31 +851,18 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.display_image(self.current_image_index)
 
     def start_centering(self):
-        """
-        Starts 3 click centering
-        :return:
-        """
         self.centering_started = 3
-        self.diffractometer_hwobj.start_centring_method(
-            self.diffractometer_hwobj.CENTRING_METHOD_IMAGING
+        HWR.beamline.diffractometer.start_centring_method(
+            HWR.beamline.diffractometer.CENTRING_METHOD_IMAGING
         )
 
     def start_n_centering(self):
-        """
-        Starts n click centering
-        :return:
-        """
         self.centering_started = 100
-        self.diffractometer_hwobj.start_centring_method(
-            self.diffractometer_hwobj.CENTRING_METHOD_IMAGING_N
+        HWR.beamline.diffractometer.start_centring_method(
+            HWR.beamline.diffractometer.CENTRING_METHOD_IMAGING_N
         )
 
     def move_omega(self, image_index):
-        """
-        Rotates omega
-        :param image_index:
-        :return:
-        """
         if image_index != self.last_image_index:
             if self.config_dict:
                 omega_relative = self.config_dict["collect"]["osc_range"] * image_index
@@ -1014,36 +871,18 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             if self.last_image_index > image_index:
                 omega_relative *= -1
 
-            self.diffractometer_hwobj.move_omega_relative(omega_relative)
+            HWR.beamline.diffractometer.move_omega_relative(omega_relative)
             self.last_image_index = image_index
 
     def move_omega_relative(self, relative_index):
-        """
-        Rotates omega relative
-        :param relative_index:
-        :return:
-        """
         self.move_omega(self.last_image_index + relative_index)
 
 
 class GraphicsCameraFrame(QtImport.QGraphicsPixmapItem):
-    """
-    Custom QGraphicsPixmapItem
-    """
-
     def __init__(self, parent=None):
-        """
-        init
-        :param parent:
-        """
         super(GraphicsCameraFrame, self).__init__(parent)
 
     def mousePressEvent(self, event):
-        """
-        Sends mouseClickedSignal
-        :param event:
-        :return:
-        """
         pos = QtImport.QPointF(event.pos())
         self.scene().parent().mouseClickedSignal.emit(
             pos.x(), pos.y(), event.button() == QtImport.Qt.LeftButton
@@ -1051,11 +890,6 @@ class GraphicsCameraFrame(QtImport.QGraphicsPixmapItem):
         self.update()
 
     def mouseMoveEvent(self, event):
-        """
-        Sends mouseMovedSignal
-        :param event:
-        :return:
-        """
         pos = QtImport.QPointF(event.pos())
         self.scene().parent().mouseMovedSignal.emit(pos.x(), pos.y())
         self.update()
@@ -1066,20 +900,12 @@ class GraphicsCameraFrame(QtImport.QGraphicsPixmapItem):
     #    self.update()
 
     def mouseReleaseEvent(self, event):
-        """
-        Sends mouseReleasedSignal
-        :param event:
-        :return:
-        """
         pos = QtImport.QPointF(event.pos())
         self.scene().parent().mouseReleasedSignal.emit(pos.x(), pos.y())
         self.update()
 
 
 class GraphicsView(QtImport.QGraphicsView):
-    """
-    Custom QGraphicsView
-    """
     mouseClickedSignal = QtImport.pyqtSignal(int, int, bool)
     mouseReleasedSignal = QtImport.pyqtSignal(int, int)
     mouseMovedSignal = QtImport.pyqtSignal(int, int)
@@ -1087,10 +913,6 @@ class GraphicsView(QtImport.QGraphicsView):
     wheelSignal = QtImport.pyqtSignal(int)
 
     def __init__(self, parent=None):
-        """
-        init
-        :param parent:
-        """
         super(GraphicsView, self).__init__(parent)
 
         self.setScene(QtImport.QGraphicsScene(self))
@@ -1101,22 +923,13 @@ class GraphicsView(QtImport.QGraphicsView):
         self.setVerticalScrollBarPolicy(QtImport.Qt.ScrollBarAlwaysOff)
 
     def wheelEvent(self, event):
-        """
-        Sends wheelSignal
-        :param event:
-        :return:
-        """
         self.wheelSignal.emit(event.delta())
 
 
 class ImageProcessingThread(threading.Thread):
-    """
-    Image processing thread applies flat field correction
-    """
     def __init__(self, image_count):
         threading.Thread.__init__(self)
 
-        self.thread_done = None
         self.stopped = False
 
         self.image_count = image_count
@@ -1126,46 +939,32 @@ class ImageProcessingThread(threading.Thread):
         self.ff_applied = None
 
     def start(self):
-        """
-        Starts processing thread
-        :return:
-        """
         self.thread_done = gevent.event.Event()
         threading.Thread.start(self)
         return self.thread_done
 
     def set_stop(self):
-        """
-        Stops processing thread
-        :return:
-        """
         self.stopped = True
         logging.getLogger("GUI").info("Image processing stopped")
 
     def get_im_min_max(self):
-        """
-        Returns min and max pixel values
-        :return:
-        """
         return self.im_min, self.im_max
 
     def run(self):
-        """
-        Processing task
-        :return:
-        """
         logging.getLogger("GUI").info("Image processing started...")
         progress_step = 20
 
         while not self.stopped:
             (raw_image, ff_image, index) = image_processing_queue.get()
 
+            ff_corrected_image = None
             self.ff_applied = np.divide(
                 raw_image.astype(float),
                 ff_image.astype(float),
                 out=np.ones_like(raw_image.astype(float)),
                 where=ff_image.astype(float) != 0,
             )
+
             self.ff_applied[ff_image == (pow(2, 16) - 1)] = 1
 
             if (
@@ -1185,23 +984,13 @@ class ImageProcessingThread(threading.Thread):
             if index == self.image_count - 1:
                 logging.getLogger("GUI").info("Image processing finished")
                 break
+        # self.thread_watcher.send()
 
 
 class ImageReadingThread(threading.Thread):
-    """
-    Image reading thread reads image and adds it to queue for image processing thread
-    """
-
     def __init__(self, raw_filename_list, ff_filename_list=[], ff_ssim=[]):
-        """
-        init
-        :param raw_filename_list:
-        :param ff_filename_list:
-        :param ff_ssim:
-        """
         threading.Thread.__init__(self)
 
-        self.thread_done = None
         self.stopped = False
         self.failed_to_read_count = 10
         self.raw_filename_list = raw_filename_list
@@ -1213,37 +1002,19 @@ class ImageReadingThread(threading.Thread):
         self.ff_ssim = None
 
     def start(self):
-        """
-        Starts the thread
-        :return:
-        """
+        # self.thread_watcher = gevent.get_hub().loop.async()
         self.thread_done = gevent.event.Event()
         threading.Thread.start(self)
         return self.thread_done
 
     def set_stop(self):
-        """
-        Stops the thread
-        :return:
-        """
         self.stopped = True
         logging.getLogger("GUI").info("Image reading stopped")
 
     def set_ff_ssim(self, ff_ssim):
-        """
-        Sets ff ssim list
-        :param ff_ssim: list of lists
-        :return:
-        """
         self.ff_ssim = ff_ssim
 
     def read_image(self, filename, timeout=10):
-        """
-        Image reading method
-        :param filename:
-        :param timeout:
-        :return:
-        """
         if timeout:
             try:
                 with gevent.Timeout(
@@ -1261,13 +1032,7 @@ class ImageReadingThread(threading.Thread):
             return cv.imread(filename, cv.IMREAD_ANYDEPTH)
 
     def run(self):
-        """
-        Main run method
-        :return:
-        """
-        # GB: 20190303: dumping to avoid endless waiting for image reading
         return
-
         logging.getLogger("GUI").info("Image reading started...")
         for index, filename in enumerate(self.ff_filename_list):
             if self.stopped:
@@ -1298,19 +1063,9 @@ class ImageReadingThread(threading.Thread):
         # self.thread_watcher.send()
 
     def get_raw_image(self, index):
-        """
-        Returns raw image based on index
-        :param index: int
-        :return:
-        """
         return self.raw_image_list[index]
 
     def get_ff_image(self, raw_image_index):
-        """
-        Returns flat field corrected image
-        :param raw_image_index: int
-        :return:
-        """
         if self.ff_ssim:
             ff_index = self.ff_ssim[raw_image_index][2] - 1
         else:

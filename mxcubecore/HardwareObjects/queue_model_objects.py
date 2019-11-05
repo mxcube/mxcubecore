@@ -9,6 +9,7 @@ import logging
 from collections import OrderedDict
 
 from HardwareRepository.HardwareObjects import queue_model_enumerables
+from HardwareRepository import HardwareRepository as HWR
 
 
 class TaskNode(object):
@@ -266,7 +267,7 @@ class Sample(TaskNode):
         return s
 
     def _print(self):
-        print("sample: %s" % self.loc_str)
+        print(("sample: %s" % self.loc_str))
 
     def has_lims_data(self):
         if self.lims_id > -1:
@@ -523,7 +524,7 @@ class DataCollection(TaskNode):
         self.id = int()
         self.lims_group_id = None
         self.run_processing_after = None
-        self.run_processing_parallel = False
+        self.run_processing_parallel = None  # This is a string field, not a Boolean
         self.grid = None
         self.parallel_processing_result = None
         self.processing_msg_list = []
@@ -718,6 +719,7 @@ class ProcessingParameters(object):
         self.anomalous = False
         self.pdb_code = None
         self.pdb_file = str()
+        self.resolution_cutoff = 2.0
 
     def get_cell_str(self):
         return ",".join(
@@ -1272,8 +1274,8 @@ class PathTemplate(object):
         PathTemplate.archive_folder = archive_folder
 
     @staticmethod
-    def set_path_template_style(synchotron_name, template=None):
-        PathTemplate.synchotron_name = synchotron_name
+    def set_path_template_style(synchrotron_name, template=None):
+        PathTemplate.synchrotron_name = synchrotron_name
         PathTemplate.template = template
 
     @staticmethod
@@ -1371,7 +1373,7 @@ class PathTemplate(object):
 
     def get_archive_directory(self):
         """
-        Returns the archive directory, for longer term storage. synchotron_name
+        Returns the archive directory, for longer term storage. synchrotron_name
         is set via static function calles from session hwobj
 
         :rtype: str
@@ -1379,7 +1381,7 @@ class PathTemplate(object):
         """
         folders = self.directory.split("/")
 
-        if PathTemplate.synchotron_name == "MAXLAB":
+        if PathTemplate.synchrotron_name == "MAXLAB":
             archive_directory = self.directory
             archive_directory = archive_directory.replace(
                 "/data/data1/visitor", "/data/ispyb"
@@ -1388,12 +1390,12 @@ class PathTemplate(object):
                 "/data/data1/inhouse", "/data/ispyb"
             )
             archive_directory = archive_directory.replace("/data/data1", "/data/ispyb")
-        elif PathTemplate.synchotron_name == "EMBL-HH":
+        elif PathTemplate.synchrotron_name == "EMBL-HH":
             archive_directory = os.path.join(
                 PathTemplate.archive_base_directory, PathTemplate.archive_folder
             )
             archive_directory = os.path.join(archive_directory, *folders[4:])
-        elif PathTemplate.synchotron_name == "ALBA":
+        elif PathTemplate.synchrotron_name == "ALBA":
             logging.getLogger("HWR").debug(
                 "PathTemplate (ALBA) - directory is %s" % self.directory
             )
@@ -1747,6 +1749,7 @@ class GphlWorkflow(TaskNode):
         self.path_template = PathTemplate()
         self._name = str()
         self._type = str()
+        self._characterisation_strategy = str()
         self._interleave_order = str()
         self._number = 0
         self._beam_energies = OrderedDict()
@@ -1757,6 +1760,11 @@ class GphlWorkflow(TaskNode):
         self._cell_parameters = None
         self._snapshot_count = None
         self._centre_before_sweep = None
+        self._centre_before_scan = None
+
+        self._dose_budget = None
+        self._characterisation_budget_fraction = 1.0
+        self._relative_rad_sensitivity = 1.0
 
         # HACK - to differentiate between characterisation and acquisition
         # TODO remove when workflow gives relevant information
@@ -1821,6 +1829,13 @@ class GphlWorkflow(TaskNode):
     def set_space_group(self, value):
         self._space_group = value
 
+    # Characterisation strategy.
+    def get_characterisation_strategy(self):
+        return self._characterisation_strategy
+
+    def set_characterisation_strategy(self, value):
+        self._characterisation_strategy = value
+
     # Crystal system.
     def get_crystal_system(self):
         return self._crystal_system
@@ -1834,6 +1849,27 @@ class GphlWorkflow(TaskNode):
 
     def set_point_group(self, value):
         self._point_group = value
+
+    # Dose budget (MGy, float).
+    def get_dose_budget(self):
+        return self._dose_budget
+
+    def set_dose_budget(self, value):
+        self._dose_budget = value
+
+    # Fraction of dose budget intended for characterisation.
+    def get_characterisation_budget_fraction(self):
+        return self._characterisation_budget_fraction
+
+    def set_characterisation_budget_fraction(self, value):
+        self._characterisation_budget_fraction = value
+
+    # Radiation sensitivity of crystal, relative to a 'standard crystal'.
+    def get_relative_rad_sensitivity(self):
+        return self._relative_rad_sensitivity
+
+    def set_relative_rad_sensitivity(self, value):
+        self._relative_rad_sensitivity = value
 
     # Cell parameters - sequence of six floats (a,b,c,alpha,beta,gamma)
     def get_cell_parameters(self):
@@ -1859,6 +1895,12 @@ class GphlWorkflow(TaskNode):
         return self._centre_before_sweep
     def set_centre_before_sweep(self, value):
         self._centre_before_sweep = bool(value)
+
+    # (Re)centre before each scan?.
+    def get_centre_before_scan(self):
+        return self._centre_before_scan
+    def set_centre_before_scan(self, value):
+        self._centre_before_scan = bool(value)
 
     def get_path_template(self):
         return self.path_template
@@ -2060,7 +2102,7 @@ def dc_from_edna_output(
 
             acq = Acquisition()
             acq.acquisition_parameters = (
-                beamline_setup_hwobj.get_default_acquisition_parameters()
+                HWR.beamline.get_default_acquisition_parameters()
             )
             acquisition_parameters = acq.acquisition_parameters
 
@@ -2068,7 +2110,7 @@ def dc_from_edna_output(
                 0
             ].acquisition_parameters.centred_position
 
-            acq.path_template = beamline_setup_hwobj.get_default_path_template()
+            acq.path_template = HWR.beamline.get_default_path_template()
 
             # Use the same path template as the reference_collection
             # and update the members the needs to be changed. Keeping

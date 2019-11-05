@@ -1,10 +1,11 @@
 import logging
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.CommandContainer import CommandObject
 import time
 import gevent
 from gevent import monkey
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.TaskUtils import task
+from HardwareRepository.CommandContainer import CommandObject
+from HardwareRepository import HardwareRepository as HWR
 
 monkey.patch_all(thread=False)
 
@@ -64,44 +65,44 @@ class BIOMAXBeamlineActions(HardwareObject):
         logging.getLogger("HWR").info("Preparing experimental hutch for door openning.")
         time.sleep(1)
         if (
-            self.safety_shutter_hwobj is not None
-            and self.safety_shutter_hwobj.getShutterState() == "opened"
+            HWR.beamline.safety_shutter is not None
+            and HWR.beamline.safety_shutter.getShutterState() == "opened"
         ):
             logging.getLogger("HWR").info("Closing safety shutter...")
-            self.safety_shutter_hwobj.closeShutter()
-            while self.safety_shutter_hwobj.getShutterState() == "opened":
+            HWR.beamline.safety_shutter.closeShutter()
+            while HWR.beamline.safety_shutter.getShutterState() == "opened":
                 gevent.sleep(0.1)
 
         if self.detector_cover_hwobj is not None:
             logging.getLogger("HWR").info("Closing detector cover...")
             self.detector_cover_hwobj.closeShutter()
 
-        if self.dtox_hwobj is not None:
+        if HWR.beamline.detector.distance is not None:
             logging.getLogger("HWR").info("Moving detector to safe area...")
-            self.dtox_hwobj.syncMove(800, timeout=50)
+            HWR.beamline.detector.distance.syncMove(800, timeout=50)
 
-        if self.sample_changer_hwobj.isPowered():
-            if self.sample_changer_hwobj.getLoadedSample() is not None:
+        if HWR.beamline.sample_changer.isPowered():
+            if HWR.beamline.sample_changer.getLoadedSample() is not None:
                 logging.getLogger("HWR").info("Unloading mounted sample.")
-                self.sample_changer_hwobj.unload(None, wait=True)
-                self.sample_changer_hwobj._waitDeviceReady(30)
-            if self.sample_changer_hwobj._chnInSoak.getValue():
+                HWR.beamline.sample_changer.unload(None, wait=True)
+                HWR.beamline.sample_changer._waitDeviceReady(30)
+            if HWR.beamline.sample_changer._chnInSoak.getValue():
                 logging.getLogger("HWR").info(
                     "Sample Changer was in SOAK, going to DRY"
                 )
                 self.sample_changer_maint_hwobj.send_command("dry")
                 gevent.sleep(1)
-                self.sample_changer_hwobj._waitDeviceReady(300)
-            if self.sample_changer_hwobj.isPowered():
+                HWR.beamline.sample_changer._waitDeviceReady(300)
+            if HWR.beamline.sample_changer.isPowered():
                 logging.getLogger("HWR").info("Sample Changer to HOME")
                 self.sample_changer_maint_hwobj.send_command("home")
                 gevent.sleep(1)
-                self.sample_changer_hwobj._waitDeviceReady(30)
+                HWR.beamline.sample_changer._waitDeviceReady(30)
 
                 logging.getLogger("HWR").info("Sample Changer CLOSING LID")
                 self.sample_changer_maint_hwobj.send_command("closelid1")
                 gevent.sleep(1)
-                self.sample_changer_hwobj._waitDeviceReady(10)
+                HWR.beamline.sample_changer._waitDeviceReady(10)
 
                 logging.getLogger("HWR").info("Sample Changer POWER OFF")
                 self.sample_changer_maint_hwobj.send_command("powerOff")
@@ -121,31 +122,26 @@ class BIOMAXBeamlineActions(HardwareObject):
                 logging.getLogger("HWR").info("Closing detector shutter...")
                 self.detector_cover_hwobj.closeShutter()
             logging.getLogger("HWR").info("Setting diffractometer in Transfer phase...")
-            self.diffractometer_hwobj.set_phase("Transfer", wait=False)
+            HWR.beamline.diffractometer.set_phase("Transfer", wait=False)
 
             if (
-                self.safety_shutter_hwobj is not None
-                and self.safety_shutter_hwobj.getShutterState() == "opened"
+                HWR.beamline.safety_shutter is not None
+                and HWR.beamline.safety_shutter.getShutterState() == "opened"
             ):
                 logging.getLogger("HWR").info("Closing safety shutter...")
-                self.safety_shutter_hwobj.closeShutter()
-                while self.safety_shutter_hwobj.getShutterState() == "opened":
+                HWR.beamline.safety_shutter.closeShutter()
+                while HWR.beamline.safety_shutter.getShutterState() == "opened":
                     gevent.sleep(0.1)
 
-        if self.dtox_hwobj is not None:
+        if HWR.beamline.detector.distance is not None:
             logging.getLogger("HWR").info("Moving detector to safe area...")
-            self.dtox_hwobj.syncMove(800, timeout=50)
+            HWR.beamline.detector.distance.syncMove(800, timeout=50)
 
     def init(self):
-        self.sample_changer_hwobj = self.getObjectByRole("sample_changer")
         self.sample_changer_maint_hwobj = self.getObjectByRole(
             "sample_changer_maintenance"
         )
-        self.dtox_hwobj = self.getObjectByRole("dtox")
         self.detector_cover_hwobj = self.getObjectByRole("detector_cover")
-        self.safety_shutter_hwobj = self.getObjectByRole("safety_shutter")
-        self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
-        # self.collect = self.getObjectByRole("collect")
 
         self.prepare_open_hutch = ControllerCommand(
             "prepare_open_hutch", self._prepare_open_hutch_task

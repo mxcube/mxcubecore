@@ -8,7 +8,7 @@
     <hutchHumAddress>G47cS9:K:KL:P13EH1RaF_ai</hutchHumAddress>
 
     <object href="/safshut" role="shutter"/>
-    <object href="/ppu-control" role="ppu_control"/>
+<!--    <object href="/ppu-control" role="ppu_control"/>-->
 
     <channel type="tine" name="machStateText" tinename="/PETRA/ARCHIVER/keyword">MachineStateText</channel>
     <channel type="tine" name="machCurrent" tinename="/PETRA/ARCHIVER/keyword">curDC</channel>

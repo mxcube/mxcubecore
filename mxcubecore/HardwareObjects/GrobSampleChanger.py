@@ -66,13 +66,13 @@ class GrobSampleChanger(Equipment):
             3: "puck2",
             4: "puck3",
             6: "ln2_alarm_low",
-        }.iteritems():
+        }.items():
             status[name] = bits & (1 << (bit_number - 1)) != 0
         self.emit("ioStatusChanged", (status,))
 
     def samplesMapChanged(self, samples_map_dict):
         samples_map_int_keys = {}
-        for k, v in samples_map_dict.iteritems():
+        for k, v in samples_map_dict.items():
             samples_map_int_keys[int(k)] = v
         self.samples_map = samples_map_int_keys
         self.emit("samplesMapChanged", (self.samples_map,))

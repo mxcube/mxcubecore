@@ -335,10 +335,10 @@ class PX1Environment(Device):
 
 def test_hwo(hwo):
     t0 = time.time()
-    print "PX1 Environment (state) ", hwo.getState()
-    print "               phase is ", hwo.getCurrentPhase()
-    print "               state is ", hwo.readState()
-    print "        beamstop pos is ", hwo.getBeamstopPosition()
+    print("PX1 Environment (state) ", hwo.getState())
+    print("               phase is ", hwo.getCurrentPhase())
+    print("               state is ", hwo.readState())
+    print("        beamstop pos is ", hwo.getBeamstopPosition())
 
     # if not env.readyForTransfer():
     #    print "Going to transfer phase"

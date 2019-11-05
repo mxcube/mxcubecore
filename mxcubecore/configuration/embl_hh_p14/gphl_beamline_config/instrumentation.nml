@@ -19,8 +19,8 @@ det_qy= 0.075000
 
 det_nx= 4150
 det_ny= 4371
-det_org_x= 2078.0
-det_org_y= 2180.0
+det_org_x= 2086.231
+det_org_y= 2184.12
 det_org_dist= 240.581970
 d_sensor= 0.45
 
@@ -29,7 +29,7 @@ det_gonio_axis_dirs=  0.0  0.0  1.0
  ! Actual value is irrelevant, since axis is (nominally) parallel to beam
  ! and we don't refine its direction
 det_gonio_axis_datum_settings= 500
-det_gonio_axis_limits= 0 1000
+det_gonio_axis_limits= 137, 3100
 det_gonio_axis_names= 'Distance'
 det_gonio_axis_types= 'Translation'
 det_gonio_axis_calibratable = 'False'
@@ -40,7 +40,7 @@ det_filename_suffix= '.cbf'
 gonio_name= "MiniKappa"
 gonio_axis_dirs= 0.0, -1.0, 0.0,
    ! Normalised to sum to 1.0000000 exactly
-   0.186051,-0.9135454938310407,0.36169,
+   -0.0495687,-0.9135454938310407,-0.40370489
    0.0, -1.0, 0.0,
 gonio_axis_datum_settings= 0 0 0
 gonio_axis_limits= , , -5, 240, , ,
@@ -50,10 +50,10 @@ gonio_axis_calibratable= 'False' 'True' 'True'
 
 ! Nominal centring axis directions
 gonio_centring_axis_dirs=  0.0,  1.0,  0.0,
-                          -0.281085,  0, 0.959683,
-                           0.959683,  0, 0.281085
+                           -0.9999505209310272,  0, 0.00994764744888108,
+                           -0.00994764744888108, 0, -0.9999505209310272
 ! Actual limits on centring axes
-gonio_centring_axis_limits=   ,  ,  ,  ,  ,
+gonio_centring_axis_limits=  -6.5, 4.0, -2.7, 3.0, -2.8, 2.8
 gonio_centring_axis_names= 'phiy', 'sampx', 'sampy'
 
 !? FIXME! Sort out ID30B beamstop on the fly (or delete it?) 

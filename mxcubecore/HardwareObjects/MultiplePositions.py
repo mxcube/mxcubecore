@@ -160,6 +160,9 @@ class MultiplePositions(Equipment):
 
         self.deltas = {}
         try:
+            # WARNING self.deltas is a LINK to the INTERNAL properties dictionary
+            # modifying it modifies the GLOBAL properties, not just the local copy
+            # Maybe do self["deltas"].getProperties().copy()?
             self.deltas = self["deltas"].getProperties()
         except BaseException:
             logging.getLogger().error("No deltas.")
@@ -304,7 +307,7 @@ class MultiplePositions(Equipment):
                 else:
                     key_el = cElementTree.SubElement(pos, key)
                     key_el.text = value
-                    print(cElementTree.tostring(xml_tree))
+                    print((cElementTree.tostring(xml_tree)))
                     self.rewrite_xml(cElementTree.tostring(xml_tree))
                     return True
 

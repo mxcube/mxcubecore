@@ -1,5 +1,5 @@
 from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 import gevent
 
 
@@ -18,7 +18,7 @@ class RobodiffMotor(Device):
     def end_init(self):
         if self.__initialized:
             return
-        controller = HardwareRepository.getHardwareRepository().getHardwareObject(
+        controller = HWR.getHardwareRepository().getHardwareObject(
             self.getProperty("controller")
         )  # self.getObjectByRole("controller")
 

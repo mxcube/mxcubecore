@@ -18,7 +18,7 @@ Example XML::
 
 """
 
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository import BaseHardwareObjects
 import logging
 
@@ -42,9 +42,9 @@ class ALBAFrontEnd(ALBAEpsActuator):
 
 
 def test_hwo(hwo):
-    print "Name is: ", hwo.getUserName()
-    print "Shutter state is: ", hwo.getState()
-    print "Shutter status is: ", hwo.getStatus()
+    print("Name is: ", hwo.getUserName())
+    print("Shutter state is: ", hwo.getState())
+    print("Shutter status is: ", hwo.getStatus())
 
     # print "Opening it"
     # print hwo.open()

@@ -2,7 +2,7 @@
 
   <tangoname>i10-c-cx1/dt/pilatus</tangoname>
 
-  <object href="/detectordistance" role="distance_motor" />
+  <object href="/detectordistance" role="detector_distance" />
 
   <channel type="tango" polling="500" name="state">State</channel>
 

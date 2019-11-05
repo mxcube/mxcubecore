@@ -76,8 +76,8 @@ class MAXIVMD2Camera(Device):
                 )
 
     def imageUpdated(self, value):
-        print "<HW> got new image"
-        print value
+        print("<HW> got new image")
+        print(value)
 
     def gammaExists(self):
         return False

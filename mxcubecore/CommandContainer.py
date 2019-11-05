@@ -352,19 +352,23 @@ class CommandContainer:
         else:
             logging.getLogger().exception("Channel is None")
 
-    def set_value(self, channel_name, value):
+    def set_channel_value(self, channel_name, value):
         self.__channels[channel_name].setValue(value)
 
-    def get_value(self, channel_name):
+    def get_channel_value(self, channel_name):
         return self.__channels[channel_name].getValue()
 
     def setValue(self, channelName, value):
-        warn("setValue is deprecated. Use set_value instead", DeprecationWarning)
-        self.set_value(channelName, value)
+        warn(
+            "setValue is deprecated. Use set_channel_value instead", DeprecationWarning
+        )
+        self.set_channel_value(channelName, value)
 
     def getValue(self, channelName):
-        warn("getValue is deprecated. Use get_value instead", DeprecationWarning)
-        return self.get_value(channelName)
+        warn(
+            "getValue is deprecated. Use get_channel_value instead", DeprecationWarning
+        )
+        return self.get_channel_value(channelName)
 
     def getChannels(self):
         for chan in self.__channels.values():
@@ -385,7 +389,7 @@ class CommandContainer:
 
     def addCommand(self, arg1, arg2=None, addNow=True):
         warn("addCommand is deprecated. Use add_command instead", DeprecationWarning)
-        self.add_command(arg1, arg2, addNow)
+        return self.add_command(arg1, arg2, addNow)
 
     def add_command(self, arg1, arg2=None, addNow=True):
         if not addNow:
@@ -730,7 +734,7 @@ class CommandContainer:
 
     def _addChannelsAndCommands(self):
         [self.addChannel(*args) for args in self.__channelsToAdd]
-        [self.addCommand(*args) for args in self.__commandsToAdd]
+        [self.add_command(*args) for args in self.__commandsToAdd]
         self.__channelsToAdd = []
         self.__commandsToAdd = []
 

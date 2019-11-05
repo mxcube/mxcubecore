@@ -1,6 +1,11 @@
 import sys
 from .Component import Component
 
+try:
+    from urllib import urlopen
+except ImportError:
+    from urllib.request import urlopen
+
 
 class Sample(Component):
     """
@@ -67,13 +72,13 @@ class Sample(Component):
                 img_url = self.getProperty(self.__IMAGE_URL_PROPERTY__)
                 if len(img_url) == 0:
                     return None
-                import urllib
+                import urllib.request, urllib.parse, urllib.error
 
-                f = urllib.urlopen(img_url)
+                f = urlopen(img_url)
                 img = f.read()
                 return img
         except BaseException:
-            print(sys.exc_info()[1])
+            print((sys.exc_info()[1]))
 
     def clearInfo(self):
         Component.clearInfo(self)

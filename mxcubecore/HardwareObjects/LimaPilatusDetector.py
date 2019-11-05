@@ -3,18 +3,27 @@ import time
 import subprocess
 import os
 import math
-from HardwareRepository.TaskUtils import task
 from PyTango import DeviceProxy
+from HardwareRepository.TaskUtils import task
+from HardwareRepository import HardwareRepository as HWR
+from HardwareRepository.BaseHardwareObjects import HardwareObject
 
+from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
+    AbstractDetector,
+)
 
-class Pilatus:
-    def init(self, config, collect_obj):
-        self.config = config
-        self.collect_obj = collect_obj
+class LimaPilatusDetector(HardwareObject, AbstractDetector):
+    def __init__(self, name):
+        AbstractDetector.__init__(self)
+        HardwareObject.__init__(self, name)
+        self.binning_mode = 1
+        self._mesh_steps = None
+
+    def init(self):
         self.header = dict()
 
-        lima_device = config.getProperty("lima_device")
-        pilatus_device = config.getProperty("pilatus_device")
+        lima_device = self.getProperty("lima_device")
+        pilatus_device = self.getProperty("pilatus_device")
         if None in (lima_device, pilatus_device):
             return
 
@@ -65,23 +74,26 @@ class Pilatus:
                 "energy_threshold",
             )
 
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "prepare_acq", "tangoname": lima_device},
             "prepareAcq",
         )
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "start_acq", "tangoname": lima_device}, "startAcq"
         )
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "stop_acq", "tangoname": lima_device}, "stopAcq"
         )
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "reset", "tangoname": lima_device}, "reset"
         )
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "set_image_header", "tangoname": lima_device},
             "SetImageHeader",
         )
+
+    def has_shutterless(self):
+        return True
 
     def wait_ready(self):
         acq_status_chan = self.getChannelObject("acq_status")
@@ -96,7 +108,7 @@ class Pilatus:
             return 0
 
     def get_deadtime(self):
-        return float(self.config.getProperty("deadtime"))
+        return float(self.getProperty("deadtime"))
 
     @task
     def prepare_acquisition(
@@ -111,8 +123,18 @@ class Pilatus:
         energy,
         trigger_mode,
     ):
+        if trigger_mode is None:
+            if osc_range < 1e-4:
+                trigger_mode = "INTERNAL_TRIGGER"
+            else:
+                trigger_mode = "EXTERNAL_TRIGGER"
+            if self._mesh_steps > 1:
+                trigger_mode = "EXTERNAL_TRIGGER_MULTI"
+                # reset mesh steps
+                self._mesh_steps = 1
+
         diffractometer_positions = (
-            self.collect_obj.bl_control.diffractometer.getPositions()
+            HWR.beamline.diffractometer.get_positions()
         )
         self.start_angles = list()
         for i in range(number_of_images):
@@ -130,21 +152,21 @@ class Pilatus:
         self.header["Phi"] = "%0.4f deg." % kappa_phi
         self.header["Kappa"] = "%0.4f deg." % kappa
         self.header["Alpha"] = "0.0000 deg."
-        self.header["Polarization"] = self.collect_obj.bl_config.polarisation
+        self.header["Polarization"] = HWR.beamline.collect.bl_config.polarisation
         self.header["Detector_2theta"] = "0.0000 deg."
         self.header["Angle_increment"] = "%0.4f deg." % osc_range
         # self.header["Start_angle"]="%0.4f deg." % start
-        self.header["Transmission"] = self.collect_obj.get_transmission()
-        self.header["Flux"] = self.collect_obj.get_flux()
+        self.header["Transmission"] = HWR.beamline.transmission.get_value()
+        self.header["Flux"] = HWR.beamline.flux.get_flux()
         self.header["Beam_xy"] = "(%.2f, %.2f) pixels" % tuple(
-            [value / 0.172 for value in self.collect_obj.get_beam_centre()]
+            [value / 0.172 for value in HWR.beamline.detector.get_beam_centre()]
         )
         self.header["Detector_Voffset"] = "0.0000 m"
         self.header["Energy_range"] = "(0, 0) eV"
         self.header["Detector_distance"] = "%f m" % (
-            self.collect_obj.get_detector_distance() / 1000.0
+            HWR.beamline.detector.get_detector_distance() / 1000.0
         )
-        self.header["Wavelength"] = "%f A" % self.collect_obj.get_wavelength()
+        self.header["Wavelength"] = "%f A" % HWR.beamline.energy.get_wavelength()
         self.header["Trim_directory:"] = "(nil)"
         self.header["Flat_field:"] = "(nil)"
         self.header["Excluded_pixels:"] = " badpix_mask.tif"
@@ -170,7 +192,7 @@ class Pilatus:
         self.getChannelObject("saving_overwrite_policy").setValue("OVERWRITE")
 
     def set_energy_threshold(self, energy):
-        minE = self.config.getProperty("minE")
+        minE = self.getProperty("minE")
         if energy < minE:
             energy = minE
 
@@ -194,12 +216,12 @@ class Pilatus:
         if dirname.startswith(os.path.sep):
             dirname = dirname[len(os.path.sep) :]
 
-        saving_directory = os.path.join(self.config.getProperty("buffer"), dirname)
+        saving_directory = os.path.join(self.getProperty("buffer"), dirname)
         subprocess.Popen(
             "ssh %s@%s mkdir --parents %s"
             % (
                 os.environ["USER"],
-                self.config.getProperty("control"),
+                self.getProperty("control"),
                 saving_directory,
             ),
             shell=True,
@@ -221,12 +243,12 @@ class Pilatus:
 
         headers = list()
         for i, start_angle in enumerate(self.start_angles):
-            header = "\n%s\n" % self.config.getProperty("serial")
+            header = "\n%s\n" % self.getProperty("serial")
             header += "# %s\n" % time.strftime("%Y/%b/%d %T")
             header += "# Pixel_size 172e-6 m x 172e-6 m\n"
             header += "# Silicon sensor, thickness 0.000320 m\n"
             self.header["Start_angle"] = start_angle
-            for key, value in self.header.iteritems():
+            for key, value in self.header.items():
                 header += "# %s %s\n" % (key, value)
             headers.append("%d : array_data/header_contents|%s;" % (i, header))
 
@@ -234,6 +256,11 @@ class Pilatus:
 
     @task
     def start_acquisition(self):
+        try:
+            HWR.beamline.collect.getObjectByRole("detector_cover").set_out()
+        except Exception:
+            pass
+
         self.getCommandObject("prepare_acq")()
         return self.getCommandObject("start_acq")()
 

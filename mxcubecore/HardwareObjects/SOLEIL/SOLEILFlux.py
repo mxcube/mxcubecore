@@ -1,6 +1,5 @@
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Device
-import logging
 import PyTango
 
 
@@ -19,12 +18,12 @@ class SOLEILFlux(Device):
 
 
 def test():
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     flux = hwr.getHardwareObject("/flux")
 
-    print "PX1 Flux is ", flux.getCurrentFlux()
+    print("PX1 Flux is ", flux.getCurrentFlux())
 
 
 if __name__ == "__main__":

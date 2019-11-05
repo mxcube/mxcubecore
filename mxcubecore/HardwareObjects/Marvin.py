@@ -22,10 +22,12 @@ import time
 import logging
 import tempfile
 from datetime import datetime
+import gevent
 
 
 from HardwareRepository.HardwareObjects.abstract import AbstractSampleChanger
-from HardwareRepository.HardwareObjects.abstract.sample_changer import Container, Crims, Sample
+from HardwareRepository.HardwareObjects.abstract.sample_changer import Container, Sample
+from HardwareRepository import HardwareRepository as HWR
 
 
 POSITION_DESC = {"Park" : "Parked",
@@ -132,9 +134,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         self.cmd_center_to_base = None
         self.cmd_dry_gripper = None
 
-        self.detector_hwobj = None
         self.beam_focusing_hwobj = None
-        self.diffractometer_hwobj = None
             
     def init(self):      
         self._puck_switches = 0
@@ -180,7 +180,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         self.cmd_center_to_base = self.getCommandObject("cmdCenterToBase")
         self.cmd_dry_gripper = self.getCommandObject("cmdDryGripper")
 
-        self.detector_hwobj = self.getObjectByRole('detector')
         self.beam_focusing_hwobj = self.getObjectByRole("beam_focusing")
         if self.beam_focusing_hwobj is not None:
             self.connect(self.beam_focusing_hwobj,
@@ -190,8 +189,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             self.focusing_mode_changed(self._focusing_mode, beam_size)
         else:
             self._focusing_mode = "P13mode"
-
-        self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
 
         self._initSCContents()
         self._updateState()
@@ -207,6 +204,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         AbstractSampleChanger.SampleChanger.init(self)
 
         self._setState(AbstractSampleChanger.SampleChangerState.Ready)
+        self.status_list_changed(self.chan_status.getValue())
         self.puck_switches_changed(self.chan_puck_switches.getValue())
         self.mounted_sample_puck_changed(self.chan_mounted_sample_puck.getValue())
         self.sample_is_loaded_changed(self.chan_sample_is_loaded.getValue())
@@ -248,8 +246,8 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         #    while not self._sample_detected:
         #        gevent.sleep(0.05)
         with gevent.Timeout(timeout, Exception("Timeout waiting for centring phase")):
-            while self.diffractometer_hwobj.get_current_phase() != \
-                  self.diffractometer_hwobj.PHASE_CENTRING:
+            while HWR.beamline.diffractometer.get_current_phase() != \
+                  HWR.beamline.diffractometer.PHASE_CENTRING:
                 if not self._isDeviceBusy():
                     return
                 gevent.sleep(0.05)
@@ -297,8 +295,11 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         self._process_step_info = process_step_info
         if "error" in process_step_info.lower():
             logging.getLogger("GUI").error("Sample changer: %s" % self._process_step_info)
-            self._in_error_state = True
-            self._setState(AbstractSampleChanger.SampleChangerState.Alarm)
+	    # GB: 20190304: this seemd to lock mxcube forever on any marvin error
+            #self._in_error_state = True
+            #self._setState(AbstractSampleChanger.SampleChangerState.Alarm)
+            
+        
         else:
             logging.getLogger("GUI").info("Sample changer: %s" % self._process_step_info) 
         self._info_dict["process_step"] = self._process_step_info
@@ -344,7 +345,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         sample = None
         if basket_no is not None and basket_no>0 and \
            basket_no <=self._num_basket:
-            basket = self.getComponentByAddress(Basket.getBasketAddress(basket_no))
+            basket = self.getComponentByAddress(Container.Basket.getBasketAddress(basket_no))
             if sample_no is not None and sample_no>0 and \
                sample_no <= len(basket.getSampleList()):
                 sample = self.getComponentByAddress(Container.Pin.getSampleAddress(basket_no, sample_no))            
@@ -359,7 +360,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         if type(component) in (Container.Pin, Sample.Sample):
             selected_basket_no = component.getBasketNo()
             selected_sample_no = component.getIndex()+1
-        elif isinstance(component, Container.Container) and ( component.getType() == Basket.__TYPE__):
+        elif isinstance(component, Container.Container) and ( component.getType() == Container.Basket.__TYPE__):
             selected_basket_no = component.getIndex()+1
             selected_sample_no = None
 
@@ -370,7 +371,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
            complete sample changer.
            Not implemented
         """
-        print "_doScan TODO"
+        print("_doScan TODO")
     
     def _doLoad(self,sample=None):
         """Loads a sample on the diffractometer. Performs a simple put operation
@@ -381,7 +382,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         self._setState(AbstractSampleChanger.SampleChangerState.Ready)
         log = logging.getLogger("GUI")
 
-        if self._focusing_mode not in ("Collimated", "Double", "P13mode"):
+        if self._focusing_mode not in ("Collimated", "Double", "Imaging","P13mode"):
             error_msg = "Focusing mode is undefined. Sample loading is disabled"
             log.error(error_msg)
             return
@@ -431,33 +432,33 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         self.emit("progressInit", (msg, 100, False))
 
         # 2. Set diffractometer transfer phase
-        logging.getLogger("HWR").debug("%s %s"%(self.diffractometer_hwobj.get_current_phase(),self.diffractometer_hwobj.PHASE_TRANSFER))
-        if self.diffractometer_hwobj.get_current_phase() != \
-           self.diffractometer_hwobj.PHASE_TRANSFER:
+        logging.getLogger("HWR").debug("%s %s"%(HWR.beamline.diffractometer.get_current_phase(),HWR.beamline.diffractometer.PHASE_TRANSFER))
+        if HWR.beamline.diffractometer.get_current_phase() != \
+           HWR.beamline.diffractometer.PHASE_TRANSFER:
             logging.getLogger("HWR").debug("set transfer")
-            self.diffractometer_hwobj.set_phase(self.diffractometer_hwobj.PHASE_TRANSFER, 60.0)
+            HWR.beamline.diffractometer.set_phase(HWR.beamline.diffractometer.PHASE_TRANSFER, 60.0)
             time.sleep(2)
-            if self.diffractometer_hwobj.get_current_phase() != \
-               self.diffractometer_hwobj.PHASE_TRANSFER:
+            if HWR.beamline.diffractometer.get_current_phase() != \
+               HWR.beamline.diffractometer.PHASE_TRANSFER:
                 log.error("Diffractometer is not in the transfer phase. " +\
                           "Sample will not be mounted")
                 raise Exception("Unable to set Transfer phase")
 
         #logging.getLogger("HWR").debug("Sample changer: Closing guillotine...")
-        #self.detector_hwobj.close_cover()
+        #HWR.beamline.detector.close_cover()
         #logging.getLogger("HWR").debug("Sample changer: Guillotine closed")
         # 3. If necessary move detector to save position
         if self._focusing_mode == "P13mode":
-            if self.detector_hwobj.get_distance() < 399.0:
+            if HWR.beamline.detector.get_distance() < 399.0:
                 log.info("Sample changer: Moving detector to save position...")
                 self._veto = 1
-                self.detector_hwobj.set_distance(400, timeout=45)
+                HWR.beamline.detector.set_distance(400, timeout=45)
                 time.sleep(1)
                 self.waitVeto(20.0)
                 log.info("Sample changer: Detector moved to save position")
         else:
             logging.getLogger("HWR").debug("Sample changer: Closing guillotine...")
-            self.detector_hwobj.close_cover()
+            HWR.beamline.detector.close_cover()
             logging.getLogger("HWR").debug("Sample changer: Guillotine closed")
 
         # 4. Executed command and wait till device is ready 
@@ -466,7 +467,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                                     int(sample_index),
                                     int(basket_index))
         else:
-            if self._focusing_mode == "Collimated":
+            if self._focusing_mode == "Collimated" or self._focusing_mode == "Imaging":
                 self._executeServerTask(self.cmd_mount_sample,
                                         int(sample_index),
                                         int(basket_index),
@@ -509,9 +510,9 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             log.info("Sample changer: Sample %d:%d loaded" % \
                      (int(basket_index), int(sample_index)))
             if self._focusing_mode == "P13mode":
-                self.diffractometer_hwobj.set_phase(\
-                    self.diffractometer_hwobj.PHASE_CENTRING, 60.0)
-                #self.diffractometer_hwobj.close_kappa()
+                HWR.beamline.diffractometer.set_phase(\
+                    HWR.beamline.diffractometer.PHASE_CENTRING, 60.0)
+                #HWR.beamline.diffractometer.close_kappa()
         else:
             log.error("Sample changer: Failed to load sample %d:%d" % \
                       (int(basket_index), int(sample_index)))
@@ -521,7 +522,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         """ Load a sample"""
         #self._setState(AbstractSampleChanger.SampleChangerState.Ready)
         if self._focusing_mode == "P13mode":
-            SampleChanger.load(self, sample, wait)
+            AbstractSampleChanger.SampleChanger.load(self, sample, wait)
         else:
             sample = self._resolveComponent(sample)
             self.assertNotCharging()
@@ -532,7 +533,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         log = logging.getLogger("GUI")
  
         self._setState(AbstractSampleChanger.SampleChangerState.Ready)
-        if self._focusing_mode not in ("Collimated", "Double", "P13mode"):
+        if self._focusing_mode not in ("Collimated", "Double", "Imaging", "P13mode"):
             error_msg = "Focusing mode is undefined. Sample loading is disabled"
             log.error(error_msg)
             return
@@ -556,26 +557,26 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         log.warning(msg + ". Please wait...")
         self.emit("progressInit", (msg, 100, False))
 
-        if self.diffractometer_hwobj.get_current_phase() != \
-           self.diffractometer_hwobj.PHASE_TRANSFER:
-            self.diffractometer_hwobj.set_phase(self.diffractometer_hwobj.PHASE_TRANSFER, 60)
-            if self.diffractometer_hwobj.get_current_phase() != \
-               self.diffractometer_hwobj.PHASE_TRANSFER:
+        if HWR.beamline.diffractometer.get_current_phase() != \
+           HWR.beamline.diffractometer.PHASE_TRANSFER:
+            HWR.beamline.diffractometer.set_phase(HWR.beamline.diffractometer.PHASE_TRANSFER, 60)
+            if HWR.beamline.diffractometer.get_current_phase() != \
+               HWR.beamline.diffractometer.PHASE_TRANSFER:
                 log.error("Diffractometer is not in the transfer phase. " +\
                           "Sample will not be mounted")
                 raise Exception("Unable to set Transfer phase")
 
-        #self.detector_hwobj.close_cover()
+        #HWR.beamline.detector.close_cover()
         if self._focusing_mode == "P13mode":  
-            if self.detector_hwobj.get_distance() < 399.0:
+            if HWR.beamline.detector.get_distance() < 399.0:
                 log.info("Sample changer: Moving detector to save position ...")
                 self._veto = 1
-                self.detector_hwobj.set_distance(400, timeout=45)
+                HWR.beamline.detector.set_distance(400, timeout=45)
                 time.sleep(1)
                 self.waitVeto(20.0)
                 log.info("Sample changer: Detector moved to save position")
         else:
-            self.detector_hwobj.close_cover()
+            HWR.beamline.detector.close_cover()
 
         start_time = datetime.now()
 
@@ -584,7 +585,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                                     sample_index,
                                     basket_index)
         else:
-            if self._focusing_mode == "Collimated":
+            if self._focusing_mode == "Collimated" or self._focusing_mode == "Imaging" :
                 self._executeServerTask(self.cmd_unmount_sample,
                                         sample_index,
                                         basket_index,
@@ -741,10 +742,10 @@ class Marvin(AbstractSampleChanger.SampleChanger):
           if basket_no is not None and basket_no>0 and \
              basket_no <= self._num_basket:
               basket = self.getComponentByAddress(\
-                 Basket.getBasketAddress(basket_no))
+                 Container.Basket.getBasketAddress(basket_no))
               sample_no = self._selected_sample
               if sample_no is not None and sample_no>0 and \
-                 sample_no <= Basket.NO_OF_SAMPLES_PER_PUCK:
+                 sample_no <= Container.Basket.NO_OF_SAMPLES_PER_PUCK:
                   sample = self.getComponentByAddress(\
                       Container.Pin.getSampleAddress(basket_no, sample_no))            
         except:
@@ -933,7 +934,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
 
         self.emit("statusListChanged", self._status_list)
         self.emit("infoDictChanged", self._info_dict) 
-
     
     def update_values(self):
         self.emit("statusListChanged", self._status_list)

@@ -1,11 +1,11 @@
-from HardwareRepository.HardwareObjects.MicrodiffMotor import MicrodiffMotor
+from HardwareRepository.HardwareObjects.MD2Motor import MD2Motor
 import logging
 import math
 
 
-class MicrodiffAperture(MicrodiffMotor):
+class MicrodiffAperture(MD2Motor):
     def __init__(self, name):
-        MicrodiffMotor.__init__(self, name)
+        MD2Motor.__init__(self, name)
 
     def init(self):
         self.motor_name = "CurrentApertureDiameter"
@@ -17,7 +17,7 @@ class MicrodiffAperture(MicrodiffMotor):
             {"type": "exporter", "name": "ap_labels"}, "ApertureDiameters"
         )
         self.filters = self.labels.getValue()
-        self.nb = len(self.filters)
+        self.nb = len(list(self.filters))
         j = 0
         while j < self.nb:
             for i in self.filters:
@@ -29,15 +29,11 @@ class MicrodiffAperture(MicrodiffMotor):
             self.predefinedPositions["Outbeam"] = self.predefinedPositions.__len__()
         self.predefinedPositions.pop("Outbeam")
         self.sortPredefinedPositionsList()
-        MicrodiffMotor.init(self)
+        MD2Motor.init(self)
 
     def sortPredefinedPositionsList(self):
-        self.predefinedPositionsNamesList = self.predefinedPositions.keys()
-        self.predefinedPositionsNamesList.sort(
-            lambda x, y: int(
-                round(self.predefinedPositions[x] - self.predefinedPositions[y])
-            )
-        )
+        self.predefinedPositionsNamesList = [int(n) for n in self.predefinedPositions.keys()]
+        self.predefinedPositionsNamesList = sorted(self.predefinedPositionsNamesList, reverse=True)
 
     def connectNotify(self, signal):
         if signal == "predefinedPositionChanged":
@@ -48,19 +44,26 @@ class MicrodiffAperture(MicrodiffMotor):
                 self.emit(signal, ("", None))
             else:
                 self.emit(signal, (positionName, pos))
-        elif signal == "apertureChanged":
             self.emit("apertureChanged", (self.getApertureSize(),))
         else:
-            return MicrodiffMotor.connectNotify.im_func(self, signal)
+            return MD2Motor.connectNotify(self, signal)
 
     def getLimits(self):
         return (1, self.nb)
 
-    def getPredefinedPositionsList(self):
+    def get_diameter_size_list(self):
         return self.predefinedPositionsNamesList
 
+    def getPredefinedPositionsList(self):
+        warn(
+          "getPredefinedPositionsList is deprecated. Use get_diameter_size_list() instead",
+          DeprecationWarning,
+        )
+
+        return get_diameter_size_list()
+
     def motorPositionChanged(self, absolutePosition, private={}):
-        MicrodiffMotor.motorPositionChanged.im_func(self, absolutePosition, private)
+        MD2Motor.motorPositionChanged(absolutePosition, private)
 
         positionName = self.getCurrentPositionName(absolutePosition)
         self.emit(
@@ -69,7 +72,7 @@ class MicrodiffAperture(MicrodiffMotor):
         )
         self.emit("apertureChanged", (self.getApertureSize(),))
 
-    def getCurrentPositionName(self, pos=None):
+    def get_diameter_size(self, pos=None):
         if self.getPosition() is not None:
             pos = pos or self.getPosition()
         else:
@@ -81,6 +84,15 @@ class MicrodiffAperture(MicrodiffMotor):
                     return positionName
         except BaseException:
             return ""
+
+    def getCurrentPositionName(self, pos=None):
+        warn(
+          "getCurrentPositionName is deprecated. Use get_diameter_size() instead",
+          DeprecationWarning,
+        )
+
+        return self.get_diameter_size(pos)
+
 
     def moveToPosition(self, positionName):
         logging.getLogger().debug(

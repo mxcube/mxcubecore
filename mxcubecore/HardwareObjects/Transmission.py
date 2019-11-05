@@ -1,5 +1,6 @@
-from HardwareRepository.BaseHardwareObjects import HardwareObject
 from PyTransmission import matt_control
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository as HWR
 
 
 class Transmission(HardwareObject):
@@ -15,7 +16,6 @@ class Transmission(HardwareObject):
         self.setTransmission = self.set_value
 
     def init(self):
-        self.energy = self.getObjectByRole("energy")
 
         self.__matt = matt_control.MattControl(
             self.getProperty("wago_ip"),
@@ -44,7 +44,7 @@ class Transmission(HardwareObject):
         return self.__matt.pos_read()
 
     def set_value(self, trans):
-        self.__matt.set_energy(self.energy.getCurrentEnergy())
+        self.__matt.set_energy(self.energy.get_current_energy())
         self.__matt.transmission_set(trans)
         self._update()
 
@@ -61,7 +61,7 @@ class Transmission(HardwareObject):
         self._update()
 
     def get_value(self):
-        self.__matt.set_energy(self.energy.getCurrentEnergy())
+        self.__matt.set_energy(HWR.beamline.energy.get_current_energy())
         return self.__matt.transmission_get()
 
     def is_in(self, attenuator_index):

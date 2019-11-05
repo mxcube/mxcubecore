@@ -1,4 +1,4 @@
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Device
 import logging
 
@@ -70,7 +70,7 @@ class ALBASupervisor(Device):
 
 
 def test_hwo(hwo):
-    print '\nSupervisor control "%s"\n' % hwo.getUserName()
-    print "   Detector Cover  opened:", hwo.is_detector_cover_opened()
-    print "   Current Phase is:", hwo.get_current_phase()
-    print "   Current State is:", str(hwo.get_state())
+    print('\nSupervisor control "%s"\n' % hwo.getUserName())
+    print("   Detector Cover  opened:", hwo.is_detector_cover_opened())
+    print("   Current Phase is:", hwo.get_current_phase())
+    print("   Current State is:", str(hwo.get_state()))

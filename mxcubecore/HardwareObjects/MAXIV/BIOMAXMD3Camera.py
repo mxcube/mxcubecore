@@ -54,7 +54,7 @@ class BIOMAXMD3Camera(Device):
         self.roi_height = self.addChannel(
             {"type": "exporter", "name": "RoiHeight"}, "RoiHeight"
         )
-        self.set_camera_roi = self.addCommand(
+        self.set_camera_roi = self.add_command(
             {"type": "exporter", "name": "setCameraROI"}, "setCameraROI"
         )
 
@@ -164,8 +164,8 @@ class BIOMAXMD3Camera(Device):
             return False
 
     def imageUpdated(self, value):
-        print "<HW> got new image"
-        print value
+        print("<HW> got new image")
+        print(value)
 
     def gammaExists(self):
         return False

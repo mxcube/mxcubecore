@@ -91,24 +91,24 @@ class CatsBessy(SampleChanger):
             self._lidStatus.connectSignal("update", self._updateOperationMode)
         self._scIsCharging = None
 
-        self._load = self.addCommand(
+        self._load = self.add_command(
             {"type": "tango", "name": "put_bcrd", "tangoname": self.tangoname},
             "put_bcrd",
         )
-        self._unload = self.addCommand(
+        self._unload = self.add_command(
             {"type": "tango", "name": "put_bcrd", "tangoname": self.tangoname}, "get"
         )
-        self._chained_load = self.addCommand(
+        self._chained_load = self.add_command(
             {"type": "tango", "name": "getput_bcrd", "tangoname": self.tangoname},
             "getput_bcrd",
         )
-        self._barcode = self.addCommand(
+        self._barcode = self.add_command(
             {"type": "tango", "name": "barcode", "tangoname": self.tangoname}, "barcode"
         )
-        self._reset = self.addCommand(
+        self._reset = self.add_command(
             {"type": "tango", "name": "reset", "tangoname": self.tangoname}, "reset"
         )
-        self._abort = self.addCommand(
+        self._abort = self.add_command(
             {"type": "tango", "name": "abort", "tangoname": self.tangoname}, "abort"
         )
 

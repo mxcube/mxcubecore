@@ -16,10 +16,14 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import division, absolute_import
+from __future__ import print_function, unicode_literals
+
 import os
 import time
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.HardwareObjects.abstract import AbstractCollect
+from HardwareRepository import HardwareRepository as HWR
 
 
 __credits__ = ["MXCuBE collaboration"]
@@ -39,15 +43,12 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         AbstractCollect.AbstractCollect.__init__(self, name)
 
         self.aborted_by_user = False
-        self.graphics_manager_hwobj = None
 
     def init(self):
         """Main init method
         """
 
         AbstractCollect.AbstractCollect.init(self)
-
-        self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
 
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True,))
@@ -135,8 +136,8 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         """
         Descript. :
         """
-        if self.autoprocessing_hwobj is not None:
-            self.autoprocessing_hwobj.execute_autoprocessing(
+        if HWR.beamline.offline_processing is not None:
+            HWR.beamline.offline_processing.execute_autoprocessing(
                 process_event,
                 self.current_dc_parameters,
                 frame_number,
@@ -153,14 +154,14 @@ class CollectMockup(AbstractCollect.AbstractCollect):
 
     @task
     def _take_crystal_snapshot(self, filename):
-        self.graphics_manager_hwobj.save_scene_snapshot(filename)
+        HWR.beamline.microscope.save_scene_snapshot(filename)
 
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec=1):
         """Rotates sample by 360 and composes a gif file
            Animation is saved as the fourth snapshot
         """
-        self.graphics_manager_hwobj.save_scene_animation(
+        HWR.beamline.microscope.save_scene_animation(
             animation_filename, duration_sec
         )
 
@@ -175,7 +176,7 @@ class CollectMockup(AbstractCollect.AbstractCollect):
     def move_motors(self, motor_position_dict):
         # TODO We copy, as dictionary is reset in move_motors. CLEAR UP!!
         # TODO clear up this confusion between move_motors and moveMotors
-        self.diffractometer_hwobj.move_motors(motor_position_dict.copy())
+        HWR.beamline.diffractometer.move_motors(motor_position_dict.copy())
 
     def prepare_input_files(self):
         """
@@ -210,16 +211,16 @@ class CollectMockup(AbstractCollect.AbstractCollect):
 
     # rhfogh Added to improve interaction with UI and persistence of values
     def set_wavelength(self, wavelength):
-        self.energy_hwobj.move_wavelength(wavelength)
+        HWR.beamline.energy.move_wavelength(wavelength)
 
     def set_energy(self, energy):
-        self.energy_hwobj.move_energy(energy)
+        HWR.beamline.energy.move_energy(energy)
 
     def set_resolution(self, new_resolution):
-        self.resolution_hwobj.move(new_resolution)
+        HWR.beamline.resolution.move(new_resolution)
 
     def set_transmission(self, transmission):
-        self.transmission_hwobj.set_value(transmission)
+        HWR.beamline.transmission.set_value(transmission)
 
     def move_detector(self, detector_distance):
-        self.detector_hwobj.set_distance(detector_distance)
+        HWR.beamline.detector.set_distance(detector_distance)

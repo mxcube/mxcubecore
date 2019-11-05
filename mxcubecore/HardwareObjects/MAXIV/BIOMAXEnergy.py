@@ -1,6 +1,7 @@
 import logging
 import gevent
 from HardwareRepository.HardwareObjects import Energy
+from HardwareRepository import HardwareRepository as HWR
 
 
 class BIOMAXEnergy(Energy.Energy):
@@ -9,17 +10,11 @@ class BIOMAXEnergy(Energy.Energy):
 
     def init(self):
         self.ready_event = gevent.event.Event()
-        self.energy_motor = None
         self.tunable = False
         self.moving = None
         self.default_en = None
         self.ctrl = None
         self.en_lims = []
-
-        try:
-            self.energy_motor = self.getObjectByRole("energy")
-        except KeyError:
-            logging.getLogger("HWR").warning("Energy: error initializing energy motor")
 
         try:
             self.default_en = self.getProperty("default_energy")
@@ -36,14 +31,14 @@ class BIOMAXEnergy(Energy.Energy):
         except KeyError:
             logging.getLogger("HWR").info("No controller used")
 
-        if self.energy_motor is not None:
-            self.energy_motor.connect("positionChanged", self.energyPositionChanged)
-            self.energy_motor.connect("stateChanged", self.energyStateChanged)
+        if HWR.beamline.energy is not None:
+            HWR.beamline.energy.connect("positionChanged", self.energyPositionChanged)
+            HWR.beamline.energy.connect("stateChanged", self.energyStateChanged)
 
-    def getCurrentEnergy(self):
-        if self.energy_motor is not None:
+    def get_current_energy(self):
+        if HWR.beamline.energy is not None:
             try:
-                return self.energy_motor.getPosition() / 1000
+                return HWR.beamline.energy.getPosition() / 1000
             except BaseException:
                 logging.getLogger("HWR").exception(
                     "EnergyHO: could not read current energy"
@@ -55,9 +50,9 @@ class BIOMAXEnergy(Energy.Energy):
         if not self.tunable:
             return None
 
-        if self.energy_motor is not None:
+        if HWR.beamline.energy is not None:
             try:
-                self.en_lims = self.energy_motor.getLimits()
+                self.en_lims = HWR.beamline.energy.getLimits()
                 self.en_lims = (
                     float(self.en_lims[0]) / 1000,
                     float(self.en_lims[1]) / 1000,

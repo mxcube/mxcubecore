@@ -91,9 +91,9 @@ class Centring(Device):
         )
 
         ll = len(self.centringDataMatrix)
-        print("len(self.centringDataMatrix) = ", ll)
+        print(("len(self.centringDataMatrix) = ", ll))
 
-        print("self.centringDataMatrix = ", self.centringDataMatrix[ll - 1])
+        print(("self.centringDataMatrix = ", self.centringDataMatrix[ll - 1]))
 
         print("appendCentringDataPoint(self)")
         print("-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")

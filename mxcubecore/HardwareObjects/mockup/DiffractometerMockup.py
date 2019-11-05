@@ -25,6 +25,7 @@ import warnings
 from HardwareRepository.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer
 )
+from HardwareRepository import HardwareRepository as HWR
 from gevent.event import AsyncResult
 
 
@@ -43,8 +44,8 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         Descript. :
         """
-        self.image_width = 100
-        self.image_height = 100
+        # self.image_width = 100
+        # self.image_height = 100
 
         GenericDiffractometer.init(self)
         self.x_calib = 0.000444
@@ -75,8 +76,8 @@ class DiffractometerMockup(GenericDiffractometer):
         self.centring_status = {"valid": False}
         self.centring_time = 0
 
-        self.image_width = 400
-        self.image_height = 400
+        # self.image_width = 400
+        # self.image_height = 400
 
         self.mount_mode = self.getProperty("sample_mount_mode")
         if self.mount_mode is None:
@@ -299,9 +300,9 @@ class DiffractometerMockup(GenericDiffractometer):
         Descript. :
         """
         self.emit("minidiffStateChanged", "testState")
-        if self.beam_info_hwobj:
-            self.beam_info_hwobj.beam_pos_hor_changed(300)
-            self.beam_info_hwobj.beam_pos_ver_changed(200)
+        if HWR.beamline.beam:
+            HWR.beamline.beam.beam_pos_hor_changed(300)
+            HWR.beamline.beam.beam_pos_ver_changed(200)
 
     def start_auto_focus(self):
         """
@@ -315,10 +316,10 @@ class DiffractometerMockup(GenericDiffractometer):
                     positions.
         """
 
-        print("moving to beam position: %d %d" % (
+        print(("moving to beam position: %d %d" % (
             self.beam_position[0],
             self.beam_position[1],
-        ))
+        )))
 
     def move_to_coord(self, x, y, omega=None):
         """

@@ -46,18 +46,18 @@ class ExporterMotor(AbstractMotor):
             "update", self.all_motor_states_changed
         )
 
-        self.cmd_abort = self.addCommand({"type": "exporter", "name": "abort"}, "abort")
-        self.cmd_get_dynamic_limits = self.addCommand(
+        self.cmd_abort = self.add_command({"type": "exporter", "name": "abort"}, "abort")
+        self.cmd_get_dynamic_limits = self.add_command(
             {"type": "exporter", "name": "get%sDynamicLimits" % self.motor_name},
             "getMotorDynamicLimits",
         )
-        self.cmd_get_limits = self.addCommand(
+        self.cmd_get_limits = self.add_command(
             {"type": "exporter", "name": "get_limits"}, "getMotorLimits"
         )
-        self.cmd_get_max_speed = self.addCommand(
+        self.cmd_get_max_speed = self.add_command(
             {"type": "exporter", "name": "get_max_speed"}, "getMotorMaxSpeed"
         )
-        self.cmd_home = self.addCommand(
+        self.cmd_home = self.add_command(
             {"type": "exporter", "name": "homing"}, "startHomingMotor"
         )
 

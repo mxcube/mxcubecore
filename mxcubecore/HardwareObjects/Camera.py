@@ -86,7 +86,7 @@ class Camera(BaseHardwareObjects.Device):
                     BaseHardwareObjects.Device.__init__(self, name)
 
                 def oprint(self, msg):
-                    print("Camera.py--tango device-- %s" % msg)
+                    print(("Camera.py--tango device-- %s" % msg))
 
                 def _init(self):
                     self.forceUpdate = False
@@ -192,13 +192,13 @@ class Camera(BaseHardwareObjects.Device):
                             intensity = self.bpmDevice.addChannel(
                                 {"type": "tango", "name": "intensity"}, "Intensity"
                             )
-                            onCmd = self.bpmDevice.addCommand(
+                            onCmd = self.bpmDevice.add_command(
                                 {"type": "tango", "name": "on"}, "On"
                             )
-                            offCmd = self.bpmDevice.addCommand(
+                            offCmd = self.bpmDevice.add_command(
                                 {"type": "tango", "name": "off"}, "Off"
                             )
-                            stateCmd = self.bpmDevice.addCommand(
+                            stateCmd = self.bpmDevice.add_command(
                                 {"type": "tango", "name": "state"}, "State"
                             )
                         else:
@@ -744,7 +744,7 @@ class Camera(BaseHardwareObjects.Device):
                         self.setIsReady(True)
 
                 def oprint(self, msg):
-                    print("Camera.py--taco device--%s" % msg)
+                    print(("Camera.py--taco device--%s" % msg))
 
                 def imageType(self):
                     """Returns a 'jpeg' or 'bayer' type object depending on the image type"""

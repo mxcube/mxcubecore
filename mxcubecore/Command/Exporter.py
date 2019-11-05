@@ -27,6 +27,10 @@ class ExporterCommand(CommandObject):
         self.command = command
         self.__exporter = start_exporter(address, port, timeout)
 
+        logging.getLogger("HWR").debug(
+            "Attaching Exporter command: %s %s " % (address, name)
+        )
+
     def __call__(self, *args, **kwargs):
         self.emit("commandBeginWaitReply", (str(self.name()),))
 
@@ -130,10 +134,10 @@ class Exporter(ExporterClient.ExporterClient):
         if "\x1f" in value:
             value = self.parseArray(value)
             try:
-                value = map(int, value)
+                value = list(map(int, value))
             except BaseException:
                 try:
-                    value = map(float, value)
+                    value = list(map(float, value))
                 except BaseException:
                     pass
         else:

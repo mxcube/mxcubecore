@@ -107,6 +107,9 @@ class EMBLSlitBox(AbstractSlits):
     def init(self):
         self.decimal_places = 6
         self.gaps_dict = {}
+        # WARNING modifying self.gaps_dict["Hor"] and ["Ver"}
+        # modifies the GLOBAL properties, not just the local copy
+        # Maybe do self["gapH"].getProperties().copy()?
         self.gaps_dict["Hor"] = self["gapH"].getProperties()
         self.gaps_dict["Ver"] = self["gapV"].getProperties()
         self.gaps_dict["Hor"]["value"] = 0.10

@@ -2,12 +2,6 @@ import os
 import logging
 import gevent.event
 import subprocess
-from HardwareRepository.HardwareObjects.abstract import AbstractDataAnalysis
-
-from HardwareRepository.HardwareObjects import queue_model_enumerables as qme
-
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareRepository import getHardwareRepository
 
 from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
 from XSDataMXCuBEv1_3 import XSDataMXCuBEDataSet
@@ -25,6 +19,12 @@ from XSDataCommon import XSDataInteger
 from XSDataCommon import XSDataSize
 from XSDataCommon import XSDataString
 
+from HardwareRepository.HardwareObjects.abstract import AbstractDataAnalysis
+from HardwareRepository.HardwareObjects import queue_model_enumerables as qme
+from HardwareRepository.HardwareObjects import queue_model_objects as qmo
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository as HWR
+
 # from edna_test_data import EDNA_DEFAULT_INPUT
 # from edna_test_data import EDNA_TEST_DATA
 
@@ -32,7 +32,6 @@ from XSDataCommon import XSDataString
 class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
-        self.collect_obj = None
         self.result = None
         self.processing_done_event = gevent.event.Event()
 
@@ -40,10 +39,10 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         self.collect_obj = self.getObjectByRole("collect")
         self.start_edna_command = self.getProperty("edna_command")
         self.edna_default_file = self.getProperty("edna_default_file")
-        fp0 = getHardwareRepository().findInRepository(self.edna_default_file)
-        if fp0 is None:
-            raise ValueError("File %s not found in repository" % self.edna_default_file)
-        with open(fp0, "r") as f:
+
+        if not os.path.isfile(self.edna_default_file):
+            raise ValueError("File %s not found" % self.edna_default_file)
+        with open(self.edna_default_file, "r") as f:
             self.edna_default_input = "".join(f.readlines())
 
     def get_html_report(self, edna_result):
@@ -57,7 +56,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         return html_report
 
     def get_beam_size(self):
-        return self.collect_obj.beam_info_hwobj.get_beam_size()
+        return HWR.beamline.beam.get_beam_size()
 
     def modify_strategy_option(self, diff_plan, strategy_option):
         """Method for modifying the diffraction plan 'strategyOption' entry"""
@@ -69,6 +68,68 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
             )
         diff_plan.setStrategyOption(XSDataString(new_strategy_option))
 
+    def get_default_characterisation_parameters(self):
+        """
+        :returns: A CharacterisationsParameters object with default parameters.
+        """
+        edna_input = XSDataInputMXCuBE.parseString(self.edna_default_input)
+        diff_plan = edna_input.getDiffractionPlan()
+
+        edna_sample = edna_input.getSample()
+        char_params = qmo.CharacterisationParameters()
+        char_params.experiment_type = qme.EXPERIMENT_TYPE.OSC
+
+        # Optimisation parameters
+        char_params.use_aimed_resolution = False
+        try:
+            char_params.aimed_resolution = diff_plan.getAimedResolution().getValue()
+        except BaseException:
+            char_params.aimed_resolution = None
+
+        char_params.use_aimed_multiplicity = False
+        try:
+            char_params.aimed_i_sigma = (
+                diff_plan.getAimedIOverSigmaAtHighestResolution().getValue()
+            )
+            char_params.aimed_completness = diff_plan.getAimedCompleteness().getValue()
+        except BaseException:
+            char_params.aimed_i_sigma = None
+            char_params.aimed_completness = None
+
+        char_params.strategy_complexity = 0
+        char_params.induce_burn = False
+        char_params.use_permitted_rotation = False
+        char_params.permitted_phi_start = 0.0
+        char_params.permitted_phi_end = 360
+        char_params.low_res_pass_strat = False
+
+        # Crystal
+        char_params.max_crystal_vdim = edna_sample.getSize().getY().getValue()
+        char_params.min_crystal_vdim = edna_sample.getSize().getZ().getValue()
+        char_params.max_crystal_vphi = 90
+        char_params.min_crystal_vphi = 0.0
+        char_params.space_group = ""
+
+        # Characterisation type
+        char_params.use_min_dose = True
+        char_params.use_min_time = False
+        char_params.min_dose = 30.0
+        char_params.min_time = 0.0
+        char_params.account_rad_damage = True
+        char_params.auto_res = True
+        char_params.opt_sad = False
+        char_params.sad_res = 0.5
+        char_params.determine_rad_params = False
+        char_params.burn_osc_start = 0.0
+        char_params.burn_osc_interval = 3
+
+        # Radiation damage model
+        char_params.rad_suscept = edna_sample.getSusceptibility().getValue()
+        char_params.beta = 1
+        char_params.gamma = 0.06
+
+        return char_params
+
     def from_params(self, data_collection, char_params):
         edna_input = XSDataInputMXCuBE.parseString(self.edna_default_input)
 
@@ -79,7 +140,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         beam = edna_input.getExperimentalCondition().getBeam()
 
         try:
-            transmission = self.collect_obj.get_transmission()
+            transmission = HWR.beamline.transmission.get_value()
             beam.setTransmission(XSDataDouble(transmission))
         except AttributeError:
             import traceback
@@ -88,18 +149,18 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
             logging.getLogger("HWR").debug(traceback.format_exc())
 
         try:
-            wavelength = self.collect_obj.get_wavelength()
+            wavelength = HWR.beamline.energy.get_current_wavelength()
             beam.setWavelength(XSDataWavelength(wavelength))
         except AttributeError:
             pass
 
         try:
-            beam.setFlux(XSDataFlux(self.collect_obj.get_measured_intensity()))
+            beam.setFlux(XSDataFlux(HWR.beamline.flux.get_flux()))
         except AttributeError:
             pass
 
         try:
-            min_exp_time = self.collect_obj.detector_hwobj.get_exposure_time_limits()[0]
+            min_exp_time = HWR.beamline.detector.get_exposure_time_limits()[0]
             beam.setMinExposureTimePerImage(XSDataTime(min_exp_time))
         except AttributeError:
             pass

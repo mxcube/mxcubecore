@@ -1,6 +1,7 @@
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 import logging
 import math
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+from HardwareRepository import HardwareRepository as HWR
 
 
 class Resolution(AbstractMotor):
@@ -9,43 +10,50 @@ class Resolution(AbstractMotor):
 
         # self.get_value = self.getPosition
         self.valid = True
+        self.det_width = None
+        self.det_height = None
 
     def init(self):
         self.currentResolution = None
-        self.energy = None
+        detector = HWR.beamline.detector
 
-        self.dtox = self.getObjectByRole("dtox")
-        self.energy = self.getObjectByRole("energy")
-        self.detector = self.getObjectByRole("detector")
-        if self.detector:
-            self.det_width = float(self.detector.getProperty("width"))
-            self.det_height = float(self.detector.getProperty("height"))
+        if detector:
+            self.det_width = float(detector.getProperty("width"))
+            self.det_height = float(detector.getProperty("height"))
         else:
             self.valid = False
             logging.getLogger().exception("Cannot get detector properties")
             raise AttributeError("Cannot get detector properties")
 
-        self.connect(self.dtox, "stateChanged", self.dtoxStateChanged)
-        self.connect(self.dtox, "positionChanged", self.dtoxPositionChanged)
-        self.connect(self.energy, "valueChanged", self.energyChanged)
+        self.connect(
+            HWR.beamline.detector.distance,
+            "stateChanged",
+            self.dtoxStateChanged
+        )
+        self.connect(
+            HWR.beamline.detector.distance,
+            "positionChanged",
+            self.dtoxPositionChanged
+        )
+        self.connect(HWR.beamline.energy, "valueChanged", self.energyChanged)
 
     def isReady(self):
         if self.valid:
             try:
-                return self.dtox.isReady()
+                return HWR.beamline.detector.distance.isReady()
             except BaseException:
                 return False
         return False
 
-    def get_beam_centre(self, dtox=None):
-        if dtox is None:
-            dtox = self.dtox.getPosition()
-        ax = float(self.detector["beam"].getProperty("ax"))
-        bx = float(self.detector["beam"].getProperty("bx"))
-        ay = float(self.detector["beam"].getProperty("ay"))
-        by = float(self.detector["beam"].getProperty("by"))
+    def get_beam_centre(self, dist=None):
+        if dist is None:
+            dist = HWR.beamline.detector.distance.getPosition()
+        ax = float(HWR.beamline.detector["beam"].getProperty("ax"))
+        bx = float(HWR.beamline.detector["beam"].getProperty("bx"))
+        ay = float(HWR.beamline.detector["beam"].getProperty("ay"))
+        by = float(HWR.beamline.detector["beam"].getProperty("by"))
 
-        return float(dtox * ax + bx), float(dtox * ay + by)
+        return float(dist * ax + bx), float(dist * ay + by)
 
     def update_beam_centre(self, dtox):
         beam_x, beam_y = self.get_beam_centre(dtox)
@@ -55,9 +63,9 @@ class Resolution(AbstractMotor):
 
     def getWavelength(self):
         try:
-            return self.energy.getCurrentWavelength()
+            return HWR.beamline.energy.get_current_wavelength()
         except BaseException:
-            current_en = self.energy.getPosition()
+            current_en = HWR.beamline.energy.getPosition()
             if current_en:
                 return 12.3984 / current_en
             return None
@@ -71,10 +79,10 @@ class Resolution(AbstractMotor):
         if res is None:
             res = self.currentResolution
 
-        ax = float(self.detector["beam"].getProperty("ax"))
-        bx = float(self.detector["beam"].getProperty("bx"))
-        ay = float(self.detector["beam"].getProperty("ay"))
-        by = float(self.detector["beam"].getProperty("by"))
+        ax = float(HWR.beamline.detector["beam"].getProperty("ax"))
+        bx = float(HWR.beamline.detector["beam"].getProperty("bx"))
+        ay = float(HWR.beamline.detector["beam"].getProperty("ay"))
+        by = float(HWR.beamline.detector["beam"].getProperty("by"))
 
         try:
             ttheta = 2 * math.asin(current_wavelength / (2 * res))
@@ -104,12 +112,12 @@ class Resolution(AbstractMotor):
 
     def dist2res(self, dist=None):
         if dist is None:
-            dist = self.dtox.getPosition()
+            dist = HWR.beamline.detector.distance.getPosition()
 
         return self._calc_res(self.det_radius, dist)
 
     def recalculateResolution(self):
-        dtox_pos = self.dtox.getPosition()
+        dtox_pos = HWR.beamline.detector.distance.getPosition()
         self.update_beam_centre(dtox_pos)
         new_res = self.dist2res(dtox_pos)
         if new_res is None:
@@ -122,7 +130,7 @@ class Resolution(AbstractMotor):
         return self.currentResolution
 
     def get_value_at_corner(self):
-        dtox_pos = self.dtox.getPosition()
+        dtox_pos = HWR.beamline.detector.distance.getPosition()
         beam_x, beam_y = self.get_beam_centre(dtox_pos)
 
         distance_at_corners = [
@@ -139,15 +147,15 @@ class Resolution(AbstractMotor):
         self.emit("valueChanged", (res,))
 
     def getState(self):
-        return self.dtox.getState()
+        return HWR.beamline.detector.distance.getState()
 
     def connectNotify(self, signal):
         if signal == "stateChanged":
-            self.dtoxStateChanged(self.dtox.getState())
+            self.dtoxStateChanged(HWR.beamline.detector.distance.getState())
 
     def dtoxStateChanged(self, state):
         self.emit("stateChanged", (state,))
-        if state == self.dtox.READY:
+        if state == HWR.beamline.detector.distance.READY:
             self.recalculateResolution()
 
     def dtoxPositionChanged(self, pos):
@@ -155,7 +163,7 @@ class Resolution(AbstractMotor):
         self.update_resolution(self.dist2res(pos))
 
     def getLimits(self):
-        low, high = self.dtox.getLimits()
+        low, high = HWR.beamline.detector.distance.getLimits()
 
         return (self.dist2res(low), self.dist2res(high))
 
@@ -165,15 +173,15 @@ class Resolution(AbstractMotor):
         )
 
         if wait:
-            self.dtox.syncMove(self.res2dist(pos))
+            HWR.beamline.detector.distance.syncMove(self.res2dist(pos))
         else:
-            self.dtox.move(self.res2dist(pos))
+            HWR.beamline.detector.distance.move(self.res2dist(pos))
 
     def motorIsMoving(self):
-        return self.dtox.motorIsMoving()
+        return HWR.beamline.detector.distance.motorIsMoving()
 
     def stop(self):
         try:
-            self.dtox.stop()
+            HWR.beamline.detector.distance.stop()
         except BaseException:
             pass

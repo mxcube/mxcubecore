@@ -1,4 +1,4 @@
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Device
 
 import logging
@@ -163,7 +163,7 @@ class NamedState(Device):
 
 
 def test():
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     ap_pos = hwr.getHardwareObject("/aperture_position")
@@ -171,10 +171,10 @@ def test():
     yag_pos = hwr.getHardwareObject("/scintillator")
     md2_phase = hwr.getHardwareObject("/md2j_phase")
 
-    print "Aperture Position: ", ap_pos.getState()
-    print "Aperture Diameter: ", ap_diam.getState()
-    print "Yag Posiion: ", yag_pos.getState()
-    print "MD2 Phase: ", md2_phase.getState()
+    print("Aperture Position: ", ap_pos.getState())
+    print("Aperture Diameter: ", ap_diam.getState())
+    print("Yag Posiion: ", yag_pos.getState())
+    print("MD2 Phase: ", md2_phase.getState())
 
 
 if __name__ == "__main__":

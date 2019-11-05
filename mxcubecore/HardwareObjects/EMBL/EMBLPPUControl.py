@@ -56,9 +56,6 @@ class EMBLPPUControl(Device):
         if self.chan_file_info is not None:
             self.chan_file_info.connectSignal("update", self.file_info_changed)
 
-        # self.update_counter = 0
-
-        # self.at_startup = True
         self.connect(self.chan_all_status, "update", self.all_status_changed)
 
         self.chan_all_restart = self.getChannelObject("chanAllRestart")
@@ -93,15 +90,14 @@ class EMBLPPUControl(Device):
         :param values:
         :return:
         """
-
         values = list(values)
-        if len(values) == 2:
-            value = values[1]
-        else:
-            value = values[0]
+        # if len(values) == 2:
+        #    value = values[1]
+        # else:
+        #    value = values[0]
 
-        self.file_transfer_in_error = value[2] > 0
-        self.emit("fileTranferStatusChanged", (value))
+        self.file_transfer_in_error = values[2] > 0
+        self.emit("fileTranferStatusChanged", (values))
 
         self.is_error = (
             self.all_status.startswith(self.error_state) or self.file_transfer_in_error

@@ -1,4 +1,4 @@
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Device
 import logging
 
@@ -118,14 +118,14 @@ class ALBAFrontLight(Device):
 
 
 def test():
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     light = hwr.getHardwareObject("/frontlight")
-    print '\nLight control for "%s"\n' % light.getUserName()
-    print "   Level limits are:", light.getLimits()
-    print "   Current level is:", light.getLevel()
-    print "   Current state is:", light.getState()
+    print('\nLight control for "%s"\n' % light.getUserName())
+    print("   Level limits are:", light.getLimits())
+    print("   Current level is:", light.getLevel())
+    print("   Current state is:", light.getState())
 
 
 if __name__ == "__main__":

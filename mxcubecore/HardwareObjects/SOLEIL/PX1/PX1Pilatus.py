@@ -51,7 +51,7 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         self.headers = {}
 
     def init(self):
-        self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
+        self.distance_motor_hwobj = self.getObjectByRole("detector_distance")
         self.devname = self.getProperty("tangoname")
 
         self.state_chan = self.getChannelObject("state")
@@ -274,7 +274,7 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
 
 
 def test_hwo(hwo):
-    print "Detector Distance is: ", hwo.get_distance()
-    print "         state is: ", hwo.get_state(), type(hwo.get_state())
-    print "      is in fault: ", hwo.is_fault_state()
+    print(("Detector Distance is: %s " % hwo.get_distance()))
+    print(("         state is: %s, %s" % (hwo.get_state(), type(hwo.get_state()))))
+    print(("      is in fault: %s" % hwo.is_fault_state()))
     # print "going to 490 : ", hwo.move_distance(490)

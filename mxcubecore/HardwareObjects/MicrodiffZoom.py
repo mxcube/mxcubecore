@@ -1,11 +1,11 @@
-from HardwareRepository.HardwareObjects.MicrodiffMotor import MicrodiffMotor
+from HardwareRepository.HardwareObjects.MD2Motor import MD2Motor
 import logging
 import math
 
 
-class MicrodiffZoom(MicrodiffMotor):
+class MicrodiffZoom(MD2Motor):
     def __init__(self, name):
-        MicrodiffMotor.__init__(self, name)
+        MD2Motor.__init__(self, name)
 
     def init(self):
         self.motor_name = "Zoom"
@@ -33,15 +33,11 @@ class MicrodiffZoom(MicrodiffMotor):
         }
         self.sortPredefinedPositionsList()
 
-        MicrodiffMotor.init(self)
+        MD2Motor.init(self)
 
     def sortPredefinedPositionsList(self):
-        self.predefinedPositionsNamesList = self.predefinedPositions.keys()
-        self.predefinedPositionsNamesList.sort(
-            lambda x, y: int(
-                round(self.predefinedPositions[x] - self.predefinedPositions[y])
-            )
-        )
+        self.predefinedPositionsNamesList = list(self.predefinedPositions.keys())
+        self.predefinedPositionsNamesList = sorted(self.predefinedPositionsNamesList, reverse=True)
 
     def connectNotify(self, signal):
         if signal == "predefinedPositionChanged":
@@ -54,7 +50,7 @@ class MicrodiffZoom(MicrodiffMotor):
             else:
                 self.emit(signal, (positionName, pos))
         else:
-            return MicrodiffMotor.connectNotify.im_func(self, signal)
+            return MD2Motor.connectNotify(self, signal)
 
     def getLimits(self):
         return (1, 10)
@@ -63,7 +59,7 @@ class MicrodiffZoom(MicrodiffMotor):
         return self.predefinedPositionsNamesList
 
     def motorPositionChanged(self, absolutePosition, private={}):
-        MicrodiffMotor.motorPositionChanged.im_func(self, absolutePosition, private)
+        MD2Motor.motorPositionChanged(absolutePosition, private)
 
         positionName = self.getCurrentPositionName(absolutePosition)
         if self._last_position_name != positionName:

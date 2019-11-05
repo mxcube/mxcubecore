@@ -1,6 +1,5 @@
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Procedure
-import os
 import logging
 import ldap
 import re
@@ -152,7 +151,7 @@ class SOLEILLdapLogin(Procedure):
                 self.dcparts, ldap.SCOPE_SUBTREE, "uid=" + username
             )
         except ldap.LDAPError as err:
-            print "error in LDAP search", err
+            print("error in LDAP search", err)
             return self.cleanup(ex=err)
         else:
             return found
@@ -176,7 +175,7 @@ class SOLEILLdapLogin(Procedure):
     def find_projectusers(self, username):
         groups = self.find_groups_for_username(username)
         projusers = []
-        for groupname, users in groups.iteritems():
+        for groupname, users in groups.items():
             for user in users:
                 if user == groupname[1:]:
                     projusers.append(user)
@@ -205,15 +204,15 @@ class SOLEILLdapLogin(Procedure):
             desc = self.find_description_for_user(projuser)
             if desc is not None:
                 sesslist.extend(self.decode_session_info(projuser, desc))
-        print "find_sessions_for_user"
-        print sesslist
+        print("find_sessions_for_user")
+        print(sesslist)
         return sesslist
 
     def find_valid_sessions_for_user(self, username, beamline=None):
         sesslist = self.find_sessions_for_user(username)
-        print "find_valid_sessions_for_user(self,username, beamline='proxima2a')"
-        print "sesslist"
-        print sesslist
+        print("find_valid_sessions_for_user(self,username, beamline='proxima2a')")
+        print("sesslist")
+        print(sesslist)
         return sesslist.find_valid_sessions(beamline=beamline)
 
     def decode_session_info(self, projuser, session_info):
@@ -224,7 +223,7 @@ class SOLEILLdapLogin(Procedure):
         beamlinelist = session_info.split(";")
 
         if len(beamlinelist) < 2:
-            print "Cannot parse session info in ldap", session_info
+            print("Cannot parse session info in ldap", session_info)
             return retlist
 
         usertype = beamlinelist[0]
@@ -240,7 +239,7 @@ class SOLEILLdapLogin(Procedure):
                     )
                     retlist.append(sessinfo)
         except BaseException:
-            print "Cannot parse session info in ldap", session_info
+            print("Cannot parse session info in ldap", session_info)
 
         return retlist
 
@@ -248,11 +247,11 @@ class SOLEILLdapLogin(Procedure):
         try:
             found = self.ldapConnection.search_s(self.dcparts, ldap.SCOPE_SUBTREE)
         except ldap.LDAPError as err:
-            print "error in LDAP search", err
+            print("error in LDAP search", err)
             return self.cleanup(ex=err)
         else:
             for item in found:
-                print item
+                print(item)
 
 
 class SessionInfo:
@@ -285,7 +284,7 @@ class SessionList(list):
         return retlist
 
     def find_valid_sessions(self, timestamp=None, beamline=None):
-        print "find_valid_sessions"
+        print("find_valid_sessions")
         if timestamp is None:
             timestamp = time.time()
 
@@ -295,13 +294,13 @@ class SessionList(list):
             if timestamp >= session.begin and timestamp <= session.finish:
                 if beamline is None or beamline.lower() == session.beamline.lower():
                     retlist.append(session)
-        print "valid session"
-        print retlist
+        print("valid session")
+        print(retlist)
         return retlist
 
 
 def test():
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     conn = hwr.getHardwareObject("/ldapconnection")
@@ -316,16 +315,16 @@ def test():
     # conn.find_groups_for_username('houdusse')
 
     # grps = conn.find_groups_for_username('houdusse')
-    # for grp,users in grps.iteritems():
+    # for grp,users in grps.items():
     # print grp, " :  " , users
     user = "20140088"  # '20100023'
     sess = conn.find_sessions_for_user("%s" % user)
     for onesess in sess:
-        print "Session for %s" % user, onesess
+        print("Session for %s" % user, onesess)
 
     validsess = conn.find_valid_sessions_for_user(user)
     for valid in validsess:
-        print "Valid session for today", valid
+        print("Valid session for today", valid)
 
     # if info:
     #     print "GID:", info.get('gidNumber','')[0]

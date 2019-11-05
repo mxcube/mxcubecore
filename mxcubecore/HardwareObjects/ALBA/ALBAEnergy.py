@@ -1,7 +1,7 @@
-from HardwareRepository import HardwareRepository
-from HardwareRepository.BaseHardwareObjects import Device
-
 import logging
+
+from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository import HardwareRepository as HWR
 
 
 class ALBAEnergy(Device):
@@ -11,10 +11,9 @@ class ALBAEnergy(Device):
         self.wavelength_position = None
 
     def init(self):
-        self.energy_hwobj = self.getObjectByRole("energy")
         self.wavelength_hwobj = self.getObjectByRole("wavelength")
 
-        self.energy_hwobj.connect("positionChanged", self.energy_position_changed)
+        HWR.beamline.energy.connect("positionChanged", self.energy_position_changed)
         self.wavelength_hwobj.connect(
             "positionChanged", self.wavelength_position_changed
         )
@@ -27,10 +26,10 @@ class ALBAEnergy(Device):
 
     def get_energy(self):
         if self.energy_position is None:
-            self.energy_position = self.energy_hwobj.getPosition()
+            self.energy_position = HWR.beamline.energy.getPosition()
         return self.energy_position
 
-    getCurrentEnergy = get_energy
+    get_current_energy = get_energy
 
     def get_wavelength(self):
         if self.wavelength_position is None:
@@ -38,7 +37,7 @@ class ALBAEnergy(Device):
         return self.wavelength_position
 
     def update_values(self):
-        self.energy_hwobj.update_values()
+        HWR.beamline.energy.update_values()
 
     def energy_position_changed(self, value):
         self.energy_position = value
@@ -56,16 +55,16 @@ class ALBAEnergy(Device):
         logging.getLogger("HWR").debug(
             "moving energy to %s. now is %s" % (value, current_egy)
         )
-        self.energy_hwobj.move(value)
+        HWR.beamline.energy.move(value)
 
     def wait_move_energy_done(self):
-        self.energy_hwobj.wait_end_of_move()
+        HWR.beamline.energy.wait_end_of_move()
 
     def move_wavelength(self, value):
         self.wavelength_hwobj.move(value)
 
     def get_energy_limits(self):
-        return self.energy_hwobj.getLimits()
+        return HWR.beamline.energy.getLimits()
 
     def getEnergyLimits(self):
         return self.get_energy_limits()
@@ -76,10 +75,10 @@ class ALBAEnergy(Device):
 
 def test_hwo(hwo):
 
-    print "Energy is: ", hwo.get_energy()
-    print "Wavelength is: ", hwo.get_wavelength()
-    print "Energy limits are: ", hwo.get_energy_limits()
-    print "Wavelength limits are: ", hwo.get_wavelength_limits()
+    print("Energy is: ", hwo.get_energy())
+    print("Wavelength is: ", hwo.get_wavelength())
+    print("Energy limits are: ", hwo.get_energy_limits())
+    print("Wavelength limits are: ", hwo.get_wavelength_limits())
 
 
 if __name__ == "__main__":

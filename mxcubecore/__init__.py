@@ -5,7 +5,7 @@ from logging.handlers import RotatingFileHandler
 import os
 import sys
 
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 
 
 hwrpath = os.path.dirname(__file__)
@@ -29,7 +29,7 @@ hwobj_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "HardwareOb
 hwobj_dir_list = [hwobj_dir]
 for subdir in ("sample_changer", "mockup"):
     hwobj_dir_list.append(os.path.join(hwobj_dir, subdir))
-HardwareRepository.addHardwareObjectsDirs(hwobj_dir_list)
+HWR.addHardwareObjectsDirs(hwobj_dir_list)
 
 #
 # create the HardwareRepository logger

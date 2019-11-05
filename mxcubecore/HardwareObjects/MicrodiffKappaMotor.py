@@ -1,10 +1,11 @@
-from HardwareRepository.HardwareObjects.MD2Motor import MD2Motor
 import logging
 import time
 import gevent
 import numpy as np
 import logging
 
+from HardwareRepository.HardwareObjects.MD2Motor import MD2Motor
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
 
 class MicrodiffKappaMotor(MD2Motor):
     lock = gevent.lock.Semaphore()
@@ -49,11 +50,11 @@ class MicrodiffKappaMotor(MD2Motor):
         phiy_start_pos = self.phiy.getPosition()
 
         with MicrodiffKappaMotor.lock:
-            if self.getState() != MD2Motor.NOTINITIALIZED:
+            if self.getState() != MotorStates.NOTINITIALIZED:
                 self.position_attr.setValue(
                     absolutePosition
                 )  # absolutePosition-self.offset)
-                self.motorStateChanged(MD2Motor.MOVING)
+                self.motorStateChanged(MotorStates.MOVING)
 
             # calculations
             newSamplePositions = self.getNewSamplePosition(
@@ -72,14 +73,14 @@ class MicrodiffKappaMotor(MD2Motor):
     def waitEndOfMove(self, timeout=None):
         with gevent.Timeout(timeout):
             time.sleep(0.1)
-            while self.motorState == MD2Motor.MOVING:
+            while self.motorState == MotorStates.MOVING:
                 time.sleep(0.1)
             self.sampx.waitEndOfMove()
             self.sampy.waitEndOfMove()
             self.phiy.waitEndOfMove()
 
     def stop(self):
-        if self.getState() != MD2Motor.NOTINITIALIZED:
+        if self.getState() != MotorStates.NOTINITIALIZED:
             self._motor_abort()
         for m in (self.sampx, self.sampy, self.phiy):
             m.stop()

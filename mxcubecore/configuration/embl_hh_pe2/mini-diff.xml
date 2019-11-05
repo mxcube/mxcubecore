@@ -20,7 +20,7 @@
   <object href="/eh2/diff-focus" role="focus"/>
   <object href="/eh2/diff-sampx" role="sampx"/>
   <object href="/eh2/diff-sampy" role="sampy"/>
-  <object href="/eh2/detector-distance" role="detector_distance_motor"/>
+  <object href="/eh2/detector-distance" role="detector_distance"/>
   
   <object href="/camera" role="camera"/>
   <object href="/beam-info" role="beam_info"/> 

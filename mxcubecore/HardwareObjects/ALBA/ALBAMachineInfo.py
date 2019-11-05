@@ -59,7 +59,7 @@ import time
 from gevent import spawn
 from urllib2 import urlopen
 from datetime import datetime, timedelta
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Equipment
 
 
@@ -205,4 +205,4 @@ class ALBAMachineInfo(Equipment):
 
 
 def test_hwo(hwo):
-    print "Current is", hwo.get_current()
+    print("Current is", hwo.get_current())

@@ -1,22 +1,17 @@
 import gevent
-import logging
 from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository import HardwareRepository as HWR
 
 
 class BIOMAXTransmission(Equipment):
     def init(self):
         self.ready_event = gevent.event.Event()
-        self.transmission_motor = None
         self.moving = None
         self.limits = [0, 100]
         self.threhold = 5
 
-        try:
-            self.transmission_motor = self.getObjectByRole("transmission_motor")
-        except KeyError:
-            logging.getLogger("HWR").warning("Error initializing transmission motor")
-        if self.transmission_motor is not None:
-            self.transmission_motor.connect(
+        if HWR.beamline.transmission is not None:
+            HWR.beamline.transmission.connect(
                 "positionChanged", self.transmissionPositionChanged
             )
 
@@ -24,10 +19,10 @@ class BIOMAXTransmission(Equipment):
         return True
 
     def get_value(self):
-        return "%.3f" % self.transmission_motor.getPosition()
+        return "%.3f" % HWR.beamline.transmission.getPosition()
 
     def getAttFactor(self):
-        return "%.3f" % self.transmission_motor.getPosition()
+        return "%.3f" % HWR.beamline.transmission.getPosition()
 
     def getAttState(self):
         return 1
@@ -42,7 +37,7 @@ class BIOMAXTransmission(Equipment):
     def set_value(self, value, wait=False):
         if value < self.limits[0] or value > self.limits[1]:
             raise Exception("Transmssion out of limits.")
-        self.transmission_motor.move(value)
+        HWR.beamline.transmission.move(value)
         if wait:
             with gevent.Timeout(30, Exception("Timeout waiting for device ready")):
                 while not self.setpoint_reached(value):
@@ -58,4 +53,4 @@ class BIOMAXTransmission(Equipment):
         self.emit("valueChanged", (pos,))
 
     def stop(self):
-        self.transmission_motor.stop()
+        HWR.beamline.transmission.stop()

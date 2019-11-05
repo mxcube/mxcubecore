@@ -1,11 +1,86 @@
 from __future__ import absolute_import
 
 import logging
+from collections import OrderedDict
 
 from HardwareRepository.dispatcher import dispatcher
 from HardwareRepository.CommandContainer import CommandContainer
 from HardwareRepository.ConvertUtils import string_types
 
+
+class ConfiguredObject(object):
+    """Superclass for classes that take configuration from YAML files"""
+
+    # Roles of defined objects and the category they belong to
+    # NB the double underscore is deliberate - attribute must be hidden from subclasses
+    __content_roles = []
+
+    # Procedure names - placeholder.
+    # Will be replaced by a set in any subclasses that can contain procedures
+    # Note that _procedure_names may *not* be set if it is already set in a superclass
+    _procedure_names = None
+
+    def __init__(self, name):
+
+        self.name = name
+
+        self._objects = OrderedDict((role, None) for role in self.all_roles)
+
+    def _init(self):
+        """Object initialisation - executed *before* loading contents"""
+        pass
+
+    def init(self):
+        """Object initialisation - executed *after* loading contents"""
+        pass
+
+    def replace_object(self, role, new_object):
+        """Replace already defined Object with a new one - for runtime use
+
+        Args:
+            role (text_str): Role name of contained Object
+            new_object (Optional[ConfiguredObject]): New contained Object
+
+        Returns:
+
+        """
+        if role in self._objects:
+            self._objects[role] = new_object
+        else:
+            raise ValueError("Unknown contained Object role: %s" % role)
+
+    # NB this function must be re-implemented in nested subclasses
+    @property
+    def all_roles(self):
+        """Tuple of all content object roles, indefinition and loading order
+
+        Returns:
+            tuple[text_str, ...]
+        """
+        return tuple(self.__content_roles)
+
+    @property
+    def all_objects_by_role(self):
+        """All contained Objects mapped by role (in specification order).
+            Includes objects defined in subclasses.
+
+        Returns:
+            OrderedDict[text_str, ConfiguredObject]:
+
+        """
+        return self._objects.copy()
+
+    @property
+    def procedures(self):
+        procedure_names = self.__class__._procedure_names
+        result = {}
+        if procedure_names:
+            for name in procedure_names:
+                procedure = getattr(self, name)
+                if procedure is not None:
+                    result[name] = procedure
+        #
+        return result
 
 class PropertySet(dict):
     def __init__(self):
@@ -146,14 +221,13 @@ class HardwareObjectNode:
     def resolveReferences(self):
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import getHardwareRepository
+
         while len(self.__references) > 0:
             reference, name, role, objectsNamesIndex, objectsIndex, objectsIndex2 = (
                 self.__references.pop()
             )
 
-            hw_object =getHardwareRepository().getHardwareObject(
-                reference
-            )
+            hw_object = getHardwareRepository().getHardwareObject(reference)
 
             if hw_object is not None:
                 self._objectsByRole[role] = hw_object
@@ -286,7 +360,8 @@ class HardwareObjectNode:
             getattr(logging.getLogger(log_type), level)(msg)
 
 
-class HardwareObject(HardwareObjectNode, CommandContainer):
+class HardwareObjectMixin(HardwareObjectNode, CommandContainer):
+    """HardwareObject functionality, for either xml- or yaml-configured subclasses"""
     def __init__(self, rootName):
         HardwareObjectNode.__init__(self, rootName)
         CommandContainer.__init__(self)
@@ -306,6 +381,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
     def __setstate__(self, name):
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import getHardwareRepository
+
         o = getHardwareRepository().getHardwareObject(name)
         self.__dict__.update(o.__dict__)
 
@@ -411,14 +487,23 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         """Rewrite XML file"""
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import getHardwareRepository
+
         getHardwareRepository().rewrite_xml(self.name(), xml)
 
     def xml_source(self):
         """Get XML source code"""
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import getHardwareRepository
+
         return getHardwareRepository().xml_source[self.name()]
 
+class HardwareObject(HardwareObjectMixin, HardwareObjectNode, CommandContainer):
+    """Xml-configured hardware object"""
+    pass
+
+class HardwareObjectYaml(HardwareObjectMixin, ConfiguredObject, CommandContainer):
+    """Yaml-configured hardware object"""
+    pass
 
 class Procedure(HardwareObject):
     def __init__(self, name):

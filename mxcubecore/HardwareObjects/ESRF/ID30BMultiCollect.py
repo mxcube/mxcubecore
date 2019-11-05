@@ -5,12 +5,12 @@ import os
 
 from HardwareRepository.TaskUtils import task
 from .ESRFMultiCollect import ESRFMultiCollect, PixelDetector, TunableEnergy
-from HardwareRepository.HardwareObjects.LimaPilatusDetector import Pilatus
+from HardwareRepository.HardwareObjects.LimaPilatusDetector import LimaPilatusDetector
 
 
 class ID30BMultiCollect(ESRFMultiCollect):
     def __init__(self, name):
-        ESRFMultiCollect.__init__(self, name, PixelDetector(Pilatus), TunableEnergy())
+        ESRFMultiCollect.__init__(self, name, TunableEnergy())
 
     @task
     def data_collection_hook(self, data_collect_parameters):
@@ -140,7 +140,7 @@ class ID30BMultiCollect(ESRFMultiCollect):
     def prepare_acquisition(
         self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""
     ):
-        self._tunable_bl.getCurrentEnergy()
+        self._tunable_bl.get_current_energy()
         trigger_mode = "EXTERNAL_GATE" if self.mesh else None
         return ESRFMultiCollect.prepare_acquisition(
             self,

@@ -1,4 +1,5 @@
 from HardwareRepository.HardwareObjects import BeamInfo
+from HardwareRepository import HardwareRepository as HWR
 
 
 class BIOMAXBeamInfo(BeamInfo.BeamInfo):
@@ -10,7 +11,6 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
         self.chan_beam_shape_ellipse = None
         BeamInfo.BeamInfo.init(self)
 
-        self.camera = self.getDeviceByRole("camera")
         self.chan_beam_pos_x = self.getChannelObject("BeamPositionHorizontal")
         self.chan_beam_pos_y = self.getChannelObject("BeamPositionVertical")
         self.chan_beam_size_x = self.getChannelObject("BeamSizeHorizontal")
@@ -56,8 +56,8 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
             self.beam_position[0] = self.chan_beam_pos_x.getValue() * zoom
             self.beam_position[1] = self.chan_beam_pos_y.getValue() * zoom
         else:
-            self.beam_position[0] = self.camera.getWidth() / 2
-            self.beam_position[1] = self.camera.getHeight() / 2
+            self.beam_position[0] = HWR.beamline.microscope.camera.getWidth() / 2
+            self.beam_position[1] = HWR.beamline.microscope.camera.getHeight() / 2
 
         return self.beam_position
 

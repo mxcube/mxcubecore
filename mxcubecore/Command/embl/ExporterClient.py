@@ -9,7 +9,8 @@
 
 import logging
 
-from StandardClient import *
+from .StandardClient import *
+from builtins import int
 
 CMD_SYNC_CALL = "EXEC"
 CMD_ASNC_CALL = "ASNC"
@@ -33,7 +34,7 @@ class ExporterClient(StandardClient):
             try:
                 evtstr = msg[4:]
                 tokens = evtstr.split(PARAMETER_SEPARATOR)
-                self.onEvent(tokens[0], tokens[1], long(tokens[2]))
+                self.onEvent(tokens[0], tokens[1], int(tokens[2]))
             except BaseException:
                 # print "Error processing event: " + str(sys.exc_info()[1])
                 pass

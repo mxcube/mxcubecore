@@ -71,7 +71,7 @@ class PX1Cryotong(Cats90):
         self._chnSampleIsDetected.connectSignal("update", self._updateSampleIsDetected)
         self._chnCountDown.connectSignal("update", self._updateCountDown)
 
-        self._cmdDrySoak = self.addCommand(
+        self._cmdDrySoak = self.add_command(
             {"type": "tango", "name": "_cmdDrySoak", "tangoname": self.tangoname},
             "DryAndSoak",
         )
