@@ -1,5 +1,5 @@
 <object class="EMBLDetector">
-  <object hwrid="/eh2/detector-distance" role="distance_motor"/>
+  <object hwrid="/eh2/detector-distance" role="detector_distance"/>
 
 
   <!-- 

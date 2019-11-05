@@ -53,44 +53,20 @@ class EMBLSession(Session):
         :returns: The base data path.
         :rtype: str
         """
-        if os.getenv("SUDO_USER"):
-            user = os.getenv("SUDO_USER")
-        else:
-            user = os.getenv("USER")
-        return os.path.join(
-            self.base_directory,
-            user,
-            self.start_time,
+        data_directory = os.path.join(
+            self.base_directory, os.getenv("USER").strip(), self.start_time
         )
-
-    """
-    def get_base_process_directory(self):
-        process_directory = self["file_info"].getProperty("processed_data_base_directory")
-        folders = self.get_base_data_directory().split("/")
-
-        process_directory = os.path.join(process_directory,
-                                         *folders[4:])
-        process_directory = process_directory + "/" + \
-               self["file_info"].getProperty("processed_data_folder_name")
-
-        return process_directory
-    """
+        return data_directory.replace(" ", "")
 
     def get_base_process_directory(self):
         """
         Returns base process directory
         :return: str
         """
-        if self.session_start_date:
-            start_time = self.session_start_date.split(" ")[0].replace("-", "")
-        else:
-            start_time = time.strftime("%Y%m%d")
-
-        if os.getenv("SUDO_USER"):
-            user = os.getenv("SUDO_USER")
-        else:
-            user = os.getenv("USER")
-
-        return os.path.join(
-            self.base_process_directory, user, start_time, "PROCESSED_DATA"
+        process_directory = os.path.join(
+            self.base_process_directory,
+            os.getenv("USER"),
+            self.start_time,
+            "PROCESSED_DATA",
         )
+        return process_directory.replace(" ", "")

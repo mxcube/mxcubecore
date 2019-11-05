@@ -2,12 +2,12 @@ import time
 import logging
 import Queue
 import weakref
-import gevent
-
-from HardwareRepository.CommandContainer import CommandObject, ChannelObject
 import atexit
 
+import gevent
 import tine
+
+from HardwareRepository.CommandContainer import CommandObject, ChannelObject
 
 
 class TineCommand(CommandObject):
@@ -138,7 +138,7 @@ class TineChannel(ChannelObject):
                     tine.tolerance(self.linkid, float(tolerance), 0.0)
 
         # TODO Remove this sleep. Tine lib bug when after attach directly get is called
-        # time.sleep(0.02)
+        # time.sleep(0.025)
 
         atexit.register(self.__del__)
 
@@ -175,11 +175,12 @@ class TineChannel(ChannelObject):
                 )
 
     def update(self, value=None):
-
-        # if self.tineName.split("/")[2] == 'ics':
-        #   print self.attributeName, value, self.value, self.oldvalue
-
         if value is None:
+            msg = "Update with value None on: %s %s" % (
+                self.tineName,
+                self.attributeName,
+            )
+            logging.getLogger("HWR").warning(msg)
             value = self.getValue()
         self.value = value
 
@@ -188,19 +189,44 @@ class TineChannel(ChannelObject):
             self.oldvalue = value
 
     def getValue(self, force=False):
-        # logging.getLogger("HWR").debug('TINE channel %s, %s get at val=%s'%(self.tineName,self.attributeName,self.value))
-        # if self.tineName == "/P14/BCUIntensity/Device0":
-        #   print self.attributeName, self.value
+        if force:
+            if self.value is not None:
+                logging.getLogger("HWR").warning(
+                    "Executing synch get on: %s %s"
+                    % (self.tineName, self.attributeName)
+                )
+                return self._synchronous_get()
+            else:
+                logging.getLogger("HWR").warning(
+                    "Attempting to force unconnected channel: %s %s"
+                    % (self.tineName, self.attributeName)
+                )
+                return None
 
-        if self.value is None or force:
-            try:
-                # TODO remove this
-                if not force:
-                    time.sleep(0.02)
-                self.value = tine.get(self.tineName, self.attributeName, self.timeout)
-            except IOError as strerror:
-                logging.getLogger("HWR").error("%s" % strerror)
+        # GB: if there is no value yet, wait and hope it will appear somehow:
+        _counter = 0
+        while self.value is None and _counter <= 10:
+            logging.getLogger("HWR").warning(
+                "Waiting for a first update on: %s %s"
+                % (self.tineName, self.attributeName)
+            )
+            # but now tine lib should be standing the get, so we try....
+            # self.value = self._synchronous_get()
+            time.sleep(0.02)
+            _counter += 1
+        if self.value is None:
+            logging.getLogger("HWR").warning(
+                "Gave up waiting for a first update on: %s %s"
+                % (self.tineName, self.attributeName)
+            )
         return self.value
+
+    def _synchronous_get(self):
+        try:
+            value = tine.get(self.tineName, self.attributeName, self.timeout)
+            return value
+        except IOError as strerror:
+            logging.getLogger("HWR").error("%s" % strerror)
 
     def setValue(self, newValue):
         listData = newValue

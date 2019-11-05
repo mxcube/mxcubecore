@@ -1,4 +1,9 @@
 from __future__ import print_function
+import sys
+import json
+import time
+import itertools
+import os
 import traceback
 from pprint import pformat
 from collections import namedtuple
@@ -14,12 +19,9 @@ except:
 from suds.sudsobject import asdict
 from suds import WebFault
 from suds.client import Client
-import json
-import time
-import itertools
-import os
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.ConvertUtils import string_types
+from HardwareRepository import HardwareRepository as HWR
 
 """
 A client for ISPyB Webservices.
@@ -27,7 +29,12 @@ A client for ISPyB Webservices.
 
 import logging
 import gevent
-import suds
+
+
+suds_encode = str.encode
+
+if sys.version_info > (3, 0):
+    suds_encode = bytes.decode
 
 logging.getLogger("suds").setLevel(logging.INFO)
 
@@ -111,7 +118,9 @@ def utf_encode(res_d):
             utf_encode(value)
 
         try:
-            res_d[key] = value.encode("utf8", "ignore")
+            # Decode bytes object or encode str object depending
+            # on Python version
+            res_d[key] = suds_encode("utf8", "ignore")
         except BaseException:
             # If not primitive or Text data, complext type, try to convert to
             # dict or str if the first fails
@@ -147,6 +156,7 @@ class ISPyBClient(HardwareObject):
         HardwareObject.__init__(self, name)
         self.ldapConnection = None
         self.beamline_name = "unknown"
+        self.lims_rest = None
         self._shipping = None
         self._collection = None
         self._tools_ws = None
@@ -168,6 +178,7 @@ class ISPyBClient(HardwareObject):
         """
         Init method declared by HardwareObject.
         """
+        self.lims_rest = self.getObjectByRole("lims_rest")
         self.authServerType = self.getProperty("authServerType") or "ldap"
         if self.authServerType == "ldap":
             # Initialize ldap
@@ -177,8 +188,7 @@ class ISPyBClient(HardwareObject):
 
         self.loginType = self.getProperty("loginType") or "proposal"
         self.loginTranslate = self.getProperty("loginTranslate") or True
-        self.session_hwobj = self.getObjectByRole("session")
-        self.beamline_name = self.session_hwobj.beamline_name
+        self.beamline_name = HWR.beamline.session.beamline_name
 
         self.ws_root = self.getProperty("ws_root")
         self.ws_username = self.getProperty("ws_username")
@@ -291,8 +301,8 @@ class ISPyBClient(HardwareObject):
 
         # Add the porposal codes defined in the configuration xml file
         # to a directory. Used by translate()
-        if hasattr(self.session_hwobj, "proposals"):
-            for proposal in self.session_hwobj["proposals"]:
+        if hasattr(HWR.beamline.session, "proposals"):
+            for proposal in HWR.beamline.session["proposals"]:
                 code = proposal.code
                 self._translations[code] = {}
                 try:
@@ -865,7 +875,7 @@ class ISPyBClient(HardwareObject):
         else:
             todays_session = {}
 
-        is_inhouse = self.session_hwobj.is_inhouse(
+        is_inhouse = HWR.beamline.session.is_inhouse(
             prop["Proposal"]["code"], prop["Proposal"]["number"]
         )
         return {

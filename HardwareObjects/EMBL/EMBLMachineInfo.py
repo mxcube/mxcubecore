@@ -18,13 +18,11 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
-[Name] EMBLMachineInfo
-
-[Description]
 Hardware Object is used to get relevant machine information
 (current, intensity, hutch temperature and humidity, and data storage disc
 information). Value limits are included
 """
+
 import os
 import time
 import logging
@@ -34,10 +32,13 @@ try:
 except ImportError:
     from urllib.request import urlopen
 
+from collections import OrderedDict
 from datetime import datetime, timedelta
 from gevent import spawn
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+
+from HardwareRepository import HardwareRepository as HWR
 
 
 __credits__ = ["EMBL Hamburg"]
@@ -46,10 +47,13 @@ __category__ = "General"
 
 
 class EMBLMachineInfo(HardwareObject):
-    """Displays actual information about the beeamline
+    """Displays actual information about the beamline
     """
 
     def __init__(self, name):
+        """OrderedDict is used to have a sorted items for display
+           and directory like access when updating values
+        """
 
         HardwareObject.__init__(self, name)
 
@@ -69,56 +73,34 @@ class EMBLMachineInfo(HardwareObject):
         self.frontend_is_open = False
         self.undulator_gap = 9999
 
-        self.values_list = []
+        self.values_ordered_dict = OrderedDict()
 
-        temp_dict = {}
-        temp_dict["value"] = 0
-        temp_dict["value_str"] = ""
-        temp_dict["in_range"] = False
-        temp_dict["title"] = "Machine current"
-        temp_dict["bold"] = True
-        # temp_dict['font'] = 16
-        # temp_dict['history'] = True
-        self.values_list.append(temp_dict)
+        self.values_ordered_dict["current"] = {
+            "value": 0,
+            "value_str": "",
+            "in_range": False,
+            "title": "Machine current",
+            "bold": True,
+        }
 
-        temp_dict = {}
-        temp_dict["value"] = None
-        temp_dict["in_range"] = True
-        temp_dict["title"] = "Machine state"
-        self.values_list.append(temp_dict)
+        self.values_ordered_dict["machine_state"] = {
+            "value": None,
+            "in_range": False,
+            "title": "Machine state",
+        }
 
-        temp_dict = {}
-        temp_dict["value"] = None
-        temp_dict["in_range"] = True
-        temp_dict["title"] = "Front End, undulator gap"
-        self.values_list.append(temp_dict)
+        self.values_ordered_dict["frontend_undulator"] = {
+            "value": None,
+            "in_range": True,
+            "title": "Front End, undulator gap",
+        }
 
-        temp_dict = {}
-        temp_dict["value"] = ""
-        temp_dict["value_str"] = ""
-        temp_dict["in_range"] = None
-        temp_dict["title"] = "Hutch temperature and humidity"
-        self.values_list.append(temp_dict)
-
-        temp_dict = {}
-        temp_dict["value"] = 1
-        temp_dict["value_str"] = "Remeasure flux!"
-        temp_dict["in_range"] = False
-        temp_dict["title"] = "Flux"
-        # temp_dict['align'] = "left"
-        self.values_list.append(temp_dict)
-
-        temp_dict = {}
-        temp_dict["value"] = "???"
-        temp_dict["in_range"] = None
-        temp_dict["title"] = "Cryoject in place"
-        self.values_list.append(temp_dict)
-
-        temp_dict = {}
-        temp_dict["value"] = "Dewar level in range"
-        temp_dict["in_range"] = True
-        temp_dict["title"] = "Sample changer"
-        self.values_list.append(temp_dict)
+        self.values_ordered_dict["temp_hum"] = {
+            "value": "",
+            "value_str": "",
+            "in_range": None,
+            "title": "Hutch temperature and humidity",
+        }
 
         self.temp_hum_values = [None, None]
         self.temp_hum_in_range = [None, None]
@@ -134,9 +116,6 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_sc_dewar_low_level_alarm = None
         self.chan_sc_dewar_overflow_alarm = None
 
-        self.flux_hwobj = None
-        self.ppu_control_hwobj = None
-
     def init(self):
 
         self.update_interval = int(self.getProperty("updateIntervalS"))
@@ -145,65 +124,83 @@ class EMBLMachineInfo(HardwareObject):
         self.hutch_hum_addr = self.getProperty("hutchHumAddress")
 
         self.chan_mach_curr = self.getChannelObject("machCurrent")
-        if self.chan_mach_curr is not None:
-            self.chan_mach_curr.connectSignal("update", self.mach_current_changed)
+        self.chan_mach_curr.connectSignal("update", self.mach_current_changed)
         self.chan_state_text = self.getChannelObject("machStateText")
         self.chan_state_text.connectSignal("update", self.state_text_changed)
         self.state_text_changed(self.chan_state_text.getValue())
 
         self.chan_mach_energy = self.getChannelObject("machEnergy")
-        if self.chan_mach_energy is not None:
-            self.chan_mach_energy.connectSignal("update", self.mach_energy_changed)
+        self.chan_mach_energy.connectSignal("update", self.mach_energy_changed)
         self.chan_bunch_count = self.getChannelObject("machBunchCount")
-        if self.chan_bunch_count is not None:
-            self.chan_bunch_count.connectSignal("update", self.bunch_count_changed)
+        self.chan_bunch_count.connectSignal("update", self.bunch_count_changed)
         self.chan_frontend_status = self.getChannelObject("frontEndStatus")
-        if self.chan_frontend_status is not None:
-            self.chan_frontend_status.connectSignal(
-                "update", self.frontend_status_changed
+        self.chan_frontend_status.connectSignal("update", self.frontend_status_changed)
+        self.frontend_status_changed(self.chan_frontend_status.getValue())
+
+        if HWR.beamline.flux is not None:
+            self.connect(
+                HWR.beamline.flux, "fluxInfoChanged", self.flux_info_changed
             )
+            self.values_ordered_dict["flux"] = {
+                "value": 1,
+                "value_str": "Remeasure flux!",
+                "in_range": False,
+                "title": "Measured flux",
+            }
 
         self.chan_undulator_gap = self.getChannelObject("chanUndulatorGap")
         if self.chan_undulator_gap is not None:
             self.chan_undulator_gap.connectSignal("update", self.undulator_gap_changed)
         self.undulator_gap_changed(self.chan_undulator_gap.getValue())
 
-        self.chan_cryojet_in = self.getChannelObject("cryojetIn")
+        self.chan_cryojet_in = self.getChannelObject("cryojetIn", optional=True)
         if self.chan_cryojet_in is not None:
+            self.values_ordered_dict["cryo"] = {
+                "value": "???",
+                "in_range": None,
+                "title": "Cryoject in place",
+            }
             self.cryojet_in_changed(self.chan_cryojet_in.getValue())
             self.chan_cryojet_in.connectSignal("update", self.cryojet_in_changed)
         else:
             logging.getLogger("HWR").debug("MachineInfo: Cryojet channel not defined")
 
-        self.chan_sc_dewar_low_level_alarm = self.getChannelObject("scLowLevelAlarm")
+        self.chan_sc_dewar_low_level_alarm = self.getChannelObject(
+            "scLowLevelAlarm", optional=True
+        )
         if self.chan_sc_dewar_low_level_alarm is not None:
+            self.values_ordered_dict["sc"] = {
+                "value": "Dewar level in range",
+                "in_range": True,
+                "title": "Sample changer",
+            }
+
             self.chan_sc_dewar_low_level_alarm.connectSignal(
                 "update", self.low_level_alarm_changed
             )
             self.low_level_alarm_changed(self.chan_sc_dewar_low_level_alarm.getValue())
 
-        self.chan_sc_dewar_overflow_alarm = self.getChannelObject("scOverflowAlarm")
+        self.chan_sc_dewar_overflow_alarm = self.getChannelObject(
+            "scOverflowAlarm", optional=True
+        )
         if self.chan_sc_dewar_overflow_alarm is not None:
             self.chan_sc_dewar_overflow_alarm.connectSignal(
                 "update", self.overflow_alarm_changed
             )
 
-        self.ppu_control_hwobj = self.getObjectByRole("ppu_control")
-        if self.ppu_control_hwobj is not None:
-            temp_dict = {}
-            temp_dict["value"] = "- - -"
-            temp_dict["in_range"] = False
-            temp_dict["title"] = "Files copied - pending - failed"
-            self.values_list.append(temp_dict)
+        if HWR.beamline.ppu_control is not None:
+            self.values_ordered_dict["ppu"] = {
+                "value": "- - -",
+                "in_range": False,
+                "title": "Files copied - pending - failed",
+            }
 
             self.connect(
-                self.ppu_control_hwobj,
+                HWR.beamline.ppu_control,
                 "fileTranferStatusChanged",
                 self.file_transfer_status_changed,
             )
 
-        self.flux_hwobj = self.getObjectByRole("flux")
-        self.connect(self.flux_hwobj, "fluxInfoChanged", self.flux_info_changed)
         self.temp_hum_polling = spawn(
             self.get_temp_hum_values, self.getProperty("updateIntervalS")
         )
@@ -227,17 +224,17 @@ class EMBLMachineInfo(HardwareObject):
         :return: None
         """
 
-        self.values_list[5]["in_range"] = False
-        self.values_list[5]["bold"] = True
+        self.values_ordered_dict["cryo"]["in_range"] = False
+        self.values_ordered_dict["cryo"]["bold"] = True
 
         if value == 1:
-            self.values_list[5]["value"] = " In place"
-            self.values_list[5]["in_range"] = True
-            self.values_list[5]["bold"] = False
+            self.values_ordered_dict["cryo"]["value"] = " In place"
+            self.values_ordered_dict["cryo"]["in_range"] = True
+            self.values_ordered_dict["cryo"]["bold"] = False
         elif value == 0:
-            self.values_list[5]["value"] = "NOT IN PLACE"
+            self.values_ordered_dict["cryo"]["value"] = "NOT IN PLACE"
         else:
-            self.values_list[5]["value"] = "Unknown"
+            self.values_ordered_dict["cryo"]["value"] = "Unknown"
         self.update_values()
 
     def mach_current_changed(self, value):
@@ -247,12 +244,12 @@ class EMBLMachineInfo(HardwareObject):
         :type value: float
         """
         if (
-            self.values_list[0]["value"] is None
-            or abs(self.values_list[0]["value"] - value) > 0.00001
+            self.values_ordered_dict["current"]["value"] is None
+            or abs(self.values_ordered_dict["current"]["value"] - value) > 0.00001
         ):
-            self.values_list[0]["value"] = value
-            self.values_list[0]["value_str"] = "%.1f mA" % value
-            self.values_list[0]["in_range"] = value > 60.0
+            self.values_ordered_dict["current"]["value"] = value
+            self.values_ordered_dict["current"]["value_str"] = "%.1f mA" % value
+            self.values_ordered_dict["current"]["in_range"] = value > 60.0
             self.update_values()
 
     def state_text_changed(self, text):
@@ -262,7 +259,7 @@ class EMBLMachineInfo(HardwareObject):
         :type text: string
         """
         self.state_text = str(text)
-        self.values_list[1]["in_range"] = text != "Fehler"
+        self.values_ordered_dict["machine_state"]["in_range"] = text != "Fehler"
         self.update_machine_state()
 
     def mach_energy_changed(self, value):
@@ -306,16 +303,20 @@ class EMBLMachineInfo(HardwareObject):
             state_text += "\n%.2f GeV " % self.ring_energy
         if self.bunch_count is not None:
             state_text += ", %d Bunches" % self.bunch_count
-        self.values_list[1]["value"] = state_text
+        self.values_ordered_dict["machine_state"]["value"] = state_text
 
         if not self.frontend_is_open or self.undulator_gap > 30:
-            self.values_list[2]["in_range"] = False
+            self.values_ordered_dict["frontend_undulator"]["in_range"] = False
         else:
-            self.values_list[2]["in_range"] = True
+            self.values_ordered_dict["frontend_undulator"]["in_range"] = True
         if self.frontend_is_open:
-            self.values_list[2]["value_str"] = "Opened, %d mm" % self.undulator_gap
+            self.values_ordered_dict["frontend_undulator"]["value_str"] = (
+                "Opened, %d mm" % self.undulator_gap
+            )
         else:
-            self.values_list[2]["value_str"] = "Closed, %d mm" % self.undulator_gap
+            self.values_ordered_dict["frontend_undulator"]["value_str"] = (
+                "Closed, %d mm" % self.undulator_gap
+            )
 
         self.update_values()
 
@@ -329,7 +330,7 @@ class EMBLMachineInfo(HardwareObject):
         self.overflow_alarm = value
         self.update_sc_alarm()
 
-    def file_transfer_status_changed(self, total, pending, failed):
+    def file_transfer_status_changed(self, status):
         """
         Updates info about file beeing transfered
         :param total: int
@@ -337,43 +338,49 @@ class EMBLMachineInfo(HardwareObject):
         :param failed: int
         :return:
         """
-        self.values_list[-1]["value"] = "%d  -  %d  -  %d" % (total, pending, failed)
-        self.values_list[-1]["in_range"] = failed == 0
+        self.values_ordered_dict["ppu"]["value"] = "%d  -  %d  -  %d" % (
+            status[0],
+            status[1],
+            status[2],
+        )
+        self.values_ordered_dict["ppu"]["in_range"] = status[2] == 0
 
-        if failed > 0:
+        if status[2] > 0:
             logging.getLogger("GUI").error(
-                "Error in file transfer (%d files failed to copy)." % failed
+                "Error in file transfer (%d files failed to copy)." % status[2]
             )
 
     def update_sc_alarm(self):
         """Sample changer alarm"""
         if self.low_level_alarm == 1:
-            self.values_list[6]["value"] = "Low level alarm!"
-            self.values_list[6]["in_range"] = False
-            self.values_list[6]["bold"] = True
+            self.values_ordered_dict["sc"]["value"] = "Low level alarm!"
+            self.values_ordered_dict["sc"]["in_range"] = False
+            self.values_ordered_dict["sc"]["bold"] = True
             logging.getLogger("GUI").error(
                 "Liquid nitrogen level in sample changer dewar is too low!"
             )
 
         elif self.overflow_alarm:
-            self.values_list[6]["value"] = "Overflow alarm!"
-            self.values_list[6]["in_range"] = False
-            self.values_list[6]["bold"] = True
+            self.values_ordered_dict["sc"]["value"] = "Overflow alarm!"
+            self.values_ordered_dict["sc"]["in_range"] = False
+            self.values_ordered_dict["sc"]["bold"] = True
             logging.getLogger("GUI").error(
                 "Liquid nitrogen overflow in sample changer dewar!"
             )
         else:
-            self.values_list[6]["value"] = "Dewar level in range"
-            self.values_list[6]["in_range"] = True
+            self.values_ordered_dict["sc"]["value"] = "Dewar level in range"
+            self.values_ordered_dict["sc"]["in_range"] = True
         self.update_values()
 
     def flux_info_changed(self, flux_info):
         """Sets flux value"""
 
         if flux_info["measured"] is None:
-            self.values_list[4]["value"] = 0
-            self.values_list[4]["value_str"] = "Beamline mode changed\nRemeasure flux!"
-            self.values_list[4]["in_range"] = False
+            self.values_ordered_dict["flux"]["value"] = 0
+            self.values_ordered_dict["flux"][
+                "value_str"
+            ] = "Beamline mode changed\nRemeasure flux!"
+            self.values_ordered_dict["flux"]["in_range"] = False
         else:
             msg_str = "Flux: %.2E ph/s\n" % flux_info["measured"]["flux"]
             msg_str += "%d%% transmission, %dx%d beam" % (
@@ -382,29 +389,20 @@ class EMBLMachineInfo(HardwareObject):
                 flux_info["measured"]["size_y"] * 1000,
             )
 
-            self.values_list[4]["value"] = flux_info["measured"]["flux"]
-            self.values_list[4]["value_str"] = msg_str
-            self.values_list[4]["in_range"] = flux_info["measured"]["flux"] > 1e6
-        self.update_values()
-
-    def flux_value_changed(self, flux_value):
-        """
-        Updates flux value
-        :param flux_value:
-        :return:
-        """
-        self.values_list[4]["value"] = flux_value
-        self.values_list[4]["value_str"] = "%.2E ph/s" % flux_value
-        self.values_list[4]["in_range"] = flux_value > 1e6
+            self.values_ordered_dict["flux"]["value"] = flux_info["measured"]["flux"]
+            self.values_ordered_dict["flux"]["value_str"] = msg_str
+            self.values_ordered_dict["flux"]["in_range"] = (
+                flux_info["measured"]["flux"] > 1e6
+            )
         self.update_values()
 
     def update_values(self):
         """Emits list of values"""
-        self.emit("valuesChanged", self.values_list)
+        self.emit("valuesChanged", self.values_ordered_dict)
 
     def get_values(self):
         """Returns list of values"""
-        return self.values_list
+        return self.values_ordered_dict
 
     def get_temp_hum_values(self, sleep_time):
         """Updates temperatur and humidity values"""
@@ -417,19 +415,23 @@ class EMBLMachineInfo(HardwareObject):
                 ):
                     self.hutch_temp = temp
                     self.hutch_hum = hum
-                    self.values_list[3]["value"] = "%.1f C, %.1f %%" % (temp, hum)
-                    self.values_list[3]["in_range"] = temp < 25 and hum < 60
+                    self.values_ordered_dict["temp_hum"][
+                        "value"
+                    ] = "%.1f C, %.1f %%" % (temp, hum)
+                    self.values_ordered_dict["temp_hum"]["in_range"] = (
+                        temp < 25 and hum < 60
+                    )
                     self.update_values()
             time.sleep(sleep_time)
 
     def get_current(self):
         """Returns machine current in mA
         """
-        return self.values_list[0]["value"]
+        return self.values_ordered_dict["current"]["value"]
 
     def get_current_value(self):
         """Returns machine current in mA"""
-        return self.values_list[0]["value"]
+        return self.values_ordered_dict["current"]["value"]
 
     def get_message(self):
         """Returns synchrotron state text"""
@@ -510,29 +512,6 @@ class EMBLMachineInfo(HardwareObject):
             if url_file:
                 url_file.close()
         return last_value
-
-    def update_ramdisk_size(self, sleep_time):
-        """
-        In the loop updates information about ramdisk size.
-        Method gets total and free disc space and in Gb and formats a readable string
-        :param sleep_time: sec between update cycles
-        :return:
-        """
-        while True:
-            total, free, perc = self.get_ramdisk_size()
-            if None in (total, free, perc):
-                txt = " Unable to read ramdisk size!"
-                self.values_list[-1]["in_range"] = False
-            else:
-                txt = " Total: %s\n Free:  %s (%s)" % (
-                    self.sizeof_fmt(total),
-                    self.sizeof_fmt(free),
-                    "{0:.0%}".format(perc),
-                )
-                self.values_list[-1]["in_range"] = free / 2 ** 30 > 10
-            self.values_list[-1]["value"] = txt
-            self.update_values()
-            time.sleep(sleep_time)
 
     def get_ramdisk_size(self):
         """

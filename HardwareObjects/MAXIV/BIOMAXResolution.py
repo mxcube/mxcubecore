@@ -2,6 +2,7 @@ import logging
 from HardwareRepository.HardwareObjects import Resolution
 import math
 
+from HardwareRepository import HardwareRepository as HWR
 
 class BIOMAXResolution(Resolution.Resolution):
     def __init__(self, *args, **kwargs):
@@ -9,16 +10,13 @@ class BIOMAXResolution(Resolution.Resolution):
 
     def init(self):
         self.currentResolution = None
-        self.energy = None
 
-        self.dtox = self.getObjectByRole("dtox")
-        self.energy = self.getObjectByRole("energy")
-        self.detector = self.getObjectByRole("detector")
+        detector = HWR.beamline.detector
 
-        if self.detector:
+        if detector:
             try:
-                self.det_width = self.detector.get_x_pixels_in_detector()
-                self.det_height = self.detector.get_y_pixels_in_detector()
+                self.det_width = detector.get_x_pixels_in_detector()
+                self.det_height = detector.get_y_pixels_in_detector()
             except BaseException:
                 self.det_width = 4150
                 self.det_height = 4371
@@ -27,11 +25,13 @@ class BIOMAXResolution(Resolution.Resolution):
                 self.valid = False
                 logging.getLogger().exception("Cannot get detector size")
 
-        self.update_beam_centre(self.dtox.getPosition())
-        self.connect(self.dtox, "stateChanged", self.dtoxStateChanged)
-        self.connect(self.dtox, "positionChanged", self.dtoxPositionChanged)
-        self.connect(self.energy, "valueChanged", self.energyChanged)
-        self.connect(self.detector, "roiChanged", self.det_roi_changed)
+        self.update_beam_centre(detector.distance.getPosition())
+        self.connect(detector.distance, "stateChanged", self.dtoxStateChanged)
+        self.connect(
+            detector.distance, "positionChanged", self.dtoxPositionChanged
+        )
+        self.connect(HWR.beamline.energy, "valueChanged", self.energyChanged)
+        self.connect(detector, "roiChanged", self.det_roi_changed)
 
     def res2dist(self, res=None):
         current_wavelength = self.getWavelength()
@@ -43,19 +43,21 @@ class BIOMAXResolution(Resolution.Resolution):
             ttheta = 2 * math.asin(current_wavelength / (2 * res))
             return self.det_radius / math.tan(ttheta)
         except Exception as ex:
-            print ex
+            print(ex)
             return None
 
     def dist2res(self, dist=None):
         if dist is None:
-            dist = self.dtox.getPosition()
+            dist = HWR.beamline.detector.distance.getPosition()
 
         return "%.3f" % self._calc_res(self.det_radius, dist)
 
     def det_roi_changed(self):
-        self.det_width = self.detector.get_x_pixels_in_detector()
-        self.det_height = self.detector.get_y_pixels_in_detector()
-        self.update_beam_centre(self.dtox.getPosition())
+        self.det_width = HWR.beamline.detector.get_x_pixels_in_detector()
+        self.det_height = HWR.beamline.detector.get_y_pixels_in_detector()
+        self.update_beam_centre(
+            HWR.beamline.detector.distance.getPosition()
+        )
         self.recalculateResolution()
 
     def update_beam_centre(self, dtox):

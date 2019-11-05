@@ -1,7 +1,7 @@
 import gevent
 import socket
 import logging
-import cPickle as pickle
+import pickle as pickle
 
 from HardwareRepository.TaskUtils import task
 
@@ -13,7 +13,7 @@ from PyTango.gevent import DeviceProxy
 class ID30A3MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
         ESRFMultiCollect.__init__(
-            self, name, PixelDetector(Eiger), FixedEnergy(0.9677, 12.812)
+            self, name, FixedEnergy(0.9677, 12.812)
         )
 
         self._notify_greenlet = None
@@ -151,7 +151,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
     def prepare_acquisition(
         self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""
     ):
-        energy = self._tunable_bl.getCurrentEnergy()
+        energy = self._tunable_bl.get_current_energy()
         return self._detector.prepare_acquisition(
             take_dark,
             start,

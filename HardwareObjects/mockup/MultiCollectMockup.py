@@ -282,7 +282,7 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
         if self.bl_control.cryo_stream is not None:
             return self.bl_control.cryo_stream.getTemperature()
 
-    def getCurrentEnergy(self):
+    def get_current_energy(self):
         return
 
     def get_beam_centre(self):

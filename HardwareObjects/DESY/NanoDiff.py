@@ -35,6 +35,7 @@ from gevent.event import AsyncResult
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.ConvertUtils import string_types
+from HardwareRepository import HardwareRepository as HWR
 
 # from HardwareRepository.HardwareObjects.GenericDiffractometer import GenericDiffractometer
 
@@ -78,10 +79,8 @@ class NanoDiff(HardwareObject):
         self.zoom_motor_hwobj = None
         self.sample_x_motor_hwobj = None
         self.sample_y_motor_hwobj = None
-        self.camera_hwobj = None
         self.focus_motor_hwobj = None
         self.omega_reference_motor = None
-        self.beam_info_hwobj = None
         self.centring_hwobj = None
         self.minikappa_correction_hwobj = None
 
@@ -102,8 +101,7 @@ class NanoDiff(HardwareObject):
         self.zoom_centre = None
         self.pixels_per_mm_x = None
         self.pixels_per_mm_y = None
-        self.image_width = None
-        self.image_height = None
+
         self.current_sample_info = None
         self.cancel_centring_methods = None
         self.current_centring_procedure = None
@@ -184,7 +182,6 @@ class NanoDiff(HardwareObject):
         self.cmd_start_set_phase = self.getCommandObject("startSetPhase")
         self.cmd_start_auto_focus = self.getCommandObject("startAutoFocus")
 
-        self.camera_hwobj = self.getObjectByRole("camera")
         self.centring_hwobj = self.getObjectByRole("centring")
         if self.centring_hwobj is None:
             logging.getLogger("HWR").debug("NanoDiff: Centring math is not defined")
@@ -197,10 +194,9 @@ class NanoDiff(HardwareObject):
         self.sample_x_motor_hwobj = self.getObjectByRole("sampx")
         self.sample_y_motor_hwobj = self.getObjectByRole("sampy")
 
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        if self.beam_info_hwobj is not None:
+        if HWR.beamline.beam is not None:
             self.connect(
-                self.beam_info_hwobj, "beamPosChanged", self.beam_position_changed
+                HWR.beamline.beam, "beamPosChanged", self.beam_position_changed
             )
         else:
             logging.getLogger("HWR").debug("NanoDiff: Beaminfo is not defined")
@@ -277,29 +273,20 @@ class NanoDiff(HardwareObject):
                 self.focus_motor_hwobj, "positionChanged", self.focus_motor_moved
             )
 
-        if self.camera_hwobj is None:
-            logging.getLogger("HWR").error("NanoDiff: Camera is not defined")
-        else:
-            self.image_height = self.camera_hwobj.getHeight()
-            self.image_width = self.camera_hwobj.getWidth()
+        # if HWR.beamline.microscope.camera is None:
+        #     logging.getLogger("HWR").error("NanoDiff: Camera is not defined")
+        # else:
+        #     self.image_height = HWR.beamline.microscope.camera.getHeight()
+        #     self.image_width = HWR.beamline.microscope.camera.getWidth()
 
         try:
-            self.zoom_centre = eval(self.getProperty("zoomCentre"))
+            self.zoom_centre = eval(self.getProperty("zoom_centre"))
         except BaseException:
-            if self.image_width is not None and self.image_height is not None:
-                self.zoom_centre = {
-                    "x": self.image_width / 2,
-                    "y": self.image_height / 2,
-                }
-                self.beam_position = [self.image_width / 2, self.image_height / 2]
-                logging.getLogger("HWR").warning(
-                    "NanoDiff: Zoom center is "
-                    + "not defined continuing with the middle: %s" % self.zoom_centre
-                )
-            else:
-                logging.getLogger("HWR").warning(
-                    "NanoDiff: Neither zoom centre nor camera size iz defined"
-                )
+            self.zoom_centre = {"x": 0, "y": 0}
+            logging.getLogger("HWR").warning(
+                "NanoDiff: "
+                + "zoom centre not configured"
+            )
 
         # Compatibility
         self.getCentringStatus = self.get_centring_status
@@ -646,11 +633,11 @@ class NanoDiff(HardwareObject):
         """
         Descript. :
         """
-        if self.camera_hwobj is not None:
+        if HWR.beamline.microscope.camera is not None:
             if self.current_phase != "Unknown":
-                self.camera_hwobj.refresh_video()
-        if self.beam_info_hwobj is not None:
-            self.beam_position = self.beam_info_hwobj.get_beam_position()
+                HWR.beamline.microscope.camera.refresh_video()
+        if HWR.beamline.beam is not None:
+            self.beam_position = HWR.beamline.beam.get_beam_position()
 
     def start_auto_focus(self):
         """
@@ -1369,6 +1356,6 @@ class NanoDiff(HardwareObject):
         snapshot_filename = os.path.join(
             tempfile.gettempdir(), "mxcube_sample_snapshot.png"
         )
-        self.camera_hwobj.take_snapshot(snapshot_filename, bw=True)
+        HWR.beamline.microscope.camera.take_snapshot(snapshot_filename, bw=True)
         info, x, y = lucid.find_loop(snapshot_filename)
         return x, y

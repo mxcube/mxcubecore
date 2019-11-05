@@ -42,7 +42,7 @@ class AbstractEnergy(HardwareObject):
         self.getCurrentWavelength = self.get_current_wavelength
 
     def is_ready(self):
-        return True
+        return not self._moving
 
     def abort(self):
         self._aborted = True

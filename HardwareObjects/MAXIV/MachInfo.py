@@ -36,7 +36,7 @@ import logging
 import gevent
 import time
 import PyTango
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Equipment
 
 
@@ -135,15 +135,15 @@ class MachInfo(Equipment):
 def test():
     import sys
 
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     conn = hwr.getHardwareObject(sys.argv[1])
 
-    print "Machine current: ", conn.getCurrent()
-    print "Life time: ", conn.getLifeTime()
-    print "TopUp remaining: ", conn.getTopUpRemaining()
-    print "Message: ", conn.getMessage()
+    print("Machine current: ", conn.getCurrent())
+    print("Life time: ", conn.getLifeTime())
+    print("TopUp remaining: ", conn.getTopUpRemaining())
+    print("Message: ", conn.getMessage())
 
     while True:
         gevent.wait(timeout=0.1)

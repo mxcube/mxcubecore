@@ -1,4 +1,4 @@
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Procedure
 import math
 import numpy
@@ -23,7 +23,7 @@ class CentringMath(Procedure):
                     "type": axis.type,
                     "direction": eval(axis.direction),
                     "motor_name": axis.motorname,
-                    "motor_HO": HardwareRepository.getHardwareRepository().getHardwareObject(
+                    "motor_HO": HWR.getHardwareRepository().getHardwareObject(
                         axis.motorHO
                     ),
                 }

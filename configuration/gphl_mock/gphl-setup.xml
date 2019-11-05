@@ -12,11 +12,13 @@
 
     <!-- If set, run workflow through ssh with selected options -->
     <!-- NB The  Host option is mandatory -->
+    <!-- ConfigFile is the ssh configuratino file, passed to ssh with the -F option -->
     <!--<ssh_options>-->
         <!--<Host>lonsdale</Host>-->
         <!--<IdentityFile>/home/rhfogh/.ssh/wf_test_id</IdentityFile>-->
         <!--<User>rhfogh</User>-->
         <!--<StrictHostKeyChecking>no</StrictHostKeyChecking>-->
+        <!--<ConfigFile>/path/to/ssh/config/file</ConfigFile>-->
     <!--</ssh_options>-->
 
     <!-- NB Non-absolute file names are interpreted relative to one of the  -->

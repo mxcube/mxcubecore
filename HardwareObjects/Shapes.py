@@ -17,6 +17,8 @@ from HardwareRepository.HardwareObjects import queue_model_objects
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
+from HardwareRepository import HardwareRepository as HWR
+
 
 class Shapes(HardwareObject):
     """Keeps track of Shapes."""
@@ -24,10 +26,11 @@ class Shapes(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self.shapes = {}
+        self.camera_hwobj = None
 
     def init(self):
-        self.diffractometer = self.getObjectByRole("diffractometer")
         self.hide_grid_threshold = self.getProperty("hide_grid_threshold", 5)
+        self.camera_hwobj = self.getObjectByRole("camera")
 
     def get_shapes(self):
         """
@@ -270,6 +273,41 @@ class Shapes(HardwareObject):
         """
         pass
 
+    @property
+    def zoom(self):
+        """zoom motor object
+
+        NBNB HACK TODO - configure this here instead
+        (instead of calling to diffractometer)
+
+        Returns:
+            AbstractActuator
+        """
+        return HWR.beamline.diffractometer.zoom
+
+    @property
+    def focus(self):
+        """focus motor object
+
+        NBNB HACK TODO - configure this here instead
+        (instead of calling to diffractometer)
+
+        Returns:
+            AbstractActuator
+        """
+        return HWR.beamline.diffractometer.alignment_x
+
+    @property
+    def camera(self):
+        """camera object
+
+        NBNB TODO clean up and simplify configuration
+
+        Returns:
+            AbstractActuator
+        """
+        return self.camera_hwobj
+
 
 class Shape(object):
     """
@@ -337,7 +375,7 @@ class Shape(object):
         # We dont allow id updates
         shape_dict.pop("id", None)
 
-        for key, value in shape_dict.iteritems():
+        for key, value in shape_dict.items():
             if hasattr(self, key):
                 setattr(self, key, value)
 

@@ -56,7 +56,7 @@ Example Hardware Object XML file :
 </device>
 """
 
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository import BaseHardwareObjects
 import logging
 import os
@@ -177,13 +177,13 @@ class ALBAZoomMotor(BaseHardwareObjects.Device):
 
 def test_hwo(zoom):
 
-    print type(zoom.getState())
+    print(type(zoom.getState()))
 
-    print "     Zoom position is : ", zoom.getPosition()
-    print "Zoom position name is : ", zoom.getCurrentPositionName()
-    print "               Moving : ", zoom.motorIsMoving()
-    print "                State : ", zoom.getState()
-    print "            Positions : ", zoom.getPredefinedPositionsList()
+    print("     Zoom position is : ", zoom.getPosition())
+    print("Zoom position name is : ", zoom.getCurrentPositionName())
+    print("               Moving : ", zoom.motorIsMoving())
+    print("                State : ", zoom.getState())
+    print("            Positions : ", zoom.getPredefinedPositionsList())
 
 
 if __name__ == "__main__":

@@ -92,7 +92,7 @@ class SardanaMotor(AbstractMotor):
             "Motor {0} polling = {1}".format(self.motor_name, self.polling)
         )
 
-        self.stop_command = self.addCommand(
+        self.stop_command = self.add_command(
             {
                 "type": "sardana",
                 "name": self.motor_name + SardanaMotor.suffix_stop,
@@ -309,9 +309,9 @@ class SardanaMotor(AbstractMotor):
 
 
 def test_hwo(hwo):
-    print("Position for %s is: %s" % (hwo.username, hwo.getPosition()))
-    print("Velocity for %s is: %s" % (hwo.username, hwo.get_velocity()))
-    print("Acceleration for %s is: %s" % (hwo.username, hwo.get_acceleration()))
+    print(("Position for %s is: %s" % (hwo.username, hwo.getPosition())))
+    print(("Velocity for %s is: %s" % (hwo.username, hwo.get_velocity())))
+    print(("Acceleration for %s is: %s" % (hwo.username, hwo.get_acceleration())))
 
 
 #    print("Moving motor to %s" % newpos)

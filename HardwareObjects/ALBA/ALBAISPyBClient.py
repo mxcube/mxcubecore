@@ -1,10 +1,5 @@
-from HardwareRepository import HardwareRepository
 import logging
-import urllib2
-import os
-
-from suds.transport.http import HttpAuthenticated
-from suds.client import Client
+from HardwareRepository import HardwareRepository as HWR
 
 from ISPyBClient import ISPyBClient
 
@@ -28,11 +23,11 @@ class ALBAISPyBClient(ISPyBClient):
                 logging.getLogger("HWR").debug(
                     "  homeDirectory for user %s is %s" % (login_name, home_dir)
                 )
-                # self.session_hwobj.set_base_data_directories(home_dir, home_dir, home_dir)
-                self.session_hwobj.set_ldap_homedir(home_dir)
+                # HWR.beamline.session.set_base_data_directories(home_dir, home_dir, home_dir)
+                HWR.beamline.session.set_ldap_homedir(home_dir)
         else:
             home_dir = "/tmp"
-            self.session_hwobj.set_ldap_homedir(home_dir)
+            HWR.beamline.session.set_ldap_homedir(home_dir)
 
         return ok, msg
 
@@ -59,7 +54,7 @@ class ALBAISPyBClient(ISPyBClient):
             try:
                 prop = "xtalSnapshotFullPath%d" % (i + 1)
                 path = mx_collect_dict[prop]
-                ispyb_path = self.session_hwobj.path_to_ispyb(path)
+                ispyb_path = HWR.beamline.session.path_to_ispyb(path)
                 logging.debug("ALBA ISPyBClient - %s is %s " % (prop, ispyb_path))
                 mx_collect_dict[prop] = ispyb_path
             except BaseException:
@@ -69,7 +64,7 @@ class ALBAISPyBClient(ISPyBClient):
         for prop in ["jpegThumbnailFileFullPath", "jpegFileFullPath"]:
             try:
                 path = image_dict[prop]
-                ispyb_path = self.session_hwobj.path_to_ispyb(path)
+                ispyb_path = HWR.beamline.session.path_to_ispyb(path)
                 image_dict[prop] = ispyb_path
             except BaseException:
                 pass
@@ -83,10 +78,10 @@ def test_hwo(hwo):
     info = hwo.login(proposal, pasw)
     # info = hwo.get_proposal(proposal_code, proposal_number)
     # info = hwo.get_proposal_by_username("u2020000007")
-    print info["status"]
+    print(info["status"])
 
-    print "Getting associated samples"
+    print("Getting associated samples")
     session_id = 58248
     proposal_id = 8250
     samples = hwo.get_samples(proposal_id, session_id)
-    print samples
+    print(samples)

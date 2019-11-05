@@ -25,10 +25,12 @@ import copy
 import time
 import gevent
 import logging
-from HardwareRepository.HardwareObjects import sample_centring
 import math
 import numpy
+from HardwareRepository.HardwareObjects import sample_centring
 from HardwareRepository.HardwareObjects import queue_model_objects
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository as HWR
 
 try:
     unicode
@@ -36,7 +38,6 @@ except:
     # A quick fix for python3
     unicode = str
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["MXCuBE collaboration"]
 
@@ -161,9 +162,6 @@ class GenericDiffractometer(HardwareObject):
         self.centring_motors_list = None
         self.front_light_switch = None
         self.back_light_switch = None
-        self.camera_hwobj = None
-        self.beam_info_hwobj = None
-        self.sample_changer = None
         self.use_sc = False
 
         # Channels and commands -----------------------------------------------
@@ -195,8 +193,6 @@ class GenericDiffractometer(HardwareObject):
         self.zoom_centre = None
         self.pixels_per_mm_x = None
         self.pixels_per_mm_y = None
-        self.image_width = None
-        self.image_height = None
 
         self.current_state = None
         self.current_phase = None
@@ -232,24 +228,21 @@ class GenericDiffractometer(HardwareObject):
         self.user_confirms_centring = True
 
         # Hardware objects ----------------------------------------------------
-        self.camera_hwobj = self.getObjectByRole("camera")
-        self.camera = self.camera_hwobj
-        if self.camera_hwobj is not None:
-            self.image_height = self.camera_hwobj.getHeight()
-            self.image_width = self.camera_hwobj.getWidth()
-        else:
-            logging.getLogger("HWR").debug(
-                "Diffractometer: " + "Camera hwobj is not defined"
-            )
+        # if HWR.beamline.microscope.camera is not None:
+        #     self.image_height = HWR.beamline.microscope.camera.getHeight()
+        #     self.image_width = HWR.beamline.microscope.camera.getWidth()
+        # else:
+        #     logging.getLogger("HWR").debug(
+        #         "Diffractometer: " + "Camera hwobj is not defined"
+        #     )
 
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        if self.beam_info_hwobj is not None:
-            self.beam_position = self.beam_info_hwobj.get_beam_position()
+        if HWR.beamline.beam is not None:
+            self.beam_position = HWR.beamline.beam.get_beam_position()
             self.connect(
-                self.beam_info_hwobj, "beamPosChanged", self.beam_position_changed
+                HWR.beamline.beam, "beamPosChanged", self.beam_position_changed
             )
         else:
-            self.beam_position = [self.image_width / 2, self.image_height / 2]
+            self.beam_position = [0, 0]
             logging.getLogger("HWR").warning(
                 "Diffractometer: " + "BeamInfo hwobj is not defined"
             )
@@ -307,6 +300,7 @@ class GenericDiffractometer(HardwareObject):
         )
 
         for motor_name in self.centring_motors_list:
+            # NBNB TODO refactor configuration, and set properties directly (see below)
             temp_motor_hwobj = self.getObjectByRole(motor_name)
             if temp_motor_hwobj is not None:
                 logging.getLogger("HWR").debug(
@@ -343,8 +337,7 @@ class GenericDiffractometer(HardwareObject):
                 )
 
         # sample changer -----------------------------------------------------
-        self.sample_changer = self.getObjectByRole("samplechanger")
-        if self.sample_changer is None:
+        if HWR.beamline.sample_changer is None:
             logging.getLogger("HWR").warning(
                 "Diffractometer: Sample Changer is not defined"
             )
@@ -385,22 +378,11 @@ class GenericDiffractometer(HardwareObject):
         try:
             self.zoom_centre = eval(self.getProperty("zoom_centre"))
         except BaseException:
-            if self.image_width is not None and self.image_height is not None:
-                self.zoom_centre = {
-                    "x": self.image_width / 2,
-                    "y": self.image_height / 2,
-                }
-                self.beam_position = [self.image_width / 2, self.image_height / 2]
-                logging.getLogger("HWR").warning(
-                    "Diffractometer: Zoom center is "
-                    + "not defined. Continuing with the middle: %s" % self.zoom_centre
-                )
-            else:
-                self.zoom_centre = {"x": 0, "y": 0}
-                logging.getLogger("HWR").warning(
-                    "Diffractometer: "
-                    + "Neither zoom centre nor camera size is defined"
-                )
+            self.zoom_centre = {"x": 0, "y": 0}
+            logging.getLogger("HWR").warning(
+                "Diffractometer: "
+                + "zoom centre not configured"
+            )
 
         self.reversing_rotation = self.getProperty("reversing_rotation")
         try:
@@ -428,7 +410,7 @@ class GenericDiffractometer(HardwareObject):
         # TODO remove this
         self.getCentringStatus = self.get_centring_status
 
-        self.getPositions = self.get_positions
+        self.get_positions = self.get_positions
         self.moveMotors = self.move_motors
         self.isReady = self.is_ready
 
@@ -450,6 +432,93 @@ class GenericDiffractometer(HardwareObject):
             if attr == "pixelsPerMmZ":
                 return self.pixels_per_mm_y
             return HardwareObject.__getattr__(self, attr)
+
+    # Contained Objects
+    # NBNB Temp[orary hack - should be cleaned up together with configuration
+    @property
+    def omega(self):
+        """omega motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.motor_hwobj_dict.get("phi")
+
+    @property
+    def kappa(self):
+        """kappa motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.motor_hwobj_dict.get("kappa")
+
+    @property
+    def kappa_phi(self):
+        """kappa_phi motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.motor_hwobj_dict.get("kappa_phi")
+
+    @property
+    def centring_x(self):
+        """centring_x motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.motor_hwobj_dict.get("sampx")
+
+    @property
+    def centring_y(self):
+        """centring_y motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.motor_hwobj_dict.get("sampy")
+
+    @property
+    def alignment_x(self):
+        """alignment_x motor object (also used as graphics.focus)
+
+        Returns:
+            AbstractActuator
+        """
+        return self.motor_hwobj_dict.get("focus")
+
+    @property
+    def alignment_y(self):
+        """alignment_y motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.motor_hwobj_dict.get("phiy")
+
+    @property
+    def alignment_z(self):
+        """alignment_z motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.motor_hwobj_dict.get("phiz")
+
+    @property
+    def zoom(self):
+        """zoom motor object
+
+        NBNB HACK TODO - ocnfigure this in graphics object
+        (which now calls this property)
+
+        Returns:
+            AbstractActuator
+        """
+        return self.motor_hwobj_dict.get("zoom")
+
 
     def is_ready(self):
         """
@@ -520,7 +589,7 @@ class GenericDiffractometer(HardwareObject):
         """
         if flag:
             # check both transfer_mode and sample_Changer
-            if self.sample_changer is None:
+            if HWR.beamline.sample_changer is None:
                 logging.getLogger("HWR").error(
                     "Diffractometer: Sample " + "Changer is not available"
                 )
@@ -619,14 +688,14 @@ class GenericDiffractometer(HardwareObject):
     #     return self.current_positions_dict.get("phi")
 
     def get_snapshot(self):
-        if self.camera_hwobj:
-            return self.camera_hwobj.get_snapshot()
+        if HWR.beamline.microscope:
+            return HWR.beamline.microscope.take_snapshot()
 
     def save_snapshot(self, filename):
         """
         """
-        if self.camera_hwobj:
-            return self.camera_hwobj.save_snapshot(filename)
+        if HWR.beamline.microscope:
+            return HWR.beamline.microscope.save_snapshot(filename)
 
     def get_pixels_per_mm(self):
         """
@@ -741,7 +810,7 @@ class GenericDiffractometer(HardwareObject):
         while self.automatic_centring_try_count > 0:
             if self.use_sample_centring:
                 self.current_centring_procedure = sample_centring.start_auto(
-                    self.camera_hwobj,
+                    HWR.beamline.microscope.camera,
                     {
                         "phi": self.centring_phi,
                         "phiy": self.centring_phiy,

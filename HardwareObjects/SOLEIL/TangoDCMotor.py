@@ -1,4 +1,4 @@
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 
 import logging
 import gevent
@@ -321,11 +321,11 @@ class TangoDCMotor(Device):
 
 
 def test():
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     motor = hwr.getHardwareObject("/phi")
-    print motor.getPosition()
+    print(motor.getPosition())
 
 
 if __name__ == "__main__":

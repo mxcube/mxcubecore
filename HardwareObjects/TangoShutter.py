@@ -112,7 +112,7 @@ In the example the tango attribute is called "exper_shutter"
 
 """
 
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository import BaseHardwareObjects
 
 import logging
@@ -201,12 +201,12 @@ class TangoShutter(BaseHardwareObjects.Device):
 
 
 def test():
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     shut = hwr.getHardwareObject("/fastshutter")
 
-    print("Shutter State is: ", shut.readShutterState())
+    print(("Shutter State is: ", shut.readShutterState()))
 
 
 if __name__ == "__main__":

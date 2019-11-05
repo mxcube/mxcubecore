@@ -18,15 +18,16 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from HardwareRepository.HardwareObjects.GenericParallelProcessing import (
-    GenericParallelProcessing
-)
-
 from XSDataCommon import XSDataBoolean
 from XSDataCommon import XSDataDouble
 from XSDataCommon import XSDataInteger
 from XSDataCommon import XSDataString
 from XSDataControlDozorv1_1 import XSDataInputControlDozor
+
+from HardwareRepository.HardwareObjects.GenericParallelProcessing import (
+    GenericParallelProcessing
+)
+from HardwareRepository import HardwareRepository as HWR
 
 
 __credits__ = ["MXCuBE collaboration"]
@@ -52,8 +53,8 @@ class DozorParallelProcessing(GenericParallelProcessing):
         input_file.setReversing_rotation(
             XSDataBoolean(self.params_dict["reversing_rotation"])
         )
-        input_file.setPixelMin(XSDataInteger(self.detector_hwobj.get_pixel_min()))
-        input_file.setPixelMax(XSDataInteger(self.detector_hwobj.get_pixel_max()))
+        input_file.setPixelMin(XSDataInteger(HWR.beamline.detector.get_pixel_min()))
+        input_file.setPixelMax(XSDataInteger(HWR.beamline.detector.get_pixel_max()))
         input_file.setBeamstopSize(XSDataDouble(self.beamstop_hwobj.get_size()))
         input_file.setBeamstopDistance(XSDataDouble(self.beamstop_hwobj.get_distance()))
         input_file.setBeamstopDirection(

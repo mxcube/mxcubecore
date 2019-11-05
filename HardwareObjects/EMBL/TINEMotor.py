@@ -17,6 +17,9 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
+"""TINEMotor class defines motor in the TINE control system
+"""
+
 import logging
 import gevent
 
@@ -28,19 +31,13 @@ __category__ = "Motor"
 
 
 class TINEMotor(AbstractMotor):
-    """
-    TINEMotor
+    """TINEMotor class defines motor in the TINE control system
     """
 
     def __init__(self, name):
-        """
-        init
-        :param name:
-        """
         AbstractMotor.__init__(self, name)
 
         self.previous_position = None
-
         self.chan_position = None
         self.chan_state = None
         self.chan_limits = None
@@ -53,10 +50,8 @@ class TINEMotor(AbstractMotor):
         self.step_limits = None
 
     def init(self):
-        """
-        Init
-        :return:
-        """
+        """Connects to all Tine channels and commands"""
+
         self.chan_limits = self.getChannelObject("axisLimits", optional=True)
         if self.chan_limits is not None:
             self.chan_limits.connectSignal("update", self.motor_limits_changed)
@@ -139,6 +134,9 @@ class TINEMotor(AbstractMotor):
         """
         return self.step_limits
 
+    # def get_position(self):
+    #    return self.chan_position.getValue()
+
     def stop(self):
         """Stops motor movement
         """
@@ -213,7 +211,6 @@ class TINEMotor(AbstractMotor):
     def enable_motor(self):
         """
         Enables motor
-        :return:
         """
         if self.cmd_set_online:
             self.cmd_set_online(1)
@@ -222,7 +219,6 @@ class TINEMotor(AbstractMotor):
     def disable_motor(self):
         """
         Disables motor
-        :return:
         """
         if self.cmd_set_online:
             self.cmd_set_online(0)

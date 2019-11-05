@@ -58,10 +58,7 @@ class XRFSpectrumMockup(AbstractXRFSpectrum, HardwareObject):
         HardwareObject.__init__(self, name)
 
     def init(self):
-        self.energy_hwobj = self.getObjectByRole("energy")
-        self.transmission_hwobj = self.getObjectByRole("transmission")
-        self.db_connection_hwobj = self.getObjectByRole("dbserver")
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
+        pass
 
     def isConnected(self):
         return True

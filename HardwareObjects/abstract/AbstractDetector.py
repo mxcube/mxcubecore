@@ -1,167 +1,162 @@
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 import abc
+
+__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
 
 class AbstractDetector(object):
+    """Common base class for detectors"""
+
     __metaclass__ = abc.ABCMeta
 
     def __init__(self):
-        """
-        Descript. :
-        """
+        self._temperature = None
+        self._humidity = None
+        self._exposure_time_limits = [None, None]
+        self._pixel_size = 0
 
-        # self.distance = None
-        self.temperature = None
-        self.humidity = None
-        self.exposure_time_limits = [None, None]
-        self.actual_frame_rate = None
+        self._distance_limits = [None, None]
+        self._binning_mode = 0
+        self._roi_mode = 0
+        self._roi_modes_list = []
 
-        self.pixel_min = None
-        self.pixel_max = None
-        self.default_distance = None
-        self.distance_limits = [None, None]
-        self.distance_limits_static = [None, None]
-        self.binning_mode = 0
-        self.roi_mode = None
-        self.roi_modes_list = []
-        self.status = None
+        self._distance_motor_hwobj = None
 
-        self.distance_motor_hwobj = None
+    @property
+    def distance(self):
+        """Property for contained detector_distance hwobj
 
-    @abc.abstractmethod
-    def get_distance(self):
+        NBNB Temnporary hack. This should eb configured pro[perly
+
+        Returns:
+            AbstratctActuator
         """
-        Descript. :
-        """
-        return
+        return self.distance_motor_hwobj
 
     @abc.abstractmethod
     def get_distance_limits(self):
         """
-        Descript. :
+        Returns:
+            tuple[float, float]: tuple containing the pair lower limit, upper limit in mm
         """
         return
 
     @abc.abstractmethod
     def has_shutterless(self):
         """
-        Descript. :
+        Returns:
+            bool: True if detector is capable of shutterless acquisition False otherwise
+        """
+        return
+
+    @abc.abstractmethod
+    def prepare_acquisition(self, *args, **kwargs):
+        """
+        Prepares detector for acquisition
+        """
+        return
+
+    @abc.abstractmethod
+    def last_image_saved(self):
+        """
+        Returns:
+            str: path to last image
+        """
+        return
+
+    @abc.abstractmethod
+    def start_acquisition(self):
+        """
+        Starts acquisition
+        """
+        return
+
+    @abc.abstractmethod
+    def stop_acquisition(self):
+        """
+        Stops acquisition
+        """
+
+    @abc.abstractmethod
+    def wait_ready(self):
+        """
+        Blocks until detector is ready
         """
         return
 
     def get_roi_mode(self):
-        """Returns current ROI mode"""
-        return self.roi_mode
+        """
+        Returns:
+            str" current ROI mode
+        """
+        return self._roi_mode
 
     def set_roi_mode(self, roi_mode):
-        pass
+        """
+        Args:
+            roi_mode (int): ROI mode to set
+        """
+        self._roi_mode = roi_mode
 
     def get_roi_mode_name(self):
-        return self.roi_modes_list[self.roi_mode]
+        """
+        Returns:
+            str: current ROI mode name
+        """
+        return self._roi_modes_list[self._roi_mode]
 
     def get_roi_modes(self):
-        """Returns a list with available ROI modes"""
-        return self.roi_modes_list
+        """
+        Returns:
+            tuple[str]: Tuple with valid ROI modes
+        """
+        return tuple(self._roi_modes_list)
 
     def get_exposure_time_limits(self):
-        """Returns exposure time limits as list with two floats"""
-        return self.exposure_time_limits
+        """
+        Returns:
+            tuple[float, float]: Exposure time lower and upper limit in s
+        """
+        return self._exposure_time_limits
 
-    def get_pixel_min(self):
+    def get_pixel_size(self):
         """
-        Descript. : Returns minimal pixel size
+        Returns:
+            tuple(float, float): Pixel size in mm for dimension 1 and dimension 2 (x, y)
         """
-        return self.pixel_min
+        return self._pixel_size
 
-    def get_pixel_max(self):
+    def get_binning_mode(self):
         """
-        Descript. : Returns maximal pixel size
+        Returns:
+            int: current binning mode
         """
-        return self.pixel_max
+        return self._binning_mode
 
-    def set_distance(self, value, timeout=None):
+    def set_binning_mode(self, value):
         """
-        Descript. :
+        Args:
+            value (int): binning mode
         """
-        return
-
-    def get_detector_mode(self):
-        return self.binning_mode
-
-    def set_detector_mode(self, value):
-        """
-        Descript. :
-        """
-        self.binning_mode = value
-
-    def prepare_acquisition(
-        self,
-        take_dark,
-        start,
-        osc_range,
-        exptime,
-        npass,
-        number_of_images,
-        comment,
-        energy,
-        still,
-    ):
-        """
-        Descript. :
-        """
-        return
-
-    def last_image_saved(self):
-        """
-        Descript. :
-        """
-        return
-
-    def set_detector_filenames(
-        self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
-    ):
-        """
-        Descript. :
-        """
-        return
-
-    def start_acquisition(self):
-        """
-        Descript. :
-        """
-        return
-
-    def stop_acquisition(self):
-        """
-        Descript. :
-        """
-        return
-
-    def write_image(self):
-        """
-        Descript. :
-        """
-        return
-
-    def stop(self):
-        """
-        Descript. :
-        """
-        return
-
-    def reset_detector(self):
-        """
-        Descript. :
-        """
-        return
-
-    def wait_detector(self, until_state):
-        """
-        Descript. :
-        """
-        return
-
-    def wait_ready(self):
-        """
-        Descript. :
-        """
-        return
+        self._binning_mode = value
+    

@@ -1,9 +1,10 @@
-from HardwareRepository import BaseHardwareObjects
 import logging
 import PyTango.gevent
 import gevent
 import time
 import sys
+from HardwareRepository import BaseHardwareObjects
+from HardwareRepository import HardwareRepository as HWR
 
 """
 Read the state of the hutch from the PSS device server and take actions
@@ -87,12 +88,12 @@ class ID232HutchTrigger(BaseHardwareObjects.HardwareObject):
         logging.info(
             "%s: %s hutch", self.name(), "entering" if entering_hutch else "leaving"
         )
-        dtox = self.getObjectByRole("detector_distance")
+        dtox = HWR.beamline.detector.distance
         udiff_ctrl = self.getObjectByRole("predefined")
         ctrl_obj = self.getObjectByRole("controller")
         if not entering_hutch:
             if old["dtox"] is not None:
-                print "Moving %s to %g" % (dtox.name(), old["dtox"])
+                print("Moving %s to %g" % (dtox.name(), old["dtox"]))
                 dtox.move(old["dtox"])
             self.flex_device.eval("flex.user_port(0)")
             self.flex_device.eval("flex.robot_port(1)")

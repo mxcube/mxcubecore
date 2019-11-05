@@ -1,4 +1,4 @@
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Device
 
 
@@ -49,4 +49,4 @@ class ALBATransmission(Device):
 
 
 def test_hwo(hwo):
-    print "Transmission is: ", hwo.get_value()
+    print("Transmission is: ", hwo.get_value())

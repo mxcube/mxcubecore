@@ -35,7 +35,9 @@ import time
 import gevent
 
 from HardwareRepository.HardwareObjects.abstract.sample_changer import Crims
-from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import *
+from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import SampleChanger, SampleChangerState
+from HardwareRepository.HardwareObjects.abstract.sample_changer.Container import Container, Sample, Basket
+
 
 
 class Xtal(Sample):
@@ -199,6 +201,9 @@ class PlateManipulator(SampleChanger):
         self.plate_location = None
         self.crims_url = None
 
+        self.stored_pos_x = None
+        self.stored_pos_y = None
+
         self.cmd_move_to_drop = None
         self.cmd_move_to_location = None
 
@@ -219,6 +224,9 @@ class PlateManipulator(SampleChanger):
             self.reference_pos_x = self.getProperty("referencePosX")
             if not self.reference_pos_x:
                 self.reference_pos_x = 0.5
+
+        self.stored_pos_x = self.reference_pos_x
+        self.stored_pos_y = 0.5
 
         self.crims_url = self.getProperty("crimsWsRoot")
 
@@ -335,9 +343,15 @@ class PlateManipulator(SampleChanger):
         drop = sample_location[1] - self.num_drops * col
 
         if not pos_x:
-            pos_x = self.reference_pos_x
+            #pos_x = self.reference_pos_x
+            pos_x = self.stored_pos_x
+        else:
+            self.stored_pos_x = pos_x
         if not pos_y:
-            pos_y = float(drop) / (self.num_drops + 1)
+            pos_y = self.stored_pos_y
+        else:
+            self.stored_pos_y = pos_y
+            #pos_y = float(drop) / (self.num_drops + 1)
 
         if self.cmd_move_to_location:
             self.cmd_move_to_location(row, col, pos_x, pos_y)

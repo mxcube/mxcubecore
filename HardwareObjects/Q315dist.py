@@ -1,4 +1,5 @@
 from HardwareRepository import BaseHardwareObjects
+from HardwareRepository import HardwareRepository as HWR
 
 
 class Q315dist(BaseHardwareObjects.Equipment):
@@ -10,10 +11,13 @@ class Q315dist(BaseHardwareObjects.Equipment):
 
     def init(self):
         self.detm = self.getDeviceByRole("detm")
-        self.dtox = self.getDeviceByRole("dtox")
 
         self.connect(self.detm, "stateChanged", self.detmStateChanged)
-        self.connect(self.dtox, "limitsChanged", self.dtoxLimitsChanged)
+        self.connect(
+            HWR.beamline.detector.distance,
+            "limitsChanged",
+            self.dtoxLimitsChanged
+        )
         self.connect(self.detm, "positionChanged", self.detmPositionChanged)
 
     def equipmentReady(self):
@@ -25,7 +29,7 @@ class Q315dist(BaseHardwareObjects.Equipment):
     def isValid(self):
         return (
             self.getDeviceByRole("detm") is not None
-            and self.getDeviceByRole("dtox") is not None
+            and self.getDeviceByRole("detector_distance") is not None
         )
 
     def __getattr__(self, attr):
@@ -36,7 +40,7 @@ class Q315dist(BaseHardwareObjects.Equipment):
                 return getattr(self.detm, attr)
             else:
                 # logging.getLogger().info("calling dtox %s", attr)
-                return getattr(self.dtox, attr)
+                return getattr(HWR.beamline.detector.distance, attr)
         else:
             raise AttributeError(attr)
 

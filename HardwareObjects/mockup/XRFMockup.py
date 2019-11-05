@@ -88,7 +88,7 @@ class XRFMockup(Equipment):
 
                     gevent.sleep(0.02)
                 except Exception as ex:
-                    print("Exception ", ex)
+                    print(("Exception ", ex))
 
             self.emit(
                 "plot_end",

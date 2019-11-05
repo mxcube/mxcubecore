@@ -18,9 +18,10 @@ import gevent
 import gevent.event
 import numpy
 import abc
-from HardwareRepository.TaskUtils import cleanup
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+from HardwareRepository.TaskUtils import cleanup
+from HardwareRepository import HardwareRepository as HWR
 
 
 class AbstractXRFSpectrum(object):
@@ -40,11 +41,6 @@ class AbstractXRFSpectrum(object):
         self.mca_calib = (10, 20, 0)
         self.spectrum_running = None
         self.config_filename = ""
-
-        self.energy_hwobj = None
-        self.transmission_hwobj = None
-        self.db_connection_hwobj = None
-        self.beam_info_hwobj = None
 
         self.ready_event = gevent.event.Event()
 
@@ -230,13 +226,13 @@ class AbstractXRFSpectrum(object):
                 archive_file_raw.close()
             calibrated_array = numpy.array(calibrated_data)
 
-            if self.transmission_hwobj is not None:
+            if HWR.beamline.transmission is not None:
                 self.spectrum_info[
                     "beamTransmission"
-                ] = self.transmission_hwobj.getAttFactor()
+                ] = HWR.beamline.transmission.getAttFactor()
             self.spectrum_info["energy"] = self.get_current_energy()
-            if self.beam_info_hwobj is not None:
-                beam_size = self.beam_info_hwobj.get_beam_size()
+            if HWR.beamline.beam is not None:
+                beam_size = HWR.beamline.beam.get_beam_size()
                 self.spectrum_info["beamSizeHorizontal"] = int(beam_size[0] * 1000)
                 self.spectrum_info["beamSizeVertical"] = int(beam_size[1] * 1000)
 
@@ -280,20 +276,20 @@ class AbstractXRFSpectrum(object):
         Descript. :
         """
         logging.getLogger().debug("XRFSpectrum info %r", self.spectrum_info)
-        if self.db_connection_hwobj:
+        if HWR.beamline.lims:
             try:
                 session_id = int(self.spectrum_info["sessionId"])
             except BaseException:
                 return
             blsampleid = self.spectrum_info["blSampleId"]
-            self.db_connection_hwobj.storeXfeSpectrum(self.spectrum_info)
+            HWR.beamline.lims.storeXfeSpectrum(self.spectrum_info)
 
     def get_current_energy(self):
         """
         Descript. :
         """
-        if self.energy_hwobj is not None:
+        if HWR.beamline.energy is not None:
             try:
-                return self.energy_hwobj.getCurrentEnergy()
+                return HWR.beamline.energy.get_current_energy()
             except BaseException:
                 logging.getLogger("HWR").exception("XRFSpectrum: couldn't read energy")

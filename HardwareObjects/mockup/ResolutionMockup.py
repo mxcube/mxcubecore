@@ -1,6 +1,7 @@
-from HardwareRepository import BaseHardwareObjects
 import logging
 import math
+from HardwareRepository import BaseHardwareObjects
+from HardwareRepository import HardwareRepository as HWR
 
 
 class ResolutionMockup(BaseHardwareObjects.Equipment):
@@ -14,15 +15,18 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         self.currentResolution = 3
         self.detmState = None
         self.state = 2
-        self.dtox = self.getObjectByRole("dtox")
-        self.energy = self.getObjectByRole("energy")
-        self.detector = self.getObjectByRole("detector")
-        self.connect(self.dtox, "positionChanged", self.dtoxPositionChanged)
-        self.dtox.move(self.res2dist(self.currentResolution))
+        self.connect(
+            HWR.beamline.detector.distance,
+            "positionChanged",
+            self.dtoxPositionChanged
+        )
+        HWR.beamline.detector.distance.move(
+            self.res2dist(self.currentResolution)
+        )
 
         # Default value detector radius - corresponds to Eiger 16M:
         self.det_radius = 155.625
-        detector = self.detector
+        detector = HWR.beamline.detector
         if detector is not None:
             # Calculate detector radius
             px = float(detector.getProperty("px", default_value=0))
@@ -42,7 +46,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         self.newResolution(self.dist2res(pos))
 
     def getWavelength(self):
-        return self.energy.getCurrentWavelength()
+        return HWR.beamline.energy.get_current_wavelength()
 
     def wavelengthChanged(self, pos=None):
         self.recalculateResolution()
@@ -76,7 +80,9 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
             return None
 
     def recalculateResolution(self):
-        self.currentResolution = self.dist2res(self.dtox.getPosition())
+        self.currentResolution = self.dist2res(
+            HWR.beamline.detector.distance.getPosition()
+        )
 
     def equipmentReady(self):
         self.emit("deviceReady")
@@ -84,10 +90,13 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
     def equipmentNotReady(self):
         self.emit("deviceNotReady")
 
-    def getPosition(self):
+    def get_position(self):
         if self.currentResolution is None:
             self.recalculateResolution()
         return self.currentResolution
+
+    # NBNB Remove getPosition altogether
+    getPosition = get_position
 
     def get_value(self):
         return self.getPosition()
@@ -113,14 +122,19 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
     def getLimits(self, callback=None, error_callback=None):
         return (0, 20)
 
-    def move(self, pos, wait=True):
-        self.dtox.move(self.res2dist(pos), wait=wait)
+    def set_position(self, pos, wait=True):
+        HWR.beamline.detector.distance.move(self.res2dist(pos), wait=wait)
+
+    move = set_position
 
     def motorIsMoving(self):
-        return self.dtox.motorIsMoving() or self.energy.moving
+        return (
+            HWR.beamline.detector.distance.motorIsMoving()
+            or HWR.beamline.energy.moving
+        )
 
     def newDistance(self, dist):
         pass
 
     def stop(self):
-        self.dtox.stop()
+        HWR.beamline.detector.distance.stop()

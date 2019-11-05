@@ -31,7 +31,7 @@
   <object href="/energyscan" role="energyscan"/>
   <object href="/image-tracking" role="image_tracking"/>
   <object href="/parallel-processing" role="parallel_processing"/>
-  <object href="/ppu-control" role="ppu_control"/>
+<!--  <object href="/ppu-control" role="ppu_control"/>-->
   <object href="/session" role="session"/>
   <object href="/xrf-spectrum" role="xrf_spectrum"/>
   <object href="/xray-imaging" role="xray_imaging"/>
@@ -45,7 +45,7 @@
   -->
   <advancedMethods>["MeshScan"]</advancedMethods>
   <autoprocessingMethods>["EDNAproc"]</autoprocessingMethods>
-  <run_processing_parallel>True</run_processing_parallel>
+<!--  <run_processing_parallel>True</run_processing_parallel>-->
 
   <!-- Is it possible to change the beam wavelentgh.
        Should perhaps be associated with the diffractometer -->
