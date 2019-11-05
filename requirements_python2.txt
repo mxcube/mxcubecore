@@ -2,7 +2,7 @@ suds
 gevent
 enum34
 jsonpickle
-simpleyaml
+pyyaml
 PyDispatcher
 numpy
 scipy
