@@ -35,12 +35,12 @@ __credits__ = ["MXCuBE collaboration"]
 @unique
 class ProcedureState(IntEnum):
     """
-    Defines the valid Shutter states
+    Defines the valid Procedure states
     """
-    RUNNING = 0
-    FAILED = 1
+    FAILED = 0
+    RUNNING = 1
     SUCCESFUL = 2
-    IDLE = 4
+    IDLE = 3
 
 
 class AbstractProcedure(ConfiguredObject):
@@ -80,6 +80,19 @@ class AbstractProcedure(ConfiguredObject):
     def _execute(self, data_model):
         """
         Override to implement main task logic
+
+        Args:
+            data_model: Immutable data model, frozen dict in
+            Python 2.7 and Data class in Python 3.7. Input validated
+            by schema defined in _ARG_SCHEMA
+
+        Returns:
+        """
+        pass
+
+    def _pre_execute(self, data_model):
+        """
+        Override to implement pre execute task logic
 
         Args:
             data_model: Immutable data model, frozen dict in
@@ -146,6 +159,7 @@ class AbstractProcedure(ConfiguredObject):
         try:
             # The _pre_execute have been removed and can be done within
             # execute if needed
+            self._pre_execute(data_model)
             self._execute(data_model)
         except Exception as ex:
             self._state = ProcedureState.FAILED

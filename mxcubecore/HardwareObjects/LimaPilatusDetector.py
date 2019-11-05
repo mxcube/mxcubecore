@@ -6,15 +6,24 @@ import math
 from PyTango import DeviceProxy
 from HardwareRepository.TaskUtils import task
 from HardwareRepository import HardwareRepository as HWR
+from HardwareRepository.BaseHardwareObjects import HardwareObject
 
+from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
+    AbstractDetector,
+)
 
-class Pilatus:
-    def init(self, config, collect_obj=None):
-        self.config = config
+class LimaPilatusDetector(HardwareObject, AbstractDetector):
+    def __init__(self, name):
+        AbstractDetector.__init__(self)
+        HardwareObject.__init__(self, name)
+        self.binning_mode = 1
+        self._mesh_steps = None
+
+    def init(self):
         self.header = dict()
 
-        lima_device = config.getProperty("lima_device")
-        pilatus_device = config.getProperty("pilatus_device")
+        lima_device = self.getProperty("lima_device")
+        pilatus_device = self.getProperty("pilatus_device")
         if None in (lima_device, pilatus_device):
             return
 
@@ -83,6 +92,9 @@ class Pilatus:
             "SetImageHeader",
         )
 
+    def has_shutterless(self):
+        return True
+
     def wait_ready(self):
         acq_status_chan = self.getChannelObject("acq_status")
         with gevent.Timeout(10, RuntimeError("Detector not ready")):
@@ -96,7 +108,7 @@ class Pilatus:
             return 0
 
     def get_deadtime(self):
-        return float(self.config.getProperty("deadtime"))
+        return float(self.getProperty("deadtime"))
 
     @task
     def prepare_acquisition(
@@ -111,6 +123,16 @@ class Pilatus:
         energy,
         trigger_mode,
     ):
+        if trigger_mode is None:
+            if osc_range < 1e-4:
+                trigger_mode = "INTERNAL_TRIGGER"
+            else:
+                trigger_mode = "EXTERNAL_TRIGGER"
+            if self._mesh_steps > 1:
+                trigger_mode = "EXTERNAL_TRIGGER_MULTI"
+                # reset mesh steps
+                self._mesh_steps = 1
+
         diffractometer_positions = (
             HWR.beamline.diffractometer.get_positions()
         )
@@ -170,7 +192,7 @@ class Pilatus:
         self.getChannelObject("saving_overwrite_policy").setValue("OVERWRITE")
 
     def set_energy_threshold(self, energy):
-        minE = self.config.getProperty("minE")
+        minE = self.getProperty("minE")
         if energy < minE:
             energy = minE
 
@@ -194,12 +216,12 @@ class Pilatus:
         if dirname.startswith(os.path.sep):
             dirname = dirname[len(os.path.sep) :]
 
-        saving_directory = os.path.join(self.config.getProperty("buffer"), dirname)
+        saving_directory = os.path.join(self.getProperty("buffer"), dirname)
         subprocess.Popen(
             "ssh %s@%s mkdir --parents %s"
             % (
                 os.environ["USER"],
-                self.config.getProperty("control"),
+                self.getProperty("control"),
                 saving_directory,
             ),
             shell=True,
@@ -221,7 +243,7 @@ class Pilatus:
 
         headers = list()
         for i, start_angle in enumerate(self.start_angles):
-            header = "\n%s\n" % self.config.getProperty("serial")
+            header = "\n%s\n" % self.getProperty("serial")
             header += "# %s\n" % time.strftime("%Y/%b/%d %T")
             header += "# Pixel_size 172e-6 m x 172e-6 m\n"
             header += "# Silicon sensor, thickness 0.000320 m\n"
@@ -234,6 +256,11 @@ class Pilatus:
 
     @task
     def start_acquisition(self):
+        try:
+            HWR.beamline.collect.getObjectByRole("detector_cover").set_out()
+        except Exception:
+            pass
+
         self.getCommandObject("prepare_acq")()
         return self.getCommandObject("start_acq")()
 

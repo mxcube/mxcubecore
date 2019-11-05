@@ -6,14 +6,23 @@ from HardwareRepository.TaskUtils import task
 import logging
 from HardwareRepository import HardwareRepository as HWR
 
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
+    AbstractDetector,
+)
 
-class Eiger:
-    def init(self, config, collect_obj=None):
-        self.config = config
+
+class LimaEigerDetector(HardwareObject, AbstractDetector):
+    def __init__(self, name):
+        AbstractDetector.__init__(self)
+        HardwareObject.__init__(self, name)
+        self.binning_mode = 1
+
+    def init(self):
         self.header = dict()
 
-        lima_device = config.getProperty("lima_device")
-        eiger_device = config.getProperty("eiger_device")
+        lima_device = self.getProperty("lima_device")
+        eiger_device = self.getProperty("eiger_device")
 
         for channel_name in (
             "acq_status",
@@ -65,6 +74,9 @@ class Eiger:
         self.getCommandObject("prepare_acq").device.set_timeout_millis(5 * 60 * 1000)
         self.getChannelObject("photon_energy").init_device()
 
+    def has_shutterless(self):
+        return True
+
     def wait_ready(self):
         acq_status_chan = self.getChannelObject("acq_status")
         with gevent.Timeout(30, RuntimeError("Detector not ready")):
@@ -76,7 +88,7 @@ class Eiger:
         return self.getChannelObject("last_image_saved").getValue() + 1
 
     def get_deadtime(self):
-        return float(self.config.getProperty("deadtime"))
+        return float(self.getProperty("deadtime"))
 
     @task
     def prepare_acquisition(
@@ -169,7 +181,7 @@ class Eiger:
         self.getChannelObject("saving_managed_mode").setValue("HARDWARE")
 
     def set_energy_threshold(self, energy):
-        minE = self.config.getProperty("minE")
+        minE = self.getProperty("minE")
         if energy < minE:
             energy = minE
 
@@ -189,7 +201,7 @@ class Eiger:
         if dirname.startswith(os.path.sep):
             dirname = dirname[len(os.path.sep) :]
 
-        saving_directory = os.path.join(self.config.getProperty("buffer"), dirname)
+        saving_directory = os.path.join(self.getProperty("buffer"), dirname)
 
         self.wait_ready()
 
