@@ -64,3 +64,34 @@ class DetectorMockup(AbstractDetector, HardwareObject):
         self.emit("expTimeLimitsChanged", (self.exposure_time_limits,))
         self.emit("frameRateChanged", self.actual_frame_rate)
         self.emit("statusChanged", (self.status, "Ready"))
+
+    def prepare_acquisition(self, *args, **kwargs):
+        """
+        Prepares detector for acquisition
+        """
+        return
+
+    def last_image_saved(self):
+        """
+        Returns:
+            str: path to last image
+        """
+        return
+
+    def start_acquisition(self):
+        """
+        Starts acquisition
+        """
+        return
+
+    def stop_acquisition(self):
+        """
+        Stops acquisition
+        """
+        return
+
+    def wait_ready(self):
+        """
+        Blocks until detector is ready
+        """
+        return
