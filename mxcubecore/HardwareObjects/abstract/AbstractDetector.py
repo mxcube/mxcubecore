@@ -20,16 +20,19 @@
 
 import abc
 
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
-class AbstractDetector(object):
+class AbstractDetector(HardwareObject):
     """Common base class for detectors"""
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self):
+    def __init__(self, name):
+        HardwareObject.__init__(self, name)
         self._temperature = None
         self._humidity = None
         self._exposure_time_limits = [None, None]
@@ -42,6 +45,9 @@ class AbstractDetector(object):
 
         self._distance_motor_hwobj = None
 
+    def init(self):
+        self._distance_motor_hwobj = self.getObjectByRole("detector_distance")
+
     @property
     def distance(self):
         """Property for contained detector_distance hwobj
@@ -51,7 +57,7 @@ class AbstractDetector(object):
         Returns:
             AbstratctActuator
         """
-        return self.distance_motor_hwobj
+        return self._distance_motor_hwobj
 
     @abc.abstractmethod
     def get_distance_limits(self):
