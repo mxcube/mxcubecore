@@ -7,13 +7,13 @@ import time
 
 from HardwareRepository.TaskUtils import task
 from .ESRFMultiCollect import ESRFMultiCollect, FixedEnergy, PixelDetector
-from HardwareRepository.HardwareObjects.LimaPilatusDetector import Pilatus
+from HardwareRepository.HardwareObjects.LimaPilatusDetector import LimaPilatusDetector
 
 
 class ID30A1MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
         ESRFMultiCollect.__init__(
-            self, name, PixelDetector(Pilatus), FixedEnergy(0.966, 12.8353)
+            self, name, FixedEnergy(0.966, 12.8353)
         )
 
         self.helical = False
