@@ -44,9 +44,6 @@ except:
 # Conversion from kEv to A, wavelength = H_OVER_E/energy
 H_OVER_E = 12.3984
 
-def foo():
-    return
-
 
 # Utility functions:
 
