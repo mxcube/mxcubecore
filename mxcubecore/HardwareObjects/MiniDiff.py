@@ -123,7 +123,7 @@ class MiniDiff(Equipment):
         self.lightWago = None
         self.currentSampleInfo = None
         self.aperture = None
-        self.cryo = None
+        self.cryostream = None
         self.beamstop = None
         self.capillary = None
 
