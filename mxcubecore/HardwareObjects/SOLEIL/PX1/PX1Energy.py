@@ -281,7 +281,6 @@ class PX1Energy(Device):
         return (False, "Resolution motor not defined")
 
     getEnergyLimits = get_energy_limits
-    getWavelengthLimits = get_wavelength_limits
     canMoveEnergy = can_move_energy
     startMoveEnergy = move_energy
     startMoveWavelength = move_wavelength

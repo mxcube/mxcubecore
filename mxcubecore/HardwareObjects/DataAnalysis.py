@@ -64,9 +64,6 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
 
         return html_report
 
-    def get_beam_size(self):
-        return HWR.beamline.beam.get_beam_size()
-
     def modify_strategy_option(self, diff_plan, strategy_option):
         """Method for modifying the diffraction plan 'strategyOption' entry"""
         if diff_plan.getStrategyOption() is None:
@@ -175,7 +172,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
             pass
 
         try:
-            beamsize = self.get_beam_size()
+            beamsize = HWR.beamline.beam.get_beam_size()
             if None not in beamsize:
                 beam.setSize(
                     XSDataSize(
