@@ -26,12 +26,12 @@ class Resolution(AbstractMotor):
             raise AttributeError("Cannot get detector properties")
 
         self.connect(
-            HWR.beamline.detector.distance,
+            detector.distance,
             "stateChanged",
             self.dtoxStateChanged
         )
         self.connect(
-            HWR.beamline.detector.distance,
+            detector.distance,
             "positionChanged",
             self.dtoxPositionChanged
         )

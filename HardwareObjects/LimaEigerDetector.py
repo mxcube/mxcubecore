@@ -6,19 +6,19 @@ from HardwareRepository.TaskUtils import task
 import logging
 from HardwareRepository import HardwareRepository as HWR
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
     AbstractDetector,
 )
 
 
-class LimaEigerDetector(HardwareObject, AbstractDetector):
+class LimaEigerDetector(AbstractDetector):
     def __init__(self, name):
-        AbstractDetector.__init__(self)
-        HardwareObject.__init__(self, name)
+        AbstractDetector.__init__(self, name)
         self.binning_mode = 1
 
     def init(self):
+        AbstractDetector.init(self)
+
         self.header = dict()
 
         lima_device = self.getProperty("lima_device")
