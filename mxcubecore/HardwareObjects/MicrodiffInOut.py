@@ -102,10 +102,7 @@ class MicrodiffInOut(Device):
         if read is True:
             value = self.state_attr.getValue()
             self.actuatorState = self.states.get(value, "unknown")
-            self.connectNotify("actuatorStateChanged")
-        else:
-            if self.actuatorState == "unknown":
-                self.connectNotify("actuatorStateChanged")
+
         return self.actuatorState
 
     def actuatorIn(self, wait=True, timeout=None):
