@@ -9,7 +9,7 @@ matrix:
       dist: xenial
       sudo: true
 install:
-  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then travis_retry pip install -r requirements_python2.txt; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then travis_retry python -m pip install -r requirements_python2.txt;  fi
   - if [[ $TRAVIS_PYTHON_VERSION == '3'* ]]; then travis_retry pip3 install -r requirements_python3.txt; fi
 script:
   - python -m pytest
