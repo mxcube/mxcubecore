@@ -2,13 +2,13 @@ suds
 gevent
 enum34
 jsonpickle
-pyyaml
 PyDispatcher
 numpy
 scipy
 matplotlib
 Pillow
 pylint
+ruamel.yaml
 # f90nml, mgen, and py4j are required for GPhL Workflow and emulation
 # f90nml
 # mgen
