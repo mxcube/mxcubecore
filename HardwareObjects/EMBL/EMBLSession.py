@@ -33,12 +33,11 @@ __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
 __category__ = "General"
 
+
 class EMBLSession(Session):
     """
     EMBLSession
     """
-    def foo(self):
-        pass
 
     def __init__(self, name):
         Session.__init__(self, name)

@@ -16,17 +16,7 @@ import importlib
 from datetime import datetime
 import gevent
 import gevent.monkey
-
-try:
-   from ruamel.yaml import YAML
-   # If you want to write out copies of the file, use typ="rt" instead
-   # pure=True uses yaml version 1.2, with fewere gotchas for strange type conversions
-   yaml = YAML(typ="safe", pure=True)
-   # The following are not needed for load, but define the default style.
-   yaml.default_flow_style = False
-   yaml.indent(mapping=4, sequence=4, offset=2)
-except:
-   import yaml
+from ruamel.yaml import YAML
 
 try:
     from SpecClient_gevent import SpecEventsDispatcher
@@ -41,6 +31,13 @@ from HardwareRepository.dispatcher import dispatcher
 from . import BaseHardwareObjects
 from . import HardwareObjectFileParser
 
+
+# If you want to write out copies of the file, use typ="rt" instead
+# pure=True uses yaml version 1.2, with fewere gotchas for strange type conversions
+yaml = YAML(typ="safe", pure=True)
+# The following are not needed for load, but define the default style.
+yaml.default_flow_style = False
+yaml.indent(mapping=4, sequence=4, offset=2)
 
 __author__ = "Matias Guijarro"
 __version__ = 1.3
@@ -158,13 +155,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
                 (role, class_name, configuration_file, "%.1d" % load_time, msg1)
             )
             msg0 = "Done loading contents"
-
-        if isinstance(_objects, (list, tuple)):
-            objects = _objects
-        else:
-            objects = _objects.items()
-
-        for role1, config_file in objects:
+        for role1, config_file in _objects.items():
             fname, fext = os.path.splitext(config_file)
             if fext == ".yml":
                 load_from_yaml(
