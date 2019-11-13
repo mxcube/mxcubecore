@@ -26,6 +26,7 @@ import gevent
 from gevent.queue import Queue
 from HardwareRepository.CommandContainer import CommandObject, ChannelObject
 from .embl import ExporterClient
+from .embl.StandardClient import PROTOCOL
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -70,7 +71,7 @@ class Exporter(ExporterClient.ExporterClient):
 
     def __init__(self, address, port, timeout=3, retries=1):
         super().__init__(
-            address, port, ExporterClient.PROTOCOL.STREAM, timeout, retries
+            address, port, PROTOCOL.STREAM, timeout, retries
         )
 
         self.started = False
