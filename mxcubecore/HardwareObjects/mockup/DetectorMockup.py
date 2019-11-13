@@ -4,7 +4,7 @@ from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
-class DetectorMockup(AbstractDetector, HardwareObject):
+class DetectorMockup(AbstractDetector):
     """
     Descript. : Detector class. Contains all information about detector
                 the states are 'OK', and 'BAD'
@@ -16,13 +16,14 @@ class DetectorMockup(AbstractDetector, HardwareObject):
         """
         Descript. :
         """
-        AbstractDetector.__init__(self)
-        HardwareObject.__init__(self, name)
+        AbstractDetector.__init__(self, name)
 
     def init(self):
         """
         Descript. :
         """
+        AbstractDetector.init(self)
+
         # self.distance = 500
         self.temperature = 25
         self.humidity = 60
@@ -31,7 +32,6 @@ class DetectorMockup(AbstractDetector, HardwareObject):
         self.roi_mode = 0
         self.exposure_time_limits = [0.04, 60000]
         self.status = "ready"
-        self.distance_motor_hwobj = self.getObjectByRole("detector_distance")
 
     def get_distance(self):
         return self.distance_motor_hwobj.get_position()
