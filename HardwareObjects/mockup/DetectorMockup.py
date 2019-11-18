@@ -20,7 +20,6 @@ class DetectorMockup(AbstractDetector):
         """
         Descript. :
         """
-
         AbstractDetector.init(self)
 
         # self.distance = 500
@@ -31,6 +30,7 @@ class DetectorMockup(AbstractDetector):
         self.roi_mode = 0
         self.exposure_time_limits = [0.04, 60000]
         self.status = "ready"
+
         self._distance_motor_hwobj = self.getObjectByRole("detector_distance")
 
     def get_distance(self):
