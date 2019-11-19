@@ -4,6 +4,7 @@ from gevent.queue import Queue
 from warnings import warn
 from HardwareRepository.CommandContainer import CommandObject, ChannelObject
 from .embl import ExporterClient
+from .embl.StandardClient import PROTOCOL
 
 exporter_clients = {}
 
@@ -78,8 +79,8 @@ class Exporter(ExporterClient.ExporterClient):
     STATE_UNKNOWN = "Unknown"
 
     def __init__(self, address, port, timeout=3, retries=1):
-        ExporterClient.ExporterClient.__init__(
-            self, address, port, ExporterClient.PROTOCOL.STREAM, timeout, retries
+        super().__init__(
+            address, port, PROTOCOL.STREAM, timeout, retries
         )
 
         self.started = False
