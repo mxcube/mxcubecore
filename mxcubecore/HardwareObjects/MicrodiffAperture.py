@@ -1,13 +1,13 @@
 import logging
 import math
 
-from HardwareRepository.HardwareObjects.MD2Motor import MD2Motor
+from HardwareRepository.HardwareObjects.ExpMotor import ExpMotor
 from warnings import warn
 
 
-class MicrodiffAperture(MD2Motor):
+class MicrodiffAperture(ExpMotor):
     def __init__(self, name):
-        MD2Motor.__init__(self, name)
+        ExpMotor.__init__(self, name)
 
     def init(self):
         self.motor_name = "CurrentApertureDiameter"
@@ -31,7 +31,7 @@ class MicrodiffAperture(MD2Motor):
             self.predefinedPositions["Outbeam"] = self.predefinedPositions.__len__()
         self.predefinedPositions.pop("Outbeam")
         self.sortPredefinedPositionsList()
-        MD2Motor.init(self)
+        ExpMotor.init(self)
 
     def sortPredefinedPositionsList(self):
         self.predefinedPositionsNamesList = [int(n) for n in self.predefinedPositions.keys()]
@@ -48,9 +48,9 @@ class MicrodiffAperture(MD2Motor):
                 self.emit(signal, (positionName, pos))
             self.emit("apertureChanged", (self.getApertureSize(),))
         else:
-            return MD2Motor.connectNotify(self, signal)
+            return ExpMotor.connectNotify(self, signal)
 
-    def getLimits(self):
+    def get_limits(self):
         return (1, self.nb)
 
     def get_diameter_size_list(self):
@@ -64,19 +64,19 @@ class MicrodiffAperture(MD2Motor):
 
         return get_diameter_size_list()
 
-    def motorPositionChanged(self, absolutePosition, private={}):
-        MD2Motor.motorPositionChanged(absolutePosition, private)
+    def update_position(self, position, private={}):
+        ExpMotor.update_position(position)
 
-        positionName = self.getCurrentPositionName(absolutePosition)
+        positionName = self.getCurrentPositionName(position)
         self.emit(
             "predefinedPositionChanged",
-            (positionName, positionName and absolutePosition or None),
+            (positionName, positionName and position or None),
         )
         self.emit("apertureChanged", (self.getApertureSize(),))
 
     def get_diameter_size(self, pos=None):
-        if self.getPosition() is not None:
-            pos = pos or self.getPosition()
+        if self.get_position() is not None:
+            pos = pos or self.get_position()
         else:
             pos = pos
 

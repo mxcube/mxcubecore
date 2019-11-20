@@ -14,7 +14,7 @@ class MD2Motor(AbstractMotor):
         self.motor_pos_attr_suffix = "Position"
 
     def init(self):
-        self.motor_state = MotorStates.NOTINITIALIZED
+        self.motor_state = MotorStates.UNKNOWN
         if self.motor_name in [None, ""]:
             self.motor_name = self.getProperty("motor_name")
 
@@ -66,14 +66,11 @@ class MD2Motor(AbstractMotor):
         elif signal == "limitsChanged":
             self.motorLimitsChanged()
 
-    def updateState(self):
-        pass
-    #    self.setIsReady(self.motor_state > MotorStates.UNUSABLE)
-
     def updateMotorState(self, motor_states):
         d = dict([x.split("=") for x in motor_states])
 
-        new_motor_state = MotorStates.DESC_TO_STATE[d[self.motor_name]]
+        #new_motor_state = MotorStates.DESC_TO_STATE[d[self.motor_name]]
+        new_motor_state = MotorStates.__members__[d[self.motor_name].upper()]
 
         if self.motor_state == new_motor_state:
             return
@@ -84,22 +81,23 @@ class MD2Motor(AbstractMotor):
 
     def motorStateChanged(self, state):
         logging.getLogger().debug(
-            "%s: in motorStateChanged: motor state changed to %s", self.name(), state
+            "{}: in motorStateChanged: motor state changed to {}".format(self.name(), state)
         )
         self.emit("stateChanged", (state,))
 
-    def motorPositionChanged(self, absolutePosition, private={}):
+    def motorPositionChanged(self, position, private={}):
+        """
         logging.getLogger().debug(
-            "%s: in motorPositionChanged: motor state changed to %s", self.name(), absolutePosition
-        )
+            "{}: in motorPositionChanged: motor position changed to {}".format(self.name(), position))
+        """
         if (
-            abs(absolutePosition - private.get("old_pos", 1e12))
+            abs(position - self.__position)
             <= self.motor_resolution
         ):
             return
-        private["old_pos"] = absolutePosition
-
-        self.emit("positionChanged", (absolutePosition,))
+        self.__position = position
+        print(f"{position} --- {self.__position}")
+        self.emit("positionChanged", (self.__position,))
 
     def motorLimitsChanged(self):
         self.emit("limitsChanged", (self.getLimits(),))
@@ -129,6 +127,7 @@ class MD2Motor(AbstractMotor):
         ret = self.position_attr.get_value()
         if ret is None:
             raise RuntimeError("%s: motor position is None" % self.name())
+        self.__position = ret
         return ret
 
     def move(self, position, wait=False, timeout=None):

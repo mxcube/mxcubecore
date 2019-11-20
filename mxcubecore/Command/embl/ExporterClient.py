@@ -109,10 +109,12 @@ class ExporterClient(StandardClient):
         """
         cmd = "{} {} ".format(CMD_SYNC_CALL, method)
         if pars is not None:
-            for par in pars:
-                if isinstance(par, (list, tuple)):
+            if isinstance(pars, (list, tuple)):
+                for par in pars:
                     par = self.create_array_parameter(par)
                 cmd += str(par) + PARAMETER_SEPARATOR
+            else:
+                cmd += str(pars)
         ret = self.send_receive(cmd, timeout)
         return self.__process_return(ret)
 
