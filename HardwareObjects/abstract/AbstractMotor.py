@@ -17,262 +17,173 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-from warnings import warn
+"""Abstract Motor API. Motor states definition"""
+
+import abc
+from enum import IntEnum, unique
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
+__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
-class MotorStates(object):
-    """Enumeration of the motor states
-    """
 
-    INITIALIZING = 0
-    ON = 1
-    OFF = 2
+@unique
+class MotorStates(IntEnum):
+    """Motor states definitions."""
+
+    UNKNOWN = 0
+    INITIALIZING = 1
+    HOME = 2
     READY = 3
-    BUSY = 4
     MOVING = 5
-    STANDBY = 6
-    DISABLED = 7
-    UNKNOWN = 8
-    ALARM = 9
     FAULT = 10
-    INVALID = 11
-    OFFLINE = 12
-    LOWLIMIT = 13
-    HIGHLIMIT = 14
-    NOTINITIALIZED = 15
-    MOVESTARTED = 16
-    UNUSABLE = 17
-    ONLIMIT = 18
-
-    STATE_DESC = {
-        INITIALIZING: "Initializing",
-        ON: "On",
-        OFF: "Off",
-        READY: "Ready",
-        BUSY: "Busy",
-        MOVING: "Moving",
-        STANDBY: "Standby",
-        DISABLED: "Disabled",
-        UNKNOWN: "Unknown",
-        ALARM: "Alarm",
-        FAULT: "Fault",
-        INVALID: "Invalid",
-        OFFLINE: "Offline",
-        LOWLIMIT: "LowLimit",
-        HIGHLIMIT: "HighLimit",
-        NOTINITIALIZED: "NotInitialized",
-        MOVESTARTED: "MoveStarted",
-        UNUSABLE: "Unusable",
-        ONLIMIT: "OnLimit"
-    }
-
-    DESC_TO_STATE = {
-        "Initializing": INITIALIZING,
-        "On": ON,
-        "Off": OFF,
-        "Ready": READY,
-        "Busy": BUSY,
-        "Moving": MOVING,
-        "Standby": STANDBY,
-        "Disabled": DISABLED,
-        "Unknown": UNKNOWN,
-        "Alarm": ALARM,
-        "Fault": FAULT,
-        "Invalid": INVALID,
-        "Offline": OFFLINE,
-        "LowLimit": LOWLIMIT,
-        "HighLimit": HIGHLIMIT,
-        "NotInitialized": NOTINITIALIZED,
-        "MoveStarted": MOVESTARTED,
-        "Unusable": UNUSABLE,
-        "OnLimit": ONLIMIT
-    }
-
-    @staticmethod
-    def tostring(state):
-        return MotorStates.STATE_DESC.get(state, "Unknown")
-
-    @staticmethod
-    def fromstring(state_str):
-        for key, value in MotorStates.STATE_DESC.items():
-            if value == state_str:
-                return key
-        return MotorStates.STATE_DESC[MotorStates.UNKNOWN]
+    LIMPOS = 14
+    LIMNEG = 13
 
 
 class AbstractMotor(HardwareObject):
+    """Abstract motor API"""
+
+    __metaclass__ = abc.ABCMeta
+
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
-        self.motor_name = ""
-        self.motor_states = MotorStates()
-        self.__state = self.motor_states.INITIALIZING
-        self.__position = None
-        self.__limits = (None, None)
-        self.__default_limits = (None, None)
-        self.__velocity = None
+        self.state = MotorStates.UNKNOWN
+        self.position = None
+        self._limits = (None, None)
+        self._velocity = None
+        self._tolerance = None
+        self.motor_name = None
+        self.username = None
 
-    def home_motor(self, timeout=None):
-        """ Motor homing sequence """
-        pass
-
-    def home(self, timeout=None):
-        self.home_motor(timeout)
-
-    def get_motor_mnemonic(self):
-        return self.motor_name
+    def init(self):
+        """Initialise some parametrs."""
+        self.motor_name = self.getProperty("motor_name")
+        self.username = self.getProperty("username") or self.motor_name
+        self._tolerance = self.getProperty("tolerance") or 1e-3
 
     def is_ready(self):
-        """ Check if the motor state is READY
+        """Check if the motor state is READY.
         Returns:
-            bool: True if ready, otherwise False
+            (bool): True if ready, otherwise False.
         """
-        return self.__state == self.motor_states.READY
+        return self.state == MotorStates.READY
 
-    def set_ready(self, task=None):
-        """Sets motor state to ready"""
-        self.set_state(self.motor_states.READY)
-
+    @abc.abstractmethod
     def get_state(self):
-        """Returns motor state
-
+        """Get the motor state
         Returns:
-            str: Motor state.
+            (enum 'MotorStates'): Motor state.
         """
-        return self.__state
+        return self.state
 
-    def set_state(self, state):
-        """Sets motor state
-
-        Args:
-            state (str): motor state
-        """
-        self.__state = state
-        self.emit("stateChanged", (state,))
-
+    @abc.abstractmethod
     def get_position(self):
-        """Read the motor user position.
-
+        """Read the motor position.
         Returns:
             float: Motor position.
         """
-        return self.__position
-
-    def set_position(self, position):
-        """Sets the motor position.
-
-        Keyword Args:
-            state (str): motor state
-        """
-        self.__position = position
-        self.emit("positionChanged", (position,))
+        return self.position
 
     def get_limits(self):
-        """Returns motor limits as (float, float)
-
+        """Return motor low and high limits.
         Returns:
-            tuple: limits as two floats tuple
+            (tuple): two floats tuple (low limit, high limit).
         """
-        return self.__limits
+        return self._limits
 
     def set_limits(self, limits):
-        """Set motor limits
-
+        """Set motor low and high limits.
         Args:
-            limits(tuple): two floats tuple
+            limits (tuple): two floats tuple (low limit, high limit).
         """
-        self.__limits = limits
-        self.emit("limitsChanged", (limits,))
+        self._limits = limits
+        self.emit("limitsChanged", (self._limits,))
 
     def get_velocity(self):
-        """Returns motor velocity
-
+        """Read motor velocity.
         Returns:
-            float: velocity
+            (float): velocity [unit/s]
         """
-        return self.__velocity
+        return self._velocity
 
     def set_velocity(self, velocity):
         """Set the motor velocity
-
         Args:
             velocity (float): target velocity
         """
-        self.__velocity = velocity
+        self._velocity = velocity
 
-    def move(self, position, wait=False, timeout=None):
-        """Move motor to absolute position.
+    @abc.abstractmethod
+    def move(self, position, wait=True, timeout=None):
+        """Move motor to absolute position. Wait the move to finish.
         Args:
             position (float): target position
-        Kwargs:
-            wait (bool): optional wait till motor finishes the movement
-            timeout (float): optional seconds to wait till move finishes
+            wait (bool): optional - wait until motor movement finished.
+            timeout (float): optional - timeout [s].
         """
-        return
 
     def move_relative(self, relative_position, wait=False, timeout=None):
-        """Move to relative position. Wait the move to finish (True/False)
+        """Move to position relative to the current. Wait the move to finish.
         Args:
-            relative_position (float): relative position to be moved by
-        Kwargs:
-            wait (bool): optional wait till motor finishes the movement
-            timeout (float): optional seconds to wait till move finishes
+            relative_position (float): relative target position.
+            wait (bool): optional - wait until motor movement finished.
+            timeout (float): optional - timeout [s].
         """
         self.move(self.get_position() + relative_position, wait, timeout)
 
+    def wait_move(self, timeout=None):
+        """Wait until motor movement finished."""
+
+    def abort(self):
+        """Abort the motor movement immediately."""
+        raise NotImplementedError
+
     def stop(self):
-        """Stop the motor movement
+        """Stop the motor movement"""
+        raise NotImplementedError
+
+    def home(self, timeout=None):
+        """Homing procedure.
+        Args:
+            timeout (float): Timeout [s].
         """
-        return
+        raise NotImplementedError
 
-    def update_values(self):
-        self.emit("stateChanged", (self.get_state(),))
-        self.emit("positionChanged", (self.get_position(),))
-        self.emit("limitsChanged", (self.get_limits(),))
+    def update_position(self, position=None):
+        """Check if the position has changed. Emist signal positionChanged.
+        Args:
+            position (float): position
+        """
+        if self.position is None:
+            self.position = self.get_position()
+        if position is None:
+            position = self.get_position()
+        if abs(position - self.position) <= self._tolerance:
+            return
+        self.position = position
+        self.emit("positionChanged", (self.position,))
 
-    """ obsolete, keep for backward compatibility """
+    def update_state(self, state=None):
+        """Check if the state has changed. Emist signal stateChanged.
+        Args:
+            state (enum 'MotorState'): state
+        """
+        if state is None:
+            state = self.get_state()
 
-    def isReady(self):
-        warn("isReady is deprecated. Use is_ready instead", DeprecationWarning)
-        return self.is_ready()
+        self.state = state
+        self.emit("stateChanged", (self.state,))
 
-    def getPosition(self):
-        warn("getPosition is deprecated. Use get_position instead", DeprecationWarning)
-        return self.get_position()
+    def update_limits(self, limits=None):
+        """Check if the limits have changed. Emist signal limitsChanged.
+        Args:
+            limits (tuple): two floats tuple (low limit, high limit).
+        """
+        if limits is None:
+            limits = self.get_limits()
 
-    def getState(self):
-        warn("getState is deprecated. Use get_state instead", DeprecationWarning)
-        return self.get_state()
-
-    def getLimits(self):
-        warn("getLimits is deprecated. Use get_limits instead", DeprecationWarning)
-        return self.get_limits()
-
-    def getMotorMnemonic(self):
-        warn(
-            "getMotorMnemonic is deprecated. Use get_motor_mnemonic instead",
-            DeprecationWarning,
-        )
-        return self.get_motor_mnemonic()
-
-    def syncMove(self, position, timeout=None):
-        warn("syncMove is deprecated. Use move wait=True instead", DeprecationWarning)
-        self.move(position, wait=True, timeout=timeout)
-
-    def moveRelative(self, relative_position, wait=False, timeout=None):
-        warn(
-            "moveRelative is deprecated. Use move_relative instead", DeprecationWarning
-        )
-        self.move_relative(relative_position, wait, timeout)
-
-    def syncMoveRelative(self, position, timeout=None):
-        warn(
-            "syncMoveRelative is deprecated. Use move_relative wait=True instead",
-            DeprecationWarning,
-        )
-        self.move_relative(position, wait=True, timeout=timeout)
-
-    def homeMotor(self, timeout=None):
-        warn("homeMotor is deprecated. Use home_motor instead", DeprecationWarning)
-        self.home_motor(timeout)
+        if all(limits):
+            self._limits = limits
+            self.emit("limitsChanged", (self._limits,))
