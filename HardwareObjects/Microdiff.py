@@ -202,7 +202,7 @@ class Microdiff(MiniDiff.MiniDiff):
         return MOTOR_TO_EXPORTER_NAME
 
     def getCalibrationData(self, offset):
-        return (1.0 / self.x_calib.getValue(), 1.0 / self.y_calib.getValue())
+        return (1.0 / self.x_calib.get_value(), 1.0 / self.y_calib.get_value())
 
     def emitCentringSuccessful(self):
         # check first if all the motors have stopped
@@ -217,12 +217,12 @@ class Microdiff(MiniDiff.MiniDiff):
     def _ready(self):
         if self.hwstate_attr:
             if (
-                self.hwstate_attr.getValue() == "Ready"
-                and self.swstate_attr.getValue() == "Ready"
+                self.hwstate_attr.get_value() == "Ready"
+                and self.swstate_attr.get_value() == "Ready"
             ):
                 return True
         else:
-            if self.swstate_attr.getValue() == "Ready":
+            if self.swstate_attr.get_value() == "Ready":
                 return True
         return False
 
@@ -249,7 +249,7 @@ class Microdiff(MiniDiff.MiniDiff):
             print("moveToPhase - Ready is: ", self._ready())
 
     def getPhase(self):
-        return self.readPhase.getValue()
+        return self.readPhase.get_value()
 
     def moveSyncMotors(self, motors_dict, wait=False, timeout=None):
         in_kappa_mode = self.in_kappa_mode()
@@ -284,7 +284,7 @@ class Microdiff(MiniDiff.MiniDiff):
             elif end > hi_lim:
                 raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
 
-        self.nb_frames.setValue(1)
+        self.nb_frames.set_value(1)
         scan_params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
         scan = self.add_command(
             {
@@ -310,7 +310,7 @@ class Microdiff(MiniDiff.MiniDiff):
                 raise ValueError("Scan start below the allowed value %f" % low_lim)
             elif end > hi_lim:
                 raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
-        self.nb_frames.setValue(1)
+        self.nb_frames.set_value(1)
         scan_params = "%0.3f\t%0.3f\t%f\t" % (start, (end - start), exptime)
         scan_params += "%0.3f\t" % motors_pos["1"]["phiy"]
         scan_params += "%0.3f\t" % motors_pos["1"]["phiz"]
@@ -348,14 +348,14 @@ class Microdiff(MiniDiff.MiniDiff):
         wait=False,
     ):
         # import pdb; pdb.set_trace()
-        self.scan_range.setValue(end - start)
-        self.scan_exposure_time.setValue(exptime / mesh_num_lines)
-        self.scan_start_angle.setValue(start)
-        self.scan_detector_gate_pulse_enabled.setValue(True)
+        self.scan_range.set_value(end - start)
+        self.scan_exposure_time.set_value(exptime / mesh_num_lines)
+        self.scan_start_angle.set_value(start)
+        self.scan_detector_gate_pulse_enabled.set_value(True)
         servo_time = (
             0.110
         )  # adding the servo time to the readout time to avoid any servo cycle jitter
-        self.scan_detector_gate_pulse_readout_time.setValue(
+        self.scan_detector_gate_pulse_readout_time.set_value(
             dead_time * 1000 + servo_time
         )  # TODO
 
@@ -403,26 +403,26 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def in_plate_mode(self):
         try:
-            return self.head_type.getValue() == "Plate"
+            return self.head_type.get_value() == "Plate"
         except BaseException:
             return False
 
     def in_kappa_mode(self):
-        return self.head_type.getValue() == "MiniKappa" and self.kappa_channel.getValue()
+        return self.head_type.get_value() == "MiniKappa" and self.kappa_channel.get_value()
 
     def get_positions(self):
         pos = {
-            "phi": float(self.phiMotor.getPosition()),
-            "focus": float(self.focusMotor.getPosition()),
-            "phiy": float(self.phiyMotor.getPosition()),
-            "phiz": float(self.phizMotor.getPosition()),
-            "sampx": float(self.sampleXMotor.getPosition()),
-            "sampy": float(self.sampleYMotor.getPosition()),
-            "zoom": float(self.zoomMotor.getPosition()),
-            "kappa": float(self.kappaMotor.getPosition())
+            "phi": float(self.phiMotor.get_position()),
+            "focus": float(self.focusMotor.get_position()),
+            "phiy": float(self.phiyMotor.get_position()),
+            "phiz": float(self.phizMotor.get_position()),
+            "sampx": float(self.sampleXMotor.get_position()),
+            "sampy": float(self.sampleYMotor.get_position()),
+            #"zoom": float(self.zoomMotor.get_position()),
+            "kappa": float(self.kappaMotor.get_position())
             if self.in_kappa_mode()
             else None,
-            "kappa_phi": float(self.kappaPhiMotor.getPosition())
+            "kappa_phi": float(self.kappaPhiMotor.get_position())
             if self.in_kappa_mode()
             else None,
         }
@@ -465,7 +465,7 @@ class Microdiff(MiniDiff.MiniDiff):
                 },
                 "setPlateVertical",
             )
-            low_lim, high_lim = self.phiMotor.getDynamicLimits()
+            low_lim, high_lim = self.phiMotor.get_dynamic_limits()
             phi_range = math.fabs(high_lim - low_lim - 1)
             self.current_centring_procedure = sample_centring.start_plate_1_click(
                 {

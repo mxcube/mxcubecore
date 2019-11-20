@@ -214,7 +214,7 @@ class PlateManipulator(SampleChanger):
         cmd_get_config = self.getChannelObject("GetPlateConfig", optional=True)
         if cmd_get_config:
             try:
-                self.num_rows, self.num_cols, self.num_drops = cmd_get_config.getValue()
+                self.num_rows, self.num_cols, self.num_drops = cmd_get_config.get_value()
             except BaseException:
                 pass
         else:
@@ -245,7 +245,7 @@ class PlateManipulator(SampleChanger):
                 "update", self.plate_location_changed
             )
 
-            self.plate_location_changed(self.chan_plate_location.getValue())
+            self.plate_location_changed(self.chan_plate_location.get_value())
 
         self.chan_state = self.getChannelObject("State")
         if self.chan_state is not None:
@@ -259,8 +259,11 @@ class PlateManipulator(SampleChanger):
         self.updateInfo()
 
     def state_changed(self, state):
-        self.plate_location_changed(self.chan_plate_location.getValue())
-        self._onStateChanged(state)
+        try:
+            self.plate_location_changed(self.chan_plate_location.get_value())
+            self._onStateChanged(state)
+        except AttributeError:
+            pass
 
     def _onStateChanged(self, state):
         """
@@ -512,9 +515,9 @@ class PlateManipulator(SampleChanger):
         """
         state = None
         if self.chan_state is not None:
-            state = self.chan_state.getValue()
+            state = self.chan_state.get_value()
             if (state == "Ready") or (self.current_phase is None):
-                self.current_phase = self.chan_current_phase.getValue()
+                self.current_phase = self.chan_current_phase.get_value()
             self._onStateChanged(state)
         return state
 
@@ -523,7 +526,7 @@ class PlateManipulator(SampleChanger):
         old_sample = self.getLoadedSample()
         # plate_location = None
         # if self.chan_plate_location is not None:
-        #    plate_location = self.chan_plate_location.getValue()
+        #    plate_location = self.chan_plate_location.get_value()
 
         if self.plate_location is not None:
             new_sample = self.get_sample(self.plate_location)
@@ -605,7 +608,7 @@ class PlateManipulator(SampleChanger):
 
     def get_plate_location(self):
         # if self.chan_plate_location is not None:
-        #    self.plate_location = self.chan_plate_location.getValue()
+        #    self.plate_location = self.chan_plate_location.get_value()
         return self.plate_location
 
     def sync_with_crims(self, barcode):
