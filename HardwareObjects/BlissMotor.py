@@ -41,6 +41,7 @@ class BlissMotor(AbstractMotor):
 
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
+        self.motor = None
 
     def init(self):
         """Initialise the motor"""
@@ -49,34 +50,23 @@ class BlissMotor(AbstractMotor):
         self.motor = cfg.get(self.motor_name)
         self.connect(self.motor, "position", self.update_position)
         self.connect(self.motor, "state", self.update_state)
-        self.connect(self.motor, "move_done", self.is_ready)
-
-    def connectNotify(self, signal):
-        """Check who neweds this"""
-        if signal == "positionChanged":
-            self.update_position(self.get_position())
-        elif signal == "stateChanged":
-            self.update_state(self.get_state())
-        elif signal == "limitsChanged":
-            self.update_limits()
+        self.connect(self.motor, "move_done", self.update_state)
 
     def get_state(self):
         """Get the motor state.
         Returns:
-            (enum 'MotorStates'): Motor state.
+            (list): list of 'MotorStates'.
         """
-        state = self.motor.state
+        states = []
+        _state = self.motor.state.current_states_names
 
         # convert from bliss states to MotorStates
         try:
-            state = MotorStates.__members__[state.upper()]
-        except AttributeError:
-            # check here for the double state (READY | LIMPOS...)
-            state = MotorStates.UNKNOWN
+            for stat in _state:
+                states.append(MotorStates.__members__[stat.upper()])
         except KeyError:
-            state = MotorStates.UNKNOWN
-
-        self.state = state
+            states.append(MotorStates.UNKNOWN)
+        self.state = states
         return self.state
 
     def get_position(self):
@@ -106,11 +96,8 @@ class BlissMotor(AbstractMotor):
         Returns:
             (float): velocity [unit/s]
         """
-        try:
-            self._velocity = self.motor.velocity
-            return self._velocity
-        except NotImplementedError:
-            raise
+        self._velocity = self.motor.velocity
+        return self._velocity
 
     def move(self, position, wait=True, timeout=None):
         """Move motor to absolute position. Wait the move to finish.
