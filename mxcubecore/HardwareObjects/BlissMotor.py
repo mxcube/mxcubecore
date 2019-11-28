@@ -41,16 +41,16 @@ class BlissMotor(AbstractMotor):
 
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
-        self.motor = None
+        self.motor_obj = None
 
     def init(self):
         """Initialise the motor"""
         AbstractMotor.init(self)
         cfg = static.get_config()
-        self.motor = cfg.get(self.motor_name)
-        self.connect(self.motor, "position", self.update_position)
-        self.connect(self.motor, "state", self.update_state)
-        self.connect(self.motor, "move_done", self.update_state)
+        self.motor_obj = cfg.get(self.motor_name)
+        self.connect(self.motor_obj, "position", self.update_position)
+        self.connect(self.motor_obj, "state", self.update_state)
+        self.connect(self.motor_obj, "move_done", self.update_state)
 
     def get_state(self):
         """Get the motor state.
@@ -58,7 +58,7 @@ class BlissMotor(AbstractMotor):
             (list): list of 'MotorStates'.
         """
         states = []
-        _state = self.motor.state.current_states_names
+        _state = self.motor_obj.state.current_states_names
 
         # convert from bliss states to MotorStates
         try:
@@ -74,7 +74,7 @@ class BlissMotor(AbstractMotor):
         Returns:
             float: Motor position.
         """
-        return self.motor.position
+        return self.motor_obj.position
 
     def get_limits(self):
         """Returns motor low and high limits.
@@ -85,7 +85,7 @@ class BlissMotor(AbstractMotor):
         # for some GUI components (like MotorSpinBox), so
         # instead we return very large value.
 
-        _low, _high = self.motor.limits
+        _low, _high = self.motor_obj.limits
         _low = _low if _low else -1e6
         _high = _high if _high else 1e6
         self._limits = (_low, _high)
@@ -96,7 +96,7 @@ class BlissMotor(AbstractMotor):
         Returns:
             (float): velocity [unit/s]
         """
-        self._velocity = self.motor.velocity
+        self._velocity = self.motor_obj.velocity
         return self._velocity
 
     def move(self, position, wait=True, timeout=None):
@@ -106,7 +106,7 @@ class BlissMotor(AbstractMotor):
             wait (bool): optional - wait until motor movement finished.
             timeout (float): optional - timeout [s].
         """
-        self.motor.move(position, wait=wait)
+        self.motor_obj.move(position, wait=wait)
         if timeout:
             self.wait_move(timeout)
 
@@ -117,11 +117,11 @@ class BlissMotor(AbstractMotor):
         """
         if timeout:
             with Timeout(timeout, RuntimeError("Execution timeout")):
-                self.motor.wait_move()
+                self.motor_obj.wait_move()
 
     def stop(self):
         """Stop the motor movement"""
-        self.motor.stop(wait=False)
+        self.motor_obj.stop(wait=False)
 
     def name(self):
         """Get the motor name. Should be removed when GUI ready"""
