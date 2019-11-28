@@ -68,7 +68,7 @@ class AbstractMotor(HardwareObject):
         Returns:
             (bool): True if ready, otherwise False.
         """
-        return self.state == MotorStates.READY
+        return MotorStates.READY in self.state
 
     @abc.abstractmethod
     def get_state(self):
@@ -82,7 +82,7 @@ class AbstractMotor(HardwareObject):
     def get_position(self):
         """Read the motor position.
         Returns:
-            float: Motor position.
+            (float): Motor position.
         """
         return self.position
 
