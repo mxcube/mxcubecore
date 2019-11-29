@@ -609,7 +609,7 @@ class FlexHCD(SampleChanger):
     def _readState(self):
         # should read state from robot
         if self.exporter_addr:
-            state = self.swstate_attr.getValue().upper()
+            state = self.swstate_attr.get_value().upper()
         else:
             state = "RUNNING" if self._execute_cmd("robot.isBusy") else "STANDBY"
             if state == "STANDBY" and not self.isSequencerReady():
