@@ -68,14 +68,11 @@ class BeamlineTestMockup(HardwareObject):
         self.results_list = None
         self.results_html_list = None
 
-        self.bl_hwobj = None
-
     def init(self):
         """init"""
 
         self.ready_event = gevent.event.Event()
 
-        self.bl_hwobj = self.getObjectByRole("beamline_setup")
         self.beamline_name = HWR.beamline.session.beamline_name
 
         self.test_directory = self.getProperty("results_directory")

@@ -38,44 +38,35 @@ __license__ = "LGPLv3+"
 
 class BlissMotor(AbstractMotor):
     """Bliss Motor implementation"""
+
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
+        self.motor_obj = None
 
     def init(self):
         """Initialise the motor"""
         AbstractMotor.init(self)
         cfg = static.get_config()
-        self.motor = cfg.get(self.motor_name)
-        self.connect(self.motor, "position", self.update_position)
-        self.connect(self.motor, "state", self.update_state)
-        self.connect(self.motor, "move_done", self.is_ready)
-
-    def connectNotify(self, signal):
-        """Check who neweds this"""
-        if signal == "positionChanged":
-            self.update_position(self.get_position())
-        elif signal == "stateChanged":
-            self.update_state(self.get_state())
-        elif signal == "limitsChanged":
-            self.update_limits()
+        self.motor_obj = cfg.get(self.motor_name)
+        self.connect(self.motor_obj, "position", self.update_position)
+        self.connect(self.motor_obj, "state", self.update_state)
+        self.connect(self.motor_obj, "move_done", self.update_state)
 
     def get_state(self):
         """Get the motor state.
         Returns:
-            (enum 'MotorStates'): Motor state.
+            (list): list of 'MotorStates'.
         """
-        state = self.motor.state
+        states = []
+        _state = self.motor_obj.state.current_states_names
 
         # convert from bliss states to MotorStates
         try:
-            state = MotorStates.__members__[state.upper()]
-        except AttributeError:
-            # check here for the double state (READY | LIMPOS...)
-            state = MotorStates.UNKNOWN
+            for stat in _state:
+                states.append(MotorStates.__members__[stat.upper()])
         except KeyError:
-            state = MotorStates.UNKNOWN
-
-        self.state = state
+            states.append(MotorStates.UNKNOWN)
+        self.state = states
         return self.state
 
     def get_position(self):
@@ -83,7 +74,7 @@ class BlissMotor(AbstractMotor):
         Returns:
             float: Motor position.
         """
-        return self.motor.position
+        return self.motor_obj.position
 
     def get_limits(self):
         """Returns motor low and high limits.
@@ -94,7 +85,7 @@ class BlissMotor(AbstractMotor):
         # for some GUI components (like MotorSpinBox), so
         # instead we return very large value.
 
-        _low, _high = self.motor.limits
+        _low, _high = self.motor_obj.limits
         _low = _low if _low else -1e6
         _high = _high if _high else 1e6
         self._limits = (_low, _high)
@@ -105,11 +96,8 @@ class BlissMotor(AbstractMotor):
         Returns:
             (float): velocity [unit/s]
         """
-        try:
-            self._velocity = self.motor.velocity
-            return self._velocity
-        except NotImplementedError:
-            raise
+        self._velocity = self.motor_obj.velocity
+        return self._velocity
 
     def move(self, position, wait=True, timeout=None):
         """Move motor to absolute position. Wait the move to finish.
@@ -118,7 +106,7 @@ class BlissMotor(AbstractMotor):
             wait (bool): optional - wait until motor movement finished.
             timeout (float): optional - timeout [s].
         """
-        self.motor.move(position, wait=wait)
+        self.motor_obj.move(position, wait=wait)
         if timeout:
             self.wait_move(timeout)
 
@@ -129,11 +117,11 @@ class BlissMotor(AbstractMotor):
         """
         if timeout:
             with Timeout(timeout, RuntimeError("Execution timeout")):
-                self.motor.wait_move()
+                self.motor_obj.wait_move()
 
     def stop(self):
         """Stop the motor movement"""
-        self.motor.stop(wait=False)
+        self.motor_obj.stop(wait=False)
 
     def name(self):
         """Get the motor name. Should be removed when GUI ready"""

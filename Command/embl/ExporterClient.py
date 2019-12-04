@@ -46,7 +46,7 @@ class ExporterClient(StandardClient):
     """ExporterClient class"""
 
     def on_message_received(self, msg):
-        """Act if the message is an event, pass to SatndardClient otherwise.
+        """Act if the message is an event, pass to StandardClient otherwise.
         Args:
             msg(str): The message.
         """

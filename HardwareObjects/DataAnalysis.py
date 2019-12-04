@@ -41,7 +41,16 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         self.edna_default_file = self.getProperty("edna_default_file")
 
         if not os.path.isfile(self.edna_default_file):
-            raise ValueError("File %s not found" % self.edna_default_file)
+            hwr = HWR.getHardwareRepository()
+            _default_file = os.path.join(hwr.serverAddress[0], self.edna_default_file)
+
+            if os.path.isfile(_default_file):
+                logging.getLogger("HWR").warning("DataAnalysis: File %s not found" % self.edna_default_file)
+                logging.getLogger("HWR").warning("DataAnalysis: Using %s instead" % _default_file)
+                self.edna_default_file = _default_file
+            else:
+                raise ValueError("File %s not found" % self.edna_default_file)
+
         with open(self.edna_default_file, "r") as f:
             self.edna_default_input = "".join(f.readlines())
 
@@ -54,9 +63,6 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
             pass
 
         return html_report
-
-    def get_beam_size(self):
-        return HWR.beamline.beam.get_beam_size()
 
     def modify_strategy_option(self, diff_plan, strategy_option):
         """Method for modifying the diffraction plan 'strategyOption' entry"""
@@ -166,7 +172,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
             pass
 
         try:
-            beamsize = self.get_beam_size()
+            beamsize = HWR.beamline.beam.get_beam_size()
             if None not in beamsize:
                 beam.setSize(
                     XSDataSize(
