@@ -82,7 +82,7 @@ class AbstractMotor(HardwareObject):
     def get_position(self):
         """Read the motor position.
         Returns:
-            float: Motor position.
+            (float): Motor position.
         """
         return self.position
 

@@ -1,6 +1,6 @@
 gevent==1.3.7
 suds-py3
-PyYAML
+ruamel.yaml
 enum34
 jsonpickle
 PyDispatcher

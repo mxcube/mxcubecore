@@ -897,7 +897,7 @@ class ISPyBClient(HardwareObject):
             logging.exception("Could not store data collection")
             return (0, 0, 0)
 
-    def _store_data_collection(self, mx_collection, beamline_setup=None):
+    def _store_data_collection(self, mx_collection, bl_config=None):
         """
         Stores the data collection mx_collection, and the beamline setup
         if provided.
@@ -905,8 +905,8 @@ class ISPyBClient(HardwareObject):
         :param mx_collection: The data collection parameters.
         :type mx_collection: dict
 
-        :param beamline_setup: The beamline setup.
-        :type beamline_setup: dict
+        :param bl_config: The beamline setup.
+        :type bl_config: dict
 
         :returns: None
 
@@ -925,9 +925,9 @@ class ISPyBClient(HardwareObject):
             )
 
             detector_id = 0
-            if beamline_setup:
+            if bl_config:
                 lims_beamline_setup = ISPyBValueFactory.from_bl_config(
-                    self._collection, beamline_setup
+                    self._collection, bl_config
                 )
 
                 lims_beamline_setup.synchrotronMode = data_collection.synchrotronMode
@@ -937,7 +937,7 @@ class ISPyBClient(HardwareObject):
                 )
 
                 detector_params = ISPyBValueFactory().detector_from_blc(
-                    beamline_setup, mx_collection
+                    bl_config, mx_collection
                 )
 
                 detector = self.find_detector(*detector_params)
@@ -974,16 +974,16 @@ class ISPyBClient(HardwareObject):
         return url
 
     @trace
-    def store_beamline_setup(self, session_id, beamline_setup):
+    def store_beamline_setup(self, session_id, bl_config):
         """
-        Stores the beamline setup dict <beamline_setup>.
+        Stores the beamline setup dict <bl_config>.
 
         :param session_id: The session id that the beamline_setup
                            should be associated with.
         :type session_id: int
 
-        :param beamline_setup: The dictonary with beamline settings.
-        :type beamline_setup: dict
+        :param bl_config: The dictonary with beamline settings.
+        :type bl_config: dict
 
         :returns beamline_setup_id: The database id of the beamline setup.
         :rtype: str
@@ -1003,7 +1003,7 @@ class ISPyBClient(HardwareObject):
                 if session is not None:
                     try:
                         blSetupId = self._collection.service.storeOrUpdateBeamLineSetup(
-                            beamline_setup
+                            bl_config
                         )
 
                         session["beamLineSetupId"] = blSetupId
@@ -1874,13 +1874,6 @@ class ISPyBClient(HardwareObject):
 
     def _store_workflow(self, info_dict):
         """
-        :param mx_collection: The data collection parameters.
-        :type mx_collection: dict
-
-        :param beamline_setup: The beamline setup.
-        :type beamline_setup: dict
-
-        :returns: None
         """
         if self._disabled:
             return None, None, None

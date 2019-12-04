@@ -884,13 +884,6 @@ class ALBACollect(AbstractCollect):
             pass
         return {}
 
-    def get_beam_size(self):
-        """
-        Descript. :
-        """
-        if HWR.beamline.beam is not None:
-            return HWR.beamline.beam.get_beam_size()
-
     def get_slit_gaps(self):
         """
         Descript. :

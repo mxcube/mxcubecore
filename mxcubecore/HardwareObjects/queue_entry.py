@@ -1021,9 +1021,6 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                     collections = queue_model_objects.dc_from_edna_output(
                         self.edna_result,
                         char.reference_image_collection,
-                        None,  # new_dcg_model
-                        None,  # sample_data_model
-                        self.beamline_setup,
                     )
                     char.diffraction_plan.append(collections)
                     HWR.beamline.queue_model.emit(
@@ -1075,9 +1072,6 @@ class CharacterisationQueueEntry(BaseQueueEntry):
             edna_collections = queue_model_objects.dc_from_edna_output(
                 edna_result,
                 reference_image_collection,
-                new_dcg_model,
-                sample_data_model,
-                self.beamline_setup,
             )
         for edna_dc in edna_collections:
             path_template = edna_dc.acquisitions[0].path_template
@@ -1436,19 +1430,20 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
         self.rpc_server_hwobj = None
-        self.workflow_hwobj = None
         self.workflow_running = False
         self.workflow_started = False
 
     def execute(self):
         BaseQueueEntry.execute(self)
 
+        workflow_hwobj = HWR.beamline.workflow
+
         # Start execution of a new workflow
-        if str(self.workflow_hwobj.state.value) != "ON":
+        if str(workflow_hwobj.state.value) != "ON":
             # We are trying to start a new workflow and the Tango server is not idle,
             # therefore first abort any running workflow:
-            self.workflow_hwobj.abort()
-            if self.workflow_hwobj.command_failure():
+            workflow_hwobj.abort()
+            if workflow_hwobj.command_failure():
                 msg = (
                     "Workflow abort command failed! Please check workflow Tango server."
                 )
@@ -1459,8 +1454,8 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
                 time.sleep(3)
                 # If the Tango server has been restarted the state.value is None.
                 # If not wait till the state.value is "ON":
-                if self.workflow_hwobj.state.value is not None:
-                    while str(self.workflow_hwobj.state.value) != "ON":
+                if workflow_hwobj.state.value is not None:
+                    while str(workflow_hwobj.state.value) != "ON":
                         time.sleep(0.5)
 
         msg = "Starting workflow (%s), please wait." % (self.get_data_model()._type)
@@ -1470,8 +1465,8 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         # group_node_id = self._parent_container._data_model._node_id
         # workflow_params.append("group_node_id")
         # workflow_params.append("%d" % group_node_id)
-        self.workflow_hwobj.start(workflow_params)
-        if self.workflow_hwobj.command_failure():
+        workflow_hwobj.start(workflow_params)
+        if workflow_hwobj.command_failure():
             msg = "Workflow start command failed! Please check workflow Tango server."
             logging.getLogger("user_level_log").error(msg)
             self.workflow_running = False
@@ -1498,14 +1493,15 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
         qc = self.get_queue_controller()
-        self.workflow_hwobj = self.beamline_setup.workflow_hwobj
+        workflow_hwobj = HWR.beamline.workflow
 
-        qc.connect(self.workflow_hwobj, "stateChanged", self.workflow_state_handler)
+        qc.connect(workflow_hwobj, "stateChanged", self.workflow_state_handler)
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
         qc = self.get_queue_controller()
-        qc.disconnect(self.workflow_hwobj, "stateChanged", self.workflow_state_handler)
+        workflow_hwobj = HWR.beamline.workflow
+        qc.disconnect(workflow_hwobj, "stateChanged", self.workflow_state_handler)
         # reset state
         self.workflow_started = False
         self.workflow_running = False
@@ -1515,7 +1511,8 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
 
     def stop(self):
         BaseQueueEntry.stop(self)
-        self.workflow_hwobj.abort()
+        workflow_hwobj = HWR.beamline.workflow
+        workflow_hwobj.abort()
         self.get_view().setText(1, "Stopped")
         raise QueueAbortedException("Queue stopped", self)
 
