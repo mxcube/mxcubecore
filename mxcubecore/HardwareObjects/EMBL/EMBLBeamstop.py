@@ -47,6 +47,7 @@ class EMBLBeamstop(Device):
             self.chan_distance = self.getChannelObject("BeamstopDistance")
             if self.chan_distance is not None:
                 self.chan_distance.connectSignal("update", self.distance_changed)
+            self.distance_changed(self.chan_distance.getValue())
         else:
             self.distance = float(self.default_distance)
 
@@ -83,14 +84,7 @@ class EMBLBeamstop(Device):
 
     def get_distance(self):
         """Returns beamstop distance in mm"""
-        distance = None
-        if self.chan_distance is not None:
-            distance = self.chan_distance.getValue()
-
-        if distance is None:
-            return self.default_distance
-        else:
-            return distance
+        return self.distance
 
     def get_direction(self):
         """Returns beamstop direction"""
@@ -110,6 +104,4 @@ class EMBLBeamstop(Device):
 
     def update_values(self):
         """Reemits available signals"""
-        if self.chan_distance is not None:
-            self.distance = self.chan_distance.getValue()
         self.emit("beamstopDistanceChanged", self.distance)

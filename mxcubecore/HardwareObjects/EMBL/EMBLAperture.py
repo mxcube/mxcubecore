@@ -47,8 +47,10 @@ class EMBLAperture(AbstractAperture):
         self.chan_state = None
 
     def init(self):
-        """Initialization of channels and commands"""
-
+        """
+        Connects to necessary channels
+        Returns:
+        """
         self._position_list = DEFAULT_POSITION_LIST
 
         self.chan_diameters = self.getChannelObject("ApertureDiameters")
@@ -87,29 +89,40 @@ class EMBLAperture(AbstractAperture):
         )
 
     def get_diameter_size(self):
-        """Returns: diameter size in mm"""
+        """
+        Returns: diameter size in mm
+        """
         return self._diameter_size_list[self._current_diameter_index] / 1000.0
 
     def current_position_name_changed(self, position):
-        """Position change callback"""
+        """
+        Position change callback
+
+        Args:
+            position: aperture position (str)
+        Returns:
+        """
         if position != "UNKNOWN":
             self.set_position_name(position)
 
     def set_diameter_index(self, diameter_index):
-        """Sets new diameter index
+        """
+        Sets aperture diameter
 
-        :param diameter_index: new diameter index
-        :type diameter_index: int
+        Args:
+            diameter_index: diameter index (int)
+        Returns:
         """
         self.chan_diameter_index.setValue(diameter_index)
 
     def set_diameter(self, diameter_size, timeout=None):
-        """Sets new aperture size
+        """
+        Sets new aperture size
 
-        :param diameter_size: new size
-        :type diameter_size: int
-        :param timeout: timeout in seconds
-        :type timeout: float
+        Args:
+            diameter_size: diameter size in microns (int)
+            timeout: wait timeout is seconds
+        Returns:
         """
         diameter_index = self._diameter_size_list.index(diameter_size)
         self.chan_diameter_index.setValue(diameter_index)
@@ -118,27 +131,42 @@ class EMBLAperture(AbstractAperture):
         #         gevent.sleep(0.1)
 
     def set_position_index(self, position_index):
-        """Sets new aperture position
+        """
+        Sets new aperture position
 
-        :param position_index: new position
-        :type position_index: int
+        Args:
+            position_index: position index (int)
+        Returns:
         """
         self.chan_position.setValue(self._position_list[position_index])
 
     def set_in(self):
-        """Sets aperture to the BEAM position"""
+        """
+        Sets aperture to the BEAM position
+
+        Returns:
+        """
         self.chan_position.setValue("BEAM")
 
     def set_out(self):
-        """Sets aperture to the OUT position"""
+        """Sets aperture to the OUT position
+
+        Returns:
+        """
         self.chan_position.setValue("OFF")
 
     def wait_ready(self, timeout=20):
-        """Waits till aperture is ready"""
+        """Waits till aperture is ready
+
+        Returns:
+        """
         with gevent.Timeout(timeout, Exception("Timeout waiting for status ready")):
             while self.chan_state.getValue() != "Ready":
                 gevent.sleep(0.1)
 
     def is_out(self):
-        """Returns True if aperture is on the beam"""
+        """Returns True if aperture is on the beam
+
+        Returns: True if is in, otherwise returns False
+        """
         return self._current_position_name != "BEAM"
