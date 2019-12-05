@@ -253,8 +253,7 @@ class EMBLCollect(AbstractCollect):
                 if self._actual_collect_status == "error":
                     self.collection_failed()
                 elif self._actual_collect_status == "collecting":
-                    if self.current_dc_parameters["experiment_type"] != "Mesh":
-                        self.store_image_in_lims_by_frame_num(1)
+                    self.store_image_in_lims_by_frame_num(1)
                 if self._previous_collect_status is None:
                     if self._actual_collect_status == "busy":
                         self.print_log("HWR", "info", "Collection: Preparing ...")
@@ -329,12 +328,12 @@ class EMBLCollect(AbstractCollect):
             self.current_dc_parameters["processing_after"],
         )
 
-    def stopCollect(self, owner="MXCuBE"):
+    def stop_collect(self):
         """Stops collect"""
 
-        self.aborted_by_user = True
+        AbstractCollect.stop_collect(self)
+
         self.cmd_collect_abort()
-        self.collection_failed("Aborted by user")
         HWR.beamline.detector.close_cover()
 
     def set_helical_pos(self, arg):
@@ -363,12 +362,15 @@ class EMBLCollect(AbstractCollect):
         self.cmd_collect_num_images(num_total_frames / num_lines)
         # GB collection server interface assumes the order: fast, slow for mesh
         # range. Need reversal at P14:
-        self.cmd_collect_raster_range(mesh_range[::-1])
+        if HWR.beamline.session.beamline_name == "P13":
+            self.cmd_collect_raster_range(mesh_range)
+        else:
+            self.cmd_collect_raster_range(mesh_range[::-1])
 
     @task
     def _take_crystal_snapshot(self, snapshot_filename):
         """Saves crystal snapshot"""
-        HWR.beamline.microscope.save_scene_snapshot(snapshot_filename)
+        HWR.beamline.microscope..save_scene_snapshot(snapshot_filename)
 
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec=1):
@@ -382,11 +384,15 @@ class EMBLCollect(AbstractCollect):
 
     def set_energy(self, value):
         """Sets energy"""
+        """
         if abs(value - self.get_energy()) > 0.005 and not self.break_bragg_released:
             self.break_bragg_released = True
             if hasattr(HWR.beamline.energy, "release_break_bragg"):
                 HWR.beamline.energy.release_break_bragg()
-        self.cmd_collect_energy(value * 1000.0)
+            self.cmd_collect_energy(value * 1000.0)
+        else:
+        """
+        self.cmd_collect_energy(self.get_energy() * 1000)
 
     def get_energy(self):
         """Returns energy value in keV"""
@@ -394,6 +400,8 @@ class EMBLCollect(AbstractCollect):
 
     def set_resolution(self, value):
         """Sets resolution in A"""
+        if not value:
+            value = self.get_resolution()
         self.cmd_collect_resolution(value)
 
     def set_transmission(self, value):
@@ -412,6 +420,9 @@ class EMBLCollect(AbstractCollect):
     def move_motors(self, motor_position_dict):
         """Move to centred position"""
         HWR.beamline.diffractometer.move_motors(motor_position_dict)
+
+    def move_detector(self, value):
+        HWR.beamline.detector.set_distance(value, timeout=30)
 
     def prepare_input_files(self):
         """Prepares xds directory"""
