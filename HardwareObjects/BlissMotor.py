@@ -99,7 +99,7 @@ class BlissMotor(AbstractMotor):
         self._velocity = self.motor_obj.velocity
         return self._velocity
 
-    def move(self, position, wait=True, timeout=None):
+    def _move(self, position, wait=True, timeout=None):
         """Move motor to absolute position. Wait the move to finish.
         Args:
             position (float): target position

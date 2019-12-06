@@ -196,7 +196,7 @@ class ExporterMotor(AbstractMotor):
         except ValueError:
             return -1e4, 1e4
 
-    def move(self, position, wait=True, timeout=None):
+    def _move(self, position, wait=True, timeout=None):
         """Move motor to absolute position. Wait the move to finish.
         Args:
             position (float): target position
