@@ -948,7 +948,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         d = BaseQueueEntry.__getstate__(self)
 
         d["data_analysis_hwobj"] = (
-            HWR.beamline.data_analysis.name() if HWR.beamline.data_analysis else None
+            HWR.beamline.characterisation.name() if HWR.beamline.characterisation else None
         )
         d["diffractometer_hwobj"] = (
             HWR.beamline.diffractometer.name() if HWR.beamline.diffractometer else None
@@ -967,7 +967,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
     def execute(self):
         BaseQueueEntry.execute(self)
 
-        if HWR.beamline.data_analysis is not None:
+        if HWR.beamline.characterisation is not None:
             if self.get_data_model().wait_result:
                 logging.getLogger("user_level_log").warning(
                     "Characterisation: Please wait ..."
@@ -987,17 +987,17 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         reference_image_collection = char.reference_image_collection
         characterisation_parameters = char.characterisation_parameters
 
-        if HWR.beamline.data_analysis is not None:
-            edna_input = HWR.beamline.data_analysis.input_from_params(
+        if HWR.beamline.characterisation is not None:
+            edna_input = HWR.beamline.characterisation.input_from_params(
                 reference_image_collection, characterisation_parameters
             )
 
-            self.edna_result = HWR.beamline.data_analysis.characterise(edna_input)
+            self.edna_result = HWR.beamline.characterisation.characterise(edna_input)
 
         if self.edna_result:
             log.info("Characterisation completed.")
 
-            char.html_report = HWR.beamline.data_analysis.get_html_report(
+            char.html_report = HWR.beamline.characterisation.get_html_report(
                 self.edna_result
             )
 
@@ -1018,7 +1018,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                     # default action
                     self.handle_diffraction_plan(self.edna_result, None)
                 else:
-                    collections = HWR.beamline.data_analysis.dc_from_output(
+                    collections = HWR.beamline.characterisation.dc_from_output(
                         self.edna_result,
                         char.reference_image_collection,
                     )
@@ -1038,7 +1038,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         else:
             self.get_view().setText(1, "Charact. Failed")
 
-            if HWR.beamline.data_analysis.is_running():
+            if HWR.beamline.characterisation.is_running():
                 log.error("EDNA-Characterisation, software is not responding.")
                 log.error(
                     "Characterisation completed with error: "
@@ -1069,7 +1069,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
 
         HWR.beamline.queue_model.add_child(sample_data_model, new_dcg_model)
         if edna_collections is None:
-            edna_collections = HWR.beamline.data_analysis.dc_from_output(
+            edna_collections = HWR.beamline.characterisation.dc_from_output(
                 edna_result,
                 reference_image_collection,
             )
@@ -1099,7 +1099,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
 
     def stop(self):
         BaseQueueEntry.stop(self)
-        HWR.beamline.data_analysis.stop()
+        HWR.beamline.characterisation.stop()
 
 
 class EnergyScanQueueEntry(BaseQueueEntry):
