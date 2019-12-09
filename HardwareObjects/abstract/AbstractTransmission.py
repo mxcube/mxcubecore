@@ -40,10 +40,9 @@ class AbstractTransmission(AbstractMotor):
         self._limits = [0, 100]
         self._state = None
 
-    @abc.abstractmethod
-    def set_value(self, value, wait=True, timeout=None):
-        """Set transmission Move motor to absolute position.
-           Wait for the move to finish by default.
+    def _set_value(self, value, wait=True, timeout=None):
+        """Set transmission to absolute level in percent.
+           Wait for the move  of all acutators to finish by default.
         Args:
             value (float): target position
             wait (bool): optional - wait until all movements finished.
@@ -56,6 +55,6 @@ class AbstractTransmission(AbstractMotor):
     def get_value(self):
         """Get the current transmission in percents
         Returns:
-            float: current transmission.
+            float: current transmission level.
         """
         return None
