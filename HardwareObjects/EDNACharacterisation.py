@@ -31,7 +31,7 @@ from XSDataCommon import XSDataString
 
 class EDNACharacterisation(AbstractCharacterisation):
     def __init__(self, name):
-        super(EDNACharacterisation), self.__init__(name)
+        super(EDNACharacterisation, self).__init__(name)
 
         self.collect_obj = None
         self.result = None
