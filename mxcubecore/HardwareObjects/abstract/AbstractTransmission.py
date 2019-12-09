@@ -27,6 +27,9 @@ __version__ = "2.3"
 
 
 class AbstractTransmission(Device, object):
+    """
+    Handles transmission control by filters, slits, apertures or other means
+    """
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, name):
