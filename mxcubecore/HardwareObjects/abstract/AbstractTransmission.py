@@ -26,7 +26,7 @@ __credits__ = ["MXCuBE collaboration"]
 __version__ = "2.3"
 
 
-class AbstractAttenuators(Device, object):
+class AbstractTransmission(Device, object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, name):
