@@ -21,7 +21,7 @@ class ALBADataAnalysis(EDNACharacterisation):
     def init(self):
         EDNACharacterisation.init(self)
 
-    def prepare_edna_input(self, edna_input):
+    def prepare_input(self, edna_input):
 
         # used for strategy calculation (characterization) using data analysis cluster
         # ALBA specific
