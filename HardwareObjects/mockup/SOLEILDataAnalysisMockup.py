@@ -3,8 +3,8 @@ import gevent.event
 
 from HardwareRepository.HardwareObjects import edna_test_data
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects.abstract.AbstractDataAnalysis import (
-    AbstractDataAnalysis
+from HardwareRepository.HardwareObjects.abstract.AbstractCharacterisation import (
+    AbstractCharacterisation
 )
 
 from HardwareRepository.HardwareObjects.XSDataMXCuBEv1_3 import XSDataResultMXCuBE
@@ -12,7 +12,7 @@ from HardwareRepository.HardwareObjects.XSDataMXCuBEv1_3 import XSDataResultMXCu
 
 
 class SOLEILDataAnalysisMockup(
-    AbstractDataAnalysis, HardwareObject
+    AbstractCharacterisation, HardwareObject
 ):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
@@ -30,7 +30,7 @@ class SOLEILDataAnalysisMockup(
     def get_beam_size(self):
         return (10, 5)
 
-    def from_params(self, data_collection, char_params):
+    def input_from_params(self, data_collection, char_params):
         return char_params
 
     def characterise(self, edna_input):

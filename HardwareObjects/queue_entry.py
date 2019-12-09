@@ -988,7 +988,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         characterisation_parameters = char.characterisation_parameters
 
         if HWR.beamline.data_analysis is not None:
-            edna_input = HWR.beamline.data_analysis.from_params(
+            edna_input = HWR.beamline.data_analysis.input_from_params(
                 reference_image_collection, characterisation_parameters
             )
 
@@ -1018,7 +1018,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                     # default action
                     self.handle_diffraction_plan(self.edna_result, None)
                 else:
-                    collections = queue_model_objects.dc_from_edna_output(
+                    collections = HWR.beamline.data_analysis.dc_from_output(
                         self.edna_result,
                         char.reference_image_collection,
                     )
@@ -1069,7 +1069,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
 
         HWR.beamline.queue_model.add_child(sample_data_model, new_dcg_model)
         if edna_collections is None:
-            edna_collections = queue_model_objects.dc_from_edna_output(
+            edna_collections = HWR.beamline.data_analysis.dc_from_output(
                 edna_result,
                 reference_image_collection,
             )
