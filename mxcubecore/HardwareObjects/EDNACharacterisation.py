@@ -241,7 +241,7 @@ class EDNACharacterisation(AbstractCharacterisation):
         Returns:
             (str) The Characterisation result
         """
-        self.prepare_edna_input(edna_input)
+        self.prepare_input(edna_input)
         path = edna_input.process_directory
 
         # if there is no data collection id, the id will be a random number

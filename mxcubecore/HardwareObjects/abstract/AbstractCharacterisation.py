@@ -130,7 +130,7 @@ class AbstractCharacterisation(HardwareObject):
         """
         pass
 
-    def prepare_edna_input(self, edna_input):
+    def prepare_input(self, _input):
         """
         Method called by characterise before characterisation starts, can be used
         to manipulate edna_input object before characterisation starts.
@@ -138,7 +138,7 @@ class AbstractCharacterisation(HardwareObject):
         Example: to set a site specific output directory
 
         Args:
-           edna_input (EDNAInput)
+           _input (object) Characterisation input object
         """
         pass
 
