@@ -1,4 +1,4 @@
-<object class="DataAnalysis">
+<object class="EDNACharacterisation">
   <edna_default_file>/users/blissadm/local/HardwareRepository/edna_defaults.xml</edna_default_file>
   <edna_command>/users/blissadm/local/bin/edna_script.sh</edna_command>
   <command type="spec" version="lid232:eh1" name="get_beam_size_x">getMxBeamSizeX</command>

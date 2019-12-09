@@ -19,8 +19,8 @@
 
 from HardwareRepository.HardwareObjects import edna_test_data
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects.abstract.AbstractDataAnalysis import (
-    AbstractDataAnalysis
+from HardwareRepository.HardwareObjects.abstract.AbstractCharacterisation import (
+    AbstractCharacterisation,
 )
 
 from HardwareRepository.HardwareObjects.XSDataMXCuBEv1_3 import XSDataResultMXCuBE
@@ -30,10 +30,10 @@ __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3"
 
 
-class DataAnalysisMockup(AbstractDataAnalysis, HardwareObject):
+class DataAnalysisMockup(AbstractCharacterisation, HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
-        AbstractDataAnalysis.__init__(self)
+        AbstractCharacterisation.__init__(self)
 
     def get_html_report(self, edna_result):
         html_report = None
@@ -45,7 +45,7 @@ class DataAnalysisMockup(AbstractDataAnalysis, HardwareObject):
 
         return html_report
 
-    def from_params(self, data_collection, char_params):
+    def input_from_params(self, data_collection, char_params):
         return
 
     def characterise(self, edna_input):
