@@ -1,3 +1,4 @@
+# encoding: utf-8
 #
 #  Project: MXCuBE
 #  https://github.com/mxcube.
@@ -68,8 +69,8 @@ class ExporterMotor(AbstractMotor):
         )
 
         if self.__position:
-            self.__position.connectSignal("update", self.update_position)
-            self.get_position()
+            self.__position.connectSignal("update", self.update_value)
+            self.get_value()
 
         self.__motor_state = self.add_channel(
             {
@@ -90,10 +91,10 @@ class ExporterMotor(AbstractMotor):
         """
         try:
             _state = self.__motor_state.get_value().upper()
-            self.state = MotorStates.__members__[_state]
+            self._state = MotorStates.__members__[_state]
         except KeyError:
-            self.state = MotorStates.UNKNOWN
-        return self.state
+            self._state = MotorStates.UNKNOWN
+        return self._state
 
     def _get_hwstate(self):
         """Get the hardware state, reported by the MD2 application.
@@ -150,13 +151,13 @@ class ExporterMotor(AbstractMotor):
             while self.get_state() != MotorStates.READY:
                 sleep(0.01)
 
-    def get_position(self):
+    def get_value(self):
         """Get the motor position.
         Returns:
             (float): Motor position.
         """
-        self.position = self.__position.get_value()
-        return self.position
+        self._nominal_value = self.__position.get_value()
+        return self._nominal_value
 
     def get_limits(self):
         """Returns motor low and high limits.
@@ -196,14 +197,14 @@ class ExporterMotor(AbstractMotor):
         except ValueError:
             return -1e4, 1e4
 
-    def _move(self, position, wait=True, timeout=None):
-        """Move motor to absolute position. Wait the move to finish.
+    def _move(self, value, wait=True, timeout=None):
+        """Move motor to absolute value. Wait the move to finish.
         Args:
-            position (float): target position
+            value (float): target value
             wait (bool): optional - wait until motor movement finished.
             timeout (float): optional - timeout [s].
         """
-        self.__position.set_value(position)
+        self.__position.set_value(value)
         self.emit("stateChanged", (MotorStates.MOVING))
 
         if wait:
@@ -231,13 +232,6 @@ class ExporterMotor(AbstractMotor):
             (float): the maximim speed [unit/s].
         """
         return self._exporter.execute("getMotorMaxSpeed", self.motor_name)
-
-    def update_values(self):
-        """Emit signals to update the state, position and limits values."""
-        self.emit("stateChanged", (self.get_state(),))
-        self.emit("positionChanged", (self.get_position(),))
-        if all(self._limits):
-            self.emit("limitsChanged", (self.get_limits(),))
 
     def name(self):
         """Get the motor name. Should be removed when GUI ready"""

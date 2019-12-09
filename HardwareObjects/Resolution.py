@@ -32,13 +32,15 @@ __license__ = "LGPLv3+"
 class Resolution(AbstractMotor):
     """Resolution as motor"""
 
+    unit = "Å"
+
     def __init__(self, name):
         AbstractMotor.__init__(self, name=name)
 
         self.det_width = None
         self.det_height = None
         self.det_radius = None
-        self.position = None
+        self._nominal_value = None
         self._hwr_detector = None
         self._hwr_energy = None
         self.det_beam = {}
@@ -61,9 +63,7 @@ class Resolution(AbstractMotor):
             raise AttributeError("Cannot get detector properties")
 
         self.connect(self._hwr_detector.distance, "stateChanged", self.update_state)
-        self.connect(
-            self._hwr_detector.distance, "positionChanged", self.update_position
-        )
+        self.connect(self._hwr_detector.distance, "valueChanged", self.update_value)
         self.connect(self._hwr_energy, "valueChanged", self.update_energy)
         self.connect(self._hwr_energy, "stateChanged", self.update_state)
 
@@ -84,16 +84,16 @@ class Resolution(AbstractMotor):
         """
         return self._hwr_detector.distance.get_state()
 
-    def get_position(self):
-        """Read the position.
+    def get_value(self):
+        """Read the value.
         Returns:
-            (float): position.
+            (float): value.
         """
-        if self.position is None:
-            dtox_pos = self._hwr_detector.distance.get_position()
+        if self._nominal_value is None:
+            dtox_pos = self._hwr_detector.distance.get_value()
             self.get_detector_radius(dtox_pos)
-            self.position = self.distance_to_resolution(dtox_pos)
-        return self.position
+            self._nominal_value = self.distance_to_resolution(dtox_pos)
+        return self._nominal_value
 
     def get_limits(self):
         """Return resolution low and high limits.
@@ -108,15 +108,15 @@ class Resolution(AbstractMotor):
         )
         return self._limits
 
-    def move(self, position, wait=False, timeout=None):
-        """Move resolution to absolute position. Wait the move to finish.
+    def move(self, value, wait=False, timeout=None):
+        """Move resolution to absolute value. Wait the move to finish.
         Args:
-            position (float): target position [Å]
+            value (float): target value [Å]
             wait (bool): optional - wait until motor movement finished.
             timeout (float): optional - timeout [s].
         """
-        distance = self.resolution_to_distance(position)
-        msg = "Move resolution to {} ({} mm)".format(position, distance)
+        distance = self.resolution_to_distance(value)
+        msg = "Move resolution to {} ({} mm)".format(value, distance)
         logging.getLogger().info(msg)
 
         self._hwr_detector.distance.move(distance, wait=wait, timeout=timeout)
@@ -165,9 +165,9 @@ class Resolution(AbstractMotor):
         Returns:
             (float): Resolution [Å].
         """
-        distance = distance or self._hwr_detector.distance.get_position()
+        distance = distance or self._hwr_detector.distance.get_value()
 
-        return self._calculate_resolution(self.det_radius, distance)
+        return self._calculate_resolution(self.get_detector_radius(distance), distance)
 
     def resolution_to_distance(self, resolution=None):
         """Convert resolution to distance.
@@ -178,7 +178,7 @@ class Resolution(AbstractMotor):
         """
         _wavelength = self._get_wavelength()
 
-        resolution = resolution or self.position
+        resolution = resolution or self._nominal_value
 
         try:
             ttheta = 2 * arcsin(_wavelength / (2 * resolution))
@@ -203,7 +203,7 @@ class Resolution(AbstractMotor):
         Returns:
             (tuple): Tuple of floats - beam centre X,Y coordinates
         """
-        distance = distance or self._hwr_detector.distance.get_position()
+        distance = distance or self._hwr_detector.distance.get_value()
         try:
             return (
                 float(distance * self.det_beam["ax"] + self.det_beam["bx"]),
@@ -212,13 +212,14 @@ class Resolution(AbstractMotor):
         except KeyError:
             return None
 
-    def get_detector_radius(self, distance):
+    def get_detector_radius(self, distance=None):
         """Get the detector radius for a given distance.
         Args:
             distance (float): Distance [mm]
         Returns:
             (float): Detector radius [mm]
         """
+        distance = distance or self.hwr_detector.distance.get_value()
         beam_x, beam_y = self.get_beam_centre(distance)
         self.det_radius = min(
             self.det_width - beam_x, self.det_height - beam_y, beam_x, beam_y
@@ -230,7 +231,7 @@ class Resolution(AbstractMotor):
         Returns:
             (float): Resolution [Å]
         """
-        dtox_pos = self._hwr_detector.distance.get_position()
+        dtox_pos = self._hwr_detector.distance.get_value()
         beam_x, beam_y = self.get_beam_centre(dtox_pos)
 
         distance_at_corners = [
@@ -248,27 +249,26 @@ class Resolution(AbstractMotor):
         """
         if not state:
             state = self.get_state()
-        self.state = state
-        self.emit("stateChanged", (self.state,))
+        self._state = state
+        self.emit("stateChanged", (self._state,))
 
-    def update_position(self, position=None):
+    def update_value(self, value=None):
         """Update the beam centre and the resolutoion.
         Args:
-            position (float): position [Å]
+            value (float): value [Å]
         """
-        position = position or self.get_position()
-        self.position = position
-        self.get_detector_radius(self.position)
-        self.update_resolution(self.distance_to_resolution(self.position))
+        value = value or self.get_value()
+        self._nominal_value = value
+        self.get_detector_radius(self._nominal_value)
+        self.update_resolution(self.distance_to_resolution(self._nominal_value))
 
     def update_resolution(self, resolution):
-        """Emit positionChanged and valueChanged
+        """Emit valueChanged and valueChanged
         Args:
             resolution (float): the resolution value [Å]
         """
-        self.position = resolution
-        self.emit("positionChanged", (self.position,))
-        self.emit("valueChanged", (self.position,))
+        self._nominal_value = resolution
+        self.emit("valueChanged", (self._nominal_value,))
 
     def update_energy(self, energy):
         """Calculate the resolution when changing the energy.
@@ -277,12 +277,12 @@ class Resolution(AbstractMotor):
         """
         _wavelength = (h * c / e) / energy * 10e6
 
-        distance = self._hwr_detector.distance.get_position()
+        distance = self._hwr_detector.distance.get_value()
         radius = self.get_detector_radius(distance)
         try:
             ttheta = arctan(radius / distance)
             if ttheta:
-                self.position = _wavelength / (2 * sin(ttheta / 2))
-                self.emit("valueChanged", (self.position,))
+                self._nominal_value = _wavelength / (2 * sin(ttheta / 2))
+                self.emit("valueChanged", (self._nominal_value,))
         except (TypeError, ZeroDivisionError):
             logging.getLogger().exception("Error while calculating resolution")
