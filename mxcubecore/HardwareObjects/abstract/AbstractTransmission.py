@@ -40,7 +40,8 @@ class AbstractTransmission(AbstractMotor):
         self._limits = [0, 100]
         self._state = None
 
-    def _set_value(self, value, wait=True, timeout=None):
+    @abc.abstractmethod
+    def _set_value(self, value):
         """Set transmission to absolute level in percent.
            Wait for the move  of all acutators to finish by default.
         Args:
