@@ -28,7 +28,6 @@ from XSDataCommon import XSDataString
 # from edna_test_data import EDNA_DEFAULT_INPUT
 # from edna_test_data import EDNA_TEST_DATA
 
-
 class EDNACharacterisation(AbstractCharacterisation):
     def __init__(self, name):
         super(EDNACharacterisation, self).__init__(name)
@@ -267,9 +266,7 @@ class EDNACharacterisation(AbstractCharacterisation):
 
         return self.result
 
-    def dc_from_output(
-        edna_result, reference_image_collection,
-    ):
+    def dc_from_output(self, edna_result, reference_image_collection):
         data_collections = []
 
         crystal = copy.deepcopy(reference_image_collection.crystal)
