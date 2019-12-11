@@ -1,4 +1,3 @@
-#
 #  Project: MXCuBE
 #  https://github.com/mxcube
 #
@@ -20,8 +19,9 @@
 import os
 import time
 import logging
-import gevent
 import subprocess
+
+import gevent
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects.XSDataCommon import (
@@ -40,8 +40,6 @@ __category__ = "General"
 
 class OfflineProcessingMockup(HardwareObject):
     """Hwobj assembles input xml and launches EDNAproc autoprocessing"""
-
-    # NBNB straight copy pf EMBLAutoProcessing. TODO rewrite!
 
     def __init__(self, name):
         HardwareObject.__init__(self, name)

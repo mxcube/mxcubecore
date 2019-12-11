@@ -67,7 +67,7 @@ class AbstractOnlineProcessing(HardwareObject):
         # Hardware objects ----------------------------------------------------
         self.beamstop_hwobj = None
         self.ssx_setup = None
-  
+
         # Internal variables --------------------------------------------------
         self.start_command = None
         self.kill_command = None
@@ -272,12 +272,13 @@ class AbstractOnlineProcessing(HardwareObject):
 
             if self.interpolate_results:
                 self.results_aligned["interp_" + result_type] = np.zeros(images_num)
-            if self.data_collection.is_mesh() and images_num == self.params_dict["images_num"]:
+            if self.data_collection.is_mesh(
+            ) and images_num == self.params_dict["images_num"]:
                 self.results_aligned[result_type["key"]] = self.results_aligned[
                     result_type["key"]
                 ].reshape(self.params_dict["steps_x"], self.params_dict["steps_y"])
 
-        #if not self.data_collection.is_mesh():
+        # if not self.data_collection.is_mesh():
         #    self.results_raw["x_array"] = np.linspace(
         #        0, images_num, images_num, dtype=np.int32
         #    )
@@ -292,7 +293,11 @@ class AbstractOnlineProcessing(HardwareObject):
                 % os.path.join(archive_directory, "snapshot.png")
             )
 
-        self.emit("processingStarted", (self.data_collection, self.results_raw, self.results_aligned))
+        self.emit(
+            "processingStarted",
+            (self.data_collection,
+             self.results_raw,
+             self.results_aligned))
 
     def create_processing_input_file(self, processing_input_filename):
         """Creates processing input file
@@ -316,7 +321,7 @@ class AbstractOnlineProcessing(HardwareObject):
         )
         self.create_processing_input_file(input_filename)
 
-        #results = {"raw" : self.results_raw,
+        # results = {"raw" : self.results_raw,
         #           "aligned": self.results_aligned}
         #print "emit ! ", results
         #self.emit("processingStarted", (data_collection, results))
@@ -445,9 +450,9 @@ class AbstractOnlineProcessing(HardwareObject):
         processing_grid_overlay_file = os.path.join(
             self.params_dict["archive_directory"], "grid_overlay.png"
         )
-        #processing_plot_archive_file = os.path.join(
+        # processing_plot_archive_file = os.path.join(
         #    self.params_dict["archive_directory"], "parallel_processing_plot.png"
-        #)
+        # )
         processing_csv_archive_file = os.path.join(
             self.params_dict["archive_directory"], "parallel_processing_score.csv"
         )
@@ -694,7 +699,7 @@ class AbstractOnlineProcessing(HardwareObject):
         # Writes results in the csv file
         try:
             processing_csv_file = open(processing_csv_archive_file, "w")
-            processing_csv_file.write("%s,%d,%d,%d,%d,%d,%s,%d,%d,%f,%f,%s\n" %(\
+            processing_csv_file.write("%s,%d,%d,%d,%d,%d,%s,%d,%d,%f,%f,%s\n" % (
                                       self.params_dict["template"],
                                       self.params_dict["first_image_num"],
                                       self.params_dict["images_num"],
@@ -708,16 +713,16 @@ class AbstractOnlineProcessing(HardwareObject):
                                       self.beamstop_hwobj.get_distance(),
                                       self.beamstop_hwobj.get_direction()))
             for index in range(self.params_dict["images_num"]):
-                processing_csv_file.write("%d,%f,%d,%f\n" % (\
+                processing_csv_file.write("%d,%f,%d,%f\n" % (
                                           index,
                                           self.results_raw["score"][index],
                                           self.results_raw["spots_num"][index],
                                           self.results_raw["spots_resolution"][index]))
-            log.info("Parallel processing: Raw data stored in %s" % \
+            log.info("Parallel processing: Raw data stored in %s" %
                      processing_csv_archive_file)
             processing_csv_file.close()
-        except:
-            log.error("Parallel processing: Unable to store raw data in %s" % \
+        except BaseException:
+            log.error("Parallel processing: Unable to store raw data in %s" %
                       processing_csv_archive_file)
         # ---------------------------------------------------------------------
 
@@ -746,8 +751,13 @@ class AbstractOnlineProcessing(HardwareObject):
                     :: self.params_dict["images_num"] / self.plot_points_num
                 ]
                 if self.interpolate_results:
-                    x_array = np.linspace(0, self.params_dict["images_num"], self.params_dict["images_num"], dtype=int)
-                    spline = UnivariateSpline(x_array, self.results_aligned[score_key], s=10)
+                    x_array = np.linspace(
+                        0,
+                        self.params_dict["images_num"],
+                        self.params_dict["images_num"],
+                        dtype=int)
+                    spline = UnivariateSpline(
+                        x_array, self.results_aligned[score_key], s=10)
                     self.results_aligned["interp_" + score_key] = spline(x_array)
 
         if self.grid:
