@@ -66,6 +66,8 @@ class AbstractMotor(HardwareObject):
         self._tolerance = None
         self.motor_name = None
         self.username = None
+        self.read_only = False
+        self.default_value = None
         self._ready_event = None
 
     def init(self):
@@ -73,6 +75,8 @@ class AbstractMotor(HardwareObject):
         self.motor_name = self.getProperty("motor_name")
         self.username = self.getProperty("username") or self.motor_name
         self._tolerance = self.getProperty("tolerance") or 1e-3
+        self.read_only = self.getProperty("read_only") or False
+        self.default_value = self.getProperty("default_value")
         self._ready_event = Event()
 
     def is_ready(self):
