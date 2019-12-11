@@ -1,4 +1,3 @@
-
 #  Project: MXCuBE
 #  https://github.com/mxcube
 #
@@ -21,7 +20,6 @@ import os
 import time
 import logging
 import json
-import gevent
 import subprocess
 import numpy as np
 
@@ -30,6 +28,8 @@ from scipy import ndimage
 from scipy.interpolate import UnivariateSpline
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+import gevent
 
 import SimpleHTML
 from HardwareRepository.BaseHardwareObjects import HardwareObject
@@ -54,10 +54,9 @@ Typicaly an input file is created and processing is started with script via
 subprocess.Popen. Results are emited with paralleProcessingResults signal.
 
 Implementations:
- * DozorParallelProcessing: parallel processing based on the Dozor. Started
-   with EDNA and results are set via xmlrpc.
- * OnlineProcessigMockup: mockup version capable to display various
-   diffraction scenariou: no diffraction, linear, random, etc.
+ * DozorOnlinelProcessing: online processing based on the EDNA Dozor plugin.
+   Started with EDNA and results are set via xmlrpc.
+ * OnlineProcessigMockup: mockup version allows to simulate online processing.
 """
 
 
@@ -266,13 +265,13 @@ class AbstractOnlineProcessing(HardwareObject):
             if "size" in result_type:
                 images_num = result_type["size"]
             else:
-                images_num =  self.params_dict["images_num"]
+                images_num = self.params_dict["images_num"]
 
             self.results_raw[result_type["key"]] = np.zeros(images_num)
             self.results_aligned[result_type["key"]] = np.zeros(images_num)
 
             if self.interpolate_results:
-                self.results_aligned["interp_" + result_name] = np.zeros(images_num)
+                self.results_aligned["interp_" + result_type] = np.zeros(images_num)
             if self.data_collection.is_mesh() and images_num == self.params_dict["images_num"]:
                 self.results_aligned[result_type["key"]] = self.results_aligned[
                     result_type["key"]
@@ -446,9 +445,9 @@ class AbstractOnlineProcessing(HardwareObject):
         processing_grid_overlay_file = os.path.join(
             self.params_dict["archive_directory"], "grid_overlay.png"
         )
-        processing_plot_archive_file = os.path.join(
-            self.params_dict["archive_directory"], "parallel_processing_plot.png"
-        )
+        #processing_plot_archive_file = os.path.join(
+        #    self.params_dict["archive_directory"], "parallel_processing_plot.png"
+        #)
         processing_csv_archive_file = os.path.join(
             self.params_dict["archive_directory"], "parallel_processing_score.csv"
         )
@@ -556,8 +555,8 @@ class AbstractOnlineProcessing(HardwareObject):
                 cax.tick_params(axis="y", labelsize=8)
                 plt.colorbar(im, cax=cax)
         else:
-            max_resolution = self.params_dict["resolution"]
-            min_resolution = self.results_aligned["spots_resolution"].max()
+            #max_resolution = self.params_dict["resolution"]
+            #min_resolution = self.results_aligned["spots_resolution"].max()
 
             # TODO plot results based on the result_name_list
             max_score = self.results_aligned["score"].max()
@@ -748,9 +747,8 @@ class AbstractOnlineProcessing(HardwareObject):
                 ]
                 if self.interpolate_results:
                     x_array = np.linspace(0, self.params_dict["images_num"], self.params_dict["images_num"], dtype=int)
-                    s = UnivariateSpline(x_array, self.results_aligned[score_key], s=10)
-                    self.results_aligned["interp_" + score_key] = s(x_array)
-                     
+                    spline = UnivariateSpline(x_array, self.results_aligned[score_key], s=10)
+                    self.results_aligned["interp_" + score_key] = spline(x_array)
 
         if self.grid:
             self.grid.set_score(self.results_raw["spots_num"])

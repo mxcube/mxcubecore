@@ -402,7 +402,7 @@ class Sample(TaskNode):
             try:
                 self.lims_sample_location = int(lims_sample.get("sampleLocation"))
                 self.lims_container_location = int(lims_sample.get("containerSampleChangerLocation"))
-            except:
+            except BaseException:
                 pass
  
         _lims = (self.lims_container_location, self.lims_sample_location)
@@ -1751,7 +1751,6 @@ class CentredPosition(object):
     def __eq__(self, cpos):
         eq = len(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES) * [False]
         for i, motor_name in enumerate(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES):
-            
             self_pos = getattr(self, motor_name)
             if not hasattr(cpos, motor_name):
                 continue
