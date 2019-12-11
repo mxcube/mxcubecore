@@ -1672,7 +1672,7 @@ class XrayImagingParameters(object):
                 'camera_write_data': self.camera_write_data,
                 'detector_distance': self.detector_distance,
         }
- 
+
 class Crystal(object):
     def __init__(self):
         object.__init__(self)
