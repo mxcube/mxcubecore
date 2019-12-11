@@ -1,6 +1,6 @@
-#
+
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -27,6 +27,7 @@ import numpy as np
 
 from copy import copy
 from scipy import ndimage
+from scipy.interpolate import UnivariateSpline
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
@@ -38,11 +39,14 @@ from HardwareRepository import HardwareRepository as HWR
 __license__ = "LGPLv3+"
 
 
-DEFAULT_SCORE_NAME_LIST = ("image_num", "spots_num", "spots_resolution", "score")
+DEFAULT_RESULT_TYPES = [{"key": "spots_resolution", "descr": "Resolution", "color": (120, 0, 0)},
+                        {"key": "score", "descr": "Score", "color": (0, 120, 0)},
+                        {"key": "spots_num", "descr": "Number of spots", "color": (0, 0, 120)}]
+
 
 """
-GenericParallel processing hardware object handles online data processing.
-Typical example of parallel processing is a mesh scan where user is provided
+AbstractOnlineProcessing hardware object handles online data processing.
+Typical example of online processing is a mesh scan where user is provided
 with real-time results describing diffraction quality.
 Method run_processing is called from the queue_entry when the data collection
 starts. Then empty arrays to store results are created.
@@ -52,27 +56,29 @@ subprocess.Popen. Results are emited with paralleProcessingResults signal.
 Implementations:
  * DozorParallelProcessing: parallel processing based on the Dozor. Started
    with EDNA and results are set via xmlrpc.
- * ParallelProcessigMockup: mockup version capable to display various
+ * OnlineProcessigMockup: mockup version capable to display various
    diffraction scenariou: no diffraction, linear, random, etc.
 """
 
 
-class GenericParallelProcessing(HardwareObject):
+class AbstractOnlineProcessing(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
         # Hardware objects ----------------------------------------------------
         self.beamstop_hwobj = None
-
+        self.ssx_setup = None
+  
         # Internal variables --------------------------------------------------
         self.start_command = None
         self.kill_command = None
         self.data_collection = None
         self.grid = None
         self.params_dict = None
-        self.results_name_list = ()
+        self.result_types = None
         self.results_raw = None
         self.results_aligned = None
+        self.interpolate_results = None
         self.done_event = None
         self.started = None
         self.workflow_info = None
@@ -83,42 +89,18 @@ class GenericParallelProcessing(HardwareObject):
 
     def init(self):
         self.done_event = gevent.event.Event()
-
-        if HWR.beamline.detector is None:
-            logging.info("ParallelProcessing: Detector hwobj not defined")
-
+        self.ssx_setup = self.getObjectByRole("ssx_setup")
         self.beamstop_hwobj = self.getObjectByRole("beamstop")
         if self.beamstop_hwobj is None:
             logging.info("ParallelProcessing: Beamstop hwobj not defined")
 
-        self.results_name_list = self.getProperty(
-            "result_name_list", DEFAULT_SCORE_NAME_LIST
-        )
+        self.result_types = self.getProperty("result_types", DEFAULT_RESULT_TYPES)
         self.start_command = str(self.getProperty("processing_command"))
         self.kill_command = str(self.getProperty("kill_command"))
-        self.grid_properties = eval(self.getProperty("grid_properties", "[]"))
-        self.current_grid_index = 0
+        self.interpolate_results = self.getProperty("interpolate_results")
 
-    def get_available_grid_properties(self):
-        prop_list = []
-        for grid_property in self.grid_properties:
-            prop_list.append(
-                "Grid: %dx%d, comp: %dx%d"
-                % (
-                    grid_property["grid_num_row"],
-                    grid_property["grid_num_col"],
-                    grid_property["comp_num_row"],
-                    grid_property["comp_num_col"],
-                )
-            )
-
-        return prop_list
-
-    def get_current_grid_properties(self):
-        return self.grid_properties[self.current_grid_index]
-
-    def set_current_grid_index(self, index):
-        self.current_grid_index = index
+    def get_result_types(self):
+        return self.result_types
 
     def prepare_processing(self):
         """Prepares processing parameters, creates empty result arrays and
@@ -130,6 +112,7 @@ class GenericParallelProcessing(HardwareObject):
         acquisition = self.data_collection.acquisitions[0]
         acq_params = acquisition.acquisition_parameters
         self.grid = self.data_collection.grid
+
         grid_params = None
         if self.grid:
             grid_params = self.grid.get_properties()
@@ -140,17 +123,24 @@ class GenericParallelProcessing(HardwareObject):
         images_num = acq_params.num_images
         last_image_num = first_image_num + images_num - 1
         lines_num = acq_params.num_lines
+
         template = os.path.join(
             acquisition.path_template.directory,
-            "%s_%%d_%%05d.cbf" % acquisition.path_template.get_prefix(),
+            "%s_%%d_%%0%sd.cbf"
+            % (
+                acquisition.path_template.get_prefix(),
+                acquisition.path_template.precision,
+            ),
         )
+        if acquisition.path_template.compression:
+            template += ".gz"
 
         workflow_step_directory = None
         self.params_dict = {}
 
         if self.data_collection.run_processing_parallel == "XrayCentering":
             prefix = "xray_centering_%s" % prefix
-            if lines_num > 1:
+            if self.grid:
                 workflow_step_directory = "/mesh"
             else:
                 workflow_step_directory = "/line"
@@ -227,6 +217,7 @@ class GenericParallelProcessing(HardwareObject):
         self.params_dict["osc_range"] = acq_params.osc_range
         self.params_dict["resolution"] = acq_params.resolution
         self.params_dict["exp_time"] = acq_params.exp_time
+        self.params_dict["hare_num"] = acq_params.hare_num
 
         if not acq_params.num_images_per_trigger:
             self.params_dict["num_images_per_trigger"] = 1
@@ -251,7 +242,7 @@ class GenericParallelProcessing(HardwareObject):
         self.params_dict["group_id"] = self.data_collection.lims_group_id
         self.params_dict["processing_start_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
 
-        if lines_num > 1 and grid_params:
+        if grid_params:
             self.params_dict["dx_mm"] = grid_params["dx_mm"]
             self.params_dict["dy_mm"] = grid_params["dy_mm"]
             self.params_dict["steps_x"] = grid_params["steps_x"]
@@ -270,18 +261,27 @@ class GenericParallelProcessing(HardwareObject):
         # Empty numpy arrays to store raw and aligned results
         self.plot_points_num = images_num
 
-        for result_name in self.results_name_list:
-            self.results_raw[result_name] = np.zeros(images_num)
-            self.results_aligned[result_name] = np.zeros(self.plot_points_num)
-            # self.results_aligned['image_number']=numpy.linspace(0,images_num,images_num)
-            if self.data_collection.is_mesh():
-                self.results_aligned[result_name] = self.results_aligned[
-                    result_name
-                ].reshape(self.params_dict["steps_x"], self.params_dict["steps_y"])
+        for result_type in self.result_types:
+            #images_num =  self.params_dict["images_num"]
+            if "size" in result_type:
+                images_num = result_type["size"]
             else:
-                self.results_aligned["x_array"] = np.linspace(
-                    0, images_num, self.plot_points_num, dtype=np.int32
-                )
+                images_num =  self.params_dict["images_num"]
+
+            self.results_raw[result_type["key"]] = np.zeros(images_num)
+            self.results_aligned[result_type["key"]] = np.zeros(images_num)
+
+            if self.interpolate_results:
+                self.results_aligned["interp_" + result_name] = np.zeros(images_num)
+            if self.data_collection.is_mesh() and images_num == self.params_dict["images_num"]:
+                self.results_aligned[result_type["key"]] = self.results_aligned[
+                    result_type["key"]
+                ].reshape(self.params_dict["steps_x"], self.params_dict["steps_y"])
+
+        #if not self.data_collection.is_mesh():
+        #    self.results_raw["x_array"] = np.linspace(
+        #        0, images_num, images_num, dtype=np.int32
+        #    )
 
         try:
             gevent.spawn(
@@ -292,6 +292,8 @@ class GenericParallelProcessing(HardwareObject):
                 "Parallel processing: Could not save snapshot: %s"
                 % os.path.join(archive_directory, "snapshot.png")
             )
+
+        self.emit("processingStarted", (self.data_collection, self.results_raw, self.results_aligned))
 
     def create_processing_input_file(self, processing_input_filename):
         """Creates processing input file
@@ -315,11 +317,11 @@ class GenericParallelProcessing(HardwareObject):
         )
         self.create_processing_input_file(input_filename)
 
-        self.emit(
-            "processingStarted",
-            (self.params_dict, self.results_raw, self.results_aligned),
-        )
-        self.emit("processingResultsUpdate", False)
+        #results = {"raw" : self.results_raw,
+        #           "aligned": self.results_aligned}
+        #print "emit ! ", results
+        #self.emit("processingStarted", (data_collection, results))
+        #self.emit("processingResultsUpdate", False)
 
         if not os.path.isfile(self.start_command):
             msg = (
@@ -389,7 +391,10 @@ class GenericParallelProcessing(HardwareObject):
         """
         self.emit("processingResultsUpdate", True)
 
-        self.data_collection.parallel_processing_result = copy(self.results_aligned)
+        self.data_collection.set_online_processing_results(
+            copy(self.results_raw),
+            copy(self.results_aligned)
+        )
 
         if self.params_dict["workflow_type"] == "XrayCentering":
             if self.results_aligned["best_positions"]:
@@ -465,10 +470,7 @@ class GenericParallelProcessing(HardwareObject):
             self.params_dict["workflow_mesh_id"] = workflow_mesh_id
             self.params_dict["grid_info_id"] = grid_info_id
 
-            if (
-                self.params_dict["workflow_type"] == "XrayCentering"
-                and self.params_dict["lines_num"] > 1
-            ):
+            if self.params_dict["workflow_type"] == "XrayCentering" and self.grid:
                 self.workflow_info = {
                     "workflow_id": self.params_dict["workflow_id"],
                     "process_root_directory": self.params_dict[
@@ -500,7 +502,7 @@ class GenericParallelProcessing(HardwareObject):
         )
 
         fig, ax = plt.subplots(nrows=1, ncols=1)
-        if self.params_dict["lines_num"] > 1:
+        if self.grid:
             current_max = max(fig.get_size_inches())
             grid_width = self.params_dict["steps_x"] * self.params_dict["xOffset"]
             grid_height = self.params_dict["steps_y"] * self.params_dict["yOffset"]
@@ -588,6 +590,7 @@ class GenericParallelProcessing(HardwareObject):
                 fontsize=8,
             )
             ax.set_ylim(-0.01, 1.1)
+            ax.set_xlim(0, self.params_dict["images_num"])
 
             positions = np.linspace(
                 0, self.results_aligned["spots_resolution"].max(), 5
@@ -690,9 +693,8 @@ class GenericParallelProcessing(HardwareObject):
 
         # ---------------------------------------------------------------------
         # Writes results in the csv file
-        """
         try:
-            processing_csv_file = open(processing_csv_filename, "w")
+            processing_csv_file = open(processing_csv_archive_file, "w")
             processing_csv_file.write("%s,%d,%d,%d,%d,%d,%s,%d,%d,%f,%f,%s\n" %(\
                                       self.params_dict["template"],
                                       self.params_dict["first_image_num"],
@@ -713,13 +715,11 @@ class GenericParallelProcessing(HardwareObject):
                                           self.results_raw["spots_num"][index],
                                           self.results_raw["spots_resolution"][index]))
             log.info("Parallel processing: Raw data stored in %s" % \
-                     processing_csv_filename)
+                     processing_csv_archive_file)
+            processing_csv_file.close()
         except:
             log.error("Parallel processing: Unable to store raw data in %s" % \
-                      processing_csv_filename)
-        finally:
-            processing_csv_file.close()
-        """
+                      processing_csv_archive_file)
         # ---------------------------------------------------------------------
 
     def align_processing_results(self, start_index, end_index):
@@ -728,8 +728,9 @@ class GenericParallelProcessing(HardwareObject):
            Function also extracts 10 (if they exist) best positions
         """
         # Each result array is realigned
+
         for score_key in self.results_raw.keys():
-            if self.params_dict["lines_num"] > 1:
+            if self.grid and self.results_raw[score_key].size == self.params_dict["images_num"]:
                 for cell_index in range(start_index, end_index + 1):
                     col, row = self.grid.get_col_row_from_image_serial(
                         cell_index + self.params_dict["first_image_num"]
@@ -745,9 +746,14 @@ class GenericParallelProcessing(HardwareObject):
                 self.results_aligned[score_key] = self.results_raw[score_key][
                     :: self.params_dict["images_num"] / self.plot_points_num
                 ]
+                if self.interpolate_results:
+                    x_array = np.linspace(0, self.params_dict["images_num"], self.params_dict["images_num"], dtype=int)
+                    s = UnivariateSpline(x_array, self.results_aligned[score_key], s=10)
+                    self.results_aligned["interp_" + score_key] = s(x_array)
+                     
 
-        if self.params_dict["lines_num"] > 1:
-            self.grid.set_score(self.results_raw["score"])
+        if self.grid:
+            self.grid.set_score(self.results_raw["spots_num"])
             (center_x, center_y) = ndimage.measurements.center_of_mass(
                 self.results_aligned["score"]
             )
@@ -797,7 +803,7 @@ class GenericParallelProcessing(HardwareObject):
                     )
 
                     cpos = None
-                    if self.params_dict["lines_num"] > 1:
+                    if self.grid:
                         col, row = self.grid.get_col_row_from_image_serial(
                             index + self.params_dict["first_image_num"]
                         )
