@@ -19,7 +19,7 @@
 
 
 """
-EMBLParallelProcessing
+EMBLOnlineProcessing
 """
 
 import os
@@ -29,8 +29,8 @@ import subprocess
 import numpy
 import gevent
 
-from HardwareRepository.HardwareObjects.GenericParallelProcessing import (
-    GenericParallelProcessing,
+from HardwareRepository.HardwareObjects.abstract.Abstract.OnlineProcessing import (
+    AbstractOnlineProcessing,
 )
 
 from HardwareRepository.HardwareObjects.XSDataCommon import (
@@ -41,8 +41,6 @@ from HardwareRepository.HardwareObjects.XSDataCommon import (
 )
 from HardwareRepository.HardwareObjects.XSDataControlDozorv1_1 import (
     XSDataInputControlDozor,
-    XSDataResultControlDozor,
-    XSDataControlImageDozor,
 )
 from HardwareRepository import HardwareRepository as HWR
 
@@ -52,13 +50,13 @@ __license__ = "LGPLv3+"
 __category__ = "Motor"
 
 
-class EMBLParallelProcessing(GenericParallelProcessing):
+class EMBLOnlineProcessing(AbstractOnlineProcessing):
     """
-    EMBLParallelProcessing obtains Dozor on the fly processing results
+    EMBLOnlineProcessing obtains Dozor on the fly processing results
     """
 
     def __init__(self, name):
-        GenericParallelProcessing.__init__(self, name)
+        AbstractOnlineProcessing.__init__(self, name)
 
         self.crystfel_script = ""
         self.chan_dozor_pass = None
@@ -66,7 +64,7 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         self.display_task = None
 
     def init(self):
-        GenericParallelProcessing.init(self)
+        AbstractOnlineProcessing.init(self)
 
         self.chan_dozor_pass = self.getChannelObject("chanDozorPass")
         if self.chan_dozor_pass is not None:
@@ -133,7 +131,7 @@ class EMBLParallelProcessing(GenericParallelProcessing):
             # Start dozor via EDNA
             if not os.path.isfile(self.start_command):
                 msg = (
-                    "ParallelProcessing: Start command %s" % self.start_command
+                    "OnlineProcessing: Start command %s" % self.start_command
                     + "is not executable"
                 )
                 logging.getLogger("queue_exec").error(msg)
@@ -231,7 +229,7 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         :type status: str
         """
         # self.batch_processed(self.chan_dozor_pass.getValue())
-        GenericParallelProcessing.set_processing_status(self, status)
+        AbstractOnlineProcessing.set_processing_status(self, status)
 
     def store_processing_results(self, status):
         """
@@ -239,34 +237,9 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         :param status: str
         :return:
         """
-        GenericParallelProcessing.store_processing_results(self, status)
+        AbstractOnlineProcessing.store_processing_results(self, status)
         self.display_task.kill()
         gevent.spawn(self.create_hit_list_files)
-
-    def store_result_xml(self):
-        """
-        Stores results in xml for further usage
-        :return:
-        """
-        processing_xml_filename = os.path.join(
-            self.params_dict["process_directory"], "dozor_result.xml"
-        )
-        dozor_result = XSDataResultControlDozor()
-        for index in range(self.params_dict["images_num"]):
-            dozor_image = XSDataControlImageDozor()
-            dozor_image.setNumber(XSDataInteger(index))
-            dozor_image.setScore(XSDataDouble(self.results_raw["score"][index]))
-            dozor_image.setSpots_num_of(
-                XSDataInteger(self.results_raw["spots_num"][index])
-            )
-            dozor_image.setSpots_resolution(
-                XSDataDouble(self.results_raw["spots_resolution"][index])
-            )
-            dozor_result.addImageDozor(dozor_image)
-        dozor_result.exportToFile(processing_xml_filename)
-        logging.getLogger("HWR").info(
-            "Parallel processing: Results saved in %s" % processing_xml_filename
-        )
 
     def create_all_file_list(self):
         all_file_filename = os.path.join(
@@ -283,13 +256,13 @@ class EMBLParallelProcessing(GenericParallelProcessing):
             self.print_log(
                 "HWR",
                 "debug",
-                "Parallel processing: All image list stored in %s" % all_file_filename,
+                "Online processing: All image list stored in %s" % all_file_filename,
             )
         except BaseException:
             self.print_log(
                 "GUI",
                 "error",
-                "Parallel processing: Unable to store all image list in %s" % all_file_filename,
+                "Online processing: Unable to store all image list in %s" % all_file_filename,
             )
         finally:
             lst_file.close()
@@ -321,18 +294,18 @@ class EMBLParallelProcessing(GenericParallelProcessing):
             self.print_log(
                 "GUI",
                 "info",
-                "Parallel processing: Hit list for crystfel stored in %s" % lst_filename,
+                "Online processing: Hit list for crystfel stored in %s" % lst_filename,
             )
             self.print_log(
                 "GUI",
                 "info",
-                "Parallel processing: Hit list for nxds stored in %s" % nxds_filename,
+                "Online processing: Hit list for nxds stored in %s" % nxds_filename,
             )
         except BaseException:
             self.print_log(
                 "GUI",
                 "error",
-                "Parallel processing: Unable to store hit list in %s" % lst_filename,
+                "Online processing: Unable to store hit list in %s" % lst_filename,
             )
         finally:
             lst_file.close()
@@ -341,7 +314,7 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         self.print_log(
             "GUI",
             "info",
-            "Parallel processing: found %d dozor hits in %d collected images (%.2f%%)" % (
+            "Online processing: found %d dozor hits in %d collected images (%.2f%%)" % (
                 num_dozor_hits,
                 self.params_dict["images_num"],
                 (100.0 * num_dozor_hits / self.params_dict["images_num"]))
@@ -578,7 +551,7 @@ ga = {:.2f} deg
                             "point_group": "422",
                             "space_group": proc_params.space_group,
                             "hres": acq_params.resolution}
-        log.info("Parallel processing: Crystfel processing parameters: %s" % str(proc_params_dict))
+        log.info("Online processing: Crystfel processing parameters: %s" % str(proc_params_dict))
         """
 
         end_of_line_to_execute = " %s %s %s %s %s %s %s %.2f" % (
@@ -595,7 +568,7 @@ ga = {:.2f} deg
         self.print_log(
             "HWR",
             "debug",
-            "Parallel processing: Starting crystfel %s with parameters %s "
+            "Online processing: Starting crystfel %s with parameters %s "
             % (self.crystfel_script, end_of_line_to_execute),
         )
 
@@ -637,7 +610,7 @@ ga = {:.2f} deg
         self.print_log(
             "HWR",
             "debug",
-            "Parallel processing: crystfel command: \n %s" % (crystfel_command),
+            "Online processing: crystfel command: \n %s" % (crystfel_command),
         )
 
         subprocess.Popen(
