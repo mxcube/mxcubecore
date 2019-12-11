@@ -38,7 +38,7 @@ __license__ = "LGPLv3+"
 __category__ = "General"
 
 
-class AutoProcessingMockup(HardwareObject):
+class OfflineProcessingMockup(HardwareObject):
     """Hwobj assembles input xml and launches EDNAproc autoprocessing"""
 
     # NBNB straight copy pf EMBLAutoProcessing. TODO rewrite!
