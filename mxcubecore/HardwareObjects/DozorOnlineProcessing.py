@@ -24,7 +24,7 @@ from XSDataCommon import XSDataInteger
 from XSDataCommon import XSDataString
 from XSDataControlDozorv1_1 import XSDataInputControlDozor
 
-from HardwareRepository.HardwareObjects.AbstractOnlineProcessing import (
+from HardwareRepository.HardwareObjects.abstract.AbstractOnlineProcessing import (
     AbstractOnlineProcessing
 )
 from HardwareRepository import HardwareRepository as HWR

@@ -29,7 +29,7 @@ import subprocess
 import numpy
 import gevent
 
-from HardwareRepository.HardwareObjects.abstract.Abstract.OnlineProcessing import (
+from HardwareRepository.HardwareObjects.abstract.AbstractOnlineProcessing import (
     AbstractOnlineProcessing,
 )
 
