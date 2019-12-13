@@ -2,7 +2,6 @@ import logging
 import gevent.event
 
 from HardwareRepository.HardwareObjects import edna_test_data
-from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects.abstract.AbstractCharacterisation import (
     AbstractCharacterisation
 )
@@ -10,12 +9,9 @@ from HardwareRepository.HardwareObjects.abstract.AbstractCharacterisation import
 from HardwareRepository.HardwareObjects.XSDataMXCuBEv1_3 import XSDataResultMXCuBE
 
 
-
-class SOLEILDataAnalysisMockup(
-    AbstractCharacterisation, HardwareObject
-):
+class SOLEILEDNACharacterisationMockup(AbstractCharacterisation):
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
+        super(SOLEILEDNACharacterisationMockup, self).__init__(name)
         self.processing_done_event = gevent.event.Event()
 
     def get_html_report(self, edna_result):
