@@ -18,7 +18,6 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 from HardwareRepository.HardwareObjects import edna_test_data
-from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects.abstract.AbstractCharacterisation import (
     AbstractCharacterisation,
 )
@@ -30,10 +29,9 @@ __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3"
 
 
-class DataAnalysisMockup(AbstractCharacterisation, HardwareObject):
+class EDNACharacterisationMockup(AbstractCharacterisation):
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
-        AbstractCharacterisation.__init__(self)
+        super(EDNACharacterisationMockup, self).__init__(name)
 
     def get_html_report(self, edna_result):
         html_report = None
