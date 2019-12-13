@@ -53,7 +53,7 @@ Example xml:
 </device>
 """
 
-class AxisCamera(AbstractVideoDevice):
+class QtAxisCamera(AbstractVideoDevice):
 
     def __init__(self, name):
         AbstractVideoDevice.__init__(self, name)
