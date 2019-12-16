@@ -502,9 +502,9 @@ class Beamline(ConfiguredObject):
         Returns:
             Optional[EdnaCharacterisation]:
         """
-        return self._objects.get("data_analysis")
+        return self._objects.get("characterisation")
 
-    __content_roles.append("data_analysis")
+    __content_roles.append("characterisation")
 
     @property
     def beam_realign(self):
