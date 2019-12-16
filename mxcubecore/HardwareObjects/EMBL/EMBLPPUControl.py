@@ -1,9 +1,9 @@
 import logging
+
 from HardwareRepository.BaseHardwareObjects import Device
 
 
 __credits__ = ["EMBL Hamburg"]
-__version__ = "2.3."
 __category__ = "General"
 
 
@@ -129,9 +129,11 @@ class EMBLPPUControl(Device):
             if len(msg_list) > 1:
                 for msg_line in msg_list:
                     if msg_line:
-                        logging.getLogger("GUI").error("PPU control: %s" % msg_line)
+                        msg = "PPU control: %s" % msg_line
+                        logging.getLogger("GUI").error(msg)
         else:
-            logging.getLogger("HWR").debug("PPUControl: %s" % self.all_status)
+            msg = "PPUControl: %s" % self.all_status
+            logging.getLogger("HWR").debug(msg)
 
         self.msg = (
             "Restart result:\n\n%s\n\n" % self.restart_result

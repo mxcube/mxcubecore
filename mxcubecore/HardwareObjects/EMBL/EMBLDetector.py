@@ -19,8 +19,11 @@
 
 """EMBLDetector"""
 
+import ast
 import logging
+
 import gevent
+
 from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
     AbstractDetector,
 )
@@ -47,6 +50,18 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.hum_treshold = None
         self.cover_state = None
         self.binning_mode = None
+        self.pixel_size_mm_x = None
+        self.pixel_size_mm_y = None
+
+        self.binding_mode = 1
+        self.tolerance = None
+        self.temperature = 0
+        self.humidity = 0
+        self.actual_frame_rate = None
+        self.pixel_min = None
+        self.pixel_max = None
+        self.roi_modes_list = []
+        self.roi_mode = None
 
         self.chan_beam_xy = None
         self.chan_cover_state = None
@@ -59,15 +74,6 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
         self.cmd_close_cover = None
         self.cmd_restart_daq = None
-        self.binding_mode = 1
-        self.tolerance = None
-        self.temperature = 0
-        self.humidity = 0
-        self.actual_frame_rate = None
-        self.pixel_min = None
-        self.pixel_max = None
-        self.roi_modes_list = []
-        self.roi_mode = None
 
         self.distance_motor_hwobj = None
 
@@ -80,13 +86,13 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.hum_treshold = self.getProperty("humidityThreshold")
         self.pixel_min = self.getProperty("px_min")
         self.pixel_max = self.getProperty("px_max")
-        self.roi_modes_list = eval(self.getProperty("roiModes"))
+        self.roi_modes_list = ast.literal_eval(self.getProperty("roiModes"))
         self.binning_mode = "Unbinned"
 
         self.pixel_size_mm_x = self.getProperty("px")
         self.pixel_size_mm_y = self.getProperty("py")
 
-        self.distance_motor_hwobj = self.getObjectByRole("detector_distance")
+        self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
 
         self.chan_cover_state = self.getChannelObject("chanCoverState", optional=True)
         if self.chan_cover_state is not None:
@@ -166,34 +172,29 @@ class EMBLDetector(AbstractDetector, HardwareObject):
     def status_changed(self, status):
         """Status changed event"""
         status = "uninitialized"
+        status_message = "Detector: "
+
         if self.chan_status is not None:
             status = self.chan_status.getValue()
-        status_message = "Detector: "
+
         if self.temperature > self.temp_treshold:
-            logging.getLogger("GUI").warning(
-                "Detector: Temperature %0.2f is greater than allowed %0.2f"
-                % (self.temperature, self.temp_treshold)
-            )
+            msg = "Detector: Temperature %0.2f is greater than allowed %0.2f" % (
+                self.temperature, self.temp_treshold
+            ) 
+            logging.getLogger("GUI").warning(msg)
             status_message = "Temperature has exceeded threshold.\n"
+
         if self.humidity > self.hum_treshold:
-            logging.getLogger("GUI").warning(
-                "Detector: Humidity %0.2f is greater than allowed %0.2f"
-                % (self.humidity, self.hum_treshold)
+            msg = "Detector: Humidity %0.2f is greater than allowed %0.2f" % (
+                self.humidity, self.hum_treshold
             )
+            logging.getLogger("GUI").warning(msg)
             status_message = status_message + "Humidity has exceeded threshold.\n"
+
         if status == "calibrating":
-            status_message = status_message + "Energy change in progress.\n"
-            status_message = status_message + "Please wait...\n"
+            status_message = status_message + "Calibrating. Please wait...\n"
             logging.getLogger("GUI").warning(status_message)
-        """
-        elif status == "configuring":
-            status_message = status_message + "Configuring"
-        elif status != "ready":
-            status_message = status_message + "Detector is not ready.\n"
-            status_message = status_message + \
-                "Cannot start a collection at the moment."
-            logging.getLogger('GUI').warning(status_message)
-        """
+
         self.emit("statusChanged", (status, status_message))
 
     def roi_mode_changed(self, mode):
@@ -231,6 +232,10 @@ class EMBLDetector(AbstractDetector, HardwareObject):
             beam_x = value[0]
             beam_y = value[1]
         return beam_x, beam_y
+
+    def get_beam_centre_pix(self):
+        beam_x, beam_y = self.get_beam_centre()
+        return beam_x / 0.075, beam_y / 0.075
 
     def get_pixel_size_mm(self):
         """Returns pixel size in mm"""

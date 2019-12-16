@@ -52,20 +52,27 @@ class EMBLSession(Session):
         :returns: The base data path.
         :rtype: str
         """
-        data_directory = os.path.join(
-            self.base_directory, os.getenv("USER").strip(), self.start_time
+        user = os.getenv("USER").strip().lower()
+
+        return os.path.join(
+            self.base_directory,
+            user,
+            self.start_time,
         )
-        return data_directory.replace(" ", "")
 
     def get_base_process_directory(self):
         """
         Returns base process directory
         :return: str
         """
+        user = os.getenv("USER").strip().lower()
+
         process_directory = os.path.join(
-            self.base_process_directory,
-            os.getenv("USER"),
-            self.start_time,
-            "PROCESSED_DATA",
+            self.base_process_directory, user, self.start_time, "PROCESSED_DATA"
         )
         return process_directory.replace(" ", "")
+
+
+    def get_secondary_image_directory(self):
+        data_directory = self.get_base_image_directory()
+        return data_directory
