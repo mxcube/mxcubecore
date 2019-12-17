@@ -53,7 +53,7 @@ _objects:
     # Analysis:
     - offline_processing: auto-processing-mockup.xml
     - online_processing: parallel-processing.xml
-    - data_analysis: data-analysis.xml
+    - characterisation: data-analysis.xml
     # - beam_realign: # Skipped - optional
 # Non-object attributes:
 advanced_methods:

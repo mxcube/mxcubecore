@@ -1,4 +1,4 @@
-<object class="DataAnalysis">
+<object class="EDNACharacterisation">
   <object href="/mxcollect" role="collect"/>
   <object href="/eh1/diff-beamstop" role="beamstop"/> 
   <object href="/beam-info" role="beam"/>

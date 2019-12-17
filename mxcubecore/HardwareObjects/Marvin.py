@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,18 +15,18 @@
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import time
+import gevent
 import logging
 import tempfile
 from datetime import datetime
-import gevent
-
 
 from HardwareRepository.HardwareObjects.abstract import AbstractSampleChanger
-from HardwareRepository.HardwareObjects.abstract.sample_changer import Container, Sample
+from HardwareRepository.HardwareObjects.abstract.sample_changer import Container, Crims, Sample
+
 from HardwareRepository import HardwareRepository as HWR
 
 
@@ -119,6 +119,8 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         self._command_list = None
         self._info_dict = {}
         self._in_error_state = False
+        self._was_mount_error = False
+        self._command_acknowledgement = False
 
         self.chan_status = None
         self.chan_sample_is_loaded = None
@@ -236,10 +238,44 @@ class Marvin(AbstractSampleChanger.SampleChanger):
     def sample_is_loaded_changed(self, sample_detected):
         """Updates sample is loaded"""
         if self._sample_detected != sample_detected:
+
+            if sample_detected:
+               logging.getLogger("HWR").debug("Sample changer: sample re-appeared")
+            else:
+               logging.getLogger("HWR").debug("Sample changer: sample disappeared")
+
             self._sample_detected = sample_detected
             self._info_dict["sample_detected"] = sample_detected
             self._updateLoadedSample()
             self.updateInfo()
+
+    def wait_command_acknowledgement(self, timeout):
+        with gevent.Timeout(timeout, Exception("Timeout waiting for command acknowldegement")):
+             logging.getLogger("HWR").debug("Sample changer: start waiting command acknowldegement")
+             while not self._command_acknowledgement:
+                 gevent.sleep(0.05)
+             logging.getLogger("HWR").debug("Sample changer: done waiting command acknowldegement")
+                
+
+    def wait_sample_to_disappear(self, timeout):
+        with gevent.Timeout(timeout, Exception("Timeout waiting for sample to disappear")):
+             logging.getLogger("HWR").debug("Sample changer: start waiting sample to disappear")
+             while self._sample_detected:
+                 if self._was_mount_error:
+                    self._was_mount_error = False
+                    return
+                 gevent.sleep(0.05)
+             logging.getLogger("HWR").debug("Sample changer: done  waiting sample to disappear")
+ 
+    def wait_sample_to_appear(self, timeout):
+        with gevent.Timeout(timeout, Exception("Timeout waiting for sample to appear")):
+             logging.getLogger("HWR").debug("Sample changer: start waiting sample to appear")
+             while not self._sample_detected:
+                 if self._was_mount_error:
+                    self._was_mount_error = False
+                    return
+                 gevent.sleep(0.05)
+             logging.getLogger("HWR").debug("Sample changer: done  waiting sample to appear")
 
     def wait_sample_on_gonio(self, timeout):
         #with gevent.Timeout(timeout, Exception("Timeout waiting for sample on gonio")):
@@ -292,8 +328,10 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         self._info_dict["focus_mode"] = self._focusing_mode
 
     def process_step_info_changed(self, process_step_info):
-        self._process_step_info = process_step_info
+        self._process_step_info = process_step_info.replace("\n", " ")
+        self._command_acknowledgement = True
         if "error" in process_step_info.lower():
+            self._was_mount_error = True
             logging.getLogger("GUI").error("Sample changer: %s" % self._process_step_info)
 	    # GB: 20190304: this seemd to lock mxcube forever on any marvin error
             #self._in_error_state = True
@@ -305,7 +343,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         self._info_dict["process_step"] = self._process_step_info
 
     def command_list_changed(self, cmd_list):
-        self._command_list = cmd_list
+        self._command_list = cmd_list.replace("\n", "")
         logging.getLogger("GUI").info("Sample changer: Last command - %s" % self._command_list)
         self._info_dict["command_list"] = self._command_list
 
@@ -329,6 +367,9 @@ class Marvin(AbstractSampleChanger.SampleChanger):
     def getSampleProperties(self):
         """Gets sample properties """
         return (Container.Pin.__HOLDER_LENGTH_PROPERTY__,)
+
+    def assertCanExecuteTask(self):
+        return
         
     def _doUpdateInfo(self):       
         """Updates the sample changers status: mounted pucks, state, 
@@ -379,10 +420,10 @@ class Marvin(AbstractSampleChanger.SampleChanger):
            old + mount of  new sample) if a sample is already mounted on 
            the diffractometer.
         """
-        self._setState(AbstractSampleChanger.SampleChangerState.Ready)
+        #self._setState(AbstractSampleChanger.SampleChangerState.Ready)
         log = logging.getLogger("GUI")
 
-        if self._focusing_mode not in ("Collimated", "Double", "Imaging","P13mode"):
+        if self._focusing_mode not in ("Collimated", "Double", "Imaging", "TREXX", "P13mode"):
             error_msg = "Focusing mode is undefined. Sample loading is disabled"
             log.error(error_msg)
             return
@@ -457,9 +498,10 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                 self.waitVeto(20.0)
                 log.info("Sample changer: Detector moved to save position")
         else:
-            logging.getLogger("HWR").debug("Sample changer: Closing guillotine...")
-            HWR.beamline.detector.close_cover()
-            logging.getLogger("HWR").debug("Sample changer: Guillotine closed")
+	    pass
+            #logging.getLogger("HWR").debug("Sample changer: Closing guillotine...")
+            #HWR.beamline.detector.close_cover()
+            ##logging.getLogger("HWR").debug("Sample changer: Guillotine closed")
 
         # 4. Executed command and wait till device is ready 
         if self._focusing_mode == "P13mode":
@@ -467,7 +509,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                                     int(sample_index),
                                     int(basket_index))
         else:
-            if self._focusing_mode == "Collimated" or self._focusing_mode == "Imaging":
+            if self._focusing_mode == "Collimated" or self._focusing_mode == "Imaging" or self._focusing_mode == "TREXX":
                 self._executeServerTask(self.cmd_mount_sample,
                                         int(sample_index),
                                         int(basket_index),
@@ -478,33 +520,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                                         int(basket_index),
                                         3)
  
-        # 5. Finish by adding a log line
         self.emit("progressStop", ())
-        end_time = datetime.now()
-        time_delta = "%d" % (end_time - start_time).total_seconds()
-        try:
-           if os.getenv("SUDO_USER"):
-               user_name = os.getenv("SUDO_USER")
-           else:
-               user_name = os.getenv("USER")
-
-           log_file = open(self.log_filename, "a")
-           log_msg = "%s,%s,%s,%s,%s,%d,%d" % (
-                     start_time.strftime("%Y-%m-%d %H:%M:%S"),
-                     end_time.strftime("%Y-%m-%d %H:%M:%S"),
-                     time_delta,
-                     user_name,
-                     "load",
-                     self._mounted_puck,
-                     self._mounted_sample)
-           if not self.is_sample_on_gonio():
-               log_msg += ",Error\n"
-           else:
-               log_msg += ",Success\n"
-           log_file.write(log_msg)
-           log_file.close()
-        except:
-           pass
 
         if self.is_sample_on_gonio():
             log.info("Sample changer: Sample %d:%d loaded" % \
@@ -532,8 +548,8 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         """Unloads a sample from the diffractometer"""
         log = logging.getLogger("GUI")
  
-        self._setState(AbstractSampleChanger.SampleChangerState.Ready)
-        if self._focusing_mode not in ("Collimated", "Double", "Imaging", "P13mode"):
+        #self._setState(AbstractSampleChanger.SampleChangerState.Ready)
+        if self._focusing_mode not in ("Collimated", "Double", "Imaging", "TREXX", "P13mode"):
             error_msg = "Focusing mode is undefined. Sample loading is disabled"
             log.error(error_msg)
             return
@@ -575,8 +591,9 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                 time.sleep(1)
                 self.waitVeto(20.0)
                 log.info("Sample changer: Detector moved to save position")
-        else:
-            HWR.beamline.detector.close_cover()
+        else: 
+            pass
+            #HWR.beamline.detector.close_cover()
 
         start_time = datetime.now()
 
@@ -585,7 +602,8 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                                     sample_index,
                                     basket_index)
         else:
-            if self._focusing_mode == "Collimated" or self._focusing_mode == "Imaging" :
+            if self._focusing_mode == "Collimated" or self._focusing_mode == "Imaging" or self._focusing_mode == "TREXX":
+
                 self._executeServerTask(self.cmd_unmount_sample,
                                         sample_index,
                                         basket_index,
@@ -597,31 +615,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                                         3)
 
         self.emit("progressStop", ())
-        end_time = datetime.now()
-        time_delta = "%d" % (end_time - start_time).total_seconds()
-
-        try:
-           if os.getenv("SUDO_USER"):
-               user_name = os.getenv("SUDO_USER")
-           else:
-               user_name = os.getenv("USER")
-           log_file = open(self.log_filename, "a")
-           log_msg = "%s,%s,%s,%s,%s,%d,%d" % (
-                      start_time.strftime("%Y-%m-%d %H:%M:%S"),
-                      end_time.strftime("%Y-%m-%d %H:%M:%S"),
-                      time_delta,
-                      user_name,
-                      "unload",
-                      self._mounted_puck,
-                      self._mounted_sample)
-           if self.is_sample_on_gonio():
-               log_msg += ",Error\n"
-           else:
-               log_msg += ",Success\n"
-           log_file.write(log_msg)
-           log_file.close()
-        except:
-           pass
 
         if self.is_sample_on_gonio():
             log.error("Sample changer: Failed to unload sample %d:%d" % \
@@ -664,13 +657,19 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             arg_arr.append(arg)
 
         logging.getLogger("HWR").debug("Sample changer: Sending cmd with arguments: %s..." %  str(arg_arr))
-        
+
+        self._command_acknowledgement = False       
+
         method(arg_arr)
         logging.getLogger("HWR").debug("Sample changer: Waiting ready...")
+        self.wait_command_acknowledgement(5.0)
         self._action_started = True
-        gevent.sleep(30)
+        gevent.sleep(5)
         if method == self.cmd_mount_sample:
-            self.wait_sample_on_gonio(120.0)
+            #self.wait_sample_on_gonio(120.0)
+            self._was_mount_error = False
+            self.wait_sample_to_disappear(40.0)
+            self.wait_sample_to_appear(60.0)
         else:
             self.waitReady(120.0)
         logging.getLogger("HWR").debug("Sample changer: Ready")
