@@ -200,11 +200,13 @@ class EMBLSafetyShutter(Device):
         """
         msg = ""
 
-        if self.shutter_state_open:
+        if self.data_collection_state == "collecting":
+            self.shutter_state = "disabled"
+        elif self.shutter_state_open:
             self.shutter_state = "opened"
         elif self.shutter_state_closed:
             self.shutter_state = "closed"
-        elif self.data_collection_state == "collecting" or not self.shutter_can_open:
+        elif not self.shutter_can_open:
             self.shutter_state = "disabled"
         else:
             self.shutter_state = "unknown"

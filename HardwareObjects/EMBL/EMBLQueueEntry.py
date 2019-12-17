@@ -38,8 +38,6 @@ __category__ = "queue"
 
 
 class XrayImagingQueueEntry(BaseQueueEntry):
-    """
-    """
 
     def __init__(self, view=None, data_model=None, view_set_queue_entry=True):
         BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)

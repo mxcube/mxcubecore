@@ -114,9 +114,11 @@ class EMBLOfflineProcessing(HardwareObject):
                 will_execute = True
                 if process_event == "after":
                     will_execute = run_processing
-                    end_of_line_to_execute = " %s %s " % (
+                    end_of_line_to_execute = " %s %s %s %s" % (
                         params_dict["xds_dir"],
                         params_dict.get("collection_id"),
+                        params_dict['sample_reference']['cell'],
+                        params_dict['sample_reference']['spacegroup'] 
                     )
                 elif process_event == "image":
                     filename = params_dict["fileinfo"]["template"] % frame_number

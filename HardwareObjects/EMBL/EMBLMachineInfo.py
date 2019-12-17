@@ -116,6 +116,7 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_sc_dewar_low_level_alarm = None
         self.chan_sc_dewar_overflow_alarm = None
 
+
     def init(self):
 
         self.update_interval = int(self.getProperty("updateIntervalS"))
@@ -127,7 +128,7 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_mach_curr.connectSignal("update", self.mach_current_changed)
         self.chan_state_text = self.getChannelObject("machStateText")
         self.chan_state_text.connectSignal("update", self.state_text_changed)
-        self.state_text_changed(self.chan_state_text.getValue())
+        #self.state_text_changed(self.chan_state_text.getValue())
 
         self.chan_mach_energy = self.getChannelObject("machEnergy")
         self.chan_mach_energy.connectSignal("update", self.mach_energy_changed)
@@ -135,12 +136,10 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_bunch_count.connectSignal("update", self.bunch_count_changed)
         self.chan_frontend_status = self.getChannelObject("frontEndStatus")
         self.chan_frontend_status.connectSignal("update", self.frontend_status_changed)
-        self.frontend_status_changed(self.chan_frontend_status.getValue())
+        #self.frontend_status_changed(self.chan_frontend_status.getValue())
 
         if HWR.beamline.flux is not None:
-            self.connect(
-                HWR.beamline.flux, "fluxInfoChanged", self.flux_info_changed
-            )
+            self.connect(HWR.beamline.flux, "fluxInfoChanged", self.flux_info_changed)
             self.values_ordered_dict["flux"] = {
                 "value": 1,
                 "value_str": "Remeasure flux!",
@@ -199,6 +198,17 @@ class EMBLMachineInfo(HardwareObject):
                 HWR.beamline.ppu_control,
                 "fileTranferStatusChanged",
                 self.file_transfer_status_changed,
+            )
+
+        self.chan_count_dropped = self.getChannelObject("framesCountDropped", optional=True)
+        if self.chan_count_dropped is not None:
+            self.values_ordered_dict["frames_dropped"] = {
+                "value": "",
+                "in_range": True,
+                "title": "Frames dropped",
+            }
+            self.chan_count_dropped.connectSignal(
+                "update", self.count_dropped_changed
             )
 
         self.temp_hum_polling = spawn(
@@ -348,6 +358,14 @@ class EMBLMachineInfo(HardwareObject):
         if status[2] > 0:
             logging.getLogger("GUI").error(
                 "Error in file transfer (%d files failed to copy)." % status[2]
+            )
+
+    def count_dropped_changed(self, num_dropped):
+        self.values_ordered_dict["frames_dropped"]["value"] = str(num_dropped)
+        self.values_ordered_dict["frames_dropped"]["in_range"] = num_dropped == 0
+        if num_dropped > 0:
+            logging.getLogger("GUI").error(
+                "Error during the frame acquisition (in total %d frame(s) dropped)." % num_dropped
             )
 
     def update_sc_alarm(self):

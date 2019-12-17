@@ -23,7 +23,7 @@ EMBLPiezoMotor
 
 import logging
 
-from TINEMotor import TINEMotor
+HardwareRepository.HardwareObjects.EMBL.TINEMotor import TINEMotor
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
@@ -65,10 +65,3 @@ class EMBLPiezoMotor(TINEMotor):
         else:
             self.cmd_move_first(target)
             self.cmd_move_second(1)
-
-    def getMotorMnemonic(self):
-        """Returns motor name
-
-        :return: str
-        """
-        return "EMBLPiezoMotor"
