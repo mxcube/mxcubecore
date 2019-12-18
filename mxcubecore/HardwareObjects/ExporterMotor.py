@@ -1,145 +1,238 @@
-import time
-from gevent import Timeout
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
-
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU General Lesser Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 """
 Example xml file:
-<device class="MicrodiffMotor">
+<device class="ExporterMotor">
   <username>phiy</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <motor_name>AlignmentY</motor_name>
-  <GUIstep>1.0</GUIstep>
-  <unit>-1e-3</unit>
-  <resolution>1e-2</resolution>
+  <tolerance>1e-2</tolerance>
 </device>
 """
 
+import sys
+
+from gevent import Timeout, sleep
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import (
+    AbstractMotor,
+    MotorStates,
+)
+from HardwareRepository.Command.Exporter import Exporter
+
+__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
+
 
 class ExporterMotor(AbstractMotor):
+    """API for motor using the Exporter protocol, based on AbstractMotor"""
+
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
-
-        self.motor_name = None
-        self.motor_resolution = None
-        self.motor_pos_attr_suffix = None
+        self.username = None
+        self._motor_pos_suffix = "Position"
+        self._motor_state_suffix = "State"
+        self._exporter = None
+        self.__position = None
+        self.__motor_state = None
 
     def init(self):
-        self.motor_name = self.getProperty("motor_name")
-        self.motor_resolution = self.getProperty("resolution")
-        if self.motor_resolution is None:
-            self.motor_resolution = 0.0001
-        self.motor_pos_attr_suffix = "Position"
+        """Initialise the motor"""
+        AbstractMotor.init(self)
+        _exporter_address = self.getProperty("exporter_address")
+        _host, _port = _exporter_address.split(":")
+        self._exporter = Exporter(_host, int(_port))
 
-        self.chan_position = self.addChannel(
-            {"type": "exporter", "name": "%sPosition" % self.motor_name},
-            self.motor_name + self.motor_pos_attr_suffix,
-        )
-        self.chan_position.connectSignal("update", self.position_changed)
-
-        self.chan_state = self.addChannel(
-            {"type": "exporter", "name": "state"}, "State"
-        )
-        self.chan_all_motor_states = self.addChannel(
-            {"type": "exporter", "name": "motor_states"}, "MotorStates"
-        )
-        self.chan_all_motor_states.connectSignal(
-            "update", self.all_motor_states_changed
+        self.__position = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": _exporter_address,
+                "name": "position",
+            },
+            self.motor_name + self._motor_pos_suffix,
         )
 
-        self.cmd_abort = self.add_command({"type": "exporter", "name": "abort"}, "abort")
-        self.cmd_get_dynamic_limits = self.add_command(
-            {"type": "exporter", "name": "get%sDynamicLimits" % self.motor_name},
-            "getMotorDynamicLimits",
-        )
-        self.cmd_get_limits = self.add_command(
-            {"type": "exporter", "name": "get_limits"}, "getMotorLimits"
-        )
-        self.cmd_get_max_speed = self.add_command(
-            {"type": "exporter", "name": "get_max_speed"}, "getMotorMaxSpeed"
-        )
-        self.cmd_home = self.add_command(
-            {"type": "exporter", "name": "homing"}, "startHomingMotor"
+        if self.__position:
+            self.__position.connectSignal("update", self.update_value)
+            self.get_value()
+
+        self.__motor_state = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": _exporter_address,
+                "name": "motor_state",
+            },
+            self.motor_name + self._motor_state_suffix,
         )
 
-        self.position_changed(self.chan_position.getValue())
-        self.set_state(self.motor_states.READY)
+        if self.__motor_state:
+            self.__motor_state.connectSignal("update", self.update_state)
 
-    def connectNotify(self, signal):
-        if signal == "positionChanged":
-            self.emit("positionChanged", (self.get_position(),))
-        elif signal == "stateChanged":
-            self.emit("stateChanged", (self.get_state(),))
-        elif signal == "limitsChanged":
-            self.emit("limitsChanged", (self.get_limits(),))
+    def get_state(self):
+        """Get the motor state.
+        Returns:
+            (enum 'MotorStates'): Motor state.
+        """
+        try:
+            _state = self.__motor_state.get_value().upper()
+            self._state = MotorStates.__members__[_state]
+        except KeyError:
+            self._state = MotorStates.UNKNOWN
+        return self._state
 
-    def all_motor_states_changed(self, all_motor_states):
-        d = dict([x.split("=") for x in all_motor_states])
-        # Some are like motors but have no state
-        # we set them to ready
-        if d.get(self.motor_name) is None:
-            new_motor_state = self.motor_states.READY
-        else:
-            new_motor_state = self.motor_states.fromstring(d[self.motor_name])
+    def _get_hwstate(self):
+        """Get the hardware state, reported by the MD2 application.
+        Returns:
+            (string): The state.
+        """
+        try:
+            return self._exporter.read_property("HardwareState")
+        except BaseException:
+            return "Ready"
 
-        if self.get_state() != new_motor_state:
-            self.set_state(new_motor_state)
+    def _get_swstate(self):
+        """Get the software state, reported by the MD2 application.
+        Returns:
+            (string): The state.
+        """
+        return self._exporter.read_property("State")
 
-    def limits_changed(self):
-        self.emit("limitsChanged", (self.get_limits(),))
+    def _ready(self):
+        """Get the "Ready" state - software and hardware.
+        Returns:
+            (bool): True if both "Ready", False otherwise.
+        """
+        if self._get_swstate() == "Ready" and self._get_hwstate() == "Ready":
+            return True
+        return False
+
+    def _wait_ready(self, timeout=3):
+        """Wait for the state to be "Ready".
+        Args:
+            timeout (float): waiting time [s].
+        Raises:
+            RuntimeError: Execution timeout.
+        """
+        with Timeout(timeout, RuntimeError("Execution timeout")):
+            while not self._ready():
+                sleep(0.01)
+
+    def wait_move(self, timeout=20):
+        """Wait until the end of move ended, using the application state.
+        Args:
+            timeout(float): Timeout [s]. Default value is 20 s
+        """
+        self._wait_ready(timeout)
+
+    def wait_motor_move(self, timeout=20):
+        """Wait until the end of move ended using the motor state.
+        Args:
+            timeout(float): Timeout [s]. Default value is 20 s
+        Raises:
+            RuntimeError: Execution timeout.
+        """
+        with Timeout(timeout, RuntimeError("Execution timeout")):
+            while self.get_state() != MotorStates.READY:
+                sleep(0.01)
+
+    def get_value(self):
+        """Get the motor position.
+        Returns:
+            (float): Motor position.
+        """
+        self._nominal_value = self.__position.get_value()
+        return self._nominal_value
 
     def get_limits(self):
-        dynamic_limits = self.get_dynamic_limits()
-        if dynamic_limits != (-1E4, 1E4):
-            return dynamic_limits
-        else:
-            try:
-                low_lim, hi_lim = map(float, self.cmd_get_limits(self.motor_name))
-                if low_lim == float(1E999) or hi_lim == float(1E999):
-                    raise ValueError
-                return low_lim, hi_lim
-            except BaseException:
-                return (-1E4, 1E4)
+        """Returns motor low and high limits.
+        Returns:
+            (tuple): two floats tuple (low limit, high limit).
+        """
+        try:
+            _low, _high = self._exporter.execute("getMotorLimits", self.motor_name)
+            # inf is a problematic value, convert to sys.float_info.max
+            if _low == float("-inf"):
+                _low = -sys.float_info.max
+
+            if _high == float("inf"):
+                _high = sys.float_info.max
+
+            self._limits = (_low, _high)
+        except ValueError:
+            self._limits = (-1e4, 1e4)
+        return self._limits
 
     def get_dynamic_limits(self):
+        """Returns motor low and high dynamic limits.
+        Returns:
+            (tuple): two floats tuple (low limit, high limit).
+        """
         try:
-            low_lim, hi_lim = map(float, self.cmd_get_dynamic_limits(self.motor_name))
-            if low_lim == float(1E999) or hi_lim == float(1E999):
-                raise ValueError
-            return low_lim, hi_lim
-        except BaseException:
-            return (-1E4, 1E4)
+            _low, _high = self._exporter.execute(
+                "getMotorDynamicLimits", self.motor_name
+            )
+            # inf is a problematic value, convert to sys.float_info.max
+            if _low == float("-inf"):
+                _low = -sys.float_info.max
 
-    def get_max_speed(self):
-        return self.cmd_get_max_speed(self.motor_name)
+            if _high == float("inf"):
+                _high = sys.float_info.max
+            return _low, _high
+        except ValueError:
+            return -1e4, 1e4
 
-    def position_changed(self, position, private={}):
-        if None not in (position, self.get_position()):
-            if abs(position - self.get_position()) <= self.motor_resolution:
-                return
-        self.set_position(position)
-        self.emit("positionChanged", (position,))
+    def _move(self, value, wait=True, timeout=None):
+        """Move motor to absolute value. Wait the move to finish.
+        Args:
+            value (float): target value
+            wait (bool): optional - wait until motor movement finished.
+            timeout (float): optional - timeout [s].
+        """
+        self.__position.set_value(value)
+        self.emit("stateChanged", (MotorStates.MOVING))
 
-    def move(self, position, wait=False, timeout=None):
-        # if self.getState() != MicrodiffMotor.NOTINITIALIZED:
-        if abs(self.get_position() - position) >= self.motor_resolution:
-            self.chan_position.setValue(position)  # absolutePosition-self.offset)
-        if timeout:
-            self.wait_end_of_move(timeout)
-
-    def wait_end_of_move(self, timeout=None):
-        with Timeout(timeout):
-            time.sleep(0.1)
-            while not self.is_ready():
-                time.sleep(0.1)
-
-    def getMotorMnemonic(self):
-        return self.motor_name
+        if wait:
+            self.wait_move(timeout)
 
     def stop(self):
-        if self.get_state() != self.motor_states.NOTINITIALIZED:
-            self.cmd_abort()
+        """Stop the motor movement immediately."""
+        if self.get_state() != MotorStates.UNKNOWN:
+            self._exporter.execute("abort")
+
+    def abort(self):
+        """Abort the motor movement immediately."""
+        self.stop()
 
     def home(self, timeout=None):
-        self.cmd_home(self.motor_name)
-        if timeout:
-            self.wait_end_of_move(timeout)
+        """Homing procedure.
+        Args:
+            timeout (float): optional - timeout [s].
+        """
+        self._exporter.execute("startHomingMotor", self.motor_name)
+
+    def get_max_speed(self):
+        """Get the motor maximum speed.
+        Returns:
+            (float): the maximim speed [unit/s].
+        """
+        return self._exporter.execute("getMotorMaxSpeed", self.motor_name)
+
+    def name(self):
+        """Get the motor name. Should be removed when GUI ready"""
+        return self.motor_name
