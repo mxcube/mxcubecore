@@ -1,4 +1,3 @@
-#
 #  Project: MXCuBE
 #  https://github.com/mxcube
 #
@@ -20,8 +19,9 @@
 import os
 import time
 import logging
-import gevent
 import subprocess
+
+import gevent
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects.XSDataCommon import (

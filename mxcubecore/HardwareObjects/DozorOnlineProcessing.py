@@ -24,8 +24,8 @@ from XSDataCommon import XSDataInteger
 from XSDataCommon import XSDataString
 from XSDataControlDozorv1_1 import XSDataInputControlDozor
 
-from HardwareRepository.HardwareObjects.GenericParallelProcessing import (
-    GenericParallelProcessing
+from HardwareRepository.HardwareObjects.abstract.AbstractOnlineProcessing import (
+    AbstractOnlineProcessing
 )
 from HardwareRepository import HardwareRepository as HWR
 
@@ -34,7 +34,7 @@ __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"
 
 
-class DozorParallelProcessing(GenericParallelProcessing):
+class DozorOnlineProcessing(AbstractOnlineProcessing):
     def create_processing_input_file(self, processing_input_filename):
         """Creates dozor input file base on data collection parameters
 
@@ -78,6 +78,5 @@ class DozorParallelProcessing(GenericParallelProcessing):
 
             self.align_processing_results(batch[0][0] - 1, batch[-1][0] - 1)
             self.emit(
-                "paralleProcessingResults",
-                (self.results_aligned, self.params_dict, False),
+                "processingResultsUpdate", False
             )
