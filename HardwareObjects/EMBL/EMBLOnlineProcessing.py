@@ -30,8 +30,8 @@ import subprocess
 import numpy as np
 import gevent
 
-from HardwareRepository.HardwareObjects.GenericOnlineProcessing import (
-    GenericOnlineProcessing,
+from HardwareRepository.HardwareObjects.abstract.AbstractOnlineProcessing import (
+    AbstractOnlineProcessing,
 )
 
 from HardwareRepository.HardwareObjects.XSDataCommon import (
@@ -86,14 +86,14 @@ ga = {:.2f} deg
 CONST_H = 4.135667516e-15   # eV*s
 CONST_C = 299792458.
 
-class EMBLOnlineProcessing(GenericParallelProcessing):
+class EMBLOnlineProcessing(AbstractOnlineProcessing):
     """
     Obtains Dozor on the fly processing results
     Assembles crystfel input files and starts crystfel
     """
 
     def __init__(self, name):
-        GenericOnlineProcessing.__init__(self, name)
+        AbstractOnlineProcessing.__init__(self, name)
 
         self.display_task = None
         self.nxds_input_template = None
@@ -115,7 +115,7 @@ class EMBLOnlineProcessing(GenericParallelProcessing):
             self.result_types.append({"key": key, "descr": "Average I", "color": (255,0,0), "size": 0})
             self.chan_dozor_average_i.connectSignal("update", self.dozor_average_i_changed)
 
-        GenericOnlineProcessing.init(self)
+        AbstractOnlineProcessing.init(self)
 
         self.chan_dozor_pass = self.getChannelObject("chanDozorPass")
         if self.chan_dozor_pass is not None:

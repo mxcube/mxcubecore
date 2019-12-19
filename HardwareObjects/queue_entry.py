@@ -634,12 +634,12 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             qc.connect(
                 HWR.beamline.online_processing,
                 "processingFinished",
-                self.processing_finished,
+                self.online_processing_finished,
             )
             qc.connect(
                 HWR.beamline.online_processing,
                 "processingFailed",
-                self.processing_failed,
+                self.online_processing_failed,
             )
 
         data_model = self.get_data_model()
@@ -674,12 +674,12 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             qc.disconnect(
                 HWR.beamline.online_processing,
                 "processingFinished",
-                self.processing_finished,
+                self.online_processing_finished,
             )
             qc.disconnect(
                 HWR.beamline.online_processing,
                 "processingFailed",
-                self.processing_failed,
+                self.online_processing_failed,
             )
 
         self.get_view().set_checkable(False)
@@ -692,9 +692,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             acq_1.acquisition_parameters.in_queue = self.in_queue
             cpos = acq_1.acquisition_parameters.centred_position
             sample = self.get_data_model().get_sample_node()
-            HWR.beamline.collect.run_processing_after = dc.run_processing_after
+            HWR.beamline.collect.run_offline_processing = dc.run_offline_processing
             HWR.beamline.collect.aborted_by_user = None
-            self.processing_task = None
+            self.online_processing_task = None
 
             try:
                 if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:
@@ -727,16 +727,15 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     HWR.beamline.collect.set_mesh(False)
 
                 if (
-                    dc.run_processing_parallel
+                    dc.run_online_processing
                     and acq_1.acquisition_parameters.num_images > 4
                     and HWR.beamline.online_processing is not None
                 ):
-                    self.processing_task = gevent.spawn(
+                    self.online_processing_task = gevent.spawn(
                         HWR.beamline.online_processing.run_processing, dc
                     )
 
                 empty_cpos = queue_model_objects.CentredPosition()
-
                 if cpos != empty_cpos:
                     HWR.beamline.microscope.shapes.select_shape_with_cpos(cpos)
                 else:
@@ -749,7 +748,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     )
 
                 HWR.beamline.microscope.shapes.inc_used_for_collection(cpos)
-
                 param_list = queue_model_objects.to_collect_dict(
                     dc,
                     HWR.beamline.session,
@@ -757,6 +755,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     cpos if cpos != empty_cpos else None
                 )
 
+                #TODO this is wrong. Rename to something like collect.start_procedure
                 self.collect_task = HWR.beamline.collect.collect(
                     COLLECTION_ORIGIN_STR.MXCUBE, param_list
                 )
@@ -786,8 +785,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             raise QueueExecutionException(msg, self)
 
     def collect_started(self, owner, num_oscillations):
-        logging.getLogger("user_level_log").info("Collection started")
-        self.get_view().setText(1, "Collecting")
+        logging.getLogger("user_level_log").info("Collection: Started")
+        self.get_view().setText(1, "Collecting...")
 
     def collect_number_of_frames(self, number_of_images=0, exposure_time=0):
         pass
@@ -804,7 +803,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             self.get_view().setText(1, str(image_number) + "/" + str(num_images))
 
     def preparing_collect(self, number_images=0, exposure_time=0):
-        self.get_view().setText(1, "Collecting")
+        self.get_view().setText(1, "Preparing to collecting")
 
     def collect_failed(self, owner, state, message, *args):
         # this is to work around the remote access problem
@@ -812,7 +811,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.get_view().setText(1, "Failed")
         self.status = QUEUE_ENTRY_STATUS.FAILED
         logging.getLogger("queue_exec").error(message.replace("\n", " "))
-        raise QueueExecutionException(message.replace("\n", " "), self)
+        #raise QueueExecutionException(message.replace("\n", " "), self)
 
     def collect_osc_started(
         self, owner, blsampleid, barcode, location, collect_dict, osc_id
@@ -823,25 +822,22 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         # this is to work around the remote access problem
         dispatcher.send("collect_finished")
         self.get_view().setText(1, "Collection done")
-        logging.getLogger("user_level_log").info("Collection finished")
+        logging.getLogger("user_level_log").info("Collection: Finished")
 
-        if self.processing_task is not None:
+        if self.online_processing_task is not None:
             self.get_view().setText(1, "Processing...")
             logging.getLogger("user_level_log").warning("Processing: Please wait...")
-            HWR.beamline.online_processing.done_event.wait(timeout=5)
+            HWR.beamline.online_processing.done_event.wait(timeout=120)
             HWR.beamline.online_processing.done_event.clear()
 
     def stop(self):
         BaseQueueEntry.stop(self)
-        try:
-            HWR.beamline.collect.stopCollect("mxCuBE")
-            if self.processing_task is not None:
-                HWR.beamline.online_processing.stop_processing()
-                logging.getLogger("user_level_log").error("Processing: Stoppend")
-            if self.centring_task is not None:
-                self.centring_task.kill(block=False)
-        except gevent.GreenletExit:
-            raise
+        HWR.beamline.collect.stop_collect()
+        if self.online_processing_task is not None:
+            HWR.beamline.online_processing.stop_processing()
+            logging.getLogger("user_level_log").error("Processing: Stoppend")
+        if self.centring_task is not None:
+            self.centring_task.kill(block=False)
 
         self.get_view().setText(1, "Stopped")
         logging.getLogger("queue_exec").info("Calling stop on: " + str(self))
@@ -850,14 +846,14 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         dispatcher.send("collect_finished")
         raise QueueAbortedException("Queue stopped", self)
 
-    def processing_finished(self):
+    def online_processing_finished(self):
         dispatcher.send("collect_finished")
-        self.processing_task = None
+        self.online_processing_task = None
         # self.get_view().setText(1, "Done")
         logging.getLogger("user_level_log").info("Processing: Done")
 
-    def processing_failed(self):
-        self.processing_task = None
+    def online_processing_failed(self):
+        self.online_processing_task = None
         self.get_view().setText(1, "Processing failed")
         logging.getLogger("user_level_log").error("Processing: Failed")
 
@@ -1619,8 +1615,8 @@ class AdvancedConnectorQueueEntry(BaseQueueEntry):
         BaseQueueEntry.execute(self)
         firt_qe_data_model = self.first_qe.get_data_model()
 
-        if firt_qe_data_model.run_processing_parallel == "XrayCentering":
-            best_positions = firt_qe_data_model.parallel_processing_result.get(
+        if firt_qe_data_model.run_online_processing == "XrayCentering":
+            best_positions = firt_qe_data_model.online_processing_results["aligned"].get(
                 "best_positions", []
             )
 
