@@ -1,9 +1,23 @@
-<device class="MDCameraMockup">
-  <username>Camera Microdiff</username>
-  <specversion>130.235.94.114:kappa</specversion>
-  <channel type="spec" name="UdiffVersion">UDIFF_VERSION</channel>
-  <tangoname>i9113/microdiff/newMD</tangoname>
-  <interval>100</interval>
-  <remote_interval>100</remote_interval>
-  <image_name>mxcube_sample_snapshot.jpeg</image_name>
+<device class="LNLS.LNLSCamera">
+    <!-- Channels -->
+    <channel type="epics" name="epicsCameraSample_data" auto_monitor="False">13SIM1:image1:ArrayData</channel>
+    <channel type="epics" name="epicsCameraSample_img_pixel_size">13SIM1:image1:ArraySize0_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_img_width">13SIM1:image1:ArraySize1_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_img_height">13SIM1:image1:ArraySize2_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_back">13SIM1:image1:ArrayCallbacks</channel>
+    <channel type="epics" name="epicsCameraSample_en_back">13SIM1:image1:EnableCallbacks</channel>
+    <channel type="epics" name="epicsCameraSample_acq_stop">13SIM1:cam1:Acquire</channel>
+    <channel type="epics" name="epicsCameraSample_acq_start">13SIM1:cam1:Acquire</channel>
+    <channel type="epics" name="epicsCameraSample_acq_time">13SIM1:cam1:AcquireTime</channel>
+    <channel type="epics" name="epicsCameraSample_acq_time_rbv">13SIM1:cam1:AcquireTime_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_gain">13SIM1:cam1:Gain</channel>
+    <channel type="epics" name="epicsCameraSample_gain_rbv">13SIM1:cam1:Gain_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_auto_gain">MXROB:ueye:AutoGain</channel>
+    <channel type="epics" name="epicsCameraSample_auto_gain_rbv">MXROB:ueye:AutoGain_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_frames_per_second">13SIM1:cam1:ArrayRate</channel>
+    <channel type="epics" name="epicsCameraSample_frames_per_second_rbv">13SIM1:cam1:ArrayRate_RBV</channel>
+    <!-- Properties -->
+    <username>Camera</username>
+    <source>/usr/local/src/mxcube/ExampleFiles/fakeimg.jpg</source>
+    <interval>67</interval>
 </device>
