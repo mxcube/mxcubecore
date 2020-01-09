@@ -1,0 +1,17 @@
+<device class="LNLS.LNLSMotor">
+    <!-- Channels -->
+    <channel type="epics" name="epicsMotor_val">SOL:m8.VAL</channel>
+    <channel type="epics" name="epicsMotor_rlv">SOL:m8.RLV</channel>
+    <channel type="epics" name="epicsMotor_rbv" polling="500">SOL:m8.RBV</channel>
+    <channel type="epics" name="epicsMotor_dmov" polling="500">SOL:m8.DMOV</channel>
+    <channel type="epics" name="epicsMotor_stop">SOL:m8.STOP</channel>
+    <channel type="epics" name="epicsMotor_velo">SOL:m8.VELO</channel>
+    <channel type="epics" name="epicsMotor_dllm">SOL:m8.DLLM</channel>
+    <channel type="epics" name="epicsMotor_dhlm">SOL:m8.DHLM</channel>
+    <channel type="epics" name="epicsMotor_egu">SOL:m8.EGU</channel>
+    <!-- Properties -->
+    <username>sampy</username>
+    <motor_name>CentringY</motor_name>
+    <GUIstep>0.01</GUIstep>
+    <unit>1e-5</unit>
+</device>
