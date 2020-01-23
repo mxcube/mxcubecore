@@ -10,10 +10,10 @@ sys.path.insert(0, MXCUBE_DIR)
 
 from HardwareRepository import HardwareRepository as HWR
 
-hwr_qt_path = os.path.join(HWR_DIR, "configuration/test")
-HWR.init_hardware_repository(hwr_qt_path)
-hwr_qt = HWR.getHardwareRepository()
-hwr_qt.connect()
+hwr_path = os.path.join(HWR_DIR, "configuration/test")
+HWR.init_hardware_repository(hwr_path)
+hwr = HWR.getHardwareRepository()
+hwr.connect()
 
 @pytest.fixture(scope="session")
 def beamline():

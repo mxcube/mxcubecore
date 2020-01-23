@@ -9,6 +9,8 @@ scipy
 matplotlib
 Pillow
 pylint
+jsonschema
+pydantic
 # f90nml, mgen, and py4j are required for GPhL Workflow and emulation
 # f90nml
 # mgen
