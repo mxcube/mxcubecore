@@ -178,12 +178,6 @@ class TangoLimaVideoLoopback(TangoLimaVideo):
         self._open_video_device(loopback_device_path)
         self._initialize_video_device(v4l2.V4L2_PIX_FMT_RGB24, w, h, 3)
 
-        # Some video decoders have difficulties to decode videos with odd image dimensions
-        # (JSMPEG beeing one of them) so we make sure that the size is even,
-        # we still use the original size for the video device
-        w = w if w % 2 == 0 else w + 1
-        h = h if h % 2 == 0 else h + 1
-
         self.set_stream_size(w, h)
         self._set_stream_original_size(w, h)
         self.start_video_stream_process()
