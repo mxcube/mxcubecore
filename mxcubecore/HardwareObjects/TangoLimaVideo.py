@@ -20,10 +20,36 @@ import gevent
 import PyTango
 from PIL import Image
 import io
+import gipc
+import os
 
 from PyTango.gevent import DeviceProxy
 
 from HardwareRepository import BaseHardwareObjects
+
+
+def poll_image(lima_tango_device, video_mode, FORMATS):
+    img_data = lima_tango_device.video_last_image
+
+    hfmt = ">IHHqiiHHHH"
+    hsize = struct.calcsize(hfmt)
+    _, _, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(
+        hfmt, img_data[1][:hsize]
+    )
+
+    raw_data = img_data[1][hsize:]
+    _from, _to = FORMATS.get(video_mode, (None, None))
+
+    if _from and _to:
+        img = Image.frombuffer(_from, (height, width), raw_data, "raw", _from, 0, 1)
+
+        img_bytes = io.BytesIO()
+        img.save(img_bytes, format=_to)
+        img = img.tobytes()
+    else:
+        img = raw_data
+
+    return img, width, height
 
 
 class TangoLimaVideo(BaseHardwareObjects.Device):
@@ -42,9 +68,9 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
         # and the second the desried output format. The image is
         # passed on as it is of the video mode is not in the dictionary
         self._FORMATS = {
-            "RGB8": ("L", "PNG"),
-            "RGB24": ("RGB", "PNG"),
-            "RGB32": ("RGBA", "PNG"),
+            "RGB8": ("L", "BMP"),
+            "RGB24": ("RGB", "BMP"),
+            "RGB32": ("RGBA", "BMP"),
         }
 
     def init(self):
@@ -61,7 +87,6 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
 
             self.device = BaseHardwareObjects.Null()
         else:
-            self._video_mode = self.getProperty("video_mode") or "RGB24"
             self.device.video_mode = self._video_mode
             if self.getProperty("exposure_time"):
                 self.set_exposure(float(self.getProperty("exposure_time")))
@@ -70,39 +95,14 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
 
         self.setIsReady(True)
 
-    def _handle_format(self, data, width, height, pil_image=False):
-        _from, _to = self._FORMATS.get(self._video_mode, (None, None))
-
-        if _from and _to:
-            img = Image.frombuffer(_from, (width, height), data, "raw", _from, 0, 1)
-
-            img_bytes = io.BytesIO()
-            img.save(img_bytes, format=_to)
-
-            if not pil_image:
-                img = img_bytes.getvalue()
-        else:
-            img = data
-
-        return img
-
-    def _get_last_image(self):
-        img_data = self.device.video_last_image
-
-        hfmt = ">IHHqiiHHHH"
-        hsize = struct.calcsize(hfmt)
-        _, _, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(
-            hfmt, img_data[1][:hsize]
-        )
-        raw_data = img_data[1][hsize:]
-
-        data = self._handle_format(raw_data, width, height)
-
-        return data, width, height
-
     def _do_polling(self, sleep_time):
+        lima_tango_device = self.device
+
         while True:
-            data, width, height = self._get_last_image()
+            data, width, height = poll_image(
+                lima_tango_device, self.video_mode, self._FORMATS
+            )
+
             self.emit("imageReceived", data, width, height, False)
             time.sleep(sleep_time)
 
