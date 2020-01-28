@@ -239,6 +239,12 @@ class AbstractVideoDevice(Device):
         image.resize(raw_dims[1], raw_dims[0], 1)
         return cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
 
+    def y16_2_rgb(self, raw_buffer):
+        image = np.fromstring(raw_buffer, dtype=np.uint8)
+        raw_dims = self.get_raw_image_size()
+        np.resize(image, (raw_dims[1], raw_dims[0], 2))
+        return cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+
     def yuv_2_rgb(self, raw_buffer):
         image = np.fromstring(raw_buffer, dtype=np.uint8)
         raw_dims = self.get_raw_image_size()
@@ -361,6 +367,8 @@ class AbstractVideoDevice(Device):
             self.decoder = self.yuv_2_rgb
         elif cam_encoding == "y8":
             self.decoder = self.y8_2_rgb
+        elif cam_encoding == "y16":
+            self.decoder = self.y16_2_rgb
 
     def get_image_dimensions(self):
         raw_width, raw_height = self.get_raw_image_size()
