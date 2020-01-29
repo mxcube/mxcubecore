@@ -75,7 +75,9 @@ class LNLSCamera(BaseHardwareObjects.Device):
             return -1
 
         if len(self.imgArray) != self.array_size:
-            logging.getLogger("HWR").error("%s - Error in array lenght!" % (self.__class__.__name__))
+            logging.getLogger("HWR").error(\
+            "%s - Error in array lenght! Expected %d, but got %d." % \
+            (self.__class__.__name__, self.array_size, len(self.imgArray)))
             # Return error for this frame, but cam remains live for new frames
             return -1
 
@@ -106,28 +108,40 @@ class LNLSCamera(BaseHardwareObjects.Device):
         return 0
 
     def get_pixel_size(self):
-        pixel_size = -1
+        pixel_size = 1
         try:
             pixel_size = self.getValue(CAMERA_IMG_PIXEL_SIZE)
+            if pixel_size is None or pixel_size <= 0:
+                pixel_size = 1
         except:
             print("Error on getting camera pixel size.")
-        return pixel_size
+        finally:
+            logging.getLogger("HWR").info("LNLSCamera pixel size is %d." % (pixel_size))
+            return pixel_size
 
     def get_width(self):
-        width = -1
+        width = 0
         try:
             width = self.getValue(CAMERA_IMG_WIDTH)
+            if width is None:
+                width = 0
         except:
             print("Error on getting camera width.")
-        return width
+        finally:
+            logging.getLogger("HWR").info("LNLSCamera width is %d." % (width))
+            return width
 
     def get_height(self):
-        height = -1
+        height = 0
         try:
             height = self.getValue(CAMERA_IMG_HEIGHT)
+            if height is None:
+                height = 0
         except:
             print("Error on getting camera height.")
-        return height
+        finally:
+            logging.getLogger("HWR").info("LNLSCamera height is %d." % (height))
+            return height
 
     def get_array_size(self):
         array_size = -1
