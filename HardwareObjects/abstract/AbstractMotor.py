@@ -22,8 +22,9 @@
 
 import abc
 from enum import IntEnum, unique
-from gevent import Timeout
-from HardwareRepository.HardwareObjects.abstract.AbstractActuator import AbstractActuator
+from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
+    AbstractActuator
+)
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -32,6 +33,7 @@ __license__ = "LGPLv3+"
 @unique
 class MotorStates(IntEnum):
     """Motor states definitions."""
+
     HOME = 5
     LOWLIMIT = 6
     HIGHLIMIT = 7
@@ -48,14 +50,13 @@ class AbstractMotor(AbstractActuator):
     def __init__(self, name):
         AbstractActuator.__init__(self, name)
 
-        self._state = MotorStates.UNKNOWN
         self._velocity = None
         self._tolerance = None
 
     def init(self):
         """Initialise some parametrs."""
         self._tolerance = self.getProperty("tolerance") or 1e-3
-        
+
     @abc.abstractmethod
     def get_value(self):
         """Read the motor position.
