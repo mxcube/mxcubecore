@@ -21,9 +21,6 @@
 """Abstract Actuator"""
 
 import abc
-from enum import IntEnum, unique
-from gevent import Timeout
-from gevent.event import Event
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
@@ -44,7 +41,7 @@ class AbstractActuator(HardwareObject):
         self.actuator_name = None
         self.read_only = False
         self.default_value = None
-        
+
     def init(self):
         """Initialise some parameters."""
         self.actuator_name = self.getProperty("actuator_name")
