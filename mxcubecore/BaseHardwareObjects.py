@@ -446,7 +446,7 @@ class HardwareObjectMixin(CommandContainer):
         return self._ready_event.is_set()
 
     def update_state(self, state=None):
-        """Check if the state has changed. Emist signal stateChanged.
+        """Check if the state has changed. Emits signal stateChanged.
         Args:
             state (enum 'HardwareObjectState'): state
         """
