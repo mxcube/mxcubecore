@@ -1,84 +1,128 @@
-"""
-Actuators have two positions - 'IN' and 'OUT'.
-"""
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU General Lesser Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
-from warnings import warn
-from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository.TaskUtils import task
+"""Abstract Actuator"""
+
+import abc
+from enum import IntEnum, unique
+from gevent import Timeout
+from gevent.event import Event
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+
+__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
 
-class AbstractActuator(Device):
+class AbstractActuator(HardwareObject):
+    """Abstract actuator"""
 
-    (UNKNOWN, IN, OUT, MOVING) = ("unknown", "in", "out", "moving")
+    __metaclass__ = abc.ABCMeta
+
+    unit = None
 
     def __init__(self, name):
-        Device.__init__(self, name)
-        self.actuator_state = AbstractActuator.UNKNOWN
-        self.username = "unknown"
-        # default timeout - 3 sec
-        self._timeout = 3
-        self.states = {True: "IN", False: "OUT"}
+        HardwareObject.__init__(self, name)
+        self._nominal_value = None
+        self._limits = (None, None)
+        self.actuator_name = None
+        self.read_only = False
+        self.default_value = None
+        
+    def init(self):
+        """Initialise some parameters."""
+        self.actuator_name = self.getProperty("actuator_name")
+        self.read_only = self.getProperty("read_only") or False
+        self.default_value = self.getProperty("default_value")
 
-    def connectNotify(self, signal):
-        if signal == "actuatorStateChanged":
-            self.value_changed(self.get_actuator_state(read=True))
-
-    def value_changed(self, value):
-        self.actuator_state = self.states.get(value, AbstractActuator.UNKNOWN)
-        self.emit("actuatorStateChanged", (self.actuator_state.lower(),))
-
-    def get_actuator_state(self, read=False):
-        """Return the state value
-           Args:
-             read (bool): read the hardware if True
-           Returns:
-             (string): the state
+    @abc.abstractmethod
+    def get_value(self):
+        """Read the actuator position.
+        Returns:
+            float: Actuator position.
         """
-        logging.getLogger().info("%s state: %r" % (self.username, self.actuator_state))
-        return self.actuator_state
+        return None
 
-    @task
-    def actuator_in(self, wait=True, timeout=3):
-        """Set the actuator 'in'. Update the status
-           Keyword Args:
-             wait (bool): wait for the movement to finish
-             timeout (float): movement expires after timeout [s]
+    def get_limits(self):
+        """Return actuator low and high limits.
+        Returns:
+            (tuple): two floats tuple (low limit, high limit).
         """
-        self.value_changed(self.actuator_state)
+        return self._limits
 
-    @task
-    def actuator_out(self, wait=True, timeout=3):
-        """Set the actuator 'out'. Update the status
-           Keyword Args:
-             wait (bool): wait for the movement to finish
-             timeout (float): movement expires after timeout [s]
+    def set_limits(self, limits):
+        """Set actuator low and high limits.
+        Args:
+            limits (tuple): two floats tuple (low limit, high limit).
         """
-        self.value_changed(self.actuator_state)
+        self._limits = limits
+        self.emit("limitsChanged", (self._limits,))
 
-    @task
-    def actuator_toggle(self, wait=True, timeout=3):
-        """Toggele the actuator.
-           Keyword Args:
-             wait (bool): wait for the movement to finish
-             timeout (float): movement expires after timeout [s]
+    @abc.abstractmethod
+    def _set_value(self, value, wait=True, timeout=None):
+        """Move actuator to absolute position. Wait the move to finish.
+        Args:
+            value (float): target value
+            wait (bool): optional - wait until actuator movement finished.
+            timeout (float): optional - timeout [s].
         """
-        if self.actuator_state == AbstractActuator.IN:
-            self.actuator_out(wait, timeout)
-        elif self.actuator_state == AbstractActuator.OUT:
-            self.actuator_in(wait, timeout)
 
-    def getActuatorState(self, read=False):
-        warn(
-            "getActuatorState method is deprecated, use get_actuator_state",
-            DeprecationWarning,
-        )
-        return self.get_actuator_state(read)
+    def set_value(self, value, wait=True, timeout=None):
+        """Move actuator to absolute value. Wait the move to finish.
+        Args:
+            value (float): target value
+            wait (bool): optional - wait until actuator movement finished.
+            timeout (float): optional - timeout [s].
+        """
+        self._set_value(value)
+        self.update_value()
 
-    def actuatorIn(self, wait=True, timeout=3):
-        warn("actuatorIn method is deprecated, use actuator_in", DeprecationWarning)
-        self.actuator_in(wait, timeout)
+        if wait:
+            self.wait_ready(timeout)
 
-    def actuatorOut(self, wait=True, timeout=3):
-        warn("actuatorOut method is deprecated, use actuator_out", DeprecationWarning)
-        self.actuator_out(wait, timeout)
+    def abort(self):
+        """Abort the actuator movement immediately."""
+        raise NotImplementedError
+
+    def stop(self):
+        """Stop the actuator movement"""
+        raise NotImplementedError
+
+    def update_value(self, value=None):
+        """Check if the value has changed. Emits signal valueChanged.
+        Args:
+            value (float): value
+        """
+        if value is None or self._nominal_value is None:
+            value = self.get_value()
+
+        self._nominal_value = value
+        self.emit("valueChanged", (self._nominal_value,))
+
+    def update_limits(self, limits=None):
+        """Check if the limits have changed. Emits signal limitsChanged.
+        Args:
+            limits (tuple): two floats tuple (low limit, high limit).
+        """
+        if limits is None:
+            limits = self.get_limits()
+
+        if all(limits):
+            self._limits = limits
+            self.emit("limitsChanged", (self._limits,))
