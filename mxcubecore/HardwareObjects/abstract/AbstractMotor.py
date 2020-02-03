@@ -70,14 +70,17 @@ class AbstractMotor(AbstractActuator):
         """
         self._velocity = velocity
 
-    def set_value_relative(self, relative_value, wait=False, timeout=None):
-        """Move to value relative to the current. Wait the move to finish.
-        Args:
-            relative_value (float): relative target value.
-            wait (bool): optional - wait until motor movement finished.
-            timeout (float): optional - timeout [s].
+    def set_value_relative(self, relative_value, timeout=None):
         """
-        self.set_value(self.get_value() + relative_value, wait, timeout)
+        Set actuator to relative to the current value
+        
+        Args:
+            value (float): target value
+            timeout (float): optional - timeout [s],
+                             If timeout == 0: return at once and do not wait;
+                             if timeout is None: wait forever.
+        """
+        self.set_value(self.get_value() + relative_value, timeout)
 
     def home(self, timeout=None):
         """Homing procedure.
