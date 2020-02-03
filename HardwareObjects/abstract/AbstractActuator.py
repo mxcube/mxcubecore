@@ -93,14 +93,6 @@ class AbstractActuator(HardwareObject):
         if wait:
             self.wait_ready(timeout)
 
-    def abort(self):
-        """Abort the actuator movement immediately."""
-        raise NotImplementedError
-
-    def stop(self):
-        """Stop the actuator movement"""
-        raise NotImplementedError
-
     def update_value(self, value=None):
         """Check if the value has changed. Emits signal valueChanged.
         Args:
