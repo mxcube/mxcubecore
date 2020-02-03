@@ -72,26 +72,30 @@ class AbstractActuator(HardwareObject):
         self.emit("limitsChanged", (self._nominal_limits,))
 
     @abc.abstractmethod
-    def _set_value(self, value, wait=True, timeout=None):
-        """Move actuator to absolute position. Wait the action to finish.
+    def _set_value(self, value, timeout=None):
+        """
+        Implementation of specific set actuator logic.
+        
         Args:
             value (float): target value
-            wait (bool): optional - wait until actuator action finished.
-            timeout (float): optional - timeout [s].
+            timeout (float): optional - timeout [s],
+                             If timeout == 0: return at once and do not wait;
+                             if timeout is None: wait forever.
         """
 
-    def set_value(self, value, wait=True, timeout=None):
-        """Move actuator to absolute value. Wait the action to finish.
+    def set_value(self, value, timeout=None):
+        """
+        Set actuator to absolute value.
+        
         Args:
             value (float): target value
-            wait (bool): optional - wait until actuator action finished.
-            timeout (float): optional - timeout [s].
+            timeout (float): optional - timeout [s],
+                             If timeout == 0: return at once and do not wait;
+                             if timeout is None: wait forever.
         """
         self._set_value(value)
         self.update_value()
-
-        if wait:
-            self.wait_ready(timeout)
+        self.wait_ready(timeout)
 
     def update_value(self, value=None):
         """Check if the value has changed. Emits signal valueChanged.
