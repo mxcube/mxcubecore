@@ -56,14 +56,6 @@ class AbstractMotor(AbstractActuator):
         """Initialise some parametrs."""
         self._tolerance = self.getProperty("tolerance") or 1e-3
 
-    @abc.abstractmethod
-    def get_value(self):
-        """Read the motor position.
-        Returns:
-            float: Motor position.
-        """
-        return None
-
     def get_velocity(self):
         """Read motor velocity.
         Returns:
@@ -78,15 +70,6 @@ class AbstractMotor(AbstractActuator):
         """
         self._velocity = velocity
 
-    @abc.abstractmethod
-    def _set_value(self, value, wait=True, timeout=None):
-        """Move motor to absolute position. Wait the move to finish.
-        Args:
-            value (float): target value
-            wait (bool): optional - wait until motor movement finished.
-            timeout (float): optional - timeout [s].
-        """
-
     def set_value_relative(self, relative_value, wait=False, timeout=None):
         """Move to value relative to the current. Wait the move to finish.
         Args:
@@ -94,7 +77,7 @@ class AbstractMotor(AbstractActuator):
             wait (bool): optional - wait until motor movement finished.
             timeout (float): optional - timeout [s].
         """
-        self.move(self.get_value() + relative_value, wait, timeout)
+        self.set_value(self.get_value() + relative_value, wait, timeout)
 
     def home(self, timeout=None):
         """Homing procedure.
