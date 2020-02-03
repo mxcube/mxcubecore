@@ -37,7 +37,7 @@ class AbstractActuator(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self._nominal_value = None
-        self._limits = (None, None)
+        self._nominal_limits = (None, None)
         self.actuator_name = None
         self.read_only = False
         self.default_value = None
@@ -61,15 +61,15 @@ class AbstractActuator(HardwareObject):
         Returns:
             (tuple): two floats tuple (low limit, high limit).
         """
-        return self._limits
+        return self._nominal_limits
 
     def set_limits(self, limits):
         """Set actuator low and high limits.
         Args:
             limits (tuple): two floats tuple (low limit, high limit).
         """
-        self._limits = limits
-        self.emit("limitsChanged", (self._limits,))
+        self._nominal_limits = limits
+        self.emit("limitsChanged", (self._nominal_limits,))
 
     @abc.abstractmethod
     def _set_value(self, value, wait=True, timeout=None):
@@ -109,9 +109,9 @@ class AbstractActuator(HardwareObject):
         Args:
             limits (tuple): two floats tuple (low limit, high limit).
         """
-        if limits is None:
+        if limits is None or self._nominal_limits is None:
             limits = self.get_limits()
 
         if all(limits):
-            self._limits = limits
-            self.emit("limitsChanged", (self._limits,))
+            self._nominal_limits = limits
+            self.emit("limitsChanged", (self._nominal_limits,))

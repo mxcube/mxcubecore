@@ -23,7 +23,7 @@
 import abc
 from enum import IntEnum, unique
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator
+    AbstractActuator,
 )
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
@@ -49,7 +49,6 @@ class AbstractMotor(AbstractActuator):
 
     def __init__(self, name):
         AbstractActuator.__init__(self, name)
-
         self._velocity = None
         self._tolerance = None
 
