@@ -73,18 +73,18 @@ class AbstractActuator(HardwareObject):
 
     @abc.abstractmethod
     def _set_value(self, value, wait=True, timeout=None):
-        """Move actuator to absolute position. Wait the move to finish.
+        """Move actuator to absolute position. Wait the action to finish.
         Args:
             value (float): target value
-            wait (bool): optional - wait until actuator movement finished.
+            wait (bool): optional - wait until actuator action finished.
             timeout (float): optional - timeout [s].
         """
 
     def set_value(self, value, wait=True, timeout=None):
-        """Move actuator to absolute value. Wait the move to finish.
+        """Move actuator to absolute value. Wait the action to finish.
         Args:
             value (float): target value
-            wait (bool): optional - wait until actuator movement finished.
+            wait (bool): optional - wait until actuator action finished.
             timeout (float): optional - timeout [s].
         """
         self._set_value(value)
