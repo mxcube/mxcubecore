@@ -21,7 +21,8 @@
 """Abstract Motor API. Motor states definition"""
 
 import abc
-from enum import IntEnum, unique
+from enum import Enum, unique
+from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
 )
@@ -31,12 +32,13 @@ __license__ = "LGPLv3+"
 
 
 @unique
-class MotorStates(IntEnum):
+class MotorStates(Enum):
     """Motor states definitions."""
 
-    HOME = 5
-    LOWLIMIT = 6
-    HIGHLIMIT = 7
+    HOME = HardwareObjectState.READY, 5
+    LOWLIMIT = HardwareObjectState.READY, 6
+    HIGHLIMIT = HardwareObjectState.READY, 7
+    MOVING = HardwareObjectState.BUSY, 8
 
 
 class AbstractMotor(AbstractActuator):
@@ -51,6 +53,7 @@ class AbstractMotor(AbstractActuator):
         AbstractActuator.__init__(self, name)
         self._velocity = None
         self._tolerance = None
+        self.specific_state = None
 
     def init(self):
         """Initialise some parametrs."""
@@ -73,7 +76,6 @@ class AbstractMotor(AbstractActuator):
     def set_value_relative(self, relative_value, timeout=None):
         """
         Set actuator to relative to the current value
-        
         Args:
             value (float): target value
             timeout (float): optional - timeout [s],
@@ -88,6 +90,18 @@ class AbstractMotor(AbstractActuator):
             timeout (float): Timeout [s].
         """
         raise NotImplementedError
+
+    def validate_value(self, value, limits=None):
+        """Check if the value is within the limits
+        Args:
+            value(float): value
+            limits(tuple): low,high limits
+        Returns:
+            (bool): True if within the limits
+        """
+        if not limits:
+            limits = self.get_limits()
+        return limits[0] <= value <= limits[1]
 
     def update_value(self, value=None):
         """Check if the value has changed. Emist signal valueChanged.
