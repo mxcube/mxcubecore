@@ -28,10 +28,7 @@ Example xml file:
 
 from gevent import Timeout
 from bliss.config import static
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import (
-    AbstractMotor,
-    MotorStates,
-)
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -56,19 +53,24 @@ class BlissMotor(AbstractMotor):
     def get_state(self):
         """Get the motor state.
         Returns:
-            (list): list of 'MotorStates'.
+            (list): list of HardwareObjectState.
         """
         states = []
         _state = self.motor_obj.state.current_states_names
+        self.specific_state = _state
 
-        # convert from bliss states to MotorStates
-        try:
-            for stat in _state:
-                states.append(MotorStates.__members__[stat.upper()])
-        except KeyError:
-            states.append(MotorStates.UNKNOWN)
-        self._state = states
-        return self._state
+        # convert from bliss states to HardwareObjectState
+        for stat in _state:
+            try:
+                states.append(self.STATES.__members__[stat.upper()])
+            except (AttributeError, KeyError):
+                try:
+                    states.append(
+                        self.SPECIFIC_STATES.__members__[stat.upper()].value[0]
+                    )
+                except (AttributeError, KeyError):
+                    states.append(self.STATES.UNKNOWN)
+        return states
 
     def get_value(self):
         """Read the motor position.
@@ -89,8 +91,8 @@ class BlissMotor(AbstractMotor):
         _low, _high = self.motor_obj.limits
         _low = _low if _low else -1e6
         _high = _high if _high else 1e6
-        self._limits = (_low, _high)
-        return self._limits
+        self._nominal_limits = (_low, _high)
+        return self._nominal_limits
 
     def get_velocity(self):
         """Read motor velocity.
@@ -100,19 +102,15 @@ class BlissMotor(AbstractMotor):
         self._velocity = self.motor_obj.velocity
         return self._velocity
 
-    def _set_value(self, value, wait=True, timeout=None):
-        """Move motor to absolute value. Wait the move to finish.
+    def _set_value(self, value):
+        """Move motor to absolute value.
         Args:
             value (float): target value
-            wait (bool): optional - wait until motor movement finished.
-            timeout (float): optional - timeout [s].
         """
-        self.motor_obj.move(value, wait=wait)
-        if timeout:
-            self.wait_move(timeout)
+        self.motor_obj.move(value, wait=False)
 
-    def wait_move(self, timeout=None):
-        """Wait until the end of move ended, using the application state.
+    def wait_ready(self, timeout=None):
+        """Wait until the end of move ended
         Args:
             timeout(float): Timeout [s].
         """
@@ -120,7 +118,7 @@ class BlissMotor(AbstractMotor):
             with Timeout(timeout, RuntimeError("Execution timeout")):
                 self.motor_obj.wait_move()
 
-    def stop(self):
+    def abort(self):
         """Stop the motor movement"""
         self.motor_obj.stop(wait=False)
 
