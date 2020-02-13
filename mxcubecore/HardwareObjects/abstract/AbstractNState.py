@@ -22,87 +22,43 @@ Defines the interface for N state devices
 """
 
 import abc
-from enum import IntEnum, unique
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
+    AbstractActuator,
+)
 
 
-class AbstractNState(object):
+__copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
+
+
+class AbstractNState(AbstractActuator):
     """
     Abstract base class for N state objects.
     """
+
     __metaclass__ = abc.ABCMeta
 
-    @abc.abstractmethod
-    def value_changed(self, value):
-        """ Emitted on value change
-
-        Args:
-            value: (int)
-
-        Emitts:
-            shutterStateChanged: (str) state name
-        """
-        return
-
-    @abc.abstractmethod
-    def get_state(self):
-        """
-        Returns:
-           str: The current state name
-        """
-        return
-
-    @abc.abstractmethod
-    def is_valid(self):
-        """ Checks if the shutter is in one of its predefined states """
-        return
-
-    @abc.abstractmethod
-    def set_state(self, state, wait=False, timeout=None):
-        """
-        Args:
-            state: (enum) The state to transition to
-            wait: (bool) Wait for state transition to complete before returning
-            timeout: (float) Raises TimeoutException if transition takes longer
-                     than timeout seconds
-        """
-        return
-
-
-@unique
-class ShutterState(IntEnum):
-    """
-    Defines the valid Shutter states
-    """
-    UNKOWN = 0
-    CLOSED = 1
-    OPEN = 2
-    MOVING = 3
-    AUTOMATIC = 4
-    DISABLED = 5
-    FAULT = -1
-    ERROR = -2
-
-
-class AbstractShutter(HardwareObject, AbstractNState):
-    """
-    Defines the common interface for shutters
-    """
-    STATE = ShutterState
-
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
+        AbstractActuator.__init__(self, name)
+        self.predefined_values = {}
+        self.username = None
 
-    @abc.abstractmethod
-    def open(self, wait=False, timeout=None):
-        """Opens shutter"""
-        return
+    def init(self):
+        """Initialise some parametrs."""
+        self.predefined_values = self.get_predefined_values()
+        self.username = self.getProperty("username")
 
-    @abc.abstractmethod
-    def close(self, wait=False, timeout=None):
-        """Closes shutter"""
-        return
-
-    def update_values(self):
-        """Reemits signals"""
-        self.emit("shutterStateChanged", self.current_state.name)
+    def get_predefined_values(self):
+        """Get the predefined values
+        Returns:
+            (dict): Dictionary of predefined {name: value}
+        """
+        predefined_values = {}
+        for value in self["predefined_value"]:
+            try:
+                predefined_values.update(
+                    {value.getProperty("name"): value.getProperty("value")}
+                )
+            except AttributeError:
+                pass
+        return predefined_values
