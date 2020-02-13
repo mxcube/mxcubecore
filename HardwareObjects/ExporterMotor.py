@@ -46,6 +46,7 @@ class ExporterMotor(AbstractMotor):
         self._motor_pos_suffix = None
         self._motor_state_suffix = None
         self._exporter = None
+        self._exporter_address = None
         self.motor_position = None
         self.motor_state = None
 
@@ -56,14 +57,14 @@ class ExporterMotor(AbstractMotor):
         self._motor_pos_suffix = self.getProperty("position_suffix", "Position")
         self._motor_state_suffix = self.getProperty("state_suffix", "State")
 
-        _exporter_address = self.getProperty("exporter_address")
-        _host, _port = _exporter_address.split(":")
+        self._exporter_address = self.getProperty("exporter_address")
+        _host, _port = self._exporter_address.split(":")
         self._exporter = Exporter(_host, int(_port))
 
         self.motor_position = self.add_channel(
             {
                 "type": "exporter",
-                "exporter_address": _exporter_address,
+                "exporter_address": self._exporter_address,
                 "name": "position",
             },
             self.motor_name + self._motor_pos_suffix,
@@ -75,7 +76,7 @@ class ExporterMotor(AbstractMotor):
         self.motor_state = self.add_channel(
             {
                 "type": "exporter",
-                "exporter_address": _exporter_address,
+                "exporter_address": self._exporter_address,
                 "name": "motor_state",
             },
             self.motor_name + self._motor_state_suffix,
