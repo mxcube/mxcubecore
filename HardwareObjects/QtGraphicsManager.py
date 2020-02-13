@@ -156,6 +156,8 @@ class QtGraphicsManager(HardwareObject):
         """
 
         self.graphics_view = GraphicsLib.GraphicsView()
+        self.graphics_view.setVerticalScrollBarPolicy(QtImport.Qt.ScrollBarAsNeeded)
+        self.graphics_view.setHorizontalScrollBarPolicy(QtImport.Qt.ScrollBarAsNeeded)
         self.graphics_camera_frame = GraphicsLib.GraphicsCameraFrame()
         self.graphics_scale_item = GraphicsLib.GraphicsItemScale(self)
         self.graphics_histogram_item = GraphicsLib.GraphicsItemHistogram(self)
@@ -174,6 +176,7 @@ class QtGraphicsManager(HardwareObject):
             self
         )
         self.graphics_measure_distance_item.hide()
+        
         self.graphics_measure_angle_item = GraphicsLib.GraphicsItemMeasureAngle(self)
         self.graphics_measure_angle_item.hide()
         self.graphics_measure_area_item = GraphicsLib.GraphicsItemMeasureArea(self)
@@ -877,14 +880,19 @@ class QtGraphicsManager(HardwareObject):
         :type pos_y: int
         :emits: mouseMoved
         """
-        self.emit("mouseMoved", pos_x, pos_y)
-        self.mouse_position[0] = pos_x
-        self.mouse_position[1] = pos_y
+
+        # need to distinguish between View and Scene coordinates.
+        # moved_mouse connected to graphics_view's mouseMovedSignal
+        # I think we need Scene's coordinates here:
+        scene_point = self.graphics_view.mapToScene(QtImport.QPoint(pos_x, pos_y))
+        self.emit("mouseMoved", scene_point.x(), scene_point.y())
+        self.mouse_position[0] = scene_point.x()
+        self.mouse_position[1] = scene_point.y()
         if self.in_centring_state or self.in_one_click_centering:
-            self.graphics_centring_lines_item.set_start_position(pos_x, pos_y)
+            self.graphics_centring_lines_item.set_start_position(scene_point.x(), scene_point.y())
         elif self.in_grid_drawing_state:
             if self.graphics_grid_draw_item.is_draw_mode():
-                self.graphics_grid_draw_item.set_end_position(pos_x, pos_y)
+                self.graphics_grid_draw_item.set_end_position(scene_point.x(), scene_point.y())
         elif self.in_measure_distance_state:
             self.graphics_measure_distance_item.set_coord(self.mouse_position)
         elif self.in_measure_angle_state:
@@ -901,16 +909,16 @@ class QtGraphicsManager(HardwareObject):
             )
         elif self.in_select_items_state:
 
-            self.graphics_select_tool_item.set_end_position(pos_x, pos_y)
+            self.graphics_select_tool_item.set_end_position(scene_point.x(), scene_point.y())
             select_start_x = self.graphics_select_tool_item.start_coord[0]
             select_start_y = self.graphics_select_tool_item.start_coord[1]
-            if abs(select_start_x - pos_x) > 5 and abs(select_start_y - pos_y) > 5:
+            if abs(select_start_x - scene_point.x()) > 5 and abs(select_start_y - scene_point.y()) > 5:
                 painter_path = QtImport.QPainterPath()
                 painter_path.addRect(
-                    min(select_start_x, pos_x),
-                    min(select_start_y, pos_y),
-                    abs(select_start_x - pos_x),
-                    abs(select_start_y - pos_y),
+                    min(select_start_x, scene_point.x()),
+                    min(select_start_y, scene_point.y()),
+                    abs(select_start_x - scene_point.x()),
+                    abs(select_start_y - scene_point.y()),
                 )
                 self.graphics_view.graphics_scene.setSelectionArea(painter_path)
                 """
@@ -920,7 +928,7 @@ class QtGraphicsManager(HardwareObject):
                 self.select_lines_and_grids()
                 """
         elif self.in_magnification_mode:
-            self.graphics_magnification_item.set_end_position(pos_x, pos_y)
+            self.graphics_magnification_item.set_end_position(scene_point.x(), scene_point.y())
 
         # TODO add grid commands
         # else:
