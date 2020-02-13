@@ -23,7 +23,6 @@ Convert exporter states to HardwareObject states
 
 from enum import Enum
 from HardwareRepository.BaseHardwareObjects import HardwareObjectState
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
 
 __copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -32,13 +31,19 @@ __license__ = "LGPLv3+"
 class ExporterStates(Enum):
     """Convert exporter states to HardwareObject amd Motor states"""
 
-    READY = HardwareObjectState.READY
-    MOVING = HardwareObjectState.BUSY
-    INITIALIZING = HardwareObjectState.BUSY
-    INVALID = HardwareObjectState.FAULT
-    FAULT = HardwareObjectState.FAULT
-    CREATED = HardwareObjectState.UNKNOWN
     UNKNOWN = HardwareObjectState.UNKNOWN
+    STANDBY = HardwareObjectState.WARNING
+    DISABLE = HardwareObjectState.WARNING
+    ALARM = HardwareObjectState.WARNING
+    BUSY = HardwareObjectState.BUSY
+    MOVING = HardwareObjectState.BUSY
+    RUNNING = HardwareObjectState.BUSY
+    INITIALIZING = HardwareObjectState.BUSY
+    READY = HardwareObjectState.READY
+    ON = HardwareObjectState.READY
+    OFF = HardwareObjectState.READY
+    CLOSED = HardwareObjectState.READY
+    OPEN = HardwareObjectState.READY
+    FAULT = HardwareObjectState.FAULT
+    INVALID = HardwareObjectState.FAULT
     OFFLINE = HardwareObjectState.FAULT
-    LOWLIM = MotorStates.LOWLIMIT
-    HIGHLIM = MotorStates.HIGHLIMIT
