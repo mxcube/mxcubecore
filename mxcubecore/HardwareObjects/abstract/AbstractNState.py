@@ -22,6 +22,7 @@ Defines the interface for N state devices
 """
 
 import abc
+from enum import Enum, unique
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
 )
@@ -29,6 +30,24 @@ from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
 
 __copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
+
+
+@unique
+class InOutEnum(Enum):
+    IN = "IN"
+    OUT = "OUT"
+
+
+@unique
+class OpenCloseEnum(Enum):
+    OPEN = "OPEN"
+    CLOSE = "CLOSED"
+
+
+@unique
+class OnOffEnum(Enum):
+    ON = "ON"
+    OFF = "OFF"
 
 
 class AbstractNState(AbstractActuator):
@@ -42,11 +61,28 @@ class AbstractNState(AbstractActuator):
         AbstractActuator.__init__(self, name)
         self.predefined_values = {}
         self.username = None
+        self.state_definition = None
+        self._valid = False
 
     def init(self):
         """Initialise some parametrs."""
         self.predefined_values = self.get_predefined_values()
         self.username = self.getProperty("username")
+        _valid = []
+        try:
+            self.state_definition = globals(self.getProperty("state_definition", None))
+            _stl = len(self.state_definition.__members__)
+            for value in self["predefined_value"]:
+                if (
+                    value.getProperty("name").upper()
+                    in self.state_definition.__members__
+                ):
+                    _valid.append(True)
+            if all(_valid) and len(_valid) == len(self.state_definition.__members__):
+                self._valid = True
+
+        except KeyError:
+            pass
 
     def get_predefined_values(self):
         """Get the predefined values
@@ -61,4 +97,5 @@ class AbstractNState(AbstractActuator):
                 )
             except AttributeError:
                 pass
+
         return predefined_values
