@@ -82,14 +82,11 @@ class AbstractActuator(HardwareObject):
         return True
 
     @abc.abstractmethod
-    def _set_value(self, value, timeout=None):
+    def _set_value(self, value):
         """
         Implementation of specific set actuator logic.
         Args:
             value: target value
-            timeout (float): optional - timeout [s],
-                             If timeout == 0: return at once and do not wait;
-                             if timeout is None: wait forever.
         """
 
     def set_value(self, value, timeout=None):
