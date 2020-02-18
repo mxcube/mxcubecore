@@ -21,7 +21,7 @@
 Example xml file:
 <device class="BlissMotor">
   <username>Detector Distance</username>
-  <motor_name>dtox</motor_name>
+  <actuator_name>dtox</actuator_name>
   <tolerance>1e-2</tolerance>
 </device>
 """
@@ -45,7 +45,7 @@ class BlissMotor(AbstractMotor):
         """Initialise the motor"""
         AbstractMotor.init(self)
         cfg = static.get_config()
-        self.motor_obj = cfg.get(self.motor_name)
+        self.motor_obj = cfg.get(self.actuator_name)
         self.connect(self.motor_obj, "position", self.update_value)
         self.connect(self.motor_obj, "state", self.update_state)
         self.connect(self.motor_obj, "move_done", self.update_state)
@@ -124,4 +124,4 @@ class BlissMotor(AbstractMotor):
 
     def name(self):
         """Get the motor name. Should be removed when GUI ready"""
-        return self.motor_name
+        return self.actuator_name
