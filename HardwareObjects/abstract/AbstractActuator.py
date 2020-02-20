@@ -71,13 +71,13 @@ class AbstractActuator(HardwareObject):
         self._nominal_limits = limits
         self.emit("limitsChanged", (self._nominal_limits,))
 
-    def validate_value(self, value, limits=None):
-        """Check if the value is within the limits
+    def validate_value(self, value, values=None):
+        """Check if the value is within the values
         Args:
             value: value
-            limits(tuple): tuple (low,high) limits
+            values(tuple): tuple of values.
         Returns:
-            (bool): True if within the limits
+            (bool): True if within the values
         """
         return True
 
