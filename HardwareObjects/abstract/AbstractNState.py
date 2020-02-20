@@ -34,18 +34,21 @@ __license__ = "LGPLv3+"
 
 @unique
 class InOutEnum(Enum):
+    "In/Out"
     IN = "IN"
     OUT = "OUT"
 
 
 @unique
 class OpenCloseEnum(Enum):
+    "Open/Close"
     OPEN = "OPEN"
     CLOSE = "CLOSED"
 
 
 @unique
 class OnOffEnum(Enum):
+    "On/Off"
     ON = "ON"
     OFF = "OFF"
 
@@ -70,19 +73,30 @@ class AbstractNState(AbstractActuator):
         self.username = self.getProperty("username")
         _valid = []
         try:
-            self.state_definition = globals(self.getProperty("state_definition", None))
-            _stl = len(self.state_definition.__members__)
+            self.state_definition = globals(self.getProperty("state_definition"))
             for value in self["predefined_value"]:
-                if (
-                    value.getProperty("name").upper()
-                    in self.state_definition.__members__
-                ):
-                    _valid.append(True)
+                _valid.append(
+                    self.validate_value(
+                        value.getProperty("name").upper(),
+                        self.state_definition.__members__,
+                    )
+                )
             if all(_valid) and len(_valid) == len(self.state_definition.__members__):
                 self._valid = True
-
         except KeyError:
-            pass
+            self._valid = True
+
+    def validate_value(self, value, values=None):
+        """Check if the value is within the values
+        Args:
+            value: value
+            values(tuple): tuple of values.
+        Returns:
+            (bool): True if within the values
+        """
+        if not values:
+            values = self.predefined_values.keys()
+        return value in values
 
     def get_predefined_values(self):
         """Get the predefined values
