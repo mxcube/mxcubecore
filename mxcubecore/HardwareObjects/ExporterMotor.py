@@ -178,7 +178,7 @@ class ExporterMotor(AbstractMotor):
             (tuple): two floats tuple (low limit, high limit).
         """
         try:
-            _low, _high = self._exporter.execute(cmd, self.motor_name)
+            _low, _high = self._exporter.execute(cmd, (self.motor_name,))
             # inf is a problematic value, convert to sys.float_info.max
             if _low == float("-inf"):
                 _low = -sys.float_info.max
@@ -224,7 +224,7 @@ class ExporterMotor(AbstractMotor):
         Args:
             timeout (float): optional - timeout [s].
         """
-        self._exporter.execute("startHomingMotor", self.motor_name)
+        self._exporter.execute("startHomingMotor", (self.motor_name,))
         self.wait_ready(timeout)
 
     def get_max_speed(self):
@@ -232,7 +232,7 @@ class ExporterMotor(AbstractMotor):
         Returns:
             (float): the maximim speed [unit/s].
         """
-        return self._exporter.execute("getMotorMaxSpeed", self.motor_name)
+        return self._exporter.execute("getMotorMaxSpeed", (self.motor_name,))
 
     def name(self):
         """Get the motor name. Should be removed when GUI ready"""
