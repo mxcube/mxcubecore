@@ -24,12 +24,13 @@ Example xml file:
   <username>Fluorescence Detector</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <cmd_name>FluoDetectorIsBack</cmd_name>
+  <state_definition>InOutEnum</state_definition>
   <predefined_value>
-      <name>in</name>
+      <name>IN</name>
       <value>True</value>
   </predefined_value>
   <predefined_value>
-      <name>out</name>
+      <name>OUT</name>
       <value>False</value>
   </predefined_value>
 </device>
@@ -71,7 +72,7 @@ class ExporterNState(AbstractNState):
             },
             value_channel,
         )
-        self.value_channel.connectSignal("update", self._update_value)
+        self.value_channel.connectSignal("update", self.update_value)
 
         self.state_channel = self.add_channel(
             {
@@ -123,24 +124,25 @@ class ExporterNState(AbstractNState):
         return value in limits
 
     def _update_state(self, state):
-        try:
-            state = state.upper()
-            state = self.SPECIFIC_STATES.__members__[state].value
-        except (AttributeError, KeyError):
-            state = self.STATES.UNKNOWN
+        if not state:
+            state = self.get_state()
+        else:
+            state = self._value2state(state)
         return self.update_state(state)
+
+    def _value2state(self, state):
+        try:
+            return self.SPECIFIC_STATES.__members__[state.upper()].value
+        except (AttributeError, KeyError):
+            return self.STATES.UNKNOWN
 
     def get_state(self):
         """Get the device state.
         Returns:
             (enum 'HardwareObjectState'): Device state.
         """
-        try:
-            state = self.state_channel.get_value().upper()
-            state = self.SPECIFIC_STATES.__members__[state].value
-        except (AttributeError, KeyError):
-            state = self.STATES.UNKNOWN
-        return state
+        state = self.state_channel.get_value()
+        return self._value2state(state)
 
     def abort(self):
         """Stop the action."""
