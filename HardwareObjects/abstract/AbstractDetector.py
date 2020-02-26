@@ -59,7 +59,6 @@ class AbstractDetector(HardwareObject):
         """
         return self._distance_motor_hwobj
 
-    @abc.abstractmethod
     def get_distance_limits(self):
         """
         Returns:
