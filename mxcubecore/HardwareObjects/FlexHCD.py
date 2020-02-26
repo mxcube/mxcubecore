@@ -124,7 +124,7 @@ class FlexHCD(SampleChanger):
         
         """
         self.controller = self.getObjectByRole("controller")
-        self.prepareLoad = self.getCommandObject("moveToLoadingPosition")
+        self.prepareLoad = self.get_command_object("moveToLoadingPosition")
         self.timeout = 3
         self.gripper_types = {
             -1: "No Gripper",
@@ -605,7 +605,7 @@ class FlexHCD(SampleChanger):
 
     def isSequencerReady(self):
         if self.prepareLoad:
-            cmdobj = self.getCommandObject
+            cmdobj = self.get_command_object
             return all(
                 [cmd.isSpecReady() for cmd in (cmdobj("moveToLoadingPosition"),)]
             )

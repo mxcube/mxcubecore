@@ -533,22 +533,22 @@ class Microdiff(MiniDiff.MiniDiff):
         self.do_centring = True
 
     def getFrontLightLevel(self):
-        return self.frontLight.getPosition()
+        return self.frontLight.get_value()
 
     def setFrontLightLevel(self, level):
-        return self.frontLight.move(level)
+        return self.frontLight.set_value(level)
 
     def getBackLightLevel(self):
-        return self.backLight.getPosition()
+        return self.backLight.get_value()
 
     def setBackLightLevel(self, level):
-        return self.backLight.move(level)
+        return self.backLight.set_value(level)
 
     def get_beam_position(self):
         return self.beam_position_horizontal.get_value(), self.beam_position_vertical.get_value()
 
 def set_light_in(light, light_motor, zoom):
-    self.frontlight.move(0)
+    self.frontlight.set_value(0)
     MICRODIFF.getObjectByRole("BackLightSwitch").actuatorIn()
 
 

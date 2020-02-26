@@ -65,9 +65,9 @@ class MicrodiffKappaMotor(ExporterMotor):
                 kappa_end_pos,
                 kappa_phi_end_pos,
             )
-            self.sampx.move(newSamplePositions["sampx"])
-            self.sampy.move(newSamplePositions["sampy"])
-            self.phiy.move(newSamplePositions["phiy"])
+            self.sampx.set_value(newSamplePositions["sampx"])
+            self.sampy.set_value(newSamplePositions["sampy"])
+            self.phiy.set_value(newSamplePositions["phiy"])
         """
     def waitEndOfMove(self, timeout=None):
         with gevent.Timeout(timeout):

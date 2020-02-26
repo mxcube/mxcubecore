@@ -64,7 +64,7 @@ class AbstractDetector(HardwareObject):
         Returns:
             tuple[float, float]: tuple containing the pair lower limit, upper limit in mm
         """
-        return
+        return self._distance_motor_hwobj.get_limits()
 
     @abc.abstractmethod
     def has_shutterless(self):

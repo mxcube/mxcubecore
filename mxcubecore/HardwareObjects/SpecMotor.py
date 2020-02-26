@@ -19,7 +19,7 @@ class SpecMotor(Device, SpecMotorA):
             elif signal == "limitsChanged":
                 self.motorLimitsChanged()
             elif signal == "positionChanged":
-                self.motorPositionChanged(self.getPosition())
+                self.motorPositionChanged(self.get_value())
 
     def motorStateChanged(self, state):
         self.setIsReady(state > SpecMotor.UNUSABLE)
@@ -52,7 +52,7 @@ class SpecMotor(Device, SpecMotorA):
         self.move(position, wait=True, timeout=timeout)
 
     def syncMoveRelative(self, position, timeout=None):
-        abs_pos = position + self.getPosition()
+        abs_pos = position + self.get_value()
         return self.syncMove(abs_pos, timeout)
 
     def getMotorMnemonic(self):

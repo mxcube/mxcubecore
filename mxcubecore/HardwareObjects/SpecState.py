@@ -48,7 +48,7 @@ class SpecState(Procedure):
             {"name": "SpecStateMacro", "type": "spec", "version": self.specversion},
             "sleep",
         )
-        cmd = self.getCommandObject("SpecStateMacro")
+        cmd = self.get_command_object("SpecStateMacro")
         cmd.connectSignal("commandReady", self.commandReady)
         cmd.connectSignal("commandNotReady", self.commandNotReady)
         self.connectionStateMacro = cmd
@@ -60,7 +60,7 @@ class SpecState(Procedure):
     def specDisconnected(self):
         self.connectionStateMacro = None
         try:
-            cmd = self.getCommandObject("SpecStateMacro")
+            cmd = self.get_command_object("SpecStateMacro")
         except KeyError:
             pass
         else:

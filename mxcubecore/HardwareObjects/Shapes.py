@@ -479,7 +479,7 @@ class Grid(Shape):
         self.set_id(Grid.SHAPE_COUNT)
 
     def update_position(self, transform):
-        phi_pos = self.shapes_hw_object.diffractometer.phiMotor.getPosition() % 360
+        phi_pos = self.shapes_hw_object.diffractometer.phiMotor.get_value() % 360
         d = abs((self.get_centred_position().phi % 360) - phi_pos)
 
         if min(d, 360 - d) > self.shapes_hw_object.hide_grid_threshold:

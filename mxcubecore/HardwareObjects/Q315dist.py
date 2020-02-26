@@ -48,7 +48,7 @@ class Q315dist(BaseHardwareObjects.Equipment):
         if signal == "stateChanged":
             self.detmStateChanged(self.detm.getState())
         elif signal == "positionChanged":
-            self.detmPositionChanged(self.detm.getPosition())
+            self.detmPositionChanged(self.detm.get_value())
 
     def detmStateChanged(self, state):
         if (state == self.detm.NOTINITIALIZED) or (state > self.detm.UNUSABLE):

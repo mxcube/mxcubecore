@@ -3,7 +3,11 @@ import types
 import gevent
 import gevent.event
 from gevent.queue import Queue
-from HardwareRepository.CommandContainer import CommandObject, ChannelObject, ConnectionError
+from HardwareRepository.CommandContainer import (
+    CommandObject,
+    ChannelObject,
+    ConnectionError,
+)
 from HardwareRepository import Poller
 from HardwareRepository import saferef
 

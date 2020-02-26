@@ -6,7 +6,7 @@ class MinidiffAperture(MultiplePositions.MultiplePositions):
         MultiplePositions.MultiplePositions.__init__(self, *args, **kwargs)
 
     def getApertureCoef(self):
-        current_pos = self.getPosition()
+        current_pos = self.get_value()
         for position in self["positions"]:
             if position.getProperty("name") == current_pos:
                 aperture_coef = position.getProperty("aperture_coef")
@@ -14,7 +14,7 @@ class MinidiffAperture(MultiplePositions.MultiplePositions):
         return 1
 
     def getApertureSize(self):
-        current_pos = self.getPosition()
+        current_pos = self.get_value()
         for position in self["positions"]:
             if position.getProperty("name") == current_pos:
                 aperture_size = float(position.getProperty("aperture_size"))

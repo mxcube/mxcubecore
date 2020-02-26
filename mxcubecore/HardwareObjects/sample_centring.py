@@ -125,7 +125,7 @@ def start_plate(
     centring_motors_dict.pop("plateTranslation")
     phi, phiy, phiz, sampx, sampy = prepare(centring_motors_dict)
 
-    phi.move(lim_pos)
+    phi.set_value(lim_pos)
 
     CURRENT_CENTRING = gevent.spawn(
         centre_plate,
@@ -171,7 +171,7 @@ def start_plate_1_click(
     sampy = centring_motors_dict["sampy"]
     phiz = centring_motors_dict["phiz"]
 
-    # phi.move(phi_min)
+    # phi.set_value(phi_min)
     plate_vertical()
 
     CURRENT_CENTRING = gevent.spawn(
@@ -245,12 +245,12 @@ def centre_plate1Click(
                 phi_min = (
                     phi.get_value()
                 )  # in case the phi range sent us to a position where sample is invisible, if user moves phi, this modifications is saved for future moves
-                phi.move(phi_max)
+                phi.set_value(phi_max)
             else:
                 phi_max = (
                     phi.get_value()
                 )  # in case the phi range sent us to a position where sample is invisible, if user moves phi, this modifications is saved for future moves
-                phi.move(phi_min)
+                phi.set_value(phi_min)
 
             READY_FOR_NEXT_POINT.set()
             i += 1
