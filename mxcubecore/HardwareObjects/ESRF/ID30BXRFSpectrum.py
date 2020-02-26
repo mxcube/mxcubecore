@@ -8,7 +8,6 @@ from HardwareRepository.BaseHardwareObjects import Equipment
 from HardwareRepository import HardwareRepository as HWR
 
 
-
 class XrfSpectrum(Equipment):
     def init(self):
 
