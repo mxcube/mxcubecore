@@ -63,14 +63,12 @@ class AbstractNState(AbstractActuator):
     def __init__(self, name):
         AbstractActuator.__init__(self, name)
         self.predefined_values = {}
-        self.username = None
         self.state_definition = None
         self._valid = False
 
     def init(self):
         """Initialise some parametrs."""
         self.predefined_values = self.get_predefined_values()
-        self.username = self.getProperty("username")
         _valid = []
         try:
             self.state_definition = globals(self.getProperty("state_definition"))
@@ -113,3 +111,17 @@ class AbstractNState(AbstractActuator):
                 pass
 
         return predefined_values
+
+    def set_limits(self, limits):
+        """Set actuator low and high limits.
+        Args:
+            limits (tuple): two floats tuple (low limit, high limit).
+        """
+        raise NotImplementedError
+
+    def update_limits(self, limits=None):
+        """Check if the limits have changed. Emits signal limitsChanged.
+        Args:
+            limits (tuple): two floats tuple (low limit, high limit).
+        """
+        raise NotImplementedError
