@@ -52,7 +52,7 @@ class AbstractActuator(HardwareObject):
     def get_value(self):
         """Read the actuator position.
         Returns:
-            float: Actuator position.
+            value: Actuator position.
         """
         return None
 
@@ -71,24 +71,29 @@ class AbstractActuator(HardwareObject):
         self._nominal_limits = limits
         self.emit("limitsChanged", (self._nominal_limits,))
 
+    def validate_value(self, value, values=None):
+        """Check if the value is within the values
+        Args:
+            value: value
+            values(tuple): tuple of values.
+        Returns:
+            (bool): True if within the values
+        """
+        return True
+
     @abc.abstractmethod
-    def _set_value(self, value, timeout=None):
+    def _set_value(self, value):
         """
         Implementation of specific set actuator logic.
-        
         Args:
-            value (float): target value
-            timeout (float): optional - timeout [s],
-                             If timeout == 0: return at once and do not wait;
-                             if timeout is None: wait forever.
+            value: target value
         """
 
     def set_value(self, value, timeout=None):
         """
         Set actuator to absolute value.
-        
         Args:
-            value (float): target value
+            value: target value
             timeout (float): optional - timeout [s],
                              If timeout == 0: return at once and do not wait;
                              if timeout is None: wait forever.
@@ -100,7 +105,7 @@ class AbstractActuator(HardwareObject):
     def update_value(self, value=None):
         """Check if the value has changed. Emits signal valueChanged.
         Args:
-            value (float): value
+            value: value
         """
         if value is None or self._nominal_value is None:
             value = self.get_value()
