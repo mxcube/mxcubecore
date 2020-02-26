@@ -70,19 +70,24 @@ class AbstractNState(AbstractActuator):
         """Initialise some parametrs."""
         self.predefined_values = self.get_predefined_values()
         _valid = []
-        try:
-            self.state_definition = globals(self.getProperty("state_definition"))
-            for value in self["predefined_value"]:
-                _valid.append(
-                    self._validate_value(
-                        value.getProperty("name").upper(),
-                        self.state_definition.__members__,
-                    )
-                )
-            if all(_valid) and len(_valid) == len(self.state_definition.__members__):
-                self._valid = True
-        except KeyError:
+
+        self.state_definition = self.getProperty("state_definition", None)
+
+        for value in self.predefined_values.keys():
+            _valid.append(
+                self._validate_value(value.upper(), self.state_definition.__members__)
+            )
+
+        if all(_valid) and len(_valid) == len(self.state_definition.__members__):
             self._valid = True
+
+        if self.state_definition in ["IntEnum", "StrEnum", "FloatEnum"]:
+            self.state_definition = Enum(self.state_definition, self.predefined_values)
+        else:
+            self.state_definition = globals().get(self.state_definition, None)
+
+        if not (self.state_definition or self._valid):
+            raise ValueError("Mistmatching predefined values")
 
     def _validate_value(self, value, values=None):
         """Check if the value is within specified values.
