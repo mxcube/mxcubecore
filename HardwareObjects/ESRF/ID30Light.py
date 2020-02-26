@@ -85,5 +85,5 @@ class ID30Light(Device):
         self.emit("positionChanged", abs_pos)
 
     def moveRelative(self, rel_pos):
-        abs_pos = self.getPosition() + rel_pos
-        self.move(abs_pos)
+        abs_pos = self.get_value() + rel_pos
+        self.set_value(abs_pos)

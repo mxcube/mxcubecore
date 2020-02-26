@@ -37,8 +37,7 @@ class ESRFBeamInfo(BeamInfo.BeamInfo):
             self.beam_position = tuple(map(float, beam_position.split()))
         else:
             logging.getLogger("HWR").warning(
-                "ESRFBeamInfo: "
-                + "beam position not configured"
+                "ESRFBeamInfo: " + "beam position not configured"
             )
         self.difrractometer_hwobj = self.getObjectByRole("difrractometer")
         self.flux = self.getObjectByRole("flux")
