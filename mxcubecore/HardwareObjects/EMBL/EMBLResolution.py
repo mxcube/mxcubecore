@@ -17,20 +17,14 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""
-EMBLPiezoMotor
-"""
-
-import logging
-
-HardwareRepository.HardwareObjects.EMBL.TINEMotor import TINEMotor
+from HardwareRepository.HardwareObjects.EMBL.TINEMotor import TINEMotor
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
 __category__ = "Motor"
 
 
-class EMBLPiezoMotor(TINEMotor):
+class EMBLResolution(TINEMotor):
     """
     Based on the TineMotor. After the move command executes additional
     commands.
@@ -39,29 +33,5 @@ class EMBLPiezoMotor(TINEMotor):
     def __init__(self, name):
         TINEMotor.__init__(self, name)
 
-        self.cmd_move_first = None
-        self.cmd_move_second = None
-
-    def init(self):
-        TINEMotor.init(self)
-        self.cmd_move_first = self.getCommandObject("cmdMoveFirst")
-        self.cmd_move_second = self.getCommandObject("cmdMoveSecond")
-
-    def move(self, target, wait=None, timeout=None):
-        """Moves motor to the target position
-
-        :param target: target position
-        :type target: float
-        :param wait: wait finishing the move
-        :type wait: bool
-        :param timeout: timeout is seconds
-        :type timeout: float
-        :return: None
-        """
-        if target == float("nan"):
-            logging.getLogger().debug(
-                "Refusing to move %s to target nan" % self.objName
-            )
-        else:
-            self.cmd_move_first(target)
-            self.cmd_move_second(1)
+    def get_value(self):
+        return self.get_position()

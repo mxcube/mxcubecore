@@ -50,7 +50,7 @@ class Beamline(ConfiguredObject):
 
     # Names of procedures under Beamline - set of sttrings.
     # NB subclasses must add additional parocedures to this set,
-    # and may NOT override _procdeure_names
+    # and may NOT override _procedure_names
     _procedure_names = set()
 
     # NBNB these should be accessed ONLY as beamline.SUPPORTED_..._PARAMETERS
@@ -502,9 +502,9 @@ class Beamline(ConfiguredObject):
         Returns:
             Optional[EdnaCharacterisation]:
         """
-        return self._objects.get("data_analysis")
+        return self._objects.get("characterisation")
 
-    __content_roles.append("data_analysis")
+    __content_roles.append("characterisation")
 
     @property
     def beam_realign(self):
@@ -529,6 +529,14 @@ class Beamline(ConfiguredObject):
     __content_roles.append("image_tracking")
 
     # Procedures
+
+    @property
+    def mock_procedure(self):
+        """
+        """
+        return self._objects.get("mock_procedure")
+
+    __content_roles.append("mock_procedure")
 
     # NB this is just an example of a globally shared procedure description
     @property

@@ -19,18 +19,19 @@
 
 
 """
-EMBLParallelProcessing
+EMBLOnlineProcessing
 """
 
 import os
+import ast
 import logging
 import subprocess
 
-import numpy
+import numpy as np
 import gevent
 
-from HardwareRepository.HardwareObjects.GenericParallelProcessing import (
-    GenericParallelProcessing,
+from HardwareRepository.HardwareObjects.abstract.AbstractOnlineProcessing import (
+    AbstractOnlineProcessing,
 )
 
 from HardwareRepository.HardwareObjects.XSDataCommon import (
@@ -44,38 +45,98 @@ from HardwareRepository.HardwareObjects.XSDataControlDozorv1_1 import (
     XSDataResultControlDozor,
     XSDataControlImageDozor,
 )
-from HardwareRepository import HardwareRepository as HWR
 
+
+from HardwareRepository import HardwareRepository as HWR
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
-__category__ = "Motor"
 
 
-class EMBLParallelProcessing(GenericParallelProcessing):
+CRYSTFEL_GEOM_FILE_TEMPLATE = """clen = {:.5f}
+photon_energy = {:.1f}
+
+adu_per_photon = 1
+res = {:.1f}
+
+panel0/min_fs = 0
+panel0/min_ss = 0
+panel0/max_fs = {:.0f}
+panel0/max_ss = {:.0f}
+panel0/corner_x = {:.2f}
+panel0/corner_y = {:.2f}
+panel0/fs = x
+panel0/ss = y
+"""
+
+CRYSTFEL_CELL_FILE_TEMPLATE = """CrystFEL unit cell file version 1.0
+
+lattice_type = {:s}
+centering = {:s}
+{:s}
+
+a = {:.2f} A
+b = {:.2f} A
+c = {:.2f} A
+al = {:.2f} deg
+be = {:.2f} deg
+ga = {:.2f} deg
+"""
+
+CONST_H = 4.135667516e-15   # eV*s
+CONST_C = 299792458.
+
+class EMBLOnlineProcessing(AbstractOnlineProcessing):
     """
-    EMBLParallelProcessing obtains Dozor on the fly processing results
+    Obtains Dozor on the fly processing results
+    Assembles crystfel input files and starts crystfel
     """
 
     def __init__(self, name):
-        GenericParallelProcessing.__init__(self, name)
+        AbstractOnlineProcessing.__init__(self, name)
+
+        self.display_task = None
+        self.nxds_input_template = None
 
         self.crystfel_script = ""
+        self.crystfel_script_template = None
+        self.crystfel_params = None
+
         self.chan_dozor_pass = None
+        self.chan_dozor_average_i = None
         self.chan_frame_count = None
-        self.display_task = None
+    
+        self.result_types = []
 
     def init(self):
-        GenericParallelProcessing.init(self)
+        self.chan_dozor_average_i = self.getChannelObject("chanDozorAverageI")
+        if self.chan_dozor_average_i is not None:
+            key = "average_intensity"
+            self.result_types.append({"key": key, "descr": "Average I", "color": (255,0,0), "size": 0})
+            self.chan_dozor_average_i.connectSignal("update", self.dozor_average_i_changed)
+
+        AbstractOnlineProcessing.init(self)
 
         self.chan_dozor_pass = self.getChannelObject("chanDozorPass")
         if self.chan_dozor_pass is not None:
             self.chan_dozor_pass.connectSignal("update", self.batch_processed)
+
         self.chan_frame_count = self.getChannelObject("chanFrameCount")
         if self.chan_frame_count is not None:
             self.chan_frame_count.connectSignal("update", self.frame_count_changed)
 
         self.crystfel_script = self.getProperty("crystfel_script")
+
+        if self.getProperty("nxds_input_template_file") is not None:
+            with open(self.getProperty("nxds_input_template_file"), "r") as template_file:
+                self.nxds_input_template = "".join(template_file.readlines())
+
+        if self.getProperty("crystfel_script_template_file") is not None:
+            with open(self.getProperty("crystfel_script_template_file"), "r") as template_file:
+                self.crystfel_script_template = "".join(template_file.readlines())
+
+        if self.getProperty("crystfel_params") is not None:
+            self.crystfel_params = ast.literal_eval(self.getProperty("crystfel_params"))
 
     def create_processing_input_file(self, processing_input_filename):
         """Creates dozor input file base on data collection parameters
@@ -112,6 +173,7 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         """
         self.data_collection = data_collection
         self.prepare_processing()
+
         input_filename = os.path.join(
             self.params_dict["process_directory"], "dozor_input.xml"
         )
@@ -133,7 +195,7 @@ class EMBLParallelProcessing(GenericParallelProcessing):
             # Start dozor via EDNA
             if not os.path.isfile(self.start_command):
                 msg = (
-                    "ParallelProcessing: Start command %s" % self.start_command
+                    "OnlineProcessing: Start command %s" % self.start_command
                     + "is not executable"
                 )
                 logging.getLogger("queue_exec").error(msg)
@@ -173,14 +235,11 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         Smooths the resolution
         :return:
         """
-        good_index = numpy.where(self.results_raw["spots_resolution"] > 1 / 46.0)[0]
-        good = self.results_aligned["spots_resolution"][good_index]
-        if self.results_raw["spots_resolution"].size > 200:
-            points_index = self.results_raw["spots_resolution"].size / 200
-            for x in range(0, good_index.size, points_index):
-                self.results_aligned["spots_resolution"][good_index[x]] = numpy.mean(
-                    good[max(x - points_index / 2, 0): x + points_index / 2]
-                )
+        step = 30
+        for key in ["score", "spots_num"]:
+            for index in range (self.results_raw[key].size):
+                self.results_raw[key][index] = numpy.mean(self.results_raw[key][index - step: index + step])
+
 
     def batch_processed(self, batch):
         """Method called from EDNA via xmlrpc to set results
@@ -205,13 +264,20 @@ class EMBLParallelProcessing(GenericParallelProcessing):
                             score_key
                         ][frame_num]
                     else:
-                        self.results_aligned[score_key][frame_num] = self.results_raw[
-                            score_key
-                        ][frame_num]
-            # if self.params_dict["lines_num"] <= 1:
-            #   self.smooth()
+                        if frame_num < self.results_aligned[score_key].size:
+                            self.results_aligned[score_key][frame_num] = self.results_raw[
+                                score_key
+                             ][frame_num]
+            #if self.params_dict["lines_num"] <= 1:
+            #    self.smooth()
+
+    def dozor_average_i_changed(self, average_i_value):
+        if self.started:
+            self.results_raw["average_intensity"] = np.append(self.results_raw["average_intensity"], average_i_value)
+            self.results_aligned["average_intensity"] = np.append(self.results_aligned["average_intensity"], average_i_value)
 
     def update_map(self):
+        return
         """
         Emits heat map update signal
         :return:
@@ -231,7 +297,9 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         :type status: str
         """
         # self.batch_processed(self.chan_dozor_pass.getValue())
-        GenericParallelProcessing.set_processing_status(self, status)
+        #if self.params_dict["lines_num"] <= 1:
+        #    self.smooth()
+        GenericOnlineProcessing.set_processing_status(self, status)
 
     def store_processing_results(self, status):
         """
@@ -239,7 +307,7 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         :param status: str
         :return:
         """
-        GenericParallelProcessing.store_processing_results(self, status)
+        GenericOnlineProcessing.store_processing_results(self, status)
         self.display_task.kill()
         gevent.spawn(self.create_hit_list_files)
 
@@ -265,7 +333,7 @@ class EMBLParallelProcessing(GenericParallelProcessing):
             dozor_result.addImageDozor(dozor_image)
         dozor_result.exportToFile(processing_xml_filename)
         logging.getLogger("HWR").info(
-            "Parallel processing: Results saved in %s" % processing_xml_filename
+            "Online processing: Results saved in %s" % processing_xml_filename
         )
 
     def create_all_file_list(self):
@@ -279,17 +347,17 @@ class EMBLParallelProcessing(GenericParallelProcessing):
                     self.params_dict["template"]
                     % (self.params_dict["run_number"], index + 1)
                     + "\n"
-                )
+                 )
             self.print_log(
                 "HWR",
                 "debug",
-                "Parallel processing: All image list stored in %s" % all_file_filename,
+                "Online processing: All image list stored in %s" % all_file_filename,
             )
         except BaseException:
             self.print_log(
                 "GUI",
                 "error",
-                "Parallel processing: Unable to store all image list in %s" % all_file_filename,
+                "Online processing: Unable to store all image list in %s" % all_file_filename,
             )
         finally:
             lst_file.close()
@@ -306,46 +374,62 @@ class EMBLParallelProcessing(GenericParallelProcessing):
             self.params_dict["process_directory"], "images_dozor_hits_nopath.lst"
         )
 
+        dozor_resolution_filename = os.path.join(
+            self.params_dict["process_directory"], "dozor_resolution.lst"
+        )
+
         num_dozor_hits = 0
 
         try:
             lst_file = open(lst_filename, "w")
             nxds_lst_file = open(nxds_filename, "w")
+            dozor_resolution_file = open(dozor_resolution_filename, "w")
+
             for index in range(self.params_dict["images_num"]):
                 if self.results_raw["score"][index] > 0:
                     filename = self.params_dict["template"] % \
                         (self.params_dict["run_number"], index + 1)
                     lst_file.write(filename + "\n")
                     nxds_lst_file.write(os.path.basename(filename) + "\n")
-                    num_dozor_hits = num_dozor_hits + 1
+
+                    dozor_resolution_file.write("%s %s\n"%(filename, self.results_raw["spots_resolution"][index] ))             
+       
+                    num_dozor_hits = num_dozor_hits +1
             self.print_log(
                 "GUI",
                 "info",
-                "Parallel processing: Hit list for crystfel stored in %s" % lst_filename,
+                "Online processing: Hit list for crystfel stored in %s" % lst_filename,
             )
             self.print_log(
                 "GUI",
                 "info",
-                "Parallel processing: Hit list for nxds stored in %s" % nxds_filename,
+                "Online processing: Hit list for nxds stored in %s" % nxds_filename,
             )
+            self.print_log(
+                "GUI",
+                "info",
+                "Online processing: DOZOR resolutions stored in %s" % dozor_resolution_filename,
+            )
+
+
         except BaseException:
             self.print_log(
                 "GUI",
                 "error",
-                "Parallel processing: Unable to store hit list in %s" % lst_filename,
+                "Online processing: Unable to store hit list in %s" % lst_filename,
             )
+
         finally:
             lst_file.close()
             nxds_lst_file.close()
+            dozor_resolution_file.close()
 
-        self.print_log(
-            "GUI",
-            "info",
-            "Parallel processing: found %d dozor hits in %d collected images (%.2f%%)" % (
-                num_dozor_hits,
-                self.params_dict["images_num"],
-                (100.0 * num_dozor_hits / self.params_dict["images_num"]))
+        msg = "Online processing: found %d dozor hits in %d collected images (%.2f%%)" % (
+            num_dozor_hits,
+            self.params_dict["images_num"],
+            (100.0 * num_dozor_hits / self.params_dict["images_num"])
         )
+        self.print_log("GUI", "info", msg)
 
     def start_crystfel_autoproc(self, all_file_filename):
         """
@@ -355,69 +439,107 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         acq_params = self.data_collection.acquisitions[0].acquisition_parameters
         proc_params = self.data_collection.processing_parameters
 
-        # stream_filename   = os.path.join(self.params_dict["process_directory"], "crystfel_stream.stream" )
-        # geom_filename     = os.path.join(self.params_dict["process_directory"], "crystfel_detector.geom" )
-        # cell_filename     = os.path.join(self.params_dict["process_directory"], "crystfel_cell.cell" )
-        stream_filename = "crystfel_xgandalf.stream"
-        geom_filename = "crystfel_detector.geom"
-        cell_filename = "crystfel_cell.cell"
-        crystfel_autoproc = os.path.join(
-            self.params_dict["process_directory"],
-            "crystfel_autoproc.sh")
-        log_filename = "crystfel_xgandalf.log"
-        nxdsinp_filename = os.path.join(
-            self.params_dict["process_directory"], "nXDS.INP")
-        procdir_cluster = self.params_dict["process_directory"].replace(
-            "/data/users/", "/home/")
+        sample_basename = self.params_dict["template"].split("/")[-1].split("_%d_%0")[0]
+        stream_filename   = sample_basename + "_crystfel_xgandalf.stream" 
+
+        # stream_filename   = "crystfel_xgandalf.stream" 
+        geom_filename     = "crystfel_detector.geom" 
+        cell_filename     = "crystfel_cell.cell" 
+        cell_filename_pdb = "crystfel_cell.pdb" 
+        crystfel_autoproc = os.path.join(self.params_dict["process_directory"], "crystfel_autoproc.sh" )
+        log_filename      = "crystfel_xgandalf.log" 
+        nxdsinp_filename  = os.path.join(self.params_dict["process_directory"], "nXDS.INP" ) 
+        procdir_cluster   = self.params_dict["process_directory"].replace("/data/users/", "/home/")
 
         beam_x, beam_y = HWR.beamline.detector.get_beam_centre()
         pixel_size_mm_x, pixel_size_mm_y = HWR.beamline.detector.get_pixel_size_mm()
 
-        # HWR.beamline.detector.getProperty("type")
+        self.print_log("HWR", "debug", "detector:          " + str(HWR.beamline.detector.getProperty("type")) )
+        self.print_log("HWR", "debug", "resolution cutoff: " + str(proc_params.resolution_cutoff) )
+        self.print_log("HWR", "debug", "space group:       " + str(proc_params.space_group) )
+        self.print_log("HWR", "debug", "PDB file:          " + str(proc_params.pdb_file) )
+        self.print_log("HWR", "debug", "unit cell:         " + str(proc_params.cell_a) +", "+ str(proc_params.cell_b) +", "+ str(proc_params.cell_c) )
 
         # Eiger 4M:
         detector_size_x = 2070
         detector_size_y = 2167
         # Pilatus 2M:
-        detector_size_x = 1475
-        detector_size_y = 1679
+	# detector_size_x = 1475
+	# detector_size_y = 1679
 
-        geom_file = """
-clen = {:.5f}
-photon_energy = {:.1f}
-
-adu_per_photon = 1
-res = {:.1f}
-
-panel0/min_fs = 0
-panel0/min_ss = 0
-panel0/max_fs = {:.0f}
-panel0/max_ss = {:.0f}
-panel0/corner_x = {:.2f}
-panel0/corner_y = {:.2f}
-panel0/fs = x
-panel0/ss = y
-""".format(HWR.beamline.detector.get_distance() / 1000.,
+        geom_file = CRYSTFEL_GEOM_FILE_TEMPLATE.format(
+           HWR.beamline.detector.get_distance() / 1000.,
            acq_params.energy * 1000,
            1000. / pixel_size_mm_x,
-           detector_size_x - 1,
-           detector_size_y - 1,
+           detector_size_x -1,
+           detector_size_y -1,
            -beam_x / pixel_size_mm_x,
            -beam_y / pixel_size_mm_y
-           )
+        )
 
-        data_file = open(
-            os.path.join(
-                self.params_dict["process_directory"],
-                geom_filename),
-            "w")
+        data_file = open(os.path.join(self.params_dict["process_directory"], geom_filename), "w")
         data_file.write(geom_file)
         data_file.close()
 
-        """
-        if "P1" in proc_params.space_group:
+        if "P212121" in proc_params.space_group:
+            lattice_type = "orthorhombic"
+            point_group="mmm"
+            space_group="P212121"
+            centering="P"
+            unique_axis=""
+            space_group_number = 19
+            run_mr = "false"
+        elif "P21212" in proc_params.space_group:
+            lattice_type = "orthorhombic"
+            point_group="mmm"
+            space_group="P21212"
+            centering="P"
+            unique_axis=""
+            space_group_number = 18
+            run_mr = "false"
+        elif "I222" in proc_params.space_group:
+            lattice_type = "orthorhombic"
+            point_group="mmm"
+            space_group="I222"
+            centering="I"
+            unique_axis=""
+            space_group_number = 23
+            run_mr = "true"
+        elif "P43212" in proc_params.space_group:
+            lattice_type = "tetragonal"
+            point_group="4/mmm"
+            space_group="P43212"
+            centering="P"
+            unique_axis="unique_axis = c"
+            space_group_number = 96
+            run_mr = "false"
+        elif "P213" in proc_params.space_group:
+            lattice_type = "cubic"
+            point_group="m-3"
+            space_group="P213"
+            centering="P"
+            unique_axis=""
+            space_group_number = 198
+            run_mr = "true"
+        elif "P3221" in proc_params.space_group:
+            lattice_type = "trigonal"
+            point_group="3m1_H"
+            space_group="P3221"
+            centering="P"
+            unique_axis="unique_axis = c"
+            space_group_number = 154
+            run_mr = "true"
+        else:
             lattice_type = "triclinic"
+            point_group="1"
+            space_group="P1"
+            centering="P"
+            unique_axis=""
+            space_group_number = 1
+            run_mr = "true"
 
+
+        """
         lattice_types = ("triclinic",
                          "monoclinic",
                          "orthorhombic",
@@ -427,159 +549,56 @@ panel0/ss = y
                          "cubic")
         """
 
-        cell_file = """CrystFEL unit cell file version 1.0
+        cell_a     = proc_params.cell_a
+        cell_b     = proc_params.cell_b
+        cell_c     = proc_params.cell_c
+        cell_alpha = proc_params.cell_alpha
+        cell_beta  = proc_params.cell_beta
+        cell_gamma = proc_params.cell_gamma
 
-lattice_type = orthorhombic
-centering = I
+        # cell_a     = 94.4
+        # cell_b     = 98.9
+        # cell_c     = 86.9
+        # cell_alpha = 90.0
+        # cell_beta  = 90.0
+        # cell_gamma = 90.0
 
-a = {:.2f} A
-b = {:.2f} A
-c = {:.2f} A
-al = {:.2f} deg
-be = {:.2f} deg
-ga = {:.2f} deg
-""".format(94.6, 99.4, 87.6, 90, 90, 90)
+        cell_file = CRYSTFEL_CELL_FILE_TEMPLATE.format(lattice_type, centering, unique_axis, cell_a, cell_b, cell_c, cell_alpha, cell_beta, cell_gamma)
 
-# """.format(57.5, 57.5, 189.4, 90, 90, 120)
-# """.format(144.0, 144.0, 62.50, 90, 90, 120)
-# """.format(125.40, 125.40, 54.50, 90, 90, 90)
-# """.format(90.0, 101.0, 133.0, 90, 90, 90)
-# """.format(79.8, 84.6, 98.5, 93.8, 93.9, 92.1)
-# """.format(78.74, 78.74, 37.93, 90, 90, 90)
-# """.format(94.7, 99.2, 87.4, 90, 90, 90)
-
-#            cell_a=proc_params.cell_a,
-#            cell_b=proc_params.cell_b,
-#            cell_c=proc_params.cell_c,
-#            cell_alpha=proc_params.cell_alpha,
-#            cell_beta=proc_params.cell_beta,
-#            cell_gamma=proc_params.cell_gamma,
-#        )
-
-        data_file = open(
-            os.path.join(
-                self.params_dict["process_directory"],
-                cell_filename),
-            "w")
+        data_file = open(os.path.join(self.params_dict["process_directory"], cell_filename), "w")
         data_file.write(cell_file)
         data_file.close()
 
-        constant_h = 4.135667516e-15   # eV*s
-        constant_c = 299792458.        # m/s
+        wavelength=1e10 * CONST_H * CONST_C / (acq_params.energy * 1000)
 
-        nxds_file = """
-!*****************************************************************************
-! nXDS.INP for the EIGER 4M on P14-EH2 (EMBL Hamburg)
-!*****************************************************************************
-
-!============= JOB CONTROL
- JOB= XYCORR INIT COLSPOT POWDER IDXREF INTEGRATE CORRECT
-
- MAXIMUM_NUMBER_OF_PROCESSORS= 99
-!MAXIMUM_NUMBER_OF_JOBS= 1
-!NAME_TEMPLATE_OF_DATA_FRAMES= {:s}
-!LIB= /mx-beta/lib/xds-zcbf.so
-!DATA_RANGE=1 10000
- IMAGE_DIRECTORY= {:s}
- IMAGE_LIST={:s}
- VERBOSE=0
-
-!============= INIT
- BACKGROUND_RANGE= 1 30
- TRUSTED_REGION=0.0 1.41
-
-!============= COLSPOT
-!STRONG_PIXEL=7.0
- MINIMUM_NUMBER_OF_SPOTS=30
- MINIMUM_NUMBER_OF_PIXELS_IN_A_SPOT=2
-!SPOT_MAXIMUM-CENTROID= 2.0
-
-!============= IDXREF
- REFINE(IDXREF)= BEAM ORIENTATION CELL POSITION
-!SEPMIN=7.00
-!CLUSTER_RADIUS=3.00
-!NUMBER_OF_TESTED_BASIS_ORIENTATIONS= 1000000
-!MAXIMUM_NUMBER_OF_DIFFERENCE_VECTOR_CLUSTERS= 30
-!INTEGER_ERROR=0.10
-!INDEX_ERROR= 0.05
-!INDEX_MAGNITUDE= 4
- INDEX_QUALITY= 0.50
- MINIMUM_FRACTION_OF_INDEXED_SPOTS= 0.20
-
-!============= INTEGRATE
- INCLUDE_RESOLUTION_RANGE= 50.0 1.60
-!NUMBER_OF_PROFILE_GRID_POINTS_ALONG_ALPHA/BETA=13
-!MINPK= 75.0
-!SIGNAL_PIXEL= 2.0
-!BACKGROUND_PIXEL= 5.0
- MINIMUM_EWALD_OFFSET_CORRECTION= 0.50
-!MINIMUM_ZETA= 0.05
-!MAXIMUM_ERROR_OF_SPOT_POSITION= 20.0
-
-!============= CORRECT
- POSTREFINE= SKALA BEAM ORIENTATION CELL B-FACTOR POSITION
-!FRIEDEL'S_LAW= TRUE
- MERGE=FALSE
-
-!============= CRYSTAL
- SPACE_GROUP_NUMBER= 23
- UNIT_CELL_CONSTANTS=  94.6 99.4 87.6 90 90 90
-
-!============= ROTATION PARAMETERS
- ROTATION_AXIS= 0 -1 0
- OSCILLATION_RANGE= 0.0
-
-!============= BEAM PARAMETERS
- X-RAY_WAVELENGTH=  {:.5f}
- INCIDENT_BEAM_DIRECTION=0.000  0.000  1.000
- FRACTION_OF_POLARIZATION= 0.98
- POLARIZATION_PLANE_NORMAL= 0 1 0
-
-!============= DETECTOR PARAMETERS
- DETECTOR=EIGER
- NX= {:.0f}
- NY= {:.0f}
- QX= {:.4f}
- QY= {:.4f}
- MINIMUM_VALID_PIXEL_VALUE=0
- OVERLOAD=1048500
- SENSOR_THICKNESS=0.45
- DIRECTION_OF_DETECTOR_X-AXIS= 1 0 0
- DIRECTION_OF_DETECTOR_Y-AXIS= 0 1 0
- ORGX= {:.2f}
- ORGY= {:.2f}
- DETECTOR_DISTANCE= {:.2f}
-""".format(self.params_dict["template"],
-           os.path.dirname(self.params_dict["template"]),
-           "nxds_dozor_hits.lst",
-           1e10 * (constant_h * constant_c) / (acq_params.energy * 1000),
-           pixel_size_mm_x,
-           pixel_size_mm_y,
-           detector_size_x,
-           detector_size_y,
-           beam_x / pixel_size_mm_x,
-           beam_y / pixel_size_mm_y,
-           HWR.beamline.detector.get_distance()
-           )
+        nxds_file = self.nxds_input_template.format(
+           image_template=self.params_dict["template"],
+           image_directory=os.path.dirname(self.params_dict["template"]),
+           image_list="nxds_dozor_hits.lst",
+           space_group_number=int(space_group_number),
+           cell_a=cell_a,
+           cell_b=cell_b,
+           cell_c=cell_c,
+           cell_alpha=cell_alpha,
+           cell_beta=cell_beta,
+           cell_gamma=cell_gamma,
+           wavelength=wavelength,
+           pixel_size_mm_x=pixel_size_mm_x,
+           pixel_size_mm_y=pixel_size_mm_y,
+           detector_size_x=detector_size_x,
+           detector_size_y=detector_size_y,
+           org_x=beam_x / pixel_size_mm_x,
+           org_y=beam_y / pixel_size_mm_y,
+           detector_distance=HWR.beamline.detector.get_distance()
+        )
 
         data_file = open(nxdsinp_filename, "w")
         data_file.write(nxds_file)
         data_file.close()
 
-        point_group = "422"
+        #point_group = "422"
         # point_group = "6"
-
-        """
-        proc_params_dict = {"directory" : self.params_dict["directory"],
-                            "lst_file": lst_filename,
-                            "geom_file": geom_filename,
-                            "stream_file" : stream_filename,
-                            "cell_filename" : cell_filename,
-                            "point_group": "422",
-                            "space_group": proc_params.space_group,
-                            "hres": acq_params.resolution}
-        log.info("Parallel processing: Crystfel processing parameters: %s" % str(proc_params_dict))
-        """
+        #point_group = "mmm"
 
         end_of_line_to_execute = " %s %s %s %s %s %s %s %.2f" % (
             self.params_dict["process_directory"],
@@ -587,7 +606,7 @@ ga = {:.2f} deg
             geom_filename,
             stream_filename,
             cell_filename,
-            point_group,
+            self.crystfel_params["point_group"],
             proc_params.space_group,
             acq_params.resolution,
         )
@@ -595,61 +614,46 @@ ga = {:.2f} deg
         self.print_log(
             "HWR",
             "debug",
-            "Parallel processing: Starting crystfel %s with parameters %s "
+            "Online processing: Starting crystfel %s with parameters %s "
             % (self.crystfel_script, end_of_line_to_execute),
         )
 
-        num_cores = 160
+        crystfel_command = "ssh bcrunch 'cd %s; bash crystfel_autoproc.sh'" % procdir_cluster
 
-        crystfel_command = "ssh bcrunch 'set path = ( /mx-beta/crystfel/crystfel-0.8.0/bin $path ) ; \
-                                         source /mx-beta/etc/setup.csh ; \
-                                         srun -c " + str(num_cores) + " -D " + procdir_cluster + " \
-                                             indexamajig -i images_fullpath.lst -g " + geom_filename + " \
-                                                         --peaks=zaef --threshold=40 --min-gradient=100 --min-snr=5 --no-cell-combinations \
-                                                         --indexing=xgandalf --int-radius=3,4,5 --wait-for-file=300 \
-                                                         -o " + stream_filename + " \
-                                                         -p " + cell_filename + " -j " + str(num_cores) + " \
-                                                         >& " + procdir_cluster + "/" + log_filename + "'"
+        crystfel_script = self.crystfel_script_template.format(
+            num_cores_crystfel=self.crystfel_params["num_cores_crystfel"],
+            procdir_cluster=procdir_cluster,
+            geom_filename=geom_filename,
+            stream_filename=stream_filename,
+            cell_filename=cell_filename,
+            #num_cores_crystfel=self.crystfel_params["num_cores_crystfel"],
+            #procdir_cluster=procdir_cluster,
+            log_filename=log_filename,
+            num_cores_partialator=self.crystfel_params["num_cores_partialator"],
+            #procdir_cluster,
+            #stream_filename,
+            #cell_filename,
+            pdb_file=proc_params.pdb_file,
+            #proc_params.pdb_file,
+            num_cores_fspipeline=self.crystfel_params["num_cores_fspipeline"],
+            #procdir_cluster,
+            pdb_file_end=str(proc_params.pdb_file).split("/")[-1],
+            resolution="{:.1f}".format(proc_params.resolution_cutoff),
+            hare_number=self.params_dict["hare_num"],
+            burst_number=self.params_dict["num_images_per_trigger"],
+            pointgroup=point_group,
+            spacegroup=space_group,
+            run_mr=run_mr
+        )
 
         data_file = open(crystfel_autoproc, "w")
-        data_file.write("#!/bin/bash\n")
-        data_file.write("\n")
-        data_file.write("source /mx-beta/etc/setup.csh\n")
-        data_file.write(
-            "declare -x PATH=\"$PATH:/mx-beta/crystfel/crystfel-0.8.0/bin\"\n")
-        data_file.write("\n")
-        data_file.write("srun -c " + str(num_cores) + " -D " + procdir_cluster +
-                        " indexamajig -i images_fullpath.lst -g " + geom_filename +
-                        " --peaks=zaef --threshold=40 --min-gradient=100 --min-snr=5 --no-cell-combinations " +
-                        " --indexing=mosflm --int-radius=3,4,5 --wait-for-file=300 " +
-                        " -o " + stream_filename +
-                        " -p " + cell_filename + " -j " + str(num_cores) +
-                        " 2> " + procdir_cluster + "/" + log_filename + "\n")
-        data_file.write("\n")
-        data_file.write("mkdir crystfel_results\n")
-        data_file.write("cd crystfel_results\n")
-        data_file.write("\n")
-        data_file.write(
-            "crystfel_make_hkl_and_stats crystfel.stream crystfel_cell.cell 6 P63 1.6 -partialator\n")
-        data_file.write("\n")
+        data_file.write(crystfel_script)
         data_file.close()
 
         self.print_log(
             "HWR",
             "debug",
-            "Parallel processing: crystfel command: \n %s" % (crystfel_command),
+            "Online processing: crystfel command: \n %s" % (crystfel_command),
         )
 
-        subprocess.Popen(
-            crystfel_command,
-            shell=True,
-            stdin=None,
-            stdout=None,
-            stderr=None,
-            close_fds=True)
-
-        """
-        subprocess.Popen(str(self.crystfel_script + end_of_line_to_execute),
-                             shell=True, stdin=None, stdout=None,
-                             stderr=None, close_fds=True)
-        """
+        subprocess.Popen(crystfel_command, shell=True, stdin=None, stdout=None, stderr=None, close_fds=True)

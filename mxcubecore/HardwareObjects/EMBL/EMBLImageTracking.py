@@ -18,7 +18,9 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Hardware object used to control image tracking. By default ADXV is used
+EMBLImageTracking
+Hardware object used to control image tracking
+By default ADXV is used
 """
 
 from HardwareRepository.BaseHardwareObjects import Device
@@ -65,7 +67,12 @@ class EMBLImageTracking(Device):
         self.chan_spot_list = self.getChannelObject(
             "chanSpotListEnabled", optional=True
         )
-        self.chan_spot_list.setValue(False)
+        if self.chan_spot_list is not None:
+            self.chan_spot_list.connectSignal(
+                "update", self.spot_list_enabled_changed
+            )
+ 
+        self.chan_spot_list.setValue(True)
         self.chan_state = self.getChannelObject("chanState")
         self.chan_state.connectSignal("update", self.state_changed)
 
@@ -129,6 +136,10 @@ class EMBLImageTracking(Device):
         :return:
         """
         self.chan_spot_list.setValue(state)
+
+    def spot_list_enabled_changed(self, state):
+        self.state_dict["spot_list"] = state
+        self.emit("imageTrackingStateChanged", (self.state_dict,)) 
 
     def load_image(self, image_name):
         """

@@ -2759,7 +2759,7 @@ class GraphicsCameraFrame(QtImport.QGraphicsPixmapItem):
         :param event:
         :return:
         """
-        position = QtImport.QPointF(event.pos())
+        position = QtImport.QPointF(event.scenePos())
         self.scene().mouseClickedSignal.emit(
             position.x(), position.y(), event.button() == QtImport.Qt.LeftButton
         )
@@ -2771,7 +2771,7 @@ class GraphicsCameraFrame(QtImport.QGraphicsPixmapItem):
         :param event:
         :return:
         """
-        position = QtImport.QPointF(event.pos())
+        position = QtImport.QPointF(event.scenePos())
         self.scene().mouseDoubleClickedSignal.emit(position.x(), position.y())
         self.update()
 
@@ -2781,6 +2781,6 @@ class GraphicsCameraFrame(QtImport.QGraphicsPixmapItem):
         :param event:
         :return:
         """
-        position = QtImport.QPointF(event.pos())
+        position = QtImport.QPointF(event.scenePos())
         self.scene().mouseReleasedSignal.emit(position.x(), position.y())
         self.update()

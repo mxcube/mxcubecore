@@ -98,39 +98,39 @@ class EMBLCollect(AbstractCollect):
         self.chan_collect_frame.connectSignal("update", self.collect_frame_update)
         self.chan_collect_error = self.getChannelObject("collectError")
         self.chan_collect_error.connectSignal("update", self.collect_error_update)
-        self.cmd_collect_compression = self.get_command_object("collectCompression")
-        self.cmd_collect_description = self.get_command_object("collectDescription")
-        self.cmd_collect_detector = self.get_command_object("collectDetector")
-        self.cmd_collect_directory = self.get_command_object("collectDirectory")
-        self.cmd_collect_energy = self.get_command_object("collectEnergy")
-        self.cmd_collect_exposure_time = self.get_command_object("collectExposureTime")
-        self.cmd_collect_images_per_trigger = self.get_command_object(
+        self.cmd_collect_compression = self.getCommandObject("collectCompression")
+        self.cmd_collect_description = self.getCommandObject("collectDescription")
+        self.cmd_collect_detector = self.getCommandObject("collectDetector")
+        self.cmd_collect_directory = self.getCommandObject("collectDirectory")
+        self.cmd_collect_energy = self.getCommandObject("collectEnergy")
+        self.cmd_collect_exposure_time = self.getCommandObject("collectExposureTime")
+        self.cmd_collect_images_per_trigger = self.getCommandObject(
             "collectImagesPerTrigger"
         )
-        self.cmd_collect_helical_position = self.get_command_object(
+        self.cmd_collect_helical_position = self.getCommandObject(
             "collectHelicalPosition"
         )
-        self.cmd_collect_in_queue = self.get_command_object("collectInQueue")
-        self.cmd_collect_num_images = self.get_command_object("collectNumImages")
-        self.cmd_collect_overlap = self.get_command_object("collectOverlap")
-        self.cmd_collect_processing = self.get_command_object("collectProcessing")
-        self.cmd_collect_range = self.get_command_object("collectRange")
-        self.cmd_collect_raster_lines = self.get_command_object("collectRasterLines")
-        self.cmd_collect_raster_range = self.get_command_object("collectRasterRange")
-        self.cmd_collect_resolution = self.get_command_object("collectResolution")
-        self.cmd_collect_scan_type = self.get_command_object("collectScanType")
-        self.cmd_collect_shutter = self.get_command_object("collectShutter")
-        self.cmd_collect_shutterless = self.get_command_object("collectShutterless")
-        self.cmd_collect_start_angle = self.get_command_object("collectStartAngle")
-        self.cmd_collect_start_image = self.get_command_object("collectStartImage")
-        self.cmd_collect_template = self.get_command_object("collectTemplate")
-        self.cmd_collect_transmission = self.get_command_object("collectTransmission")
-        self.cmd_collect_space_group = self.get_command_object("collectSpaceGroup")
-        self.cmd_collect_unit_cell = self.get_command_object("collectUnitCell")
-        self.cmd_collect_xds_data_range = self.get_command_object("collectXdsDataRange")
+        self.cmd_collect_in_queue = self.getCommandObject("collectInQueue")
+        self.cmd_collect_num_images = self.getCommandObject("collectNumImages")
+        self.cmd_collect_overlap = self.getCommandObject("collectOverlap")
+        self.cmd_collect_processing = self.getCommandObject("collectProcessing")
+        self.cmd_collect_range = self.getCommandObject("collectRange")
+        self.cmd_collect_raster_lines = self.getCommandObject("collectRasterLines")
+        self.cmd_collect_raster_range = self.getCommandObject("collectRasterRange")
+        self.cmd_collect_resolution = self.getCommandObject("collectResolution")
+        self.cmd_collect_scan_type = self.getCommandObject("collectScanType")
+        self.cmd_collect_shutter = self.getCommandObject("collectShutter")
+        self.cmd_collect_shutterless = self.getCommandObject("collectShutterless")
+        self.cmd_collect_start_angle = self.getCommandObject("collectStartAngle")
+        self.cmd_collect_start_image = self.getCommandObject("collectStartImage")
+        self.cmd_collect_template = self.getCommandObject("collectTemplate")
+        self.cmd_collect_transmission = self.getCommandObject("collectTransmission")
+        self.cmd_collect_space_group = self.getCommandObject("collectSpaceGroup")
+        self.cmd_collect_unit_cell = self.getCommandObject("collectUnitCell")
+        self.cmd_collect_xds_data_range = self.getCommandObject("collectXdsDataRange")
 
-        self.cmd_collect_start = self.get_command_object("collectStart")
-        self.cmd_collect_abort = self.get_command_object("collectAbort")
+        self.cmd_collect_start = self.getCommandObject("collectStart")
+        self.cmd_collect_abort = self.getCommandObject("collectAbort")
 
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True,))
@@ -253,8 +253,7 @@ class EMBLCollect(AbstractCollect):
                 if self._actual_collect_status == "error":
                     self.collection_failed()
                 elif self._actual_collect_status == "collecting":
-                    if self.current_dc_parameters["experiment_type"] != "Mesh":
-                        self.store_image_in_lims_by_frame_num(1)
+                    self.store_image_in_lims_by_frame_num(1)
                 if self._previous_collect_status is None:
                     if self._actual_collect_status == "busy":
                         self.print_log("HWR", "info", "Collection: Preparing ...")
@@ -329,12 +328,12 @@ class EMBLCollect(AbstractCollect):
             self.current_dc_parameters["processing_after"],
         )
 
-    def stopCollect(self, owner="MXCuBE"):
+    def stop_collect(self):
         """Stops collect"""
 
-        self.aborted_by_user = True
+        AbstractCollect.stop_collect(self)
+
         self.cmd_collect_abort()
-        self.collection_failed("Aborted by user")
         HWR.beamline.detector.close_cover()
 
     def set_helical_pos(self, arg):
@@ -363,12 +362,15 @@ class EMBLCollect(AbstractCollect):
         self.cmd_collect_num_images(num_total_frames / num_lines)
         # GB collection server interface assumes the order: fast, slow for mesh
         # range. Need reversal at P14:
-        self.cmd_collect_raster_range(mesh_range[::-1])
+        if HWR.beamline.session.beamline_name == "P13":
+            self.cmd_collect_raster_range(mesh_range)
+        else:
+            self.cmd_collect_raster_range(mesh_range[::-1])
 
     @task
     def _take_crystal_snapshot(self, snapshot_filename):
         """Saves crystal snapshot"""
-        HWR.beamline.microscope.save_scene_snapshot(snapshot_filename)
+        HWR.beamline.microscope..save_scene_snapshot(snapshot_filename)
 
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec=1):
@@ -382,11 +384,15 @@ class EMBLCollect(AbstractCollect):
 
     def set_energy(self, value):
         """Sets energy"""
+        """
         if abs(value - self.get_energy()) > 0.005 and not self.break_bragg_released:
             self.break_bragg_released = True
             if hasattr(HWR.beamline.energy, "release_break_bragg"):
                 HWR.beamline.energy.release_break_bragg()
-        self.cmd_collect_energy(value * 1000.0)
+            self.cmd_collect_energy(value * 1000.0)
+        else:
+        """
+        self.cmd_collect_energy(self.get_energy() * 1000)
 
     def get_energy(self):
         """Returns energy value in keV"""
@@ -394,6 +400,8 @@ class EMBLCollect(AbstractCollect):
 
     def set_resolution(self, value):
         """Sets resolution in A"""
+        if not value:
+            value = self.get_resolution()
         self.cmd_collect_resolution(value)
 
     def set_transmission(self, value):
@@ -412,6 +420,9 @@ class EMBLCollect(AbstractCollect):
     def move_motors(self, motor_position_dict):
         """Move to centred position"""
         HWR.beamline.diffractometer.move_motors(motor_position_dict)
+
+    def move_detector(self, value):
+        HWR.beamline.detector.set_distance(value, timeout=30)
 
     def prepare_input_files(self):
         """Prepares xds directory"""
@@ -448,7 +459,7 @@ class EMBLCollect(AbstractCollect):
 
     def get_resolution(self):
         """Returns resolution in A"""
-        return HWR.beamline.resolution.get_value()
+        return HWR.beamline.resolution.getPosition()
 
     def get_transmission(self):
         """Returns transmision in %"""
