@@ -140,12 +140,12 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.chan_scintillator_position = self.getChannelObject("ScintillatorPosition")
         self.chan_capillary_position = self.getChannelObject("CapillaryPosition")
 
-        self.cmd_start_set_phase = self.getCommandObject("startSetPhase")
-        self.cmd_start_auto_focus = self.getCommandObject("startAutoFocus")
-        self.cmd_get_omega_scan_limits = self.getCommandObject(
+        self.cmd_start_set_phase = self.get_command_object("startSetPhase")
+        self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")
+        self.cmd_get_omega_scan_limits = self.get_command_object(
             "getOmegaMotorDynamicScanLimits"
         )
-        self.cmd_save_centring_positions = self.getCommandObject(
+        self.cmd_save_centring_positions = self.get_command_object(
             "saveCentringPositions"
         )
 
@@ -420,7 +420,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         ):
             if (HWR.beamline.detector.distance.get_position() < 350):
                 logging.getLogger("GUI").info("Moving detector to safe distance")
-                HWR.beamline.detector.distance.move(350, timeout=20)
+                HWR.beamline.detector.distance.set_value(350, timeout=20)
 
         if timeout is not None:
             _start = time.time()
@@ -522,11 +522,11 @@ class EMBLMiniDiff(GenericDiffractometer):
             if self.in_plate_mode():
                 dynamic_limits = self.get_osc_limits()
                 if click == 0:
-                    self.motor_hwobj_dict["phi"].move(dynamic_limits[0] + 0.5)
+                    self.motor_hwobj_dict["phi"].set_value(dynamic_limits[0] + 0.5)
                 elif click == 1:
-                    self.motor_hwobj_dict["phi"].move(dynamic_limits[1] - 0.5)
+                    self.motor_hwobj_dict["phi"].set_value(dynamic_limits[1] - 0.5)
                 elif click == 2:
-                    self.motor_hwobj_dict["phi"].move(
+                    self.motor_hwobj_dict["phi"].set_value(
                         (dynamic_limits[0] + dynamic_limits[1]) / 2.0
                     )
             else:
@@ -837,7 +837,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         :param angle: float
         :return:
         """
-        self.motor_hwobj_dict["phi"].move(angle, timeout=5)
+        self.motor_hwobj_dict["phi"].set_value(angle, timeout=5)
 
     def move_omega_relative(self, relative_angle, timeout=5):
         """

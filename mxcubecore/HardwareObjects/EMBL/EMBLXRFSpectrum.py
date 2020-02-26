@@ -66,8 +66,8 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
                 "EMBLXRFSpectrum: Beam info hwobj not defined"
             )
 
-        self.cmd_spectrum_start = self.getCommandObject("cmdSpectrumStart")
-        self.cmd_adjust_transmission = self.getCommandObject("cmdAdjustTransmission")
+        self.cmd_spectrum_start = self.get_command_object("cmdSpectrumStart")
+        self.cmd_adjust_transmission = self.get_command_object("cmdAdjustTransmission")
 
         self.chan_spectrum_status = self.getChannelObject("chanSpectrumStatus")
         self.chan_spectrum_status.connectSignal("update", self.spectrum_status_update)

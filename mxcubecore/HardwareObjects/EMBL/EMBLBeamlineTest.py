@@ -103,10 +103,10 @@ class EMBLBeamlineTest(HardwareObject):
         )
         self.chan_qbpm_ar = self.getChannelObject("chanQBPMAr")
         self.chan_pitch_position_ar = self.getChannelObject("chanPitchPositionAr")
-        self.cmd_set_pitch_position = self.getCommandObject("cmdSetPitchPosition")
-        self.cmd_set_pitch = self.getCommandObject("cmdSetPitch")
-        self.cmd_start_pitch_scan = self.getCommandObject("cmdStartPitchScan")
-        self.cmd_set_vmax_pitch = self.getCommandObject("cmdSetVMaxPitch")
+        self.cmd_set_pitch_position = self.get_command_object("cmdSetPitchPosition")
+        self.cmd_set_pitch = self.get_command_object("cmdSetPitch")
+        self.cmd_start_pitch_scan = self.get_command_object("cmdStartPitchScan")
+        self.cmd_set_vmax_pitch = self.get_command_object("cmdSetVMaxPitch")
 
         self.horizontal_motor_hwobj = self.getObjectByRole("horizontal_motor")
         self.vertical_motor_hwobj = self.getObjectByRole("vertical_motor")
@@ -179,7 +179,7 @@ class EMBLBeamlineTest(HardwareObject):
         if self.getProperty("run_tests_at_startup"):
             gevent.spawn_later(5, self.start_test_queue, self.startup_test_list)
 
-        self.cmd_set_qbmp_range = self.getCommandObject("cmdQBPMRangeSet")
+        self.cmd_set_qbmp_range = self.get_command_object("cmdQBPMRangeSet")
 
     def start_test_queue(self, test_list, create_report=True):
         """Runs a list of tests

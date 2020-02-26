@@ -94,7 +94,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         self.state_channel = self.getChannelObject("State")
         self.connect(self.state_channel, "update", self.state_changed)
         # This is not used
-        self.cmd_start_auto_focus = self.getCommandObject("startAutoFocus")
+        self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")
 
         self.phi_motor_hwobj = self.getObjectByRole("phi")
         self.phiz_motor_hwobj = self.getObjectByRole("phiz")
@@ -353,7 +353,7 @@ class ALBAMiniDiff(GenericDiffractometer):
     #            logging.getLogger("HWR").info("Cannot set SAMPLE VIEW phase")
     #            return False
 
-    #    phi_init_position = self.phi_motor_hwobj.getPosition()
+    #    phi_init_position = self.phi_motor_hwobj.get_value()
 
     #    for click in range(3):
     #        self.user_clicked_event = gevent.event.AsyncResult()
@@ -365,9 +365,9 @@ class ALBAMiniDiff(GenericDiffractometer):
     #        if self.in_plate_mode():
     #            dynamic_limits = self.phi_motor_hwobj.getDynamicLimits()
     #            if click == 0:
-    #                self.phi_motor_hwobj.move(dynamic_limits[0])
+    #                self.phi_motor_hwobj.set_value(dynamic_limits[0])
     #            elif click == 1:
-    #                self.phi_motor_hwobj.move(dynamic_limits[1])
+    #                self.phi_motor_hwobj.set_value(dynamic_limits[1])
     #        else:
     #            if click < 2:
     #                self.phi_motor_hwobj.syncMoveRelative(-90)
@@ -534,7 +534,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         # turn it on
         if velocity is not None:
             self.phi_motor_hwobj.set_velocity(velocity)
-        self.phi_motor_hwobj.move(pos)
+        self.phi_motor_hwobj.set_value(pos)
         time.sleep(0.2)
         # it should wait here
 

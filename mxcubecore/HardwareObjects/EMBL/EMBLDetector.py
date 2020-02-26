@@ -113,12 +113,12 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
         self.chan_beam_xy = self.getChannelObject("chanBeamXY")
 
-        self.cmd_close_cover = self.getCommandObject("cmdCloseCover")
-        self.cmd_restart_daq = self.getCommandObject("cmdRestartDaq")
+        self.cmd_close_cover = self.get_command_object("cmdCloseCover")
+        self.cmd_restart_daq = self.get_command_object("cmdRestartDaq")
 
     def get_distance(self):
         """Returns detector distance in mm"""
-        return self.distance_motor_hwobj.getPosition()
+        return self.distance_motor_hwobj.get_value()
 
     def set_distance(self, position, timeout=None):
         """Sets detector distance
@@ -129,7 +129,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         :type timeout: float
         :return: None
         """
-        return self.distance_motor_hwobj.move(position, timeout=timeout)
+        return self.distance_motor_hwobj.set_value(position, timeout=timeout)
 
     def get_distance_limits(self):
         """Returns detector distance limits"""

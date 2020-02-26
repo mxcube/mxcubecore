@@ -45,9 +45,9 @@ class EMBLPPUControl(Device):
 
         self.chan_all_status = self.getChannelObject("chanAllStatus")
 
-        self.cmd_all_status = self.getCommandObject("cmdAllStatus")
-        self.cmd_all_restart = self.getCommandObject("cmdAllRestart")
-        self.cmd_furka_restart = self.getCommandObject("cmdFurkaRestart")
+        self.cmd_all_status = self.get_command_object("cmdAllStatus")
+        self.cmd_all_restart = self.get_command_object("cmdAllRestart")
+        self.cmd_furka_restart = self.get_command_object("cmdFurkaRestart")
         self.cmd_furka_restart("")
 
         self.get_status()

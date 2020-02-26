@@ -65,11 +65,11 @@ class EMBLEnergy(AbstractEnergy):
     def init(self):
         self.ready_event = gevent.event.Event()
 
-        self.cmd_set_energy = self.getCommandObject("cmdSetEnergy")
-        self.cmd_energy_ctrl_byte = self.getCommandObject("cmdEnergyCtrlByte")
-        self.cmd_set_break_bragg = self.getCommandObject("cmdSetBreakBragg")
-        self.cmd_release_break_bragg = self.getCommandObject("cmdReleaseBreakBragg")
-        self.cmd_reset_perp = self.getCommandObject("cmdResetPerp")
+        self.cmd_set_energy = self.get_command_object("cmdSetEnergy")
+        self.cmd_energy_ctrl_byte = self.get_command_object("cmdEnergyCtrlByte")
+        self.cmd_set_break_bragg = self.get_command_object("cmdSetBreakBragg")
+        self.cmd_release_break_bragg = self.get_command_object("cmdReleaseBreakBragg")
+        self.cmd_reset_perp = self.get_command_object("cmdResetPerp")
 
         self.chan_energy = self.getChannelObject("chanEnergy")
         if self.chan_energy is not None:

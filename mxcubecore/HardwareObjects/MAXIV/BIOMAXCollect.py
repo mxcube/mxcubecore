@@ -1191,7 +1191,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         lower_limit, upper_limit = self.get_detector_distance_limits()
         logging.getLogger("HWR").info(
             "...................value %s, detector movement start..... %s"
-            % (value, HWR.beamline.detector.distance.getPosition())
+            % (value, HWR.beamline.detector.distance.get_value())
         )
         if upper_limit is not None and lower_limit is not None:
             if value >= upper_limit or value <= lower_limit:
@@ -1216,7 +1216,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             )
         logging.getLogger("HWR").info(
             "....................value %s detector movement finished.....%s"
-            % (value, HWR.beamline.detector.distance.getPosition())
+            % (value, HWR.beamline.detector.distance.get_value())
         )
 
     def get_detector_distance(self):
@@ -1224,7 +1224,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         if HWR.beamline.detector.distance is not None:
-            return HWR.beamline.detector.distance.getPosition()
+            return HWR.beamline.detector.distance.get_value()
 
     def get_detector_distance_limits(self):
         """
@@ -1259,7 +1259,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         )  # self.get_beam_centre_pixel() # returns pixel
         config["BeamCenterX"] = beam_centre_x  # unit, should be pixel for master file
         config["BeamCenterY"] = beam_centre_y
-        config["DetectorDistance"] = HWR.beamline.detector.distance.getPosition() / 1000.0
+        config["DetectorDistance"] = HWR.beamline.detector.distance.get_value() / 1000.0
 
         config["CountTime"] = oscillation_parameters["exposure_time"]
 

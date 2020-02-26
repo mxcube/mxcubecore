@@ -147,9 +147,9 @@ class EMBLFlux(AbstractFlux):
         self.chan_intens_mean = self.getChannelObject("intensMean")
         self.chan_intens_range = self.getChannelObject("intensRange")
 
-        self.cmd_set_intens_resolution = self.getCommandObject("setIntensResolution")
-        self.cmd_set_intens_acq_time = self.getCommandObject("setIntensAcqTime")
-        self.cmd_set_intens_range = self.getCommandObject("setIntensRange")
+        self.cmd_set_intens_resolution = self.get_command_object("setIntensResolution")
+        self.cmd_set_intens_acq_time = self.get_command_object("setIntensAcqTime")
+        self.cmd_set_intens_range = self.get_command_object("setIntensRange")
 
         self.back_light_hwobj = self.getObjectByRole("backlight")
         self.beamstop_hwobj = self.getObjectByRole("beamstop")
