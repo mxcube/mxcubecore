@@ -46,12 +46,12 @@ class PX1DetectorDistance(Device):
 
         self.position_chan = self.getChannelObject("position")
         self.state_chan = self.getChannelObject("state")
-        self.stop_command = self.getCommandObject("stop")
+        self.stop_command = self.get_command_object("stop")
 
         self.distance_min_chan = self.getChannelObject("minimum_distance")
 
         self.light_state_chan = self.getChannelObject("light_state")
-        self.light_extract_cmd = self.getCommandObject("extract_light")
+        self.light_extract_cmd = self.get_command_object("extract_light")
 
         self.position_chan.connectSignal("update", self.motor_position_changed)
         self.state_chan.connectSignal("update", self.motor_state_changed)
@@ -81,7 +81,7 @@ class PX1DetectorDistance(Device):
 
     def motor_position_changed(self, position=None):
         if position is None:
-            position = self.getPosition()
+            position = self.get_value()
 
         self.current_position = position
 
@@ -109,7 +109,7 @@ class PX1DetectorDistance(Device):
         return self.position_chan.getValue()
 
     def getDialPosition(self):
-        return self.getPosition()
+        return self.get_value()
 
     def getLimits(self):
         try:
@@ -140,7 +140,7 @@ class PX1DetectorDistance(Device):
             gevent.sleep(0.03)
 
     def moveRelative(self, position):
-        target_position = self.getPosition() + position
+        target_position = self.get_value() + position
         if not self.check_light(target_position):
             return (False, "Error while trying to extract the light arm!")
 
@@ -150,7 +150,7 @@ class PX1DetectorDistance(Device):
             gevent.sleep(0.03)
 
     def syncMoveRelative(self, position):
-        target_position = self.getPosition() + position
+        target_position = self.get_value() + position
         if not self.check_light(target_position):
             return (False, "Error while trying to extract the light arm!")
 
@@ -201,5 +201,5 @@ class PX1DetectorDistance(Device):
 
 
 def test_hwo(hwo):
-    print(hwo.getPosition())
+    print(hwo.get_value())
     print(hwo.getLimits())

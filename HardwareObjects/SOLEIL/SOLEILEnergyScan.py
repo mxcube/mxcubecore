@@ -687,7 +687,7 @@ class SOLEILEnergyScan(Equipment):
     def get_current_energy(self):
         if HWR.beamline.energy is not None:
             try:
-                return HWR.beamline.energy.getPosition()
+                return HWR.beamline.energy.get_value()
             except BaseException:
                 logging.getLogger("HWR").exception("EnergyScan: couldn't read energy")
                 return None
@@ -712,7 +712,7 @@ class SOLEILEnergyScan(Equipment):
     def get_current_wavelength(self):
         if HWR.beamline.energy is not None:
             try:
-                return self.energy2wavelength(HWR.beamline.energy.getPosition())
+                return self.energy2wavelength(HWR.beamline.energy.get_value())
             except BaseException:
                 logging.getLogger("HWR").exception("EnergyScan: couldn't read energy")
                 return None
@@ -735,7 +735,7 @@ class SOLEILEnergyScan(Equipment):
             return False
 
         try:
-            curr_energy = HWR.beamline.energy.getPosition()
+            curr_energy = HWR.beamline.energy.get_value()
         except BaseException:
             logging.getLogger("HWR").exception(
                 "EnergyScan: couldn't get current energy"
@@ -759,7 +759,7 @@ class SOLEILEnergyScan(Equipment):
                 self.previousResolution = None
                 if HWR.beamline.resolution is not None:
                     try:
-                        self.previousResolution = HWR.beamline.resolution.getPosition()
+                        self.previousResolution = HWR.beamline.resolution.get_value()
                     except BaseException:
                         logging.getLogger("HWR").exception(
                             "EnergyScan: couldn't get current resolution"
@@ -858,7 +858,7 @@ class SOLEILEnergyScan(Equipment):
         if HWR.beamline.resolution is not None:
             if self.previousResolution is not None:
                 try:
-                    HWR.beamline.resolution.move(self.previousResolution)
+                    HWR.beamline.resolution.set_value(self.previousResolution)
                 except BaseException:
                     return (False, "Error trying to move the detector")
                 else:

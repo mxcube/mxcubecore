@@ -92,13 +92,13 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
     def get_distance(self):
         """Returns detector distance in mm"""
         if self.distance_motor_hwobj is not None:
-            return float(self.distance_motor_hwobj.getPosition())
+            return float(self.distance_motor_hwobj.get_value())
         else:
             return self.default_distance
 
     def move_distance(self, value):
         if self.distance_motor_hwobj is not None:
-            self.distance_motor_hwobj.move(value)
+            self.distance_motor_hwobj.set_value(value)
 
     def wait_move_distance_done(self):
         self.distance_motor_hwobj.wait_end_of_move()

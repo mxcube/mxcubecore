@@ -68,8 +68,8 @@ class EMBLCRL(HardwareObject):
         if self.chan_crl_value:
             self.chan_crl_value.connectSignal("update", self.crl_value_changed)
 
-        self.cmd_set_crl_value = self.getCommandObject("cmdSetLenses")
-        self.cmd_set_trans_value = self.getCommandObject("cmdSetTrans")
+        self.cmd_set_crl_value = self.get_command_object("cmdSetLenses")
+        self.cmd_set_trans_value = self.get_command_object("cmdSetTrans")
 
         self.energy_value = HWR.beamline.energy.get_current_energy()
         self.connect(HWR.beamline.energy, "stateChanged", self.energy_state_changed)

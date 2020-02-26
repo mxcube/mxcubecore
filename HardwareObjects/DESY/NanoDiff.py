@@ -179,8 +179,8 @@ class NanoDiff(HardwareObject):
                 "update", self.fast_shutter_state_changed
             )
 
-        self.cmd_start_set_phase = self.getCommandObject("startSetPhase")
-        self.cmd_start_auto_focus = self.getCommandObject("startAutoFocus")
+        self.cmd_start_set_phase = self.get_command_object("startSetPhase")
+        self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")
 
         self.centring_hwobj = self.getObjectByRole("centring")
         if self.centring_hwobj is None:
@@ -555,7 +555,7 @@ class NanoDiff(HardwareObject):
         Descript. :
         """
         if self.omega_reference_motor is not None:
-            reference_pos = self.omega_reference_motor.getPosition()
+            reference_pos = self.omega_reference_motor.get_value()
             self.omega_reference_motor_moved(reference_pos)
 
     def get_available_centring_methods(self):
@@ -839,7 +839,7 @@ class NanoDiff(HardwareObject):
         for click in (0, 1, 2):
             self.user_clicked_event = AsyncResult()
             x, y = self.user_clicked_event.get()
-            phiValue = self.phi_motor_hwobj.getPosition()
+            phiValue = self.phi_motor_hwobj.get_value()
 
             self.centring_hwobj.appendCentringDataPoint(
                 {
@@ -853,9 +853,9 @@ class NanoDiff(HardwareObject):
             if self.in_plate_mode():
                 dynamic_limits = self.phi_motor_hwobj.getDynamicLimits()
                 if click == 0:
-                    self.phi_motor_hwobj.move(dynamic_limits[0])
+                    self.phi_motor_hwobj.set_value(dynamic_limits[0])
                 elif click == 1:
-                    self.phi_motor_hwobj.move(dynamic_limits[1])
+                    self.phi_motor_hwobj.set_value(dynamic_limits[1])
             else:
                 if click < 2:
                     self.phi_motor_hwobj.moveRelative(90)
@@ -1082,9 +1082,9 @@ class NanoDiff(HardwareObject):
             new_kappa,
             new_kappa_phi,
         ) and self.minikappa_correction_hwobj is not None:
-            sampx = self.sample_x_motor_hwobj.getPosition()
-            sampy = self.sample_y_motor_hwobj.getPosition()
-            phiy = self.phiy_motor_hwobj.getPosition()
+            sampx = self.sample_x_motor_hwobj.get_value()
+            sampy = self.sample_y_motor_hwobj.get_value()
+            phiy = self.phiy_motor_hwobj.get_value()
             new_sampx, new_sampy, new_phiy = self.minikappa_correction_hwobj.shift(
                 kappa, kappa_phi, [sampx, sampy, phiy], new_kappa, new_kappa_phi
             )
@@ -1138,7 +1138,7 @@ class NanoDiff(HardwareObject):
                     continue
                 motor_position_dict[motor] = position
             # logging.getLogger("HWR").info("Moving motor '%s' to %f", motor.getMotorMnemonic(), position)
-            motor.move(position)
+            motor.set_value(position)
         while any([motor.motorIsMoving() for motor in motor_position_dict]):
             time.sleep(0.5)
         """with gevent.Timeout(15):
@@ -1218,7 +1218,7 @@ class NanoDiff(HardwareObject):
             try:
                 motors[motor_role] = motor_pos[mot_obj]
             except KeyError:
-                motors[motor_role] = mot_obj.getPosition()
+                motors[motor_role] = mot_obj.get_value()
         motors["beam_x"] = (
             self.beam_position[0] - self.zoom_centre["x"]
         ) / self.pixels_per_mm_y
@@ -1274,7 +1274,7 @@ class NanoDiff(HardwareObject):
         centred_images = []
         for index in range(image_count):
             logging.getLogger("HWR").info("NanoDiff: taking snapshot #%d", index + 1)
-            # centred_images.append((self.phi_motor_hwobj.getPosition(), str(myimage(drawing))))
+            # centred_images.append((self.phi_motor_hwobj.get_value(), str(myimage(drawing))))
             if not self.in_plate_mode() and image_count > 1:
                 self.phi_motor_hwobj.syncMoveRelative(-90)
             centred_images.reverse()  # snapshot order must be according to positive rotation direction
@@ -1326,8 +1326,8 @@ class NanoDiff(HardwareObject):
         else:
             t1 = [point_1.sampx, point_1.sampy, point_1.phiy]
             t2 = [point_2.sampx, point_2.sampy, point_2.phiy]
-            kappa = self.kappa_motor_hwobj.getPosition()
-            phi = self.kappa_phi_motor_hwobj.getPosition()
+            kappa = self.kappa_motor_hwobj.get_value()
+            phi = self.kappa_phi_motor_hwobj.get_value()
             new_kappa, new_phi, (
                 new_sampx,
                 new_sampy,
