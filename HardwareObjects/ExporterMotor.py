@@ -1,3 +1,4 @@
+# encoding: utf-8
 #
 #  Project: MXCuBE
 #  https://github.com/mxcube.
@@ -19,7 +20,6 @@
 """
 Example xml file:
 <device class="ExporterMotor">
-  <username>phiy</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <motor_name>AlignmentY</motor_name>
   <tolerance>1e-2</tolerance>
@@ -27,7 +27,7 @@ Example xml file:
 """
 
 import sys
-
+from enum import Enum
 from gevent import Timeout, sleep
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import (
     AbstractMotor,
@@ -39,26 +39,35 @@ __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
+class ExporterStates(Enum):
+    """Convert exporter states to motor states"""
+
+    MOVING = MotorStates.BUSY
+    INIT = MotorStates.BUSY
+    READY = MotorStates.READY
+    ALARM = MotorStates.WARNING
+
+
 class ExporterMotor(AbstractMotor):
-    """API for motor using the Exporter protocol, based on AbstractMotor"""
+    """Motor using the Exporter protocol, based on AbstractMotor"""
 
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
-        self.username = None
         self._motor_pos_suffix = "Position"
         self._motor_state_suffix = "State"
         self._exporter = None
-        self.__position = None
-        self.__motor_state = None
+        self.position_channel = None
+        self.motor_state = None
 
     def init(self):
         """Initialise the motor"""
         AbstractMotor.init(self)
         _exporter_address = self.getProperty("exporter_address")
+        self._motor_pos_suffix = self.getProperty("position_suffix", self._motor_pos_suffix)
         _host, _port = _exporter_address.split(":")
         self._exporter = Exporter(_host, int(_port))
 
-        self.__position = self.add_channel(
+        self.position_channel = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": _exporter_address,
@@ -66,12 +75,11 @@ class ExporterMotor(AbstractMotor):
             },
             self.motor_name + self._motor_pos_suffix,
         )
+        if self.position_channel:
+            self.get_value()
+            self.position_channel.connectSignal("update", self.update_value)
 
-        if self.__position:
-            self.__position.connectSignal("update", self.update_position)
-            self.get_position()
-
-        self.__motor_state = self.add_channel(
+        self.motor_state = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": _exporter_address,
@@ -80,8 +88,11 @@ class ExporterMotor(AbstractMotor):
             self.motor_name + self._motor_state_suffix,
         )
 
-        if self.__motor_state:
-            self.__motor_state.connectSignal("update", self.update_state)
+        if self.motor_state:
+            self.motor_state.connectSignal("update", self._update_state)
+
+        self.update_state()
+
 
     def get_state(self):
         """Get the motor state.
@@ -89,11 +100,18 @@ class ExporterMotor(AbstractMotor):
             (enum 'MotorStates'): Motor state.
         """
         try:
-            _state = self.__motor_state.get_value().upper()
-            self.state = MotorStates.__members__[_state]
-        except KeyError:
-            self.state = MotorStates.UNKNOWN
-        return self.state
+            _state = self.motor_state.get_value().upper()
+            return MotorStates.__members__[_state]
+        except (KeyError, AttributeError):
+            return MotorStates.UNKNOWN
+
+    def _update_state(self, state):
+        try:
+            state = state.upper()
+            state = ExporterStates.__members__[state].value
+        except (AttributeError, KeyError):
+            state = MotorStates.UNKNOWN
+        return self.update_state(state)
 
     def _get_hwstate(self):
         """Get the hardware state, reported by the MD2 application.
@@ -150,13 +168,13 @@ class ExporterMotor(AbstractMotor):
             while self.get_state() != MotorStates.READY:
                 sleep(0.01)
 
-    def get_position(self):
+    def get_value(self):
         """Get the motor position.
         Returns:
             (float): Motor position.
         """
-        self.position = self.__position.get_value()
-        return self.position
+        self._nominal_value = self.position_channel.get_value()
+        return self._nominal_value
 
     def get_limits(self):
         """Returns motor low and high limits.
@@ -164,7 +182,7 @@ class ExporterMotor(AbstractMotor):
             (tuple): two floats tuple (low limit, high limit).
         """
         try:
-            _low, _high = self._exporter.execute("getMotorLimits", self.motor_name)
+            _low, _high = self._exporter.execute("getMotorLimits", (self.motor_name,))
             # inf is a problematic value, convert to sys.float_info.max
             if _low == float("-inf"):
                 _low = -sys.float_info.max
@@ -184,7 +202,7 @@ class ExporterMotor(AbstractMotor):
         """
         try:
             _low, _high = self._exporter.execute(
-                "getMotorDynamicLimits", self.motor_name
+                "getMotorDynamicLimits", (self.motor_name,)
             )
             # inf is a problematic value, convert to sys.float_info.max
             if _low == float("-inf"):
@@ -196,18 +214,12 @@ class ExporterMotor(AbstractMotor):
         except ValueError:
             return -1e4, 1e4
 
-    def move(self, position, wait=True, timeout=None):
-        """Move motor to absolute position. Wait the move to finish.
+    def _set_value(self, value):
+        """Move motor to absolute value. Wait the move to finish.
         Args:
-            position (float): target position
-            wait (bool): optional - wait until motor movement finished.
-            timeout (float): optional - timeout [s].
+            value (float): target value
         """
-        self.__position.set_value(position)
-        self.emit("stateChanged", (MotorStates.MOVING))
-
-        if wait:
-            self.wait_move(timeout)
+        self.position_channel.set_value(value)
 
     def stop(self):
         """Stop the motor movement immediately."""
@@ -223,21 +235,15 @@ class ExporterMotor(AbstractMotor):
         Args:
             timeout (float): optional - timeout [s].
         """
-        self._exporter.execute("startHomingMotor", self.motor_name)
+        self._exporter.execute("startHomingMotor", (self.motor_name,))
+        self.wait_ready(timeout)
 
     def get_max_speed(self):
         """Get the motor maximum speed.
         Returns:
             (float): the maximim speed [unit/s].
         """
-        return self._exporter.execute("getMotorMaxSpeed", self.motor_name)
-
-    def update_values(self):
-        """Emit signals to update the state, position and limits values."""
-        self.emit("stateChanged", (self.get_state(),))
-        self.emit("positionChanged", (self.get_position(),))
-        if all(self._limits):
-            self.emit("limitsChanged", (self.get_limits(),))
+        return self._exporter.execute("getMotorMaxSpeed", (self.motor_name,))
 
     def name(self):
         """Get the motor name. Should be removed when GUI ready"""

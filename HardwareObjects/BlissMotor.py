@@ -1,3 +1,4 @@
+# encoding: utf-8
 #
 #  Project: MXCuBE
 #  https://github.com/mxcube.
@@ -48,7 +49,7 @@ class BlissMotor(AbstractMotor):
         AbstractMotor.init(self)
         cfg = static.get_config()
         self.motor_obj = cfg.get(self.motor_name)
-        self.connect(self.motor_obj, "position", self.update_position)
+        self.connect(self.motor_obj, "position", self.update_value)
         self.connect(self.motor_obj, "state", self.update_state)
         self.connect(self.motor_obj, "move_done", self.update_state)
 
@@ -66,10 +67,10 @@ class BlissMotor(AbstractMotor):
                 states.append(MotorStates.__members__[stat.upper()])
         except KeyError:
             states.append(MotorStates.UNKNOWN)
-        self.state = states
-        return self.state
+        self._state = states
+        return self._state
 
-    def get_position(self):
+    def get_value(self):
         """Read the motor position.
         Returns:
             float: Motor position.
@@ -99,16 +100,14 @@ class BlissMotor(AbstractMotor):
         self._velocity = self.motor_obj.velocity
         return self._velocity
 
-    def move(self, position, wait=True, timeout=None):
-        """Move motor to absolute position. Wait the move to finish.
+    def _set_value(self, value, wait=True, timeout=None):
+        """Move motor to absolute value. Wait the move to finish.
         Args:
-            position (float): target position
+            value (float): target value
             wait (bool): optional - wait until motor movement finished.
             timeout (float): optional - timeout [s].
         """
-        self.motor_obj.move(position, wait=wait)
-        if timeout:
-            self.wait_move(timeout)
+        self.motor_obj.move(value, wait=wait)
 
     def wait_move(self, timeout=None):
         """Wait until the end of move ended, using the application state.

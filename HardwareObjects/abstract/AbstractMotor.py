@@ -1,3 +1,4 @@
+# encoding: utf-8
 #
 #  Project: MXCuBE
 #  https://github.com/mxcube.
@@ -21,6 +22,8 @@
 
 import abc
 from enum import IntEnum, unique
+from gevent import Timeout
+from gevent.event import Event
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
@@ -32,43 +35,56 @@ class MotorStates(IntEnum):
     """Motor states definitions."""
 
     UNKNOWN = 0
-    INITIALIZING = 1
-    HOME = 2
+    WARNING = 1
+    BUSY = 2
     READY = 3
-    MOVING = 5
-    FAULT = 10
-    LIMPOS = 14
-    LIMNEG = 13
+    FAULT = 4
+    HOME = 5
+    LOWLIMIT = 6
+    HIGHLIMIT = 7
 
 
 class AbstractMotor(HardwareObject):
     """Abstract motor API"""
 
     __metaclass__ = abc.ABCMeta
+    READY_STATES = (
+        MotorStates.READY,
+        MotorStates.LOWLIMIT,
+        MotorStates.HIGHLIMIT,
+        MotorStates.HOME,
+    )
+    unit = None
 
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
-        self.state = MotorStates.UNKNOWN
-        self.position = None
+        self._state = MotorStates.UNKNOWN
+        self._nominal_value = None
         self._limits = (None, None)
         self._velocity = None
         self._tolerance = None
         self.motor_name = None
         self.username = None
+        self.read_only = False
+        self.default_value = None
+        self._ready_event = None
 
     def init(self):
         """Initialise some parametrs."""
         self.motor_name = self.getProperty("motor_name")
         self.username = self.getProperty("username") or self.motor_name
         self._tolerance = self.getProperty("tolerance") or 1e-3
+        self.read_only = self.getProperty("read_only") or False
+        self.default_value = self.getProperty("default_value")
+        self._ready_event = Event()
 
     def is_ready(self):
         """Check if the motor state is READY.
         Returns:
             (bool): True if ready, otherwise False.
         """
-        return self.state == MotorStates.READY
+        return self._ready_event.is_set()
 
     @abc.abstractmethod
     def get_state(self):
@@ -76,15 +92,15 @@ class AbstractMotor(HardwareObject):
         Returns:
             (enum 'MotorStates'): Motor state.
         """
-        return self.state
+        return None
 
     @abc.abstractmethod
-    def get_position(self):
+    def get_value(self):
         """Read the motor position.
         Returns:
-            (float): Motor position.
+            float: Motor position.
         """
-        return self.position
+        return None
 
     def get_limits(self):
         """Return motor low and high limits.
@@ -116,25 +132,46 @@ class AbstractMotor(HardwareObject):
         self._velocity = velocity
 
     @abc.abstractmethod
-    def move(self, position, wait=True, timeout=None):
+    def _set_value(self, value, wait=True, timeout=None):
         """Move motor to absolute position. Wait the move to finish.
         Args:
-            position (float): target position
+            value (float): target value
             wait (bool): optional - wait until motor movement finished.
             timeout (float): optional - timeout [s].
         """
 
-    def move_relative(self, relative_position, wait=False, timeout=None):
-        """Move to position relative to the current. Wait the move to finish.
+    def set_value(self, value, wait=True, timeout=None):
+        """Move motor to absolute value. Wait the move to finish.
         Args:
-            relative_position (float): relative target position.
+            value (float): target value
             wait (bool): optional - wait until motor movement finished.
             timeout (float): optional - timeout [s].
         """
-        self.move(self.get_position() + relative_position, wait, timeout)
+        self._set_value(value)
+        self.update_value(value)
+        self.update_state()
 
-    def wait_move(self, timeout=None):
-        """Wait until motor movement finished."""
+        if wait:
+            self.wait_ready(timeout)
+
+    def set_value_relative(self, relative_value, wait=False, timeout=None):
+        """Move to value relative to the current. Wait the move to finish.
+        Args:
+            relative_value (float): relative target value.
+            wait (bool): optional - wait until motor movement finished.
+            timeout (float): optional - timeout [s].
+        """
+        self.set_value(self.get_value() + relative_value, wait, timeout)
+
+    def wait_ready(self, timeout=None):
+        """Wait until event ready
+        Args:
+            (float): timeout [s]
+        Raises:
+            RuntimeError: Timeout waiting for status ready.
+        """
+        with Timeout(timeout, RuntimeError("Timeout waiting for status ready")):
+            self._ready_event.wait(timeout=timeout)
 
     def abort(self):
         """Abort the motor movement immediately."""
@@ -151,30 +188,43 @@ class AbstractMotor(HardwareObject):
         """
         raise NotImplementedError
 
-    def update_position(self, position=None):
-        """Check if the position has changed. Emist signal positionChanged.
+    def update_value(self, value=None):
+        """Check if the value has changed. Emist signal valueChanged.
         Args:
-            position (float): position
+            value (float): value
         """
-        if self.position is None:
-            self.position = self.get_position()
-        if position is None:
-            position = self.get_position()
-        if abs(position - self.position) <= self._tolerance:
+        if self._nominal_value is None:
+            self._nominal_value = self.get_value()
+
+        if value is None:
+            value = self.get_value()
+
+        if abs(value - self._nominal_value) <= self._tolerance:
             return
-        self.position = position
-        self.emit("positionChanged", (self.position,))
+
+        self._nominal_value = value
+        self.emit("valueChanged", (self._nominal_value,))
 
     def update_state(self, state=None):
         """Check if the state has changed. Emist signal stateChanged.
         Args:
             state (enum 'MotorState'): state
         """
-        if state is None:
-            state = self.get_state()
+        if not self._state:
+            self._state = self.get_state()
 
-        self.state = state
-        self.emit("stateChanged", (self.state,))
+        if state != self._state:
+            if state is None:
+                state = self.get_state()
+            if state in self.READY_STATES:
+                self._ready_event.set()
+                print(self.motor_name, "is ready")
+            else:
+                self._ready_event.clear()
+
+            self._state = state
+
+        self.emit("stateChanged", (self._state,))
 
     def update_limits(self, limits=None):
         """Check if the limits have changed. Emist signal limitsChanged.
@@ -187,3 +237,10 @@ class AbstractMotor(HardwareObject):
         if all(limits):
             self._limits = limits
             self.emit("limitsChanged", (self._limits,))
+
+    def update_values(self):
+        """ Reemits all signals
+        """
+        self.update_value()
+        self.update_state()
+        self.update_limits()
