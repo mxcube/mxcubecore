@@ -17,9 +17,9 @@
 #
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+"""Detector API"""
 
 import abc
-
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
@@ -33,44 +33,46 @@ class AbstractDetector(HardwareObject):
 
     def __init__(self, name):
         HardwareObject.__init__(self, name)
+
         self._temperature = None
         self._humidity = None
-        self._exposure_time_limits = [None, None]
-        self._pixel_size = 0
+        self._exposure_time_limits = (None, None)
+        self._pixel_size = (None, None)
 
-        self._distance_limits = [None, None]
         self._binning_mode = 0
         self._roi_mode = 0
         self._roi_modes_list = []
 
         self._distance_motor_hwobj = None
+        self.width = None  # [pixel]
+        self.height = None  # [pixel]
+        self._det_radius = None
+        self._det_metadata = {}
 
     def init(self):
-        self._distance_motor_hwobj = self.getObjectByRole("detector_distance")
+        """Initialise some common paramerters"""
+        self.width = self.getProperty("width")
+        self.height = self.getProperty("height")
+        try:
+            self._det_metadata = self.getProperties("beam")
+        except KeyError:
+            pass
+
+        self._pixel_size = (self.getProperty("px"), self.getProperty("py"))
 
     @property
     def distance(self):
-        """Property for contained detector_distance hwobj
-
-        NBNB Temnporary hack. This should eb configured pro[perly
-
+        """Property for contained detector_distance hardware object
         Returns:
-            AbstratctActuator
+            (AbstratctMotor): Hardware object.
         """
         return self._distance_motor_hwobj
 
-    def get_distance_limits(self):
-        """
-        Returns:
-            tuple[float, float]: tuple containing the pair lower limit, upper limit in mm
-        """
-        return self._distance_motor_hwobj.get_limits()
-
     @abc.abstractmethod
     def has_shutterless(self):
-        """
+        """Check if detector is capable of shutterless acquisition.
         Returns:
-            bool: True if detector is capable of shutterless acquisition False otherwise
+            (bool): True if detector is capable, False otherwise
         """
         return
 
@@ -79,82 +81,76 @@ class AbstractDetector(HardwareObject):
         """
         Prepares detector for acquisition
         """
-        return
 
-    @abc.abstractmethod
     def last_image_saved(self):
         """
         Returns:
             str: path to last image
         """
-        return
+        return None
 
     @abc.abstractmethod
     def start_acquisition(self):
         """
         Starts acquisition
         """
-        return
 
-    @abc.abstractmethod
     def stop_acquisition(self):
         """
         Stops acquisition
         """
 
-    @abc.abstractmethod
     def wait_ready(self):
         """
         Blocks until detector is ready
         """
-        return
 
     def get_roi_mode(self):
         """
         Returns:
-            str" current ROI mode
+            (str): current ROI mode
         """
         return self._roi_mode
 
     def set_roi_mode(self, roi_mode):
         """
         Args:
-            roi_mode (int): ROI mode to set
+            roi_mode (int): ROI mode to set.
         """
         self._roi_mode = roi_mode
 
     def get_roi_mode_name(self):
         """
         Returns:
-            str: current ROI mode name
+            (str): current ROI mode name
         """
         return self._roi_modes_list[self._roi_mode]
 
     def get_roi_modes(self):
         """
         Returns:
-            tuple[str]: Tuple with valid ROI modes
+            tuple(str): Tuple with valid ROI modes.
         """
         return tuple(self._roi_modes_list)
 
     def get_exposure_time_limits(self):
         """
         Returns:
-            tuple[float, float]: Exposure time lower and upper limit in s
+            tuple(float, float): Exposure time lower and upper limit [s]
         """
         return self._exposure_time_limits
 
     def get_pixel_size(self):
         """
         Returns:
-            tuple(float, float): Pixel size in mm for dimension 1 and dimension 2 (x, y)
+            tuple(float, float): Pixel size for dimension 1 and 2 (x, y) [mm].
         """
         return self._pixel_size
 
     def get_binning_mode(self):
         """
         Returns:
-            int: current binning mode
+            (int): current binning mode
         """
         return self._binning_mode
 
@@ -164,4 +160,43 @@ class AbstractDetector(HardwareObject):
             value (int): binning mode
         """
         self._binning_mode = value
-    
+
+    def get_beam_position(self, distance=None):
+        """Calculate the beam position for a given distance.
+        Args:
+            distance(float): Distance [mm]
+        Returns:
+            tuple(float, float): Beam position x,y coordinates [pixel].
+        """
+        distance = distance or self._distance_motor_hwobj.get_value()
+        try:
+            return (
+                float(distance * self._det_metadata["ax"] + self._det_metadata["bx"]),
+                float(distance * self._det_metadata["ay"] + self._det_metadata["by"]),
+            )
+        except KeyError:
+            return None, None
+
+    def get_radius(self, distance=None):
+        """Get the detector radius for a given distance.
+        Args:
+            distance (float): Distance [mm]
+        Returns:
+            (float): Detector radius [mm]
+        """
+        distance = distance or self._distance_motor_hwobj.get_value()
+        beam_x, beam_y = self.get_beam_position(distance)
+        self._det_radius = min(
+            self.width - beam_x, self.height - beam_y, beam_x, beam_y
+        )
+        return self._det_radius
+
+    def get_metadata(self):
+        """Returns relevant metadata.
+        Returns:
+            (dict): metadata
+        """
+        self._det_metadata["width"] = self.width
+        self._det_metadata["height"] = self.height
+
+        return self._det_metadata

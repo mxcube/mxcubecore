@@ -1,4 +1,3 @@
-#
 #  Project: MXCuBE
 #  https://github.com/mxcube
 #
@@ -20,8 +19,9 @@
 import os
 import time
 import logging
-import gevent
 import subprocess
+
+import gevent
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects.XSDataCommon import (
@@ -38,10 +38,8 @@ __license__ = "LGPLv3+"
 __category__ = "General"
 
 
-class AutoProcessingMockup(HardwareObject):
+class EMBLOfflineProcessing(HardwareObject):
     """Hwobj assembles input xml and launches EDNAproc autoprocessing"""
-
-    # NBNB straight copy pf EMBLAutoProcessing. TODO rewrite!
 
     def __init__(self, name):
         HardwareObject.__init__(self, name)
@@ -116,9 +114,11 @@ class AutoProcessingMockup(HardwareObject):
                 will_execute = True
                 if process_event == "after":
                     will_execute = run_processing
-                    end_of_line_to_execute = " %s %s " % (
+                    end_of_line_to_execute = " %s %s %s %s" % (
                         params_dict["xds_dir"],
                         params_dict.get("collection_id"),
+                        params_dict['sample_reference']['cell'],
+                        params_dict['sample_reference']['spacegroup'] 
                     )
                 elif process_event == "image":
                     filename = params_dict["fileinfo"]["template"] % frame_number
@@ -186,7 +186,7 @@ class AutoProcessingMockup(HardwareObject):
         xds_appeared = False
         wait_xds_start = time.time()
         logging.debug(
-            "AutoprocessingMockup: Waiting for XDS.INP "
+            "EMBLAutoprocessing: Waiting for XDS.INP "
             + "file: %s" % autoproc_xds_filename
         )
         while (
@@ -199,7 +199,7 @@ class AutoProcessingMockup(HardwareObject):
             ):
                 xds_appeared = True
                 logging.debug(
-                    "AutoprocessingMockup: XDS.INP file is there, size={0}".format(
+                    "EMBLAutoprocessing: XDS.INP file is there, size={0}".format(
                         os.stat(autoproc_xds_filename).st_size
                     )
                 )
@@ -208,7 +208,7 @@ class AutoProcessingMockup(HardwareObject):
                 gevent.sleep(xds_input_file_wait_resolution)
         if not xds_appeared:
             logging.error(
-                "AutoprocessingMockup: XDS.INP file %s failed " % autoproc_xds_filename
+                "EMBLAutoprocessing: XDS.INP file %s failed " % autoproc_xds_filename
                 + "to appear after %d seconds" % xds_input_file_wait_timeout
             )
             return None, False

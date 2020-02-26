@@ -21,22 +21,22 @@
 import time
 import numpy
 
-from HardwareRepository.HardwareObjects.GenericParallelProcessing import (
-    GenericParallelProcessing
+from HardwareRepository.HardwareObjects.abstract.AbstractOnlineProcessing import (
+    AbstractOnlineProcessing
 )
 
 
 __license__ = "LGPLv3"
 
 
-class ParallelProcessingMockup(GenericParallelProcessing):
+class OnlineProcessingMockup(AbstractOnlineProcessing):
     def __init__(self, name):
-        GenericParallelProcessing.__init__(self, name)
+        AbstractOnlineProcessing.__init__(self, name)
 
         self.result_type = None
 
     def init(self):
-        GenericParallelProcessing.init(self)
+        AbstractOnlineProcessing.init(self)
         self.result_type = self.getProperty("result_type", "random")
 
     def run_processing(self, data_collection):

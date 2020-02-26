@@ -53,11 +53,10 @@ class EMBLTransfocator(HardwareObject):
     def init(self):
         """Inits all variables"""
 
-        self.chan_crl_value = self.getChannelObject("chanCrlValue")
-        if self.chan_crl_value:
-            self.chan_crl_value.connectSignal("update", self.crl_value_changed)
-
-        self.cmd_set_crl_value = self.get_command_object("cmdSetLenses")
+        #self.chan_crl_value = self.getChannelObject("chanCrlValue")
+        #if self.chan_crl_value:
+        #    self.chan_crl_value.connectSignal("update", self.crl_value_changed)
+        #self.cmd_set_crl_value = self.getCommandObject("cmdSetLenses")
 
         self.current_mode = "Manual"
 

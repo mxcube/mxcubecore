@@ -1,4 +1,3 @@
-#
 #  Project: MXCuBE
 #  https://github.com/mxcube
 #
@@ -20,8 +19,9 @@
 import os
 import time
 import logging
-import gevent
 import subprocess
+
+import gevent
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects.XSDataCommon import (
@@ -38,7 +38,7 @@ __license__ = "LGPLv3+"
 __category__ = "General"
 
 
-class EMBLAutoProcessing(HardwareObject):
+class OfflineProcessingMockup(HardwareObject):
     """Hwobj assembles input xml and launches EDNAproc autoprocessing"""
 
     def __init__(self, name):
@@ -184,7 +184,7 @@ class EMBLAutoProcessing(HardwareObject):
         xds_appeared = False
         wait_xds_start = time.time()
         logging.debug(
-            "EMBLAutoprocessing: Waiting for XDS.INP "
+            "AutoprocessingMockup: Waiting for XDS.INP "
             + "file: %s" % autoproc_xds_filename
         )
         while (
@@ -197,7 +197,7 @@ class EMBLAutoProcessing(HardwareObject):
             ):
                 xds_appeared = True
                 logging.debug(
-                    "EMBLAutoprocessing: XDS.INP file is there, size={0}".format(
+                    "AutoprocessingMockup: XDS.INP file is there, size={0}".format(
                         os.stat(autoproc_xds_filename).st_size
                     )
                 )
@@ -206,7 +206,7 @@ class EMBLAutoProcessing(HardwareObject):
                 gevent.sleep(xds_input_file_wait_resolution)
         if not xds_appeared:
             logging.error(
-                "EMBLAutoprocessing: XDS.INP file %s failed " % autoproc_xds_filename
+                "AutoprocessingMockup: XDS.INP file %s failed " % autoproc_xds_filename
                 + "to appear after %d seconds" % xds_input_file_wait_timeout
             )
             return None, False
