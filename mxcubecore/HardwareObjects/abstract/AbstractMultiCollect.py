@@ -397,9 +397,6 @@ class AbstractMultiCollect(object):
         return
 
     def do_collect(self, owner, data_collect_parameters):
-        import pdb
-
-        pdb.set_trace()
         if self.__safety_shutter_close_task is not None:
             self.__safety_shutter_close_task.kill()
 
@@ -810,10 +807,6 @@ class AbstractMultiCollect(object):
                 self.execute_collect_without_loop(data_collect_parameters)
             else:
                 for start, wedge_size in wedges_to_collect:
-                    import pdb
-
-                    pdb.set_trace()
-
                     logging.getLogger("user_level_log").info(
                         "Preparing acquisition, start=%f, wedge size=%d",
                         start,

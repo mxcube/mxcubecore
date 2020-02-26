@@ -367,7 +367,6 @@ class Microdiff(MiniDiff.MiniDiff):
         mesh_range,
         wait=False,
     ):
-        # import pdb; pdb.set_trace()
         self.scan_range.set_value(end - start)
         self.scan_exposure_time.set_value(exptime / mesh_num_lines)
         self.scan_start_angle.set_value(start)

@@ -378,7 +378,6 @@ def ready(*motors):
 
 
 def move_motors(motor_positions_dict):
-    # import pdb; pdb.set_trace()
     def wait_ready(timeout=None):
         with gevent.Timeout(timeout):
             while not ready(*motor_positions_dict.keys()):
