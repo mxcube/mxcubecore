@@ -21,7 +21,6 @@
 """Abstract Motor API. Motor states definition"""
 
 import abc
-import sys
 from enum import Enum, unique
 from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
