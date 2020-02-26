@@ -25,8 +25,8 @@ import logging
 import gevent
 from gevent.queue import Queue
 from HardwareRepository.CommandContainer import CommandObject, ChannelObject
-from .embl import ExporterClient
-from .embl.StandardClient import PROTOCOL
+from .exporter import ExporterClient
+from .exporter.StandardClient import PROTOCOL
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
