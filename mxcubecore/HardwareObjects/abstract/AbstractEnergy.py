@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 #  Project: MXCuBE
 #  https://github.com/mxcube.
@@ -17,75 +18,143 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-from HardwareRepository.ConvertUtils import H_OVER_E
+"""Abstract Energy API"""
 
+from scipy.constants import h, c, e
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
 
+__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
 class AbstractEnergy(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
-        self._tunable = True
-        self._moving = False
+        self.tunable = True
+        self.state = None
         self._aborted = False
         self._default_energy = None
-        self._energy_limits = [None, None]
+        self.energy_limits = ()
+        self._wavelength_limits = ()
         self._energy_value = None
         self._wavelength_value = None
 
-        self.canMoveEnergy = self.can_move_energy
-        self.getEnergyLimits = self.get_energy_limits
-        self.isReady = self.is_ready
-
     def is_ready(self):
-        return not self._moving
+        """Check if the motor state is READY.
+        Returns:
+            (bool): True if ready, otherwise False.
+        """
+        if self.tunable:
+            return True
+        return MotorStates.READY in self.state
 
     def abort(self):
         self._aborted = True
 
     def set_tunable(self, state):
-        self._tunable = state
-
-    def can_move_energy(self):
-        return self._tunable
-
-    def isConnected(self):
-        return True
-
-    def set_do_beam_alignment(self, state):
-        pass
+        self.tunable = state
 
     def get_current_energy(self):
+        return self.get_energy()
+    
+    def get_energy(self):
+        """Read the energy
+        Returns:
+            (float): Energy [keV]
+        """
         return self._energy_value
 
-    def get_current_wavelength(self):
-        if self._energy_value is not None:
-            return H_OVER_E / self._energy_value
-        else:
-            return None
+    def get_wavelength(self):
+        """Read the wavelength
+        Returns:
+            (float): Wavelength [Å]
+        """
+        if not self._wavelength_value:
+            if self._energy_value:
+                self._wavelength_value = self._calculate_wavelength(
+                    self._energy_value)
+        return self._wavelength_value
+
+    def get_limits(self):
+        """Return energy and wavelength low and high limits.
+        Returns:
+            (tuple): tuple of two floats tuple (low limit, high limit).
+        """
+        if not self._wavelength_limits:
+            self.get_wavelength_limits()
+        return self._energy_limits, self._wavelength_limits
 
     def get_energy_limits(self):
+        """Return energy low and high limits.
+        Returns:
+            (tuple): two floats tuple (low limit, high limit).
+        """
         return self._energy_limits
 
-    def set_energy_limits(self, limits):
-        self._energy_limits = limits
-
     def get_wavelength_limits(self):
-        lims = None
-        if self._energy_limits is not None:
-            lims = (
-                H_OVER_E / self._energy_limits[1],
-                H_OVER_E / self._energy_limits[0],
-            )
-        return lims
+        """Return wavelength low and high limits.
+        Returns:
+            (tuple): two floats tuple (low limit, high limit).
+        """
+        if not self._wavelength_limits:
+            _low, _high = self._energy_limits
+            self._wavelength_limits = (self._calculate_wavelength(_low),
+                                      self._calculate_wavelength(_high))
+        return self._wavelength_limits
 
-    def move_energy(self, value, wait=True):
-        self._energy_value = value
-        self.update_values()
+    def move_energy(self, value, wait=True, timeout=None):
+        """Move motor to absolute value. Wait the move to finish.
+        Args:
+            value (float): target position [keV]
+            wait (bool): optional - wait until motor movement finished.
+            timeout (float): optional - timeout [s].
+        """
 
     def move_wavelength(self, value, wait=True):
-        self.move_energy(H_OVER_E / value, wait)
+        """Move motor to absolute value. Wait the move to finish.
+        Args:
+            value (float): target position [keV]
+            wait (bool): optional - wait until motor movement finished.
+            timeout (float): optional - timeout [s].
+        """
+    def _calculate_wavelength(self, energy=None):
+        """Calculate wavelength from energy
+        Args:
+            energy(float): Energy [keV]
+        Returns:
+            (float): wavelength [Å]
+        """
+        hc_over_e = h * c / e * 10e6
+        energy = energy or self._energy_value
+
+        # energy in KeV to get wavelength in Å
+        energy = energy / 1000.0 if energy > 1000 else energy
+
+        return hc_over_e / energy
+
+    def _calculate_energy(self, wavelength=None):
+        """Calculate energy from wavelength
+        Args:
+            value((float): wavelength [Å]
+        Returns:
+            (float): Energy [keV]
+        """
+        hc_over_e = h * c / e * 10e6
+        wavelength = wavelength or self._wavelength_value
+        return  hc_over_e / wavelength
+    
+    def update_state(self, state):
+        """Emist signal stateChanged.
+        Args:
+            state (enum 'MotorState'): state
+        """
+        self.emit("stateChanged", (state,))
 
     def update_values(self):
-        self.emit("energyChanged", self._energy_value, H_OVER_E / self._energy_value)
+        """Emist signal energyChanged for both energy and wavelength"""
+        if not self._wavelength_value:
+            self._wavelength_value = self._calculate_wavelength(self._energy_value)
+        self.emit("energyChanged", self._energy_value, self._wavelength_value)
+
+        
