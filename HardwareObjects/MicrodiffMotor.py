@@ -95,13 +95,13 @@ class MicrodiffMotor(AbstractMotor):
                 )
             self.motors_state_attr.connectSignal("update", self.updateMotorState)
 
-            self._motor_abort = self.getCommandObject("abort")
+            self._motor_abort = self.get_command_object("abort")
             if not self._motor_abort:
                 self._motor_abort = self.add_command(
                     {"type": "exporter", "name": "abort"}, "abort"
                 )
 
-            self.get_dynamic_limits_cmd = self.getCommandObject(
+            self.get_dynamic_limits_cmd = self.get_command_object(
                 "get%sDynamicLimits" % self.motor_name
             )
             if not self.get_dynamic_limits_cmd:
@@ -113,19 +113,19 @@ class MicrodiffMotor(AbstractMotor):
                     "getMotorDynamicLimits",
                 )
 
-            self.get_limits_cmd = self.getCommandObject("getMotorLimits")
+            self.get_limits_cmd = self.get_command_object("getMotorLimits")
             if not self.get_limits_cmd:
                 self.get_limits_cmd = self.add_command(
                     {"type": "exporter", "name": "get_limits"}, "getMotorLimits"
                 )
 
-            self.get_max_speed_cmd = self.getCommandObject("getMotorMaxSpeed")
+            self.get_max_speed_cmd = self.get_command_object("getMotorMaxSpeed")
             if not self.get_max_speed_cmd:
                 self.get_max_speed_cmd = self.add_command(
                     {"type": "exporter", "name": "get_max_speed"}, "getMotorMaxSpeed"
                 )
 
-            self.home_cmd = self.getCommandObject("homing")
+            self.home_cmd = self.get_command_object("homing")
             if not self.home_cmd:
                 self.home_cmd = self.add_command(
                     {"type": "exporter", "name": "homing"}, "startHomingMotor"
@@ -234,7 +234,7 @@ class MicrodiffMotor(AbstractMotor):
             )  # absolutePosition-self.offset)
 
     def moveRelative(self, relativePosition):
-        self.move(self.get_position() + relativePosition)
+        self.set_value(self.get_position() + relativePosition)
 
     def syncMoveRelative(self, relative_position, timeout=None):
         return self.syncMove(self.get_position() + relative_position)
@@ -246,7 +246,7 @@ class MicrodiffMotor(AbstractMotor):
                 time.sleep(0.1)
 
     def syncMove(self, position, timeout=None):
-        self.move(position)
+        self.set_value(position)
         try:
             self.waitEndOfMove(timeout)
         except BaseException:

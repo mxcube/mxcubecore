@@ -227,17 +227,17 @@ class SardanaMotor(AbstractMotor):
         return self.motor_position
 
     def get_position(self):
-        return self.getPosition()
+        return self.get_value()
 
     def update_values(self):
         self.emit("limitsChanged", (self.getLimits(),))
-        self.emit("positionChanged", (self.getPosition(),))
+        self.emit("positionChanged", (self.get_value(),))
 
     def getDialPosition(self):
         """
         Descript. :
         """
-        return self.getPosition()
+        return self.get_value()
 
     def move(self, absolute_position):
         """
@@ -251,7 +251,7 @@ class SardanaMotor(AbstractMotor):
         """
         Descript. : move for the given distance
         """
-        self.move(self.getPosition() + relative_position)
+        self.move(self.get_value() + relative_position)
 
     def syncMove(self, position, timeout=None):
         """
@@ -267,7 +267,7 @@ class SardanaMotor(AbstractMotor):
         """
         Descript. : move for the given distance and wait till it's reached
         """
-        self.syncMove(self.getPosition() + relative_position, timeout)
+        self.syncMove(self.get_value() + relative_position, timeout)
 
     def stop(self):
         """
@@ -309,7 +309,7 @@ class SardanaMotor(AbstractMotor):
 
 
 def test_hwo(hwo):
-    print(("Position for %s is: %s" % (hwo.username, hwo.getPosition())))
+    print(("Position for %s is: %s" % (hwo.username, hwo.get_value())))
     print(("Velocity for %s is: %s" % (hwo.username, hwo.get_velocity())))
     print(("Acceleration for %s is: %s" % (hwo.username, hwo.get_acceleration())))
 
@@ -319,4 +319,4 @@ def test_hwo(hwo):
 #    while hwo.is_moving():
 #        print "Moving"
 #        time.sleep(0.3)
-#    print("Movement done. Position is now: %s" % hwo.getPosition())
+#    print("Movement done. Position is now: %s" % hwo.get_value())

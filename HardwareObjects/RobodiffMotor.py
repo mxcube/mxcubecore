@@ -32,7 +32,7 @@ class RobodiffMotor(Device):
 
     def connectNotify(self, signal):
         if signal == "positionChanged":
-            self.emit("positionChanged", (self.getPosition(),))
+            self.emit("positionChanged", (self.get_value(),))
         elif signal == "stateChanged":
             self.updateState(emit=True)
         elif signal == "limitsChanged":
@@ -83,7 +83,7 @@ class RobodiffMotor(Device):
 
     def getDialPosition(self):
         self.end_init()
-        return self.getPosition()
+        return self.get_value()
 
     def move(self, position):
         self.end_init()
@@ -91,10 +91,10 @@ class RobodiffMotor(Device):
         self.motor.move(position, wait=False)
 
     def moveRelative(self, relativePosition):
-        self.move(self.getPosition() + relativePosition)
+        self.move(self.get_value() + relativePosition)
 
     def syncMoveRelative(self, relative_position, timeout=None):
-        return self.syncMove(self.getPosition() + relative_position)
+        return self.syncMove(self.get_value() + relative_position)
 
     def waitEndOfMove(self, timeout=None):
         with gevent.Timeout(timeout):

@@ -296,7 +296,7 @@ class GenericDiffractometer(HardwareObject):
         except BaseException:
             pass  # used the default value
         for command_name in self.used_commands_list:
-            self.command_dict[command_name] = self.getCommandObject(command_name)
+            self.command_dict[command_name] = self.get_command_object(command_name)
 
         # Centring motors ----------------------------------------------------
         try:
@@ -962,19 +962,19 @@ class GenericDiffractometer(HardwareObject):
             if None in (self.pixels_per_mm_x, self.pixels_per_mm_y):
                 return 0, 0
             phi_angle = math.radians(
-                self.centring_phi.direction * self.centring_phi.getPosition()
+                self.centring_phi.direction * self.centring_phi.get_value()
             )
             sampx = self.centring_sampx.direction * (
-                centred_positions_dict["sampx"] - self.centring_sampx.getPosition()
+                centred_positions_dict["sampx"] - self.centring_sampx.get_value()
             )
             sampy = self.centring_sampy.direction * (
-                centred_positions_dict["sampy"] - self.centring_sampy.getPosition()
+                centred_positions_dict["sampy"] - self.centring_sampy.get_value()
             )
             phiy = self.centring_phiy.direction * (
-                centred_positions_dict["phiy"] - self.centring_phiy.getPosition()
+                centred_positions_dict["phiy"] - self.centring_phiy.get_value()
             )
             phiz = self.centring_phiz.direction * (
-                centred_positions_dict["phiz"] - self.centring_phiz.getPosition()
+                centred_positions_dict["phiz"] - self.centring_phiz.get_value()
             )
             rot_matrix = numpy.matrix(
                 [
@@ -1044,7 +1044,7 @@ class GenericDiffractometer(HardwareObject):
                 if None in (motor, position):
                     continue
                 #motor_positions[motor] = position
-            motor.move(position)
+            motor.set_value(position)
         self.wait_device_ready(timeout)
 
         if self.delay_state_polling is not None and self.delay_state_polling > 0:
@@ -1207,7 +1207,7 @@ class GenericDiffractometer(HardwareObject):
                 motors[motor_role] = motor_pos[motor_obj]
             except KeyError:
                 if motor_obj:
-                    motors[motor_role] = motor_obj.getPosition()
+                    motors[motor_role] = motor_obj.get_value()
         motors["beam_x"] = (
             self.beam_position[0] - self.zoom_centre["x"]
         ) / self.pixels_per_mm_y

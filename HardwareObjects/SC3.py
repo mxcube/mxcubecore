@@ -143,7 +143,7 @@ class SC3(SampleChanger):
             "_reset",
             "_reset_basket_info",
         ):
-            setattr(self, command_name, self.getCommandObject(command_name))
+            setattr(self, command_name, self.get_command_object(command_name))
 
         SampleChanger.init(self)
 

@@ -230,9 +230,9 @@ class PlateManipulator(SampleChanger):
 
         self.crims_url = self.getProperty("crimsWsRoot")
 
-        self.cmd_move_to_drop = self.getCommandObject("MoveToDrop")
+        self.cmd_move_to_drop = self.get_command_object("MoveToDrop")
         if not self.cmd_move_to_drop:
-            self.cmd_move_to_location = self.getCommandObject(
+            self.cmd_move_to_location = self.get_command_object(
                 "startMovePlateToLocation"
             )
 

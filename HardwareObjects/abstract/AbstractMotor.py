@@ -151,8 +151,11 @@ class AbstractMotor(HardwareObject):
         self.update_value(value)
         self.update_state()
 
+        print("BEFORE MOTOR SET_VALUE WAIT: ", self.motor_name)
         if wait:
             self.wait_ready(timeout)
+
+        print("AFTER MOTOR SET_VALUE WAIT:", self.motor_name)
 
     def set_value_relative(self, relative_value, wait=False, timeout=None):
         """Move to value relative to the current. Wait the move to finish.

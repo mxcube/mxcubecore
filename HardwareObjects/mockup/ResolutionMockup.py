@@ -20,7 +20,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
             "positionChanged",
             self.dtoxPositionChanged
         )
-        HWR.beamline.detector.distance.move(
+        HWR.beamline.detector.distance.set_value(
             self.res2dist(self.currentResolution)
         )
 
@@ -83,7 +83,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
 
     def recalculateResolution(self):
         self.currentResolution = self.dist2res(
-            HWR.beamline.detector.distance.getPosition()
+            HWR.beamline.detector.distance.get_value()
         )
 
     def equipmentReady(self):
@@ -101,7 +101,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
     getPosition = get_position
 
     def get_value(self):
-        return self.getPosition()
+        return self.get_value()
 
     def newResolution(self, res):
         if res:
@@ -125,7 +125,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         return (0, 20)
 
     def set_position(self, pos, wait=True):
-        HWR.beamline.detector.distance.move(self.res2dist(pos), wait=wait)
+        HWR.beamline.detector.distance.set_value(self.res2dist(pos), wait=wait)
 
     move = set_position
 

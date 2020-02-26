@@ -96,7 +96,7 @@ class MotorWPositions(AbstractMotor, Device):
 
     def getCurrentPositionName(self, pos=None):
         if pos is None:
-            pos = self.motor.getPosition()
+            pos = self.motor.get_value()
         for (position_name, position) in self.predefined_positions.items():
             if self.delta >= abs(pos - position):
                 return position_name
@@ -104,7 +104,7 @@ class MotorWPositions(AbstractMotor, Device):
 
     def moveToPosition(self, position_name):
         try:
-            self.motor.move(self.predefined_positions[position_name])
+            self.motor.set_value(self.predefined_positions[position_name])
         except BaseException:
             logging.getLogger("HWR").exception("MotorWPositions: invalid position name")
 
@@ -123,7 +123,7 @@ class MotorWPositions(AbstractMotor, Device):
 
     def motor_position_changed(self, absolute_position=None):
         if absolute_position is None:
-            absolute_position = self.motor.getPosition()
+            absolute_position = self.motor.get_value()
         position_name = self.getCurrentPositionName(absolute_position)
         if self._last_position_name != position_name:
             self._last_position_name = position_name
@@ -151,7 +151,7 @@ class MotorWPositions(AbstractMotor, Device):
         """
         Descript. :
         """
-        return self.motor.getPosition()
+        return self.motor.get_value()
 
     def getDialPosition(self):
         """
@@ -163,7 +163,7 @@ class MotorWPositions(AbstractMotor, Device):
         """
         Descript. :
         """
-        self.motor.move(absolute_position)
+        self.motor.set_value(absolute_position)
 
     def moveRelative(self, relative_position):
         """

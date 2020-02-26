@@ -656,7 +656,7 @@ class AbstractCollect(HardwareObject, object):
     #     Descript. :
     #     """
     #     if HWR.beamline.resolution is not None:
-    #         return HWR.beamline.resolution.getPosition()
+    #         return HWR.beamline.resolution.get_value()
 
     # def get_transmission(self):
     #     """

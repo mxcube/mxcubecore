@@ -62,7 +62,7 @@ class CatsBessy(SampleChanger):
         self._selected_basket = 1
 
         self._state = self.getChannelObject("_state")
-        self._abort = self.getCommandObject("_abort")
+        self._abort = self.get_command_object("_abort")
 
         self._basketChannels = []
         for basket_index in range(CatsBessy.NO_OF_BASKETS):

@@ -15,7 +15,7 @@ class SpecScan(Procedure):
         self.specConnection = None
 
     def setSpecVersion(self, specVersion):
-        scanCmd = self.getCommandObject("start")
+        scanCmd = self.get_command_object("start")
         scanCmd.setSpecVersion(specVersion)
 
         if specVersion is not None:
@@ -56,11 +56,11 @@ class SpecScan(Procedure):
         return False
 
     def abortScan(self):
-        scanCmd = self.getCommandObject("start")
+        scanCmd = self.get_command_object("start")
         scanCmd.abort()
 
     def startScan(self, *args):
-        scanCmd = self.getCommandObject("start")
+        scanCmd = self.get_command_object("start")
         scanCmd.connectSignal("commandReplyArrived", self.scanDone)
         scanCmd.connectSignal("commandFailed", self.scanDone)
         scanCmd.connectSignal("commandBeginWaitReply", self.scanStarted)
