@@ -1,103 +1,100 @@
-from HardwareRepository.HardwareObjects.ExpMotor import ExpMotor
-import logging
-import math
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU General Lesser Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Zoom as Expoorter motor"""
+
+from HardwareRepository.HardwareObjects.ExporterMotor import ExporterMotor
 
 
-class MicrodiffZoom(ExpMotor):
+class MicrodiffZoom(ExporterMotor):
+    """MicrodiffZoom class"""
+
     def __init__(self, name):
-        ExpMotor.__init__(self, name)
+        ExporterMotor.__init__(self, name)
+        self.predefined_positions = {}
+        self._exporter = None
+        self._limits = None
+        self.position_channel = None
+        self.motor_state = None
 
     def init(self):
-        ExpMotor.init(self)
-        self._last_position_name = None
+        """Initialize the zoom"""
+        ExporterMotor.init(self)
+        _exporter_address = self.getProperty("exporter_address")
+        self.position_channel = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": _exporter_address,
+                "name": "zoom_position",
+            },
+            "CoaxialCameraZoomValue",
+        )
+        if self.position_channel:
+            self.get_value()
+            self.position_channel.connectSignal("update", self.update_value)
 
-        self.predefined_position_attr = self.getChannelObject("predefined_position")
-        if not self.predefined_position_attr:
-            self.predefined_position_attr = self.addChannel(
-                {"type": "exporter", "name": "predefined_position"},
-                "CoaxialCameraZoomValue",
-            )
+        self.motor_state = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": _exporter_address,
+                "name": "zoom_state",
+            },
+            "State",
+        )
 
-        self.predefinedPositions = {
-            "Zoom 1": 1,
-            "Zoom 2": 2,
-            "Zoom 3": 3,
-            "Zoom 4": 4,
-            "Zoom 5": 5,
-            "Zoom 6": 6,
-            "Zoom 7": 7,
-            "Zoom 8": 8,
-            "Zoom 9": 9,
-            "Zoom 10": 10,
-        }
-        self.sortPredefinedPositionsList()
+        if self.motor_state:
+            self.motor_state.connectSignal("update", self._update_state)
 
-        ExpMotor.init(self)
-
-    def sortPredefinedPositionsList(self):
-        self.predefinedPositionsNamesList = list(self.predefinedPositions.keys())
-        self.predefinedPositionsNamesList = sorted(self.predefinedPositionsNamesList, reverse=True)
-
-    def connectNotify(self, signal):
-        if signal == "predefinedPositionChanged":
-            positionName = self.getCurrentPositionName()
-
-            try:
-                pos = self.predefinedPositions[positionName]
-            except KeyError:
-                self.emit(signal, ("", None))
-            else:
-                self.emit(signal, (positionName, pos))
-        else:
-            return #ExpMotor.connectNotify(self, signal)
+        _low, _high = self.get_limits()
+        for _idx in range(_low, _high + 1):
+            self.predefined_positions[f"Zoom {_idx}"] = _idx
 
     def get_limits(self):
-        return (1, 10)
-
-    def getPredefinedPositionsList(self):
-        return self.predefinedPositionsNamesList
-
-    def motorPositionChanged(self, absolutePosition, private={}):
-        ExpMotor.update_position(absolutePosition)
-
-        positionName = self.getCurrentPositionName(absolutePosition)
-        if self._last_position_name != positionName:
-            self._last_position_name = positionName
-            self.emit(
-                "predefinedPositionChanged",
-                (positionName, positionName and absolutePosition or None),
-            )
-
-    def getCurrentPositionName(self, pos=None):
-        pos = self.predefined_position_attr.get_value()
-
-        for positionName in self.predefinedPositions:
-            if math.fabs(self.predefinedPositions[positionName] - pos) <= 1e-3:
-                return positionName
-        return ""
-
-    def moveToPosition(self, positionName):
-        # logging.getLogger().debug("%s: trying to move %s to %s:%f", self.name(), self.motor_name, positionName,self.predefinedPositions[positionName])
+        """Returns zoom low and high limits.
+        Returns:
+            (tuple): two int tuple (low limit, high limit).
+        """
         try:
-            self.predefined_position_attr.setValue(
-                self.predefinedPositions[positionName]
-            )
-        except BaseException:
-            logging.getLogger("HWR").exception(
-                "Cannot move motor %s: invalid position name.", str(self.userName())
-            )
+            _low, _high = self._exporter.execute("getZoomRange")
+            # inf is a problematic value
+            if _low == float("-inf"):
+                _low = 0
 
-    def setNewPredefinedPosition(self, positionName, positionOffset):
-        raise NotImplementedError
+            if _high == float("inf"):
+                _high = 10
 
-    def zoom_in(self):
-        position_name = self.getCurrentPositionName()
-        position_index = self.predefinedPositionsNamesList.index(position_name)
-        if position_index < len(self.predefinedPositionsNamesList) - 1:
-            self.moveToPosition(self.predefinedPositionsNamesList[position_index + 1])
+            self._limits = (_low, _high)
+        except ValueError:
+            self._limits = (1, 10)
+        return self._limits
 
-    def zoom_out(self):
-        position_name = self.getCurrentPositionName()
-        position_index = self.predefinedPositionsNamesList.index(position_name)
-        if position_index > 0:
-            self.moveToPosition(self.predefinedPositionsNamesList[position_index - 1])
+    def set_value(self, value, wait=False, timeout=None):
+        """Move motor to absolute value. Wait the move to finish.
+        Args:
+            value (float): target value
+            wait (bool): optional - wait until motor movement finished.
+            timeout (float): optional - timeout [s].
+        """
+        self._set_value(value)
+        self.update_value(value)
+        self.update_state()
+
+        if wait:
+            self.wait_ready(timeout)

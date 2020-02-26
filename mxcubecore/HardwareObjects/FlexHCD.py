@@ -1,5 +1,6 @@
 import base64
 import pickle
+import gevent
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import SampleChanger, SampleChangerState
 from HardwareRepository.HardwareObjects.abstract.sample_changer.Container import Container, Sample
@@ -110,8 +111,9 @@ class FlexHCD(SampleChanger):
             self.robot = DeviceProxy(self.robot)
 
         self.exporter_addr = self.getProperty("exporter_address")
+        """
         if self.exporter_addr:
-            self.swstate_attr = self.addChannel(
+            self.swstate_attr = self.add_channel(
                 {
                     "type": "exporter",
                     "exporter_address": self.exporter_addr,
@@ -119,7 +121,8 @@ class FlexHCD(SampleChanger):
                 },
                 "State",
             )
-
+        
+        """
         self.controller = self.getObjectByRole("controller")
         self.prepareLoad = self.getCommandObject("moveToLoadingPosition")
         self.timeout = 3
@@ -205,6 +208,7 @@ class FlexHCD(SampleChanger):
                 return res
 
     def _execute_cmd_exporter(self, cmd, *args, **kwargs):
+        ret = None
         timeout = kwargs.pop("timeout", 900)
         if args:
             args_str = "%s" % "\t".join(map(repr, args))
@@ -222,7 +226,7 @@ class FlexHCD(SampleChanger):
             else:
                 ret = exp_cmd()
         if kwargs.pop("attribute", None):
-            exp_attr = self.addChannel(
+            exp_attr = self.add_channel(
                 {
                     "type": "exporter",
                     "exporter_address": self.exporter_addr,
@@ -239,7 +243,8 @@ class FlexHCD(SampleChanger):
         return ret
 
     def _ready(self):
-        return self.swstate_attr.getValue() == "Ready"
+        #return self.swstate_attr.getValue() == "Ready"
+        return True
 
     def _wait_ready(self, timeout=None):
         err_msg = "Timeout waiting for sample changer to be ready"
@@ -609,12 +614,14 @@ class FlexHCD(SampleChanger):
     def _readState(self):
         # should read state from robot
         if self.exporter_addr:
-            state = self.swstate_attr.getValue().upper()
+            # state = self.swstate_attr.get_value().upper()
+            state = self._execute_cmd_exporter("State", attrubute=True)
         else:
             state = "RUNNING" if self._execute_cmd("robot.isBusy") else "STANDBY"
             if state == "STANDBY" and not self.isSequencerReady():
                 state = "RUNNING"
 
+        state = "READY"
         state_converter = {
             "ALARM": SampleChangerState.Alarm,
             "FAULT": SampleChangerState.Fault,

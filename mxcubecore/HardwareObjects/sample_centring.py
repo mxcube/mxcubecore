@@ -65,7 +65,7 @@ def prepare(centring_motors_dict):
     move_motors(motors_to_move)
 
     SAVED_INITIAL_POSITIONS = dict(
-        [(m.motor, m.motor.getPosition()) for m in centring_motors_dict.values()]
+        [(m.motor, m.motor.get_value()) for m in centring_motors_dict.values()]
     )
 
     phi = centring_motors_dict["phi"]
@@ -243,12 +243,12 @@ def centre_plate1Click(
             # centring point
             if i % 2 == 0:
                 phi_min = (
-                    phi.getPosition()
+                    phi.get_value()
                 )  # in case the phi range sent us to a position where sample is invisible, if user moves phi, this modifications is saved for future moves
                 phi.move(phi_max)
             else:
                 phi_max = (
-                    phi.getPosition()
+                    phi.get_value()
                 )  # in case the phi range sent us to a position where sample is invisible, if user moves phi, this modifications is saved for future moves
                 phi.move(phi_min)
 
@@ -265,8 +265,8 @@ def centre_plate1Click(
 
     centred_pos.update(
         {
-            sampx.motor: float(sampx.getPosition()),
-            sampy.motor: float(sampy.getPosition()),
+            sampx.motor: float(sampx.get_value()),
+            sampy.motor: float(sampy.get_value()),
         }
     )
 
@@ -304,7 +304,7 @@ def centre_plate(
             USER_CLICKED_EVENT = gevent.event.AsyncResult()
             X.append(x / float(pixelsPerMm_Hor))
             Y.append(y / float(pixelsPerMm_Ver))
-            phi_positions.append(phi.direction * math.radians(phi.getPosition()))
+            phi_positions.append(phi.direction * math.radians(phi.get_value()))
             if i != n_points - 1:
                 phi.syncMoveRelative(phi.direction * phi_angle)
             READY_FOR_NEXT_POINT.set()
@@ -335,7 +335,7 @@ def centre_plate(
     d_horizontal = d[0] - (beam_xc / float(pixelsPerMm_Hor))
     d_vertical = d[1] - (beam_yc / float(pixelsPerMm_Ver))
 
-    phi_pos = math.radians(phi.direction * phi.getPosition())
+    phi_pos = math.radians(phi.direction * phi.get_value())
     phiRotMatrix = numpy.matrix(
         [
             [math.cos(phi_pos), -math.sin(phi_pos)],
@@ -346,12 +346,12 @@ def centre_plate(
     centred_pos = SAVED_INITIAL_POSITIONS.copy()
     centred_pos.update(
         {
-            sampx.motor: float(sampx.getPosition() + sampx.direction * dx),
-            sampy.motor: float(sampy.getPosition() + sampy.direction * dy),
-            phiz.motor: float(phiz.getPosition() + phiz.direction * d_vertical[0, 0])
+            sampx.motor: float(sampx.get_value() + sampx.direction * dx),
+            sampy.motor: float(sampy.get_value() + sampy.direction * dy),
+            phiz.motor: float(phiz.get_value() + phiz.direction * d_vertical[0, 0])
             if phiz.__dict__.get("reference_position") is None
             else phiz.reference_position,
-            phiy.motor: float(phiy.getPosition() + phiy.direction * d_horizontal[0, 0])
+            phiy.motor: float(phiy.get_value() + phiy.direction * d_horizontal[0, 0])
             if phiy.__dict__.get("reference_position") is None
             else phiy.reference_position,
         }
@@ -373,7 +373,8 @@ def centre_plate(
 
 
 def ready(*motors):
-    return not any([m.motorIsMoving() for m in motors])
+    print([(m.motor_name, m.is_ready()) for m in motors])
+    return all([m.is_ready() for m in motors])
 
 
 def move_motors(motor_positions_dict):
@@ -389,7 +390,7 @@ def move_motors(motor_positions_dict):
         raise RuntimeError("Motors not ready")
 
     for motor, position in motor_positions_dict.items():
-        motor.move(position)
+        motor.set_value(position)
 
     wait_ready()
 
@@ -428,11 +429,13 @@ def center(
             except BaseException:
                 raise RuntimeError("Aborted while waiting for point selection")
             USER_CLICKED_EVENT = gevent.event.AsyncResult()
+            print("-------------------->", pixelsPerMm_Hor)
             X.append(x / float(pixelsPerMm_Hor))
             Y.append(y / float(pixelsPerMm_Ver))
-            phi_positions.append(phi.direction * math.radians(phi.getPosition()))
+            print(phi.get_value())
+            phi_positions.append(phi.direction * math.radians(phi.get_value()))
             if i != n_points - 1:
-                phi.syncMoveRelative(phi.direction * phi_angle)
+                phi.set_value_relative(phi.direction * phi_angle)
             READY_FOR_NEXT_POINT.set()
             i += 1
     except BaseException:
@@ -461,7 +464,7 @@ def center(
     d_horizontal = d[0] - (beam_xc / float(pixelsPerMm_Hor))
     d_vertical = d[1] - (beam_yc / float(pixelsPerMm_Ver))
 
-    phi_pos = math.radians(phi.direction * phi.getPosition())
+    phi_pos = math.radians(phi.direction * phi.get_value())
     phiRotMatrix = numpy.matrix(
         [
             [math.cos(phi_pos), -math.sin(phi_pos)],
@@ -472,12 +475,12 @@ def center(
     centred_pos = SAVED_INITIAL_POSITIONS.copy()
     centred_pos.update(
         {
-            sampx.motor: float(sampx.getPosition() + sampx.direction * dx),
-            sampy.motor: float(sampy.getPosition() + sampy.direction * dy),
-            phiz.motor: float(phiz.getPosition() + phiz.direction * d_vertical[0, 0])
+            sampx.motor: float(sampx.get_value() + sampx.direction * dx),
+            sampy.motor: float(sampy.get_value() + sampy.direction * dy),
+            phiz.motor: float(phiz.get_value() + phiz.direction * d_vertical[0, 0])
             if phiz.__dict__.get("reference_position") is None
             else phiz.reference_position,
-            phiy.motor: float(phiy.getPosition() + phiy.direction * d_horizontal[0, 0])
+            phiy.motor: float(phiy.get_value() + phiy.direction * d_horizontal[0, 0])
             if phiy.__dict__.get("reference_position") is None
             else phiy.reference_position,
         }
@@ -577,7 +580,7 @@ def auto_center(
     # check if loop is there at the beginning
     i = 0
     while -1 in find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
-        phi.syncMoveRelative(90)
+        phi.set_value_relative(90)
         i += 1
         if i > 4:
             if callable(msg_cb):
@@ -609,7 +612,7 @@ def auto_center(
             if x < 0 or y < 0:
                 for i in range(1, 18):
                     # logging.info("loop not found - moving back %d" % i)
-                    phi.syncMoveRelative(5)
+                    phi.set_value_relative(5)
                     x, y = find_loop(
                         camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb
                     )
@@ -631,7 +634,7 @@ def auto_center(
                 if -1 in (x, y):
                     centring_greenlet.kill()
                     raise RuntimeError("Could not centre sample automatically.")
-                phi.syncMoveRelative(-i * 5)
+                phi.set_value_relative(-i * 5)
             else:
                 user_click(x, y, wait=True)
 

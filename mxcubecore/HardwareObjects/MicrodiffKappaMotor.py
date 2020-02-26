@@ -4,19 +4,19 @@ import gevent
 import numpy as np
 import logging
 
-from HardwareRepository.HardwareObjects.ExpMotor import ExpMotor
+from HardwareRepository.HardwareObjects.ExporterMotor import ExporterMotor
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
 
-class MicrodiffKappaMotor(ExpMotor):
+class MicrodiffKappaMotor(ExporterMotor):
     lock = gevent.lock.Semaphore()
     motors = dict()
     conf = dict()
 
     def __init__(self, name):
-        ExpMotor.__init__(self, name)
+        ExporterMotor.__init__(self, name)
 
     def init(self):
-        ExpMotor.init(self)
+        ExporterMotor.init(self)
         if not self.motor_name in ("Kappa", "Phi"):
             raise RuntimeError("MicrodiffKappaMotor class is only for kappa motors")
         MicrodiffKappaMotor.motors[self.motor_name] = self
@@ -36,17 +36,17 @@ class MicrodiffKappaMotor(ExpMotor):
         return [float(x) for x in commaSeparatedString.split(",")]
 
     def move(self, absolutePosition):
-        kappa_start_pos = MicrodiffKappaMotor.motors["Kappa"].get_position()
-        kappa_phi_start_pos = MicrodiffKappaMotor.motors["Phi"].get_position()
+        kappa_start_pos = MicrodiffKappaMotor.motors["Kappa"].get_value()
+        kappa_phi_start_pos = MicrodiffKappaMotor.motors["Phi"].get_value()
         if self.motor_name == "Kappa":
             kappa_end_pos = absolutePosition
             kappa_phi_end_pos = kappa_phi_start_pos
         else:
             kappa_end_pos = kappa_start_pos
             kappa_phi_end_pos = absolutePosition
-        sampx_start_pos = self.sampx.get_position()
-        sampy_start_pos = self.sampy.get_position()
-        phiy_start_pos = self.phiy.get_position()
+        sampx_start_pos = self.sampx.get_value()
+        sampy_start_pos = self.sampy.get_value()
+        phiy_start_pos = self.phiy.get_value()
         """
         with MicrodiffKappaMotor.lock:
             if self.get_state() != MotorStates.UNKNOWN:

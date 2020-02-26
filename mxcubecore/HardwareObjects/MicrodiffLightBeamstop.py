@@ -14,7 +14,7 @@ class MicrodiffLightBeamstop(MicrodiffInOut):
             self.safety_position = 38
 
     def actuatorIn(self, wait=True, timeout=None):
-        pos = self.beamstop.get_position()
+        pos = self.beamstop.get_value()
         if pos < self.safety_position:
             self.save_position = pos
             self.beamstop.move(self.safety_position, wait=True)

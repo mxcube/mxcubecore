@@ -1,5 +1,6 @@
 import logging
 from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
 import time
 
 """
@@ -68,6 +69,7 @@ class MicrodiffInOut(Device):
         )
 
         self.moves = dict((self.states[k], k) for k in self.states)
+        self.getActuatorState(read=True)
 
     def connectNotify(self, signal):
         if signal == "actuatorStateChanged":

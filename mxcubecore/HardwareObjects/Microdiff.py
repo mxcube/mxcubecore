@@ -174,6 +174,24 @@ class Microdiff(MiniDiff.MiniDiff):
             "startSimultaneousMoveMotors",
         )
 
+        self.beam_position_horizontal = self.addChannel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "bph",
+            },
+            "BeamPositionHorizontal"
+        )
+
+        self.beam_position_vertical = self.addChannel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "bpv",
+            },
+            "BeamPositionVertical"
+        )
+
         MiniDiff.MiniDiff.init(self)
         self.centringPhiy.direction = -1
         self.MOTOR_TO_EXPORTER_NAME = self.getMotorToExporterNames()
@@ -186,6 +204,8 @@ class Microdiff(MiniDiff.MiniDiff):
         self.backLight = self.getObjectByRole("BackLight")
 
         self.wait_ready = self._wait_ready
+        self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(None)
+
 
     def getMotorToExporterNames(self):
         MOTOR_TO_EXPORTER_NAME = {
@@ -202,7 +222,7 @@ class Microdiff(MiniDiff.MiniDiff):
         return MOTOR_TO_EXPORTER_NAME
 
     def getCalibrationData(self, offset):
-        return (1.0 / self.x_calib.get_value(), 1.0 / self.y_calib.get_value())
+        return (1.0/self.x_calib.get_value(), 1.0/self.y_calib.get_value())
 
     def emitCentringSuccessful(self):
         # check first if all the motors have stopped
@@ -412,17 +432,17 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def get_positions(self):
         pos = {
-            "phi": float(self.phiMotor.get_position()),
-            "focus": float(self.focusMotor.get_position()),
-            "phiy": float(self.phiyMotor.get_position()),
-            "phiz": float(self.phizMotor.get_position()),
-            "sampx": float(self.sampleXMotor.get_position()),
-            "sampy": float(self.sampleYMotor.get_position()),
-            #"zoom": float(self.zoomMotor.get_position()),
-            "kappa": float(self.kappaMotor.get_position())
+            "phi": float(self.phiMotor.get_value()),
+            "focus": float(self.focusMotor.get_value()),
+            "phiy": float(self.phiyMotor.get_value()),
+            "phiz": float(self.phizMotor.get_value()),
+            "sampx": float(self.sampleXMotor.get_value()),
+            "sampy": float(self.sampleYMotor.get_value()),
+            "zoom": self.zoomMotor.get_value(),
+            "kappa": float(self.kappaMotor.get_value())
             if self.in_kappa_mode()
             else None,
-            "kappa_phi": float(self.kappaPhiMotor.get_position())
+            "kappa_phi": float(self.kappaPhiMotor.get_value())
             if self.in_kappa_mode()
             else None,
         }
@@ -455,6 +475,7 @@ class Microdiff(MiniDiff.MiniDiff):
                 )
 
     def start_manual_centring(self, sample_info=None):
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
         if self.in_plate_mode():
             plateTranslation = self.getObjectByRole("plateTranslation")
             cmd_set_plate_vertical = self.add_command(
@@ -523,6 +544,8 @@ class Microdiff(MiniDiff.MiniDiff):
     def setBackLightLevel(self, level):
         return self.backLight.move(level)
 
+    def get_beam_position(self):
+        return self.beam_position_horizontal.get_value(), self.beam_position_vertical.get_value()
 
 def set_light_in(light, light_motor, zoom):
     self.frontlight.move(0)

@@ -48,7 +48,7 @@ class ID30BMultiCollect(ESRFMultiCollect):
 
     @task
     def set_resolution(self, new_resolution):
-        self.bl_control.resolution.move(new_resolution)
+        self.bl_control.resolution.set_value(new_resolution)
         while self.bl_control.resolution.motorIsMoving():
             gevent.sleep(0.1)
 
