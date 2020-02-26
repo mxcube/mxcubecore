@@ -21,6 +21,7 @@
 """Abstract Motor API. Motor states definition"""
 
 import abc
+import sys
 from enum import Enum, unique
 from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
@@ -91,20 +92,20 @@ class AbstractMotor(AbstractActuator):
         """
         raise NotImplementedError
 
-    def validate_value(self, value, limits=None):
+    def validate_value(self, value):
         """Check if the value is within the limits
         Args:
             value(float): value
-            limits(tuple): low,high limits
         Returns:
             (bool): True if within the limits
         """
-        if not limits:
-            limits = self.get_limits()
+        limits = self._nominal_limits
+        if None in limits:
+            return True
         return limits[0] <= value <= limits[1]
 
     def update_value(self, value=None):
-        """Check if the value has changed. Emist signal valueChanged.
+        """Check if the value has changed. Emits signal valueChanged.
         Args:
             value (float): value
         """

@@ -73,11 +73,10 @@ class AbstractActuator(HardwareObject):
         self._nominal_limits = limits
         self.emit("limitsChanged", (self._nominal_limits,))
 
-    def validate_value(self, value, values=None):
-        """Check if the value is within the values
+    def validate_value(self, value):
+        """Check if the value is within limits.
         Args:
             value: value
-            values(tuple): tuple of values.
         Returns:
             (bool): True if within the values
         """
@@ -99,10 +98,17 @@ class AbstractActuator(HardwareObject):
             timeout (float): optional - timeout [s],
                              If timeout == 0: return at once and do not wait;
                              if timeout is None: wait forever.
+        Raises:
+            ValueError: Value not valid or attemp to set write only actuator.
         """
-        self._set_value(value)
-        self.update_value()
-        self.wait_ready(timeout)
+        if self.read_only:
+            raise ValueError("Attempt to set value for read-only Actuator")
+        if self.validate_value(value):
+            self._set_value(value)
+            self.update_value()
+            self.wait_ready(timeout)
+        else:
+            raise ValueError("Invalid value %s" % str(value))
 
     def update_value(self, value=None):
         """Check if the value has changed. Emits signal valueChanged.
