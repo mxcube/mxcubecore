@@ -155,7 +155,6 @@ class TangoShutter(BaseHardwareObjects.Device):
 
     def init(self):
         self.state_value_str = "unknown"
-
         try:
             self.shutter_channel = self.getChannelObject("State")
             self.shutter_channel.connectSignal("update", self.shutterStateChanged)
