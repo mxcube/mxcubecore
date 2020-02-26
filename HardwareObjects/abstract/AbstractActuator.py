@@ -41,12 +41,14 @@ class AbstractActuator(HardwareObject):
         self.actuator_name = None
         self.read_only = False
         self.default_value = None
+        self.username = None
 
     def init(self):
         """Initialise some parameters."""
         self.actuator_name = self.getProperty("actuator_name")
         self.read_only = self.getProperty("read_only") or False
         self.default_value = self.getProperty("default_value")
+        self.username = self.getProperty("username")
 
     @abc.abstractmethod
     def get_value(self):
