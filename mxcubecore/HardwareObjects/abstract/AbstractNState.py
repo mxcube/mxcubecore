@@ -74,7 +74,7 @@ class AbstractNState(AbstractActuator):
             self.state_definition = globals(self.getProperty("state_definition"))
             for value in self["predefined_value"]:
                 _valid.append(
-                    self.validate_value(
+                    self._validate_value(
                         value.getProperty("name").upper(),
                         self.state_definition.__members__,
                     )
@@ -84,8 +84,8 @@ class AbstractNState(AbstractActuator):
         except KeyError:
             self._valid = True
 
-    def validate_value(self, value, values=None):
-        """Check if the value is within the values
+    def _validate_value(self, value, values=None):
+        """Check if the value is within specified values.
         Args:
             value: value
             values(tuple): tuple of values.
