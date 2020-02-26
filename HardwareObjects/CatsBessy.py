@@ -249,7 +249,6 @@ class CatsBessy(SampleChanger):
             elif (sample is not None) and (sample != selected):
                 self._doSelect(sample)
             # self._executeServerTask(self._load,sample.getHolderLength())
-            # import pdb; pdb.set_trace()
             lid = ((self._selected_basket - 1) / 3) + 1
             sample = (((self._selected_basket - 1) % 3) * 10) + self._selected_sample
             argin = ["2", str(lid), str(sample), "0", "0", "0", "0", "0"]
@@ -338,7 +337,6 @@ class CatsBessy(SampleChanger):
                 gevent.sleep(0.01)
 
     def _updateSelection(self):
-        # import pdb; pdb.set_trace()
         basket = None
         sample = None
         try:
@@ -383,7 +381,6 @@ class CatsBessy(SampleChanger):
             new_sample = None
 
         if self.getLoadedSample() != new_sample:
-            # import pdb; pdb.set_trace()
             # remove 'loaded' flag from old sample but keep all other information
             old_sample = self.getLoadedSample()
             if old_sample is not None:
@@ -437,7 +434,6 @@ class CatsBessy(SampleChanger):
 
             # check if the basket was newly mounted or removed from the dewar
             if newBasketPresence ^ basket.isPresent():
-                # import pdb; pdb.set_trace()
                 # a mounting action was detected ...
                 if newBasketPresence:
                     # basket was mounted
