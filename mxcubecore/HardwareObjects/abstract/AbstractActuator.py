@@ -41,18 +41,20 @@ class AbstractActuator(HardwareObject):
         self.actuator_name = None
         self.read_only = False
         self.default_value = None
+        self.username = None
 
     def init(self):
         """Initialise some parameters."""
         self.actuator_name = self.getProperty("actuator_name")
         self.read_only = self.getProperty("read_only") or False
         self.default_value = self.getProperty("default_value")
+        self.username = self.getProperty("username")
 
     @abc.abstractmethod
     def get_value(self):
         """Read the actuator position.
         Returns:
-            float: Actuator position.
+            value: Actuator position.
         """
         return None
 
@@ -71,36 +73,47 @@ class AbstractActuator(HardwareObject):
         self._nominal_limits = limits
         self.emit("limitsChanged", (self._nominal_limits,))
 
+    def validate_value(self, value):
+        """Check if the value is within limits.
+        Args:
+            value: value
+        Returns:
+            (bool): True if within the values
+        """
+        return True
+
     @abc.abstractmethod
-    def _set_value(self, value, timeout=None):
+    def _set_value(self, value):
         """
         Implementation of specific set actuator logic.
-        
         Args:
-            value (float): target value
-            timeout (float): optional - timeout [s],
-                             If timeout == 0: return at once and do not wait;
-                             if timeout is None: wait forever.
+            value: target value
         """
 
     def set_value(self, value, timeout=None):
         """
         Set actuator to absolute value.
-        
         Args:
-            value (float): target value
+            value: target value
             timeout (float): optional - timeout [s],
                              If timeout == 0: return at once and do not wait;
                              if timeout is None: wait forever.
+        Raises:
+            ValueError: Value not valid or attemp to set write only actuator.
         """
-        self._set_value(value)
-        self.update_value()
-        self.wait_ready(timeout)
+        if self.read_only:
+            raise ValueError("Attempt to set value for read-only Actuator")
+        if self.validate_value(value):
+            self._set_value(value)
+            self.update_value()
+            self.wait_ready(timeout)
+        else:
+            raise ValueError("Invalid value %s" % str(value))
 
     def update_value(self, value=None):
         """Check if the value has changed. Emits signal valueChanged.
         Args:
-            value (float): value
+            value: value
         """
         if value is None or self._nominal_value is None:
             value = self.get_value()
