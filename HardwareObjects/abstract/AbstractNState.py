@@ -22,87 +22,111 @@ Defines the interface for N state devices
 """
 
 import abc
-from enum import IntEnum, unique
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from enum import Enum, unique
+from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
+    AbstractActuator,
+)
 
 
-class AbstractNState(object):
-    """
-    Abstract base class for N state objects.
-    """
-    __metaclass__ = abc.ABCMeta
-
-    @abc.abstractmethod
-    def value_changed(self, value):
-        """ Emitted on value change
-
-        Args:
-            value: (int)
-
-        Emitts:
-            shutterStateChanged: (str) state name
-        """
-        return
-
-    @abc.abstractmethod
-    def get_state(self):
-        """
-        Returns:
-           str: The current state name
-        """
-        return
-
-    @abc.abstractmethod
-    def is_valid(self):
-        """ Checks if the shutter is in one of its predefined states """
-        return
-
-    @abc.abstractmethod
-    def set_state(self, state, wait=False, timeout=None):
-        """
-        Args:
-            state: (enum) The state to transition to
-            wait: (bool) Wait for state transition to complete before returning
-            timeout: (float) Raises TimeoutException if transition takes longer
-                     than timeout seconds
-        """
-        return
+__copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
 
 @unique
-class ShutterState(IntEnum):
-    """
-    Defines the valid Shutter states
-    """
-    UNKOWN = 0
-    CLOSED = 1
-    OPEN = 2
-    MOVING = 3
-    AUTOMATIC = 4
-    DISABLED = 5
-    FAULT = -1
-    ERROR = -2
+class InOutEnum(Enum):
+    "In/Out"
+    IN = "IN"
+    OUT = "OUT"
 
 
-class AbstractShutter(HardwareObject, AbstractNState):
+@unique
+class OpenCloseEnum(Enum):
+    "Open/Close"
+    OPEN = "OPEN"
+    CLOSE = "CLOSED"
+
+
+@unique
+class OnOffEnum(Enum):
+    "On/Off"
+    ON = "ON"
+    OFF = "OFF"
+
+
+class AbstractNState(AbstractActuator):
     """
-    Defines the common interface for shutters
+    Abstract base class for N state objects.
     """
-    STATE = ShutterState
+
+    __metaclass__ = abc.ABCMeta
 
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
+        AbstractActuator.__init__(self, name)
+        self.predefined_values = {}
+        self.state_definition = None
+        self._valid = False
 
-    @abc.abstractmethod
-    def open(self, wait=False, timeout=None):
-        """Opens shutter"""
-        return
+    def init(self):
+        """Initialise some parametrs."""
+        self.predefined_values = self.get_predefined_values()
+        _valid = []
 
-    @abc.abstractmethod
-    def close(self, wait=False, timeout=None):
-        """Closes shutter"""
-        return
+        self.state_definition = self.getProperty("state_definition", None)
 
-    def update_values(self):
-        """Reemits signals"""
-        self.emit("shutterStateChanged", self.current_state.name)
+        for value in self.predefined_values.keys():
+            _valid.append(
+                self._validate_value(value.upper(), self.state_definition.__members__)
+            )
+
+        if all(_valid) and len(_valid) == len(self.state_definition.__members__):
+            self._valid = True
+
+        if self.state_definition in ["IntEnum", "StrEnum", "FloatEnum"]:
+            self.state_definition = Enum(self.state_definition, self.predefined_values)
+        else:
+            self.state_definition = globals().get(self.state_definition, None)
+
+        if not (self.state_definition or self._valid):
+            raise ValueError("Mistmatching predefined values")
+
+    def _validate_value(self, value, values=None):
+        """Check if the value is within specified values.
+        Args:
+            value: value
+            values(tuple): tuple of values.
+        Returns:
+            (bool): True if within the values
+        """
+        if not values:
+            values = self.predefined_values.keys()
+        return value in values
+
+    def get_predefined_values(self):
+        """Get the predefined values
+        Returns:
+            (dict): Dictionary of predefined {name: value}
+        """
+        predefined_values = {}
+        for value in self["predefined_value"]:
+            try:
+                predefined_values.update(
+                    {value.getProperty("name"): value.getProperty("value")}
+                )
+            except AttributeError:
+                pass
+
+        return predefined_values
+
+    def set_limits(self, limits):
+        """Set actuator low and high limits.
+        Args:
+            limits (tuple): two floats tuple (low limit, high limit).
+        """
+        raise NotImplementedError
+
+    def update_limits(self, limits=None):
+        """Check if the limits have changed. Emits signal limitsChanged.
+        Args:
+            limits (tuple): two floats tuple (low limit, high limit).
+        """
+        raise NotImplementedError

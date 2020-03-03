@@ -14,7 +14,7 @@ from HardwareRepository.ConvertUtils import string_types
 @enum.unique
 class HardwareObjectState(enum.Enum):
     UNKNOWN = 0
-    WAITING = 1
+    WARNING = 1
     BUSY = 2
     READY = 3
     FAULT = 4
