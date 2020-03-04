@@ -78,7 +78,7 @@ class AbstractActuator(HardwareObject):
         Args:
             value: value
         Returns:
-            (bool): True if within the values
+            (bool): True if within the limits
         """
         return True
 

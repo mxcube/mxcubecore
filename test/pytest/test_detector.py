@@ -1,7 +1,7 @@
 def test_detector_atributes(beamline):
     assert not beamline.detector is None, "Detector hardware objects is None (not initialized)"
-    current_distance = beamline.detector.get_distance()
-    distance_limits = beamline.detector.get_distance_limits()
+    current_distance = beamline.detector.distance.get_value()
+    distance_limits = beamline.detector.distance.get_limits()
     exp_time_limits = beamline.detector.get_exposure_time_limits()
     has_shutterless = beamline.detector.has_shutterless()
 
@@ -12,5 +12,5 @@ def test_detector_atributes(beamline):
 
 def test_detector_methods(beamline):
     target = 600
-    beamline.detector.set_distance(target)
-    assert beamline.detector.get_distance() == target
+    beamline.detector.distance.set_value(target)
+    assert beamline.detector.distance.get_value() == target

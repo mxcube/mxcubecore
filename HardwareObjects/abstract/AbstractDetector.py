@@ -53,11 +53,7 @@ class AbstractDetector(HardwareObject):
         """Initialise some common paramerters"""
         self.width = self.getProperty("width")
         self.height = self.getProperty("height")
-        try:
-            self._det_metadata = self.getProperties("beam")
-        except KeyError:
-            pass
-
+        self._det_metadata = self.getProperty("beam")
         self._pixel_size = (self.getProperty("px"), self.getProperty("py"))
 
     @property
