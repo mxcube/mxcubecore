@@ -110,7 +110,8 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
         # For "a.b.c" equivalent to absolute import of "from a.b import c"
         try:
             cls = getattr(importlib.import_module(module_name), class_name)
-        except:
+        except BaseException as ex:
+            print(str(ex))
             if _container:
                 msg0 = "Error importing class"
                 class_name = class_import
