@@ -259,7 +259,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
         self.scan_info["endEnergy"] = 0.0  # updated at the end of the scan
 
         try:
-            size_hor, size_ver =  HWR.beamline.beam.get_beam_size()
+            size_hor, size_ver =  HWR.beamline.beam.get_size()
             size_hor *= 1000
             size_ver *= 1000
         except BaseException:

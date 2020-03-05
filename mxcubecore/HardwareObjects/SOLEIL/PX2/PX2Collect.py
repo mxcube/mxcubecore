@@ -99,6 +99,8 @@ class PX2Collect(AbstractCollect, HardwareObject):
         except BaseException:
             pass
 
+        beam_div_hor, beam_div_ver = HWR.beamline.beam.get_divergence()
+
         self.set_beamline_configuration(
             synchrotron_name="SOLEIL",
             directory_prefix=self.getProperty("directory_prefix"),
@@ -117,8 +119,8 @@ class PX2Collect(AbstractCollect, HardwareObject):
             undulators=undulators,
             focusing_optic=self.getProperty("focusing_optic"),
             monochromator_type=self.getProperty("monochromator"),
-            beam_divergence_vertical=HWR.beamline.beam.get_beam_divergence_hor(),
-            beam_divergence_horizontal=HWR.beamline.beam.get_beam_divergence_ver(),
+            beam_divergence_vertical=beam_div_hor,
+            beam_divergence_horizontal=beam_div_ver,
             polarisation=self.getProperty("polarisation"),
             input_files_server=self.getProperty("input_files_server"),
         )

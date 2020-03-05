@@ -270,7 +270,7 @@ class XrfSpectrum(Equipment):
                 mcaConfig = {}
                 # self.spectrumInfo["beamTransmission"] =  self.transmission_hwobj.get_value()
                 self.spectrumInfo["energy"] = HWR.beamline.energy.get_current_energy()
-                beam_info = HWR.beamline.beam.get_beam_info()
+                beam_info = HWR.beamline.beam.get_info_dict()
                 self.spectrumInfo["beamSizeHorizontal"] = beam_info["size_x"]
                 self.spectrumInfo["beamSizeVertical"] = beam_info["size_y"]
                 mcaConfig["att"] = self.spectrumInfo["beamTransmission"]

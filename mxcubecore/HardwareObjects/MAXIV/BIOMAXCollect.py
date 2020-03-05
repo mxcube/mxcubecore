@@ -119,6 +119,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             )
             pix_y = 7.5e-5
 
+            beam_div_hor, beam_div_ver = HWR.beamline.beam.get_divergence()
+
             self.set_beamline_configuration(
                 synchrotron_name="MAXIV",
                 directory_prefix=self.getProperty("directory_prefix"),
@@ -135,8 +137,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 undulators=undulators,
                 focusing_optic=self.getProperty("focusing_optic"),
                 monochromator_type=self.getProperty("monochromator"),
-                beam_divergence_vertical=HWR.beamline.beam.get_beam_divergence_hor(),
-                beam_divergence_horizontal=HWR.beamline.beam.get_beam_divergence_ver(),
+                beam_divergence_vertical=beam_div_hor,
+                beam_divergence_horizontal=beam_div_ver,
                 polarisation=self.getProperty("polarisation"),
                 input_files_server=self.getProperty("input_files_server"),
             )
@@ -996,7 +998,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         if HWR.beamline.beam is not None:
-            return HWR.beamline.beam.get_beam_shape()
+            return HWR.beamline.beam.get_shape()
 
     def open_detector_cover(self):
         """
@@ -1392,7 +1394,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         try:
-            return HWR.beamline.beam.get_beam_size()
+            return HWR.beamline.beam.get_size()
         except BaseException:
             return None
 

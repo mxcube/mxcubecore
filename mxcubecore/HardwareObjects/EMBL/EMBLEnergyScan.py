@@ -230,7 +230,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             size_hor = None
             size_ver = None
             if HWR.beamline.beam is not None:
-                size_hor, size_ver = HWR.beamline.beam.get_beam_size()
+                size_hor, size_ver = HWR.beamline.beam.get_size()
                 size_hor = size_hor * 1000
                 size_ver = size_ver * 1000
             self.scan_info["beamSizeHorizontal"] = size_hor
