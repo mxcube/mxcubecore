@@ -55,7 +55,7 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
                 if cpos != empty_cpos:
                     log.info("Moving sample to given position ...")
                     list_item.setText(1, "Moving sample")
-                    HWR.beamline.microscope.shapes.select_shape_with_cpos(cpos)
+                    HWR.beamline.sample_view.shapes.select_shape_with_cpos(cpos)
                     self.centring_task = HWR.beamline.diffractometer.moveToCentredPosition(
                         cpos, wait=False
                     )
@@ -63,7 +63,7 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
                 else:
                     pos_dict = HWR.beamline.diffractometer.get_positions()
                     cpos = queue_model_objects.CentredPosition(pos_dict)
-                    snapshot = HWR.beamline.microscope.get_snapshot([])
+                    snapshot = HWR.beamline.sample_view.get_snapshot([])
                     acq_1.acquisition_parameters.centred_position = cpos
                     acq_1.acquisition_parameters.centred_position.snapshot_image = (
                         snapshot

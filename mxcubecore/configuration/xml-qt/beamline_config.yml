@@ -25,25 +25,25 @@ _objects:
     # Hardware:
     - session: session.xml
     - machine_info: mach-info-mockup.xml
-    - transmission: attenuators-mockup.xml
+    - transmission: transmission-mockup.xml
     - energy: energy-mockup.xml
     - beam: beam-info.xml
     - flux: flux-mockup.xml
     - detector: detector-mockup.xml
     - resolution: resolution-mockup.xml
     - hutch_interlock: door-interlock-mockup.xml
-    - safety_shutter: safshut.xml
-    - fast_shutter: shutter-mockup.xml
-    - sample_changer: sc-mockup.xml
+    - safety_shutter: safety-shutter-mockup.xml
+    - fast_shutter: fast-shutter-mockup.xml
+    - sample_changer: sample-changer-mockup.xml
     # NBNB TODO remove plate_manipulater and treat as another smaple changer
-    - plate_manipulator: plate-manipulator.xml
-    - diffractometer: mini-diff-mockup.xml
-    - microscope: graphics.xml
+    - plate_manipulator: plate-manipulator-mockup.xml
+    - diffractometer: diffractometer-mockup.xml
+    - sample_view: graphics.xml
     - lims: lims-client-mockup.xml
     - queue_manager: queue.xml
     - queue_model: queue-model.xml
     # Procedures:
-    - collect: mxcollect.xml
+    - collect: collect-mockup.xml
     - xrf_spectrum: xrf-spectrum-mockup.xml
     - energy_scan: energyscan-mockup.xml
 #    - imaging: xray-imaging.xml # Only in EMBL as of 201907
@@ -51,9 +51,9 @@ _objects:
     - gphl_connection: gphl-setup.xml
     # - centring: centring.xml
     # Analysis:
-    - offline_processing: auto-processing-mockup.xml
-    - online_processing: parallel-processing.xml
-    - characterisation: data-analysis.xml
+    - offline_processing: offline-processing-mockup.xml
+    - online_processing: online-processing-mockup.xml
+    - characterisation: characterisation-mockup.xml
     # - beam_realign: # Skipped - optional
 # Non-object attributes:
 advanced_methods:

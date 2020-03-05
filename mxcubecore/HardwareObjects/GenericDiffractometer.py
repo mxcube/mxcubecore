@@ -208,7 +208,7 @@ class GenericDiffractometer(HardwareObject):
 
         self.fast_shutter_is_open = None
         self.centring_status = {"valid": False}
-        self.centring_time = 0
+        self.centring_time = None
         self.user_confirms_centring = None
         self.user_clicked_event = None
         self.automatic_centring_try_count = 1
@@ -237,9 +237,9 @@ class GenericDiffractometer(HardwareObject):
         self.cryo = self.getObjectByRole("cryo")
 
         # Hardware objects ----------------------------------------------------
-        # if HWR.beamline.microscope.camera is not None:
-        #     self.image_height = HWR.beamline.microscope.camera.getHeight()
-        #     self.image_width = HWR.beamline.microscope.camera.getWidth()
+        # if HWR.beamline.sample_view.camera is not None:
+        #     self.image_height = HWR.beamline.sample_view.camera.getHeight()
+        #     self.image_width = HWR.beamline.sample_view.camera.getWidth()
         # else:
         #     logging.getLogger("HWR").debug(
         #         "Diffractometer: " + "Camera hwobj is not defined"
@@ -402,7 +402,7 @@ class GenericDiffractometer(HardwareObject):
         except BaseException:
             self.grid_direction = {"fast": (0, 1), "slow": (1, 0), "omega_ref": 0}
             logging.getLogger("HWR").warning(
-                "Diffractometer: Grid " + "direction is not defined. Using default."
+                "Diffractometer: Grid direction is not defined. Using default."
             )
 
         try:
@@ -690,21 +690,18 @@ class GenericDiffractometer(HardwareObject):
 
         return self.current_motor_positions
 
-    # def get_omega_position(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     return self.current_positions_dict.get("phi")
+    def get_omega_position(self):
+        return self.motor_hwobj_dict["phi"].get_position()
 
     def get_snapshot(self):
-        if HWR.beamline.microscope:
-            return HWR.beamline.microscope.take_snapshot()
+        if HWR.beamline.sample_view:
+            return HWR.beamline.sample_view.take_snapshot()
 
     def save_snapshot(self, filename):
         """
         """
-        if HWR.beamline.microscope:
-            return HWR.beamline.microscope.save_snapshot(filename)
+        if HWR.beamline.sample_view:
+            return HWR.beamline.sample_view.save_snapshot(filename)
 
     def get_pixels_per_mm(self):
         """
@@ -819,7 +816,7 @@ class GenericDiffractometer(HardwareObject):
         while self.automatic_centring_try_count > 0:
             if self.use_sample_centring:
                 self.current_centring_procedure = sample_centring.start_auto(
-                    HWR.beamline.microscope.camera,
+                    HWR.beamline.sample_view.camera,
                     {
                         "phi": self.centring_phi,
                         "phiy": self.centring_phiy,
@@ -898,9 +895,9 @@ class GenericDiffractometer(HardwareObject):
             self.emit_centring_moving()
 
             try:
-                logging.getLogger("HWR").debug(
-                    "Centring finished. Moving motoros to position %s" % str(motor_pos)
-                )
+                # logging.getLogger("HWR").debug(
+                #   "Centring finished. Moving motoros to position %s" % str(motor_pos)
+                # )
                 self.move_to_motors_positions(motor_pos, wait=True)
             except BaseException:
                 logging.exception("Could not move to centred position")
@@ -935,10 +932,9 @@ class GenericDiffractometer(HardwareObject):
         raise NotImplementedError
 
     def centring_motor_moved(self, pos):
-        """
-        """
-        if time.time() - self.centring_time > 1.0:
-            self.invalidate_centring()
+        if self.centring_time: 
+            if time.time() - self.centring_time > 1.0:
+                self.invalidate_centring()
         self.emit_diffractometer_moved()
 
     def invalidate_centring(self):
@@ -1014,7 +1010,7 @@ class GenericDiffractometer(HardwareObject):
         if wait:
             self.wait_device_ready(10)
 
-    def move_motors(self, motor_positions, timeout=15):
+    def move_motors(self, motor_positions, timeout=25):
         """
         Moves diffractometer motors to the requested positions
 
@@ -1040,10 +1036,10 @@ class GenericDiffractometer(HardwareObject):
             if isinstance(motor, (str, unicode)):
                 motor_role = motor
                 motor = self.motor_hwobj_dict.get(motor_role)
-                #del motor_positions[motor_role]
+                # del motor_positions[motor_role]
                 if None in (motor, position):
                     continue
-                #motor_positions[motor] = position
+                # motor_positions[motor] = position
             motor.move(position)
         self.wait_device_ready(timeout)
 
@@ -1170,7 +1166,7 @@ class GenericDiffractometer(HardwareObject):
         """
         return copy.deepcopy(self.centring_status)
 
-    def get_centred_point_from_coord(self):
+    def get_centred_point_from_coord(self, x, y, return_by_names=None):
         """
         """
         raise NotImplementedError
@@ -1305,6 +1301,7 @@ class GenericDiffractometer(HardwareObject):
         """
         Descript. :
         """
+        return
         self.emit("minidiffStateChanged", (state,))
 
     def current_phase_changed(self, current_phase):
@@ -1364,17 +1361,12 @@ class GenericDiffractometer(HardwareObject):
         return
 
     def close_kappa(self):
-        """
-        Descript. :
-        """
         return
 
     def get_osc_dynamic_limits(self):
         return (-10000, 10000)
 
     def get_osc_max_speed(self):
-        """
-        """
         return None
         # raise NotImplementedError
 
@@ -1386,3 +1378,11 @@ class GenericDiffractometer(HardwareObject):
 
     def save_centring_positions(self):
         pass
+
+    def get_kappa_position(self):
+        if self.kappa is not None:
+            return self.kappa.get_value()
+
+    def get_kappa_phi_position(self):
+        if self.kappa_phi is not None:
+            return self.kappa_phi.get_value()

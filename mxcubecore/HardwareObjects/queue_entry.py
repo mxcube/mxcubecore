@@ -521,7 +521,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         self.get_queue_controller().pause(True)
         pos = None
 
-        shapes = list(HWR.beamline.microscope.shapes.get_selected_shapes())
+        shapes = list(HWR.beamline.sample_view.shapes.get_selected_shapes())
         if shapes:
             pos = shapes[0]
             if hasattr(pos, "get_centred_position"):
@@ -575,7 +575,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         d["collect_task"] = None
         d["centring_task"] = None
         d["shape_history"] = (
-            HWR.beamline.microscope.name() if HWR.beamline.microscope else None
+            HWR.beamline.sample_view.name() if HWR.beamline.sample_view else None
         )
         d["session"] = (
             HWR.beamline.session.name() if HWR.beamline.session else None
@@ -600,15 +600,15 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     self.get_view(),
                     HWR.beamline.diffractometer,
                     self.get_queue_controller(),
-                    HWR.beamline.microscope,
+                    HWR.beamline.sample_view,
                 )
 
                 acq_params.centred_position = _p
 
             self.collect_dc(data_collection, self.get_view())
 
-        if HWR.beamline.microscope:
-            HWR.beamline.microscope.shapes.de_select_all()
+        if HWR.beamline.sample_view:
+            HWR.beamline.sample_view.shapes.de_select_all()
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
@@ -737,17 +737,17 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
                 empty_cpos = queue_model_objects.CentredPosition()
                 if cpos != empty_cpos:
-                    HWR.beamline.microscope.shapes.select_shape_with_cpos(cpos)
+                    HWR.beamline.sample_view.shapes.select_shape_with_cpos(cpos)
                 else:
                     pos_dict = HWR.beamline.diffractometer.get_positions()
                     cpos = queue_model_objects.CentredPosition(pos_dict)
-                    snapshot = HWR.beamline.microscope.get_snapshot()
+                    snapshot = HWR.beamline.sample_view.get_snapshot()
                     acq_1.acquisition_parameters.centred_position = cpos
                     acq_1.acquisition_parameters.centred_position.snapshot_image = (
                         snapshot
                     )
 
-                HWR.beamline.microscope.shapes.inc_used_for_collection(cpos)
+                HWR.beamline.sample_view.shapes.inc_used_for_collection(cpos)
                 param_list = queue_model_objects.to_collect_dict(
                     dc,
                     HWR.beamline.session,
@@ -1533,7 +1533,7 @@ class XrayCenteringQueueEntry(BaseQueueEntry):
         xray_centering = self.get_data_model()
         reference_image_collection = xray_centering.reference_image_collection
         reference_image_collection.grid = (
-            HWR.beamline.microscope.shapes.create_auto_grid()
+            HWR.beamline.sample_view.shapes.create_auto_grid()
         )
         reference_image_collection.acquisitions[
             0
@@ -1635,7 +1635,7 @@ class AdvancedConnectorQueueEntry(BaseQueueEntry):
 
                 gevent.sleep(2)
                 auto_line, cpos_one, cpos_two = (
-                    HWR.beamline.microscope.shapes.create_auto_line()
+                    HWR.beamline.sample_view.shapes.create_auto_line()
                 )
                 helical_model.acquisitions[
                     0
@@ -1686,7 +1686,7 @@ class OpticalCentringQueueEntry(BaseQueueEntry):
 
 def mount_sample(view, data_model, centring_done_cb, async_result):
     view.setText(1, "Loading sample")
-    HWR.beamline.microscope.shapes.clear_all()
+    HWR.beamline.sample_view.shapes.clear_all()
     log = logging.getLogger("queue_exec")
 
     loc = data_model.location
