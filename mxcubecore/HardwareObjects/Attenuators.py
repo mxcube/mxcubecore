@@ -19,14 +19,14 @@
 
 
 import gevent
-from HardwareRepository.HardwareObjects.abstract.AbstractAttenuators import (
-    AbstractAttenuators
+from HardwareRepository.HardwareObjects.abstract.AbstractTransmission import (
+    AbstractTransmission
 )
 
 
-class Attenuators(AbstractAttenuators):
+class Attenuators(AbstractTransmission):
     def __init__(self, name):
-        AbstractAttenuators.__init__(self, name)
+        AbstractTransmission.__init__(self, name)
 
         self.chan_att_value = None
         self.chan_att_state = None
