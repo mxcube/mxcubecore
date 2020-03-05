@@ -246,8 +246,7 @@ class GenericDiffractometer(HardwareObject):
         #     )
 
         if HWR.beamline.beam is not None:
-            beam_pos_hor, beam_pos_ver = HWR.beamline.beam.get_screen_position() 
-            self.beam_position = (beam_pos_hor, beam_pos_ver)
+            self.beam_position = HWR.beamline.beam.get_screen_position() 
             self.connect(
                 HWR.beamline.beam, "beamPosChanged", self.beam_position_changed
             )
