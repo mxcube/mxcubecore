@@ -20,7 +20,6 @@
 """AbstractBeam"""
 
 import abc
-from enum import Enum, unique
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
 )

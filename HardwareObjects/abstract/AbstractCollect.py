@@ -121,8 +121,8 @@ class AbstractCollect(HardwareObject, object):
             undulators=undulators,
             focusing_optic=self.getProperty("focusing_optic"),
             monochromator_type=self.getProperty("monochromator"),
-            beam_divergence_vertical=beam_div_hor,
-            beam_divergence_horizontal=beam_div_ver,
+            beam_divergence_vertical=beam_div_ver,
+            beam_divergence_horizontal=beam_div_hor,
             polarisation=self.getProperty("polarisation"),
             input_files_server=self.getProperty("input_files_server"),
         )
@@ -640,7 +640,7 @@ class AbstractCollect(HardwareObject, object):
             self.current_dc_parameters[
                 "resolutionAtCorner"
             ] = self.get_resolution_at_corner()
-            (beam_size_x, beam_size_y) = HWR.beamline.beam.get_size()
+            beam_size_x, beam_size_y = HWR.beamline.beam.get_size()
             self.current_dc_parameters["beamSizeAtSampleX"] = beam_size_x
             self.current_dc_parameters["beamSizeAtSampleY"] = beam_size_y
             self.current_dc_parameters["beamShape"] = self.get_beam_shape()

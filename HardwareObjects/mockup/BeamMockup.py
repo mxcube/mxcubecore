@@ -67,21 +67,19 @@ class BeamMockup(AbstractBeam):
         self._screen_position = (beam_x, beam_y)
         self.emit("beamPosChanged", (self._screen_position,))
 
-    def get_beam_info(self):
+    def get_info_dict(self):
         return self.evaluate_beam_info()
 
-    def get_beam_size(self):
+    def get_value(self):
         """
         Description: returns beam size in microns
         Returns: list with two integers
         """
         self.evaluate_beam_info()
-        return (
-            float(self._info_dict["size_x"]),
-            float(self._info_dict["size_y"]),
-        )
+        return float(self._info_dict["size_x"]), float(self._info_dict["size_y"])
+        
 
-    def get_beam_shape(self):
+    def get_shape(self):
         self.evaluate_beam_info()
         return self._info_dict["shape"]
 
