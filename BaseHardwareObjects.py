@@ -4,7 +4,7 @@ import abc
 import enum
 from collections import OrderedDict
 import logging
-import gevent
+from gevent import event, Timeout
 
 from HardwareRepository.dispatcher import dispatcher
 from HardwareRepository.CommandContainer import CommandContainer
@@ -133,7 +133,7 @@ class PropertySet(dict):
         self.__propertiesChanged = {}  # reset changes at commit
 
 
-class HardwareObjectNode:
+class HardwareObjectNode(object):
     def __init__(self, nodeName):
         """Constructor"""
         self.__dict__["_propertySet"] = PropertySet()
@@ -381,7 +381,7 @@ class HardwareObjectMixin(CommandContainer):
         self.connect_dict = {}
 
         # event to handle waiting for object to be ready
-        self._ready_event = gevent.event.Event()
+        self._ready_event = event.Event()
         self._state = self.STATES.UNKNOWN
 
     def __bool__(self):
@@ -431,8 +431,8 @@ class HardwareObjectMixin(CommandContainer):
 
         If timeout == 0: return at once and do not wait;
         if timeout is None: wait forever."""
-        if timeout != 0:
-            with gevent.Timeout(
+        if timeout:
+            with Timeout(
                 timeout, RuntimeError("Timeout waiting for status ready")
             ):
                 self._ready_event.wait(timeout=timeout)

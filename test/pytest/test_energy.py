@@ -1,8 +1,8 @@
 def test_energy_atributes(beamline):
     assert not beamline.energy is None, "Energy hardware objects is None (not initialized)"
-    current_energy = beamline.energy.get_current_energy()
-    current_wavelength = beamline.energy.get_current_wavelength()
-    energy_limits = beamline.energy.get_energy_limits()
+    current_energy = beamline.energy.get_value()
+    current_wavelength = beamline.energy.get_wavelength()
+    energy_limits = beamline.energy.get_limits()
     wavelength_limits = beamline.energy.get_wavelength_limits()
 
     assert isinstance(current_energy, float), "Energy value has to be float"
@@ -16,4 +16,4 @@ def test_energy_atributes(beamline):
 def test_energy_methods(beamline):
     target = 12.7
     beamline.energy.move_energy(target)
-    assert beamline.energy.get_current_energy() == target
+    assert beamline.energy.get_value() == target

@@ -28,7 +28,7 @@ from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
 )
 
 
-__copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
+__copyright__ = """ Copyright 2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -107,7 +107,7 @@ class AbstractNState(AbstractActuator):
             (dict): Dictionary of predefined {name: value}
         """
         predefined_values = {}
-        for value in self["predefined_value"]:
+        for value in self.getProperty("predefined_value", ()):
             try:
                 predefined_values.update(
                     {value.getProperty("name"): value.getProperty("value")}
