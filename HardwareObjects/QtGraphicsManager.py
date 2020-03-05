@@ -275,8 +275,9 @@ class QtGraphicsManager(HardwareObject):
             )
 
         if HWR.beamline.beam is not None:
-            self.beam_info_dict = HWR.beamline.beam.get_beam_info()
-            self.beam_position = HWR.beamline.beam.get_beam_position()
+            self.beam_info_dict = HWR.beamline.beam.get_info_dict()
+            pos_x, pos_y = HWR.beamline.beam.get_screen_position()
+            self.beam_position = (pos_x, pos_y)
             self.connect(
                 HWR.beamline.beam, "beamPosChanged", self.beam_position_changed
             )
@@ -285,7 +286,7 @@ class QtGraphicsManager(HardwareObject):
             )
 
             self.beam_info_changed(self.beam_info_dict)
-            self.beam_position_changed(HWR.beamline.beam.get_beam_position())
+            self.beam_position_changed(HWR.beamline.beam.get_screen_position())
         else:
             logging.getLogger("HWR").error(
                 "GraphicsManager: BeamInfo hwobj not defined"
@@ -1882,7 +1883,7 @@ class QtGraphicsManager(HardwareObject):
     def refresh_camera(self):
         """Not called, To be deleted
         """
-        self.beam_info_dict = HWR.beamline.beam.get_beam_info()
+        self.beam_info_dict = HWR.beamline.beam.get_info_dict()
         self.beam_info_changed(self.beam_info_dict)
 
     def select_lines_and_grids(self):

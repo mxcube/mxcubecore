@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 from scipy.interpolate import interp1d
 
@@ -25,7 +25,6 @@ from HardwareRepository import HardwareRepository as HWR
 
 
 __credits__ = ["MXCuBE collaboration"]
-__version__ = "2.3."
 __category__ = "General"
 
 # Dose rate for a standard composition crystal, in Gy/s
@@ -51,12 +50,18 @@ class AbstractFlux(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
+        self._value = None
         self.dose_rate_per_photon_per_mmsq = dose_rate_per_photon_per_mmsq
+        self.measured_flux_list = []
+        self.measured_flux_dict = None
+        self.current_flux_dict = None
 
+    def get_value(self):
+        """Get flux at current transmission in units of photons/s"""
+        return self._value
 
     def get_flux(self):
-        """Get flux at current transmission in units of photons/s"""
-        raise NotImplementedError
+        return self._value
 
     def get_dose_rate(self, energy=None):
         """
@@ -71,17 +76,28 @@ class AbstractFlux(HardwareObject):
         energy = energy or HWR.beamline.energy.get_current_energy()
 
         # NB   Calculation assumes beam sizes in mm
-        beam_size = HWR.beamline.beam.get_beam_size()
+        beam_size_hor, beam_size_ver = HWR.beamline.beam.get_size()
 
         # Result in kGy/s
         result = (
                 self.dose_rate_per_photon_per_mmsq(energy)
                 * self.get_flux()
-                / beam_size[0]
-                / beam_size[1]
+                / beam_size_hor
+                / beam_size_ver
                 / 1000.  # Converts to kGy/s
         )
         return result
 
+    def get_measured_flux_list(self):
+        return self.measured_flux_list
+
+    def set_measured_flux_list(self, measured_flux_list):
+        self.measured_flux_list = measured_flux_list
+
     def update_values(self):
         self.emit("fluxValueChanged", self._value)
+        self.emit(
+            "fluxInfoChanged",
+            {"measured": self.measured_flux_dict,
+             "current": self.current_flux_dict},
+        )
