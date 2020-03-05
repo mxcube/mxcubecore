@@ -37,8 +37,8 @@ class ESRFBeamInfo(BeamInfo.BeamInfo):
         else:
             # Cannot be done, as graphics HWOBJ is initialised after beam
             # self.beam_position = (
-            #     HWR.beamline.microscope.camera.getWidth() / 2,
-            #     HWR.beamline.microscope.camera.getHeight() / 2,
+            #     HWR.beamline.sample_view.camera.getWidth() / 2,
+            #     HWR.beamline.sample_view.camera.getHeight() / 2,
             # )
             logging.getLogger("HWR").warning(
                 "ESRFBeamInfo: "
@@ -50,8 +50,8 @@ class ESRFBeamInfo(BeamInfo.BeamInfo):
     def get_beam_position(self):
         if self.beam_position == (0, 0):
             self.beam_position = (
-                HWR.beamline.microscope.camera.getWidth() / 2,
-                HWR.beamline.microscope.camera.getHeight() / 2,
+                HWR.beamline.sample_view.camera.getWidth() / 2,
+                HWR.beamline.sample_view.camera.getHeight() / 2,
             )
         return self.beam_position
 

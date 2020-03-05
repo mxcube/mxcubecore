@@ -176,7 +176,7 @@ class MiniDiff(Equipment):
 
 
         # mh 2013-11-05:why is the channel read directly? disabled for the moment
-        # HWR.beamline.microscope.camera.addChannel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
+        # HWR.beamline.sample_view.camera.addChannel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
 
         self.centringPhi = sample_centring.CentringMotor(self.phiMotor, direction=-1)
         self.centringPhiz = sample_centring.CentringMotor(
@@ -267,15 +267,15 @@ class MiniDiff(Equipment):
                 "MiniDiff: sampx motor is not defined in minidiff equipment %s",
                 str(self.name()),
             )
-        # if HWR.beamline.microscope.camera is None:
+        # if HWR.beamline.sample_view.camera is None:
         #     logging.getLogger("HWR").error(
         #         "MiniDiff: camera is not defined in minidiff equipment %s",
         #         str(self.name()),
         #     )
         # else:
         #     self.imgWidth, self.imgHeight = (
-        #         HWR.beamline.microscope.camera.getWidth(),
-        #         HWR.beamline.microscope.camera.getHeight(),
+        #         HWR.beamline.sample_view.camera.getWidth(),
+        #         HWR.beamline.sample_view.camera.getHeight(),
         #     )
         if HWR.beamline.sample_changer is None:
             logging.getLogger("HWR").warning(
@@ -432,7 +432,7 @@ class MiniDiff(Equipment):
             and self.phiMotor is not None
             and self.phizMotor is not None
             and self.phiyMotor is not None
-            and HWR.beamline.microscope.camera is not None
+            and HWR.beamline.sample_view.camera is not None
         )
 
     def in_plate_mode(self):
@@ -953,7 +953,7 @@ class MiniDiff(Equipment):
             time.sleep(0.1)
 
     def takeSnapshots(self, image_count, wait=False):
-        HWR.beamline.microscope.camera.forceUpdate = True
+        HWR.beamline.sample_view.camera.forceUpdate = True
 
         snapshotsProcedure = gevent.spawn(
             take_snapshots,
@@ -973,7 +973,7 @@ class MiniDiff(Equipment):
             self.centringStatus["images"] = snapshotsProcedure.get()
 
     def snapshotsDone(self, snapshotsProcedure):
-        HWR.beamline.microscope.camera.forceUpdate = False
+        HWR.beamline.sample_view.camera.forceUpdate = False
 
         try:
             self.centringStatus["images"] = snapshotsProcedure.get()

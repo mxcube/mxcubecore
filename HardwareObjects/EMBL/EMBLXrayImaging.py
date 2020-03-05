@@ -148,7 +148,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
 
         QtGraphicsManager.init(self)
 
-        self.disconnect(HWR.beamline.microscope.camera, "imageReceived", self.camera_image_received)
+        self.disconnect(HWR.beamline.sample_view.camera, "imageReceived", self.camera_image_received)
 
         self.disconnect(
             HWR.beamline.diffractometer,

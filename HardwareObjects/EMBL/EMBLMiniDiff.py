@@ -681,7 +681,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             self.chan_fast_shutter_is_open.setValue(not self.fast_shutter_is_open)
 
     def find_loop(self):
-        image_array = HWR.beamline.microscope.camera.get_snapshot(return_as_array=True)
+        image_array = HWR.beamline.sample_view.camera.get_snapshot(return_as_array=True)
         (info, x, y) = lucid.find_loop(image_array)
         surface_score = 10
         return x, y, surface_score

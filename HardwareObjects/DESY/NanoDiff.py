@@ -273,11 +273,11 @@ class NanoDiff(HardwareObject):
                 self.focus_motor_hwobj, "positionChanged", self.focus_motor_moved
             )
 
-        # if HWR.beamline.microscope.camera is None:
+        # if HWR.beamline.sample_view.camera is None:
         #     logging.getLogger("HWR").error("NanoDiff: Camera is not defined")
         # else:
-        #     self.image_height = HWR.beamline.microscope.camera.getHeight()
-        #     self.image_width = HWR.beamline.microscope.camera.getWidth()
+        #     self.image_height = HWR.beamline.sample_view.camera.getHeight()
+        #     self.image_width = HWR.beamline.sample_view.camera.getWidth()
 
         try:
             self.zoom_centre = eval(self.getProperty("zoom_centre"))
@@ -633,9 +633,9 @@ class NanoDiff(HardwareObject):
         """
         Descript. :
         """
-        if HWR.beamline.microscope.camera is not None:
+        if HWR.beamline.sample_view.camera is not None:
             if self.current_phase != "Unknown":
-                HWR.beamline.microscope.camera.refresh_video()
+                HWR.beamline.sample_view.camera.refresh_video()
         if HWR.beamline.beam is not None:
             self.beam_position = HWR.beamline.beam.get_beam_position()
 
@@ -1356,6 +1356,6 @@ class NanoDiff(HardwareObject):
         snapshot_filename = os.path.join(
             tempfile.gettempdir(), "mxcube_sample_snapshot.png"
         )
-        HWR.beamline.microscope.camera.take_snapshot(snapshot_filename, bw=True)
+        HWR.beamline.sample_view.camera.take_snapshot(snapshot_filename, bw=True)
         info, x, y = lucid.find_loop(snapshot_filename)
         return x, y
