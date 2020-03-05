@@ -67,16 +67,20 @@ class AbstractBeam(AbstractActuator):
 
         :return: tuple
         """
-        return self._divergence[0], self._divergence[1]
+        return self._divergence
 
     def get_screen_position(self):
         """Returns beam mark position on a screen
 
         :return: [float, float]
         """
-        return self._screen_position[0], self._screen_position[1]
+        return self._screen_position
 
     def get_size(self):
+        """Returns beam size in microns
+
+        :return: Tuple(int, int)
+        """
         return self.get_value()
 
     def get_value(self):
@@ -84,9 +88,15 @@ class AbstractBeam(AbstractActuator):
 
         :return: Tuple(int, int)
         """
-        return self._nominal_value[0], self._nominal_value[1]
+        return self._nominal_value
 
     def _set_value(self, value):
+        """sets nominal value in microns
+        Args:
+            value: value
+
+        :return: None
+        """
         self._nominal_value = value
         self.emit("beamSizeChanged", self._nominal_value)
 
@@ -98,7 +108,15 @@ class AbstractBeam(AbstractActuator):
         return self._shape
 
     def get_info_dict(self):
-        return self._info_dict
+        """Returns dictionary with beam paremeters
+
+        :return: beam info as dict
+        """
+        return self._info_dict.copy()
 
     def get_slits_gap(self):
-        return self._size_dict["slits"][0], self._size_dict["slits"][1]
+        """Returns slits gaps in microns
+
+        :return: gaps as a list with two floats/ints
+        """
+        return self._size_dict["slits"]

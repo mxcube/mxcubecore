@@ -276,8 +276,7 @@ class QtGraphicsManager(HardwareObject):
 
         if HWR.beamline.beam is not None:
             self.beam_info_dict = HWR.beamline.beam.get_info_dict()
-            pos_x, pos_y = HWR.beamline.beam.get_screen_position()
-            self.beam_position = (pos_x, pos_y)
+            self.beam_position = HWR.beamline.beam.get_screen_position()
             self.connect(
                 HWR.beamline.beam, "beamPosChanged", self.beam_position_changed
             )
