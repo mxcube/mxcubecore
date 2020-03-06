@@ -76,7 +76,7 @@ class EMBLImageTracking(Device):
         self.chan_state = self.getChannelObject("chanState")
         self.chan_state.connectSignal("update", self.state_changed)
 
-        self.cmd_load_image = self.getCommandObject("cmdLoadImage")
+        self.cmd_load_image = self.get_command_object("cmdLoadImage")
 
     def image_tracking_state_changed(self, state):
         """

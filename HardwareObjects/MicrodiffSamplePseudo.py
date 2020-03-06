@@ -8,7 +8,7 @@ class MicrodiffSamplePseudo(MD2Motor):
     def __init__(self, name):
         MD2Motor.__init__(self, name)
 
-        self.motor_name = name
+        self.actuator_name = name
         self.sampx = None
         self.sampy = None
         self.phi = None
@@ -30,7 +30,7 @@ class MicrodiffSamplePseudo(MD2Motor):
 
     def real_motor_moved(self, _):
 
-        self.motorPositionChanged(self.getPosition())
+        self.motorPositionChanged(self.get_value())
 
     def updateMotorState(self):
         states = [m.getState() for m in (self.sampx, self.sampy, self.phi)]
@@ -58,11 +58,11 @@ class MicrodiffSamplePseudo(MD2Motor):
         self.emit("stateChanged", (self.motorState,))
 
     def getPosition(self):
-        sampx = self.sampx.getPosition()
-        sampy = self.sampy.getPosition()
-        phi = self.phi.getPosition()
+        sampx = self.sampx.get_value()
+        sampy = self.sampy.get_value()
+        phi = self.phi.get_value()
         if phi:
-            phi = math.radians(self.phi.getPosition())
+            phi = math.radians(self.phi.get_value())
             if self.direction == "horizontal":
                 new_pos = sampx * math.cos(phi) + sampy * math.sin(phi)
             else:
@@ -81,17 +81,17 @@ class MicrodiffSamplePseudo(MD2Motor):
         self.emit("positionChanged", (absolutePosition,))
 
     def move(self, absolutePosition):
-        sampx = self.sampx.getPosition()
-        sampy = self.sampy.getPosition()
-        phi = math.radians(self.phi.getPosition())
+        sampx = self.sampx.get_value()
+        sampy = self.sampy.get_value()
+        phi = math.radians(self.phi.get_value())
         if self.direction == "horizontal":
             ver = sampx * math.sin(-phi) + sampy * math.cos(-phi)
-            self.sampx.move(absolutePosition * math.cos(-phi) + ver * math.sin(-phi))
-            self.sampy.move(-absolutePosition * math.sin(-phi) + ver * math.cos(-phi))
+            self.sampx.set_value(absolutePosition * math.cos(-phi) + ver * math.sin(-phi))
+            self.sampy.set_value(-absolutePosition * math.sin(-phi) + ver * math.cos(-phi))
         else:
             hor = sampx * math.cos(phi) + sampy * math.sin(phi)
-            self.sampx.move(absolutePosition * math.sin(-phi) + hor * math.cos(-phi))
-            self.sampy.move(absolutePosition * math.cos(-phi) - hor * math.sin(-phi))
+            self.sampx.set_value(absolutePosition * math.sin(-phi) + hor * math.cos(-phi))
+            self.sampy.set_value(absolutePosition * math.cos(-phi) - hor * math.sin(-phi))
 
     def _motor_abort(self):
         for m in (self.phi, self.sampx, self.sampy):

@@ -17,6 +17,7 @@ import logging
 class MachCurrent(BaseHardwareObjects.Device):
     def __init__(self, name):
         BaseHardwareObjects.Device.__init__(self, name)
+        
         self.opmsg = ""
 
     def init(self):
@@ -57,7 +58,6 @@ class MachCurrent(BaseHardwareObjects.Device):
         return value
 
     def getMessage(self):
-
         try:
             msg = self.getChannelObject("OperatorMsg").getValue()
         except Exception as e:

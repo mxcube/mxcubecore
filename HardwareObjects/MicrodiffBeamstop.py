@@ -26,7 +26,7 @@ Example bstopy.xml (for bstopz only the motor name changes)
 <device class="MD2Motor">
   <username>bstopy</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
-  <motor_name>BeamstopY</motor_name>
+  <actuator_name>BeamstopY</actuator_name>
   <GUIstep>0.01</GUIstep>
    <unit>1e-3</unit>
 </device>

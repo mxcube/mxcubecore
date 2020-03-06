@@ -45,7 +45,10 @@ class EDNACharacterisation(AbstractCharacterisation):
         fp = HWR.getHardwareRepository().findInRepository(self.edna_default_file)
 
         if fp is None:
-            raise ValueError("File %s not found in repository" % self.edna_default_file)
+            fp = self.edna_default_file
+            
+            if not os.path.exists(fp):
+                raise ValueError("File %s not found in repository" % fp)
 
         with open(fp, "r") as f:
             self.edna_default_input = "".join(f.readlines())

@@ -221,13 +221,13 @@ class MultiplePositions(Equipment):
 
         for mot, pos in move_list:
             if mot is not None:
-                mot.move(pos)
+                mot.set_value(pos)
 
         if wait:
             [mot.waitEndOfMove() for mot, pos in move_list if mot is not None]
         """
         for mne,pos in self.positions[name].items():
-        self.motors[mne].move(pos)
+        self.motors[mne].set_value(pos)
         """
 
     def getPosition(self):
@@ -242,7 +242,7 @@ class MultiplePositions(Equipment):
                 mot = self.getDeviceByRole(role)
 
                 if mot is not None:
-                    motpos = mot.getPosition()
+                    motpos = mot.get_value()
                     try:
                         if (
                             motpos < pos + self.deltas[role]
@@ -261,7 +261,7 @@ class MultiplePositions(Equipment):
         if not self.isReady():
             return None
 
-        posName = self.getPosition()
+        posName = self.get_value()
 
         if posName is None:
             self.emit("noPosition", ())

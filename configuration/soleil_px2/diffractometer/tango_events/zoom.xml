@@ -1,6 +1,6 @@
 <device class="MicrodiffMotor">
     <tangoname>i11-ma-cx1/ex/md2</tangoname>
-    <motor_name>Zoom</motor_name>
+    <actuator_name>Zoom</actuator_name>
     <username>Zoom</username>
     <direction>1</direction>
     <GUIstep>500</GUIstep>

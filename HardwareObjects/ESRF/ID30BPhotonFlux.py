@@ -8,6 +8,7 @@ from HardwareRepository import HardwareRepository as HWR
 class ID30BPhotonFlux(Equipment):
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
+        self.current_flux = 0
 
     def init(self):
         self.controller = self.getObjectByRole("controller")
@@ -42,7 +43,8 @@ class ID30BPhotonFlux(Equipment):
 
     def _get_counts(self):
         try:
-            counts = self.counter.read()
+            # counts = self.counter.read()
+            counts = 0
             if counts == -9999:
                 counts = 0
         except Exception:
@@ -79,6 +81,9 @@ class ID30BPhotonFlux(Equipment):
 
     def getCurrentFlux(self):
         self.updateFlux("dummy")
+        return self.current_flux
+
+    def get_flux(self):
         return self.current_flux
 
     def emitValueChanged(self, flux=None):

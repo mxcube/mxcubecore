@@ -90,7 +90,7 @@ class EMBLDoorInterlock(Device):
                 "update", self.cmd_break_error_msg_changed
             )
 
-        self.cmd_break_interlock = self.getCommandObject("cmdBreak")
+        self.cmd_break_interlock = self.get_command_object("cmdBreak")
 
     def cmd_break_error_msg_changed(self, error_msg):
         """Displays error log message if door interlock break do not work
@@ -168,15 +168,15 @@ class EMBLDoorInterlock(Device):
             detector_distance = HWR.beamline.detector.distance
             if HWR.beamline.diffractometer.in_plate_mode():
                 if detector_distance  is not None:
-                    if detector_distance .getPosition() < 780:
-                        detector_distance .move(800, timeout=None)
-                        while detector_distance.getPosition() < 360:
+                    if detector_distance .get_value() < 780:
+                        detector_distance .set_value(800, timeout=None)
+                        while detector_distance.get_value() < 360:
                             gevent.sleep(0.01)
                         gevent.sleep(2)
             else:
                 if detector_distance is not None:
-                    if detector_distance .getPosition() < 1099:
-                        detector_distance .move(1100)
+                    if detector_distance .get_value() < 1099:
+                        detector_distance .set_value(1100)
                         gevent.sleep(1)
             try:
                 HWR.beamline.diffractometer.set_phase(
@@ -194,7 +194,7 @@ class EMBLDoorInterlock(Device):
         if self.door_interlock_state:
             if self.door_interlock_breakabled:
                 if self.cmd_break_interlock is None:
-                    self.cmd_break_interlock = self.getCommandObject(
+                    self.cmd_break_interlock = self.get_command_object(
                         "cmdBreakInterlock"
                     )
                 self.cmd_break_interlock()

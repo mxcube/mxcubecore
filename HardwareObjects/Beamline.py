@@ -597,7 +597,7 @@ class Beamline(ConfiguredObject):
         acq_parameters.kappa_phi = round(float(kappa_phi), 2)
 
         try:
-            acq_parameters.resolution = self.resolution.getPosition()
+            acq_parameters.resolution = self.resolution.get_value()
         except:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "

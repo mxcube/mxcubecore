@@ -4,8 +4,10 @@ import logging
 import os
 
 from HardwareRepository.TaskUtils import task
-from .ESRFMultiCollect import ESRFMultiCollect, PixelDetector, TunableEnergy
+from .ESRFMultiCollect import ESRFMultiCollect, TunableEnergy
 from HardwareRepository.HardwareObjects.LimaPilatusDetector import LimaPilatusDetector
+
+from HardwareRepository import HardwareRepository as HWR
 
 
 class ID30BMultiCollect(ESRFMultiCollect):
@@ -17,14 +19,14 @@ class ID30BMultiCollect(ESRFMultiCollect):
         ESRFMultiCollect.data_collection_hook(self, data_collect_parameters)
         self._detector.shutterless = data_collect_parameters["shutterless"]
         try:
-            comment = self.bl_control.sample_changer.get_crystal_id()
+            comment = HWR.beamline.sample_changer.get_crystal_id()
             data_collect_parameters["comment"] = comment
         except Exception:
             pass
 
     @task
     def get_beam_size(self):
-        return self.bl_control.beam_info.get_beam_size()
+        return HWR.beamline.beam.beam_width, HWR.beamline.beam.beam_height
 
     @task
     def get_slit_gaps(self):
@@ -37,34 +39,34 @@ class ID30BMultiCollect(ESRFMultiCollect):
 
     @task
     def get_beam_shape(self):
-        return self.bl_control.beam_info.get_beam_shape()
+        return HWR.beamline.beam.get_value()[2].name
 
     @task
     def move_detector(self, detector_distance):
         det_distance = self.getObjectByRole("detector_distance")
-        det_distance.move(detector_distance)
+        det_distance.set_value(detector_distance)
         while det_distance.motorIsMoving():
             gevent.sleep(0.1)
 
     @task
     def set_resolution(self, new_resolution):
-        self.bl_control.resolution.move(new_resolution)
-        while self.bl_control.resolution.motorIsMoving():
+        HWR.beamline.resolution.set_value(new_resolution)
+        while HWR.beamline.resolution.motorIsMoving():
             gevent.sleep(0.1)
 
     def get_resolution_at_corner(self):
-        return self.bl_control.resolution.get_value_at_corner()
+        return HWR.beamline.resolution.get_value_at_corner()
 
     def get_detector_distance(self):
         det_distance = self.getObjectByRole("detector_distance")
-        return det_distance.getPosition()
+        return det_distance.get_value()
 
     def ready(*motors):
         return not any([m.motorIsMoving() for m in motors])
 
     @task
     def move_motors(self, motors_to_move_dict):
-        diffr = self.bl_control.diffractometer
+        diffr = HWR.beamline.diffractometer
         try:
             motors_to_move_dict.pop("kappa")
             motors_to_move_dict.pop("kappa_phi")
@@ -74,35 +76,34 @@ class ID30BMultiCollect(ESRFMultiCollect):
 
     @task
     def take_crystal_snapshots(self, number_of_snapshots):
-        if self.bl_control.diffractometer.in_plate_mode():
+        if HWR.beamline.diffractometer.in_plate_mode():
             if number_of_snapshots > 0:
                 number_of_snapshots = 1
         else:
             # this has to be done before each chage of phase
-            self.bl_control.diffractometer.getCommandObject("save_centring_positions")()
+            HWR.beamline.diffractometer.getCommandObject("save_centring_positions")()
             # not going to centring phase if in plate mode (too long)
-            self.bl_control.diffractometer.moveToPhase(
-                "Centring", wait=True, timeout=200
-            )
+            HWR.beamline.diffractometer.moveToPhase("Centring", wait=True, timeout=200)
 
-        self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
+        HWR.beamline.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
         # set the detector cover out
         self.getObjectByRole("controller").detcover.set_out(20)
-        diffr = self.bl_control.diffractometer
+        diffr = HWR.beamline.diffractometer
+
         # send again the command as MD2 software only handles one
         # centered position!!
         # has to be where the motors are and before changing the phase
-        diffr.getCommandObject("save_centring_positions")()
+        # diffr.getCommandObject("save_centring_positions")()
 
         # move to DataCollection phase
         logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
         diffr.moveToPhase("DataCollection", wait=True, timeout=200)
 
         # switch on the front light
-        diffr.getObjectByRole("FrontLight").move(2)
+        diffr.getObjectByRole("FrontLight").set_value(2)
 
         # take the back light out
         diffr.getObjectByRole("BackLightSwitch").actuatorOut()
@@ -200,7 +201,7 @@ class ID30BMultiCollect(ESRFMultiCollect):
         return
 
     def get_beam_centre(self):
-        return self.bl_control.resolution.get_beam_centre()
+        return HWR.beamline.resolution.get_beam_centre()
 
     @task
     def write_input_files(self, datacollection_id):

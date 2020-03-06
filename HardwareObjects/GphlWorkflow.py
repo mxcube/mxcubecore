@@ -943,7 +943,7 @@ class GphlWorkflow(HardwareObject, object):
 
             HWR.beamline.resolution.set_position(new_resolution)
             # TODO it should be set_position, fix TineMotor (resolution at EMBL)
-            # HWR.beamline.resolution.move(new_resolution)
+            # HWR.beamline.resolution.set_value(new_resolution)
             HWR.beamline.detector.wait_ready()
             # NBNB Wait till value has settled
             id_ = None

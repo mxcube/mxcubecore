@@ -149,7 +149,7 @@ class CommandContainer:
     def getChannelObject(self, channelName, optional=False):
         channel = self.__channels.get(channelName)
         if channel is None and not optional:
-            msg = "%s: Unable to add channel %s" % (self.name(), channelName)
+            msg = "%s: Unable to get channel %s" % (self.name(), channelName)
             logging.getLogger("user_level_log").error(msg)
             # raise Exception(msg)
         return channel
@@ -356,7 +356,7 @@ class CommandContainer:
         self.__channels[channel_name].setValue(value)
 
     def get_channel_value(self, channel_name):
-        return self.__channels[channel_name].getValue()
+        return self.__channels[channel_name].getValue()    
 
     def setValue(self, channelName, value):
         warn(
@@ -375,8 +375,11 @@ class CommandContainer:
             yield chan
 
     def getCommandObject(self, cmdName):
+        self.get_command_object(self, cmdName)
+
+    def get_command_object(self, cmd_name):
         try:
-            return self.__commands.get(cmdName)
+            return self.__commands.get(cmd_name)
         except Exception as e:
             return None
 
@@ -739,7 +742,10 @@ class CommandContainer:
         self.__commandsToAdd = []
 
     def executeCommand(self, cmdName, *args, **kwargs):
-        if cmdName in self.__commands:
-            return self.__commands[cmdName](*args, **kwargs)
+        self.execute_command(cmdName, *args, **kwargs)
+
+    def execute_command(self, command_name, *args, **kwargs):
+        if command_name in self.__commands:
+                return self.__commands[command_name](*args, **kwargs)
         else:
             raise AttributeError

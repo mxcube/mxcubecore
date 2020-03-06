@@ -25,18 +25,18 @@ class ALBACats(Cats90):
         self.shifts_channel = self.getChannelObject("shifts")
         self.phase_channel = self.getChannelObject("phase")
 
-        self.go_transfer_cmd = self.getCommandObject("go_transfer")
-        self.go_sampleview_cmd = self.getCommandObject("go_sampleview")
-        self.super_abort_cmd = self.getCommandObject("super_abort")
+        self.go_transfer_cmd = self.get_command_object("go_transfer")
+        self.go_sampleview_cmd = self.get_command_object("go_sampleview")
+        self.super_abort_cmd = self.get_command_object("super_abort")
         self.super_state_channel = self.getChannelObject("super_state")
 
         self.auto_prepare_diff = self.getProperty("auto_prepare_diff")
         self.detdist_position_channel = self.getChannelObject("detdist_position")
         self.detdist_saved = None
 
-        self._cmdLoadHT = self.getCommandObject("_cmdLoadHT")
-        self._cmdChainedLoadHT = self.getCommandObject("_cmdChainedLoadHT")
-        self._cmdUnloadHT = self.getCommandObject("_cmdUnloadHT")
+        self._cmdLoadHT = self.get_command_object("_cmdLoadHT")
+        self._cmdChainedLoadHT = self.get_command_object("_cmdChainedLoadHT")
+        self._cmdUnloadHT = self.get_command_object("_cmdUnloadHT")
 
         self._chnPathSafe = self.getChannelObject("_chnPathSafe")
 

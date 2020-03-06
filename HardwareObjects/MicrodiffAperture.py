@@ -1,134 +1,102 @@
-from HardwareRepository.HardwareObjects.MD2Motor import MD2Motor
-import logging
-import math
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU General Lesser Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Aperture as Expoorter motor"""
+
+from HardwareRepository.HardwareObjects.ExporterMotor import ExporterMotor
 
 
-class MicrodiffAperture(MD2Motor):
+class MicrodiffAperture(ExporterMotor):
+    """MicrodiffAperture class"""
+
     def __init__(self, name):
-        MD2Motor.__init__(self, name)
+        ExporterMotor.__init__(self, name)
+        self.predefined_positions = []
+        self._exporter = None
+        self.position_channel = None
+        self.motor_state = None
+        self.aperture_factor = None
 
     def init(self):
-        self.motor_name = "CurrentApertureDiameter"
-        self.motor_pos_attr_suffix = "Index"
-
-        self.aperture_inout = self.getObjectByRole("inout")
-        self.predefinedPositions = {}
-        self.labels = self.addChannel(
-            {"type": "exporter", "name": "ap_labels"}, "ApertureDiameters"
+        """Initialize the aperture"""
+        ExporterMotor.init(self)
+        _exporter_address = self.getProperty("exporter_address")
+        """
+        self.position_channel = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": _exporter_address,
+                "name": "aperture_position",
+            },
+            "CurrentApertureDiameterIndex"
         )
-        self.filters = self.labels.getValue()
-        self.nb = len(list(self.filters))
-        j = 0
-        while j < self.nb:
-            for i in self.filters:
-                if int(i) >= 300:
-                    i = "Outbeam"
-                self.predefinedPositions[str(i)] = j
-                j = j + 1
-        if "Outbeam" not in self.predefinedPositions:
-            self.predefinedPositions["Outbeam"] = self.predefinedPositions.__len__()
-        self.predefinedPositions.pop("Outbeam")
-        self.sortPredefinedPositionsList()
-        MD2Motor.init(self)
+        if self.position_channel:
+            self.get_value()
+            self.position_channel.connectSignal("update", self.update_value)
+        """
 
-    def sortPredefinedPositionsList(self):
-        self.predefinedPositionsNamesList = [int(n) for n in self.predefinedPositions.keys()]
-        self.predefinedPositionsNamesList = sorted(self.predefinedPositionsNamesList, reverse=True)
-
-    def connectNotify(self, signal):
-        if signal == "predefinedPositionChanged":
-            positionName = self.getCurrentPositionName()
-            try:
-                pos = self.predefinedPositions[positionName]
-            except KeyError:
-                self.emit(signal, ("", None))
-            else:
-                self.emit(signal, (positionName, pos))
-            self.emit("apertureChanged", (self.getApertureSize(),))
-        else:
-            return MD2Motor.connectNotify(self, signal)
-
-    def getLimits(self):
-        return (1, self.nb)
-
-    def get_diameter_size_list(self):
-        return self.predefinedPositionsNamesList
-
-    def getPredefinedPositionsList(self):
-        warn(
-          "getPredefinedPositionsList is deprecated. Use get_diameter_size_list() instead",
-          DeprecationWarning,
+        self.motor_state = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": _exporter_address,
+                "name": "aperture_state",
+            },
+            "State",
         )
 
-        return get_diameter_size_list()
+        if self.motor_state:
+            self.motor_state.connectSignal("update", self._update_state)
 
-    def motorPositionChanged(self, absolutePosition, private={}):
-        MD2Motor.motorPositionChanged(absolutePosition, private)
+        self.predefined_positions = self._exporter.read_property("ApertureDiameters")
+        if 300 not in self.predefined_positions:
+            self.predefined_positions.append(300)
 
-        positionName = self.getCurrentPositionName(absolutePosition)
-        self.emit(
-            "predefinedPositionChanged",
-            (positionName, positionName and absolutePosition or None),
-        )
-        self.emit("apertureChanged", (self.getApertureSize(),))
+        self.update_state()
 
-    def get_diameter_size(self, pos=None):
-        if self.getPosition() is not None:
-            pos = pos or self.getPosition()
-        else:
-            pos = pos
+    def get_limits(self):
+        """Returns aperture low and high limits.
+        Returns:
+            (tuple): two int tuple (low limit, high limit).
+        """
+        self._limits = (min(self.predefined_positions),
+                        max(self.predefined_positions))
+        
+        return self._limits
 
-        try:
-            for positionName in self.predefinedPositions:
-                if math.fabs(self.predefinedPositions[positionName] - pos) <= 1E-3:
-                    return positionName
-        except BaseException:
-            return ""
-
-    def getCurrentPositionName(self, pos=None):
-        warn(
-          "getCurrentPositionName is deprecated. Use get_diameter_size() instead",
-          DeprecationWarning,
-        )
-
-        return self.get_diameter_size(pos)
-
-
-    def moveToPosition(self, positionName):
-        logging.getLogger().debug(
-            "%s: trying to move %s to %s:%f",
-            self.name(),
-            self.motor_name,
-            positionName,
-            self.predefinedPositions[positionName],
-        )
-
-        if positionName == "Outbeam":
-            self.aperture_inout.actuatorOut()
-        else:
-            try:
-                self.move(self.predefinedPositions[positionName], wait=True, timeout=10)
-            except BaseException:
-                logging.getLogger("HWR").exception(
-                    "Cannot move motor %s: invalid position name.", str(self.userName())
-                )
-            if self.aperture_inout.getActuatorState() != "in":
-                self.aperture_inout.actuatorIn()
-
-    def setNewPredefinedPosition(self, positionName, positionOffset):
-        raise NotImplementedError
-
-    def getApertureSize(self):
-        diameter_name = self.getCurrentPositionName()
+    def get_aperture_factor(self):
+        _current_aperture = self.get_label()
         for diameter in self["diameter"]:
-            if str(diameter.getProperty("name")) == str(diameter_name):
-                return (diameter.getProperty("size"),) * 2
-        return (9999, 9999)
+            if str(_current_aperture) == str(diameter.getProperty("name")):
+                _factor = diameter.getProperty("aperture_factor")
+        return _factor
 
-    def getApertureCoef(self):
-        diameter_name = self.getCurrentPositionName()
-        for diameter in self["diameter"]:
-            if str(diameter.getProperty("name")) == str(diameter_name):
-                aperture_coef = diameter.getProperty("aperture_coef")
-                return float(aperture_coef)
-        return 1
+    def _set_value(self, value_index):
+        """Move motor to absolute value. Wait the move to finish.
+        Args:
+            value (float): target value
+        """
+        value = self.predefined_positions.index(int(value_index))
+        self.position_channel.set_value(value)
+
+    def get_label(self):
+        return self.predefined_positions[self.get_value()]
+
+    def get_aperture_size(self):
+        return self.predefined_positions[self.get_value()]

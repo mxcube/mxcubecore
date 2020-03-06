@@ -161,7 +161,7 @@ class DiffractometerMockup(GenericDiffractometer):
         """Get random centring result for current positions"""
 
         # Names of motors to vary during centring
-        vary_motor_names = ("sampx", "sampy", "phiy")
+        vary_actuator_names = ("sampx", "sampy", "phiy")
 
         # Range of random variation
         var_range = 0.08
@@ -170,7 +170,7 @@ class DiffractometerMockup(GenericDiffractometer):
         var_limit = 2.0
 
         result = self.current_motor_positions.copy()
-        for tag in vary_motor_names:
+        for tag in vary_actuator_names:
             val = result.get(tag)
             if val is not None:
                 random_num = random.random()
