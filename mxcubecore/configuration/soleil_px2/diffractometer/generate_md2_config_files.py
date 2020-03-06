@@ -93,7 +93,7 @@ def main():
         os.mkdir(options.mode)
         
     for motor in continuous_motors:
-        config_dictionary['motor_name'] = motor
+        config_dictionary['actuator_name'] = motor
         config_dictionary['direction'] = continuous_motors[motor]['direction']
         config_dictionary['GUIstep'] = continuous_motors[motor]['GUIstep']
         config = template.substitute(config_dictionary)

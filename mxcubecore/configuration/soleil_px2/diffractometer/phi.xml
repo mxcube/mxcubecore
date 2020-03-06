@@ -1,6 +1,6 @@
 <device class="MicrodiffMotor">
     <exporter_address>172.19.10.119:9001</exporter_address>
-    <motor_name>Phi</motor_name>
+    <actuator_name>Phi</actuator_name>
     <username>Phi</username>
     <direction>1</direction>
     <GUIstep>10</GUIstep>

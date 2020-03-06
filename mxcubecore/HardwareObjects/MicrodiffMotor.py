@@ -12,7 +12,7 @@ Example xml file:
 <device class="MicrodiffMotor">
   <username>phiy</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
-  <motor_name>AlignmentY</motor_name>
+  <actuator_name>AlignmentY</actuator_name>
   <GUIstep>1.0</GUIstep>
   <unit>-1e-3</unit>
   <resolution>1e-2</resolution>
@@ -52,8 +52,8 @@ class MicrodiffMotor(AbstractMotor):
 
     def init(self):
         self.position = None
-        # assign value to motor_name
-        self.motor_name = self.getProperty("motor_name", "")
+        # assign value to actuator_name
+        self.actuator_name = self.getProperty("actuator_name", "")
 
         self.GUIstep = self.getProperty("GUIstep")
 
@@ -62,27 +62,27 @@ class MicrodiffMotor(AbstractMotor):
             self.motor_resolution = 0.0001
 
         # this is ugly : I added it to make the centring procedure happy
-        self.specName = self.motor_name
+        self.specName = self.actuator_name
 
         self.motorState = MicrodiffMotor.NOTINITIALIZED
 
         self.position_attr = self.getChannelObject(
-            "%s%s" % (self.motor_name, self.motor_pos_attr_suffix)
+            "%s%s" % (self.actuator_name, self.motor_pos_attr_suffix)
         )
         if not self.position_attr:
             self.position_attr = self.addChannel(
-                {"type": "exporter", "name": "%sPosition" % self.motor_name},
-                self.motor_name + self.motor_pos_attr_suffix,
+                {"type": "exporter", "name": "%sPosition" % self.actuator_name},
+                self.actuator_name + self.motor_pos_attr_suffix,
             )
 
         if self.position_attr is not None:
             self.state_attr = self.getChannelObject(
-                "%s%s" % (self.motor_name, self.motor_state_attr_suffix)
+                "%s%s" % (self.actuator_name, self.motor_state_attr_suffix)
             )
             if not self.state_attr:
                 self.state_attr = self.addChannel(
-                    {"type": "exporter", "name": "%sState" % self.motor_name},
-                    self.motor_name + self.motor_state_attr_suffix,
+                    {"type": "exporter", "name": "%sState" % self.actuator_name},
+                    self.actuator_name + self.motor_state_attr_suffix,
                 )
 
             self.position_attr.connectSignal("update", self.motorPositionChanged)
@@ -102,13 +102,13 @@ class MicrodiffMotor(AbstractMotor):
                 )
 
             self.get_dynamic_limits_cmd = self.get_command_object(
-                "get%sDynamicLimits" % self.motor_name
+                "get%sDynamicLimits" % self.actuator_name
             )
             if not self.get_dynamic_limits_cmd:
                 self.get_dynamic_limits_cmd = self.add_command(
                     {
                         "type": "exporter",
-                        "name": "get%sDynamicLimits" % self.motor_name,
+                        "name": "get%sDynamicLimits" % self.actuator_name,
                     },
                     "getMotorDynamicLimits",
                 )
@@ -152,7 +152,7 @@ class MicrodiffMotor(AbstractMotor):
         d = dict([x.split("=") for x in motor_states])
         # Some are like motors but have no state
         # we set them to ready
-        _motor_state = d.get(self.motor_name)
+        _motor_state = d.get(self.actuator_name)
         if _motor_state is None:
             new_motor_state = MicrodiffMotor.READY
         else:
@@ -192,7 +192,7 @@ class MicrodiffMotor(AbstractMotor):
             return dynamic_limits
         else:
             try:
-                low_lim, hi_lim = map(float, self.get_limits_cmd(self.motor_name))
+                low_lim, hi_lim = map(float, self.get_limits_cmd(self.actuator_name))
                 if low_lim == float(1e999) or hi_lim == float(1e999):
                     raise ValueError
                 return low_lim, hi_lim
@@ -201,7 +201,7 @@ class MicrodiffMotor(AbstractMotor):
 
     def getDynamicLimits(self):
         try:
-            low_lim, hi_lim = map(float, self.get_dynamic_limits_cmd(self.motor_name))
+            low_lim, hi_lim = map(float, self.get_dynamic_limits_cmd(self.actuator_name))
             if low_lim == float(1e999) or hi_lim == float(1e999):
                 raise ValueError
             return low_lim, hi_lim
@@ -209,7 +209,7 @@ class MicrodiffMotor(AbstractMotor):
             return (-1e4, 1e4)
 
     def getMaxSpeed(self):
-        return self.get_max_speed_cmd(self.motor_name)
+        return self.get_max_speed_cmd(self.actuator_name)
 
     def motorPositionChanged(self, absolute_position, private={}):
         if None not in (absolute_position, self.position):
@@ -256,14 +256,14 @@ class MicrodiffMotor(AbstractMotor):
         return self.isReady() and self.motorState == MicrodiffMotor.MOVING
 
     def getMotorMnemonic(self):
-        return self.motor_name
+        return self.actuator_name
 
     def stop(self):
         if self.get_state() != MicrodiffMotor.NOTINITIALIZED:
             self._motor_abort()
 
     def homeMotor(self, timeout=None):
-        self.home_cmd(self.motor_name)
+        self.home_cmd(self.actuator_name)
         try:
             self.waitEndOfMove(timeout)
         except BaseException:

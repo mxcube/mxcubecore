@@ -99,7 +99,7 @@ class MiniDiff(Equipment):
     def __init__(self, *args):
         Equipment.__init__(self, *args)
 
-        qmo.CentredPosition.set_diffractometer_motor_names(
+        qmo.CentredPosition.set_diffractometer_actuator_names(
             "phi",
             "focus",
             "phiz",

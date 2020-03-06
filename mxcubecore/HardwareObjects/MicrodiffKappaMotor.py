@@ -17,15 +17,15 @@ class MicrodiffKappaMotor(ExporterMotor):
 
     def init(self):
         ExporterMotor.init(self)
-        if not self.motor_name in ("Kappa", "Phi"):
+        if not self.actuator_name in ("Kappa", "Phi"):
             raise RuntimeError("MicrodiffKappaMotor class is only for kappa motors")
-        MicrodiffKappaMotor.motors[self.motor_name] = self
-        if self.motor_name == "Kappa":
+        MicrodiffKappaMotor.motors[self.actuator_name] = self
+        if self.actuator_name == "Kappa":
             MicrodiffKappaMotor.conf["KappaTrans"] = self.stringToList(self.kappaTrans)
             MicrodiffKappaMotor.conf["KappaTransD"] = self.stringToList(
                 self.kappaTransD
             )
-        elif self.motor_name == "Phi":
+        elif self.actuator_name == "Phi":
             MicrodiffKappaMotor.conf["PhiTrans"] = self.stringToList(self.phiTrans)
             MicrodiffKappaMotor.conf["PhiTransD"] = self.stringToList(self.phiTransD)
         self.sampx = self.getObjectByRole("sampx")
@@ -38,7 +38,7 @@ class MicrodiffKappaMotor(ExporterMotor):
     def move(self, absolutePosition):
         kappa_start_pos = MicrodiffKappaMotor.motors["Kappa"].get_value()
         kappa_phi_start_pos = MicrodiffKappaMotor.motors["Phi"].get_value()
-        if self.motor_name == "Kappa":
+        if self.actuator_name == "Kappa":
             kappa_end_pos = absolutePosition
             kappa_phi_end_pos = kappa_phi_start_pos
         else:

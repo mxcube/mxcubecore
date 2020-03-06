@@ -209,14 +209,14 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def getMotorToExporterNames(self):
         MOTOR_TO_EXPORTER_NAME = {
-            "focus": self.focusMotor.getProperty("motor_name"),
-            "kappa": self.kappaMotor.getProperty("motor_name"),
-            "kappa_phi": self.kappaPhiMotor.getProperty("motor_name"),
-            "phi": self.phiMotor.getProperty("motor_name"),
-            "phiy": self.phiyMotor.getProperty("motor_name"),
-            "phiz": self.phizMotor.getProperty("motor_name"),
-            "sampx": self.sampleXMotor.getProperty("motor_name"),
-            "sampy": self.sampleYMotor.getProperty("motor_name"),
+            "focus": self.focusMotor.getProperty("actuator_name"),
+            "kappa": self.kappaMotor.getProperty("actuator_name"),
+            "kappa_phi": self.kappaPhiMotor.getProperty("actuator_name"),
+            "phi": self.phiMotor.getProperty("actuator_name"),
+            "phiy": self.phiyMotor.getProperty("actuator_name"),
+            "phiz": self.phizMotor.getProperty("actuator_name"),
+            "sampx": self.sampleXMotor.getProperty("actuator_name"),
+            "sampy": self.sampleYMotor.getProperty("actuator_name"),
             "zoom": "Zoom",
         }
         return MOTOR_TO_EXPORTER_NAME

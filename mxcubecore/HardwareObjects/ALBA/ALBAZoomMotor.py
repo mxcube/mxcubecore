@@ -47,7 +47,7 @@ Example Hardware Object XML file :
   <username>Zoom</username>
   <taurusname>ioregister/eh_zoom_tangoior_ctrl/2</taurusname>
   <alias>zoom</alias>
-  <motor_name>Zoom</motor_name>
+  <actuator_name>Zoom</actuator_name>
   <channel type="sardana" polling="200" name="position">Value</channel>
   <channel type="sardana" polling="200" name="state">State</channel>
   <channel type="sardana" name="labels">Labels</channel>

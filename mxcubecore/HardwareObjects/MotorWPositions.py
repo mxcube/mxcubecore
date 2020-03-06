@@ -115,7 +115,7 @@ class MotorWPositions(AbstractMotor, Device):
         """
         Descript. :
         """
-        return self.motor_name
+        return self.actuator_name
 
     def motor_state_changed(self, state):
         self.updateState(state)
