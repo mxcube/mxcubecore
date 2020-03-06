@@ -12,7 +12,7 @@ class RobodiffMotor(Device):
 
     def init(self):
         self.motorState = RobodiffMotor.NOTINITIALIZED
-        self.username = self.motor_name
+        self.username = self.actuator_name
         # gevent.spawn_later(1, self.end_init)
 
     def end_init(self):
@@ -23,9 +23,9 @@ class RobodiffMotor(Device):
         )  # self.getObjectByRole("controller")
 
         # this is ugly : I added it to make the centring procedure happy
-        self.specName = self.motor_name
+        self.specName = self.actuator_name
 
-        self.motor = getattr(controller, self.motor_name)
+        self.motor = getattr(controller, self.actuator_name)
         self.connect(self.motor, "position", self.positionChanged)
         self.connect(self.motor, "state", self.updateState)
         self.__initialized = True
@@ -110,7 +110,7 @@ class RobodiffMotor(Device):
 
     def getMotorMnemonic(self):
         self.end_init()
-        return self.motor_name
+        return self.actuator_name
 
     def stop(self):
         self.end_init()

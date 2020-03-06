@@ -1,6 +1,6 @@
 <device class="MicrodiffMotor">
     <exporter_address>172.19.10.119:9001</exporter_address>
-    <motor_name>ApertureVertical</motor_name>
+    <actuator_name>ApertureVertical</actuator_name>
     <username>ApertureVertical</username>
     <direction>1</direction>
     <GUIstep>0.025</GUIstep>

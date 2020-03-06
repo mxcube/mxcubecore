@@ -1,7 +1,7 @@
 <device class="SardanaMotor">
   <username>Omega</username>
   <taurusname>omega</taurusname>
-  <motor_name>Omega</motor_name>
+  <actuator_name>Omega</actuator_name>
   <guistep>45</guistep>
   <interval>500</interval>
 </device>

@@ -373,7 +373,7 @@ def centre_plate(
 
 
 def ready(*motors):
-    print([(m.motor_name, m.is_ready()) for m in motors])
+    print([(m.actuator_name, m.is_ready()) for m in motors])
     return all([m.is_ready() for m in motors])
 
 

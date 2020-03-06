@@ -5,7 +5,7 @@ import math
 
 class MicrodiffApertureMockup(Device):
     def init(self):
-        self.motor_name = "CurrentApertureDiameter"
+        self.actuator_name = "CurrentApertureDiameter"
         self.motor_pos_attr_suffix = "Index"
         self._last_position_name = None
 

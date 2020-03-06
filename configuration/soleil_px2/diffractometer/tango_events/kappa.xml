@@ -1,6 +1,6 @@
 <device class="MicrodiffMotor">
     <tangoname>i11-ma-cx1/ex/md2</tangoname>
-    <motor_name>Kappa</motor_name>
+    <actuator_name>Kappa</actuator_name>
     <username>Kappa</username>
     <direction>1</direction>
     <GUIstep>10</GUIstep>

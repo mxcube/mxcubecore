@@ -1,7 +1,7 @@
 <device class="MicrodiffMotor">
   <username>phiz</username>
   <exporter_address>microdiff29new:9001</exporter_address>
-  <motor_name>AlignmentZ</motor_name>
+  <actuator_name>AlignmentZ</actuator_name>
   <GUIstep>1.0</GUIstep>
   <unit>1e-3</unit>
 </device>

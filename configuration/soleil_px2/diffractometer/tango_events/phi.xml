@@ -1,6 +1,6 @@
 <device class="MicrodiffMotor">
     <tangoname>i11-ma-cx1/ex/md2</tangoname>
-    <motor_name>Phi</motor_name>
+    <actuator_name>Phi</actuator_name>
     <username>Phi</username>
     <direction>1</direction>
     <GUIstep>10</GUIstep>

@@ -36,7 +36,7 @@ class DigitalZoomMotor(AbstractMotor, Device):
     zoom_exists, set_zoom, get_zoom and get_zoom_min_max
     <device class="DigitalZoomMotor">
         <username>Zoom</username>
-        <motor_name>Zoom</motor_name>
+        <actuator_name>Zoom</actuator_name>
         <object href="/mjpg-stream-video" role="camera"/>
     </device>
     """

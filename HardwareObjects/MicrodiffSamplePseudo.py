@@ -8,7 +8,7 @@ class MicrodiffSamplePseudo(MD2Motor):
     def __init__(self, name):
         MD2Motor.__init__(self, name)
 
-        self.motor_name = name
+        self.actuator_name = name
         self.sampx = None
         self.sampy = None
         self.phi = None

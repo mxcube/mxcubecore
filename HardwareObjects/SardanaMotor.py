@@ -11,7 +11,7 @@ taurusname is the only obligatory property.
 <device class="SardanaMotor">
     <taurusname>dmot01</taurusname>
     <username>Dummy</username>
-    <motor_name>dummy_motor</motor_name>
+    <actuator_name>dummy_motor</actuator_name>
     <threshold>0.005</threshold>
     <move_threshold>0.005</move_threshold>
     <interval>2000</interval>
@@ -66,16 +66,16 @@ class SardanaMotor(AbstractMotor):
         if not self.taurusname:
             raise RuntimeError("Undefined property taurusname")
 
-        self.motor_name = self.getProperty("motor_name")
+        self.actuator_name = self.getProperty("actuator_name")
         if not self.name:
             logging.getLogger("HWR").info(
-                "Undefined property motor_name in xml. Applying name during instance creation."
+                "Undefined property actuator_name in xml. Applying name during instance creation."
             )
-            self.motor_name = self.name()
+            self.actuator_name = self.name()
 
         self.threshold = self.getProperty("threshold", self.threshold_default)
         logging.getLogger("HWR").debug(
-            "Motor {0} threshold = {1}".format(self.motor_name, self.threshold)
+            "Motor {0} threshold = {1}".format(self.actuator_name, self.threshold)
         )
 
         self.move_threshold = self.getProperty(
@@ -83,19 +83,19 @@ class SardanaMotor(AbstractMotor):
         )
         logging.getLogger("HWR").debug(
             "Motor {0} move_threshold = {1}".format(
-                self.motor_name, self.move_threshold
+                self.actuator_name, self.move_threshold
             )
         )
 
         self.polling = self.getProperty("interval", self.polling_default)
         logging.getLogger("HWR").debug(
-            "Motor {0} polling = {1}".format(self.motor_name, self.polling)
+            "Motor {0} polling = {1}".format(self.actuator_name, self.polling)
         )
 
         self.stop_command = self.add_command(
             {
                 "type": "sardana",
-                "name": self.motor_name + SardanaMotor.suffix_stop,
+                "name": self.actuator_name + SardanaMotor.suffix_stop,
                 "taurusname": self.taurusname,
             },
             "Stop",
@@ -103,7 +103,7 @@ class SardanaMotor(AbstractMotor):
         self.position_channel = self.addChannel(
             {
                 "type": "sardana",
-                "name": self.motor_name + SardanaMotor.suffix_position,
+                "name": self.actuator_name + SardanaMotor.suffix_position,
                 "taurusname": self.taurusname,
                 "polling": self.polling,
             },
@@ -112,7 +112,7 @@ class SardanaMotor(AbstractMotor):
         self.state_channel = self.addChannel(
             {
                 "type": "sardana",
-                "name": self.motor_name + SardanaMotor.suffix_state,
+                "name": self.actuator_name + SardanaMotor.suffix_state,
                 "taurusname": self.taurusname,
                 "polling": self.polling,
             },
@@ -122,7 +122,7 @@ class SardanaMotor(AbstractMotor):
         self.velocity_channel = self.addChannel(
             {
                 "type": "sardana",
-                "name": self.motor_name + SardanaMotor.suffix_velocity,
+                "name": self.actuator_name + SardanaMotor.suffix_velocity,
                 "taurusname": self.taurusname,
             },
             "Velocity",
@@ -131,7 +131,7 @@ class SardanaMotor(AbstractMotor):
         self.acceleration_channel = self.addChannel(
             {
                 "type": "sardana",
-                "name": self.motor_name + SardanaMotor.suffix_acceleration,
+                "name": self.actuator_name + SardanaMotor.suffix_acceleration,
                 "taurusname": self.taurusname,
             },
             "Acceleration",

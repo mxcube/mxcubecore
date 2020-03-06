@@ -1,5 +1,5 @@
 <device class="MicrodiffMotor">
   <username>Kappa phi</username>
   <exporter_address>microdiff29new:9001</exporter_address>
-  <motor_name>Phi</motor_name>
+  <actuator_name>Phi</actuator_name>
 </device>
