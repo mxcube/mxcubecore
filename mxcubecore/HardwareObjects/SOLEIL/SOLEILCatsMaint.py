@@ -86,7 +86,7 @@ class SOLEILCatsMaint(Equipment):
             "_cmdCloseLid3",
             "_cmdRegulOn",
         ):
-            setattr(self, command_name, self.getCommandObject(command_name))
+            setattr(self, command_name, self.get_command_object(command_name))
 
         for lid_index in range(self.NO_OF_LIDS):
             channel_name = "_chnLid%dState" % (lid_index + 1)

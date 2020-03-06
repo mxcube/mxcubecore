@@ -397,7 +397,7 @@ class SardanaChannel(ChannelObject, SardanaObject):
         # if the polling value is a number set it as the taurus polling period
 
         if self.polling:
-            if isinstance(self.polling, types.IntType):
+            if isinstance(self.polling, int):
                 self.attribute.changePollingPeriod(self.polling)
 
             self.attribute.addListener(self.objectListener)

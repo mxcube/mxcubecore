@@ -94,8 +94,8 @@ class EMBLBSD(GenericDiffractometer):
         self.chan_scintillator_position = self.getChannelObject("ScintillatorPosition")
         self.chan_capillary_position = self.getChannelObject("CapillaryPosition")
 
-        self.cmd_start_set_phase = self.getCommandObject("startSetPhase")
-        self.cmd_start_auto_focus = self.getCommandObject("startAutoFocus")
+        self.cmd_start_set_phase = self.get_command_object("startSetPhase")
+        self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")
 
         self.zoom_motor_hwobj = self.getObjectByRole("zoom")
         self.connect(

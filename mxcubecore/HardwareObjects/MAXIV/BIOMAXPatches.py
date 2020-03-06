@@ -30,10 +30,10 @@ class BIOMAXPatches(HardwareObject):
                     "Cannot load sample, sample changer cannot go to SOAK position: %s"
                     % str(ex)
                 )
-        self.curr_dtox_pos = HWR.beamline.detector.distance.getPosition()
+        self.curr_dtox_pos = HWR.beamline.detector.distance.get_value()
         if (
             HWR.beamline.detector.distance is not None
-            and HWR.beamline.detector.distance.getPosition() < self.safe_position
+            and HWR.beamline.detector.distance.get_value() < self.safe_position
         ):
             logging.getLogger("HWR").info(
                 "Moving detector to safe position before loading a sample."

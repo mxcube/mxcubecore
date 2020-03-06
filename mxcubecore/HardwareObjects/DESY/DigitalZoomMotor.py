@@ -36,7 +36,7 @@ class DigitalZoomMotor(AbstractMotor, Device):
     zoom_exists, set_zoom, get_zoom and get_zoom_min_max
     <device class="DigitalZoomMotor">
         <username>Zoom</username>
-        <motor_name>Zoom</motor_name>
+        <actuator_name>Zoom</actuator_name>
         <object href="/mjpg-stream-video" role="camera"/>
     </device>
     """
@@ -147,20 +147,20 @@ class DigitalZoomMotor(AbstractMotor, Device):
         """
         Descript. : move for the given distance
         """
-        self.move(self.getPosition() + relative_position)
+        self.set_value(self.get_value() + relative_position)
 
     def syncMove(self, absolute_position, timeout=None):
         """
         Descript. : same as normal move, for position change is instantaneous
         """
-        self.move(absolute_position)
+        self.set_value(absolute_position)
 
     def syncMoveRelative(self, relative_position, timeout=None):
         """
         Descript. : same as normal moveRelative, for position change is
                     instantaneous
         """
-        self.syncMove(self.getPosition() + relative_position, timeout)
+        self.syncMove(self.get_value() + relative_position, timeout)
 
     def stop(self):
         """

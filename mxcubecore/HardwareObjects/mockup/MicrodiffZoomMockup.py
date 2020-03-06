@@ -9,7 +9,7 @@ class MicrodiffZoomMockup(Device):
     (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0, 1, 2, 3, 4, 5)
 
     def init(self):
-        self.motor_name = "Zoom"
+        self.actuator_name = "Zoom"
         self._last_position_name = None
         self.predefined_position_attr = 1
         self.predefined_positions = {

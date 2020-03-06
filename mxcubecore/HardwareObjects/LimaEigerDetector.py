@@ -70,8 +70,8 @@ class LimaEigerDetector(AbstractDetector):
             "saving_common_header",
         )
 
-        self.getCommandObject("prepare_acq").init_device()
-        self.getCommandObject("prepare_acq").device.set_timeout_millis(5 * 60 * 1000)
+        self.get_command_object("prepare_acq").init_device()
+        self.get_command_object("prepare_acq").device.set_timeout_millis(5 * 60 * 1000)
         self.getChannelObject("photon_energy").init_device()
 
     def has_shutterless(self):
@@ -104,9 +104,7 @@ class LimaEigerDetector(AbstractDetector):
         still,
         gate=False,
     ):
-        diffractometer_positions = (
-            HWR.beamline.diffractometer.get_positions()
-        )
+        diffractometer_positions = HWR.beamline.diffractometer.get_positions()
         self.start_angles = list()
         for i in range(number_of_images):
             self.start_angles.append("%0.4f deg." % (start + osc_range * i))
@@ -217,7 +215,7 @@ class LimaEigerDetector(AbstractDetector):
         logging.getLogger("user_level_log").info("Preparing acquisition")
         self.getCommandObject("prepare_acq")()
         logging.getLogger("user_level_log").info("Detector ready, continuing")
-        return self.getCommandObject("start_acq")()
+        return self.get_command_object("start_acq")()
 
     def stop(self):
         try:

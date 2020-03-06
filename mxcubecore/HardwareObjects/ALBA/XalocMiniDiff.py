@@ -18,7 +18,7 @@ class XalocMiniDiff(GenericDiffractometer):
         if self.centring_hwobj is None:
             logging.getLogger("HWR").debug("EMBLMinidiff: Centring math is not defined")
 
-        self.cmd_start_auto_focus = self.getCommandObject("startAutoFocus")
+        self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")
 
         self.phi_motor_hwobj = self.getObjectByRole("phi")
         self.phiz_motor_hwobj = self.getObjectByRole("phiz")
@@ -158,9 +158,9 @@ class XalocMiniDiff(GenericDiffractometer):
             if self.in_plate_mode():
                 dynamic_limits = self.phi_motor_hwobj.getDynamicLimits()
                 if click == 0:
-                    self.phi_motor_hwobj.move(dynamic_limits[0])
+                    self.phi_motor_hwobj.set_value(dynamic_limits[0])
                 elif click == 1:
-                    self.phi_motor_hwobj.move(dynamic_limits[1])
+                    self.phi_motor_hwobj.set_value(dynamic_limits[1])
             else:
                 if click < 2:
                     self.phi_motor_hwobj.moveRelative(-90)

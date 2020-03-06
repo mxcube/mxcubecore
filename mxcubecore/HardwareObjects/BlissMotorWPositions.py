@@ -68,7 +68,7 @@ class BlissMotorWPositions(BlissMotor):
         BlissMotor.updateState(self, state)
 
         if self.motorState != prev_state and self.motorState == BlissMotor.READY:
-            pos = self.getPosition()
+            pos = self.get_value()
 
             for positionName in self.predefinedPositions:
                 if (
@@ -85,7 +85,7 @@ class BlissMotorWPositions(BlissMotor):
 
     def moveToPosition(self, positionName):
         try:
-            self.move(self.predefinedPositions[positionName])
+            self.set_value(self.predefinedPositions[positionName])
         except BaseException:
             logging.getLogger("HWR").exception(
                 "Cannot move motor %s: invalid position name.", str(self.userName())
@@ -98,9 +98,9 @@ class BlissMotorWPositions(BlissMotor):
             for positionName in self.predefinedPositions:
                 if (
                     self.predefinedPositions[positionName]
-                    >= self.getPosition() - self.delta
+                    >= self.get_value() - self.delta
                     and self.predefinedPositions[positionName]
-                    <= self.getPosition() + self.delta
+                    <= self.get_value() + self.delta
                 ):
                     return positionName
         return ""

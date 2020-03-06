@@ -107,8 +107,8 @@ class EMBLSafetyShutter(Device):
         if self.chan_cmd_open_error is not None:
             self.chan_cmd_open_error.connectSignal("update", self.cmd_error_msg_changed)
 
-        self.cmd_open = self.getCommandObject("cmdOpen")
-        self.cmd_close = self.getCommandObject("cmdClose")
+        self.cmd_open = self.get_command_object("cmdOpen")
+        self.cmd_close = self.get_command_object("cmdClose")
 
         self.use_shutter = self.getProperty("useShutter", True)
 

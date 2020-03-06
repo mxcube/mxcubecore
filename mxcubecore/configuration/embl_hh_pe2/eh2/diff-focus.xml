@@ -1,3 +1,3 @@
 <device class="MotorMockup">
-  <motor_name>Focus</motor_name>
+  <actuator_name>Focus</actuator_name>
 </device>

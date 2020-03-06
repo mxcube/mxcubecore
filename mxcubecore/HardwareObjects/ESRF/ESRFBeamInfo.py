@@ -8,6 +8,7 @@ XML example file
   <defaultBeamDivergence></defaultBeamDivergence>
   <device role="camera" hwrid="/prosilica_md2"/>
   <device role="aperture" hwrid="/udiff_aperturemot"/>
+  <device role="diffractometer" hwrid="/udiff" />
   <!-- Positions and slits format: X Y -->
   <beam_position>322 243</beam_position>
   <beam_size_slits>0.04 0.04</beam_size_slits>
@@ -35,24 +36,22 @@ class ESRFBeamInfo(BeamInfo.BeamInfo):
         if beam_position:
             self.beam_position = tuple(map(float, beam_position.split()))
         else:
-            # Cannot be done, as graphics HWOBJ is initialised after beam
-            # self.beam_position = (
-            #     HWR.beamline.microscope.camera.getWidth() / 2,
-            #     HWR.beamline.microscope.camera.getHeight() / 2,
-            # )
             logging.getLogger("HWR").warning(
-                "ESRFBeamInfo: "
-                + "beam position not configured"
+                "ESRFBeamInfo: " + "beam position not configured"
             )
-
+        self.difrractometer_hwobj = self.getObjectByRole("difrractometer")
         self.flux = self.getObjectByRole("flux")
+        self.beam_definer = self.getObjectByRole("beam_definer")
 
     def get_beam_position(self):
         if self.beam_position == (0, 0):
-            self.beam_position = (
-                HWR.beamline.microscope.camera.getWidth() / 2,
-                HWR.beamline.microscope.camera.getHeight() / 2,
-            )
+            try:
+                self.beam_position = HWR.beamline.diffractometer.beam.get_value()
+            except AttributeError:
+                self.beam_position = (
+                    HWR.beamline.microscope.camera.get_width() / 2,
+                    HWR.beamline.microscope.camera.get_height() / 2,
+                )
         return self.beam_position
 
     def set_beam_position(self, beam_x, beam_y):

@@ -68,12 +68,12 @@ class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
         dtox = HWR.beamline.detector.distance
         if not entering_hutch:
             if old["dtox"] is not None:
-                dtox.move(old["dtox"])
+                dtox.set_value(old["dtox"])
             self.getCommandObject("macro")(0)
         else:
-            old["dtox"] = dtox.getPosition()
+            old["dtox"] = dtox.get_value()
             self.getCommandObject("macro")(1)
-            dtox.move(700)
+            dtox.set_value(700)
         dtox.waitEndOfMove()
 
     def poll(self):

@@ -663,7 +663,7 @@ class BIOMAXEiger(Equipment):
 
     def arm(self):
         logging.getLogger("HWR").info("[DETECTOR] Arm command requested")
-        cmd = self.getCommandObject("Arm")
+        cmd = self.get_command_object("Arm")
         cmd.setDeviceTimeout(10000)
         cmd()
         self.wait_ready()
