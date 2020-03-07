@@ -162,7 +162,7 @@ class EMBLEnergy(AbstractEnergy):
             try:
                 self._energy_limits = (
                     self.chan_limit_low.getValue(),
-                    self.chan_limit_high.getValue()
+                    self.chan_limit_high.getValue(),
                 )
             except BaseException:
                 logging.getLogger("HWR").exception(
@@ -408,9 +408,9 @@ class EMBLEnergy(AbstractEnergy):
         :return:
         """
         if isinstance(value, (list, tuple)):
-            self.undulator_gaps = (value[0])
+            self.undulator_gaps = value[0]
         else:
-            self.undulator_gaps = (value)
+            self.undulator_gaps = value
 
     def get_undulator_gaps(self):
         """

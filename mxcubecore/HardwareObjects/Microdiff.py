@@ -175,21 +175,13 @@ class Microdiff(MiniDiff.MiniDiff):
         )
 
         self.beam_position_horizontal = self.addChannel(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "bph",
-            },
-            "BeamPositionHorizontal"
+            {"type": "exporter", "exporter_address": self.exporter_addr, "name": "bph"},
+            "BeamPositionHorizontal",
         )
 
         self.beam_position_vertical = self.addChannel(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "bpv",
-            },
-            "BeamPositionVertical"
+            {"type": "exporter", "exporter_address": self.exporter_addr, "name": "bpv"},
+            "BeamPositionVertical",
         )
 
         MiniDiff.MiniDiff.init(self)
@@ -206,7 +198,6 @@ class Microdiff(MiniDiff.MiniDiff):
         self.wait_ready = self._wait_ready
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(None)
 
-
     def getMotorToExporterNames(self):
         MOTOR_TO_EXPORTER_NAME = {
             "focus": self.focusMotor.getProperty("actuator_name"),
@@ -222,14 +213,14 @@ class Microdiff(MiniDiff.MiniDiff):
         return MOTOR_TO_EXPORTER_NAME
 
     def getCalibrationData(self, offset):
-        return (1.0/self.x_calib.get_value(), 1.0/self.y_calib.get_value())
+        return (1.0 / self.x_calib.get_value(), 1.0 / self.y_calib.get_value())
 
     def emitCentringSuccessful(self):
         # check first if all the motors have stopped
         self._wait_ready(10)
 
         # save position in MD2 software
-        #self.getCommandObject("save_centring_positions")()
+        # self.getCommandObject("save_centring_positions")()
 
         # do normal stuff
         return MiniDiff.MiniDiff.emitCentringSuccessful(self)
@@ -427,7 +418,9 @@ class Microdiff(MiniDiff.MiniDiff):
             return False
 
     def in_kappa_mode(self):
-        return self.head_type.get_value() == "MiniKappa" and self.kappa_channel.get_value()
+        return (
+            self.head_type.get_value() == "MiniKappa" and self.kappa_channel.get_value()
+        )
 
     def get_positions(self):
         pos = {
@@ -544,7 +537,11 @@ class Microdiff(MiniDiff.MiniDiff):
         return self.backLight.set_value(level)
 
     def get_beam_position(self):
-        return self.beam_position_horizontal.get_value(), self.beam_position_vertical.get_value()
+        return (
+            self.beam_position_horizontal.get_value(),
+            self.beam_position_vertical.get_value(),
+        )
+
 
 def set_light_in(light, light_motor, zoom):
     self.frontlight.set_value(0)

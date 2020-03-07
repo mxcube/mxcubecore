@@ -264,10 +264,7 @@ def centre_plate1Click(
     centred_pos = SAVED_INITIAL_POSITIONS.copy()
 
     centred_pos.update(
-        {
-            sampx.motor: float(sampx.get_value()),
-            sampy.motor: float(sampy.get_value()),
-        }
+        {sampx.motor: float(sampx.get_value()), sampy.motor: float(sampy.get_value())}
     )
 
     return centred_pos

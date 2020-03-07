@@ -12,11 +12,11 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects.queue_model_objects import PathTemplate
 
 default_raw_data_folder = "RAW_DATA"
-default_processed_data_folder = 'PROCESSED_DATA'
-default_archive_folder = 'ARCHIVE'
+default_processed_data_folder = "PROCESSED_DATA"
+default_archive_folder = "ARCHIVE"
+
 
 class Session(HardwareObject):
-
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
@@ -44,7 +44,6 @@ class Session(HardwareObject):
         self.raw_data_folder_name = default_raw_data_folder
         self.processed_data_folder_name = default_processed_data_folder
 
-
     # Framework-2 method, inherited from HardwareObject and called
     # by the framework after the object has been initialized.
     def init(self):
@@ -63,15 +62,15 @@ class Session(HardwareObject):
 
         base_archive_directory = self["file_info"].getProperty("archive_base_directory")
 
-        folder_name = self["file_info"].getProperty('raw_data_folder_name')
+        folder_name = self["file_info"].getProperty("raw_data_folder_name")
         if folder_name and folder_name.strip():
             self.raw_data_folder_name = folder_name
 
-        folder_name = self["file_info"].getProperty('processed_data_folder_name')
+        folder_name = self["file_info"].getProperty("processed_data_folder_name")
         if folder_name and folder_name.strip():
             self.processed_data_folder_name = folder_name
 
-        archive_folder = self["file_info"].getProperty('archive_folder')
+        archive_folder = self["file_info"].getProperty("archive_folder")
         if archive_folder:
             archive_folder = archive_folder.strip()
         if not archive_folder:
@@ -95,22 +94,22 @@ class Session(HardwareObject):
             except (TypeError, IndexError):
                 pass
 
-        self.set_base_data_directories( base_directory,
-                                        base_process_directory,
-                                        base_archive_directory,
-                                        raw_folder=self.raw_data_folder_name,
-                                        process_folder=self.processed_data_folder_name,
-                                        archive_folder=archive_folder)
+        self.set_base_data_directories(
+            base_directory,
+            base_process_directory,
+            base_archive_directory,
+            raw_folder=self.raw_data_folder_name,
+            process_folder=self.processed_data_folder_name,
+            archive_folder=archive_folder,
+        )
 
         try:
-            precision = int(self["file_info"].getProperty("precision",""))
+            precision = int(self["file_info"].getProperty("precision", ""))
         except ValueError:
             precision = self.default_precision
 
         PathTemplate.set_precision(precision)
-        PathTemplate.set_path_template_style(
-            self.synchrotron_name, self.template
-        )
+        PathTemplate.set_path_template_style(self.synchrotron_name, self.template)
 
     def set_base_data_directories(
         self,
@@ -133,8 +132,7 @@ class Session(HardwareObject):
             PathTemplate.set_data_base_path(self.base_directory)
 
         if self.base_archive_directory is not None:
-            PathTemplate.set_archive_path(
-               self.base_archive_directory, archive_folder)
+            PathTemplate.set_archive_path(self.base_archive_directory, archive_folder)
 
     def get_base_data_directory(self):
         """

@@ -6,6 +6,7 @@ try:
 except ImportError:
     from urllib.request import urlopen
 
+
 def get_image(url):
     f = urlopen(url)
     img = f.read()

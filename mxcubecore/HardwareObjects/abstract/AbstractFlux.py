@@ -47,12 +47,12 @@ dose_rate_per_photon_per_mmsq = interp1d(
     ],
 )
 
+
 class AbstractFlux(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
         self.dose_rate_per_photon_per_mmsq = dose_rate_per_photon_per_mmsq
-
 
     def get_flux(self):
         """Get flux at current transmission in units of photons/s"""
@@ -75,11 +75,11 @@ class AbstractFlux(HardwareObject):
 
         # Result in kGy/s
         result = (
-                self.dose_rate_per_photon_per_mmsq(energy)
-                * self.get_flux()
-                / beam_size[0]
-                / beam_size[1]
-                / 1000.  # Converts to kGy/s
+            self.dose_rate_per_photon_per_mmsq(energy)
+            * self.get_flux()
+            / beam_size[0]
+            / beam_size[1]
+            / 1000.0  # Converts to kGy/s
         )
         return result
 

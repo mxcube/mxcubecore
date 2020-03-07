@@ -7,6 +7,7 @@ import logging
 from HardwareRepository.HardwareObjects.ExporterMotor import ExporterMotor
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
 
+
 class MicrodiffKappaMotor(ExporterMotor):
     lock = gevent.lock.Semaphore()
     motors = dict()
@@ -69,6 +70,7 @@ class MicrodiffKappaMotor(ExporterMotor):
             self.sampy.set_value(newSamplePositions["sampy"])
             self.phiy.set_value(newSamplePositions["phiy"])
         """
+
     def waitEndOfMove(self, timeout=None):
         with gevent.Timeout(timeout):
             time.sleep(0.1)

@@ -1,6 +1,6 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects.abstract.AbstractMultiCollect import (
-    AbstractMultiCollect
+    AbstractMultiCollect,
 )
 from HardwareRepository.TaskUtils import task
 import logging

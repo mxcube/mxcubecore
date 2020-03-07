@@ -93,6 +93,7 @@ class UnitTest(HardwareObject):
     def init(self):
         global BEAMLINE
         from HardwareRepository import HardwareRepository as HWR
+
         BEAMLINE = HWR.beamline
 
         suite = unittest.TestLoader().loadTestsFromTestCase(TestMethods)

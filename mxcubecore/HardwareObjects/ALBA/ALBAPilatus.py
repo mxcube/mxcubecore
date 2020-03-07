@@ -22,7 +22,7 @@ import logging
 import time
 
 from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
-    AbstractDetector
+    AbstractDetector,
 )
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 

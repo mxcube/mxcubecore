@@ -35,9 +35,15 @@ import time
 import gevent
 
 from HardwareRepository.HardwareObjects.abstract.sample_changer import Crims
-from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import SampleChanger, SampleChangerState
-from HardwareRepository.HardwareObjects.abstract.sample_changer.Container import Container, Sample, Basket
-
+from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import (
+    SampleChanger,
+    SampleChangerState,
+)
+from HardwareRepository.HardwareObjects.abstract.sample_changer.Container import (
+    Container,
+    Sample,
+    Basket,
+)
 
 
 class Xtal(Sample):
@@ -214,7 +220,9 @@ class PlateManipulator(SampleChanger):
         cmd_get_config = self.getChannelObject("GetPlateConfig", optional=True)
         if cmd_get_config:
             try:
-                self.num_rows, self.num_cols, self.num_drops = cmd_get_config.get_value()
+                self.num_rows, self.num_cols, self.num_drops = (
+                    cmd_get_config.get_value()
+                )
             except BaseException:
                 pass
         else:
@@ -336,7 +344,7 @@ class PlateManipulator(SampleChanger):
             if sample != selected:
                 self._doSelect(sample)
             self._setLoadedSample(sample)
-    
+
     def load(self, sample=None, wait=True):
         comp = self._resolveComponent(sample)
         coords = comp.getCoords()
@@ -357,7 +365,7 @@ class PlateManipulator(SampleChanger):
             drop = sample_location[1] - self.num_drops * col
 
         if not pos_x:
-            #pos_x = self.reference_pos_x
+            # pos_x = self.reference_pos_x
             pos_x = self.stored_pos_x
         else:
             self.stored_pos_x = pos_x
@@ -365,7 +373,7 @@ class PlateManipulator(SampleChanger):
             pos_y = self.stored_pos_y
         else:
             self.stored_pos_y = pos_y
-            #pos_y = float(drop) / (self.num_drops + 1)
+            # pos_y = float(drop) / (self.num_drops + 1)
 
         if self.cmd_move_to_location:
             self.cmd_move_to_location(row, col, pos_x, pos_y)
@@ -390,7 +398,7 @@ class PlateManipulator(SampleChanger):
                 if new_sample is not None:
                     new_sample._setLoaded(True, True)
 
-       # Remove this when events are dispatched properly
+        # Remove this when events are dispatched properly
         drop_y_location = {1: 0.2, 2: 0.5, 3: 0.75}
         self.plate_location_changed((row - 1, col - 1, 0, drop_y_location[drop]))
 

@@ -12,6 +12,7 @@ import gevent
 from HardwareRepository.HardwareObjects import base_queue_entry, queue_entry
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+
 QueueEntryContainer = base_queue_entry.QueueEntryContainer
 
 

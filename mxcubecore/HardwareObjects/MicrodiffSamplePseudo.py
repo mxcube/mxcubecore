@@ -35,7 +35,8 @@ class MicrodiffSamplePseudo(MD2Motor):
     def updateMotorState(self):
         states = [m.getState() for m in (self.sampx, self.sampy, self.phi)]
         error_states = [
-            state in (MotorStates.UNUSABLE, MotorStates.NOTINITIALIZED, MotorStates.ONLIMIT)
+            state
+            in (MotorStates.UNUSABLE, MotorStates.NOTINITIALIZED, MotorStates.ONLIMIT)
             for state in states
         ]
         moving_state = [
@@ -86,12 +87,20 @@ class MicrodiffSamplePseudo(MD2Motor):
         phi = math.radians(self.phi.get_value())
         if self.direction == "horizontal":
             ver = sampx * math.sin(-phi) + sampy * math.cos(-phi)
-            self.sampx.set_value(absolutePosition * math.cos(-phi) + ver * math.sin(-phi))
-            self.sampy.set_value(-absolutePosition * math.sin(-phi) + ver * math.cos(-phi))
+            self.sampx.set_value(
+                absolutePosition * math.cos(-phi) + ver * math.sin(-phi)
+            )
+            self.sampy.set_value(
+                -absolutePosition * math.sin(-phi) + ver * math.cos(-phi)
+            )
         else:
             hor = sampx * math.cos(phi) + sampy * math.sin(phi)
-            self.sampx.set_value(absolutePosition * math.sin(-phi) + hor * math.cos(-phi))
-            self.sampy.set_value(absolutePosition * math.cos(-phi) - hor * math.sin(-phi))
+            self.sampx.set_value(
+                absolutePosition * math.sin(-phi) + hor * math.cos(-phi)
+            )
+            self.sampy.set_value(
+                absolutePosition * math.cos(-phi) - hor * math.sin(-phi)
+            )
 
     def _motor_abort(self):
         for m in (self.phi, self.sampx, self.sampy):

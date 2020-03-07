@@ -14,9 +14,7 @@ class Q315dist(BaseHardwareObjects.Equipment):
 
         self.connect(self.detm, "stateChanged", self.detmStateChanged)
         self.connect(
-            HWR.beamline.detector.distance,
-            "limitsChanged",
-            self.dtoxLimitsChanged
+            HWR.beamline.detector.distance, "limitsChanged", self.dtoxLimitsChanged
         )
         self.connect(self.detm, "positionChanged", self.detmPositionChanged)
 

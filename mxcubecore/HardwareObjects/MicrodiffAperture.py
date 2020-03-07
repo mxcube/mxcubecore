@@ -75,9 +75,8 @@ class MicrodiffAperture(ExporterMotor):
         Returns:
             (tuple): two int tuple (low limit, high limit).
         """
-        self._limits = (min(self.predefined_positions),
-                        max(self.predefined_positions))
-        
+        self._limits = (min(self.predefined_positions), max(self.predefined_positions))
+
         return self._limits
 
     def get_aperture_factor(self):

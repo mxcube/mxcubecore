@@ -454,7 +454,7 @@ class GphlWorkflow(HardwareObject, object):
         std_dose_rate = HWR.beamline.flux.get_dose_rate()
         if std_dose_rate:
             std_dose_rate = (
-                    std_dose_rate * 100.0 / HWR.beamline.transmission.get_value()
+                std_dose_rate * 100.0 / HWR.beamline.transmission.get_value()
             )
             # Convert from KGy/s to MGy/s
             std_dose_rate /= 1000
@@ -486,9 +486,7 @@ class GphlWorkflow(HardwareObject, object):
         default_image_width = float(allowed_widths[default_width_index])
         default_exposure = acq_parameters.exp_time
         exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
-        experiment_time = (
-                total_strategy_length * default_exposure / default_image_width
-        )
+        experiment_time = total_strategy_length * default_exposure / default_image_width
         if std_dose_rate:
             transmission = 100.0 * dose_budget / (std_dose_rate * experiment_time)
             transmission = min(transmission, 100.0)
@@ -786,7 +784,9 @@ class GphlWorkflow(HardwareObject, object):
         if detectorSetting:
             # NBNB If this is ever set to editable, distance and resolution
             # must be varied in sync
-            HWR.beamline.detector.set_distance(detectorSetting.axisSettings.get("Distance"))
+            HWR.beamline.detector.set_distance(
+                detectorSetting.axisSettings.get("Distance")
+            )
         # TODO NBNB put in wait-till-ready to make sure value settles
         HWR.beamline.detector.wait_ready()
         strategy_resolution = HWR.beamline.resolution.get_position()
@@ -953,7 +953,7 @@ class GphlWorkflow(HardwareObject, object):
             new_resolution,
             id_=id_,
             orgxy=orgxy,
-            Distance=HWR.beamline.detector.get_distance()
+            Distance=HWR.beamline.detector.get_distance(),
         )
 
         sampleCentred = GphlMessages.SampleCentred(

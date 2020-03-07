@@ -16,7 +16,8 @@ import io
 import math
 
 from HardwareRepository.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer, DiffractometerState
+    GenericDiffractometer,
+    DiffractometerState,
 )
 from HardwareRepository import HardwareRepository as HWR
 
@@ -113,8 +114,7 @@ class BIOMAXMD3(GenericDiffractometer):
         except BaseException:
             self.zoom_centre = {"x": 0, "y": 0}
             logging.getLogger("HWR").warning(
-                "BIOMAXMD3: "
-                + "zoom centre not configured"
+                "BIOMAXMD3: " + "zoom centre not configured"
             )
 
     def current_phase_changed(self, current_phase):
@@ -539,9 +539,7 @@ class BIOMAXMD3(GenericDiffractometer):
         if keep_position:
             for motor in motors:
                 try:
-                    current_positions[motor] = self.motor_hwobj_dict[
-                        motor
-                    ].get_value()
+                    current_positions[motor] = self.motor_hwobj_dict[motor].get_value()
                 except BaseException:
                     pass
         try:

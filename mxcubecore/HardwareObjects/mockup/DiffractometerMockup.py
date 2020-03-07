@@ -23,7 +23,7 @@ import random
 import warnings
 
 from HardwareRepository.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer
+    GenericDiffractometer,
 )
 from HardwareRepository import HardwareRepository as HWR
 from gevent.event import AsyncResult
@@ -316,10 +316,12 @@ class DiffractometerMockup(GenericDiffractometer):
                     positions.
         """
 
-        print(("moving to beam position: %d %d" % (
-            self.beam_position[0],
-            self.beam_position[1],
-        )))
+        print(
+            (
+                "moving to beam position: %d %d"
+                % (self.beam_position[0], self.beam_position[1])
+            )
+        )
 
     def move_to_coord(self, x, y, omega=None):
         """

@@ -328,13 +328,14 @@ class CommandContainer:
 
             try:
                 from HardwareRepository.Command.Mockup import MockupChannel
+
                 newChannel = MockupChannel(channelName, channel, **attributesDict)
             except BaseException:
                 logging.getLogger("HWR").exception(
                     "%s: cannot add Mockup channel %s (hint: check attributes)",
                     self.name(),
                     channelName,
-                ) 
+                )
 
         if newChannel is not None:
             if channelOnChange is not None:
@@ -356,7 +357,7 @@ class CommandContainer:
         self.__channels[channel_name].setValue(value)
 
     def get_channel_value(self, channel_name):
-        return self.__channels[channel_name].getValue()    
+        return self.__channels[channel_name].getValue()
 
     def setValue(self, channelName, value):
         warn(
@@ -746,6 +747,6 @@ class CommandContainer:
 
     def execute_command(self, command_name, *args, **kwargs):
         if command_name in self.__commands:
-                return self.__commands[command_name](*args, **kwargs)
+            return self.__commands[command_name](*args, **kwargs)
         else:
             raise AttributeError

@@ -303,9 +303,7 @@ class TangoDCMotor(Device):
             logging.info(
                 "TangoDCMotor: not moving really as epsilon is large %s " % str(epsilon)
             )
-            logging.info(
-                "TangoDCMotor: self.get_value() %s " % str(self.get_value())
-            )
+            logging.info("TangoDCMotor: self.get_value() %s " % str(self.get_value()))
             logging.info("TangoDCMotor: absolutePosition %s " % str(absolutePosition))
 
     def stop(self):

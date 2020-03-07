@@ -11,7 +11,7 @@ class ID30BPhotonFlux(Equipment):
         self.current_flux = 0
 
     def init(self):
-        
+
         self.controller = self.getObjectByRole("controller")
         self.shutter = self.getDeviceByRole("shutter")
         self.aperture = self.getObjectByRole("aperture")
@@ -22,7 +22,9 @@ class ID30BPhotonFlux(Equipment):
             if fname:
                 self.flux_calc.init(fname)
         except:
-            logging.getLogger("HWR").exception("Could not get flux calculation from BLISS")
+            logging.getLogger("HWR").exception(
+                "Could not get flux calculation from BLISS"
+            )
 
         counter = self.getProperty("counter_name")
         if counter:

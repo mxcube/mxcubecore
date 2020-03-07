@@ -174,7 +174,6 @@ class MiniDiff(Equipment):
         self.kappaMotor = self.getObjectByRole("kappa")
         self.kappaPhiMotor = self.getObjectByRole("kappa_phi")
 
-
         # mh 2013-11-05:why is the channel read directly? disabled for the moment
         # HWR.beamline.microscope.camera.addChannel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
 
@@ -186,7 +185,7 @@ class MiniDiff(Equipment):
         self.centringSamplex = sample_centring.CentringMotor(self.sampleXMotor)
         self.centringSampley = sample_centring.CentringMotor(self.sampleYMotor)
 
-        roles_to_add = ['aperture', 'beamstop', 'cryostream', 'capillary']
+        roles_to_add = ["aperture", "beamstop", "cryostream", "capillary"]
 
         for role in roles_to_add:
             self.if_role_set_attr(role)
@@ -231,9 +230,7 @@ class MiniDiff(Equipment):
             )
         if self.zoomMotor is not None:
             self.connect(
-                self.zoomMotor,
-                "valueChanged",
-                self.zoomMotorPredefinedPositionChanged,
+                self.zoomMotor, "valueChanged", self.zoomMotorPredefinedPositionChanged
             )
 
             self.connect(
@@ -739,8 +736,8 @@ class MiniDiff(Equipment):
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
-        dx = (x -  beam_pos_x) / self.pixelsPerMmY
-        dy = (y -  beam_pos_y) / self.pixelsPerMmZ
+        dx = (x - beam_pos_x) / self.pixelsPerMmY
+        dy = (y - beam_pos_y) / self.pixelsPerMmZ
 
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
             self.zoomMotor.get_value()
@@ -829,7 +826,7 @@ class MiniDiff(Equipment):
                     self.accept_centring()
 
     def start_auto_centring(self, sample_info=None, loop_only=False):
-        beam_pos_x,  beam_pos_y = HWR.beamline.beam.get_beam_position()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
 
         self.current_centring_procedure = sample_centring.start_auto(
             self.camera,
@@ -927,7 +924,9 @@ class MiniDiff(Equipment):
             "sampx": float(self.sampleXMotor.get_value()),
             "sampy": float(self.sampleYMotor.get_value()),
             "kappa": float(self.kappaMotor.get_value()) if self.kappaMotor else None,
-            "kappa_phi": float(self.kappaPhiMotor.get_value()) if self.kappaPhiMotor else None,
+            "kappa_phi": float(self.kappaPhiMotor.get_value())
+            if self.kappaPhiMotor
+            else None,
             "zoom": float(self.zoomMotor.get_value()),
         }
 

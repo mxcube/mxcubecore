@@ -42,7 +42,9 @@ class MDCameraMockup(BaseHardwareObjects.Device):
         if value == "MD2_2":
             print(("start polling MD camera with poll interval=", self.pollInterval))
         else:
-            print("stop polling the camera. This microdiff version does not support a camera")
+            print(
+                "stop polling the camera. This microdiff version does not support a camera"
+            )
             self.stopper = True
 
     def connectToDevice(self):

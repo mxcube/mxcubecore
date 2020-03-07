@@ -17,7 +17,7 @@ import logging
 class MachCurrent(BaseHardwareObjects.Device):
     def __init__(self, name):
         BaseHardwareObjects.Device.__init__(self, name)
-        
+
         self.opmsg = ""
 
     def init(self):

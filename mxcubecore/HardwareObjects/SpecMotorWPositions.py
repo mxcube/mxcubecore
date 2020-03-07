@@ -1,4 +1,3 @@
-
 from HardwareRepository.HardwareObjects import SpecMotor
 import logging
 

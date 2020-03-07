@@ -27,8 +27,6 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository import HardwareRepository as HWR
 
 
-
-
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
 __category__ = "General"
@@ -177,7 +175,9 @@ class EMBLCRL(HardwareObject):
     def focusing_mode_requested(self, focusing_mode):
         """Sets CRL combination based on the focusing mode"""
         if focusing_mode is not None:
-            self.modes = self.beam_focusing_hwobj.get_available_lens_modes(focusing_mode)
+            self.modes = self.beam_focusing_hwobj.get_available_lens_modes(
+                focusing_mode
+            )
             self.set_mode(self.modes[0])
             self.set_crl_value(
                 self.beam_focusing_hwobj.get_lens_combination(focusing_mode)

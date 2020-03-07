@@ -1,5 +1,6 @@
 from MicrodiffInOut import MicrodiffInOut
 
+
 class MicrodiffLightBeamstop(MicrodiffInOut):
     def __init__(self, name):
         MicrodiffInOut.__init__(self, name)

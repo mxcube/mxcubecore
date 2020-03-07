@@ -57,7 +57,7 @@ class DataObject(dict):
     __setattr__ = _immutable
     __delitem__ = _immutable
     __getattr__ = dict.__getitem__
-    
+
     def __hash__(self):
         return id(self)
 

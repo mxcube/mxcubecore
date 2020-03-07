@@ -169,7 +169,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
                     hwobj = _instance.getHardwareObject(fname)
                     if hwobj is None:
                         msg1 = "No object loaded"
-                        class_name1 ="None"
+                        class_name1 = "None"
                     else:
                         class_name1 = hwobj.__class__.__name__
                         if hasattr(result, role1):
@@ -419,13 +419,13 @@ class __HardwareRepositoryClient:
                     except KeyError:
                         logging.getLogger("HWR").error(
                             "Cannot load Hardware Object %s: file does not exist.",
-                            hwobj_name
+                            hwobj_name,
                         )
                         return
             else:
                 logging.getLogger("HWR").error(
                     'Cannot load Hardware Object "%s" : not connected to server.',
-                    hwobj_name
+                    hwobj_name,
                 )
         else:
             xml_data = ""
@@ -818,7 +818,7 @@ class __HardwareRepositoryClient:
                         dd = {"type": "taco", "device": cmd.deviceName}
 
                         try:
-                            dd["imported ?"] = 'yes' if cmd.device.imported else 'no'
+                            dd["imported ?"] = "yes" if cmd.device.imported else "no"
                         except BaseException:
                             dd["imported ?"] = "no, invalid Taco device"
 
@@ -865,7 +865,9 @@ class __HardwareRepositoryClient:
                 d["spec version"] = ho.specVersion
                 d["motor mnemonic"] = ho.specName
                 try:
-                    d["connected ?"] = "yes" if ho.connection.isSpecConnected() else "no"
+                    d["connected ?"] = (
+                        "yes" if ho.connection.isSpecConnected() else "no"
+                    )
                 except BaseException:
                     d["connected ?"] = "no"
 

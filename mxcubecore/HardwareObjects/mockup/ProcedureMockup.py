@@ -2,13 +2,14 @@ import gevent
 import HardwareRepository.HardwareObjects.datamodel
 
 from HardwareRepository.HardwareObjects.abstract.AbstractProcedure import (
-    AbstractProcedure
+    AbstractProcedure,
 )
 
 import HardwareRepository.HardwareObjects.datamodel as datamodel
 
+
 class ProcedureMockup(AbstractProcedure):
-    _ARGS_CLASS = (datamodel.MockDataModel, )
+    _ARGS_CLASS = (datamodel.MockDataModel,)
 
     def __init__(self, name):
         super(ProcedureMockup, self).__init__(name)
