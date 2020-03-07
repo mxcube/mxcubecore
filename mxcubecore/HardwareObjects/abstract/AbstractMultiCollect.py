@@ -154,19 +154,14 @@ class AbstractMultiCollect(object):
         pass
 
     @abc.abstractmethod
-    @task
-    def prepare_oscillation(
-        self, start, osc_range, exptime, number_of_images, shutterless, npass
-    ):
-        """Should return osc_start and osc_end positions -
-        gonio should be ready for data collection after this ;
-        Remember to check for still image if range is too small !
-        """
+    def do_oscillation(self, start, end, exptime, shutterless, npass):
         pass
 
     @abc.abstractmethod
     @task
-    def do_oscillation(self, start, end, exptime, npass):
+    def prepare_oscillation(
+        self, start, osc_range, exptime, number_of_images, shutterless, npass
+    ):
         pass
 
     @abc.abstractmethod
@@ -189,7 +184,7 @@ class AbstractMultiCollect(object):
 
     @abc.abstractmethod
     @task
-    def start_acquisition(self, exptime, npass, first_frame):
+    def start_acquisition(self, exptime, npass, first_frame, shutterless):
         pass
 
     @abc.abstractmethod
@@ -325,14 +320,17 @@ class AbstractMultiCollect(object):
                     raise
 
     def _take_crystal_snapshots(self, number_of_snapshots):
-        if isinstance(number_of_snapshots, bool):
-            # backward compatibility, if number_of_snapshots is True|False
+        try:
+            if isinstance(number_of_snapshots, bool):
+                # backward compatibility, if number_of_snapshots is True|False
+                if number_of_snapshots:
+                    return self.take_crystal_snapshots(4)
+                else:
+                    return
             if number_of_snapshots:
-                return self.take_crystal_snapshots(4)
-            else:
-                return
-        if number_of_snapshots:
-            return self.take_crystal_snapshots(number_of_snapshots)
+                return self.take_crystal_snapshots(number_of_snapshots)
+        except:
+            logging.getLogger("HWR").exception("Could not take crystal snapshots")
 
     @abc.abstractmethod
     @task
@@ -539,6 +537,7 @@ class AbstractMultiCollect(object):
         data_collect_parameters["actualCenteringPosition"] = positions_str.strip()
 
         self.move_motors(motors_to_move_before_collect)
+
         # take snapshots, then assign centring status (which contains images) to
         # centring_info variable
         take_snapshots = data_collect_parameters.get("take_snapshots", False)
@@ -812,6 +811,7 @@ class AbstractMultiCollect(object):
                         start,
                         wedge_size,
                     )
+
                     self.prepare_acquisition(
                         1 if data_collect_parameters.get("dark", 0) else 0,
                         start,
@@ -819,7 +819,7 @@ class AbstractMultiCollect(object):
                         exptime,
                         npass,
                         wedge_size,
-                        data_collect_parameters["comment"],
+                        data_collect_parameters.get("comment", ""),
                     )
                     data_collect_parameters["dark"] = 0
 
@@ -848,6 +848,7 @@ class AbstractMultiCollect(object):
                             str(jpeg_full_path),
                             str(jpeg_thumbnail_full_path),
                         )
+
                         osc_start, osc_end = self.prepare_oscillation(
                             frame_start,
                             osc_range,
@@ -858,7 +859,12 @@ class AbstractMultiCollect(object):
                         )
 
                         with error_cleanup(self.reset_detector):
-                            self.start_acquisition(exptime, npass, j == wedge_size)
+                            self.start_acquisition(
+                                exptime,
+                                npass,
+                                j == wedge_size,
+                                data_collect_parameters.get("shutterless", True),
+                                )
                             self.do_oscillation(
                                 osc_start,
                                 osc_end,
@@ -867,7 +873,8 @@ class AbstractMultiCollect(object):
                                 data_collect_parameters.get("shutterless", True),
                                 npass,
                             )
-                            self.stop_acquisition()
+                            
+                            #self.stop_acquisition()
                             self.write_image(j == 1)
 
                         # Store image in lims
@@ -927,6 +934,8 @@ class AbstractMultiCollect(object):
                                     "Timeout waiting for detector trigger, no image taken"
                                 ),
                             ):
+                                print("HERE")
+                                print(self.last_image_saved())
                                 while self.last_image_saved() == 0:
                                     time.sleep(exptime)
 

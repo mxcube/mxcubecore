@@ -375,7 +375,7 @@ class CommandContainer:
             yield chan
 
     def getCommandObject(self, cmdName):
-        self.get_command_object(self, cmdName)
+        return self.get_command_object(cmdName)
 
     def get_command_object(self, cmd_name):
         try:

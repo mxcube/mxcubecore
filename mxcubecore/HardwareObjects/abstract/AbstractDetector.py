@@ -59,6 +59,11 @@ class AbstractDetector(HardwareObject):
         except KeyError:
             pass
 
+        try:
+            self._distance_motor_hwobj = self.getObjectByRole("detector_distance")
+        except KeyError:
+            pass
+
         self._pixel_size = (self.getProperty("px"), self.getProperty("py"))
 
     @property
