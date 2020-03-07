@@ -73,7 +73,7 @@ class Energy(Equipment):
                 return None
         return self.default_en
 
-    def get_current_wavelength(self):
+    def get_wavelength(self):
         current_en = self.get_current_energy()
         if current_en:
             return 12.3984 / current_en

@@ -58,7 +58,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
 
         try:
             ttheta = 2 * math.asin(
-                HWR.beamline.energy.get_current_wavelength() / (2 * res)
+                HWR.beamline.energy.get_wavelength() / (2 * res)
             )
             return self.det_radius / math.tan(ttheta)
         except BaseException:
@@ -74,7 +74,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
             ttheta = math.atan(self.det_radius / dist)
             if ttheta != 0:
                 return (
-                    HWR.beamline.energy.get_current_wavelength()
+                    HWR.beamline.energy.get_wavelength()
                     / (2 * math.sin(ttheta / 2))
                 )
         except BaseException:

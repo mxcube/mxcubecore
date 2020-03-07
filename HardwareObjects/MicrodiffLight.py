@@ -1,5 +1,5 @@
 from HardwareRepository.HardwareObjects.ExporterMotor import ExporterMotor
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
+from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 
 class MicrodiffLight(ExporterMotor):
     def __init__(self, name):
@@ -29,9 +29,9 @@ class MicrodiffLight(ExporterMotor):
     def get_state(self):
         """Get the light state as a motor.
         Returns:
-            (enum 'MotorStates'): Motor state.
+            (enum 'HardwareObjectState'): Light state.
         """
-        return MotorStates.READY
+        return HardwareObjectState.READY
 
     def get_limits(self):
         return self._limits
