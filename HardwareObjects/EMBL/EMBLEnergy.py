@@ -141,7 +141,7 @@ class EMBLEnergy(AbstractEnergy):
                 return None
         return value
 
-    def get_current_wavelength(self):
+    def get_wavelength(self):
         """
         Returns current wavelength in A
         :return: float
