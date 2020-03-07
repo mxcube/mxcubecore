@@ -68,10 +68,8 @@ class EMBLImageTracking(Device):
             "chanSpotListEnabled", optional=True
         )
         if self.chan_spot_list is not None:
-            self.chan_spot_list.connectSignal(
-                "update", self.spot_list_enabled_changed
-            )
- 
+            self.chan_spot_list.connectSignal("update", self.spot_list_enabled_changed)
+
         self.chan_spot_list.setValue(True)
         self.chan_state = self.getChannelObject("chanState")
         self.chan_state.connectSignal("update", self.state_changed)
@@ -139,7 +137,7 @@ class EMBLImageTracking(Device):
 
     def spot_list_enabled_changed(self, state):
         self.state_dict["spot_list"] = state
-        self.emit("imageTrackingStateChanged", (self.state_dict,)) 
+        self.emit("imageTrackingStateChanged", (self.state_dict,))
 
     def load_image(self, image_name):
         """

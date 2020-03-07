@@ -1,7 +1,7 @@
 import logging
 import time
 from HardwareRepository.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer
+    GenericDiffractometer,
 )
 from gevent.event import AsyncResult
 import gevent

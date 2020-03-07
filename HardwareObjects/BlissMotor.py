@@ -30,7 +30,7 @@ import enum
 from gevent import Timeout
 from bliss.config import static
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
-from HardwareRepository.BaseHardwareObjects import HardwareObjectState 
+from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -48,6 +48,7 @@ class BlissMotorStates(enum.Enum):
     OFF     : 'Axis power is off'
     DISABLED: 'Axis cannot move (must be enabled - not ready ?)' 
     """
+
     MOVING = 0
     READY = 1
     FAULT = 2
@@ -57,6 +58,7 @@ class BlissMotorStates(enum.Enum):
     OFF = 6
     DISABLED = 7
     UNKNOWN = 8
+
 
 class BlissMotor(AbstractMotor):
     """Bliss Motor implementation"""
@@ -108,8 +110,7 @@ class BlissMotor(AbstractMotor):
             self._specific_state = BlissMotorStates.__members__["UNKNOWN"]
 
         AbstractMotor.update_state(
-            self,
-            self.SPECIFIC_TO_HWR_STATE.get(state, HardwareObjectState.UNKNOWN)
+            self, self.SPECIFIC_TO_HWR_STATE.get(state, HardwareObjectState.UNKNOWN)
         )
 
     def get_value(self):

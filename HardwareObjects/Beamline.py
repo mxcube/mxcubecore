@@ -551,13 +551,12 @@ class Beamline(ConfiguredObject):
             Optional[AbstractManualCentring]
         """
         return self._objects.get("manual_centring")
+
     __content_roles.append("manual_centring")
     # Registers this object as a procedure:
     _procedure_names.add("manual_centring")
 
-
     # Additional functions
-
 
     # NB Objects need not be HardwareObjects
     # We still categorise them as'hardware' if they are not procedures, though

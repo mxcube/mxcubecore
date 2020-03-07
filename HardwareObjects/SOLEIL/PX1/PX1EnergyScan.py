@@ -259,7 +259,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
         self.scan_info["endEnergy"] = 0.0  # updated at the end of the scan
 
         try:
-            size_hor, size_ver =  HWR.beamline.beam.get_beam_size()
+            size_hor, size_ver = HWR.beamline.beam.get_beam_size()
             size_hor *= 1000
             size_ver *= 1000
         except BaseException:
@@ -617,9 +617,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
         handles.append(ax2.plot(chooch_graph_x, chooch_graph_y2, color="red"))
         canvas = FigureCanvasAgg(fig)
 
-        escan_ispyb_path = HWR.beamline.session.path_to_ispyb(
-            archive_file_png_filename
-        )
+        escan_ispyb_path = HWR.beamline.session.path_to_ispyb(archive_file_png_filename)
         self.scan_info["jpegChoochFileFullPath"] = str(escan_ispyb_path)
 
         try:

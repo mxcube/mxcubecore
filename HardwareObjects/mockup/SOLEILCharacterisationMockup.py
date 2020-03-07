@@ -3,7 +3,7 @@ import gevent.event
 
 from HardwareRepository.HardwareObjects import edna_test_data
 from HardwareRepository.HardwareObjects.abstract.AbstractCharacterisation import (
-    AbstractCharacterisation
+    AbstractCharacterisation,
 )
 
 from HardwareRepository.HardwareObjects.XSDataMXCuBEv1_3 import XSDataResultMXCuBE

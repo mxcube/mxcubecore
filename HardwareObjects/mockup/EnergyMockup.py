@@ -46,13 +46,13 @@ class EnergyMockup(AbstractEnergy):
                     raise StopIteration("Energy change cancelled !")
 
                 self._nominal_value = ii
-                #self.update_values()
+                # self.update_values()
                 time.sleep(0.2)
 
         # Now set final value
         self._set_value(value)
         self._moving = False
-        #self.update_values()
+        # self.update_values()
         self.emit("stateChanged", ("ready"))
 
     def _set_value(self, value):

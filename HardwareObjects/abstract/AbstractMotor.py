@@ -114,7 +114,7 @@ class AbstractMotor(AbstractActuator):
 
         if value is None:
             value = self.get_value()
-        
+
         if self._tolerance:
             if abs(value - self._nominal_value) <= self._tolerance:
                 return

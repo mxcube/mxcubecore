@@ -102,8 +102,16 @@ class SOLEILGuillotine(BaseHardwareObjects.Device):
 
             self.pss = self.getObjectByRole("pss")
 
-            self.connect(HWR.beamline.detector.distance, "positionChanged", self.shutterStateChanged)
-            self.connect(HWR.beamline.detector.distance, "positionChanged", self.updateDetectorDistance)
+            self.connect(
+                HWR.beamline.detector.distance,
+                "positionChanged",
+                self.shutterStateChanged,
+            )
+            self.connect(
+                HWR.beamline.detector.distance,
+                "positionChanged",
+                self.updateDetectorDistance,
+            )
 
             for command_name in ("_Insert", "_Extract"):
                 setattr(self, command_name, self.get_command_object(command_name))

@@ -28,7 +28,7 @@ from HardwareRepository.HardwareObjects.TangoLimaVideo import TangoLimaVideo, po
 def _poll_image(sleep_time, video_device, device_uri, video_mode, formats):
     from PyTango import DeviceProxy
 
-    #lima_tango_device = PyTango.DeviceProxy(device_uri, timeout=10000)
+    # lima_tango_device = PyTango.DeviceProxy(device_uri, timeout=10000)
     connected = False
 
     while not connected:
@@ -38,7 +38,9 @@ def _poll_image(sleep_time, video_device, device_uri, video_mode, formats):
             lima_tango_device.ping()
         except Exception as ex:
             logging.getLogger("HWR").exception("")
-            logging.getLogger("HWR").info(f"Could not connect to {device_uri}, retrying ...")
+            logging.getLogger("HWR").info(
+                f"Could not connect to {device_uri}, retrying ..."
+            )
             time.sleep(0.1)
             connected = False
         else:
@@ -188,7 +190,7 @@ class TangoLimaVideoLoopback(TangoLimaVideo):
 
     def restart(self):
         self.start_video_stream_process()
-            
+
     def start(self, loopback_device_path, stream_script_path):
         self._stream_script_path = stream_script_path
         w, h = self.get_width(), self.get_height()

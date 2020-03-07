@@ -251,7 +251,7 @@ class BeamlineTestMockup(HardwareObject):
         Descript. :
         """
         html_filename = os.path.join(self.test_directory, self.test_filename + ".html")
-        #pdf_filename = os.path.join(self.test_directory, self.test_filename + ".pdf")
+        # pdf_filename = os.path.join(self.test_directory, self.test_filename + ".pdf")
         archive_filename = os.path.join(
             self.test_directory,
             datetime.now().strftime("%Y_%m_%d_%H") + "_" + self.test_filename,
@@ -297,10 +297,10 @@ class BeamlineTestMockup(HardwareObject):
                 "BeamlineTest: Unable to generate html report file %s" % html_filename
             )
 
-        #try:
+        # try:
         #    pdfkit.from_url(html_filename, pdf_filename)
         #    logging.getLogger("GUI").info("PDF report %s generated" % pdf_filename)
-        #except BaseException:
+        # except BaseException:
         #    logging.getLogger("GUI").info(
         #        "Unable to generate PDF report %s" % pdf_filename
         #    )

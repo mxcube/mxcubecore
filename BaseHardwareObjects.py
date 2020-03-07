@@ -434,9 +434,7 @@ class HardwareObjectMixin(CommandContainer):
         If timeout == 0: return at once and do not wait;
         if timeout is None: wait forever."""
         if timeout:
-            with Timeout(
-                timeout, RuntimeError("Timeout waiting for status ready")
-            ):
+            with Timeout(timeout, RuntimeError("Timeout waiting for status ready")):
                 self._ready_event.wait(timeout=timeout)
 
     def is_ready(self):

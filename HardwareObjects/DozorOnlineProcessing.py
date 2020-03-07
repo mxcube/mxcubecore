@@ -25,7 +25,7 @@ from XSDataCommon import XSDataString
 from XSDataControlDozorv1_1 import XSDataInputControlDozor
 
 from HardwareRepository.HardwareObjects.abstract.AbstractOnlineProcessing import (
-    AbstractOnlineProcessing
+    AbstractOnlineProcessing,
 )
 from HardwareRepository import HardwareRepository as HWR
 
@@ -77,6 +77,4 @@ class DozorOnlineProcessing(AbstractOnlineProcessing):
                 self.results_raw["score"][image[0] - 1] = image[4]
 
             self.align_processing_results(batch[0][0] - 1, batch[-1][0] - 1)
-            self.emit(
-                "processingResultsUpdate", False
-            )
+            self.emit("processingResultsUpdate", False)

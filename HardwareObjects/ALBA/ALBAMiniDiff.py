@@ -47,7 +47,8 @@ Specific HwObj for M2D2 diffractometer @ ALBA
 import logging
 import time
 from HardwareRepository.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer, DiffractometerState
+    GenericDiffractometer,
+    DiffractometerState,
 )
 import gevent
 

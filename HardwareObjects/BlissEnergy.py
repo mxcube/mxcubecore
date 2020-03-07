@@ -24,7 +24,6 @@ If used, the controller should have method moveEnergy.
 
 
 class BlissEnergy(AbstractEnergy):
-
     def __init__(self, name):
         AbstractEnergy.__init__(self, name)
         self._energy_motor = None
@@ -37,7 +36,7 @@ class BlissEnergy(AbstractEnergy):
         self._bliss_session = self.getObjectByRole("bliss")
         self._default_energy = self.getObjectByRole("default_energy")
         self.state = HardwareObjectState.READY
-        
+
         if self._energy_motor is not None:
             self.state = self._energy_motor.get_state()
             self._energy_motor.connect("valueChanged", self.update_value)
@@ -62,7 +61,7 @@ class BlissEnergy(AbstractEnergy):
             (float): Energy [keV]
         """
         return self.get_energy()
-        
+
     def get_energy(self):
         """Read the energy
         Returns:
@@ -91,8 +90,7 @@ class BlissEnergy(AbstractEnergy):
         """
         logging.getLogger("HWR").debug("Get energy limits")
         if not self.tunable:
-            self._energy_limits = (self._default_energy,
-                                   self._default_energy)
+            self._energy_limits = (self._default_energy, self._default_energy)
         else:
             self._energy_limits = self._energy_motor.get_limits()
         return self._energy_limits
@@ -105,11 +103,12 @@ class BlissEnergy(AbstractEnergy):
         logging.getLogger("HWR").debug("Get wavelength limits")
         if self.tunable:
             _low, _high = self.get_limits()
-            self._wavelength_limits = (self._calculate_wavelength(_low),
-                                       self._calculate_wavelength(_high))
+            self._wavelength_limits = (
+                self._calculate_wavelength(_low),
+                self._calculate_wavelength(_high),
+            )
         else:
-            self._wavelength_limits = (self.get_wavelength(),
-                                       self.get_wavelength())
+            self._wavelength_limits = (self.get_wavelength(), self.get_wavelength())
         return self._wavelength_limits
 
     def stop(self):
@@ -131,7 +130,7 @@ class BlissEnergy(AbstractEnergy):
             timeout (float): optional - timeout [s].
         """
         _en = self.get_energy()
-        
+
         pos = math.fabs(_en - value)
         if pos < 0.001:
             logging.getLogger("user_level_log").debug(
@@ -139,8 +138,7 @@ class BlissEnergy(AbstractEnergy):
             )
             return
 
-        logging.getLogger("user_level_log").debug(
-            "Energy: moving energy to %g", value)
+        logging.getLogger("user_level_log").debug("Energy: moving energy to %g", value)
 
         def change_energy():
             try:

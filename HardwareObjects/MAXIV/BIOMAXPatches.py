@@ -150,7 +150,9 @@ class BIOMAXPatches(HardwareObject):
         self.__unload = HWR.beamline.sample_changer.unload
         self.curr_dtox_pos = None
 
-        HWR.beamline.sample_changer.load = types.MethodType(self.new_load, HWR.beamline.sample_changer)
+        HWR.beamline.sample_changer.load = types.MethodType(
+            self.new_load, HWR.beamline.sample_changer
+        )
         HWR.beamline.sample_changer.unload = types.MethodType(
             self.new_unload, HWR.beamline.sample_changer
         )

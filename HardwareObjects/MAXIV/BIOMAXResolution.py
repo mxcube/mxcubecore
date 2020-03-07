@@ -4,6 +4,7 @@ import math
 
 from HardwareRepository import HardwareRepository as HWR
 
+
 class BIOMAXResolution(Resolution.Resolution):
     def __init__(self, *args, **kwargs):
         Resolution.Resolution.__init__(self, *args, **kwargs)
@@ -27,9 +28,7 @@ class BIOMAXResolution(Resolution.Resolution):
 
         self.update_beam_centre(detector.distance.get_value())
         self.connect(detector.distance, "stateChanged", self.dtoxStateChanged)
-        self.connect(
-            detector.distance, "positionChanged", self.dtoxPositionChanged
-        )
+        self.connect(detector.distance, "positionChanged", self.dtoxPositionChanged)
         self.connect(HWR.beamline.energy, "valueChanged", self.energyChanged)
         self.connect(detector, "roiChanged", self.det_roi_changed)
 
@@ -55,9 +54,7 @@ class BIOMAXResolution(Resolution.Resolution):
     def det_roi_changed(self):
         self.det_width = HWR.beamline.detector.get_x_pixels_in_detector()
         self.det_height = HWR.beamline.detector.get_y_pixels_in_detector()
-        self.update_beam_centre(
-            HWR.beamline.detector.distance.get_value()
-        )
+        self.update_beam_centre(HWR.beamline.detector.distance.get_value())
         self.recalculateResolution()
 
     def update_beam_centre(self, dtox):

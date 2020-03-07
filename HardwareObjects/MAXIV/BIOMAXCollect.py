@@ -126,9 +126,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 minimum_exposure_time=min_exp,
                 detector_fileext=HWR.beamline.detector.getProperty("file_suffix"),
                 detector_type=HWR.beamline.detector.getProperty("type"),
-                detector_manufacturer=HWR.beamline.detector.getProperty(
-                    "manufacturer"
-                ),
+                detector_manufacturer=HWR.beamline.detector.getProperty("manufacturer"),
                 detector_model=HWR.beamline.detector.getProperty("model"),
                 detector_px=pix_x,
                 detector_py=pix_y,
@@ -921,7 +919,9 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 logging.getLogger("user_level_log").info(
                     "Moving Diffractometer to CentringPhase"
                 )
-                HWR.beamline.diffractometer.set_phase("Centring", wait=True, timeout=200)
+                HWR.beamline.diffractometer.set_phase(
+                    "Centring", wait=True, timeout=200
+                )
                 self.move_to_centered_position()
 
             for snapshot_index in range(number_of_snapshots):
@@ -1474,9 +1474,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         proposal_code = HWR.beamline.session.proposal_code
         proposal_number = HWR.beamline.session.proposal_number
 
-        proposal_info = HWR.beamline.lims.get_proposal(
-            proposal_code, proposal_number
-        )
+        proposal_info = HWR.beamline.lims.get_proposal(proposal_code, proposal_number)
         msg["time"] = time.time()
         msg["proposal"] = proposal_number
         msg["uuid"] = self.collection_uuid
@@ -1514,9 +1512,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         proposal_code = HWR.beamline.session.proposal_code
         proposal_number = HWR.beamline.session.proposal_number
 
-        proposal_info = HWR.beamline.lims.get_proposal(
-            proposal_code, proposal_number
-        )
+        proposal_info = HWR.beamline.lims.get_proposal(proposal_code, proposal_number)
         # session info is missing!
         sessionId = collection.get("sessionId", None)
         if sessionId:

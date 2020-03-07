@@ -133,7 +133,10 @@ import types
 
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.HardwareObjects.abstract.sample_changer.Container import Container, Sample
+from HardwareRepository.HardwareObjects.abstract.sample_changer.Container import (
+    Container,
+    Sample,
+)
 
 
 class SampleChangerState:

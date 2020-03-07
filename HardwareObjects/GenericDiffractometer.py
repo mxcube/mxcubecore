@@ -165,7 +165,7 @@ class GenericDiffractometer(HardwareObject):
         self.aperture = None
         self.beamstop = None
         self.cryo = None
-        self.capillary  = None
+        self.capillary = None
         self.use_sc = False
 
         # Channels and commands -----------------------------------------------
@@ -389,8 +389,7 @@ class GenericDiffractometer(HardwareObject):
         except BaseException:
             self.zoom_centre = {"x": 0, "y": 0}
             logging.getLogger("HWR").warning(
-                "Diffractometer: "
-                + "zoom centre not configured"
+                "Diffractometer: " + "zoom centre not configured"
             )
 
         self.reversing_rotation = self.getProperty("reversing_rotation")
@@ -527,7 +526,6 @@ class GenericDiffractometer(HardwareObject):
             AbstractActuator
         """
         return self.motor_hwobj_dict.get("zoom")
-
 
     def is_ready(self):
         """
@@ -1040,10 +1038,10 @@ class GenericDiffractometer(HardwareObject):
             if isinstance(motor, (str, unicode)):
                 motor_role = motor
                 motor = self.motor_hwobj_dict.get(motor_role)
-                #del motor_positions[motor_role]
+                # del motor_positions[motor_role]
                 if None in (motor, position):
                     continue
-                #motor_positions[motor] = position
+                # motor_positions[motor] = position
             motor.set_value(position)
         self.wait_device_ready(timeout)
 

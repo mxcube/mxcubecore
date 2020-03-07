@@ -62,7 +62,9 @@ except ImportError:
             "Could not find autocentring library, automatic centring is disabled"
         )
 
-from HardwareRepository.HardwareObjects.GenericDiffractometer import GenericDiffractometer
+from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+    GenericDiffractometer,
+)
 
 from HardwareRepository.TaskUtils import task
 from HardwareRepository import HardwareRepository as HWR
@@ -489,7 +491,6 @@ class PX2Diffractometer(GenericDiffractometer):
         position = self.translate_from_mxcube_to_md2(motor_positions)
 
         self.goniometer.set_position(position, timeout=timeout)
-
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
         """

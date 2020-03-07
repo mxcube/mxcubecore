@@ -195,9 +195,7 @@ class LimaPilatusDetector(AbstractDetector):
         )
         self.header["Detector_Voffset"] = "0.0000 m"
         self.header["Energy_range"] = "(0, 0) eV"
-        self.header["Detector_distance"] = "%f m" % (
-           self.distance.get_value() / 1000.0
-        )
+        self.header["Detector_distance"] = "%f m" % (self.distance.get_value() / 1000.0)
         self.header["Wavelength"] = "%f A" % HWR.beamline.energy.get_wavelength()
         self.header["Trim_directory:"] = "(nil)"
         self.header["Flat_field:"] = "(nil)"

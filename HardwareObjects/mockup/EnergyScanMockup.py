@@ -9,7 +9,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 from HardwareRepository.TaskUtils import cleanup
 from HardwareRepository.HardwareObjects.abstract.AbstractEnergyScan import (
-    AbstractEnergyScan
+    AbstractEnergyScan,
 )
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository import HardwareRepository as HWR
@@ -217,9 +217,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         self.scan_info["exposureTime"] = exptime
 
         if HWR.beamline.transmission is not None:
-            self.scan_info["transmissionFactor"] = (
-                HWR.beamline.transmission.get_value()
-            )
+            self.scan_info["transmissionFactor"] = HWR.beamline.transmission.get_value()
         else:
             self.scan_info["transmissionFactor"] = None
         size_hor = None

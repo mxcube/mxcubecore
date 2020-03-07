@@ -284,8 +284,7 @@ class NanoDiff(HardwareObject):
         except BaseException:
             self.zoom_centre = {"x": 0, "y": 0}
             logging.getLogger("HWR").warning(
-                "NanoDiff: "
-                + "zoom centre not configured"
+                "NanoDiff: " + "zoom centre not configured"
             )
 
         # Compatibility

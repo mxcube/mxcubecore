@@ -142,7 +142,7 @@ class XRFSpectrum(Equipment):
             except OSError as diag:
                 logging.getLogger().error(
                     "XRFSpectrum: error creating directory %s (%s)",
-                    (archive_directory, str(diag))
+                    (archive_directory, str(diag)),
                 )
                 self.spectrumStatusChanged("Error creating directory")
                 return False

@@ -864,7 +864,7 @@ class AbstractMultiCollect(object):
                                 npass,
                                 j == wedge_size,
                                 data_collect_parameters.get("shutterless", True),
-                                )
+                            )
                             self.do_oscillation(
                                 osc_start,
                                 osc_end,
@@ -873,8 +873,8 @@ class AbstractMultiCollect(object):
                                 data_collect_parameters.get("shutterless", True),
                                 npass,
                             )
-                            
-                            #self.stop_acquisition()
+
+                            # self.stop_acquisition()
                             self.write_image(j == 1)
 
                         # Store image in lims

@@ -132,12 +132,8 @@ class SOLEILEnergyScan(Equipment):
                 HWR.beamline.energy.connect(
                     "positionChanged", self.energyPositionChanged
                 )
-                HWR.beamline.energy.connect(
-                    "stateChanged", self.energyStateChanged
-                )
-                HWR.beamline.energy.connect(
-                    "limitsChanged", self.energyLimitsChanged
-                )
+                HWR.beamline.energy.connect("stateChanged", self.energyStateChanged)
+                HWR.beamline.energy.connect("limitsChanged", self.energyLimitsChanged)
             if HWR.beamline.resolution is None:
                 logging.getLogger("HWR").warning(
                     "EnergyScan: no resolution motor (unable to restore it after moving the energy)"

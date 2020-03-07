@@ -23,6 +23,7 @@ except:
     # Python3
     from urllib.parse import urlencode
 
+
 class FixedEnergy:
     def __init__(self, wavelength, energy):
         self.wavelength = wavelength
@@ -476,16 +477,18 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def data_collection_end_hook(self, data_collect_parameters):
         self._metadataClient.end(data_collect_parameters)
 
-    def prepare_oscillation(self, start, osc_range, exptime, number_of_images, shutterless, npass):     
+    def prepare_oscillation(
+        self, start, osc_range, exptime, number_of_images, shutterless, npass
+    ):
         if shutterless:
-            end = start + osc_range * number_of_images 
-            exptime = ( exptime + self._detector.get_deadtime()) * number_of_images
+            end = start + osc_range * number_of_images
+            exptime = (exptime + self._detector.get_deadtime()) * number_of_images
         else:
             if osc_range < 1e-4:
                 # still image
                 end = start
             else:
-                end = start + osc_range 
+                end = start + osc_range
 
         return start, end
 
@@ -509,17 +512,13 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         still = math.fabs(end - start) < 1e-4
 
         if shutterless:
-            exptime = ( exptime + self._detector.get_deadtime()) * number_of_images
+            exptime = (exptime + self._detector.get_deadtime()) * number_of_images
             # only do this once per collect
             # make oscillation an asynchronous task => do not wait here
             if still:
-                self.oscillation_task = self.no_oscillation(
-                    exptime, wait=False
-                )
+                self.oscillation_task = self.no_oscillation(exptime, wait=False)
             else:
-                oscillation_task = self.oscil(
-                    start, end, exptime, 1, wait=False
-                )
+                oscillation_task = self.oscil(start, end, exptime, 1, wait=False)
 
             if oscillation_task.ready():
                 oscillation_task.get()
@@ -929,7 +928,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def get_flux(self):
         return 0
-#       return HWR.beamline.flux.getCurrentFlux()
+
+    #       return HWR.beamline.flux.getCurrentFlux()
 
     @task
     def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):

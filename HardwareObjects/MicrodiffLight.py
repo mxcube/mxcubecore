@@ -1,6 +1,7 @@
 from HardwareRepository.HardwareObjects.ExporterMotor import ExporterMotor
 from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 
+
 class MicrodiffLight(ExporterMotor):
     def __init__(self, name):
         ExporterMotor.__init__(self, name)
@@ -9,7 +10,7 @@ class MicrodiffLight(ExporterMotor):
     def init(self):
         ExporterMotor.init(self)
         try:
-            _low,_high = self.getProperty("limits").split(',')
+            _low, _high = self.getProperty("limits").split(",")
             self._limits = (float(_low), float(_high))
         except (AttributeError, TypeError, ValueError):
             self._limits = (0, 10)

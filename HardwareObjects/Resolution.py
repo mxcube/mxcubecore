@@ -249,7 +249,7 @@ class Resolution(AbstractMotor):
         value = value or self.hwr_detector.distance.get_value()
         self._nominal_value = self.distance_to_resolution(value)
         self.emit("valueChanged", (self._nominal_value,))
-        #self.update_resolution(self.distance_to_resolution(value))
+        # self.update_resolution(self.distance_to_resolution(value))
 
     def update_resolution(self, value):
         """Update the resolution. Emit valueChanged.

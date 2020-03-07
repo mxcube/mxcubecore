@@ -167,16 +167,16 @@ class EMBLDoorInterlock(Device):
         if HWR.beamline.diffractometer is not None:
             detector_distance = HWR.beamline.detector.distance
             if HWR.beamline.diffractometer.in_plate_mode():
-                if detector_distance  is not None:
-                    if detector_distance .get_value() < 780:
-                        detector_distance .set_value(800, timeout=None)
+                if detector_distance is not None:
+                    if detector_distance.get_value() < 780:
+                        detector_distance.set_value(800, timeout=None)
                         while detector_distance.get_value() < 360:
                             gevent.sleep(0.01)
                         gevent.sleep(2)
             else:
                 if detector_distance is not None:
-                    if detector_distance .get_value() < 1099:
-                        detector_distance .set_value(1100)
+                    if detector_distance.get_value() < 1099:
+                        detector_distance.set_value(1100)
                         gevent.sleep(1)
             try:
                 HWR.beamline.diffractometer.set_phase(

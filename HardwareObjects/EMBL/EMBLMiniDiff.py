@@ -314,7 +314,6 @@ class EMBLMiniDiff(GenericDiffractometer):
             )
             return
 
-
         if self.in_plate_mode() and (
             phase
             in (GenericDiffractometer.PHASE_TRANSFER, GenericDiffractometer.PHASE_BEAM)
@@ -401,7 +400,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             self.user_clicked_event = gevent.event.AsyncResult()
             x, y = self.user_clicked_event.get()
             self.centring_hwobj.appendCentringDataPoint(
-                {   
+                {
                     "X": (x - self.beam_position[0]) / self.pixels_per_mm_x,
                     "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y,
                 }
@@ -420,28 +419,36 @@ class EMBLMiniDiff(GenericDiffractometer):
                 if click < 2:
                     self.motor_hwobj_dict["phi"].move_relative(90)
         self.omega_reference_add_constraint()
-        #_x = self.centring_hwobj.centeredPosition(return_by_name=True, shift_to_constraints=True)
-        #logging.getLogger("HWR").debug("opti %s" %_x)
-        return self.centring_hwobj.centeredPosition(return_by_name=False, shift_to_constraints=False)
+        # _x = self.centring_hwobj.centeredPosition(return_by_name=True, shift_to_constraints=True)
+        # logging.getLogger("HWR").debug("opti %s" %_x)
+        return self.centring_hwobj.centeredPosition(
+            return_by_name=False, shift_to_constraints=False
+        )
 
     def imaging_centring(self):
-        self.imaging_centring_hwobj.initCentringProcedure(0)#static_positions=self.imaging_static_positions)
+        self.imaging_centring_hwobj.initCentringProcedure(
+            0
+        )  # static_positions=self.imaging_static_positions)
         for click in range(3):
             self.user_clicked_event = gevent.event.AsyncResult()
             x, y = self.user_clicked_event.get()
             self.imaging_centring_hwobj.appendCentringDataPoint(
                 {
-                    "X": (x - self.imaging_beam_position[0]) / self.imaging_pixels_per_mm[0],
-                    "Y": (y - self.imaging_beam_position[1]) / self.imaging_pixels_per_mm[1],
+                    "X": (x - self.imaging_beam_position[0])
+                    / self.imaging_pixels_per_mm[0],
+                    "Y": (y - self.imaging_beam_position[1])
+                    / self.imaging_pixels_per_mm[1],
                 }
-                #static_positions=self.imaging_static_positions
+                # static_positions=self.imaging_static_positions
             )
             if click < 2:
                 self.motor_hwobj_dict["phi"].move_relative(90)
         self.omega_reference_add_constraint()
-        #_x = self.imaging_centring_hwobj.centeredPosition(return_by_name=True, shift_to_constraints=True)
-        #logging.getLogger("HWR").debug("xray %s" %_x)
-        return self.centring_hwobj.centeredPosition(return_by_name=False, shift_to_constraints=True)
+        # _x = self.imaging_centring_hwobj.centeredPosition(return_by_name=True, shift_to_constraints=True)
+        # logging.getLogger("HWR").debug("xray %s" %_x)
+        return self.centring_hwobj.centeredPosition(
+            return_by_name=False, shift_to_constraints=True
+        )
 
     def automatic_centring(self):
         """Automatic centring procedure. Rotates n times and executes
@@ -467,7 +474,9 @@ class EMBLMiniDiff(GenericDiffractometer):
             gevent.sleep(0.01)
             self.wait_device_ready(15)
         self.omega_reference_add_constraint()
-        centred_pos_dir = self.centring_hwobj.centeredPosition(return_by_name=False, shift_to_constraints=False)
+        centred_pos_dir = self.centring_hwobj.centeredPosition(
+            return_by_name=False, shift_to_constraints=False
+        )
         self.emit("newAutomaticCentringPoint", centred_pos_dir)
 
         return centred_pos_dir
@@ -699,7 +708,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         """Close kappa task
         """
         logging.getLogger("HWR").debug("Diffractometer: Closing Kappa started...")
-        self.move_kappa_and_phi_procedure(0, 0) # None)
+        self.move_kappa_and_phi_procedure(0, 0)  # None)
         self.wait_device_ready(180)
         logging.getLogger("HWR").debug("Diffractometer: Done closing Kappa.")
         """
@@ -762,7 +771,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         a = 0.002
         b = 0.2037
         w0 = -24.2816
-        w1 =  24.83680  # was 196 not to shadow laser
+        w1 = 24.83680  # was 196 not to shadow laser
 
         if num_images == 0:
             return (w0, w1)

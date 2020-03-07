@@ -2,8 +2,14 @@ import base64
 import pickle
 import gevent
 from HardwareRepository.TaskUtils import task
-from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import SampleChanger, SampleChangerState
-from HardwareRepository.HardwareObjects.abstract.sample_changer.Container import Container, Sample
+from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import (
+    SampleChanger,
+    SampleChangerState,
+)
+from HardwareRepository.HardwareObjects.abstract.sample_changer.Container import (
+    Container,
+    Sample,
+)
 from PyTango.gevent import DeviceProxy
 
 
@@ -243,7 +249,7 @@ class FlexHCD(SampleChanger):
         return ret
 
     def _ready(self):
-        #return self.swstate_attr.getValue() == "Ready"
+        # return self.swstate_attr.getValue() == "Ready"
         return True
 
     def _wait_ready(self, timeout=None):
