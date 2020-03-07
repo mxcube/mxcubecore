@@ -402,23 +402,13 @@ class EDNACharacterisation(AbstractCharacterisation):
 
         return data_collections
 
-    def get_default_characterisation_parameters(self, edna_default_file):
+    def get_default_characterisation_parameters(self):
         """
-        Args:
-            defualt_input_file (str): Path to file containing default input
-
         Returns: 
             (queue_model_objects.CharacterisationsParameters) object with default 
             parameters.
         """
-        fpath = HWR.getHardwareRepository().findInRepository(edna_default_file)
-
-        if fpath is None:
-            raise ValueError("File %s not found in repository" % edna_default_file)
-        with open(fpath, "r") as fp0:
-            edna_default_input = "".join(fp0.readlines())
-
-        edna_input = XSDataInputMXCuBE.parseString(edna_default_input)
+        edna_input = XSDataInputMXCuBE.parseString(self.edna_default_input)
         diff_plan = edna_input.getDiffractionPlan()
 
         edna_sample = edna_input.getSample()

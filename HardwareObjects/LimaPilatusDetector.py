@@ -20,7 +20,6 @@ class LimaPilatusDetector(AbstractDetector):
         AbstractDetector.__init__(self, name)
         self._mesh_steps = 1
         self.header = dict()
-
         self.start_angles = list()
 
     def init(self):
@@ -189,6 +188,7 @@ class LimaPilatusDetector(AbstractDetector):
         self.header["Angle_increment"] = "%0.4f deg." % osc_range
         # self.header["Start_angle"]="%0.4f deg." % start
         self.header["Transmission"] = HWR.beamline.transmission.get_value()
+
         self.header["Flux"] = HWR.beamline.flux.get_flux()
         self.header["Beam_xy"] = "(%.2f, %.2f) pixels" % tuple(
             [value / 0.172 for value in HWR.beamline.resolution.get_beam_centre()]
@@ -196,7 +196,7 @@ class LimaPilatusDetector(AbstractDetector):
         self.header["Detector_Voffset"] = "0.0000 m"
         self.header["Energy_range"] = "(0, 0) eV"
         self.header["Detector_distance"] = "%f m" % (
-            HWR.beamline.detector.distance.get_value() / 1000.0
+           self.distance.get_value() / 1000.0
         )
         self.header["Wavelength"] = "%f A" % HWR.beamline.energy.get_wavelength()
         self.header["Trim_directory:"] = "(nil)"
@@ -209,7 +209,7 @@ class LimaPilatusDetector(AbstractDetector):
         self.header["Exposure_period"] = "%f s" % (exptime + self.get_deadtime())
         self.header["Exposure_time"] = "%f s" % exptime
 
-        self.stop()
+        self.reset()
         self.wait_ready()
 
         self.set_energy_threshold(energy)
