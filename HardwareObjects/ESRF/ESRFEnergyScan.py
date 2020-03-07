@@ -31,7 +31,7 @@ class TunableEnergy:
 
     @task
     def move_energy(self, energy):
-        return self._tunable_bl.energy_obj.startMoveEnergy(energy, wait=True)
+        return self._tunable_bl.energy_obj.move_energy(energy, wait=True)
 
 
 class GetStaticParameters:
