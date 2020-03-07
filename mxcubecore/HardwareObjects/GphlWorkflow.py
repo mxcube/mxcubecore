@@ -628,7 +628,7 @@ class GphlWorkflow(HardwareObject, object):
             )
         if self.getProperty("disable_energy_change", False):
             # Use current energy and disallow changes
-            ll0[0]["defaultValue"] = HWR.beamline.energy.get_current_energy()
+            ll0[0]["defaultValue"] = HWR.beamline.energy.get_energy()
             ll0[0]["readOnly"] = True
         field_list.extend(ll0)
 
@@ -779,7 +779,7 @@ class GphlWorkflow(HardwareObject, object):
             # TODO NBNB put in wait-till ready to make sure value settles
             HWR.beamline.energy.move_energy(default_energy)
         else:
-            default_energy = HWR.beamline.energy.get_current_energy()
+            default_energy = HWR.beamline.energy.get_energy()
 
         # Preset detector distance and resolution
         detectorSetting = geometric_strategy.defaultDetectorSetting

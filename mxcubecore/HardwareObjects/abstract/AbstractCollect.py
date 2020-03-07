@@ -642,7 +642,7 @@ class AbstractCollect(HardwareObject, object):
     #     Descript. :
     #     """
     #     if HWR.beamline.energy is not None:
-    #         return HWR.beamline.energy.get_current_wavelength()
+    #         return HWR.beamline.energy.get_wavelength()
 
     # def get_detector_distance(self):
     #     """

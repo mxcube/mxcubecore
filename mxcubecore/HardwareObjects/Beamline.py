@@ -492,8 +492,8 @@ class Beamline(ConfiguredObject):
     __content_roles.append("offline_processing")
 
     @property
-    def data_analysis(self):
-        """EDNA charadterisation and analysis procedure.
+    def characterisation(self):
+        """EDNA characterisation and analysis procedure.
 
         NB the current code looks rather EDNA-specific
         to be called 'AbsatractCharacterisation'.
@@ -606,7 +606,7 @@ class Beamline(ConfiguredObject):
             acq_parameters.resolution = 0.0
 
         try:
-            acq_parameters.energy = self.energy.get_current_energy()
+            acq_parameters.energy = self.energy.get_energy()
         except:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "

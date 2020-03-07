@@ -68,7 +68,7 @@ class AbstractFlux(HardwareObject):
         :return: float
         """
 
-        energy = energy or HWR.beamline.energy.get_current_energy()
+        energy = energy or HWR.beamline.energy.get_energy()
 
         # NB   Calculation assumes beam sizes in mm
         beam_size = HWR.beamline.beam.get_beam_size()
