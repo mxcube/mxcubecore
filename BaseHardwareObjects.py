@@ -18,6 +18,7 @@ class HardwareObjectState(enum.Enum):
     BUSY = 2
     READY = 3
     FAULT = 4
+    OFF = 5
 
 
 class HardwareObjectSpecificState(enum.Enum):
@@ -383,6 +384,7 @@ class HardwareObjectMixin(CommandContainer):
         # event to handle waiting for object to be ready
         self._ready_event = event.Event()
         self._state = self.STATES.UNKNOWN
+        self._specific_state = None
 
     def __bool__(self):
         return True
@@ -416,7 +418,7 @@ class HardwareObjectMixin(CommandContainer):
         Returns:
             HardwareObjectState
         """
-        pass
+        return self._state
 
     def get_specific_state(self):
         """ Getter for specific_state attribute. Override if needed.
@@ -424,7 +426,7 @@ class HardwareObjectMixin(CommandContainer):
         Returns:
             HardwareObjectSpecificState or None
         """
-        return None
+        return self._specific_state
 
     def wait_ready(self, timeout=None):
         """Wait till object is ready.
