@@ -1108,8 +1108,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         HWR.beamline.detector.set_photon_energy(value * 1000)  # ev
 
     def set_wavelength(self, value):
-        HWR.beamline.energy.startMoveWavelength(value)
-        current_energy = HWR.beamline.energy.get_current_energy()
+        HWR.beamline.energy.set_wavelength(value)
+        current_energy = HWR.beamline.energy.get_energy()
         HWR.beamline.detector.set_photon_energy(current_energy * 1000)
 
     @task

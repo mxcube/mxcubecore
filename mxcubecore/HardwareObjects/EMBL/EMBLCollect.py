@@ -396,7 +396,7 @@ class EMBLCollect(AbstractCollect):
 
     def get_energy(self):
         """Returns energy value in keV"""
-        return HWR.beamline.energy.get_current_energy()
+        return HWR.beamline.energy.get_energy()
 
     def set_resolution(self, value):
         """Sets resolution in A"""
@@ -447,7 +447,7 @@ class EMBLCollect(AbstractCollect):
 
     def get_wavelength(self):
         """Returns wavelength"""
-        return HWR.beamline.energy.get_current_wavelength()
+        return HWR.beamline.energy.get_wavelength()
 
     def get_detector_distance(self):
         """Returns detector distance in mm"""
@@ -459,7 +459,7 @@ class EMBLCollect(AbstractCollect):
 
     def get_resolution(self):
         """Returns resolution in A"""
-        return HWR.beamline.resolution.getPosition()
+        return HWR.beamline.resolution.get_value()
 
     def get_transmission(self):
         """Returns transmision in %"""

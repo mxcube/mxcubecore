@@ -709,7 +709,7 @@ class SOLEILEnergyScan(Equipment):
                 lims = HWR.beamline.energy.getLimits()
         return lims
 
-    def get_current_wavelength(self):
+    def get_wavelength(self):
         if HWR.beamline.energy is not None:
             try:
                 return self.energy2wavelength(HWR.beamline.energy.get_value())
@@ -788,7 +788,7 @@ class SOLEILEnergyScan(Equipment):
 
         return True
 
-    def startMoveWavelength(self, value, wait=True):
+    def set_wavelength(self, value, wait=True):
         energy_val = self.energy2wavelength(value)
         if energy_val is None:
             logging.getLogger("HWR").error(

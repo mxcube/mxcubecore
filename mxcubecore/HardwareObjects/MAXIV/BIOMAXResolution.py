@@ -34,7 +34,7 @@ class BIOMAXResolution(Resolution.Resolution):
         self.connect(detector, "roiChanged", self.det_roi_changed)
 
     def res2dist(self, res=None):
-        current_wavelength = HWR.beamline.energy.get_current_wavelength()
+        current_wavelength = HWR.beamline.energy.get_wavelength()
 
         if res is None:
             res = self.currentResolution
