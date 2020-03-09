@@ -150,15 +150,6 @@ class BlissMotor(AbstractMotor):
         """
         self.motor_obj.move(value, wait=False)
 
-    def wait_ready(self, timeout=None):
-        """Wait until the end of move ended
-        Args:
-            timeout(float): Timeout [s].
-        """
-        if timeout:
-            with Timeout(timeout, RuntimeError("Execution timeout")):
-                self.motor_obj.wait_move()
-
     def abort(self):
         """Stop the motor movement"""
         self.motor_obj.stop(wait=False)
