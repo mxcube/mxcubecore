@@ -1,5 +1,5 @@
 <object class="QtGraphicsManager">
-<!--   <object href="/mini-diff-mockup" role="diffractometer"/>-->
+   <object href="/diffractometer-mockup" role="diffractometer"/>-->
    <object href="/beam-info" role="beam_info"/>
    <object href="/camera-mockup" role="camera"/>
 
