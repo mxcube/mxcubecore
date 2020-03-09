@@ -454,7 +454,7 @@ class GphlWorkflow(HardwareObject, object):
         std_dose_rate = HWR.beamline.flux.get_dose_rate()
         if std_dose_rate:
             std_dose_rate = (
-                    std_dose_rate * 100.0 / HWR.beamline.transmission.get_value()
+                std_dose_rate * 100.0 / HWR.beamline.transmission.get_value()
             )
             # Convert from KGy/s to MGy/s
             std_dose_rate /= 1000
@@ -486,9 +486,7 @@ class GphlWorkflow(HardwareObject, object):
         default_image_width = float(allowed_widths[default_width_index])
         default_exposure = acq_parameters.exp_time
         exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
-        experiment_time = (
-                total_strategy_length * default_exposure / default_image_width
-        )
+        experiment_time = total_strategy_length * default_exposure / default_image_width
         if std_dose_rate:
             transmission = 100.0 * dose_budget / (std_dose_rate * experiment_time)
             transmission = min(transmission, 100.0)
@@ -628,7 +626,7 @@ class GphlWorkflow(HardwareObject, object):
             )
         if self.getProperty("disable_energy_change", False):
             # Use current energy and disallow changes
-            ll0[0]["defaultValue"] = HWR.beamline.energy.get_current_energy()
+            ll0[0]["defaultValue"] = HWR.beamline.energy.get_energy()
             ll0[0]["readOnly"] = True
         field_list.extend(ll0)
 
@@ -779,14 +777,16 @@ class GphlWorkflow(HardwareObject, object):
             # TODO NBNB put in wait-till ready to make sure value settles
             HWR.beamline.energy.move_energy(default_energy)
         else:
-            default_energy = HWR.beamline.energy.get_current_energy()
+            default_energy = HWR.beamline.energy.get_energy()
 
         # Preset detector distance and resolution
         detectorSetting = geometric_strategy.defaultDetectorSetting
         if detectorSetting:
             # NBNB If this is ever set to editable, distance and resolution
             # must be varied in sync
-            HWR.beamline.detector.set_distance(detectorSetting.axisSettings.get("Distance"))
+            HWR.beamline.detector.set_distance(
+                detectorSetting.axisSettings.get("Distance")
+            )
         # TODO NBNB put in wait-till-ready to make sure value settles
         HWR.beamline.detector.wait_ready()
         strategy_resolution = HWR.beamline.resolution.get_position()
@@ -943,7 +943,7 @@ class GphlWorkflow(HardwareObject, object):
 
             HWR.beamline.resolution.set_position(new_resolution)
             # TODO it should be set_position, fix TineMotor (resolution at EMBL)
-            # HWR.beamline.resolution.move(new_resolution)
+            # HWR.beamline.resolution.set_value(new_resolution)
             HWR.beamline.detector.wait_ready()
             # NBNB Wait till value has settled
             id_ = None
@@ -953,7 +953,7 @@ class GphlWorkflow(HardwareObject, object):
             new_resolution,
             id_=id_,
             orgxy=orgxy,
-            Distance=HWR.beamline.detector.get_distance()
+            Distance=HWR.beamline.detector.get_distance(),
         )
 
         sampleCentred = GphlMessages.SampleCentred(

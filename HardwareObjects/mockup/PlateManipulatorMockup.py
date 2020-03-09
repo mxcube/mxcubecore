@@ -48,7 +48,11 @@ import time
 import gevent
 
 from HardwareRepository.HardwareObjects.abstract import AbstractSampleChanger
-from HardwareRepository.HardwareObjects.abstract.sample_changer import Container, Crims, Sample
+from HardwareRepository.HardwareObjects.abstract.sample_changer import (
+    Container,
+    Crims,
+    Sample,
+)
 
 
 class Xtal(Sample.Sample):
@@ -333,7 +337,6 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
                 new_sample._setLoaded(True, True)
             self.updateInfo()
             logging.getLogger("user_level_log").info("Plate Manipulator: Sample loaded")
-            
 
     def _doUnload(self, sample_slot=None):
         """

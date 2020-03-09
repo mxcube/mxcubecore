@@ -329,15 +329,15 @@ class Beamline(ConfiguredObject):
     __content_roles.append("lims")
 
     @property
-    def sample_view(self):
-        """Sample view object. Includes defined shapes.
+    def microscope(self):
+        """Microscope object. Includes defined shapes.
 
         Returns:
-            Optional[AbstractSampleView]:
+            Optional[AbstractMicroscope]:
         """
-        return self._objects.get("sample_view")
+        return self._objects.get("microscope")
 
-    __content_roles.append("sample_view")
+    __content_roles.append("microscope")
 
     @property
     def queue_manager(self):
@@ -493,7 +493,7 @@ class Beamline(ConfiguredObject):
 
     @property
     def characterisation(self):
-        """EDNA charadterisation and analysis procedure.
+        """EDNA characterisation and analysis procedure.
 
         NB the current code looks rather EDNA-specific
         to be called 'AbsatractCharacterisation'.
@@ -551,13 +551,12 @@ class Beamline(ConfiguredObject):
             Optional[AbstractManualCentring]
         """
         return self._objects.get("manual_centring")
+
     __content_roles.append("manual_centring")
     # Registers this object as a procedure:
     _procedure_names.add("manual_centring")
 
-
     # Additional functions
-
 
     # NB Objects need not be HardwareObjects
     # We still categorise them as'hardware' if they are not procedures, though
@@ -606,7 +605,7 @@ class Beamline(ConfiguredObject):
             acq_parameters.resolution = 0.0
 
         try:
-            acq_parameters.energy = self.energy.get_value()
+            acq_parameters.energy = self.energy.get_energy()
         except:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
@@ -633,12 +632,13 @@ class Beamline(ConfiguredObject):
             acq_parameters.shutterless = False
 
         try:
-            acq_parameters.detector_roi_mode = self.detector.get_roi_mode()
-        except Exception as ex:
-            msg = "BeamlineObject.get_default_acquisition_parameters: " + \
-                  "Could not get detector_roi_mode (%s), setting to ''" % str(ex)
-            logging.getLogger("HWR").warning(msg)
-            acq_parameters.detector_roi_mode = ""
+            acq_parameters.detector_mode = self.detector.get_detector_mode()
+        except:
+            logging.getLogger("HWR").warning(
+                "get_default_acquisition_parameters: "
+                "Could not get detector_mode, setting to ''"
+            )
+            acq_parameters.detector_mode = ""
 
         return acq_parameters
 

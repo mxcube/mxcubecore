@@ -4,7 +4,7 @@ import abc
 import enum
 from collections import OrderedDict
 import logging
-import gevent
+from gevent import event, Timeout
 
 from HardwareRepository.dispatcher import dispatcher
 from HardwareRepository.CommandContainer import CommandContainer
@@ -18,6 +18,7 @@ class HardwareObjectState(enum.Enum):
     BUSY = 2
     READY = 3
     FAULT = 4
+    OFF = 5
 
 
 class HardwareObjectSpecificState(enum.Enum):
@@ -133,7 +134,7 @@ class PropertySet(dict):
         self.__propertiesChanged = {}  # reset changes at commit
 
 
-class HardwareObjectNode:
+class HardwareObjectNode(object):
     def __init__(self, nodeName):
         """Constructor"""
         self.__dict__["_propertySet"] = PropertySet()
@@ -381,8 +382,9 @@ class HardwareObjectMixin(CommandContainer):
         self.connect_dict = {}
 
         # event to handle waiting for object to be ready
-        self._ready_event = gevent.event.Event()
+        self._ready_event = event.Event()
         self._state = self.STATES.UNKNOWN
+        self._specific_state = None
 
     def __bool__(self):
         return True
@@ -416,7 +418,7 @@ class HardwareObjectMixin(CommandContainer):
         Returns:
             HardwareObjectState
         """
-        pass
+        return self._state
 
     def get_specific_state(self):
         """ Getter for specific_state attribute. Override if needed.
@@ -424,17 +426,15 @@ class HardwareObjectMixin(CommandContainer):
         Returns:
             HardwareObjectSpecificState or None
         """
-        return None
+        return self._specific_state
 
     def wait_ready(self, timeout=None):
         """Wait till object is ready.
 
         If timeout == 0: return at once and do not wait;
         if timeout is None: wait forever."""
-        if timeout != 0:
-            with gevent.Timeout(
-                timeout, RuntimeError("Timeout waiting for status ready")
-            ):
+        if timeout:
+            with Timeout(timeout, RuntimeError("Timeout waiting for status ready")):
                 self._ready_event.wait(timeout=timeout)
 
     def is_ready(self):

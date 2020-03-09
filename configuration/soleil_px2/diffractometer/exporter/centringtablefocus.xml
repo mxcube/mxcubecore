@@ -1,6 +1,6 @@
 <device class="MicrodiffMotor">
     <exporter_address>172.19.10.119:9001</exporter_address>
-    <motor_name>CentringTableFocus</motor_name>
+    <actuator_name>CentringTableFocus</actuator_name>
     <username>CentringTableFocus</username>
     <direction>1</direction>
     <GUIstep>0.05</GUIstep>

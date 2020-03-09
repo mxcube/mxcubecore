@@ -1,6 +1,6 @@
 <device class="MicrodiffMotor">
     <tangoname>i11-ma-cx1/ex/md2</tangoname>
-    <motor_name>ScintillatorHorizontal</motor_name>
+    <actuator_name>ScintillatorHorizontal</actuator_name>
     <username>ScintillatorHorizontal</username>
     <direction>1</direction>
     <GUIstep>0.1</GUIstep>

@@ -61,8 +61,8 @@ class MotorMockup(AbstractMotor):
         except BaseException:
             self.set_limits(DEFAULT_LIMITS)
 
-        self.set_state(self.motor_states.READY)
-        self.set_position(float(self.getProperty("start_position", DEFAULT_POSITION)))
+        # self.set_state(self.motor_states.READY)
+        self.set_value(float(self.getProperty("start_position", DEFAULT_POSITION)))
 
     def move_task(self, position, wait=False, timeout=None):
         if position is None:
@@ -79,19 +79,19 @@ class MotorMockup(AbstractMotor):
             start_time = time.time()
             self.emit("stateChanged", (self.get_state(),))
             while (time.time() - start_time) < (delta / self.get_velocity()):
-                self.set_position(
+                self.set_value(
                     start_pos
                     + direction * self.get_velocity() * (time.time() - start_time)
                 )
                 self.emit("positionChanged", (self.get_position(),))
                 time.sleep(0.02)
-        self.set_position(position)
+        self.set_value(position)
         self.emit("positionChanged", (self.get_position(),))
 
     def move(self, position, wait=False, timeout=None):
         self.__motor_state = self.motor_states.MOVING
         if wait:
-            self.set_position(position)
+            self.set_value(position)
             self.emit("positionChanged", (self.get_position(),))
             self.set_ready()
         else:
@@ -101,3 +101,21 @@ class MotorMockup(AbstractMotor):
     def stop(self):
         if self.__move_task is not None:
             self.__move_task.kill()
+
+    def get_value(self):
+        """Read the actuator position.
+        Returns:
+            float: Actuator position.
+        """
+        return self._nominal_value
+
+    def _set_value(self, value, timeout=None):
+        """
+        Implementation of specific set actuator logic.
+        
+        Args:
+            value (float): target value
+            timeout (float): optional - timeout [s],
+                             If timeout == 0: return at once and do not wait;
+        """
+        self._nominal_value = value

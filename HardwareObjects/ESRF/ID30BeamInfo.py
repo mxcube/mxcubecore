@@ -11,12 +11,12 @@ class ID30BeamInfo(BeamInfo.BeamInfo):
         self.chan_beam_shape_ellipse = None
         BeamInfo.BeamInfo.init(self)
 
-        self.beam_size_slits = tuple(map(
-            float, self.getProperty("beam_size_slits").split()
-        ))  # [0.1, 0.05]
+        self.beam_size_slits = tuple(
+            map(float, self.getProperty("beam_size_slits").split())
+        )  # [0.1, 0.05]
         self.beam_position = (
-            HWR.beamline.sample_view.camera.getWidth() / 2,
-            HWR.beamline.sample_view.camera.getHeight() / 2
+            HWR.beamline.microscope.camera.getWidth() / 2,
+            HWR.beamline.microscope.camera.getHeight() / 2,
         )
 
     def get_beam_position(self):

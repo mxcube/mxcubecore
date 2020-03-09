@@ -448,7 +448,7 @@ class MXCuBEMetadataClient(object):
             and self.esrf_multi_collect.bl_control.beam_info.aperture_hwobj is not None
         ):
             aperture = (
-                self.esrf_multi_collect.bl_control.beam_info.aperture_hwobj.getPosition()
+                self.esrf_multi_collect.bl_control.beam_info.aperture_hwobj.get_value()
             )
             dictMetadata["MX_aperture"] = aperture
         return dictMetadata

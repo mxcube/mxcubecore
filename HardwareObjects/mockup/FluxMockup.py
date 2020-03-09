@@ -52,10 +52,14 @@ class FluxMockup(AbstractFlux):
         transmission = HWR.beamline.transmission.get_value()
         flux = self.default_flux * (1 + random())
 
-        self.measured_flux_list = [{"size_x": beam_size[0],
-                                    "size_y": beam_size[1],
-                                    "transmission": transmission,
-                                    "flux": flux}]
+        self.measured_flux_list = [
+            {
+                "size_x": beam_size[0],
+                "size_y": beam_size[1],
+                "transmission": transmission,
+                "flux": flux,
+            }
+        ]
 
         self.measured_flux_dict = self.measured_flux_list[0]
         self.current_flux_dict = self.measured_flux_list[0]

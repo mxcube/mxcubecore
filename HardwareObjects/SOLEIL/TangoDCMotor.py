@@ -73,7 +73,7 @@ class TangoDCMotor(Device):
 
         self.setIsReady(True)
         try:
-            self.limitsCommand = self.getCommandObject("limits")
+            self.limitsCommand = self.get_command_object("limits")
         except KeyError:
             self.limitsCommand = None
         self.positionChan = self.getChannelObject(
@@ -203,10 +203,10 @@ class TangoDCMotor(Device):
         return pos
 
     def getDialPosition(self):
-        return self.getPosition()
+        return self.get_value()
 
     def syncMove(self, position):
-        prev_position = self.getPosition()
+        prev_position = self.get_value()
         # self.positionValue = position
         relative_position = position - prev_position
         self.syncMoveRelative(relative_position)
@@ -293,7 +293,7 @@ class TangoDCMotor(Device):
             absolutePosition,
             type(absolutePosition),
         )
-        if abs(self.getPosition() - absolutePosition) > epsilon:
+        if abs(self.get_value() - absolutePosition) > epsilon:
             logging.info(
                 "TangoDCMotor: difference larger then epsilon (%s), executing the move "
                 % str(epsilon)
@@ -303,14 +303,12 @@ class TangoDCMotor(Device):
             logging.info(
                 "TangoDCMotor: not moving really as epsilon is large %s " % str(epsilon)
             )
-            logging.info(
-                "TangoDCMotor: self.getPosition() %s " % str(self.getPosition())
-            )
+            logging.info("TangoDCMotor: self.get_value() %s " % str(self.get_value()))
             logging.info("TangoDCMotor: absolutePosition %s " % str(absolutePosition))
 
     def stop(self):
         logging.getLogger("HWR").info("TangoDCMotor.stop")
-        stopcmd = self.getCommandObject("Stop")()
+        stopcmd = self.get_command_object("Stop")()
         if not stopcmd:
             stopcmd = TangoCommand("stopcmd", "Stop", self.tangoname)
         stopcmd()
@@ -325,7 +323,7 @@ def test():
     hwr.connect()
 
     motor = hwr.getHardwareObject("/phi")
-    print(motor.getPosition())
+    print(motor.get_value())
 
 
 if __name__ == "__main__":

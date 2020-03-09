@@ -40,6 +40,7 @@ from __future__ import print_function
 import os
 import math
 import logging
+
 try:
     import cPickle as pickle
 except:
@@ -169,7 +170,7 @@ class QtGraphicsManager(AbstractSampleView):
             self
         )
         self.graphics_measure_distance_item.hide()
-        
+
         self.graphics_measure_angle_item = GraphicsLib.GraphicsItemMeasureAngle(self)
         self.graphics_measure_angle_item.hide()
         self.graphics_measure_area_item = GraphicsLib.GraphicsItemMeasureArea(self)
@@ -277,9 +278,7 @@ class QtGraphicsManager(AbstractSampleView):
             self.connect(
                 HWR.beamline.beam, "beamPosChanged", self.beam_position_changed
             )
-            self.connect(
-                HWR.beamline.beam, "beamInfoChanged", self.beam_info_changed
-            )
+            self.connect(HWR.beamline.beam, "beamInfoChanged", self.beam_info_changed)
 
             self.beam_info_changed(self.beam_info_dict)
             self.beam_position_changed(HWR.beamline.beam.get_beam_position())
@@ -288,7 +287,9 @@ class QtGraphicsManager(AbstractSampleView):
                 "GraphicsManager: BeamInfo hwobj not defined"
             )
 
-        self.camera_hwobj = self.getObjectByRole(self.getProperty("camera_name", "camera"))
+        self.camera_hwobj = self.getObjectByRole(
+            self.getProperty("camera_name", "camera")
+        )
         if self.camera_hwobj is not None:
             graphics_scene_size = self.camera_hwobj.get_image_dimensions()
             self.set_graphics_scene_size(graphics_scene_size, False)
@@ -351,13 +352,15 @@ class QtGraphicsManager(AbstractSampleView):
         # except:
         #    pass
 
-        #self.temp_animation_dir = os.path.join(self.user_file_directory, "animation")
+        # self.temp_animation_dir = os.path.join(self.user_file_directory, "animation")
 
         self.omega_move_delta = self.getProperty("omega_move_delta", 10)
 
         custom_cursor_filename = self.getProperty("custom_cursor", "")
         if os.path.exists(custom_cursor_filename):
-            self.cursor = QtImport.QCursor(QtImport.QPixmap(custom_cursor_filename), 0, 0)
+            self.cursor = QtImport.QCursor(
+                QtImport.QPixmap(custom_cursor_filename), 0, 0
+            )
             self.set_cursor_busy(False)
         else:
             self.cursor = QtImport.Qt.ArrowCursor
@@ -396,7 +399,6 @@ class QtGraphicsManager(AbstractSampleView):
             AbstractActuator
         """
         return self.camera_hwobj
-
 
     def save_graphics_config(self):
         """Saves graphical objects in the file
@@ -618,7 +620,7 @@ class QtGraphicsManager(AbstractSampleView):
 
             self.show_all_items()
             self.graphics_view.graphics_scene.update()
-            #self.update_histogram()
+            # self.update_histogram()
             self.emit("diffractometerReady", True)
         else:
             self.hide_all_items()
@@ -908,10 +910,14 @@ class QtGraphicsManager(AbstractSampleView):
         self.mouse_position[0] = scene_point.x()
         self.mouse_position[1] = scene_point.y()
         if self.in_centring_state or self.in_one_click_centering:
-            self.graphics_centring_lines_item.set_start_position(scene_point.x(), scene_point.y())
+            self.graphics_centring_lines_item.set_start_position(
+                scene_point.x(), scene_point.y()
+            )
         elif self.in_grid_drawing_state:
             if self.graphics_grid_draw_item.is_draw_mode():
-                self.graphics_grid_draw_item.set_end_position(scene_point.x(), scene_point.y())
+                self.graphics_grid_draw_item.set_end_position(
+                    scene_point.x(), scene_point.y()
+                )
         elif self.in_measure_distance_state:
             self.graphics_measure_distance_item.set_coord(self.mouse_position)
         elif self.in_measure_angle_state:
@@ -928,10 +934,15 @@ class QtGraphicsManager(AbstractSampleView):
             )
         elif self.in_select_items_state:
 
-            self.graphics_select_tool_item.set_end_position(scene_point.x(), scene_point.y())
+            self.graphics_select_tool_item.set_end_position(
+                scene_point.x(), scene_point.y()
+            )
             select_start_x = self.graphics_select_tool_item.start_coord[0]
             select_start_y = self.graphics_select_tool_item.start_coord[1]
-            if abs(select_start_x - scene_point.x()) > 5 and abs(select_start_y - scene_point.y()) > 5:
+            if (
+                abs(select_start_x - scene_point.x()) > 5
+                and abs(select_start_y - scene_point.y()) > 5
+            ):
                 painter_path = QtImport.QPainterPath()
                 painter_path.addRect(
                     min(select_start_x, scene_point.x()),
@@ -947,7 +958,9 @@ class QtGraphicsManager(AbstractSampleView):
                 self.select_lines_and_grids()
                 """
         elif self.in_magnification_mode:
-            self.graphics_magnification_item.set_end_position(scene_point.x(), scene_point.y())
+            self.graphics_magnification_item.set_end_position(
+                scene_point.x(), scene_point.y()
+            )
 
         # TODO add grid commands
         # else:
@@ -1045,7 +1058,9 @@ class QtGraphicsManager(AbstractSampleView):
     def set_cursor_busy(self, state):
         return 
         if state:
-            QtImport.QApplication.setOverrideCursor(QtImport.QCursor(QtImport.Qt.BusyCursor))
+            QtImport.QApplication.setOverrideCursor(
+                QtImport.QCursor(QtImport.Qt.BusyCursor)
+            )
         else:
             QtImport.QApplication.setOverrideCursor(self.cursor)
 
@@ -1795,10 +1810,9 @@ class QtGraphicsManager(AbstractSampleView):
             self.wait_grid_drawing_click = True
 
     def create_auto_grid(self):
-        #self.start_auto_centring(wait=True)
+        # self.start_auto_centring(wait=True)
         grid_size = (1, 1)
-        grid_spacing = (self.beam_info_dict["size_x"],
-                        self.beam_info_dict["size_y"])
+        grid_spacing = (self.beam_info_dict["size_x"], self.beam_info_dict["size_y"])
 
         GraphicsLib.GraphicsItemGrid.set_auto_grid_size(grid_size)
         temp_grid = GraphicsLib.GraphicsItemGrid(
@@ -2049,14 +2063,14 @@ class QtGraphicsManager(AbstractSampleView):
                 object_shape_dict["width"] = int(hor_roots[-1] - hor_roots[0])
                 object_shape_dict["height"] = int(ver_roots[-1] - ver_roots[0])
 
-            #beam_spl_x = (hor_roots[0] + hor_roots[1]) / 2.0
-            #beam_spl_y = (ver_roots[0] + ver_roots[1]) / 2.0
+            # beam_spl_x = (hor_roots[0] + hor_roots[1]) / 2.0
+            # beam_spl_y = (ver_roots[0] + ver_roots[1]) / 2.0
         except BaseException:
             logging.getLogger("user_level_log").debug(
                 "QtGraphicsManager: " + "Unable to detect object shape"
             )
-            #beam_spl_x = 0
-            #beam_spl_y = 0
+            # beam_spl_x = 0
+            # beam_spl_y = 0
 
         f = interpolate.interp1d(np.arange(0, hor_sum.size, 1), hor_sum)
         xx = np.arange(0, hor_sum.size, 1)
@@ -2206,7 +2220,7 @@ class QtGraphicsManager(AbstractSampleView):
         """Display or hide magnification tool"""
         if mode:
             QtImport.QApplication.setOverrideCursor(
-               QtImport.QCursor(QtImport.Qt.ClosedHandCursor)
+                QtImport.QCursor(QtImport.Qt.ClosedHandCursor)
             )
         else:
             self.set_cursor_busy(False)
@@ -2216,5 +2230,9 @@ class QtGraphicsManager(AbstractSampleView):
     def set_scrollbars_off(self, state):
         """Enables or disables scrollbars"""
         if state:
-            self.graphics_view.setHorizontalScrollBarPolicy(QtImport.Qt.ScrollBarAlwaysOff)
-            self.graphics_view.setVerticalScrollBarPolicy(QtImport.Qt.ScrollBarAlwaysOff)
+            self.graphics_view.setHorizontalScrollBarPolicy(
+                QtImport.Qt.ScrollBarAlwaysOff
+            )
+            self.graphics_view.setVerticalScrollBarPolicy(
+                QtImport.Qt.ScrollBarAlwaysOff
+            )

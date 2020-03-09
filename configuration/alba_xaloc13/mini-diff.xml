@@ -35,7 +35,7 @@
 
   <!-- zoom_centre>{"x": 348,"y": 260}</zoom_centre -->
 
-  <omegaReference>{"motor_name": "phiz", "position":-0.0175, "camera_axis":"y","direction": -1}</omegaReference>
+  <omegaReference>{"actuator_name": "phiz", "position":-0.0175, "camera_axis":"y","direction": -1}</omegaReference>
   <gridDirection>{"fast": (1, 0), "slow": (0, -1)}</gridDirection>
   <reversingRotation>True</reversingRotation>
 

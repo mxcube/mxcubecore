@@ -13,15 +13,15 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects.abstract.AbstractEnergyScan import (
-    AbstractEnergyScan)
+    AbstractEnergyScan,
+)
 from HardwareRepository import HardwareRepository as HWR
-
 
 
 class FixedEnergy:
     @task
     def get_energy(self):
-        return self._tunable_bl.energy_obj.getPosition()
+        return self._tunable_bl.energy_obj.get_value()
 
 
 class TunableEnergy:
@@ -31,7 +31,7 @@ class TunableEnergy:
 
     @task
     def move_energy(self, energy):
-        return self._tunable_bl.energy_obj.startMoveEnergy(energy, wait=True)
+        return self._tunable_bl.energy_obj.move_energy(energy, wait=True)
 
 
 class GetStaticParameters:
@@ -88,7 +88,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
 
     def execute_command(self, command_name, *args, **kwargs):
         wait = kwargs.get("wait", True)
-        cmd_obj = self.getCommandObject(command_name)
+        cmd_obj = self.get_command_object(command_name)
         return cmd_obj(*args, wait=wait)
 
     def init(self):

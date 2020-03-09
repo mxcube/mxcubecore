@@ -39,7 +39,7 @@ class PX1Resolution(Equipment):
         self.minimum_dist_chan = self.getChannelObject("minimum_distance")
         self.state_chan = self.getChannelObject("state")
 
-        self.stop_command = self.getCommandObject("stop")
+        self.stop_command = self.get_command_object("stop")
 
         self.distance_chan.connectSignal("update", self.distanceChanged)
         self.resolution_chan.connectSignal("update", self.resolutionChanged)

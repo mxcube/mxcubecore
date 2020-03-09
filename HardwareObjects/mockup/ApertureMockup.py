@@ -19,7 +19,7 @@
 
 import logging
 from HardwareRepository.HardwareObjects.abstract.AbstractAperture import (
-    AbstractAperture
+    AbstractAperture,
 )
 
 

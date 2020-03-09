@@ -71,8 +71,8 @@ class ALBACollect(AbstractCollect):
         self.photonshut_hwobj = self.getObjectByRole("photon_shutter")
         self.frontend_hwobj = self.getObjectByRole("frontend")
 
-        self.ni_conf_cmd = self.getCommandObject("ni_configure")
-        self.ni_unconf_cmd = self.getCommandObject("ni_unconfigure")
+        self.ni_conf_cmd = self.get_command_object("ni_configure")
+        self.ni_unconf_cmd = self.get_command_object("ni_unconfigure")
 
         # some extra reading channels to be saved in image header
         self.kappapos_chan = self.getChannelObject("kappapos")
@@ -222,7 +222,7 @@ class ALBACollect(AbstractCollect):
         logging.getLogger("HWR").info(
             "collecting images, by moving omega to %s" % final_pos
         )
-        HWR.beamline.diffractometer.omega.move(final_pos)
+        HWR.beamline.diffractometer.omega.set_value(final_pos)
         self.wait_collection_done(nb_images, first_image_no)
         self.data_collection_end()
         self.collection_finished()
@@ -329,7 +329,7 @@ class ALBACollect(AbstractCollect):
         final_pos = start_angle + total_dist + safe_delta
 
         logging.getLogger("HWR").info("Moving omega to initial position %s" % init_pos)
-        HWR.beamline.diffractometer.omega.move(init_pos)
+        HWR.beamline.diffractometer.omega.set_value(init_pos)
 
         HWR.beamline.detector.prepare_collection(nb_images, first_image_no)
 
@@ -337,7 +337,7 @@ class ALBACollect(AbstractCollect):
 
         logging.getLogger("HWR").info(
             "Moving omega finished at %s"
-            % HWR.beamline.diffractometer.omega.getPosition()
+            % HWR.beamline.diffractometer.omega.get_value()
         )
 
         # program omega speed depending on exposure time
@@ -724,7 +724,7 @@ class ALBACollect(AbstractCollect):
         """
         Descript. : resolution is a motor in out system
         """
-        HWR.beamline.resolution.move(value)
+        HWR.beamline.resolution.set_value(value)
 
     def move_detector(self, value):
         HWR.beamline.detector.move_distance(value)
@@ -857,7 +857,7 @@ class ALBACollect(AbstractCollect):
             Called to save resolution in lims
         """
         if HWR.beamline.resolution is not None:
-            return HWR.beamline.resolution.getPosition()
+            return HWR.beamline.resolution.get_value()
 
     def get_transmission(self):
         """

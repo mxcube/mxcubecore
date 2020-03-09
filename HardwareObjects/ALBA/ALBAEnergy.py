@@ -26,14 +26,14 @@ class ALBAEnergy(Device):
 
     def get_energy(self):
         if self.energy_position is None:
-            self.energy_position = HWR.beamline.energy.getPosition()
+            self.energy_position = HWR.beamline.energy.get_value()
         return self.energy_position
 
     get_current_energy = get_energy
 
     def get_wavelength(self):
         if self.wavelength_position is None:
-            self.wavelength_position = self.wavelength_hwobj.getPosition()
+            self.wavelength_position = self.wavelength_hwobj.get_value()
         return self.wavelength_position
 
     def update_values(self):
@@ -55,13 +55,13 @@ class ALBAEnergy(Device):
         logging.getLogger("HWR").debug(
             "moving energy to %s. now is %s" % (value, current_egy)
         )
-        HWR.beamline.energy.move(value)
+        HWR.beamline.energy.set_value(value)
 
     def wait_move_energy_done(self):
         HWR.beamline.energy.wait_end_of_move()
 
     def move_wavelength(self, value):
-        self.wavelength_hwobj.move(value)
+        self.wavelength_hwobj.set_value(value)
 
     def get_energy_limits(self):
         return HWR.beamline.energy.getLimits()

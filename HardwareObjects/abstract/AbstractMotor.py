@@ -57,6 +57,7 @@ class AbstractMotor(AbstractActuator):
 
     def init(self):
         """Initialise some parametrs."""
+        AbstractActuator.init(self)
         self._tolerance = self.getProperty("tolerance") or 1e-3
 
     def get_velocity(self):
@@ -114,8 +115,9 @@ class AbstractMotor(AbstractActuator):
         if value is None:
             value = self.get_value()
 
-        if abs(value - self._nominal_value) <= self._tolerance:
-            return
+        if self._tolerance:
+            if abs(value - self._nominal_value) <= self._tolerance:
+                return
 
         self._nominal_value = value
         self.emit("valueChanged", (self._nominal_value,))

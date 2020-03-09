@@ -1,15 +1,15 @@
 <device class="${class}">
     <tangoname>${tangoname}</tangoname>
-    <motor_name>${motor_name}</motor_name>
-    <username>${motor_name}</username>
+    <actuator_name>${actuator_name}</actuator_name>
+    <username>${actuator_name}</username>
     <direction>${direction}</direction>
     <GUIstep>${GUIstep}</GUIstep>
-    <channel type="tango" polling="${polling_interval}" name="${motor_name}Position">${motor_name}Position</channel>
-    <channel type="tango" polling="${polling_interval}" name="${motor_name}State">${motor_name}State</channel>
+    <channel type="tango" polling="${polling_interval}" name="${actuator_name}Position">${actuator_name}Position</channel>
+    <channel type="tango" polling="${polling_interval}" name="${actuator_name}State">${actuator_name}State</channel>
     <channel type="tango" polling="${polling_interval}" name="motor_states">MotorStates</channel>
     <command type="tango" name="abort">abort</command>
     <command type="tango" name="homing">startHomingMotor</command>
-    <command type="tango" name="get${motor_name}DynamicLimits">getMotorDynamicLimits</command>
+    <command type="tango" name="get${actuator_name}DynamicLimits">getMotorDynamicLimits</command>
     <command type="tango" name="get_limits">getMotorLimits</command>
     <command type="tango" name="get_max_speed">getMotorMaxSpeed</command>
 </device>

@@ -1,7 +1,7 @@
 <device class="SardanaMotor">
   <username>Wavelength</username>
   <taurusname>wavelength</taurusname>
-  <motor_name>wavelength</motor_name>
+  <actuator_name>wavelength</actuator_name>
   <guistep>45</guistep>
   <!-- interval>500</interval -->
 </device>

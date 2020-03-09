@@ -31,7 +31,6 @@ __credits__ = ["EMBL Hamburg"]
 __category__ = "General"
 
 
-
 class EMBLBeamCentering(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
@@ -44,7 +43,7 @@ class EMBLBeamCentering(HardwareObject):
         self.scan_status = None
 
         self.chan_pitch_scan_status = None
-        #self.chan_qbpm_ar = None
+        # self.chan_qbpm_ar = None
         self.chan_pitch_position_ar = None
         self.cmd_set_pitch_position = None
         self.cmd_set_pitch = None
@@ -73,7 +72,7 @@ class EMBLBeamCentering(HardwareObject):
             self.chan_pitch_scan_status, "update", self.pitch_scan_status_changed
         )
 
-        #self.chan_qbpm_ar = self.getChannelObject("chanQBPMAr")
+        # self.chan_qbpm_ar = self.getChannelObject("chanQBPMAr")
 
         self.chan_pitch_position_ar = self.getChannelObject("chanPitchPositionAr")
         self.cmd_set_pitch_position = self.getCommandObject("cmdSetPitchPosition")
@@ -93,11 +92,7 @@ class EMBLBeamCentering(HardwareObject):
 
         # self.chan_pitch_second = self.getChannelObject("chanPitchSecond")
         self.crl_hwobj = self.getObjectByRole("crl")
-        self.connect(
-            HWR.beamline.energy,
-            "beamAlignmentRequested",
-            self.center_beam,
-        )
+        self.connect(HWR.beamline.energy, "beamAlignmentRequested", self.center_beam)
 
         if hasattr(HWR.beamline.beam, "beam_focusing_hwobj"):
             self.beam_focusing_hwobj = HWR.beamline.beam.beam_focusing_hwobj
@@ -132,9 +127,9 @@ class EMBLBeamCentering(HardwareObject):
         self.cmd_start_pitch_scan(1)
         sleep(3)
         with gevent.Timeout(20, Exception("Timeout waiting for pitch scan ready")):
-            while self.scan_status != 0: #chan_pitch_scan_status.getValue() != 0:
+            while self.scan_status != 0:  # chan_pitch_scan_status.getValue() != 0:
                 gevent.sleep(0.1)
-                logging.getLogger("HWR").error("scan status %s" %self.scan_status)
+                logging.getLogger("HWR").error("scan status %s" % self.scan_status)
         self.cmd_set_vmax_pitch(1)
         sleep(3)
 
@@ -164,7 +159,7 @@ class EMBLBeamCentering(HardwareObject):
         current_energy = HWR.beamline.energy.get_value()
         current_transmission = HWR.transmission.get_value()
         active_mode, beam_size = self.get_focus_mode()
- 
+
         log_msg = "Beam centering: Active mode %s" % active_mode
         gui_log.info(log_msg)
 
@@ -224,8 +219,7 @@ class EMBLBeamCentering(HardwareObject):
             # Adjust transmission ---------------------------------------------
             step += 1
             log_msg = (
-                "Adjusting transmission to the current energy %.1f keV"
-                % current_energy
+                "Adjusting transmission to the current energy %.1f keV" % current_energy
             )
             gui_log.info("Beam centering: %s" % log_msg)
             self.emit("progressStep", step, log_msg)
@@ -233,17 +227,21 @@ class EMBLBeamCentering(HardwareObject):
             if current_energy < 7:
                 new_transmission = 100
             else:
-                energy_transm = interp1d([6.9, 8.0, 12.7, 19.0], [100.0, 60.0, 15.0, 10])
+                energy_transm = interp1d(
+                    [6.9, 8.0, 12.7, 19.0], [100.0, 60.0, 15.0, 10]
+                )
                 new_transmission = round(energy_transm(current_energy), 2)
 
             if HWR.beamline.session.beamline_name == "P13":
                 HWR.beamline.transmission.set_value(  # Transmission(
                     new_transmission, timeout=45
                 )
-                HWR.beamline.diffractometer.set_zoom("Zoom 4") #was 4, use 1 with broken zoom motor
-                #capillary_position = (
+                HWR.beamline.diffractometer.set_zoom(
+                    "Zoom 4"
+                )  # was 4, use 1 with broken zoom motor
+                # capillary_position = (
                 #    HWR.beamline.diffractometer.get_capillary_position()
-                #)
+                # )
                 HWR.beamline.diffractometer.set_capillary_position("OFF")
 
                 gevent.sleep(1)
@@ -258,9 +256,7 @@ class EMBLBeamCentering(HardwareObject):
                     HWR.beamline.diffractometer.set_zoom("Zoom 4")
                 else:
                     # 2% transmission for beam centering in double foucused mode
-                    HWR.beamline.transmission.set_value(
-                        2, timeout=45
-                    )
+                    HWR.beamline.transmission.set_value(2, timeout=45)
                     HWR.beamline.diffractometer.set_zoom("Zoom 8")
 
                 step += 1
@@ -319,7 +315,7 @@ class EMBLBeamCentering(HardwareObject):
             return False
 
         finally:
-             HWR.beamline.fast_shutter.closeShutter(wait=False)
+            HWR.beamline.fast_shutter.closeShutter(wait=False)
 
     def move_beam_to_center(self):
         """Calls pitch scan and 3 times detects beam shape and
@@ -338,7 +334,7 @@ class EMBLBeamCentering(HardwareObject):
                 gui_log.info("Beam centering: %s" % log_msg)
                 self.emit("progressStep", step, log_msg)
 
-                if HWR.beamline.energy.get_current_energy() <= 8.75:
+                if HWR.beamline.energy.get_energy() <= 8.75:
                     self.cmd_set_qbmp_range(0)
                 else:
                     self.cmd_set_qbmp_range(1)
@@ -347,7 +343,9 @@ class EMBLBeamCentering(HardwareObject):
                 self.cmd_start_pitch_scan(1)
                 gevent.sleep(3)
 
-                with gevent.Timeout(20, Exception("Timeout waiting for pitch scan ready")):
+                with gevent.Timeout(
+                    20, Exception("Timeout waiting for pitch scan ready")
+                ):
                     while self.chan_pitch_scan_status.getValue() == 1:
                         gevent.sleep(0.1)
                 gevent.sleep(3)
@@ -366,7 +364,6 @@ class EMBLBeamCentering(HardwareObject):
                 gui_log.info("Beam centering: %s" % log_msg)
                 self.emit("progressStep", step, log_msg)
 
-
                 for i in range(3):
                     with gevent.Timeout(10, False):
                         beam_pos_displacement = [None, None]
@@ -376,7 +373,9 @@ class EMBLBeamCentering(HardwareObject):
                             )
                             gevent.sleep(0.1)
                     if None in beam_pos_displacement:
-                        log_msg = "Beam alignment failed! Unable to detect beam position."
+                        log_msg = (
+                            "Beam alignment failed! Unable to detect beam position."
+                        )
                         gui_log.error(log_msg)
                         self.emit("progressStop", ())
                         return
@@ -393,12 +392,16 @@ class EMBLBeamCentering(HardwareObject):
                     if delta_ver < -0.03:
                         delta_ver = -0.03
 
-                    log_msg = "Beam centering: Applying %.4f mm horizontal " % delta_hor +\
-                        "and %.4f mm vertical correction" % delta_ver
+                    log_msg = (
+                        "Beam centering: Applying %.4f mm horizontal " % delta_hor
+                        + "and %.4f mm vertical correction" % delta_ver
+                    )
                     gui_log.info(log_msg)
 
                     if abs(delta_hor) > 0.0001:
-                        log_msg = "Beam centering: Moving horizontal by %.4f" % delta_hor
+                        log_msg = (
+                            "Beam centering: Moving horizontal by %.4f" % delta_hor
+                        )
                         gui_log.info(log_msg)
                         self.horizontal_motor_hwobj.move_relative(delta_hor)
                         sleep(5)
@@ -423,7 +426,7 @@ class EMBLBeamCentering(HardwareObject):
                         self.cmd_set_pitch(1)
                         gevent.sleep(0.1)
 
-                        if HWR.beamline.energy.get_current_energy() < 10:
+                        if HWR.beamline.energy.get_energy() < 10:
                             crl_value = self.crl_hwobj.get_crl_value()
                             self.crl_hwobj.set_crl_value([1, 1, 1, 1, 1, 1], timeout=30)
 
@@ -443,7 +446,7 @@ class EMBLBeamCentering(HardwareObject):
                         self.cmd_set_vmax_pitch(1)
 
                         # GB : return original lenses only after scan finished
-                        if HWR.beamline.energy.get_current_energy() < 10:
+                        if HWR.beamline.energy.get_energy() < 10:
                             self.crl_hwobj.set_crl_value(crl_value, timeout=30)
                         sleep(2)
 
@@ -461,7 +464,7 @@ class EMBLBeamCentering(HardwareObject):
                         delta_hor = (
                             beam_pos_displacement[0]
                             * self.scale_hor
-                            * HWR.beamline.energy.get_current_energy()
+                            * HWR.beamline.energy.get_energy()
                             / 12.70
                         )
                         delta_ver = beam_pos_displacement[1] * self.scale_ver
@@ -471,15 +474,19 @@ class EMBLBeamCentering(HardwareObject):
                             beam_pos_displacement[1] * self.scale_double_ver * 0.5
                         )
 
-                    log_msg = "Measured beam displacement: Horizontal " +\
-                        "%.4f mm, Vertical %.4f mm" % beam_pos_displacement
+                    log_msg = (
+                        "Measured beam displacement: Horizontal "
+                        + "%.4f mm, Vertical %.4f mm" % beam_pos_displacement
+                    )
                     gui_log.info(log_msg)
 
                     # if abs(delta_ver) > 0.050 :
                     #    delta_ver *= 0.5
 
-                    log_msg = "Applying %.4f mm horizontal " % delta_hor +\
-                        "and %.4f mm vertical motor correction" % delta_ver
+                    log_msg = (
+                        "Applying %.4f mm horizontal " % delta_hor
+                        + "and %.4f mm vertical motor correction" % delta_ver
+                    )
                     gui_log.info(log_msg)
 
                     if active_mode in ("Collimated", "Imaging"):

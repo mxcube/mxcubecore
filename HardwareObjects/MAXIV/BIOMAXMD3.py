@@ -16,7 +16,8 @@ import io
 import math
 
 from HardwareRepository.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer, DiffractometerState
+    GenericDiffractometer,
+    DiffractometerState,
 )
 from HardwareRepository import HardwareRepository as HWR
 
@@ -113,8 +114,7 @@ class BIOMAXMD3(GenericDiffractometer):
         except BaseException:
             self.zoom_centre = {"x": 0, "y": 0}
             logging.getLogger("HWR").warning(
-                "BIOMAXMD3: "
-                + "zoom centre not configured"
+                "BIOMAXMD3: " + "zoom centre not configured"
             )
 
     def current_phase_changed(self, current_phase):
@@ -171,9 +171,9 @@ class BIOMAXMD3(GenericDiffractometer):
             if self.in_plate_mode():
                 dynamic_limits = self.phi_motor_hwobj.getDynamicLimits()
                 if click == 0:
-                    self.phi_motor_hwobj.move(dynamic_limits[0])
+                    self.phi_motor_hwobj.set_value(dynamic_limits[0])
                 elif click == 1:
-                    self.phi_motor_hwobj.move(dynamic_limits[1])
+                    self.phi_motor_hwobj.set_value(dynamic_limits[1])
             else:
                 if click < 2:
                     self.phi_motor_hwobj.moveRelative(90)
@@ -539,9 +539,7 @@ class BIOMAXMD3(GenericDiffractometer):
         if keep_position:
             for motor in motors:
                 try:
-                    current_positions[motor] = self.motor_hwobj_dict[
-                        motor
-                    ].getPosition()
+                    current_positions[motor] = self.motor_hwobj_dict[motor].get_value()
                 except BaseException:
                     pass
         try:
@@ -652,17 +650,17 @@ class BIOMAXMD3(GenericDiffractometer):
 
     def get_positions(self):
         return {
-            "phi": float(self.phi_motor_hwobj.getPosition()),
-            "focus": float(self.focus_motor_hwobj.getPosition()),
-            "phiy": float(self.phiy_motor_hwobj.getPosition()),
-            "phiz": float(self.phiz_motor_hwobj.getPosition()),
-            "sampx": float(self.sample_x_motor_hwobj.getPosition()),
-            "sampy": float(self.sample_y_motor_hwobj.getPosition()),
-            "kappa": float(self.kappa_motor_hwobj.getPosition())
+            "phi": float(self.phi_motor_hwobj.get_value()),
+            "focus": float(self.focus_motor_hwobj.get_value()),
+            "phiy": float(self.phiy_motor_hwobj.get_value()),
+            "phiz": float(self.phiz_motor_hwobj.get_value()),
+            "sampx": float(self.sample_x_motor_hwobj.get_value()),
+            "sampy": float(self.sample_y_motor_hwobj.get_value()),
+            "kappa": float(self.kappa_motor_hwobj.get_value())
             if self.kappa_motor_hwobj
             else None,
-            "kappa_phi": float(self.kappa_phi_motor_hwobj.getPosition())
+            "kappa_phi": float(self.kappa_phi_motor_hwobj.get_value())
             if self.kappa_phi_motor_hwobj
             else None,
-            "zoom": float(self.zoom_motor_hwobj.getPosition()),
+            "zoom": float(self.zoom_motor_hwobj.get_value()),
         }

@@ -37,7 +37,7 @@ except ImportError:
     from PyQt4.QtCore import Qt
 
 from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
-    AbstractVideoDevice
+    AbstractVideoDevice,
 )
 
 """
@@ -53,16 +53,18 @@ Example xml:
 </device>
 """
 
-class QtAxisCamera(AbstractVideoDevice):
 
+class QtAxisCamera(AbstractVideoDevice):
     def __init__(self, name):
         AbstractVideoDevice.__init__(self, name)
 
     def init(self):
         self.image_dimensions = [352, 288]
         self.request = urllib2.Request(self.getProperty("address"))
-        base64string = base64.b64encode('%s:%s' % (self.getProperty("user"), self.getProperty("password")))
-        self.request.add_header("Authorization", "Basic %s" % base64string) 
+        base64string = base64.b64encode(
+            "%s:%s" % (self.getProperty("user"), self.getProperty("password"))
+        )
+        self.request.add_header("Authorization", "Basic %s" % base64string)
         self.qpixmap = QPixmap()
         self.setIsReady(True)
 

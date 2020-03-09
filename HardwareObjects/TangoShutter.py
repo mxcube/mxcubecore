@@ -155,7 +155,6 @@ class TangoShutter(BaseHardwareObjects.Device):
 
     def init(self):
         self.state_value_str = "unknown"
-
         try:
             self.shutter_channel = self.getChannelObject("State")
             self.shutter_channel.connectSignal("update", self.shutterStateChanged)
@@ -164,8 +163,8 @@ class TangoShutter(BaseHardwareObjects.Device):
                 "%s: cannot connect to shutter channel", self.name()
             )
 
-        self.open_cmd = self.getCommandObject("Open")
-        self.close_cmd = self.getCommandObject("Close")
+        self.open_cmd = self.get_command_object("Open")
+        self.close_cmd = self.get_command_object("Close")
 
     def shutterStateChanged(self, value):
         self.state_value_str = self._convert_state_to_str(value)

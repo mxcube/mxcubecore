@@ -27,6 +27,7 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 class AbstractSampleView(HardwareObject):
     """ AbstractSampleView Class """
+
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, name):

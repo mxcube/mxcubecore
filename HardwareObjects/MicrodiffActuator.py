@@ -14,7 +14,7 @@ Example xml file:
 import logging
 import time
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator
+    AbstractActuator,
 )
 from HardwareRepository.TaskUtils import task
 
@@ -93,10 +93,7 @@ class MicrodiffActuator(AbstractActuator):
         if read is True:
             value = self.state_attr.getValue()
             self.actuator_state = self.states.get(value, AbstractActuator.UNKNOWN)
-            # self.connectNotify("actuatorStateChanged")
-        else:
-            if self.actuator_state == AbstractActuator.UNKNOWN:
-                self.connectNotify("actuatorStateChanged")
+
         return self.actuator_state
 
     @task
@@ -109,7 +106,6 @@ class MicrodiffActuator(AbstractActuator):
                     self._wait_ready(timeout)
                 self.value_changed(self.state_attr.getValue())
             except Exception as e:
-                print (e)
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s in", self.username
                 )
@@ -128,7 +124,6 @@ class MicrodiffActuator(AbstractActuator):
                     self._wait_ready(timeout)
                 self.value_changed(self.state_attr.getValue())
             except Exception as e:
-                print (e)
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s out", self.username
                 )
