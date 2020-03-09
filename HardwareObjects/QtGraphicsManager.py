@@ -207,7 +207,7 @@ class QtGraphicsManager(AbstractSampleView):
             self.item_double_clicked
         )
         self.graphics_view.scene().moveItemClickedSignal.connect(self.move_item_clicked)
-        self.graphics_view.scene().gridClickedSignal.connect(self.grid_clicked)
+        #self.graphics_view.scene().gridClickedSignal.connect(self.grid_clicked)
 
         self.graphics_view.mouseMovedSignal.connect(self.mouse_moved)
         self.graphics_view.keyPressedSignal.connect(self.key_pressed)
