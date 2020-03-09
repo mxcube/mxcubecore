@@ -370,7 +370,7 @@ class EMBLCollect(AbstractCollect):
     @task
     def _take_crystal_snapshot(self, snapshot_filename):
         """Saves crystal snapshot"""
-        HWR.beamline.sample_view..save_scene_snapshot(snapshot_filename)
+        HWR.beamline.sample_view.save_scene_snapshot(snapshot_filename)
 
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec=1):
