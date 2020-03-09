@@ -51,3 +51,9 @@ class EDNACharacterisationMockup(AbstractCharacterisation):
 
     def is_running(self):
         return
+
+    def dc_from_output(self, edna_result, reference_image_collection):
+        return
+
+    def get_default_characterisation_parameters(self):
+        return
