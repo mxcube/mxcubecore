@@ -1,4 +1,3 @@
-
 from HardwareRepository.HardwareObjects import SpecMotor
 import logging
 
@@ -58,7 +57,7 @@ class SpecMotorWPositions(SpecMotor.SpecMotor):
     def motorMoveDone(self, channelValue):
         SpecMotor.SpecMotor.motorMoveDone.__func__(self, channelValue)
 
-        pos = self.getPosition()
+        pos = self.get_value()
         logging.getLogger("HWR").debug("current pos=%s", pos)
 
         for positionName in self.predefinedPositions:
@@ -89,9 +88,9 @@ class SpecMotorWPositions(SpecMotor.SpecMotor):
             for positionName in self.predefinedPositions:
                 if (
                     self.predefinedPositions[positionName]
-                    >= self.getPosition() - self.delta
+                    >= self.get_value() - self.delta
                     and self.predefinedPositions[positionName]
-                    <= self.getPosition() + self.delta
+                    <= self.get_value() + self.delta
                 ):
                     return positionName
         return ""

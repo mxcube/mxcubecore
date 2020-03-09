@@ -14,9 +14,7 @@ class Q315dist(BaseHardwareObjects.Equipment):
 
         self.connect(self.detm, "stateChanged", self.detmStateChanged)
         self.connect(
-            HWR.beamline.detector.distance,
-            "limitsChanged",
-            self.dtoxLimitsChanged
+            HWR.beamline.detector.distance, "limitsChanged", self.dtoxLimitsChanged
         )
         self.connect(self.detm, "positionChanged", self.detmPositionChanged)
 
@@ -48,7 +46,7 @@ class Q315dist(BaseHardwareObjects.Equipment):
         if signal == "stateChanged":
             self.detmStateChanged(self.detm.getState())
         elif signal == "positionChanged":
-            self.detmPositionChanged(self.detm.getPosition())
+            self.detmPositionChanged(self.detm.get_value())
 
     def detmStateChanged(self, state):
         if (state == self.detm.NOTINITIALIZED) or (state > self.detm.UNUSABLE):

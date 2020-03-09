@@ -1,15 +1,15 @@
 <device class="${class}">
     <exporter_address>${exporter_address}</exporter_address>
-    <motor_name>${motor_name}</motor_name>
-    <username>${motor_name}</username>
+    <actuator_name>${actuator_name}</actuator_name>
+    <username>${actuator_name}</username>
     <direction>${direction}</direction>
     <GUIstep>${GUIstep}</GUIstep>
-    <channel type="exporter" name="${motor_name}Position">${motor_name}Position</channel>
-    <channel type="exporter" name="${motor_name}State">${motor_name}State</channel>
+    <channel type="exporter" name="${actuator_name}Position">${actuator_name}Position</channel>
+    <channel type="exporter" name="${actuator_name}State">${actuator_name}State</channel>
     <channel type="exporter" name="motor_states">MotorStates</channel>
     <command type="exporter" name="abort">abort</command>
     <command type="exporter" name="homing">startHomingMotor</command>
-    <command type="exporter" name="get${motor_name}DynamicLimits">getMotorDynamicLimits</command>
+    <command type="exporter" name="get${actuator_name}DynamicLimits">getMotorDynamicLimits</command>
     <command type="exporter" name="get_limits">getMotorLimits</command>
     <command type="exporter" name="get_max_speed">getMotorMaxSpeed</command>
 </device>

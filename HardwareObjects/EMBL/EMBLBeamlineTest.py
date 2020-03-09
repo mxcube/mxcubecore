@@ -104,7 +104,6 @@ class EMBLBeamlineTest(HardwareObject):
         if self.getProperty("run_tests_at_startup") == True:
             gevent.spawn_later(5, self.start_test_queue, self.startup_test_list)
 
-
     def start_test_queue(self, test_list, create_report=True):
         """Runs a list of tests
 

@@ -1,6 +1,6 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects.abstract.AbstractMultiCollect import (
-    AbstractMultiCollect
+    AbstractMultiCollect,
 )
 from HardwareRepository.TaskUtils import task
 import logging
@@ -236,7 +236,7 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
 
     def get_resolution(self):
         if self.bl_control.resolution is not None:
-            return self.bl_control.resolution.getPosition()
+            return self.bl_control.resolution.get_value()
 
     def get_transmission(self):
         if self.bl_control.transmission is not None:

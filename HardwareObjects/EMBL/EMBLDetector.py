@@ -124,7 +124,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
     def get_distance(self):
         """Returns detector distance in mm"""
-        return self.distance_motor_hwobj.getPosition()
+        return self.distance_motor_hwobj.get_value()
 
     def set_distance(self, position, timeout=None):
         """Sets detector distance
@@ -179,14 +179,16 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
         if self.temperature > self.temp_treshold:
             msg = "Detector: Temperature %0.2f is greater than allowed %0.2f" % (
-                self.temperature, self.temp_treshold
-            ) 
+                self.temperature,
+                self.temp_treshold,
+            )
             logging.getLogger("GUI").warning(msg)
             status_message = "Temperature has exceeded threshold.\n"
 
         if self.humidity > self.hum_treshold:
             msg = "Detector: Humidity %0.2f is greater than allowed %0.2f" % (
-                self.humidity, self.hum_treshold
+                self.humidity,
+                self.hum_treshold,
             )
             logging.getLogger("GUI").warning(msg)
             status_message = status_message + "Humidity has exceeded threshold.\n"

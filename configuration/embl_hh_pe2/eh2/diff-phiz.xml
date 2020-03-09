@@ -1,4 +1,4 @@
 <device class="MotorMockup">
-  <motor_name>PhiZ</motor_name>
+  <actuator_name>PhiZ</actuator_name>
   <start_position>0</start_position>
 </device>

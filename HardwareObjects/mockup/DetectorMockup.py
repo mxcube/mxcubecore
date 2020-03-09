@@ -1,6 +1,7 @@
 from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
-    AbstractDetector
+    AbstractDetector,
 )
+
 
 class DetectorMockup(AbstractDetector):
     """
@@ -37,7 +38,7 @@ class DetectorMockup(AbstractDetector):
         return self._distance_motor_hwobj.get_position()
 
     def set_distance(self, position, timeout=None):
-        self._distance_motor_hwobj.move(position, wait=True)
+        self._distance_motor_hwobj.set_value(position, wait=True)
 
     def get_distance_limits(self):
         return [100, 1000]
@@ -53,9 +54,9 @@ class DetectorMockup(AbstractDetector):
 
     def get_beam_centre(self):
         """Get approx detector centre (default to Pilatus values)"""
-        xval = self.getProperty('width', 2463)/2. + 0.4
-        yval = self.getProperty('height', 2527)/2. + 0.4
-        return  xval, yval
+        xval = self.getProperty("width", 2463) / 2.0 + 0.4
+        yval = self.getProperty("height", 2527) / 2.0 + 0.4
+        return xval, yval
 
     def update_values(self):
         self.emit("detectorModeChanged", (self.roi_mode,))

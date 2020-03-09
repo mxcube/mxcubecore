@@ -11,9 +11,9 @@ class ID232BeamInfo(BeamInfo.BeamInfo):
         self.chan_beam_shape_ellipse = None
         BeamInfo.BeamInfo.init(self)
 
-        self.beam_size_slits = tuple(map(
-            float, self.getProperty("beam_size_slits").split()
-        ))  # [0.1, 0.05]
+        self.beam_size_slits = tuple(
+            map(float, self.getProperty("beam_size_slits").split())
+        )  # [0.1, 0.05]
 
         self.flux = self.getObjectByRole("flux")
 

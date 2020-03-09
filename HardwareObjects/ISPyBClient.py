@@ -8,6 +8,7 @@ import traceback
 from pprint import pformat
 from collections import namedtuple
 from datetime import datetime
+
 try:
     from urlparse import urljoin
     from urllib2 import URLError
@@ -140,7 +141,7 @@ def utf_decode(res_d):
         if isinstance(value, dict):
             utf_decode(value)
         try:
-            res_d[key] = value.decode('utf8', 'ignore')
+            res_d[key] = value.decode("utf8", "ignore")
         except BaseException:
             pass
 
@@ -728,7 +729,7 @@ class ISPyBClient(HardwareObject):
             proposal_code = "".join(
                 itertools.takewhile(lambda c: not c.isdigit(), loginID)
             )
-            proposal_number = loginID[len(proposal_code):]
+            proposal_number = loginID[len(proposal_code) :]
 
         # if translation of the loginID is needed, need to be tested by ESRF
         if self.loginTranslate is True:
@@ -868,9 +869,8 @@ class ISPyBClient(HardwareObject):
             localcontact = None
             logging.getLogger("HWR").debug("create new session")
         elif todays_session:
-            session_id = todays_session['sessionId']
-            logging.getLogger('HWR').debug(
-                'getting local contact for %s' % session_id)
+            session_id = todays_session["sessionId"]
+            logging.getLogger("HWR").debug("getting local contact for %s" % session_id)
             localcontact = self.get_session_local_contact(session_id)
         else:
             todays_session = {}
@@ -1924,9 +1924,14 @@ class ISPyBClient(HardwareObject):
             )
             workflow_step_dict["status"] = workflow_info_dict.get("status", "")
             workflow_step_dict["folderPath"] = workflow_info_dict.get(
-                "result_file_path")
-            workflow_step_dict["imageResultFilePath"] = workflow_info_dict["cartography_path"]
-            workflow_step_dict["htmlResultFilePath"] = workflow_info_dict["html_file_path"]
+                "result_file_path"
+            )
+            workflow_step_dict["imageResultFilePath"] = workflow_info_dict[
+                "cartography_path"
+            ]
+            workflow_step_dict["htmlResultFilePath"] = workflow_info_dict[
+                "html_file_path"
+            ]
             workflow_step_dict["resultFilePath"] = workflow_info_dict["json_file_path"]
             workflow_step_dict["comments"] = workflow_info_dict.get("comments", "")
             workflow_step_dict["crystalSizeX"] = workflow_info_dict.get(

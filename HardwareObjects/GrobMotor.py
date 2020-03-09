@@ -23,7 +23,7 @@ class GrobMotor(Device):
 
     def connectNotify(self, signal):
         if signal == "positionChanged":
-            self.emit("positionChanged", (self.getPosition(),))
+            self.emit("positionChanged", (self.get_value(),))
         elif signal == "stateChanged":
             self.updateState()
         elif signal == "limitsChanged":
@@ -78,27 +78,27 @@ class GrobMotor(Device):
         return self.motor.read_dial()
 
     def getDialPosition(self):
-        return self.getPosition()
+        return self.get_value()
 
     def move(self, position):
         if isinstance(self.motor, self.grob.SampleMotor):
             # position has to be relative
-            self.motor.move_relative(position - self.getPosition())
+            self.motor.move_relative(position - self.get_value())
         else:
             self.motor.start_one(position)
 
     def moveRelative(self, relativePosition):
-        self.move(self.getPosition() + relativePosition)
+        self.set_value(self.get_value() + relativePosition)
 
     def syncMoveRelative(self, relative_position, timeout=None):
-        return self.syncMove(self.getPosition() + relative_position)
+        return self.syncMove(self.get_value() + relative_position)
 
     def waitEndOfMove(self, timeout=None):
         with gevent.Timeout(timeout):
             self.motor.wait_for_move()
 
     def syncMove(self, position, timeout=None):
-        self.move(position)
+        self.set_value(position)
         try:
             self.waitEndOfMove(timeout)
         except BaseException:

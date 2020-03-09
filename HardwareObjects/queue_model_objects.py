@@ -15,6 +15,7 @@ except ImportError:
 from HardwareRepository.HardwareObjects import queue_model_enumerables
 from HardwareRepository import HardwareRepository as HWR
 
+
 class TaskNode(object):
     """
     Objects that inherit TaskNode can be added to and handled by
@@ -356,14 +357,18 @@ class Sample(TaskNode):
             self.processing_parameters.protein_acronym = lims_sample.proteinAcronym
         else:
             self.crystals[0].protein_acronym = lims_sample.get("proteinAcronym")
-            self.processing_parameters.protein_acronym = lims_sample.get("proteinAcronym")
+            self.processing_parameters.protein_acronym = lims_sample.get(
+                "proteinAcronym"
+            )
 
         if hasattr(lims_sample, "crystalSpaceGroup"):
             self.crystals[0].space_group = lims_sample.crystalSpaceGroup
             self.processing_parameters.space_group = lims_sample.crystalSpaceGroup
         else:
             self.crystals[0].space_group = lims_sample.get("crystalSpaceGroup")
-            self.processing_parameters.space_group = lims_sample.get("crystalSpaceGroup")
+            self.processing_parameters.space_group = lims_sample.get(
+                "crystalSpaceGroup"
+            )
 
         if hasattr(lims_sample, "code"):
             self.lims_code = lims_sample.code
@@ -401,10 +406,12 @@ class Sample(TaskNode):
         else:
             try:
                 self.lims_sample_location = int(lims_sample.get("sampleLocation"))
-                self.lims_container_location = int(lims_sample.get("containerSampleChangerLocation"))
+                self.lims_container_location = int(
+                    lims_sample.get("containerSampleChangerLocation")
+                )
             except BaseException:
                 pass
- 
+
         _lims = (self.lims_container_location, self.lims_sample_location)
         self.lims_location = _lims
         self.location = _lims
@@ -615,9 +622,7 @@ class DataCollection(TaskNode):
         return self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.MESH
 
     def is_still(self):
-        return self.experiment_type == \
-            queue_model_enumerables.EXPERIMENT_TYPE.STILL
-
+        return self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.STILL
 
     def get_name(self):
         return "%s_%i" % (
@@ -728,7 +733,7 @@ class DataCollection(TaskNode):
                     index = str(index)
                 else:
                     index = "not defined"
-                display_name = "%s (Point %s)" %(self.get_name(), index)
+                display_name = "%s (Point %s)" % (self.get_name(), index)
             else:
                 display_name = self.get_name()
         return display_name
@@ -812,7 +817,9 @@ class Characterisation(TaskNode):
         return "%s_%i" % (self._name, self._number)
 
     def set_comments(self, comments):
-        self.reference_image_collection.acquisitions[0].acquisition_parameters.comments = comments
+        self.reference_image_collection.acquisitions[
+            0
+        ].acquisition_parameters.comments = comments
 
     def get_acq_parameters(self):
         return self.reference_image_collection.acquisitions[0].acquisition_parameters
@@ -1448,13 +1455,13 @@ class PathTemplate(object):
                 "/data/data1/inhouse", "/data/ispyb"
             )
             archive_directory = archive_directory.replace("/data/data1", "/data/ispyb")
-        
+
         elif PathTemplate.synchrotron_name == "EMBL-HH":
             archive_directory = os.path.join(
-                 PathTemplate.archive_base_directory,
-                 PathTemplate.archive_folder,
-                 *folders[4:]
-            )           
+                PathTemplate.archive_base_directory,
+                PathTemplate.archive_folder,
+                *folders[4:]
+            )
         elif PathTemplate.synchrotron_name == "ALBA":
             logging.getLogger("HWR").debug(
                 "PathTemplate (ALBA) - directory is %s" % self.directory
@@ -1659,19 +1666,21 @@ class XrayImagingParameters(object):
         return copy.deepcopy(self)
 
     def as_dict(self):
-        return {'ff_num_images': self.ff_num_images,
-                'ff_pre': self.ff_pre,
-                'ff_post': self.ff_post,
-                'ff_apply': self.ff_apply,
-                'ff_ssim_enabled': self.ff_ssim_enabled,
-                'sample_offset_a': self.sample_offset_a,
-                'sample_offset_b': self.sample_offset_b,
-                'sample_offset_c': self.sample_offset_c,
-                'camera_trigger': self.camera_trigger,
-                'camera_live_view': self.camera_live_view,
-                'camera_write_data': self.camera_write_data,
-                'detector_distance': self.detector_distance,
+        return {
+            "ff_num_images": self.ff_num_images,
+            "ff_pre": self.ff_pre,
+            "ff_post": self.ff_post,
+            "ff_apply": self.ff_apply,
+            "ff_ssim_enabled": self.ff_ssim_enabled,
+            "sample_offset_a": self.sample_offset_a,
+            "sample_offset_b": self.sample_offset_b,
+            "sample_offset_c": self.sample_offset_c,
+            "camera_trigger": self.camera_trigger,
+            "camera_live_view": self.camera_live_view,
+            "camera_write_data": self.camera_write_data,
+            "detector_distance": self.detector_distance,
         }
+
 
 class Crystal(object):
     def __init__(self):
@@ -1702,7 +1711,7 @@ class CentredPosition(object):
     their corresponding values.
     """
 
-    MOTOR_POS_DELTA = 1E-4
+    MOTOR_POS_DELTA = 1e-4
     DIFFRACTOMETER_MOTOR_NAMES = []
 
     @staticmethod
@@ -1782,6 +1791,7 @@ class CentredPosition(object):
 
     def get_kappa_phi_value(self):
         return self.kappa_phi
+
 
 class Workflow(TaskNode):
     def __init__(self):
@@ -1979,7 +1989,7 @@ class GphlWorkflow(TaskNode):
 
 
 class XrayImaging(TaskNode):
-    def __init__(self, xray_imaging_params, acquisition=None, crystal=None, name=''):
+    def __init__(self, xray_imaging_params, acquisition=None, crystal=None, name=""):
         TaskNode.__init__(self)
 
         self.xray_imaging_parameters = xray_imaging_params
@@ -1993,7 +2003,9 @@ class XrayImaging(TaskNode):
         self.processing_parameters = ProcessingParameters()
         self.crystal = crystal
         self.set_name(name)
-        self.experiment_type = queue_model_enumerables.EXPERIMENT_TYPE.NATIVE #TODO use IMAGING
+        self.experiment_type = (
+            queue_model_enumerables.EXPERIMENT_TYPE.NATIVE
+        )  # TODO use IMAGING
         self.set_requires_centring(True)
         self.run_offline_processing = False
         self.run_online_processing = False
@@ -2059,7 +2071,6 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
     acq_params = acquisition.acquisition_parameters
     proc_params = data_collection.processing_parameters
 
-
     return [
         {
             "comments": acq_params.comments,
@@ -2070,8 +2081,8 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
                 "prefix": acquisition.path_template.get_prefix(),
                 "run_number": acquisition.path_template.run_number,
                 "archive_directory": acquisition.path_template.get_archive_directory(),
-                #"process_directory": session.get_process_directory(),
-                "process_directory":acquisition.path_template.process_directory,
+                # "process_directory": session.get_process_directory(),
+                "process_directory": acquisition.path_template.process_directory,
                 "template": acquisition.path_template.get_image_file_name(),
                 "compression": acquisition.path_template.compression,
             },
@@ -2091,7 +2102,7 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
             "processing_offline": data_collection.run_offline_processing,
             "processing_online": data_collection.run_online_processing,
             "residues": proc_params.num_residues,
-            "dark": acq_params.take_dark_current, 
+            "dark": acq_params.take_dark_current,
             "detector_distance": acq_params.detector_distance,
             "resolution": {"upper": acq_params.resolution or 0.0},
             "transmission": acq_params.transmission,
@@ -2110,7 +2121,7 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
                     "number_of_lines": acq_params.num_lines,
                     "mesh_range": acq_params.mesh_range,
                     "num_triggers": acq_params.num_triggers,
-                    "num_images_per_trigger": acq_params.num_images_per_trigger
+                    "num_images_per_trigger": acq_params.num_images_per_trigger,
                 }
             ],
             "group_id": data_collection.lims_group_id,

@@ -12,7 +12,7 @@ class RobodiffMotor(Device):
 
     def init(self):
         self.motorState = RobodiffMotor.NOTINITIALIZED
-        self.username = self.motor_name
+        self.username = self.actuator_name
         # gevent.spawn_later(1, self.end_init)
 
     def end_init(self):
@@ -23,16 +23,16 @@ class RobodiffMotor(Device):
         )  # self.getObjectByRole("controller")
 
         # this is ugly : I added it to make the centring procedure happy
-        self.specName = self.motor_name
+        self.specName = self.actuator_name
 
-        self.motor = getattr(controller, self.motor_name)
+        self.motor = getattr(controller, self.actuator_name)
         self.connect(self.motor, "position", self.positionChanged)
         self.connect(self.motor, "state", self.updateState)
         self.__initialized = True
 
     def connectNotify(self, signal):
         if signal == "positionChanged":
-            self.emit("positionChanged", (self.getPosition(),))
+            self.emit("positionChanged", (self.get_value(),))
         elif signal == "stateChanged":
             self.updateState(emit=True)
         elif signal == "limitsChanged":
@@ -83,7 +83,7 @@ class RobodiffMotor(Device):
 
     def getDialPosition(self):
         self.end_init()
-        return self.getPosition()
+        return self.get_value()
 
     def move(self, position):
         self.end_init()
@@ -91,10 +91,10 @@ class RobodiffMotor(Device):
         self.motor.move(position, wait=False)
 
     def moveRelative(self, relativePosition):
-        self.move(self.getPosition() + relativePosition)
+        self.move(self.get_value() + relativePosition)
 
     def syncMoveRelative(self, relative_position, timeout=None):
-        return self.syncMove(self.getPosition() + relative_position)
+        return self.syncMove(self.get_value() + relative_position)
 
     def waitEndOfMove(self, timeout=None):
         with gevent.Timeout(timeout):
@@ -110,7 +110,7 @@ class RobodiffMotor(Device):
 
     def getMotorMnemonic(self):
         self.end_init()
-        return self.motor_name
+        return self.actuator_name
 
     def stop(self):
         self.end_init()

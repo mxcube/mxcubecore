@@ -54,11 +54,7 @@ class EMBLSession(Session):
         """
         user = os.getenv("USER").strip().lower()
 
-        return os.path.join(
-            self.base_directory,
-            user,
-            self.start_time,
-        )
+        return os.path.join(self.base_directory, user, self.start_time)
 
     def get_base_process_directory(self):
         """
@@ -71,7 +67,6 @@ class EMBLSession(Session):
             self.base_process_directory, user, self.start_time, "PROCESSED_DATA"
         )
         return process_directory.replace(" ", "")
-
 
     def get_secondary_image_directory(self):
         data_directory = self.get_base_image_directory()

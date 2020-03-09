@@ -146,7 +146,9 @@ class EMBLMotorsGroup(Device):
             self.positions_changed(self.chan_positions.getValue())
         except BaseException:
             msg = "EMBLMotorsGroup: unable to add channel %s/%s %s" % (
-                  self.server_address, self.group_address, self.positionAddr
+                self.server_address,
+                self.group_address,
+                self.positionAddr,
             )
             logging.getLogger("HWR").error(msg)
 
@@ -163,7 +165,9 @@ class EMBLMotorsGroup(Device):
             self.status_changed(self.chan_status.getValue())
         except BaseException:
             msg = "EMBLMotorsGroup: unable to add channel %s/%s %s" % (
-                  self.server_address, self.group_address, self.statusAddr
+                self.server_address,
+                self.group_address,
+                self.statusAddr,
             )
             logging.getLogger("HWR").error(msg)
 

@@ -24,10 +24,12 @@ from gui.utils import QtImport, Colors
 from HardwareRepository.HardwareObjects import QtGraphicsLib as GraphicsLib
 from HardwareRepository.HardwareObjects.QtGraphicsManager import QtGraphicsManager
 
-SEQ_ITEM_COLORS = (Colors.LIGHT_GREEN,
-                   Colors.LIGHT_YELLOW,
-                   Colors.LIGHT_BLUE,
-                   Colors.PLUM)
+SEQ_ITEM_COLORS = (
+    Colors.LIGHT_GREEN,
+    Colors.LIGHT_YELLOW,
+    Colors.LIGHT_BLUE,
+    Colors.PLUM,
+)
 
 
 __credits__ = ["EMBL Hamburg"]
@@ -35,7 +37,6 @@ __category__ = "General"
 
 
 class EMBLSSXChip(QtGraphicsManager):
-
     def __init__(self, name):
 
         QtGraphicsManager.__init__(self, name)
@@ -46,7 +47,7 @@ class EMBLSSXChip(QtGraphicsManager):
         self.dg_channels_list = []
         self.dg_channel_list_one_zero = []
         self.letters_for_descriptors_list = []
-        self.compartment_enable_list = [] 
+        self.compartment_enable_list = []
 
         self.channels = []
         self.channels_draw_items = []
@@ -61,24 +62,31 @@ class EMBLSSXChip(QtGraphicsManager):
         self.chip_config_list = eval(self.getProperty("chip_properties", "[]"))
         self.current_chip_index = 0
 
-        self.chip_settings = {"scan_rate": 0,
-                              "quarter_density": 0,
-                              "meandering" : 0,
-                              "old_num_of_exp" : 1,
-                              "num_channels": self.getProperty("num_channels"),
-                              "channels" : eval(self.getProperty("channels")),
-                              "default_seq": eval(self.getProperty("default_sequence"))}
+        self.chip_settings = {
+            "scan_rate": 0,
+            "quarter_density": 0,
+            "meandering": 0,
+            "old_num_of_exp": 1,
+            "num_channels": self.getProperty("num_channels"),
+            "channels": eval(self.getProperty("channels")),
+            "default_seq": eval(self.getProperty("default_sequence")),
+        }
 
         self.graphics_view = GraphicsLib.GraphicsView()
         self.graphics_view.scene().setSceneRect(0, 0, 340, 140)
-        self.graphics_coord_axes_item = GraphicsItemCoordAxes(self, self.chip_settings["num_channels"])
+        self.graphics_coord_axes_item = GraphicsItemCoordAxes(
+            self, self.chip_settings["num_channels"]
+        )
         self.graphics_view.graphics_scene.addItem(self.graphics_coord_axes_item)
 
     def get_chip_config_list(self):
         return self.chip_config_list
 
     def get_current_chip_config(self):
-        return dict(self.chip_config_list[self.current_chip_index].items() + self.chip_settings.items())
+        return dict(
+            self.chip_config_list[self.current_chip_index].items()
+            + self.chip_settings.items()
+        )
 
     def get_current_chip_index(self):
         return self.current_chip_index
@@ -105,7 +113,9 @@ class EMBLSSXChip(QtGraphicsManager):
         if item_name in self.chip_config_list[self.current_chip_index]:
             self.chip_config_list[self.current_chip_index][item_name] = item_value
         else:
-            logging.getLogger("HWR").warning("Item %s not found in the config dict" % item_name)
+            logging.getLogger("HWR").warning(
+                "Item %s not found in the config dict" % item_name
+            )
 
     def get_dg_channels_list(self):
         return self.dg_channels_list
@@ -114,10 +124,10 @@ class EMBLSSXChip(QtGraphicsManager):
         self.dg_channels_list = dg_channels_list
 
     def get_dg_channel_list_one_zero(self):
-        return self.dg_channel_list_one_zero 
+        return self.dg_channel_list_one_zero
 
     def set_dg_channel_list_one_zero(self, dg_channel_list_one_zero):
-        self.dg_channel_list_one_zero  = dg_channel_list_one_zero
+        self.dg_channel_list_one_zero = dg_channel_list_one_zero
 
     def set_channels(self, channels):
         self.chip_settings["channels"] = channels
@@ -134,7 +144,7 @@ class EMBLSSXChip(QtGraphicsManager):
         comp_v_divisor_list = None
 
         # quarter density check box state 1 - not checked; 2 - checked
-        multiplier = 1 # for quarter density usage
+        multiplier = 1  # for quarter density usage
         if current_chip_config["quarter_density"] == 1:
             multiplier = 2
         else:
@@ -157,13 +167,14 @@ class EMBLSSXChip(QtGraphicsManager):
         del comp_v_divisor_list[0]
 
         # multiply V crystalalal list with number of H crystalals
-        for element in range (0, len(crystal_v_divisor_list)):
-            crystal_v_divisor_list[element] = crys_v_divisor_list[element] * num_crystal_h
+        for element in range(0, len(crystal_v_divisor_list)):
+            crystal_v_divisor_list[element] = (
+                crys_v_divisor_list[element] * num_crystal_h
+            )
 
         # multiply V compartment list with number of H compartments
-        for element in range (0, len(comp_v_divisor_list)):
+        for element in range(0, len(comp_v_divisor_list)):
             comp_v_divisor_list[element] = comp_v_divisor_list[element] * num_comp_h
-
 
         # create a list which contains two lists of H and V (already multiplied) crystalalals
         a_list = crystal_h_divisor_list + crystal_v_divisor_list
@@ -172,10 +183,10 @@ class EMBLSSXChip(QtGraphicsManager):
         # create a list which contains two lists of H and V (already multiplied) compartments
         b_list = comp_h_divisor_list + comp_v_divisor_list
         b_list.sort()
-        del b_list[0] # delete first element
+        del b_list[0]  # delete first element
 
         # multiply B_list with number of H and V crystalalals
-        for element in range (0, len(b_list)):
+        for element in range(0, len(b_list)):
             b_list[element] = b_list[element] * num_crystal_h * num_crystal_v
 
         # concatenate a_list and b_list the sort the result
@@ -187,7 +198,7 @@ class EMBLSSXChip(QtGraphicsManager):
     def get_divisors_list(self, number):
         divisor_list = []
 
-        for x in range (1, number + 1):
+        for x in range(1, number + 1):
             if (number % x) == 0:
                 divisor_list.append(x)
 
@@ -227,13 +238,17 @@ class EMBLSSXChip(QtGraphicsManager):
             for n_cv in range(0, num_comp_v):
                 for n_ch in range(0, num_comp_h):
                     # checks for enabled compartments
-                    if n_cv != self.compartment_enable_list[count][0] or n_ch != self.compartment_enable_list[count][1]:
+                    if (
+                        n_cv != self.compartment_enable_list[count][0]
+                        or n_ch != self.compartment_enable_list[count][1]
+                    ):
                         continue
 
                     for n_fv in range(0, num_crystal_v):
                         for n_fh in range(0, num_crystal_h):
-                            for exposure in range(0, len(
-                                self.dg_channel_list_one_zero) / 4):
+                            for exposure in range(
+                                0, len(self.dg_channel_list_one_zero) / 4
+                            ):
 
                                 # meandering
                                 if current_chip_config["meandering"]:
@@ -246,12 +261,48 @@ class EMBLSSXChip(QtGraphicsManager):
                                 else:
                                     modified_n_fh = n_fh
 
-                                line_keeper = str(line_number) + ";" + self.from_loop_to_string(n_cv, n_ch, 2 * n_fv, 2 *
-                                                  modified_n_fh) + ";" + str(0) + ";" + str(nCv) + ";" + str(nCh) + ";" + str(2 * nFv) + ";"
-                                line_keeper = line_keeper + str(2 * n_fh) + ";" + str(0) + ";" + str(0) + ";" + str(
-                                    dg_channel_list_one_zero[exposure * 4]) + ";" + str(self.dg_channes_list_one_zero[exposure * 4 + 1]) + ";"
-                                line_keeper = line_keeper + str(dg_channel_list_one_zero[exposure * 4 + 2]) + ";" + str(
-                                    self.dg_channes_list_one_zero[exposure * 4 + 3]) + ";" + str(0) + ";\n"
+                                line_keeper = (
+                                    str(line_number)
+                                    + ";"
+                                    + self.from_loop_to_string(
+                                        n_cv, n_ch, 2 * n_fv, 2 * modified_n_fh
+                                    )
+                                    + ";"
+                                    + str(0)
+                                    + ";"
+                                    + str(nCv)
+                                    + ";"
+                                    + str(nCh)
+                                    + ";"
+                                    + str(2 * nFv)
+                                    + ";"
+                                )
+                                line_keeper = (
+                                    line_keeper
+                                    + str(2 * n_fh)
+                                    + ";"
+                                    + str(0)
+                                    + ";"
+                                    + str(0)
+                                    + ";"
+                                    + str(dg_channel_list_one_zero[exposure * 4])
+                                    + ";"
+                                    + str(
+                                        self.dg_channes_list_one_zero[exposure * 4 + 1]
+                                    )
+                                    + ";"
+                                )
+                                line_keeper = (
+                                    line_keeper
+                                    + str(dg_channel_list_one_zero[exposure * 4 + 2])
+                                    + ";"
+                                    + str(
+                                        self.dg_channes_list_one_zero[exposure * 4 + 3]
+                                    )
+                                    + ";"
+                                    + str(0)
+                                    + ";\n"
+                                )
                                 text_line = textLine + line_keeper
 
                                 line_number = line_number + 1  # update line number
@@ -265,14 +316,16 @@ class EMBLSSXChip(QtGraphicsManager):
                 if done == True:
                     break
 
-
         else:
             line_number = 1
             # loops through all compartments and features
             for n_cv in range(0, num_comp_v):
                 for n_ch in range(0, num_comp_h):
                     # checks for enabled compartments
-                    if n_cv != self.compartment_enable_list[count][0] or n_ch != self.compartment_enable_list[count][1]:
+                    if (
+                        n_cv != self.compartment_enable_list[count][0]
+                        or n_ch != self.compartment_enable_list[count][1]
+                    ):
                         continue
 
                     for n_fv in range(0, num_crystal_v):
@@ -290,12 +343,50 @@ class EMBLSSXChip(QtGraphicsManager):
                                 else:
                                     modified_n_fh = n_fh
 
-                                line_keeper = str(line_number) + ";" + self.from_loop_to_string(
-    n_cv, n_ch, n_fv, modified_n_fh) + ";" + str(0) + ";" + str(nCv) + ";" + str(nCh) + ";" + str(nFv) + ";"
-                                line_keeper = line_keeper + str(n_fh) + ";" + str(0) + ";" + str(0) + ";" + str(
-                                    self.dg_channel_list_one_zero[exposure * 4]) + ";" + str(self.dg_channes_list_one_zero[exposure * 4 + 1]) + ";"
-                                line_keeper = line_keeper + str(self.dg_channel_list_one_zero[exposure * 4 + 2]) + ";" + str(
-                                    self.dg_channes_list_one_zero[exposure * 4 + 3]) + ";" + str(0) + ";\n"
+                                line_keeper = (
+                                    str(line_number)
+                                    + ";"
+                                    + self.from_loop_to_string(
+                                        n_cv, n_ch, n_fv, modified_n_fh
+                                    )
+                                    + ";"
+                                    + str(0)
+                                    + ";"
+                                    + str(nCv)
+                                    + ";"
+                                    + str(nCh)
+                                    + ";"
+                                    + str(nFv)
+                                    + ";"
+                                )
+                                line_keeper = (
+                                    line_keeper
+                                    + str(n_fh)
+                                    + ";"
+                                    + str(0)
+                                    + ";"
+                                    + str(0)
+                                    + ";"
+                                    + str(self.dg_channel_list_one_zero[exposure * 4])
+                                    + ";"
+                                    + str(
+                                        self.dg_channes_list_one_zero[exposure * 4 + 1]
+                                    )
+                                    + ";"
+                                )
+                                line_keeper = (
+                                    line_keeper
+                                    + str(
+                                        self.dg_channel_list_one_zero[exposure * 4 + 2]
+                                    )
+                                    + ";"
+                                    + str(
+                                        self.dg_channes_list_one_zero[exposure * 4 + 3]
+                                    )
+                                    + ";"
+                                    + str(0)
+                                    + ";\n"
+                                )
                                 text_line = text_line + line_keeper
 
                                 line_number = line_number + 1  # update line number
@@ -311,20 +402,24 @@ class EMBLSSXChip(QtGraphicsManager):
         # remove disabled compartments from the string
         # enabledCompartments_text_line = self.remove_disabled_compartments(textLine)
         # add text to the screen
-         
+
         self.dg_channel_list_one_zero = []
 
         return text_line
 
     # converts 4 numbers from loops into a string (B3_cd)
     def from_loop_to_string(self, n_cv, n_ch, n_fv, n_fh):
-        capital_letter_start_point = ord('A')
+        capital_letter_start_point = ord("A")
         # smallLetterStartPoint = ord('a')
 
         # set the int value of character A and a in unicode
-        output_string = chr(capital_letter_start_point + n_cv) + str(n_ch + 1) + "_" + \
-                            self.letters_for_descriptors_list[n_fv] + \
-                                self.letters_for_descriptors_list[n_fh]
+        output_string = (
+            chr(capital_letter_start_point + n_cv)
+            + str(n_ch + 1)
+            + "_"
+            + self.letters_for_descriptors_list[n_fv]
+            + self.letters_for_descriptors_list[n_fh]
+        )
 
         return output_string
 
@@ -332,16 +427,20 @@ class EMBLSSXChip(QtGraphicsManager):
     def save_chip_data(self, filename):
         f = open(filename, "w+")
         f.write("[main]\n")
-        
+
         current_chip_config = self.chip_config_list[self.current_chip_index]
         string_line = "%.9E" % Decimal(current_chip_config["crystal_h_pitch"])
-        f.write("chip data.crystal H pitch (um)=%s\n" % string_line.replace('.', ','))
+        f.write("chip data.crystal H pitch (um)=%s\n" % string_line.replace(".", ","))
         string_line = "%.9E" % Decimal(current_chip_config["crystal_v_pitch"])
-        f.write("chip data.crystal V pitch (um)=%s\n" % string_line.replace('.', ','))
+        f.write("chip data.crystal V pitch (um)=%s\n" % string_line.replace(".", ","))
         string_line = "%.9E" % Decimal(current_chip_config["comp_h_pitch"])
-        f.write("chip data.compartment H pitch (um)=%s\n" % string_line.replace('.', ','))
+        f.write(
+            "chip data.compartment H pitch (um)=%s\n" % string_line.replace(".", ",")
+        )
         string_line = "%.9E" % Decimal(current_chip_config["comp_v_pitch"])
-        f.write("chip data.compartment V pitch (um)=%s\n" % string_line.replace('.', ','))
+        f.write(
+            "chip data.compartment V pitch (um)=%s\n" % string_line.replace(".", ",")
+        )
         f.write("chip data.num crystals H=%d\n" % current_chip_config["num_crystal_h"])
         f.write("chip data.num crystals V=%d\n" % current_chip_config["num_crystal_v"])
         f.write("chip data.num compartment H=%d\n" % current_chip_config["num_comp_h"])
@@ -351,22 +450,25 @@ class EMBLSSXChip(QtGraphicsManager):
     # returns a list of letters for descriptors
     def create_descriptors_list(self):
         self.letters_for_descriptors_list = []
-        capital_letter_start_point = ord('A')
-        small_letter_start_point = ord('a')
-        number_start_point = ord('0')
+        capital_letter_start_point = ord("A")
+        small_letter_start_point = ord("a")
+        number_start_point = ord("0")
 
         for element in range(0, 26):
-            self.letters_for_descriptors_list.append(chr(small_letter_start_point + element))
+            self.letters_for_descriptors_list.append(
+                chr(small_letter_start_point + element)
+            )
 
         for element in range(0, 26):
-            self.letters_for_descriptors_list.append(chr(capital_letter_start_point + element))
+            self.letters_for_descriptors_list.append(
+                chr(capital_letter_start_point + element)
+            )
 
         for element in range(0, 10):
             self.letters_for_descriptors_list.append(chr(number_start_point + element))
 
 
 class GraphicsItemCoordAxes(GraphicsLib.GraphicsItem):
-
     def __init__(self, parent, num_channels):
         GraphicsLib.GraphicsItem.__init__(self, parent, position_x=0, position_y=0)
 
@@ -411,14 +513,21 @@ class GraphicsItemCoordAxes(GraphicsLib.GraphicsItem):
 
             for index, channels in enumerate(self.channels[::-1]):
                 if channels is not None:
-                    start_x = offset_x + (scene_width - offset_x * 2) / max_length * channels[1]
+                    start_x = (
+                        offset_x
+                        + (scene_width - offset_x * 2) / max_length * channels[1]
+                    )
                     size_x = (scene_width - offset_x * 2) / max_length * channels[2]
-                    #start_y = scene_height - (scene_height - offset_y - 20) / self.num_channels * index  - offset_y - scene_height / self.num_channels / 2
+                    # start_y = scene_height - (scene_height - offset_y - 20) / self.num_channels * index  - offset_y - scene_height / self.num_channels / 2
                     start_y = scene_height - height * (index + 1) - offset_y
                     painter.drawRect(start_x, start_y, size_x, height)
 
         # Draw x and y axes
         painter.drawLine(offset_x, offset_y, offset_x, scene_height - offset_y)
         for index in range(self.num_channels):
-            y_pos = scene_height - (scene_height - offset_y - 20) / self.num_channels * index  - offset_y
+            y_pos = (
+                scene_height
+                - (scene_height - offset_y - 20) / self.num_channels * index
+                - offset_y
+            )
             painter.drawLine(offset_x, y_pos, scene_width - 10, y_pos)

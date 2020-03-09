@@ -60,7 +60,6 @@ class EMBLBeamline(Beamline):
         """
         return super(EMBLBeamline, self).all_roles + tuple(self.__content_roles)
 
-
     # Additional properties
 
     @property
@@ -71,6 +70,7 @@ class EMBLBeamline(Beamline):
             Optional[AbstractMotor]:
         """
         return self._objects.get("beam_definer")
+
     __content_roles.append("beam_definer")
 
     @property
@@ -81,6 +81,7 @@ class EMBLBeamline(Beamline):
             Optional[HardwareObject]:
         """
         return self._objects.get("ppu_control")
+
     __content_roles.append("ppu_control")
 
     # Additional procedures
@@ -96,6 +97,7 @@ class EMBLBeamline(Beamline):
             Optional[EMBLXrayCentring]
         """
         return self._objects.get("xray_centring")
+
     __content_roles.append("xray_centring")
     # Registers this object as a procedure:
     Beamline._procedure_names.add("xray_centring")
