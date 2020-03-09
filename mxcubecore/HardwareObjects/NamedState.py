@@ -18,7 +18,7 @@ class NamedState(Device):
             self.moveStateChan = None
 
         try:
-            self.changeCmd = self.getCommandObject("command")
+            self.changeCmd = self.get_command_object("command")
         except KeyError:
             self.changeCmd = None
 

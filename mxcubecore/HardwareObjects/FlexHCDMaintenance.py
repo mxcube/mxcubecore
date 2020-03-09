@@ -4,7 +4,6 @@ CATS maintenance mockup.
 from HardwareRepository.BaseHardwareObjects import Equipment
 
 
-
 TOOL_FLANGE, TOOL_UNIPUCK, TOOL_SPINE, TOOL_PLATE, TOOL_LASER, TOOL_DOUBLE_GRIPPER = (
     0,
     1,

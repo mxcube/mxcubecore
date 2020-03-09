@@ -1,4 +1,4 @@
 <device class="ExporterMotor">
   <exporter_address>p14md301.embl-hamburg.de:9001</exporter_address>
-  <motor_name>Kappa</motor_name>
+  <actuator_name>Kappa</actuator_name>
 </device>

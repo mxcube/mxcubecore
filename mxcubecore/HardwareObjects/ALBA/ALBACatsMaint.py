@@ -1,5 +1,5 @@
 from HardwareRepository.HardwareObjects.abstract.sample_changer.CatsMaint import (
-    CatsMaint
+    CatsMaint,
 )
 
 

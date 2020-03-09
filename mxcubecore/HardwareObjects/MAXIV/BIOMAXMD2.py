@@ -6,7 +6,8 @@ import logging
 import math
 
 from HardwareRepository.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer, DiffractometerState
+    GenericDiffractometer,
+    DiffractometerState,
 )
 from HardwareRepository import HardwareRepository as HWR
 

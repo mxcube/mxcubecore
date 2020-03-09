@@ -24,13 +24,13 @@ import gevent.event
 from HardwareRepository.BaseHardwareObjects import ConfiguredObject
 from HardwareRepository.dispatcher import dispatcher
 
-#import HardwareRepository.HardwareObjects.datamodel
+# import HardwareRepository.HardwareObjects.datamodel
 
 # Using jsonschma for validating the JSCONSchemas
 # https://json-schema.org/
 # https://github.com/Julian/jsonschema
 
-from jsonschema import (validate, ValidationError)
+from jsonschema import validate, ValidationError
 
 
 __credits__ = ["MXCuBE collaboration"]
@@ -43,6 +43,7 @@ class ProcedureState(IntEnum):
     """
     Defines the valid Procedure states
     """
+
     ERROR = 0
     BUSY = 1
     READY = 3
@@ -83,17 +84,17 @@ class AbstractProcedure(ConfiguredObject):
 
     def __init__(self, name):
         super(AbstractProcedure, self).__init__(name)
-        self._msg=None
-        self._results=None
+        self._msg = None
+        self._results = None
         self._ready_event = gevent.event.Event()
-        self._task=None
+        self._task = None
         self._state = ProcedureState.READY
 
         # YML configuration options
         # Category that the Procedure belongs to, configurable through
         # YAML file and used by for listing and displaying the procedure
         # in the right context.
-        self.category=""
+        self.category = ""
 
     def _init(self):
         pass
@@ -212,7 +213,9 @@ class AbstractProcedure(ConfiguredObject):
         """
         return {
             "args": tuple([s.schema_json() for s in self._ARGS_CLASS]),
-            "kwargs": {key:value.schema_json() for (key, value) in self._KWARGS_CLASS.items()}
+            "kwargs": {
+                key: value.schema_json() for (key, value) in self._KWARGS_CLASS.items()
+            },
         }
 
     @property
@@ -281,7 +284,6 @@ class AbstractProcedure(ConfiguredObject):
         """
         gevent.kill(self._task)
         self._set_stopped()
-
 
     def wait(self):
         """

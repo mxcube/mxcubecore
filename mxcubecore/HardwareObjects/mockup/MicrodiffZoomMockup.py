@@ -9,7 +9,7 @@ class MicrodiffZoomMockup(Device):
     (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0, 1, 2, 3, 4, 5)
 
     def init(self):
-        self.motor_name = "Zoom"
+        self.actuator_name = "Zoom"
         self._last_position_name = None
         self.predefined_position_attr = 1
         self.predefined_positions = {
@@ -31,11 +31,11 @@ class MicrodiffZoomMockup(Device):
 
     def sort_positions_list(self):
         self.positions_names_list = list(self.predefined_positions.keys())
-        #self.positions_names_list.sort()
+        # self.positions_names_list.sort()
         #    lambda x, y: int(
         #        round(self.predefined_positions[x] - self.predefined_positions[y])
         #    )
-        #)
+        # )
 
     def connectNotify(self, signal):
         if signal == "predefinedPositionChanged":

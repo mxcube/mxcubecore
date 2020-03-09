@@ -81,8 +81,8 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
         self.motor_state = None
 
         try:
-            self.nistart_cmd = self.getCommandObject("nistart")
-            self.nistop_cmd = self.getCommandObject("nistop")
+            self.nistart_cmd = self.get_command_object("nistart")
+            self.nistop_cmd = self.get_command_object("nistop")
 
             self.actuator_channel = self.getChannelObject("actuator")
             self.motorpos_channel = self.getChannelObject("motorposition")

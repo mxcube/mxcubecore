@@ -30,6 +30,7 @@ class MDFastShutter(Device):
     """
     MD Fast shutter
     """
+
     shutterState = {3: "unknown", 1: "closed", 0: "opened", 46: "disabled"}
 
     def __init__(self, name):

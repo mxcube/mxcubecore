@@ -1,5 +1,5 @@
 <device class="SardanaMotor">
   <username>Kappa</username>
   <taurusname>kappa</taurusname>
-  <motor_name>Kappa</motor_name>
+  <actuator_name>Kappa</actuator_name>
 </device>

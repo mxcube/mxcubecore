@@ -53,8 +53,14 @@ class AbstractDetector(HardwareObject):
         """Initialise some common paramerters"""
         self.width = self.getProperty("width")
         self.height = self.getProperty("height")
+
         try:
-            self._det_metadata = self.getProperties("beam")
+            self._det_metadata = self["beam"]
+        except KeyError:
+            pass
+
+        try:
+            self._distance_motor_hwobj = self.getObjectByRole("detector_distance")
         except KeyError:
             pass
 

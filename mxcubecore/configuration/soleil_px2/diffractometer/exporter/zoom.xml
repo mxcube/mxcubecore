@@ -1,6 +1,6 @@
 <device class="MicrodiffMotor">
     <exporter_address>172.19.10.119:9001</exporter_address>
-    <motor_name>Zoom</motor_name>
+    <actuator_name>Zoom</actuator_name>
     <username>Zoom</username>
     <direction>1</direction>
     <GUIstep>500</GUIstep>

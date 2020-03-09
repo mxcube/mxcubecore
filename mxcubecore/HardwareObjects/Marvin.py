@@ -174,13 +174,13 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         if self.chan_veto is not None:
             self.chan_veto.connectSignal("update", self.veto_changed)
 
-        self.cmd_mount_sample = self.getCommandObject("cmdMountSample")
-        self.cmd_unmount_sample = self.getCommandObject("cmdUnmountSample")
-        self.cmd_open_lid = self.getCommandObject("cmdOpenLid")
-        self.cmd_close_lid = self.getCommandObject("cmdCloseLid")
-        self.cmd_base_to_center = self.getCommandObject("cmdBaseToCenter")
-        self.cmd_center_to_base = self.getCommandObject("cmdCenterToBase")
-        self.cmd_dry_gripper = self.getCommandObject("cmdDryGripper")
+        self.cmd_mount_sample = self.get_command_object("cmdMountSample")
+        self.cmd_unmount_sample = self.get_command_object("cmdUnmountSample")
+        self.cmd_open_lid = self.get_command_object("cmdOpenLid")
+        self.cmd_close_lid = self.get_command_object("cmdCloseLid")
+        self.cmd_base_to_center = self.get_command_object("cmdBaseToCenter")
+        self.cmd_center_to_base = self.get_command_object("cmdCenterToBase")
+        self.cmd_dry_gripper = self.get_command_object("cmdDryGripper")
 
         self.beam_focusing_hwobj = self.getObjectByRole("beam_focusing")
         if self.beam_focusing_hwobj is not None:

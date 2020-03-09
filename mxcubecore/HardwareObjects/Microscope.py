@@ -3,6 +3,7 @@ from HardwareRepository.HardwareObjects.abstract.AbstractMicroscope import (
     AbstractMicroscope,
 )
 
+
 class Microscope(AbstractMicroscope, HardwareObject):
     def __init__(self, name):
         AbstractMicroscope.__init__(self)

@@ -47,7 +47,7 @@ Example Hardware Object XML file :
   <username>Zoom</username>
   <taurusname>ioregister/eh_zoom_tangoior_ctrl/2</taurusname>
   <alias>zoom</alias>
-  <motor_name>Zoom</motor_name>
+  <actuator_name>Zoom</actuator_name>
   <channel type="sardana" polling="200" name="position">Value</channel>
   <channel type="sardana" polling="200" name="state">State</channel>
   <channel type="sardana" name="labels">Labels</channel>
@@ -127,7 +127,7 @@ class ALBAZoomMotor(BaseHardwareObjects.Device):
 
     def getState(self):
         state = self.stateChannel.getValue()
-        curr_pos = self.getPosition()
+        curr_pos = self.get_value()
         if state == PyTango.DevState.ON:
             return ALBAZoomMotor.READY
         elif state == PyTango.DevState.MOVING or state == PyTango.DevState.RUNNING:
@@ -179,7 +179,7 @@ def test_hwo(zoom):
 
     print(type(zoom.getState()))
 
-    print("     Zoom position is : ", zoom.getPosition())
+    print("     Zoom position is : ", zoom.get_value())
     print("Zoom position name is : ", zoom.getCurrentPositionName())
     print("               Moving : ", zoom.motorIsMoving())
     print("                State : ", zoom.getState())

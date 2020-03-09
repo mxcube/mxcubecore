@@ -322,16 +322,14 @@ class PX2Collect(AbstractCollect, HardwareObject):
 
     @task
     def _take_crystal_snapshot(self, filename):
-        HWR.beamline.sample_view.save_scene_snapshot(filename)
+        HWR.beamline.microscope.save_scene_snapshot(filename)
 
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec):
         """Rotates sample by 360 and composes a gif file
            Animation is saved as the fourth snapshot
         """
-        HWR.beamline.sample_view.save_scene_animation(
-            animation_filename, duration_sec
-        )
+        HWR.beamline.microscope.save_scene_animation(animation_filename, duration_sec)
 
     @task
     def move_motors(self, motor_position_dict):

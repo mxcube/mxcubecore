@@ -566,7 +566,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.enable_store_in_lims = True
         self.in_queue = False
 
-
     def __setstate__(self, d):
         self.__dict__.update(d)
 
@@ -577,12 +576,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         d["shape_history"] = (
             HWR.beamline.sample_view.name() if HWR.beamline.sample_view else None
         )
-        d["session"] = (
-            HWR.beamline.session.name() if HWR.beamline.session else None
-        )
-        d["lims_client_hwobj"] = (
-            HWR.beamline.lims.name() if HWR.beamline.lims else None
-        )
+        d["session"] = HWR.beamline.session.name() if HWR.beamline.session else None
+        d["lims_client_hwobj"] = HWR.beamline.lims.name() if HWR.beamline.lims else None
         return d
 
     def execute(self):
@@ -613,15 +608,18 @@ class DataCollectionQueueEntry(BaseQueueEntry):
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
 
-
         qc = self.get_queue_controller()
 
         qc.connect(HWR.beamline.collect, "collectStarted", self.collect_started)
-        qc.connect(HWR.beamline.collect, "collectNumberOfFrames", self.preparing_collect)
+        qc.connect(
+            HWR.beamline.collect, "collectNumberOfFrames", self.preparing_collect
+        )
         qc.connect(
             HWR.beamline.collect, "collectOscillationStarted", self.collect_osc_started
         )
-        qc.connect(HWR.beamline.collect, "collectOscillationFailed", self.collect_failed)
+        qc.connect(
+            HWR.beamline.collect, "collectOscillationFailed", self.collect_failed
+        )
         qc.connect(
             HWR.beamline.collect, "collectOscillationFinished", self.collect_finished
         )
@@ -752,10 +750,10 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     dc,
                     HWR.beamline.session,
                     sample,
-                    cpos if cpos != empty_cpos else None
+                    cpos if cpos != empty_cpos else None,
                 )
 
-                #TODO this is wrong. Rename to something like collect.start_procedure
+                # TODO this is wrong. Rename to something like collect.start_procedure
                 self.collect_task = HWR.beamline.collect.collect(
                     COLLECTION_ORIGIN_STR.MXCUBE, param_list
                 )
@@ -811,7 +809,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.get_view().setText(1, "Failed")
         self.status = QUEUE_ENTRY_STATUS.FAILED
         logging.getLogger("queue_exec").error(message.replace("\n", " "))
-        #raise QueueExecutionException(message.replace("\n", " "), self)
+        # raise QueueExecutionException(message.replace("\n", " "), self)
 
     def collect_osc_started(
         self, owner, blsampleid, barcode, location, collect_dict, osc_id
@@ -944,7 +942,9 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         d = BaseQueueEntry.__getstate__(self)
 
         d["data_analysis_hwobj"] = (
-            HWR.beamline.characterisation.name() if HWR.beamline.characterisation else None
+            HWR.beamline.characterisation.name()
+            if HWR.beamline.characterisation
+            else None
         )
         d["diffractometer_hwobj"] = (
             HWR.beamline.diffractometer.name() if HWR.beamline.diffractometer else None
@@ -952,13 +952,14 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         d["queue_model_hwobj"] = (
             HWR.beamline.queue_model.name() if HWR.beamline.queue_model else None
         )
-        d["session_hwobj"] = HWR.beamline.session.name() if HWR.beamline.session else None
+        d["session_hwobj"] = (
+            HWR.beamline.session.name() if HWR.beamline.session else None
+        )
 
         return d
 
     def __setstate__(self, d):
         BaseQueueEntry.__setstate__(self, d)
-
 
     def execute(self):
         BaseQueueEntry.execute(self)
@@ -1015,8 +1016,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                     self.handle_diffraction_plan(self.edna_result, None)
                 else:
                     collections = HWR.beamline.characterisation.dc_from_output(
-                        self.edna_result,
-                        char.reference_image_collection,
+                        self.edna_result, char.reference_image_collection
                     )
                     char.diffraction_plan.append(collections)
                     HWR.beamline.queue_model.emit(
@@ -1066,8 +1066,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         HWR.beamline.queue_model.add_child(sample_data_model, new_dcg_model)
         if edna_collections is None:
             edna_collections = HWR.beamline.characterisation.dc_from_output(
-                edna_result,
-                reference_image_collection,
+                edna_result, reference_image_collection
             )
         for edna_dc in edna_collections:
             path_template = edna_dc.acquisitions[0].path_template
@@ -1147,7 +1146,9 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         qc = self.get_queue_controller()
 
         qc.connect(
-            HWR.beamline.energy_scan, "scanStatusChanged", self.energy_scan_status_changed
+            HWR.beamline.energy_scan,
+            "scanStatusChanged",
+            self.energy_scan_status_changed,
         )
 
         qc.connect(
@@ -1158,14 +1159,18 @@ class EnergyScanQueueEntry(BaseQueueEntry):
             HWR.beamline.energy_scan, "energyScanFinished", self.energy_scan_finished
         )
 
-        qc.connect(HWR.beamline.energy_scan, "energyScanFailed", self.energy_scan_failed)
+        qc.connect(
+            HWR.beamline.energy_scan, "energyScanFailed", self.energy_scan_failed
+        )
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
         qc = self.get_queue_controller()
 
         qc.disconnect(
-            HWR.beamline.energy_scan, "scanStatusChanged", self.energy_scan_status_changed
+            HWR.beamline.energy_scan,
+            "scanStatusChanged",
+            self.energy_scan_status_changed,
         )
 
         qc.disconnect(
@@ -1616,9 +1621,9 @@ class AdvancedConnectorQueueEntry(BaseQueueEntry):
         firt_qe_data_model = self.first_qe.get_data_model()
 
         if firt_qe_data_model.run_online_processing == "XrayCentering":
-            best_positions = firt_qe_data_model.online_processing_results["aligned"].get(
-                "best_positions", []
-            )
+            best_positions = firt_qe_data_model.online_processing_results[
+                "aligned"
+            ].get("best_positions", [])
 
             if len(best_positions) > 0:
                 best_cpos = best_positions[0]["cpos"]
