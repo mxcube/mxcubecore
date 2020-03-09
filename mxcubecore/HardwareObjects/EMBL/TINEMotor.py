@@ -198,16 +198,6 @@ class TINEMotor(AbstractMotor):
         """
         return "TINEMotor"
 
-    def wait_ready(self, timeout=None):
-        """
-        Whaits till device is ready
-        :param timeout: sec (int)
-        :return:
-        """
-        with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
-            while not self.is_ready():
-                gevent.sleep(0.05)
-
     def enable_motor(self):
         """
         Enables motor
