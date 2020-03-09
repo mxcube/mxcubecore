@@ -77,12 +77,6 @@ class LimaEigerDetector(AbstractDetector):
     def has_shutterless(self):
         return True
 
-    def wait_ready(self):
-        acq_status_chan = self.getChannelObject("acq_status")
-        with gevent.Timeout(30, RuntimeError("Detector not ready")):
-            while acq_status_chan.getValue() != "Ready":
-                time.sleep(1)
-
     def last_image_saved(self):
         # return 0
         return self.getChannelObject("last_image_saved").getValue() + 1
