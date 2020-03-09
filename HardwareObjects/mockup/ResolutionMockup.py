@@ -18,7 +18,6 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         self.connect(
             HWR.beamline.detector.distance, "positionChanged", self.dtoxPositionChanged
         )
-        HWR.beamline.detector.distance.set_value(self.res2dist(self.currentResolution))
 
         # Default value detector radius - corresponds to Eiger 16M:
         self.det_radius = 155.625
@@ -32,6 +31,8 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
             det_radius = 0.5 * min(px * width, py * height)
             if det_radius > 0:
                 self.det_radius = det_radius
+
+        HWR.beamline.detector.distance.set_value(self.res2dist(self.currentResolution))
 
         self.get_limits = self.getLimits
 
@@ -48,13 +49,12 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         self.wavelengthChanged(12.3984 / energy)
 
     def res2dist(self, res=None):
-
         if res is None:
             res = self.currentResolution
-
         try:
             ttheta = 2 * math.asin(HWR.beamline.energy.get_wavelength() / (2 * res))
             return self.det_radius / math.tan(ttheta)
+
         except BaseException:
             return None
 
