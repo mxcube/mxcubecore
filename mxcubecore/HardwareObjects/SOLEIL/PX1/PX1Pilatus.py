@@ -21,7 +21,7 @@ import logging
 import time
 
 from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
-    AbstractDetector
+    AbstractDetector,
 )
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
@@ -60,8 +60,8 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         self.threshold_chan = self.getChannelObject("threshold")
         self.threshold_chan.connectSignal("update", self.threshold_changed)
 
-        self.set_energy_cmd = self.getCommandObject("set_energy")
-        self.set_header_cmd = self.getCommandObject("set_header")
+        self.set_energy_cmd = self.get_command_object("set_energy")
+        self.set_header_cmd = self.get_command_object("set_header")
 
         exp_time_limits = self.getProperty("exposure_limits")
         self.exp_time_limits = map(float, exp_time_limits.strip().split(","))
@@ -87,13 +87,13 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
     def get_distance(self):
         """Returns detector distance in mm"""
         if self.distance_motor_hwobj is not None:
-            return self.distance_motor_hwobj.getPosition()
+            return self.distance_motor_hwobj.get_value()
         else:
             return self.default_distance
 
     def move_distance(self, value):
         if self.distance_motor_hwobj is not None:
-            self.distance_motor_hwobj.move(value)
+            self.distance_motor_hwobj.set_value(value)
 
     def get_distance_limits(self):
         """Returns detector distance limits"""

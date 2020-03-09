@@ -329,9 +329,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
         """Rotates sample by 360 and composes a gif file
            Animation is saved as the fourth snapshot
         """
-        HWR.beamline.microscope.save_scene_animation(
-            animation_filename, duration_sec
-        )
+        HWR.beamline.microscope.save_scene_animation(animation_filename, duration_sec)
 
     @task
     def move_motors(self, motor_position_dict):

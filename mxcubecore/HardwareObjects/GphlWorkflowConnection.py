@@ -277,9 +277,9 @@ class GphlWorkflowConnection(HardwareObject, object):
                 workflow_model_obj.get_name(),
             )
         elif not workflow_options.get("strategy"):
-            workflow_options["strategy"] = (
-                workflow_model_obj.get_characterisation_strategy()
-            )
+            workflow_options[
+                "strategy"
+            ] = workflow_model_obj.get_characterisation_strategy()
         path_template = workflow_model_obj.get_path_template()
         if "prefix" in workflow_options:
             workflow_options["prefix"] = path_template.base_prefix

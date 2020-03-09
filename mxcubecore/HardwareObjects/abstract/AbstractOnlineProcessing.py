@@ -39,9 +39,11 @@ from HardwareRepository import HardwareRepository as HWR
 __license__ = "LGPLv3+"
 
 
-DEFAULT_RESULT_TYPES = [{"key": "spots_resolution", "descr": "Resolution", "color": (120, 0, 0)},
-                        {"key": "score", "descr": "Score", "color": (0, 120, 0)},
-                        {"key": "spots_num", "descr": "Number of spots", "color": (0, 0, 120)}]
+DEFAULT_RESULT_TYPES = [
+    {"key": "spots_resolution", "descr": "Resolution", "color": (120, 0, 0)},
+    {"key": "score", "descr": "Score", "color": (0, 120, 0)},
+    {"key": "spots_num", "descr": "Number of spots", "color": (0, 0, 120)},
+]
 
 
 """
@@ -261,7 +263,7 @@ class AbstractOnlineProcessing(HardwareObject):
         self.plot_points_num = images_num
 
         for result_type in self.result_types:
-            #images_num =  self.params_dict["images_num"]
+            # images_num =  self.params_dict["images_num"]
             if "size" in result_type:
                 images_num = result_type["size"]
             else:
@@ -272,8 +274,10 @@ class AbstractOnlineProcessing(HardwareObject):
 
             if self.interpolate_results:
                 self.results_aligned["interp_" + result_type] = np.zeros(images_num)
-            if self.data_collection.is_mesh(
-            ) and images_num == self.params_dict["images_num"]:
+            if (
+                self.data_collection.is_mesh()
+                and images_num == self.params_dict["images_num"]
+            ):
                 self.results_aligned[result_type["key"]] = self.results_aligned[
                     result_type["key"]
                 ].reshape(self.params_dict["steps_x"], self.params_dict["steps_y"])
@@ -295,9 +299,8 @@ class AbstractOnlineProcessing(HardwareObject):
 
         self.emit(
             "processingStarted",
-            (self.data_collection,
-             self.results_raw,
-             self.results_aligned))
+            (self.data_collection, self.results_raw, self.results_aligned),
+        )
 
     def create_processing_input_file(self, processing_input_filename):
         """Creates processing input file
@@ -323,9 +326,9 @@ class AbstractOnlineProcessing(HardwareObject):
 
         # results = {"raw" : self.results_raw,
         #           "aligned": self.results_aligned}
-        #print "emit ! ", results
-        #self.emit("processingStarted", (data_collection, results))
-        #self.emit("processingResultsUpdate", False)
+        # print "emit ! ", results
+        # self.emit("processingStarted", (data_collection, results))
+        # self.emit("processingResultsUpdate", False)
 
         if not os.path.isfile(self.start_command):
             msg = (
@@ -396,8 +399,7 @@ class AbstractOnlineProcessing(HardwareObject):
         self.emit("processingResultsUpdate", True)
 
         self.data_collection.set_online_processing_results(
-            copy(self.results_raw),
-            copy(self.results_aligned)
+            copy(self.results_raw), copy(self.results_aligned)
         )
 
         if self.params_dict["workflow_type"] == "XrayCentering":
@@ -466,8 +468,8 @@ class AbstractOnlineProcessing(HardwareObject):
             if self.workflow_info is not None:
                 self.params_dict["workflow_id"] = self.workflow_info["workflow_id"]
 
-            workflow_id, workflow_mesh_id, grid_info_id = (
-                HWR.beamline.lims.store_workflow(self.params_dict)
+            workflow_id, workflow_mesh_id, grid_info_id = HWR.beamline.lims.store_workflow(
+                self.params_dict
             )
 
             self.params_dict["workflow_id"] = workflow_id
@@ -560,8 +562,8 @@ class AbstractOnlineProcessing(HardwareObject):
                 cax.tick_params(axis="y", labelsize=8)
                 plt.colorbar(im, cax=cax)
         else:
-            #max_resolution = self.params_dict["resolution"]
-            #min_resolution = self.results_aligned["spots_resolution"].max()
+            # max_resolution = self.params_dict["resolution"]
+            # min_resolution = self.results_aligned["spots_resolution"].max()
 
             # TODO plot results based on the result_name_list
             max_score = self.results_aligned["score"].max()
@@ -699,31 +701,43 @@ class AbstractOnlineProcessing(HardwareObject):
         # Writes results in the csv file
         try:
             processing_csv_file = open(processing_csv_archive_file, "w")
-            processing_csv_file.write("%s,%d,%d,%d,%d,%d,%s,%d,%d,%f,%f,%s\n" % (
-                                      self.params_dict["template"],
-                                      self.params_dict["first_image_num"],
-                                      self.params_dict["images_num"],
-                                      self.params_dict["run_number"],
-                                      self.params_dict["run_number"],
-                                      self.params_dict["lines_num"],
-                                      str(self.params_dict["reversing_rotation"]),
-                                      HWR.beamline.detector.get_pixel_min(),
-                                      HWR.beamline.detector.get_pixel_max(),
-                                      self.beamstop_hwobj.get_size(),
-                                      self.beamstop_hwobj.get_distance(),
-                                      self.beamstop_hwobj.get_direction()))
+            processing_csv_file.write(
+                "%s,%d,%d,%d,%d,%d,%s,%d,%d,%f,%f,%s\n"
+                % (
+                    self.params_dict["template"],
+                    self.params_dict["first_image_num"],
+                    self.params_dict["images_num"],
+                    self.params_dict["run_number"],
+                    self.params_dict["run_number"],
+                    self.params_dict["lines_num"],
+                    str(self.params_dict["reversing_rotation"]),
+                    HWR.beamline.detector.get_pixel_min(),
+                    HWR.beamline.detector.get_pixel_max(),
+                    self.beamstop_hwobj.get_size(),
+                    self.beamstop_hwobj.get_distance(),
+                    self.beamstop_hwobj.get_direction(),
+                )
+            )
             for index in range(self.params_dict["images_num"]):
-                processing_csv_file.write("%d,%f,%d,%f\n" % (
-                                          index,
-                                          self.results_raw["score"][index],
-                                          self.results_raw["spots_num"][index],
-                                          self.results_raw["spots_resolution"][index]))
-            log.info("Parallel processing: Raw data stored in %s" %
-                     processing_csv_archive_file)
+                processing_csv_file.write(
+                    "%d,%f,%d,%f\n"
+                    % (
+                        index,
+                        self.results_raw["score"][index],
+                        self.results_raw["spots_num"][index],
+                        self.results_raw["spots_resolution"][index],
+                    )
+                )
+            log.info(
+                "Parallel processing: Raw data stored in %s"
+                % processing_csv_archive_file
+            )
             processing_csv_file.close()
         except BaseException:
-            log.error("Parallel processing: Unable to store raw data in %s" %
-                      processing_csv_archive_file)
+            log.error(
+                "Parallel processing: Unable to store raw data in %s"
+                % processing_csv_archive_file
+            )
         # ---------------------------------------------------------------------
 
     def align_processing_results(self, start_index, end_index):
@@ -734,7 +748,10 @@ class AbstractOnlineProcessing(HardwareObject):
         # Each result array is realigned
 
         for score_key in self.results_raw.keys():
-            if self.grid and self.results_raw[score_key].size == self.params_dict["images_num"]:
+            if (
+                self.grid
+                and self.results_raw[score_key].size == self.params_dict["images_num"]
+            ):
                 for cell_index in range(start_index, end_index + 1):
                     col, row = self.grid.get_col_row_from_image_serial(
                         cell_index + self.params_dict["first_image_num"]
@@ -755,9 +772,11 @@ class AbstractOnlineProcessing(HardwareObject):
                         0,
                         self.params_dict["images_num"],
                         self.params_dict["images_num"],
-                        dtype=int)
+                        dtype=int,
+                    )
                     spline = UnivariateSpline(
-                        x_array, self.results_aligned[score_key], s=10)
+                        x_array, self.results_aligned[score_key], s=10
+                    )
                     self.results_aligned["interp_" + score_key] = spline(x_array)
 
         if self.grid:

@@ -86,9 +86,7 @@ class RedisClient(HardwareObject):
             )
 
         try:
-            self.connect(
-                HWR.beamline.flux, "fluxChanged", self.flux_changed
-            )
+            self.connect(HWR.beamline.flux, "fluxChanged", self.flux_changed)
         except BaseException:
             pass
 
@@ -105,9 +103,7 @@ class RedisClient(HardwareObject):
 
     def save_queue_task(self):
         """Queue saving tasks"""
-        selected_model, queue_list = (
-            HWR.beamline.queue_model.get_queue_as_json_list()
-        )
+        selected_model, queue_list = HWR.beamline.queue_model.get_queue_as_json_list()
         self.redis_client.set(
             "mxcube:%s:%s:queue_model" % (self.proposal_id, self.beamline_name),
             selected_model,
@@ -161,9 +157,7 @@ class RedisClient(HardwareObject):
                 graphics_objects = self.redis_client.get(
                     "mxcube:%s:%s:graphics" % (self.proposal_id, self.beamline_name)
                 )
-                HWR.beamline.microscope.load_shapes(
-                    jsonpickle.decode(graphics_objects)
-                )
+                HWR.beamline.microscope.load_shapes(jsonpickle.decode(graphics_objects))
                 logging.getLogger("HWR").debug("RedisClient: Graphics loaded")
             except BaseException:
                 pass

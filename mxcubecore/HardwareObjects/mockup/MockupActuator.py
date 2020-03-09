@@ -15,8 +15,9 @@ import logging
 
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator
+    AbstractActuator,
 )
+
 
 class MockupActuator(AbstractActuator):
     def __init__(self, name):

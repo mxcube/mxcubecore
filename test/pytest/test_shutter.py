@@ -1,6 +1,6 @@
 from HardwareRepository.HardwareObjects.abstract import AbstractNState
 
-#TODO Implement test when the AbstractNState has been finalized
+# TODO Implement test when the AbstractNState has been finalized
 """
 def test_shutter_init(beamline):
     assert beamline.safety_shutter is not None, "Shutter hardware objects is None (not initialized)"

@@ -492,8 +492,8 @@ class Beamline(ConfiguredObject):
     __content_roles.append("offline_processing")
 
     @property
-    def data_analysis(self):
-        """EDNA charadterisation and analysis procedure.
+    def characterisation(self):
+        """EDNA characterisation and analysis procedure.
 
         NB the current code looks rather EDNA-specific
         to be called 'AbsatractCharacterisation'.
@@ -551,13 +551,12 @@ class Beamline(ConfiguredObject):
             Optional[AbstractManualCentring]
         """
         return self._objects.get("manual_centring")
+
     __content_roles.append("manual_centring")
     # Registers this object as a procedure:
     _procedure_names.add("manual_centring")
 
-
     # Additional functions
-
 
     # NB Objects need not be HardwareObjects
     # We still categorise them as'hardware' if they are not procedures, though
@@ -597,7 +596,7 @@ class Beamline(ConfiguredObject):
         acq_parameters.kappa_phi = round(float(kappa_phi), 2)
 
         try:
-            acq_parameters.resolution = self.resolution.getPosition()
+            acq_parameters.resolution = self.resolution.get_value()
         except:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
@@ -606,7 +605,7 @@ class Beamline(ConfiguredObject):
             acq_parameters.resolution = 0.0
 
         try:
-            acq_parameters.energy = self.energy.get_current_energy()
+            acq_parameters.energy = self.energy.get_energy()
         except:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "

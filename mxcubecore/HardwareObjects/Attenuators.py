@@ -20,7 +20,7 @@
 
 import gevent
 from HardwareRepository.HardwareObjects.abstract.AbstractTransmission import (
-    AbstractTransmission
+    AbstractTransmission,
 )
 
 

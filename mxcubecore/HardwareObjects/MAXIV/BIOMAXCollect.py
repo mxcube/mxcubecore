@@ -126,9 +126,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 minimum_exposure_time=min_exp,
                 detector_fileext=HWR.beamline.detector.getProperty("file_suffix"),
                 detector_type=HWR.beamline.detector.getProperty("type"),
-                detector_manufacturer=HWR.beamline.detector.getProperty(
-                    "manufacturer"
-                ),
+                detector_manufacturer=HWR.beamline.detector.getProperty("manufacturer"),
                 detector_model=HWR.beamline.detector.getProperty("model"),
                 detector_px=pix_x,
                 detector_py=pix_y,
@@ -921,7 +919,9 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 logging.getLogger("user_level_log").info(
                     "Moving Diffractometer to CentringPhase"
                 )
-                HWR.beamline.diffractometer.set_phase("Centring", wait=True, timeout=200)
+                HWR.beamline.diffractometer.set_phase(
+                    "Centring", wait=True, timeout=200
+                )
                 self.move_to_centered_position()
 
             for snapshot_index in range(number_of_snapshots):
@@ -1108,8 +1108,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         HWR.beamline.detector.set_photon_energy(value * 1000)  # ev
 
     def set_wavelength(self, value):
-        HWR.beamline.energy.startMoveWavelength(value)
-        current_energy = HWR.beamline.energy.get_current_energy()
+        HWR.beamline.energy.set_wavelength(value)
+        current_energy = HWR.beamline.energy.get_energy()
         HWR.beamline.detector.set_photon_energy(current_energy * 1000)
 
     @task
@@ -1191,7 +1191,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         lower_limit, upper_limit = self.get_detector_distance_limits()
         logging.getLogger("HWR").info(
             "...................value %s, detector movement start..... %s"
-            % (value, HWR.beamline.detector.distance.getPosition())
+            % (value, HWR.beamline.detector.distance.get_value())
         )
         if upper_limit is not None and lower_limit is not None:
             if value >= upper_limit or value <= lower_limit:
@@ -1216,7 +1216,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             )
         logging.getLogger("HWR").info(
             "....................value %s detector movement finished.....%s"
-            % (value, HWR.beamline.detector.distance.getPosition())
+            % (value, HWR.beamline.detector.distance.get_value())
         )
 
     def get_detector_distance(self):
@@ -1224,7 +1224,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         if HWR.beamline.detector.distance is not None:
-            return HWR.beamline.detector.distance.getPosition()
+            return HWR.beamline.detector.distance.get_value()
 
     def get_detector_distance_limits(self):
         """
@@ -1259,7 +1259,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         )  # self.get_beam_centre_pixel() # returns pixel
         config["BeamCenterX"] = beam_centre_x  # unit, should be pixel for master file
         config["BeamCenterY"] = beam_centre_y
-        config["DetectorDistance"] = HWR.beamline.detector.distance.getPosition() / 1000.0
+        config["DetectorDistance"] = HWR.beamline.detector.distance.get_value() / 1000.0
 
         config["CountTime"] = oscillation_parameters["exposure_time"]
 
@@ -1474,9 +1474,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         proposal_code = HWR.beamline.session.proposal_code
         proposal_number = HWR.beamline.session.proposal_number
 
-        proposal_info = HWR.beamline.lims.get_proposal(
-            proposal_code, proposal_number
-        )
+        proposal_info = HWR.beamline.lims.get_proposal(proposal_code, proposal_number)
         msg["time"] = time.time()
         msg["proposal"] = proposal_number
         msg["uuid"] = self.collection_uuid
@@ -1514,9 +1512,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         proposal_code = HWR.beamline.session.proposal_code
         proposal_number = HWR.beamline.session.proposal_number
 
-        proposal_info = HWR.beamline.lims.get_proposal(
-            proposal_code, proposal_number
-        )
+        proposal_info = HWR.beamline.lims.get_proposal(proposal_code, proposal_number)
         # session info is missing!
         sessionId = collection.get("sessionId", None)
         if sessionId:

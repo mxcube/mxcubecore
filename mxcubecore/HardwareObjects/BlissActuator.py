@@ -10,7 +10,7 @@ Example xml file:
 import logging
 
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator
+    AbstractActuator,
 )
 from HardwareRepository.TaskUtils import task
 

@@ -46,47 +46,47 @@ class MachineInfoMockup(HardwareObject):
         # Intensity current ranges
         self.values_ordered_dict = OrderedDict()
         self.values_ordered_dict["current"] = {
-             "value": 90.1,
-             "value_str": "90.1 mA",
-             "in_range": True,
-             "title": "Machine current",
-             "bold": True,
-             "font": 14,
-             "history": True
+            "value": 90.1,
+            "value_str": "90.1 mA",
+            "in_range": True,
+            "title": "Machine current",
+            "bold": True,
+            "font": 14,
+            "history": True,
         }
 
         self.values_ordered_dict["message"] = {
-             "value": "Test message",
-             "in_range": True,
-             "title": "Machine state",
+            "value": "Test message",
+            "in_range": True,
+            "title": "Machine state",
         }
 
         self.values_ordered_dict["temp"] = {
-             "value": 24.4,
-             "value_str": "24.4 C",
-             "in_range": True,
-             "title": "Hutch temperature",
+            "value": 24.4,
+            "value_str": "24.4 C",
+            "in_range": True,
+            "title": "Hutch temperature",
         }
 
         self.values_ordered_dict["hum"] = {
-             "value": 64.4,
-             "value_str": "64.4 %",
-             "in_range": True,
-             "title": "Hutch humidity",
+            "value": 64.4,
+            "value_str": "64.4 %",
+            "in_range": True,
+            "title": "Hutch humidity",
         }
 
         self.values_ordered_dict["flux"] = {
-             "value": None,
-             "value_str": "Remeasure flux!",
-             "in_range": False,
-             "title": "Flux"
+            "value": None,
+            "value_str": "Remeasure flux!",
+            "in_range": False,
+            "title": "Flux",
         }
 
         self.values_ordered_dict["disk"] = {
-             "value": "-",
-             "in_range": True,
-             "title": "Disk space",
-             "align": "left",
+            "value": "-",
+            "in_range": True,
+            "title": "Disk space",
+            "align": "left",
         }
 
     def init(self):
@@ -120,8 +120,12 @@ class MachineInfoMockup(HardwareObject):
 
     def change_mach_current(self):
         while True:
-            self.values_ordered_dict["current"]["value"] = uniform(self.min_current, self.min_current)
-            self.values_ordered_dict["current"]["value_str"] = "%.1f mA" % self.values_ordered_dict["current"]["value"]
+            self.values_ordered_dict["current"]["value"] = uniform(
+                self.min_current, self.min_current
+            )
+            self.values_ordered_dict["current"]["value_str"] = (
+                "%.1f mA" % self.values_ordered_dict["current"]["value"]
+            )
 
             self.update_disk_space()
             self.update_values()
@@ -130,9 +134,7 @@ class MachineInfoMockup(HardwareObject):
     def flux_info_changed(self, flux_info):
         if flux_info["measured"] is None:
             self.values_ordered_dict["flux"]["value"] = 0
-            self.values_ordered_dict["flux"][
-                "value_str"
-            ] = "Remeasure flux!"
+            self.values_ordered_dict["flux"]["value_str"] = "Remeasure flux!"
             self.values_ordered_dict["flux"]["in_range"] = False
         else:
             msg_str = "Flux: %.2E ph/s\n" % flux_info["measured"]["flux"]
@@ -144,7 +146,9 @@ class MachineInfoMockup(HardwareObject):
 
             self.values_ordered_dict["flux"]["value"] = flux_info["measured"]["flux"]
             self.values_ordered_dict["flux"]["value_str"] = msg_str
-            self.values_ordered_dict["flux"]["in_range"] = flux_info["measured"]["flux"] > 1e6
+            self.values_ordered_dict["flux"]["in_range"] = (
+                flux_info["measured"]["flux"] > 1e6
+            )
         self.update_values()
 
     def update_disk_space(self):

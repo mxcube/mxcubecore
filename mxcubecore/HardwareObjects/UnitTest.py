@@ -40,7 +40,7 @@ class TestMethods(unittest.TestCase):
     def test_get_value(self):
         logging.getLogger("HWR").debug("UnitTest: Testing return values...")
         self.assertIn(
-            type(BEAMLINE.energy.get_current_energy()),
+            type(BEAMLINE.energy.get_energy()),
             (float, int),
             "Energy hwobj | get_current_energy() returns float",
         )
@@ -93,6 +93,7 @@ class UnitTest(HardwareObject):
     def init(self):
         global BEAMLINE
         from HardwareRepository import HardwareRepository as HWR
+
         BEAMLINE = HWR.beamline
 
         suite = unittest.TestLoader().loadTestsFromTestCase(TestMethods)

@@ -33,6 +33,7 @@ from gui.utils.QtImport import QImage, QPixmap
 from HardwareRepository.HardwareObjects.GenericVideoDevice import GenericVideoDevice
 from HardwareRepository.ConvertUtils import string_types
 
+
 class MjpgStreamVideo(GenericVideoDevice):
     """
     Hardware object to capture images using mjpg-streamer

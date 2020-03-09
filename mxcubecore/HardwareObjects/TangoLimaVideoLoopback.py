@@ -26,18 +26,34 @@ from HardwareRepository.HardwareObjects.TangoLimaVideo import TangoLimaVideo, po
 
 
 def _poll_image(sleep_time, video_device, device_uri, video_mode, formats):
-    import PyTango
+    from PyTango import DeviceProxy
 
-    lima_tango_device = PyTango.DeviceProxy(device_uri)
+    # lima_tango_device = PyTango.DeviceProxy(device_uri, timeout=10000)
+    connected = False
 
-    # PyTango needs some time to initialize the DeviceProxy
-    # sleep needed to not get timeout errors for succeeding calls
-    time.sleep(0.5)
+    while not connected:
+        try:
+            logging.getLogger("HWR").info(f"Connecting to {device_uri}")
+            lima_tango_device = DeviceProxy(device_uri)
+            lima_tango_device.ping()
+        except Exception as ex:
+            logging.getLogger("HWR").exception("")
+            logging.getLogger("HWR").info(
+                f"Could not connect to {device_uri}, retrying ..."
+            )
+            time.sleep(0.1)
+            connected = False
+        else:
+            connected = True
 
     while True:
-        data = poll_image(lima_tango_device, video_mode, formats)[0]
-        video_device.write(data)
-        time.sleep(sleep_time)
+        try:
+            data = poll_image(lima_tango_device, video_mode, formats)[0]
+            video_device.write(data)
+        except:
+            pass
+        finally:
+            time.sleep(sleep_time)
 
 
 class TangoLimaVideoLoopback(TangoLimaVideo):
@@ -51,6 +67,7 @@ class TangoLimaVideoLoopback(TangoLimaVideo):
         self.stream_hash = str(uuid.uuid1())
         self.video_device = None
         self._polling_mode = "process"
+        self._p = None
 
     def init(self):
         super().init()
@@ -58,7 +75,7 @@ class TangoLimaVideoLoopback(TangoLimaVideo):
 
     def _do_polling(self, sleep_time):
         if self._polling_mode == "process":
-            self.p = gipc.start_process(
+            self._p = gipc.start_process(
                 target=_poll_image,
                 args=(
                     sleep_time,
@@ -170,6 +187,9 @@ class TangoLimaVideoLoopback(TangoLimaVideo):
         if self._video_stream_process:
             os.system("pkill -TERM -P {pid}".format(pid=self._video_stream_process.pid))
             self._video_stream_process = None
+
+    def restart(self):
+        self.start_video_stream_process()
 
     def start(self, loopback_device_path, stream_script_path):
         self._stream_script_path = stream_script_path

@@ -8,7 +8,6 @@ from HardwareRepository.BaseHardwareObjects import Equipment
 from HardwareRepository import HardwareRepository as HWR
 
 
-
 class XrfSpectrum(Equipment):
     def init(self):
 
@@ -269,7 +268,7 @@ class XrfSpectrum(Equipment):
             except BaseException:
                 mcaConfig = {}
                 # self.spectrumInfo["beamTransmission"] =  self.transmission_hwobj.get_value()
-                self.spectrumInfo["energy"] = HWR.beamline.energy.get_current_energy()
+                self.spectrumInfo["energy"] = HWR.beamline.energy.get_energy()
                 beam_info = HWR.beamline.beam.get_beam_info()
                 self.spectrumInfo["beamSizeHorizontal"] = beam_info["size_x"]
                 self.spectrumInfo["beamSizeVertical"] = beam_info["size_y"]
@@ -351,7 +350,7 @@ class XrfSpectrum(Equipment):
         return os.path.join(self.cfgpath, "%skeV.cfg" % cfgname)
 
     def _doSpectrum(self, ct, filename, wait=True):
-        HWR.beamline.energy.get_current_energy()
+        HWR.beamline.energy.get_energy()
         if not ct:
             ct = 5
         safshut = HWR.beamline.safety_shutter

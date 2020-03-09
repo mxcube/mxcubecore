@@ -24,7 +24,7 @@ ExperimentType = namedtuple(
         "MESH",
         "COLLECT_MULTIWEDGE",
         "STILL",
-        "IMAGING"
+        "IMAGING",
     ],
 )
 EXPERIMENT_TYPE = ExperimentType(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
@@ -40,7 +40,7 @@ EXPERIMENT_TYPE_STR = ExperimentType(
     "Mesh",
     "Collect - Multiwedge",
     "Still",
-    "Imaging"
+    "Imaging",
 )
 
 StrategyOption = namedtuple("StrategyOption", ["AVG"])

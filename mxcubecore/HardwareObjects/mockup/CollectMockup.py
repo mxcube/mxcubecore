@@ -161,9 +161,7 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         """Rotates sample by 360 and composes a gif file
            Animation is saved as the fourth snapshot
         """
-        HWR.beamline.microscope.save_scene_animation(
-            animation_filename, duration_sec
-        )
+        HWR.beamline.microscope.save_scene_animation(animation_filename, duration_sec)
 
     # @task
     # def move_motors(self, motor_position_dict):
@@ -217,7 +215,7 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         HWR.beamline.energy.move_energy(energy)
 
     def set_resolution(self, new_resolution):
-        HWR.beamline.resolution.move(new_resolution)
+        HWR.beamline.resolution.set_value(new_resolution)
 
     def set_transmission(self, transmission):
         HWR.beamline.transmission.set_value(transmission)
