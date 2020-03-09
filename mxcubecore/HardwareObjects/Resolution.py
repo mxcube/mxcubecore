@@ -67,15 +67,15 @@ class Resolution(AbstractMotor):
         self.connect(self._hwr_energy, "valueChanged", self.update_energy)
         self.connect(self._hwr_energy, "stateChanged", self.update_state)
 
-    def is_ready(self):
-        """Check if the distance motor state is READY.
-        Returns:
-            (bool): True if ready, otherwise False.
-        """
-        try:
-            return self._hwr_detector.distance.is_ready()
-        except AttributeError:
-            return False
+    # def is_ready(self):
+    #     """Check if the distance motor state is READY.
+    #     Returns:
+    #         (bool): True if ready, otherwise False.
+    #     """
+    #     try:
+    #         return self._hwr_detector.distance.is_ready()
+    #     except AttributeError:
+    #         return False
 
     def get_state(self):
         """Get the state of the distance motor.

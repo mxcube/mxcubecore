@@ -51,7 +51,7 @@ class AbstractEnergy(AbstractActuator):
         """
         if self.read_only:
             return True
-        return self._ready_event.is_set()
+        return super(AbstractEnergy, self).is_ready()
 
     @property
     def is_tunable(self):

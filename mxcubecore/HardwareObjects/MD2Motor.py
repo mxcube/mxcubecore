@@ -98,7 +98,7 @@ class MD2Motor(AbstractMotor):
         if abs(position - self.__position) <= self.motor_resolution:
             return
         self.__position = position
-        print(f"{position} --- {self.__position}")
+        print("%s --- %s" % (position, self.__position))
         self.emit("positionChanged", (self.__position,))
 
     def motorLimitsChanged(self):

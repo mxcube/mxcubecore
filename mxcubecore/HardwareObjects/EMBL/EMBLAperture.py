@@ -160,9 +160,7 @@ class EMBLAperture(AbstractAperture):
 
         Returns:
         """
-        with gevent.Timeout(timeout, Exception("Timeout waiting for status ready")):
-            while self.chan_state.getValue() != "Ready":
-                gevent.sleep(0.1)
+        super(EMBLAperture, self).wait_ready(timeout=20)
 
     def is_out(self):
         """Returns True if aperture is on the beam
