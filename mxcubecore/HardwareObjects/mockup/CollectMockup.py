@@ -63,7 +63,6 @@ class CollectMockup(AbstractCollect.AbstractCollect):
             "number_of_images"
         ]
 
-        print("in queue flag: ", self.current_dc_parameters["in_queue"])
         for image in range(
             self.current_dc_parameters["oscillation_sequence"][0]["number_of_images"]
         ):
