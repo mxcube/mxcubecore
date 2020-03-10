@@ -429,13 +429,17 @@ class HardwareObjectMixin(CommandContainer):
         return self._specific_state
 
     def wait_ready(self, timeout=None):
-        """Wait till object is ready.
+        """Wait timeout seconds till object is ready.
 
-        If timeout == 0: return at once and do not wait;
-        if timeout is None: wait forever."""
-        if timeout:
-            with Timeout(timeout, RuntimeError("Timeout waiting for status ready")):
-                self._ready_event.wait(timeout=timeout)
+        if timeout is None: wait forever.
+
+        Args:
+            timeout (s):
+
+        Returns:
+        """
+        with Timeout(timeout, RuntimeError("Timeout waiting for status ready")):
+            self._ready_event.wait(timeout=timeout)
 
     def is_ready(self):
         """Convenience function: Check if the object state is READY.
