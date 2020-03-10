@@ -357,7 +357,7 @@ class EMBLEnergy(AbstractEnergy):
         :return:
         """
         super(EMBLEnergy, self).wait_ready(timeout=20)
-        
+
     def energy_server_check_for_errors(self, state):
         """
         Displays error message if the energy change fails

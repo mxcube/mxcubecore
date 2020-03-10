@@ -19,7 +19,6 @@
 
 """Inherited from AbstracAperture"""
 
-import gevent
 from HardwareRepository.HardwareObjects.abstract.AbstractAperture import (
     AbstractAperture,
 )
