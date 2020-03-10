@@ -1,9 +1,10 @@
 from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 import math
 import gevent
 
 
-class GrobMotor(Device):
+class GrobMotor(Device, AbstractMotor):
     (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0, 1, 2, 3, 4, 5)
 
     def __init__(self, name):
@@ -74,11 +75,8 @@ class GrobMotor(Device):
 
         self.emit("positionChanged", (absolutePosition,))
 
-    def getPosition(self):
+    def get_value(self):
         return self.motor.read_dial()
-
-    def getDialPosition(self):
-        return self.get_value()
 
     def move(self, position):
         if isinstance(self.motor, self.grob.SampleMotor):
