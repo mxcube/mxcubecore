@@ -33,13 +33,13 @@ def _poll_image(sleep_time, video_device, device_uri, video_mode, formats):
 
     while not connected:
         try:
-            logging.getLogger("HWR").info("Connecting to %s" % device_uri)
+            logging.getLogger("HWR").info("Connecting to %s", device_uri)
             lima_tango_device = DeviceProxy(device_uri)
             lima_tango_device.ping()
         except Exception as ex:
             logging.getLogger("HWR").exception("")
             logging.getLogger("HWR").info(
-                "Could not connect to %s, retrying ..." % device_uri
+                "Could not connect to %s, retrying ...", device_uri
             )
             time.sleep(0.1)
             connected = False
