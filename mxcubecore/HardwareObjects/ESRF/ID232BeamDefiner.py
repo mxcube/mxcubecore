@@ -1,10 +1,11 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects.AbstractMotor import AbstractMotor
+from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractNState
+from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 from bliss.common import event
 
 
-class ID232BeamDefiner(HardwareObject):
-    READY = AbstractMotor.READY
+class ID232BeamDefiner(HardwareObject, AbstractNState):
+    READY = HardwareObjectState.READY
 
     def __init__(self, *args):
         HardwareObject.__init__(self, *args)
@@ -50,7 +51,7 @@ class ID232BeamDefiner(HardwareObject):
     def getLimits(self):
         return (1, len(self.posNames))
 
-    def getPosition(self):
+    def get_value(self):
         try:
             return self.posNames.index(self.getCurrentPositionName())
         except ValueError:

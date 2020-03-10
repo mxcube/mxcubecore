@@ -220,25 +220,16 @@ class SardanaMotor(AbstractMotor):
         except BaseException:
             return (None, None)
 
-    def getPosition(self):
+    def get_value(self):
         """
         Descript. : returns the current position
         """
         self.motor_position = self.position_channel.getValue()
         return self.motor_position
 
-    def get_position(self):
-        return self.get_value()
-
     def update_values(self):
         self.emit("limitsChanged", (self.getLimits(),))
         self.emit("positionChanged", (self.get_value(),))
-
-    def getDialPosition(self):
-        """
-        Descript. :
-        """
-        return self.get_value()
 
     def move(self, absolute_position):
         """

@@ -79,8 +79,8 @@ class MicrodiffAperture(ExporterMotor):
         self.emit("apertureChanged", (self.getApertureSize(),))
 
     def get_diameter_size(self, pos=None):
-        if self.get_position() is not None:
-            pos = pos or self.get_position()
+        if self.get_value() is not None:
+            pos = pos or self.get_value()
         else:
             pos = pos
 

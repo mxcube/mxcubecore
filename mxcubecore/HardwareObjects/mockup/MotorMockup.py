@@ -69,10 +69,10 @@ class MotorMockup(AbstractMotor):
             # TODO is there a need to set motor position to None?
             return
 
-        start_pos = self.get_position()
+        start_pos = self.get_value()
         if start_pos is not None:
             delta = abs(position - start_pos)
-            if position > self.get_position():
+            if position > self.get_value():
                 direction = 1
             else:
                 direction = -1
@@ -83,16 +83,16 @@ class MotorMockup(AbstractMotor):
                     start_pos
                     + direction * self.get_velocity() * (time.time() - start_time)
                 )
-                self.emit("positionChanged", (self.get_position(),))
+                self.emit("positionChanged", (self.get_value(),))
                 time.sleep(0.02)
         self.set_value(position)
-        self.emit("positionChanged", (self.get_position(),))
+        self.emit("positionChanged", (self.get_value(),))
 
     def move(self, position, wait=False, timeout=None):
         self.__motor_state = self.motor_states.MOVING
         if wait:
             self.set_value(position)
-            self.emit("positionChanged", (self.get_position(),))
+            self.emit("positionChanged", (self.get_value(),))
             self.set_ready()
         else:
             self._move_task = gevent.spawn(self.move_task, position)

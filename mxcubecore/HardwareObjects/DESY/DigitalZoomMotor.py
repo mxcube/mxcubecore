@@ -26,8 +26,8 @@ __license__ = "GPL"
 
 import logging
 from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository.HardwareObjects.AbstractMotor import AbstractMotor
-from HardwareRepository.HardwareObjects.AbstractMotor import MotorStates
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
 
 
 class DigitalZoomMotor(AbstractMotor, Device):
@@ -94,7 +94,7 @@ class DigitalZoomMotor(AbstractMotor, Device):
             else:
                 position = 1.0
 
-        if position != self.get_position():
+        if position != self.get_value():
             current_motor_state = self.get_state()
             if position <= self.getLimits()[0]:
                 self.set_state(MotorStates.LOWLIMIT)
@@ -115,21 +115,12 @@ class DigitalZoomMotor(AbstractMotor, Device):
     #        """
     #        return self.limits
 
-    #    def getPosition(self):
-    #        """
-    #        Descript. : returns the current position
-    #        """
-    #        if self.zoom_supported:
-    #            self.motor_position = self.camera.get_zoom()
-    #        else:
-    #            self.motor_position = 1.0
-    #        return self.motor_position
-
-    def get_position(self):
+    def get_value(self):
         if self.zoom_supported:
             self.motor_position = self.camera.get_zoom()
         else:
             self.motor_position = 1.0
+        return self.motor_position
 
     def move(self, absolute_position):
         """
