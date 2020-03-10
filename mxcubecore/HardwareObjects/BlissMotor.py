@@ -27,7 +27,6 @@ Example xml file:
 """
 
 import enum
-from gevent import Timeout
 from bliss.config import static
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 from HardwareRepository.BaseHardwareObjects import HardwareObjectState
