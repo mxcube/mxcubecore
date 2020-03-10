@@ -32,6 +32,3 @@ class EMBLResolution(TINEMotor):
 
     def __init__(self, name):
         TINEMotor.__init__(self, name)
-
-    def get_value(self):
-        return self.get_position()
