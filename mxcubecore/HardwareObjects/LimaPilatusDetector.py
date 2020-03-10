@@ -117,6 +117,11 @@ class LimaPilatusDetector(AbstractDetector):
     def has_shutterless(self):
         return True
 
+    def wait_ready(self):
+        with gevent.Timeout(10, RuntimeError("Detector not ready")):
+            while self.get_channel_value("acq_status") != "Ready":
+                time.sleep(1)
+
     def last_image_saved(self):
         try:
             return self.getChannelObject("last_image_saved").getValue() + 1
