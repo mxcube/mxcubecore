@@ -1,7 +1,7 @@
 # from qt import *
 
-from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
 
 from HardwareRepository.Command.Tango import DeviceProxy
 
@@ -10,7 +10,7 @@ import os
 import time
 
 
-class PX1Energy(Device):
+class PX1Energy(Device, AbstractEnergy):
 
     energy_state = {
         "ALARM": "error",
@@ -114,13 +114,7 @@ class PX1Energy(Device):
     def can_move_energy(self):
         return True
 
-    def getPosition(self):
-        return self.get_current_energy()
-
-    def get_current_energy(self):
-        return self.get_energy()
-
-    def get_energy(self):
+    def get_value(self):
         return self.energy_chan.getValue()
 
     def getState(self):

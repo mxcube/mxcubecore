@@ -348,7 +348,7 @@ class EMBLFlux(AbstractFlux):
             return
 
         if HWR.beamline.session.beamline_name == "P14":
-            if HWR.beamline.detector.distance.get_position() > 501:
+            if HWR.beamline.detector.distance.get_value() > 501:
                 self.print_log(
                     "GUI",
                     "error",
@@ -386,7 +386,7 @@ class EMBLFlux(AbstractFlux):
         self.back_light_hwobj.move_in()
         logging.getLogger("HWR").debug("Measure flux: Backlight moved out")
 
-        beamstop_position = self.beamstop_hwobj.get_position()
+        beamstop_position = self.beamstop_hwobj.get_value()
         if beamstop_position == "BEAM":
             self.emit("progressStep", 2, "Moving beamstop OFF")
             self.beamstop_hwobj.set_position("OFF")
