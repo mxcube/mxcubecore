@@ -1,11 +1,11 @@
 import time
-import logging
 import gevent
 
 from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 
-class PX1DetectorDistance(Device):
+class PX1DetectorDistance(Device, AbstractMotor):
 
     MOVESTARTED = 0
     NOTINITIALIZED = 0
@@ -105,11 +105,8 @@ class PX1DetectorDistance(Device):
 
         return self.stateDict[state]
 
-    def getPosition(self):
+    def get_value(self):
         return self.position_chan.getValue()
-
-    def getDialPosition(self):
-        return self.get_value()
 
     def getLimits(self):
         try:

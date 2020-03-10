@@ -58,7 +58,7 @@ class MicrodiffSamplePseudo(MD2Motor):
         )
         self.emit("stateChanged", (self.motorState,))
 
-    def getPosition(self):
+    def get_value(self):
         sampx = self.sampx.get_value()
         sampy = self.sampy.get_value()
         phi = self.phi.get_value()

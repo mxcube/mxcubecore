@@ -147,17 +147,11 @@ class MotorWPositions(AbstractMotor, Device):
         """
         return self.motor.getState()
 
-    def getPosition(self):
+    def get_value(self):
         """
         Descript. :
         """
         return self.motor.get_value()
-
-    def getDialPosition(self):
-        """
-        Descript. :
-        """
-        return self.motor.getDialPosition()
 
     def move(self, absolute_position):
         """

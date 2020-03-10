@@ -56,10 +56,9 @@ Example Hardware Object XML file :
 </device>
 """
 
-from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository import BaseHardwareObjects
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 import logging
-import os
 import PyTango
 
 __author__ = "Bixente Rey"
@@ -71,7 +70,7 @@ __email__ = "jandreu[at]cells.es"
 __status__ = "Draft"
 
 
-class ALBAZoomMotor(BaseHardwareObjects.Device):
+class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
 
     INIT, FAULT, READY, MOVING, ONLIMIT = range(5)
 
@@ -138,7 +137,7 @@ class ALBAZoomMotor(BaseHardwareObjects.Device):
             return ALBAZoomMotor.FAULT
         return state
 
-    def getPosition(self):
+    def get_value(self):
         try:
             return self.positionChannel.getValue()
         except BaseException:
