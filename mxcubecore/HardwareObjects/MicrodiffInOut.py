@@ -1,5 +1,6 @@
 import logging
 from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
 import time
 
 """
@@ -68,10 +69,11 @@ class MicrodiffInOut(Device):
         )
 
         self.moves = dict((self.states[k], k) for k in self.states)
+        self.getActuatorState(read=True)
 
     def connectNotify(self, signal):
         if signal == "actuatorStateChanged":
-            self.valueChanged(self.state_attr.getValue())
+            self.valueChanged(self.state_attr.get_value())
 
     def valueChanged(self, value):
         self.actuatorState = self.states.get(value, "unknown")
@@ -80,12 +82,12 @@ class MicrodiffInOut(Device):
     def _ready(self):
         if self.hwstate_attr:
             if (
-                self.hwstate_attr.getValue() == "Ready"
-                and self.swstate_attr.getValue() == "Ready"
+                self.hwstate_attr.get_value() == "Ready"
+                and self.swstate_attr.get_value() == "Ready"
             ):
                 return True
         else:
-            if self.swstate_attr.getValue() == "Ready":
+            if self.swstate_attr.get_value() == "Ready":
                 return True
         return False
 
@@ -100,7 +102,7 @@ class MicrodiffInOut(Device):
 
     def getActuatorState(self, read=False):
         if read is True:
-            value = self.state_attr.getValue()
+            value = self.state_attr.get_value()
             self.actuatorState = self.states.get(value, "unknown")
 
         return self.actuatorState
@@ -108,11 +110,11 @@ class MicrodiffInOut(Device):
     def actuatorIn(self, wait=True, timeout=None):
         if self._ready():
             try:
-                self.cmd_attr.setValue(self.moves["in"])
+                self.cmd_attr.set_value(self.moves["in"])
                 if wait:
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
-                self.valueChanged(self.state_attr.getValue())
+                self.valueChanged(self.state_attr.get_value())
             except BaseException:
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s in", self.username
@@ -125,11 +127,11 @@ class MicrodiffInOut(Device):
     def actuatorOut(self, wait=True, timeout=None):
         if self._ready():
             try:
-                self.cmd_attr.setValue(self.moves["out"])
+                self.cmd_attr.set_value(self.moves["out"])
                 if wait:
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
-                self.valueChanged(self.state_attr.getValue())
+                self.valueChanged(self.state_attr.get_value())
             except BaseException:
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s out", self.username

@@ -25,8 +25,8 @@ import logging
 import gevent
 from gevent.queue import Queue
 from HardwareRepository.CommandContainer import CommandObject, ChannelObject
-from .embl import ExporterClient
-from .embl.StandardClient import PROTOCOL
+from .exporter import ExporterClient
+from .exporter.StandardClient import PROTOCOL
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -70,9 +70,7 @@ class Exporter(ExporterClient.ExporterClient):
     STATE_UNKNOWN = "Unknown"
 
     def __init__(self, address, port, timeout=3, retries=1):
-        super().__init__(
-            address, port, PROTOCOL.STREAM, timeout, retries
-        )
+        super(Exporter, self).__init__(address, port, PROTOCOL.STREAM, timeout, retries)
 
         self.started = False
         self.callbacks = {}

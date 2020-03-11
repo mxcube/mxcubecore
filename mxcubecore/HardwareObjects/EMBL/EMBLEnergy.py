@@ -65,11 +65,11 @@ class EMBLEnergy(AbstractEnergy):
     def init(self):
         self.ready_event = gevent.event.Event()
 
-        self.cmd_set_energy = self.getCommandObject("cmdSetEnergy")
-        self.cmd_energy_ctrl_byte = self.getCommandObject("cmdEnergyCtrlByte")
-        self.cmd_set_break_bragg = self.getCommandObject("cmdSetBreakBragg")
-        self.cmd_release_break_bragg = self.getCommandObject("cmdReleaseBreakBragg")
-        self.cmd_reset_perp = self.getCommandObject("cmdResetPerp")
+        self.cmd_set_energy = self.get_command_object("cmdSetEnergy")
+        self.cmd_energy_ctrl_byte = self.get_command_object("cmdEnergyCtrlByte")
+        self.cmd_set_break_bragg = self.get_command_object("cmdSetBreakBragg")
+        self.cmd_release_break_bragg = self.get_command_object("cmdReleaseBreakBragg")
+        self.cmd_reset_perp = self.get_command_object("cmdResetPerp")
 
         self.chan_energy = self.getChannelObject("chanEnergy")
         if self.chan_energy is not None:
@@ -141,7 +141,7 @@ class EMBLEnergy(AbstractEnergy):
                 return None
         return value
 
-    def get_current_wavelength(self):
+    def get_wavelength(self):
         """
         Returns current wavelength in A
         :return: float
@@ -162,7 +162,7 @@ class EMBLEnergy(AbstractEnergy):
             try:
                 self._energy_limits = (
                     self.chan_limit_low.getValue(),
-                    self.chan_limit_high.getValue()
+                    self.chan_limit_high.getValue(),
                 )
             except BaseException:
                 logging.getLogger("HWR").exception(
@@ -356,9 +356,7 @@ class EMBLEnergy(AbstractEnergy):
         :param timeout: sec in int
         :return:
         """
-        with gevent.Timeout(timeout, Exception("Energy: Timeout waiting for ready")):
-            while self.chan_status.getValue()[0] != 0:
-                gevent.sleep(0.1)
+        super(EMBLEnergy, self).wait_ready(timeout=20)
 
     def energy_server_check_for_errors(self, state):
         """
@@ -408,9 +406,9 @@ class EMBLEnergy(AbstractEnergy):
         :return:
         """
         if isinstance(value, (list, tuple)):
-            self.undulator_gaps = (value[0])
+            self.undulator_gaps = value[0]
         else:
-            self.undulator_gaps = (value)
+            self.undulator_gaps = value
 
     def get_undulator_gaps(self):
         """

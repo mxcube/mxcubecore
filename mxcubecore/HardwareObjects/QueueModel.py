@@ -158,7 +158,7 @@ class QueueModel(HardwareObject):
         :rtype: None
         """
         if True:
-        #if isinstance(child, queue_model_objects.TaskNode):
+            # if isinstance(child, queue_model_objects.TaskNode):
             self._selected_model._total_node_count += 1
             child._parent = parent
             child._node_id = self._selected_model._total_node_count

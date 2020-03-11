@@ -1,6 +1,6 @@
 <device class="MicrodiffLight">
     <exporter_address>172.19.10.119:9001</exporter_address>
-    <motor_name>BackLight</motor_name>
+    <actuator_name>BackLight</actuator_name>
     <channel type="exporter" name="chanLightValue">BackLightLevel</channel>
     <channel type="exporter" name="chanLightIsOn">BackLightIsOn</channel>
     <limits>[0, 100]</limits>

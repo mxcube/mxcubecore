@@ -52,7 +52,7 @@ class EMBLBeamFocusing(HardwareObject):
            attaches corresponding motors
         """
 
-        self.cmd_set_calibration_name = self.getCommandObject("cmdSetCalibrationName")
+        self.cmd_set_calibration_name = self.get_command_object("cmdSetCalibrationName")
         self.focus_modes = []
         for focus_mode in self["focusModes"]:
             self.focus_modes.append(

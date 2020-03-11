@@ -38,7 +38,7 @@ class BIOMAXEnergy(Energy.Energy):
     def get_current_energy(self):
         if HWR.beamline.energy is not None:
             try:
-                return HWR.beamline.energy.getPosition() / 1000
+                return HWR.beamline.energy.get_value() / 1000
             except BaseException:
                 logging.getLogger("HWR").exception(
                     "EnergyHO: could not read current energy"

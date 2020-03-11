@@ -26,16 +26,54 @@ Example xml file:
 </device>
 """
 
-from gevent import Timeout
+import enum
 from bliss.config import static
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
+@enum.unique
+class BlissMotorStates(enum.Enum):
+    """"
+    MOVING  : 'Axis is moving'
+    READY   : 'Axis is ready to be moved (not moving ?)'
+    FAULT   : 'Error from controller'
+    LIMPOS  : 'Hardware high limit active'
+    LIMNEG  : 'Hardware low limit active'
+    HOME    : 'Home signal active'
+    OFF     : 'Axis power is off'
+    DISABLED: 'Axis cannot move (must be enabled - not ready ?)' 
+    """
+
+    MOVING = 0
+    READY = 1
+    FAULT = 2
+    LIMPOS = 3
+    LIMNEG = 4
+    HOME = 5
+    OFF = 6
+    DISABLED = 7
+    UNKNOWN = 8
+
+
 class BlissMotor(AbstractMotor):
     """Bliss Motor implementation"""
+
+    SPECIFIC_STATES = BlissMotorStates
+    SPECIFIC_TO_HWR_STATE = {
+        "MOVING": HardwareObjectState.BUSY,
+        "READY": HardwareObjectState.READY,
+        "FAULT": HardwareObjectState.FAULT,
+        "LIMPOS": HardwareObjectState.READY,
+        "LIMNEG": HardwareObjectState.READY,
+        "HOME": HardwareObjectState.READY,
+        "OFF": HardwareObjectState.OFF,
+        "DISABLED": HardwareObjectState.OFF,
+        "UNKNOWN": HardwareObjectState.UNKNOWN,
+    }
 
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
@@ -50,27 +88,29 @@ class BlissMotor(AbstractMotor):
         self.connect(self.motor_obj, "state", self.update_state)
         self.connect(self.motor_obj, "move_done", self.update_state)
 
-    def get_state(self):
-        """Get the motor state.
-        Returns:
-            (list): list of HardwareObjectState.
+    def update_state(self, state=None):
+        """Check if the state has changed. Emits signal stateChanged.
+        Args:
+            state (enum 'HardwareObjectState'): state
         """
-        states = []
-        _state = self.motor_obj.state.current_states_names
-        self.specific_state = _state
-
-        # convert from bliss states to HardwareObjectState
-        for stat in _state:
+        if isinstance(state, bool):
+            # It seems like the current version of BLISS gives us a boolean
+            # at first and last event, True for ready and False for moving
+            state = "READY" if state else "MOVING"
+        else:
             try:
-                states.append(self.STATES.__members__[stat.upper()])
+                state = state.current_states_names[0]
             except (AttributeError, KeyError):
-                try:
-                    states.append(
-                        self.SPECIFIC_STATES.__members__[stat.upper()].value[0]
-                    )
-                except (AttributeError, KeyError):
-                    states.append(self.STATES.UNKNOWN)
-        return states
+                state = "UNKNOWN"
+
+        try:
+            self._specific_state = BlissMotorStates.__members__[state]
+        except:
+            self._specific_state = BlissMotorStates.__members__["UNKNOWN"]
+
+        AbstractMotor.update_state(
+            self, self.SPECIFIC_TO_HWR_STATE.get(state, HardwareObjectState.UNKNOWN)
+        )
 
     def get_value(self):
         """Read the motor position.
@@ -108,15 +148,6 @@ class BlissMotor(AbstractMotor):
             value (float): target value
         """
         self.motor_obj.move(value, wait=False)
-
-    def wait_ready(self, timeout=None):
-        """Wait until the end of move ended
-        Args:
-            timeout(float): Timeout [s].
-        """
-        if timeout:
-            with Timeout(timeout, RuntimeError("Execution timeout")):
-                self.motor_obj.wait_move()
 
     def abort(self):
         """Stop the motor movement"""

@@ -1,4 +1,4 @@
 <device class="ExporterZoom">
   <exporter_address>p14md301.embl-hamburg.de:9001</exporter_address>
-  <motor_name>Zoom</motor_name>
+  <actuator_name>Zoom</actuator_name>
 </device>

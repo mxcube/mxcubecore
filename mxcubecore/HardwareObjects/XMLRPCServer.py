@@ -156,7 +156,7 @@ class XMLRPCServer(HardwareObject):
         # Listen on all interfaces if <all_interfaces>True</all_interfaces>
         # otherwise only on the interface corresponding to socket.gethostname()
         if self.all_interfaces:
-            host = ''
+            host = ""
         else:
             host = socket.gethostname()
 
@@ -382,7 +382,9 @@ class XMLRPCServer(HardwareObject):
             entry = HWR.beamline.queue_manager.get_entry_with_model(model)
 
             if entry:
-                self.current_entry_task = HWR.beamline.queue_manager.execute_entry(entry)
+                self.current_entry_task = HWR.beamline.queue_manager.execute_entry(
+                    entry
+                )
 
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
@@ -523,23 +525,19 @@ class XMLRPCServer(HardwareObject):
         return float(flux)
 
     def set_aperture(self, pos_name, timeout=20):
-        HWR.beamline.beam.aperture.moveToPosition(pos_name)
+        HWR.beamline.beam.aperture_hwobj.moveToPosition(pos_name)
         t0 = time.time()
-        while HWR.beamline.beam.aperture.getState() == "MOVING":
+        while HWR.beamline.beam.aperture_hwobj.getState() == "MOVING":
             time.sleep(0.1)
             if time.time() - t0 > timeout:
                 raise RuntimeError("Timeout waiting for aperture to move")
         return True
 
     def get_aperture(self):
-        return (
-            HWR.beamline.beam.aperture.getCurrentPositionName()
-        )
+        return HWR.beamline.beam.aperture_hwobj.getCurrentPositionName()
 
     def get_aperture_list(self):
-        return (
-            HWR.beamline.beam.aperture.getPredefinedPositionsList()
-        )
+        return HWR.beamline.beam.aperture_hwobj.getPredefinedPositionsList()
 
     def open_dialog(self, dict_dialog):
         """

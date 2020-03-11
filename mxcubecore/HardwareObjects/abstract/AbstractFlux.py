@@ -46,6 +46,7 @@ dose_rate_per_photon_per_mmsq = interp1d(
     ],
 )
 
+
 class AbstractFlux(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
@@ -73,18 +74,18 @@ class AbstractFlux(HardwareObject):
         :return: float
         """
 
-        energy = energy or HWR.beamline.energy.get_current_energy()
+        energy = energy or HWR.beamline.energy.get_energy()
 
         # NB   Calculation assumes beam sizes in mm
         beam_size_hor, beam_size_ver = HWR.beamline.beam.get_size()
 
         # Result in kGy/s
         result = (
-                self.dose_rate_per_photon_per_mmsq(energy)
-                * self.get_flux()
-                / beam_size_hor
-                / beam_size_ver
-                / 1000.  # Converts to kGy/s
+            self.dose_rate_per_photon_per_mmsq(energy)
+            * self.get_flux()
+            / beam_size[0]
+            / beam_size[1]
+            / 1000.0  # Converts to kGy/s
         )
         return result
 

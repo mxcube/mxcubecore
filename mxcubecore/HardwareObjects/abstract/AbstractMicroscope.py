@@ -25,6 +25,7 @@ import abc
 
 class AbstractMicroscope(object):
     """ Abstract Mictoscope Class """
+
     __metaclass__ = abc.ABCMeta
 
     def __init__(self):

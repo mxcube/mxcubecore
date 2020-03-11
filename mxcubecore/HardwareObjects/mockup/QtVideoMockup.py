@@ -29,12 +29,11 @@ except ImportError:
     from PyQt4.QtCore import Qt
 
 from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
-    AbstractVideoDevice
+    AbstractVideoDevice,
 )
 
 
 class QtVideoMockup(AbstractVideoDevice):
-
     def __init__(self, name):
         AbstractVideoDevice.__init__(self, name)
         self.force_update = None

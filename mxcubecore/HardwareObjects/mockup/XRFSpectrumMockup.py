@@ -20,7 +20,7 @@
 import time
 
 from HardwareRepository.HardwareObjects.abstract.AbstractXRFSpectrum import (
-    AbstractXRFSpectrum
+    AbstractXRFSpectrum,
 )
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 

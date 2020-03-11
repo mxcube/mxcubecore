@@ -37,7 +37,6 @@ class ALBAFlux(Device, AbstractFlux.AbstractFlux):
 
         return last_current * self.get_transmission()
 
-
     def get_dose_rate(self, energy=None):
         """
         Get dose rate in kGy/s for a standard crystal at current settings.
@@ -50,7 +49,6 @@ class ALBAFlux(Device, AbstractFlux.AbstractFlux):
         # The factor 1.25 converts from the average value over the beamsize
         # to an estimated flux density at the peak.
         return 1.25 * AbstractFlux.AbstractFlux.get_dose_rate(energy=energy)
-
 
 
 def test_hwo(hwo):

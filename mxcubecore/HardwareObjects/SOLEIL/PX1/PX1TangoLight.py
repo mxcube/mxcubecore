@@ -18,10 +18,10 @@ class PX1TangoLight(Device):
 
         self.attrchan.connectSignal("connected", self._setReady)
         self.attrchan.connectSignal("disconnected", self._setReady)
-        self.set_in = self.getCommandObject("set_in")
+        self.set_in = self.get_command_object("set_in")
         self.set_in.connectSignal("connected", self._setReady)
         self.set_in.connectSignal("disconnected", self._setReady)
-        self.set_out = self.getCommandObject("set_out")
+        self.set_out = self.get_command_object("set_out")
 
         self.px1env_hwo = self.getObjectByRole("px1environment")
         self.light_hwo = self.getObjectByRole("intensity")
@@ -83,7 +83,7 @@ class PX1TangoLight(Device):
             if self.inversed:
                 self.set_in()
             else:
-                self.light_hwo.move(0)
+                self.light_hwo.set_value(0)
                 self.set_out()
 
     def zoom_changed(self, position_name, value):
@@ -102,11 +102,11 @@ class PX1TangoLight(Device):
         try:
             if "lightLevel" in props.keys():
                 light_level = float(props["lightLevel"])
-                light_current = self.light_hwo.getPosition()
+                light_current = self.light_hwo.get_value()
                 if light_current != light_level:
                     logging.getLogger("HWR").debug(
                         "Setting light level to %s" % light_level
                     )
-                    self.light_hwo.move(light_level)
+                    self.light_hwo.set_value(light_level)
         except BaseException:
             logging.getLogger("HWR").debug("Cannot set light level")

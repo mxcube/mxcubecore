@@ -203,7 +203,7 @@ class MD3UP(Microdiff.Microdiff):
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
-            self.zoomMotor.getPosition()
+            self.zoomMotor.get_value()
         )
 
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
@@ -214,14 +214,14 @@ class MD3UP(Microdiff.Microdiff):
         dy = (y - beam_pos_y) / self.pixelsPerMmZ
 
         phi_angle = math.radians(
-            self.centringPhi.direction * self.centringPhi.getPosition()
+            self.centringPhi.direction * self.centringPhi.get_value()
         )
 
-        sampx = -self.centringSamplex.direction * self.centringSamplex.getPosition()
-        sampy = self.centringSampley.direction * self.centringSampley.getPosition()
+        sampx = -self.centringSamplex.direction * self.centringSamplex.get_value()
+        sampy = self.centringSampley.direction * self.centringSampley.get_value()
 
-        phiy = -self.centringPhiy.direction * self.centringPhiy.getPosition()
-        phiz = self.centringPhiz.direction * self.centringPhiz.getPosition()
+        phiy = -self.centringPhiy.direction * self.centringPhiy.get_value()
+        phiz = self.centringPhiz.direction * self.centringPhiz.get_value()
 
         rotMatrix = numpy.matrix(
             [
@@ -248,7 +248,7 @@ class MD3UP(Microdiff.Microdiff):
         phiz = phiz + dy
 
         return {
-            "phi": self.centringPhi.getPosition(),
+            "phi": self.centringPhi.get_value(),
             "phiz": float(phiz),
             "phiy": float(phiy),
             "sampx": float(sampx),
@@ -257,26 +257,26 @@ class MD3UP(Microdiff.Microdiff):
 
     def motor_positions_to_screen(self, centred_positions_dict):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
-            self.zoomMotor.getPosition()
+            self.zoomMotor.get_value()
         )
 
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
 
         phi_angle = math.radians(
-            self.centringPhi.direction * self.centringPhi.getPosition()
+            self.centringPhi.direction * self.centringPhi.get_value()
         )
         sampx = self.centringSamplex.direction * (
-            centred_positions_dict["sampx"] - self.centringSamplex.getPosition()
+            centred_positions_dict["sampx"] - self.centringSamplex.get_value()
         )
         sampy = self.centringSampley.direction * (
-            centred_positions_dict["sampy"] - self.centringSampley.getPosition()
+            centred_positions_dict["sampy"] - self.centringSampley.get_value()
         )
         phiy = self.centringPhiy.direction * (
-            centred_positions_dict["phiy"] - self.centringPhiy.getPosition()
+            centred_positions_dict["phiy"] - self.centringPhiy.get_value()
         )
         phiz = self.centringPhiz.direction * (
-            centred_positions_dict["phiz"] - self.centringPhiz.getPosition()
+            centred_positions_dict["phiz"] - self.centringPhiz.get_value()
         )
 
         rotMatrix = numpy.matrix(
@@ -313,7 +313,7 @@ class MD3UP(Microdiff.Microdiff):
 
     def move_to_beam(self, x, y):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
-            self.zoomMotor.getPosition()
+            self.zoomMotor.get_value()
         )
 
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
@@ -324,12 +324,12 @@ class MD3UP(Microdiff.Microdiff):
         dy = (y - beam_pos_y) / self.pixelsPerMmZ
 
         phi_angle = math.radians(
-            self.centringPhi.direction * self.centringPhi.getPosition()
+            self.centringPhi.direction * self.centringPhi.get_value()
         )
 
-        sampx = -self.centringSamplex.direction * self.centringSamplex.getPosition()
-        sampy = self.centringSampley.direction * self.centringSampley.getPosition()
-        phiz = self.centringPhiz.direction * self.centringPhiz.getPosition()
+        sampx = -self.centringSamplex.direction * self.centringSamplex.get_value()
+        sampy = self.centringSampley.direction * self.centringSampley.get_value()
+        phiz = self.centringPhiz.direction * self.centringPhiz.get_value()
 
         rotMatrix = numpy.matrix(
             [
@@ -356,9 +356,9 @@ class MD3UP(Microdiff.Microdiff):
         phiz = phiz + dy
 
         try:
-            self.centringSamplex.move(sampx)
-            self.centringSampley.move(sampy)
-            self.centringPhiz.move(phiz)
+            self.centringSamplex.set_value(sampx)
+            self.centringSampley.set_value(sampy)
+            self.centringPhiz.set_value(phiz)
         except Exception:
             msg = "MiniDiff: could not center to beam, aborting"
             logging.getLogger("HWR").exception(msg)

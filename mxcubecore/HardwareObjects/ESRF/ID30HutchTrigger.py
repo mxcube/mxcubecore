@@ -71,7 +71,7 @@ class ID30HutchTrigger(BaseHardwareObjects.HardwareObject):
         eh_controller = self.getObjectByRole("eh_controller")
         if not entering_hutch:
             if old["dtox"] is not None:
-                eh_controller.DtoX.move(old["dtox"], wait=False)
+                eh_controller.DtoX.set_value(old["dtox"], wait=False)
             if self.getObjectByRole("aperture") and old["aperture"] is not None:
                 self.getObjectByRole("aperture").moveToPosition(old["aperture"])
             self.getObjectByRole("beamstop").moveToPosition("in")
@@ -79,8 +79,8 @@ class ID30HutchTrigger(BaseHardwareObjects.HardwareObject):
         else:
             old["dtox"] = eh_controller.DtoX.position()
             if self.getObjectByRole("aperture"):
-                old["aperture"] = self.getObjectByRole("aperture").getPosition()
-            eh_controller.DtoX.move(700, wait=False)
+                old["aperture"] = self.getObjectByRole("aperture").get_value()
+            eh_controller.DtoX.set_value(700, wait=False)
             if self.getObjectByRole("aperture"):
                 self.getObjectByRole("aperture").moveToPosition("Outbeam")
             self.getObjectByRole("beamstop").moveToPosition("out")

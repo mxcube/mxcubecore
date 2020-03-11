@@ -55,7 +55,7 @@ class BeamInfo(Equipment):
             self.connect(
                 HWR.beamline.beam.beam_definer,
                 "definerPosChanged",
-                self.definer_pos_changed
+                self.definer_pos_changed,
             )
         except BaseException:
             logging.getLogger("HWR").debug(

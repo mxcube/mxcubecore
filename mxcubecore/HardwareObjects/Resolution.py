@@ -63,19 +63,9 @@ class Resolution(AbstractMotor):
             raise AttributeError("Cannot get detector properties")
 
         self.connect(self._hwr_detector.distance, "stateChanged", self.update_state)
-        self.connect(self._hwr_detector.distance, "valueChanged", self.update_value)
+        self.connect(self._hwr_detector.distance, "valueChanged", self.update_distance)
         self.connect(self._hwr_energy, "valueChanged", self.update_energy)
         self.connect(self._hwr_energy, "stateChanged", self.update_state)
-
-    def is_ready(self):
-        """Check if the distance motor state is READY.
-        Returns:
-            (bool): True if ready, otherwise False.
-        """
-        try:
-            return self._hwr_detector.distance.is_ready()
-        except AttributeError:
-            return False
 
     def get_state(self):
         """Get the state of the distance motor.
@@ -108,7 +98,7 @@ class Resolution(AbstractMotor):
         )
         return self._limits
 
-    def move(self, value, wait=False, timeout=None):
+    def _set_value(self, value, wait=False, timeout=None):
         """Move resolution to absolute value. Wait the move to finish.
         Args:
             value (float): target value [Å]
@@ -118,8 +108,7 @@ class Resolution(AbstractMotor):
         distance = self.resolution_to_distance(value)
         msg = "Move resolution to {} ({} mm)".format(value, distance)
         logging.getLogger().info(msg)
-
-        self._hwr_detector.distance.move(distance, wait=wait, timeout=timeout)
+        self._hwr_detector.distance.set_value(distance, wait=wait, timeout=timeout)
 
     def stop(self):
         """Stop the distance motor movement"""
@@ -242,40 +231,30 @@ class Resolution(AbstractMotor):
         ]
         return self._calculate_resolution(max(distance_at_corners), dtox_pos)
 
-    def update_state(self, state):
-        """Emist signal stateChanged. Calculate the resolution if needed.
+    def update_distance(self, value=None):
+        """Update the distance.
         Args:
-            state (enum 'MotorState'): state
+            value (float): Detector distance [mm].
         """
-        if not state:
-            state = self.get_state()
-        self._state = state
-        self.emit("stateChanged", (self._state,))
+        value = value or self.hwr_detector.distance.get_value()
+        self._nominal_value = self.distance_to_resolution(value)
+        self.emit("valueChanged", (self._nominal_value,))
+        # self.update_resolution(self.distance_to_resolution(value))
 
-    def update_value(self, value=None):
-        """Update the beam centre and the resolutoion.
+    def update_resolution(self, value):
+        """Update the resolution. Emit valueChanged.
         Args:
-            value (float): value [Å]
+            value (float): Resolution [Å]
         """
-        value = value or self.get_value()
         self._nominal_value = value
-        self.get_detector_radius(self._nominal_value)
-        self.update_resolution(self.distance_to_resolution(self._nominal_value))
-
-    def update_resolution(self, resolution):
-        """Emit valueChanged and valueChanged
-        Args:
-            resolution (float): the resolution value [Å]
-        """
-        self._nominal_value = resolution
         self.emit("valueChanged", (self._nominal_value,))
 
-    def update_energy(self, energy):
+    def update_energy(self, value):
         """Calculate the resolution when changing the energy.
         Args:
-        energy(float): Energy [KeV]
+            value(float): Energy [keV]
         """
-        _wavelength = (h * c / e) / energy * 10e6
+        _wavelength = (h * c / e) / value * 10e6
 
         distance = self._hwr_detector.distance.get_value()
         radius = self.get_detector_radius(distance)

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import jsonschema
 
-from . common import ValidationError
+from .common import ValidationError
+
 
 class BaseModel(dict):
     _SCHEMA = ""
@@ -26,5 +27,6 @@ class MockDataModel(BaseModel):
     """
     Example DataModel used by the MockProcedure (for testing)
     """
+
     # Not defining any attributes as it is a dictionary
     # but it needs to exist so that the type exists
