@@ -295,10 +295,10 @@ class EMBLBeamCentering(HardwareObject):
                 self.emit("progressStep", step, log_msg)
                 gui_log.info("Beam centering: %s" % log_msg)
 
-                HWR.beamline.microscope.move_beam_mark_auto()
+                HWR.beamline.sample_view.move_beam_mark_auto()
 
             HWR.beamline.transmission.set_value(current_transmission)
-            HWR.beamline.microscope.graphics_beam_item.set_detected_beam_position(
+            HWR.beamline.sample_view.graphics_beam_item.set_detected_beam_position(
                 None, None
             )
 
@@ -368,7 +368,7 @@ class EMBLBeamCentering(HardwareObject):
                     with gevent.Timeout(10, False):
                         beam_pos_displacement = [None, None]
                         while None in beam_pos_displacement:
-                            beam_pos_displacement = HWR.beamline.microscope.get_beam_displacement(
+                            beam_pos_displacement = HWR.beamline.sample_view.get_beam_displacement(
                                 reference="beam"
                             )
                             gevent.sleep(0.1)
@@ -453,7 +453,7 @@ class EMBLBeamCentering(HardwareObject):
                     with gevent.Timeout(10, False):
                         beam_pos_displacement = [None, None]
                         while None in beam_pos_displacement:
-                            beam_pos_displacement = HWR.beamline.microscope.get_beam_displacement(
+                            beam_pos_displacement = HWR.beamline.sample_view.get_beam_displacement(
                                 reference="screen"
                             )
                             gevent.sleep(0.1)

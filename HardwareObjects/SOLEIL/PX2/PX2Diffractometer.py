@@ -638,7 +638,7 @@ class PX2Diffractometer(GenericDiffractometer):
         for k in range(n_clicks):
             self.user_clicked_event = gevent.event.AsyncResult()
             x, y = self.user_clicked_event.get()
-            image = HWR.beamline.microscope.camera.get_last_image()
+            image = HWR.beamline.sample_view.camera.get_last_image()
             calibration = self.camera.get_calibration()
             omega = self.goniometer.get_omega_position()
 
@@ -1122,7 +1122,7 @@ class PX2Diffractometer(GenericDiffractometer):
         """
         Description:
         """
-        image_array = HWR.beamline.microscope.get_snapshot(return_as_array=True)
+        image_array = HWR.beamline.sample_view.get_snapshot(return_as_array=True)
         (info, x, y) = lucid.find_loop(image_array)
         surface_score = 10
         return x, y, surface_score

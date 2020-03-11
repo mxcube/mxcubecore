@@ -46,6 +46,7 @@ try:
 except:
     import _pickle as pickle
 
+from datetime import datetime
 from copy import deepcopy
 
 import gevent
@@ -66,8 +67,8 @@ except ImportError:
 from gui.utils import QtImport
 
 from HardwareRepository.HardwareObjects import queue_model_objects
-from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects import QtGraphicsLib as GraphicsLib
+from HardwareRepository.HardwareObjects.abstract.AbstractSampleView import AbstractSampleView
 
 from HardwareRepository import HardwareRepository as HWR
 
@@ -75,22 +76,15 @@ __credits__ = ["MXCuBE collaboration"]
 __category__ = "Graphics"
 
 
-class QtGraphicsManager(HardwareObject):
+class QtGraphicsManager(AbstractSampleView):
     def __init__(self, name):
         """
         :param name: name
         :type name: str
         """
-        HardwareObject.__init__(self, name)
+        AbstractSampleView.__init__(self, name)
 
-        # FIXME! HORROR! HACK!
-        # After recent refactorings functions from this class are sometimes
-        # referenced as beamline.microscope, sometimes as
-        # beamline.microscope.shapes, This hack is NECESSARY to get te program to run
-        # FIXME FIXME
-        self.shapes = self
-
-        self.camera_hwobj = None
+        self.diffractometer_hwobj = None
 
         self.graphics_config_filename = None
         self.omega_angle = 0
@@ -128,7 +122,6 @@ class QtGraphicsManager(HardwareObject):
         self.temp_animation_dir = None
         self.omega_move_delta = None
         self.cursor = None
-        self.get_snapshot = None
 
         self.graphics_view = None
         self.graphics_camera_frame = None
@@ -214,59 +207,63 @@ class QtGraphicsManager(HardwareObject):
             self.item_double_clicked
         )
         self.graphics_view.scene().moveItemClickedSignal.connect(self.move_item_clicked)
+        #self.graphics_view.scene().gridClickedSignal.connect(self.grid_clicked)
+
         self.graphics_view.mouseMovedSignal.connect(self.mouse_moved)
         self.graphics_view.keyPressedSignal.connect(self.key_pressed)
         self.graphics_view.wheelSignal.connect(self.mouse_wheel_scrolled)
 
-        if HWR.beamline.diffractometer is not None:
-            pixels_per_mm = HWR.beamline.diffractometer.get_pixels_per_mm()
+        self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
+
+        if self.diffractometer_hwobj is not None:
+            pixels_per_mm = self.diffractometer_hwobj.get_pixels_per_mm()
             self.diffractometer_pixels_per_mm_changed(pixels_per_mm)
             GraphicsLib.GraphicsItemGrid.set_grid_direction(
-                HWR.beamline.diffractometer.get_grid_direction()
+                self.diffractometer_hwobj.get_grid_direction()
             )
 
             self.connect(
-                HWR.beamline.diffractometer,
+                self.diffractometer_hwobj,
                 "minidiffStateChanged",
                 self.diffractometer_state_changed,
             )
             self.connect(
-                HWR.beamline.diffractometer,
+                self.diffractometer_hwobj,
                 "centringStarted",
                 self.diffractometer_centring_started,
             )
             self.connect(
-                HWR.beamline.diffractometer,
+                self.diffractometer_hwobj,
                 "centringAccepted",
                 self.create_centring_point,
             )
             self.connect(
-                HWR.beamline.diffractometer,
+                self.diffractometer_hwobj,
                 "centringSuccessful",
                 self.diffractometer_centring_successful,
             )
             self.connect(
-                HWR.beamline.diffractometer,
+                self.diffractometer_hwobj,
                 "centringFailed",
                 self.diffractometer_centring_failed,
             )
             self.connect(
-                HWR.beamline.diffractometer,
+                self.diffractometer_hwobj,
                 "pixelsPerMmChanged",
                 self.diffractometer_pixels_per_mm_changed,
             )
             self.connect(
-                HWR.beamline.diffractometer,
+                self.diffractometer_hwobj,
                 "omegaReferenceChanged",
                 self.diffractometer_omega_reference_changed,
             )
             self.connect(
-                HWR.beamline.diffractometer,
+                self.diffractometer_hwobj,
                 "phiMotorMoved",
                 self.diffractometer_phi_motor_moved,
             )
             self.connect(
-                HWR.beamline.diffractometer,
+                self.diffractometer_hwobj,
                 "minidiffPhaseChanged",
                 self.diffractometer_phase_changed,
             )
@@ -323,7 +320,7 @@ class QtGraphicsManager(HardwareObject):
         try:
             self.auto_grid_size_mm = eval(self.getProperty("auto_grid_size_mm"))
         except BaseException:
-            self.auto_grid_size_mm = (0.2, 0.2)
+            self.auto_grid_size_mm = (0.1, 0.1)
 
         """
         self.graphics_move_up_item.setVisible(
@@ -368,8 +365,6 @@ class QtGraphicsManager(HardwareObject):
         else:
             self.cursor = QtImport.Qt.ArrowCursor
 
-        self.get_snapshot = self.get_scene_snapshot
-
     @property
     def zoom(self):
         """zoom motor object
@@ -380,7 +375,7 @@ class QtGraphicsManager(HardwareObject):
         Returns:
             AbstractActuator
         """
-        return HWR.beamline.diffractometer.zoom
+        return self.diffractometer_hwobj.zoom
 
     @property
     def focus(self):
@@ -392,7 +387,7 @@ class QtGraphicsManager(HardwareObject):
         Returns:
             AbstractActuator
         """
-        return HWR.beamline.diffractometer.alignment_x
+        return self.diffractometer_hwobj.alignment_x
 
     @property
     def camera(self):
@@ -528,24 +523,28 @@ class QtGraphicsManager(HardwareObject):
                 self.create_line(start_point, end_point, emit=False)
         self.de_select_all()
 
-    def camera_image_received(self, pixmap_image):
+    def camera_image_received(self, pixmap_image, msg=None):
         """Method called when a frame from camera arrives.
            Slot to signal 'imageReceived'
 
         :param pixmap_image: frame from camera
         :type pixmap_image: QtGui.QPixmapImage
         """
-        if self.image_scale:
-            pixmap_image = pixmap_image.scaled(
-                QtImport.QSize(
-                    pixmap_image.width() * self.image_scale,
-                    pixmap_image.height() * self.image_scale,
+        if pixmap_image:
+            if self.image_scale:
+                pixmap_image = pixmap_image.scaled(
+                    QtImport.QSize(
+                        pixmap_image.width() * self.image_scale,
+                        pixmap_image.height() * self.image_scale,
+                    )
                 )
-            )
-        self.graphics_camera_frame.setPixmap(pixmap_image)
+            self.graphics_camera_frame.setPixmap(pixmap_image)
 
-        if self.in_magnification_mode:
-            self.graphics_magnification_item.set_pixmap(pixmap_image)
+            if self.in_magnification_mode:
+                self.graphics_magnification_item.set_pixmap(pixmap_image)
+        else:
+            self.display_info_msg(msg, 10, 500, False)
+            
 
     def beam_position_changed(self, position):
         """Method called when beam position on the screen changed.
@@ -576,11 +575,11 @@ class QtGraphicsManager(HardwareObject):
            Updates point screen coordinates and grid coorner coordinates.
            If diffractometer not ready then hides all shapes.
         """
-        if HWR.beamline.diffractometer.is_ready() and not self.in_centring_state:
+        if self.diffractometer_hwobj.is_ready() and not self.in_centring_state:
             for shape in self.get_shapes():
                 if isinstance(shape, GraphicsLib.GraphicsItemPoint):
                     cpos = shape.get_centred_position()
-                    new_x, new_y = HWR.beamline.diffractometer.motor_positions_to_screen(
+                    new_x, new_y = self.diffractometer_hwobj.motor_positions_to_screen(
                         cpos.as_dict()
                     )
                     shape.set_start_position(new_x, new_y)
@@ -588,7 +587,7 @@ class QtGraphicsManager(HardwareObject):
                     grid_cpos = shape.get_centred_position()
                     if grid_cpos is not None:
                         current_cpos = queue_model_objects.CentredPosition(
-                            HWR.beamline.diffractometer.get_positions()
+                            self.diffractometer_hwobj.get_positions()
                         )
 
                         current_cpos.set_motor_pos_delta(0.1)
@@ -597,7 +596,7 @@ class QtGraphicsManager(HardwareObject):
                         if hasattr(grid_cpos, "zoom"):
                             current_cpos.zoom = grid_cpos.zoom
 
-                        center_coord = HWR.beamline.diffractometer.motor_positions_to_screen(
+                        center_coord = self.diffractometer_hwobj.motor_positions_to_screen(
                             grid_cpos.as_dict()
                         )
                         if center_coord:
@@ -607,7 +606,7 @@ class QtGraphicsManager(HardwareObject):
                             for motor_pos in shape.get_motor_pos_corner():
                                 corner_coord.append(
                                     (
-                                        HWR.beamline.diffractometer.motor_positions_to_screen(
+                                        self.diffractometer_hwobj.motor_positions_to_screen(
                                             motor_pos
                                         )
                                     )
@@ -632,7 +631,7 @@ class QtGraphicsManager(HardwareObject):
            If PHASE_BEAM then displays a grid on the screen
         """
         self.graphics_scale_item.set_display_grid(
-            phase == HWR.beamline.diffractometer.PHASE_BEAM
+            phase == self.diffractometer_hwobj.PHASE_BEAM
         )
         self.emit("diffractometerPhaseChanged", phase)
 
@@ -670,7 +669,7 @@ class QtGraphicsManager(HardwareObject):
 
         if p_dict:
             cpos = queue_model_objects.CentredPosition(p_dict)
-            screen_pos = HWR.beamline.diffractometer.motor_positions_to_screen(
+            screen_pos = self.diffractometer_hwobj.motor_positions_to_screen(
                 cpos.as_dict()
             )
             point = GraphicsLib.GraphicsItemPoint(
@@ -698,6 +697,23 @@ class QtGraphicsManager(HardwareObject):
             "infoMsg",
             "Click Save to store the centred point " + "or start a new centring",
         )
+        
+        gevent.spawn_later(2, self.save_crystal_image)
+
+    def save_crystal_image(self):
+        try:
+            raw_snapshot = self.get_raw_snapshot()
+            result_image = raw_snapshot.copy(
+                 self.beam_position[0] - self.beam_info_dict["size_x"] * self.pixels_per_mm[0] / 2,
+                 self.beam_position[1] - self.beam_info_dict["size_y"] * self.pixels_per_mm[1] / 2,
+                 self.beam_info_dict["size_x"] * self.pixels_per_mm[0] * 1.5,
+                 self.beam_info_dict["size_y"] * self.pixels_per_mm[1] * 1.5
+            )
+            date_time_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+            result_image.save("/opt/embl-hh/var/crystal_images/%s.png" % date_time_str)
+        except:
+            pass
+
 
     def diffractometer_centring_failed(self, method, centring_status):
         """CleanUp method after centring failed
@@ -762,7 +778,7 @@ class QtGraphicsManager(HardwareObject):
         """
         if self.in_centring_state:
             self.graphics_centring_lines_item.add_position(pos_x, pos_y)
-            HWR.beamline.diffractometer.image_clicked(pos_x, pos_y)
+            self.diffractometer_hwobj.image_clicked(pos_x, pos_y)
         elif self.wait_grid_drawing_click:
             self.in_grid_drawing_state = True
             self.graphics_grid_draw_item.set_draw_mode(True)
@@ -796,7 +812,7 @@ class QtGraphicsManager(HardwareObject):
             self.stop_beam_define()
             # self.graphics_beam_define_item.store_coord(pos_x, pos_y)
         elif self.in_one_click_centering:
-            HWR.beamline.diffractometer.start_move_to_beam(pos_x, pos_y)
+            self.diffractometer_hwobj.start_move_to_beam(pos_x, pos_y)
         else:
             self.emit("pointSelected", None)
             self.emit("infoMsg", "")
@@ -834,7 +850,7 @@ class QtGraphicsManager(HardwareObject):
         elif self.in_beam_define_state:
             self.stop_beam_define()
         else:
-            HWR.beamline.diffractometer.move_to_beam(pos_x, pos_y)
+            self.diffractometer_hwobj.move_to_beam(pos_x, pos_y)
         self.emit("imageDoubleClicked", pos_x, pos_y)
 
     def mouse_released(self, pos_x, pos_y):
@@ -857,6 +873,9 @@ class QtGraphicsManager(HardwareObject):
             self.emit("shapeCreated", self.graphics_grid_draw_item, "Grid")
             self.graphics_grid_draw_item.setSelected(True)
             self.graphics_grid_draw_item.update_coordinate_map()
+            #self._shapes.add_shape(self.graphics_grid_draw_item.get_display_name(),
+            #                       self.graphics_grid_draw_item
+            #)
             self.shape_dict[
                 self.graphics_grid_draw_item.get_display_name()
             ] = self.graphics_grid_draw_item
@@ -975,24 +994,24 @@ class QtGraphicsManager(HardwareObject):
             # self.graphics_beam_item.set_detected_beam_position(None, None)
 
         # elif key_event == "Up":
-        #    HWR.beamline.diffractometer.move_to_beam(self.beam_position[0],
+        #    self.diffractometer_hwobj.move_to_beam(self.beam_position[0],
         #                                           self.beam_position[1] - 50)
         # elif key_event == "Down":
-        #    HWR.beamline.diffractometer.move_to_beam(self.beam_position[0],
+        #    self.diffractometer_hwobj.move_to_beam(self.beam_position[0],
         #                                           self.beam_position[1] + 50)
         elif key_event == "Plus":
-            HWR.beamline.diffractometer.zoom_in()
+            self.diffractometer_hwobj.zoom_in()
         elif key_event == "Minus":
-            HWR.beamline.diffractometer.zoom_out()
+            self.diffractometer_hwobj.zoom_out()
 
     def mouse_wheel_scrolled(self, delta):
         """Method called when mouse wheel is scrolled.
            Rotates omega axis up or down
         """
         if delta > 0:
-            HWR.beamline.diffractometer.move_omega_relative(self.omega_move_delta)
+            self.diffractometer_hwobj.move_omega_relative(self.omega_move_delta)
         else:
-            HWR.beamline.diffractometer.move_omega_relative(-self.omega_move_delta)
+            self.diffractometer_hwobj.move_omega_relative(-self.omega_move_delta)
 
     def item_clicked(self, item, state):
         """Item clicked event
@@ -1023,7 +1042,7 @@ class QtGraphicsManager(HardwareObject):
         :type item: QGraphicsLib.GraphicsItem
         """
         if isinstance(item, GraphicsLib.GraphicsItemPoint):
-            HWR.beamline.diffractometer.move_to_centred_position(
+            self.diffractometer_hwobj.move_to_centred_position(
                 item.get_centred_position()
             )
 
@@ -1033,7 +1052,11 @@ class QtGraphicsManager(HardwareObject):
         # TODO Not implemented yet
         print("Move screen: ", direction)
 
+    def grid_clicked(self, grid, image, line, image_num):
+        self.emit("gridClicked", (grid, image, line, image_num))
+
     def set_cursor_busy(self, state):
+        return 
         if state:
             QtImport.QApplication.setOverrideCursor(
                 QtImport.QCursor(QtImport.Qt.BusyCursor)
@@ -1135,6 +1158,7 @@ class QtGraphicsManager(HardwareObject):
             self.line_count += 1
             shape.index = self.line_count
         self.shape_dict[shape.get_display_name()] = shape
+        #self._shapes.add_shape(shape.get_display_name(), shape)
         self.graphics_view.graphics_scene.addItem(shape)
 
         if isinstance(shape, GraphicsLib.GraphicsItemPoint):
@@ -1161,7 +1185,7 @@ class QtGraphicsManager(HardwareObject):
         if isinstance(shape, GraphicsLib.GraphicsItemPoint):
             for s in self.get_shapes():
                 if isinstance(s, GraphicsLib.GraphicsItemLine):
-                    if shape in s.get_graphics_points():
+                    if shape in s.get_graphical_points():
                         self.delete_shape(s)
                         break
         shape_type = ""
@@ -1184,8 +1208,9 @@ class QtGraphicsManager(HardwareObject):
         :returns: GraphicsLib.GraphicsItem
         """
         return self.shape_dict.get(shape_name)
+        #self._shapes.get_shape_by_name(shape_name)
 
-    def clear_all(self):
+    def clear_all_shapes(self):
         """Clear the shape history, remove all contents.
         """
         self.point_count = 0
@@ -1347,8 +1372,8 @@ class QtGraphicsManager(HardwareObject):
         """Saves animated gif of a rotating sample"""
         """Save animation task"""
 
-        # HWR.beamline.diffractometer.set_ready(False)
-        gevent.spawn(HWR.beamline.diffractometer.move_omega_relative, 180)
+        # self.diffractometer_hwobj.set_ready(False)
+        gevent.spawn(self.diffractometer_hwobj.move_omega_relative, 180)
         gevent.spawn(self.save_scene_animation_task, filename, duration_sec)
 
     def save_scene_animation_task(self, filename, duration_sec):
@@ -1357,7 +1382,7 @@ class QtGraphicsManager(HardwareObject):
 
         image_list = []
 
-        # while not HWR.beamline.diffractometer.is_ready():
+        # while not self.diffractometer_hwobj.is_ready():
         for i in range(4):
             arr = self.get_scene_snapshot(return_as_array=True)
             width = arr.shape[0]
@@ -1371,7 +1396,7 @@ class QtGraphicsManager(HardwareObject):
         tt = image_list[0]
         write_gif(image_list, "/tmp/test_anim.gif", fps=15)
 
-    def get_raw_snapshot(self, bw=False, return_as_array=False):
+    def get_snapshot(self, overlay=True, bw=False, return_as_array=False):
         """Returns a raw snapshot from camera
 
         :param bw: black and white
@@ -1379,9 +1404,12 @@ class QtGraphicsManager(HardwareObject):
         :param return_as_array: return image as numpy array
         :type return_as_array: bool
         """
-        return self.camera_hwobj.get_snapshot(bw, return_as_array)
+        if overlay:
+            self.get_scene_snapshot(bw, return_as_array)
+        else:
+            self.camera_hwobj.get_snapshot(bw, return_as_array)
 
-    def save_raw_snapshot(self, filename, bw=False, image_type="PNG"):
+    def save_snapshot(self, filename, overlay=True, bw=False):
         """Save raw image from camera in file
 
         :param filename: filename
@@ -1392,13 +1420,13 @@ class QtGraphicsManager(HardwareObject):
         :type image_type: str
         """
         try:
-            logging.getLogger("user_level_log").debug(
-                "Saving raw snapshot: %s" % filename
-            )
-            self.camera_hwobj.save_snapshot(filename, image_type)
+            if overlay:
+                self.save_scene_snapshot(filename)
+            else:
+                self.camera_hwobj.save_snapshot(filename, "PNG")
         except BaseException:
             logging.getLogger("HWR").exception(
-                "Unable to save raw image: %s" % filename
+                "Unable to save snapshot in %s" % filename
             )
 
     def save_beam_profile(self, profile_filename):
@@ -1610,7 +1638,7 @@ class QtGraphicsManager(HardwareObject):
             self.graphics_beam_define_item.width_microns,
             self.graphics_beam_define_item.height_microns,
         )
-        HWR.beamline.diffractometer.move_to_beam(
+        self.diffractometer_hwobj.move_to_beam(
             self.graphics_beam_define_item.center_coord[0],
             self.graphics_beam_define_item.center_coord[1],
         )
@@ -1628,13 +1656,13 @@ class QtGraphicsManager(HardwareObject):
             self.hide_all_items()
             self.set_cursor_busy(True)
             self.set_centring_state(True)
-            HWR.beamline.diffractometer.start_centring_method(
-                HWR.beamline.diffractometer.CENTRING_METHOD_MANUAL
+            self.diffractometer_hwobj.start_centring_method(
+                self.diffractometer_hwobj.CENTRING_METHOD_MANUAL
             )
             self.emit("infoMsg", "3 click centring")
         else:
             # self.accept_centring()
-            HWR.beamline.diffractometer.start_move_to_beam(
+            self.diffractometer_hwobj.start_move_to_beam(
                 self.beam_position[0], self.beam_position[1]
             )
 
@@ -1642,7 +1670,7 @@ class QtGraphicsManager(HardwareObject):
         """Accepts centring
         """
         self.set_cursor_busy(False)
-        HWR.beamline.diffractometer.accept_centring()
+        self.diffractometer_hwobj.accept_centring()
         self.diffractometer_state_changed()
         self.show_all_items()
 
@@ -1650,7 +1678,7 @@ class QtGraphicsManager(HardwareObject):
         """Rejects centring
         """
         self.set_cursor_busy(False)
-        HWR.beamline.diffractometer.reject_centring()
+        self.diffractometer_hwobj.reject_centring()
         self.show_all_items()
 
     def cancel_centring(self, reject=False):
@@ -1660,7 +1688,7 @@ class QtGraphicsManager(HardwareObject):
         :type reject: bool
         """
         self.set_cursor_busy(False)
-        HWR.beamline.diffractometer.cancel_centring_method(reject=reject)
+        self.diffractometer_hwobj.cancel_centring_method(reject=reject)
         self.show_all_items()
 
     def start_one_click_centring(self):
@@ -1683,7 +1711,7 @@ class QtGraphicsManager(HardwareObject):
         """
         selected_points = self.get_selected_points()
         if len(selected_points) == 2:
-            HWR.beamline.diffractometer.visual_align(
+            self.diffractometer_hwobj.visual_align(
                 selected_points[0].get_centred_position(),
                 selected_points[1].get_centred_position(),
             )
@@ -1715,7 +1743,7 @@ class QtGraphicsManager(HardwareObject):
         """Creates a automatic helical line
         """
         if cpos is None:
-            point_one_motor_pos = HWR.beamline.diffractometer.get_positions()
+            point_one_motor_pos = self.diffractometer_hwobj.get_positions()
         else:
             point_one_motor_pos = cpos
 
@@ -1792,7 +1820,7 @@ class QtGraphicsManager(HardwareObject):
         )
         self.graphics_view.graphics_scene.addItem(temp_grid)
         temp_grid.index = self.grid_count
-        motor_pos = HWR.beamline.diffractometer.get_centred_point_from_coord(
+        motor_pos = self.diffractometer_hwobj.get_centred_point_from_coord(
             self.beam_position[0], self.beam_position[1], return_by_names=True
         )
         temp_grid.set_centred_position(queue_model_objects.CentredPosition(motor_pos))
@@ -1802,6 +1830,7 @@ class QtGraphicsManager(HardwareObject):
 
         self.emit("shapeCreated", temp_grid, "Grid")
         self.shape_dict[temp_grid.get_display_name()] = temp_grid
+        #self._shapes.add_shape(temp_grid.get_display_name(), temp_grid)
         self.grid_count += 1
 
         return temp_grid
@@ -1814,10 +1843,10 @@ class QtGraphicsManager(HardwareObject):
         logging.getLogger("user_level_log").info("Auto grid procedure started...")
         temp_grid = None
         """
-        HWR.beamline.diffractometer.move_omega(0)
-        HWR.beamline.diffractometer.move_sample_out()
+        self.diffractometer_hwobj.move_omega(0)
+        self.diffractometer_hwobj.move_sample_out()
         background_image = self.get_raw_snapshot(bw=True, return_as_array=True)
-        HWR.beamline.diffractometer.move_sample_in()
+        self.diffractometer_hwobj.move_sample_in()
 
         number_of_snapshots = 6
         snapshot_list = []
@@ -1834,7 +1863,7 @@ class QtGraphicsManager(HardwareObject):
                     "optical_y": y,
                 }
             )
-            HWR.beamline.diffractometer.move_omega_relative(360 / number_of_snapshots)
+            self.diffractometer_hwobj.move_omega_relative(360 / number_of_snapshots)
 
         auto_mesh = AutoMesh.getAutoMesh(
             background_image,
@@ -1843,7 +1872,7 @@ class QtGraphicsManager(HardwareObject):
             self.pixels_per_mm,
         )
 
-        HWR.beamline.diffractometer.move_omega(auto_mesh["angle"])
+        self.diffractometer_hwobj.move_omega(auto_mesh["angle"])
 
         grid_spacing = (
             self.beam_info_dict["size_x"] / 2,
@@ -1858,7 +1887,7 @@ class QtGraphicsManager(HardwareObject):
         )
         self.graphics_view.graphics_scene.addItem(temp_grid)
         temp_grid.index = self.grid_count
-        motor_pos = HWR.beamline.diffractometer.get_centred_point_from_coord(
+        motor_pos = self.diffractometer_hwobj.get_centred_point_from_coord(
             auto_mesh["center_x"], auto_mesh["center_y"], return_by_names=True
         )
         temp_grid.set_centred_position(queue_model_objects.CentredPosition(motor_pos))
@@ -1879,7 +1908,7 @@ class QtGraphicsManager(HardwareObject):
         """Updates grid corner positions
         """
         grid_center_x, grid_center_y = grid_object.get_center_coord()
-        motor_pos = HWR.beamline.diffractometer.get_centred_point_from_coord(
+        motor_pos = self.diffractometer_hwobj.get_centred_point_from_coord(
             grid_center_x, grid_center_y, return_by_names=True
         )
         grid_object.set_centred_position(queue_model_objects.CentredPosition(motor_pos))
@@ -1887,7 +1916,7 @@ class QtGraphicsManager(HardwareObject):
         motor_pos_corner = []
         for index, corner_coord in enumerate(grid_object.get_corner_coord()):
             motor_pos_corner.append(
-                HWR.beamline.diffractometer.get_centred_point_from_coord(
+                self.diffractometer_hwobj.get_centred_point_from_coord(
                     corner_coord.x(), corner_coord.y(), return_by_names=True
                 )
             )
@@ -1909,6 +1938,7 @@ class QtGraphicsManager(HardwareObject):
         select_middle_y = (select_start_coord[1] + select_end_coord[1]) / 2.0
 
         for shape in self.shape_dict.values():
+        #for shape in self._shapes.get_all_shapes():
             if isinstance(shape, GraphicsLib.GraphicsItemLine):
                 (start_point, end_point) = shape.get_graphics_points()
                 if min(
@@ -1973,7 +2003,7 @@ class QtGraphicsManager(HardwareObject):
     def auto_focus(self):
         """Starts auto focus
         """
-        HWR.beamline.diffractometer.start_auto_focus()
+        self.diffractometer_hwobj.start_auto_focus()
 
     def start_auto_centring(self, wait=False):
         """Starts auto centring
@@ -1981,8 +2011,8 @@ class QtGraphicsManager(HardwareObject):
         # self.display_info_msg(["Auto centring in progress...",
         #                       "Please wait."])
         self.emit("centringInProgress", True)
-        HWR.beamline.diffractometer.start_centring_method(
-            HWR.beamline.diffractometer.CENTRING_METHOD_AUTO, wait=wait
+        self.diffractometer_hwobj.start_centring_method(
+            self.diffractometer_hwobj.CENTRING_METHOD_AUTO, wait=wait
         )
         self.emit("infoMsg", "Automatic centring")
 

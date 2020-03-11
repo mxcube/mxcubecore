@@ -329,15 +329,15 @@ class Beamline(ConfiguredObject):
     __content_roles.append("lims")
 
     @property
-    def microscope(self):
-        """Microscope object. Includes defined shapes.
+    def sample_view(self):
+        """Sample view object. Includes defined shapes.
 
         Returns:
-            Optional[AbstractMicroscope]:
+            Optional[AbstractSampleView]:
         """
-        return self._objects.get("microscope")
+        return self._objects.get("sample_view")
 
-    __content_roles.append("microscope")
+    __content_roles.append("sample_view")
 
     @property
     def queue_manager(self):

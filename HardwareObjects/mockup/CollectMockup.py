@@ -62,6 +62,7 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         number_of_images = self.current_dc_parameters["oscillation_sequence"][0][
             "number_of_images"
         ]
+
         for image in range(
             self.current_dc_parameters["oscillation_sequence"][0]["number_of_images"]
         ):
@@ -154,14 +155,16 @@ class CollectMockup(AbstractCollect.AbstractCollect):
 
     @task
     def _take_crystal_snapshot(self, filename):
-        HWR.beamline.microscope.save_scene_snapshot(filename)
+        HWR.beamline.sample_view.save_scene_snapshot(filename)
 
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec=1):
         """Rotates sample by 360 and composes a gif file
            Animation is saved as the fourth snapshot
         """
-        HWR.beamline.microscope.save_scene_animation(animation_filename, duration_sec)
+        HWR.beamline.sample_view.save_scene_animation(
+            animation_filename, duration_sec
+        )
 
     # @task
     # def move_motors(self, motor_position_dict):

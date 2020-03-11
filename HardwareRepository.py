@@ -176,8 +176,8 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
                             result.replace_object(role1, hwobj)
                         else:
                             msg1 = "No such role: %s.%s" % (class_name, role1)
-                except:
-                    msg1 = "Loading error"
+                except BaseException as ex:
+                    msg1 = "Loading error (%s)" % str(ex)
                     class_name = ""
                 load_time = 1000 * (time.time() - time0)
                 _table.append(
