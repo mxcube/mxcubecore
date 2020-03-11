@@ -112,7 +112,7 @@ class PX2Attenuator(Device):
         )
         self.emit("attStateChanged", (value,))
 
-    def getAttFactor(self):
+    def get_value(self):
 
         try:
             if (
@@ -132,7 +132,7 @@ class PX2Attenuator(Device):
             # de 120%
         except BaseException:
             logging.getLogger("HWR").error(
-                "%s getAttFactor : received value on channel is not a float value",
+                "%s get_value : received value on channel is not a float value",
                 str(self.name()),
             )
             value = None
@@ -150,7 +150,7 @@ class PX2Attenuator(Device):
                 "%s attFactorChanged : received value %s"
                 % (str(self.name()), channelValue)
             )
-            value = self.getAttFactor()
+            value = self.get_value()
         except BaseException:
             logging.getLogger("HWR").error(
                 "%s attFactorChanged : received value on channel is not a float value",
@@ -174,7 +174,7 @@ class PX2Attenuator(Device):
         else:
             self.emit("toggleFilter", (value,))
 
-    def setTransmission(self, value):
+    def set_value(self, value):
         self.set_value = float(value)
         try:
             if (
@@ -219,4 +219,4 @@ class PX2Attenuator(Device):
 
 
 def test_hwo(hwo):
-    print("Atten. factor", hwo.getAttFactor())
+    print("Atten. factor", hwo.get_value())

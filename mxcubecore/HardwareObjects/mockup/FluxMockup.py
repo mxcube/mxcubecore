@@ -42,7 +42,7 @@ class FluxMockup(AbstractFlux):
 
         self.measure_flux()
 
-    def get_flux(self):
+    def get_value(self):
         """Get flux at current transmission in units of photons/s"""
         return self.current_flux_dict["flux"]
 

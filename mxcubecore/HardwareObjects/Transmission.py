@@ -11,9 +11,9 @@ class Transmission(HardwareObject):
         self.indexes = []
         self.attno = 0
         # TO DO: clean this!!!
-        self.getValue = self.get_value
-        self.getAttFactor = self.get_value
-        self.setTransmission = self.set_value
+        # self.getValue = self.get_value
+        # self.getAttFactor = self.get_value
+        # self.setTransmission = self.set_value
 
     def init(self):
 
@@ -50,7 +50,7 @@ class Transmission(HardwareObject):
 
     def _update(self):
         self.emit("attStateChanged", self.getAttState())
-        self.emit("attFactorChanged", self.getAttFactor())
+        self.emit("attFactorChanged", self.get_value())
 
     def toggle(self, attenuator_index):
         idx = self.indexes[attenuator_index]
@@ -61,7 +61,7 @@ class Transmission(HardwareObject):
         self._update()
 
     def get_value(self):
-        self.__matt.set_energy(HWR.beamline.energy.get_energy())
+        self.__matt.set_energy(HWR.beamline.energy.get_value())
         return self.__matt.transmission_get()
 
     def is_in(self, attenuator_index):

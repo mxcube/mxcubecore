@@ -32,7 +32,7 @@ class BIOMAXEnergy(Energy.Energy):
             logging.getLogger("HWR").info("No controller used")
 
         if HWR.beamline.energy is not None:
-            HWR.beamline.energy.connect("positionChanged", self.energyPositionChanged)
+            HWR.beamline.energy.connect("valueChanged", self.energyPositionChanged)
             HWR.beamline.energy.connect("stateChanged", self.energyStateChanged)
 
     def get_current_energy(self):

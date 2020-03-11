@@ -240,7 +240,7 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
 
     def get_transmission(self):
         if self.bl_control.transmission is not None:
-            return self.bl_control.transmission.getAttFactor()
+            return self.bl_control.transmission.get_value()
 
     def get_undulators_gaps(self):
         return []
@@ -317,7 +317,7 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
 
     def get_flux(self):
         if self.bl_control.flux is not None:
-            return self.bl_control.flux.getCurrentFlux()
+            return self.bl_control.flux.get_value()
 
     def getOscillation(self, oscillation_id):
         return self.oscillations_history[oscillation_id - 1]

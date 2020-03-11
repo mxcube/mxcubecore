@@ -320,13 +320,13 @@ class GenericDiffractometer(HardwareObject):
                 self.motor_hwobj_dict[motor_name] = temp_motor_hwobj
                 self.connect(temp_motor_hwobj, "stateChanged", self.motor_state_changed)
                 self.connect(
-                    temp_motor_hwobj, "positionChanged", self.centring_motor_moved
+                    temp_motor_hwobj, "valueChanged", self.centring_motor_moved
                 )
 
                 if motor_name == "phi":
                     self.connect(
                         temp_motor_hwobj,
-                        "positionChanged",
+                        "valueChanged",
                         self.emit_diffractometer_moved,
                     )
                 elif motor_name == "zoom":

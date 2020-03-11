@@ -23,8 +23,8 @@ class GrobMotor(Device, AbstractMotor):
         self.connect(self.motor, "state", self.updateState)
 
     def connectNotify(self, signal):
-        if signal == "positionChanged":
-            self.emit("positionChanged", (self.get_value(),))
+        if signal == "valueChanged":
+            self.emit("valueChanged", (self.get_value(),))
         elif signal == "stateChanged":
             self.updateState()
         elif signal == "limitsChanged":
@@ -73,7 +73,7 @@ class GrobMotor(Device, AbstractMotor):
             return
         private["old_pos"] = absolutePosition
 
-        self.emit("positionChanged", (absolutePosition,))
+        self.emit("valueChanged", (absolutePosition,))
 
     def get_value(self):
         return self.motor.read_dial()

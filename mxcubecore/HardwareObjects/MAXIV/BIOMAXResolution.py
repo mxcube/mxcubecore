@@ -28,7 +28,7 @@ class BIOMAXResolution(Resolution.Resolution):
 
         self.update_beam_centre(detector.distance.get_value())
         self.connect(detector.distance, "stateChanged", self.dtoxStateChanged)
-        self.connect(detector.distance, "positionChanged", self.dtoxPositionChanged)
+        self.connect(detector.distance, "valueChanged", self.dtoxPositionChanged)
         self.connect(HWR.beamline.energy, "valueChanged", self.energyChanged)
         self.connect(detector, "roiChanged", self.det_roi_changed)
 

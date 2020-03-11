@@ -134,8 +134,8 @@ class MicrodiffMotor(AbstractMotor):
         self.motorPositionChanged(self.position_attr.getValue())
 
     def connectNotify(self, signal):
-        if signal == "positionChanged":
-            self.emit("positionChanged", (self.get_value(),))
+        if signal == "valueChanged":
+            self.emit("valueChanged", (self.get_value(),))
         elif signal == "stateChanged":
             self.motorStateChanged(self.state_attr.getValue())
         elif signal == "limitsChanged":
@@ -218,7 +218,7 @@ class MicrodiffMotor(AbstractMotor):
             if abs(absolute_position - self.position) <= self.motor_resolution:
                 return
         self.position = absolute_position
-        self.emit("positionChanged", (self.position,))
+        self.emit("valueChanged", (self.position,))
 
     def get_value(self):
         if self.position_attr is not None:

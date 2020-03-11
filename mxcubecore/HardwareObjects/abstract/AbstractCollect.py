@@ -458,8 +458,8 @@ class AbstractCollect(HardwareObject, object):
         log.info("Collection: Updating data collection in LIMS")
 
         if HWR.beamline.lims and not cp["in_interleave"]:
-            cp.dangerously_set("flux", self.get_flux())
-            cp.dangerously_set("flux_end", self.get_flux())
+            cp.dangerously_set("flux", HWR.beamline.flux.get_value())
+            cp.dangerously_set("flux_end", HWR.beamline.flux.get_value())
             cp.dangerously_set("wavelength", self.get_wavelength())
             cp.dangerously_set("detectorDistance", self.get_detector_distance())
 
