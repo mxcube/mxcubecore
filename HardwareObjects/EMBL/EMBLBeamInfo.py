@@ -109,7 +109,9 @@ class EMBLBeamInfo(Equipment):
             )
         self.chan_beam_size_microns = self.getChannelObject("BeamSizeMicrons")
         self.chan_beam_shape_ellipse = self.getChannelObject("BeamShapeEllipse")
-        self.default_beam_divergence = ast.literal_eval(self.getProperty("defaultBeamDivergence"))
+        self.default_beam_divergence = ast.literal_eval(
+            self.getProperty("defaultBeamDivergence")
+        )
 
     def get_beam_divergence_hor(self):
         """Returns beam horizontal beam divergence

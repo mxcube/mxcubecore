@@ -302,10 +302,14 @@ class BIOMAXEiger(Equipment):
                 while self.get_channel_value(att) != new_val:
                     gevent.sleep(0.1)
             elif "BeamCenter" in att:
-                while format(self.get_channel_value(att), ".2f") != format(new_val, ".2f"):
+                while format(self.get_channel_value(att), ".2f") != format(
+                    new_val, ".2f"
+                ):
                     gevent.sleep(0.1)
             else:
-                while format(self.get_channel_value(att), ".4f") != format(new_val, ".4f"):
+                while format(self.get_channel_value(att), ".4f") != format(
+                    new_val, ".4f"
+                ):
                     gevent.sleep(0.1)
 
     #  STATUS END
@@ -663,7 +667,7 @@ class BIOMAXEiger(Equipment):
 
     def arm(self):
         logging.getLogger("HWR").info("[DETECTOR] Arm command requested")
-        cmd = self.getCommandObject("Arm")
+        cmd = self.get_command_object("Arm")
         cmd.setDeviceTimeout(10000)
         cmd()
         self.wait_ready()

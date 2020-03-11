@@ -31,7 +31,7 @@
 
   <!-- DO THESE VALUES MAKE ANY SENSE AT PX1?? -->
   <zoom_centre>{"x":340,"y":250}</zoom_centre>
-  <omegaReference>{"motor_name": "phiz", "position":-0.2224, "camera_axis":"x"}</omegaReference>
+  <omegaReference>{"actuator_name": "phiz", "position":-0.2224, "camera_axis":"x"}</omegaReference>
   <phaseList>["Transfer","Centring","BeamLocation", "DataCollection"]</phaseList>
   <headType>MiniKappa</headType>
 

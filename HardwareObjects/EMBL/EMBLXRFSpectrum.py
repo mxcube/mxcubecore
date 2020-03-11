@@ -66,7 +66,9 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
 
         self.config_filename = self.getProperty("configFile")
         self.write_in_raw_data = False
-        self.mca_calib = [x/1000. for x in self.chan_spectrum_consts.getValue()] #converted from eV to keV
+        self.mca_calib = [
+            x / 1000.0 for x in self.chan_spectrum_consts.getValue()
+        ]  # converted from eV to keV
 
     def can_spectrum(self):
         """
@@ -94,7 +96,7 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             elif status == "ready":
                 if self.spectrum_running:
                     self.spectrum_data = list(self.cmd_spectrum_start.get())
-                    #self.mca_calib = self.chan_spectrum_consts.getValue()[::-1]
+                    # self.mca_calib = self.chan_spectrum_consts.getValue()[::-1]
                     self.spectrum_command_finished()
                     logging.getLogger("HWR").info("XRF spectrum finished")
             elif status == "aborting":
@@ -122,6 +124,6 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         :type error_msg: str
         :return: None
         """
-        if len(error_msg) > 0 : 
-           #and self.spectrum_running:
-           logging.getLogger("GUI").error("XRF spectrum: %s" % error_msg)
+        if len(error_msg) > 0:
+            # and self.spectrum_running:
+            logging.getLogger("GUI").error("XRF spectrum: %s" % error_msg)

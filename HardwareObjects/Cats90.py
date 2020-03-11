@@ -335,21 +335,21 @@ class Cats90(SampleChanger):
             )
 
         # commands
-        self._cmdLoad = self.getCommandObject("_cmdLoad")
+        self._cmdLoad = self.get_command_object("_cmdLoad")
         if self._cmdLoad is None:
             self._cmdLoad = self.add_command(
                 {"type": "tango", "name": "_cmdLoad", "tangoname": self.tangoname},
                 "put",
             )
 
-        self._cmdUnload = self.getCommandObject("_cmdUnload")
+        self._cmdUnload = self.get_command_object("_cmdUnload")
         if self._cmdUnload is None:
             self._cmdUnload = self.add_command(
                 {"type": "tango", "name": "_cmdUnload", "tangoname": self.tangoname},
                 "get",
             )
 
-        self._cmdChainedLoad = self.getCommandObject("_cmdChainedLoad")
+        self._cmdChainedLoad = self.get_command_object("_cmdChainedLoad")
         if self._cmdChainedLoad is None:
             self._cmdChainedLoad = self.add_command(
                 {
@@ -360,21 +360,21 @@ class Cats90(SampleChanger):
                 "getput",
             )
 
-        self._cmdAbort = self.getCommandObject("_cmdAbort")
+        self._cmdAbort = self.get_command_object("_cmdAbort")
         if self._cmdAbort is None:
             self._cmdAbort = self.add_command(
                 {"type": "tango", "name": "_cmdAbort", "tangoname": self.tangoname},
                 "abort",
             )
 
-        self._cmdPowerOn = self.getCommandObject("_cmdPowerOn")
+        self._cmdPowerOn = self.get_command_object("_cmdPowerOn")
         if self._cmdPowerOn is None:
             self._cmdPowerOn = self.add_command(
                 {"type": "tango", "name": "_cmdPowerOn", "tangoname": self.tangoname},
                 "powerOn",
             )
 
-        self._cmdLoadBarcode = self.getCommandObject("_cmdLoadBarcode")
+        self._cmdLoadBarcode = self.get_command_object("_cmdLoadBarcode")
         if self._cmdLoadBarcode is None:
             self._cmdLoadBarcode = self.add_command(
                 {
@@ -385,7 +385,7 @@ class Cats90(SampleChanger):
                 "put_bcrd",
             )
 
-        self._cmdChainedLoadBarcode = self.getCommandObject("_cmdChainedLoadBarcode")
+        self._cmdChainedLoadBarcode = self.get_command_object("_cmdChainedLoadBarcode")
         if self._cmdChainedLoadBarcode is None:
             self._cmdChainedLoadBarcode = self.add_command(
                 {
@@ -396,7 +396,7 @@ class Cats90(SampleChanger):
                 "getput_bcrd",
             )
 
-        self._cmdScanSample = self.getCommandObject("_cmdScanSample")
+        self._cmdScanSample = self.get_command_object("_cmdScanSample")
         if self._cmdScanSample is None:
             self._cmdScanSample = self.add_command(
                 {

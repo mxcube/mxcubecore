@@ -56,7 +56,7 @@ class BeamInfo(Equipment):
         self.beam_size_slits = [9999, 9999]
         self.beam_size_aperture = [9999, 9999]
         self.beam_size_definer = [9999, 9999]
-        self.beam_position = [0, 0]
+        self.beam_position = (0, 0)
         self.beam_info_dict = {}
 
         self.aperture_hwobj = self.getObjectByRole("aperture")
@@ -75,9 +75,7 @@ class BeamInfo(Equipment):
 
         if self.beam_definer is not None:
             self.connect(
-                self.beam_definer,
-                "definerPosChanged",
-                self.definer_pos_changed
+                self.beam_definer, "definerPosChanged", self.definer_pos_changed
             )
         else:
             logging.getLogger("HWR").debug("BeamInfo: Beam definer hwobj not defined")

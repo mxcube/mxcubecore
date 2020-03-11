@@ -37,7 +37,7 @@ _objects:
     - sample_changer: sc-mockup.xml
     # NBNB TODO remove plate_manipulater and treat as another smaple changer
     - plate_manipulator: plate-manipulator.xml
-    - diffractometer: mini-diff-mockup.xml
+    - diffractometer: diffractometer-mockup.xml
     - microscope: graphics.xml
     - lims: lims-client-mockup.xml
     - queue_manager: queue.xml
@@ -51,8 +51,8 @@ _objects:
     - gphl_connection: gphl-setup.xml
     # - centring: centring.xml
     # Analysis:
-    - offline_processing: auto-processing-mockup.xml
-    - online_processing: parallel-processing.xml
+    - offline_processing: offline-processing-mockup.xml
+    - online_processing: online-processing-mockup.xml
     - characterisation: data-analysis.xml
     # - beam_realign: # Skipped - optional
 # Non-object attributes:

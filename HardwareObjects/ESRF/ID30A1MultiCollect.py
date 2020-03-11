@@ -12,9 +12,7 @@ from HardwareRepository.HardwareObjects.LimaPilatusDetector import LimaPilatusDe
 
 class ID30A1MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
-        ESRFMultiCollect.__init__(
-            self, name, FixedEnergy(0.966, 12.8353)
-        )
+        ESRFMultiCollect.__init__(self, name, FixedEnergy(0.966, 12.8353))
 
         self.helical = False
 
@@ -57,13 +55,13 @@ class ID30A1MultiCollect(ESRFMultiCollect):
     @task
     def move_detector(self, detector_distance):
         det_distance = self.getObjectByRole("distance")
-        det_distance.move(detector_distance)
+        det_distance.set_value(detector_distance)
         while det_distance.motorIsMoving():
             time.sleep(0.1)
 
     @task
     def set_resolution(self, new_resolution):
-        self.bl_control.resolution.move(new_resolution)
+        self.bl_control.resolution.set_value(new_resolution)
         while self.bl_control.resolution.motorIsMoving():
             time.sleep(0.1)
 
@@ -72,7 +70,7 @@ class ID30A1MultiCollect(ESRFMultiCollect):
 
     def get_detector_distance(self):
         det_distance = self.getObjectByRole("distance")
-        return det_distance.getPosition()
+        return det_distance.get_value()
 
     @task
     def move_motors(self, motors_to_move_dict):

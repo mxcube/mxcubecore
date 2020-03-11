@@ -90,13 +90,13 @@ class AbstractActuator(HardwareObject):
             value: target value
         """
 
-    def set_value(self, value, timeout=None):
+    def set_value(self, value, timeout=0):
         """
         Set actuator to absolute value.
         Args:
             value: target value
             timeout (float): optional - timeout [s],
-                             If timeout == 0: return at once and do not wait;
+                             If timeout == 0: return at once and do not wait (default);
                              if timeout is None: wait forever.
         Raises:
             ValueError: Value not valid or attemp to set write only actuator.
@@ -106,7 +106,8 @@ class AbstractActuator(HardwareObject):
         if self.validate_value(value):
             self._set_value(value)
             self.update_value()
-            self.wait_ready(timeout)
+            if timeout or timeout is None:
+                self.wait_ready(timeout)
         else:
             raise ValueError("Invalid value %s" % str(value))
 

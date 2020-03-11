@@ -1,6 +1,6 @@
 <device class="SardanaMotor">
     <username>Phi</username>
-    <motor_name>Phi</motor_name>
+    <actuator_name>Phi</actuator_name>
     <taurusname>phi</taurusname>
     <threshold>0.005</threshold>
     <interval>2000</interval>

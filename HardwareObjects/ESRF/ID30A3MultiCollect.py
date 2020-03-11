@@ -12,9 +12,7 @@ from PyTango.gevent import DeviceProxy
 
 class ID30A3MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
-        ESRFMultiCollect.__init__(
-            self, name, FixedEnergy(0.9677, 12.812)
-        )
+        ESRFMultiCollect.__init__(self, name, FixedEnergy(0.9677, 12.812))
 
         self._notify_greenlet = None
 
@@ -56,13 +54,13 @@ class ID30A3MultiCollect(ESRFMultiCollect):
     @task
     def move_detector(self, detector_distance):
         det_distance = self.getObjectByRole("distance")
-        det_distance.move(detector_distance)
+        det_distance.set_value(detector_distance)
         while det_distance.motorIsMoving():
             gevent.sleep(0.1)
 
     @task
     def set_resolution(self, new_resolution):
-        self.bl_control.resolution.move(new_resolution)
+        self.bl_control.resolution.set_value(new_resolution)
         while self.bl_control.resolution.motorIsMoving():
             gevent.sleep(0.1)
 
@@ -71,7 +69,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
     def get_detector_distance(self):
         det_distance = self.getObjectByRole("distance")
-        return det_distance.getPosition()
+        return det_distance.get_value()
 
     @task
     def move_motors(self, motors_to_move_dict):
@@ -124,7 +122,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
             logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
         diffr.moveToPhase("DataCollection", wait=True, timeout=200)
         # switch on the front light
-        diffr.getObjectByRole("FrontLight").move(0.8)
+        diffr.getObjectByRole("FrontLight").set_value(0.8)
         # take the back light out
         diffr.getObjectByRole("BackLightSwitch").actuatorOut()
 

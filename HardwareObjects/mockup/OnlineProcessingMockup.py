@@ -22,7 +22,7 @@ import time
 import numpy
 
 from HardwareRepository.HardwareObjects.abstract.AbstractOnlineProcessing import (
-    AbstractOnlineProcessing
+    AbstractOnlineProcessing,
 )
 
 
@@ -101,7 +101,7 @@ class OnlineProcessingMockup(AbstractOnlineProcessing):
                     "Parallel processing: Frame %d/%d done"
                     % (index + 1, self.params_dict["images_num"]),
                 )
-                self.emit('processingFrame', index)
+                self.emit("processingFrame", index)
                 self.emit("processingResultsUpdate", False)
             if not self.started:
                 break

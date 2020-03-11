@@ -78,9 +78,9 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.chan_scan_error = self.getChannelObject("energyScanError")
         self.chan_scan_error.connectSignal("update", self.scan_error_update)
 
-        self.cmd_scan_abort = self.getCommandObject("energyScanAbort")
-        self.cmd_adjust_transmission = self.getCommandObject("cmdAdjustTransmission")
-        self.cmd_set_max_transmission = self.getCommandObject("cmdSetMaxTransmission")
+        self.cmd_scan_abort = self.get_command_object("energyScanAbort")
+        self.cmd_adjust_transmission = self.get_command_object("cmdAdjustTransmission")
+        self.cmd_set_max_transmission = self.get_command_object("cmdSetMaxTransmission")
 
         self.num_points = self.getProperty("numPoints", 60)
         self.chooch_cmd = self.getProperty("chooch_command")

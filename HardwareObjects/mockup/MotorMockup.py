@@ -61,7 +61,7 @@ class MotorMockup(AbstractMotor):
         except BaseException:
             self.set_limits(DEFAULT_LIMITS)
 
-        #self.set_state(self.motor_states.READY)
+        # self.set_state(self.motor_states.READY)
         self.set_value(float(self.getProperty("start_position", DEFAULT_POSITION)))
 
     def move_task(self, position, wait=False, timeout=None):
@@ -119,4 +119,3 @@ class MotorMockup(AbstractMotor):
                              If timeout == 0: return at once and do not wait;
         """
         self._nominal_value = value
-                 

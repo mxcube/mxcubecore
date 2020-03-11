@@ -641,7 +641,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         img_range = osc_seq["range"]
         exp_time = osc_seq["exposure_time"]
 
-        kappa_angle = HWR.beamline.diffractometer.kappa.getPosition()
+        kappa_angle = HWR.beamline.diffractometer.kappa.get_value()
 
         _settings = [
             ["Wavelength %.5f", wavlen],
@@ -658,11 +658,11 @@ class PX1Collect(AbstractCollect, HardwareObject):
         ]
 
         # if self.oscaxis == "Phi":
-        # _settings.append(["Chi %.4f", self.omega_hwo.getPosition()])
+        # _settings.append(["Chi %.4f", self.omega_hwo.get_value()])
         # _settings.append(["Phi %.4f", start])
         # elif self.oscaxis == "Omega":
         _settings.append(
-            ["Phi %.4f", HWR.beamline.diffractometer.kappa_phi.getPosition()]
+            ["Phi %.4f", HWR.beamline.diffractometer.kappa_phi.get_value()]
         )
         _settings.append(["Chi %.4f", start_angle])
         HWR.beamline.detector.set_image_headers(_settings)
@@ -812,7 +812,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         Descript. : resolution is a motor in out system
         """
         return
-        HWR.beamline.resolution.move(value)
+        HWR.beamline.resolution.set_value(value)
 
     def move_detector(self, value):
         HWR.beamline.detector.move_distance(value)
@@ -846,7 +846,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
             Called to save resolution in lims
         """
         if HWR.beamline.resolution is not None:
-            return HWR.beamline.resolution.getPosition()
+            return HWR.beamline.resolution.get_value()
 
     def get_transmission(self):
         """

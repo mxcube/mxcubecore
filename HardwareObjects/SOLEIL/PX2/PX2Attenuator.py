@@ -76,13 +76,15 @@ class PX2Attenuator(Device):
     def getAttState(self):
         try:
             value1 = Ps_attenuatorPX2.stateAttenuator[self.Ps_hdevice.State().name]
-            print("State hslit : ", Ps_attenuatorPX2.stateAttenuator[
-                self.Ps_hdevice.State().name
-            ])
+            print(
+                "State hslit : ",
+                Ps_attenuatorPX2.stateAttenuator[self.Ps_hdevice.State().name],
+            )
             value2 = Ps_attenuatorPX2.stateAttenuator[self.Ps_vdevice.State().name]
-            print("State vslit : ", Ps_attenuatorPX2.stateAttenuator[
-                self.Ps_vdevice.State().name
-            ])
+            print(
+                "State vslit : ",
+                Ps_attenuatorPX2.stateAttenuator[self.Ps_vdevice.State().name],
+            )
             if value1 == "ready" and value2 == "ready":
                 value = "ready"
             elif value1 == "error" or value2 == "error":

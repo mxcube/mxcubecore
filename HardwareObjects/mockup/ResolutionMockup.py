@@ -16,12 +16,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         self.detmState = None
         self.state = 2
         self.connect(
-            HWR.beamline.detector.distance,
-            "positionChanged",
-            self.dtoxPositionChanged
-        )
-        HWR.beamline.detector.distance.move(
-            self.res2dist(self.currentResolution)
+            HWR.beamline.detector.distance, "positionChanged", self.dtoxPositionChanged
         )
 
         # Default value detector radius - corresponds to Eiger 16M:
@@ -36,6 +31,8 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
             det_radius = 0.5 * min(px * width, py * height)
             if det_radius > 0:
                 self.det_radius = det_radius
+
+        HWR.beamline.detector.distance.set_value(self.res2dist(self.currentResolution))
 
         self.get_limits = self.getLimits
 
@@ -52,15 +49,12 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         self.wavelengthChanged(12.3984 / energy)
 
     def res2dist(self, res=None):
-
         if res is None:
             res = self.currentResolution
-
         try:
-            ttheta = 2 * math.asin(
-                HWR.beamline.energy.get_current_wavelength() / (2 * res)
-            )
+            ttheta = 2 * math.asin(HWR.beamline.energy.get_wavelength() / (2 * res))
             return self.det_radius / math.tan(ttheta)
+
         except BaseException:
             return None
 
@@ -73,17 +67,14 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         try:
             ttheta = math.atan(self.det_radius / dist)
             if ttheta != 0:
-                return (
-                    HWR.beamline.energy.get_current_wavelength()
-                    / (2 * math.sin(ttheta / 2))
-                )
+                return HWR.beamline.energy.get_wavelength() / (2 * math.sin(ttheta / 2))
         except BaseException:
             logging.getLogger().exception("error while calculating resolution")
             return None
 
     def recalculateResolution(self):
         self.currentResolution = self.dist2res(
-            HWR.beamline.detector.distance.getPosition()
+            HWR.beamline.detector.distance.get_value()
         )
 
     def equipmentReady(self):
@@ -101,7 +92,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
     getPosition = get_position
 
     def get_value(self):
-        return self.getPosition()
+        return self.get_value()
 
     def newResolution(self, res):
         if res:
@@ -125,14 +116,13 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         return (0, 20)
 
     def set_position(self, pos, wait=True):
-        HWR.beamline.detector.distance.move(self.res2dist(pos), wait=wait)
+        HWR.beamline.detector.distance.set_value(self.res2dist(pos), wait=wait)
 
     move = set_position
 
     def motorIsMoving(self):
         return (
-            HWR.beamline.detector.distance.motorIsMoving()
-            or HWR.beamline.energy.moving
+            HWR.beamline.detector.distance.motorIsMoving() or HWR.beamline.energy.moving
         )
 
     def newDistance(self, dist):

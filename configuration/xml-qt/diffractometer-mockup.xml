@@ -11,7 +11,7 @@
   <centring_motors>("phi", "kappa", "kappa_phi", "phiz", "phiy", "sampx", "sampy")</centring_motors>
 
   <zoom_centre>{"x":340,"y":250}</zoom_centre>
-  <omega_reference>{"motor_name": "phiz", "position":-0.2224, "camera_axis":"x"}</omega_reference>
+  <omega_reference>{"actuator_name": "phiz", "position":-0.2224, "camera_axis":"x"}</omega_reference>
 
   <!-- MD2 -->
   <!-- <gridDirection>{"fast": (1, 0), "slow": (0, -1)}</gridDirection>  -->

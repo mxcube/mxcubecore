@@ -94,15 +94,15 @@ class ID232HutchTrigger(BaseHardwareObjects.HardwareObject):
         if not entering_hutch:
             if old["dtox"] is not None:
                 print("Moving %s to %g" % (dtox.name(), old["dtox"]))
-                dtox.move(old["dtox"])
+                dtox.set_value(old["dtox"])
             self.flex_device.eval("flex.user_port(0)")
             self.flex_device.eval("flex.robot_port(1)")
             udiff_ctrl.moveToPhase(phase="Centring", wait=True)
         else:
-            old["dtox"] = dtox.getPosition()
+            old["dtox"] = dtox.get_value()
             ctrl_obj.detcover.set_in()
             self.flex_device.eval("flex.robot_port(0)")
-            dtox.move(815)
+            dtox.set_value(815)
             udiff_ctrl.moveToPhase(phase="Transfer", wait=True)
 
     def poll(self):

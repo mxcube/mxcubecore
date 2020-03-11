@@ -1,7 +1,7 @@
 <device class="SardanaMotor">
   <username>Omega Y</username>
   <taurusname>omegay</taurusname>
-  <motor_name>OmegaY</motor_name>
+  <actuator_name>OmegaY</actuator_name>
   <!--
   <channel type="sardana" polling="events" name="position">Position</channel>
   <channel type="sardana" polling="events" name="state">State</channel>

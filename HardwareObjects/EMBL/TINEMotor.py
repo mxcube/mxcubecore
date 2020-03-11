@@ -72,17 +72,17 @@ class TINEMotor(AbstractMotor):
         if self.chan_state is not None:
             self.chan_state.connectSignal("update", self.motor_state_changed)
 
-        self.cmd_set_position = self.getCommandObject("setPosition")
+        self.cmd_set_position = self.get_command_object("setPosition")
         if self.cmd_set_position:
             self.cmd_set_position.connectSignal("connected", self.connected)
             self.cmd_set_position.connectSignal("disconnected", self.disconnected)
 
-        self.cmd_stop_axis = self.getCommandObject("stopAxis")
+        self.cmd_stop_axis = self.get_command_object("stopAxis")
         if self.cmd_stop_axis:
             self.cmd_stop_axis.connectSignal("connected", self.connected)
             self.cmd_stop_axis.connectSignal("disconnected", self.disconnected)
 
-        self.cmd_set_online = self.getCommandObject("setOnline")
+        self.cmd_set_online = self.get_command_object("setOnline")
 
         self.epsilon = self.getProperty("epsilon")
 
@@ -197,16 +197,6 @@ class TINEMotor(AbstractMotor):
         :return:
         """
         return "TINEMotor"
-
-    def wait_ready(self, timeout=None):
-        """
-        Whaits till device is ready
-        :param timeout: sec (int)
-        :return:
-        """
-        with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
-            while not self.is_ready():
-                gevent.sleep(0.05)
 
     def enable_motor(self):
         """

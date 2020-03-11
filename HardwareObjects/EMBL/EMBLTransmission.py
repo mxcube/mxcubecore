@@ -20,12 +20,11 @@
 
 import gevent
 from HardwareRepository.HardwareObjects.abstract.AbstractTransmission import (
-    AbstractTransmission
+    AbstractTransmission,
 )
 
 
 class EMBLTransmission(AbstractTransmission):
-
     def __init__(self, name):
         AbstractTransmission.__init__(self, name)
 

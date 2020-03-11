@@ -79,7 +79,7 @@ class SpecShell(Equipment):
             {"name": "SpecShellMacro", "type": "spec", "version": self.specversion},
             "sleep",
         )
-        cmd = self.getCommandObject("SpecShellMacro")
+        cmd = self.get_command_object("SpecShellMacro")
         cmd.connectSignal("commandReady", self.commandReady)
         cmd.connectSignal("commandNotReady", self.commandNotReady)
         cmd.connectSignal("commandReplyArrived", self.commandFinished)
@@ -92,7 +92,7 @@ class SpecShell(Equipment):
             {"name": "SpecShellLsdef", "type": "spec", "version": self.specversion},
             "lsdef *",
         )
-        cmd = self.getCommandObject("SpecShellLsdef")
+        cmd = self.get_command_object("SpecShellLsdef")
         # cmd.connectSignal('commandReady',self.commandReady)
         # cmd.connectSignal('commandNotReady',self.commandNotReady)
         cmd.connectSignal("commandReplyArrived", self.commandFinished)

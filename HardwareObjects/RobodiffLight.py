@@ -64,4 +64,4 @@ class RobodiffLight(Device):
         self.wago_controller.set(self.light_level, abs_pos)
 
     def moveRelative(self, rel_pos):
-        self.move(rel_pos + self.getPosition())
+        self.set_value(rel_pos + self.get_value())

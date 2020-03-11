@@ -1,3 +1,3 @@
 <device class="MotorMockup">
-  <motor_name>Phi</motor_name>
+  <actuator_name>Phi</actuator_name>
 </device>

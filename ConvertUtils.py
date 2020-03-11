@@ -47,6 +47,7 @@ H_OVER_E = 12.3984
 
 # Utility functions:
 
+
 def java_property(keyword, value, quote_value=False):
     """Return argument list for command line invocation setting java property
 

@@ -3,7 +3,7 @@ import gevent.event
 
 from HardwareRepository.HardwareObjects import edna_test_data
 from HardwareRepository.HardwareObjects.abstract.AbstractCharacterisation import (
-    AbstractCharacterisation
+    AbstractCharacterisation,
 )
 
 from HardwareRepository.HardwareObjects.XSDataMXCuBEv1_3 import XSDataResultMXCuBE
@@ -20,7 +20,7 @@ class SOLEILEDNACharacterisationMockup(AbstractCharacterisation):
 
     def execute_command(self, command_name, *args, **kwargs):
         wait = kwargs.get("wait", True)
-        cmd_obj = self.getCommandObject(command_name)
+        cmd_obj = self.get_command_object(command_name)
         return cmd_obj(*args, wait=wait)
 
     def get_beam_size(self):

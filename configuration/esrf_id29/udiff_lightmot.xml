@@ -1,5 +1,5 @@
 <device class="MicrodiffLight">
   <username>Back light</username>
   <exporter_address>microdiff29new:9001</exporter_address>
-  <motor_name>BackLight</motor_name>
+  <actuator_name>BackLight</actuator_name>
 </device>

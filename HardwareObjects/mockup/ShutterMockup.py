@@ -30,11 +30,11 @@ class ShutterMockup(AbstractNState.AbstractNState):
 
     def __init__(self, name):
         AbstractNState.AbstractNState.__init__(self, name)
-        #self.current_state = ShutterMockup.STATE.OPEN
+        # self.current_state = ShutterMockup.STATE.OPEN
 
     def value_changed(self, value):
         """See AbstractShutter"""
-        #self.current_state = ShutterMockup.STATE(value)
+        # self.current_state = ShutterMockup.STATE(value)
         self.emit("shutterStateChanged", self.current_state.name)
 
     def get_state(self):
@@ -75,4 +75,3 @@ class ShutterMockup(AbstractNState.AbstractNState):
 
     def get_value(self):
         return
-       
