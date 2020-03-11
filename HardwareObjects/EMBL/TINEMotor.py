@@ -134,6 +134,9 @@ class TINEMotor(AbstractMotor):
         """
         return self.step_limits
 
+    # def get_position(self):
+    #    return self.chan_position.getValue()
+
     def get_value(self):
         return self.chan_position.getValue()
 
