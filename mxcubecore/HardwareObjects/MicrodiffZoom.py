@@ -64,7 +64,7 @@ class MicrodiffZoom(ExporterMotor):
 
         _low, _high = self.get_limits()
         for _idx in range(_low, _high + 1):
-            self.predefined_positions[f"Zoom {_idx}"] = _idx
+            self.predefined_positions["Zoom %s" % _idx] = _idx
 
     def get_limits(self):
         """Returns zoom low and high limits.

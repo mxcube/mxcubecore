@@ -33,13 +33,13 @@ def _poll_image(sleep_time, video_device, device_uri, video_mode, formats):
 
     while not connected:
         try:
-            logging.getLogger("HWR").info(f"Connecting to {device_uri}")
+            logging.getLogger("HWR").info("Connecting to %s", device_uri)
             lima_tango_device = DeviceProxy(device_uri)
             lima_tango_device.ping()
         except Exception as ex:
             logging.getLogger("HWR").exception("")
             logging.getLogger("HWR").info(
-                f"Could not connect to {device_uri}, retrying ..."
+                "Could not connect to %s, retrying ...", device_uri
             )
             time.sleep(0.1)
             connected = False
@@ -58,7 +58,7 @@ def _poll_image(sleep_time, video_device, device_uri, video_mode, formats):
 
 class TangoLimaVideoLoopback(TangoLimaVideo):
     def __init__(self, name):
-        super().__init__(name)
+        super(TangoLimaVideoLoopback, self).__init__(name)
 
         self._video_stream_process = None
         self._current_stream_size = "-1, -1"
@@ -70,7 +70,7 @@ class TangoLimaVideoLoopback(TangoLimaVideo):
         self._p = None
 
     def init(self):
-        super().init()
+        super(TangoLimaVideoLoopback, self).init()
         self._polling_mode = self.getProperty("polling_mode", "process")
 
     def _do_polling(self, sleep_time):

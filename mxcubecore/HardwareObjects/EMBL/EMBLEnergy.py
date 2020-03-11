@@ -356,9 +356,7 @@ class EMBLEnergy(AbstractEnergy):
         :param timeout: sec in int
         :return:
         """
-        with gevent.Timeout(timeout, Exception("Energy: Timeout waiting for ready")):
-            while self.chan_status.getValue()[0] != 0:
-                gevent.sleep(0.1)
+        super(EMBLEnergy, self).wait_ready(timeout=20)
 
     def energy_server_check_for_errors(self, state):
         """
