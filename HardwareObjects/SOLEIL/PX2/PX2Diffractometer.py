@@ -235,7 +235,7 @@ class PX2Diffractometer(GenericDiffractometer):
             self.omega_reference_motor_moved,
         )
 
-        self.omega_reference_motor_moved(self.omega_reference_motor.get_position())
+        self.omega_reference_motor_moved(self.omega_reference_motor.get_value())
 
         # self.use_sc = self.getProperty("use_sample_changer")
 

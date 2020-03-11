@@ -83,16 +83,10 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
     def equipmentNotReady(self):
         self.emit("deviceNotReady")
 
-    def get_position(self):
+    def get_value(self):
         if self.currentResolution is None:
             self.recalculateResolution()
         return self.currentResolution
-
-    # NBNB Remove getPosition altogether
-    getPosition = get_position
-
-    def get_value(self):
-        return self.get_value()
 
     def newResolution(self, res):
         if res:

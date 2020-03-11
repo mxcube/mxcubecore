@@ -10,8 +10,6 @@ from PyTango import DeviceProxy
 
 from PyQt4.QtGui import QApplication
 
-# from qt import qApp
-
 import numpy
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
 
@@ -192,22 +190,11 @@ class TangoDCMotor(Device):
             "0"
         )  # This is only for spec motors. 0 means do not change anything on sync
 
-    def getRealPosition(self):
+    def get_value(self):
         return self.positionChan.getValue()
-
-    def get_position(self):
-        return self.getRealPosition()
-
-    def getPosition(self):
-        pos = self.positionValue
-        return pos
-
-    def getDialPosition(self):
-        return self.get_value()
 
     def syncMove(self, position):
         prev_position = self.get_value()
-        # self.positionValue = position
         relative_position = position - prev_position
         self.syncMoveRelative(relative_position)
         gevent.sleep(0.2)  # allow MD2 to change the state

@@ -78,7 +78,7 @@ class ESRFBeam(AbstractBeam):
         Returns:
             (float, str): Size [mm], label.
         """
-        _size = self._complex.get_position()
+        _size = self._complex.get_value()
         _name = self._complex.get_current_position_name()
         return _size, _name
 
