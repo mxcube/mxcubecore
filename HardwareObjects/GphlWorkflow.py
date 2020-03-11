@@ -1590,7 +1590,7 @@ class GphlWorkflow(HardwareObject, object):
             pointGroup=workflow_model.get_point_group(),
             spaceGroup=space_group,
             cell=unitCell,
-            expectedResolution=HWR.beamline.collect.get_resolution(),
+            expectedResolution=HWR.beamline.resolution.get_value(),
             isAnisotropic=None,
         )
         ll0 = ["PriorInformation"]
