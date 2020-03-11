@@ -200,7 +200,7 @@ class MiniDiff(Equipment):
 
         if self.phiMotor is not None:
             self.connect(self.phiMotor, "stateChanged", self.phiMotorStateChanged)
-            self.connect(self.phiMotor, "positionChanged", self.emitDiffractometerMoved)
+            self.connect(self.phiMotor, "valueChanged", self.emitDiffractometerMoved)
         else:
             logging.getLogger("HWR").error(
                 "MiniDiff: phi motor is not defined in minidiff equipment %s",
@@ -208,9 +208,9 @@ class MiniDiff(Equipment):
             )
         if self.phizMotor is not None:
             self.connect(self.phizMotor, "stateChanged", self.phizMotorStateChanged)
-            self.connect(self.phizMotor, "positionChanged", self.phizMotorMoved)
+            self.connect(self.phizMotor, "valueChanged", self.phizMotorMoved)
             self.connect(
-                self.phizMotor, "positionChanged", self.emitDiffractometerMoved
+                self.phizMotor, "valueChanged", self.emitDiffractometerMoved
             )
         else:
             logging.getLogger("HWR").error(
@@ -219,9 +219,9 @@ class MiniDiff(Equipment):
             )
         if self.phiyMotor is not None:
             self.connect(self.phiyMotor, "stateChanged", self.phiyMotorStateChanged)
-            self.connect(self.phiyMotor, "positionChanged", self.phiyMotorMoved)
+            self.connect(self.phiyMotor, "valueChanged", self.phiyMotorMoved)
             self.connect(
-                self.phiyMotor, "positionChanged", self.emitDiffractometerMoved
+                self.phiyMotor, "valueChanged", self.emitDiffractometerMoved
             )
         else:
             logging.getLogger("HWR").error(
@@ -248,9 +248,9 @@ class MiniDiff(Equipment):
             self.connect(
                 self.sampleXMotor, "stateChanged", self.sampleXMotorStateChanged
             )
-            self.connect(self.sampleXMotor, "positionChanged", self.sampleXMotorMoved)
+            self.connect(self.sampleXMotor, "valueChanged", self.sampleXMotorMoved)
             self.connect(
-                self.sampleXMotor, "positionChanged", self.emitDiffractometerMoved
+                self.sampleXMotor, "valueChanged", self.emitDiffractometerMoved
             )
         else:
             logging.getLogger("HWR").error(
@@ -261,9 +261,9 @@ class MiniDiff(Equipment):
             self.connect(
                 self.sampleYMotor, "stateChanged", self.sampleYMotorStateChanged
             )
-            self.connect(self.sampleYMotor, "positionChanged", self.sampleYMotorMoved)
+            self.connect(self.sampleYMotor, "valueChanged", self.sampleYMotorMoved)
             self.connect(
-                self.sampleYMotor, "positionChanged", self.emitDiffractometerMoved
+                self.sampleYMotor, "valueChanged", self.emitDiffractometerMoved
             )
         else:
             logging.getLogger("HWR").error(

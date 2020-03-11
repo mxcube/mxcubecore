@@ -53,7 +53,7 @@ class Energy(Equipment):
             logging.getLogger("HWR").info("No controller used")
 
         if self.energy_motor is not None:
-            self.energy_motor.connect("positionChanged", self.energyPositionChanged)
+            self.energy_motor.connect("valueChanged", self.energyPositionChanged)
             self.energy_motor.connect("stateChanged", self.energyStateChanged)
 
     def can_move_energy(self):

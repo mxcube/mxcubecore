@@ -104,12 +104,12 @@ class PX2Guillotine(BaseHardwareObjects.Device):
 
             self.connect(
                 HWR.beamline.detector.distance,
-                "positionChanged",
+                "valueChanged",
                 self.shutterStateChanged,
             )
             self.connect(
                 HWR.beamline.detector.distance,
-                "positionChanged",
+                "valueChanged",
                 self.updateDetectorDistance,
             )
 

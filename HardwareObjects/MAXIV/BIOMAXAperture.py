@@ -47,4 +47,4 @@ class BIOMAXAperture(MicrodiffAperture):
         return BIOMAXAperture.POSITIONS
 
     def position_changed(self, position):
-        self.emit("positionChanged", position)  # self.aperture_position.getValue())
+        self.emit("valueChanged", position)  # self.aperture_position.getValue())

@@ -12,16 +12,13 @@ class BIOMAXTransmission(Equipment):
 
         if HWR.beamline.transmission is not None:
             HWR.beamline.transmission.connect(
-                "positionChanged", self.transmissionPositionChanged
+                "valueChanged", self.transmissionPositionChanged
             )
 
     def isReady(self):
         return True
 
     def get_value(self):
-        return "%.3f" % HWR.beamline.transmission.get_value()
-
-    def getAttFactor(self):
         return "%.3f" % HWR.beamline.transmission.get_value()
 
     def getAttState(self):

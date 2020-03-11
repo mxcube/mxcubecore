@@ -83,7 +83,7 @@ class ID30Light(Device, AbstractMotor):
 
     def move(self, abs_pos):
         self.wago_controller.set(self.light_level, abs_pos)
-        self.emit("positionChanged", abs_pos)
+        self.emit("valueChanged", abs_pos)
 
     def moveRelative(self, rel_pos):
         abs_pos = self.get_value() + rel_pos

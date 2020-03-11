@@ -130,7 +130,7 @@ class SOLEILEnergyScan(Equipment):
 
             if HWR.beamline.energy is not None:
                 HWR.beamline.energy.connect(
-                    "positionChanged", self.energyPositionChanged
+                    "valueChanged", self.energyPositionChanged
                 )
                 HWR.beamline.energy.connect("stateChanged", self.energyStateChanged)
                 HWR.beamline.energy.connect("limitsChanged", self.energyLimitsChanged)
@@ -140,7 +140,7 @@ class SOLEILEnergyScan(Equipment):
                 )
             else:
                 HWR.beamline.resolution.connect(
-                    "positionChanged", self.resolutionPositionChanged
+                    "valueChanged", self.resolutionPositionChanged
                 )
 
         self.thEdgeThreshold = self.getProperty("theoritical_edge_threshold")

@@ -47,7 +47,7 @@ class PX1Attenuator(Device):
 
         return retval
 
-    def getAttFactor(self):
+    def get_value(self):
         try:
             value = round(float(self.factor_chan.getValue()), 1)
         except BaseException:
@@ -61,7 +61,7 @@ class PX1Attenuator(Device):
 
     def factor_changed(self, channelValue):
         try:
-            value = self.getAttFactor()
+            value = self.get_value()
         except BaseException:
             logging.getLogger("HWR").error(
                 "%s attFactorChanged : received value on channel is not a float value",
@@ -70,7 +70,7 @@ class PX1Attenuator(Device):
         else:
             self.emit("attFactorChanged", (value,))
 
-    def setTransmission(self, value):
+    def set_value(self, value):
         try:
             self.factor_chan.setValue(value)
         except BaseException:
@@ -80,8 +80,6 @@ class PX1Attenuator(Device):
             )
             value = None
         return value
-
-    set_value = setTransmission
 
 
 def test_hwo(self):

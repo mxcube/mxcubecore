@@ -192,7 +192,7 @@ class PX2Diffractometer(GenericDiffractometer):
 
         self.zoom_motor_hwobj = self.getObjectByRole("zoom")
         self.connect(
-            self.zoom_motor_hwobj, "positionChanged", self.zoom_position_changed
+            self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed
         )
         self.connect(
             self.zoom_motor_hwobj,
@@ -201,27 +201,27 @@ class PX2Diffractometer(GenericDiffractometer):
         )
 
         self.connect(
-            self.motor_hwobj_dict["phi"], "positionChanged", self.phi_motor_moved
+            self.motor_hwobj_dict["phi"], "valueChanged", self.phi_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["phiy"], "positionChanged", self.phiy_motor_moved
+            self.motor_hwobj_dict["phiy"], "valueChanged", self.phiy_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["phiz"], "positionChanged", self.phiz_motor_moved
+            self.motor_hwobj_dict["phiz"], "valueChanged", self.phiz_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["kappa"], "positionChanged", self.kappa_motor_moved
+            self.motor_hwobj_dict["kappa"], "valueChanged", self.kappa_motor_moved
         )
         self.connect(
             self.motor_hwobj_dict["kappa_phi"],
-            "positionChanged",
+            "valueChanged",
             self.kappa_phi_motor_moved,
         )
         self.connect(
-            self.motor_hwobj_dict["sampx"], "positionChanged", self.sampx_motor_moved
+            self.motor_hwobj_dict["sampx"], "valueChanged", self.sampx_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["sampy"], "positionChanged", self.sampy_motor_moved
+            self.motor_hwobj_dict["sampy"], "valueChanged", self.sampy_motor_moved
         )
 
         self.omega_reference_par = eval(self.getProperty("omega_reference"))
@@ -231,7 +231,7 @@ class PX2Diffractometer(GenericDiffractometer):
 
         self.connect(
             self.omega_reference_motor,
-            "positionChanged",
+            "valueChanged",
             self.omega_reference_motor_moved,
         )
 

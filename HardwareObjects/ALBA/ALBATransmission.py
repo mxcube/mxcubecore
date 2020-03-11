@@ -29,9 +29,6 @@ class ALBATransmission(Device):
         self.state = self.stateChannel.getValue()
         return self.state
 
-    def getAttFactor(self):
-        return self.get_value()
-
     def get_value(self):
         self.transmission = self.transmissionChannel.getValue()
         return self.transmission
@@ -39,9 +36,6 @@ class ALBATransmission(Device):
     def set_value(self, value):
         self.transmission = value
         self.transmissionChannel.setValue(value)
-
-    def setTransmission(self, value):
-        self.set_value(value)
 
     def update_values(self):
         value = self.get_value()

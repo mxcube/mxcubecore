@@ -63,4 +63,4 @@ class ESRFBeamInfo(BeamInfo.BeamInfo):
         return self.beam_info_dict
 
     def get_flux(self):
-        return self.flux.getCurrentFlux()
+        return self.flux.get_value()

@@ -84,7 +84,7 @@ class DigitalZoomMotor(AbstractMotor, Device):
     def motor_position_changed(self, position=None):
         """
         Descript. : called by move and updateState. if the position has
-                    changed positionChanged is fired if the position is at one
+                    changed valueChanged is fired if the position is at one
                     of the limits the state is set accordingly on state
                     changes, stateChanged is fired
         """
@@ -106,7 +106,7 @@ class DigitalZoomMotor(AbstractMotor, Device):
                 self.set_state(current_motor_state)
                 self.emit("stateChanged", (current_motor_state,))
             self.set_position(position)
-            self.emit("positionChanged", (position,))
+            self.emit("valueChanged", (position,))
 
     #    def getLimits(self):
     #        """

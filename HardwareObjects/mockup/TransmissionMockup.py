@@ -8,7 +8,6 @@ class TransmissionMockup(Device):
         self.labels = []
         self.bits = []
         self.attno = 0
-        self.getValue = self.get_value
         self.value = 100
 
     def init(self):
@@ -17,15 +16,12 @@ class TransmissionMockup(Device):
     def getAttState(self):
         return 0
 
-    def getAttFactor(self):
-        return self.value
-
     def setAttFactor(self, value):
         self.value = value
         self.emit("valueChanged", self.value)
 
     def get_value(self):
-        return self.getAttFactor()
+        return self.value
 
     def set_value(self, value):
         self.setAttFactor(value)

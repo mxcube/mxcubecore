@@ -152,7 +152,7 @@ class SardanaMotor(AbstractMotor):
             self.limit_upper = self.static_limits[1]
 
     def connectNotify(self, signal):
-        if signal == "positionChanged":
+        if signal == "valueChanged":
             self.motor_position_changed()
         elif signal == "stateChanged":
             self.motor_state_changed()
@@ -194,13 +194,13 @@ class SardanaMotor(AbstractMotor):
         """
         Descript. : called by the position channels update event
                     if the position change exceeds threshold,
-                    positionChanged is fired
+                    valueChanged is fired
         """
         if position is None:
             position = self.position_channel.getValue()
         if abs(self.motor_position - position) >= self.threshold:
             self.motor_position = position
-            self.emit("positionChanged", (position,))
+            self.emit("valueChanged", (position,))
             self.motor_state_changed()
 
     def getState(self):
@@ -229,7 +229,7 @@ class SardanaMotor(AbstractMotor):
 
     def update_values(self):
         self.emit("limitsChanged", (self.getLimits(),))
-        self.emit("positionChanged", (self.get_value(),))
+        self.emit("valueChanged", (self.get_value(),))
 
     def move(self, absolute_position):
         """

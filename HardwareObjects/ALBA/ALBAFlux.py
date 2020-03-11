@@ -6,11 +6,12 @@ import logging
 
 class ALBAFlux(Device, AbstractFlux.AbstractFlux):
     def init(self):
+        super(ALBAFlux, self).init()
         self.current_dev = taurus.Device("pc/mach_attrpc_ctrl/1")
         self.vars_dev = taurus.Device("bl13/ct/variables")
         self.trans_mot = taurus.Device("mbattrans")
 
-    def get_flux(self):
+    def get_value(self):
         fluxlast = self.vars_dev["fluxlast"].value
 
         try:
@@ -48,7 +49,7 @@ class ALBAFlux(Device, AbstractFlux.AbstractFlux):
 
         # The factor 1.25 converts from the average value over the beamsize
         # to an estimated flux density at the peak.
-        return 1.25 * AbstractFlux.AbstractFlux.get_dose_rate(energy=energy)
+        return 1.25 * super(ALBAFlux, self).get_dose_rate(energy=energy)
 
 
 def test_hwo(hwo):

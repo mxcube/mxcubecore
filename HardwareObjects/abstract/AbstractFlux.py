@@ -19,7 +19,7 @@
 
 from scipy.interpolate import interp1d
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.HardwareObjects.abstract.AbstractActuator import AbstractActuator
 
 from HardwareRepository import HardwareRepository as HWR
 
@@ -48,14 +48,26 @@ dose_rate_per_photon_per_mmsq = interp1d(
 )
 
 
-class AbstractFlux(HardwareObject):
+class AbstractFlux(AbstractActuator):
+
+    read_only = True
+
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
+        AbstractActuator.__init__(self, name)
 
         self.dose_rate_per_photon_per_mmsq = dose_rate_per_photon_per_mmsq
 
-    def get_flux(self):
-        """Get flux at current transmission in units of photons/s"""
+    def init(self):
+        """Initialise some parameters."""
+        super(AbstractFlux, self).init()
+        self.read_only = self.getProperty("read_only") or True
+
+    def _set_value(self, value):
+        """Local setter function - not implemented for read_only clases"""
+        raise NotImplementedError
+
+    def set_limits(self, limits):
+        """Local setter function - not implemented for read_only clases"""
         raise NotImplementedError
 
     def get_dose_rate(self, energy=None):
@@ -68,7 +80,7 @@ class AbstractFlux(HardwareObject):
         :return: float
         """
 
-        energy = energy or HWR.beamline.energy.get_energy()
+        energy = energy or HWR.beamline.energy.get_value()
 
         # NB   Calculation assumes beam sizes in mm
         beam_size = HWR.beamline.beam.get_beam_size()
@@ -76,12 +88,9 @@ class AbstractFlux(HardwareObject):
         # Result in kGy/s
         result = (
             self.dose_rate_per_photon_per_mmsq(energy)
-            * self.get_flux()
+            * self.get_value()
             / beam_size[0]
             / beam_size[1]
             / 1000.0  # Converts to kGy/s
         )
         return result
-
-    def update_values(self):
-        self.emit("fluxValueChanged", self._value)

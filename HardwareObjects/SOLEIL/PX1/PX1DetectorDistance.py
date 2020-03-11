@@ -87,7 +87,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
 
         if abs(position - self.old_value) > self.threshold:
             try:
-                self.emit("positionChanged", (position,))
+                self.emit("valueChanged", (position,))
                 self.old_value = position
             except BaseException:
                 self.old_value = position
