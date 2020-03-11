@@ -4,7 +4,7 @@ import time
 import gevent
 
 
-class RobodiffLight(Device, ):
+class RobodiffLight(Device, AbstractMotor):
     states = {0: "out", 1: "in"}
     READ_CMD, READ_OUT = (0, 1)
     (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0, 1, 2, 3, 4, 5)
