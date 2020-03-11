@@ -63,7 +63,7 @@ class MD2Motor(AbstractMotor):
 
     def connectNotify(self, signal):
         if signal == "positionChanged":
-            self.emit("positionChanged", (self.get_position(),))
+            self.emit("positionChanged", (self.get_value(),))
         elif signal == "stateChanged":
             self.updateMotorState(self.motors_state_attr.get_value())
         elif signal == "limitsChanged":
@@ -127,11 +127,10 @@ class MD2Motor(AbstractMotor):
         except BaseException:
             return (-1e4, 1e4)
 
-    def get_position(self):
+    def get_value(self):
         ret = self.position_attr.get_value()
         if ret is None:
             raise RuntimeError("%s: motor position is None" % self.name())
-        self.__position = ret
         return ret
 
     def move(self, position, wait=False, timeout=None):
@@ -179,10 +178,3 @@ class MD2Motor(AbstractMotor):
             DeprecationWarning,
         )
         return self.get_dynamic_limits()
-
-    def getDialPosition(self):
-        warn(
-            "getDialPosition is deprecated. Use get_position instead",
-            DeprecationWarning,
-        )
-        return self.get_position()

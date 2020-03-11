@@ -77,13 +77,9 @@ class RobodiffMotor(Device):
         # print self.name(), absolutePosition
         self.emit("positionChanged", (absolutePosition,))
 
-    def getPosition(self):
+    def get_value(self):
         self.end_init()
         return self.motor.position()
-
-    def getDialPosition(self):
-        self.end_init()
-        return self.get_value()
 
     def move(self, position):
         self.end_init()

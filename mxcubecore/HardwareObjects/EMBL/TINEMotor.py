@@ -118,7 +118,7 @@ class TINEMotor(AbstractMotor):
             elif signal == "limitsChanged":
                 self.motor_limits_changed(self.get_limits())
             elif signal == "positionChanged":
-                self.motor_position_changed(self.get_position())
+                self.motor_position_changed(self.get_value())
 
     def motor_limits_changed(self, limits):
         """Updates motor limits
@@ -136,6 +136,9 @@ class TINEMotor(AbstractMotor):
 
     # def get_position(self):
     #    return self.chan_position.getValue()
+
+    def get_value(self):
+        return self.chan_position.getValue()
 
     def stop(self):
         """Stops motor movement

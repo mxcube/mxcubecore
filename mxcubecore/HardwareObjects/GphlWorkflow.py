@@ -598,7 +598,7 @@ class GphlWorkflow(HardwareObject, object):
 
         field_list[-1]["NEW_COLUMN"] = "True"
 
-        resolution = HWR.beamline.resolution.get_position()
+        resolution = HWR.beamline.resolution.get_value()
         field_list.append(
             {
                 "variableName": "resolution",
@@ -789,7 +789,7 @@ class GphlWorkflow(HardwareObject, object):
             )
         # TODO NBNB put in wait-till-ready to make sure value settles
         HWR.beamline.detector.wait_ready()
-        strategy_resolution = HWR.beamline.resolution.get_position()
+        strategy_resolution = HWR.beamline.resolution.get_value()
         # Put resolution value in workflow model object
         gphl_workflow_model.set_detector_resolution(strategy_resolution)
 
@@ -1590,7 +1590,7 @@ class GphlWorkflow(HardwareObject, object):
             pointGroup=workflow_model.get_point_group(),
             spaceGroup=space_group,
             cell=unitCell,
-            expectedResolution=HWR.beamline.collect.get_resolution(),
+            expectedResolution=HWR.beamline.resolution.get_value(),
             isAnisotropic=None,
         )
         ll0 = ["PriorInformation"]
