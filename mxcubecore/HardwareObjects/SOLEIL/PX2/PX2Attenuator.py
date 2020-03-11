@@ -26,7 +26,7 @@ class PX2Attenuator(Device):
         self.labels = []
         self.attno = 0
         self.deviceOk = True
-        self.set_value = None
+        self.nominal_value = None
 
     def init(self):
         #         cmdToggle = self.getCommandObject('toggle')
@@ -118,13 +118,13 @@ class PX2Attenuator(Device):
             if (
                 self.Attenuatordevice.TrueTrans_FP <= 100.0
             ):  # self.Attenuatordevice.Trans_FP  <= 100.0 :
-                if self.set_value is not None:
-                    value = self.set_value
+                if self.nominal_value is not None:
+                    value = self.nominal_value
                 else:
                     value = float(self.Attenuatordevice.TrueTrans_FP) * 1.3587
             else:
-                if self.set_value is not None:
-                    value = self.set_value
+                if self.nominal_value is not None:
+                    value = self.nominal_value
                 else:
                     value = float(self.Attenuatordevice.I_Trans) * 1.4646
             # Mettre une limite superieure car a une certaine ouverture de fentes on ne gagne plus rien en transmission
@@ -175,7 +175,7 @@ class PX2Attenuator(Device):
             self.emit("toggleFilter", (value,))
 
     def set_value(self, value):
-        self.set_value = float(value)
+        self.nominal_value = float(value)
         try:
             if (
                 self.Constdevice.FP_Area_FWHM <= 0.1
