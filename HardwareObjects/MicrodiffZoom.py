@@ -17,17 +17,30 @@
 #
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+"""
+MicrodiffZoom
 
-"""Zoom as Expoorter motor"""
+Example xml file:
+<device class="MicrodiffZoom">
+  <username>zoom</username>
+  <exporter_address>wid30bmd2s:9001</exporter_address>
+  <value_channel_name>CoaxialCameraZoomValue</value_channel_name>
+  <state_channel_name>ZoomState</state_channel_name>
+  <values>[1, 2, 3, 4, 5, 6, 7]</values>
+  <actuator_name>Zoom</actuator_name>
+</device>
+"""
 
-from HardwareRepository.HardwareObjects.ExporterMotor import ExporterMotor
+import ast
+import enum
 
+from HardwareRepository.HardwareObjects.ExporterNState import ExporterNState
 
-class MicrodiffZoom(ExporterMotor):
+class MicrodiffZoom(ExporterNState):
     """MicrodiffZoom class"""
 
     def __init__(self, name):
-        ExporterMotor.__init__(self, name)
+        ExporterNState.__init__(self, name)
         self.predefined_positions = {}
         self._exporter = None
         self._limits = None
@@ -36,65 +49,18 @@ class MicrodiffZoom(ExporterMotor):
 
     def init(self):
         """Initialize the zoom"""
-        ExporterMotor.init(self)
-        _exporter_address = self.getProperty("exporter_address")
-        self.position_channel = self.add_channel(
-            {
-                "type": "exporter",
-                "exporter_address": _exporter_address,
-                "name": "zoom_position",
-            },
-            "CoaxialCameraZoomValue",
-        )
-        if self.position_channel:
-            self.get_value()
-            self.position_channel.connectSignal("update", self.update_value)
+        ExporterNState.init(self)
+        values = ast.literal_eval(self.getProperty("values"))
+        self._nominal_limits = (values[0], values[-1])
 
-        self.motor_state = self.add_channel(
-            {
-                "type": "exporter",
-                "exporter_address": _exporter_address,
-                "name": "zoom_state",
-            },
-            "State",
-        )
+        values = { ("LEVEL%s" % str(values.index(v) + 1)):v for v in values }
+        values.update({"UNKNOWN": 0})
 
-        if self.motor_state:
-            self.motor_state.connectSignal("update", self._update_state)
-
-        _low, _high = self.get_limits()
-        for _idx in range(_low, _high + 1):
-            self.predefined_positions["Zoom %s" % _idx] = _idx
+        self.VALUES = enum.Enum("MICRODIFF_ZOOM_ENUM", values)
 
     def get_limits(self):
         """Returns zoom low and high limits.
         Returns:
             (tuple): two int tuple (low limit, high limit).
         """
-        try:
-            _low, _high = self._exporter.execute("getZoomRange")
-            # inf is a problematic value
-            if _low == float("-inf"):
-                _low = 0
-
-            if _high == float("inf"):
-                _high = 10
-
-            self._limits = (_low, _high)
-        except ValueError:
-            self._limits = (1, 10)
-        return self._limits
-
-    def set_value(self, value, wait=False, timeout=None):
-        """Move motor to absolute value. Wait the move to finish.
-        Args:
-            value (float): target value
-            wait (bool): optional - wait until motor movement finished.
-            timeout (float): optional - timeout [s].
-        """
-        self._set_value(value)
-        self.update_value(value)
-        self.update_state()
-
-        if wait:
-            self.wait_ready(timeout)
+        return self._nominal_limits

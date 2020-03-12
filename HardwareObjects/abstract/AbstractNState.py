@@ -53,69 +53,34 @@ class OnOffEnum(Enum):
     OFF = "OFF"
 
 
+class ValueEnum(Enum):
+    """This is subclassed with type- and object- specific states added"""
+
+    # It is not legal to define members here,
+    # but the following should always be present:
+    # UNKNOWN = 0
+    pass
+
+
 class AbstractNState(AbstractActuator):
     """
     Abstract base class for N state objects.
     """
 
     __metaclass__ = abc.ABCMeta
+    VALUES = ValueEnum
 
     def __init__(self, name):
         AbstractActuator.__init__(self, name)
-        self.predefined_values = {}
-        self.state_definition = None
-        self._valid = False
 
-    def init(self):
-        """Initialise some parametrs."""
-        self.predefined_values = self.get_predefined_values()
-        _valid = []
-
-        self.state_definition = self.getProperty("state_definition", None)
-
-        for value in self.predefined_values.keys():
-            _valid.append(
-                self._validate_value(value.upper(), self.state_definition.__members__)
-            )
-
-        if all(_valid) and len(_valid) == len(self.state_definition.__members__):
-            self._valid = True
-
-        if self.state_definition in ["IntEnum", "StrEnum", "FloatEnum"]:
-            self.state_definition = Enum(self.state_definition, self.predefined_values)
-        else:
-            self.state_definition = globals().get(self.state_definition, None)
-
-        if not (self.state_definition or self._valid):
-            raise ValueError("Mistmatching predefined values")
-
-    def _validate_value(self, value, values=None):
+    def validate_value(self, value):
         """Check if the value is within specified values.
         Args:
             value: value
-            values(tuple): tuple of values.
         Returns:
             (bool): True if within the values
         """
-        if not values:
-            values = self.predefined_values.keys()
-        return value in values
-
-    def get_predefined_values(self):
-        """Get the predefined values
-        Returns:
-            (dict): Dictionary of predefined {name: value}
-        """
-        predefined_values = {}
-        for value in self.getProperty("predefined_value", ()):
-            try:
-                predefined_values.update(
-                    {value.getProperty("name"): value.getProperty("value")}
-                )
-            except AttributeError:
-                pass
-
-        return predefined_values
+        return value.name in self.VALUES.__members__
 
     def set_limits(self, limits):
         """Set actuator low and high limits.
@@ -130,3 +95,15 @@ class AbstractNState(AbstractActuator):
             limits (tuple): two floats tuple (low limit, high limit).
         """
         raise NotImplementedError
+
+    def get_values(self):
+        return self.VALUES
+
+    def value_to_enum(self, value):
+        _e = self.VALUES.UNKNOWN
+
+        for enum_var in self.VALUES.__members__.values():
+            if enum_var.value == value:
+                _e = enum_var
+
+        return _e
