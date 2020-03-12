@@ -519,7 +519,7 @@ class XMLRPCServer(HardwareObject):
         return HWR.beamline.collect.get_cryo_temperature()
 
     def flux(self):
-        flux = HWR.beamline.flux.get_flux()
+        flux = HWR.beamline.flux.get_value()
         if flux is None:
             flux = 0
         return float(flux)

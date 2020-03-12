@@ -47,9 +47,9 @@ class TestMethods(unittest.TestCase):
 
         logging.getLogger("HWR").debug("UnitTest: Testing transmission hwobj")
         self.assertIn(
-            type(BEAMLINE.transmission.getAttFactor()),
+            type(BEAMLINE.transmission.get_value()),
             (float, int),
-            "Transmission hwobj | getAttFactor() returns float",
+            "Transmission hwobj | get_value() returns float",
         )
 
         logging.getLogger("HWR").debug("UnitTest: Testing aperture hwobj")

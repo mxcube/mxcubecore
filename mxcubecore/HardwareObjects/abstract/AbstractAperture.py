@@ -133,7 +133,7 @@ class AbstractAperture(HardwareObject):
         """
         if position_name in self._position_list:
             self._current_position_name = position_name
-            self.emit("positionChanged", self._current_position_name)
+            self.emit("valueChanged", self._current_position_name)
         else:
             logging.getLogger("HWR").warning(
                 "Aperture: Position %s is not in the position list" % position_name
@@ -148,7 +148,7 @@ class AbstractAperture(HardwareObject):
         """
         if position_index < len(self._position_list):
             self._current_position_name = self._position_list[position_index]
-            self.emit("positionChanged", self._current_position_name)
+            self.emit("valueChanged", self._current_position_name)
         else:
             logging.getLogger("HWR").warning(
                 "Aperture: Selected position is not in the position list"
@@ -177,7 +177,7 @@ class AbstractAperture(HardwareObject):
         """
         Reemits all signals
         """
-        self.emit("positionChanged", self._current_position_name)
+        self.emit("valueChanged", self._current_position_name)
         self.emit(
             "diameterIndexChanged",
             self._current_diameter_index,

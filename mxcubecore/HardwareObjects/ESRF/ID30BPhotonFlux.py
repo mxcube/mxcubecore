@@ -87,12 +87,16 @@ class ID30BPhotonFlux(Equipment):
         flux = counts
         self.emitValueChanged("%1.3g" % flux)
 
-    def getCurrentFlux(self):
+    def get_value(self):
         self.updateFlux("dummy")
         return self.current_flux
 
-    def get_flux(self):
-        return self.current_flux
+    # def getCurrentFlux(self):
+    #     self.updateFlux("dummy")
+    #     return self.current_flux
+    #
+    # def get_flux(self):
+    #     return self.current_flux
 
     def emitValueChanged(self, flux=None):
         if flux is None:

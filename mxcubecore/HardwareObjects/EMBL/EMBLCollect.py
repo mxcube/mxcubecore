@@ -477,7 +477,7 @@ class EMBLCollect(AbstractCollect):
 
     def get_measured_intensity(self):
         """Returns flux"""
-        return float("%.3e" % HWR.beamline.flux.get_flux())
+        return float("%.3e" % HWR.beamline.flux.get_value())
 
     def get_machine_current(self):
         """Returns flux"""

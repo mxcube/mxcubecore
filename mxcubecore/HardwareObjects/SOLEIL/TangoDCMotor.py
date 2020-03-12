@@ -89,7 +89,7 @@ class TangoDCMotor(Device):
         if abs(float(value) - self.old_value) > self.threshold:
             try:
                 # logging.getLogger("HWR").error("%s: TangoDCMotor new position  , %s", self.name(), value)
-                self.emit("positionChanged", (value,))
+                self.emit("valueChanged", (value,))
                 self.old_value = value
             except BaseException:
                 logging.getLogger("HWR").error(
@@ -108,7 +108,7 @@ class TangoDCMotor(Device):
             self.motorStateChanged(TangoDCMotor.stateDict[self.stateValue])
         elif signal == "limitsChanged":
             self.motorLimitsChanged()
-        elif signal == "positionChanged":
+        elif signal == "valueChanged":
             self.motorPositionChanged(self.positionValue)
         self.setIsReady(True)
 
@@ -183,7 +183,7 @@ class TangoDCMotor(Device):
             self.emit("moveDone", (self.tangoname, "tango"))
 
     def motorPositionChanged(self, absolutePosition):
-        self.emit("positionChanged", (absolutePosition,))
+        self.emit("valueChanged", (absolutePosition,))
 
     def syncQuestionAnswer(self, specSteps, controllerSteps):
         return (

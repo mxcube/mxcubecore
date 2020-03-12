@@ -110,22 +110,24 @@ carbon_window_transmission = interp1d(
     ],
 )
 
-dose_rate_per_10to14_ph_per_mmsq = interp1d(
-    [4.0, 6.6, 9.2, 11.8, 14.4, 17.0, 19.6, 22.2, 24.8, 27.4, 30.0],
-    [
-        459000.0,
-        162000.0,
-        79000.0,
-        45700.0,
-        29300.0,
-        20200.0,
-        14600.0,
-        11100.0,
-        8610.0,
-        6870.0,
-        5520.0,
-    ],
-)
+# # Replacec by AbstractFLux.dose_rate_per_photon_per_mmsq (same values0
+#
+# dose_rate_per_10to14_ph_per_mmsq = interp1d(
+#     [4.0, 6.6, 9.2, 11.8, 14.4, 17.0, 19.6, 22.2, 24.8, 27.4, 30.0],
+#     [
+#         459000.0,
+#         162000.0,
+#         79000.0,
+#         45700.0,
+#         29300.0,
+#         20200.0,
+#         14600.0,
+#         11100.0,
+#         8610.0,
+#         6870.0,
+#         5520.0,
+#     ],
+# )
 
 
 class EMBLFlux(AbstractFlux):
@@ -163,6 +165,7 @@ class EMBLFlux(AbstractFlux):
     def init(self):
         """Reads config xml, initiates all necessary hwobj, channels and cmds
         """
+        super(EMBLFlux, self).init()
         self.intensity_ranges = []
         self.measured_flux_dict = None
         self.measured_flux_list = []
@@ -292,7 +295,7 @@ class EMBLFlux(AbstractFlux):
             {"measured": self.measured_flux_dict, "current": self.current_flux_dict},
         )
 
-    def get_flux(self):
+    def get_value(self):
         """Returns flux value as float"""
         if self.current_flux_dict is not None:
             return self.current_flux_dict["flux"]
@@ -539,8 +542,8 @@ class EMBLFlux(AbstractFlux):
         flux = flux * 1.8
         dose_rate = (
             1e-3
-            * 1e-14
-            * dose_rate_per_10to14_ph_per_mmsq(energy)
+            # * 1e-14
+            * self.dose_rate_per_photon_per_mmsq(energy)
             * flux
             / beam_size[0]
             / beam_size[1]

@@ -853,7 +853,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
             Called to save transmission in lims
         """
         if HWR.beamline.transmission is not None:
-            return HWR.beamline.transmission.getAttFactor()
+            return HWR.beamline.transmission.get_value()
 
     def get_undulators_gaps(self):
         """
@@ -889,7 +889,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         Descript. :
         """
         if HWR.beamline.flux is not None:
-            flux = HWR.beamline.flux.getValue()
+            flux = HWR.beamline.flux.get_value()
         else:
             flux = 0.0
         return float("%.3e" % flux)
