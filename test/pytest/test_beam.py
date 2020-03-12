@@ -21,7 +21,12 @@
 def test_beam_atributes(beamline):
     assert not beamline.beam is None, "Beamline.Beam objects is None (not initialized)"
 
-    beam_size = beamline.beam.get_size()
+    
+    beam_div_hor, beam_div_ver = beamline.beam.get_beam_divergence()
+    beam_width, beam_height, beam_shape, beam_label = beamline.beam.get_value()
 
-    assert isinstance(beam_size[0], (int, float)), "Horizontal beam size in microns has to be int or float. Now %s" %str(beam_size[0])
-    assert isinstance(beam_size[1], (int, float)), "Horizontal beam size in microns has to be int or float. Now %s" %str(beam_size[1])
+    assert isinstance(beam_div_hor, (int, float)), "Horizontal beam divergence has to be int or float"
+    assert isinstance(beam_div_ver, (int, float)), "Vertical beam divergence has to be int or float"
+    assert isinstance(beam_width, (int, float)), "Horizontal beam size has to be int or float"
+    assert isinstance(beam_height, (int, float)), "Vertical beam size has to be int or float"
+    

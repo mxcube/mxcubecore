@@ -110,20 +110,20 @@ class AbstractBeam(AbstractActuator):
             return self._beam_divergence
 
     def get_value(self):
-        """ Get the size (width and heigth) of the beam and its shape.
+        """ Get the size (width and height) of the beam and its shape.
         Retunrs:
-            (float, float, Enum, str): Width, heigth, shape and label.
+            (float, float, Enum, str): Width, height, shape and label.
         Raises:
             NotImplementedError
         """
-        return self.beam_width, self.beam_heigth, self.beam_shape, self.beam_label
+        return self._beam_width, self._beam_height, self._beam_shape, self._beam_label
 
-    def _set_value(self, beam_width, beam_heigth, beam_shape=None, beam_label=None):
+    def _set_value(self, beam_width, beam_height, beam_shape=None, beam_label=None):
         """
         Sets beam parameters
         Args:
             beam_width: width in microns
-            beam_heigth: height in microns
+            beam_height: height in microns
             beam_shape: Enum BeamShape
             beam_label: str
 
@@ -131,7 +131,7 @@ class AbstractBeam(AbstractActuator):
 
         """
         self._beam_width = beam_width
-        self._beam_height = beam_heigth
+        self._beam_height = beam_height
         if beam_shape:
             self._beam_shape = beam_shape
         if beam_label:
@@ -149,13 +149,13 @@ class AbstractBeam(AbstractActuator):
         """
         raise NotImplementedError
 
-    def set_value(self, beam_width, beam_heigth, beam_shape=None, beam_label=None):
+    def set_value(self, beam_width, beam_height, beam_shape=None, beam_label=None):
         """Set the beam size
         Args:
-            size (list): Width, heigth or
+            size (list): Width, height or
                   (str): Position name
         """
-        self._set_value(beam_width, beam_heigth, beam_shape, beam_label)
+        self._set_value(beam_width, beam_height, beam_shape, beam_label)
         self.update_value()
 
     def get_beam_size(self):
