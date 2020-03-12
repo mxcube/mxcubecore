@@ -134,8 +134,8 @@ class MicrodiffMotor(AbstractMotor):
         self.motorPositionChanged(self.position_attr.getValue())
 
     def connectNotify(self, signal):
-        if signal == "positionChanged":
-            self.emit("positionChanged", (self.get_position(),))
+        if signal == "valueChanged":
+            self.emit("valueChanged", (self.get_value(),))
         elif signal == "stateChanged":
             self.motorStateChanged(self.state_attr.getValue())
         elif signal == "limitsChanged":
@@ -218,15 +218,12 @@ class MicrodiffMotor(AbstractMotor):
             if abs(absolute_position - self.position) <= self.motor_resolution:
                 return
         self.position = absolute_position
-        self.emit("positionChanged", (self.position,))
+        self.emit("valueChanged", (self.position,))
 
-    def get_position(self):
+    def get_value(self):
         if self.position_attr is not None:
             self.position = self.position_attr.getValue()
         return self.position
-
-    def getDialPosition(self):
-        return self.get_position()
 
     def move(self, absolutePosition, wait=True, timeout=None):
         # if self.get_state() != MicrodiffMotor.NOTINITIALIZED:
@@ -236,10 +233,10 @@ class MicrodiffMotor(AbstractMotor):
             )  # absolutePosition-self.offset)
 
     def moveRelative(self, relativePosition):
-        self.set_value(self.get_position() + relativePosition)
+        self.set_value(self.get_value() + relativePosition)
 
     def syncMoveRelative(self, relative_position, timeout=None):
-        return self.syncMove(self.get_position() + relative_position)
+        return self.syncMove(self.get_value() + relative_position)
 
     def waitEndOfMove(self, timeout=None):
         with Timeout(timeout):

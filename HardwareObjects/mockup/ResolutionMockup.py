@@ -16,7 +16,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         self.detmState = None
         self.state = 2
         self.connect(
-            HWR.beamline.detector.distance, "positionChanged", self.dtoxPositionChanged
+            HWR.beamline.detector.distance, "valueChanged", self.dtoxPositionChanged
         )
 
         # Default value detector radius - corresponds to Eiger 16M:
@@ -83,21 +83,14 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
     def equipmentNotReady(self):
         self.emit("deviceNotReady")
 
-    def get_position(self):
+    def get_value(self):
         if self.currentResolution is None:
             self.recalculateResolution()
         return self.currentResolution
 
-    # NBNB Remove getPosition altogether
-    getPosition = get_position
-
-    def get_value(self):
-        return self.get_value()
-
     def newResolution(self, res):
         if res:
             self.currentResolution = res
-            self.emit("positionChanged", (res,))
             self.emit("valueChanged", (res,))
 
     def getState(self):

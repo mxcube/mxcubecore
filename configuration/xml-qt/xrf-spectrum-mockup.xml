@@ -1,4 +1,2 @@
 <object class="XRFSpectrumMockup">
-  <object hwrid="/attenuators-mockup" role="transmission"/>
-  <object hwrid="/lims-client-mockup" role="dbserver"/>
 </object>

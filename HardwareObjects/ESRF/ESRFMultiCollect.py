@@ -537,7 +537,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     @task
     def set_transmission(self, transmission_percent):
-        HWR.beamline.transmission.setTransmission(transmission_percent)
+        HWR.beamline.transmission.set_value(transmission_percent)
 
     def set_wavelength(self, wavelength):
         return self._tunable_bl.set_wavelength(wavelength)
@@ -807,7 +807,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         return HWR.beamline.resolution.get_value()
 
     def get_transmission(self):
-        return HWR.beamline.transmission.getAttFactor()
+        return HWR.beamline.transmission.get_value()
 
     def get_undulators_gaps(self):
         all_gaps = {"Unknown": None}
@@ -927,7 +927,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def get_flux(self):
         return 0
 
-    #       return HWR.beamline.flux.getCurrentFlux()
+    #       return HWR.beamline.flux.get_value()
 
     @task
     def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):

@@ -62,17 +62,17 @@ class MotorMockup(AbstractMotor):
             self.set_limits(DEFAULT_LIMITS)
 
         # self.set_state(self.motor_states.READY)
-        self.set_value(float(self.getProperty("start_position", DEFAULT_POSITION)))
+        self.set_value(float(self.getProperty("default_position", DEFAULT_POSITION)))
 
     def move_task(self, position, wait=False, timeout=None):
         if position is None:
             # TODO is there a need to set motor position to None?
             return
 
-        start_pos = self.get_position()
+        start_pos = self.get_value()
         if start_pos is not None:
             delta = abs(position - start_pos)
-            if position > self.get_position():
+            if position > self.get_value():
                 direction = 1
             else:
                 direction = -1
@@ -83,16 +83,16 @@ class MotorMockup(AbstractMotor):
                     start_pos
                     + direction * self.get_velocity() * (time.time() - start_time)
                 )
-                self.emit("positionChanged", (self.get_position(),))
+                self.emit("valueChanged", (self.get_value(),))
                 time.sleep(0.02)
         self.set_value(position)
-        self.emit("positionChanged", (self.get_position(),))
+        self.emit("valueChanged", (self.get_value(),))
 
     def move(self, position, wait=False, timeout=None):
         self.__motor_state = self.motor_states.MOVING
         if wait:
             self.set_value(position)
-            self.emit("positionChanged", (self.get_position(),))
+            self.emit("valueChanged", (self.get_value(),))
             self.set_ready()
         else:
             self._move_task = gevent.spawn(self.move_task, position)

@@ -194,6 +194,7 @@ class GraphicsItem(QtImport.QGraphicsItem):
                           (size_x, size_y, shape)
         :type beam_info: dict
         """
+        print "set beam info ", beam_info
         self.beam_is_rectangle = beam_info.get("shape") == "rectangular"
         self.beam_size_mm[0] = beam_info.get("size_x", 0)
         self.beam_size_mm[1] = beam_info.get("size_y", 0)

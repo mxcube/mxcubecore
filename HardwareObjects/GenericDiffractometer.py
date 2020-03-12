@@ -237,16 +237,16 @@ class GenericDiffractometer(HardwareObject):
         self.cryo = self.getObjectByRole("cryo")
 
         # Hardware objects ----------------------------------------------------
-        # if HWR.beamline.microscope.camera is not None:
-        #     self.image_height = HWR.beamline.microscope.camera.getHeight()
-        #     self.image_width = HWR.beamline.microscope.camera.getWidth()
+        # if HWR.beamline.sample_view.camera is not None:
+        #     self.image_height = HWR.beamline.sample_view.camera.getHeight()
+        #     self.image_width = HWR.beamline.sample_view.camera.getWidth()
         # else:
         #     logging.getLogger("HWR").debug(
         #         "Diffractometer: " + "Camera hwobj is not defined"
         #     )
 
         if HWR.beamline.beam is not None:
-            self.beam_position = HWR.beamline.beam.get_screen_position() 
+            self.beam_position = HWR.beamline.beam.get_beam_position_on_screen() 
             self.connect(
                 HWR.beamline.beam, "beamPosChanged", self.beam_position_changed
             )
@@ -320,13 +320,13 @@ class GenericDiffractometer(HardwareObject):
                 self.motor_hwobj_dict[motor_name] = temp_motor_hwobj
                 self.connect(temp_motor_hwobj, "stateChanged", self.motor_state_changed)
                 self.connect(
-                    temp_motor_hwobj, "positionChanged", self.centring_motor_moved
+                    temp_motor_hwobj, "valueChanged", self.centring_motor_moved
                 )
 
                 if motor_name == "phi":
                     self.connect(
                         temp_motor_hwobj,
-                        "positionChanged",
+                        "valueChanged",
                         self.emit_diffractometer_moved,
                     )
                 elif motor_name == "zoom":
@@ -695,14 +695,14 @@ class GenericDiffractometer(HardwareObject):
     #     return self.current_positions_dict.get("phi")
 
     def get_snapshot(self):
-        if HWR.beamline.microscope:
-            return HWR.beamline.microscope.take_snapshot()
+        if HWR.beamline.sample_view:
+            return HWR.beamline.sample_view.take_snapshot()
 
     def save_snapshot(self, filename):
         """
         """
-        if HWR.beamline.microscope:
-            return HWR.beamline.microscope.save_snapshot(filename)
+        if HWR.beamline.sample_view:
+            return HWR.beamline.sample_view.save_snapshot(filename)
 
     def get_pixels_per_mm(self):
         """
@@ -817,7 +817,7 @@ class GenericDiffractometer(HardwareObject):
         while self.automatic_centring_try_count > 0:
             if self.use_sample_centring:
                 self.current_centring_procedure = sample_centring.start_auto(
-                    HWR.beamline.microscope.camera,
+                    HWR.beamline.sample_view.camera,
                     {
                         "phi": self.centring_phi,
                         "phiy": self.centring_phiy,

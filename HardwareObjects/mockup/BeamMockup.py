@@ -17,9 +17,13 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
+__copyright__ = """MXCuBE collaboration"""
+__license__ = "LGPLv3+"
+
+
 import logging
 
-from HardwareRepository.HardwareObjects.abstract.AbstractBeam import AbstractBeam
+from HardwareRepository.HardwareObjects.abstract.AbstractBeam import BeamShape, AbstractBeam
 
 
 class BeamMockup(AbstractBeam):
@@ -27,10 +31,10 @@ class BeamMockup(AbstractBeam):
     def __init__(self, name):
         AbstractBeam.__init__(self, name)
 
-        self._size_dict["slits"] = [9999, 9999]
-        self._size_dict["aperture"] = [9999, 9999]
-        self._screen_position = [318, 238]
-        self._divergence = (0, 0)
+        self._beam_size_dict["slits"] = [9999, 9999]
+        self._beam_size_dict["aperture"] = [9999, 9999]
+        self._beam_position_on_screen = [318, 238]
+        self._beam_divergence = (0, 0)
 
     def init(self):
         self._aperture = self.getObjectByRole("aperture")
@@ -42,50 +46,39 @@ class BeamMockup(AbstractBeam):
             )
 
             ad = self._aperture.get_diameter_size() / 1000.0
-            self._size_dict["aperture"] = [ad, ad]
+            self._beam_size_dict["aperture"] = [ad, ad]
 
         self._slits = self.getObjectByRole("slits")
         if self._slits is not None:
             self.connect(self._slits, "valueChanged", self.slits_gap_changed)
 
             sx, sy = self._slits.get_gaps()
-            self._size_dict["slits"] = [sx, sy]
+            self._beam_size_dict["slits"] = [sx, sy]
 
-        self.emit("beamPosChanged", (self._screen_position,))
+        self.evaluate_beam_info()
+        self.emit("beamPosChanged", (self._beam_position_on_screen,))
 
     def aperture_diameter_changed(self, name, size):
-        self._size_dict["aperture"] = [size, size]
+        self._beam_size_dict["aperture"] = [size, size]
         self.evaluate_beam_info()
         self.emit_beam_info_change()
 
     def slits_gap_changed(self, size):
-        self._size_dict["slits"] = size
+        self._beam_size_dict["slits"] = size
         self.evaluate_beam_info()
         self.emit_beam_info_change()
 
     def set_beam_position(self, beam_x, beam_y):
-        self._screen_position = (beam_x, beam_y)
-        self.emit("beamPosChanged", (self._screen_position,))
-
-    def get_info_dict(self):
-        return self.evaluate_beam_info()
-
-    def get_value(self):
-        """
-        Description: returns beam size in microns
-        Returns: list with two integers
-        """
-        self.evaluate_beam_info()
-        return float(self._info_dict["size_x"]), float(self._info_dict["size_y"])
-        
+        self._beam_position_on_screen = (beam_x, beam_y)
+        self.emit("beamPosChanged", (self._beam_position_on_screen,))
 
     def get_shape(self):
         self.evaluate_beam_info()
-        return self._info_dict["shape"]
+        return self._beam_shape
 
     def get_slits_gap(self):
         self.evaluate_beam_info()
-        return self._size_dict["slits"]
+        return self._beam_size_dict["slits"]
 
     def set_slits_gap(self, width_microns, height_microns):
         if self._slits:
@@ -97,35 +90,38 @@ class BeamMockup(AbstractBeam):
         Description: called if aperture, slits or focusing has been changed
         Returns: dictionary, {size_x: 0.1, size_y: 0.1, shape: "rectangular"}
         """
+
         size_x = min(
-            self._size_dict["aperture"][0],
-            self._size_dict["slits"][0],
+            self._beam_size_dict["aperture"][0],
+            self._beam_size_dict["slits"][0],
         )
         size_y = min(
-            self._size_dict["aperture"][1],
-            self._size_dict["slits"][1],
+            self._beam_size_dict["aperture"][1],
+            self._beam_size_dict["slits"][1],
         )
 
-        self._info_dict["size_x"] = size_x
-        self._info_dict["size_y"] = size_y
+        self._beam_width = size_x
+        self._beam_height = size_y
 
-        if tuple(self._size_dict["aperture"]) < tuple(self._size_dict["slits"]):
-            self._info_dict["shape"] = "ellipse"
+        if tuple(self._beam_size_dict["aperture"]) < tuple(self._beam_size_dict["slits"]):
+            self._beam_shape = BeamShape.ELIPTICAL
         else:
-            self._info_dict["shape"] = "rectangular"
+            self._beam_shape = BeamShape.RECTANGULAR
 
-        return self._info_dict
+        self._beam_info_dict["size_x"] = size_x
+        self._beam_info_dict["size_y"] = size_y
+        self._beam_info_dict["shape"] = self._beam_shape
 
     def emit_beam_info_change(self):
         if (
-            self._info_dict["size_x"] != 9999
-            and self._info_dict["size_y"] != 9999
+            self._beam_width != 9999
+            and self._beam_height != 9999
         ):
             self.emit(
                 "beamSizeChanged",
-                ((self._info_dict["size_x"], self.beam_info_dict["size_y"]),),
+                (self._beam_width, self._beam_height)
             )
-            self.emit("beamInfoChanged", (self._info_dict,))
+            self.emit("beamInfoChanged", (self._beam_info_dict))
 
     def get_aperture_pos_name(self):
         if self._aperture:

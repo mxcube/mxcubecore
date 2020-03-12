@@ -10,7 +10,7 @@ class SOLEILFlux(Device):
     def init(self):
         self.flux_channel = self.getChannelObject("flux")
 
-    def getCurrentFlux(self):
+    def get_value(self):
         try:
             return self.flux_channel.getValue()
         except PyTango.DevFailed:
@@ -23,7 +23,7 @@ def test():
 
     flux = hwr.getHardwareObject("/flux")
 
-    print("PX1 Flux is ", flux.getCurrentFlux())
+    print("PX1 Flux is ", flux.get_value())
 
 
 if __name__ == "__main__":

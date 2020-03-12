@@ -18,6 +18,7 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 
 __credits__ = ["EMBL Hamburg"]
@@ -25,7 +26,7 @@ __version__ = "2.3."
 __category__ = "General"
 
 
-class EMBLBeamstop(Device):
+class EMBLBeamstop(Device, AbstractMotor):
     def __init__(self, name):
         Device.__init__(self, name)
 
@@ -90,7 +91,7 @@ class EMBLBeamstop(Device):
         """Returns beamstop direction"""
         return self.default_direction
 
-    def get_position(self):
+    def get_value(self):
         """Returns beamstop position"""
         return self.chan_position.getValue()
 

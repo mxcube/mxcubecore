@@ -394,9 +394,9 @@ class ALBACollect(AbstractCollect):
         self.image_headers["Beam_xy"] = "(%.2f, %.2f) pixels" % (beamx, beamy)
 
         self.image_headers["Filter_transmission"] = "%.4f" % (
-            HWR.beamline.transmission.getAttFactor() / 100.0
+            HWR.beamline.transmission.get_value() / 100.0
         )
-        self.image_headers["Flux"] = "%.4g" % HWR.beamline.flux.get_flux()
+        self.image_headers["Flux"] = "%.4g" % HWR.beamline.flux.get_value()
         self.image_headers["Detector_2theta"] = "0.0000"
         self.image_headers["Polarization"] = "0.99"
         self.image_headers["Alpha"] = "0 deg."
@@ -693,7 +693,7 @@ class ALBACollect(AbstractCollect):
         if not self.is_sampleview_phase():
             self.go_to_sampleview()
 
-        HWR.beamline.microscope.save_scene_snapshot(filename)
+        HWR.beamline.sample_view.save_snapshot(filename)
         logging.getLogger("HWR").debug(" - snapshot saved to %s" % filename)
 
     def set_energy(self, value):
@@ -866,7 +866,7 @@ class ALBACollect(AbstractCollect):
             Called to save transmission in lims
         """
         if HWR.beamline.transmission is not None:
-            return HWR.beamline.transmission.getAttFactor()
+            return HWR.beamline.transmission.get_value()
 
     def get_undulators_gaps(self):
         """
@@ -905,7 +905,7 @@ class ALBACollect(AbstractCollect):
         Descript. :
         """
         if HWR.beamline.flux is not None:
-            return HWR.beamline.flux.get_flux()
+            return HWR.beamline.flux.get_value()
 
     def get_machine_current(self):
         """

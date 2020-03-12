@@ -10,8 +10,6 @@ from PyTango import DeviceProxy
 
 from PyQt4.QtGui import QApplication
 
-# from qt import qApp
-
 import numpy
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
 
@@ -91,7 +89,7 @@ class TangoDCMotor(Device):
         if abs(float(value) - self.old_value) > self.threshold:
             try:
                 # logging.getLogger("HWR").error("%s: TangoDCMotor new position  , %s", self.name(), value)
-                self.emit("positionChanged", (value,))
+                self.emit("valueChanged", (value,))
                 self.old_value = value
             except BaseException:
                 logging.getLogger("HWR").error(
@@ -110,7 +108,7 @@ class TangoDCMotor(Device):
             self.motorStateChanged(TangoDCMotor.stateDict[self.stateValue])
         elif signal == "limitsChanged":
             self.motorLimitsChanged()
-        elif signal == "positionChanged":
+        elif signal == "valueChanged":
             self.motorPositionChanged(self.positionValue)
         self.setIsReady(True)
 
@@ -185,29 +183,18 @@ class TangoDCMotor(Device):
             self.emit("moveDone", (self.tangoname, "tango"))
 
     def motorPositionChanged(self, absolutePosition):
-        self.emit("positionChanged", (absolutePosition,))
+        self.emit("valueChanged", (absolutePosition,))
 
     def syncQuestionAnswer(self, specSteps, controllerSteps):
         return (
             "0"
         )  # This is only for spec motors. 0 means do not change anything on sync
 
-    def getRealPosition(self):
+    def get_value(self):
         return self.positionChan.getValue()
-
-    def get_position(self):
-        return self.getRealPosition()
-
-    def getPosition(self):
-        pos = self.positionValue
-        return pos
-
-    def getDialPosition(self):
-        return self.get_value()
 
     def syncMove(self, position):
         prev_position = self.get_value()
-        # self.positionValue = position
         relative_position = position - prev_position
         self.syncMoveRelative(relative_position)
         gevent.sleep(0.2)  # allow MD2 to change the state

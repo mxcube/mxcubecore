@@ -192,7 +192,7 @@ class PX2Diffractometer(GenericDiffractometer):
 
         self.zoom_motor_hwobj = self.getObjectByRole("zoom")
         self.connect(
-            self.zoom_motor_hwobj, "positionChanged", self.zoom_position_changed
+            self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed
         )
         self.connect(
             self.zoom_motor_hwobj,
@@ -201,27 +201,27 @@ class PX2Diffractometer(GenericDiffractometer):
         )
 
         self.connect(
-            self.motor_hwobj_dict["phi"], "positionChanged", self.phi_motor_moved
+            self.motor_hwobj_dict["phi"], "valueChanged", self.phi_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["phiy"], "positionChanged", self.phiy_motor_moved
+            self.motor_hwobj_dict["phiy"], "valueChanged", self.phiy_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["phiz"], "positionChanged", self.phiz_motor_moved
+            self.motor_hwobj_dict["phiz"], "valueChanged", self.phiz_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["kappa"], "positionChanged", self.kappa_motor_moved
+            self.motor_hwobj_dict["kappa"], "valueChanged", self.kappa_motor_moved
         )
         self.connect(
             self.motor_hwobj_dict["kappa_phi"],
-            "positionChanged",
+            "valueChanged",
             self.kappa_phi_motor_moved,
         )
         self.connect(
-            self.motor_hwobj_dict["sampx"], "positionChanged", self.sampx_motor_moved
+            self.motor_hwobj_dict["sampx"], "valueChanged", self.sampx_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["sampy"], "positionChanged", self.sampy_motor_moved
+            self.motor_hwobj_dict["sampy"], "valueChanged", self.sampy_motor_moved
         )
 
         self.omega_reference_par = eval(self.getProperty("omega_reference"))
@@ -231,11 +231,11 @@ class PX2Diffractometer(GenericDiffractometer):
 
         self.connect(
             self.omega_reference_motor,
-            "positionChanged",
+            "valueChanged",
             self.omega_reference_motor_moved,
         )
 
-        self.omega_reference_motor_moved(self.omega_reference_motor.get_position())
+        self.omega_reference_motor_moved(self.omega_reference_motor.get_value())
 
         # self.use_sc = self.getProperty("use_sample_changer")
 
@@ -638,7 +638,7 @@ class PX2Diffractometer(GenericDiffractometer):
         for k in range(n_clicks):
             self.user_clicked_event = gevent.event.AsyncResult()
             x, y = self.user_clicked_event.get()
-            image = HWR.beamline.microscope.camera.get_last_image()
+            image = HWR.beamline.sample_view.camera.get_last_image()
             calibration = self.camera.get_calibration()
             omega = self.goniometer.get_omega_position()
 
@@ -1122,7 +1122,7 @@ class PX2Diffractometer(GenericDiffractometer):
         """
         Description:
         """
-        image_array = HWR.beamline.microscope.get_snapshot(return_as_array=True)
+        image_array = HWR.beamline.sample_view.get_snapshot(return_as_array=True)
         (info, x, y) = lucid.find_loop(image_array)
         surface_score = 10
         return x, y, surface_score

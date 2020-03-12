@@ -129,7 +129,7 @@ class EMBLMiniDiff(GenericDiffractometer):
 
         self.zoom_motor_hwobj = self.getObjectByRole("zoom")
         self.connect(
-            self.zoom_motor_hwobj, "positionChanged", self.zoom_position_changed
+            self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed
         )
         self.connect(
             self.zoom_motor_hwobj,
@@ -137,27 +137,27 @@ class EMBLMiniDiff(GenericDiffractometer):
             self.zoom_motor_predefined_position_changed,
         )
         self.connect(
-            self.motor_hwobj_dict["phi"], "positionChanged", self.phi_motor_moved
+            self.motor_hwobj_dict["phi"], "valueChanged", self.phi_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["phiy"], "positionChanged", self.phiy_motor_moved
+            self.motor_hwobj_dict["phiy"], "valueChanged", self.phiy_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["phiz"], "positionChanged", self.phiz_motor_moved
+            self.motor_hwobj_dict["phiz"], "valueChanged", self.phiz_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["kappa"], "positionChanged", self.kappa_motor_moved
+            self.motor_hwobj_dict["kappa"], "valueChanged", self.kappa_motor_moved
         )
         self.connect(
             self.motor_hwobj_dict["kappa_phi"],
-            "positionChanged",
+            "valueChanged",
             self.kappa_phi_motor_moved,
         )
         self.connect(
-            self.motor_hwobj_dict["sampx"], "positionChanged", self.sampx_motor_moved
+            self.motor_hwobj_dict["sampx"], "valueChanged", self.sampx_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["sampy"], "positionChanged", self.sampy_motor_moved
+            self.motor_hwobj_dict["sampy"], "valueChanged", self.sampy_motor_moved
         )
 
         self.omega_reference_par = eval(self.getProperty("omega_reference"))
@@ -166,7 +166,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         )
         self.connect(
             self.omega_reference_motor,
-            "positionChanged",
+            "valueChanged",
             self.omega_reference_motor_moved,
         )
 
@@ -290,7 +290,7 @@ class EMBLMiniDiff(GenericDiffractometer):
 
     def refresh_omega_reference_position(self):
         if self.omega_reference_motor is not None:
-            reference_pos = self.omega_reference_motor.get_position()
+            reference_pos = self.omega_reference_motor.get_value()
             self.omega_reference_motor_moved(reference_pos)
 
     def update_pixels_per_mm(self, *args):
@@ -320,7 +320,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             or self.current_phase
             in (GenericDiffractometer.PHASE_TRANSFER, GenericDiffractometer.PHASE_BEAM)
         ):
-            detector_distance = HWR.beamline.detector.distance.get_position()
+            detector_distance = HWR.beamline.detector.distance.get_value()
             logging.getLogger("HWR").debug(
                 "Diffractometer current phase: %s " % self.current_phase
                 + "selected phase: %s" % phase
@@ -537,8 +537,8 @@ class EMBLMiniDiff(GenericDiffractometer):
         # kappa = self.current_motor_positions["kappa"]
         # phi = self.current_motor_positions["kappa_phi"]
 
-        kappa = self.motor_hwobj_dict["kappa"].get_position()
-        phi = self.motor_hwobj_dict["kappa_phi"].get_position()
+        kappa = self.motor_hwobj_dict["kappa"].get_value()
+        phi = self.motor_hwobj_dict["kappa_phi"].get_value()
         # IK TODO remove this director call
 
         if (c["kappa"], c["kappa_phi"]) != (
@@ -600,8 +600,8 @@ class EMBLMiniDiff(GenericDiffractometer):
 
     @task
     def move_kappa_and_phi_procedure(self, new_kappa=None, new_kappa_phi=None):
-        kappa = self.motor_hwobj_dict["kappa"].get_position()
-        kappa_phi = self.motor_hwobj_dict["kappa_phi"].get_position()
+        kappa = self.motor_hwobj_dict["kappa"].get_value()
+        kappa_phi = self.motor_hwobj_dict["kappa_phi"].get_value()
 
         if new_kappa is None:
             new_kappa = kappa
@@ -614,9 +614,9 @@ class EMBLMiniDiff(GenericDiffractometer):
             new_kappa,
             new_kappa_phi,
         ) and self.minikappa_correction_hwobj is not None:
-            sampx = self.motor_hwobj_dict["sampx"].get_position()
-            sampy = self.motor_hwobj_dict["sampy"].get_position()
-            phiy = self.motor_hwobj_dict["phiy"].get_position()
+            sampx = self.motor_hwobj_dict["sampx"].get_value()
+            sampy = self.motor_hwobj_dict["sampy"].get_value()
+            phiy = self.motor_hwobj_dict["phiy"].get_value()
             new_sampx, new_sampy, new_phiy = self.minikappa_correction_hwobj.shift(
                 kappa, kappa_phi, [sampx, sampy, phiy], new_kappa, new_kappa_phi
             )
@@ -646,7 +646,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             try:
                 motors[motor_role] = motor_pos[mot_obj]
             except KeyError:
-                motors[motor_role] = mot_obj.get_position()
+                motors[motor_role] = mot_obj.get_value()
         motors["beam_x"] = (
             self.beam_position[0] - self.zoom_centre["x"]
         ) / self.pixels_per_mm_y
@@ -663,8 +663,8 @@ class EMBLMiniDiff(GenericDiffractometer):
         else:
             t1 = [point_1.sampx, point_1.sampy, point_1.phiy]
             t2 = [point_2.sampx, point_2.sampy, point_2.phiy]
-            kappa = self.motor_hwobj_dict["kappa"].get_position()
-            phi = self.motor_hwobj_dict["kappa_phi"].get_position()
+            kappa = self.motor_hwobj_dict["kappa"].get_value()
+            phi = self.motor_hwobj_dict["kappa_phi"].get_value()
             new_kappa, new_phi, (
                 new_sampx,
                 new_sampy,
@@ -690,7 +690,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             self.chan_fast_shutter_is_open.setValue(not self.fast_shutter_is_open)
 
     def find_loop(self):
-        image_array = HWR.beamline.microscope.camera.get_snapshot(return_as_array=True)
+        image_array = HWR.beamline.sample_view.camera.get_snapshot(return_as_array=True)
         (info, x, y) = lucid.find_loop(image_array)
         surface_score = 10
         return x, y, surface_score

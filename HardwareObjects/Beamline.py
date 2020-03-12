@@ -329,15 +329,15 @@ class Beamline(ConfiguredObject):
     __content_roles.append("lims")
 
     @property
-    def microscope(self):
-        """Microscope object. Includes defined shapes.
+    def sample_view(self):
+        """Sample view object. Includes defined shapes.
 
         Returns:
-            Optional[AbstractMicroscope]:
+            Optional[AbstractSampleView]:
         """
-        return self._objects.get("microscope")
+        return self._objects.get("sample_view")
 
-    __content_roles.append("microscope")
+    __content_roles.append("sample_view")
 
     @property
     def queue_manager(self):
@@ -605,7 +605,7 @@ class Beamline(ConfiguredObject):
             acq_parameters.resolution = 0.0
 
         try:
-            acq_parameters.energy = self.energy.get_energy()
+            acq_parameters.energy = self.energy.get_value()
         except:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
@@ -632,7 +632,7 @@ class Beamline(ConfiguredObject):
             acq_parameters.shutterless = False
 
         try:
-            acq_parameters.detector_mode = self.detector.get_detector_mode()
+            acq_parameters.detector_mode = self.detector.get_roi_mode()
         except:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "

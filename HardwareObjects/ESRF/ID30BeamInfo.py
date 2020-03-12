@@ -31,4 +31,4 @@ class ID30BeamInfo(BeamInfo.BeamInfo):
         return self.beam_info_dict
 
     def get_flux(self):
-        return HWR.beamline.flux.getCurrentFlux()
+        return HWR.beamline.flux.get_value()

@@ -21,11 +21,11 @@ class MicrodiffSamplePseudo(MD2Motor):
         self.sampx = self.getObjectByRole("sampx")
         self.sampy = self.getObjectByRole("sampy")
         self.phi = self.getObjectByRole("phi")
-        self.connect(self.sampx, "positionChanged", self.real_motor_moved)
+        self.connect(self.sampx, "valueChanged", self.real_motor_moved)
         self.connect(self.sampx, "stateChanged", self.real_motor_changed)
-        self.connect(self.sampy, "positionChanged", self.real_motor_moved)
+        self.connect(self.sampy, "valueChanged", self.real_motor_moved)
         self.connect(self.sampy, "stateChanged", self.real_motor_changed)
-        self.connect(self.phi, "positionChanged", self.real_motor_moved)
+        self.connect(self.phi, "valueChanged", self.real_motor_moved)
         self.connect(self.phi, "stateChanged", self.real_motor_changed)
 
     def real_motor_moved(self, _):
@@ -58,7 +58,7 @@ class MicrodiffSamplePseudo(MD2Motor):
         )
         self.emit("stateChanged", (self.motorState,))
 
-    def getPosition(self):
+    def get_value(self):
         sampx = self.sampx.get_value()
         sampy = self.sampy.get_value()
         phi = self.phi.get_value()
@@ -79,7 +79,7 @@ class MicrodiffSamplePseudo(MD2Motor):
         self.updateMotorState()
 
     def motorPositionChanged(self, absolutePosition):
-        self.emit("positionChanged", (absolutePosition,))
+        self.emit("valueChanged", (absolutePosition,))
 
     def move(self, absolutePosition):
         sampx = self.sampx.get_value()
