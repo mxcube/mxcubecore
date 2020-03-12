@@ -580,6 +580,7 @@ class Beamline(ConfiguredObject):
                     % acquisition_type
                 )
             else:
+
                 params.update(dd0)
 
         for tag, val in params.items():

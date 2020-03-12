@@ -25,7 +25,7 @@ _objects:
     # Hardware:
     - session: session.xml
     - machine_info: mach-info-mockup.xml
-    - transmission: attenuators-mockup.xml
+    - transmission: transmission-mockup.xml
     - energy: energy-mockup.xml
     - beam: beam-info.xml
     - flux: flux-mockup.xml
@@ -34,11 +34,11 @@ _objects:
     - hutch_interlock: door-interlock-mockup.xml
     - safety_shutter: safshut.xml
     - fast_shutter: shutter-mockup.xml
-    - sample_changer: sc-mockup.xml
+    - sample_changer: sample-changer-mockup.xml
     # NBNB TODO remove plate_manipulater and treat as another smaple changer
     - plate_manipulator: plate-manipulator.xml
     - diffractometer: diffractometer-mockup.xml
-    - microscope: graphics.xml
+    - sample_view: sample-view.xml
     - lims: lims-client-mockup.xml
     - queue_manager: queue.xml
     - queue_model: queue-model.xml
