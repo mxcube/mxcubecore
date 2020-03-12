@@ -430,7 +430,7 @@ class Microdiff(MiniDiff.MiniDiff):
             "phiz": float(self.phizMotor.get_value()),
             "sampx": float(self.sampleXMotor.get_value()),
             "sampy": float(self.sampleYMotor.get_value()),
-            "zoom": self.zoomMotor.get_value(),
+            "zoom": self.zoomMotor.get_value().value,
             "kappa": float(self.kappaMotor.get_value())
             if self.in_kappa_mode()
             else None,
