@@ -80,7 +80,7 @@ class MicrodiffBeamstop(Equipment):
     def isReady(self):
         return True
 
-    def getState(self):
+    def get_state(self):
         return "READY"
 
     def getPosition(self):

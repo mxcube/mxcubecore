@@ -106,7 +106,7 @@ class MD2Motor(AbstractMotor):
     #     self.emit("valueChanged", (self.__position,))
 
     def motorLimitsChanged(self):
-        self.emit("limitsChanged", (self.getLimits(),))
+        self.emit("limitsChanged", (self.get_limits(),))
 
     def get_state(self):
         return self.motor_state
@@ -164,7 +164,7 @@ class MD2Motor(AbstractMotor):
         return self.actuator_name
 
     def stop(self):
-        if self.getState() != MotorStates.NOTINITIALIZED:
+        if self.get_state() != MotorStates.NOTINITIALIZED:
             self._motor_abort()
 
     def home_motor(self, timeout=None):

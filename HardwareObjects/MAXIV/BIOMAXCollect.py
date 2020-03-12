@@ -1231,7 +1231,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         if HWR.beamline.detector.distance is not None:
-            return HWR.beamline.detector.distance.getLimits()
+            return HWR.beamline.detector.distance.get_limits()
 
     def prepare_detector(self):
 

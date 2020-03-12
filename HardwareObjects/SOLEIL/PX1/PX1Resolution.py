@@ -78,7 +78,7 @@ class PX1Resolution(Equipment):
         # return self.stateDict[state_str]
         return state_str
 
-    def getResolution(self):
+    def get_value(self):
         if self.currentResolution is None:
             self.recalculateResolution()
         return self.currentResolution
@@ -89,10 +89,10 @@ class PX1Resolution(Equipment):
         return self.currentDistance
 
     def minimumResolutionChanged(self, value=None):
-        self.emit("resolutionLimitsChanged", (self.getResolutionLimits(),))
+        self.emit("resolutionLimitsChanged", (self.get_limits(),))
 
     def maximumResolutionChanged(self, value=None):
-        self.emit("resolutionLimitsChanged", (self.getResolutionLimits(),))
+        self.emit("resolutionLimitsChanged", (self.get_limits(),))
 
     def minimumDistanceChanged(self, value=None):
         self.emit("distanceLimitsChanged", (self.getDistanceLimits(),))
@@ -134,11 +134,11 @@ class PX1Resolution(Equipment):
 
         return [low, high]
 
-    def getResolutionLimits(self):
+    def get_limits(self):
         high = self.maximum_res_chan.getValue()
         low = self.minimum_res_chan.getValue()
 
-        return [low, high]
+        return (low, high)
 
     def moveResolution(self, res):
         self.resolution_chan.setValue(res)
@@ -161,11 +161,9 @@ class PX1Resolution(Equipment):
         self.minimumResolutionChanged()
         self.minimumResolutionChanged()
 
-    getLimits = getResolutionLimits
-    getPosition = getResolution
     move = moveResolution
 
 
 def test_hwo(hwo):
     print("Distance [limits]", hwo.getDistance(), hwo.getDistanceLimits())
-    print("Resolution [limits]", hwo.getResolution(), hwo.getResolutionLimits())
+    print("Resolution [limits]", hwo.get_value(), hwo.get_limits())

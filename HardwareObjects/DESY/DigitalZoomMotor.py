@@ -48,7 +48,7 @@ class DigitalZoomMotor(AbstractMotor, Device):
         self.zoom_supported = None
 
     def init(self):
-        self.set_limits((1.0, 1.0))
+        self.update_limits((1.0, 1.0))
         try:
             self.camera = self.getObjectByRole("camera")
         except KeyError:
@@ -64,11 +64,11 @@ class DigitalZoomMotor(AbstractMotor, Device):
                 limits[0] = -1000
             if limits[1] is None:
                 limits[1] = 1000
-            self.set_limits(limits)
+            self.update_limits(limits)
             self.set_position(self.camera.get_zoom())
-            self.set_state(MotorStates.READY)
+            self.update_state(self.STATES.READY)
         else:
-            self.set_state(MotorStates.DISABLED)
+            self.update_state(self.STATES.OFF)
             logging.getLogger("HWR").warning(
                 "DigitalZoomMotor: digital zoom is not supported " "by camera object"
             )
@@ -96,7 +96,7 @@ class DigitalZoomMotor(AbstractMotor, Device):
 
         if position != self.get_value():
             current_motor_state = self.get_state()
-            if position <= self.getLimits()[0]:
+            if position <= self.get_limits()[0]:
                 self.set_state(MotorStates.LOWLIMIT)
             elif position >= self.get_limits()[1]:
                 self.set_state(MotorStates.HIGHLIMIT)
@@ -108,7 +108,7 @@ class DigitalZoomMotor(AbstractMotor, Device):
             self.set_position(position)
             self.emit("valueChanged", (position,))
 
-    #    def getLimits(self):
+    #    def get_limits(self):
     #        """
     #        Descript. : returns motor limits. If no limits channel defined then
     #                    static_limits is returned
@@ -128,8 +128,8 @@ class DigitalZoomMotor(AbstractMotor, Device):
         """
         if (
             self.zoom_supported
-            and absolute_position >= self.getLimits()[0]
-            and absolute_position <= self.getLimits()[1]
+            and absolute_position >= self.get_limits()[0]
+            and absolute_position <= self.get_limits()[1]
         ):
             self.camera.set_zoom(absolute_position)
             self.motor_position_changed(absolute_position)

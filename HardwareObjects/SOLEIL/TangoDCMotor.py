@@ -122,30 +122,26 @@ class TangoDCMotor(Device):
         self.emit("stateChanged", (TangoDCMotor.stateDict[self.stateValue],))
 
     def get_state(self):
-        return self.getState()
-
-    def getState(self):
-        # state = self.stateValue
         return TangoDCMotor.stateDict[self.stateValue]
 
-    def getLimits(self):
+    def get_limits(self):
         try:
             logging.getLogger("HWR").info(
-                "TangoDCMotor.getLimits: trying to get limits for motor_name %s "
+                "TangoDCMotor.get_limits: trying to get limits for motor_name %s "
                 % (self.motor_name)
             )
             limits = self.ho.getMotorLimits(
                 self.motor_name
             )  # limitsCommand() # self.ho.getMotorLimits(self.motor_name)
             logging.getLogger("HWR").info(
-                "TangoDCMotor.getLimits: Getting limits for %s -- %s "
+                "TangoDCMotor.get_limits: Getting limits for %s -- %s "
                 % (self.motor_name, str(limits))
             )
             if numpy.inf in limits:
                 limits = numpy.array([-10000, 10000])
         except BaseException:
             # import traceback
-            # logging.getLogger("HWR").info("TangoDCMotor.getLimits: Cannot get limits for %s.\nException %s " % (self.motor_name, traceback.print_exc()))
+            # logging.getLogger("HWR").info("TangoDCMotor.get_limits: Cannot get limits for %s.\nException %s " % (self.motor_name, traceback.print_exc()))
             if self.motor_name in [
                 "detector_distance",
                 "detector_horizontal",
@@ -164,16 +160,16 @@ class TangoDCMotor(Device):
             try:
                 limits = self.getProperty("min"), self.getProperty("max")
                 logging.getLogger("HWR").info(
-                    "TangoDCMotor.getLimits: %.4f ***** %.4f" % limits
+                    "TangoDCMotor.get_limits: %.4f ***** %.4f" % limits
                 )
                 limits = numpy.array(limits)
             except BaseException:
-                # logging.getLogger("HWR").info("TangoDCMotor.getLimits: Cannot get limits for %s" % self.name())
+                # logging.getLogger("HWR").info("TangoDCMotor.get_limits: Cannot get limits for %s" % self.name())
                 limits = None
         return limits
 
     def motorLimitsChanged(self):
-        self.emit("limitsChanged", (self.getLimits(),))
+        self.emit("limitsChanged", (self.get_limits(),))
 
     def motorIsMoving(self):
         return self.stateValue == "RUNNING" or self.stateValue == "MOVING"

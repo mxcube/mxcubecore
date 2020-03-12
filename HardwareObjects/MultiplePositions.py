@@ -195,21 +195,21 @@ class MultiplePositions(Equipment):
             self.connect(mot, "valueChanged", self.checkPosition)
             self.connect(mot, "stateChanged", self.stateChanged)
 
-    def getState(self):
+    def get_state(self):
         if not self.isReady():
             return ""
 
         state = "READY"
         for mot in self.motors.values():
-            if mot.getState() == mot.MOVING:
+            if mot.get_state() == mot.MOVING:
                 state = "MOVING"
-            elif mot.getState() == mot.UNUSABLE:
+            elif mot.get_state() == mot.UNUSABLE:
                 return "UNUSABLE"
 
         return state
 
     def stateChanged(self, state):
-        self.emit("stateChanged", (self.getState(),))
+        self.emit("stateChanged", (self.get_state(),))
         self.checkPosition()
 
     def moveToPosition(self, name, wait=False):

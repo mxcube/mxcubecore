@@ -107,7 +107,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
             logging.getLogger("HWR").warning(traceback.format_exc())
             self.state_strings = self.default_state_strings
 
-    def getState(self):
+    def get_state(self):
         if self.actuator_state == STATE_UNKNOWN:
             self.actuator_value = self.actuator_channel.getValue()
             self.motor_position = self.motorpos_channel.getValue()
@@ -169,7 +169,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
     def getStatus(self):
         """
         """
-        state = self.getState()
+        state = self.get_state()
 
         if state in [STATE_OUT, STATE_IN]:
             return self.state_strings[state]
@@ -213,7 +213,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
 def test_hwo(hwo):
     print("Name is: ", hwo.getUserName())
 
-    print("Shutter state is: ", hwo.getState())
+    print("Shutter state is: ", hwo.get_state())
     print("Shutter status is: ", hwo.getStatus())
     print("Motor position is: ", hwo.getMotorPosition())
     print("Motor state is: ", hwo.getMotorState())
