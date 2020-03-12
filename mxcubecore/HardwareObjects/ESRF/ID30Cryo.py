@@ -60,5 +60,5 @@ class ID30Cryo(Device):
     def actuatorOut(self):
         return self.wagoOut()
 
-    def getState(self):
+    def get_state(self):
         return ID30Cryo.READY

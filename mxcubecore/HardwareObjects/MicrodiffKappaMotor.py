@@ -81,7 +81,7 @@ class MicrodiffKappaMotor(ExporterMotor):
             self.phiy.waitEndOfMove()
 
     def stop(self):
-        if self.getState() != MotorStates.NOTINITIALIZED:
+        if self.get_state() != MotorStates.NOTINITIALIZED:
             self._motor_abort()
         for m in (self.sampx, self.sampy, self.phiy):
             m.stop()

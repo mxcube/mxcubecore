@@ -45,7 +45,7 @@ class DoorInterlockMockup(HardwareObject):
     def door_is_interlocked(self):
         return self.door_interlock_state in ("locked_active", "locked_inactive")
 
-    def getState(self):
+    def get_state(self):
         return self.door_interlock_state
 
     def unlock_door_interlock(self):

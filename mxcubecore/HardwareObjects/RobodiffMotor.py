@@ -60,16 +60,16 @@ class RobodiffMotor(Device):
         if emit:
             self.emit("stateChanged", (self.motorState,))
 
-    def getState(self):
+    def get_state(self):
         self.end_init()
         self.updateState()
         return self.motorState
 
     def motorLimitsChanged(self):
         self.end_init()
-        self.emit("limitsChanged", (self.getLimits(),))
+        self.emit("limitsChanged", (self.get_limits(),))
 
-    def getLimits(self):
+    def get_limits(self):
         self.end_init()
         return self.motor.limits()
 
