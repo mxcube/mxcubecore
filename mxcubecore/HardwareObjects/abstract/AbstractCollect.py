@@ -99,6 +99,8 @@ class AbstractCollect(HardwareObject, object):
         else:
             synchrotron_name = "UNKNOWN"
 
+        beam_divergence_hor, beam_divergence_ver = HWR.beamline.beam.get_beam_divergence() 
+
         self.set_beamline_configuration(
             synchrotron_name=synchrotron_name,
             directory_prefix=self.getProperty("directory_prefix"),
@@ -117,8 +119,8 @@ class AbstractCollect(HardwareObject, object):
             undulators=undulators,
             focusing_optic=self.getProperty("focusing_optic"),
             monochromator_type=self.getProperty("monochromator"),
-            beam_divergence_vertical=HWR.beamline.beam.get_beam_divergence_hor(),
-            beam_divergence_horizontal=HWR.beamline.beam.get_beam_divergence_ver(),
+            beam_divergence_vertical=beam_divergence_ver,
+            beam_divergence_horizontal=beam_divergence_hor,
             polarisation=self.getProperty("polarisation"),
             input_files_server=self.getProperty("input_files_server"),
         )
@@ -458,8 +460,8 @@ class AbstractCollect(HardwareObject, object):
         log.info("Collection: Updating data collection in LIMS")
 
         if HWR.beamline.lims and not cp["in_interleave"]:
-            cp.dangerously_set("flux", self.get_flux())
-            cp.dangerously_set("flux_end", self.get_flux())
+            cp.dangerously_set("flux", HWR.beamline.flux.get_value())
+            cp.dangerously_set("flux_end", HWR.beamline.flux.get_value())
             cp.dangerously_set("wavelength", self.get_wavelength())
             cp.dangerously_set("detectorDistance", self.get_detector_distance())
 

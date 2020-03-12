@@ -246,7 +246,7 @@ class AbstractXRFSpectrum(object):
             if HWR.beamline.transmission is not None:
                 self.spectrum_info[
                     "beamTransmission"
-                ] = HWR.beamline.transmission.getAttFactor()
+                ] = HWR.beamline.transmission.get_value()
             self.spectrum_info["energy"] = self.get_current_energy()
             if HWR.beamline.beam is not None:
                 beam_size_hor, beam_size_ver = HWR.beamline.beam.get_size()

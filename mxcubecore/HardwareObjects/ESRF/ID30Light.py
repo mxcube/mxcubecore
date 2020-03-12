@@ -1,9 +1,10 @@
 from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 import time
 import gevent
 
 
-class ID30Light(Device):
+class ID30Light(Device, AbstractMotor):
     states = {0: "out", 1: "in"}
     READ_CMD, READ_OUT = (0, 1)
     (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0, 1, 2, 3, 4, 5)
@@ -71,7 +72,7 @@ class ID30Light(Device):
     def actuatorOut(self):
         return self.wagoOut()
 
-    def getPosition(self):
+    def get_value(self):
         return self.wago_controller.get(self.light_level)
 
     def getLimits(self):
@@ -82,7 +83,7 @@ class ID30Light(Device):
 
     def move(self, abs_pos):
         self.wago_controller.set(self.light_level, abs_pos)
-        self.emit("positionChanged", abs_pos)
+        self.emit("valueChanged", abs_pos)
 
     def moveRelative(self, rel_pos):
         abs_pos = self.get_value() + rel_pos

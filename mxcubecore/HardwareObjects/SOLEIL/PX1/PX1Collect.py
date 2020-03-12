@@ -433,7 +433,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         self.lightarm_hwobj.adjustLightLevel()
         time.sleep(0.3)  # allow time to refresh display after
 
-        HWR.beamline.microscope.save_scene_snapshot(filename)
+        HWR.beamline.sample_view.save_snapshot(filename)
         logging.getLogger("HWR").debug("PX1Collect:  - snapshot saved to %s" % filename)
 
     def generate_thumbnails(self, filename, jpeg_filename, thumbnail_filename):
@@ -854,7 +854,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
             Called to save transmission in lims
         """
         if HWR.beamline.transmission is not None:
-            return HWR.beamline.transmission.getAttFactor()
+            return HWR.beamline.transmission.get_value()
 
     def get_undulators_gaps(self):
         """
@@ -890,7 +890,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         Descript. :
         """
         if HWR.beamline.flux is not None:
-            flux = HWR.beamline.flux.getValue()
+            flux = HWR.beamline.flux.get_value()
         else:
             flux = 0.0
         return float("%.3e" % flux)

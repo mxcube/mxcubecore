@@ -160,7 +160,7 @@ class BlissEnergy(AbstractEnergy):
         self.move_energy(value, wait, timeout)
 
     def update_value(self, position):
-        """Check if the position has changed. Emist signal positionChanged.
+        """Check if the position has changed. Emist signal valueChanged.
         Args:
             position (float): energy position
         """

@@ -12,7 +12,7 @@ Example xml file:
   <object href="/bliss" role="controller"/>
   <tunable_energy>True</tunable_energy>
 </object>
-The energy should have methods get_position, get_limits and move.
+The energy should have methods get_value, get_limits and move.
 If used, the controller should have method moveEnergy.
 
   - for fixed wavelength beamline:
@@ -53,7 +53,7 @@ class Energy(Equipment):
             logging.getLogger("HWR").info("No controller used")
 
         if self.energy_motor is not None:
-            self.energy_motor.connect("positionChanged", self.energyPositionChanged)
+            self.energy_motor.connect("valueChanged", self.energyPositionChanged)
             self.energy_motor.connect("stateChanged", self.energyStateChanged)
 
     def can_move_energy(self):
@@ -65,7 +65,7 @@ class Energy(Equipment):
     def get_current_energy(self):
         if self.energy_motor is not None:
             try:
-                return self.energy_motor.get_position()
+                return self.energy_motor.get_value()
             except BaseException:
                 logging.getLogger("HWR").exception(
                     "EnergyHO: could not read current energy"

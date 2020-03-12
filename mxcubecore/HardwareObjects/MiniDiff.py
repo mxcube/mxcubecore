@@ -175,7 +175,7 @@ class MiniDiff(Equipment):
         self.kappaPhiMotor = self.getObjectByRole("kappa_phi")
 
         # mh 2013-11-05:why is the channel read directly? disabled for the moment
-        # HWR.beamline.microscope.camera.addChannel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
+        # HWR.beamline.sample_view.camera.addChannel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
 
         self.centringPhi = sample_centring.CentringMotor(self.phiMotor, direction=-1)
         self.centringPhiz = sample_centring.CentringMotor(
@@ -200,7 +200,7 @@ class MiniDiff(Equipment):
 
         if self.phiMotor is not None:
             self.connect(self.phiMotor, "stateChanged", self.phiMotorStateChanged)
-            self.connect(self.phiMotor, "positionChanged", self.emitDiffractometerMoved)
+            self.connect(self.phiMotor, "valueChanged", self.emitDiffractometerMoved)
         else:
             logging.getLogger("HWR").error(
                 "MiniDiff: phi motor is not defined in minidiff equipment %s",
@@ -208,9 +208,9 @@ class MiniDiff(Equipment):
             )
         if self.phizMotor is not None:
             self.connect(self.phizMotor, "stateChanged", self.phizMotorStateChanged)
-            self.connect(self.phizMotor, "positionChanged", self.phizMotorMoved)
+            self.connect(self.phizMotor, "valueChanged", self.phizMotorMoved)
             self.connect(
-                self.phizMotor, "positionChanged", self.emitDiffractometerMoved
+                self.phizMotor, "valueChanged", self.emitDiffractometerMoved
             )
         else:
             logging.getLogger("HWR").error(
@@ -219,9 +219,9 @@ class MiniDiff(Equipment):
             )
         if self.phiyMotor is not None:
             self.connect(self.phiyMotor, "stateChanged", self.phiyMotorStateChanged)
-            self.connect(self.phiyMotor, "positionChanged", self.phiyMotorMoved)
+            self.connect(self.phiyMotor, "valueChanged", self.phiyMotorMoved)
             self.connect(
-                self.phiyMotor, "positionChanged", self.emitDiffractometerMoved
+                self.phiyMotor, "valueChanged", self.emitDiffractometerMoved
             )
         else:
             logging.getLogger("HWR").error(
@@ -248,9 +248,9 @@ class MiniDiff(Equipment):
             self.connect(
                 self.sampleXMotor, "stateChanged", self.sampleXMotorStateChanged
             )
-            self.connect(self.sampleXMotor, "positionChanged", self.sampleXMotorMoved)
+            self.connect(self.sampleXMotor, "valueChanged", self.sampleXMotorMoved)
             self.connect(
-                self.sampleXMotor, "positionChanged", self.emitDiffractometerMoved
+                self.sampleXMotor, "valueChanged", self.emitDiffractometerMoved
             )
         else:
             logging.getLogger("HWR").error(
@@ -261,24 +261,24 @@ class MiniDiff(Equipment):
             self.connect(
                 self.sampleYMotor, "stateChanged", self.sampleYMotorStateChanged
             )
-            self.connect(self.sampleYMotor, "positionChanged", self.sampleYMotorMoved)
+            self.connect(self.sampleYMotor, "valueChanged", self.sampleYMotorMoved)
             self.connect(
-                self.sampleYMotor, "positionChanged", self.emitDiffractometerMoved
+                self.sampleYMotor, "valueChanged", self.emitDiffractometerMoved
             )
         else:
             logging.getLogger("HWR").error(
                 "MiniDiff: sampx motor is not defined in minidiff equipment %s",
                 str(self.name()),
             )
-        # if HWR.beamline.microscope.camera is None:
+        # if HWR.beamline.sample_view.camera is None:
         #     logging.getLogger("HWR").error(
         #         "MiniDiff: camera is not defined in minidiff equipment %s",
         #         str(self.name()),
         #     )
         # else:
         #     self.imgWidth, self.imgHeight = (
-        #         HWR.beamline.microscope.camera.getWidth(),
-        #         HWR.beamline.microscope.camera.getHeight(),
+        #         HWR.beamline.sample_view.camera.getWidth(),
+        #         HWR.beamline.sample_view.camera.getHeight(),
         #     )
         if HWR.beamline.sample_changer is None:
             logging.getLogger("HWR").warning(
@@ -435,7 +435,7 @@ class MiniDiff(Equipment):
             and self.phiMotor is not None
             and self.phizMotor is not None
             and self.phiyMotor is not None
-            and HWR.beamline.microscope.camera is not None
+            and HWR.beamline.sample_view.camera is not None
         )
 
     def in_plate_mode(self):
@@ -959,7 +959,7 @@ class MiniDiff(Equipment):
             time.sleep(0.1)
 
     def takeSnapshots(self, image_count, wait=False):
-        HWR.beamline.microscope.camera.forceUpdate = True
+        HWR.beamline.sample_view.camera.forceUpdate = True
 
         snapshotsProcedure = gevent.spawn(
             take_snapshots,
@@ -979,7 +979,7 @@ class MiniDiff(Equipment):
             self.centringStatus["images"] = snapshotsProcedure.get()
 
     def snapshotsDone(self, snapshotsProcedure):
-        HWR.beamline.microscope.camera.forceUpdate = False
+        HWR.beamline.sample_view.camera.forceUpdate = False
 
         try:
             self.centringStatus["images"] = snapshotsProcedure.get()

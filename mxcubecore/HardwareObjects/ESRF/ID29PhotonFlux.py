@@ -72,7 +72,7 @@ class ID29PhotonFlux(Equipment):
     def countsUpdated(self, counts, ignore_shutter_state=False):
         self.emitValueChanged("%1.3g" % counts)
 
-    def getCurrentFlux(self):
+    def get_value(self):
         self.updateFlux("dummy")
         return self.current_flux
 

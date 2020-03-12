@@ -205,7 +205,7 @@ class NanoDiff(HardwareObject):
             self.connect(
                 self.phi_motor_hwobj, "stateChanged", self.phi_motor_state_changed
             )
-            self.connect(self.phi_motor_hwobj, "positionChanged", self.phi_motor_moved)
+            self.connect(self.phi_motor_hwobj, "valueChanged", self.phi_motor_moved)
         else:
             logging.getLogger("HWR").error("NanoDiff: Phi motor is not defined")
 
@@ -214,7 +214,7 @@ class NanoDiff(HardwareObject):
                 self.phiz_motor_hwobj, "stateChanged", self.phiz_motor_state_changed
             )
             self.connect(
-                self.phiz_motor_hwobj, "positionChanged", self.phiz_motor_moved
+                self.phiz_motor_hwobj, "valueChanged", self.phiz_motor_moved
             )
         else:
             logging.getLogger("HWR").error("NanoDiff: Phiz motor is not defined")
@@ -224,14 +224,14 @@ class NanoDiff(HardwareObject):
                 self.phiy_motor_hwobj, "stateChanged", self.phiy_motor_state_changed
             )
             self.connect(
-                self.phiy_motor_hwobj, "positionChanged", self.phiy_motor_moved
+                self.phiy_motor_hwobj, "valueChanged", self.phiy_motor_moved
             )
         else:
             logging.getLogger("HWR").error("NanoDiff: Phiy motor is not defined")
 
         if self.zoom_motor_hwobj is not None:
             self.connect(
-                self.zoom_motor_hwobj, "positionChanged", self.update_pixels_per_mm
+                self.zoom_motor_hwobj, "valueChanged", self.update_pixels_per_mm
             )
             self.connect(
                 self.zoom_motor_hwobj,
@@ -251,7 +251,7 @@ class NanoDiff(HardwareObject):
                 self.sampleX_motor_state_changed,
             )
             self.connect(
-                self.sample_x_motor_hwobj, "positionChanged", self.sampleX_motor_moved
+                self.sample_x_motor_hwobj, "valueChanged", self.sampleX_motor_moved
             )
         else:
             logging.getLogger("HWR").error("NanoDiff: Sampx motor is not defined")
@@ -263,21 +263,21 @@ class NanoDiff(HardwareObject):
                 self.sampleY_motor_state_changed,
             )
             self.connect(
-                self.sample_y_motor_hwobj, "positionChanged", self.sampleY_motor_moved
+                self.sample_y_motor_hwobj, "valueChanged", self.sampleY_motor_moved
             )
         else:
             logging.getLogger("HWR").error("NanoDiff: Sampx motor is not defined")
 
         if self.focus_motor_hwobj is not None:
             self.connect(
-                self.focus_motor_hwobj, "positionChanged", self.focus_motor_moved
+                self.focus_motor_hwobj, "valueChanged", self.focus_motor_moved
             )
 
-        # if HWR.beamline.microscope.camera is None:
+        # if HWR.beamline.sample_view.camera is None:
         #     logging.getLogger("HWR").error("NanoDiff: Camera is not defined")
         # else:
-        #     self.image_height = HWR.beamline.microscope.camera.getHeight()
-        #     self.image_width = HWR.beamline.microscope.camera.getWidth()
+        #     self.image_height = HWR.beamline.sample_view.camera.getHeight()
+        #     self.image_width = HWR.beamline.sample_view.camera.getWidth()
 
         try:
             self.zoom_centre = eval(self.getProperty("zoom_centre"))
@@ -632,9 +632,9 @@ class NanoDiff(HardwareObject):
         """
         Descript. :
         """
-        if HWR.beamline.microscope.camera is not None:
+        if HWR.beamline.sample_view.camera is not None:
             if self.current_phase != "Unknown":
-                HWR.beamline.microscope.camera.refresh_video()
+                HWR.beamline.sample_view.camera.refresh_video()
         if HWR.beamline.beam is not None:
             self.beam_position = HWR.beamline.beam.get_beam_position()
 
@@ -1355,6 +1355,6 @@ class NanoDiff(HardwareObject):
         snapshot_filename = os.path.join(
             tempfile.gettempdir(), "mxcube_sample_snapshot.png"
         )
-        HWR.beamline.microscope.camera.take_snapshot(snapshot_filename, bw=True)
+        HWR.beamline.sample_view.camera.take_snapshot(snapshot_filename, bw=True)
         info, x, y = lucid.find_loop(snapshot_filename)
         return x, y

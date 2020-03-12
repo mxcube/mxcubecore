@@ -189,7 +189,7 @@ class LimaPilatusDetector(AbstractDetector):
         # self.header["Start_angle"]="%0.4f deg." % start
         self.header["Transmission"] = HWR.beamline.transmission.get_value()
 
-        self.header["Flux"] = HWR.beamline.flux.get_flux()
+        self.header["Flux"] = HWR.beamline.flux.get_value()
         self.header["Beam_xy"] = "(%.2f, %.2f) pixels" % tuple(
             [value / 0.172 for value in HWR.beamline.resolution.get_beam_centre()]
         )

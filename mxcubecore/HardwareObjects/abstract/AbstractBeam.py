@@ -1,3 +1,4 @@
+# encoding: utf-8
 #
 #  Project: MXCuBE
 #  https://github.com/mxcube
@@ -15,24 +16,36 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-"""AbstractBeam"""
+"""
+Beam abstract class - methods to define the size and shape of
+the beam, its presence.
+"""
+
+__copyright__ = """MXCuBE collaboration"""
+__license__ = "LGPLv3+"
+
 
 import abc
+from enum import Enum, unique
+
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
 )
 
-__credits__ = """MXCuBE collaboration"""
-__license__ = "LGPLv3+"
-__category__ = "General"
+
+@unique
+class BeamShape(Enum):
+    """ Beam shape definitions """
+
+    UNKNOWN = "unknown"
+    RECTANGULAR = "rectangular"
+    ELIPTICAL = "ellipse"
 
 
 class AbstractBeam(AbstractActuator):
-    """
-    Abstract base class for beam objects.
-    """
+    """ AbstractBeam class """
 
     __metaclass__ = abc.ABCMeta
 
@@ -41,18 +54,28 @@ class AbstractBeam(AbstractActuator):
 
         self._aperture = None
         self._slits = None
+        self._definer = None
 
-        self._nominal_value = [None, None]
-        self._size_dict = {"slits": [None, None],
-                           "aperture": [None, None]}
-        self._screen_position = [None, None]
-        self._shape = ""
-        self._divergence = (None, None)
-        self._info_dict = {"size_x": self._nominal_value[0],
-                           "size_y": self._nominal_value[1],
-                           "shape": self._shape,
-                           "position": self._screen_position
-        }
+        self._beam_size_dict = {}
+        self._beam_width = None
+        self._beam_height = None
+        self._beam_shape = BeamShape.UNKNOWN
+        self._beam_label = None
+        self._beam_divergence = (None, None)
+        self._beam_position_on_screen = [None, None]
+
+        self._beam_info_dict = {"size_x": self._beam_width,
+                                "size_y": self._beam_height,
+                                "shape": self._beam_shape,
+                                "label": self._beam_label}
+
+
+    def init(self):
+        """Initialise default values and objects"""
+        _divergence_vertical = self.getProperty("beam_divergence_vertical")
+        _divergence_horizontal = self.getProperty("beam_divergence_horizontal")
+        self._beam_divergence = (_divergence_horizontal, _divergence_vertical)
+        self._beam_position_on_screen = (0, 0)
 
     @property
     def aperture(self):
@@ -62,61 +85,110 @@ class AbstractBeam(AbstractActuator):
     def slits(self):
         return self._slits
 
-    def get_divergence(self):
-        """Returns beam horizontal beam divergence
+    @property
+    def definer(self):
+        return self._definer
 
-        :return: tuple
+    def evaluate_beam_info(self):
         """
-        return self._divergence
+        Evaluates beam parameters and updates beam info dict
 
-    def get_screen_position(self):
-        """Returns beam mark position on a screen
+        Returns:
+            (dict): self._beam_info_dict
 
-        :return: [float, float]
         """
-        return self._screen_position
+        return self._beam_info_dict
 
-    def get_size(self):
-        """Returns beam size in microns
-
-        :return: Tuple(int, int)
+    def get_beam_divergence(self):
+        """Get the beam dicergence.
+        Returns:
+            (tuple): Beam divergence (horizontal, vertical) [μm]
         """
-        return self.get_value()
+        if self._definer:
+            return self._definer.get_divergence()
+        else:
+            return self._beam_divergence
 
     def get_value(self):
-        """Returns beam size in microns
-
-        :return: Tuple(int, int)
+        """ Get the size (width and heigth) of the beam and its shape.
+        Retunrs:
+            (float, float, Enum, str): Width, heigth, shape and label.
+        Raises:
+            NotImplementedError
         """
-        return self._nominal_value
+        return self.beam_width, self.beam_heigth, self.beam_shape, self.beam_label
 
-    def _set_value(self, value):
-        """sets nominal value in microns
+    def _set_value(self, beam_width, beam_heigth, beam_shape=None, beam_label=None):
+        """
+        Sets beam parameters
         Args:
-            value: value
+            beam_width: width in microns
+            beam_heigth: height in microns
+            beam_shape: Enum BeamShape
+            beam_label: str
 
-        :return: None
+        Returns:
+
         """
-        self._nominal_value = value
-        self.emit("beamSizeChanged", self._nominal_value)
+        self._beam_width = beam_width
+        self._beam_height = beam_heigth
+        if beam_shape:
+            self._beam_shape = beam_shape
+        if beam_label:
+            self._beam_label = beam_label
 
-    def get_shape(self):
-        """Returns beam shape
-
-        :return: beam shape as str
+    def get_available_size(self):
+        """ Get the available predefined beam definers configuration.
+        Returns:
+            (dict): Dictionary {"type": (list), "values": (list)}, where
+               "type": the definer type
+               "values": List of available beam size difinitions,
+                         according to the "type".
+        Raises:
+            NotImplementedError
         """
-        return self._shape
+        raise NotImplementedError
 
-    def get_info_dict(self):
-        """Returns dictionary with beam paremeters
-
-        :return: beam info as dict
+    def set_value(self, beam_width, beam_heigth, beam_shape=None, beam_label=None):
+        """Set the beam size
+        Args:
+            size (list): Width, heigth or
+                  (str): Position name
         """
-        return self._info_dict.copy()
+        self._set_value(beam_width, beam_heigth, beam_shape, beam_label)
+        self.update_value()
 
-    def get_slits_gap(self):
-        """Returns slits gaps in microns
-
-        :return: gaps as a list with two floats/ints
+    def get_beam_size(self):
         """
-        return self._size_dict["slits"]
+
+        Returns:
+            (tuple): two floats
+        """
+        return self._beam_width, self._beam_height
+
+    def get_beam_position_on_screen(self):
+        """Get the beam position
+        Returns:
+            (tuple): Position (x, y) [pixel]
+        """
+        return self._beam_position_on_screen
+
+    def set_beam_position_on_screen(self, beam_x_y):
+        """Set the beam position
+        Returns:
+            beam_x_y (tuple): Position (x, y) [pixel]
+        """
+        raise NotImplementedError
+
+    def get_beam_info_dict(self):
+        """
+
+        Returns:
+            (dict): copy of beam_info_dict
+        """
+        return self._beam_info_dict.copy()
+
+    def update_value(self):
+        """Check if the value has changed. Emist signal valueChanged."""
+        _value = self.get_value()
+        self.emit("valueChanged", (_value))

@@ -38,21 +38,23 @@ class FluxMockup(AbstractFlux):
         self.measured_flux_dict = {}
         self.current_flux_dict = {}
 
-    def get_flux(self):
-        """Get flux at current transmission in units of photons/s"""
+    def init(self):
         self.measure_flux()
+
+    def get_value(self):
+        """Get flux at current transmission in units of photons/s"""
         return self.current_flux_dict["flux"]
 
     def measure_flux(self):
         """Measures intesity"""
-        beam_size_hor, beam_size_ver = HWR.beamline.beam.get_size()
+        beam_size = HWR.beamline.beam.get_beam_size()
         transmission = HWR.beamline.transmission.get_value()
         flux = self.default_flux * (1 + random())
 
         self.measured_flux_list = [
             {
-                "size_x": beam_size_hor,
-                "size_y": beam_size_ver,
+                "size_x": beam_size[0],
+                "size_y": beam_size[1],
                 "transmission": transmission,
                 "flux": flux,
             }

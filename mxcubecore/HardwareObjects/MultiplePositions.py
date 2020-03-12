@@ -192,7 +192,7 @@ class MultiplePositions(Equipment):
         for mot in self["motors"]:
             self.motors[mot.getMotorMnemonic()] = mot
             self.connect(mot, "moveDone", self.checkPosition)
-            self.connect(mot, "positionChanged", self.checkPosition)
+            self.connect(mot, "valueChanged", self.checkPosition)
             self.connect(mot, "stateChanged", self.stateChanged)
 
     def getState(self):
