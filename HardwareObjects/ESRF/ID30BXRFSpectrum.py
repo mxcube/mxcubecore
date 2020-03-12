@@ -366,11 +366,11 @@ class XrfSpectrum(Equipment):
         fluodet_ctrl.actuatorIn()
         # open the safety and the fast shutter
         safshut.openShutter()
-        init_transm = HWR.beamline.transmission.getValue()
+        init_transm = HWR.beamline.transmission.get_value()
         ret = self._findAttenuation(ct)
         self.ctrl_hwobj.diffractometer.msclose()
         fluodet_ctrl.actuatorOut()
-        HWR.beamline.transmission.setTransmission(init_transm)
+        HWR.beamline.transmission.set_value(init_transm)
         return ret
 
     def _findAttenuation(self, ct):
@@ -384,7 +384,7 @@ class XrfSpectrum(Equipment):
         )
 
         # put in max attenuation
-        HWR.beamline.transmission.setTransmission(0)
+        HWR.beamline.transmission.set_value(0)
 
         self.ctrl_hwobj.diffractometer.msopen()
         self.mca_hwobj.start_acq()
@@ -400,7 +400,7 @@ class XrfSpectrum(Equipment):
         for i in tf:
             self.mca_hwobj.clear_spectrum()
             logging.getLogger("user_level_log").info("Setting transmission to %g" % i)
-            HWR.beamline.transmission.setTransmission(i)
+            HWR.beamline.transmission.set_value(i)
             self.mca_hwobj.start_acq()
             time.sleep(ct)
             ic = sum(self.mca_hwobj.read_roi_data()) / ct

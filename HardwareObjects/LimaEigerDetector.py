@@ -128,7 +128,7 @@ class LimaEigerDetector(AbstractDetector):
         self.header["Angle_increment"] = "%0.4f deg." % osc_range
         # self.header["Start_angle"]="%0.4f deg." % start
         self.header["Transmission"] = HWR.beamline.transmission.get_value()
-        self.header["Flux"] = HWR.beamline.flux.get_flux()
+        self.header["Flux"] = HWR.beamline.flux.get_value()
         self.header["Detector_Voffset"] = "0.0000 m"
         self.header["Energy_range"] = "(0, 0) eV"
         self.header["Trim_directory:"] = "(nil)"

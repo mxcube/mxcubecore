@@ -31,8 +31,8 @@ class RobodiffMotor(Device):
         self.__initialized = True
 
     def connectNotify(self, signal):
-        if signal == "positionChanged":
-            self.emit("positionChanged", (self.get_value(),))
+        if signal == "valueChanged":
+            self.emit("valueChanged", (self.get_value(),))
         elif signal == "stateChanged":
             self.updateState(emit=True)
         elif signal == "limitsChanged":
@@ -75,7 +75,7 @@ class RobodiffMotor(Device):
 
     def positionChanged(self, absolutePosition):
         # print self.name(), absolutePosition
-        self.emit("positionChanged", (absolutePosition,))
+        self.emit("valueChanged", (absolutePosition,))
 
     def get_value(self):
         self.end_init()

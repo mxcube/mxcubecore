@@ -83,16 +83,16 @@ class MotorMockup(AbstractMotor):
                     start_pos
                     + direction * self.get_velocity() * (time.time() - start_time)
                 )
-                self.emit("positionChanged", (self.get_value(),))
+                self.emit("valueChanged", (self.get_value(),))
                 time.sleep(0.02)
         self.set_value(position)
-        self.emit("positionChanged", (self.get_value(),))
+        self.emit("valueChanged", (self.get_value(),))
 
     def move(self, position, wait=False, timeout=None):
         self.__motor_state = self.motor_states.MOVING
         if wait:
             self.set_value(position)
-            self.emit("positionChanged", (self.get_value(),))
+            self.emit("valueChanged", (self.get_value(),))
             self.set_ready()
         else:
             self._move_task = gevent.spawn(self.move_task, position)

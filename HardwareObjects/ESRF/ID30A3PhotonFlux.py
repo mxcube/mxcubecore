@@ -95,7 +95,7 @@ class ID30A3PhotonFlux(Equipment):
             self.emitValueChanged("%1.3g" % flux)
         """
 
-    def getCurrentFlux(self):
+    def get_value(self):
         return self.current_flux
 
     def emitValueChanged(self, flux=None):

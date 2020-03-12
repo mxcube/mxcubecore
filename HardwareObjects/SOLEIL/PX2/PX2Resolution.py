@@ -70,7 +70,7 @@ class PX2Resolution(Resolution):
         # logging.getLogger('HWR').info('energy %s' % str(self.energy_channel.value))
         # logging.getLogger('HWR').info('detector_distance %s' % str(self.detector_distance_channel.value))
         self.currentResolution = self.resolution_motor.get_resolution()
-        self.emit("positionChanged", self.currentResolution)
+        self.emit("valueChanged", self.currentResolution)
         self.emit("valueChanged", self.currentResolution)
         self.emit("statechanged", self.getState())
 

@@ -99,7 +99,7 @@ class EMBLBSD(GenericDiffractometer):
 
         self.zoom_motor_hwobj = self.getObjectByRole("zoom")
         self.connect(
-            self.zoom_motor_hwobj, "positionChanged", self.zoom_position_changed
+            self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed
         )
         self.connect(
             self.zoom_motor_hwobj,

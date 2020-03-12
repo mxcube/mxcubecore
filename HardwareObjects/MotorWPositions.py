@@ -84,7 +84,7 @@ class MotorWPositions(AbstractMotor, Device):
                 pos = position.getProperty(role)
                 self.predefined_positions[name] = pos
         self.connect(self.motor, "stateChanged", self.motor_state_changed)
-        self.connect(self.motor, "positionChanged", self.motor_position_changed)
+        self.connect(self.motor, "valueChanged", self.motor_position_changed)
         self.setIsReady(self.motor.isReady())
 
     def getLimits(self):
@@ -131,7 +131,7 @@ class MotorWPositions(AbstractMotor, Device):
                 "predefinedPositionChanged",
                 (position_name, position_name and absolute_position or None),
             )
-        self.emit("positionChanged", (absolute_position,))
+        self.emit("valueChanged", (absolute_position,))
 
     def updateState(self, state=None):
         """
