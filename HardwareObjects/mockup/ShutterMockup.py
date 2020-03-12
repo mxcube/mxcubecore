@@ -21,7 +21,6 @@ import time
 import random
 from HardwareRepository.HardwareObjects.abstract import AbstractNState
 
-
 class ShutterMockup(AbstractNState.AbstractNState):
     """
     ShutterMockup for simulating a simple open/close shutter. For more detailed
@@ -35,11 +34,11 @@ class ShutterMockup(AbstractNState.AbstractNState):
     def value_changed(self, value):
         """See AbstractShutter"""
         # self.current_state = ShutterMockup.STATE(value)
-        self.emit("shutterStateChanged", self.current_state.name)
+        self.emit("shutterStateChanged", self.current_state)
 
     def get_state(self):
         """See AbstractShutter"""
-        return self.current_state.name
+        return self.current_state # .name
 
     def getShutterState(self):
         return "opened"
