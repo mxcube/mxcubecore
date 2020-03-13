@@ -27,7 +27,7 @@ import logging
 from HardwareRepository.HardwareObjects.abstract.AbstractBeam import BeamShape, AbstractBeam
 
 
-class ALBABeamInfo((AbstractBeam):
+class ALBABeamInfo(AbstractBeam):
 
     def __init__(self, name):
         AbstractBeam.__init__(self, name)
