@@ -15,7 +15,7 @@ class SpecMotor(Device, SpecMotorA):
     def connectNotify(self, signal):
         if self.connection.isSpecConnected():
             if signal == "stateChanged":
-                self.motorStateChanged(self.getState())
+                self.motorStateChanged(self.get_state())
             elif signal == "limitsChanged":
                 self.motorLimitsChanged()
             elif signal == "valueChanged":
@@ -31,14 +31,14 @@ class SpecMotor(Device, SpecMotorA):
         # return self.getState() in (SpecMotor.MOVESTARTED, SpecMotor.MOVING)
 
     def motorLimitsChanged(self):
-        self.emit("limitsChanged", (self.getLimits(),))
+        self.emit("limitsChanged", (self.get_limits(),))
 
     def motorMoveDone(self, channelValue):
         SpecMotorA.motorMoveDone(self, channelValue)
 
         # print "motor state is ready ? %s (%s)" %
         # ((self.getState()==SpecMotor.READY), self.getState())
-        if self.getState() == SpecMotor.READY:
+        if self.get_state() == SpecMotor.READY:
             self.emit("moveDone", (self.specversion, self.specname))
 
     def motorPositionChanged(self, absolutePosition):

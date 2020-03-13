@@ -75,7 +75,7 @@ class SpecMotorWSpecPositions(SpecMotor.SpecMotor):
             )
 
     def getCurrentPositionName(self):
-        if self.isReady() and self.getState() == self.READY:
+        if self.isReady() and self.get_state() == self.READY:
             for positionName in self.predefinedPositions:
                 if (
                     self.predefinedPositions[positionName]

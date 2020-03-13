@@ -125,11 +125,9 @@ class PX1Environment(Device):
     def stateChanged(self, value):
         self.emit("StateChanged", (value,))
 
-    def readState(self):
+    def get_state(self):
         state = str(self.state_chan.getValue())
         return state
-
-    getState = readState
 
     def isBusy(self, timeout=None):
         state = self.stateChan.getValue()
@@ -335,9 +333,8 @@ class PX1Environment(Device):
 
 def test_hwo(hwo):
     t0 = time.time()
-    print("PX1 Environment (state) ", hwo.getState())
+    print("PX1 Environment (state) ", hwo.get_state())
     print("               phase is ", hwo.getCurrentPhase())
-    print("               state is ", hwo.readState())
     print("        beamstop pos is ", hwo.getBeamstopPosition())
 
     # if not env.readyForTransfer():

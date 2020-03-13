@@ -70,7 +70,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
         self.setIsReady(True)
 
     def motor_state_changed(self, state=None):
-        state_code = self.getState(state)
+        state_code = self.get_state(state)
 
         if self.state_value not in ["RUNNING", "MOVING"]:
             position = self.position_chan.getValue()
@@ -93,7 +93,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
                 self.old_value = position
 
     def distance_min_changed(self, value=None):
-        self.emit("limitsChanged", (self.getLimits(),))
+        self.emit("limitsChanged", (self.get_limits(),))
 
     def getState(self, state=None):
         if state is None:
@@ -108,7 +108,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
     def get_value(self):
         return self.position_chan.getValue()
 
-    def getLimits(self):
+    def get_limits(self):
         try:
             info = self.position_chan.getInfo()
             max = float(info.max_value)
@@ -118,7 +118,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
             return [-1, 1]
 
     def is_moving(self):
-        self.getState()
+        self.get_state()
         return self.state_value in ["RUNNING", "MOVING"]
 
     def move(self, position):
@@ -164,7 +164,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
         # px1environment sets the distanceMin value used here as a lower limit
         # to avoid collision
 
-        limits = self.getLimits()
+        limits = self.get_limits()
         if None in limits:
             return False
         if position < limits[0]:
@@ -199,4 +199,4 @@ class PX1DetectorDistance(Device, AbstractMotor):
 
 def test_hwo(hwo):
     print(hwo.get_value())
-    print(hwo.getLimits())
+    print(hwo.get_limits())

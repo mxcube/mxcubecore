@@ -64,13 +64,13 @@ class ALBAEnergy(Device):
         self.wavelength_hwobj.set_value(value)
 
     def get_energy_limits(self):
-        return HWR.beamline.energy.getLimits()
+        return HWR.beamline.energy.get_limits()
 
     def getEnergyLimits(self):
         return self.get_energy_limits()
 
     def get_wavelength_limits(self):
-        return self.wavelength_hwobj.getLimits()
+        return self.wavelength_hwobj.get_limits()
 
 
 def test_hwo(hwo):
