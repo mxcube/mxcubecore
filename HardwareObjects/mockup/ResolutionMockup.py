@@ -34,7 +34,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
 
         HWR.beamline.detector.distance.set_value(self.res2dist(self.currentResolution))
 
-        self.get_limits = self.getLimits
+        self.get_limits = self.get_limits
 
     def beam_centre_updated(self, beam_pos_dict):
         pass
@@ -93,7 +93,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
             self.currentResolution = res
             self.emit("valueChanged", (res,))
 
-    def getState(self):
+    def get_state(self):
         return self.state
 
     def connectNotify(self, signal):
@@ -105,7 +105,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
     def detmPositionChanged(self, pos):
         pass
 
-    def getLimits(self, callback=None, error_callback=None):
+    def get_limits(self):
         return (0, 20)
 
     def set_position(self, pos, wait=True):

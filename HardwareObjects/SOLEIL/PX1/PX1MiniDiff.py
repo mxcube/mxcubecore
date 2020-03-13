@@ -52,7 +52,7 @@ class PX1MiniDiff(GenericDiffractometer):
         if self.px1env_ho.isPhaseVisuSample():
             t0 = time.time()
             while True:
-                env_state = self.px1env_ho.getState()
+                env_state = self.px1env_ho.get_state()
                 if env_state != "RUNNING" and self.px1env_ho.isPhaseVisuSample():
                     break
                 if time.time() - t0 > timeout:

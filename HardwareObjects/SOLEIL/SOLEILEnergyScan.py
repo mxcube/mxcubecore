@@ -702,7 +702,7 @@ class SOLEILEnergyScan(Equipment):
         lims = None
         if HWR.beamline.energy is not None:
             if HWR.beamline.energy.isReady():
-                lims = HWR.beamline.energy.getLimits()
+                lims = HWR.beamline.energy.get_limits()
         return lims
 
     def get_wavelength(self):
@@ -741,7 +741,7 @@ class SOLEILEnergyScan(Equipment):
         if value != curr_energy:
             logging.getLogger("HWR").info("Moving energy: checking limits")
             try:
-                lims = HWR.beamline.energy.getLimits()
+                lims = HWR.beamline.energy.get_limits()
             except BaseException:
                 logging.getLogger("HWR").exception(
                     "EnergyScan: couldn't get energy limits"

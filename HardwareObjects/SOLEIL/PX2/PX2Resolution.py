@@ -37,23 +37,20 @@ class PX2Resolution(Resolution):
         self.det_width = self.getProperty("detector_width")
         self.det_height = self.getProperty("detector_height")
 
-    def get_limits(self):
-        return self.getLimits()
-
     def connectNotify(self, signal):
         if signal == "stateChanged":
-            self.dtoxStateChanged(self.getState())
+            self.dtoxStateChanged(self.get_state())
 
     def move(self, resolution):
         self.resolution_motor.set_resolution(resolution)
 
-    def getState(self):
+    def get_state(self):
         return self.detector_position_state_channel.value
 
     def get_beam_centre(self, dtox=None):
         return self.beam_center.get_beam_center()
 
-    def getLimits(self):
+    def get_limits(self):
         return self.resolution_motor.get_resolution_limits()
 
     def dtoxStateChanged(self, state=None):
@@ -72,7 +69,7 @@ class PX2Resolution(Resolution):
         self.currentResolution = self.resolution_motor.get_resolution()
         self.emit("valueChanged", self.currentResolution)
         self.emit("valueChanged", self.currentResolution)
-        self.emit("statechanged", self.getState())
+        self.emit("statechanged", self.get_state())
 
     def stop(self):
         self.resolution_motor.stop()

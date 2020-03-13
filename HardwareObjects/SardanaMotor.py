@@ -141,7 +141,7 @@ class SardanaMotor(AbstractMotor):
         self.position_channel.connectSignal("update", self.motor_position_changed)
         self.state_channel.connectSignal("update", self.motor_state_changed)
 
-        self.limits = self.getLimits()
+        self.limits = self.get_limits()
 
         (self.limit_lower, self.limit_upper) = self.limits
 
@@ -203,14 +203,14 @@ class SardanaMotor(AbstractMotor):
             self.emit("valueChanged", (position,))
             self.motor_state_changed()
 
-    def getState(self):
+    def get_state(self):
         """
         Descript. : returns the current motor state
         """
         self.motor_state_changed()
         return self.motor_state
 
-    def getLimits(self):
+    def get_limits(self):
         """
         Descript. : returns motor limits. If no limits channel defined then
                     static_limits is returned
@@ -228,7 +228,7 @@ class SardanaMotor(AbstractMotor):
         return self.motor_position
 
     def update_values(self):
-        self.emit("limitsChanged", (self.getLimits(),))
+        self.emit("limitsChanged", (self.get_limits(),))
         self.emit("valueChanged", (self.get_value(),))
 
     def move(self, absolute_position):

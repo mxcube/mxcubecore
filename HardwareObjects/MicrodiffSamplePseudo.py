@@ -33,7 +33,7 @@ class MicrodiffSamplePseudo(MD2Motor):
         self.motorPositionChanged(self.get_value())
 
     def updateMotorState(self):
-        states = [m.getState() for m in (self.sampx, self.sampy, self.phi)]
+        states = [m.get_state() for m in (self.sampx, self.sampy, self.phi)]
         error_states = [
             state
             in (MotorStates.UNUSABLE, MotorStates.NOTINITIALIZED, MotorStates.ONLIMIT)
@@ -70,7 +70,7 @@ class MicrodiffSamplePseudo(MD2Motor):
                 new_pos = sampx * math.sin(-phi) + sampy * math.cos(-phi)
             return new_pos
 
-    def getState(self):
+    def get_state(self):
         if self.motorState == MotorStates.NOTINITIALIZED:
             self.updateMotorState()
         return self.motorState
