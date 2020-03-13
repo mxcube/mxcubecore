@@ -163,7 +163,7 @@ class XalocMiniDiff(GenericDiffractometer):
                     self.phi_motor_hwobj.set_value(dynamic_limits[1])
             else:
                 if click < 2:
-                    self.phi_motor_hwobj.moveRelative(-90)
+                    self.phi_motor_hwobj.set_value_relative(-90)
         # self.omega_reference_add_constraint()
         return self.centring_hwobj.centeredPosition(return_by_name=False)
 

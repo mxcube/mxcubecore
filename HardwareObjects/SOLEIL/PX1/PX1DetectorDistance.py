@@ -127,35 +127,6 @@ class PX1DetectorDistance(Device, AbstractMotor):
 
         self.position_chan.setValue(position)
 
-    def syncMove(self, position):
-        if not self.check_light(position):
-            return (False, "Error while trying to extract the light arm!")
-
-        self.position_chan.setValue(position)
-
-        while self.is_moving():
-            gevent.sleep(0.03)
-
-    def moveRelative(self, position):
-        target_position = self.get_value() + position
-        if not self.check_light(target_position):
-            return (False, "Error while trying to extract the light arm!")
-
-        self.position_chan.setValue(target_position)
-
-        while self.is_moving():
-            gevent.sleep(0.03)
-
-    def syncMoveRelative(self, position):
-        target_position = self.get_value() + position
-        if not self.check_light(target_position):
-            return (False, "Error while trying to extract the light arm!")
-
-        self.position_chan.setValue(target_position)
-
-        while self.is_moving():
-            gevent.sleep(0.03)
-
     def getMotorMnemonic(self):
         return self.name()
 

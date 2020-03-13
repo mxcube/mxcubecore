@@ -232,24 +232,11 @@ class MicrodiffMotor(AbstractMotor):
                 absolutePosition
             )  # absolutePosition-self.offset)
 
-    def moveRelative(self, relativePosition):
-        self.set_value(self.get_value() + relativePosition)
-
-    def syncMoveRelative(self, relative_position, timeout=None):
-        return self.syncMove(self.get_value() + relative_position)
-
     def waitEndOfMove(self, timeout=None):
         with Timeout(timeout):
             time.sleep(0.1)
             while self.motorState == MicrodiffMotor.MOVING:
                 time.sleep(0.1)
-
-    def syncMove(self, position, timeout=None):
-        self.set_value(position)
-        try:
-            self.waitEndOfMove(timeout)
-        except BaseException:
-            raise MD2TimeoutError
 
     def motorIsMoving(self):
         return self.isReady() and self.motorState == MicrodiffMotor.MOVING

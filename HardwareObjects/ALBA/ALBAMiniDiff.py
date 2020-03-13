@@ -371,10 +371,10 @@ class ALBAMiniDiff(GenericDiffractometer):
     #                self.phi_motor_hwobj.set_value(dynamic_limits[1])
     #        else:
     #            if click < 2:
-    #                self.phi_motor_hwobj.syncMoveRelative(-90)
+    #                self.phi_motor_hwobj.set_value_relative(-90, timeout=None)
 
     #    #logging.getLogger("HWR").info(" Returning phi to initial position %s" % phi_init_position)
-    #    #self.phi_motor_hwobj.syncMove(phi_init_position)
+    #    #self.phi_motor_hwobj.set_value(phi_init_position, timeout=None)
     #
     #    return self.centring_hwobj.centeredPosition(return_by_name=False)
 
@@ -546,9 +546,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         @relpos: target relative position
         """
         self.wait_device_ready()
-        self.phi_motor_hwobj.syncMoveRelative(relpos)
-        time.sleep(0.2)
-        self.wait_device_ready()
+        self.phi_motor_hwobj.set_value_relative(relpos, timeout=None)
 
     # TODO: define phases as enum members.
     def set_phase(self, phase):

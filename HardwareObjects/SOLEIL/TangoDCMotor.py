@@ -189,58 +189,12 @@ class TangoDCMotor(Device):
     def get_value(self):
         return self.positionChan.getValue()
 
-    def syncMove(self, position):
-        prev_position = self.get_value()
-        relative_position = position - prev_position
-        self.syncMoveRelative(relative_position)
-        gevent.sleep(0.2)  # allow MD2 to change the state
-        while (
-            self.stateValue == "RUNNING" or self.stateValue == "MOVING"
-        ):  # or self.stateValue == SpecMotor.MOVESTARTED:
-            QApplication.processEvents(100)
-
-    def moveRelative(self, position):
-        old_pos = self.positionValue
-        self.positionValue = old_pos + position
-        self.positionChan.setValue(self.convertValue(self.positionValue))
-        logging.info(
-            "TangoDCMotor: movingRelative. motor will go to %s "
-            % str(self.positionValue)
-        )
-
-        while self.stateValue == "RUNNING" or self.stateValue == "MOVING":
-            QApplication.processEvents(100)
-
     def convertValue(self, value):
         logging.info("TangoDCMotor: converting value to %s " % str(self.dataType))
         retvalue = value
         if self.dataType in ["short", "int", "long"]:
             retvalue = int(value)
         return retvalue
-
-    def syncMoveRelative(self, position):
-        old_pos = self.positionValue
-        self.positionValue = old_pos + position
-        logging.info(
-            "TangoDCMotor: syncMoveRelative going to %s "
-            % str(self.convertValue(self.positionValue))
-        )
-        self.positionChan.setValue(self.convertValue(self.positionValue))
-
-        dev = DeviceProxy(self.tangoname)
-        gevent.sleep(0.2)  # allow MD2 to change the state
-
-        mystate = str(dev.State())
-        logging.info(
-            "TangoDCMotor: %s syncMoveRelative state is %s / %s "
-            % (self.tangoname, str(self.stateValue), mystate)
-        )
-
-        while mystate == "RUNNING" or mystate == "MOVING":
-            logging.info("TangoDCMotor: syncMoveRelative is moving %s" % str(mystate))
-            gevent.sleep(0.1)
-            mystate = str(dev.State())
-            QApplication.processEvents(100)
 
     def getMotorMnemonic(self):
         return self.name()

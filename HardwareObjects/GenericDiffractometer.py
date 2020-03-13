@@ -909,7 +909,7 @@ class GenericDiffractometer(HardwareObject):
                 pass
                 # if not self.in_plate_mode():
                 #    logging.getLogger("HWR").debug("Centring finished. Moving omega back to initial position")
-                #    self.motor_hwobj_dict['phi'].syncMoveRelative(-180)
+                #    self.motor_hwobj_dict['phi'].set_value_relative(-180, timeout=None)
                 #    logging.getLogger("HWR").debug("         Moving omega done")
 
             if (

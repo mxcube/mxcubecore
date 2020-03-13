@@ -857,7 +857,7 @@ class NanoDiff(HardwareObject):
                     self.phi_motor_hwobj.set_value(dynamic_limits[1])
             else:
                 if click < 2:
-                    self.phi_motor_hwobj.moveRelative(90)
+                    self.phi_motor_hwobj.set_value_relative(90)
         self.omega_reference_add_constraint()
 
         # the following lines implement centering in horizontal direction (orthogonal)
@@ -869,12 +869,12 @@ class NanoDiff(HardwareObject):
         ) / 3.0
         horizontalCorrection = -horizontalCorrection / self.pixels_per_mm_x
         print(horizontalCorrection)
-        self.phiy_motor_hwobj.moveRelative(-horizontalCorrection)
+        self.phiy_motor_hwobj.set_value_relative(-horizontalCorrection)
 
         # the following 3 lines are debug version of centering procedure. Identical as in x direction
         # verticalCorrection = (self.centring_hwobj.centringDataMatrix[0][1] + self.centring_hwobj.centringDataMatrix[1][1] + self.centring_hwobj.centringDataMatrix[2][1])/3.0
         # verticalCorrection = -verticalCorrection/ self.pixels_per_mm_y
-        # self.phiz_motor_hwobj.moveRelative(verticalCorrection)
+        # self.phiz_motor_hwobj.set_value_relative(verticalCorrection)
 
         # Solving following system of linear equation example:
         # 1a + 1b = 35
@@ -922,9 +922,9 @@ class NanoDiff(HardwareObject):
         print("sampy correction = ", sampyc)
         print("sampx correction = ", sampxc)
 
-        self.phiz_motor_hwobj.moveRelative(-phizc)
-        self.sample_y_motor_hwobj.moveRelative(-sampyc)
-        self.sample_x_motor_hwobj.moveRelative(-sampxc)
+        self.phiz_motor_hwobj.set_value_relative(-phizc)
+        self.sample_y_motor_hwobj.set_value_relative(-sampyc)
+        self.sample_x_motor_hwobj.set_value_relative(-sampxc)
 
         # return self.centring_hwobj.centeredPosition(return_by_name=False)
         print("PP__:  Attention, return of manual_centring is replaced via 'dummy' one")
@@ -984,7 +984,7 @@ class NanoDiff(HardwareObject):
                 self.emit_centring_failed()
             else:
                 if not self.in_plate_mode():
-                    self.phi_motor_hwobj.syncMoveRelative(-180)
+                    self.phi_motor_hwobj.set_value_relative(-180, timeout=None)
             # logging.info("EMITTING CENTRING SUCCESSFUL")
             self.centring_time = time.time()
             self.emit_centring_successful()
@@ -1017,7 +1017,7 @@ class NanoDiff(HardwareObject):
                 self.emit_centring_failed()
             else:
                 if not self.in_plate_mode():
-                    self.phi_motor_hwobj.syncMoveRelative(-180)
+                    self.phi_motor_hwobj.set_value(-180, timeout=None)
             # logging.info("EMITTING CENTRING SUCCESSFUL")
             self.centring_time = time.time()
             self.emit_centring_successful()
@@ -1275,7 +1275,7 @@ class NanoDiff(HardwareObject):
             logging.getLogger("HWR").info("NanoDiff: taking snapshot #%d", index + 1)
             # centred_images.append((self.phi_motor_hwobj.get_value(), str(myimage(drawing))))
             if not self.in_plate_mode() and image_count > 1:
-                self.phi_motor_hwobj.syncMoveRelative(-90)
+                self.phi_motor_hwobj.set_value_relative(-90, timeout=None)
             centred_images.reverse()  # snapshot order must be according to positive rotation direction
         return centred_images
 

@@ -85,22 +85,9 @@ class GrobMotor(Device, AbstractMotor):
         else:
             self.motor.start_one(position)
 
-    def moveRelative(self, relativePosition):
-        self.set_value(self.get_value() + relativePosition)
-
-    def syncMoveRelative(self, relative_position, timeout=None):
-        return self.syncMove(self.get_value() + relative_position)
-
     def waitEndOfMove(self, timeout=None):
         with gevent.Timeout(timeout):
             self.motor.wait_for_move()
-
-    def syncMove(self, position, timeout=None):
-        self.set_value(position)
-        try:
-            self.waitEndOfMove(timeout)
-        except BaseException:
-            raise MD2TimeoutError
 
     def motorIsMoving(self):
         return self.isReady() and self.motor.is_moving()

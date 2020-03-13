@@ -79,7 +79,7 @@ class BIOMAXBeamlineActions(HardwareObject):
 
         if HWR.beamline.detector.distance is not None:
             logging.getLogger("HWR").info("Moving detector to safe area...")
-            HWR.beamline.detector.distance.syncMove(800, timeout=50)
+            HWR.beamline.detector.distance.set_value(800, timeout=50)
 
         if HWR.beamline.sample_changer.isPowered():
             if HWR.beamline.sample_changer.getLoadedSample() is not None:
@@ -135,7 +135,7 @@ class BIOMAXBeamlineActions(HardwareObject):
 
         if HWR.beamline.detector.distance is not None:
             logging.getLogger("HWR").info("Moving detector to safe area...")
-            HWR.beamline.detector.distance.syncMove(800, timeout=50)
+            HWR.beamline.detector.distance.set_value(800, timeout=50)
 
     def init(self):
         self.sample_changer_maint_hwobj = self.getObjectByRole(

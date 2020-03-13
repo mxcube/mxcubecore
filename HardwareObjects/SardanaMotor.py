@@ -238,29 +238,6 @@ class SardanaMotor(AbstractMotor):
         current_pos = self.position_channel.getValue()
         if abs(absolute_position - current_pos) > self.move_threshold_default:
             self.position_channel.setValue(absolute_position)
-
-    def moveRelative(self, relative_position):
-        """
-        Descript. : move for the given distance
-        """
-        self.move(self.get_value() + relative_position)
-
-    def syncMove(self, position, timeout=None):
-        """
-        Descript. : move to the given position and wait till it's reached
-        """
-        self.move(position)
-        try:
-            self.wait_end_of_move(timeout)
-        except BaseException:
-            raise Timeout
-
-    def syncMoveRelative(self, relative_position, timeout=None):
-        """
-        Descript. : move for the given distance and wait till it's reached
-        """
-        self.syncMove(self.get_value() + relative_position, timeout)
-
     def stop(self):
         """
         Descript. : stops the motor immediately
@@ -307,7 +284,7 @@ def test_hwo(hwo):
 
 
 #    print("Moving motor to %s" % newpos)
-#    hwo.syncMove(newpos)
+#    hwo.set_value(newpos, timeout=None)
 #    while hwo.is_moving():
 #        print "Moving"
 #        time.sleep(0.3)
