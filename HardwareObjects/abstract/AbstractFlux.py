@@ -66,10 +66,6 @@ class AbstractFlux(AbstractActuator):
         """Local setter function - not implemented for read_only clases"""
         raise NotImplementedError
 
-    def set_limits(self, limits):
-        """Local setter function - not implemented for read_only clases"""
-        raise NotImplementedError
-
     def get_dose_rate(self, energy=None):
         """
         Get dose rate in kGy/s for a standard crystal at current settings.
