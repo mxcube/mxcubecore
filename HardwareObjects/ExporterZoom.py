@@ -29,7 +29,7 @@ class ExporterZoom(ExporterMotor):
             "Zoom 10": 10,
         }
         self.sort_predefined_positions_list()
-        self.update_limits((0, 10))
+        self.set_limits((0, 10))
         self.update_state(self.motor_states.READY)
 
         ExporterMotor.init(self)
