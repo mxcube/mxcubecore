@@ -419,7 +419,7 @@ class SardanaChannel(ChannelObject, SardanaObject):
         try:
             b = dir(self.attribute)
             self.info.minval, self.info.maxval = (
-                self.attribute._TangoAttribute__attr_config.getLimits()
+                self.attribute._TangoAttribute__attr_config.get_limits()
             )
         except BaseException:
             import traceback

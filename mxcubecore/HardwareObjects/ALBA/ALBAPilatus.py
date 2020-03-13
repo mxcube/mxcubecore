@@ -106,7 +106,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
     def get_distance_limits(self):
         """Returns detector distance limits"""
         if self.distance_motor_hwobj is not None:
-            return self.distance_motor_hwobj.getLimits()
+            return self.distance_motor_hwobj.get_limits()
         else:
             return self.default_distance_limits
 
