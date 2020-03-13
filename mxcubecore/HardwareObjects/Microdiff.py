@@ -371,8 +371,12 @@ class Microdiff(MiniDiff.MiniDiff):
 
         # Prepositionning at the center of the grid
         self.moveMotors(mesh_center.as_dict())
-        self.centringVertical.syncMoveRelative((mesh_range["vertical_range"]) / 2)
-        self.centringPhiy.syncMoveRelative(-(mesh_range["horizontal_range"]) / 2)
+        self.centringVertical.set_value_relative(
+            (mesh_range["vertical_range"]) / 2, timeout=None
+        )
+        self.centringPhiy.set_value_relative(
+            -(mesh_range["horizontal_range"]) / 2, timeout=None
+        )
 
         scan_params = "%0.3f\t" % -mesh_range["horizontal_range"]
         scan_params += "%0.3f\t" % mesh_range["vertical_range"]
@@ -450,12 +454,12 @@ class Microdiff(MiniDiff.MiniDiff):
             try:
                 beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
 
-                self.centringVertical.moveRelative(
+                self.centringVertical.set_value_relative(
                     self.centringPhiz.direction
                     * (y - beam_pos_y)
                     / float(self.pixelsPerMmZ)
                 )
-                self.centringPhiy.moveRelative(
+                self.centringPhiy.set_value_relative(
                     self.centringPhiy.direction
                     * (x - beam_pos_x)
                     / float(self.pixelsPerMmY)

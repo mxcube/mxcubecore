@@ -1202,9 +1202,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             else:
                 try:
                     if HWR.beamline.detector.distance is not None:
-                        HWR.beamline.detector.distance.syncMove(
-                            value, timeout=50
-                        )  # 30s is not enough for the whole range
+                        HWR.beamline.detector.distance.set_value(value, timeout=50)
+                        # 30s is not enough for the whole range
                 except BaseException:
                     logging.getLogger("HWR").exception(
                         "Problems when moving detector!!"

@@ -1131,7 +1131,7 @@ class PX2Diffractometer(GenericDiffractometer):
         """
         Description:
         """
-        self.motor_hwobj_dict["phi"].syncMoveRelative(relative_angle, 5)
+        self.motor_hwobj_dict["phi"].set_value_relative(relative_angle, 5)
 
     def close_kappa(self):
         """
