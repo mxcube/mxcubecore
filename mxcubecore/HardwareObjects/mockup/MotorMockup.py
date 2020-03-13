@@ -60,7 +60,7 @@ class MotorMockup(AbstractMotor):
             limits = tuple(eval(self.getProperty("default_limits")))
         except BaseException:
             limits = DEFAULT_LIMITS
-        self.update_limits(limits)
+        self.set_limits(limits)
 
         # self.set_state(self.motor_states.READY)
         self.set_value(float(self.getProperty("start_position", DEFAULT_POSITION)))

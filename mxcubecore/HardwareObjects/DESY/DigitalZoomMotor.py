@@ -48,7 +48,7 @@ class DigitalZoomMotor(AbstractMotor, Device):
         self.zoom_supported = None
 
     def init(self):
-        self.update_limits((1.0, 1.0))
+        self.set_limits((1.0, 1.0))
         try:
             self.camera = self.getObjectByRole("camera")
         except KeyError:
@@ -64,7 +64,7 @@ class DigitalZoomMotor(AbstractMotor, Device):
                 limits[0] = -1000
             if limits[1] is None:
                 limits[1] = 1000
-            self.update_limits(limits)
+            self.set_limits(limits)
             self.set_position(self.camera.get_zoom())
             self.update_state(self.STATES.READY)
         else:
@@ -97,13 +97,13 @@ class DigitalZoomMotor(AbstractMotor, Device):
         if position != self.get_value():
             current_motor_state = self.get_state()
             if position <= self.get_limits()[0]:
-                self.set_state(MotorStates.LOWLIMIT)
+                self.update_state(MotorStates.LOWLIMIT)
             elif position >= self.get_limits()[1]:
-                self.set_state(MotorStates.HIGHLIMIT)
+                self.update_state(MotorStates.HIGHLIMIT)
             else:
                 current_motor_state = MotorStates.READY
             if self.zoom_supported and current_motor_state != self.get_state():
-                self.set_state(current_motor_state)
+                self.update_state(current_motor_state)
                 self.emit("stateChanged", (current_motor_state,))
             self.set_position(position)
             self.emit("valueChanged", (position,))
