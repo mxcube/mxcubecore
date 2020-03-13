@@ -32,8 +32,8 @@ _objects:
     - detector: detector-mockup.xml
     - resolution: resolution-mockup.xml
     - hutch_interlock: door-interlock-mockup.xml
-    - safety_shutter: safshut.xml
-    - fast_shutter: shutter-mockup.xml
+    - safety_shutter: safety-shutter-mockup.xml
+    - fast_shutter: fast-shutter-mockup.xml
     - sample_changer: sample-changer-mockup.xml
     # NBNB TODO remove plate_manipulater and treat as another smaple changer
     - plate_manipulator: plate-manipulator.xml
@@ -88,6 +88,13 @@ default_acquisition_parameters:
     characterisation:
         # Defaults for chareacterisation. Missing values are taken from default
         osc_range: 1
+        opt_sad: False
+        account_rad_damage: True
+        strategy_complexity: 0
+        max_crystal_vdim: 1.0
+        min_crystal_vdim: 1.0
+        max_crystal_vphi: 1.0
+        min_crystal_vphi: 1.0
 
     advanced:
         # Defaults for 'advanced' acquisition. Missing values are taken from default
