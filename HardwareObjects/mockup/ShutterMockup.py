@@ -36,10 +36,6 @@ class ShutterMockup(AbstractNState.AbstractNState):
         # self.current_state = ShutterMockup.STATE(value)
         self.emit("shutterStateChanged", self.current_state)
 
-    def get_state(self):
-        """See AbstractShutter"""
-        return self.current_state # .name
-
     def getShutterState(self):
         return "opened"
 
