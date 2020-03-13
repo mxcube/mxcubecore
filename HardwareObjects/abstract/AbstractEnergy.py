@@ -84,6 +84,13 @@ class AbstractEnergy(AbstractActuator):
         )
         return self._wavelength_limits
 
+    def get_energy_limits(self):
+        """Return energy low and high limits.
+        Returns:
+            (tuple): two floats tuple (low limit, high limit).
+        """
+        return self._nominal_limits
+
     def set_wavelength(self, value, timeout=None):
         """Move motor to absolute value. Wait the move to finish.
         Args:
