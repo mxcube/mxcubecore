@@ -606,7 +606,7 @@ class Beamline(ConfiguredObject):
             acq_parameters.resolution = 0.0
 
         try:
-            acq_parameters.energy = self.energy.get_energy()
+            acq_parameters.energy = self.energy.get_value()
         except:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
@@ -632,14 +632,15 @@ class Beamline(ConfiguredObject):
             )
             acq_parameters.shutterless = False
 
-        try:
-            acq_parameters.detector_mode = self.detector.get_detector_mode()
-        except:
-            logging.getLogger("HWR").warning(
-                "get_default_acquisition_parameters: "
-                "Could not get detector_mode, setting to ''"
-            )
-            acq_parameters.detector_mode = ""
+        # TODO: REVIEW, get_detector_mode not in the AbstractClass
+        # try:
+        #     acq_parameters.detector_mode = self.detector.get_detector_mode()
+        # except:
+        #     logging.getLogger("HWR").warning(
+        #         "get_default_acquisition_parameters: "
+        #         "Could not get detector_mode, setting to ''"
+        #     )
+        #     acq_parameters.detector_mode = ""
 
         return acq_parameters
 
