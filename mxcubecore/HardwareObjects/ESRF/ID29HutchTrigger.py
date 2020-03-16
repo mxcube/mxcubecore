@@ -69,10 +69,10 @@ class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
         if not entering_hutch:
             if old["dtox"] is not None:
                 dtox.set_value(old["dtox"])
-            self.getCommandObject("macro")(0)
+            self.get_command_object("macro")(0)
         else:
             old["dtox"] = dtox.get_value()
-            self.getCommandObject("macro")(1)
+            self.get_command_object("macro")(1)
             dtox.set_value(700)
         dtox.waitEndOfMove()
 

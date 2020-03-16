@@ -68,7 +68,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         self.collect_devname = self.getProperty("tangoname")
         self.collect_device = DeviceProxy(self.collect_devname)
 
-        self.collect_state_chan = self.getChannelObject("state")
+        self.collect_state_chan = self.get_channel_object("state")
 
         self.px1env_hwobj = self.getObjectByRole("environment")
 

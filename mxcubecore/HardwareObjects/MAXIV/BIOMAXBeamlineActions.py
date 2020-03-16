@@ -150,5 +150,5 @@ class BIOMAXBeamlineActions(HardwareObject):
             "prepare_new_sample", self._prepare_for_new_sample_task
         )
 
-    def getCommands(self):
+    def get_commands(self):
         return [self.prepare_open_hutch, self.prepare_new_sample]

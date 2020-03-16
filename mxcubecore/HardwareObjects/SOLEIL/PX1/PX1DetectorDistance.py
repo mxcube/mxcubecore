@@ -44,13 +44,13 @@ class PX1DetectorDistance(Device, AbstractMotor):
 
         self.setIsReady(True)
 
-        self.position_chan = self.getChannelObject("position")
-        self.state_chan = self.getChannelObject("state")
+        self.position_chan = self.get_channel_object("position")
+        self.state_chan = self.get_channel_object("state")
         self.stop_command = self.get_command_object("stop")
 
-        self.distance_min_chan = self.getChannelObject("minimum_distance")
+        self.distance_min_chan = self.get_channel_object("minimum_distance")
 
-        self.light_state_chan = self.getChannelObject("light_state")
+        self.light_state_chan = self.get_channel_object("light_state")
         self.light_extract_cmd = self.get_command_object("extract_light")
 
         self.position_chan.connectSignal("update", self.motor_position_changed)

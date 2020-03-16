@@ -155,17 +155,17 @@ class NanoDiff(HardwareObject):
         self.user_clicked_event = AsyncResult()
         self.head_type = NanoDiff.PERMANENT
 
-        # self.chan_calib_x = self.getChannelObject('CoaxCamScaleX')
-        # self.chan_calib_y = self.getChannelObject('CoaxCamScaleY')
+        # self.chan_calib_x = self.get_channel_object('CoaxCamScaleX')
+        # self.chan_calib_y = self.get_channel_object('CoaxCamScaleY')
         self.update_pixels_per_mm()
 
-        # self.chan_head_type = self.getChannelObject('HeadType')
+        # self.chan_head_type = self.get_channel_object('HeadType')
         # if self.chan_head_type is not None:
         #    self.head_type = self.chan_head_type.getValue()
 
         print("PP__:  Attention, chan_head_type is commented out")
 
-        self.chan_current_phase = self.getChannelObject("CurrentPhase")
+        self.chan_current_phase = self.get_channel_object("CurrentPhase")
         if self.chan_current_phase is not None:
             self.connect(self.chan_current_phase, "update", self.current_phase_changed)
         else:
@@ -173,7 +173,7 @@ class NanoDiff(HardwareObject):
                 "NanoDiff: Current phase channel not defined"
             )
 
-        self.chan_fast_shutter_is_open = self.getChannelObject("FastShutterIsOpen")
+        self.chan_fast_shutter_is_open = self.get_channel_object("FastShutterIsOpen")
         if self.chan_fast_shutter_is_open is not None:
             self.chan_fast_shutter_is_open.connectSignal(
                 "update", self.fast_shutter_state_changed

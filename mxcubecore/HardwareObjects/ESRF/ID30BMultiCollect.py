@@ -81,7 +81,7 @@ class ID30BMultiCollect(ESRFMultiCollect):
                 number_of_snapshots = 1
         else:
             # this has to be done before each chage of phase
-            HWR.beamline.diffractometer.getCommandObject("save_centring_positions")()
+            HWR.beamline.diffractometer.get_command_object("save_centring_positions")()
             # not going to centring phase if in plate mode (too long)
             HWR.beamline.diffractometer.moveToPhase("Centring", wait=True, timeout=200)
 
@@ -96,7 +96,7 @@ class ID30BMultiCollect(ESRFMultiCollect):
         # send again the command as MD2 software only handles one
         # centered position!!
         # has to be where the motors are and before changing the phase
-        # diffr.getCommandObject("save_centring_positions")()
+        # diffr.get_command_object("save_centring_positions")()
 
         # move to DataCollection phase
         logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")

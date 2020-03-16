@@ -74,10 +74,10 @@ class TangoDCMotor(Device):
             self.limitsCommand = self.get_command_object("limits")
         except KeyError:
             self.limitsCommand = None
-        self.positionChan = self.getChannelObject(
+        self.positionChan = self.get_channel_object(
             "position"
         )  # utile seulement si positionchan n'est pas defini dans le code
-        self.stateChan = self.getChannelObject(
+        self.stateChan = self.get_channel_object(
             "state"
         )  # utile seulement si statechan n'est pas defini dans le code
 

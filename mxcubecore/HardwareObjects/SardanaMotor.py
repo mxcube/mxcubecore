@@ -101,7 +101,7 @@ class SardanaMotor(AbstractMotor):
             },
             "Stop",
         )
-        self.position_channel = self.addChannel(
+        self.position_channel = self.add_channel(
             {
                 "type": "sardana",
                 "name": self.actuator_name + SardanaMotor.suffix_position,
@@ -110,7 +110,7 @@ class SardanaMotor(AbstractMotor):
             },
             "Position",
         )
-        self.state_channel = self.addChannel(
+        self.state_channel = self.add_channel(
             {
                 "type": "sardana",
                 "name": self.actuator_name + SardanaMotor.suffix_state,
@@ -120,7 +120,7 @@ class SardanaMotor(AbstractMotor):
             "State",
         )
 
-        self.velocity_channel = self.addChannel(
+        self.velocity_channel = self.add_channel(
             {
                 "type": "sardana",
                 "name": self.actuator_name + SardanaMotor.suffix_velocity,
@@ -129,7 +129,7 @@ class SardanaMotor(AbstractMotor):
             "Velocity",
         )
 
-        self.acceleration_channel = self.addChannel(
+        self.acceleration_channel = self.add_channel(
             {
                 "type": "sardana",
                 "name": self.actuator_name + SardanaMotor.suffix_acceleration,

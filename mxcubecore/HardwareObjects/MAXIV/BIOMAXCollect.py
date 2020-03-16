@@ -140,8 +140,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             )
 
         """ to add """
-        # self.chan_undulator_gap = self.getChannelObject('UndulatorGap')
-        # self.chan_machine_current = self.getChannelObject("MachineCurrent")
+        # self.chan_undulator_gap = self.get_channel_object('UndulatorGap')
+        # self.chan_machine_current = self.get_channel_object("MachineCurrent")
 
         self.emit("collectReady", (True,))
 

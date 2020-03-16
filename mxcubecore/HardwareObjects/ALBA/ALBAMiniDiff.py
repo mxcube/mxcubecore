@@ -92,7 +92,7 @@ class ALBAMiniDiff(GenericDiffractometer):
                 self.super_hwobj, "phaseChanged", self.supervisor_phase_changed
             )
 
-        self.state_channel = self.getChannelObject("State")
+        self.state_channel = self.get_channel_object("State")
         self.connect(self.state_channel, "update", self.state_changed)
         # This is not used
         self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")
@@ -274,8 +274,8 @@ class ALBAMiniDiff(GenericDiffractometer):
         """
         calibx, caliby = self.calibration.getCalibration()
 
-        size_x = self.getChannelObject("beamInfoX").getValue() / 1000.0
-        size_y = self.getChannelObject("beamInfoY").getValue() / 1000.0
+        size_x = self.get_channel_object("beamInfoX").getValue() / 1000.0
+        size_y = self.get_channel_object("beamInfoY").getValue() / 1000.0
 
         data = {"size_x": size_x, "size_y": size_y, "shape": "ellipse"}
 

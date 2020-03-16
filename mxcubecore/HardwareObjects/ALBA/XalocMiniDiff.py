@@ -127,8 +127,8 @@ class XalocMiniDiff(GenericDiffractometer):
     def getBeamInfo(self, update_beam_callback):
         calibx, caliby = self.calibration.getCalibration()
 
-        size_x = self.getChannelObject("beamInfoX").getValue() / 1000.0
-        size_y = self.getChannelObject("beamInfoY").getValue() / 1000.0
+        size_x = self.get_channel_object("beamInfoX").getValue() / 1000.0
+        size_y = self.get_channel_object("beamInfoY").getValue() / 1000.0
 
         data = {"size_x": size_x, "size_y": size_y, "shape": "ellipse"}
 

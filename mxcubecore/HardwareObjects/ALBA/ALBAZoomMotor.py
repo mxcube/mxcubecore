@@ -79,9 +79,9 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
 
     def init(self):
         logging.getLogger("HWR").debug("Initializing zoom motor IOR")
-        self.positionChannel = self.getChannelObject("position")
-        self.stateChannel = self.getChannelObject("state")
-        self.labelsChannel = self.getChannelObject("labels")
+        self.positionChannel = self.get_channel_object("position")
+        self.stateChannel = self.get_channel_object("state")
+        self.labelsChannel = self.get_channel_object("labels")
         self.currentposition = 0
         self.currentstate = None
 

@@ -84,7 +84,7 @@ class BIOMAXMD3(GenericDiffractometer):
 
         self.cent_vertical_pseudo_motor = None
         try:
-            self.cent_vertical_pseudo_motor = self.addChannel(
+            self.cent_vertical_pseudo_motor = self.add_channel(
                 {"type": "exporter", "name": "CentringTableVerticalPositionPosition"},
                 "CentringTableVerticalPosition",
             )

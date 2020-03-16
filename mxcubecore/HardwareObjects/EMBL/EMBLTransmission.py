@@ -54,12 +54,5 @@ class EMBLTransmission(AbstractTransmission):
         self._limits = value
         self.emit("limitsChanged", (self._limits,))
 
-    def set_value(self, value, timeout=None):
-        if timeout is not None:
-            self._state = "busy"
-            self.chan_att_value.setValue(value)
-            with gevent.Timeout(timeout, Exception("Timeout waiting for state ready")):
-                while self._state != "ready":
-                    gevent.sleep(0.1)
-        else:
-            self.chan_att_value.setValue(value)
+    def _set_value(self, value, timeout=None):
+        self.chan_att_value.setValue(value)
