@@ -125,10 +125,11 @@ class AbstractEnergy(AbstractActuator):
             value: Not used, but kept in the method signature.
         """
 
-        if self._nominal_value is None:
-            self._nominal_value = self.get_value()
+        if value is None:
+            value = self.get_value()
+        self._nominal_value = value
 
         if not self._wavelength_value:
-            self._wavelength_value = self._calculate_wavelength(self._nominal_v_value)
-        self.emit("energyChanged", (self._nominal_v_value, self._wavelength_value))
-        self.emit("valueChanged", (self._nominal_value,))
+            self._wavelength_value = self._calculate_wavelength(value)
+        self.emit("energyChanged", (value, self._wavelength_value))
+        self.emit("valueChanged", (value,))

@@ -116,22 +116,22 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
         state = self.positionChannel.setValue(int(no))
 
     def motorIsMoving(self):
-        if str(self.getState()) == "MOVING":
+        if str(self.get_state()) == "MOVING":
             return True
         else:
             return False
 
-    def getLimits(self):
+    def get_limits(self):
         return (1, 12)
 
-    def getState(self):
+    def get_state(self):
         state = self.stateChannel.getValue()
         curr_pos = self.get_value()
         if state == PyTango.DevState.ON:
             return ALBAZoomMotor.READY
         elif state == PyTango.DevState.MOVING or state == PyTango.DevState.RUNNING:
             return ALBAZoomMotor.MOVING
-        elif curr_pos in self.getLimits():
+        elif curr_pos in self.get_limits():
             return ALBAZoomMotor.ONLIMIT
         else:
             return ALBAZoomMotor.FAULT
@@ -155,7 +155,7 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
 
     def stateChanged(self, state):
         logging.getLogger("HWR").debug("stateChanged emitted: %s" % state)
-        the_state = self.getState()
+        the_state = self.get_state()
         if the_state != self.currentstate:
             self.currentstate = the_state
             self.emit("stateChanged", (the_state,))
@@ -170,18 +170,18 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
             self.emit("predefinedPositionChanged", (self.currentposition, 0))
 
     def isReady(self):
-        state = self.getState()
+        state = self.get_state()
         return state == ALBAZoomMotor.READY
 
 
 def test_hwo(zoom):
 
-    print(type(zoom.getState()))
+    print(type(zoom.get_state()))
 
     print("     Zoom position is : ", zoom.get_value())
     print("Zoom position name is : ", zoom.getCurrentPositionName())
     print("               Moving : ", zoom.motorIsMoving())
-    print("                State : ", zoom.getState())
+    print("                State : ", zoom.get_state())
     print("            Positions : ", zoom.getPredefinedPositionsList())
 
 

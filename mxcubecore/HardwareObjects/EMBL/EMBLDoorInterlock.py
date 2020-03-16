@@ -58,8 +58,6 @@ class EMBLDoorInterlock(Device):
 
         self.ics_enabled = True
 
-        self.getState = self.get_state
-
     def init(self):
 
         self.door_interlock_state = "unknown"

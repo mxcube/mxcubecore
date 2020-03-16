@@ -35,10 +35,10 @@ class MicrodiffApertureMockup(Device):
         else:
             return True
 
-    def getState(self):
+    def get_state(self):
         return 2
 
-    def getLimits(self):
+    def get_limits(self):
         return (1, 5)
 
     def getPredefinedPositionsList(self):

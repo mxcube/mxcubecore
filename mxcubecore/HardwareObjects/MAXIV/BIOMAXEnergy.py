@@ -52,7 +52,7 @@ class BIOMAXEnergy(Energy.Energy):
 
         if HWR.beamline.energy is not None:
             try:
-                self.en_lims = HWR.beamline.energy.getLimits()
+                self.en_lims = HWR.beamline.energy.get_limits()
                 self.en_lims = (
                     float(self.en_lims[0]) / 1000,
                     float(self.en_lims[1]) / 1000,

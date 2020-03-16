@@ -124,7 +124,8 @@ class AbstractBeam(HardwareObject):
         """
         raise NotImplementedError
 
-    def update_value(self):
+    def update_value(self, value=None):
         """Check if the value has changed. Emist signal valueChanged."""
-        _value = self.get_value()
-        self.emit("valueChanged", (_value))
+        if value is None:
+            value = self.get_value()
+        self.emit("valueChanged", (value,))
