@@ -11,11 +11,11 @@ class ALBACatsMaint(CatsMaint):
         CatsMaint.init(self)
 
         # load ALBA attributes and commands from XML
-        self._chnAtHome = self.getChannelObject("_chnAtHome")
-        self.super_abort_cmd = self.getCommandObject("super_abort")
+        self._chnAtHome = self.get_channel_obect("_chnAtHome")
+        self.super_abort_cmd = self.get_command_object("super_abort")
 
         # channel to ask diffractometer for mounting position
-        self.shifts_channel = self.getChannelObject("shifts")
+        self.shifts_channel = self.get_channel_obect("shifts")
 
     def _doAbort(self):
         if self.super_abort_cmd is not None:

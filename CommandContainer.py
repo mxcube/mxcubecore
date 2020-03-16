@@ -154,7 +154,7 @@ class CommandContainer:
             # raise Exception(msg)
         return channel
 
-    def get_channel_namesList(self):
+    def get_channel_names_list(self):
         return list(self.__channels.keys())
 
     def add_channel(self, attributesDict, channel, addNow=True):
@@ -713,14 +713,11 @@ class CommandContainer:
 
             return newCommand
 
-    def _addChannelsAndCommands(self):
+    def _add_channels_and_commands(self):
         [self.add_channel(*args) for args in self.__channelsToAdd]
         [self.add_command(*args) for args in self.__commandsToAdd]
         self.__channelsToAdd = []
         self.__commandsToAdd = []
-
-    def executeCommand(self, cmdName, *args, **kwargs):
-        self.execute_command(cmdName, *args, **kwargs)
 
     def execute_command(self, command_name, *args, **kwargs):
         if command_name in self.__commands:
