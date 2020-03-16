@@ -29,7 +29,7 @@ class DetectorMockup(AbstractDetector):
         self.actual_frame_rate = 50
         self.roi_modes_list = ("0", "C2", "C16")
         self.roi_mode = 0
-        self.exposure_time_limits = [0.04, 60000]
+        self._exposure_time_limits = [0.04, 60000]
         self.status = "ready"
 
         self._distance_motor_hwobj = self.getObjectByRole("detector_distance")
@@ -62,7 +62,7 @@ class DetectorMockup(AbstractDetector):
         self.emit("detectorModeChanged", (self.roi_mode,))
         self.emit("temperatureChanged", (self.temperature, True))
         self.emit("humidityChanged", (self.humidity, True))
-        self.emit("expTimeLimitsChanged", (self.exposure_time_limits,))
+        self.emit("expTimeLimitsChanged", (self._exposure_time_limits,))
         self.emit("frameRateChanged", self.actual_frame_rate)
         self.emit("statusChanged", (self.status, "Ready"))
 
