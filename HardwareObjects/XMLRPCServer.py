@@ -255,7 +255,7 @@ class XMLRPCServer(HardwareObject):
     def anneal(self, time):
         cryoshutter_hwobj = self.getObjectByRole("cryoshutter")
         try:
-            cryoshutter_hwobj.getCommandObject("anneal")(time)
+            cryoshutter_hwobj.get_command_object("anneal")(time)
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
             raise

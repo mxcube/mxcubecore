@@ -54,10 +54,10 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         self.distance_motor_hwobj = self.getObjectByRole("detector_distance")
         self.devname = self.getProperty("tangoname")
 
-        self.state_chan = self.getChannelObject("state")
+        self.state_chan = self.get_channel_object("state")
         self.state_chan.connectSignal("update", self.state_changed)
 
-        self.threshold_chan = self.getChannelObject("threshold")
+        self.threshold_chan = self.get_channel_object("threshold")
         self.threshold_chan.connectSignal("update", self.threshold_changed)
 
         self.set_energy_cmd = self.get_command_object("set_energy")

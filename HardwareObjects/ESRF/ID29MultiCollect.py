@@ -97,7 +97,7 @@ class ID29MultiCollect(ESRFMultiCollect):
         # send again the command as MD2 software only handles one
         # centered position!!
         # has to be where the motors are and before changing the phase
-        diffr.getCommandObject("save_centring_positions")()
+        diffr.get_command_object("save_centring_positions")()
         # move to DataCollection phase
         if diffr.getPhase() != "DataCollection":
             logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")

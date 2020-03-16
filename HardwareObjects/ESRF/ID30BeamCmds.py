@@ -63,5 +63,5 @@ class ID30BeamCmds(HardwareObject):
         )
         self.anneal = ControllerCommand("Anneal", controller.anneal_procedure)
 
-    def getCommands(self):
+    def get_commands(self):
         return [self.centrebeam, self.quick_realign, self.anneal]

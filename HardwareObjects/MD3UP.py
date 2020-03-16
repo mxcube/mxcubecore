@@ -23,7 +23,7 @@ class MD3UP(Microdiff.Microdiff):
         self.scan_nb_frames = 1
 
         # Raster scan attributes
-        self.nb_frames = self.addChannel(
+        self.nb_frames = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -31,7 +31,7 @@ class MD3UP(Microdiff.Microdiff):
             },
             "ScanNumberOfFrames",
         )
-        self.scan_range = self.addChannel(
+        self.scan_range = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -39,7 +39,7 @@ class MD3UP(Microdiff.Microdiff):
             },
             "ScanRange",
         )
-        self.scan_exposure_time = self.addChannel(
+        self.scan_exposure_time = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -47,7 +47,7 @@ class MD3UP(Microdiff.Microdiff):
             },
             "ScanExposureTime",
         )
-        self.scan_start_angle = self.addChannel(
+        self.scan_start_angle = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -55,7 +55,7 @@ class MD3UP(Microdiff.Microdiff):
             },
             "ScanStartAngle",
         )
-        self.scan_detector_gate_pulse_enabled = self.addChannel(
+        self.scan_detector_gate_pulse_enabled = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -63,7 +63,7 @@ class MD3UP(Microdiff.Microdiff):
             },
             "DetectorGatePulseEnabled",
         )
-        self.scan_detector_gate_pulse_readout_time = self.addChannel(
+        self.scan_detector_gate_pulse_readout_time = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,

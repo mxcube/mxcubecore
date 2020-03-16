@@ -151,8 +151,8 @@ class PX2Diffractometer(GenericDiffractometer):
         GenericDiffractometer.init(self)
         self.centring_status = {"valid": False}
 
-        self.chan_state = self.getChannelObject("State")
-        self.chan_status = self.getChannelObject("Status")
+        self.chan_state = self.get_channel_object("State")
+        self.chan_status = self.get_channel_object("Status")
 
         self.current_state = self.chan_state.getValue()
         self.current_status = self.chan_status.getValue()
@@ -160,23 +160,23 @@ class PX2Diffractometer(GenericDiffractometer):
         self.chan_state.connectSignal("update", self.state_changed)
         self.chan_status.connectSignal("update", self.status_changed)
 
-        self.chan_calib_x = self.getChannelObject("CoaxCamScaleX")
-        self.chan_calib_y = self.getChannelObject("CoaxCamScaleY")
+        self.chan_calib_x = self.get_channel_object("CoaxCamScaleX")
+        self.chan_calib_y = self.get_channel_object("CoaxCamScaleY")
         self.update_pixels_per_mm()
 
-        self.chan_head_type = self.getChannelObject("HeadType")
+        self.chan_head_type = self.get_channel_object("HeadType")
         self.head_type = self.chan_head_type.getValue()
 
-        self.chan_current_phase = self.getChannelObject("CurrentPhase")
+        self.chan_current_phase = self.get_channel_object("CurrentPhase")
         self.connect(self.chan_current_phase, "update", self.current_phase_changed)
 
-        self.chan_fast_shutter_is_open = self.getChannelObject("FastShutterIsOpen")
+        self.chan_fast_shutter_is_open = self.get_channel_object("FastShutterIsOpen")
         self.chan_fast_shutter_is_open.connectSignal(
             "update", self.fast_shutter_state_changed
         )
 
-        self.chan_scintillator_position = self.getChannelObject("ScintillatorPosition")
-        self.chan_capillary_position = self.getChannelObject("CapillaryPosition")
+        self.chan_scintillator_position = self.get_channel_object("ScintillatorPosition")
+        self.chan_capillary_position = self.get_channel_object("CapillaryPosition")
 
         self.cmd_start_set_phase = self.get_command_object("startSetPhase")
         self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")

@@ -24,7 +24,7 @@ class SpecMotorWSpecPositions(SpecMotor.SpecMotor):
         self.predefinedPositionsNamesList = []
 
     def init(self):
-        chanPositionsArray = self.getChannelObject("positions")
+        chanPositionsArray = self.get_channel_object("positions")
         chanPositionsArray.connectSignal("update", self.positionsArrayChanged)
         self.delta = self.getProperty("delta") or 0
 

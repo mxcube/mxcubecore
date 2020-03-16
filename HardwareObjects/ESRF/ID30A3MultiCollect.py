@@ -100,7 +100,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
                 number_of_snapshots = 1
 
         # this has to be done before each chage of phase
-        self.bl_control.diffractometer.getCommandObject("save_centring_positions")()
+        self.bl_control.diffractometer.get_command_object("save_centring_positions")()
         # not going to centring phase if in plate mode (too long)
         if not self.bl_control.diffractometer.in_plate_mode():
             self.bl_control.diffractometer.moveToPhase(
@@ -116,7 +116,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
         # send again the command as MD2 software only handles one
         # centered position!!
         # has to be where the motors are and before changing the phase
-        diffr.getCommandObject("save_centring_positions")()
+        diffr.get_command_object("save_centring_positions")()
         # move to DataCollection phase
         if diffr.getPhase() != "DataCollection":
             logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")

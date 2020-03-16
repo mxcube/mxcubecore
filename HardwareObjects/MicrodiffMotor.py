@@ -66,21 +66,21 @@ class MicrodiffMotor(AbstractMotor):
 
         self.motorState = MicrodiffMotor.NOTINITIALIZED
 
-        self.position_attr = self.getChannelObject(
+        self.position_attr = self.get_channel_object(
             "%s%s" % (self.actuator_name, self.motor_pos_attr_suffix)
         )
         if not self.position_attr:
-            self.position_attr = self.addChannel(
+            self.position_attr = self.add_channel(
                 {"type": "exporter", "name": "%sPosition" % self.actuator_name},
                 self.actuator_name + self.motor_pos_attr_suffix,
             )
 
         if self.position_attr is not None:
-            self.state_attr = self.getChannelObject(
+            self.state_attr = self.get_channel_object(
                 "%s%s" % (self.actuator_name, self.motor_state_attr_suffix)
             )
             if not self.state_attr:
-                self.state_attr = self.addChannel(
+                self.state_attr = self.add_channel(
                     {"type": "exporter", "name": "%sState" % self.actuator_name},
                     self.actuator_name + self.motor_state_attr_suffix,
                 )
@@ -88,9 +88,9 @@ class MicrodiffMotor(AbstractMotor):
             self.position_attr.connectSignal("update", self.motorPositionChanged)
             self.state_attr.connectSignal("update", self.motorStateChanged)
 
-            self.motors_state_attr = self.getChannelObject("motor_states")
+            self.motors_state_attr = self.get_channel_object("motor_states")
             if not self.motors_state_attr:
-                self.motors_state_attr = self.addChannel(
+                self.motors_state_attr = self.add_channel(
                     {"type": "exporter", "name": "motor_states"}, "MotorStates"
                 )
             self.motors_state_attr.connectSignal("update", self.updateMotorState)
