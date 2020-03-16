@@ -24,7 +24,7 @@ class ESRFSC3(SC3.SC3):
         SC3.SC3.init(self)
 
         try:
-            operationalChan = self.get_channel_obect("OperationalFlags")
+            operationalChan = self.get_channel_object("OperationalFlags")
             chan = operationalChan.getValue()
             operationalChan.connectSignal("update", self.operationalFlagsChanged)
         except BaseException:

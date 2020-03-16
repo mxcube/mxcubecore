@@ -33,12 +33,12 @@ class Attenuators(AbstractTransmission):
         self.chan_att_limits = None
 
     def init(self):
-        self.chan_att_value = self.get_channel_obect("chanAttValue")
+        self.chan_att_value = self.get_channel_object("chanAttValue")
         self.chan_att_value.connectSignal("update", self.value_changed)
         self.value_changed(self.chan_att_value.getValue())
-        self.chan_att_state = self.get_channel_obect("chanAttState")
+        self.chan_att_state = self.get_channel_object("chanAttState")
         self.chan_att_state.connectSignal("update", self.state_changed)
-        self.chan_att_limits = self.get_channel_obect("chanAttLimits")
+        self.chan_att_limits = self.get_channel_object("chanAttLimits")
         self.chan_att_limits.connectSignal("update", self.limits_changed)
 
         self.update_values()
