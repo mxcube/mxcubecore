@@ -506,14 +506,14 @@ class Camera(BaseHardwareObjects.Device):
                     """tango"""
                     if self.bpmDevice is not None:
                         if bpmOn:
-                            self.bpmDevice.executeCommand("on")
+                            self.bpmDevice.execute_command("on")
                         else:
-                            self.bpmDevice.executeCommand("off")
+                            self.bpmDevice.execute_command("off")
 
                 def getBpmState(self):
                     """tango"""
                     if self.bpmDevice is not None:
-                        return self.bpmDevice.executeCommand("state")
+                        return self.bpmDevice.execute_command("state")
                     else:
                         return PyTango.DevState.UNKNOWN
 
@@ -704,9 +704,9 @@ class Camera(BaseHardwareObjects.Device):
                     """tango"""
                     if self.bpmDevice is not None:
                         if bpmOn:
-                            self.bpmDevice.executeCommand("on")
+                            self.bpmDevice.execute_command("on")
                         else:
-                            self.bpmDevice.executeCommand("off")
+                            self.bpmDevice.execute_command("off")
 
                 def resetROI(self):
                     """tango"""

@@ -87,6 +87,6 @@ class SpecMotorWSpecPositions(SpecMotor.SpecMotor):
 
     def setNewPredefinedPosition(self, positionName, positionOffset):
         try:
-            self.executeCommand("setNewPosition", positionName, positionOffset)
+            self.execute_command("setNewPosition", positionName, positionOffset)
         except AttributeError:
             logging.getLogger("HWR").exception("Cannot set new predefined position")

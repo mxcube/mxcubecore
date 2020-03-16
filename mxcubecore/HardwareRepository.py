@@ -476,7 +476,7 @@ class __HardwareRepositoryClient:
                     hwobj_instance.resolveReferences()
 
                     try:
-                        hwobj_instance._addChannelsAndCommands()
+                        hwobj_instance._add_channels_and_commands()
                     except BaseException:
                         logging.getLogger("HWR").exception(
                             "Error while adding commands and/or channels to Hardware Object %s",
