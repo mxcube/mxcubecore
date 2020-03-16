@@ -43,7 +43,7 @@ class ALBAFrontEnd(ALBAEpsActuator):
 
 def test_hwo(hwo):
     print("Name is: ", hwo.getUserName())
-    print("Shutter state is: ", hwo.getState())
+    print("Shutter state is: ", hwo.get_state())
     print("Shutter status is: ", hwo.getStatus())
 
     # print "Opening it"

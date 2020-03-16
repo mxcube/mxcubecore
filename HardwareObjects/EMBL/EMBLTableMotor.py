@@ -52,7 +52,7 @@ class EMBLTableMotor(AbstractMotor):
         """
         self.direction = self.getProperty("direction")
         self.set_position(0)
-        self.set_state(self.motor_states.READY)
+        self.update_state(self.motor_states.READY)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect(("10.14.90.12", 701))
         self.socket.send("enable (0,1,2,3)\r")
@@ -105,7 +105,7 @@ class EMBLTableMotor(AbstractMotor):
         :param timeout: in seconds (int)
         :return: None
         """
-        self.set_state(self.motor_states.MOVING)
+        self.update_state(self.motor_states.MOVING)
         if not self.enabled:
             self.socket.send("enable (0,1,2,3)\r")
             time.sleep(1)
@@ -113,7 +113,7 @@ class EMBLTableMotor(AbstractMotor):
             self.socket.send("PTP/r (1), %f\r" % relative_position)
         else:
             self.socket.send("PTP/r (3), %f\r" % relative_position)
-        self.set_state(self.motor_states.READY)
+        self.update_state(self.motor_states.READY)
 
     def close(self):
         """

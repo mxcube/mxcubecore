@@ -79,10 +79,10 @@ class ALBAFrontLight(Device):
 
         self.previous_level = self.current_level
 
-    def getLimits(self):
+    def get_limits(self):
         return self.limits
 
-    def getState(self):
+    def get_state(self):
         self.register_state = str(self.state_channel.getValue()).lower()
         self.update_current_state()
         return self.state
@@ -123,9 +123,9 @@ def test():
 
     light = hwr.getHardwareObject("/frontlight")
     print('\nLight control for "%s"\n' % light.getUserName())
-    print("   Level limits are:", light.getLimits())
+    print("   Level limits are:", light.get_limits())
     print("   Current level is:", light.getLevel())
-    print("   Current state is:", light.getState())
+    print("   Current state is:", light.get_state())
 
 
 if __name__ == "__main__":
