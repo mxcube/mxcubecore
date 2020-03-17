@@ -641,6 +641,14 @@ class Beamline(ConfiguredObject):
         #         "Could not get detector_mode, setting to ''"
         #     )
         #     acq_parameters.detector_mode = ""
+        try:
+            acq_parameters.detector_roi_mode = self.detector.get_roi_mode()
+        except:
+            logging.getLogger("HWR").warning(
+                "get_default_acquisition_parameters: "
+                "Could not get roi mode, setting to ''"
+            )
+            acq_parameters.detector_roi_mode = ""
 
         return acq_parameters
 
