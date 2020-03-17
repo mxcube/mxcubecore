@@ -1,91 +1,59 @@
 # from MD2Motor import MD2Motor
-from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository.HardwareObjects.ExporterNState import ExporterNState
 import logging
 import math
+import ast
+import enum
+import time
 
+class MicrodiffZoomMockup(ExporterNState):
+    """MicrodiffZoom Mockup class"""
 
-class MicrodiffZoomMockup(Device):
-
-    (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0, 1, 2, 3, 4, 5)
+    def __init__(self, name):
+        super(MicrodiffZoomMockup, self).__init__(name)
+        self.predefined_positions = {}
+        self._exporter = None
+        self._limits = None
+        self.position_channel = None
+        self.motor_state = None
 
     def init(self):
-        self.actuator_name = "Zoom"
-        self._last_position_name = None
-        self.predefined_position_attr = 1
-        self.predefined_positions = {
-            "Zoom 1": 1,
-            "Zoom 2": 2,
-            "Zoom 3": 3,
-            "Zoom 4": 4,
-            "Zoom 5": 5,
-            "Zoom 6": 6,
-            "Zoom 7": 7,
-            "Zoom 8": 8,
-            "Zoom 9": 9,
-            "Zoom 10": 10,
-        }
-        self.sort_positions_list()
+        """Initialize the zoom"""
+        #ExporterNState.init(self)
+        values = ast.literal_eval(self.getProperty("values"))
+        self._nominal_limits = (values[0], values[-1])
 
-    def isReady(self):
-        return True
+        values = { ("LEVEL%s" % str(values.index(v) + 1)):v for v in values }
+        values.update({"UNKNOWN": 0})
 
-    def sort_positions_list(self):
-        self.positions_names_list = list(self.predefined_positions.keys())
-        # self.positions_names_list.sort()
-        #    lambda x, y: int(
-        #        round(self.predefined_positions[x] - self.predefined_positions[y])
-        #    )
-        # )
-
-    def connectNotify(self, signal):
-        if signal == "predefinedPositionChanged":
-            positionName = self.get_current_position_name()
-
-            try:
-                pos = self.predefined_positions[positionName]
-            except KeyError:
-                self.emit(signal, ("", None))
-            else:
-                self.emit(signal, (positionName, pos))
-        else:
-            return True  # .connectNotify.im_func(self, signal)
+        self.VALUES = enum.Enum("MICRODIFF_ZOOM_ENUM", values)
+        self._value = self.VALUES.LEVEL1
+        self.update_state()
 
     def get_limits(self):
-        return (1, 10)
+        """Returns zoom low and high limits.
+        Returns:
+            (tuple): two int tuple (low limit, high limit).
+        """
+        return self._nominal_limits
 
-    def get_state(self):
-        return MicrodiffZoomMockup.READY
+    def get_state(self, state=None):
+        return self._state
 
-    def get_predefined_positions_list(self):
-        return self.positions_names_list
+    def _set_value(self, enum_var):
+        """Set device to value of enum_var
 
-    def motor_position_changed(self, absolutePosition, private={}):
-        # MD2Motor.motor_position_changed.im_func(self, absolutePosition, private)
-        positionName = self.get_current_position_name(absolutePosition)
-        if self._last_position_name != positionName:
-            self._last_position_name = positionName
-            self.emit(
-                "predefinedPositionChanged",
-                (positionName, positionName and absolutePosition or None),
-            )
+        Args:
+            value (enum): enum variable
+        """
+        self.update_state(self.STATES.BUSY)
+        time.sleep(0.3)
+        self._value = enum_var
+        self.update_state(self.STATES.READY)
 
-    def get_current_position_name(self, pos=None):
-        pos = self.predefined_position_attr
-
-        for positionName in self.predefined_positions:
-            if math.fabs(self.predefined_positions[positionName] - pos) <= 1e-3:
-                return positionName
-        return ""
-
-    def move_to_position(self, positionName):
-        valid = True
-
-        try:
-            self.predefined_position_attr = self.predefined_positions[positionName]
-            self.motor_position_changed(self.predefined_position_attr)
-            return True
-        except BaseException:
-            valid = False
-
-        self.connectNotify("predefinedPositionChanged")
-        return valid
+    def get_value(self):
+        """Get the device value
+        Returns:
+            (str): The name of the enum variable
+        """
+        return self._value
