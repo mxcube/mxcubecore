@@ -24,11 +24,11 @@ class DetectorMockup(AbstractDetector):
         AbstractDetector.init(self)
 
         # self.distance = 500
-        self.temperature = 25
-        self.humidity = 60
+        self._temperature = 25
+        self._humidity = 60
         self.actual_frame_rate = 50
-        self.roi_modes_list = ("0", "C2", "C16")
-        self.roi_mode = 0
+        self._roi_modes_list = ("0", "C2", "C16")
+        self._roi_mode = 0
         self._exposure_time_limits = [0.04, 60000]
         self.status = "ready"
 
@@ -44,8 +44,8 @@ class DetectorMockup(AbstractDetector):
         return [100, 1000]
 
     def set_roi_mode(self, roi_mode):
-        self.roi_mode = roi_mode
-        self.emit("detectorModeChanged", (self.roi_mode,))
+        self._roi_mode = roi_mode
+        self.emit("detectorModeChanged", (self._roi_mode,))
 
     def has_shutterless(self):
         """Returns always True
@@ -59,9 +59,9 @@ class DetectorMockup(AbstractDetector):
         return xval, yval
 
     def update_values(self):
-        self.emit("detectorModeChanged", (self.roi_mode,))
-        self.emit("temperatureChanged", (self.temperature, True))
-        self.emit("humidityChanged", (self.humidity, True))
+        self.emit("detectorModeChanged", (self._roi_mode,))
+        self.emit("temperatureChanged", (self._temperature, True))
+        self.emit("humidityChanged", (self._humidity, True))
         self.emit("expTimeLimitsChanged", (self._exposure_time_limits,))
         self.emit("frameRateChanged", self.actual_frame_rate)
         self.emit("statusChanged", (self.status, "Ready"))
