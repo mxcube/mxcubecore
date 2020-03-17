@@ -74,15 +74,15 @@ class EMBLDoorInterlock(Device):
         if self.use_door_interlock is None:
             self.use_door_interlock = True
 
-        self.chan_state_locked = self.getChannelObject("chanStateLocked")
+        self.chan_state_locked = self.get_channel_object("chanStateLocked")
         self.chan_state_locked.connectSignal("update", self.state_locked_changed)
-        self.chan_state_breakable = self.getChannelObject("chanStateBreakable")
+        self.chan_state_breakable = self.get_channel_object("chanStateBreakable")
         self.chan_state_breakable.connectSignal("update", self.state_breakable_changed)
 
-        self.chan_ics_error = self.getChannelObject("chanIcsErrorOne")
+        self.chan_ics_error = self.get_channel_object("chanIcsErrorOne")
         self.chan_ics_error.connectSignal("update", self.ics_error_msg_changed)
 
-        self.chan_cmd_break_error = self.getChannelObject("chanCmdBreakError")
+        self.chan_cmd_break_error = self.get_channel_object("chanCmdBreakError")
         if self.chan_cmd_break_error is not None:
             self.chan_cmd_break_error.connectSignal(
                 "update", self.cmd_break_error_msg_changed

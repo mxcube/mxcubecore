@@ -80,8 +80,8 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         self.device_specific = DeviceProxy(self.devspecific)
         self.device.set_timeout_millis(30000)
 
-        self.beamx_chan = self.getChannelObject("beamx")
-        self.beamy_chan = self.getChannelObject("beamy")
+        self.beamx_chan = self.get_channel_object("beamx")
+        self.beamy_chan = self.get_channel_object("beamy")
 
     def start_acquisition(self):
         self.device.startAcq()
@@ -159,7 +159,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
 
     # methods for data collection
     def set_energy_threshold(self):
-        eugap_ch = self.getChannelObject("eugap")
+        eugap_ch = self.get_channel_object("eugap")
 
         try:
             currentenergy = eugap_ch.getValue()

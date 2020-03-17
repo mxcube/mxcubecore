@@ -33,11 +33,11 @@ class EMBLTransmission(AbstractTransmission):
         self.chan_att_limits = None
 
     def init(self):
-        self.chan_att_value = self.getChannelObject("chanValue")
+        self.chan_att_value = self.get_channel_object("chanValue")
         self.chan_att_value.connectSignal("update", self.value_changed)
-        self.chan_att_state = self.getChannelObject("chanState")
+        self.chan_att_state = self.get_channel_object("chanState")
         self.chan_att_state.connectSignal("update", self.state_changed)
-        self.chan_att_limits = self.getChannelObject("chanLimits")
+        self.chan_att_limits = self.get_channel_object("chanLimits")
         self.chan_att_limits.connectSignal("update", self.limits_changed)
 
         self.update_values()
@@ -54,12 +54,5 @@ class EMBLTransmission(AbstractTransmission):
         self._limits = value
         self.emit("limitsChanged", (self._limits,))
 
-    def set_value(self, value, timeout=None):
-        if timeout is not None:
-            self._state = "busy"
-            self.chan_att_value.setValue(value)
-            with gevent.Timeout(timeout, Exception("Timeout waiting for state ready")):
-                while self._state != "ready":
-                    gevent.sleep(0.1)
-        else:
-            self.chan_att_value.setValue(value)
+    def _set_value(self, value, timeout=None):
+        self.chan_att_value.setValue(value)

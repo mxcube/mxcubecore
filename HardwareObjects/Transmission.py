@@ -43,9 +43,9 @@ class Transmission(HardwareObject):
     def getAttState(self):
         return self.__matt.pos_read()
 
-    def set_value(self, trans):
+    def _set_value(self, value):
         self.__matt.set_energy(self.energy.get_energy())
-        self.__matt.transmission_set(trans)
+        self.__matt.transmission_set(value)
         self._update()
 
     def _update(self):

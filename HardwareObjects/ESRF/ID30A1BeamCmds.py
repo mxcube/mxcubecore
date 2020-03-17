@@ -11,5 +11,5 @@ class ID30A1BeamCmds(ID30BeamCmds.ID30BeamCmds):
             "Centre beam", controller.centrebeam
         )
 
-    def getCommands(self):
+    def get_commands(self):
         return [self.centrebeam]

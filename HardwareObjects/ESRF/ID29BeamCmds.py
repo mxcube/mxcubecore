@@ -27,7 +27,7 @@ class ID29BeamCmds(HardwareObject):
         self.hutchtrigger = HWObjActuatorCommand("Hutchtrigger", hutchtrigger)
         self.cryo = HWObjActuatorCommand("Cryo", cryo)
 
-    def getCommands(self):
+    def get_commands(self):
         return [
             self.centrebeam,
             self.quick_realign,

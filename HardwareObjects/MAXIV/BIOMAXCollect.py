@@ -140,8 +140,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             )
 
         """ to add """
-        # self.chan_undulator_gap = self.getChannelObject('UndulatorGap')
-        # self.chan_machine_current = self.getChannelObject("MachineCurrent")
+        # self.chan_undulator_gap = self.get_channel_object('UndulatorGap')
+        # self.chan_machine_current = self.get_channel_object("MachineCurrent")
 
         self.emit("collectReady", (True,))
 
@@ -1202,9 +1202,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             else:
                 try:
                     if HWR.beamline.detector.distance is not None:
-                        HWR.beamline.detector.distance.syncMove(
-                            value, timeout=50
-                        )  # 30s is not enough for the whole range
+                        HWR.beamline.detector.distance.set_value(value, timeout=50)
+                        # 30s is not enough for the whole range
                 except BaseException:
                     logging.getLogger("HWR").exception(
                         "Problems when moving detector!!"
