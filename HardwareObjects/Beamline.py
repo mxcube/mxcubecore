@@ -32,7 +32,7 @@ __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
 import logging
-import warnings
+
 from HardwareRepository.BaseHardwareObjects import ConfiguredObject
 
 # NBNB The acq parameter names match the attributes of AcquisitionParameters
@@ -122,7 +122,7 @@ class Beamline(ConfiguredObject):
         for acquisition_type, params in self.default_acquisition_parameters.items():
             unrecognised = [x for x in params if x not in self.SUPPORTED_ACQ_PARAMETERS]
             if unrecognised:
-                warnings.warn(
+                logging.getLogger("HWR").warning(
                     "Unrecognised acquisition parameters for %s: %s"
                     % (acquisition_type, unrecognised)
                 )
@@ -133,7 +133,7 @@ class Beamline(ConfiguredObject):
             if x not in self.SUPPORTED_LIMIT_PARAMETERS
         ]
         if unrecognised:
-            warnings.warn("Unrecognised parameter limits for: %s" % unrecognised)
+            logging.getLogger("HWR").warning("Unrecognised parameter limits for: %s" % unrecognised)
 
     # NB this function must be re-implemented in nested subclasses
     @property
@@ -297,7 +297,7 @@ class Beamline(ConfiguredObject):
         Returns:
             Optional[AbstractSampleChanger]:
         """
-        warnings.warn(
+        logging.getLogger("HWR").warning(
             DeprecationWarning(
                 "plate_manipulator role should be replaced by sample_changer"
             )
@@ -575,11 +575,12 @@ class Beamline(ConfiguredObject):
         if acquisition_type != "default":
             dd0 = self.default_acquisition_parameters.get(acquisition_type)
             if dd0 is None:
-                warnings.warn(
+                logging.getLogger("HWR").warning(
                     "No separate parameters for acquisition type: %s - using default."
                     % acquisition_type
                 )
             else:
+
                 params.update(dd0)
 
         for tag, val in params.items():
@@ -605,7 +606,7 @@ class Beamline(ConfiguredObject):
             acq_parameters.resolution = 0.0
 
         try:
-            acq_parameters.energy = self.energy.get_energy()
+            acq_parameters.energy = self.energy.get_value()
         except:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
@@ -631,14 +632,24 @@ class Beamline(ConfiguredObject):
             )
             acq_parameters.shutterless = False
 
+        # TODO: Rename detector_mode to detector_binning_mode(?).
         try:
-            acq_parameters.detector_mode = self.detector.get_detector_mode()
+            acq_parameters.detector_mode = self.detector.get_mode()
         except:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
-                "Could not get detector_mode, setting to ''"
+                "Could not get detector mode, setting to ''"
             )
             acq_parameters.detector_mode = ""
+
+        try:
+            acq_parameters.detector_roi_mode = self.detector.get_roi_mode()
+        except:
+            logging.getLogger("HWR").warning(
+                "get_default_acquisition_parameters: "
+                "Could not get roi mode, setting to ''"
+            )
+            acq_parameters.detector_roi_mode = ""
 
         return acq_parameters
 

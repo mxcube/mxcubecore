@@ -280,5 +280,5 @@ class PX1Energy(Device, AbstractEnergy):
 def test_hwo(hwo):
     print(hwo.get_value())
     print(hwo.get_wavelength())
-    print(hwo.get_energy_limits())
+    print(hwo.get_limits())
     print(hwo.getCurrentUndulatorGap())
