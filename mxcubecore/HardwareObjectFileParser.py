@@ -288,7 +288,7 @@ class HardwareObjectHandler(ContentHandler):
                 elif name == "channel":
                     if len(self.channel) > 0:
                         if len(self.objects) > 0:
-                            self.objects[-1].addChannel(
+                            self.objects[-1].add_channel(
                                 self.channel, self.buffer, addNow=False
                             )
                 elif name == self.property:

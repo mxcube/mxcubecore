@@ -47,14 +47,6 @@ class SpecMotor(Device, SpecMotorA):
     def syncQuestionAnswer(self, specSteps, controllerSteps):
         pass  # return '0' #NO ('1' means YES)
 
-    def syncMove(self, position, timeout=None):
-        # timeout in seconds
-        self.move(position, wait=True, timeout=timeout)
-
-    def syncMoveRelative(self, position, timeout=None):
-        abs_pos = position + self.get_value()
-        return self.syncMove(abs_pos, timeout)
-
     def getMotorMnemonic(self):
         return self.specName
 

@@ -76,7 +76,7 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
         self.actuator_state = STATE_UNKNOWN
 
         try:
-            self.actuator_channel = self.getChannelObject("actuator")
+            self.actuator_channel = self.get_channel_object("actuator")
             self.actuator_channel.connectSignal("update", self.stateChanged)
         except KeyError:
             logging.getLogger().warning(

@@ -33,20 +33,20 @@ class LimaDetectorMockup:
             "saving_header_delimiter",
             "last_image_saved",
         ):
-            self.addChannel(
+            self.add_channel(
                 {"type": "tango", "name": channel_name, "tangoname": lima_device},
                 channel_name,
             )
 
         for channel_name in ("fill_mode", "threshold"):
-            self.addChannel(
+            self.add_channel(
                 {"type": "tango", "name": channel_name, "tangoname": pilatus_device},
                 channel_name,
             )
 
         pilatus_tg_device = DeviceProxy(pilatus_device)
         if hasattr(pilatus_tg_device, "working_energy"):
-            self.addChannel(
+            self.add_channel(
                 {
                     "type": "tango",
                     "name": "energy_threshold",
@@ -55,7 +55,7 @@ class LimaDetectorMockup:
                 "working_energy",
             )
         else:
-            self.addChannel(
+            self.add_channel(
                 {
                     "type": "tango",
                     "name": "energy_threshold",

@@ -134,7 +134,7 @@ class EMBLMotorsGroup(Device):
             self.motors_list.append(temp_dict)
 
         try:
-            self.chan_positions = self.addChannel(
+            self.chan_positions = self.add_channel(
                 {
                     "type": "tine",
                     "tinename": self.server_address + self.group_address,
@@ -153,7 +153,7 @@ class EMBLMotorsGroup(Device):
             logging.getLogger("HWR").error(msg)
 
         try:
-            self.chan_status = self.addChannel(
+            self.chan_status = self.add_channel(
                 {
                     "type": "tine",
                     "tinename": self.server_address + self.group_address,

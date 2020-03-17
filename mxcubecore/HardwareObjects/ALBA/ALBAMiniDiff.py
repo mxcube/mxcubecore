@@ -92,7 +92,7 @@ class ALBAMiniDiff(GenericDiffractometer):
                 self.super_hwobj, "phaseChanged", self.supervisor_phase_changed
             )
 
-        self.state_channel = self.getChannelObject("State")
+        self.state_channel = self.get_channel_object("State")
         self.connect(self.state_channel, "update", self.state_changed)
         # This is not used
         self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")
@@ -274,8 +274,8 @@ class ALBAMiniDiff(GenericDiffractometer):
         """
         calibx, caliby = self.calibration.getCalibration()
 
-        size_x = self.getChannelObject("beamInfoX").getValue() / 1000.0
-        size_y = self.getChannelObject("beamInfoY").getValue() / 1000.0
+        size_x = self.get_channel_object("beamInfoX").getValue() / 1000.0
+        size_y = self.get_channel_object("beamInfoY").getValue() / 1000.0
 
         data = {"size_x": size_x, "size_y": size_y, "shape": "ellipse"}
 
@@ -371,10 +371,10 @@ class ALBAMiniDiff(GenericDiffractometer):
     #                self.phi_motor_hwobj.set_value(dynamic_limits[1])
     #        else:
     #            if click < 2:
-    #                self.phi_motor_hwobj.syncMoveRelative(-90)
+    #                self.phi_motor_hwobj.set_value_relative(-90, timeout=None)
 
     #    #logging.getLogger("HWR").info(" Returning phi to initial position %s" % phi_init_position)
-    #    #self.phi_motor_hwobj.syncMove(phi_init_position)
+    #    #self.phi_motor_hwobj.set_value(phi_init_position, timeout=None)
     #
     #    return self.centring_hwobj.centeredPosition(return_by_name=False)
 
@@ -546,9 +546,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         @relpos: target relative position
         """
         self.wait_device_ready()
-        self.phi_motor_hwobj.syncMoveRelative(relpos)
-        time.sleep(0.2)
-        self.wait_device_ready()
+        self.phi_motor_hwobj.set_value_relative(relpos, timeout=None)
 
     # TODO: define phases as enum members.
     def set_phase(self, phase):

@@ -164,7 +164,7 @@ class BIOMAXEiger(Equipment):
         )
 
         for channel_name in attr_list:
-            self.addChannel(
+            self.add_channel(
                 {
                     "type": "tango",
                     "name": channel_name,
@@ -178,7 +178,7 @@ class BIOMAXEiger(Equipment):
         # get any of the channels for that.
 
         for channel_name in fw_list:
-            self.addChannel(
+            self.add_channel(
                 {"type": "tango", "name": channel_name, "tangoname": filewriter_device},
                 channel_name,
             )
@@ -207,16 +207,16 @@ class BIOMAXEiger(Equipment):
         except BaseException:
             self.energy_change_threshold = self.energy_change_threshold_default
 
-        self.getChannelObject("Compression").init_device()
-        self.getChannelObject("Compression").setValue("bslz4")
+        self.get_channel_object("Compression").init_device()
+        self.get_channel_object("Compression").setValue("bslz4")
 
-        # self.getChannelObject('TriggerMode').init_device()
-        # self.getChannelObject('TriggerMode').setValue("exts")
+        # self.get_channel_object('TriggerMode').init_device()
+        # self.get_channel_object('TriggerMode').setValue("exts")
 
     #  STATUS , status can be "idle", "ready", "UNKNOWN"
     def get_status(self):
         if self.status_chan is None:
-            self.status_chan = self.getChannelObject("Status")
+            self.status_chan = self.get_channel_object("Status")
 
             if self.status_chan is not None:
                 self.initialized = True
@@ -321,7 +321,7 @@ class BIOMAXEiger(Equipment):
             logging.getLogger("HWR").debug(
                 "[DETECTOR] Setting value: %s for attribute %s" % (value, name)
             )
-            self.getChannelObject(name).setValue(value)
+            self.get_channel_object(name).setValue(value)
             self.wait_attribute_applied(name, value)
         except Exception as ex:
             logging.getLogger("HWR").error(ex)
@@ -367,7 +367,7 @@ class BIOMAXEiger(Equipment):
         return sizes of a single pixel along x-axis respectively
         unit, mm
         """
-        # x_pixel_size = self.getChannelObject("XPixelSize")  # unit, m
+        # x_pixel_size = self.get_channel_object("XPixelSize")  # unit, m
         x_pixel_size = 0.000075
         return x_pixel_size * 1000
 
@@ -376,7 +376,7 @@ class BIOMAXEiger(Equipment):
         return sizes of a single pixel along y-axis respectively
         unit, mm
         """
-        # y_pixel_size = self.getChannelObject("YPixelSize")  # unit, m
+        # y_pixel_size = self.get_channel_object("YPixelSize")  # unit, m
         y_pixel_size = 0.000075
         return y_pixel_size * 1000
 
@@ -398,7 +398,7 @@ class BIOMAXEiger(Equipment):
         return self.get_channel_value("FrameTimeMin") - self.get_readout_time()
 
     def get_sensor_thickness(self):
-        return  # not available, self.getChannelObject("").getValue()
+        return  # not available, self.get_channel_object("").getValue()
 
     def has_shutterless(self):
         return True
@@ -678,23 +678,23 @@ class BIOMAXEiger(Equipment):
         logging.getLogger("user_level_log").info("Detector armed")
 
     def trigger(self):
-        self.getCommandObject("Trigger")()
+        self.get_command_object("Trigger")()
 
     def disarm(self):
-        self.getCommandObject("Disarm")()
+        self.get_command_object("Disarm")()
 
     def enable_stream(self):
-        self.getCommandObject("EnableStream")()
+        self.get_command_object("EnableStream")()
 
     def disable_stream(self):
-        self.getCommandObject("DisableStream")()
+        self.get_command_object("DisableStream")()
 
     def cancel(self):
-        self.getCommandObject("Cancel")()
+        self.get_command_object("Cancel")()
 
     def abort(self):
         try:
-            self.getCommandObject("Abort")()
+            self.get_command_object("Abort")()
         except BaseException:
             pass
 

@@ -97,7 +97,7 @@ class SOLEILGuillotine(BaseHardwareObjects.Device):
         self._d_security = self.getProperty("security_distance")
         self._d_home = self.getProperty("safe_distance")
         try:
-            self.shutChannel = self.getChannelObject("State")
+            self.shutChannel = self.get_channel_object("State")
             self.shutChannel.connectSignal("update", self.shutterStateChanged)
 
             self.pss = self.getObjectByRole("pss")
@@ -129,7 +129,7 @@ class SOLEILGuillotine(BaseHardwareObjects.Device):
             )
 
         if self.pss_door is not None:
-            self.memIntChan = self.getChannelObject("memInt")
+            self.memIntChan = self.get_channel_object("memInt")
             self.connect(self.memIntChan, "update", self.updateGuillotine)
         else:
             logging.getLogger("HWR").error("Guillotine: tangopssDevice is not defined ")
