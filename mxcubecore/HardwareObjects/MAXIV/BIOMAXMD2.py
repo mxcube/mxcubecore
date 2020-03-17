@@ -121,8 +121,10 @@ class BIOMAXMD2(GenericDiffractometer):
             self.beam_position = HWR.beamline.beam.get_beam_position()
             beam_xc = self.beam_position[0]
             beam_yc = self.beam_position[1]
-            self.centring_phiz.moveRelative((y - beam_yc) / float(self.pixelsPerMmZ))
-            self.centring_phiy.moveRelative(
+            self.centring_phiz.set_value_relative(
+                (y - beam_yc) / float(self.pixelsPerMmZ)
+            )
+            self.centring_phiy.set_value_relative(
                 -1 * (x - beam_xc) / float(self.pixelsPerMmY)
             )
         except BaseException:

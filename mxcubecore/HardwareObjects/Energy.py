@@ -188,7 +188,7 @@ class Energy(Equipment):
                     if self.ctrl:
                         self.ctrl.change_energy(energy)
                     else:
-                        self.executeCommand("moveEnergy", energy, wait=True)
+                        self.execute_command("moveEnergy", energy, wait=True)
                 except RuntimeError as AttributeError:
                     self.energy_motor.set_value(energy)
             else:

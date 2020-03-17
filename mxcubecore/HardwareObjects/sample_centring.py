@@ -230,8 +230,8 @@ def centre_plate1Click(
                 raise RuntimeError("Aborted while waiting for point selection")
 
             # Move to beam
-            phiz.moveRelative((y - beam_yc) / float(pixelsPerMm_Ver))
-            phiy.moveRelative(-(x - beam_xc) / float(pixelsPerMm_Hor))
+            phiz.set_value_relative((y - beam_yc) / float(pixelsPerMm_Ver))
+            phiy.set_value_relative(-(x - beam_xc) / float(pixelsPerMm_Hor))
 
             # Distance to previous click to end centring if it converges
             dx = abs(previous_click_x - x)
@@ -303,7 +303,7 @@ def centre_plate(
             Y.append(y / float(pixelsPerMm_Ver))
             phi_positions.append(phi.direction * math.radians(phi.get_value()))
             if i != n_points - 1:
-                phi.syncMoveRelative(phi.direction * phi_angle)
+                phi.set_value_relative(phi.direction * phi_angle, timeout=None)
             READY_FOR_NEXT_POINT.set()
             i += 1
     except BaseException:
@@ -363,7 +363,7 @@ def centre_plate(
     raise RuntimeError("Aborted while waiting for point selection")
   USER_CLICKED_EVENT = gevent.event.AsyncResult()
   y_offset = -(y-beam_yc)  / float(pixelsPerMm_Ver)
-  plateTranslation.moveRelative(y_offset)
+  plateTranslation.set_value_relative(y_offset)
   """
 
     return centred_pos

@@ -643,9 +643,6 @@ class Procedure(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
-    def addCommand(self, *args, **kwargs):
-        return HardwareObject.addCommand(self, *args, **kwargs)
-
     def userName(self):
         uname = self.getProperty("username")
         if uname is None:

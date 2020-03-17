@@ -11,13 +11,13 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
         self.chan_beam_shape_ellipse = None
         BeamInfo.BeamInfo.init(self)
 
-        self.chan_beam_pos_x = self.getChannelObject("BeamPositionHorizontal")
-        self.chan_beam_pos_y = self.getChannelObject("BeamPositionVertical")
-        self.chan_beam_size_x = self.getChannelObject("BeamSizeHorizontal")
-        self.chan_beam_size_y = self.getChannelObject("BeamSizeVertical")
-        self.chan_beam_shape_ellipse = self.getChannelObject("BeamShapeEllipse")
-        self.chan_ImageZoom = self.getChannelObject("ImageZoom")
-        self.chan_CoaxialCameraZoomValue = self.getChannelObject(
+        self.chan_beam_pos_x = self.get_channel_object("BeamPositionHorizontal")
+        self.chan_beam_pos_y = self.get_channel_object("BeamPositionVertical")
+        self.chan_beam_size_x = self.get_channel_object("BeamSizeHorizontal")
+        self.chan_beam_size_y = self.get_channel_object("BeamSizeVertical")
+        self.chan_beam_shape_ellipse = self.get_channel_object("BeamShapeEllipse")
+        self.chan_ImageZoom = self.get_channel_object("ImageZoom")
+        self.chan_CoaxialCameraZoomValue = self.get_channel_object(
             "CoaxialCameraZoomValue"
         )
 
