@@ -632,15 +632,16 @@ class Beamline(ConfiguredObject):
             )
             acq_parameters.shutterless = False
 
-        # TODO: REVIEW, get_detector_mode not in the AbstractClass
-        # try:
-        #     acq_parameters.detector_mode = self.detector.get_detector_mode()
-        # except:
-        #     logging.getLogger("HWR").warning(
-        #         "get_default_acquisition_parameters: "
-        #         "Could not get detector_mode, setting to ''"
-        #     )
-        #     acq_parameters.detector_mode = ""
+        # TODO: Rename detector_mode to detector_binning_mode(?).
+        try:
+            acq_parameters.detector__mode = self.detector.get_mode()
+        except:
+            logging.getLogger("HWR").warning(
+                "get_default_acquisition_parameters: "
+                "Could not get detector mode, setting to ''"
+            )
+            acq_parameters.detector_mode = ""
+
         try:
             acq_parameters.detector_roi_mode = self.detector.get_roi_mode()
         except:
