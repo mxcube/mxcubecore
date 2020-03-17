@@ -159,23 +159,17 @@ class MotorWPositions(AbstractMotor, Device):
         """
         self.motor.set_value(absolute_position)
 
-    def moveRelative(self, relative_position):
+    def set_value(self, absolute_position, timeout=0):
         """
         Descript. :
         """
-        self.motor.moveRelative(relative_position)
+        self.motor.set_value(absolute_position, timeout)
 
-    def syncMove(self, absolute_position, timeout=None):
+    def set_value_relative(self, relative_position, timeout=0):
         """
         Descript. :
         """
-        self.motor.syncMove(absolute_position, timeout)
-
-    def syncMoveRelative(self, relative_position, timeout=None):
-        """
-        Descript. :
-        """
-        self.motor.syncMoveRelative(relative_position, timeout)
+        self.motor.set_value_relative(relative_position, timeout)
 
     def stop(self):
         """

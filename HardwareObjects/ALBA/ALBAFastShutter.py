@@ -84,9 +84,9 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
             self.nistart_cmd = self.get_command_object("nistart")
             self.nistop_cmd = self.get_command_object("nistop")
 
-            self.actuator_channel = self.getChannelObject("actuator")
-            self.motorpos_channel = self.getChannelObject("motorposition")
-            self.motorstate_channel = self.getChannelObject("motorstate")
+            self.actuator_channel = self.get_channel_object("actuator")
+            self.motorpos_channel = self.get_channel_object("motorposition")
+            self.motorstate_channel = self.get_channel_object("motorstate")
 
             self.actuator_channel.connectSignal("update", self.stateChanged)
             self.motorpos_channel.connectSignal("update", self.motorPositionChanged)

@@ -27,7 +27,7 @@ class MicrodiffActuator(AbstractActuator):
     def init(self):
         self.cmdname = self.getProperty("cmd_name")
         self.username = self.getProperty("username")
-        self.cmd_attr = self.addChannel(
+        self.cmd_attr = self.add_channel(
             {"type": "exporter", "name": "move"}, self.cmdname
         )
         self.cmd_attr.connectSignal("update", self.value_changed)
@@ -36,7 +36,7 @@ class MicrodiffActuator(AbstractActuator):
         if self.statecmdname is None:
             self.statecmdname = self.cmdname
 
-        self.state_attr = self.addChannel(
+        self.state_attr = self.add_channel(
             {"type": "exporter", "name": "state"}, self.statecmdname
         )
         self.value_changed(self.state_attr.getValue())
@@ -58,11 +58,11 @@ class MicrodiffActuator(AbstractActuator):
             pass
 
         if self.getProperty("use_hwstate"):
-            self.hwstate_attr = self.addChannel(
+            self.hwstate_attr = self.add_channel(
                 {"type": "exporter", "name": "hwstate"}, "HardwareState"
             )
 
-        self.swstate_attr = self.addChannel(
+        self.swstate_attr = self.add_channel(
             {"type": "exporter", "name": "swstate"}, "State"
         )
 

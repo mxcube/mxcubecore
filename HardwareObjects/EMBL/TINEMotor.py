@@ -49,7 +49,7 @@ class TINEMotor(AbstractMotor):
     def init(self):
         """Connects to all Tine channels and commands"""
 
-        self.chan_limits = self.getChannelObject("axisLimits", optional=True)
+        self.chan_limits = self.get_channel_object("axisLimits", optional=True)
         if self.chan_limits is not None:
             self.chan_limits.connectSignal("update", self.update_limits)
             self.update_limits(self.chan_limits.getValue())
@@ -60,12 +60,12 @@ class TINEMotor(AbstractMotor):
             except BaseException:
                 pass
 
-        self.chan_position = self.getChannelObject("axisPosition")
+        self.chan_position = self.get_channel_object("axisPosition")
         if self.chan_position is not None:
             self.chan_position.connectSignal("update", self.update_value())
         self.update_value(self.chan_position.getValue())
 
-        self.chan_state = self.getChannelObject("axisState", optional=True)
+        self.chan_state = self.get_channel_object("axisState", optional=True)
         if self.chan_state is not None:
             self.chan_state.connectSignal("update", self.update_state)
 

@@ -134,25 +134,6 @@ class DigitalZoomMotor(AbstractMotor, Device):
             self.camera.set_zoom(absolute_position)
             self.motor_position_changed(absolute_position)
 
-    def moveRelative(self, relative_position):
-        """
-        Descript. : move for the given distance
-        """
-        self.set_value(self.get_value() + relative_position)
-
-    def syncMove(self, absolute_position, timeout=None):
-        """
-        Descript. : same as normal move, for position change is instantaneous
-        """
-        self.set_value(absolute_position)
-
-    def syncMoveRelative(self, relative_position, timeout=None):
-        """
-        Descript. : same as normal moveRelative, for position change is
-                    instantaneous
-        """
-        self.syncMove(self.get_value() + relative_position, timeout)
-
     def stop(self):
         """
         Descript. : does nothing, for position change is instantaneous

@@ -16,5 +16,5 @@ class ID30A3BeamCmds(HardwareObject):
         self.anneal = ControllerCommand("Anneal", controller.anneal_procedure)
         self.jetvideo = ControllerCommand("Jet video", controller.jet_video)
 
-    def getCommands(self):
+    def get_commands(self):
         return [self.centrebeam, self.quick_realign, self.anneal, self.jetvideo]

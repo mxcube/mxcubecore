@@ -12,7 +12,7 @@ class BIOMAXAperture(MicrodiffAperture):
 
     def init(self):
         MicrodiffAperture.init(self)
-        self.aperture_position = self.addChannel(
+        self.aperture_position = self.add_channel(
             {"type": "exporter", "name": "AperturePosition"}, "AperturePosition"
         )
         if self.aperture_position is not None:

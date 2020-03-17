@@ -85,7 +85,7 @@ class CatsMaint(Equipment):
         else:
             self.nb_of_lids = 3
 
-        self._chnState = self.addChannel(
+        self._chnState = self.add_channel(
             {
                 "type": "tango",
                 "name": "_chnState",
@@ -95,7 +95,7 @@ class CatsMaint(Equipment):
             "State",
         )
 
-        self._chnPathRunning = self.addChannel(
+        self._chnPathRunning = self.add_channel(
             {
                 "type": "tango",
                 "name": "_chnPathRunning",
@@ -104,7 +104,7 @@ class CatsMaint(Equipment):
             },
             "PathRunning",
         )
-        self._chnPowered = self.addChannel(
+        self._chnPowered = self.add_channel(
             {
                 "type": "tango",
                 "name": "_chnPowered",
@@ -113,7 +113,7 @@ class CatsMaint(Equipment):
             },
             "Powered",
         )
-        self._chnMessage = self.addChannel(
+        self._chnMessage = self.add_channel(
             {
                 "type": "tango",
                 "name": "_chnMessage",
@@ -122,7 +122,7 @@ class CatsMaint(Equipment):
             },
             "Message",
         )
-        self._chnToolOpenClose = self.addChannel(
+        self._chnToolOpenClose = self.add_channel(
             {
                 "type": "tango",
                 "name": "_chnToolOpenClose",
@@ -131,7 +131,7 @@ class CatsMaint(Equipment):
             },
             "di_ToolOpen",
         )
-        self._chnLN2Regulation = self.addChannel(
+        self._chnLN2Regulation = self.add_channel(
             {
                 "type": "tango",
                 "name": "_chnLN2Regulation",
@@ -140,7 +140,7 @@ class CatsMaint(Equipment):
             },
             "LN2Regulating",
         )
-        self._chnBarcode = self.addChannel(
+        self._chnBarcode = self.add_channel(
             {
                 "type": "tango",
                 "name": "_chnBarcode",
@@ -150,7 +150,7 @@ class CatsMaint(Equipment):
             "Barcode",
         )
 
-        self._chnLid1State = self.addChannel(
+        self._chnLid1State = self.add_channel(
             {
                 "type": "tango",
                 "name": "_chnLid1State",
@@ -162,7 +162,7 @@ class CatsMaint(Equipment):
         self._chnLid1State.connectSignal("update", self._updateLid1State)
 
         if self.nb_of_lids > 1:
-            self._chnLid2State = self.addChannel(
+            self._chnLid2State = self.add_channel(
                 {
                     "type": "tango",
                     "name": "_chnLid2State",
@@ -174,7 +174,7 @@ class CatsMaint(Equipment):
             self._chnLid2State.connectSignal("update", self._updateLid2State)
 
         if self.nb_of_lids > 2:
-            self._chnLid3State = self.addChannel(
+            self._chnLid3State = self.add_channel(
                 {
                     "type": "tango",
                     "name": "_chnLid3State",
@@ -193,7 +193,7 @@ class CatsMaint(Equipment):
         self._chnLN2Regulation.connectSignal("update", self._updateRegulationState)
         self._chnBarcode.connectSignal("update", self._updateBarcode)
 
-        self._chnCurrentTool = self.addChannel(
+        self._chnCurrentTool = self.add_channel(
             {"type": "tango", "name": "_chnCurrentTool", "tangoname": self.tangoname},
             "Tool",
         )

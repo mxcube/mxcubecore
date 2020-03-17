@@ -123,17 +123,17 @@ class EMBLMachineInfo(HardwareObject):
         self.hutch_temp_addr = self.getProperty("hutchTempAddress")
         self.hutch_hum_addr = self.getProperty("hutchHumAddress")
 
-        self.chan_mach_curr = self.getChannelObject("machCurrent")
+        self.chan_mach_curr = self.get_channel_object("machCurrent")
         self.chan_mach_curr.connectSignal("update", self.mach_current_changed)
-        self.chan_state_text = self.getChannelObject("machStateText")
+        self.chan_state_text = self.get_channel_object("machStateText")
         self.chan_state_text.connectSignal("update", self.state_text_changed)
         # self.state_text_changed(self.chan_state_text.getValue())
 
-        self.chan_mach_energy = self.getChannelObject("machEnergy")
+        self.chan_mach_energy = self.get_channel_object("machEnergy")
         self.chan_mach_energy.connectSignal("update", self.mach_energy_changed)
-        self.chan_bunch_count = self.getChannelObject("machBunchCount")
+        self.chan_bunch_count = self.get_channel_object("machBunchCount")
         self.chan_bunch_count.connectSignal("update", self.bunch_count_changed)
-        self.chan_frontend_status = self.getChannelObject("frontEndStatus")
+        self.chan_frontend_status = self.get_channel_object("frontEndStatus")
         self.chan_frontend_status.connectSignal("update", self.frontend_status_changed)
         # self.frontend_status_changed(self.chan_frontend_status.getValue())
 
@@ -146,12 +146,12 @@ class EMBLMachineInfo(HardwareObject):
                 "title": "Measured flux",
             }
 
-        self.chan_undulator_gap = self.getChannelObject("chanUndulatorGap")
+        self.chan_undulator_gap = self.get_channel_object("chanUndulatorGap")
         if self.chan_undulator_gap is not None:
             self.chan_undulator_gap.connectSignal("update", self.undulator_gap_changed)
         self.undulator_gap_changed(self.chan_undulator_gap.getValue())
 
-        self.chan_cryojet_in = self.getChannelObject("cryojetIn", optional=True)
+        self.chan_cryojet_in = self.get_channel_object("cryojetIn", optional=True)
         if self.chan_cryojet_in is not None:
             self.values_ordered_dict["cryo"] = {
                 "value": "???",
@@ -163,7 +163,7 @@ class EMBLMachineInfo(HardwareObject):
         else:
             logging.getLogger("HWR").debug("MachineInfo: Cryojet channel not defined")
 
-        self.chan_sc_dewar_low_level_alarm = self.getChannelObject(
+        self.chan_sc_dewar_low_level_alarm = self.get_channel_object(
             "scLowLevelAlarm", optional=True
         )
         if self.chan_sc_dewar_low_level_alarm is not None:
@@ -178,7 +178,7 @@ class EMBLMachineInfo(HardwareObject):
             )
             self.low_level_alarm_changed(self.chan_sc_dewar_low_level_alarm.getValue())
 
-        self.chan_sc_dewar_overflow_alarm = self.getChannelObject(
+        self.chan_sc_dewar_overflow_alarm = self.get_channel_object(
             "scOverflowAlarm", optional=True
         )
         if self.chan_sc_dewar_overflow_alarm is not None:
@@ -199,7 +199,7 @@ class EMBLMachineInfo(HardwareObject):
                 self.file_transfer_status_changed,
             )
 
-        self.chan_count_dropped = self.getChannelObject(
+        self.chan_count_dropped = self.get_channel_object(
             "framesCountDropped", optional=True
         )
         if self.chan_count_dropped is not None:
