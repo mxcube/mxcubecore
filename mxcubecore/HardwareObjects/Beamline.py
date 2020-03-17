@@ -634,7 +634,7 @@ class Beamline(ConfiguredObject):
 
         # TODO: Rename detector_mode to detector_binning_mode(?).
         try:
-            acq_parameters.detector__mode = self.detector.get_mode()
+            acq_parameters.detector_mode = self.detector.get_mode()
         except:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
