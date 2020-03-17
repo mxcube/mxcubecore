@@ -29,8 +29,8 @@ class ALBAFrontEnd(ALBAEpsActuator):
     def init(self):
         ALBAEpsActuator.init(self)
 
-        self.open_channel = self.getChannelObject("open_command")
-        self.close_channel = self.getChannelObject("close_command")
+        self.open_channel = self.get_channel_object("open_command")
+        self.close_channel = self.get_channel_object("close_command")
 
     def cmdIn(self):
         self.open_channel.setValue(True)

@@ -156,8 +156,8 @@ class FlexHCD(SampleChanger):
             self.controller.hutch_actions(condition=False, sc_loading=True)
         else:
             gevent.sleep(2)
-            self.getCommandObject("unlockMinidiffMotors")(wait=True)
-            self.getCommandObject("prepareCentring")(wait=True)
+            self.get_command_object("unlockMinidiffMotors")(wait=True)
+            self.get_command_object("prepareCentring")(wait=True)
 
     def prepareCentring(self):
         self.prepare_centring()

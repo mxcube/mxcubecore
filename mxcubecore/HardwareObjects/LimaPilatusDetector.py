@@ -105,7 +105,7 @@ class LimaPilatusDetector(AbstractDetector):
                 "SetImageHeader",
             )
 
-            self.getChannelObject("image_roi").connectSignal(
+            self.get_channel_object("image_roi").connectSignal(
                 "update", self.roi_mode_changed
             )
 
@@ -124,7 +124,7 @@ class LimaPilatusDetector(AbstractDetector):
 
     def last_image_saved(self):
         try:
-            return self.getChannelObject("last_image_saved").getValue() + 1
+            return self.get_channel_object("last_image_saved").getValue() + 1
         except Exception:
             return 0
 

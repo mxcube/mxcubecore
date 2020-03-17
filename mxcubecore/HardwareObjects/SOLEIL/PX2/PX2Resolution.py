@@ -15,18 +15,18 @@ class PX2Resolution(Resolution):
 
         self.currentResolution = None
 
-        self.energy_channel = self.getChannelObject("energy")
+        self.energy_channel = self.get_channel_object("energy")
         self.energy_channel.connectSignal("update", self.update_resolution)
 
-        self.energy_state_channel = self.getChannelObject("energy_state")
+        self.energy_state_channel = self.get_channel_object("energy_state")
         self.energy_state_channel.connectSignal("update", self.update_energy_state)
 
-        self.detector_distance_channel = self.getChannelObject("detector_position")
+        self.detector_distance_channel = self.get_channel_object("detector_position")
         self.energy_channel.connectSignal("update", self.update_resolution)
         self.energy_channel.connectSignal("valueChanged", self.update_resolution)
         self.detector_distance_channel.connectSignal("update", self.update_resolution)
 
-        self.detector_position_state_channel = self.getChannelObject(
+        self.detector_position_state_channel = self.get_channel_object(
             "detector_position_state"
         )
         self.detector_position_state_channel.connectSignal(

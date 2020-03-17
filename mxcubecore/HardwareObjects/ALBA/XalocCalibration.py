@@ -11,8 +11,8 @@ class XalocCalibration(BaseHardwareObjects.Device):
 
     def init(self):
 
-        self.calibx = self.getChannelObject("calibx")
-        self.caliby = self.getChannelObject("caliby")
+        self.calibx = self.get_channel_object("calibx")
+        self.caliby = self.get_channel_object("caliby")
 
         if self.calibx is not None and self.caliby is not None:
             print("Connected to calibration channels")
