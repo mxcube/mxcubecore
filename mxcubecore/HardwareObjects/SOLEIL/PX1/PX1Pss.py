@@ -8,7 +8,7 @@ class PX1Pss(Device):
     states = {0: "not ready", 1: "ready"}
 
     def init(self):
-        self.state_chan = self.getChannelObject("state")
+        self.state_chan = self.get_channel_object("state")
         self.state_chan.connectSignal("update", self.value_changed)
 
     def value_changed(self, value):

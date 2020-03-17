@@ -268,7 +268,7 @@ class GenericDiffractometer(HardwareObject):
                 pass  # used the default value
 
         for channel_name in self.used_channels_list:
-            self.channel_dict[channel_name] = self.getChannelObject(channel_name)
+            self.channel_dict[channel_name] = self.get_channel_object(channel_name)
             if self.channel_dict[channel_name] is None:
                 continue
             if channel_name == "TransferMode":
@@ -909,7 +909,7 @@ class GenericDiffractometer(HardwareObject):
                 pass
                 # if not self.in_plate_mode():
                 #    logging.getLogger("HWR").debug("Centring finished. Moving omega back to initial position")
-                #    self.motor_hwobj_dict['phi'].syncMoveRelative(-180)
+                #    self.motor_hwobj_dict['phi'].set_value_relative(-180, timeout=None)
                 #    logging.getLogger("HWR").debug("         Moving omega done")
 
             if (

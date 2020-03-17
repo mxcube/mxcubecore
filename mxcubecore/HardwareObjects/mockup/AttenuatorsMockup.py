@@ -16,7 +16,7 @@ class AttenuatorsMockup(Device):
     def get_value(self):
         return self.value
 
-    def set_value(self, value):
+    def _set_value(self, value):
         self.value = value
         self.emit("attFactorChanged", self.value)
 

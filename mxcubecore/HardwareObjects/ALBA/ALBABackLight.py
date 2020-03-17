@@ -20,8 +20,8 @@ class ALBABackLight(Device):
 
     def init(self):
 
-        self.backlightin_channel = self.getChannelObject("backlightin")
-        self.level_channel = self.getChannelObject("light_level")
+        self.backlightin_channel = self.get_channel_object("backlightin")
+        self.level_channel = self.get_channel_object("light_level")
 
         limits = self.getProperty("limits")
 

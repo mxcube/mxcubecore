@@ -16,17 +16,17 @@ class XrfSpectrum(Equipment):
         self.ready_event = gevent.event.Event()
 
         try:
-            self.config_data = self.getChannelObject("config_data")
+            self.config_data = self.get_channel_object("config_data")
         except BaseException:
             self.config_data = None
 
         try:
-            self.calib_data = self.getChannelObject(" calib_data")
+            self.calib_data = self.get_channel_object(" calib_data")
         except BaseException:
             self.calib_data = None
 
         try:
-            self.energySpectrumArgs = self.getChannelObject("spectrum_args")
+            self.energySpectrumArgs = self.get_channel_object("spectrum_args")
         except KeyError:
             logging.getLogger().warning(
                 "XRFSpectrum: error initializing energy spectrum arguments (missing channel)"
@@ -34,7 +34,7 @@ class XrfSpectrum(Equipment):
             self.energySpectrumArgs = None
 
         try:
-            self.spectrumStatusMessage = self.getChannelObject("spectrumStatusMsg")
+            self.spectrumStatusMessage = self.get_channel_object("spectrumStatusMsg")
         except KeyError:
             self.spectrumStatusMessage = None
             logging.getLogger().warning(
@@ -254,13 +254,13 @@ class XrfSpectrum(Equipment):
 
         if result:
             try:
-                mcaData = self.getChannelObject("mca_data").getValue()
-                mcaCalib = self.getChannelObject("calib_data").getValue()
+                mcaData = self.get_channel_object("mca_data").getValue()
+                mcaCalib = self.get_channel_object("calib_data").getValue()
             except BaseException:
                 mcaData = self.mca_hwobj.read_data(save_data=True)
                 mcaCalib = self.mca_hwobj.get_calibration()
             try:
-                mcaConfig = self.getChannelObject("config_data").getValue()
+                mcaConfig = self.get_channel_object("config_data").getValue()
                 self.spectrumInfo["beamTransmission"] = mcaConfig["att"]
                 self.spectrumInfo["energy"] = mcaConfig["energy"]
                 self.spectrumInfo["beamSizeHorizontal"] = float(mcaConfig["bsX"])

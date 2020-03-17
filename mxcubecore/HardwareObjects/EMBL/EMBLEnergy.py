@@ -71,23 +71,23 @@ class EMBLEnergy(AbstractEnergy):
         self.cmd_release_break_bragg = self.get_command_object("cmdReleaseBreakBragg")
         self.cmd_reset_perp = self.get_command_object("cmdResetPerp")
 
-        self.chan_energy = self.getChannelObject("chanEnergy")
+        self.chan_energy = self.get_channel_object("chanEnergy")
         if self.chan_energy is not None:
             self.chan_energy.connectSignal("update", self.energy_position_changed)
 
-        self.chan_limit_low = self.getChannelObject("chanLimitLow", optional=True)
+        self.chan_limit_low = self.get_channel_object("chanLimitLow", optional=True)
         if self.chan_limit_low is not None:
             self.chan_limit_low.connectSignal("update", self.energy_limits_changed)
 
-        self.chan_limit_high = self.getChannelObject("chanLimitHigh", optional=True)
+        self.chan_limit_high = self.get_channel_object("chanLimitHigh", optional=True)
         if self.chan_limit_high is not None:
             self.chan_limit_high.connectSignal("update", self.energy_limits_changed)
 
-        self.chan_status = self.getChannelObject("chanStatus")
+        self.chan_status = self.get_channel_object("chanStatus")
         if self.chan_status is not None:
             self.chan_status.connectSignal("update", self.energy_state_changed)
 
-        self.chan_undulator_gaps = self.getChannelObject(
+        self.chan_undulator_gaps = self.get_channel_object(
             "chanUndulatorGap", optional=True
         )
         if self.chan_undulator_gaps is not None:
@@ -95,7 +95,7 @@ class EMBLEnergy(AbstractEnergy):
                 "update", self.undulator_gaps_changed
             )
 
-        self.chan_status_bragg_break = self.getChannelObject("chanStatusBraggBreak")
+        self.chan_status_bragg_break = self.get_channel_object("chanStatusBraggBreak")
         if self.chan_status_bragg_break is not None:
             self.chan_status_bragg_break.connectSignal(
                 "update", self.bragg_break_status_changed

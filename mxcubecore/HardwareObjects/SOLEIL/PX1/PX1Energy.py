@@ -45,12 +45,12 @@ class PX1Energy(Device, AbstractEnergy):
         # parameters for polling
         self.isConnected()
 
-        self.energy_chan = self.getChannelObject("energy")
+        self.energy_chan = self.get_channel_object("energy")
         self.energy_chan.connectSignal("update", self.energyChanged)
 
         self.stop_cmd = self.get_command_object("stop")
 
-        self.state_chan = self.getChannelObject("state")
+        self.state_chan = self.get_channel_object("state")
         self.state_chan.connectSignal("update", self.stateChanged)
 
     def connectNotify(self, signal):

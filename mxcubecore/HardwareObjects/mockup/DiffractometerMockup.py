@@ -390,7 +390,7 @@ class DiffractometerMockup(GenericDiffractometer):
         return (-360, 360)
 
     def move_omega_relative(self, relative_angle):
-        self.motor_hwobj_dict["phi"].syncMoveRelative(relative_angle, 5)
+        self.motor_hwobj_dict["phi"].set_value_relative(relative_angle, 5)
 
     def set_phase(self, phase, timeout=None):
         self.current_phase = str(phase)

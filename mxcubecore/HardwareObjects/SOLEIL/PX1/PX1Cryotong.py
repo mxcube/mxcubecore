@@ -60,7 +60,7 @@ class PX1Cryotong(Cats90):
             "_chnSampleIsDetected",
             "_chnCountDown",
         ):
-            setattr(self, channel_name, self.getChannelObject(channel_name))
+            setattr(self, channel_name, self.get_channel_object(channel_name))
 
         self._chnSoftAuth.connectSignal("update", self._softwareAuthorization)
         self._chnHomeOpened.connectSignal("update", self._updateHomeOpened)
