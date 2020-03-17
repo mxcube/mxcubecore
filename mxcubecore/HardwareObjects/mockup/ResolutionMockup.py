@@ -14,7 +14,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
     def init(self):
         self.currentResolution = 3
         self.detmState = None
-        self.state = 2
+        self.state = self.STATES.READY
         self.connect(
             HWR.beamline.detector.distance, "valueChanged", self.dtoxPositionChanged
         )
