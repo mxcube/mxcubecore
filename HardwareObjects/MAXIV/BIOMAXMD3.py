@@ -84,7 +84,7 @@ class BIOMAXMD3(GenericDiffractometer):
 
         self.cent_vertical_pseudo_motor = None
         try:
-            self.cent_vertical_pseudo_motor = self.addChannel(
+            self.cent_vertical_pseudo_motor = self.add_channel(
                 {"type": "exporter", "name": "CentringTableVerticalPositionPosition"},
                 "CentringTableVerticalPosition",
             )
@@ -176,7 +176,7 @@ class BIOMAXMD3(GenericDiffractometer):
                     self.phi_motor_hwobj.set_value(dynamic_limits[1])
             else:
                 if click < 2:
-                    self.phi_motor_hwobj.moveRelative(90)
+                    self.phi_motor_hwobj.set_value_relative(90)
         self.omega_reference_add_constraint()
         return self.centring_hwobj.centeredPosition(return_by_name=False)
 
@@ -199,10 +199,9 @@ class BIOMAXMD3(GenericDiffractometer):
                     }
                 )
             surface_score_list.append(score)
-            self.phi_motor_hwobj.moveRelative(
-                360.0 / BIOMAXMD3.AUTOMATIC_CENTRING_IMAGES
+            self.phi_motor_hwobj.set_value_relative(
+                360.0 / BIOMAXMD3.AUTOMATIC_CENTRING_IMAGES, timeout=5
             )
-            self.wait_device_ready(5)
         self.omega_reference_add_constraint()
         return self.centring_hwobj.centeredPosition(return_by_name=False)
 
@@ -214,8 +213,7 @@ class BIOMAXMD3(GenericDiffractometer):
         # check if loop is there at the beginning
         i = 0
         while -1 in self.find_loop():
-            self.phi_motor_hwobj.moveRelative(90)
-            self.wait_device_ready(5)
+            self.phi_motor_hwobj.set_value_relative(90, timeout=5)
             i += 1
             if i > 4:
                 self.emit_progress_message("No loop detected, aborting")
@@ -231,8 +229,7 @@ class BIOMAXMD3(GenericDiffractometer):
                 if x < 0 or y < 0:
                     for i in range(1, 9):
                         # logging.info("loop not found - moving back %d" % i)
-                        self.phi_motor_hwobj.moveRelative(10)
-                        self.wait_device_ready(5)
+                        self.phi_motor_hwobj.set_value_relative(10, timeout=5)
                         x, y, score = self.find_loop()
                         surface_score_list.append(score)
                         if -1 in (x, y):
@@ -262,8 +259,7 @@ class BIOMAXMD3(GenericDiffractometer):
                                 break
                     if -1 in (x, y):
                         raise RuntimeError("Could not centre sample automatically.")
-                    self.phi_motor_hwobj.moveRelative(-i * 10)
-                    self.wait_device_ready(5)
+                    self.phi_motor_hwobj.set_value_relative(-i * 10, timeout=5)
                 else:
                     self.centring_hwobj.appendCentringDataPoint(
                         {
@@ -271,7 +267,7 @@ class BIOMAXMD3(GenericDiffractometer):
                             "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y,
                         }
                     )
-                self.phi_motor_hwobj.moveRelative(90)
+                self.phi_motor_hwobj.set_value_relative(90)
                 self.wait_device_ready(5)
 
             self.omega_reference_add_constraint()
@@ -600,10 +596,10 @@ class BIOMAXMD3(GenericDiffractometer):
             ) / float(self.pixelsPerMmY)
             self.emit_progress_message("")
 
-            self.phiy_motor_hwobj.moveRelative(
+            self.phiy_motor_hwobj.set_value_relative(
                 -1 * (y - beam_yc) / float(self.pixelsPerMmZ)
             )
-            self.cent_vertical_pseudo_motor.setValue(cent_vertical_to_move)
+            self.cent_vertical_pseudo_motor.set_value(cent_vertical_to_move)
             self.wait_device_ready(5)
         except BaseException:
             logging.getLogger("HWR").exception("MD3: could not move to beam.")
@@ -637,7 +633,7 @@ class BIOMAXMD3(GenericDiffractometer):
         """
         Descript. :
         """
-        self.phi_motor_hwobj.syncMoveRelative(relative_angle, 10)
+        self.phi_motor_hwobj.set_value_relative(relative_angle, 10)
 
     def is_ready(self):
         """

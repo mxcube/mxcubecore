@@ -217,7 +217,7 @@ class PlateManipulator(SampleChanger):
         """
         Descript. :
         """
-        cmd_get_config = self.getChannelObject("GetPlateConfig", optional=True)
+        cmd_get_config = self.get_channel_object("GetPlateConfig", optional=True)
         if cmd_get_config:
             try:
                 self.num_rows, self.num_cols, self.num_drops = (
@@ -246,8 +246,8 @@ class PlateManipulator(SampleChanger):
 
         self._initSCContents()
 
-        self.chan_current_phase = self.getChannelObject("CurrentPhase")
-        self.chan_plate_location = self.getChannelObject("PlateLocation")
+        self.chan_current_phase = self.get_channel_object("CurrentPhase")
+        self.chan_plate_location = self.get_channel_object("PlateLocation")
         if self.chan_plate_location is not None:
             self.chan_plate_location.connectSignal(
                 "update", self.plate_location_changed
@@ -255,7 +255,7 @@ class PlateManipulator(SampleChanger):
 
             self.plate_location_changed(self.chan_plate_location.get_value())
 
-        self.chan_state = self.getChannelObject("State")
+        self.chan_state = self.get_channel_object("State")
         if self.chan_state is not None:
             self.chan_state.connectSignal("update", self.state_changed)
 

@@ -148,29 +148,29 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             basket = Container.Basket(self, i + 1)
             self._addComponent(basket)
 
-        self.chan_mounted_sample_puck = self.getChannelObject("chanMountedSamplePuck")
+        self.chan_mounted_sample_puck = self.get_channel_object("chanMountedSamplePuck")
         self.chan_mounted_sample_puck.connectSignal("update", self.mounted_sample_puck_changed)
 
-        self.chan_process_step_info = self.getChannelObject("chanProcessStepInfo",
-                                                            optional=True)
+        self.chan_process_step_info = self.get_channel_object("chanProcessStepInfo",
+                                                              optional=True)
         if self.chan_process_step_info is not None:
             self.chan_process_step_info.connectSignal("update", self.process_step_info_changed)
 
-        self.chan_command_list = self.getChannelObject("chanCommandList",
-                                                       optional=True)
+        self.chan_command_list = self.get_channel_object("chanCommandList",
+                                                         optional=True)
         if self.chan_command_list is not None:
             self.chan_command_list.connectSignal("update", self.command_list_changed)
 
-        self.chan_puck_switches = self.getChannelObject("chanPuckSwitches")
+        self.chan_puck_switches = self.get_channel_object("chanPuckSwitches")
         self.chan_puck_switches.connectSignal("update", self.puck_switches_changed)
         
-        self.chan_status = self.getChannelObject("chanStatusList")
+        self.chan_status = self.get_channel_object("chanStatusList")
         self.chan_status.connectSignal("update", self.status_list_changed)
 
-        self.chan_sample_is_loaded = self.getChannelObject("chanSampleIsLoaded")
+        self.chan_sample_is_loaded = self.get_channel_object("chanSampleIsLoaded")
         self.chan_sample_is_loaded.connectSignal("update", self.sample_is_loaded_changed)
 
-        self.chan_veto = self.getChannelObject("chanVeto", optional=True)
+        self.chan_veto = self.get_channel_object("chanVeto", optional=True)
         if self.chan_veto is not None:
             self.chan_veto.connectSignal("update", self.veto_changed)
 

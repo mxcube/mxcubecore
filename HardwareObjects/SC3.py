@@ -125,7 +125,7 @@ class SC3(SampleChanger):
 
     def init(self):
         for channel_name in ("_state", "_selected_basket", "_selected_sample"):
-            setattr(self, channel_name, self.getChannelObject(channel_name))
+            setattr(self, channel_name, self.get_channel_object(channel_name))
 
         for command_name in (
             "_abort",

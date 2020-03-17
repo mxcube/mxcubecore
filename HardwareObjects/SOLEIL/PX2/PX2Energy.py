@@ -8,10 +8,10 @@ class PX2Energy(EnergyMockup):
     def init(self):
         self.energy = energy()
 
-        self.energy_channel = self.getChannelObject("energy")
+        self.energy_channel = self.get_channel_object("energy")
         self.energy_channel.connectSignal("update", self.energy_changed)
 
-        self.state_channel = self.getChannelObject("state")
+        self.state_channel = self.get_channel_object("state")
         self.state_channel.connectSignal("update", self.energy_state_changed)
 
         self.tunable = self.getProperty("tunable")

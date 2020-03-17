@@ -184,16 +184,16 @@ class EMBLFlux(AbstractFlux):
         except BaseException:
             logging.getLogger("HWR").error("BeamlineTest: No intensity ranges defined")
 
-        self.chan_intens_mean = self.getChannelObject("intensMean")
+        self.chan_intens_mean = self.get_channel_object("intensMean")
         self.chan_intens_mean.connectSignal("update", self.intens_mean_changed)
 
-        self.chan_intens_range = self.getChannelObject("intensRange")
-        self.chan_flux_transmission = self.getChannelObject("fluxTransmission")
+        self.chan_intens_range = self.get_channel_object("intensRange")
+        self.chan_flux_transmission = self.get_channel_object("fluxTransmission")
 
-        self.cmd_set_intens_resolution = self.getCommandObject("setIntensResolution")
-        self.cmd_set_intens_acq_time = self.getCommandObject("setIntensAcqTime")
-        self.cmd_set_intens_range = self.getCommandObject("setIntensRange")
-        self.cmd_flux_record = self.getCommandObject("fluxRecord")
+        self.cmd_set_intens_resolution = self.get_command_object("setIntensResolution")
+        self.cmd_set_intens_acq_time = self.get_command_object("setIntensAcqTime")
+        self.cmd_set_intens_range = self.get_command_object("setIntensRange")
+        self.cmd_flux_record = self.get_command_object("fluxRecord")
 
         self.back_light_hwobj = self.getObjectByRole("backlight")
         self.beamstop_hwobj = self.getObjectByRole("beamstop")
@@ -205,10 +205,10 @@ class EMBLFlux(AbstractFlux):
 
         # self.init_flux_values()
 
-        self.chan_flux_status = self.getChannelObject("fluxStatus")
+        self.chan_flux_status = self.get_channel_object("fluxStatus")
         self.chan_flux_status.connectSignal("update", self.flux_status_changed)
 
-        self.chan_flux_message = self.getChannelObject("fluxMessage")
+        self.chan_flux_message = self.get_channel_object("fluxMessage")
         self.chan_flux_message.connectSignal("update", self.flux_message_changed)
 
         self.connect(HWR.beamline.beam, "beamInfoChanged", self.beam_info_changed)

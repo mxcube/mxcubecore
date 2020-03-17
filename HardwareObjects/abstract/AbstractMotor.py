@@ -74,7 +74,7 @@ class AbstractMotor(AbstractActuator):
         """
         self._velocity = velocity
 
-    def set_value_relative(self, relative_value, timeout=None):
+    def set_value_relative(self, relative_value, timeout=0):
         """
         Set actuator to relative to the current value
         Args:
