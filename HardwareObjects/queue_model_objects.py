@@ -600,7 +600,7 @@ class DataCollection(TaskNode):
             "energy": parameters.energy,
             "resolution": parameters.resolution,
             "transmission": parameters.transmission,
-            "detector_mode": parameters.detector_mode,
+            "detector_binning_mode": parameters.detector_binning_mode,
             "detector_roi_mode": parameters.detector_roi_mode,
             "shutterless": parameters.shutterless,
             "inverse_beam": parameters.inverse_beam,
@@ -1579,7 +1579,7 @@ class AcquisitionParameters(object):
         self.take_video = False
         self.take_dark_current = True
         self.skip_existing_images = False
-        self.detector_mode = str()
+        self.detector_binning_mode = str()
         self.detector_roi_mode = str()
         self.induce_burn = False
         self.mesh_range = ()
@@ -1623,7 +1623,7 @@ class AcquisitionParameters(object):
             "take_video": self.take_video,
             "take_dark_current": self.take_dark_current,
             "skip_existing_images": self.skip_existing_images,
-            "detector_mode": self.detector_mode,
+            "detector_binning_mode": self.detector_binning_mode,
             "detector_roi_mode": self.detector_roi_mode,
             "induce_burn": self.induce_burn,
             "mesh_range": self.mesh_range,
@@ -2041,7 +2041,7 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
                        'process_directory': '/data/id14eh4/inhouse/' +\
                                             'opid144/20120808/PROCESSED_DATA'},
           'in_queue': 0,
-          'detector_mode': 2,
+          'detector_binning_mode': 2,
           'shutterless': 0,
           'sessionId': 32368,
           'do_inducedraddam': False,
@@ -2088,7 +2088,7 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
             },
             "in_queue": acq_params.in_queue,
             "in_interleave": acq_params.in_interleave,
-            "detector_mode": acq_params.detector_mode,
+            "detector_binning_mode": acq_params.detector_binning_mode,
             "detector_roi_mode": acq_params.detector_roi_mode,
             "shutterless": acq_params.shutterless,
             "sessionId": session.session_id,

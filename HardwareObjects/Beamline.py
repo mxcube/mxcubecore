@@ -632,15 +632,14 @@ class Beamline(ConfiguredObject):
             )
             acq_parameters.shutterless = False
 
-        # TODO: Rename detector_mode to detector_binning_mode(?).
         try:
-            acq_parameters.detector_mode = self.detector.get_mode()
+            acq_parameters.detector_binning_mode = self.detector.get_binning_mode()
         except:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
                 "Could not get detector mode, setting to ''"
             )
-            acq_parameters.detector_mode = ""
+            acq_parameters.detector_binning_mode = ""
 
         try:
             acq_parameters.detector_roi_mode = self.detector.get_roi_mode()
