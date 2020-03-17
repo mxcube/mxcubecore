@@ -14,18 +14,7 @@ class MicrodiffLight(ExporterMotor):
             self._limits = (float(_low), float(_high))
         except (AttributeError, TypeError, ValueError):
             self._limits = (0, 10)
-        self.chan_light_is_on = self.getChannelObject("chanLightIsOn")
-
-    def set_value(self, value, wait=False):
-        """Move motor to absolute value. Wait the move to finish.
-        Args:
-            value (float): target value
-            wait (bool): optional - wait until motor movement finished.
-            timeout (float): optional - timeout [s].
-        """
-        ExporterMotor._set_value(self, value)
-        self.update_value(value)
-        self.update_state()
+        self.chan_light_is_on = self.get_channel_object("chanLightIsOn")
 
     def get_state(self):
         """Get the light state as a motor.

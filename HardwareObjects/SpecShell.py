@@ -207,7 +207,7 @@ class SpecShell(Equipment):
         self.commandRunning = False
         self.emit("aborted", ())
 
-    def executeCommand(self, command):
+    def execute_command(self, command):
         try:
             self.specShellCommand.executeCommand(command)
         except SpecClient.SpecClientError.SpecClientError as diag:

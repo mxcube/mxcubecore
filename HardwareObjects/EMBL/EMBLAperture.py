@@ -52,13 +52,13 @@ class EMBLAperture(AbstractAperture):
         """
         self._position_list = DEFAULT_POSITION_LIST
 
-        self.chan_diameters = self.getChannelObject("ApertureDiameters")
+        self.chan_diameters = self.get_channel_object("ApertureDiameters")
         if self.chan_diameters:
             self._diameter_size_list = self.chan_diameters.getValue()
         else:
             self._diameter_size_list = (10, 20)
 
-        self.chan_diameter_index = self.getChannelObject("CurrentApertureDiameterIndex")
+        self.chan_diameter_index = self.get_channel_object("CurrentApertureDiameterIndex")
         if self.chan_diameter_index is not None:
             self._current_diameter_index = self.chan_diameter_index.getValue()
             self.diameter_index_changed(self._current_diameter_index)
@@ -68,7 +68,7 @@ class EMBLAperture(AbstractAperture):
         else:
             self._current_diameter_index = 0
 
-        self.chan_position = self.getChannelObject("AperturePosition")
+        self.chan_position = self.get_channel_object("AperturePosition")
         if self.chan_position:
             self._current_position_name = self.chan_position.getValue()
             self.current_position_name_changed(self._current_position_name)
@@ -76,7 +76,7 @@ class EMBLAperture(AbstractAperture):
                 "update", self.current_position_name_changed
             )
 
-        self.chan_state = self.getChannelObject("State")
+        self.chan_state = self.get_channel_object("State")
 
     def diameter_index_changed(self, diameter_index):
         """Callback when diameter index has been changed"""

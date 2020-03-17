@@ -62,7 +62,7 @@ class EMBLCRL(HardwareObject):
         self.focal_length = self.getProperty("focal_length")
         self.lens_count = 6
 
-        self.chan_crl_value = self.getChannelObject("chanCrlValue")
+        self.chan_crl_value = self.get_channel_object("chanCrlValue")
         if self.chan_crl_value:
             self.chan_crl_value.connectSignal("update", self.crl_value_changed)
 

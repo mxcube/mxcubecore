@@ -30,7 +30,7 @@ class SOLEILEnergyScan(Equipment):
         self._edge = None
         self.doEnergyScan = None
         try:
-            self.defaultWavelengthChannel = self.getChannelObject("default_wavelength")
+            self.defaultWavelengthChannel = self.get_channel_object("default_wavelength")
         except KeyError:
             self.defaultWavelengthChannel = None
         else:
@@ -45,7 +45,7 @@ class SOLEILEnergyScan(Equipment):
         if self.defaultWavelengthChannel is None:
             # MAD beamline
             try:
-                self.energyScanArgs = self.getChannelObject("escan_args")
+                self.energyScanArgs = self.get_channel_object("escan_args")
             except KeyError:
                 logging.getLogger("HWR").warning(
                     "EnergyScan: error initializing energy scan arguments (missing channel)"
@@ -53,7 +53,7 @@ class SOLEILEnergyScan(Equipment):
                 self.energyScanArgs = None
 
             try:
-                self.scanStatusMessage = self.getChannelObject("scanStatusMsg")
+                self.scanStatusMessage = self.get_channel_object("scanStatusMsg")
             except KeyError:
                 self.scanStatusMessage = None
                 logging.getLogger("HWR").warning(
