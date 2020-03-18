@@ -33,16 +33,6 @@ class EDNACharacterisationMockup(EDNACharacterisation):
     def __init__(self, name):
         super(EDNACharacterisationMockup, self).__init__(name)
 
-    def get_html_report(self, edna_result):
-        html_report = None
-
-        try:
-            html_report = str(edna_result.getHtmlPage().getPath().getValue())
-        except AttributeError:
-            pass
-
-        return html_report
-
     def input_from_params(self, data_collection, char_params):
         return
 
