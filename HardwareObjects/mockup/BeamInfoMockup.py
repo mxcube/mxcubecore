@@ -20,7 +20,8 @@ beamInfoChanged
 
 import logging
 from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.HardwareObjects.abstract.AbstractBeam import (AbstractBeam, BeamShape)
+from HardwareRepository.HardwareObjects.abstract.AbstractBeam import (
+    AbstractBeam, BeamShape)
 
 
 class BeamInfoMockup(AbstractBeam):
@@ -104,6 +105,14 @@ class BeamInfoMockup(AbstractBeam):
             "%sx%s" % (_i["size_x"], _i["size_y"])
         )
 
+    def _set_value(self, size=None):
+        """Set the beam size
+        Args:
+            size (list): Width, heigth or
+                  (str): Position name
+        """
+        self.aperture_hwobj.set_diameter_size(size)
+
     def get_available_size(self):
         """ Get the available predefined beam definers configuration.
         Returns:
@@ -116,7 +125,7 @@ class BeamInfoMockup(AbstractBeam):
         """
         return {
             "type": ["aperture"],
-            "values": self.aperture_hwobj._diameter_size_list
+            "values": self.aperture_hwobj.get_diameter_size_list()
         }
 
     def get_beam_shape(self):
