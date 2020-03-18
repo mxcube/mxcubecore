@@ -62,7 +62,10 @@ class MotorMockup(AbstractMotor):
             limits = DEFAULT_LIMITS
         self.set_limits(limits)
 
-        self.set_value(float(self.getProperty("default_position", DEFAULT_POSITION)))
+        try:
+            self.set_value(float(self.getProperty("default_position")))
+        except BaseException:
+            self.set_value(DEFAULT_POSITION)
 
     def move_task(self, position, wait=False, timeout=None):
         if position is None:
