@@ -45,7 +45,6 @@ class DigitalZoomMotor(AbstractMotor, Device):
         AbstractMotor.__init__(self, name)
         Device.__init__(self, name)
         self.camera = None
-        self.zoom_supported = None
 
     def init(self):
         self.set_limits((1.0, 1.0))
@@ -55,10 +54,10 @@ class DigitalZoomMotor(AbstractMotor, Device):
             logging.getLogger("HWR").warning("DigitalZoomMotor: camera not defined")
             return
         try:
-            self.zoom_supported = self.camera.zoom_exists()
+            self.read_only = not (self.camera.zoom_exists())
         except AttributeError:
-            self.zoom_supported = False
-        if self.zoom_supported:
+            self.read_only = True
+        if not self.read_only:
             limits = self.camera.get_zoom_min_max()
             if limits[0] is None:
                 limits[0] = -1000
@@ -89,10 +88,10 @@ class DigitalZoomMotor(AbstractMotor, Device):
                     changes, stateChanged is fired
         """
         if position is None:
-            if self.zoom_supported:
-                position = self.camera.get_zoom()
-            else:
+            if self.read_only:
                 position = 1.0
+            else:
+                position = self.camera.get_zoom()
 
         if position != self.get_value():
             current_motor_state = self.get_state()
@@ -102,7 +101,7 @@ class DigitalZoomMotor(AbstractMotor, Device):
                 self.update_state(MotorStates.HIGHLIMIT)
             else:
                 current_motor_state = MotorStates.READY
-            if self.zoom_supported and current_motor_state != self.get_state():
+            if (not self.read_only) and current_motor_state != self.get_state():
                 self.update_state(current_motor_state)
                 self.emit("stateChanged", (current_motor_state,))
             self.set_position(position)
@@ -116,23 +115,18 @@ class DigitalZoomMotor(AbstractMotor, Device):
     #        return self.limits
 
     def get_value(self):
-        if self.zoom_supported:
-            self.motor_position = self.camera.get_zoom()
-        else:
+        if self.read_only:
             self.motor_position = 1.0
+        else:
+            self.motor_position = self.camera.get_zoom()
         return self.motor_position
 
-    def move(self, absolute_position):
+    def _set_value(self, value):
         """
         Descript. : move to the given position
         """
-        if (
-            self.zoom_supported
-            and absolute_position >= self.get_limits()[0]
-            and absolute_position <= self.get_limits()[1]
-        ):
-            self.camera.set_zoom(absolute_position)
-            self.motor_position_changed(absolute_position)
+        self.camera.set_zoom(value)
+        self.motor_position_changed(value)
 
     def stop(self):
         """

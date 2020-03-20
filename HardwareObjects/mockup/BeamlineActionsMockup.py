@@ -52,7 +52,7 @@ class ControllerCommand(CommandObject):
                 res = cmd_execution.get()
             except Exception:
                 logging.getLogger("HWR").exception(
-                    "%s: execution failed", str(self.userName())
+                    "%s: execution failed", str(self.username)
                 )
                 self.emit("commandFailed", (str(self.name()),))
             else:

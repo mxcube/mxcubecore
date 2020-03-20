@@ -231,7 +231,7 @@ class SOLEILEnergyScan(Equipment):
             "edgeEnergy": edge,
         }
         if self.fluodetectorHO is not None:
-            self.scanInfo["fluorescenceDetector"] = self.fluodetectorHO.userName()
+            self.scanInfo["fluorescenceDetector"] = self.fluodetectorHO.username
         if not os.path.isdir(directory):
             logging.getLogger("HWR").debug(
                 "EnergyScan: creating directory %s" % directory
