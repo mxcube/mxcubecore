@@ -23,7 +23,7 @@ EMBLPiezoMotor
 
 import logging
 
-HardwareRepository.HardwareObjects.EMBL.TINEMotor import TINEMotor
+from HardwareRepository.HardwareObjects.EMBL.TINEMotor import TINEMotor
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
@@ -47,21 +47,12 @@ class EMBLPiezoMotor(TINEMotor):
         self.cmd_move_first = self.get_command_object("cmdMoveFirst")
         self.cmd_move_second = self.get_command_object("cmdMoveSecond")
 
-    def move(self, target, wait=None, timeout=None):
+    def _set_value(self, value):
         """Moves motor to the target position
 
-        :param target: target position
-        :type target: float
-        :param wait: wait finishing the move
-        :type wait: bool
-        :param timeout: timeout is seconds
-        :type timeout: float
+        :param value: target position
+        :type value: float
         :return: None
         """
-        if target == float("nan"):
-            logging.getLogger().debug(
-                "Refusing to move %s to target nan" % self.objName
-            )
-        else:
-            self.cmd_move_first(target)
-            self.cmd_move_second(1)
+        self.cmd_move_first(value)
+        self.cmd_move_second(1)

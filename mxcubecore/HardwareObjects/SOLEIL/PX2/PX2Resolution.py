@@ -41,8 +41,8 @@ class PX2Resolution(Resolution):
         if signal == "stateChanged":
             self.dtoxStateChanged(self.get_state())
 
-    def move(self, resolution):
-        self.resolution_motor.set_resolution(resolution)
+    def _set_value(self, value):
+        self.resolution_motor.set_resolution(value)
 
     def get_state(self):
         return self.detector_position_state_channel.value
