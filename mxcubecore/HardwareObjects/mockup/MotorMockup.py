@@ -131,9 +131,7 @@ class MotorMockup(AbstractMotor):
                              If timeout == 0: return at once and do not wait;
         """
         self.update_state(self.STATES.BUSY)
+        self.__move_task = gevent.spawn(self._move_task, value)
 
-        if timeout == 0:
-            self._actuator_set_value(value)
-            self.update_state(self.STATES.READY)
-        else:
-            self.__move_task = gevent.spawn(self._move_task, value)
+        if timeout is None:
+            self.__move_task.get()
