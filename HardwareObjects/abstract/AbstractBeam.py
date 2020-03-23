@@ -63,7 +63,7 @@ class AbstractBeam(HardwareObject):
         self.beam_position = (0, 0)
 
     def get_beam_divergence(self):
-        """Get the beam dicergence.
+        """Get the beam divergence.
         Returns:
             (tuple): Beam divergence (horizontal, vertical) [μm]
         """
@@ -81,13 +81,13 @@ class AbstractBeam(HardwareObject):
         """
         return self.beam_width, self.beam_heigth, self.beam_shape, self.beam_label
 
-    def get_availble_size(self):
+    def get_available_size(self):
         """ Get the available predefined beam definers configuration.
         Returns:
             (dict): Dictionary {"type": (list), "values": (list)}, where
                "type": the definer type
                "values": List of available beam size difinitions,
-                         according to the "type". 
+                         according to the "type".
         Raises:
             NotImplementedError
         """
