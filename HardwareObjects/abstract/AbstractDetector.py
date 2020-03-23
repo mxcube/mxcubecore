@@ -160,9 +160,6 @@ class AbstractDetector(HardwareObject):
         """
         return self._binning_mode
 
-    # TODO: Remove once agree on detector_mode naming
-    get_mode = get_binning_mode
-
     def set_binning_mode(self, value):
         """
         Args:
