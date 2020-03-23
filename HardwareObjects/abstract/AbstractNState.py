@@ -22,6 +22,7 @@ Defines the interface for N state devices
 """
 
 import abc
+import ast
 from enum import Enum, unique
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
@@ -50,6 +51,11 @@ class AbstractNState(AbstractActuator):
     def __init__(self, name):
         AbstractActuator.__init__(self, name)
 
+    def init(self):
+        """Initilise the predefimed values"""
+        AbstractActuator.init(self)
+        self.get_values()
+
     def validate_value(self, value):
         """Check if the value is within predefined values.
         Args:
@@ -74,11 +80,19 @@ class AbstractNState(AbstractActuator):
         raise NotImplementedError
 
     def get_values(self):
-        """Get he predefined valies
+        """Get the predefined valies. Create the VALUES Enum
         Returns:
-            (Enum): predefined values Enum
+            (Enum): "ValueEnum" with predefined values.
         """
-        return self.VALUES
+        try:
+            values = ast.literal_eval(self.getProperty("values"))
+            self.VALUES = Enum(
+                "ValueEnum",
+                dict(values, **{item.name: item.value for item in BaseValueEnum},),
+            )
+            return self.VALUES
+        except (ValueError, TypeError):
+            return self.VALUES
 
     def value_to_enum(self, value):
         """Tranform a value to Enum
