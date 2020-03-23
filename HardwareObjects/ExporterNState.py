@@ -23,11 +23,12 @@ Example xml file:
 <device class="ExporterNState">
   <username>Fluorescence Detector</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
-  <cmd_name>FluoDetectorIsBack</cmd_name>
-  <state_definition>InOutEnum</state_definition>
+  <value_channel_name>FluoDetectorIsBack</value_channel_name>
+  <state_channel_name>State</state_channel_name>
+  <values>{"IN": False, "OUT": True}</values>
 </device>
 """
-from gevent import Timeout, sleep
+from enum import Enum
 from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractNState
 from HardwareRepository.Command.Exporter import Exporter
 from HardwareRepository.Command.exporter.ExporterStates import ExporterStates
@@ -51,7 +52,7 @@ class ExporterNState(AbstractNState):
         """Initialise the device"""
         AbstractNState.init(self)
         value_channel = self.getProperty("value_channel_name")
-        state_channel = self.getProperty("state_channel_name")
+        state_channel = self.getProperty("state_channel_name", "State")
 
         _exporter_address = self.getProperty("exporter_address")
         _host, _port = _exporter_address.split(":")
@@ -75,37 +76,59 @@ class ExporterNState(AbstractNState):
             },
             state_channel,
         )
- 
+
         self.state_channel.connectSignal("update", self._update_state)
         self.update_state()
 
-    def _update_state(self, state):
-        return self.update_state(self.get_state(state))
-
-    def get_state(self, state=None):
+    def _update_state(self, state=None):
+        """To be used to update the state when emiting the "update" signal.
+        Args:
+            state (str): optional state value
+        Returns:
+            (enum 'HardwareObjectState'): state.
+        """
         if not state:
-            state = self.state_channel.get_value()
+            state = self.get_state()
+        else:
+            state = self._value2state(state)
+        return self.update_state(state)
 
+    def _value2state(self, state):
+        """Convert string state to HardwareObjectState enum value
+        Args:
+            state (str): the state
+        Returns:
+            (enum 'HardwareObjectState'): state
+        """
         try:
-            state = state.upper()
-            state = ExporterStates.__members__[state].value
+            return self.SPECIFIC_STATES.__members__[state.upper()].value
         except (AttributeError, KeyError):
-            state = self.STATES.UNKNOWN
-       
-        return state
+            return self.STATES.UNKNOWN
+
+    def get_state(self):
+        """Get the device state.
+        Returns:
+            (enum 'HardwareObjectState'): Device state.
+        """
+        state = self.state_channel.get_value()
+        return self._value2state(state)
 
     def abort(self):
         """Stop the action."""
         if self.get_state() != self.STATES.UNKNOWN:
             self._exporter.execute("abort")
 
-    def _set_value(self, enum_var):
-        """Set device to value of enum_var
-
+    def _set_value(self, value):
+        """Set device to value
         Args:
-            value (enum): enum variable
+            value (str, int, float or enum): Value to be set.
         """
-        self.value_channel.set_value(enum_var.value)
+        if isinstance(value, Enum):
+            try:
+                value = value.value[0]
+            except TypeError:
+                value = value.value
+        self.value_channel.set_value(value)
         self.update_state()
 
     def get_value(self):
@@ -114,10 +137,4 @@ class ExporterNState(AbstractNState):
             (str): The name of the enum variable
         """
         _val = self.value_channel.get_value()
-        value = self.VALUES.UNKNOWN
-
-        for enum_var in self.VALUES.__members__.values():
-            if enum_var.value == _val:
-                value = enum_var
-
-        return value
+        return self.value_to_enum(_val)
