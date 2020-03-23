@@ -20,8 +20,8 @@ class ALBABackLight(Device):
 
     def init(self):
 
-        self.backlightin_channel = self.getChannelObject("backlightin")
-        self.level_channel = self.getChannelObject("light_level")
+        self.backlightin_channel = self.get_channel_object("backlightin")
+        self.level_channel = self.get_channel_object("light_level")
 
         limits = self.getProperty("limits")
 
@@ -73,10 +73,10 @@ class ALBABackLight(Device):
 
         return state
 
-    def getLimits(self):
+    def get_limits(self):
         return self.limits
 
-    def getState(self):
+    def get_state(self):
         _state = self.backlightin_channel.getValue()
         if _state:
             return "on"
@@ -154,9 +154,9 @@ def test_hwo(hwo):
     import sys
 
     print('\nLight control for "%s"\n' % hwo.getUserName())
-    print("   Level limits are:", hwo.getLimits())
+    print("   Level limits are:", hwo.get_limits())
     print("   Current level is:", hwo.getLevel())
-    print("   Current state is:", hwo.getState())
+    print("   Current state is:", hwo.get_state())
     print("   Setting backlight in")
 
     print(sys.argv)
@@ -174,4 +174,4 @@ def test_hwo(hwo):
     #    print "Waiting"
     #    gevent.sleep(0.1)
 
-    print("   Current state is:", hwo.getState())
+    print("   Current state is:", hwo.get_state())

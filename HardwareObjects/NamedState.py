@@ -10,10 +10,10 @@ class NamedState(Device):
         self.stateList = []
 
     def _init(self):
-        self.stateChan = self.getChannelObject("state")
+        self.stateChan = self.get_channel_object("state")
 
         try:
-            self.moveStateChan = self.getChannelObject("hardware_state")
+            self.moveStateChan = self.get_channel_object("hardware_state")
         except KeyError:
             self.moveStateChan = None
 
@@ -23,7 +23,7 @@ class NamedState(Device):
             self.changeCmd = None
 
         try:
-            self.stateListChannel = self.getChannelObject("statelist")
+            self.stateListChannel = self.get_channel_object("statelist")
         except KeyError:
             self.stateListChannel = None
 

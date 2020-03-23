@@ -29,8 +29,8 @@ class ALBAFrontEnd(ALBAEpsActuator):
     def init(self):
         ALBAEpsActuator.init(self)
 
-        self.open_channel = self.getChannelObject("open_command")
-        self.close_channel = self.getChannelObject("close_command")
+        self.open_channel = self.get_channel_object("open_command")
+        self.close_channel = self.get_channel_object("close_command")
 
     def cmdIn(self):
         self.open_channel.setValue(True)
@@ -43,7 +43,7 @@ class ALBAFrontEnd(ALBAEpsActuator):
 
 def test_hwo(hwo):
     print("Name is: ", hwo.getUserName())
-    print("Shutter state is: ", hwo.getState())
+    print("Shutter state is: ", hwo.get_state())
     print("Shutter status is: ", hwo.getStatus())
 
     # print "Opening it"

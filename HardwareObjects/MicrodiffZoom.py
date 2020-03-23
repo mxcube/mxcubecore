@@ -84,17 +84,3 @@ class MicrodiffZoom(ExporterMotor):
         except ValueError:
             self._limits = (1, 10)
         return self._limits
-
-    def set_value(self, value, wait=False, timeout=None):
-        """Move motor to absolute value. Wait the move to finish.
-        Args:
-            value (float): target value
-            wait (bool): optional - wait until motor movement finished.
-            timeout (float): optional - timeout [s].
-        """
-        self._set_value(value)
-        self.update_value(value)
-        self.update_state()
-
-        if wait:
-            self.wait_ready(timeout)

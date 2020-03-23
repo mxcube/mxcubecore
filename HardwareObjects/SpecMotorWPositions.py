@@ -44,7 +44,7 @@ class SpecMotorWPositions(SpecMotor.SpecMotor):
             else:
                 self.emit(signal, (positionName, pos))
         elif signal == "stateChanged":
-            self.emit(signal, (self.getState(),))
+            self.emit(signal, (self.get_state(),))
 
     def sortPredefinedPositionsList(self):
         self.predefinedPositionsNamesList = list(self.predefinedPositions.keys())

@@ -75,8 +75,8 @@ class ALBACollect(AbstractCollect):
         self.ni_unconf_cmd = self.get_command_object("ni_unconfigure")
 
         # some extra reading channels to be saved in image header
-        self.kappapos_chan = self.getChannelObject("kappapos")
-        self.phipos_chan = self.getChannelObject("phipos")
+        self.kappapos_chan = self.get_channel_object("kappapos")
+        self.phipos_chan = self.get_channel_object("phipos")
 
         undulators = []
         try:
@@ -489,19 +489,19 @@ class ALBACollect(AbstractCollect):
     def check_shutters(self):
 
         # Check fast shutter
-        if HWR.beamline.fast_shutter.getState() != 0:
+        if HWR.beamline.fast_shutter.get_state() != 0:
             return False
 
         # Check slow shutter
-        if self.slowshut_hwobj.getState() != 1:
+        if self.slowshut_hwobj.get_state() != 1:
             return False
 
         # Check photon shutter
-        if self.photonshut_hwobj.getState() != 1:
+        if self.photonshut_hwobj.get_state() != 1:
             return False
 
         # Check front end
-        if self.frontend_hwobj.getState() != 1:
+        if self.frontend_hwobj.get_state() != 1:
             return False
 
         return True
@@ -624,19 +624,19 @@ class ALBACollect(AbstractCollect):
         # prepare ALL shutters
 
         # close fast shutter
-        if HWR.beamline.fast_shutter.getState() != 0:
+        if HWR.beamline.fast_shutter.get_state() != 0:
             HWR.beamline.fast_shutter.close()
 
         # open slow shutter
-        if self.slowshut_hwobj.getState() != 1:
+        if self.slowshut_hwobj.get_state() != 1:
             self.slowshut_hwobj.open()
 
         # open photon shutter
-        if self.photonshut_hwobj.getState() != 1:
+        if self.photonshut_hwobj.get_state() != 1:
             self.photonshut_hwobj.open()
 
         # open front end
-        if self.frontend_hwobj.getState() != 0:
+        if self.frontend_hwobj.get_state() != 0:
             self.frontend_hwobj.open()
 
     def open_detector_cover(self):

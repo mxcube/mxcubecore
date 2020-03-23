@@ -65,6 +65,7 @@ class AbstractNState(AbstractActuator):
         self.predefined_values = {}
         self.state_definition = None
         self._valid = False
+        self.current_state = None
 
     def init(self):
         """Initialise some parametrs."""
@@ -73,13 +74,13 @@ class AbstractNState(AbstractActuator):
 
         self.state_definition = self.getProperty("state_definition", None)
 
-        for value in self.predefined_values.keys():
-            _valid.append(
-                self._validate_value(value.upper(), self.state_definition.__members__)
-            )
-
-        if all(_valid) and len(_valid) == len(self.state_definition.__members__):
-            self._valid = True
+        # for value in self.predefined_values.keys():
+        #     _valid.append(
+        #         self._validate_value(value.upper(), self.state_definition.__members__)
+        #     )
+        #
+        # if all(_valid) and len(_valid) == len(self.state_definition.__members__):
+        #     self._valid = True
 
         if self.state_definition in ["IntEnum", "StrEnum", "FloatEnum"]:
             self.state_definition = Enum(self.state_definition, self.predefined_values)

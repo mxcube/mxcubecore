@@ -175,7 +175,7 @@ class MiniDiff(Equipment):
         self.kappaPhiMotor = self.getObjectByRole("kappa_phi")
 
         # mh 2013-11-05:why is the channel read directly? disabled for the moment
-        # HWR.beamline.sample_view.camera.addChannel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
+        # HWR.beamline.sample_view.camera.add_channel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
 
         self.centringPhi = sample_centring.CentringMotor(self.phiMotor, direction=-1)
         self.centringPhiz = sample_centring.CentringMotor(
@@ -954,7 +954,7 @@ class MiniDiff(Equipment):
         time.sleep(1)
 
         while not all(
-            [m.getState() == m.READY for m in motor.values() if m is not None]
+            [m.get_state() == m.READY for m in motor.values() if m is not None]
         ):
             time.sleep(0.1)
 

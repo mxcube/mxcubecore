@@ -45,10 +45,10 @@ class ID232BeamDefiner(HardwareObject, AbstractNState):
     def isReady(self):
         return self.controller is not None
 
-    def getState(self):
+    def get_state(self):
         return self.READY
 
-    def getLimits(self):
+    def get_limits(self):
         return (1, len(self.posNames))
 
     def get_value(self):

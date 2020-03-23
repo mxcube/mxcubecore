@@ -59,7 +59,7 @@
     <run_number>1</run_number>
     <overlap>0</overlap>
     <number_of_images>1</number_of_images>
-    <detector_mode>1</detector_mode>
+    <detector_binning_mode>1</detector_binning_mode>
     <compression>True</compression>
   </default_acquisition_values>
   <default_helical_values>
@@ -71,7 +71,7 @@
     <run_number>1</run_number>
     <overlap>0</overlap>
     <number_of_images>100</number_of_images>
-    <detector_mode>1</detector_mode>
+    <detector_binning_mode>1</detector_binning_mode>
   </default_helical_values>
   <default_characterisation_values>
     <exposure_time>0.040</exposure_time>
@@ -82,7 +82,7 @@
     <run_number>1</run_number>
     <overlap>0</overlap>
     <number_of_images>1</number_of_images>
-    <detector_mode>1</detector_mode>
+    <detector_binning_mode>1</detector_binning_mode>
   </default_characterisation_values>
    <default_advanced_values>
     <exposure_time>0.034</exposure_time>
@@ -93,6 +93,6 @@
     <run_number>1</run_number>
     <overlap>0</overlap>
     <number_of_images>1</number_of_images>
-    <detector_mode>1</detector_mode>
+    <detector_binning_mode>1</detector_binning_mode>
   </default_advanced_values>
  </object>

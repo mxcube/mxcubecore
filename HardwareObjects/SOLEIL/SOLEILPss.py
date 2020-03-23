@@ -35,7 +35,7 @@ class SOLEILPss(Device):
             )
         else:
             self.hutch = self.getProperty("hutch")
-            self.stateChan = self.getChannelObject("State")
+            self.stateChan = self.get_channel_object("State")
             self.stateChan.connectSignal("update", self.valueChanged)
         if self.device:
             self.setIsReady(True)
