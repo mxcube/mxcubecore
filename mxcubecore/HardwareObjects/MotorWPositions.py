@@ -153,12 +153,6 @@ class MotorWPositions(AbstractMotor, Device):
         """
         return self.motor.get_value()
 
-    def move(self, absolute_position):
-        """
-        Descript. :
-        """
-        self.motor.set_value(absolute_position)
-
     def set_value(self, absolute_position, timeout=0):
         """
         Descript. :

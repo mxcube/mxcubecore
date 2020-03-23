@@ -78,12 +78,12 @@ class GrobMotor(Device, AbstractMotor):
     def get_value(self):
         return self.motor.read_dial()
 
-    def move(self, position):
+    def _set_value(self, value):
         if isinstance(self.motor, self.grob.SampleMotor):
             # position has to be relative
-            self.motor.move_relative(position - self.get_value())
+            self.motor.move_relative(value - self.get_value())
         else:
-            self.motor.start_one(position)
+            self.motor.start_one(value)
 
     def waitEndOfMove(self, timeout=None):
         with gevent.Timeout(timeout):

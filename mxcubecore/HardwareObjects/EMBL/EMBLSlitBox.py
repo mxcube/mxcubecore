@@ -186,7 +186,7 @@ class EMBLSlitBox(AbstractSlits):
         :type position: float
         """
         for motors_group in self.motors_groups:
-            if self.motors_dict[motor_name]["motorsGroup"] == motors_group.userName():
+            if self.motors_dict[motor_name]["motorsGroup"] == motors_group.username:
                 motors_group.set_motor_position(motor_name, position)
                 return
 
@@ -283,7 +283,7 @@ class EMBLSlitBox(AbstractSlits):
                     for motor_group in self.motors_groups:
                         if (
                             self.motors_dict[motor]["motorsGroup"]
-                            == motor_group.userName()
+                            == motor_group.username
                         ):
                             motor_group.set_motor_position(
                                 motor, new_position, timeout=timeout
@@ -308,7 +308,7 @@ class EMBLSlitBox(AbstractSlits):
         """Stops motors movements"""
         for motor in self.motors_dict:
             for motors_group in self.motors_groups:
-                if motor["motorsGroup"] == motors_group.userName():
+                if motor["motorsGroup"] == motors_group.username:
                     if motor["gap"] == gap_name:
                         motors_group.stop_motor(motor["motorName"])
 
@@ -317,7 +317,7 @@ class EMBLSlitBox(AbstractSlits):
         self.active_focus_mode = focus_mode
         for motor in self.motors_dict:
             for motors_group in self.motors_groups_devices:
-                if self.motors_dict[motor]["motorsGroup"] == motors_group.userName():
+                if self.motors_dict[motor]["motorsGroup"] == motors_group.username:
                     motors_group.set_motor_focus_mode(motor, focus_mode)
 
     def focus_mode_changed(self, new_focus_mode, size):

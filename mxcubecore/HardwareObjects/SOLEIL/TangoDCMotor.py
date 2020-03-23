@@ -199,7 +199,7 @@ class TangoDCMotor(Device):
     def getMotorMnemonic(self):
         return self.name()
 
-    def move(self, absolutePosition, epsilon=0.0, sync=False):
+    def _set_value(self, value):
         """Move the motor to the required position
 
         Arguments:
@@ -208,40 +208,40 @@ class TangoDCMotor(Device):
         logging.getLogger("TangoClient").info(
             "TangoDCMotor move (%s). Trying to go to %s: type '%s'",
             self.motor_name,
-            absolutePosition,
-            type(absolutePosition),
+            value,
+            type(value),
         )
-        absolutePosition = float(absolutePosition)
-        if not isinstance(absolutePosition, float) and not isinstance(
-            absolutePosition, int
+        value = float(value)
+        if not isinstance(value, float) and not isinstance(
+            value, int
         ):
             logging.getLogger("TangoClient").error(
                 "Cannot move %s: position '%s' is not a number. It is a %s",
                 self.tangoname,
-                absolutePosition,
-                type(absolutePosition),
+                value,
+                type(value),
             )
-        logging.info("TangoDCMotor: move. motor will go to %s " % str(absolutePosition))
+        logging.info("TangoDCMotor: move. motor will go to %s " % str(value))
         logging.getLogger("HWR").info(
-            "TangoDCMotor.move to absolute position: %.3f" % absolutePosition
+            "TangoDCMotor.move to absolute position: %.3f" % value
         )
         logging.getLogger("TangoClient").info(
             "TangoDCMotor move. Trying to go to %s: that is a '%s'",
-            absolutePosition,
-            type(absolutePosition),
+            value,
+            type(value),
         )
-        if abs(self.get_value() - absolutePosition) > epsilon:
-            logging.info(
-                "TangoDCMotor: difference larger then epsilon (%s), executing the move "
-                % str(epsilon)
-            )
-            self.positionChan.setValue(self.convertValue(absolutePosition))
-        else:
-            logging.info(
-                "TangoDCMotor: not moving really as epsilon is large %s " % str(epsilon)
-            )
-            logging.info("TangoDCMotor: self.get_value() %s " % str(self.get_value()))
-            logging.info("TangoDCMotor: absolutePosition %s " % str(absolutePosition))
+        # if abs(self.get_value() - value) > epsilon:
+        #     logging.info(
+        #         "TangoDCMotor: difference larger then epsilon (%s), executing the move "
+        #         % str(epsilon)
+        #     )
+        self.positionChan.setValue(self.convertValue(value))
+        # else:
+        #     logging.info(
+        #         "TangoDCMotor: not moving really as epsilon is large %s " % str(epsilon)
+        #     )
+        #     logging.info("TangoDCMotor: self.get_value() %s " % str(self.get_value()))
+        #     logging.info("TangoDCMotor: value %s " % str(value))
 
     def stop(self):
         logging.getLogger("HWR").info("TangoDCMotor.stop")
