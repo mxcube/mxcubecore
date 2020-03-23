@@ -81,7 +81,7 @@ class RobodiffMotor(Device):
         self.end_init()
         return self.motor.position()
 
-    def move(self, position):
+    def _set_value(self, position):
         self.end_init()
         self.updateState("MOVING")
         self.motor.move(position, wait=False)

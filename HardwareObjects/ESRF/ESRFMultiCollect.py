@@ -586,7 +586,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             logging.getLogger("HWR").info(
                 "Moving motor '%s' to %f", motor.getMotorMnemonic(), position
             )
-            motor.move(position)
+            motor.set_value(position)
 
         while any([motor.motorIsMoving() for motor in motor_position_dict]):
             logging.getLogger("HWR").info("Waiting for end of motors motion")
