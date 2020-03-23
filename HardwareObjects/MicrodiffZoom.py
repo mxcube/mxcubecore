@@ -45,20 +45,13 @@ class MicrodiffZoom(ExporterNState):
         ExporterNState.__init__(self, name)
         self.predefined_positions = {}
         self._exporter = None
-        self._nominal_limits = None
+        self._nominal_limits = (None, None)
 
     def init(self):
         """Initialize the zoom"""
         ExporterNState.init(self)
-        self._nominal_limits = self.get_limits()
-        values = {
-            "LEVEL%s" % str(v): v
-            for v in range(self._nominal_limits[0], self._nominal_limits[1] + 1)
-        }
-        self.VALUES = Enum(
-            "MICRODIFF_ZOOM_ENUM",
-            dict(values, **{item.name: item.value for item in BaseValueEnum},),
-        )
+        self.get_limits()
+        self.get_values()
 
     def get_limits(self):
         """Returns zoom low and high limits.
@@ -78,3 +71,17 @@ class MicrodiffZoom(ExporterNState):
         except ValueError:
             self._nominal_limits = (1, 10)
         return self._nominal_limits
+
+    def get_values(self):
+        """Get he predefined valies
+        Returns:
+            (Enum): predefined values Enum
+        """
+        values = {
+            "LEVEL%s" % str(v): v
+            for v in range(self._nominal_limits[0], self._nominal_limits[1] + 1)
+        }
+        self.VALUES = Enum(
+            "ValueEnum",
+            dict(values, **{item.name: item.value for item in BaseValueEnum},),
+        )
