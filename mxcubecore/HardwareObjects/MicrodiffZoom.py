@@ -26,15 +26,17 @@ Example xml file:
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <value_channel_name>CoaxialCameraZoomValue</value_channel_name>
   <state_channel_name>ZoomState</state_channel_name>
-  <values>[1, 2, 3, 4, 5, 6, 7]</values>
-  <actuator_name>Zoom</actuator_name>
 </device>
 """
 
-import ast
-import enum
 
+from enum import Enum
+from HardwareRepository.HardwareObjects.abstract.AbstractNState import BaseValueEnum
 from HardwareRepository.HardwareObjects.ExporterNState import ExporterNState
+
+__copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
+
 
 class MicrodiffZoom(ExporterNState):
     """MicrodiffZoom class"""
@@ -43,24 +45,36 @@ class MicrodiffZoom(ExporterNState):
         ExporterNState.__init__(self, name)
         self.predefined_positions = {}
         self._exporter = None
-        self._limits = None
-        self.position_channel = None
-        self.motor_state = None
+        self._nominal_limits = None
 
     def init(self):
         """Initialize the zoom"""
         ExporterNState.init(self)
-        values = ast.literal_eval(self.getProperty("values"))
-        self._nominal_limits = (values[0], values[-1])
-
-        values = { ("LEVEL%s" % str(values.index(v) + 1)):v for v in values }
-        values.update({"UNKNOWN": 0})
-
-        self.VALUES = enum.Enum("MICRODIFF_ZOOM_ENUM", values)
+        self._nominal_limits = self.get_limits()
+        values = {
+            "LEVEL%s" % str(v): v
+            for v in range(self._nominal_limits[0], self._nominal_limits[1] + 1)
+        }
+        self.VALUES = Enum(
+            "MICRODIFF_ZOOM_ENUM",
+            dict(values, **{item.name: item.value for item in BaseValueEnum},),
+        )
 
     def get_limits(self):
         """Returns zoom low and high limits.
         Returns:
             (tuple): two int tuple (low limit, high limit).
         """
+        try:
+            _low, _high = self._exporter.execute("getZoomRange")
+            # inf is a problematic value
+            if _low == float("-inf"):
+                _low = 0
+
+            if _high == float("inf"):
+                _high = 10
+
+            self._nominal_limits = (_low, _high)
+        except ValueError:
+            self._nominal_limits = (1, 10)
         return self._nominal_limits
