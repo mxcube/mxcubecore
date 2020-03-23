@@ -1,7 +1,7 @@
-from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository.BaseHardwareObjects import HardwareObject
 from bliss.config import static
 
-class BlissVolpi(Device):
+class BlissVolpi(HardwareObject):
     
     def __init__(self, name):
         #AbstractMotor.__init__(self, name)
@@ -16,18 +16,18 @@ class BlissVolpi(Device):
     
     def connectNotify(self, signal):
         if signal == "intensityChanged":
-            self.emit("intensityChanged", (self.get_intensity(),))
+            self.emit("intensityChanged", (self.get_value(),))
 
-    def set_intensity(self, intensity):
+    def set_value(self, intensity):
         """set volpi to new value."""
         self.volpi.intensity = intensity
 
-    def get_intensity(self):
+    def get_value(self):
         """get volpi intensity value."""
         return self.volpi.intensity
     
     def update_values(self):
-        self.emit("intensityChanged", (self.get_intensity(),))
+        self.emit("intensityChanged", (self.get_value(),))
 
     def intensity_changed(self, new_intensity):
         self.emit("intensityChanged", (new_intensity,))

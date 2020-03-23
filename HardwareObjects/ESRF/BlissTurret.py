@@ -1,7 +1,7 @@
-from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository.BaseHardwareObjects import HardwareObject
 from bliss.config import static
 
-class BlissTurret(Device):
+class BlissTurret(HardwareObject):
     
     def __init__(self, name):
         Device.__init__(self, name)
@@ -16,7 +16,7 @@ class BlissTurret(Device):
     
     def connectNotify(self, signal):
         if signal == "positionChanged":
-            self.emit("positionChanged", (self.get_position(),))
+            self.emit("positionChanged", (self.get_value(),))
         elif signal == "modeChanged":
             self.emit("modeChanged", (self.get_mode(),))
     
@@ -33,17 +33,17 @@ class BlissTurret(Device):
     def get_mode(self):
         return self.turret.mode
 
-    def get_position(self):
+    def get_value(self):
         return self.turret.position
     
-    def set_position(self, position):
+    def set_value(self, position):
         self.turret.position = position
     
     def get_turret_mnemonic(self):
         return self.turret_name
 
     def update_values(self):
-        self.emit("positionChanged", (self.get_position(),))
+        self.emit("positionChanged", (self.get_value(),))
         self.emit("modeChanged", (self.get_mode(),))
 
 
