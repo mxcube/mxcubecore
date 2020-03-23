@@ -66,21 +66,21 @@ class MicrodiffMotor(AbstractMotor):
 
         self.motorState = MicrodiffMotor.NOTINITIALIZED
 
-        self.position_attr = self.getChannelObject(
+        self.position_attr = self.get_channel_object(
             "%s%s" % (self.actuator_name, self.motor_pos_attr_suffix)
         )
         if not self.position_attr:
-            self.position_attr = self.addChannel(
+            self.position_attr = self.add_channel(
                 {"type": "exporter", "name": "%sPosition" % self.actuator_name},
                 self.actuator_name + self.motor_pos_attr_suffix,
             )
 
         if self.position_attr is not None:
-            self.state_attr = self.getChannelObject(
+            self.state_attr = self.get_channel_object(
                 "%s%s" % (self.actuator_name, self.motor_state_attr_suffix)
             )
             if not self.state_attr:
-                self.state_attr = self.addChannel(
+                self.state_attr = self.add_channel(
                     {"type": "exporter", "name": "%sState" % self.actuator_name},
                     self.actuator_name + self.motor_state_attr_suffix,
                 )
@@ -88,9 +88,9 @@ class MicrodiffMotor(AbstractMotor):
             self.position_attr.connectSignal("update", self.motorPositionChanged)
             self.state_attr.connectSignal("update", self.motorStateChanged)
 
-            self.motors_state_attr = self.getChannelObject("motor_states")
+            self.motors_state_attr = self.get_channel_object("motor_states")
             if not self.motors_state_attr:
-                self.motors_state_attr = self.addChannel(
+                self.motors_state_attr = self.add_channel(
                     {"type": "exporter", "name": "motor_states"}, "MotorStates"
                 )
             self.motors_state_attr.connectSignal("update", self.updateMotorState)
@@ -232,24 +232,11 @@ class MicrodiffMotor(AbstractMotor):
                 absolutePosition
             )  # absolutePosition-self.offset)
 
-    def moveRelative(self, relativePosition):
-        self.set_value(self.get_value() + relativePosition)
-
-    def syncMoveRelative(self, relative_position, timeout=None):
-        return self.syncMove(self.get_value() + relative_position)
-
     def waitEndOfMove(self, timeout=None):
         with Timeout(timeout):
             time.sleep(0.1)
             while self.motorState == MicrodiffMotor.MOVING:
                 time.sleep(0.1)
-
-    def syncMove(self, position, timeout=None):
-        self.set_value(position)
-        try:
-            self.waitEndOfMove(timeout)
-        except BaseException:
-            raise MD2TimeoutError
 
     def motorIsMoving(self):
         return self.isReady() and self.motorState == MicrodiffMotor.MOVING

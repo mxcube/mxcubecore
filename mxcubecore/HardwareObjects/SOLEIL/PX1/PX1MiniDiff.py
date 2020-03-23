@@ -52,7 +52,7 @@ class PX1MiniDiff(GenericDiffractometer):
         if self.px1env_ho.isPhaseVisuSample():
             t0 = time.time()
             while True:
-                env_state = self.px1env_ho.getState()
+                env_state = self.px1env_ho.get_state()
                 if env_state != "RUNNING" and self.px1env_ho.isPhaseVisuSample():
                     break
                 if time.time() - t0 > timeout:
@@ -173,7 +173,7 @@ class PX1MiniDiff(GenericDiffractometer):
                 # if 3 click centring move -180
                 # if not self.in_plate_mode():
                 # self.wait_device_ready()
-                # self.motor_hwobj_dict['phi'].syncMoveRelative(-180)
+                # self.motor_hwobj_dict['phi'].set_value_relative(-180, timeout=None)
 
             if (
                 self.current_centring_method
@@ -200,7 +200,7 @@ class PX1MiniDiff(GenericDiffractometer):
 
     def move_omega_relative(self, relative_pos):
         omega_mot = self.motor_hwobj_dict.get("phi")
-        omega_mot.syncMoveRelative(relative_pos)
+        omega_mot.set_value_relative(relative_pos, timeout=None)
 
     def move_motors(self, motor_positions, timeout=15):
         """
@@ -238,7 +238,7 @@ class PX1MiniDiff(GenericDiffractometer):
             )
             self.wait_device_ready(timeout)
             try:
-                motor.syncMove(position)
+                motor.set_value(position, timeout=None)
             except BaseException:
                 import traceback
 

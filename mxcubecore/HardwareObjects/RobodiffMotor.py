@@ -60,16 +60,16 @@ class RobodiffMotor(Device):
         if emit:
             self.emit("stateChanged", (self.motorState,))
 
-    def getState(self):
+    def get_state(self):
         self.end_init()
         self.updateState()
         return self.motorState
 
     def motorLimitsChanged(self):
         self.end_init()
-        self.emit("limitsChanged", (self.getLimits(),))
+        self.emit("limitsChanged", (self.get_limits(),))
 
-    def getLimits(self):
+    def get_limits(self):
         self.end_init()
         return self.motor.limits()
 
@@ -86,19 +86,9 @@ class RobodiffMotor(Device):
         self.updateState("MOVING")
         self.motor.move(position, wait=False)
 
-    def moveRelative(self, relativePosition):
-        self.move(self.get_value() + relativePosition)
-
-    def syncMoveRelative(self, relative_position, timeout=None):
-        return self.syncMove(self.get_value() + relative_position)
-
     def waitEndOfMove(self, timeout=None):
         with gevent.Timeout(timeout):
             self.motor.wait_move()
-
-    def syncMove(self, position, timeout=None):
-        self.move(position)
-        self.waitEndOfMove(timeout)
 
     def motorIsMoving(self):
         self.end_init()

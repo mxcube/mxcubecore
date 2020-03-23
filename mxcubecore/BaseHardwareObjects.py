@@ -454,9 +454,9 @@ class HardwareObjectMixin(CommandContainer):
         Args:
             state (enum 'HardwareObjectState'): state
         """
+        if state is None:
+            state = self.get_state()
         if state != self._state:
-            if state is None:
-                state = self.get_state()
             if state == self.STATES.READY:
                 self._ready_event.set()
             elif not isinstance(state, self.STATES):
@@ -466,6 +466,20 @@ class HardwareObjectMixin(CommandContainer):
 
             self._state = state
             self.emit("stateChanged", (self._state,))
+
+    def update_specific_state(self, state=None):
+        """Check if the specific state has changed. Emits signal stateChanged.
+        Args:
+            state (enum 'HardwareObjectState'): state
+        """
+        if state is None:
+            state = self.get_specific_state()
+        if state != self._specific_state:
+            if not isinstance(state, self.SPECIFIC_STATES):
+                raise ValueError("Attempt to update to illegal specific state: %s" % state)
+
+            self._specific_state = state
+            self.emit("specificStateChanged", (state,))
 
     def update_values(self):
         """Method called from Qt bricks to ensure that bricks have values
@@ -480,6 +494,7 @@ class HardwareObjectMixin(CommandContainer):
            Normaly this method would emit all values
         """
         self.update_state()
+        self.update_specific_state()
 
     # Moved from HardwareObjectNode
     def clear_gevent(self):
@@ -627,9 +642,6 @@ class HardwareObjectYaml(ConfiguredObject, HardwareObjectMixin):
 class Procedure(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
-
-    def addCommand(self, *args, **kwargs):
-        return HardwareObject.addCommand(self, *args, **kwargs)
 
     def userName(self):
         uname = self.getProperty("username")

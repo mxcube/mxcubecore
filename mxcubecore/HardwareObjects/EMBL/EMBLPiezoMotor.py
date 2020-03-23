@@ -44,8 +44,8 @@ class EMBLPiezoMotor(TINEMotor):
 
     def init(self):
         TINEMotor.init(self)
-        self.cmd_move_first = self.getCommandObject("cmdMoveFirst")
-        self.cmd_move_second = self.getCommandObject("cmdMoveSecond")
+        self.cmd_move_first = self.get_command_object("cmdMoveFirst")
+        self.cmd_move_second = self.get_command_object("cmdMoveSecond")
 
     def move(self, target, wait=None, timeout=None):
         """Moves motor to the target position

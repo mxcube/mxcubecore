@@ -84,5 +84,5 @@ class BeamlineActionsMockup(HardwareObject):
         self.anneal = ControllerCommand("Anneal", None, klass=SimulatedActionError)
         self.combotest = ControllerCommand("Test", None, "Test with combo box")
 
-    def getCommands(self):
+    def get_commands(self):
         return [self.centrebeam, self.quick_realign, self.anneal, self.combotest]
