@@ -33,7 +33,7 @@ class Q315dist(BaseHardwareObjects.Equipment):
     def __getattr__(self, attr):
         """Delegation to underlying motors"""
         if not attr.startswith("__"):
-            if attr in ("getPosition", "getDialPosition", "getState", "getLimits"):
+            if attr in ("getPosition", "getDialPosition", "getState", "get_limits"):
                 # logging.getLogger().info("calling detm %s ; ready ? %s", attr, self.detm.isReady())
                 return getattr(self.detm, attr)
             else:
@@ -44,7 +44,7 @@ class Q315dist(BaseHardwareObjects.Equipment):
 
     def connectNotify(self, signal):
         if signal == "stateChanged":
-            self.detmStateChanged(self.detm.getState())
+            self.detmStateChanged(self.detm.get_state())
         elif signal == "valueChanged":
             self.detmPositionChanged(self.detm.get_value())
 

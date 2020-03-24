@@ -55,13 +55,13 @@ class SOLEILCatsMaint(Equipment):
 
         self.running_safe = False
 
-        self._chnPathRunning = self.getChannelObject("_chnPathRunning")
+        self._chnPathRunning = self.get_channel_object("_chnPathRunning")
         self._chnPathRunning.connectSignal("update", self._updateRunningState)
-        self._chnPowered = self.getChannelObject("_chnPowered")
+        self._chnPowered = self.get_channel_object("_chnPowered")
         self._chnPowered.connectSignal("update", self._updatePoweredState)
-        self._chnMessage = self.getChannelObject("_chnMessage")
+        self._chnMessage = self.get_channel_object("_chnMessage")
         self._chnMessage.connectSignal("update", self._updateMessage)
-        self._chnLN2Regulation = self.getChannelObject("_chnLN2RegulationDewar1")
+        self._chnLN2Regulation = self.get_channel_object("_chnLN2RegulationDewar1")
         self._chnLN2Regulation.connectSignal("update", self._updateRegulationState)
 
         for command_name in (
@@ -90,7 +90,7 @@ class SOLEILCatsMaint(Equipment):
 
         for lid_index in range(self.NO_OF_LIDS):
             channel_name = "_chnLid%dState" % (lid_index + 1)
-            setattr(self, channel_name, self.getChannelObject(channel_name))
+            setattr(self, channel_name, self.get_channel_object(channel_name))
             if getattr(self, channel_name) is not None:
                 getattr(self, channel_name).connectSignal(
                     "update", getattr(self, "_updateLid%dState" % (lid_index + 1))

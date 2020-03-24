@@ -45,12 +45,12 @@ class PX1Energy(Device, AbstractEnergy):
         # parameters for polling
         self.isConnected()
 
-        self.energy_chan = self.getChannelObject("energy")
+        self.energy_chan = self.get_channel_object("energy")
         self.energy_chan.connectSignal("update", self.energyChanged)
 
         self.stop_cmd = self.get_command_object("stop")
 
-        self.state_chan = self.getChannelObject("state")
+        self.state_chan = self.get_channel_object("state")
         self.state_chan.connectSignal("update", self.stateChanged)
 
     def connectNotify(self, signal):
@@ -117,9 +117,6 @@ class PX1Energy(Device, AbstractEnergy):
     def get_value(self):
         return self.energy_chan.getValue()
 
-    def getState(self):
-        return self.get_state()
-
     def get_state(self):
         return str(self.state_chan.getValue())
 
@@ -135,7 +132,7 @@ class PX1Energy(Device, AbstractEnergy):
     def get_wavelength(self):
         return self.get_wavelength()
 
-    def getLimits(self):
+    def get_limits(self):
         return self.getEnergyLimits()
 
     def get_energy_limits(self):
@@ -283,5 +280,5 @@ class PX1Energy(Device, AbstractEnergy):
 def test_hwo(hwo):
     print(hwo.get_value())
     print(hwo.get_wavelength())
-    print(hwo.get_energy_limits())
+    print(hwo.get_limits())
     print(hwo.getCurrentUndulatorGap())

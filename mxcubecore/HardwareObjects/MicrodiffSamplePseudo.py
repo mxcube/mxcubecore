@@ -33,7 +33,7 @@ class MicrodiffSamplePseudo(MD2Motor):
         self.motorPositionChanged(self.get_value())
 
     def updateMotorState(self):
-        states = [m.getState() for m in (self.sampx, self.sampy, self.phi)]
+        states = [m.get_state() for m in (self.sampx, self.sampy, self.phi)]
         error_states = [
             state
             in (MotorStates.UNUSABLE, MotorStates.NOTINITIALIZED, MotorStates.ONLIMIT)
@@ -70,7 +70,7 @@ class MicrodiffSamplePseudo(MD2Motor):
                 new_pos = sampx * math.sin(-phi) + sampy * math.cos(-phi)
             return new_pos
 
-    def getState(self):
+    def get_state(self):
         if self.motorState == MotorStates.NOTINITIALIZED:
             self.updateMotorState()
         return self.motorState
@@ -81,25 +81,25 @@ class MicrodiffSamplePseudo(MD2Motor):
     def motorPositionChanged(self, absolutePosition):
         self.emit("valueChanged", (absolutePosition,))
 
-    def move(self, absolutePosition):
+    def _set_value(self, value):
         sampx = self.sampx.get_value()
         sampy = self.sampy.get_value()
         phi = math.radians(self.phi.get_value())
         if self.direction == "horizontal":
             ver = sampx * math.sin(-phi) + sampy * math.cos(-phi)
             self.sampx.set_value(
-                absolutePosition * math.cos(-phi) + ver * math.sin(-phi)
+                value * math.cos(-phi) + ver * math.sin(-phi)
             )
             self.sampy.set_value(
-                -absolutePosition * math.sin(-phi) + ver * math.cos(-phi)
+                -value * math.sin(-phi) + ver * math.cos(-phi)
             )
         else:
             hor = sampx * math.cos(phi) + sampy * math.sin(phi)
             self.sampx.set_value(
-                absolutePosition * math.sin(-phi) + hor * math.cos(-phi)
+                value * math.sin(-phi) + hor * math.cos(-phi)
             )
             self.sampy.set_value(
-                absolutePosition * math.cos(-phi) - hor * math.sin(-phi)
+                value * math.cos(-phi) - hor * math.sin(-phi)
             )
 
     def _motor_abort(self):

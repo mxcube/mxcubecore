@@ -44,7 +44,7 @@ class BIOMAXPatches(HardwareObject):
 
         self.wait_motor_ready(HWR.beamline.detector.distance)
         try:
-            HWR.beamline.detector.distance.syncMove(self.safe_position, timeout=30)
+            HWR.beamline.detector.distance.set_value(self.safe_position, timeout=30)
         except Exception:
             logging.getLogger("HWR").warning("Cannot move detector")
         else:
@@ -105,7 +105,7 @@ class BIOMAXPatches(HardwareObject):
                 raise RuntimeError(
                     "Not moving detector to pre-mount position, sample changer not powered"
                 )
-            HWR.beamline.detector.distance.syncMove(self.curr_dtox_pos, timeout=30)
+            HWR.beamline.detector.distance.set_value(self.curr_dtox_pos, timeout=30)
         except Exception:
             logging.getLogger("HWR").warning("Cannot move detector")
 

@@ -67,10 +67,10 @@ class TunableEnergy:
 #     def init(self, config, collect_obj):
 #         self.collect_obj = collect_obj
 #         if self._detector:
-#             self._detector.addChannel = self.addChannel
+#             self._detector.add_channel = self.add_channel
 #             self._detector.add_command = self.add_command
-#             self._detector.getChannelObject = self.getChannelObject
-#             self._detector.getCommandObject = self.getCommandObject
+#             self._detector.get_channel_object = self.get_channel_object
+#             self._detector.get_command_object = self.get_command_object
 #             self._detector.init(config, collect_obj)
 
 #     @task
@@ -103,7 +103,7 @@ class TunableEnergy:
 #                 trigger_mode,
 #             )
 #         else:
-#             self.getChannelObject("take_dark").setValue(take_dark)
+#             self.get_channel_object("take_dark").setValue(take_dark)
 #             self.execute_command(
 #                 "prepare_acquisition",
 #                 take_dark,
@@ -125,13 +125,13 @@ class TunableEnergy:
 #                 frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
 #             )
 #         else:
-#             self.getCommandObject("prepare_acquisition").executeCommand(
+#             self.get_command_object("prepare_acquisition").executeCommand(
 #                 'setMxCollectPars("current_phi", %f)' % start
 #             )
-#             self.getCommandObject("prepare_acquisition").executeCommand(
+#             self.get_command_object("prepare_acquisition").executeCommand(
 #                 'setMxCurrentFilename("%s")' % filename
 #             )
-#             self.getCommandObject("prepare_acquisition").executeCommand(
+#             self.get_command_object("prepare_acquisition").executeCommand(
 #                 "ccdfile(COLLECT_SEQ, %d)" % frame_number, wait=True
 #             )
 
@@ -189,7 +189,7 @@ class TunableEnergy:
 #         if self._detector:
 #             self._detector.stop()
 #         else:
-#             self.getCommandObject("reset_detector").abort()
+#             self.get_command_object("reset_detector").abort()
 #             self.execute_command("reset_detector")
 
 
@@ -206,10 +206,10 @@ class TunableEnergy:
 #     def init(self, config, collect_obj):
 #         self.collect_obj = collect_obj
 #         if self._detector:
-#             self._detector.addChannel = self.addChannel
+#             self._detector.add_channel = self.add_channel
 #             self._detector.add_command = self.add_command
-#             self._detector.getChannelObject = self.getChannelObject
-#             self._detector.getCommandObject = self.getCommandObject
+#             self._detector.get_channel_object = self.get_channel_object
+#             self._detector.get_command_object = self.get_command_object
 #             self._detector.init(config, collect_obj)
 
 #     def last_image_saved(self):
@@ -285,13 +285,13 @@ class TunableEnergy:
 #                 frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
 #             )
 #         else:
-#             self.getCommandObject("prepare_acquisition").executeCommand(
+#             self.get_command_object("prepare_acquisition").executeCommand(
 #                 'setMxCollectPars("current_phi", %f)' % start
 #             )
-#             self.getCommandObject("prepare_acquisition").executeCommand(
+#             self.get_command_object("prepare_acquisition").executeCommand(
 #                 'setMxCurrentFilename("%s")' % filename
 #             )
-#             self.getCommandObject("prepare_acquisition").executeCommand(
+#             self.get_command_object("prepare_acquisition").executeCommand(
 #                 "ccdfile(COLLECT_SEQ, %d)" % frame_number, wait=True
 #             )
 
@@ -374,7 +374,7 @@ class TunableEnergy:
 #         if self._detector:
 #             self._detector.stop()
 #         else:
-#             self.getCommandObject("reset_detector").abort()
+#             self.get_command_object("reset_detector").abort()
 #             self.execute_command("reset_detector")
 
 
@@ -399,7 +399,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def execute_command(self, command_name, *args, **kwargs):
         wait = kwargs.get("wait", True)
-        cmd_obj = self.getCommandObject(command_name)
+        cmd_obj = self.get_command_object(command_name)
         return cmd_obj(*args, wait=wait)
 
     def init(self):
@@ -586,7 +586,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             logging.getLogger("HWR").info(
                 "Moving motor '%s' to %f", motor.getMotorMnemonic(), position
             )
-            motor.move(position)
+            motor.set_value(position)
 
         while any([motor.motorIsMoving() for motor in motor_position_dict]):
             logging.getLogger("HWR").info("Waiting for end of motors motion")
@@ -848,7 +848,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def get_measured_intensity(self):
         try:
-            val = self.getChannelObject("image_intensity").getValue()
+            val = self.get_channel_object("image_intensity").getValue()
             return float(val)
         except BaseException:
             return 0
@@ -1007,10 +1007,10 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         return []
 
     def set_helical(self, helical_on):
-        self.getChannelObject("helical").setValue(1 if helical_on else 0)
+        self.get_channel_object("helical").setValue(1 if helical_on else 0)
 
     def set_helical_pos(self, helical_oscil_pos):
-        self.getChannelObject("helical_pos").setValue(helical_oscil_pos)
+        self.get_channel_object("helical_pos").setValue(helical_oscil_pos)
 
     def get_archive_directory(self, directory):
         pt = PathTemplate()

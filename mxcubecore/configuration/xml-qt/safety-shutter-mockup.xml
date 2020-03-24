@@ -1,3 +1,4 @@
 <device class = "ShutterMockup">
+<state_definition>IntEnum</state_definition>
 </device>
 

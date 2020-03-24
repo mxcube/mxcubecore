@@ -22,6 +22,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
         BaseHardwareObjects.Device.__init__(self, name)
 
     def _init(self):
+        self.stream_hash = "#"
         self.udiffVER_Ok = False
         self.badimg = 0
         self.pollInterval = 500
@@ -94,3 +95,9 @@ class MDCameraMockup(BaseHardwareObjects.Device):
 
     def takeSnapshot(self, snapshot_filename, bw=True):
         return True
+
+    def get_available_stream_sizes(self):
+        return [(self.getWidth(), self.getHeight())]
+
+    def get_stream_size(self):
+        return self.getWidth(), self.getHeight(), 1
