@@ -74,10 +74,7 @@ class AbstractEnergy(AbstractActuator):
         Returns:
             (tuple): two floats tuple (low limit, high limit).
         """
-        if self.read_only:
-            _low, _high = (self.default_value, self.default_value)
-        else:
-            _low, _high = self._nominal_limits
+        _low, _high = self._nominal_limits
         self._wavelength_limits = (
             self._calculate_wavelength(_low),
             self._calculate_wavelength(_high),
