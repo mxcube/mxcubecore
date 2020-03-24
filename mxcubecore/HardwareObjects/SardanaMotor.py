@@ -231,13 +231,13 @@ class SardanaMotor(AbstractMotor):
         self.emit("limitsChanged", (self.get_limits(),))
         self.emit("valueChanged", (self.get_value(),))
 
-    def move(self, absolute_position):
+    def _set_value(self, value):
         """
         Descript. : move to the given position
         """
-        current_pos = self.position_channel.getValue()
-        if abs(absolute_position - current_pos) > self.move_threshold_default:
-            self.position_channel.setValue(absolute_position)
+        # if abs(absolute_position - current_pos) > self.move_threshold_default:
+        self.position_channel.setValue(value)
+
     def stop(self):
         """
         Descript. : stops the motor immediately

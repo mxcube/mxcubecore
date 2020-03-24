@@ -81,6 +81,5 @@ class ID30Light(Device, AbstractMotor):
     def get_state(self):
         return ID30Light.READY
 
-    def move(self, abs_pos):
-        self.wago_controller.set(self.light_level, abs_pos)
-        self.emit("valueChanged", abs_pos)
+    def _set_value(self, value):
+        self.wago_controller.set(self.light_level, value)

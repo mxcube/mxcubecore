@@ -328,7 +328,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             )
             if detector_distance < 350:
                 logging.getLogger("GUI").info("Moving detector to safe distance")
-                HWR.beamline.detector.distance.move(350, timeout=20)
+                HWR.beamline.detector.distance.set_value(350, timeout=20)
 
         if timeout is not None:
             _start = time.time()
@@ -408,11 +408,11 @@ class EMBLMiniDiff(GenericDiffractometer):
             if self.in_plate_mode():
                 dynamic_limits = self.get_osc_limits()
                 if click == 0:
-                    self.motor_hwobj_dict["phi"].move(dynamic_limits[0] + 0.5)
+                    self.motor_hwobj_dict["phi"].set_value(dynamic_limits[0] + 0.5)
                 elif click == 1:
-                    self.motor_hwobj_dict["phi"].move(dynamic_limits[1] - 0.5)
+                    self.motor_hwobj_dict["phi"].set_value(dynamic_limits[1] - 0.5)
                 elif click == 2:
-                    self.motor_hwobj_dict["phi"].move(
+                    self.motor_hwobj_dict["phi"].set_value(
                         (dynamic_limits[0] + dynamic_limits[1]) / 2.0
                     )
             else:
@@ -696,7 +696,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         return x, y, surface_score
 
     def move_omega(self, angle):
-        self.motor_hwobj_dict["phi"].move(angle, timeout=5)
+        self.motor_hwobj_dict["phi"].set_value(angle, timeout=5)
 
     def move_omega_relative(self, relative_angle, timeout=5):
         self.motor_hwobj_dict["phi"].move_relative(relative_angle, timeout=timeout)

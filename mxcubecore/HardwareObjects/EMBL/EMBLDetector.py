@@ -135,7 +135,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         :type timeout: float
         :return: None
         """
-        return self.distance_motor_hwobj.move(position, timeout=timeout)
+        return self.distance_motor_hwobj.set_value(position, timeout=timeout)
 
     def get_distance_limits(self):
         """Returns detector distance limits"""

@@ -225,12 +225,11 @@ class MicrodiffMotor(AbstractMotor):
             self.position = self.position_attr.getValue()
         return self.position
 
-    def move(self, absolutePosition, wait=True, timeout=None):
-        # if self.get_state() != MicrodiffMotor.NOTINITIALIZED:
-        if abs(self.position - absolutePosition) >= self.motor_resolution:
-            self.position_attr.setValue(
-                absolutePosition
-            )  # absolutePosition-self.offset)
+    def _set_value(self, value):
+        # NB these checks are only in update_value
+        # If you set the value, you must get the vaue you set
+        # if abs(self.position - absolutePosition) >= self.motor_resolution:
+        self.position_attr.setValue(value)
 
     def waitEndOfMove(self, timeout=None):
         with Timeout(timeout):

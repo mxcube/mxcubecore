@@ -1,0 +1,9 @@
+<device class="QtTangoLimaVideo">
+   <type>basler</type>
+   <encoding>yuv422p</encoding>
+   <tangoname>//id13:20000/id13/limaccds/uvlm1</tangoname>
+   <!-- gain>0.5</gain -->
+   <exposure>0.01</exposure>
+   <mirror>(False, False)</mirror>
+   <interval>30</interval>
+</device>
