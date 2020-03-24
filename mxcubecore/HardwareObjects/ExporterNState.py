@@ -134,7 +134,7 @@ class ExporterNState(AbstractNState):
     def get_value(self):
         """Get the device value
         Returns:
-            (str): The name of the enum variable
+            (Enum): Enum member, corresponding to the value or UNKNOWN.
         """
         _val = self.value_channel.get_value()
         return self.value_to_enum(_val)
