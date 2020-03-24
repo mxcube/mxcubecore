@@ -87,7 +87,7 @@ class MotorWPositions(AbstractMotor, Device):
         self.connect(self.motor, "valueChanged", self.motor_position_changed)
         self.setIsReady(self.motor.isReady())
 
-    def getLimits(self):
+    def get_limits(self):
         return (1, len(self.predefined_positions))
 
     def getPredefinedPositionsList(self):
@@ -138,14 +138,14 @@ class MotorWPositions(AbstractMotor, Device):
         Descript. :
         """
         if state is None:
-            state = self.getState()
+            state = self.get_state()
         self.setIsReady(state > AbstractMotor.UNUSABLE)
 
-    def getState(self):
+    def get_state(self):
         """
         Descript. : return motor state
         """
-        return self.motor.getState()
+        return self.motor.get_state()
 
     def get_value(self):
         """
@@ -153,29 +153,17 @@ class MotorWPositions(AbstractMotor, Device):
         """
         return self.motor.get_value()
 
-    def move(self, absolute_position):
+    def set_value(self, absolute_position, timeout=0):
         """
         Descript. :
         """
-        self.motor.set_value(absolute_position)
+        self.motor.set_value(absolute_position, timeout)
 
-    def moveRelative(self, relative_position):
+    def set_value_relative(self, relative_position, timeout=0):
         """
         Descript. :
         """
-        self.motor.moveRelative(relative_position)
-
-    def syncMove(self, absolute_position, timeout=None):
-        """
-        Descript. :
-        """
-        self.motor.syncMove(absolute_position, timeout)
-
-    def syncMoveRelative(self, relative_position, timeout=None):
-        """
-        Descript. :
-        """
-        self.motor.syncMoveRelative(relative_position, timeout)
+        self.motor.set_value_relative(relative_position, timeout)
 
     def stop(self):
         """

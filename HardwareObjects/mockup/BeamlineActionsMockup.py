@@ -52,7 +52,7 @@ class ControllerCommand(CommandObject):
                 res = cmd_execution.get()
             except Exception:
                 logging.getLogger("HWR").exception(
-                    "%s: execution failed", str(self.userName())
+                    "%s: execution failed", str(self.username)
                 )
                 self.emit("commandFailed", (str(self.name()),))
             else:
@@ -84,5 +84,5 @@ class BeamlineActionsMockup(HardwareObject):
         self.anneal = ControllerCommand("Anneal", None, klass=SimulatedActionError)
         self.combotest = ControllerCommand("Test", None, "Test with combo box")
 
-    def getCommands(self):
+    def get_commands(self):
         return [self.centrebeam, self.quick_realign, self.anneal, self.combotest]

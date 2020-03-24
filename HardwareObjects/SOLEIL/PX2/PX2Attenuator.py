@@ -29,7 +29,7 @@ class PX2Attenuator(Device):
         self.nominal_value = None
 
     def init(self):
-        #         cmdToggle = self.getCommandObject('toggle')
+        #         cmdToggle = self.get_command_object('toggle')
         #         cmdToggle.connectSignal('connected', self.connected)
         #         cmdToggle.connectSignal('disconnected', self.disconnected)
 
@@ -65,9 +65,9 @@ class PX2Attenuator(Device):
         if self.deviceOk:
             self.connected()
 
-            self.chanAttState = self.getChannelObject("State")
+            self.chanAttState = self.get_channel_object("State")
             self.chanAttState.connectSignal("update", self.attStateChanged)
-            self.chanAttFactor = self.getChannelObject("TrueTrans_FP")
+            self.chanAttFactor = self.get_channel_object("TrueTrans_FP")
             self.chanAttFactor.connectSignal("update", self.attFactorChanged)
 
     def getAtteConfig(self):
@@ -174,7 +174,7 @@ class PX2Attenuator(Device):
         else:
             self.emit("toggleFilter", (value,))
 
-    def set_value(self, value):
+    def _set_value(self, value):
         self.nominal_value = float(value)
         try:
             if (

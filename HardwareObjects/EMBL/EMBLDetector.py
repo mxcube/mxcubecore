@@ -94,22 +94,22 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
         self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
 
-        self.chan_cover_state = self.getChannelObject("chanCoverState", optional=True)
+        self.chan_cover_state = self.get_channel_object("chanCoverState", optional=True)
         if self.chan_cover_state is not None:
             self.chan_cover_state.connectSignal("update", self.cover_state_changed)
-        self.chan_temperature = self.getChannelObject("chanTemperature")
+        self.chan_temperature = self.get_channel_object("chanTemperature")
         self.chan_temperature.connectSignal("update", self.temperature_changed)
-        self.chan_humidity = self.getChannelObject("chanHumidity")
+        self.chan_humidity = self.get_channel_object("chanHumidity")
         self.chan_humidity.connectSignal("update", self.humidity_changed)
-        self.chan_status = self.getChannelObject("chanStatus")
+        self.chan_status = self.get_channel_object("chanStatus")
         self.chan_status.connectSignal("update", self.status_changed)
-        self.chan_roi_mode = self.getChannelObject("chanRoiMode")
+        self.chan_roi_mode = self.get_channel_object("chanRoiMode")
         self.chan_roi_mode.connectSignal("update", self.roi_mode_changed)
-        self.chan_frame_rate = self.getChannelObject("chanFrameRate")
+        self.chan_frame_rate = self.get_channel_object("chanFrameRate")
         self.chan_frame_rate.connectSignal("update", self.frame_rate_changed)
         self.frame_rate_changed(self.chan_frame_rate.getValue())
 
-        self.chan_actual_frame_rate = self.getChannelObject(
+        self.chan_actual_frame_rate = self.get_channel_object(
             "chanActualFrameRate", optional=True
         )
         if self.chan_actual_frame_rate is not None:
@@ -117,10 +117,10 @@ class EMBLDetector(AbstractDetector, HardwareObject):
                 "update", self.actual_frame_rate_changed
             )
 
-        self.chan_beam_xy = self.getChannelObject("chanBeamXY")
+        self.chan_beam_xy = self.get_channel_object("chanBeamXY")
 
-        self.cmd_close_cover = self.getCommandObject("cmdCloseCover")
-        self.cmd_restart_daq = self.getCommandObject("cmdRestartDaq")
+        self.cmd_close_cover = self.get_command_object("cmdCloseCover")
+        self.cmd_restart_daq = self.get_command_object("cmdRestartDaq")
 
     def get_distance(self):
         """Returns detector distance in mm"""
@@ -135,12 +135,12 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         :type timeout: float
         :return: None
         """
-        return self.distance_motor_hwobj.move(position, timeout=timeout)
+        return self.distance_motor_hwobj.set_value(position, timeout=timeout)
 
     def get_distance_limits(self):
         """Returns detector distance limits"""
         if self.distance_motor_hwobj is not None:
-            return self.distance_motor_hwobj.getLimits()
+            return self.distance_motor_hwobj.get_limits()
         return self.default_distance_limits
 
     def has_shutterless(self):

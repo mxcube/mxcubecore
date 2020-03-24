@@ -68,7 +68,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         self.collect_devname = self.getProperty("tangoname")
         self.collect_device = DeviceProxy(self.collect_devname)
 
-        self.collect_state_chan = self.getChannelObject("state")
+        self.collect_state_chan = self.get_channel_object("state")
 
         self.px1env_hwobj = self.getObjectByRole("environment")
 
@@ -679,12 +679,12 @@ class PX1Collect(AbstractCollect, HardwareObject):
         if shut_hwo.isShutterOpened():
             return True
 
-        if shut_hwo.getState() == "disabled":
+        if shut_hwo.get_state() == "disabled":
             logging.getLogger("user_level_log").warning(
                 "%s disabled. Collect cancelled" % shutter_name
             )
             return False
-        elif shut_hwo.getState() in ["fault", "alarm", "error"]:
+        elif shut_hwo.get_state() in ["fault", "alarm", "error"]:
             logging.getLogger("user_level_log").warning(
                 "%s is in fault state. Collect cancelled" % shutter_name
             )
@@ -747,7 +747,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
         t0 = time.time()
         while True:
-            env_state = self.px1env_hwobj.getState()
+            env_state = self.px1env_hwobj.get_state()
             if env_state != "RUNNING" and self.is_collect_phase():
                 break
             if time.time() - t0 > timeout:
@@ -769,7 +769,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
         t0 = time.time()
         while True:
-            env_state = self.px1env_hwobj.getState()
+            env_state = self.px1env_hwobj.get_state()
             if env_state != "RUNNING" and self.is_sampleview_phase():
                 break
             if time.time() - t0 > timeout:

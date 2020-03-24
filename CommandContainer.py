@@ -123,7 +123,7 @@ class ChannelObject:
             cmd, container_ref = self._onchange
             container = container_ref()
             if container is not None:
-                cmdobj = container.getCommandObject(cmd)
+                cmdobj = container.get_command_object(cmd)
                 if cmdobj is not None:
                     cmdobj(value)
 
@@ -146,7 +146,7 @@ class CommandContainer:
         except KeyError:
             raise AttributeError(attr)
 
-    def getChannelObject(self, channelName, optional=False):
+    def get_channel_object(self, channelName, optional=False):
         channel = self.__channels.get(channelName)
         if channel is None and not optional:
             msg = "%s: Unable to get channel %s" % (self.name(), channelName)
@@ -154,12 +154,8 @@ class CommandContainer:
             # raise Exception(msg)
         return channel
 
-    def getChannelNamesList(self):
+    def get_channel_names_list(self):
         return list(self.__channels.keys())
-
-    def addChannel(self, attributesDict, channel, addNow=True):
-        warn("addChannel is deprecated. Use add_channel instead", DeprecationWarning)
-        return self.add_channel(attributesDict, channel, addNow)
 
     def add_channel(self, attributesDict, channel, addNow=True):
         if not addNow:
@@ -359,24 +355,9 @@ class CommandContainer:
     def get_channel_value(self, channel_name):
         return self.__channels[channel_name].getValue()
 
-    def setValue(self, channelName, value):
-        warn(
-            "setValue is deprecated. Use set_channel_value instead", DeprecationWarning
-        )
-        self.set_channel_value(channelName, value)
-
-    def getValue(self, channelName):
-        warn(
-            "getValue is deprecated. Use get_channel_value instead", DeprecationWarning
-        )
-        return self.get_channel_value(channelName)
-
-    def getChannels(self):
+    def get_channels(self):
         for chan in self.__channels.values():
             yield chan
-
-    def getCommandObject(self, cmdName):
-        return self.get_command_object(cmdName)
 
     def get_command_object(self, cmd_name):
         try:
@@ -384,16 +365,12 @@ class CommandContainer:
         except Exception as e:
             return None
 
-    def getCommands(self):
+    def get_commands(self):
         for cmd in self.__commands.values():
             yield cmd
 
-    def getCommandNamesList(self):
+    def get_command_namesList(self):
         return list(self.__commands.keys())
-
-    def addCommand(self, arg1, arg2=None, addNow=True):
-        warn("addCommand is deprecated. Use add_command instead", DeprecationWarning)
-        return self.add_command(arg1, arg2, addNow)
 
     def add_command(self, arg1, arg2=None, addNow=True):
         if not addNow:
@@ -736,14 +713,11 @@ class CommandContainer:
 
             return newCommand
 
-    def _addChannelsAndCommands(self):
-        [self.addChannel(*args) for args in self.__channelsToAdd]
+    def _add_channels_and_commands(self):
+        [self.add_channel(*args) for args in self.__channelsToAdd]
         [self.add_command(*args) for args in self.__commandsToAdd]
         self.__channelsToAdd = []
         self.__commandsToAdd = []
-
-    def executeCommand(self, cmdName, *args, **kwargs):
-        self.execute_command(cmdName, *args, **kwargs)
 
     def execute_command(self, command_name, *args, **kwargs):
         if command_name in self.__commands:

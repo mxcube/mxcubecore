@@ -44,7 +44,7 @@ class SpecMotorWPositions(SpecMotor.SpecMotor):
             else:
                 self.emit(signal, (positionName, pos))
         elif signal == "stateChanged":
-            self.emit(signal, (self.getState(),))
+            self.emit(signal, (self.get_state(),))
 
     def sortPredefinedPositionsList(self):
         self.predefinedPositionsNamesList = list(self.predefinedPositions.keys())
@@ -78,7 +78,7 @@ class SpecMotorWPositions(SpecMotor.SpecMotor):
             self.move(self.predefinedPositions[positionName])
         except BaseException:
             logging.getLogger("HWR").exception(
-                "Cannot move motor %s: invalid position name.", str(self.userName())
+                "Cannot move motor %s: invalid position name.", str(self.username)
             )
 
     def getCurrentPositionName(self):
