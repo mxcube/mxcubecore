@@ -10,8 +10,8 @@ class ID232BeamDefiner(HardwareObject, AbstractNState):
     def __init__(self, *args):
         HardwareObject.__init__(self, *args)
 
-    def userName(self):
-        return self.getProperty("username") or self.name()
+    # def userName(self):
+    #     return self.getProperty("username") or self.name()
 
     def init(self):
         HardwareObject.init(self)

@@ -147,29 +147,16 @@ class TINEMotor(AbstractMotor):
         """
         self.cmd_stop_axis()
 
-    def move(self, target, wait=None, timeout=None):
+    def _set_value(self, value):
         """
         Main move method
-        :param target: float
-        :param wait: int
-        :param timeout: boolean
+        :param value: float
         :return:
         """
         if self.chan_state is not None:
             self.update_state(self.STATES.BUSY)
             self.chan_state.setOldValue("moving")
-        if target == float("nan"):
-
-            logging.getLogger().debug(
-                "Refusing to move %s to target nan" % self.objName
-            )
-        else:
-            self.cmd_set_position(target)
-
-        if timeout:
-            gevent.sleep(2)
-            self.wait_ready(timeout)
-            self.wait_ready(10)
+        self.cmd_set_position(value)
 
     def update_value(self, value=None):
         """Updates motor position
