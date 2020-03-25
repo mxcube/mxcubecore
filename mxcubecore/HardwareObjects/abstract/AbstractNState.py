@@ -63,7 +63,7 @@ class AbstractNState(AbstractActuator):
         Returns:
             (bool): True if within the values.
         """
-        return value.name in self.VALUES.__members__
+        return value in self.VALUES
 
     def set_limits(self, limits):
         """Set actuator low and high limits.
@@ -88,7 +88,7 @@ class AbstractNState(AbstractActuator):
             values = ast.literal_eval(self.getProperty("values"))
             self.VALUES = Enum(
                 "ValueEnum",
-                dict(values, **{item.name: item.value for item in BaseValueEnum},),
+                dict(values, **{item.name: item.value for item in BaseValueEnum}),
             )
             return self.VALUES
         except (ValueError, TypeError):
@@ -105,10 +105,10 @@ class AbstractNState(AbstractActuator):
             if isinstance(value, tuple):
                 if value == enum_var.value:
                     return enum_var
-            try:
+            if isinstance(enum_var.value, tuple):
                 if value == enum_var.value[0]:
                     return enum_var
-            except TypeError:
+            else:
                 if value == enum_var.value:
                     return enum_var
 
