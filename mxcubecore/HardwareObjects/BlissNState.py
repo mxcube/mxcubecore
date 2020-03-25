@@ -129,17 +129,16 @@ class BlissNState(AbstractNState):
             state = self.STATES.UNKNOWN
         return self.update_state(state)
 
-    def get_values(self):
+    def initialise_values(self):
         """Get the predefined valies. Create the VALUES Enum
         Returns:
             (Enum): "ValueEnum" with predefined values.
         """
         if self.device_type == "actuator":
-            return super(BlissNState, self).get_values()
+            super(BlissNState, self).initialise_values()
         if self.device_type == "motor":
             values = {val.upper(): val for val in self.bliss_obj.positions_list}
             self.VALUES = Enum(
                 "ValueEnum",
                 dict(values, **{item.name: item.value for item in BaseValueEnum}),
             )
-        return self.VALUES

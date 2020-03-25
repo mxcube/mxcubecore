@@ -52,12 +52,12 @@ class AbstractNState(AbstractActuator):
         AbstractActuator.__init__(self, name)
 
     def init(self):
-        """Initilise the predefimed values"""
+        """Initilise the predefined values"""
         AbstractActuator.init(self)
-        self.get_values()
+        self.initialise_values()
 
     def validate_value(self, value):
-        """Check if the value is within predefined values.
+        """Check if the value is within the predefined values.
         Args:
             value(Enum): value to check
         Returns:
@@ -66,23 +66,21 @@ class AbstractNState(AbstractActuator):
         return value in self.VALUES
 
     def set_limits(self, limits):
-        """Set actuator low and high limits.
+        """Set the low and high limits.
         Args:
-            limits (tuple): two floats tuple (low limit, high limit).
+            limits (tuple): two element (low limit, high limit) tuple.
         """
         raise NotImplementedError
 
     def update_limits(self, limits=None):
         """Check if the limits have changed. Emits signal limitsChanged.
         Args:
-            limits (tuple): two floats tuple (low limit, high limit).
+            limits(tuple): two element (low limit, high limit) tuple.
         """
         raise NotImplementedError
 
-    def get_values(self):
-        """Get the predefined valies. Create the VALUES Enum
-        Returns:
-            (Enum): "ValueEnum" with predefined values.
+    def initialise_values(self):
+        """Initialise the ValueEnum with the values from the config.
         """
         try:
             values = ast.literal_eval(self.getProperty("values"))
@@ -90,14 +88,13 @@ class AbstractNState(AbstractActuator):
                 "ValueEnum",
                 dict(values, **{item.name: item.value for item in BaseValueEnum}),
             )
-            return self.VALUES
         except (ValueError, TypeError):
-            return self.VALUES
+            pass
 
     def value_to_enum(self, value):
         """Tranform a value to Enum
         Args:
-           value (str, int, float, tuple): value
+           value(str, int, float, tuple): value
         Returns:
             (Enum): Enum member, corresponding to the value or UNKNOWN.
         """
