@@ -140,6 +140,6 @@ class BlissNState(AbstractNState):
             values = {val.upper(): val for val in self.bliss_obj.positions_list}
             self.VALUES = Enum(
                 "ValueEnum",
-                dict(values, **{item.name: item.value for item in BaseValueEnum},),
+                dict(values, **{item.name: item.value for item in BaseValueEnum}),
             )
         return self.VALUES
