@@ -45,7 +45,6 @@ DEFAULT_POSITION = 10.124
 
 
 class MotorMockup(AbstractMotor):
-    _actuator_set_value = AbstractMotor.set_value
 
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
@@ -55,30 +54,25 @@ class MotorMockup(AbstractMotor):
         """
         FWK2 Init method
         """
-        try:
-            self.set_velocity(float(self.getProperty("velocity")))
-        except BaseException:
-            self.set_velocity(DEFAULT_VELOCITY)
+        self.set_velocity(self.getProperty("velocity", DEFAULT_VELOCITY))
 
         try:
             limits = tuple(eval(self.getProperty("default_limits")))
         except BaseException:
             limits = DEFAULT_LIMITS
+        self.update_limits(limits)
 
-        self.set_limits(limits)
+        start_position = self.getProperty("default_position", DEFAULT_POSITION)
+        start_position = self.getProperty("start_position", start_position)
+        self.update_value(start_position)
 
-        try:
-            self.set_value(float(self.getProperty("default_position")))
-        except BaseException:
-            self.set_value(DEFAULT_POSITION)
-
-        self._set_value(float(self.getProperty("start_position", DEFAULT_POSITION)))
         self.update_state(self.STATES.READY)
 
-    def _move_task(self, position, timeout=None):
+    def _move(self, position):
         """
         Simulated motor movement
         """
+        self.update_state(self.STATES.BUSY)
         start_pos = self.get_value()
 
         if start_pos is not None:
@@ -96,10 +90,10 @@ class MotorMockup(AbstractMotor):
                 self.update_value(value)
                 time.sleep(0.02)
 
-        self._actuator_set_value(position)
         self.update_state(self.STATES.READY)
 
-    def stop(self):
+    def abort(self):
+        """Imediately halt movement. By default self.stop = self.abort"""
         if self.__move_task is not None:
             self.__move_task.kill()
 
@@ -119,19 +113,6 @@ class MotorMockup(AbstractMotor):
             timeout (float): optional - timeout [s],
                              If timeout == 0: return at once and do not wait;
         """
-        self._nominal_value = value
-
-    def set_value(self, value, timeout=None):
-        """
-        Mock set value
-
-        Args:
-            value (float): target value
-            timeout (float): optional - timeout [s],
-                             If timeout == 0: return at once and do not wait;
-        """
-        self.update_state(self.STATES.BUSY)
-        self.__move_task = gevent.spawn(self._move_task, value)
-
-        if timeout is None:
-            self.__move_task.get()
+        self.__move_task = gevent.spawn(self._move, value)
+        if timeout or timeout is None:
+            self.__move_task.get(timeout=timeout)
