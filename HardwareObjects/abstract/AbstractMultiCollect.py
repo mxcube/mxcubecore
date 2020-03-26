@@ -95,39 +95,9 @@ class AbstractMultiCollect(object):
     def data_collection_end_hook(self, data_collect_parameters):
         pass
 
-    @task
-    def set_detector_mode(self, detector_mode):
-        if HWR.beamline.detector is not None:
-            HWR.beamline.detector.set_roi_mode(detector_mode)
-
-    @abc.abstractmethod
-    @task
-    def set_transmission(self, transmission_percent):
-        pass
-
-    @abc.abstractmethod
-    @task
-    def set_wavelength(self, wavelength):
-        pass
-
-    @abc.abstractmethod
-    @task
-    def set_resolution(self, new_resolution):
-        pass
-
-    @abc.abstractmethod
-    @task
-    def set_energy(self, energy):
-        pass
-
     @abc.abstractmethod
     @task
     def close_fast_shutter(self):
-        pass
-
-    @abc.abstractmethod
-    @task
-    def move_detector(self, distance):
         pass
 
     @abc.abstractmethod
@@ -213,18 +183,6 @@ class AbstractMultiCollect(object):
         pass
 
     @abc.abstractmethod
-    def get_detector_distance(self):
-        pass
-
-    @abc.abstractmethod
-    def get_resolution(self):
-        pass
-
-    @abc.abstractmethod
-    def get_transmission(self):
-        pass
-
-    @abc.abstractmethod
     def get_undulators_gaps(self):
         pass
 
@@ -249,10 +207,6 @@ class AbstractMultiCollect(object):
         pass
 
     @abc.abstractmethod
-    def get_measured_intensity(self):
-        pass
-
-    @abc.abstractmethod
     def get_machine_current(self):
         pass
 
@@ -266,11 +220,6 @@ class AbstractMultiCollect(object):
 
     @abc.abstractmethod
     def get_cryo_temperature(self):
-        pass
-
-    @abc.abstractmethod
-    def get_flux(self):
-        """Return flux in photons/second"""
         pass
 
     @abc.abstractmethod
@@ -688,18 +637,18 @@ class AbstractMultiCollect(object):
             logging.getLogger("user_level_log").info(
                 "Setting transmission to %f", data_collect_parameters["transmission"]
             )
-            self.set_transmission(data_collect_parameters["transmission"])
+            HWR.beamline.transmission.set_value(data_collect_parameters["transmission"])
 
         if "wavelength" in data_collect_parameters:
             logging.getLogger("user_level_log").info(
                 "Setting wavelength to %f", data_collect_parameters["wavelength"]
             )
-            self.set_wavelength(data_collect_parameters["wavelength"])
+            HWR.beamline.energy.set_wavelength(data_collect_parameters["wavelength"])
         elif "energy" in data_collect_parameters:
             logging.getLogger("user_level_log").info(
                 "Setting energy to %f", data_collect_parameters["energy"]
             )
-            self.set_energy(data_collect_parameters["energy"])
+            HWR.beamline.energy.set_value(data_collect_parameters["energy"])
 
         if "resolution" in data_collect_parameters:
             resolution = data_collect_parameters["resolution"]["upper"]
@@ -711,7 +660,9 @@ class AbstractMultiCollect(object):
             logging.getLogger("user_level_log").info(
                 "Moving detector to %f", data_collect_parameters["detector_distance"]
             )
-            self.move_detector(oscillation_parameters["detector_distance"])
+            HWR.beamline.detector.distance.set_value(
+                oscillation_parameters["detector_distance"]
+            )
 
         # 0: software binned, 1: unbinned, 2:hw binned
         # self.set_detector_mode(data_collect_parameters["detector_mode"])
@@ -735,16 +686,22 @@ class AbstractMultiCollect(object):
                     logging.getLogger("user_level_log").info(
                         "Gathering data for LIMS update"
                     )
-                    data_collect_parameters["flux"] = self.get_flux()
+                    data_collect_parameters["flux"] = HWR.beamline.flux.get_value()
                     data_collect_parameters["flux_end"] = data_collect_parameters[
                         "flux"
                     ]
-                    data_collect_parameters["wavelength"] = self.get_wavelength()
+                    data_collect_parameters["wavelength"] = (
+                        HWR.beamline.energy.get_wavelength()
+                    )
                     data_collect_parameters[
                         "detectorDistance"
-                    ] = self.get_detector_distance()
-                    data_collect_parameters["resolution"] = self.get_resolution()
-                    data_collect_parameters["transmission"] = self.get_transmission()
+                    ] = HWR.beamline.detector.distance.get_value()
+                    data_collect_parameters["resolution"] = (
+                        HWR.beamline.resolution.get_value()
+                    )
+                    data_collect_parameters["transmission"] = (
+                        HWR.beamline.transmission.get_value()
+                    )
                     beam_centre_x, beam_centre_y = self.get_beam_centre()
                     data_collect_parameters["xBeam"] = beam_centre_x
                     data_collect_parameters["yBeam"] = beam_centre_y
@@ -885,7 +842,7 @@ class AbstractMultiCollect(object):
                                     "fileName": filename,
                                     "fileLocation": file_location,
                                     "imageNumber": frame,
-                                    "measuredIntensity": self.get_measured_intensity(),
+                                    "measuredIntensity": HWR.beamline.flux.get_value(),
                                     "synchrotronCurrent": self.get_machine_current(),
                                     "machineMessage": self.get_machine_message(),
                                     "temperature": self.get_cryo_temperature(),
@@ -1044,7 +1001,7 @@ class AbstractMultiCollect(object):
                     )
 
                 if HWR.beamline.lims:
-                    data_collect_parameters["flux_end"] = self.get_flux()
+                    data_collect_parameters["flux_end"] = HWR.beamline.flux.get_value()
                     try:
                         HWR.beamline.lims.update_data_collection(
                             data_collect_parameters

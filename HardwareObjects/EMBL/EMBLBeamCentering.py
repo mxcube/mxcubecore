@@ -334,7 +334,7 @@ class EMBLBeamCentering(HardwareObject):
                 gui_log.info("Beam centering: %s" % log_msg)
                 self.emit("progressStep", step, log_msg)
 
-                if HWR.beamline.energy.get_energy() <= 8.75:
+                if HWR.beamline.energy.get_value() <= 8.75:
                     self.cmd_set_qbmp_range(0)
                 else:
                     self.cmd_set_qbmp_range(1)
@@ -426,7 +426,7 @@ class EMBLBeamCentering(HardwareObject):
                         self.cmd_set_pitch(1)
                         gevent.sleep(0.1)
 
-                        if HWR.beamline.energy.get_energy() < 10:
+                        if HWR.beamline.energy.get_value() < 10:
                             crl_value = self.crl_hwobj.get_crl_value()
                             self.crl_hwobj.set_crl_value([1, 1, 1, 1, 1, 1], timeout=30)
 
@@ -446,7 +446,7 @@ class EMBLBeamCentering(HardwareObject):
                         self.cmd_set_vmax_pitch(1)
 
                         # GB : return original lenses only after scan finished
-                        if HWR.beamline.energy.get_energy() < 10:
+                        if HWR.beamline.energy.get_value() < 10:
                             self.crl_hwobj.set_crl_value(crl_value, timeout=30)
                         sleep(2)
 
@@ -464,7 +464,7 @@ class EMBLBeamCentering(HardwareObject):
                         delta_hor = (
                             beam_pos_displacement[0]
                             * self.scale_hor
-                            * HWR.beamline.energy.get_energy()
+                            * HWR.beamline.energy.get_value()
                             / 12.70
                         )
                         delta_ver = beam_pos_displacement[1] * self.scale_ver

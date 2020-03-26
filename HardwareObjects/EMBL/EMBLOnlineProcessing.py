@@ -516,7 +516,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
         # detector_size_y = 1679
 
         geom_file = CRYSTFEL_GEOM_FILE_TEMPLATE.format(
-            HWR.beamline.detector.get_distance() / 1000.0,
+            HWR.beamline.detector.distance.get_value() / 1000.0,
             acq_params.energy * 1000,
             1000.0 / pixel_size_mm_x,
             detector_size_x - 1,
@@ -650,7 +650,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
             detector_size_y=detector_size_y,
             org_x=beam_x / pixel_size_mm_x,
             org_y=beam_y / pixel_size_mm_y,
-            detector_distance=HWR.beamline.detector.get_distance(),
+            detector_distance=HWR.beamline.detector.distance.get_value(),
         )
 
         data_file = open(nxdsinp_filename, "w")

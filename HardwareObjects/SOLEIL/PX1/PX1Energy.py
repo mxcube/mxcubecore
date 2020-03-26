@@ -56,7 +56,7 @@ class PX1Energy(Device, AbstractEnergy):
     def connectNotify(self, signal):
         if signal == "energyChanged":
             logging.getLogger("HWR").debug(
-                "PX1Energy. connectNotify. sending energy value %s" % self.get_energy()
+                "PX1Energy. connectNotify. sending energy value %s" % self.get_value()
             )
             self.energyChanged(self.get_energy())
 
