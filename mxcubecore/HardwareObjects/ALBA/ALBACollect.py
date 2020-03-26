@@ -695,9 +695,6 @@ class ALBACollect(AbstractCollect):
         HWR.beamline.sample_view.save_snapshot(filename)
         logging.getLogger("HWR").debug(" - snapshot saved to %s" % filename)
 
-    def get_energy(self):
-        return HWR.beamline.energy.get_value()
-
     @task
     def move_motors(self, motor_position_dict):
         """
@@ -872,10 +869,8 @@ class ALBACollect(AbstractCollect):
 
 
 def test_hwo(hwo):
-    print("Energy: ", hwo.get_energy())
     print("Shutters (ready for collect): ", hwo.check_shutters())
     print("Supervisor(collect phase): ", hwo.is_collect_phase())
 
-    print("Flux ", HWR.beamline.flux.get_value())
     print("Kappa ", hwo.kappapos_chan.getValue())
     print("Phi ", hwo.phipos_chan.getValue())

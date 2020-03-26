@@ -46,7 +46,7 @@ class BIOMAXEnergy(Energy.Energy):
                 return None
         return self.default_en
 
-    def getEnergyLimits(self):
+    def get_limits(self):
         if not self.tunable:
             return None
 

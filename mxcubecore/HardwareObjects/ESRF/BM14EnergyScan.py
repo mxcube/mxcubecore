@@ -39,9 +39,3 @@ class BM14EnergyScan(ESRFEnergyScan):
         self.energy_scan_parameters["exposureTime"] = energy_scan_parameters[
             "exposureTime"
         ]
-
-    def canScanEnergy(self):
-        return True
-
-    def canMoveEnergy(self):
-        return self.canScanEnergy()
