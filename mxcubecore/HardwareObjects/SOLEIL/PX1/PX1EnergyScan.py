@@ -96,9 +96,6 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
     def isConnected(self):
         return True
 
-    def canScanEnergy(self):
-        return self.isConnected()
-
     # SCAN info (for graph)
     def new_data_point(self, x, y):
         logging.info("EnergyScan newPoint %s, %s" % (x, y))

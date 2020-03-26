@@ -1094,7 +1094,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
     def set_energy(self, value):
         logging.getLogger("HWR").info("[COLLECT] Setting beamline energy")
-        HWR.beamline.energy.startMoveEnergy(value)  # keV
+        HWR.beamline.energy.set_value(value)  # keV
         logging.getLogger("HWR").info("[COLLECT] Setting detector energy")
         HWR.beamline.detector.set_photon_energy(value * 1000)  # ev
 
