@@ -67,12 +67,6 @@ class ID29EnergyScan(ESRFEnergyScan):
             "exposure_time"
         ]
 
-    def canScanEnergy(self):
-        return True
-
-    def canMoveEnergy(self):
-        return self.canScanEnergy()
-
     def escan_prepare(self):
         self.ctrl = self.getObjectByRole("controller")
 

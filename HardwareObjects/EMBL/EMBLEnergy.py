@@ -153,7 +153,7 @@ class EMBLEnergy(AbstractEnergy):
             current_wav = 12.3984 / current_en
         return current_wav
 
-    def get_energy_limits(self):
+    def get_limits(self):
         """
         Returns energy limits as list of two floats
         :return: (float, float)
@@ -226,17 +226,17 @@ class EMBLEnergy(AbstractEnergy):
         else:
             logging.getLogger("GUI").info("Energy: Requested value is out of limits")
         return result
-
-    def start_move_wavelength(self, value, wait=True):
-        """
-        Starts wavelength change
-        :param value: float
-        :param wait: boolean
-        :return:
-        """
-        logging.getLogger("HWR").info("Moving wavelength to (%s)" % value)
-        return self.move_energy(12.3984 / value, wait)
-        # return self.startMoveEnergy(value, wait)
+    #
+    # def start_move_wavelength(self, value, wait=True):
+    #     """
+    #     Starts wavelength change
+    #     :param value: float
+    #     :param wait: boolean
+    #     :return:
+    #     """
+    #     logging.getLogger("HWR").info("Moving wavelength to (%s)" % value)
+    #     return self.move_energy(12.3984 / value, wait)
+    #     # return self.startMoveEnergy(value, wait)
 
     def cancel_move_energy(self):
         """
@@ -246,7 +246,7 @@ class EMBLEnergy(AbstractEnergy):
         logging.getLogger("user_level_log").info("Energy: Cancel move")
         # self.moveEnergy.abort()
 
-    def move_energy(self, energy, wait=True):
+    def set_value(self, energy, wait=True):
         """
         Sets energy in keV
         """
@@ -288,14 +288,14 @@ class EMBLEnergy(AbstractEnergy):
                 # Mockup mode
                 self.energy_position_changed([energy * 1000])
 
-    def move_wavelength(self, value, wait=True):
+    def set_wavelength(self, value, wait=True):
         """
         Changes wavelength (in Angstroms)
         :param value: wavelength in Angstroms (float)
         :param wait: boolean
         :return:
         """
-        self.move_energy(12.3984 / value, wait)
+        self.set_value(12.3984 / value, wait)
 
     def energy_position_changed(self, pos):
         """
@@ -320,7 +320,7 @@ class EMBLEnergy(AbstractEnergy):
         :param limits: (float, float)
         :return:
         """
-        limits = self.getEnergyLimits()
+        limits = self.get_limits()
         self.emit("energyLimitsChanged", (limits,))
 
     def energy_state_changed(self, state):

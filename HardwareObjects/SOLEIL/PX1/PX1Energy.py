@@ -110,10 +110,6 @@ class PX1Energy(Device, AbstractEnergy):
     def isDisconnected(self):
         return True
 
-    # Definit si la beamline est a energie fixe ou variable
-    def can_move_energy(self):
-        return True
-
     def get_value(self):
         return self.energy_chan.getValue()
 
@@ -133,14 +129,11 @@ class PX1Energy(Device, AbstractEnergy):
         return self.get_wavelength()
 
     def get_limits(self):
-        return self.getEnergyLimits()
-
-    def get_energy_limits(self):
         chan_info = self.energy_chan.getInfo()
         return (float(chan_info.min_value), float(chan_info.max_value))
 
     def get_wavelength_limits(self):
-        energy_min, energy_max = self.getEnergyLimits()
+        energy_min, energy_max = self.get_limits()
 
         # max is min and min is max
         max_lambda = self.energy_to_lambda(energy_min)
@@ -158,7 +151,7 @@ class PX1Energy(Device, AbstractEnergy):
         self.monodevice.simLambda = value
         return self.monodevice.simEnergy
 
-    def move_energy(self, value, wait=False):
+    def set_value(self, value, wait=False):
         value = float(value)
 
         backlash = 0.1  # en mm
@@ -215,12 +208,12 @@ class PX1Energy(Device, AbstractEnergy):
                 self.get_state(),
             )
 
-    def move_wavelength(self, value, wait=False):
+    def set_wavelength(self, value, wait=False):
         egy_value = self.lambda_to_energy(float(value))
         logging.getLogger("HWR").debug(
             "%s: Moving wavelength to : %s (egy to %s" % (self.name(), value, egy_value)
         )
-        self.move_energy(egy_value)
+        self.set_valuey(egy_value)
         return value
 
     def cancelMoveEnergy(self):
@@ -270,11 +263,6 @@ class PX1Energy(Device, AbstractEnergy):
 
     def restoreResolution(self):
         return (False, "Resolution motor not defined")
-
-    getEnergyLimits = get_energy_limits
-    canMoveEnergy = can_move_energy
-    startMoveEnergy = move_energy
-    set_wavelength = move_wavelength
 
 
 def test_hwo(hwo):

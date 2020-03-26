@@ -32,6 +32,7 @@ class BlissEnergy(AbstractEnergy):
 
     def init(self):
         self._energy_motor = self.getObjectByRole("energy_motor")
+        self.tunable = self.getProperty("tunable_energy")
         self._bliss_session = self.getObjectByRole("bliss")
         self._default_energy = self.getObjectByRole("default_energy")
         self.state = HardwareObjectState.READY
@@ -55,7 +56,7 @@ class BlissEnergy(AbstractEnergy):
             return False
 
     def get_value(self):
-        if self.read_only:
+        if not self.tunable:
             return self._default_energy
 
         return self._energy_motor.get_value()
@@ -76,7 +77,7 @@ class BlissEnergy(AbstractEnergy):
             (tuple): two floats tuple (low limit, high limit).
         """
         logging.getLogger("HWR").debug("Get energy limits")
-        if self.read_only:
+        if not self.tunable:
             self._energy_limits = (self._default_energy, self._default_energy)
         else:
             self._energy_limits = self._energy_motor.get_limits()
@@ -109,7 +110,7 @@ class BlissEnergy(AbstractEnergy):
             self.state = self._energy_motor.get_state()
         return self.state
 
-    def move_energy(self, value, wait=True, timeout=None):
+    def set_value(self, value, wait=True, timeout=None):
         """Move energy to absolute position. Wait the move to finish.
         Args:
             value (float): target value.
@@ -128,11 +129,11 @@ class BlissEnergy(AbstractEnergy):
         logging.getLogger("user_level_log").debug("Energy: moving energy to %g", value)
 
         def change_energy():
-            try:
-                # self._bliss_session.change_energy(value)
-                self._energy_motor.set_value(value)
-            except RuntimeError:
-                self._energy_motor.set_value(value)
+            # try:
+            #     # self._bliss_session.change_energy(value)
+            #     self._energy_motor.set_value(value)
+            # except RuntimeError:
+            self._energy_motor.set_value(value)
 
         if pos > 0.02:
             if wait:
@@ -144,7 +145,7 @@ class BlissEnergy(AbstractEnergy):
 
     def set_wavelength(self, value, wait=True, timeout=None):
         value = self._calculate_energy(value)
-        self.move_energy(value, wait, timeout)
+        self.set_value(value, wait, timeout)
 
     def update_value(self, position):
         """Check if the position has changed. Emist signal valueChanged.
