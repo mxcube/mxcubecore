@@ -384,10 +384,6 @@ class SOLEILMachineInfo(HardwareObject):
         self.values_list[3]["in_range"] = value > 1e6
         self.update_values()
 
-    def get_flux(self, beam_info=None, transmission=None):
-        """Returns flux value"""
-        return self.values_list[3]["value"]
-
     def update_values(self):
         """Emits list of values"""
         self.emit("valuesChanged", self.values_list)

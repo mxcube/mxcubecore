@@ -149,7 +149,7 @@ class LimaEigerDetector(AbstractDetector):
             "beam_center_y=%s" % (beam_y / 7.5000003562308848e-02),
             "wavelength=%s" % HWR.beamline.energy.get_wavelength(),
             "detector_distance=%s"
-            % (HWR.beamline.detector.get_detector_distance() / 1000.0),
+            % (HWR.beamline.detector.distance.get_value() / 1000.0),
             "omega_start=%0.4f" % start,
             "omega_increment=%0.4f" % osc_range,
         ]

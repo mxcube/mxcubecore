@@ -632,7 +632,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
         ax, ay, bx, by = self.get_beam_configuration()
 
-        dist = HWR.beamline.detector.get_distance()
+        dist = HWR.beamline.detector.distance.get_value()
         wavlen = HWR.beamline.energy.get_wavelength()
 
         start_angle = osc_seq["start"]
@@ -784,37 +784,6 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
     ## PX1 ENVIRONMENT PHASE HANDLING (END) ##
 
-    ## OTHER HARDWARE OBJECTS ##
-    def set_energy(self, value):
-        """
-        Descript. :
-        """
-        HWR.beamline.energy.move_energy(value)
-
-    def set_wavelength(self, value):
-        """
-        Descript. :
-        """
-        HWR.beamline.energy.move_wavelength(value)
-
-    def get_energy(self):
-        return HWR.beamline.energy.get_energy()
-
-    def set_transmission(self, value):
-        """
-        Descript. :
-        """
-        HWR.beamline.transmission.set_value(value)
-
-    def set_resolution(self, value):
-        """
-        Descript. : resolution is a motor in out system
-        """
-        return
-        HWR.beamline.resolution.set_value(value)
-
-    def move_detector(self, value):
-        HWR.beamline.detector.move_distance(value)
 
     @task
     def move_motors(self, motor_position_dict):
@@ -822,38 +791,6 @@ class PX1Collect(AbstractCollect, HardwareObject):
         Descript. :
         """
         HWR.beamline.diffractometer.move_motors(motor_position_dict)
-
-    def get_wavelength(self):
-        """
-        Descript. :
-            Called to save wavelength in lims
-        """
-        if HWR.beamline.energy is not None:
-            return HWR.beamline.energy.get_wavelength()
-
-    def get_detector_distance(self):
-        """
-        Descript. :
-            Called to save detector_distance in lims
-        """
-        if HWR.beamline.detector is not None:
-            return HWR.beamline.detector.get_distance()
-
-    def get_resolution(self):
-        """
-        Descript. :
-            Called to save resolution in lims
-        """
-        if HWR.beamline.resolution is not None:
-            return HWR.beamline.resolution.get_value()
-
-    def get_transmission(self):
-        """
-        Descript. :
-            Called to save transmission in lims
-        """
-        if HWR.beamline.transmission is not None:
-            return HWR.beamline.transmission.get_value()
 
     def get_undulators_gaps(self):
         """
@@ -883,16 +820,6 @@ class PX1Collect(AbstractCollect, HardwareObject):
         """
         if HWR.beamline.beam is not None:
             return HWR.beamline.beam.get_beam_shape()
-
-    def get_measured_intensity(self):
-        """
-        Descript. :
-        """
-        if HWR.beamline.flux is not None:
-            flux = HWR.beamline.flux.get_value()
-        else:
-            flux = 0.0
-        return float("%.3e" % flux)
 
     def get_machine_current(self):
         """
@@ -931,12 +858,6 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
     def get_undulators(self):
         return [U20()]
-
-    def get_flux(self):
-        """
-        Descript. :
-        """
-        return self.get_measured_intensity()
 
     ## OTHER HARDWARE OBJECTS (END) ##
 
@@ -1013,11 +934,9 @@ class U20(object):
 
 def test_hwo(hwo):
     print("Energy: ", hwo.get_energy())
-    print("Transm: ", hwo.get_transmission())
-    print("Resol: ", hwo.get_resolution())
     print("PX1Environemnt (collect phase): ", hwo.is_collect_phase())
     print("Shutters (ready for collect): ", hwo.check_shutters())
-    print("Flux: ", hwo.get_measured_intensity())
+    print("Flux: ", HWR.beamline.flux.get_value())
     print("is collect? ", hwo.is_collect_phase())
     print("is samplevisu? ", hwo.is_sampleview_phase())
     print("goint to sample visu")

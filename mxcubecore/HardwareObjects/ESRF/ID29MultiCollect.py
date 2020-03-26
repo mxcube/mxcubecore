@@ -37,32 +37,12 @@ class ID29MultiCollect(ESRFMultiCollect):
 
         return (None, None)
 
-    def get_measured_intensity(self):
-        return 0
-
     @task
     def get_beam_shape(self):
         return self.bl_control.beam_info.get_beam_shape()
 
-    @task
-    def move_detector(self, detector_distance):
-        det_distance = self.getObjectByRole("detector_distance")
-        det_distance.set_value(detector_distance)
-        while det_distance.motorIsMoving():
-            gevent.sleep(0.1)
-
-    @task
-    def set_resolution(self, new_resolution):
-        self.bl_control.resolution.set_value(new_resolution)
-        while self.bl_control.resolution.motorIsMoving():
-            gevent.sleep(0.1)
-
     def get_resolution_at_corner(self):
         return self.bl_control.resolution.get_value_at_corner()
-
-    def get_detector_distance(self):
-        det_distance = self.getObjectByRole("detector_distance")
-        return det_distance.get_value()
 
     def ready(*motors):
         return not any([m.motorIsMoving() for m in motors])
@@ -179,12 +159,6 @@ class ID29MultiCollect(ESRFMultiCollect):
         self.mesh_total_nb_frames = total_nb_frames
         self.mesh_range = mesh_range_param
         self.mesh_center = mesh_center_param
-
-    def set_transmission(self, transmission):
-        self.getObjectByRole("transmission").set_value(transmission)
-
-    def get_transmission(self):
-        return self.getObjectByRole("transmission").get_value()
 
     def get_cryo_temperature(self):
         return 0

@@ -39,8 +39,6 @@ class Resolution(AbstractMotor):
 
         self.det_width = None
         self.det_height = None
-        self.det_radius = None
-        self._nominal_value = None
         self._hwr_detector = None
         self._hwr_energy = None
         self.det_beam = {}
@@ -81,7 +79,6 @@ class Resolution(AbstractMotor):
         """
         if self._nominal_value is None:
             dtox_pos = self._hwr_detector.distance.get_value()
-            self.get_detector_radius(dtox_pos)
             self._nominal_value = self.distance_to_resolution(dtox_pos)
         return self._nominal_value
 
@@ -156,7 +153,7 @@ class Resolution(AbstractMotor):
         """
         distance = distance or self._hwr_detector.distance.get_value()
 
-        return self._calculate_resolution(self.get_detector_radius(distance), distance)
+        return self._calculate_resolution(self._hwr_detector.get_radius(distance), distance)
 
     def resolution_to_distance(self, resolution=None):
         """Convert resolution to distance.
@@ -201,20 +198,6 @@ class Resolution(AbstractMotor):
         except KeyError:
             return None
 
-    def get_detector_radius(self, distance=None):
-        """Get the detector radius for a given distance.
-        Args:
-            distance (float): Distance [mm]
-        Returns:
-            (float): Detector radius [mm]
-        """
-        distance = distance or self.hwr_detector.distance.get_value()
-        beam_x, beam_y = self.get_beam_centre(distance)
-        self.det_radius = min(
-            self.det_width - beam_x, self.det_height - beam_y, beam_x, beam_y
-        )
-        return self.det_radius
-
     def get_value_at_corner(self):
         """Get the resolution at the corners of the detector.
         Returns:
@@ -257,7 +240,7 @@ class Resolution(AbstractMotor):
         _wavelength = (h * c / e) / value * 10e6
 
         distance = self._hwr_detector.distance.get_value()
-        radius = self.get_detector_radius(distance)
+        radius = sself._hwr_detector.get_radius(distance)
         try:
             ttheta = arctan(radius / distance)
             if ttheta:
