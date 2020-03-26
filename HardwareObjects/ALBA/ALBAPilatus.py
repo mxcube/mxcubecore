@@ -89,26 +89,8 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
     def stop_acquisition(self):
         self.device.abortAcq()
 
-    def get_distance(self):
-        """Returns detector distance in mm"""
-        if self.distance_motor_hwobj is not None:
-            return float(self.distance_motor_hwobj.get_value())
-        else:
-            return self.default_distance
-
-    def move_distance(self, value):
-        if self.distance_motor_hwobj is not None:
-            self.distance_motor_hwobj.set_value(value)
-
     def wait_move_distance_done(self):
         self.distance_motor_hwobj.wait_end_of_move()
-
-    def get_distance_limits(self):
-        """Returns detector distance limits"""
-        if self.distance_motor_hwobj is not None:
-            return self.distance_motor_hwobj.get_limits()
-        else:
-            return self.default_distance_limits
 
     def get_threshold(self):
         return self.device_specific.threshold
@@ -303,6 +285,6 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
 
 
 def test_hwo(hwo):
-    print("Detector Distance is: ", hwo.get_distance())
+    print("Detector Distance is: ", hwo.distance.get_value())
     print("   Beam X: %s / Beam Y: %s" % hwo.get_beam_centre())
-    # print("going to 490 : ", hwo.move_distance(490))
+    # print("going to 490 : ", hwo.distance.set_value(490))

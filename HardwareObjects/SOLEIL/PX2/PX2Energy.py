@@ -20,12 +20,9 @@ class PX2Energy(EnergyMockup):
         self.minimum_energy = self.getProperty("min_energy")
         self.maximum_energy = self.getProperty("max_energy")
 
-        self.current_energy = self.energy.get_energy() / kilo
+        self.current_energy = self.energy.get_value() / kilo
         self.current_wavelength = self.get_wavelegth_from_energy(self.current_energy)
 
-        self.getEnergyLimits = self.get_energy_limits
-        self.get_current_energy = self.get_current_energy
-        self.get_wavelength = self.get_wavelength
         self.checkLimits = self.check_limits
         self.cancelMoveEnergy = self.cancel_move_energy
 

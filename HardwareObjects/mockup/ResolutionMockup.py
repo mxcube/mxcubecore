@@ -12,7 +12,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         return BaseHardwareObjects.Equipment._init(self)
 
     def init(self):
-        self.currentResolution = 3
+        self._nominal_value = 3
         self.detmState = None
         self.state = self.STATES.READY
         self.connect(
@@ -32,7 +32,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
             if det_radius > 0:
                 self.det_radius = det_radius
 
-        HWR.beamline.detector.distance.set_value(self.res2dist(self.currentResolution))
+        HWR.beamline.detector.distance.set_value(self.res2dist())
 
         self.get_limits = self.get_limits
 
@@ -40,7 +40,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         pass
 
     def dtoxPositionChanged(self, pos):
-        self.newResolution(self.dist2res(pos))
+        self.update_value(self.dist2res(pos))
 
     def wavelengthChanged(self, pos=None):
         self.recalculateResolution()
@@ -50,7 +50,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
 
     def res2dist(self, res=None):
         if res is None:
-            res = self.currentResolution
+            res = self._nominal_value
         try:
             ttheta = 2 * math.asin(HWR.beamline.energy.get_wavelength() / (2 * res))
             return self.det_radius / math.tan(ttheta)
@@ -73,7 +73,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
             return None
 
     def recalculateResolution(self):
-        self.currentResolution = self.dist2res(
+        self._nominal_value = self.dist2res(
             HWR.beamline.detector.distance.get_value()
         )
 
@@ -84,14 +84,9 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         self.emit("deviceNotReady")
 
     def get_value(self):
-        if self.currentResolution is None:
+        if self._nominal_value is None:
             self.recalculateResolution()
-        return self.currentResolution
-
-    def newResolution(self, res):
-        if res:
-            self.currentResolution = res
-            self.emit("valueChanged", (res,))
+        return self._nominal_value
 
     def get_state(self):
         return self.state
@@ -118,8 +113,5 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
             HWR.beamline.detector.distance.motorIsMoving() or HWR.beamline.energy.moving
         )
 
-    def newDistance(self, dist):
-        pass
-
-    def stop(self):
-        HWR.beamline.detector.distance.stop()
+    def abort(self):
+        HWR.beamline.detector.distance.abort()
