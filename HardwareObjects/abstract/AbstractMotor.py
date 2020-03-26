@@ -36,9 +36,6 @@ __license__ = "LGPLv3+"
 class MotorStates(Enum):
     """Motor states definitions."""
 
-    UNKNOWN = HardwareObjectState.UNKNOWN, 0
-    READY = HardwareObjectState.READY, 1
-
     HOME = HardwareObjectState.READY, 5
     LOWLIMIT = HardwareObjectState.READY, 6
     HIGHLIMIT = HardwareObjectState.READY, 7
