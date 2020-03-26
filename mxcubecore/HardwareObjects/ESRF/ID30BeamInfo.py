@@ -29,6 +29,3 @@ class ID30BeamInfo(BeamInfo.BeamInfo):
         BeamInfo.BeamInfo.evaluate_beam_info(self, *args)
         self.beam_info_dict["shape"] = "ellipse"
         return self.beam_info_dict
-
-    def get_flux(self):
-        return HWR.beamline.flux.get_value()

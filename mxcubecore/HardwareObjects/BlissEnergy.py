@@ -32,7 +32,6 @@ class BlissEnergy(AbstractEnergy):
 
     def init(self):
         self._energy_motor = self.getObjectByRole("energy_motor")
-        self.tunable = self.getProperty("tunable_energy")
         self._bliss_session = self.getObjectByRole("bliss")
         self._default_energy = self.getObjectByRole("default_energy")
         self.state = HardwareObjectState.READY
@@ -56,29 +55,17 @@ class BlissEnergy(AbstractEnergy):
             return False
 
     def get_value(self):
-        """Read the energy
-        Returns:
-            (float): Energy [keV]
-        """
-        return self.get_energy()
-
-    def get_energy(self):
-        """Read the energy
-        Returns:
-            (float): Energy [keV]
-        """
-        if not self.tunable:
+        if self.read_only:
             return self._default_energy
 
-        self._energy_value = self._energy_motor.get_value()
-        return self._energy_value
+        return self._energy_motor.get_value()
 
     def get_wavelength(self):
         """Read the wavelength
         Returns:
             (float): Wavelength [Å]
         """
-        _en = self.get_energy()
+        _en = self.get_value()
         if _en:
             return self._calculate_wavelength(_en)
         return None
@@ -89,7 +76,7 @@ class BlissEnergy(AbstractEnergy):
             (tuple): two floats tuple (low limit, high limit).
         """
         logging.getLogger("HWR").debug("Get energy limits")
-        if not self.tunable:
+        if self.read_only:
             self._energy_limits = (self._default_energy, self._default_energy)
         else:
             self._energy_limits = self._energy_motor.get_limits()
@@ -129,7 +116,7 @@ class BlissEnergy(AbstractEnergy):
             wait (bool): optional - wait until motor movement finished.
             timeout (float): optional - timeout [s].
         """
-        _en = self.get_energy()
+        _en = self.get_value()
 
         pos = math.fabs(_en - value)
         if pos < 0.001:

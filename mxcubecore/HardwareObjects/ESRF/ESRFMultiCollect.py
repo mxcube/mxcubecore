@@ -537,23 +537,12 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         else:
             return self.execute_command("do_oscillation", start, end, exptime, npass)
 
-    @task
-    def set_transmission(self, transmission_percent):
-        HWR.beamline.transmission.set_value(transmission_percent)
 
     def set_wavelength(self, wavelength):
         return self._tunable_bl.set_wavelength(wavelength)
 
     def set_energy(self, energy):
         return self._tunable_bl.set_energy(energy)
-
-    @task
-    def set_resolution(self, new_resolution):
-        return
-
-    @task
-    def move_detector(self, detector_distance):
-        return
 
     @task
     def data_collection_cleanup(self):
@@ -802,15 +791,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def get_wavelength(self):
         return self._tunable_bl.get_wavelength()
 
-    def get_detector_distance(self):
-        return
-
-    def get_resolution(self):
-        return HWR.beamline.resolution.get_value()
-
-    def get_transmission(self):
-        return HWR.beamline.transmission.get_value()
-
     def get_undulators_gaps(self):
         all_gaps = {"Unknown": None}
         _gaps = {}
@@ -846,12 +826,12 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def get_beam_shape(self):
         return self.execute_command("get_beam_shape")
 
-    def get_measured_intensity(self):
-        try:
-            val = self.get_channel_object("image_intensity").getValue()
-            return float(val)
-        except BaseException:
-            return 0
+    # def get_measured_intensity(self):
+    #     try:
+    #         val = self.get_channel_object("image_intensity").getValue()
+    #         return float(val)
+    #     except BaseException:
+    #         return 0
 
     def get_machine_current(self):
         if HWR.beamline.machine_info:
@@ -925,11 +905,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def store_image_in_lims(self, frame, first_frame, last_frame):
         if first_frame or last_frame:
             return True
-
-    def get_flux(self):
-        return 0
-
-    #       return HWR.beamline.flux.get_value()
 
     @task
     def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):

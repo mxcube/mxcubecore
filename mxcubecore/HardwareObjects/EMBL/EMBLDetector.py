@@ -122,27 +122,6 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.cmd_close_cover = self.get_command_object("cmdCloseCover")
         self.cmd_restart_daq = self.get_command_object("cmdRestartDaq")
 
-    def get_distance(self):
-        """Returns detector distance in mm"""
-        return self.distance_motor_hwobj.get_value()
-
-    def set_distance(self, position, timeout=None):
-        """Sets detector distance
-
-        :param position: distance in mm
-        :type position: float
-        :param timeout: timeout
-        :type timeout: float
-        :return: None
-        """
-        return self.distance_motor_hwobj.set_value(position, timeout=timeout)
-
-    def get_distance_limits(self):
-        """Returns detector distance limits"""
-        if self.distance_motor_hwobj is not None:
-            return self.distance_motor_hwobj.get_limits()
-        return self.default_distance_limits
-
     def has_shutterless(self):
         """Return True if has shutterless mode"""
         return self.getProperty("hasShutterless")

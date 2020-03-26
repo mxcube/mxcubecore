@@ -34,15 +34,6 @@ class DetectorMockup(AbstractDetector):
 
         self._distance_motor_hwobj = self.getObjectByRole("detector_distance")
 
-    def get_distance(self):
-        return self._distance_motor_hwobj.get_value()
-
-    def set_distance(self, position, timeout=None):
-        self._distance_motor_hwobj.set_value(position, wait=True)
-
-    def get_distance_limits(self):
-        return [100, 1000]
-
     def set_roi_mode(self, roi_mode):
         self._roi_mode = roi_mode
         self.emit("detectorModeChanged", (self._roi_mode,))

@@ -53,4 +53,4 @@ class ALBAFlux(Device, AbstractFlux.AbstractFlux):
 
 
 def test_hwo(hwo):
-    print(hwo.get_flux())
+    print(hwo.get_value)

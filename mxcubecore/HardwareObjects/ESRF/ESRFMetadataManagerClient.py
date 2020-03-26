@@ -439,7 +439,7 @@ class MXCuBEMetadataClient(object):
         dictMetadata["MX_motors_name"] = motorNames
         dictMetadata["MX_motors_value"] = motorPositions
         # Detector distance
-        distance = self.esrf_multi_collect.get_detector_distance()
+        distance = HWR.beamline.detector.distance.get_value()
         if distance is not None:
             dictMetadata["MX_detectorDistance"] = distance
         # Aperture

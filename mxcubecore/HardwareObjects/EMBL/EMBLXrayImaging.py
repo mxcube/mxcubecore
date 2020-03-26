@@ -396,7 +396,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
                     tine.set("/P14/P14DetTrans/P14detHor2","Move.START", target)
             #TODO add later wait
             time.sleep(3)
-            HWR.beamline.detector.set_distance(im_params.detector_distance, timeout=30)
+            HWR.beamline.detector.distance.set_value(im_params.detector_distance, timeout=30)
             logging.getLogger("GUI").info("Imaging: Detector distance set")
 
         self.cmd_collect_detector("pco")
