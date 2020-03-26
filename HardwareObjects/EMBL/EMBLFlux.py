@@ -520,8 +520,8 @@ class EMBLFlux(AbstractFlux):
         self.emit("progressStop", ())
 
     def get_flux_result(self, intensity_value):
-        energy = HWR.beamline.energy.get_energy()
-        detector_distance = HWR.beamline.detector.get_distance()
+        energy = HWR.beamline.energy.get_value()
+        detector_distance = HWR.beamline.detector.distance.get_value()
         beam_size = HWR.beamline.beam.get_beam_size()
         transmission = HWR.beamline.transmission.get_value()
 
