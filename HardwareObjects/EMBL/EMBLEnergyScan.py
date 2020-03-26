@@ -157,9 +157,6 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
     def isConnected(self):
         return True
 
-    def canScanEnergy(self):
-        return self.isConnected()
-
     def startEnergyScan(
         self,
         element,

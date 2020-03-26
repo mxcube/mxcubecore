@@ -24,5 +24,5 @@ def test_energy_atributes(beamline):
 
 def test_energy_methods(beamline):
     target = 12.7
-    beamline.energy.move_energy(target)
+    beamline.energy.set_value(target)
     assert beamline.energy.get_value() == target

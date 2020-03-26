@@ -933,10 +933,8 @@ class U20(object):
 
 
 def test_hwo(hwo):
-    print("Energy: ", hwo.get_energy())
     print("PX1Environemnt (collect phase): ", hwo.is_collect_phase())
     print("Shutters (ready for collect): ", hwo.check_shutters())
-    print("Flux: ", HWR.beamline.flux.get_value())
     print("is collect? ", hwo.is_collect_phase())
     print("is samplevisu? ", hwo.is_sampleview_phase())
     print("goint to sample visu")
