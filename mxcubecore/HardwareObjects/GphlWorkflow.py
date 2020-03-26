@@ -775,7 +775,7 @@ class GphlWorkflow(HardwareObject, object):
             # so detector distance will trigger correct resolution later
             default_energy = ConvertUtils.H_OVER_E / beamSetting.wavelength
             # TODO NBNB put in wait-till ready to make sure value settles
-            HWR.beamline.energy.move_energy(default_energy)
+            HWR.beamline.energy.set_value(default_energy)
         else:
             default_energy = HWR.beamline.energy.get_value()
 
@@ -930,7 +930,7 @@ class GphlWorkflow(HardwareObject, object):
         )
         # set to wavelength of first energy
         # necessary so that resolution setting below gives right detector distance
-        HWR.beamline.energy.move_wavelength(wavelengths[0].wavelength)
+        HWR.beamline.energy.set_wavelength(wavelengths[0].wavelength)
         # TODO ensure that move is finished before resolution is set
 
         # get BcsDetectorSetting

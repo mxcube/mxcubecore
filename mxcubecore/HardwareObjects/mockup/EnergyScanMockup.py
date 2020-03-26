@@ -423,9 +423,6 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
             pass
         return energies
 
-    def canMoveEnergy(self):
-        return False
-
     def isConnected(self):
         return True
 

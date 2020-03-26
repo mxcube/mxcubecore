@@ -196,13 +196,13 @@ class SOLEILEnergyScan(Equipment):
         logging.getLogger("HWR").debug("EnergyScan:newScan")
         self.emit("newScan", (scanParameters,))
 
-    # Energy scan commands
-    def canScanEnergy(self):
-        if not self.isConnected():
-            return False
-        if self.energy2WavelengthConstant is None or self.energyScanArgs is None:
-            return False
-        return self.doEnergyScan is not None
+    # # Energy scan commands
+    # def canScanEnergy(self):
+    #     if not self.isConnected():
+    #         return False
+    #     if self.energy2WavelengthConstant is None or self.energyScanArgs is None:
+    #         return False
+    #     return self.doEnergyScan is not None
 
     def startEnergyScan(
         self, element, edge, directory, prefix, session_id=None, blsample_id=None
@@ -677,8 +677,6 @@ class SOLEILEnergyScan(Equipment):
         pass
 
     # Move energy commands
-    def canMoveEnergy(self):
-        return self.canScanEnergy()
 
     def get_current_energy(self):
         if HWR.beamline.energy is not None:

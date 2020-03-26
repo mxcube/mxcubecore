@@ -45,13 +45,11 @@ class FixedEnergy:
 class TunableEnergy:
     @task
     def set_wavelength(self, wavelength):
-        energy_obj = HWR.beamline.energy
-        return energy_obj.startMoveWavelength(wavelength)
+        return HWR.beamline.energy.set_wavelength(wavelength)
 
     @task
     def set_energy(self, energy):
-        energy_obj = HWR.beamline.energy
-        return energy_obj.move_energy(energy)
+        return HWR.beamline.energy.set_value(energy)
 
     def get_energy(self):
         return HWR.beamline.energy.get_energy()
