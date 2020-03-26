@@ -66,9 +66,6 @@ class ALBAEnergy(Device):
     def get_energy_limits(self):
         return HWR.beamline.energy.get_limits()
 
-    def getEnergyLimits(self):
-        return self.get_energy_limits()
-
     def get_wavelength_limits(self):
         return self.wavelength_hwobj.get_limits()
 

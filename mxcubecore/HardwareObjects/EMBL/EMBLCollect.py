@@ -382,47 +382,32 @@ class EMBLCollect(AbstractCollect):
             animation_filename, duration_sec
         )
 
-    def set_energy(self, value):
-        """Sets energy"""
-        """
-        if abs(value - self.get_energy()) > 0.005 and not self.break_bragg_released:
-            self.break_bragg_released = True
-            if hasattr(HWR.beamline.energy, "release_break_bragg"):
-                HWR.beamline.energy.release_break_bragg()
-            self.cmd_collect_energy(value * 1000.0)
-        else:
-        """
-        self.cmd_collect_energy(self.get_energy() * 1000)
+    # def set_energy(self, value):
+    #     """Sets energy"""
+    #     """
+    #     if abs(value - self.get_energy()) > 0.005 and not self.break_bragg_released:
+    #         self.break_bragg_released = True
+    #         if hasattr(HWR.beamline.energy, "release_break_bragg"):
+    #             HWR.beamline.energy.release_break_bragg()
+    #         self.cmd_collect_energy(value * 1000.0)
+    #     else:
+    #     """
+    #     self.cmd_collect_energy(self.get_energy() * 1000)
 
-    def get_energy(self):
-        """Returns energy value in keV"""
-        return HWR.beamline.energy.get_energy()
+    # def set_resolution(self, value):
+    #     """Sets resolution in A"""
+    #     if not value:
+    #         value = self.get_resolution()
+    #     self.cmd_collect_resolution(value)
 
-    def set_resolution(self, value):
-        """Sets resolution in A"""
-        if not value:
-            value = self.get_resolution()
-        self.cmd_collect_resolution(value)
-
-    def set_transmission(self, value):
-        """Sets transmission in %"""
-        self.cmd_collect_transmission(value)
-
-    def set_detector_roi_mode(self, roi_mode):
-        """Sets detector ROI mode
-
-        :param roi_mode: roi mode
-        :type roi_mode: str (0, C2, ..)
-        """
-        HWR.beamline.detector.set_collect_mode(roi_mode)
+    # def set_transmission(self, value):
+    #     """Sets transmission in %"""
+    #     self.cmd_collect_transmission(value)
 
     @task
     def move_motors(self, motor_position_dict):
         """Move to centred position"""
         HWR.beamline.diffractometer.move_motors(motor_position_dict)
-
-    def move_detector(self, value):
-        HWR.beamline.detector.set_distance(value, timeout=30)
 
     def prepare_input_files(self):
         """Prepares xds directory"""
@@ -445,26 +430,6 @@ class EMBLCollect(AbstractCollect):
 
         return xds_directory, ""
 
-    def get_wavelength(self):
-        """Returns wavelength"""
-        return HWR.beamline.energy.get_wavelength()
-
-    def get_detector_distance(self):
-        """Returns detector distance in mm"""
-        return HWR.beamline.detector.get_distance()
-
-    def get_detector_distance_limits(self):
-        """Returns detector distance limits"""
-        return HWR.beamline.detector.get_distance_limits()
-
-    def get_resolution(self):
-        """Returns resolution in A"""
-        return HWR.beamline.resolution.get_value()
-
-    def get_transmission(self):
-        """Returns transmision in %"""
-        return HWR.beamline.transmission.get_value()
-
     def get_undulators_gaps(self):
         """Return triplet with gaps. In our case we have one gap,
         """
@@ -474,10 +439,6 @@ class EMBLCollect(AbstractCollect):
             if not isinstance(und_gaps, (list, tuple)):
                 und_gaps = list(und_gaps)
         return und_gaps
-
-    def get_measured_intensity(self):
-        """Returns flux"""
-        return float("%.3e" % HWR.beamline.flux.get_value())
 
     def get_machine_current(self):
         """Returns flux"""
@@ -495,10 +456,6 @@ class EMBLCollect(AbstractCollect):
     def getBeamlineConfiguration(self, *args):
         """Returns beamline config"""
         return self.bl_config._asdict()
-
-    def get_flux(self):
-        """Returns flux"""
-        return self.get_measured_intensity()
 
     def get_total_absorbed_dose(self):
         return float("%.3e" % HWR.beamline.flux.get_total_absorbed_dose())

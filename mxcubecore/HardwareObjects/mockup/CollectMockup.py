@@ -209,19 +209,3 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         )
 
         return xds_directory, mosflm_directory, ""
-
-    # rhfogh Added to improve interaction with UI and persistence of values
-    def set_wavelength(self, wavelength):
-        HWR.beamline.energy.move_wavelength(wavelength)
-
-    def set_energy(self, energy):
-        HWR.beamline.energy.move_energy(energy)
-
-    def set_resolution(self, new_resolution):
-        HWR.beamline.resolution.set_value(new_resolution)
-
-    def set_transmission(self, transmission):
-        HWR.beamline.transmission.set_value(transmission)
-
-    def move_detector(self, detector_distance):
-        HWR.beamline.detector.set_distance(detector_distance)
