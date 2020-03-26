@@ -132,7 +132,7 @@ class MotorMockup(AbstractMotor):
             if timeout or timeout is None:
                 self.__move_task.get(timeout=timeout)
         except gevent.Timeout:
-            logging.getLogger("HWR").error("Motor %s timed out", self.name())
+            logging.getLogger("HWR").error("Motor %s timed out", self.actuator_name)
             self.update_state(self.STATES.READY)
             self.update_specific_state(self.SPECIFIC_STATES.UNKNOWN)
             raise
