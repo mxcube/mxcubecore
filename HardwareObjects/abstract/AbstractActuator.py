@@ -51,6 +51,7 @@ class AbstractActuator(HardwareObject):
         self.username = self.getProperty("username")
         if self.read_only:
             self._nominal_limits = (self.default_value, self.default_value)
+            self._nominal_value = self.default_value
 
     @abc.abstractmethod
     def get_value(self):
