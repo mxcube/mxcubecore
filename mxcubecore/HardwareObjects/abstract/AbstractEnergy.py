@@ -64,7 +64,7 @@ class AbstractEnergy(AbstractActuator):
     def get_wavelength(self):
         """Read the wavelength
         Returns:
-            (float): Wavelength [Å]
+            (float): Wavelength [Å].
         """
         self._wavelength_value = self._calculate_wavelength(self.get_value())
         return self._wavelength_value
@@ -72,9 +72,9 @@ class AbstractEnergy(AbstractActuator):
     def get_wavelength_limits(self):
         """Return wavelength low and high limits.
         Returns:
-            (tuple): two floats tuple (low limit, high limit).
+            (tuple): two floats tuple (low limit, high limit) [Å].
         """
-        _low, _high = self._nominal_limits
+        _low, _high = self.get_limits()
         self._wavelength_limits = (
             self._calculate_wavelength(_low),
             self._calculate_wavelength(_high),
