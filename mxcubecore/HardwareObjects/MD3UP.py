@@ -167,7 +167,7 @@ class MD3UP(Microdiff.Microdiff):
         )
 
         # Prepositionning at the center of the grid
-        self.moveMotors(mesh_center.as_dict())
+        self.move_motors(mesh_center.as_dict())
 
         positions = self.get_positions()
 

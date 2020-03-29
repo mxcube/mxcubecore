@@ -45,7 +45,7 @@ class ID30Light(Device, AbstractMotor):
     def getWagoState(self):
         return ID30Light.states.get(self._state, "unknown")
 
-    def getActuatorState(self):
+    def get_actuator_state(self):
         return self.getWagoState()
 
     def wagoIn(self):

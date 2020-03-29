@@ -300,7 +300,7 @@ class SC3(SampleChanger):
             state = self._readState()
         except BaseException:
             state = SampleChangerState.Unknown
-        if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
+        if state == SampleChangerState.Moving and self._isDeviceBusy(self.get_state()):
             return
         self._setState(state)
 

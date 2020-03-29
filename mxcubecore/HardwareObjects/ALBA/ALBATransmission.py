@@ -14,7 +14,7 @@ class ALBATransmission(Device):
         self.transmissionChannel.connectSignal("update", self.transmissionChanged)
         self.stateChannel.connectSignal("update", self.stateChanged)
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
     def transmissionChanged(self, value):

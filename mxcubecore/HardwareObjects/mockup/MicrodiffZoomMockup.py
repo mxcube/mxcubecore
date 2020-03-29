@@ -26,7 +26,7 @@ class MicrodiffZoomMockup(Device):
         }
         self.sort_positions_list()
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
     def sort_positions_list(self):

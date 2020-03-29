@@ -60,7 +60,7 @@ class Energy(Equipment):
     def isConnected(self):
         return True
 
-    def get_current_energy(self):
+    def get_value(self):
         if self.energy_motor is not None:
             try:
                 return self.energy_motor.get_value()
@@ -80,7 +80,7 @@ class Energy(Equipment):
     def get_limits(self):
         logging.getLogger("HWR").debug("Get energy limits")
         if not self.tunable:
-            energy = self.get_current_energy()
+            energy = self.get_value()
             return (energy, energy)
 
         if self.energy_motor is not None:
@@ -171,7 +171,7 @@ class Energy(Equipment):
         self.moveEnergy.abort()
 
     def set_value(self, energy, wait=True):
-        current_en = self.get_current_energy()
+        current_en = self.get_value()
         pos = math.fabs(current_en - energy)
         if pos < 0.001:
             logging.getLogger("user_level_log").debug(
@@ -200,7 +200,3 @@ class Energy(Equipment):
 
     def energyStateChanged(self, state):
         self.emit("stateChanged", (state,))
-
-    def get_value(self):
-        # generic method used by the beamline setup
-        return self.get_current_energy()

@@ -648,7 +648,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         """Executes called cmd, waits until sample changer is ready and
            updates loaded sample info
         """
-        #self.waitReady(60.0)
+        #self.wait_ready(60.0)
         self._state_string = "Bsy"
         self._progress = 5
 
@@ -671,7 +671,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             self.wait_sample_to_disappear(40.0)
             self.wait_sample_to_appear(60.0)
         else:
-            self.waitReady(120.0)
+            self.wait_ready(120.0)
         logging.getLogger("HWR").debug("Sample changer: Ready")
         logging.getLogger("HWR").debug("Sample changer: Waiting veto...")
         self.waitVeto(20.0)
@@ -687,7 +687,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
     def _updateState(self):
         state = self._readState()
         if (state == AbstractSampleChanger.SampleChangerState.Moving and 
-            self._isDeviceBusy(self.getState())):
+            self._isDeviceBusy(self.get_state())):
             return
         self._setState(state)
        
@@ -719,7 +719,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         return state in (AbstractSampleChanger.SampleChangerState.Ready,
                          AbstractSampleChanger.SampleChangerState.Charging)
 
-    def waitReady(self, timeout=None):
+    def wait_ready(self, timeout=None):
         """Waits until the samle changer is ready"""
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
             while self._isDeviceBusy():

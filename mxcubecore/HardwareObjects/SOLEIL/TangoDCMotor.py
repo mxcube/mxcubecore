@@ -98,9 +98,6 @@ class TangoDCMotor(Device):
                 self.old_value = value
 
     def is_ready(self):
-        return self.isReady()
-
-    def isReady(self):
         return self.stateValue == "STANDBY"
 
     def connectNotify(self, signal):

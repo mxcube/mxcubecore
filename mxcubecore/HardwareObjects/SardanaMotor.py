@@ -248,7 +248,7 @@ class SardanaMotor(AbstractMotor):
         """
         Descript. : True if the motor is currently moving
         """
-        return self.isReady() and self.getState() == MotorStates.MOVING
+        return self.is_ready() and self.get_state() == MotorStates.MOVING
 
     motorIsMoving = is_moving
 

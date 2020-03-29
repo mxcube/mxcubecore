@@ -24,7 +24,7 @@ class MicrodiffApertureMockup(Device):
 
     def connectNotify(self, signal):
         if signal == "predefinedPositionChanged":
-            positionName = self.getCurrentPositionName()
+            positionName = self.get_current_position_name()
 
             try:
                 pos = self.predefinedPositions[positionName]
@@ -46,7 +46,7 @@ class MicrodiffApertureMockup(Device):
 
     def motorPositionChanged(self, absolutePosition, private={}):
         # MD2Motor.motorPositionChanged.im_func(self, absolutePosition, private)
-        positionName = self.getCurrentPositionName(absolutePosition)
+        positionName = self.get_current_position_name(absolutePosition)
         if self._last_position_name != positionName:
             self._last_position_name = positionName
             self.emit(
@@ -54,7 +54,7 @@ class MicrodiffApertureMockup(Device):
                 (positionName, positionName and absolutePosition or None),
             )
 
-    def getCurrentPositionName(self, pos=None):
+    def get_current_position_name(self, pos=None):
         pos = self.predefined_position_attr
 
         for positionName in self.predefinedPositions:
