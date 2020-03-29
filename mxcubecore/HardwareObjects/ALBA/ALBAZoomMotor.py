@@ -143,11 +143,11 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
         except BaseException:
             return self.currentposition
 
-    def getCurrentPositionName(self):
+    def get_current_position_name(self):
         try:
             n = int(self.positionChannel.getValue())
             value = "%s z%s" % (n, n)
-            logging.getLogger("HWR").debug("getCurrentPositionName: %s" % repr(value))
+            logging.getLogger("HWR").debug("get_current_position_name: %s" % repr(value))
             return value
         except BaseException:
             logging.getLogger("HWR").debug("cannot get name zoom value")
@@ -162,14 +162,14 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
 
     def positionChanged(self, currentposition):
         previous_position = self.currentposition
-        self.currentposition = self.getCurrentPositionName()
+        self.currentposition = self.get_current_position_name()
         if self.currentposition != previous_position:
             logging.getLogger("HWR").debug(
                 "predefinedPositionChanged emitted: %s" % self.currentposition
             )
             self.emit("predefinedPositionChanged", (self.currentposition, 0))
 
-    def isReady(self):
+    def is_ready(self):
         state = self.get_state()
         return state == ALBAZoomMotor.READY
 
@@ -179,7 +179,7 @@ def test_hwo(zoom):
     print(type(zoom.get_state()))
 
     print("     Zoom position is : ", zoom.get_value())
-    print("Zoom position name is : ", zoom.getCurrentPositionName())
+    print("Zoom position name is : ", zoom.get_current_position_name())
     print("               Moving : ", zoom.motorIsMoving())
     print("                State : ", zoom.get_state())
     print("            Positions : ", zoom.getPredefinedPositionsList())

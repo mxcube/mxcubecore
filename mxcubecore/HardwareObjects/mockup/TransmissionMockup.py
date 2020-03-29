@@ -13,9 +13,11 @@ class TransmissionMockup(Device):
     def init(self):
         pass
 
+    # remove following
     def getAttState(self):
         return 0
 
+    # remove following
     def setAttFactor(self, value):
         self.value = value
         self.emit("valueChanged", self.value)
@@ -32,11 +34,13 @@ class TransmissionMockup(Device):
     def disconnected(self):
         self.setIsReady(False)
 
+    # remove following
     def attStateChanged(self, channelValue):
         pass
 
+    # remove following
     def attFactorChanged(self, channelValue):
         pass
 
-    def isReady(self):
+    def is_ready(self):
         return True

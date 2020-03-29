@@ -699,7 +699,7 @@ class SOLEILEnergyScan(Equipment):
     def getEnergyLimits(self):
         lims = None
         if HWR.beamline.energy is not None:
-            if HWR.beamline.energy.isReady():
+            if HWR.beamline.energy.is_ready():
                 lims = HWR.beamline.energy.get_limits()
         return lims
 
@@ -716,7 +716,7 @@ class SOLEILEnergyScan(Equipment):
     def getWavelengthLimits(self):
         limits = None
         if HWR.beamline.energy is not None:
-            if HWR.beamline.energy.isReady():
+            if HWR.beamline.energy.is_ready():
                 limits = HWR.beamline.energy.get_wavelength_limits()
         return limits
 

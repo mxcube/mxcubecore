@@ -69,7 +69,7 @@ class MicrodiffInOut(Device):
         )
 
         self.moves = dict((self.states[k], k) for k in self.states)
-        self.getActuatorState(read=True)
+        self.get_actuator_state(read=True)
 
     def connectNotify(self, signal):
         if signal == "actuatorStateChanged":
@@ -100,7 +100,7 @@ class MicrodiffInOut(Device):
             else:
                 time.sleep(0.5)
 
-    def getActuatorState(self, read=False):
+    def get_actuator_state(self, read=False):
         if read is True:
             value = self.state_attr.get_value()
             self.actuatorState = self.states.get(value, "unknown")

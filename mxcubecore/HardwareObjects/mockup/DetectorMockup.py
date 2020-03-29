@@ -43,10 +43,13 @@ class DetectorMockup(AbstractDetector):
         """
         return True
 
-    def get_beam_centre(self):
-        """Get approx detector centre (default to Pilatus values)"""
-        xval = self.getProperty("width", 2463) / 2.0 + 0.4
-        yval = self.getProperty("height", 2527) / 2.0 + 0.4
+    def get_beam_position(self, distance=None):
+        """Get approx detector centre """
+        xval, yval = super(DetectorMockup, self).get_beam_position(distance=distance)
+        if None in (xval, yval):
+            # default to Pilatus values
+            xval = self.getProperty("width", 2463) / 2.0 + 0.4
+            yval = self.getProperty("height", 2527) / 2.0 + 0.4
         return xval, yval
 
     def update_values(self):

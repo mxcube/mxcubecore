@@ -43,7 +43,7 @@ class RobodiffMotorWPositions(RobodiffMotor):
         RobodiffMotor.connectNotify(self, signal)
 
         if signal == "predefinedPositionChanged":
-            positionName = self.getCurrentPositionName()
+            positionName = self.get_current_position_name()
 
             try:
                 pos = self.predefinedPositions[positionName]
@@ -87,10 +87,10 @@ class RobodiffMotorWPositions(RobodiffMotor):
                 "Cannot move motor %s: invalid position name.", str(self.username)
             )
 
-    def getCurrentPositionName(self):
+    def get_current_position_name(self):
         if (
             not self.motorIsMoving()
-        ):  # self.isReady() and self.getState() == self.READY:
+        ):  # self.is_ready() and self.get_state() == self.READY:
             for positionName in self.predefinedPositions:
                 if (
                     self.predefinedPositions[positionName]

@@ -414,13 +414,6 @@ class GenericDiffractometer(HardwareObject):
                 GenericDiffractometer.PHASE_BEAM,
             ]
 
-        # Compatibility
-        # TODO remove this
-        self.getCentringStatus = self.get_centring_status
-
-        self.get_positions = self.get_positions
-        self.moveMotors = self.move_motors
-        self.isReady = self.is_ready
 
     # to make it compatibile
     def __getattr__(self, attr):
@@ -754,8 +747,6 @@ class GenericDiffractometer(HardwareObject):
                 )
                 self.emit_centring_failed()
 
-    # ensure backward compatibility with queue_entry.py
-    startCentringMethod = start_centring_method
 
     def cancel_centring_method(self, reject=False):
         """
@@ -1096,8 +1087,6 @@ class GenericDiffractometer(HardwareObject):
             centring_status["motors"] = self.get_positions()
         self.emit("centringAccepted", (True, centring_status))
         self.emit("fsmConditionChanged", "centering_position_accepted", True)
-
-    acceptCentring = accept_centring
 
     def reject_centring(self):
         """

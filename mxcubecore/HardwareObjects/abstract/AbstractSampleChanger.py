@@ -63,10 +63,10 @@ select()
 abort()
 changeMode()
 
-getState()
+get_state()
 getStatus()
-isReady()
-waitReady()
+is_ready()
+wait_ready()
 hasLoadedSample()
 getLoadedSample()
 
@@ -296,7 +296,7 @@ class SampleChanger(Container, Equipment):
 
     # ########################    PUBLIC    #########################
 
-    def getState(self):
+    def get_state(self):
         """
         Returns sample changer state
         :rtype: SampleChangerState
@@ -317,7 +317,7 @@ class SampleChanger(Container, Equipment):
         """
         return self.task_error
 
-    def isReady(self):
+    def is_ready(self):
         """
         Description of the error of last executed task (or None if success).
         :rtype: str
@@ -329,9 +329,9 @@ class SampleChanger(Container, Equipment):
             or self.state == SampleChangerState.StandBy
         )
 
-    def waitReady(self, timeout=-1):
+    def wait_ready(self, timeout=-1):
         start = time.clock()
-        while not self.isReady():
+        while not self.is_ready():
             if timeout > 0:
                 if (time.clock() - start) > timeout:
                     raise Exception("Timeout waiting ready")
@@ -361,7 +361,7 @@ class SampleChanger(Container, Equipment):
             raise Exception("Sample Changer is in Charging mode")
 
     def assertCanExecuteTask(self):
-        if not self.isReady():
+        if not self.is_ready():
             raise Exception(
                 "Cannot execute task: bad state ("
                 + SampleChangerState.tostring(self.state)
@@ -373,7 +373,7 @@ class SampleChanger(Container, Equipment):
         Description of the error of last executed task (or None if success).
         :rtype: str
         """
-        return self.isReady() or (
+        return self.is_ready() or (
             (not self.isNormalState()) and (self.state != SampleChangerState.Unknown)
         )
 
@@ -474,9 +474,9 @@ class SampleChanger(Container, Equipment):
         """
         if mode == SampleChangerMode.Unknown:
             return
-        elif mode == self.getState():
+        elif mode == self.get_state():
             return
-        if self.getState() == SampleChangerState.Disabled:
+        if self.get_state() == SampleChangerState.Disabled:
             self._setState(SampleChangerState.Unknown)
             self.updateInfo()
         elif mode == SampleChangerMode.Disabled:
@@ -513,7 +513,7 @@ class SampleChanger(Container, Equipment):
 
     def chained_load(self, sample_to_unload, sample_to_load):
         self.unload(sample_to_unload)
-        self.waitReady(timeout=10)
+        self.wait_ready(timeout=10)
         return self.load(sample_to_load)
 
     def load(self, sample=None, wait=True):
@@ -645,7 +645,7 @@ class SampleChanger(Container, Equipment):
             ret = method(*args)
         except Exception as ex:
             exception = ex
-        # if self.getState()==self.task:
+        # if self.get_state()==self.task:
         #    self._setState(SampleChangerState.Ready)
         self.updateInfo()
         task = self.task

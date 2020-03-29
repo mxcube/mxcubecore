@@ -12,11 +12,11 @@ class PX1Pss(Device):
         self.state_chan.connectSignal("update", self.value_changed)
 
     def value_changed(self, value):
-        state = self.getState(value)
+        state = self.get_state(value)
         logging.getLogger("HWR").debug("state changed. value is %s" % state)
         self.emit("stateChanged", (state,))
 
-    def getState(self, value=None):
+    def get_state(self, value=None):
         if value is None:
             value = self.state_chan.getValue()
 
@@ -29,4 +29,4 @@ class PX1Pss(Device):
 
 
 def test_hwo(hwo):
-    print(hwo.getState())
+    print(hwo.get_state())
