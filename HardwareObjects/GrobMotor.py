@@ -90,7 +90,7 @@ class GrobMotor(Device, AbstractMotor):
             self.motor.wait_for_move()
 
     def motorIsMoving(self):
-        return self.isReady() and self.motor.is_moving()
+        return self.is_ready() and self.motor.is_moving()
 
     def getMotorMnemonic(self):
         return self.motor_name

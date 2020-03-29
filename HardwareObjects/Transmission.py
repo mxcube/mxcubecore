@@ -29,7 +29,7 @@ class Transmission(HardwareObject):
         )
         self.__matt.connect()
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
     def getAtteConfig(self):

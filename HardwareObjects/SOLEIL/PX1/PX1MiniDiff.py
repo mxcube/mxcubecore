@@ -215,23 +215,26 @@ class PX1MiniDiff(GenericDiffractometer):
         )
 
         if isinstance(motor_positions, CentredPosition):
-            motor_positions = motor_positions.as_dict()
+            motor_positions_copy = motor_positions.as_dict()
+        else:
+            # We do not want ot modify teh input dict
+            motor_positions_copy = motor_positions.copy()
 
         logging.getLogger("HWR").debug(
-            "MiniDiff moving motors. %s" % str(motor_positions)
+            "MiniDiff moving motors. %s" % str(motor_positions_copy)
         )
 
         self.wait_device_ready(timeout)
         logging.getLogger("HWR").debug("   now ready to move them")
-        for motor in motor_positions.keys():
-            position = motor_positions[motor]
+        for motor in motor_positions_copy.keys():
+            position = motor_positions_copy[motor]
             if type(motor) in (str, unicode):
                 motor_role = motor
                 motor = self.motor_hwobj_dict.get(motor_role)
-                del motor_positions[motor_role]
+                del motor_positions_copy[motor_role]
                 if None in (motor, position):
                     continue
-                motor_positions[motor] = position
+                motor_positions_copy[motor] = position
 
             logging.getLogger("HWR").debug(
                 "  / moving motor. %s to %s" % (motor.name(), position)

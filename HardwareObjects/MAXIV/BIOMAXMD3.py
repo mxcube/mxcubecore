@@ -60,11 +60,6 @@ class BIOMAXMD3(GenericDiffractometer):
         if self.centring_hwobj is None:
             logging.getLogger("HWR").debug("EMBLMinidiff: Centring math is not defined")
 
-        # to make it comaptible
-        self.acceptCentring = self.accept_centring
-        self.startCentringMethod = self.start_centring_method
-        # self.image_width = HWR.beamline.sample_view.camera.getWidth()
-        # self.image_height = HWR.beamline.sample_view.camera.getHeight()
 
         self.phi_motor_hwobj = self.motor_hwobj_dict["phi"]
         self.phiz_motor_hwobj = self.motor_hwobj_dict["phiz"]
@@ -560,20 +555,14 @@ class BIOMAXMD3(GenericDiffractometer):
     # def move_sync_motors(self, motors_dict, wait=False, timeout=None):
     def move_sync_motors(self, motors_dict, wait=True, timeout=30):
         argin = ""
-        try:
-            motors_dict.pop("kappa")
-            motors_dict.pop("kappa_phi")
-            logging.getLogger("HWR").info(
-                "[BIOMAXMD3] Removing kappa and kappa_phi motors."
-            )
-        except Exception as ex:
-            print(ex)
         logging.getLogger("HWR").debug(
             "BIOMAXMD3: in move_sync_motors, wait: %s, motors: %s, tims: %s "
             % (wait, motors_dict, time.time())
         )
-        for motor in motors_dict.keys():
-            position = motors_dict[motor]
+        for motor, position in motors_dict.items():
+            if motor in ("kappa", "kappa_phi"):
+                logging.getLogger("HWR").info("[BIOMAXMD3] Removing %s motor.", motor)
+                continue
             if position is None:
                 continue
             name = self.MOTOR_TO_EXPORTER_NAME[motor]

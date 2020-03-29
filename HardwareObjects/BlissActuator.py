@@ -47,6 +47,5 @@ class BlissActuator(AbstractActuator):
         self.value_changed(self._actuator.state())
 
     # Compatability with camelcase API
-    getActuatorState = get_actuator_state
     actuatorIn = actuator_in
     actuatorOut = actuator_out

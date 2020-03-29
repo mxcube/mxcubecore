@@ -73,7 +73,7 @@ class ID30BEnergyScan(ESRFEnergyScan):
         self.ctrl.diffractometer.set_phase("DataCollection", wait=True)
 
         if self.beamsize:
-            bsX = self.beamsize.getCurrentPositionName()
+            bsX = self.beamsize.get_current_position_name()
             self.energy_scan_parameters["beamSizeHorizontal"] = bsX
             self.energy_scan_parameters["beamSizeVertical"] = bsX
 

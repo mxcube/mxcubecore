@@ -18,7 +18,7 @@ class ALBAEnergy(Device):
             "valueChanged", self.wavelength_position_changed
         )
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
     def get_value(self):

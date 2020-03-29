@@ -489,7 +489,7 @@ class XMLRPCServer(HardwareObject):
         return HWR.beamline.diffractometer.get_positions()
 
     def move_diffractometer(self, roles_positions_dict):
-        HWR.beamline.diffractometer.moveMotors(roles_positions_dict)
+        HWR.beamline.diffractometer.move_motors(roles_positions_dict)
         return True
 
     def save_snapshot(self, imgpath, showScale=False):
@@ -527,14 +527,14 @@ class XMLRPCServer(HardwareObject):
     def set_aperture(self, pos_name, timeout=20):
         HWR.beamline.beam.aperture_hwobj.moveToPosition(pos_name)
         t0 = time.time()
-        while HWR.beamline.beam.aperture_hwobj.getState() == "MOVING":
+        while HWR.beamline.beam.aperture_hwobj.get_state() == "MOVING":
             time.sleep(0.1)
             if time.time() - t0 > timeout:
                 raise RuntimeError("Timeout waiting for aperture to move")
         return True
 
     def get_aperture(self):
-        return HWR.beamline.beam.aperture_hwobj.getCurrentPositionName()
+        return HWR.beamline.beam.aperture_hwobj.get_current_position_name()
 
     def get_aperture_list(self):
         return HWR.beamline.beam.aperture_hwobj.getPredefinedPositionsList()
@@ -603,7 +603,7 @@ class XMLRPCServer(HardwareObject):
         """
         Returns the zoom level.
         """
-        return HWR.beamline.diffractometer.zoomMotor.getCurrentPositionName()
+        return HWR.beamline.diffractometer.zoomMotor.get_current_position_name()
 
     def get_available_zoom_levels(self):
         """
