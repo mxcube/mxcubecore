@@ -111,7 +111,7 @@ class SpecShell(Equipment):
     def isConnected(self):
         return self.specConnection is not None and self.specConnection.isSpecConnected()
 
-    def isReady(self):
+    def is_ready(self):
         return self.isSpecReady
 
     def isRunning(self):

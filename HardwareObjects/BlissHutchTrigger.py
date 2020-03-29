@@ -120,7 +120,7 @@ class BlissHutchTrigger(BaseHardwareObjects.HardwareObject):
         if self._enabled:
             self.macro(self.hutch_opened)
 
-    def getActuatorState(self):
+    def get_actuator_state(self):
         if self._enabled:
             return "ENABLED"
         else:

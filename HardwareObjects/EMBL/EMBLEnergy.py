@@ -123,7 +123,7 @@ class EMBLEnergy(AbstractEnergy):
         """
         self.do_beam_alignment = state
 
-    def get_current_energy(self):
+    def get_value(self):
         """
         Returns current energy in keV
         :return: float
@@ -259,7 +259,7 @@ class EMBLEnergy(AbstractEnergy):
         :param energy: in keV, float
         :return:
         """
-        current_en = self.get_current_energy()
+        current_en = self.get_value()
         pos = abs(current_en - energy)
         self.delta = pos
         if pos < 0.001:
@@ -383,13 +383,6 @@ class EMBLEnergy(AbstractEnergy):
         :return:
         """
         self.bragg_break_status = status
-
-    def get_value(self):
-        """
-        Returns current energy
-        :return:
-        """
-        return self.get_current_energy()
 
     def update_values(self):
         """

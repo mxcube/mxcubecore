@@ -1,4 +1,5 @@
 <device class = "ShutterMockup">
-<state_definition>IntEnum</state_definition>
+    <actuator_name>safety_shutter</actuator_name>
+    <user_name>SafetyShutter</user_name>
+    <default_value>CLOSED</default_value>
 </device>
-
