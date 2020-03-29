@@ -48,7 +48,7 @@ class ALBACats(Cats90):
         if self._chnPowered is not None:
             self._chnPowered.connectSignal("update", self._updatePoweredState)
 
-    def isReady(self):
+    def is_ready(self):
         """
         Returns a boolean value indicating is the sample changer is ready for operation.
 

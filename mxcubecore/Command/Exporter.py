@@ -45,7 +45,7 @@ def start_exporter(address, port, timeout=3, retries=1):
     return EXPORTER_CLIENTS[(address, port)]
 
 
-class Exporter(ExporterClient.ExporterClient):
+class Exporter(ExporterClient.ExporterClient, object):
     """Exporter class"""
 
     STATE_EVENT = "State"

@@ -262,7 +262,7 @@ class Microdiff(MiniDiff.MiniDiff):
     def getPhase(self):
         return self.readPhase.get_value()
 
-    def moveSyncMotors(self, motors_dict, wait=False, timeout=None):
+    def move_sync_motors(self, motors_dict, wait=False, timeout=None):
         in_kappa_mode = self.in_kappa_mode()
         argin = ""
         # print "start moving motors =============", time.time()
@@ -370,7 +370,7 @@ class Microdiff(MiniDiff.MiniDiff):
         )  # TODO
 
         # Prepositionning at the center of the grid
-        self.moveMotors(mesh_center.as_dict())
+        self.move_motors(mesh_center.as_dict())
         self.centringVertical.set_value_relative(
             (mesh_range["vertical_range"]) / 2, timeout=None
         )
@@ -444,8 +444,8 @@ class Microdiff(MiniDiff.MiniDiff):
         }
         return pos
 
-    def moveMotors(self, roles_positions_dict):
-        self.moveSyncMotors(roles_positions_dict, wait=True)
+    def move_motors(self, roles_positions_dict):
+        self.move_sync_motors(roles_positions_dict, wait=True)
 
     def move_to_beam(self, x, y):
         if not self.in_plate_mode():

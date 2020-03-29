@@ -72,13 +72,13 @@ class SpecState(Procedure):
     def isConnected(self):
         return self.specConnection is not None and self.specConnection.isSpecConnected()
 
-    def isReady(self):
+    def is_ready(self):
         if self.isConnected():
             if self.connectionStateMacro is not None:
                 return self.connectionStateMacro.isSpecReady()
         return False
 
-    def getState(self):
+    def get_state(self):
         return (self.lastState, self.specversion)
 
     def getVersion(self):

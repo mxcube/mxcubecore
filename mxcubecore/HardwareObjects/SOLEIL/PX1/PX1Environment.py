@@ -90,7 +90,7 @@ class PX1Environment(Device):
         try:
             self.chanAuth = self.get_channel_object("beamlineMvtAuthorized")
             self.chanAuth.connectSignal("update", self.setAuthorizationFlag)
-            state = self.state_chan.getValue()
+            # state = self.state_chan.getValue()
 
         except KeyError:
             logging.getLogger().warning("%s: cannot report State", self.name())
@@ -133,7 +133,7 @@ class PX1Environment(Device):
         state = self.stateChan.getValue()
         return state not in [EnvironmentState.ON]
 
-    def waitReady(self, timeout=None):
+    def wait_ready(self, timeout=None):
         self._waitState(["ON"], timeout)
 
     def _waitState(self, states, timeout=None):

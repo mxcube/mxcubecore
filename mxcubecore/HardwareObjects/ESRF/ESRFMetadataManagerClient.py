@@ -133,7 +133,7 @@ class MetadataManagerClient(object):
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
-    def getState(self):
+    def get_state(self):
         return str(MetadataManagerClient.metadataManager.state())
 
 
@@ -216,7 +216,7 @@ class MXCuBEMetadataClient(object):
                 )
 
                 # First check the state of the device server
-                serverState = self._metadataManagerClient.getState()
+                serverState = self._metadataManagerClient.get_state()
                 if serverState == "RUNNING":
                     # Force end of scan
                     self._metadataManagerClient.end()

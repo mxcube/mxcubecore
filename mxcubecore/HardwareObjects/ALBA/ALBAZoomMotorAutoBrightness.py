@@ -95,7 +95,7 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device, AbstractMotor):
     def motorIsMoving(self):
         return self.zoom.motorIsMoving()
 
-    #        if str(self.getState()) == "MOVING":
+    #        if str(self.get_state()) == "MOVING":
     #             return True
     #        else:
     #             return False
@@ -121,19 +121,19 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device, AbstractMotor):
     def get_value(self):
         return self.zoom.get_value()
 
-    def getCurrentPositionName(self):
+    def get_current_position_name(self):
         #        n = int(self.positionChannel.getValue())
         #        value = "%s z%s" % (n, n)
-        #        logging.getLogger("HWR").debug("getCurrentPositionName: %s" % repr(value))
+        #        logging.getLogger("HWR").debug("get_current_position_name: %s" % repr(value))
         #        return value
-        return self.zoom.getCurrentPositionName()
+        return self.zoom.get_current_position_name()
 
     def stateChanged(self, state):
         logging.getLogger("HWR").debug("stateChanged emitted: %s" % state)
         self.emit("stateChanged", (self.get_state(),))
 
     def positionChanged(self, currentposition):
-        currentposition = self.getCurrentPositionName()
+        currentposition = self.get_current_position_name()
         logging.getLogger("HWR").debug(
             "predefinedPositionChanged emitted: %s" % currentposition
         )
@@ -145,7 +145,7 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device, AbstractMotor):
 
         self.emit("predefinedPositionChanged", (currentposition, 0))
 
-    def isReady(self):
+    def is_ready(self):
         state = self.get_state()
         return state == ALBAZoomMotorAutoBrightness.READY
 
@@ -160,7 +160,7 @@ def test():
     print(type(zoom.get_state()))
 
     print("     Zoom position is : ", zoom.get_value())
-    print("Zoom position name is : ", zoom.getCurrentPositionName())
+    print("Zoom position name is : ", zoom.get_current_position_name())
     print("               Moving : ", zoom.motorIsMoving())
     print("                State : ", zoom.get_state())
     print("            Positions : ", zoom.getPredefinedPositionsList())
