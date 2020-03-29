@@ -100,7 +100,7 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
 
     @task
     def take_crystal_snapshots(self, number_of_snapshots):
-        self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
+        self.bl_control.diffractometer.take_snapshots(number_of_snapshots, wait=True)
 
     @task
     def data_collection_hook(self, data_collect_parameters):
@@ -262,7 +262,7 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
     def isConnected(self):
         return True
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
     def sampleChangerHO(self):

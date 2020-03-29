@@ -44,7 +44,7 @@ class PX1TangoLight(Device):
         self.setIsReady(self.attrchan.isConnected())
 
     def connectNotify(self, signal):
-        if self.isReady():
+        if self.is_ready():
             self.valueChanged(self.attrchan.getValue())
 
     def valueChanged(self, value):
@@ -79,7 +79,7 @@ class PX1TangoLight(Device):
 
     def setOut(self):
         self._setReady()
-        if self.isReady():
+        if self.is_ready():
             if self.inversed:
                 self.set_in()
             else:

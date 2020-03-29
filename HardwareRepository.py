@@ -795,8 +795,8 @@ class __HardwareRepositoryClient:
                 "python module": sys.modules[ho.__module__].__file__,
             }
 
-            if hasattr(ho, "isReady"):
-                d["is ready ?"] = str(ho.isReady())
+            if hasattr(ho, "is_ready"):
+                d["is ready ?"] = str(ho.is_ready())
 
             if hasattr(ho, "get_commands"):
                 # hardware object is a command container

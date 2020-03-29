@@ -295,7 +295,7 @@ class CatsBessy(SampleChanger):
             state = self._readState()
         except BaseException:
             state = SampleChangerState.Unknown
-        if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
+        if state == SampleChangerState.Moving and self._isDeviceBusy(self.get_state()):
             return
         if self._scIsCharging and not (state == SampleChangerState.Alarm):
             state = SampleChangerState.Charging

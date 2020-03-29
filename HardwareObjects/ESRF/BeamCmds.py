@@ -71,7 +71,7 @@ class HWObjActuatorCommand(CommandObject):
         self.emit("commandBeginWaitReply", (str(self.name()),))
 
         if (
-            getattr(self._hwobj, "getActuatorState")().lower()
+            getattr(self._hwobj, "get_actuator_state")().lower()
             in TWO_STATE_COMMAND_ACTIVE_STATES
         ):
             cmd = getattr(self._hwobj, "actuatorOut")
@@ -85,7 +85,7 @@ class HWObjActuatorCommand(CommandObject):
         try:
             try:
                 cmd_execution.get()
-                res = getattr(self._hwobj, "getActuatorState")().lower()
+                res = getattr(self._hwobj, "get_actuator_state")().lower()
             except BaseException:
                 self.emit("commandFailed", (str(self.name()),))
             else:
@@ -103,7 +103,7 @@ class HWObjActuatorCommand(CommandObject):
     def value(self):
         value = "UNKNOWN"
 
-        if hasattr(self._hwobj, "getActuatorState"):
-            value = getattr(self._hwobj, "getActuatorState")().lower()
+        if hasattr(self._hwobj, "get_actuator_state"):
+            value = getattr(self._hwobj, "get_actuator_state")().lower()
 
         return value

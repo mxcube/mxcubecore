@@ -93,8 +93,7 @@ class BIOMAXMD2(GenericDiffractometer):
     def move_sync_motors(self, motors_dict, wait=False, timeout=None):
         argin = ""
         # print "start moving motors =============", time.time()
-        for motor in motors_dict.keys():
-            position = motors_dict[motor]
+        for motor, position in motors_dict.items():
             if position is None:
                 continue
             name = self.MOTOR_TO_EXPORTER_NAME[motor]

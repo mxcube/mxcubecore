@@ -57,7 +57,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
         self.state_chan.connectSignal("update", self.motor_state_changed)
         self.distance_min_chan.connectSignal("update", self.distance_min_changed)
 
-    def isReady(self):
+    def is_ready(self):
         return self.state_value == "STANDBY"
 
     def connectNotify(self, signal):
@@ -95,7 +95,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
     def distance_min_changed(self, value=None):
         self.emit("limitsChanged", (self.get_limits(),))
 
-    def getState(self, state=None):
+    def get_state(self, state=None):
         if state is None:
             state = str(self.state_chan.getValue())
         else:

@@ -463,7 +463,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     @task
     def take_crystal_snapshots(self, number_of_snapshots):
-        HWR.beamline.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
+        HWR.beamline.diffractometer.take_snapshots(number_of_snapshots, wait=True)
 
     @task
     def data_collection_hook(self, data_collect_parameters):
@@ -559,23 +559,25 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     @task
     def move_motors(self, motor_position_dict):
-        for motor in motor_position_dict.keys():  # iteritems():
-            position = motor_position_dict[motor]
+        # We do not wnta to modify the input dict
+        motor_positions_copy = motor_position_dict.copy()
+        for motor in motor_positions_copy.keys():  # iteritems():
+            position = motor_positions_copy[motor]
             if isinstance(motor, string_types):
                 # find right motor object from motor role in diffractometer obj.
                 motor_role = motor
                 motor = HWR.beamline.diffractometer.getDeviceByRole(motor_role)
-                del motor_position_dict[motor_role]
+                del motor_positions_copy[motor_role]
                 if motor is None:
                     continue
-                motor_position_dict[motor] = position
+                motor_positions_copy[motor] = position
 
             logging.getLogger("HWR").info(
                 "Moving motor '%s' to %f", motor.getMotorMnemonic(), position
             )
             motor.set_value(position)
 
-        while any([motor.motorIsMoving() for motor in motor_position_dict]):
+        while any([motor.motorIsMoving() for motor in motor_positions_copy]):
             logging.getLogger("HWR").info("Waiting for end of motors motion")
             time.sleep(0.02)
 
@@ -864,7 +866,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                 return T
 
     def get_current_energy(self):
-        return self._tunable_bl.get_energy()
+        return self._tunable_bl.get_value()
 
     def get_beam_centre(self):
         return (
@@ -879,7 +881,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def isConnected(self):
         return True
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
     def sampleChangerHO(self):

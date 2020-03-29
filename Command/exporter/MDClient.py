@@ -215,7 +215,7 @@ class MDClient(ExporterClient):
     # STATE_CLOSING, STATE_STOPPED, STATE_COMMUNICATION_ERROR, STATE_ALARM or
     # STATE_FAULT
 
-    def getState(self):
+    def get_state(self):
         return self.read_property("State")
 
     def getStatus(self):
@@ -229,10 +229,10 @@ class MDClient(ExporterClient):
 
     # Task synchronization
 
-    def waitReady(self, timeout=0):
+    def wait_ready(self, timeout=0):
         start = time.clock()
         while True:
-            state = self.getState()
+            state = self.get_state()
             if self.isBusy(state) is False:
                 return
             if (timeout > 0) and ((time.clock() - start) > timeout):
@@ -241,7 +241,7 @@ class MDClient(ExporterClient):
 
     def isTaskRunning(self, task_id=-1):
         if task_id < 0:
-            if self.isBusy(self.getState()):
+            if self.isBusy(self.get_state()):
                 return True
         elif self.execute("isTaskRunning", (task_id,)) == "true":
             return True
@@ -252,7 +252,7 @@ class MDClient(ExporterClient):
 
     def waitTaskResult(self, task_id=-1, timeout=DEFAULT_TASK_TIMEOUT):
         if task_id < 0:
-            self.waitReady(timeout)
+            self.wait_ready(timeout)
             info = self.getLastTaskInfo()
             exception = info[5]
             if (exception != "") and (exception != "null"):
@@ -761,7 +761,7 @@ if __name__ == "__main__":
     scan_time = 3.0
     md.setScanParameters(0.0, 1.0, 3.0, 1)
     md.scan(sync=True, timeout=(scan_time + md.DEFAULT_TASK_TIMEOUT))
-    md.waitReady()
+    md.wait_ready()
     task_result_code = md.getLastTaskResultCode()
     if task_result_code is None:
         print("Scan still running")
@@ -802,7 +802,7 @@ if __name__ == "__main__":
     print(
         "--------------   Reading/Writing all properties by their get/set methods --------------------"
     )
-    print("State: " + md.getState())
+    print("State: " + md.get_state())
     print("State: " + md.getStatus())
     print("Alarms")
     print(md.getAlarmList())

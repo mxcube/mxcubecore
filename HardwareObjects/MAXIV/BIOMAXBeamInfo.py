@@ -73,7 +73,7 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
                 self.beam_info_dict["shape"] = "rectangle"
         except BaseException:
             self.beam_info_dict["shape"] = "ellipse"
-        curpos = self.aperture_hwobj.getCurrentPositionName()
+        curpos = self.aperture_hwobj.get_current_position_name()
         size_x = size_y = eval(str(curpos)) / 1000.0
         self.beam_info_dict["size_x"] = size_x
         self.beam_info_dict["size_y"] = size_y

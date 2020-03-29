@@ -672,11 +672,8 @@ class Device(HardwareObject):
             self.state = Device.NOTREADY
             self.emit("deviceNotReady")
 
-    def isReady(self):
-        return self.state == Device.READY
-
     def is_ready(self):
-        return self.isReady()
+        return self.state == Device.READY
 
     def userName(self):
         uname = self.getProperty("username")
@@ -736,14 +733,14 @@ class Equipment(HardwareObject, DeviceContainer):
     def __deviceReady(self):
         ready = True
         for device in self.getDevices():
-            ready = ready and device.isReady()
+            ready = ready and device.is_ready()
             if not ready:
                 break
 
         if self.__ready != ready:
             self.__ready = ready
 
-            if self.isReady():
+            if self.is_ready():
                 self.emit("equipmentReady")
             else:
                 self.emit("equipmentNotReady")
@@ -753,11 +750,8 @@ class Equipment(HardwareObject, DeviceContainer):
             self.__ready = False
             self.emit("equipmentNotReady")
 
-    def isReady(self):
-        return self.isValid() and self.__ready
-
     def is_ready(self):
-        return self.isReady()
+        return self.isValid() and self.__ready
 
     def isValid(self):
         return True

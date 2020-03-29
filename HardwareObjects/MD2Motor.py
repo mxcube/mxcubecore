@@ -151,7 +151,7 @@ class MD2Motor(AbstractMotor):
 
     def motorIsMoving(self):
         warn("motorIsMoving is deprecated. Use is_ready instead", DeprecationWarning)
-        return self.isReady() and self.motor_state == MotorStates.MOVING
+        return self.is_ready() and self.motor_state == MotorStates.MOVING
 
     def getMotorMnemonic(self):
         return self.actuator_name
