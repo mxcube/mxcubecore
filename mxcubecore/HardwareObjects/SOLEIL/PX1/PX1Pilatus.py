@@ -84,24 +84,6 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
     def stop_acquisition(self):
         pass
 
-    def get_distance(self):
-        """Returns detector distance in mm"""
-        if self.distance_motor_hwobj is not None:
-            return self.distance_motor_hwobj.get_value()
-        else:
-            return self.default_distance
-
-    def move_distance(self, value):
-        if self.distance_motor_hwobj is not None:
-            self.distance_motor_hwobj.set_value(value)
-
-    def get_distance_limits(self):
-        """Returns detector distance limits"""
-        if self.distance_motor_hwobj is not None:
-            return self.distance_motor_hwobj.get_limits()
-        else:
-            return self.default_distance_limits
-
     def get_state(self):
         return self.state_chan.getValue()
 
@@ -274,7 +256,7 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
 
 
 def test_hwo(hwo):
-    print(("Detector Distance is: %s " % hwo.get_distance()))
+    print(("Detector Distance is: %s " % hwo.distance.get_value()))
     print(("         state is: %s, %s" % (hwo.get_state(), type(hwo.get_state()))))
     print(("      is in fault: %s" % hwo.is_fault_state()))
-    # print "going to 490 : ", hwo.move_distance(490)
+    # print "going to 490 : ", hwo.distance.set_value(490)

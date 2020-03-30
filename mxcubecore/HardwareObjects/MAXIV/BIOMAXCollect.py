@@ -283,7 +283,9 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 self.current_dc_parameters["transmission"],
             )
             try:
-                self.set_transmission(self.current_dc_parameters["transmission"])
+                HWR.beamline.transmission.set_value(
+                    self.current_dc_parameters["transmission"]
+                )
             except Exception as ex:
                 log.error("Collection: cannot set beamline transmission.")
                 logging.getLogger("HWR").error(
@@ -325,7 +327,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                     "Collection: Setting detector to %s",
                     self.current_dc_parameters["detroi"],
                 )
-                self.set_detector_roi(self.current_dc_parameters["detroi"])
+                HWR.beamline.detector.set_roi_mode(self.current_dc_parameters["detroi"])
             except Exception as ex:
                 log.error("Collection: cannot set detector roi.")
                 logging.getLogger("HWR").error(
@@ -337,7 +339,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             try:
                 resolution = self.current_dc_parameters["resolution"]["upper"]
                 log.info("Collection: Setting resolution to %.3f", resolution)
-                self.set_resolution(resolution)
+                HWR.beamline.resolution.set_value(resolution)
             except Exception as ex:
                 log.error("Collection: cannot set resolution.")
                 logging.getLogger("HWR").error(
@@ -351,7 +353,9 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                     "Collection: Moving detector to %f",
                     self.current_dc_parameters["detector_distance"],
                 )
-                self.move_detector(self.current_dc_parameters["detector_distance"])
+                HWR.beamline.detector.distance.set_value(
+                    self.current_dc_parameters["detector_distance"]
+                )
             except Exception as ex:
                 log.error("Collection: cannot set detector distance.")
                 logging.getLogger("HWR").error(
@@ -837,7 +841,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 "fileName": filename,
                 "fileLocation": file_location,
                 "imageNumber": frame_number,
-                "measuredIntensity": self.get_measured_intensity(),
+                "measuredIntensity": HWR.beamline.flux.get_value(),
                 "synchrotronCurrent": self.get_machine_current(),
                 "machineMessage": self.get_machine_message(),
                 "temperature": self.get_cryo_temperature(),
@@ -1076,12 +1080,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         # take image from server
         HWR.beamline.sample_view.take_snapshot(filename)
 
-    def set_detector_roi(self, value):
-        """
-        Descript. : set the detector roi mode
-        """
-        HWR.beamline.detector.set_roi_mode(value)
-
     def set_helical(self, helical_on):
         """
         Descript. :
@@ -1094,16 +1092,9 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         self.helical_pos = helical_oscil_pos
 
-    def set_resolution(self, value):
-        """
-        Descript. :
-        """
-        new_distance = HWR.beamline.resolution.res2dist(value)
-        self.move_detector(new_distance)
-
     def set_energy(self, value):
         logging.getLogger("HWR").info("[COLLECT] Setting beamline energy")
-        HWR.beamline.energy.startMoveEnergy(value)  # keV
+        HWR.beamline.energy.set_value(value)  # keV
         logging.getLogger("HWR").info("[COLLECT] Setting detector energy")
         HWR.beamline.detector.set_photon_energy(value * 1000)  # ev
 
@@ -1184,53 +1175,39 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         )
         return xds_directory, auto_directory
 
-    def move_detector(self, value):
-        """
-        Descript. : move detector to the set distance
-        """
-        lower_limit, upper_limit = self.get_detector_distance_limits()
-        logging.getLogger("HWR").info(
-            "...................value %s, detector movement start..... %s"
-            % (value, HWR.beamline.detector.distance.get_value())
-        )
-        if upper_limit is not None and lower_limit is not None:
-            if value >= upper_limit or value <= lower_limit:
-                logging.getLogger("HWR").exception(
-                    "Can't move detector, the value is out of limits"
-                )
-                self.stop_collect()
-            else:
-                try:
-                    if HWR.beamline.detector.distance is not None:
-                        HWR.beamline.detector.distance.set_value(value, timeout=50)
-                        # 30s is not enough for the whole range
-                except BaseException:
-                    logging.getLogger("HWR").exception(
-                        "Problems when moving detector!!"
-                    )
-                    self.stop_collect()
-        else:
-            logging.getLogger("HWR").exception(
-                "Can't get distance limits, not moving detector!!"
-            )
-        logging.getLogger("HWR").info(
-            "....................value %s detector movement finished.....%s"
-            % (value, HWR.beamline.detector.distance.get_value())
-        )
-
-    def get_detector_distance(self):
-        """
-        Descript. :
-        """
-        if HWR.beamline.detector.distance is not None:
-            return HWR.beamline.detector.distance.get_value()
-
-    def get_detector_distance_limits(self):
-        """
-        Descript. :
-        """
-        if HWR.beamline.detector.distance is not None:
-            return HWR.beamline.detector.distance.get_limits()
+    # def move_detector(self, value):
+    #     """
+    #     Descript. : move detector to the set distance
+    #     """
+    #     lower_limit, upper_limit = self.get_detector_distance_limits()
+    #     logging.getLogger("HWR").info(
+    #         "...................value %s, detector movement start..... %s"
+    #         % (value, HWR.beamline.detector.distance.get_value())
+    #     )
+    #     if upper_limit is not None and lower_limit is not None:
+    #         if value >= upper_limit or value <= lower_limit:
+    #             logging.getLogger("HWR").exception(
+    #                 "Can't move detector, the value is out of limits"
+    #             )
+    #             self.stop_collect()
+    #         else:
+    #             try:
+    #                 if HWR.beamline.detector.distance is not None:
+    #                     HWR.beamline.detector.distance.set_value(value, timeout=50)
+    #                     # 30s is not enough for the whole range
+    #             except BaseException:
+    #                 logging.getLogger("HWR").exception(
+    #                     "Problems when moving detector!!"
+    #                 )
+    #                 self.stop_collect()
+    #     else:
+    #         logging.getLogger("HWR").exception(
+    #             "Can't get distance limits, not moving detector!!"
+    #         )
+    #     logging.getLogger("HWR").info(
+    #         "....................value %s detector movement finished.....%s"
+    #         % (value, HWR.beamline.detector.distance.get_value())
+    #     )
 
     def prepare_detector(self):
 
@@ -1364,21 +1341,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         logging.getLogger("HWR").error("Collection stopped")
         self.stop_display = True
 
-    def get_transmission(self):
-        """
-        Descript. :
-        """
-        return HWR.beamline.transmission.get_value()
-
-    def set_transmission(self, value):
-        """
-        Descript. :
-        """
-        try:
-            HWR.beamline.transmission.set_value(float(value), True)
-        except Exception as ex:
-            raise Exception("cannot set transmission", ex)
-
     def get_undulators_gaps(self):
         """
         Descript. :
@@ -1420,13 +1382,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         except BaseException:
             return ""
 
-    def get_flux(self):
-        """
-        Descript. :
-        """
-        # todo
-        return 0
-
     def prepare_for_new_sample(self, manual_mode=True):
         """
         Descript.: prepare beamline for a new sample,
@@ -1441,7 +1396,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 and HWR.beamline.safety_shutter.getShutterState() == "opened"
             ):
                 self.close_safety_shutter()
-        self.move_detector(800)
+        HWR.beamline.detector.distance.set_value(800)
 
     def _update_image_to_display(self):
         fname1 = "/mxn/groups/biomax/wmxsoft/auto_load_img_cc/to_display"

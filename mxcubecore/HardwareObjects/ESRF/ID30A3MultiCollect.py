@@ -44,32 +44,12 @@ class ID30A3MultiCollect(ESRFMultiCollect):
         ctrl = self.getObjectByRole("controller")
         return (ctrl.s1h.position(), ctrl.s1v.position())
 
-    def get_measured_intensity(self):
-        return 0
-
     @task
     def get_beam_shape(self):
         return self.bl_control.beam_info.get_beam_shape()
 
-    @task
-    def move_detector(self, detector_distance):
-        det_distance = self.getObjectByRole("distance")
-        det_distance.set_value(detector_distance)
-        while det_distance.motorIsMoving():
-            gevent.sleep(0.1)
-
-    @task
-    def set_resolution(self, new_resolution):
-        self.bl_control.resolution.set_value(new_resolution)
-        while self.bl_control.resolution.motorIsMoving():
-            gevent.sleep(0.1)
-
     def get_resolution_at_corner(self):
         return self.bl_control.resolution.get_value_at_corner()
-
-    def get_detector_distance(self):
-        det_distance = self.getObjectByRole("distance")
-        return det_distance.get_value()
 
     @task
     def move_motors(self, motors_to_move_dict):
@@ -183,12 +163,6 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
     def set_helical_pos(self, helical_oscil_pos):
         self.helical_pos = helical_oscil_pos
-
-    def set_transmission(self, transmission):
-        self.getObjectByRole("transmission").set_value(transmission)
-
-    def get_transmission(self):
-        return self.getObjectByRole("transmission").get_value()
 
     def get_cryo_temperature(self):
         return 0

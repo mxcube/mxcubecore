@@ -13,8 +13,6 @@ class PX2Resolution(Resolution):
         self.resolution_motor = resolution()
         self.beam_center = beam_center()
 
-        self.currentResolution = None
-
         self.energy_channel = self.get_channel_object("energy")
         self.energy_channel.connectSignal("update", self.update_resolution)
 
@@ -33,7 +31,6 @@ class PX2Resolution(Resolution):
             "update", self.update_detector_position_state
         )
 
-        self.det_radius = self.getProperty("detector_radius")
         self.det_width = self.getProperty("detector_width")
         self.det_height = self.getProperty("detector_height")
 
@@ -66,9 +63,8 @@ class PX2Resolution(Resolution):
         # logging.getLogger("HWR").info('update_resolution values: %s' % str(values))
         # logging.getLogger('HWR').info('energy %s' % str(self.energy_channel.value))
         # logging.getLogger('HWR').info('detector_distance %s' % str(self.detector_distance_channel.value))
-        self.currentResolution = self.resolution_motor.get_resolution()
-        self.emit("valueChanged", self.currentResolution)
-        self.emit("valueChanged", self.currentResolution)
+        self._nominal_value = self.resolution_motor.get_resolution()
+        self.emit("valueChanged", self._nominal_value)
         self.emit("statechanged", self.get_state())
 
     def stop(self):

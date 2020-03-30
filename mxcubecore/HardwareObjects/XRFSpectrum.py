@@ -255,7 +255,7 @@ class XRFSpectrum(Equipment):
                 self.spectrumInfo[
                     "beamTransmission"
                 ] = HWR.beamline.transmission.get_value()
-                self.spectrumInfo["energy"] = HWR.beamline.energy.get_energy()
+                self.spectrumInfo["energy"] = HWR.beamline.energy.get_value()
                 if HWR.beamline.flux:
                     self.spectrumInfo["flux"] = HWR.beamline.flux.get_value()
 
@@ -359,7 +359,6 @@ class XRFSpectrum(Equipment):
         return os.path.join(self.cfg_path, "%skeV.cfg" % cfgname)
 
     def _doSpectrum(self, ct, filename, wait=True):
-        en = HWR.beamline.energy.get_energy()
         if not ct:
             ct = 5
         safshut = self.getObjectByRole("safety_shutter")

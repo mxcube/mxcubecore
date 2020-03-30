@@ -26,7 +26,7 @@ class PX1Resolution(Equipment):
 
     def _init(self):
 
-        self.currentResolution = None
+        self._nominal_value = None
         self.currentDistance = None
 
         self.connect("equipmentReady", self.equipmentReady)
@@ -49,7 +49,7 @@ class PX1Resolution(Equipment):
         self.state_chan.connectSignal("update", self.stateChanged)
 
         self.currentDistance = self.distance_chan.getValue()
-        self.currentResolution = self.resolution_chan.getValue()
+        self._nominal_value = self.resolution_chan.getValue()
 
         return Equipment._init(self)
 
@@ -79,12 +79,12 @@ class PX1Resolution(Equipment):
         return state_str
 
     def get_value(self):
-        if self.currentResolution is None:
+        if self._nominal_value is None:
             self.recalculateResolution()
-        return self.currentResolution
+        return self._nominal_value
 
     def getDistance(self):
-        if self.currentResolution is None:
+        if self._nominal_value is None:
             self.recalculateResolution()
         return self.currentDistance
 
@@ -113,10 +113,10 @@ class PX1Resolution(Equipment):
         if resolution is None or distance is None:
             return
 
-        if (self.currentResolution is not None) and abs(
-            resolution - self.currentResolution
+        if (self._nominal_value is not None) and abs(
+            resolution - self._nominal_value
         ) > 0.001:
-            self.currentResolution = resolution
+            self._nominal_value = resolution
             self.emit("resolutionChanged", (resolution,))
 
         if (self.currentDistance is not None) and abs(
