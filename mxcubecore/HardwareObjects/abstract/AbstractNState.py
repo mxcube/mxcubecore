@@ -99,14 +99,9 @@ class AbstractNState(AbstractActuator):
             (Enum): Enum member, corresponding to the value or UNKNOWN.
         """
         for enum_var in self.VALUES.__members__.values():
-            if isinstance(value, tuple):
-                if value == enum_var.value:
-                    return enum_var
-            if isinstance(enum_var.value, tuple):
-                if value == enum_var.value[0]:
-                    return enum_var
-            else:
-                if value == enum_var.value:
-                    return enum_var
+            if value == enum_var.value:
+                return enum_var
+            if isinstance(enum_var.value, tuple) and value == enum_var.value[0]:
+                return enum_var
 
         return self.VALUES.UNKNOWN
