@@ -20,11 +20,13 @@ beamInfoChanged
 
 import logging
 from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository.HardwareObjects.abstract.AbstractBeam import (
+    AbstractBeam, BeamShape)
 
 
-class BeamInfoMockup(Equipment):
+class BeamInfoMockup(AbstractBeam):
     def __init__(self, *args):
-        Equipment.__init__(self, *args)
+        super(BeamInfoMockup, self).__init__(*args)
 
         self.beam_size_slits = [9999, 9999]
         self.beam_size_aperture = [9999, 9999]
@@ -33,6 +35,7 @@ class BeamInfoMockup(Equipment):
         self.beam_info_dict = {}
 
     def init(self):
+        super(BeamInfoMockup, self).init()
         self.aperture_hwobj = self.getObjectByRole("aperture")
         if self.aperture_hwobj is not None:
             self.connect(
@@ -84,6 +87,46 @@ class BeamInfoMockup(Equipment):
             float(self.beam_info_dict["size_x"]),
             float(self.beam_info_dict["size_y"]),
         )
+
+    def get_value(self):
+        """ Get the size (width and heigth) of the beam and its shape.
+        Retunrs:
+            (float, float, Enum, str): Width, heigth, shape and label.
+        Raises:
+            NotImplementedError
+        """
+        _i = self.evaluate_beam_info()
+        shape = "ELIPTICAL" if _i["shape"] == "ellipse" else "RECTANGULAR"
+
+        return (
+            _i["size_x"],
+            _i["size_y"],
+            BeamShape.__members__[shape],
+            "%sx%s" % (_i["size_x"], _i["size_y"])
+        )
+
+    def _set_value(self, size=None):
+        """Set the beam size
+        Args:
+            size (list): Width, heigth or
+                  (str): Position name
+        """
+        self.aperture_hwobj.set_diameter_size(size)
+
+    def get_available_size(self):
+        """ Get the available predefined beam definers configuration.
+        Returns:
+            (dict): Dictionary {"type": (list), "values": (list)}, where
+               "type": the definer type
+               "values": List of available beam size difinitions,
+                         according to the "type".
+        Raises:
+            NotImplementedError
+        """
+        return {
+            "type": ["aperture"],
+            "values": self.aperture_hwobj.get_diameter_size_list()
+        }
 
     def get_beam_shape(self):
         self.evaluate_beam_info()

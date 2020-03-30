@@ -75,8 +75,8 @@ class ALBACollect(AbstractCollect):
         self.ni_unconf_cmd = self.get_command_object("ni_unconfigure")
 
         # some extra reading channels to be saved in image header
-        self.kappapos_chan = self.getChannelObject("kappapos")
-        self.phipos_chan = self.getChannelObject("phipos")
+        self.kappapos_chan = self.get_channel_object("kappapos")
+        self.phipos_chan = self.get_channel_object("phipos")
 
         undulators = []
         try:

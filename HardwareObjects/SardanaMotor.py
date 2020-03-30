@@ -101,7 +101,7 @@ class SardanaMotor(AbstractMotor):
             },
             "Stop",
         )
-        self.position_channel = self.addChannel(
+        self.position_channel = self.add_channel(
             {
                 "type": "sardana",
                 "name": self.actuator_name + SardanaMotor.suffix_position,
@@ -110,7 +110,7 @@ class SardanaMotor(AbstractMotor):
             },
             "Position",
         )
-        self.state_channel = self.addChannel(
+        self.state_channel = self.add_channel(
             {
                 "type": "sardana",
                 "name": self.actuator_name + SardanaMotor.suffix_state,
@@ -120,7 +120,7 @@ class SardanaMotor(AbstractMotor):
             "State",
         )
 
-        self.velocity_channel = self.addChannel(
+        self.velocity_channel = self.add_channel(
             {
                 "type": "sardana",
                 "name": self.actuator_name + SardanaMotor.suffix_velocity,
@@ -129,7 +129,7 @@ class SardanaMotor(AbstractMotor):
             "Velocity",
         )
 
-        self.acceleration_channel = self.addChannel(
+        self.acceleration_channel = self.add_channel(
             {
                 "type": "sardana",
                 "name": self.actuator_name + SardanaMotor.suffix_acceleration,
@@ -231,35 +231,12 @@ class SardanaMotor(AbstractMotor):
         self.emit("limitsChanged", (self.get_limits(),))
         self.emit("valueChanged", (self.get_value(),))
 
-    def move(self, absolute_position):
+    def _set_value(self, value):
         """
         Descript. : move to the given position
         """
-        current_pos = self.position_channel.getValue()
-        if abs(absolute_position - current_pos) > self.move_threshold_default:
-            self.position_channel.setValue(absolute_position)
-
-    def moveRelative(self, relative_position):
-        """
-        Descript. : move for the given distance
-        """
-        self.move(self.get_value() + relative_position)
-
-    def syncMove(self, position, timeout=None):
-        """
-        Descript. : move to the given position and wait till it's reached
-        """
-        self.move(position)
-        try:
-            self.wait_end_of_move(timeout)
-        except BaseException:
-            raise Timeout
-
-    def syncMoveRelative(self, relative_position, timeout=None):
-        """
-        Descript. : move for the given distance and wait till it's reached
-        """
-        self.syncMove(self.get_value() + relative_position, timeout)
+        # if abs(absolute_position - current_pos) > self.move_threshold_default:
+        self.position_channel.setValue(value)
 
     def stop(self):
         """
@@ -307,7 +284,7 @@ def test_hwo(hwo):
 
 
 #    print("Moving motor to %s" % newpos)
-#    hwo.syncMove(newpos)
+#    hwo.set_value(newpos, timeout=None)
 #    while hwo.is_moving():
 #        print "Moving"
 #        time.sleep(0.3)

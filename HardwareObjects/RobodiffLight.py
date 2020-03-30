@@ -61,8 +61,5 @@ class RobodiffLight(Device, AbstractMotor):
     def get_state(self):
         return RobodiffLight.READY
 
-    def move(self, abs_pos):
-        self.wago_controller.set(self.light_level, abs_pos)
-
-    def moveRelative(self, rel_pos):
-        self.set_value(rel_pos + self.get_value())
+    def _set_value(self, value):
+        self.wago_controller.set(self.light_level, value)

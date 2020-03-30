@@ -8,7 +8,7 @@ class SOLEILFlux(Device):
         Device.__init__(self, name)
 
     def init(self):
-        self.flux_channel = self.getChannelObject("flux")
+        self.flux_channel = self.get_channel_object("flux")
 
     def get_value(self):
         try:

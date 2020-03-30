@@ -8,14 +8,14 @@ class ALBASupervisor(Device):
         Device.__init__(self, *args)
 
     def init(self):
-        self.state_chan = self.getChannelObject("state")
+        self.state_chan = self.get_channel_object("state")
         self.go_collect_cmd = self.get_command_object("go_collect")
         self.go_sample_view_cmd = self.get_command_object("go_sample_view")
         self.go_transfer_cmd = self.get_command_object("go_transfer")
         self.go_beam_view_cmd = self.get_command_object("go_beam_view")
 
-        self.phase_chan = self.getChannelObject("phase")
-        self.detector_cover_chan = self.getChannelObject("detector_cover_open")
+        self.phase_chan = self.get_channel_object("phase")
+        self.detector_cover_chan = self.get_channel_object("detector_cover_open")
 
         self.state_chan.connectSignal("update", self.state_changed)
         self.phase_chan.connectSignal("update", self.phase_changed)

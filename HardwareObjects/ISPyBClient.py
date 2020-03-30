@@ -2076,7 +2076,7 @@ class ISPyBValueFactory:
 
         try:
             modes = ("Software binned", "Unbinned", "Hardware binned")
-            det_mode = int(mx_collect_dict["detector_mode"])
+            det_mode = int(mx_collect_dict["detector_binning_mode"])
             detector_mode = modes[det_mode]
         except (KeyError, IndexError, ValueError, TypeError):
             detector_mode = ""

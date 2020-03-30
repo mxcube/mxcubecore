@@ -575,6 +575,8 @@ class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
     def __init__(self, rootName):
         HardwareObjectNode.__init__(self, rootName)
         HardwareObjectMixin.__init__(self)
+        self.log = logging.getLogger('HWR').getChild(self.__class__.__name__)
+        self.user_log = logging.getLogger('user_log_level')
 
     def __getstate__(self):
         return self.name()
@@ -642,9 +644,6 @@ class HardwareObjectYaml(ConfiguredObject, HardwareObjectMixin):
 class Procedure(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
-
-    def addCommand(self, *args, **kwargs):
-        return HardwareObject.addCommand(self, *args, **kwargs)
 
     def userName(self):
         uname = self.getProperty("username")

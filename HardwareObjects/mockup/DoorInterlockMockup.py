@@ -34,7 +34,7 @@ class DoorInterlockMockup(HardwareObject):
         self.door_interlock_state = None
 
     def init(self):
-        self.door_interlock_state = "locked_active"
+        self.door_interlock_state = self.STATES.READY
 
     def connected(self):
         self.setIsReady(True)
@@ -43,7 +43,7 @@ class DoorInterlockMockup(HardwareObject):
         self.setIsReady(False)
 
     def door_is_interlocked(self):
-        return self.door_interlock_state in ("locked_active", "locked_inactive")
+        return self.door_interlock_state in [self.STATES.READY]
 
     def get_state(self):
         return self.door_interlock_state

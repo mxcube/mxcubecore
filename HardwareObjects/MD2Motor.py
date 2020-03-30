@@ -137,15 +137,8 @@ class MD2Motor(AbstractMotor):
             raise RuntimeError("%s: motor position is None" % self.name())
         return ret
 
-    def move(self, position, wait=False, timeout=None):
-        self.position_attr.set_value(position)
-        # self.motorStateChanged(MotorStates.MOVING)
-
-        if wait:
-            try:
-                self.waitEndOfMove(timeout)
-            except BaseException:
-                raise MD2TimeoutError
+    def _set_value(self, value):
+        self.position_attr.set_value(value)
 
     def waitEndOfMove(self, timeout=None):
         self.wait_end_of_move(timeout)

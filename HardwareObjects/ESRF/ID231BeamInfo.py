@@ -62,12 +62,12 @@ class BeamInfo(Equipment):
                 "BeamInfo: beam definer not defined correctly"
             )
 
-        self.beam_position_hor = self.getChannelObject("beam_position_hor")
+        self.beam_position_hor = self.get_channel_object("beam_position_hor")
         self.beam_position_hor.connectSignal("update", self.beam_pos_hor_changed)
-        self.beam_position_ver = self.getChannelObject("beam_position_ver")
+        self.beam_position_ver = self.get_channel_object("beam_position_ver")
         self.beam_position_ver.connectSignal("update", self.beam_pos_ver_changed)
-        self.chan_beam_size_microns = self.getChannelObject("beam_size_microns")
-        self.chan_beam_shape_ellipse = self.getChannelObject("beam_shape_ellipse")
+        self.chan_beam_size_microns = self.get_channel_object("beam_size_microns")
+        self.chan_beam_shape_ellipse = self.get_channel_object("beam_shape_ellipse")
 
     def beam_pos_hor_changed(self, value):
         self.beam_position[0] = value

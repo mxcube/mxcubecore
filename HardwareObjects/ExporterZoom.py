@@ -11,7 +11,7 @@ class ExporterZoom(ExporterMotor):
         self.motor_pos_attr_suffix = "Position"
         self._last_position_name = None
 
-        self.chan_predefined_position = self.addChannel(
+        self.chan_predefined_position = self.add_channel(
             {"type": "exporter", "name": "predefined_position"},
             "CoaxialCameraZoomValue",
         )
