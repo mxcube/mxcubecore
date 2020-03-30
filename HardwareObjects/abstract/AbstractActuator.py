@@ -36,8 +36,8 @@ class AbstractActuator(HardwareObject):
 
     def __init__(self, name):
         HardwareObject.__init__(self, name)
-        self._nominal_value = None
-        self._nominal_limits = (None, None)
+        self.__nominal_value = None
+        self.__nominal_limits = (None, None)
         self.actuator_name = None
         self.read_only = False
         self.default_value = None
@@ -50,8 +50,8 @@ class AbstractActuator(HardwareObject):
         self.default_value = self.getProperty("default_value")
         self.username = self.getProperty("username")
         if self.read_only:
-            self._nominal_limits = (self.default_value, self.default_value)
-            self._nominal_value = self.default_value
+            self.__nominal_limits = (self.default_value, self.default_value)
+            self.__nominal_value = self.default_value
 
     @abc.abstractmethod
     def get_value(self):
@@ -61,12 +61,19 @@ class AbstractActuator(HardwareObject):
         """
         return None
 
+    def get_nominal_value(self):
+        """Get the nominal (previous) value of actuator position.
+        Returns:
+            value: Actuator position.
+        """
+        return self.__nominal_value
+
     def get_limits(self):
         """Return actuator low and high limits.
         Returns:
             (tuple): two floats tuple (low limit, high limit).
         """
-        return self._nominal_limits
+        return self.__nominal_limits
 
     def set_limits(self, limits):
         """Set actuator low and high limits.
@@ -76,8 +83,8 @@ class AbstractActuator(HardwareObject):
         if self.read_only:
             raise ValueError("Attempt to set limits for read-only Actuator")
         else:
-            self._nominal_limits = limits
-            self.emit("limitsChanged", (self._nominal_limits,))
+            self.update_limits(limits)
+            self.emit("limitsChanged", (self.__nominal_limits,))
 
     def validate_value(self, value):
         """Check if the value is within limits.
@@ -111,7 +118,6 @@ class AbstractActuator(HardwareObject):
             raise ValueError("Attempt to set value for read-only Actuator")
         elif self.validate_value(value):
             self._set_value(value)
-            self.update_value()
             if timeout or timeout is None:
                 self.wait_ready(timeout)
         else:
@@ -125,7 +131,7 @@ class AbstractActuator(HardwareObject):
         if value is None:
             value = self.get_value()
 
-        self._nominal_value = value
+        self.__nominal_value = value
         self.emit("valueChanged", (value,))
 
     def update_limits(self, limits=None):
@@ -137,5 +143,5 @@ class AbstractActuator(HardwareObject):
             limits = self.get_limits()
 
         if all(limits):
-            self._nominal_limits = limits
+            self.__nominal_limits = limits
             self.emit("limitsChanged", (limits,))

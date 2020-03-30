@@ -41,21 +41,19 @@ class ShutterMockup(AbstractActuator.AbstractActuator):
     def __init__(self, name):
         super(ShutterMockup, self).__init__(name)
         # self.current_state = ShutterMockup.STATE.OPEN
+        self.get_value = self.get_nominal_value
 
     def init(self):
         super(ShutterMockup, self).init()
         if self.default_value is None:
             raise Exception("Ka-BOOM!")
-        self._nominal_value = getattr(self.VALUES, self.default_value)
-        self._state = self.STATES.READY
-
-    def get_value(self):
-        return self._nominal_value
+        self.update_value(getattr(self.VALUES, self.default_value))
+        self.update_state(self.STATES.READY)
 
     def _set_value(self, value):
         self.update_state(self.STATES.BUSY)
         time.sleep(random.uniform(0.1, 1.0))
-        self._nominal_value = value
+        self.update_value(value)
         self.update_state(self.STATES.READY)
 
     def validate_value(self, value):

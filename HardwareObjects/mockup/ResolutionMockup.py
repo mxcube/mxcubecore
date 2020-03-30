@@ -7,4 +7,4 @@ class ResolutionMockup(Resolution):
 
     def init(self):
         super(ResolutionMockup, self).init()
-        self._nominal_value = self.default_value
+        self.update_value(self.default_value)

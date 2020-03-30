@@ -48,6 +48,7 @@ class MotorMockup(AbstractMotor):
 
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
+        self.get_value = self.get_nominal_value
 
     def init(self):
         """
@@ -95,13 +96,6 @@ class MotorMockup(AbstractMotor):
         """Imediately halt movement. By default self.stop = self.abort"""
         if self.__move_task is not None:
             self.__move_task.kill()
-
-    def get_value(self):
-        """Read the actuator position.
-        Returns:
-            float: Actuator position.
-        """
-        return self._nominal_value
 
     def _set_value(self, value):
         """

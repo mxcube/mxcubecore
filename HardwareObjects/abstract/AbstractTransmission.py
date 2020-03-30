@@ -38,7 +38,6 @@ class AbstractTransmission(AbstractMotor):
 
         self._value = None
         self._limits = [0, 100]
-        self._state = None
 
     @abc.abstractmethod
     def _set_value(self, value):

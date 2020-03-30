@@ -382,9 +382,9 @@ class HardwareObjectMixin(CommandContainer):
         self.connect_dict = {}
 
         # event to handle waiting for object to be ready
-        self._ready_event = event.Event()
-        self._state = self.STATES.UNKNOWN
-        self._specific_state = None
+        self.__ready_event = event.Event()
+        self.__state = self.STATES.UNKNOWN
+        self.__specific_state = None
 
     def __bool__(self):
         return True
@@ -418,7 +418,7 @@ class HardwareObjectMixin(CommandContainer):
         Returns:
             HardwareObjectState
         """
-        return self._state
+        return self.__state
 
     def get_specific_state(self):
         """ Getter for specific_state attribute. Override if needed.
@@ -426,7 +426,7 @@ class HardwareObjectMixin(CommandContainer):
         Returns:
             HardwareObjectSpecificState or None
         """
-        return self._specific_state
+        return self.__specific_state
 
     def wait_ready(self, timeout=None):
         """Wait timeout seconds till object is ready.
@@ -439,7 +439,7 @@ class HardwareObjectMixin(CommandContainer):
         Returns:
         """
         with Timeout(timeout, RuntimeError("Timeout waiting for status ready")):
-            self._ready_event.wait(timeout=timeout)
+            self.__ready_event.wait(timeout=timeout)
 
     def is_ready(self):
         """Convenience function: Check if the object state is READY.
@@ -447,7 +447,7 @@ class HardwareObjectMixin(CommandContainer):
         Returns:
             (bool): True if ready, otherwise False.
         """
-        return self._ready_event.is_set()
+        return self.__ready_event.is_set()
 
     def update_state(self, state=None):
         """Check if the state has changed. Emits signal stateChanged.
@@ -456,16 +456,16 @@ class HardwareObjectMixin(CommandContainer):
         """
         if state is None:
             state = self.get_state()
-        if state != self._state:
+        if state != self.__state:
             if state == self.STATES.READY:
-                self._ready_event.set()
+                self.__ready_event.set()
             elif not isinstance(state, self.STATES):
                 raise ValueError("Attempt to update to illegal state: %s" % state)
             else:
-                self._ready_event.clear()
+                self.__ready_event.clear()
 
-            self._state = state
-            self.emit("stateChanged", (self._state,))
+            self.__state = state
+            self.emit("stateChanged", (self.__state,))
 
     def update_specific_state(self, state=None):
         """Check if the specific state has changed. Emits signal stateChanged.
@@ -474,11 +474,11 @@ class HardwareObjectMixin(CommandContainer):
         """
         if state is None:
             state = self.get_specific_state()
-        if state != self._specific_state:
+        if state != self.__specific_state:
             if not isinstance(state, self.SPECIFIC_STATES):
                 raise ValueError("Attempt to update to illegal specific state: %s" % state)
 
-            self._specific_state = state
+            self.__specific_state = state
             self.emit("specificStateChanged", (state,))
 
     def update_values(self):

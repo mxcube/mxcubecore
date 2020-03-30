@@ -167,8 +167,9 @@ class ExporterMotor(AbstractMotor):
         Returns:
             (float): Motor position.
         """
-        self._nominal_value = self.motor_position.get_value()
-        return self._nominal_value
+        value = self.motor_position.get_value()
+        self.update_value(value)
+        return value
 
     def __get_limits(self, cmd):
         """Returns motor low and high limits.

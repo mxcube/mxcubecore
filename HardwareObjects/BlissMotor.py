@@ -104,9 +104,9 @@ class BlissMotor(AbstractMotor):
                 state = "UNKNOWN"
 
         try:
-            self._specific_state = BlissMotorStates.__members__[state]
+            self.update_specific_state(BlissMotorStates.__members__[state])
         except:
-            self._specific_state = BlissMotorStates.__members__["UNKNOWN"]
+            self.update_specific_state(BlissMotorStates.__members__["UNKNOWN"])
 
         AbstractMotor.update_state(
             self, self.SPECIFIC_TO_HWR_STATE.get(state, HardwareObjectState.UNKNOWN)
