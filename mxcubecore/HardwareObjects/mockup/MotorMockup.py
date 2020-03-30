@@ -49,7 +49,6 @@ class MotorMockup(AbstractMotor):
 
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
-        self.__move_task = None
 
     def init(self):
         """
@@ -69,7 +68,7 @@ class MotorMockup(AbstractMotor):
 
         self.update_state(self.STATES.READY)
 
-    def _move(self, position):
+    def _move(self, value):
         """
         Simulated motor movement
         """
@@ -77,13 +76,12 @@ class MotorMockup(AbstractMotor):
         self.update_specific_state(self.SPECIFIC_STATES.MOVING)
         start_pos = self.get_value()
 
-        value = position
         if start_pos is None:
-            self.update_value(position)
+            self.update_value(value)
         else:
-            delta = abs(position - start_pos)
+            delta = abs(value - start_pos)
 
-            if position > self.get_value():
+            if value > self.get_value():
                 direction = 1
             else:
                 direction = -1
@@ -118,7 +116,7 @@ class MotorMockup(AbstractMotor):
         """
         return self._nominal_value
 
-    def _set_value(self, value, timeout=None):
+    def _set_value(self, value):
         """
         Implementation of specific set actuator logic.
 
@@ -127,17 +125,4 @@ class MotorMockup(AbstractMotor):
             timeout (float): optional - timeout [s],
                              If timeout == 0: return at once and do not wait;
         """
-        try:
-            self.__move_task = gevent.spawn(self._move, value)
-            if timeout or timeout is None:
-                self.__move_task.get(timeout=timeout)
-        except gevent.Timeout:
-            logging.getLogger("HWR").error("Motor %s timed out", self.actuator_name)
-            self.update_state(self.STATES.READY)
-            self.update_specific_state(self.SPECIFIC_STATES.UNKNOWN)
-            raise
-        except:
-            self.update_state(self.STATES.UNKNOWN)
-            self.update_specific_state(self.STATES.UNKNOWN)
-            raise
-
+        gevent.spawn(self._move, value)
