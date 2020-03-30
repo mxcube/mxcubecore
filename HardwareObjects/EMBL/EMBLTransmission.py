@@ -54,5 +54,5 @@ class EMBLTransmission(AbstractTransmission):
         self._limits = value
         self.emit("limitsChanged", (self._limits,))
 
-    def _set_value(self, value, timeout=None):
+    def _set_value(self, value):
         self.chan_att_value.setValue(value)

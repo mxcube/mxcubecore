@@ -48,7 +48,6 @@ class MotorMockup(AbstractMotor):
 
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
-        self.__move_task = None
 
     def init(self):
         """
@@ -68,7 +67,7 @@ class MotorMockup(AbstractMotor):
 
         self.update_state(self.STATES.READY)
 
-    def _move(self, position):
+    def _move(self, value):
         """
         Simulated motor movement
         """
@@ -76,9 +75,9 @@ class MotorMockup(AbstractMotor):
         start_pos = self.get_value()
 
         if start_pos is not None:
-            delta = abs(position - start_pos)
+            delta = abs(value - start_pos)
 
-            if position > self.get_value():
+            if value > self.get_value():
                 direction = 1
             else:
                 direction = -1
@@ -104,7 +103,7 @@ class MotorMockup(AbstractMotor):
         """
         return self._nominal_value
 
-    def _set_value(self, value, timeout=None):
+    def _set_value(self, value):
         """
         Implementation of specific set actuator logic.
 
@@ -113,6 +112,4 @@ class MotorMockup(AbstractMotor):
             timeout (float): optional - timeout [s],
                              If timeout == 0: return at once and do not wait;
         """
-        self.__move_task = gevent.spawn(self._move, value)
-        if timeout or timeout is None:
-            self.__move_task.get(timeout=timeout)
+        gevent.spawn(self._move, value)
