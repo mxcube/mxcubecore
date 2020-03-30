@@ -25,20 +25,15 @@ Example xml file:
   <username>Detector Cover</username>
   <object_name>detcover</>
   <object href="/bliss" role="controller"/>
-  <predefined_value>
-      <name>in</name>
-      <value>IN</value>
-  </predefined_value>
-  <predefined_value>
-      <name>out</name>
-      <value>OUT</value>
-  </predefined_value>
+  <values>{"IN": "in", "OUT": "out"}</values>
 </device>
 """
-
-from gevent import Timeout, sleep
+from enum import Enum
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
-from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractNState
+from HardwareRepository.HardwareObjects.abstract.AbstractNState import (
+    AbstractNState,
+    BaseValueEnum,
+)
 
 __copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -76,33 +71,34 @@ class BlissNState(AbstractNState):
     def get_value(self):
         """Get the device value
         Returns:
-            (str): The value or "unknown"
+            (Enum): Enum member, corresponding to the value or UNKNOWN.
         """
         if self.device_type == "motor":
             _val = self._bliss_obj.position
         elif self.device_type == "actuator":
             _val = self._bliss_obj.state
 
-        try:
-            _key = [key for key, val in self.predefined_values.items() if val == _val][
-                0
-            ]
-        except IndexError:
-            _key = "unknown"
-        return _key
+        return self.value_to_enum(_val)
 
     def _set_value(self, value):
         """Set device to value.
         Args:
-            value (str): target value
+            value (str or enum): target value
         """
+        if isinstance(value, Enum):
+            self.__saved_state = value.name
+            try:
+                value = value.value[0]
+            except TypeError:
+                value = value.value
+        else:
+            self.__saved_state = value.upper()
         if self.device_type == "motor":
-            self._bliss_obj.move(self.predefined_values[value], wait=False)
+            self._bliss_obj.move(value, wait=False)
         elif self.device_type == "actuator":
-            _attr = "set_" + self.predefined_values[value].lower()
+            _attr = "set_" + value.lower()
             _cmd = getattr(self._bliss_obj, _attr)
             _cmd()
-            self.__saved_state = value
 
     def get_state(self):
         """Get the device state.
@@ -133,20 +129,16 @@ class BlissNState(AbstractNState):
             state = self.STATES.UNKNOWN
         return self.update_state(state)
 
-    def _wait_ready(self, timeout=None):
-        """Wait for the state to be ready.
-        Args:
-            timeout (float): waiting time [s],
-                             If timeout == 0: return at once and do not wait;
-                             if timeout is None: wait forever.
-        Raises:
-            RuntimeError: Execution timeout.
+    def initialise_values(self):
+        """Get the predefined valies. Create the VALUES Enum
+        Returns:
+            (Enum): "ValueEnum" with predefined values.
         """
-        with Timeout(timeout, RuntimeError("Execution timeout")):
-            while not self._ready():
-                sleep(0.01)
-
-    def _ready(self):
-        """Check if the device is ready"""
-        _state = self.get_state()
-        return _state == self.STATES.READY
+        if self.device_type == "actuator":
+            super(BlissNState, self).initialise_values()
+        if self.device_type == "motor":
+            values = {val.upper(): val for val in self.bliss_obj.positions_list}
+            self.VALUES = Enum(
+                "ValueEnum",
+                dict(values, **{item.name: item.value for item in BaseValueEnum}),
+            )

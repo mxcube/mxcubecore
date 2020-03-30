@@ -1,261 +1,171 @@
-import logging
-import math
-import gevent
-from scipy.constants import h, c, e
-from HardwareRepository.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
-from HardwareRepository.BaseHardwareObjects import HardwareObjectState
-
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU General Lesser Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 """
+Energy and Wavelength with bliss.
 Example xml file:
   - for tunable wavelength beamline:
 <object class="Energy">
   <object href="/energy" role="energy_motor"/>
   <object href="/bliss" role="bliss"/>
-  <tunable_energy>True</tunable_energy>
 </object>
 The energy should have methods get_value, get_limits and move.
 If used, the controller should have method moveEnergy.
 
   - for fixed wavelength beamline:
 <object class="Energy">
-  <default_energy>12.8123</tunable_energy>
+  <read_only>True</read_only>
+  <default_value>12.8123</tunable_value>
 </object>
 """
+import logging
+import math
+from gevent import spawn
+from HardwareRepository.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
+from HardwareRepository.BaseHardwareObjects import HardwareObjectState
+
+__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
 
 class BlissEnergy(AbstractEnergy):
+    """Energy and Wavelength with bliss."""
     def __init__(self, name):
         AbstractEnergy.__init__(self, name)
         self._energy_motor = None
         self._bliss_session = None
-        self.state = None
+        self._cmd_execution = None
 
     def init(self):
+        """Initialisation"""
+        AbstractEnergy.init(self)
         self._energy_motor = self.getObjectByRole("energy_motor")
-        self.tunable = self.getProperty("tunable_energy")
         self._bliss_session = self.getObjectByRole("bliss")
-        self._default_energy = self.getObjectByRole("default_energy")
-        self.state = HardwareObjectState.READY
+        self._state = HardwareObjectState.READY
 
-        if self._energy_motor is not None:
-            self.state = self._energy_motor.get_state()
+        if self._energy_motor:
+            self._state = self._energy_motor.get_state()
             self._energy_motor.connect("valueChanged", self.update_value)
             self._energy_motor.connect("stateChanged", self.update_state)
 
-    def is_ready(self):
-        """Check if the energy motor state is READY.
-        Returns:
-            (bool): True if ready, otherwise False.
-        """
-        if not self.tunable:
-            return True
-
-        try:
-            return "READY" in self._energy_motor.state.current_states_names
-        except AttributeError:
-            return False
-
     def get_value(self):
-        """Read the energy
+        """Read the energy.
         Returns:
             (float): Energy [keV]
         """
-        return self.get_energy()
-
-    def get_energy(self):
-        """Read the energy
-        Returns:
-            (float): Energy [keV]
-        """
-        if not self.tunable:
-            return self._default_energy
-
-        self._energy_value = self._energy_motor.get_value()
-        return self._energy_value
-
-    def get_wavelength(self):
-        """Read the wavelength
-        Returns:
-            (float): Wavelength [Å]
-        """
-        _en = self.get_energy()
-        if _en:
-            return self._calculate_wavelength(_en)
-        return None
+        if not self.read_only:
+            self._nominal_value = self._energy_motor.get_value()
+        return self._nominal_value
 
     def get_limits(self):
         """Return energy low and high limits.
         Returns:
-            (tuple): two floats tuple (low limit, high limit).
+            (tuple): two floats tuple (low limit, high limit) [keV].
         """
-        logging.getLogger("HWR").debug("Get energy limits")
-        if not self.tunable:
-            self._energy_limits = (self._default_energy, self._default_energy)
-        else:
-            self._energy_limits = self._energy_motor.get_limits()
-        return self._energy_limits
-
-    def get_wavelength_limits(self):
-        """Return wavelength low and high limits.
-        Returns:
-            (tuple): two floats tuple (low limit, high limit).
-        """
-        logging.getLogger("HWR").debug("Get wavelength limits")
-        if self.tunable:
-            _low, _high = self.get_limits()
-            self._wavelength_limits = (
-                self._calculate_wavelength(_low),
-                self._calculate_wavelength(_high),
-            )
-        else:
-            self._wavelength_limits = (self.get_wavelength(), self.get_wavelength())
-        return self._wavelength_limits
+        if not self.read_only:
+            self._nominal_limits = self._energy_motor.get_limits()
+        return self._nominal_limits
 
     def stop(self):
         """Stop the energy motor movement"""
         self._energy_motor.stop()
 
     def get_state(self):
-        if not self.tunable:
-            self.state = HardwareObjectState.READY
+        """Get the state.
+        Returns:
+            (enum 'HardwareObjectState'): state.
+        """
+        if self.read_only:
+            self._state = HardwareObjectState.READY
         else:
-            self.state = self._energy_motor.get_state()
-        return self.state
+            self._state = self._energy_motor.get_state()
+        return self._state
 
-    def move_energy(self, value, wait=True, timeout=None):
+    def _set_value(self, value):
+        """Execute the sequence to move to an energy
+        Args:
+            value (float): target energy
+        """
+        try:
+            self._bliss_session.change_energy(value)
+        except RuntimeError:
+            self._energy_motor.set_value(value)
+
+    def set_value(self, value, timeout=0):
         """Move energy to absolute position. Wait the move to finish.
         Args:
             value (float): target value.
-            wait (bool): optional - wait until motor movement finished.
-            timeout (float): optional - timeout [s].
+            timeout (float): optional - timeout [s],
+                             If timeout == 0: return at once and do not wait
+                             if timeout is None: wait forever.
+        Raises:
+            ValueError: Value not valid or attemp to set write only actuator.
         """
-        _en = self.get_energy()
+        if self.read_only:
+            raise ValueError("Attempt to set value for read-only Actuator")
+        if self.validate_value(value):
+            current_value = self.get_value()
 
-        pos = math.fabs(_en - value)
-        if pos < 0.001:
+            _delta = math.fabs(current_value - value)
+            if _delta < 0.001:
+                logging.getLogger("user_level_log").debug(
+                    "Energy: already at %g, not moving", value
+                )
+                return
+
             logging.getLogger("user_level_log").debug(
-                "Energy: already at %g, not moving", value
+                "Energy: moving energy to %g", value
             )
-            return
 
-        logging.getLogger("user_level_log").debug("Energy: moving energy to %g", value)
-
-        def change_energy():
-            try:
-                # self._bliss_session.change_energy(value)
-                self._energy_motor.set_value(value)
-            except RuntimeError:
-                self._energy_motor.set_value(value)
-
-        if pos > 0.02:
-            if wait:
-                change_energy()
+            if _delta > 0.02:
+                if timeout:
+                    self._set_value(value)
+                else:
+                    self._cmd_execution = spawn(self._set_value(value))
             else:
-                gevent.spawn(change_energy)
+                self._energy_motor.set_value(value, timeout=timeout)
         else:
-            self._energy_motor.set_value(value, wait=wait)
+            raise ValueError("Invalid value %s" % str(value))
 
-    def set_wavelength(self, value, wait=True, timeout=None):
-        value = self._calculate_energy(value)
-        self.move_energy(value, wait, timeout)
+    def abort(self):
+        """Abort the procedure"""
+        if self._cmd_execution and not self._cmd_execution.ready():
+            self._cmd_execution.kill()
 
-    def update_value(self, position):
-        """Check if the position has changed. Emist signal valueChanged.
+    def set_wavelength(self, value, timeout=None):
+        """Move motor to absolute value. Wait the move to finish.
         Args:
-            position (float): energy position
+            value (float): target position [Å]
+            timeout (float): optional - timeout [s].
+                             if timeout = 0: return at once and do not wait
+                             if timeout is None: wait forever
         """
-        wavelength = self._calculate_wavelength(position)
-        self.emit("energyChanged", (position, wavelength))
-        self.emit("valueChanged", (position,))
 
-    """
-    def start_move_energy(self, value, wait=True):
-        if not self.tunable:
-            return False
+        value = self._calculate_energy(value)
+        self.set_value(value, timeout)
 
-        try:
-            value = float(value)
-        except (TypeError, ValueError) as diag:
-            logging.getLogger("user_level_log").error(
-                "Energy: invalid energy (%s)" % value
-            )
-            return False
-
-        current_en = self.get_current_energy()
-        if current_en:
-            if math.fabs(value - current_en) < 0.001:
-                self.moveEnergyCmdFinished(True)
-        if self.checkLimits(value) is False:
-            return False
-
-        self.moveEnergyCmdStarted()
-
-        def change_egy():
-            try:
-                self.move_energy(value, wait=True)
-            except BaseException:
-                sys.excepthook(*sys.exc_info())
-                self.moveEnergyCmdFailed()
-            else:
-                self.moveEnergyCmdFinished(True)
-
-        if wait:
-            change_egy()
-        else:
-            gevent.spawn(change_egy)
-
-    def moveEnergyCmdStarted(self):
-        self.moving = True
-        self.emit("moveEnergyStarted", ())
-
-    def moveEnergyCmdFailed(self):
-        self.moving = False
-        self.emit("moveEnergyFailed", ())
-
-    def moveEnergyCmdAborted(self):
-        pass
-
-    def moveEnergyCmdFinished(self, result):
-        self.moving = False
-        self.emit("moveEnergyFinished", ())
-
-    def checkLimits(self, value):
-        logging.getLogger("HWR").debug("Checking the move limits")
-        if self.get_energy_limits():
-            if value >= self.en_lims[0] and value <= self.en_lims[1]:
-                logging.getLogger("HWR").info("Limits ok")
-                return True
-            logging.getLogger("user_level_log").info("Requested value is out of limits")
-        return False
-
-    def start_move_wavelength(self, value, wait=True):
-        logging.getLogger("HWR").info("Moving wavelength to (%s)" % value)
-        return self.startMoveEnergy(12.3984 / value, wait)
-
-    def cancelMoveEnergy(self):
-        logging.getLogger("user_level_log").info("Cancel move")
-        self.moveEnergy.abort()
-
-    def move_energy(self, energy, wait=True):
-        current_en = self.get_current_energy()
-        pos = math.fabs(current_en - energy)
-        if pos < 0.001:
-            logging.getLogger("user_level_log").debug(
-                "Energy: already at %g, not moving", energy
-            )
-        else:
-            logging.getLogger("user_level_log").debug(
-                "Energy: moving energy to %g", energy
-            )
-            if pos > 0.02:
-                try:
-                    if self.ctrl:
-                        self.ctrl.change_energy(energy)
-                    else:
-                        self.executeCommand("moveEnergy", energy, wait=True)
-                except RuntimeError as AttributeError:
-                    self.energy_motor.set_value(energy)
-            else:
-                self.energy_motor.set_value(energy)
-
-    """
+    def validate_value(self, value):
+        """Check if the value is within the limits
+        Args:
+            value(float): value
+        Returns:
+            (bool): True if within the limits
+        """
+        limits = self._nominal_limits
+        if None in limits:
+            return True
+        return limits[0] <= value <= limits[1]
