@@ -19,6 +19,7 @@
 
 import time
 import gevent
+import logging
 
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
@@ -73,9 +74,13 @@ class MotorMockup(AbstractMotor):
         Simulated motor movement
         """
         self.update_state(self.STATES.BUSY)
+        self.update_specific_state(self.SPECIFIC_STATES.MOVING)
         start_pos = self.get_value()
 
-        if start_pos is not None:
+        value = position
+        if start_pos is None:
+            self.update_value(position)
+        else:
             delta = abs(position - start_pos)
 
             if position > self.get_value():
@@ -91,6 +96,15 @@ class MotorMockup(AbstractMotor):
                 time.sleep(0.02)
 
         self.update_state(self.STATES.READY)
+        _low, _high = self.get_limits()
+        if value == self.default_value:
+            self.update_specific_state(self.SPECIFIC_STATES.HOME)
+        elif  value == _low:
+            self.update_specific_state(self.SPECIFIC_STATES.LOWLIMIT)
+        elif  value == _high:
+            self.update_specific_state(self.SPECIFIC_STATES.HIGHLIMIT)
+        else:
+            self.update_specific_state(self.STATES.READY)
 
     def abort(self):
         """Imediately halt movement. By default self.stop = self.abort"""
@@ -113,6 +127,17 @@ class MotorMockup(AbstractMotor):
             timeout (float): optional - timeout [s],
                              If timeout == 0: return at once and do not wait;
         """
-        self.__move_task = gevent.spawn(self._move, value)
-        if timeout or timeout is None:
-            self.__move_task.get(timeout=timeout)
+        try:
+            self.__move_task = gevent.spawn(self._move, value)
+            if timeout or timeout is None:
+                self.__move_task.get(timeout=timeout)
+        except gevent.Timeout:
+            logging.getLogger("HWR").error("Motor %s timed out", self.actuator_name)
+            self.update_state(self.STATES.READY)
+            self.update_specific_state(self.SPECIFIC_STATES.UNKNOWN)
+            raise
+        except:
+            self.update_state(self.STATES.UNKNOWN)
+            self.update_specific_state(self.STATES.UNKNOWN)
+            raise
+
