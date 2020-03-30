@@ -44,7 +44,7 @@ class Transmission(HardwareObject):
         return self.__matt.pos_read()
 
     def _set_value(self, value):
-        self.__matt.set_energy(self.energy.get_energy())
+        self.__matt.set_energy(HWR.beamline.energy.get_value())
         self.__matt.transmission_set(value)
         self._update()
 

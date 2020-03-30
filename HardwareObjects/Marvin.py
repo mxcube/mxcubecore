@@ -490,10 +490,10 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         #logging.getLogger("HWR").debug("Sample changer: Guillotine closed")
         # 3. If necessary move detector to save position
         if self._focusing_mode == "P13mode":
-            if HWR.beamline.detector.get_distance() < 399.0:
+            if HWR.beamline.detector.distance.get_value() < 399.0:
                 log.info("Sample changer: Moving detector to save position...")
                 self._veto = 1
-                HWR.beamline.detector.set_distance(400, timeout=45)
+                HWR.beamline.detector.distance.set_value(400, timeout=45)
                 time.sleep(1)
                 self.waitVeto(20.0)
                 log.info("Sample changer: Detector moved to save position")
@@ -584,10 +584,10 @@ class Marvin(AbstractSampleChanger.SampleChanger):
 
         #HWR.beamline.detector.close_cover()
         if self._focusing_mode == "P13mode":  
-            if HWR.beamline.detector.get_distance() < 399.0:
+            if HWR.beamline.detector.distance.get_value() < 399.0:
                 log.info("Sample changer: Moving detector to save position ...")
                 self._veto = 1
-                HWR.beamline.detector.set_distance(400, timeout=45)
+                HWR.beamline.detector.distance.set_value(400, timeout=45)
                 time.sleep(1)
                 self.waitVeto(20.0)
                 log.info("Sample changer: Detector moved to save position")
