@@ -19,7 +19,6 @@
 
 import time
 import gevent
-import logging
 
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
