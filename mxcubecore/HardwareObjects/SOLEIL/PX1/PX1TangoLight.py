@@ -13,7 +13,7 @@ class PX1TangoLight(Device):
 
     def init(self):
         # self.tangoname = self.
-        self.attrchan = self.getChannelObject("attributeName")
+        self.attrchan = self.get_channel_object("attributeName")
         self.attrchan.connectSignal("update", self.valueChanged)
 
         self.attrchan.connectSignal("connected", self._setReady)

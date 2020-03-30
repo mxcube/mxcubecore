@@ -20,8 +20,8 @@ class ALBAFrontLight(Device):
 
     def init(self):
 
-        self.level_channel = self.getChannelObject("light_level")
-        self.state_channel = self.getChannelObject("state")
+        self.level_channel = self.get_channel_object("light_level")
+        self.state_channel = self.get_channel_object("state")
         threshold = self.getProperty("off_threshold")
 
         if threshold is not None:

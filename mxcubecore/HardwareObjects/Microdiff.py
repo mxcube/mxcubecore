@@ -40,7 +40,7 @@ class Microdiff(MiniDiff.MiniDiff):
             },
             "SyncMoveMotors",
         )
-        self.head_type = self.addChannel(
+        self.head_type = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -48,7 +48,7 @@ class Microdiff(MiniDiff.MiniDiff):
             },
             "HeadType",
         )
-        self.kappa_channel = self.addChannel(
+        self.kappa_channel = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -70,7 +70,7 @@ class Microdiff(MiniDiff.MiniDiff):
             },
             "startSetPhase",
         )
-        self.readPhase = self.addChannel(
+        self.readPhase = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -87,7 +87,7 @@ class Microdiff(MiniDiff.MiniDiff):
             "getOmegaMotorDynamicScanLimits",
         )
         if self.getProperty("use_hwstate"):
-            self.hwstate_attr = self.addChannel(
+            self.hwstate_attr = self.add_channel(
                 {
                     "type": "exporter",
                     "exporter_address": self.exporter_addr,
@@ -97,7 +97,7 @@ class Microdiff(MiniDiff.MiniDiff):
             )
         else:
             self.hwstate_attr = None
-        self.swstate_attr = self.addChannel(
+        self.swstate_attr = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -105,7 +105,7 @@ class Microdiff(MiniDiff.MiniDiff):
             },
             "State",
         )
-        self.nb_frames = self.addChannel(
+        self.nb_frames = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -115,7 +115,7 @@ class Microdiff(MiniDiff.MiniDiff):
         )
 
         # raster scan attributes
-        self.scan_range = self.addChannel(
+        self.scan_range = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -123,7 +123,7 @@ class Microdiff(MiniDiff.MiniDiff):
             },
             "ScanRange",
         )
-        self.scan_exposure_time = self.addChannel(
+        self.scan_exposure_time = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -131,7 +131,7 @@ class Microdiff(MiniDiff.MiniDiff):
             },
             "ScanExposureTime",
         )
-        self.scan_start_angle = self.addChannel(
+        self.scan_start_angle = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -139,7 +139,7 @@ class Microdiff(MiniDiff.MiniDiff):
             },
             "ScanStartAngle",
         )
-        self.scan_detector_gate_pulse_enabled = self.addChannel(
+        self.scan_detector_gate_pulse_enabled = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -147,7 +147,7 @@ class Microdiff(MiniDiff.MiniDiff):
             },
             "DetectorGatePulseEnabled",
         )
-        self.scan_detector_gate_pulse_readout_time = self.addChannel(
+        self.scan_detector_gate_pulse_readout_time = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -174,12 +174,12 @@ class Microdiff(MiniDiff.MiniDiff):
             "startSimultaneousMoveMotors",
         )
 
-        self.beam_position_horizontal = self.addChannel(
+        self.beam_position_horizontal = self.add_channel(
             {"type": "exporter", "exporter_address": self.exporter_addr, "name": "bph"},
             "BeamPositionHorizontal",
         )
 
-        self.beam_position_vertical = self.addChannel(
+        self.beam_position_vertical = self.add_channel(
             {"type": "exporter", "exporter_address": self.exporter_addr, "name": "bpv"},
             "BeamPositionVertical",
         )
@@ -220,7 +220,7 @@ class Microdiff(MiniDiff.MiniDiff):
         self._wait_ready(10)
 
         # save position in MD2 software
-        # self.getCommandObject("save_centring_positions")()
+        # self.get_command_object("save_centring_positions")()
 
         # do normal stuff
         return MiniDiff.MiniDiff.emitCentringSuccessful(self)
@@ -371,8 +371,12 @@ class Microdiff(MiniDiff.MiniDiff):
 
         # Prepositionning at the center of the grid
         self.moveMotors(mesh_center.as_dict())
-        self.centringVertical.syncMoveRelative((mesh_range["vertical_range"]) / 2)
-        self.centringPhiy.syncMoveRelative(-(mesh_range["horizontal_range"]) / 2)
+        self.centringVertical.set_value_relative(
+            (mesh_range["vertical_range"]) / 2, timeout=None
+        )
+        self.centringPhiy.set_value_relative(
+            -(mesh_range["horizontal_range"]) / 2, timeout=None
+        )
 
         scan_params = "%0.3f\t" % -mesh_range["horizontal_range"]
         scan_params += "%0.3f\t" % mesh_range["vertical_range"]
@@ -450,12 +454,12 @@ class Microdiff(MiniDiff.MiniDiff):
             try:
                 beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
 
-                self.centringVertical.moveRelative(
+                self.centringVertical.set_value_relative(
                     self.centringPhiz.direction
                     * (y - beam_pos_y)
                     / float(self.pixelsPerMmZ)
                 )
-                self.centringPhiy.moveRelative(
+                self.centringPhiy.set_value_relative(
                     self.centringPhiy.direction
                     * (x - beam_pos_x)
                     / float(self.pixelsPerMmY)

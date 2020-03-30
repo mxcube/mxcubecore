@@ -44,13 +44,13 @@ class PX1DetectorDistance(Device, AbstractMotor):
 
         self.setIsReady(True)
 
-        self.position_chan = self.getChannelObject("position")
-        self.state_chan = self.getChannelObject("state")
+        self.position_chan = self.get_channel_object("position")
+        self.state_chan = self.get_channel_object("state")
         self.stop_command = self.get_command_object("stop")
 
-        self.distance_min_chan = self.getChannelObject("minimum_distance")
+        self.distance_min_chan = self.get_channel_object("minimum_distance")
 
-        self.light_state_chan = self.getChannelObject("light_state")
+        self.light_state_chan = self.get_channel_object("light_state")
         self.light_extract_cmd = self.get_command_object("extract_light")
 
         self.position_chan.connectSignal("update", self.motor_position_changed)
@@ -121,40 +121,11 @@ class PX1DetectorDistance(Device, AbstractMotor):
         self.get_state()
         return self.state_value in ["RUNNING", "MOVING"]
 
-    def move(self, position):
-        if not self.check_light(position):
+    def _set_value(self, value):
+        if not self.check_light(value):
             return (False, "Error while trying to extract the light arm!")
 
-        self.position_chan.setValue(position)
-
-    def syncMove(self, position):
-        if not self.check_light(position):
-            return (False, "Error while trying to extract the light arm!")
-
-        self.position_chan.setValue(position)
-
-        while self.is_moving():
-            gevent.sleep(0.03)
-
-    def moveRelative(self, position):
-        target_position = self.get_value() + position
-        if not self.check_light(target_position):
-            return (False, "Error while trying to extract the light arm!")
-
-        self.position_chan.setValue(target_position)
-
-        while self.is_moving():
-            gevent.sleep(0.03)
-
-    def syncMoveRelative(self, position):
-        target_position = self.get_value() + position
-        if not self.check_light(target_position):
-            return (False, "Error while trying to extract the light arm!")
-
-        self.position_chan.setValue(target_position)
-
-        while self.is_moving():
-            gevent.sleep(0.03)
+        self.position_chan.setValue(value)
 
     def getMotorMnemonic(self):
         return self.name()

@@ -97,18 +97,18 @@ class EMBLBeamInfo(Equipment):
         else:
             logging.getLogger("HWR").debug("BeamInfo: Beam focusing hwobj not defined")
 
-        self.chan_beam_position_hor = self.getChannelObject("BeamPositionHorizontal")
+        self.chan_beam_position_hor = self.get_channel_object("BeamPositionHorizontal")
         if self.chan_beam_position_hor:
             self.chan_beam_position_hor.connectSignal(
                 "update", self.beam_pos_hor_changed
             )
-        self.chan_beam_position_ver = self.getChannelObject("BeamPositionVertical")
+        self.chan_beam_position_ver = self.get_channel_object("BeamPositionVertical")
         if self.chan_beam_position_ver:
             self.chan_beam_position_ver.connectSignal(
                 "update", self.beam_pos_ver_changed
             )
-        self.chan_beam_size_microns = self.getChannelObject("BeamSizeMicrons")
-        self.chan_beam_shape_ellipse = self.getChannelObject("BeamShapeEllipse")
+        self.chan_beam_size_microns = self.get_channel_object("BeamSizeMicrons")
+        self.chan_beam_shape_ellipse = self.get_channel_object("BeamShapeEllipse")
         self.default_beam_divergence = ast.literal_eval(
             self.getProperty("defaultBeamDivergence")
         )

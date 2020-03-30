@@ -82,3 +82,4 @@ class MicrodiffZoom(ExporterNState):
             "ValueEnum",
             dict(values, **{item.name: item.value for item in BaseValueEnum}),
         )
+

@@ -49,7 +49,7 @@ class TINEMotor(AbstractMotor):
     def init(self):
         """Connects to all Tine channels and commands"""
 
-        self.chan_limits = self.getChannelObject("axisLimits", optional=True)
+        self.chan_limits = self.get_channel_object("axisLimits", optional=True)
         if self.chan_limits is not None:
             self.chan_limits.connectSignal("update", self.update_limits)
             self.update_limits(self.chan_limits.getValue())
@@ -60,12 +60,12 @@ class TINEMotor(AbstractMotor):
             except BaseException:
                 pass
 
-        self.chan_position = self.getChannelObject("axisPosition")
+        self.chan_position = self.get_channel_object("axisPosition")
         if self.chan_position is not None:
             self.chan_position.connectSignal("update", self.update_value())
         self.update_value(self.chan_position.getValue())
 
-        self.chan_state = self.getChannelObject("axisState", optional=True)
+        self.chan_state = self.get_channel_object("axisState", optional=True)
         if self.chan_state is not None:
             self.chan_state.connectSignal("update", self.update_state)
 
@@ -147,29 +147,16 @@ class TINEMotor(AbstractMotor):
         """
         self.cmd_stop_axis()
 
-    def move(self, target, wait=None, timeout=None):
+    def _set_value(self, value):
         """
         Main move method
-        :param target: float
-        :param wait: int
-        :param timeout: boolean
+        :param value: float
         :return:
         """
         if self.chan_state is not None:
             self.update_state(self.STATES.BUSY)
             self.chan_state.setOldValue("moving")
-        if target == float("nan"):
-
-            logging.getLogger().debug(
-                "Refusing to move %s to target nan" % self.objName
-            )
-        else:
-            self.cmd_set_position(target)
-
-        if timeout:
-            gevent.sleep(2)
-            self.wait_ready(timeout)
-            self.wait_ready(10)
+        self.cmd_set_position(value)
 
     def update_value(self, value=None):
         """Updates motor position

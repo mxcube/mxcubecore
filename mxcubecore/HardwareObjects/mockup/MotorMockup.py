@@ -45,61 +45,55 @@ DEFAULT_POSITION = 10.124
 
 
 class MotorMockup(AbstractMotor):
+
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
-
         self.__move_task = None
 
     def init(self):
-        try:
-            self.set_velocity(float(self.getProperty("velocity")))
-        except BaseException:
-            self.set_velocity(DEFAULT_VELOCITY)
+        """
+        FWK2 Init method
+        """
+        self.set_velocity(self.getProperty("velocity", DEFAULT_VELOCITY))
 
         try:
             limits = tuple(eval(self.getProperty("default_limits")))
         except BaseException:
             limits = DEFAULT_LIMITS
-        self.set_limits(limits)
+        self.update_limits(limits)
 
-        # self.set_state(self.motor_states.READY)
-        self.set_value(float(self.getProperty("start_position", DEFAULT_POSITION)))
+        start_position = self.getProperty("default_position", DEFAULT_POSITION)
+        start_position = self.getProperty("start_position", start_position)
+        self.update_value(start_position)
 
-    def move_task(self, position, wait=False, timeout=None):
-        if position is None:
-            # TODO is there a need to set motor position to None?
-            return
+        self.update_state(self.STATES.READY)
 
+    def _move(self, position):
+        """
+        Simulated motor movement
+        """
+        self.update_state(self.STATES.BUSY)
         start_pos = self.get_value()
+
         if start_pos is not None:
             delta = abs(position - start_pos)
+
             if position > self.get_value():
                 direction = 1
             else:
                 direction = -1
+
             start_time = time.time()
-            self.emit("stateChanged", (self.get_state(),))
+
             while (time.time() - start_time) < (delta / self.get_velocity()):
-                self.set_value(
-                    start_pos
-                    + direction * self.get_velocity() * (time.time() - start_time)
-                )
-                self.emit("valueChanged", (self.get_value(),))
+                value = start_pos + direction * self.get_velocity() * (time.time() - start_time)
+                self.update_value(value)
                 time.sleep(0.02)
-        self.set_value(position)
-        self.emit("valueChanged", (self.get_value(),))
 
-    def move(self, position, wait=False, timeout=None):
-        self.__motor_state = self.motor_states.MOVING
-        if wait:
-            self.set_value(position)
-            self.emit("valueChanged", (self.get_value(),))
-            self.set_ready()
-        else:
-            self._move_task = gevent.spawn(self.move_task, position)
-            self._move_task.link(self.set_ready)
+        self.update_state(self.STATES.READY)
 
-    def stop(self):
+    def abort(self):
+        """Imediately halt movement. By default self.stop = self.abort"""
         if self.__move_task is not None:
             self.__move_task.kill()
 
@@ -113,10 +107,12 @@ class MotorMockup(AbstractMotor):
     def _set_value(self, value, timeout=None):
         """
         Implementation of specific set actuator logic.
-        
+
         Args:
             value (float): target value
             timeout (float): optional - timeout [s],
                              If timeout == 0: return at once and do not wait;
         """
-        self._nominal_value = value
+        self.__move_task = gevent.spawn(self._move, value)
+        if timeout or timeout is None:
+            self.__move_task.get(timeout=timeout)

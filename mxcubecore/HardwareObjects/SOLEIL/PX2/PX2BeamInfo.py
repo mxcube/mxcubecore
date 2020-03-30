@@ -62,7 +62,7 @@ class PX2BeamInfo(Equipment):
     def init(self):
 
         try:
-            self.chanBeamSizeX = self.getChannelObject("beamsizex")
+            self.chanBeamSizeX = self.get_channel_object("beamsizex")
             self.chanBeamSizeX.connectSignal("update", self.beamSizeXChanged)
         except KeyError:
             logging.getLogger().warning(
@@ -70,7 +70,7 @@ class PX2BeamInfo(Equipment):
             )
 
         try:
-            self.chanBeamSizeY = self.getChannelObject("beamsizey")
+            self.chanBeamSizeY = self.get_channel_object("beamsizey")
             self.chanBeamSizeY.connectSignal("update", self.beamSizeYChanged)
         except KeyError:
             logging.getLogger().warning(
@@ -78,7 +78,7 @@ class PX2BeamInfo(Equipment):
             )
 
         try:
-            self.chanBeamPosX = self.getChannelObject("positionx")
+            self.chanBeamPosX = self.get_channel_object("positionx")
             self.chanBeamPosX.connectSignal("update", self.beamPosXChanged)
         except KeyError:
             logging.getLogger().warning(
@@ -86,7 +86,7 @@ class PX2BeamInfo(Equipment):
             )
 
         try:
-            self.chanBeamPosY = self.getChannelObject("positiony")
+            self.chanBeamPosY = self.get_channel_object("positiony")
             self.chanBeamPosY.connectSignal("update", self.beamPosYChanged)
         except KeyError:
             logging.getLogger().warning(
