@@ -114,24 +114,6 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
         return
 
     @task
-    def set_transmission(self, transmission_percent):
-        return
-
-    def set_wavelength(self, wavelength):
-        return
-
-    def set_energy(self, energy):
-        return
-
-    @task
-    def set_resolution(self, new_resolution):
-        return
-
-    @task
-    def move_detector(self, detector_distance):
-        return
-
-    @task
     def data_collection_cleanup(self):
         return
 
@@ -231,17 +213,6 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
     def get_wavelength(self):
         return
 
-    def get_detector_distance(self):
-        return
-
-    def get_resolution(self):
-        if self.bl_control.resolution is not None:
-            return self.bl_control.resolution.get_value()
-
-    def get_transmission(self):
-        if self.bl_control.transmission is not None:
-            return self.bl_control.transmission.get_value()
-
     def get_undulators_gaps(self):
         return []
 
@@ -255,9 +226,6 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
         return None, None
 
     def get_beam_shape(self):
-        return
-
-    def get_measured_intensity(self):
         return
 
     def get_machine_current(self):
@@ -314,10 +282,6 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
 
     def store_image_in_lims(self, frame, first_frame, last_frame):
         return True
-
-    def get_flux(self):
-        if self.bl_control.flux is not None:
-            return self.bl_control.flux.get_value()
 
     def getOscillation(self, oscillation_id):
         return self.oscillations_history[oscillation_id - 1]

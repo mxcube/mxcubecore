@@ -33,21 +33,6 @@ class ID231MultiCollect(ESRFMultiCollect):
         self.execute_command("prepare_beamline")
         self.execute_command("musstPX_loadprog")
 
-    @task
-    def move_detector(self, detector_distance):
-        self.bl_control.detector_distance.set_value(detector_distance)
-        while self.bl_control.detector_distance.motorIsMoving():
-            time.sleep(0.5)
-
-    def get_detector_distance(self):
-        return self.bl_control.detector_distance.get_value()
-
-    @task
-    def set_resolution(self, new_resolution):
-        self.bl_control.resolution.set_value(new_resolution, wait=False)
-        while self.bl_control.resolution.motorIsMoving():
-            time.sleep(0.5)
-
     def get_beam_size(self):
         # should be moved to ESRFMultiCollect
         # (at the moment, ESRFMultiCollect is still using spec)
