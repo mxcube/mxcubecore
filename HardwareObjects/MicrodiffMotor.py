@@ -238,7 +238,7 @@ class MicrodiffMotor(AbstractMotor):
                 time.sleep(0.1)
 
     def motorIsMoving(self):
-        return self.isReady() and self.motorState == MicrodiffMotor.MOVING
+        return self.is_ready() and self.motorState == MicrodiffMotor.MOVING
 
     def getMotorMnemonic(self):
         return self.actuator_name

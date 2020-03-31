@@ -279,7 +279,7 @@ class Robodiff(SampleChanger):
             state = self._readState()
         except BaseException:
             state = SampleChangerState.Unknown
-        if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
+        if state == SampleChangerState.Moving and self._isDeviceBusy(self.get_state()):
             return
         self._setState(state)
 
@@ -317,7 +317,7 @@ class Robodiff(SampleChanger):
                 gevent.sleep(0.01)
 
     def _updateSelection(self):
-        dw_pos = int(self.dw.getCurrentPositionName()) - 1
+        dw_pos = int(self.dw.get_current_position_name()) - 1
         for cell in self.getComponents():
             i = cell.getIndex()
             if dw_pos == i:

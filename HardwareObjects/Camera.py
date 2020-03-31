@@ -794,17 +794,17 @@ class Camera(BaseHardwareObjects.Device):
 
                 def getWidth(self):
                     """taco"""
-                    if self.isReady():
+                    if self.is_ready():
                         return self.device.DevCcdXSize()
 
                 def getHeight(self):
                     """taco"""
-                    if self.isReady():
+                    if self.is_ready():
                         return self.device.DevCcdYSize()
 
                 def setSize(self, width, height):
                     """taco"""
-                    if self.isReady():
+                    if self.is_ready():
                         return self.device.DevCcdOutputSize(width, height)
 
                 def takeSnapshot(self, *args):
@@ -843,7 +843,7 @@ class Camera(BaseHardwareObjects.Device):
 
                 def getBpmValues(self):
                     """Taco"""
-                    if self.isReady():
+                    if self.is_ready():
                         values = self.device.DevReadSigValues()
                         gain = self.device.DevCcdGetGain()
 
@@ -908,7 +908,7 @@ class Camera(BaseHardwareObjects.Device):
 
                 def setROI(self, startx, endx, starty, endy):
                     """taco"""
-                    if self.isReady():
+                    if self.is_ready():
 
                         self.getBpmValues()
                         if self.res["live"]:
@@ -923,7 +923,7 @@ class Camera(BaseHardwareObjects.Device):
 
                 def setExposure(self, exposure):
                     """taco"""
-                    if self.isReady():
+                    if self.is_ready():
 
                         self.getBpmValues()
                         if self.res["live"]:
@@ -938,7 +938,7 @@ class Camera(BaseHardwareObjects.Device):
 
                 def setGain(self, gain):
                     """taco"""
-                    if self.isReady():
+                    if self.is_ready():
 
                         self.getBpmValues()
                         if self.res["live"]:
@@ -953,7 +953,7 @@ class Camera(BaseHardwareObjects.Device):
 
                 def setThreshold(self, threshold):
                     """taco"""
-                    if self.isReady():
+                    if self.is_ready():
 
                         self.getBpmValues()
                         if self.res["live"]:

@@ -74,8 +74,8 @@ class SpecMotorWSpecPositions(SpecMotor.SpecMotor):
                 "Cannot move motor %s: invalid position name.", str(self.username)
             )
 
-    def getCurrentPositionName(self):
-        if self.isReady() and self.get_state() == self.READY:
+    def get_current_position_name(self):
+        if self.is_ready() and self.get_state() == self.READY:
             for positionName in self.predefinedPositions:
                 if (
                     self.predefinedPositions[positionName]

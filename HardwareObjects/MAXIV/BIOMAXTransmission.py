@@ -15,7 +15,7 @@ class BIOMAXTransmission(Equipment):
                 "valueChanged", self.transmissionPositionChanged
             )
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
     def get_value(self):
