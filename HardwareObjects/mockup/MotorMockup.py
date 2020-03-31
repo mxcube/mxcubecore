@@ -101,7 +101,7 @@ class MotorMockup(AbstractMotor):
         elif  value == _high:
             self.update_specific_state(self.SPECIFIC_STATES.HIGHLIMIT)
         else:
-            self.update_specific_state(self.STATES.READY)
+            self.update_specific_state(None)
 
     def abort(self):
         """Imediately halt movement. By default self.stop = self.abort"""
