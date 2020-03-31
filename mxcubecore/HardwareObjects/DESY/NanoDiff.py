@@ -336,7 +336,7 @@ class NanoDiff(HardwareObject):
         """
         Descript. :
         """
-        if self.isValid():
+        if self.is_valid():
             for motor in (
                 self.sample_x_motor_hwobj,
                 self.sample_y_motor_hwobj,
@@ -352,7 +352,7 @@ class NanoDiff(HardwareObject):
         else:
             return False
 
-    def isValid(self):
+    def is_valid(self):
         """
         Descript. :
         """
