@@ -62,12 +62,12 @@ class Transmission(HardwareObject):
         """
         return self.__transmission.matt.pos_read()
 
-    def _set_value(self, trans):
+    def _set_value(self, value):
         """Set the transmission. Emit valueChanged.
         Args:
             trans(float): Transmission [%]
         """
-        self.__transmission.set(trans)
+        self.__transmission.set(value)
         self.emit("valueChanged", self.get_value())
 
     def _update(self):

@@ -46,7 +46,7 @@ class ALBABackLight(Device):
         self.level_channel.connectSignal("update", self.level_changed)
         self.backlightin_channel.connectSignal("update", self.state_changed)
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
     def level_changed(self, value):

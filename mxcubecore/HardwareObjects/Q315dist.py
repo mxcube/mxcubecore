@@ -24,7 +24,7 @@ class Q315dist(BaseHardwareObjects.Equipment):
     def equipmentNotReady(self):
         self.emit("deviceNotReady")
 
-    def isValid(self):
+    def is_valid(self):
         return (
             self.getDeviceByRole("detm") is not None
             and self.getDeviceByRole("detector_distance") is not None
@@ -33,8 +33,8 @@ class Q315dist(BaseHardwareObjects.Equipment):
     def __getattr__(self, attr):
         """Delegation to underlying motors"""
         if not attr.startswith("__"):
-            if attr in ("getPosition", "getDialPosition", "getState", "get_limits"):
-                # logging.getLogger().info("calling detm %s ; ready ? %s", attr, self.detm.isReady())
+            if attr in ("get_value", "get_state", "get_limits"):
+                # logging.getLogger().info("calling detm %s ; ready ? %s", attr, self.detm.is_ready())
                 return getattr(self.detm, attr)
             else:
                 # logging.getLogger().info("calling dtox %s", attr)

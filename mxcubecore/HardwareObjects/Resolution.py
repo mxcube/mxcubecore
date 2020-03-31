@@ -95,7 +95,11 @@ class Resolution(AbstractMotor):
         )
         return self._limits
 
-    def _set_value(self, value, wait=False, timeout=None):
+    def set_limits(self, limits):
+        """Resolution limits are not settable - set dete3ctor_distance limits instead"""
+        raise NotImplementedError
+
+    def _set_value(self, value):
         """Move resolution to absolute value. Wait the move to finish.
         Args:
             value (float): target value [Å]
@@ -105,7 +109,7 @@ class Resolution(AbstractMotor):
         distance = self.resolution_to_distance(value)
         msg = "Move resolution to {} ({} mm)".format(value, distance)
         logging.getLogger().info(msg)
-        self._hwr_detector.distance.set_value(distance, wait=wait, timeout=timeout)
+        self._hwr_detector.distance.set_value(distance)
 
     def stop(self):
         """Stop the distance motor movement"""
@@ -240,7 +244,7 @@ class Resolution(AbstractMotor):
         _wavelength = (h * c / e) / value * 10e6
 
         distance = self._hwr_detector.distance.get_value()
-        radius = sself._hwr_detector.get_radius(distance)
+        radius = self._hwr_detector.get_radius(distance)
         try:
             ttheta = arctan(radius / distance)
             if ttheta:
@@ -248,3 +252,7 @@ class Resolution(AbstractMotor):
                 self.emit("valueChanged", (self._nominal_value,))
         except (TypeError, ZeroDivisionError):
             logging.getLogger().exception("Error while calculating resolution")
+
+
+    def abort(self):
+        HWR.beamline.detector.distance.abort()

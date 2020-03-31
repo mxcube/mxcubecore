@@ -23,7 +23,7 @@ class ID29MultiCollect(ESRFMultiCollect):
         self.getObjectByRole("diffractometer")._wait_ready(20)
 
     def close_fast_shutter(self):
-        state = self.getObjectByRole("fastshut").getActuatorState(read=True)
+        state = self.getObjectByRole("fastshut").get_actuator_state(read=True)
         if state != "out":
             self.close_fast_shutter()
 
@@ -49,13 +49,13 @@ class ID29MultiCollect(ESRFMultiCollect):
 
     @task
     def move_motors(self, motors_to_move_dict):
+        # We do not wnta to modify the input dict
+        motor_positions_copy = motors_to_move_dict.copy()
         diffr = self.bl_control.diffractometer
-        try:
-            motors_to_move_dict.pop("kappa")
-            motors_to_move_dict.pop("kappa_phi")
-        except BaseException:
-            pass
-        diffr.moveSyncMotors(motors_to_move_dict, wait=True, timeout=200)
+        for tag in ("kappa", "kappa_phi"):
+            if tag in motor_positions_copy:
+                del motor_positions_copy[tag]
+        diffr.move_sync_motors(motors_to_move_dict, wait=True, timeout=200)
 
     @task
     def take_crystal_snapshots(self, number_of_snapshots):
@@ -67,7 +67,7 @@ class ID29MultiCollect(ESRFMultiCollect):
         if number_of_snapshots:
             # put the back light in
             diffr.getDeviceByRole("BackLightSwitch").actuatorIn()
-            self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
+            self.bl_control.diffractometer.take_snapshots(number_of_snapshots, wait=True)
             diffr._wait_ready(20)
 
     @task

@@ -21,7 +21,7 @@ class ALBASupervisor(Device):
         self.phase_chan.connectSignal("update", self.phase_changed)
         self.detector_cover_chan.connectSignal("update", self.detector_cover_changed)
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
     def getUserName(self):

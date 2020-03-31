@@ -19,54 +19,57 @@
 
 import time
 import random
+from enum import Enum, unique
 from HardwareRepository.HardwareObjects.abstract import AbstractNState
+# Temporarily, pending a stable AbstactNState:
+from HardwareRepository.HardwareObjects.abstract import AbstractActuator
 
-class ShutterMockup(AbstractNState.AbstractNState):
+
+class ShutterMockup(AbstractActuator.AbstractActuator):
     """
-    ShutterMockup for simulating a simple open/close shutter. For more detailed
-    method documentation see AbstractShutter
+    ShutterMockup for simulating a simple open/close shutter.
+
+    TYhis is a temporary vresion, pending a stable AbstractNState
     """
+
+    @unique
+    class VALUES(Enum):
+        UNKNOWN = "UNKNOWN"
+        OPEN = "OPEN"
+        CLOSED = "CLOSED"
 
     def __init__(self, name):
-        AbstractNState.AbstractNState.__init__(self, name)
+        super(ShutterMockup, self).__init__(name)
         # self.current_state = ShutterMockup.STATE.OPEN
 
-    def value_changed(self, value):
-        """See AbstractShutter"""
-        # self.current_state = ShutterMockup.STATE(value)
-        self.emit("shutterStateChanged", self.current_state)
-
-    def getShutterState(self):
-        return "opened"
-
-    def is_open(self):
-        """See AbstractShutter"""
-        return self.current_state == ShutterMockup.STATE.OPEN
-
-    def is_closed(self):
-        """See AbstractShutter"""
-        return self.current_state == ShutterMockup.STATE.CLOSED
-
-    def is_valid(self):
-        """See AbstractShutter"""
-        return self.current_state.name in dir(ShutterMockup.STATE)
-
-    def open(self):
-        """See AbstractShutter"""
-        self.set_state(ShutterMockup.STATE.OPEN)
-
-    def close(self):
-        """See AbstractShutter"""
-        self.set_state(ShutterMockup.STATE.CLOSED)
-
-    def set_state(self, state, wait=False, timeout=None):
-        """See AbstractShutter"""
-        time.sleep(random.uniform(0.1, 1.0))
-        self.current_state = state
-        self.value_changed(state.value)
-
-    def _set_value(self, value):
-        return
+    def init(self):
+        super(ShutterMockup, self).init()
+        if self.default_value is None:
+            raise Exception("Ka-BOOM!")
+        self._nominal_value = getattr(self.VALUES, self.default_value)
+        self._state = self.STATES.READY
 
     def get_value(self):
-        return
+        return self._nominal_value
+
+    def _set_value(self, value):
+        self.update_state(self.STATES.BUSY)
+        time.sleep(random.uniform(0.1, 1.0))
+        self._nominal_value = value
+        self.update_state(self.STATES.READY)
+
+    def validate_value(self, value):
+        """This one should be in AbstractNState, just here temporarily"""
+        return value in self.VALUES
+
+    def is_open(self):
+        return self.get_value() is self.VALUES.OPEN
+
+    def is_closed(self):
+        return self.get_value() is self.VALUES.CLOSED
+
+    def open(self):
+        self.set_value(self.VALUES.OPEN)
+
+    def close(self):
+        self.set_value(self.VALUES.CLOSED)

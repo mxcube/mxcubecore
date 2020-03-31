@@ -11,7 +11,7 @@ Example XML::
 
 Public Interface:
    Commands:
-       int getState()
+       int get_state()
            Description:
                returns current state
            Output:

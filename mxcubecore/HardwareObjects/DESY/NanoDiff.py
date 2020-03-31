@@ -287,8 +287,6 @@ class NanoDiff(HardwareObject):
                 "NanoDiff: " + "zoom centre not configured"
             )
 
-        # Compatibility
-        self.getCentringStatus = self.get_centring_status
 
         self.reversing_rotation = self.getProperty("reversingRotation")
         try:
@@ -303,10 +301,6 @@ class NanoDiff(HardwareObject):
             self.phase_list = eval(self.getProperty("phaseList"))
         except BaseException:
             self.phase_list = []
-
-        self.getPositions = self.get_positions
-        self.takeSnapshots = self.take_snapshots
-        self.moveMotors = self.move_motors
 
     def in_plate_mode(self):
         # self.head_type = self.chan_head_type.getValue()
@@ -338,11 +332,11 @@ class NanoDiff(HardwareObject):
         """
         self.emit("minidiffNotReady", ())
 
-    def isReady(self):
+    def is_ready(self):
         """
         Descript. :
         """
-        if self.isValid():
+        if self.is_valid():
             for motor in (
                 self.sample_x_motor_hwobj,
                 self.sample_y_motor_hwobj,
@@ -358,7 +352,7 @@ class NanoDiff(HardwareObject):
         else:
             return False
 
-    def isValid(self):
+    def is_valid(self):
         """
         Descript. :
         """
@@ -1127,21 +1121,23 @@ class NanoDiff(HardwareObject):
         Arg.      : motors positions in dict. Dictionary can contain motor names
                     as str or actual motor hwobj
         """
-        for motor in motor_position_dict.keys():
-            position = motor_position_dict[motor]
+        # We do not want to modify the input dict
+        motor_positions_copy = motor_position_dict.copy()
+        for motor in motor_positions_copy.keys():
+            position = motor_positions_copy[motor]
             if isinstance(motor, string_types):
                 motor_role = motor
                 motor = self.get_motor_hwobj(motor_role)
-                del motor_position_dict[motor_role]
+                del motor_positions_copy[motor_role]
                 if motor is None:
                     continue
-                motor_position_dict[motor] = position
+                motor_positions_copy[motor] = position
             # logging.getLogger("HWR").info("Moving motor '%s' to %f", motor.getMotorMnemonic(), position)
             motor.set_value(position)
-        while any([motor.motorIsMoving() for motor in motor_position_dict]):
+        while any([motor.motorIsMoving() for motor in motor_positions_copy]):
             time.sleep(0.5)
         """with gevent.Timeout(15):
-             while not all([m.getState() == m.READY for m in motors_positions if m is not None]):
+             while not all([m.get_state() == m.READY for m in motors_positions if m is not None]):
                    time.sleep(0.1)"""
 
     def move_motors_done(self, move_motors_procedure):

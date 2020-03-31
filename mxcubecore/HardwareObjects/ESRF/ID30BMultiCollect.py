@@ -46,13 +46,13 @@ class ID30BMultiCollect(ESRFMultiCollect):
 
     @task
     def move_motors(self, motors_to_move_dict):
+        # We do not want to modify the input dict
+        motor_positions_copy = motors_to_move_dict.copy()
         diffr = HWR.beamline.diffractometer
-        try:
-            motors_to_move_dict.pop("kappa")
-            motors_to_move_dict.pop("kappa_phi")
-        except BaseException:
-            pass
-        diffr.moveSyncMotors(motors_to_move_dict, wait=True, timeout=200)
+        for tag in ("kappa", "kappa_phi"):
+            if tag in motor_positions_copy:
+                del motor_positions_copy[tag]
+        diffr.move_sync_motors(motors_to_move_dict, wait=True, timeout=200)
 
     @task
     def take_crystal_snapshots(self, number_of_snapshots):
@@ -65,7 +65,7 @@ class ID30BMultiCollect(ESRFMultiCollect):
             # not going to centring phase if in plate mode (too long)
             HWR.beamline.diffractometer.moveToPhase("Centring", wait=True, timeout=200)
 
-        HWR.beamline.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
+        HWR.beamline.diffractometer.take_snapshots(number_of_snapshots, wait=True)
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):

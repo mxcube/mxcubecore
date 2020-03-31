@@ -53,13 +53,13 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
     @task
     def move_motors(self, motors_to_move_dict):
+        # We do not want to modify the input dict
+        motor_positions_copy = motors_to_move_dict.copy()
         diffr = self.bl_control.diffractometer
-        try:
-            motors_to_move_dict.pop("kappa")
-            motors_to_move_dict.pop("kappa_phi")
-        except BaseException:
-            pass
-        diffr.moveSyncMotors(motors_to_move_dict, wait=True, timeout=200)
+        for tag in ("kappa", "kappa_phi"):
+            if tag in motor_positions_copy:
+                del motor_positions_copy[tag]
+        diffr.move_sync_motors(motors_to_move_dict, wait=True, timeout=200)
 
         """
         motion = ESRFMultiCollect.move_motors(self,motors_to_move_dict,wait=False)
@@ -86,7 +86,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
             self.bl_control.diffractometer.moveToPhase(
                 "Centring", wait=True, timeout=200
             )
-        self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
+        self.bl_control.diffractometer.take_snapshots(number_of_snapshots, wait=True)
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
@@ -129,7 +129,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
     def prepare_acquisition(
         self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""
     ):
-        energy = self._tunable_bl.get_current_energy()
+        energy = self._tunable_bl.get_value()
         return self._detector.prepare_acquisition(
             take_dark,
             start,
@@ -154,7 +154,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
     @task
     def data_collection_cleanup(self):
         self.getObjectByRole("diffractometer")._wait_ready(10)
-        state = self.getObjectByRole("fastshut").getActuatorState(read=True)
+        state = self.getObjectByRole("fastshut").get_actuator_state(read=True)
         if state != "out":
             self.close_fast_shutter()
 

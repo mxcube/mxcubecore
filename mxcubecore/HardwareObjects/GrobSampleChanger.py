@@ -48,13 +48,13 @@ class GrobSampleChanger(Equipment):
     def connectNotify(self, signal):
         logging.info("%s: connectNotify %s", self.name(), signal)
         if signal == "stateChanged":
-            self.sampleChangerStateChanged(self.getState())
+            self.sampleChangerStateChanged(self.get_state())
         elif signal == "loadedSampleChanged":
             self.mountedSampleChanged(self._getLoadedSampleNum())
         elif signal == "samplesMapChanged":
             self.samplesMapChanged(self.getSamplesMap())
 
-    def getState(self):
+    def get_state(self):
         return self.grob.transfer_state()
 
     def ioBitsChanged(self, bits):

@@ -71,7 +71,7 @@ class PX1Resolution(Equipment):
     def equipmentNotReady(self):
         self.emit("deviceNotReady")
 
-    def getState(self, value=None):
+    def get_state(self, value=None):
         if value is None:
             value = self.state_chan.getValue()
         state_str = str(value)
@@ -98,7 +98,7 @@ class PX1Resolution(Equipment):
         self.emit("distanceLimitsChanged", (self.getDistanceLimits(),))
 
     def stateChanged(self, state=None):
-        self.emit("stateChanged", (self.getState(state),))
+        self.emit("stateChanged", (self.get_state(state),))
 
     def distanceChanged(self, value=None):
         self.recalculateResolution()
