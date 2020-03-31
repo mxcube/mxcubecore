@@ -24,7 +24,7 @@ class Q315dist(BaseHardwareObjects.Equipment):
     def equipmentNotReady(self):
         self.emit("deviceNotReady")
 
-    def isValid(self):
+    def is_valid(self):
         return (
             self.getDeviceByRole("detm") is not None
             and self.getDeviceByRole("detector_distance") is not None
