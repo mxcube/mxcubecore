@@ -73,9 +73,12 @@ class MotorMockup(AbstractMotor):
         Simulated motor movement
         """
         self.update_state(self.STATES.BUSY)
+        self.update_specific_state(self.SPECIFIC_STATES.MOVING)
         start_pos = self.get_value()
 
-        if start_pos is not None:
+        if start_pos is None:
+            self.update_value(value)
+        else:
             delta = abs(value - start_pos)
 
             if value > self.get_value():
@@ -91,6 +94,15 @@ class MotorMockup(AbstractMotor):
                 time.sleep(0.02)
 
         self.update_state(self.STATES.READY)
+        _low, _high = self.get_limits()
+        if value == self.default_value:
+            self.update_specific_state(self.SPECIFIC_STATES.HOME)
+        elif  value == _low:
+            self.update_specific_state(self.SPECIFIC_STATES.LOWLIMIT)
+        elif  value == _high:
+            self.update_specific_state(self.SPECIFIC_STATES.HIGHLIMIT)
+        else:
+            self.update_specific_state(None)
 
     def abort(self):
         """Imediately halt movement. By default self.stop = self.abort"""

@@ -751,9 +751,9 @@ class Equipment(HardwareObject, DeviceContainer):
             self.emit("equipmentNotReady")
 
     def is_ready(self):
-        return self.isValid() and self.__ready
+        return self.is_valid() and self.__ready
 
-    def isValid(self):
+    def is_valid(self):
         return True
 
     def userName(self):

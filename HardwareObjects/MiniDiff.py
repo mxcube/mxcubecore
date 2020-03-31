@@ -413,7 +413,7 @@ class MiniDiff(Equipment):
         self.emit("diffractometerMoved", ())
 
     def is_ready(self):
-        return self.isValid() and not any(
+        return self.is_valid() and not any(
             [
                 m.motorIsMoving()
                 for m in (
@@ -427,7 +427,7 @@ class MiniDiff(Equipment):
             ]
         )
 
-    def isValid(self):
+    def is_valid(self):
         return (
             self.sampleXMotor is not None
             and self.sampleYMotor is not None
