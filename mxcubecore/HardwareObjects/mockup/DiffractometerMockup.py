@@ -184,7 +184,7 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         return True
 
-    def isValid(self):
+    def is_valid(self):
         """
         Descript. :
         """
