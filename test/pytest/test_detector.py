@@ -8,8 +8,10 @@ def test_detector_atributes(beamline):
     has_shutterless = beamline.detector.has_shutterless()
 
     assert isinstance(
-        current_distance, float
-    ), "Distance value has to be int or float. Now %s" % str(current_distance)
+        current_distance, (int, float)
+    ), "Distance value has to be int or float. Now %s %s" % (
+        type(current_distance), (current_distance)
+    )
     assert isinstance(
         distance_limits, (list, tuple)
     ), "Distance limits has to be defined as a tuple or list"
