@@ -27,5 +27,5 @@ def test_detector_atributes(beamline):
 
 def test_detector_methods(beamline):
     target = 600
-    beamline.detector.distance.set_value(target)
+    beamline.detector.distance.set_value(target, timeout=None)
     assert beamline.detector.distance.get_value() == target

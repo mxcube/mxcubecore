@@ -123,4 +123,6 @@ class MotorMockup(AbstractMotor):
             timeout (float): optional - timeout [s],
                              If timeout == 0: return at once and do not wait;
         """
-        gevent.spawn(self._move, value)
+        move_task = gevent.spawn(self._move, value)
+        move_task.get()
+
