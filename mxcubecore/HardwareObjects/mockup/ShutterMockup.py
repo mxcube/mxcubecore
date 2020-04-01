@@ -44,8 +44,6 @@ class ShutterMockup(AbstractActuator.AbstractActuator):
 
     def init(self):
         super(ShutterMockup, self).init()
-        if self.default_value is None:
-            raise Exception("Ka-BOOM!")
         self._nominal_value = getattr(self.VALUES, self.default_value)
         self._state = self.STATES.READY
 
