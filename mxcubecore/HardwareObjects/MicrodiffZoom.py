@@ -40,24 +40,13 @@ __license__ = "LGPLv3+"
 
 class MicrodiffZoom(ExporterNState):
     """MicrodiffZoom class"""
-
     def __init__(self, name):
         ExporterNState.__init__(self, name)
-        self.predefined_positions = {}
-        self._exporter = None
-        self._nominal_limits = (None, None)
 
     def init(self):
         """Initialize the zoom"""
         ExporterNState.init(self)
-        self.get_limits()
-        self.initialise_values()
 
-    def get_limits(self):
-        """Returns zoom low and high limits.
-        Returns:
-            (tuple): two int tuple (low limit, high limit).
-        """
         try:
             _low, _high = self._exporter.execute("getZoomRange")
             # inf is a problematic value
@@ -67,19 +56,35 @@ class MicrodiffZoom(ExporterNState):
             if _high == float("inf"):
                 _high = 10
 
-            self._nominal_limits = (_low, _high)
+            self.set_limits((_low, _high))
         except ValueError:
-            self._nominal_limits = (1, 10)
+            self.set_limits((1, 10))
+
+        self.initialise_values()
+
+    def set_limits(self, limits=(None, None)):
+        """Set the low and high limits.
+        Args:
+            limits (tuple): two element (low limit, high limit) tuple.
+        """
+        self._nominal_limits = limits
+
+    def get_limits(self):
+        """Returns zoom low and high limits.
+        Returns:
+            (tuple): two int tuple (low limit, high limit).
+        """
         return self._nominal_limits
 
     def initialise_values(self):
         """Initialise the ValueEnum """
+        low, high = self.get_limits()
+
         values = {
             "LEVEL%s" % str(v): v
-            for v in range(self._nominal_limits[0], self._nominal_limits[1] + 1)
+            for v in range(low, high + 1)
         }
         self.VALUES = Enum(
             "ValueEnum",
             dict(values, **{item.name: item.value for item in BaseValueEnum}),
         )
-
