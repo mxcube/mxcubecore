@@ -44,7 +44,7 @@ class ShutterMockup(AbstractActuator.AbstractActuator):
 
     def init(self):
         super(ShutterMockup, self).init()
-        self._nominal_value = getattr(self.VALUES, self.default_value)
+        self._nominal_value = getattr(self.VALUES, self.default_value or "UNKNOWN")
         self._state = self.STATES.READY
 
     def get_value(self):
