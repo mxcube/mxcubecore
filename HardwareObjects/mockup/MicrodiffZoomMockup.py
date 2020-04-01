@@ -41,10 +41,6 @@ class MicrodiffZoomMockup(AbstractNState):
         self._nominal_limits = limits
         self.emit("limitsChanged", (limits,))
 
-    def get_limits(self):
-        """Overrriden from AbstractNState"""
-        return self._nominal_limits
-
     def _set_value(self, value):
         "Overrriden from AbstractActuator"
         gevent.spawn(self._set_zoom, value)
