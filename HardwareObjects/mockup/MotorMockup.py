@@ -75,9 +75,7 @@ class MotorMockup(AbstractMotor):
         self.update_specific_state(self.SPECIFIC_STATES.MOVING)
         start_pos = self.get_value()
 
-        if start_pos is None:
-            self.update_value(value)
-        else:
+        if start_pos is not None:
             delta = abs(value - start_pos)
 
             if value > self.get_value():
@@ -88,9 +86,10 @@ class MotorMockup(AbstractMotor):
             start_time = time.time()
 
             while (time.time() - start_time) < (delta / self.get_velocity()):
-                value = start_pos + direction * self.get_velocity() * (time.time() - start_time)
-                self.update_value(value)
+                val = start_pos + direction * self.get_velocity() * (time.time() - start_time)
+                self.update_value(val)
                 time.sleep(0.02)
+        self.update_value(value)
 
         self.update_state(self.STATES.READY)
         _low, _high = self.get_limits()
@@ -124,4 +123,4 @@ class MotorMockup(AbstractMotor):
             timeout (float): optional - timeout [s],
                              If timeout == 0: return at once and do not wait;
         """
-        gevent.spawn(self._move, value)
+        result= gevent.spawn(self._move, value).get()
