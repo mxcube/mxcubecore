@@ -65,9 +65,13 @@ class InstanceServer(Procedure):
 
     def initialize_instance(self):
         for widget in QtImport.QApplication.allWidgets():
-            if hasattr(widget, "configuration"):
-                self.guiConfiguration = widget.configuration
-                break
+            try:
+                if hasattr(widget, "configuration"):
+                    self.guiConfiguration = widget.configuration
+                    break
+            except NameError:
+                logging.getLogger().warning("Widget {} has no attribute {}"
+                                            .format(widget, "configuration"))
 
         self.emit("instanceInitializing", ())
         if self.isLocal():
