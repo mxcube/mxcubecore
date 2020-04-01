@@ -19,35 +19,18 @@
 
 import time
 import random
-from enum import Enum, unique
 from HardwareRepository.HardwareObjects.abstract import AbstractNState
-# Temporarily, pending a stable AbstactNState:
-from HardwareRepository.HardwareObjects.abstract import AbstractActuator
 
 
-class ShutterMockup(AbstractActuator.AbstractActuator):
+class ShutterMockup(AbstractNState.AbstractNState):
     """
     ShutterMockup for simulating a simple open/close shutter.
-
-    TYhis is a temporary vresion, pending a stable AbstractNState
     """
-
-    @unique
-    class VALUES(Enum):
-        UNKNOWN = "UNKNOWN"
-        OPEN = "OPEN"
-        CLOSED = "CLOSED"
-
-    def __init__(self, name):
-        super(ShutterMockup, self).__init__(name)
-        # self.current_state = ShutterMockup.STATE.OPEN
 
     def init(self):
         super(ShutterMockup, self).init()
-        if self.default_value is None:
-            raise Exception("Ka-BOOM!")
-        self._nominal_value = getattr(self.VALUES, self.default_value)
-        self._state = self.STATES.READY
+        self._nominal_value = self.VALUES.UNKNOWN
+        self._state = self.STATES.UNKNOWN
 
     def get_value(self):
         return self._nominal_value
@@ -57,10 +40,6 @@ class ShutterMockup(AbstractActuator.AbstractActuator):
         time.sleep(random.uniform(0.1, 1.0))
         self._nominal_value = value
         self.update_state(self.STATES.READY)
-
-    def validate_value(self, value):
-        """This one should be in AbstractNState, just here temporarily"""
-        return value in self.VALUES
 
     def is_open(self):
         return self.get_value() is self.VALUES.OPEN
