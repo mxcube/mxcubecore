@@ -425,7 +425,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         except IndexError:
             undulators = []
 
-        beam_div_hor, beam_div_ver = HWR.beamline.beam.get_divergence()
+        beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
 
         self.setBeamlineConfiguration(
             synchrotron_name="ESRF",

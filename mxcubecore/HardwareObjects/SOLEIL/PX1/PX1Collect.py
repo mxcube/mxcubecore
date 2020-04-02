@@ -84,7 +84,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         self.exp_type_dict = {"Mesh": "raster", "Helical": "Helical"}
 
         det_px, det_py = HWR.beamline.detector.get_pixel_size()
-        beam_div_hor, beam_div_ver = HWR.beamline.beam.get_divergence()
+        beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
 
         self.set_beamline_configuration(
             synchrotron_name="SOLEIL",

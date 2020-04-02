@@ -99,7 +99,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
         except BaseException:
             pass
 
-        beam_div_hor, beam_div_ver = HWR.beamline.beam.get_divergence()
+        beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
 
         self.set_beamline_configuration(
             synchrotron_name="SOLEIL",

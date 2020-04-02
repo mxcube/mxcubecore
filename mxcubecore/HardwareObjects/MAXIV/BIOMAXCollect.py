@@ -119,7 +119,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             )
             pix_y = 7.5e-5
 
-            beam_div_hor, beam_div_ver = HWR.beamline.beam.get_divergence()
+            beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
 
             self.set_beamline_configuration(
                 synchrotron_name="MAXIV",
