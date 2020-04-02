@@ -35,6 +35,7 @@ _objects:
     #- safety_shutter: safety-shutter-mockup.xml
     #- fast_shutter: shutter-mockup.xml
     #- sample_changer: sc-mockup.xml
+    - motor: motor-mockup.xml
     # NBNB TODO remove plate_manipulater and treat as another smaple changer
     #- plate_manipulator: plate-manipulator.xml
     #- diffractometer: mini-diff-mockup.xml
