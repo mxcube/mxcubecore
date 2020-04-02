@@ -38,6 +38,7 @@ class TransmissionMockup(AbstractActuator):
     def init(self):
         AbstractActuator.init(self)
         self.log.debug("Initializing")
+        self._nominal_value = self.default_value
         self.update_limits((0, 1))
         self.update_state(self.STATES.READY)
 
