@@ -17,7 +17,19 @@
 #
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
-"""Detector API"""
+
+"""
+Detector API
+
+signals:
+    detectorRoiModeChanged
+    temperatureChanged
+    humidityChanged
+    expTimeLimitsChanged
+    frameRateChanged
+    statusChanged
+    
+"""
 
 import abc
 from HardwareRepository.BaseHardwareObjects import HardwareObject
