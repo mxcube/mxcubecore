@@ -328,14 +328,14 @@ class AbstractCollect(HardwareObject, object):
             pass
         elif sample_changer:
             try:
-                basket, vial = sample_changer.getLoadedSample().getCoords()
+                basket, vial = sample_changer.get_loaded_sample().get_coords()
 
                 cp.dangerously_set(
-                    "actualSampleBarcode", sample_changer.getLoadedSample().getID()
+                    "actualSampleBarcode", sample_changer.get_loaded_sample().get_id()
                 )
                 cp.dangerously_set(
                     "actualContainerBarcode",
-                    sample_changer.getLoadedSample().getContainer().getID(),
+                    sample_changer.get_loaded_sample().get_container().get_id(),
                 )
                 cp.dangerously_set("actualSampleSlotInContainer", vial)
                 cp.dangerously_set("actualContainerSlotInSC", basket)

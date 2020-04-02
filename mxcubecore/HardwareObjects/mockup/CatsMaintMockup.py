@@ -69,7 +69,7 @@ class CatsMaintMockup(Equipment):
         return self._currenttool
 
     ################################################################################
-    def _doAbort(self):
+    def _do_abort(self):
         """
         Launch the "abort" trajectory on the CATS Tango DS
 
@@ -78,7 +78,7 @@ class CatsMaintMockup(Equipment):
         """
         pass
 
-    def _doReset(self):
+    def _do_reset(self):
         """
         Launch the "reset" command on the CATS Tango DS
 
@@ -114,7 +114,7 @@ class CatsMaintMockup(Equipment):
             puc_pos = ((int(sample_tmp[0]) - 1) % 3) * 10 + int(sample_tmp[1])
             argin = [str(lid), str(puc_pos), "0"]
             logging.getLogger().info("to SetOnDiff %s", argin)
-            # self._executeServerTask(self._cmdSetOnDiff,argin)
+            # self._execute_server_task(self._cmdSetOnDiff,argin)
 
     def _doPowerState(self, state=False):
         """
@@ -124,7 +124,7 @@ class CatsMaintMockup(Equipment):
         :rtype: None
         """
         self._powered = state
-        self._updatePoweredState(state)
+        self._update_powered_state(state)
 
     def _doEnableRegulation(self):
         """
@@ -178,7 +178,7 @@ class CatsMaintMockup(Equipment):
 
     #########################          PROTECTED          #########################
 
-    def _executeTask(self, wait, method, *args):
+    def _execute_task(self, wait, method, *args):
         ret = self._run(method, *args)
         if wait:
             return ret.get()
@@ -199,54 +199,54 @@ class CatsMaintMockup(Equipment):
 
     #########################           PRIVATE           #########################
 
-    def _updateRunningState(self, value):
+    def _update_running_state(self, value):
         self._running = value
         self.emit("runningStateChanged", (value,))
-        self._updateGlobalState()
+        self._update_global_state()
 
-    def _updatePoweredState(self, value):
+    def _update_powered_state(self, value):
         self._powered = value
         self.emit("powerStateChanged", (value,))
-        self._updateGlobalState()
+        self._update_global_state()
 
     def _updateToolState(self, value):
         self._toolopen = value
         self.emit("toolStateChanged", (value,))
-        self._updateGlobalState()
+        self._update_global_state()
 
     def _updateMessage(self, value):
         self._message = value
         self.emit("messageChanged", (value,))
-        self._updateGlobalState()
+        self._update_global_state()
 
     def _updateRegulationState(self, value):
         self._regulating = value
         self.emit("regulationStateChanged", (value,))
-        self._updateGlobalState()
+        self._update_global_state()
 
-    def _updateState(self, value):
+    def _update_state(self, value):
         self._state = value
-        self._updateGlobalState()
+        self._update_global_state()
 
     def _updateLid1State(self, value):
         self._lid1state = value
         self.emit("lid1StateChanged", (value,))
-        self._updateGlobalState()
+        self._update_global_state()
 
     def _updateLid2State(self, value):
         self._lid2state = value
         self.emit("lid2StateChanged", (value,))
-        self._updateGlobalState()
+        self._update_global_state()
 
     def _updateLid3State(self, value):
         self._lid3state = value
         self.emit("lid3StateChanged", (value,))
-        self._updateGlobalState()
+        self._update_global_state()
 
     def _updateOperationMode(self, value):
         self._charging = not value
 
-    def _updateGlobalState(self):
+    def _update_global_state(self):
         state_dict, cmd_state, message = self.get_global_state()
         self.emit("globalStateChanged", (state_dict, cmd_state, message))
 
@@ -359,7 +359,7 @@ class CatsMaintMockup(Equipment):
         ]
         return cmd_list
 
-    def _executeServerTask(self, method, *args):
+    def _execute_server_task(self, method, *args):
         task_id = method(*args)
         ret = None
         # introduced wait because it takes some time before the attribute PathRunning is set
