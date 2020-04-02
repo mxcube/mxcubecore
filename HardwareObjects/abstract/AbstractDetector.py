@@ -56,6 +56,7 @@ class AbstractDetector(HardwareObject):
         self._roi_mode = 0
         self._roi_modes_list = []
     
+        self._threshold_energy = None
         self._distance_motor_hwobj = None
         self._width = None  # [pixel]
         self._height = None  # [pixel]
@@ -245,3 +246,20 @@ class AbstractDetector(HardwareObject):
             (int): detector height [px]
         """
         return self._width
+
+    def set_threshold_energy(self, threshold_energy):
+        """
+        Args:
+            threshold_energy (float): Detector threshold energy [eV]
+        """
+        self._threshold_energy = threshold_energy
+        
+    def get_threshold_energy(self):
+        """Returns detector threshold_energy
+        Returns:
+            (float): Detector threshold energy [eV]
+        """
+        return _threshold_energy
+    
+    
+        
