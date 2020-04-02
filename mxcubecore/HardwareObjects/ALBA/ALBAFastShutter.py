@@ -11,7 +11,7 @@ Example XML::
 
 Public Interface:
    Commands:
-       int getState()
+       int get_state()
            Description:
                returns current state
            Output:
@@ -84,9 +84,9 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
             self.nistart_cmd = self.get_command_object("nistart")
             self.nistop_cmd = self.get_command_object("nistop")
 
-            self.actuator_channel = self.getChannelObject("actuator")
-            self.motorpos_channel = self.getChannelObject("motorposition")
-            self.motorstate_channel = self.getChannelObject("motorstate")
+            self.actuator_channel = self.get_channel_object("actuator")
+            self.motorpos_channel = self.get_channel_object("motorposition")
+            self.motorstate_channel = self.get_channel_object("motorstate")
 
             self.actuator_channel.connectSignal("update", self.stateChanged)
             self.motorpos_channel.connectSignal("update", self.motorPositionChanged)
@@ -107,7 +107,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
             logging.getLogger("HWR").warning(traceback.format_exc())
             self.state_strings = self.default_state_strings
 
-    def getState(self):
+    def get_state(self):
         if self.actuator_state == STATE_UNKNOWN:
             self.actuator_value = self.actuator_channel.getValue()
             self.motor_position = self.motorpos_channel.getValue()
@@ -169,7 +169,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
     def getStatus(self):
         """
         """
-        state = self.getState()
+        state = self.get_state()
 
         if state in [STATE_OUT, STATE_IN]:
             return self.state_strings[state]
@@ -213,7 +213,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
 def test_hwo(hwo):
     print("Name is: ", hwo.getUserName())
 
-    print("Shutter state is: ", hwo.getState())
+    print("Shutter state is: ", hwo.get_state())
     print("Shutter status is: ", hwo.getStatus())
     print("Motor position is: ", hwo.getMotorPosition())
     print("Motor state is: ", hwo.getMotorState())

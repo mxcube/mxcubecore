@@ -45,7 +45,6 @@ class DigitalZoomMotor(AbstractMotor, Device):
         AbstractMotor.__init__(self, name)
         Device.__init__(self, name)
         self.camera = None
-        self.zoom_supported = None
 
     def init(self):
         self.set_limits((1.0, 1.0))
@@ -55,10 +54,10 @@ class DigitalZoomMotor(AbstractMotor, Device):
             logging.getLogger("HWR").warning("DigitalZoomMotor: camera not defined")
             return
         try:
-            self.zoom_supported = self.camera.zoom_exists()
+            self.read_only = not (self.camera.zoom_exists())
         except AttributeError:
-            self.zoom_supported = False
-        if self.zoom_supported:
+            self.read_only = True
+        if not self.read_only:
             limits = self.camera.get_zoom_min_max()
             if limits[0] is None:
                 limits[0] = -1000
@@ -66,9 +65,9 @@ class DigitalZoomMotor(AbstractMotor, Device):
                 limits[1] = 1000
             self.set_limits(limits)
             self.set_position(self.camera.get_zoom())
-            self.set_state(MotorStates.READY)
+            self.update_state(self.STATES.READY)
         else:
-            self.set_state(MotorStates.DISABLED)
+            self.update_state(self.STATES.OFF)
             logging.getLogger("HWR").warning(
                 "DigitalZoomMotor: digital zoom is not supported " "by camera object"
             )
@@ -89,26 +88,26 @@ class DigitalZoomMotor(AbstractMotor, Device):
                     changes, stateChanged is fired
         """
         if position is None:
-            if self.zoom_supported:
-                position = self.camera.get_zoom()
-            else:
+            if self.read_only:
                 position = 1.0
+            else:
+                position = self.camera.get_zoom()
 
         if position != self.get_value():
             current_motor_state = self.get_state()
-            if position <= self.getLimits()[0]:
-                self.set_state(MotorStates.LOWLIMIT)
+            if position <= self.get_limits()[0]:
+                self.update_state(MotorStates.LOWLIMIT)
             elif position >= self.get_limits()[1]:
-                self.set_state(MotorStates.HIGHLIMIT)
+                self.update_state(MotorStates.HIGHLIMIT)
             else:
                 current_motor_state = MotorStates.READY
-            if self.zoom_supported and current_motor_state != self.get_state():
-                self.set_state(current_motor_state)
+            if (not self.read_only) and current_motor_state != self.get_state():
+                self.update_state(current_motor_state)
                 self.emit("stateChanged", (current_motor_state,))
             self.set_position(position)
             self.emit("valueChanged", (position,))
 
-    #    def getLimits(self):
+    #    def get_limits(self):
     #        """
     #        Descript. : returns motor limits. If no limits channel defined then
     #                    static_limits is returned
@@ -116,42 +115,18 @@ class DigitalZoomMotor(AbstractMotor, Device):
     #        return self.limits
 
     def get_value(self):
-        if self.zoom_supported:
-            self.motor_position = self.camera.get_zoom()
-        else:
+        if self.read_only:
             self.motor_position = 1.0
+        else:
+            self.motor_position = self.camera.get_zoom()
         return self.motor_position
 
-    def move(self, absolute_position):
+    def _set_value(self, value):
         """
         Descript. : move to the given position
         """
-        if (
-            self.zoom_supported
-            and absolute_position >= self.getLimits()[0]
-            and absolute_position <= self.getLimits()[1]
-        ):
-            self.camera.set_zoom(absolute_position)
-            self.motor_position_changed(absolute_position)
-
-    def moveRelative(self, relative_position):
-        """
-        Descript. : move for the given distance
-        """
-        self.set_value(self.get_value() + relative_position)
-
-    def syncMove(self, absolute_position, timeout=None):
-        """
-        Descript. : same as normal move, for position change is instantaneous
-        """
-        self.set_value(absolute_position)
-
-    def syncMoveRelative(self, relative_position, timeout=None):
-        """
-        Descript. : same as normal moveRelative, for position change is
-                    instantaneous
-        """
-        self.syncMove(self.get_value() + relative_position, timeout)
+        self.camera.set_zoom(value)
+        self.motor_position_changed(value)
 
     def stop(self):
         """

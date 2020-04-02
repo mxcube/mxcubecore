@@ -8,10 +8,10 @@ class PX2Energy(EnergyMockup):
     def init(self):
         self.energy = energy()
 
-        self.energy_channel = self.getChannelObject("energy")
+        self.energy_channel = self.get_channel_object("energy")
         self.energy_channel.connectSignal("update", self.energy_changed)
 
-        self.state_channel = self.getChannelObject("state")
+        self.state_channel = self.get_channel_object("state")
         self.state_channel.connectSignal("update", self.energy_state_changed)
 
         self.tunable = self.getProperty("tunable")
@@ -20,16 +20,11 @@ class PX2Energy(EnergyMockup):
         self.minimum_energy = self.getProperty("min_energy")
         self.maximum_energy = self.getProperty("max_energy")
 
-        self.current_energy = self.energy.get_energy() / kilo
+        self.current_energy = self.energy.get_value() / kilo
         self.current_wavelength = self.get_wavelegth_from_energy(self.current_energy)
 
-        self.getEnergyLimits = self.get_energy_limits
-        self.get_current_energy = self.get_current_energy
-        self.get_wavelength = self.get_wavelength
         self.checkLimits = self.check_limits
         self.cancelMoveEnergy = self.cancel_move_energy
-
-        self.start_move_energy = self.move_energy
 
     def update_values(self):
         self.emit("energyChanged", (self.current_energy, self.current_wavelength))
@@ -50,7 +45,7 @@ class PX2Energy(EnergyMockup):
     def get_wavelength(self):
         return self.get_wavelegth_from_energy(self.get_current_energy())
 
-    def get_energy_limits(self):
+    def get_limits(self):
         return self.minimum_energy, self.maximum_energy
 
     def get_wavelength_limits(self):
@@ -58,7 +53,7 @@ class PX2Energy(EnergyMockup):
         maximum_wavelength = self.get_wavelegth_from_energy(self.minimum_energy)
         return minimum_wavelength, maximum_wavelength
 
-    def move_energy(self, energy):
+    def set_value(self, energy):
         logging.getLogger("user_level_log").info("Move energy to %6.3f keV" % energy)
         self.emit("moveEnergyStarted", ())
         self.energy.set_energy(energy)
@@ -67,13 +62,13 @@ class PX2Energy(EnergyMockup):
         self.update_values()
         self.emit("moveEnergyFinished", ())
 
-    def move_wavelength(self, wavelength):
+    def set_wavelength(self, wavelength):
         energy = self.get_energy_from_wavelength(wavelength)
-        self.move_energy(energy)
+        self.set_value(energy)
 
     def check_limits(self, value):
         logging.getLogger("HWR").debug("Checking the move limits")
-        en_lims = self.getEnergyLimits()
+        en_lims = self.get_limits()
         if value >= self.en_lims[0] and value <= self.en_lims[1]:
             logging.getLogger("HWR").info("Limits ok")
             return True

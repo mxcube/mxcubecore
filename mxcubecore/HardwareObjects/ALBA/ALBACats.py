@@ -24,23 +24,23 @@ class ALBACats(Cats90):
     def init(self):
         Cats90.init(self)
 
-        self.shifts_channel = self.getChannelObject("shifts")
-        self.phase_channel = self.getChannelObject("phase")
+        self.shifts_channel = self.get_channel_object("shifts")
+        self.phase_channel = self.get_channel_object("phase")
 
         self.go_transfer_cmd = self.get_command_object("go_transfer")
         self.go_sampleview_cmd = self.get_command_object("go_sampleview")
         self.super_abort_cmd = self.get_command_object("super_abort")
-        self.super_state_channel = self.getChannelObject("super_state")
+        self.super_state_channel = self.get_channel_object("super_state")
 
         self.auto_prepare_diff = self.getProperty("auto_prepare_diff")
-        self.detdist_position_channel = self.getChannelObject("detdist_position")
+        self.detdist_position_channel = self.get_channel_object("detdist_position")
         self.detdist_saved = None
 
         self._cmdLoadHT = self.get_command_object("_cmdLoadHT")
         self._cmdChainedLoadHT = self.get_command_object("_cmdChainedLoadHT")
         self._cmdUnloadHT = self.get_command_object("_cmdUnloadHT")
 
-        self._chnPathSafe = self.getChannelObject("_chnPathSafe")
+        self._chnPathSafe = self.get_channel_object("_chnPathSafe")
 
         if self._chnPathRunning is not None:
             self._chnPathRunning.connectSignal("update", self._updateRunningState)
@@ -48,7 +48,7 @@ class ALBACats(Cats90):
         if self._chnPowered is not None:
             self._chnPowered.connectSignal("update", self._updatePoweredState)
 
-    def isReady(self):
+    def is_ready(self):
         """
         Returns a boolean value indicating is the sample changer is ready for operation.
 

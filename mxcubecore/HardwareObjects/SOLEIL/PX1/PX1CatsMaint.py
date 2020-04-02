@@ -15,7 +15,7 @@ class PX1CatsMaint(CatsMaint):
 
         CatsMaint.init(self)
 
-        self._chnHomeOpened = self.addChannel(
+        self._chnHomeOpened = self.add_channel(
             {
                 "type": "tango",
                 "name": "_chnHomeOpened",

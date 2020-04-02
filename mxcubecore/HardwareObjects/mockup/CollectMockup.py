@@ -175,9 +175,7 @@ class CollectMockup(AbstractCollect.AbstractCollect):
 
     @task
     def move_motors(self, motor_position_dict):
-        # TODO We copy, as dictionary is reset in move_motors. CLEAR UP!!
-        # TODO clear up this confusion between move_motors and moveMotors
-        HWR.beamline.diffractometer.move_motors(motor_position_dict.copy())
+        HWR.beamline.diffractometer.move_motors(motor_position_dict)
 
     def prepare_input_files(self):
         """
@@ -209,19 +207,3 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         )
 
         return xds_directory, mosflm_directory, ""
-
-    # rhfogh Added to improve interaction with UI and persistence of values
-    def set_wavelength(self, wavelength):
-        HWR.beamline.energy.move_wavelength(wavelength)
-
-    def set_energy(self, energy):
-        HWR.beamline.energy.move_energy(energy)
-
-    def set_resolution(self, new_resolution):
-        HWR.beamline.resolution.set_value(new_resolution)
-
-    def set_transmission(self, transmission):
-        HWR.beamline.transmission.set_value(transmission)
-
-    def move_detector(self, detector_distance):
-        HWR.beamline.detector.set_distance(detector_distance)

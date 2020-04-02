@@ -77,18 +77,18 @@ class MicrodiffBeamstop(Equipment):
     def connectNotify(self, signal):
         self.checkPosition()
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
-    def getState(self):
+    def get_state(self):
         return "READY"
 
-    def getPosition(self):
+    def get_value(self):
         return self.checkPosition(noEmit=True)
 
     def checkPosition(self, pos=None, noEmit=False):
         if pos is None:
-            pos = self.beamstop.getActuatorState()
+            pos = self.beamstop.get_actuator_state()
         try:
             pos = self.beamstop.states[pos]
         except BaseException:

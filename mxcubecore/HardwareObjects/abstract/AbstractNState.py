@@ -22,6 +22,7 @@ Defines the interface for N state devices
 """
 
 import abc
+import ast
 from enum import Enum, unique
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
@@ -33,24 +34,10 @@ __license__ = "LGPLv3+"
 
 
 @unique
-class InOutEnum(Enum):
-    "In/Out"
-    IN = "IN"
-    OUT = "OUT"
+class BaseValueEnum(Enum):
+    """defines only the compulsory unknown."""
 
-
-@unique
-class OpenCloseEnum(Enum):
-    "Open/Close"
-    OPEN = "OPEN"
-    CLOSE = "CLOSED"
-
-
-@unique
-class OnOffEnum(Enum):
-    "On/Off"
-    ON = "ON"
-    OFF = "OFF"
+    UNKNOWN = "UNKNOWN"
 
 
 class AbstractNState(AbstractActuator):
@@ -59,74 +46,62 @@ class AbstractNState(AbstractActuator):
     """
 
     __metaclass__ = abc.ABCMeta
+    VALUES = BaseValueEnum
 
     def __init__(self, name):
         AbstractActuator.__init__(self, name)
-        self.predefined_values = {}
-        self.state_definition = None
-        self._valid = False
 
     def init(self):
-        """Initialise some parametrs."""
-        self.predefined_values = self.get_predefined_values()
-        _valid = []
+        """Initilise the predefined values"""
+        AbstractActuator.init(self)
+        self.initialise_values()
 
-        self.state_definition = self.getProperty("state_definition", None)
-
-        for value in self.predefined_values.keys():
-            _valid.append(
-                self._validate_value(value.upper(), self.state_definition.__members__)
-            )
-
-        if all(_valid) and len(_valid) == len(self.state_definition.__members__):
-            self._valid = True
-
-        if self.state_definition in ["IntEnum", "StrEnum", "FloatEnum"]:
-            self.state_definition = Enum(self.state_definition, self.predefined_values)
-        else:
-            self.state_definition = globals().get(self.state_definition, None)
-
-        if not (self.state_definition or self._valid):
-            raise ValueError("Mistmatching predefined values")
-
-    def _validate_value(self, value, values=None):
-        """Check if the value is within specified values.
+    def validate_value(self, value):
+        """Check if the value is within the predefined values.
         Args:
-            value: value
-            values(tuple): tuple of values.
+            value(Enum): value to check
         Returns:
-            (bool): True if within the values
+            (bool): True if within the values.
         """
-        if not values:
-            values = self.predefined_values.keys()
-        return value in values
-
-    def get_predefined_values(self):
-        """Get the predefined values
-        Returns:
-            (dict): Dictionary of predefined {name: value}
-        """
-        predefined_values = {}
-        for value in self.getProperty("predefined_value", ()):
-            try:
-                predefined_values.update(
-                    {value.getProperty("name"): value.getProperty("value")}
-                )
-            except AttributeError:
-                pass
-
-        return predefined_values
+        return value in self.VALUES
 
     def set_limits(self, limits):
-        """Set actuator low and high limits.
+        """Set the low and high limits.
         Args:
-            limits (tuple): two floats tuple (low limit, high limit).
+            limits (tuple): two element (low limit, high limit) tuple.
         """
         raise NotImplementedError
 
     def update_limits(self, limits=None):
         """Check if the limits have changed. Emits signal limitsChanged.
         Args:
-            limits (tuple): two floats tuple (low limit, high limit).
+            limits(tuple): two element (low limit, high limit) tuple.
         """
         raise NotImplementedError
+
+    def initialise_values(self):
+        """Initialise the ValueEnum with the values from the config.
+        """
+        try:
+            values = ast.literal_eval(self.getProperty("values"))
+            self.VALUES = Enum(
+                "ValueEnum",
+                dict(values, **{item.name: item.value for item in BaseValueEnum}),
+            )
+        except (ValueError, TypeError):
+            pass
+
+    def value_to_enum(self, value):
+        """Tranform a value to Enum
+        Args:
+           value(str, int, float, tuple): value
+        Returns:
+            (Enum): Enum member, corresponding to the value or UNKNOWN.
+        """
+        for enum_var in self.VALUES.__members__.values():
+            if value == enum_var.value:
+                return enum_var
+            if isinstance(enum_var.value, tuple) and value == enum_var.value[0]:
+                return enum_var
+
+        return self.VALUES.UNKNOWN

@@ -27,12 +27,12 @@ class EnergyMockup(AbstractEnergy):
         AbstractEnergy.__init__(self, name)
 
     def init(self):
-        self._tunable = True
+        self.tunable = True
         self._moving = False
         self._nominal_value = 12.7
         self.set_limits((4, 20))
 
-    def move_energy(self, value, wait=True):
+    def set_value(self, value, wait=True):
         if wait:
             self._aborted = False
             self._moving = True

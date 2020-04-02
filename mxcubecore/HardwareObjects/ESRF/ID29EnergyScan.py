@@ -67,12 +67,6 @@ class ID29EnergyScan(ESRFEnergyScan):
             "exposure_time"
         ]
 
-    def canScanEnergy(self):
-        return True
-
-    def canMoveEnergy(self):
-        return self.canScanEnergy()
-
     def escan_prepare(self):
         self.ctrl = self.getObjectByRole("controller")
 
@@ -81,7 +75,7 @@ class ID29EnergyScan(ESRFEnergyScan):
         self.ctrl.diffractometer.set_phase("DataCollection", wait=True)
 
         if self.beamsize:
-            bsX = self.beamsize.getCurrentPositionName()
+            bsX = self.beamsize.get_current_position_name()
             self.energy_scan_parameters["beamSizeHorizontal"] = bsX
             self.energy_scan_parameters["beamSizeVertical"] = bsX
 

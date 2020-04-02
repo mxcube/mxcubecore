@@ -40,7 +40,7 @@ This object manages the movement of several motors to predefined positions.
 
 
 METHOD
-    name:           getState
+    name:           get_state
     input par.:     None
     output par.:    state
     description:    return an and on the state of all the  motor used in the
@@ -51,7 +51,7 @@ METHOD
     output par.:    None
     description:    move all motors to the predefined position "position"
 
-    name:           getPosition
+    name:           get_value
     input par.:     None
     output par.:    position
     description:    return the name of the current predefined position.
@@ -195,21 +195,21 @@ class MultiplePositions(Equipment):
             self.connect(mot, "valueChanged", self.checkPosition)
             self.connect(mot, "stateChanged", self.stateChanged)
 
-    def getState(self):
-        if not self.isReady():
+    def get_state(self):
+        if not self.is_ready():
             return ""
 
         state = "READY"
         for mot in self.motors.values():
-            if mot.getState() == mot.MOVING:
+            if mot.get_state() == mot.MOVING:
                 state = "MOVING"
-            elif mot.getState() == mot.UNUSABLE:
+            elif mot.get_state() == mot.UNUSABLE:
                 return "UNUSABLE"
 
         return state
 
     def stateChanged(self, state):
-        self.emit("stateChanged", (self.getState(),))
+        self.emit("stateChanged", (self.get_state(),))
         self.checkPosition()
 
     def moveToPosition(self, name, wait=False):
@@ -230,8 +230,8 @@ class MultiplePositions(Equipment):
         self.motors[mne].set_value(pos)
         """
 
-    def getPosition(self):
-        if not self.isReady():
+    def get_value(self):
+        if not self.is_ready():
             return None
 
         for posName, position in self.positions.items():
@@ -258,7 +258,7 @@ class MultiplePositions(Equipment):
         return None
 
     def checkPosition(self, *args):
-        if not self.isReady():
+        if not self.is_ready():
             return None
 
         posName = self.get_value()

@@ -43,7 +43,7 @@ class EMBLPPUControl(Device):
         self.execution_state = self.getProperty("executionState")
         self.error_state = self.getProperty("errorState")
 
-        self.chan_all_status = self.getChannelObject("chanAllStatus")
+        self.chan_all_status = self.get_channel_object("chanAllStatus")
 
         self.cmd_all_status = self.get_command_object("cmdAllStatus")
         self.cmd_all_restart = self.get_command_object("cmdAllRestart")
@@ -52,13 +52,13 @@ class EMBLPPUControl(Device):
 
         self.get_status()
 
-        self.chan_file_info = self.getChannelObject("chanFileInfo", optional=True)
+        self.chan_file_info = self.get_channel_object("chanFileInfo", optional=True)
         if self.chan_file_info is not None:
             self.chan_file_info.connectSignal("update", self.file_info_changed)
 
         self.connect(self.chan_all_status, "update", self.all_status_changed)
 
-        self.chan_all_restart = self.getChannelObject("chanAllRestart")
+        self.chan_all_restart = self.get_channel_object("chanAllRestart")
         self.connect(self.chan_all_restart, "update", self.all_restart_changed)
 
     def all_status_changed(self, status):

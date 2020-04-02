@@ -45,16 +45,16 @@ class EMBLBeamstop(Device, AbstractMotor):
         self.default_direction = self.getProperty("defaultBeamstopDirection")
 
         if self.default_distance is None:
-            self.chan_distance = self.getChannelObject("BeamstopDistance")
+            self.chan_distance = self.get_channel_object("BeamstopDistance")
             if self.chan_distance is not None:
                 self.chan_distance.connectSignal("update", self.distance_changed)
             self.distance_changed(self.chan_distance.getValue())
         else:
             self.distance = float(self.default_distance)
 
-        self.chan_position = self.getChannelObject("BeamstopPosition")
+        self.chan_position = self.get_channel_object("BeamstopPosition")
 
-    def isReady(self):
+    def is_ready(self):
         """Returns True if device ready
         """
         return True

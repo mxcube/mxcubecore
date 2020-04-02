@@ -183,24 +183,24 @@ class AbstractCollect(HardwareObject, object):
             # Set beamline parameters, transmission, energy and detector distance
             if "transmission" in cp:
                 log.info("Collection: Setting transmission to %.2f", cp["transmission"])
-                self.set_transmission(cp["transmission"])
+                HWR.beamline.transmission.set_value(cp["transmission"])
 
             if "wavelength" in cp:
                 log.info("Collection: Setting wavelength to %.4f", cp["wavelength"])
-                self.set_wavelength(cp["wavelength"])
+                HWR.beamline.energy.set_wavelength(cp["wavelength"])
             elif "energy" in cp:
                 log.info("Collection: Setting energy to %.4f", cp["energy"])
-                self.set_energy(cp["energy"])
+                HWR.beamline.energy.set_value(cp["energy"])
 
             dd0 = cp.get("resolution")
 
             if dd0 and dd0.get("upper"):
                 resolution = dd0["upper"]
                 log.info("Collection: Setting resolution to %.3f", resolution)
-                self.set_resolution(resolution)
+                HWR.beamline.resolution.set_value(resolution)
             elif "detector_distance" in cp:
                 log.info("Collection: Moving detector to %.2f", cp["detector_distance"])
-                self.move_detector(cp["detector_distance"])
+                HWR.beamline.detector.distance.set_value(cp["detector_distance"])
 
             # Method to be overridden for the actual image acquisition
             self._collect(cp)
@@ -462,11 +462,13 @@ class AbstractCollect(HardwareObject, object):
         if HWR.beamline.lims and not cp["in_interleave"]:
             cp.dangerously_set("flux", HWR.beamline.flux.get_value())
             cp.dangerously_set("flux_end", HWR.beamline.flux.get_value())
-            cp.dangerously_set("wavelength", self.get_wavelength())
-            cp.dangerously_set("detectorDistance", self.get_detector_distance())
+            cp.dangerously_set("wavelength", HWR.beamline.energy.get_wavelength())
+            cp.dangerously_set(
+                "detectorDistance", HWR.beamline.detector.distance.get_valus()
+            )
 
-            cp.dangerously_set("resolution", self.get_resolution())
-            cp.dangerously_set("transmission", self.get_transmission())
+            cp.dangerously_set("resolution", HWR.beamline.resolution.get_value())
+            cp.dangerously_set("transmission", HWR.beamline.transmission.get_value())
 
             beam_centre_x, beam_centre_y = self.get_beam_centre()
             cp.dangerously_set("xBeam", beam_centre_x)
@@ -511,7 +513,7 @@ class AbstractCollect(HardwareObject, object):
                 "fileName": filename,
                 "fileLocation": file_location,
                 "imageNumber": frame_number,
-                "measuredIntensity": self.get_measured_intensity(),
+                "measuredIntensity": HWR.beamline.flux.get_value(),
                 "synchrotronCurrent": self.get_machine_current(),
                 "machineMessage": self.get_machine_message(),
                 "temperature": self.get_cryo_temperature(),
@@ -651,7 +653,7 @@ class AbstractCollect(HardwareObject, object):
     #     Descript. :
     #     """
     #     if HWR.beamline.detector is not None:
-    #         return HWR.beamline.detector.get_distance()
+    #         return HWR.beamline.detector.distance.get_value()
 
     # def get_resolution(self):
     #     """

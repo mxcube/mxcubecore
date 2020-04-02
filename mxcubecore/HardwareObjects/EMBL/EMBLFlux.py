@@ -184,19 +184,20 @@ class EMBLFlux(AbstractFlux):
         except BaseException:
             logging.getLogger("HWR").error("BeamlineTest: No intensity ranges defined")
 
-        self.chan_intens_mean = self.getChannelObject("intensMean")
+        self.chan_intens_mean = self.get_channel_object("intensMean")
         self.chan_intens_mean.connectSignal("update", self.intens_mean_changed)
 
-        self.chan_intens_range = self.getChannelObject("intensRange")
-        self.chan_flux_transmission = self.getChannelObject("fluxTransmission")
+        self.chan_intens_range = self.get_channel_object("intensRange")
+        self.chan_flux_transmission = self.get_channel_object("fluxTransmission")
 
-        self.cmd_set_intens_resolution = self.getCommandObject("setIntensResolution")
-        self.cmd_set_intens_acq_time = self.getCommandObject("setIntensAcqTime")
-        self.cmd_set_intens_range = self.getCommandObject("setIntensRange")
-        self.cmd_flux_record = self.getCommandObject("fluxRecord")
+        self.cmd_set_intens_resolution = self.get_command_object("setIntensResolution")
+        self.cmd_set_intens_acq_time = self.get_command_object("setIntensAcqTime")
+        self.cmd_set_intens_range = self.get_command_object("setIntensRange")
+        self.cmd_flux_record = self.get_command_object("fluxRecord")
 
         self.back_light_hwobj = self.getObjectByRole("backlight")
         self.beamstop_hwobj = self.getObjectByRole("beamstop")
+        self.aperture_hwobj = HWR.beamline.beam.aperture_hwobj
 
         self.connect(
             HWR.beamline.transmission, "valueChanged", self.transmission_changed
@@ -204,17 +205,16 @@ class EMBLFlux(AbstractFlux):
 
         # self.init_flux_values()
 
-        self.chan_flux_status = self.getChannelObject("fluxStatus")
+        self.chan_flux_status = self.get_channel_object("fluxStatus")
         self.chan_flux_status.connectSignal("update", self.flux_status_changed)
 
-        self.chan_flux_message = self.getChannelObject("fluxMessage")
+        self.chan_flux_message = self.get_channel_object("fluxMessage")
         self.chan_flux_message.connectSignal("update", self.flux_message_changed)
 
         self.connect(HWR.beamline.beam, "beamInfoChanged", self.beam_info_changed)
 
-        self.connect(HWR.beamline.beam.aperture,
-                     "diameterIndexChanged",
-                     self.aperture_diameter_changed
+        self.connect(
+            self.aperture_hwobj, "diameterIndexChanged", self.aperture_diameter_changed
         )
 
         self.beam_focusing_hwobj = self.getObjectByRole("beam_focusing")
@@ -235,7 +235,7 @@ class EMBLFlux(AbstractFlux):
             return
         flux_values = self.cmd_flux_record.get()
         flux_transmission = self.chan_flux_transmission.getValue()
-        aperture_diameter_list = HWR.beamline.beam.aperture.get_diameter_list()
+        aperture_diameter_list = self.aperture_hwobj.get_diameter_list()
 
         self.measured_flux_list = []
         for index, flux_value in enumerate(flux_values):
@@ -365,7 +365,7 @@ class EMBLFlux(AbstractFlux):
 
         current_phase = HWR.beamline.diffractometer.current_phase
         current_transmission = HWR.beamline.transmission.get_value()
-        current_aperture_index = HWR.beamline.beam.aperture.get_diameter_index()
+        current_aperture_index = self.aperture_hwobj.get_diameter_index()
 
         self.emit("progressInit", "Measuring flux. Please wait...", 10, True)
 
@@ -412,13 +412,13 @@ class EMBLFlux(AbstractFlux):
 
         # -----------------------------------------------------------------
         if HWR.beamline.session.beamline_name == "P13":
-            HWR.beamline.beam.aperture.set_in()
+            self.aperture_hwobj.set_in()
             HWR.beamline.diffractometer.wait_device_ready(30)
-            HWR.beamline.beam.aperture.set_diameter_index(0)
+            self.aperture_hwobj.set_diameter_index(0)
             HWR.beamline.fast_shutter.openShutter(wait=True)
 
             for index, diameter_size in enumerate(
-                HWR.beamline.beam.aperture.get_diameter_list()
+                self.aperture_hwobj.get_diameter_list()
             ):
                 # 5. open the fast shutter -----------------------------------------
                 self.emit(
@@ -426,7 +426,7 @@ class EMBLFlux(AbstractFlux):
                     4 + index,
                     "Measuring flux with %d micron aperture" % diameter_size,
                 )
-                HWR.beamline.beam.aperture.set_diameter_index(index)
+                self.aperture_hwobj.set_diameter_index(index)
                 HWR.beamline.diffractometer.wait_device_ready(10)
 
                 gevent.sleep(1)
@@ -516,13 +516,13 @@ class EMBLFlux(AbstractFlux):
         HWR.beamline.diffractometer.set_phase(current_phase)
         HWR.beamline.diffractometer.wait_device_ready(10)
         if HWR.beamline.session.beamline_name == "P13":
-            HWR.beamline.beam.aperture.set_diameter_index(current_aperture_index)
+            self.aperture_hwobj.set_diameter_index(current_aperture_index)
         self.emit("progressStop", ())
 
     def get_flux_result(self, intensity_value):
-        energy = HWR.beamline.energy.get_energy()
-        detector_distance = HWR.beamline.detector.get_distance()
-        beam_size_hor, beam_size_ver = HWR.beamline.beam.get_size()
+        energy = HWR.beamline.energy.get_value()
+        detector_distance = HWR.beamline.detector.distance.get_value()
+        beam_size = HWR.beamline.beam.get_beam_size()
         transmission = HWR.beamline.transmission.get_value()
 
         air_trsm = numpy.exp(
@@ -545,16 +545,16 @@ class EMBLFlux(AbstractFlux):
             # * 1e-14
             * self.dose_rate_per_photon_per_mmsq(energy)
             * flux
-            / beam_size_hor
-            / beam_size_ver
+            / beam_size[0]
+            / beam_size[1]
         )
         max_frame_rate = 1 / HWR.beamline.detector.get_exposure_time_limits()[0]
 
         result = {
             "energy": energy,
             "detector_distance": detector_distance,
-            "size_x": beam_size_hor,
-            "size_y": beam_size_ver,
+            "size_x": beam_size[0],
+            "size_y": beam_size[1],
             "transmission": transmission,
             "intensity": intensity_value,
             "flux": flux,

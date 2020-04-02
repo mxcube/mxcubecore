@@ -80,8 +80,8 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         self.device_specific = DeviceProxy(self.devspecific)
         self.device.set_timeout_millis(30000)
 
-        self.beamx_chan = self.getChannelObject("beamx")
-        self.beamy_chan = self.getChannelObject("beamy")
+        self.beamx_chan = self.get_channel_object("beamx")
+        self.beamy_chan = self.get_channel_object("beamy")
 
     def start_acquisition(self):
         self.device.startAcq()
@@ -89,26 +89,8 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
     def stop_acquisition(self):
         self.device.abortAcq()
 
-    def get_distance(self):
-        """Returns detector distance in mm"""
-        if self.distance_motor_hwobj is not None:
-            return float(self.distance_motor_hwobj.get_value())
-        else:
-            return self.default_distance
-
-    def move_distance(self, value):
-        if self.distance_motor_hwobj is not None:
-            self.distance_motor_hwobj.set_value(value)
-
     def wait_move_distance_done(self):
         self.distance_motor_hwobj.wait_end_of_move()
-
-    def get_distance_limits(self):
-        """Returns detector distance limits"""
-        if self.distance_motor_hwobj is not None:
-            return self.distance_motor_hwobj.getLimits()
-        else:
-            return self.default_distance_limits
 
     def get_threshold(self):
         return self.device_specific.threshold
@@ -159,7 +141,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
 
     # methods for data collection
     def set_energy_threshold(self):
-        eugap_ch = self.getChannelObject("eugap")
+        eugap_ch = self.get_channel_object("eugap")
 
         try:
             currentenergy = eugap_ch.getValue()
@@ -303,6 +285,6 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
 
 
 def test_hwo(hwo):
-    print("Detector Distance is: ", hwo.get_distance())
+    print("Detector Distance is: ", hwo.distance.get_value())
     print("   Beam X: %s / Beam Y: %s" % hwo.get_beam_centre())
-    # print("going to 490 : ", hwo.move_distance(490))
+    # print("going to 490 : ", hwo.distance.set_value(490))

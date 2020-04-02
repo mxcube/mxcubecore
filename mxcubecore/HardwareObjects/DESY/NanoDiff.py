@@ -155,17 +155,17 @@ class NanoDiff(HardwareObject):
         self.user_clicked_event = AsyncResult()
         self.head_type = NanoDiff.PERMANENT
 
-        # self.chan_calib_x = self.getChannelObject('CoaxCamScaleX')
-        # self.chan_calib_y = self.getChannelObject('CoaxCamScaleY')
+        # self.chan_calib_x = self.get_channel_object('CoaxCamScaleX')
+        # self.chan_calib_y = self.get_channel_object('CoaxCamScaleY')
         self.update_pixels_per_mm()
 
-        # self.chan_head_type = self.getChannelObject('HeadType')
+        # self.chan_head_type = self.get_channel_object('HeadType')
         # if self.chan_head_type is not None:
         #    self.head_type = self.chan_head_type.getValue()
 
         print("PP__:  Attention, chan_head_type is commented out")
 
-        self.chan_current_phase = self.getChannelObject("CurrentPhase")
+        self.chan_current_phase = self.get_channel_object("CurrentPhase")
         if self.chan_current_phase is not None:
             self.connect(self.chan_current_phase, "update", self.current_phase_changed)
         else:
@@ -173,7 +173,7 @@ class NanoDiff(HardwareObject):
                 "NanoDiff: Current phase channel not defined"
             )
 
-        self.chan_fast_shutter_is_open = self.getChannelObject("FastShutterIsOpen")
+        self.chan_fast_shutter_is_open = self.get_channel_object("FastShutterIsOpen")
         if self.chan_fast_shutter_is_open is not None:
             self.chan_fast_shutter_is_open.connectSignal(
                 "update", self.fast_shutter_state_changed
@@ -287,8 +287,6 @@ class NanoDiff(HardwareObject):
                 "NanoDiff: " + "zoom centre not configured"
             )
 
-        # Compatibility
-        self.getCentringStatus = self.get_centring_status
 
         self.reversing_rotation = self.getProperty("reversingRotation")
         try:
@@ -303,10 +301,6 @@ class NanoDiff(HardwareObject):
             self.phase_list = eval(self.getProperty("phaseList"))
         except BaseException:
             self.phase_list = []
-
-        self.getPositions = self.get_positions
-        self.takeSnapshots = self.take_snapshots
-        self.moveMotors = self.move_motors
 
     def in_plate_mode(self):
         # self.head_type = self.chan_head_type.getValue()
@@ -338,11 +332,11 @@ class NanoDiff(HardwareObject):
         """
         self.emit("minidiffNotReady", ())
 
-    def isReady(self):
+    def is_ready(self):
         """
         Descript. :
         """
-        if self.isValid():
+        if self.is_valid():
             for motor in (
                 self.sample_x_motor_hwobj,
                 self.sample_y_motor_hwobj,
@@ -358,7 +352,7 @@ class NanoDiff(HardwareObject):
         else:
             return False
 
-    def isValid(self):
+    def is_valid(self):
         """
         Descript. :
         """
@@ -857,7 +851,7 @@ class NanoDiff(HardwareObject):
                     self.phi_motor_hwobj.set_value(dynamic_limits[1])
             else:
                 if click < 2:
-                    self.phi_motor_hwobj.moveRelative(90)
+                    self.phi_motor_hwobj.set_value_relative(90)
         self.omega_reference_add_constraint()
 
         # the following lines implement centering in horizontal direction (orthogonal)
@@ -869,12 +863,12 @@ class NanoDiff(HardwareObject):
         ) / 3.0
         horizontalCorrection = -horizontalCorrection / self.pixels_per_mm_x
         print(horizontalCorrection)
-        self.phiy_motor_hwobj.moveRelative(-horizontalCorrection)
+        self.phiy_motor_hwobj.set_value_relative(-horizontalCorrection)
 
         # the following 3 lines are debug version of centering procedure. Identical as in x direction
         # verticalCorrection = (self.centring_hwobj.centringDataMatrix[0][1] + self.centring_hwobj.centringDataMatrix[1][1] + self.centring_hwobj.centringDataMatrix[2][1])/3.0
         # verticalCorrection = -verticalCorrection/ self.pixels_per_mm_y
-        # self.phiz_motor_hwobj.moveRelative(verticalCorrection)
+        # self.phiz_motor_hwobj.set_value_relative(verticalCorrection)
 
         # Solving following system of linear equation example:
         # 1a + 1b = 35
@@ -922,9 +916,9 @@ class NanoDiff(HardwareObject):
         print("sampy correction = ", sampyc)
         print("sampx correction = ", sampxc)
 
-        self.phiz_motor_hwobj.moveRelative(-phizc)
-        self.sample_y_motor_hwobj.moveRelative(-sampyc)
-        self.sample_x_motor_hwobj.moveRelative(-sampxc)
+        self.phiz_motor_hwobj.set_value_relative(-phizc)
+        self.sample_y_motor_hwobj.set_value_relative(-sampyc)
+        self.sample_x_motor_hwobj.set_value_relative(-sampxc)
 
         # return self.centring_hwobj.centeredPosition(return_by_name=False)
         print("PP__:  Attention, return of manual_centring is replaced via 'dummy' one")
@@ -984,7 +978,7 @@ class NanoDiff(HardwareObject):
                 self.emit_centring_failed()
             else:
                 if not self.in_plate_mode():
-                    self.phi_motor_hwobj.syncMoveRelative(-180)
+                    self.phi_motor_hwobj.set_value_relative(-180, timeout=None)
             # logging.info("EMITTING CENTRING SUCCESSFUL")
             self.centring_time = time.time()
             self.emit_centring_successful()
@@ -1017,7 +1011,7 @@ class NanoDiff(HardwareObject):
                 self.emit_centring_failed()
             else:
                 if not self.in_plate_mode():
-                    self.phi_motor_hwobj.syncMoveRelative(-180)
+                    self.phi_motor_hwobj.set_value(-180, timeout=None)
             # logging.info("EMITTING CENTRING SUCCESSFUL")
             self.centring_time = time.time()
             self.emit_centring_successful()
@@ -1127,21 +1121,23 @@ class NanoDiff(HardwareObject):
         Arg.      : motors positions in dict. Dictionary can contain motor names
                     as str or actual motor hwobj
         """
-        for motor in motor_position_dict.keys():
-            position = motor_position_dict[motor]
+        # We do not want to modify the input dict
+        motor_positions_copy = motor_position_dict.copy()
+        for motor in motor_positions_copy.keys():
+            position = motor_positions_copy[motor]
             if isinstance(motor, string_types):
                 motor_role = motor
                 motor = self.get_motor_hwobj(motor_role)
-                del motor_position_dict[motor_role]
+                del motor_positions_copy[motor_role]
                 if motor is None:
                     continue
-                motor_position_dict[motor] = position
+                motor_positions_copy[motor] = position
             # logging.getLogger("HWR").info("Moving motor '%s' to %f", motor.getMotorMnemonic(), position)
             motor.set_value(position)
-        while any([motor.motorIsMoving() for motor in motor_position_dict]):
+        while any([motor.motorIsMoving() for motor in motor_positions_copy]):
             time.sleep(0.5)
         """with gevent.Timeout(15):
-             while not all([m.getState() == m.READY for m in motors_positions if m is not None]):
+             while not all([m.get_state() == m.READY for m in motors_positions if m is not None]):
                    time.sleep(0.1)"""
 
     def move_motors_done(self, move_motors_procedure):
@@ -1275,7 +1271,7 @@ class NanoDiff(HardwareObject):
             logging.getLogger("HWR").info("NanoDiff: taking snapshot #%d", index + 1)
             # centred_images.append((self.phi_motor_hwobj.get_value(), str(myimage(drawing))))
             if not self.in_plate_mode() and image_count > 1:
-                self.phi_motor_hwobj.syncMoveRelative(-90)
+                self.phi_motor_hwobj.set_value_relative(-90, timeout=None)
             centred_images.reverse()  # snapshot order must be according to positive rotation direction
         return centred_images
 

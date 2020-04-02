@@ -43,7 +43,7 @@ class BlissMotorWPositions(BlissMotor):
         BlissMotor.connectNotify(self, signal)
 
         if signal == "predefinedPositionChanged":
-            positionName = self.getCurrentPositionName()
+            positionName = self.get_current_position_name()
 
             try:
                 pos = self.predefinedPositions[positionName]
@@ -52,7 +52,7 @@ class BlissMotorWPositions(BlissMotor):
             else:
                 self.emit(signal, (positionName, pos))
         elif signal == "stateChanged":
-            self.emit(signal, (self.getState(),))
+            self.emit(signal, (self.get_state(),))
 
     def sortPredefinedPositionsList(self):
         self.predefinedPositionsNamesList = self.predefinedPositions.keys()
@@ -88,13 +88,13 @@ class BlissMotorWPositions(BlissMotor):
             self.set_value(self.predefinedPositions[positionName])
         except BaseException:
             logging.getLogger("HWR").exception(
-                "Cannot move motor %s: invalid position name.", str(self.userName())
+                "Cannot move motor %s: invalid position name.", str(self.username)
             )
 
-    def getCurrentPositionName(self):
+    def get_current_position_name(self):
         if (
             not self.motorIsMoving()
-        ):  # self.isReady() and self.getState() == self.READY:
+        ):  # self.is_ready() and self.get_state() == self.READY:
             for positionName in self.predefinedPositions:
                 if (
                     self.predefinedPositions[positionName]

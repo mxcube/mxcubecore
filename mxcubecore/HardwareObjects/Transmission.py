@@ -29,7 +29,7 @@ class Transmission(HardwareObject):
         )
         self.__matt.connect()
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
     def getAtteConfig(self):
@@ -43,9 +43,9 @@ class Transmission(HardwareObject):
     def getAttState(self):
         return self.__matt.pos_read()
 
-    def set_value(self, trans):
-        self.__matt.set_energy(self.energy.get_energy())
-        self.__matt.transmission_set(trans)
+    def _set_value(self, value):
+        self.__matt.set_energy(HWR.beamline.energy.get_value())
+        self.__matt.transmission_set(value)
         self._update()
 
     def _update(self):

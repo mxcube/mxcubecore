@@ -148,29 +148,29 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             basket = Container.Basket(self, i + 1)
             self._addComponent(basket)
 
-        self.chan_mounted_sample_puck = self.getChannelObject("chanMountedSamplePuck")
+        self.chan_mounted_sample_puck = self.get_channel_object("chanMountedSamplePuck")
         self.chan_mounted_sample_puck.connectSignal("update", self.mounted_sample_puck_changed)
 
-        self.chan_process_step_info = self.getChannelObject("chanProcessStepInfo",
-                                                            optional=True)
+        self.chan_process_step_info = self.get_channel_object("chanProcessStepInfo",
+                                                              optional=True)
         if self.chan_process_step_info is not None:
             self.chan_process_step_info.connectSignal("update", self.process_step_info_changed)
 
-        self.chan_command_list = self.getChannelObject("chanCommandList",
-                                                       optional=True)
+        self.chan_command_list = self.get_channel_object("chanCommandList",
+                                                         optional=True)
         if self.chan_command_list is not None:
             self.chan_command_list.connectSignal("update", self.command_list_changed)
 
-        self.chan_puck_switches = self.getChannelObject("chanPuckSwitches")
+        self.chan_puck_switches = self.get_channel_object("chanPuckSwitches")
         self.chan_puck_switches.connectSignal("update", self.puck_switches_changed)
         
-        self.chan_status = self.getChannelObject("chanStatusList")
+        self.chan_status = self.get_channel_object("chanStatusList")
         self.chan_status.connectSignal("update", self.status_list_changed)
 
-        self.chan_sample_is_loaded = self.getChannelObject("chanSampleIsLoaded")
+        self.chan_sample_is_loaded = self.get_channel_object("chanSampleIsLoaded")
         self.chan_sample_is_loaded.connectSignal("update", self.sample_is_loaded_changed)
 
-        self.chan_veto = self.getChannelObject("chanVeto", optional=True)
+        self.chan_veto = self.get_channel_object("chanVeto", optional=True)
         if self.chan_veto is not None:
             self.chan_veto.connectSignal("update", self.veto_changed)
 
@@ -490,10 +490,10 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         #logging.getLogger("HWR").debug("Sample changer: Guillotine closed")
         # 3. If necessary move detector to save position
         if self._focusing_mode == "P13mode":
-            if HWR.beamline.detector.get_distance() < 399.0:
+            if HWR.beamline.detector.distance.get_value() < 399.0:
                 log.info("Sample changer: Moving detector to save position...")
                 self._veto = 1
-                HWR.beamline.detector.set_distance(400, timeout=45)
+                HWR.beamline.detector.distance.set_value(400, timeout=45)
                 time.sleep(1)
                 self.waitVeto(20.0)
                 log.info("Sample changer: Detector moved to save position")
@@ -584,10 +584,10 @@ class Marvin(AbstractSampleChanger.SampleChanger):
 
         #HWR.beamline.detector.close_cover()
         if self._focusing_mode == "P13mode":  
-            if HWR.beamline.detector.get_distance() < 399.0:
+            if HWR.beamline.detector.distance.get_value() < 399.0:
                 log.info("Sample changer: Moving detector to save position ...")
                 self._veto = 1
-                HWR.beamline.detector.set_distance(400, timeout=45)
+                HWR.beamline.detector.distance.set_value(400, timeout=45)
                 time.sleep(1)
                 self.waitVeto(20.0)
                 log.info("Sample changer: Detector moved to save position")
@@ -648,7 +648,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         """Executes called cmd, waits until sample changer is ready and
            updates loaded sample info
         """
-        #self.waitReady(60.0)
+        #self.wait_ready(60.0)
         self._state_string = "Bsy"
         self._progress = 5
 
@@ -671,7 +671,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             self.wait_sample_to_disappear(40.0)
             self.wait_sample_to_appear(60.0)
         else:
-            self.waitReady(120.0)
+            self.wait_ready(120.0)
         logging.getLogger("HWR").debug("Sample changer: Ready")
         logging.getLogger("HWR").debug("Sample changer: Waiting veto...")
         self.waitVeto(20.0)
@@ -687,7 +687,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
     def _updateState(self):
         state = self._readState()
         if (state == AbstractSampleChanger.SampleChangerState.Moving and 
-            self._isDeviceBusy(self.getState())):
+            self._isDeviceBusy(self.get_state())):
             return
         self._setState(state)
        
@@ -719,7 +719,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         return state in (AbstractSampleChanger.SampleChangerState.Ready,
                          AbstractSampleChanger.SampleChangerState.Charging)
 
-    def waitReady(self, timeout=None):
+    def wait_ready(self, timeout=None):
         """Waits until the samle changer is ready"""
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
             while self._isDeviceBusy():

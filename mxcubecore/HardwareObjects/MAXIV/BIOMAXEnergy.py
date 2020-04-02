@@ -35,24 +35,24 @@ class BIOMAXEnergy(Energy.Energy):
             HWR.beamline.energy.connect("valueChanged", self.energyPositionChanged)
             HWR.beamline.energy.connect("stateChanged", self.energyStateChanged)
 
-    def get_current_energy(self):
-        if HWR.beamline.energy is not None:
-            try:
-                return HWR.beamline.energy.get_value() / 1000
-            except BaseException:
-                logging.getLogger("HWR").exception(
-                    "EnergyHO: could not read current energy"
-                )
-                return None
-        return self.default_en
+    # def get_current_energy(self):
+    #     if HWR.beamline.energy is not None:
+    #         try:
+    #             return HWR.beamline.energy.get_value() / 1000
+    #         except BaseException:
+    #             logging.getLogger("HWR").exception(
+    #                 "EnergyHO: could not read current energy"
+    #             )
+    #             return None
+    #     return self.default_en
 
-    def getEnergyLimits(self):
+    def get_limits(self):
         if not self.tunable:
             return None
 
         if HWR.beamline.energy is not None:
             try:
-                self.en_lims = HWR.beamline.energy.getLimits()
+                self.en_lims = HWR.beamline.energy.get_limits()
                 self.en_lims = (
                     float(self.en_lims[0]) / 1000,
                     float(self.en_lims[1]) / 1000,

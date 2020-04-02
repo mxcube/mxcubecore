@@ -125,7 +125,7 @@ class SC3(SampleChanger):
 
     def init(self):
         for channel_name in ("_state", "_selected_basket", "_selected_sample"):
-            setattr(self, channel_name, self.getChannelObject(channel_name))
+            setattr(self, channel_name, self.get_channel_object(channel_name))
 
         for command_name in (
             "_abort",
@@ -300,7 +300,7 @@ class SC3(SampleChanger):
             state = self._readState()
         except BaseException:
             state = SampleChangerState.Unknown
-        if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
+        if state == SampleChangerState.Moving and self._isDeviceBusy(self.get_state()):
             return
         self._setState(state)
 

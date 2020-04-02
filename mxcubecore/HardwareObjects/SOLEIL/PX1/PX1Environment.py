@@ -81,28 +81,28 @@ class PX1Environment(Device):
         self.device = DeviceProxy(self.getProperty("tangoname"))
 
         try:
-            self.state_chan = self.getChannelObject("State")
+            self.state_chan = self.get_channel_object("State")
             self.state_chan.connectSignal("update", self.stateChanged)
 
         except KeyError:
             logging.getLogger().warning("%s: cannot report State", self.name())
 
         try:
-            self.chanAuth = self.getChannelObject("beamlineMvtAuthorized")
+            self.chanAuth = self.get_channel_object("beamlineMvtAuthorized")
             self.chanAuth.connectSignal("update", self.setAuthorizationFlag)
-            state = self.state_chan.getValue()
+            # state = self.state_chan.getValue()
 
         except KeyError:
             logging.getLogger().warning("%s: cannot report State", self.name())
 
         try:
-            self.usingCapillaryChannel = self.getChannelObject("usingCapillary")
+            self.usingCapillaryChannel = self.get_channel_object("usingCapillary")
             self.setUsingCapillary(True)
         except BaseException:
             self.usingCapillaryChannel = None
 
         try:
-            self.beamstopPositionChannel = self.getChannelObject("beamstopPosition")
+            self.beamstopPositionChannel = self.get_channel_object("beamstopPosition")
         except BaseException:
             self.beamstopPositionChannel = None
 
@@ -125,17 +125,15 @@ class PX1Environment(Device):
     def stateChanged(self, value):
         self.emit("StateChanged", (value,))
 
-    def readState(self):
+    def get_state(self):
         state = str(self.state_chan.getValue())
         return state
-
-    getState = readState
 
     def isBusy(self, timeout=None):
         state = self.stateChan.getValue()
         return state not in [EnvironmentState.ON]
 
-    def waitReady(self, timeout=None):
+    def wait_ready(self, timeout=None):
         self._waitState(["ON"], timeout)
 
     def _waitState(self, states, timeout=None):
@@ -269,32 +267,32 @@ class PX1Environment(Device):
 
     def gotoCentringPhase(self):
         if not self.readyForCentring() or self.getPhase() != "CENTRING":
-            self.getCommandObject("GoToCentringPhase")()
+            self.get_command_object("GoToCentringPhase")()
             time.sleep(0.1)
 
     def gotoCollectPhase(self):
         if not self.readyForCollect() or self.getPhase() != "COLLECT":
-            self.getCommandObject("GoToCollectPhase")()
+            self.get_command_object("GoToCollectPhase")()
             time.sleep(0.1)
 
     def gotoLoadingPhase(self):
         if not self.readyForTransfer():
-            self.getCommandObject("GoToTransfertPhase")()
+            self.get_command_object("GoToTransfertPhase")()
             time.sleep(0.1)
 
     def gotoManualLoadingPhase(self):
         if not self.readyForTransfer():
-            self.getCommandObject("GoToManualTransfertPhase")()
+            self.get_command_object("GoToManualTransfertPhase")()
             time.sleep(0.1)
 
     def gotoSampleViewPhase(self):
         if not self.readyForVisuSample():
-            self.getCommandObject("GoToVisuSamplePhase")()
+            self.get_command_object("GoToVisuSamplePhase")()
             time.sleep(0.1)
 
     def gotoFluoScanPhase(self):
         if not self.readyForFluoScan():
-            self.getCommandObject("GoToFluoScanPhase")()
+            self.get_command_object("GoToFluoScanPhase")()
             time.sleep(0.1)
 
     def setAuthorizationFlag(self, value):
@@ -335,9 +333,8 @@ class PX1Environment(Device):
 
 def test_hwo(hwo):
     t0 = time.time()
-    print("PX1 Environment (state) ", hwo.getState())
+    print("PX1 Environment (state) ", hwo.get_state())
     print("               phase is ", hwo.getCurrentPhase())
-    print("               state is ", hwo.readState())
     print("        beamstop pos is ", hwo.getBeamstopPosition())
 
     # if not env.readyForTransfer():

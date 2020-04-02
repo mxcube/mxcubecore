@@ -20,18 +20,18 @@ from HardwareRepository import HardwareRepository as HWR
 
 class FixedEnergy:
     @task
-    def get_energy(self):
+    def get_value(self):
         return self._tunable_bl.energy_obj.get_value()
 
 
 class TunableEnergy:
     @task
-    def get_energy(self):
-        return self._tunable_bl.energy_obj.get_current_energy()
+    def get_value(self):
+        return self._tunable_bl.energy_obj.get_value()
 
     @task
-    def move_energy(self, energy):
-        return self._tunable_bl.energy_obj.move_energy(energy, wait=True)
+    def set_value(self, value):
+        return self._tunable_bl.energy_obj.set_value(value, wait=True)
 
 
 class GetStaticParameters:
@@ -132,7 +132,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
     def escan_prepare(self):
 
         if self.beamsize:
-            bsX = self.beamsize.getCurrentPositionName()
+            bsX = self.beamsize.get_current_position_name()
             self.energy_scan_parameters["beamSizeHorizontal"] = bsX
             self.energy_scan_parameters["beamSizeVertical"] = bsX
 

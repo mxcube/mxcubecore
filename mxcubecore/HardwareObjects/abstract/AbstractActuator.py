@@ -49,6 +49,9 @@ class AbstractActuator(HardwareObject):
         self.read_only = self.getProperty("read_only") or False
         self.default_value = self.getProperty("default_value")
         self.username = self.getProperty("username")
+        if self.read_only:
+            self._nominal_limits = (self.default_value, self.default_value)
+            self._nominal_value = self.default_value
 
     @abc.abstractmethod
     def get_value(self):
@@ -70,8 +73,11 @@ class AbstractActuator(HardwareObject):
         Args:
             limits (tuple): two floats tuple (low limit, high limit).
         """
-        self._nominal_limits = limits
-        self.emit("limitsChanged", (self._nominal_limits,))
+        if self.read_only:
+            raise ValueError("Attempt to set limits for read-only Actuator")
+        else:
+            self._nominal_limits = limits
+            self.emit("limitsChanged", (self._nominal_limits,))
 
     def validate_value(self, value):
         """Check if the value is within limits.
@@ -103,11 +109,11 @@ class AbstractActuator(HardwareObject):
         """
         if self.read_only:
             raise ValueError("Attempt to set value for read-only Actuator")
-        if self.validate_value(value):
+        elif self.validate_value(value):
             self._set_value(value)
-            self.update_value()
             if timeout or timeout is None:
                 self.wait_ready(timeout)
+            self.update_value()
         else:
             raise ValueError("Invalid value %s" % str(value))
 
@@ -116,20 +122,20 @@ class AbstractActuator(HardwareObject):
         Args:
             value: value
         """
-        if value is None or self._nominal_value is None:
+        if value is None:
             value = self.get_value()
 
         self._nominal_value = value
-        self.emit("valueChanged", (self._nominal_value,))
+        self.emit("valueChanged", (value,))
 
     def update_limits(self, limits=None):
         """Check if the limits have changed. Emits signal limitsChanged.
         Args:
             limits (tuple): two floats tuple (low limit, high limit).
         """
-        if limits is None or self._nominal_limits is None:
+        if limits is None:
             limits = self.get_limits()
 
         if all(limits):
             self._nominal_limits = limits
-            self.emit("limitsChanged", (self._nominal_limits,))
+            self.emit("limitsChanged", (limits,))
