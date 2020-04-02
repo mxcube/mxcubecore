@@ -56,6 +56,7 @@ class BeamMockup(AbstractBeam):
             self._beam_size_dict["slits"] = [sx, sy]
 
         self.evaluate_beam_info()
+        self.emit_beam_info_change()
         self.emit("beamPosChanged", (self._beam_position_on_screen,))
 
     def aperture_diameter_changed(self, name, size):
@@ -72,7 +73,7 @@ class BeamMockup(AbstractBeam):
         self._beam_position_on_screen = (beam_x, beam_y)
         self.emit("beamPosChanged", (self._beam_position_on_screen,))
 
-    def get_shape(self):
+    def get_beam_shape(self):
         self.evaluate_beam_info()
         return self._beam_shape
 

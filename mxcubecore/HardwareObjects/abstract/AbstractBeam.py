@@ -79,10 +79,14 @@ class AbstractBeam(AbstractActuator):
 
     @property
     def aperture(self):
+        """
+        """
         return self._aperture
 
     @property
     def slits(self):
+        """
+        """
         return self._slits
 
     @property
@@ -157,6 +161,13 @@ class AbstractBeam(AbstractActuator):
         """
         self._set_value(beam_width, beam_height, beam_shape, beam_label)
         self.update_value()
+
+    def get_beam_shape(self):
+        """
+        Returns:
+            beam_shape: Enum BeamShape
+        """
+        return self._beam_shape
 
     def get_beam_size(self):
         """

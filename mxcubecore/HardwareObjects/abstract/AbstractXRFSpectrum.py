@@ -249,7 +249,7 @@ class AbstractXRFSpectrum(object):
                 ] = HWR.beamline.transmission.get_value()
             self.spectrum_info["energy"] = self.get_current_energy()
             if HWR.beamline.beam is not None:
-                beam_size_hor, beam_size_ver = HWR.beamline.beam.get_size()
+                beam_size_hor, beam_size_ver = HWR.beamline.beam.get_beam_size()
                 self.spectrum_info["beamSizeHorizontal"] = int(beam_size_hor * 1000)
                 self.spectrum_info["beamSizeVertical"] = int(beam_size_ver * 1000)
 
