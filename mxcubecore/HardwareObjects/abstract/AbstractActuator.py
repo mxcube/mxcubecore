@@ -111,9 +111,9 @@ class AbstractActuator(HardwareObject):
             raise ValueError("Attempt to set value for read-only Actuator")
         elif self.validate_value(value):
             self._set_value(value)
-            self.update_value()
             if timeout or timeout is None:
                 self.wait_ready(timeout)
+            self.update_value()
         else:
             raise ValueError("Invalid value %s" % str(value))
 
