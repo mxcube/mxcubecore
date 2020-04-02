@@ -145,8 +145,6 @@ class MotorMockup(AbstractMotor):
 
         Args:
             value (float): target value
-            timeout (float): optional - timeout [s],
-                             If timeout == 0: return at once and do not wait;
         """
         self.update_value(value)
         self.update_state(self.STATES.READY)
