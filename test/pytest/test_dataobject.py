@@ -2,11 +2,6 @@ import os
 import sys
 import jsonschema
 
-TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
-MXCUBE = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
-HWR = os.path.join(MXCUBE, "HardwareRepository")
-sys.path.insert(0, MXCUBE)
-
 from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.utils.dataobject import DataObject
 

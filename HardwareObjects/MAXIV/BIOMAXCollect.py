@@ -1002,7 +1002,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         if HWR.beamline.beam is not None:
-            return HWR.beamline.beam.get_shape()
+            return HWR.beamline.beam.get_beam_shape()
 
     def open_detector_cover(self):
         """
@@ -1355,7 +1355,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         try:
-            return HWR.beamline.beam.get_size()
+            return HWR.beamline.beam.get_beam_size()
         except BaseException:
             return None
 

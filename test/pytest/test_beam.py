@@ -17,11 +17,12 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
+from HardwareRepository.HardwareObjects.abstract.AbstractBeam import BeamShape
+
 
 def test_beam_atributes(beamline):
     assert not beamline.beam is None, "Beamline.Beam objects is None (not initialized)"
 
-    
     beam_div_hor, beam_div_ver = beamline.beam.get_beam_divergence()
     beam_width, beam_height, beam_shape, beam_label = beamline.beam.get_value()
 
@@ -29,4 +30,13 @@ def test_beam_atributes(beamline):
     assert isinstance(beam_div_ver, (int, float)), "Vertical beam divergence has to be int or float"
     assert isinstance(beam_width, (int, float)), "Horizontal beam size has to be int or float"
     assert isinstance(beam_height, (int, float)), "Vertical beam size has to be int or float"
+    assert isinstance(beam_shape, BeamShape), "Beam shape should be defined in BeamShape Enum"
+
+def test_set_get(beamline):
+    beam_shape = beamline.beam.get_beam_shape()
+    assert isinstance(beam_shape, BeamShape), "Beam shape should be defined in BeamShape Enum"
     
+    beam_width, beam_height = beamline.beam.get_beam_size()
+    assert isinstance(beam_width, (int, float)), "Horizontal beam size has to be int or float"
+    assert isinstance(beam_height, (int, float)), "Vertical beam size has to be int or float"
+
