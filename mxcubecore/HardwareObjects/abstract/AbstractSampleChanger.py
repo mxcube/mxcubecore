@@ -598,10 +598,10 @@ class SampleChanger(Container, Equipment):
         Chain the unload of a sample with a load.
 
         Args:
-            sample_to_unload (str): sample address on the form 
-                                    component1:component_N-1:component_N
-            sample_to_load (str): sample address on the form 
-                                  component1:component_N-1:component_N
+            sample_to_unload (tuple): sample address on the form 
+                                      (component1, ... ,component_N-1, component_N)
+            sample_to_load (tuple): sample address on the form 
+                                      (component1, ... ,component_N-1, component_N)
             (Object): Value returned by _execute_task either a Task or result of the
                       operation
         """
@@ -614,8 +614,8 @@ class SampleChanger(Container, Equipment):
         Load a sample.
 
         Args:
-            sample (str): sample address on the form 
-                          component1:component_N-1:component_N
+            sample (tuple): sample address on the form 
+                            (component1, ... ,component_N-1, component_N)
             wait (boolean): True to wait for load to complete False otherwise
             
         Returns
@@ -645,9 +645,8 @@ class SampleChanger(Container, Equipment):
         was loaded from if None is passed
 
         Args:
-            sample_slot (str): sample address on the form 
-                               component1:component_N-1:component_N
-
+            sample_slot (tuple): sample address on the form 
+                               (component1, ... ,component_N-1, component_N)
             wait: If True wait for unload to finish otherwise return immediately
 
         Returns:
