@@ -44,18 +44,16 @@ class AbstractDetector(HardwareObject):
         self._roi_modes_list = []
 
         self._distance_motor_hwobj = None
-        self.width = None  # [pixel]
-        self.height = None  # [pixel]
-        self._det_radius = None
-        self._det_metadata = {}
+        self._width = None  # [pixel]
+        self._height = None  # [pixel]
+        self._radius = None
+        self._metadata = {}
 
     def init(self):
         """Initialise some common paramerters"""
-        self.width = self.getProperty("width")
-        self.height = self.getProperty("height")
 
         try:
-            self._det_metadata = self["beam"]
+            self._metadata = self["beam"]
         except KeyError:
             pass
 
@@ -65,6 +63,8 @@ class AbstractDetector(HardwareObject):
             pass
 
         self._pixel_size = (self.getProperty("px"), self.getProperty("py"))
+        self._width = self.getProperty("width")
+        self._height = self.getProperty("height")
 
     @property
     def distance(self):
@@ -106,7 +106,7 @@ class AbstractDetector(HardwareObject):
         Stops acquisition
         """
 
-    def wait_ready(self):
+    def wait_ready(self, timeout=None):
         """
         Blocks until detector is ready
         """
@@ -175,13 +175,16 @@ class AbstractDetector(HardwareObject):
             tuple(float, float): Beam position x,y coordinates [pixel].
         """
         distance = distance or self._distance_motor_hwobj.get_value()
+        metadata = self.get_metadata()
         try:
-            return (
-                float(distance * self._det_metadata["ax"] + self._det_metadata["bx"]),
-                float(distance * self._det_metadata["ay"] + self._det_metadata["by"]),
+            beam_position = (
+                float(distance * metadata["ax"] + metadata["bx"]),
+                float(distance * metadata["ay"] + metadata["by"]),
             )
         except KeyError:
-            return None, None
+            beam_position = (None, None)
+
+        return beam_position
 
     def get_radius(self, distance=None):
         """Get the detector radius for a given distance.
@@ -192,17 +195,31 @@ class AbstractDetector(HardwareObject):
         """
         distance = distance or self._distance_motor_hwobj.get_value()
         beam_x, beam_y = self.get_beam_position(distance)
-        self._det_radius = min(
-            self.width - beam_x, self.height - beam_y, beam_x, beam_y
+        self._radius = min(
+            self.get_width() - beam_x, self.get_height() - beam_y, beam_x, beam_y
         )
-        return self._det_radius
+        return self._radius
 
     def get_metadata(self):
         """Returns relevant metadata.
         Returns:
             (dict): metadata
         """
-        self._det_metadata["width"] = self.width
-        self._det_metadata["height"] = self.height
+        self._metadata["width"] = self.get_width()
+        self._metadata["height"] = self.get_height()
 
-        return self._det_metadata
+        return self._metadata
+
+    def get_width(self):
+        """Returns detector width.
+        Returns:
+            (int): detector width [px]
+        """
+        return self._width
+
+    def get_height(self):
+        """Returns detector height.
+        Returns:
+            (int): detector height [px]
+        """
+        return self._width
