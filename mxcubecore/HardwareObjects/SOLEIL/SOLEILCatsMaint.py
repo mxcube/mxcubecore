@@ -41,13 +41,13 @@ class SOLEILCatsMaint(Equipment):
     def init(self):
         logging.info("CatsMaint: init")
 
-        tool = self.get_property("tool")
+        tool = self.getProperty("tool")
         if tool in TOOLS:
             self.tool = TOOLS[tool]
         else:
             self.tool = self.default_tool
 
-        soaklid = self.get_property("soak_lid")
+        soaklid = self.getProperty("soak_lid")
         if soaklid is not None:
             self.soaklid = soaklid
         else:
