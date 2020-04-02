@@ -55,7 +55,8 @@ class AbstractDetector(HardwareObject):
         self._binning_mode = 0
         self._roi_mode = 0
         self._roi_modes_list = []
-
+    
+        self._distance_motor_hwobj = None
         self._width = None  # [pixel]
         self._height = None  # [pixel]
         self._radius = None
@@ -68,7 +69,12 @@ class AbstractDetector(HardwareObject):
             self._metadata = self["beam"]
         except KeyError:
             pass
-
+        
+        try:
+            self._distance_motor_hwobj = self.getObjectByRole("detector_distance")	
+        except KeyError:	
+            pass
+        
         self._pixel_size = (self.getProperty("px"), self.getProperty("py"))
         self._width = self.getProperty("width")
         self._height = self.getProperty("height")
@@ -182,13 +188,13 @@ class AbstractDetector(HardwareObject):
         Returns:
             tuple(float, float): Beam position x,y coordinates [pixel].
         """
-        # following is just an example of calculating beam center using
-        # simple linear regression
-        # one needs to overload the method in case more complex calculation
+        # Following is just an example of calculating beam center using
+        # simple linear regression,
+        # One needs to overload the method in case more complex calculation
         # is required, e.g. using other detector positioning motors and
         # wavelength
 
-        distance = distance or HWR.beamline.detector_distance.get_value()
+        distance = distance or self._distance_motor_hwobj.get_value()
         wavelength = wavelength or HWR.beamline.energy.get_wavelength()
         metadata = self.get_metadata()
 
