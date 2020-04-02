@@ -31,8 +31,6 @@ class DetectorMockup(AbstractDetector):
         self._exposure_time_limits = [0.04, 60000]
         self.status = "ready"
 
-        self._distance_motor_hwobj = self.getObjectByRole("detector_distance")
-
     def set_roi_mode(self, roi_mode):
         self._roi_mode = roi_mode
         self.emit("detectorRoiModeChanged", (self._roi_mode,))
@@ -42,9 +40,11 @@ class DetectorMockup(AbstractDetector):
         """
         return True
 
-    def get_beam_position(self, distance=None):
+    def get_beam_position(self, distance=None, wavelength=None):
         """Get approx detector centre """
-        xval, yval = super(DetectorMockup, self).get_beam_position(distance=distance)
+        xval, yval = super(DetectorMockup, self).get_beam_position(
+            distance=distance, wavelength=wavelength
+        )
         if None in (xval, yval):
             # default to Pilatus values
             xval = self.getProperty("width", 2463) / 2.0 + 0.4
