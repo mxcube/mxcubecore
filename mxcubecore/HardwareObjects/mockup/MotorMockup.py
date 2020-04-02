@@ -71,8 +71,6 @@ class MotorMockup(AbstractMotor):
         """
         Simulated motor movement
         """
-        self.update_state(self.STATES.BUSY)
-        self.update_specific_state(self.SPECIFIC_STATES.MOVING)
         start_pos = self.get_value()
 
         if start_pos is not None:
@@ -89,18 +87,8 @@ class MotorMockup(AbstractMotor):
                 val = start_pos + direction * self.get_velocity() * (time.time() - start_time)
                 self.update_value(val)
                 time.sleep(0.02)
-        self.update_value(value)
-
-        self.update_state(self.STATES.READY)
-        _low, _high = self.get_limits()
-        if value == self.default_value:
-            self.update_specific_state(self.SPECIFIC_STATES.HOME)
-        elif  value == _low:
-            self.update_specific_state(self.SPECIFIC_STATES.LOWLIMIT)
-        elif  value == _high:
-            self.update_specific_state(self.SPECIFIC_STATES.HIGHLIMIT)
-        else:
-            self.update_specific_state(None)
+        #
+        return value
 
     def abort(self):
         """Imediately halt movement. By default self.stop = self.abort"""
@@ -114,6 +102,41 @@ class MotorMockup(AbstractMotor):
         """
         return self._nominal_value
 
+    def set_value(self, value, timeout=0):
+        """
+        Set actuator to absolute value.
+
+        This is NOT the recommended way,
+        but for technical reasons overriding is necessary in this particular case
+        Args:
+            value: target value
+            timeout (float): optional - timeout [s],
+                             If timeout == 0: return at once and do not wait (default);
+                             if timeout is None: wait forever.
+        Raises:
+            ValueError: Value not valid or attemp to set write only actuator.
+        """
+        if self.read_only:
+            raise ValueError("Attempt to set value for read-only Actuator")
+        elif self.validate_value(value):
+            self.update_state(self.STATES.BUSY)
+            self.update_specific_state(self.SPECIFIC_STATES.MOVING)
+            if timeout or timeout is None:
+                with gevent.Timeout(
+                    timeout, RuntimeError("Motor %s timed out" % self.username)
+                ):
+                    self._move(value)
+                    self._set_value(value)
+            else:
+                move_task = gevent.spawn(self._move, value)
+                move_task.link(self._callback)
+        else:
+            raise ValueError("Invalid value %s" % str(value))
+
+    def _callback(self, move_task):
+        value = move_task.get()
+        self._set_value(value)
+
     def _set_value(self, value):
         """
         Implementation of specific set actuator logic.
@@ -123,6 +146,15 @@ class MotorMockup(AbstractMotor):
             timeout (float): optional - timeout [s],
                              If timeout == 0: return at once and do not wait;
         """
-        move_task = gevent.spawn(self._move, value)
-        move_task.get()
+        self.update_value(value)
+        self.update_state(self.STATES.READY)
+        _low, _high = self.get_limits()
+        if value == self.default_value:
+            self.update_specific_state(self.SPECIFIC_STATES.HOME)
+        elif  value == _low:
+            self.update_specific_state(self.SPECIFIC_STATES.LOWLIMIT)
+        elif  value == _high:
+            self.update_specific_state(self.SPECIFIC_STATES.HIGHLIMIT)
+        else:
+            self.update_specific_state(None)
 
