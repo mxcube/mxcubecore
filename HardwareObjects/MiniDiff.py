@@ -175,7 +175,7 @@ class MiniDiff(Equipment):
         self.kappaPhiMotor = self.getObjectByRole("kappa_phi")
 
         # mh 2013-11-05:why is the channel read directly? disabled for the moment
-        # HWR.beamline.sample_view.camera.addChannel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
+        # HWR.beamline.sample_view.camera.add_channel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
 
         self.centringPhi = sample_centring.CentringMotor(self.phiMotor, direction=-1)
         self.centringPhiz = sample_centring.CentringMotor(
@@ -412,8 +412,8 @@ class MiniDiff(Equipment):
     def emitDiffractometerMoved(self, *args):
         self.emit("diffractometerMoved", ())
 
-    def isReady(self):
-        return self.isValid() and not any(
+    def is_ready(self):
+        return self.is_valid() and not any(
             [
                 m.motorIsMoving()
                 for m in (
@@ -427,7 +427,7 @@ class MiniDiff(Equipment):
             ]
         )
 
-    def isValid(self):
+    def is_valid(self):
         return (
             self.sampleXMotor is not None
             and self.sampleYMotor is not None
@@ -852,7 +852,7 @@ class MiniDiff(Equipment):
 
     @task
     def moveToCentredPosition(self, centred_position):
-        return self.moveMotors(centred_position.as_dict())
+        return self.move_motors(centred_position.as_dict())
 
     def imageClicked(self, x, y, xi, yi):
         sample_centring.user_click(x, y)
@@ -864,14 +864,14 @@ class MiniDiff(Equipment):
     def accept_centring(self):
         self.centringStatus["valid"] = True
         self.centringStatus["accepted"] = True
-        self.emit("centringAccepted", (True, self.getCentringStatus()))
+        self.emit("centringAccepted", (True, self.get_centring_status()))
 
     def rejectCentring(self):
         if self.current_centring_procedure:
             self.current_centring_procedure.kill()
         self.centringStatus = {"valid": False}
         self.emitProgressMessage("")
-        self.emit("centringAccepted", (False, self.getCentringStatus()))
+        self.emit("centringAccepted", (False, self.get_centring_status()))
 
     def emitCentringMoving(self):
         self.emit("centringMoving", ())
@@ -881,7 +881,7 @@ class MiniDiff(Equipment):
         method = self.currentCentringMethod
         self.currentCentringMethod = None
         self.current_centring_procedure = None
-        self.emit("centringFailed", (method, self.getCentringStatus()))
+        self.emit("centringFailed", (method, self.get_centring_status()))
 
     def emitCentringSuccessful(self):
         if self.current_centring_procedure is not None:
@@ -900,7 +900,7 @@ class MiniDiff(Equipment):
             self.centringStatus["valid"] = True
 
             method = self.currentCentringMethod
-            self.emit("centringSuccessful", (method, self.getCentringStatus()))
+            self.emit("centringSuccessful", (method, self.get_centring_status()))
             self.currentCentringMethod = None
             self.current_centring_procedure = None
         else:
@@ -912,7 +912,7 @@ class MiniDiff(Equipment):
         # logging.getLogger("HWR").debug("%s: %s", self.name(), msg)
         self.emit("progressMessage", (msg,))
 
-    def getCentringStatus(self):
+    def get_centring_status(self):
         return copy.deepcopy(self.centringStatus)
 
     def get_positions(self):
@@ -930,7 +930,7 @@ class MiniDiff(Equipment):
             "zoom": float(self.zoomMotor.get_value()),
         }
 
-    def moveMotors(self, roles_positions_dict):
+    def move_motors(self, roles_positions_dict):
         motor = {
             "phi": self.phiMotor,
             "focus": self.focusMotor,
@@ -954,11 +954,11 @@ class MiniDiff(Equipment):
         time.sleep(1)
 
         while not all(
-            [m.getState() == m.READY for m in motor.values() if m is not None]
+            [m.get_state() == m.READY for m in motor.values() if m is not None]
         ):
             time.sleep(0.1)
 
-    def takeSnapshots(self, image_count, wait=False):
+    def take_snapshots(self, image_count, wait=False):
         HWR.beamline.sample_view.camera.forceUpdate = True
 
         snapshotsProcedure = gevent.spawn(
@@ -993,7 +993,7 @@ class MiniDiff(Equipment):
             self.emit("centringSnapshots", (True,))
             self.emitProgressMessage("")
         self.emitProgressMessage("Sample is centred!")
-        # self.emit('centringAccepted', (True,self.getCentringStatus()))
+        # self.emit('centringAccepted', (True,self.get_centring_status()))
 
     def simulateAutoCentring(self, sample_info=None):
         pass

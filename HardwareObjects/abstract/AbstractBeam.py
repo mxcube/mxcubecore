@@ -100,7 +100,7 @@ class AbstractBeam(AbstractActuator):
         return self._beam_info_dict
 
     def get_beam_divergence(self):
-        """Get the beam dicergence.
+        """Get the beam divergence.
         Returns:
             (tuple): Beam divergence (horizontal, vertical) [μm]
         """
@@ -188,7 +188,8 @@ class AbstractBeam(AbstractActuator):
         """
         return self._beam_info_dict.copy()
 
-    def update_value(self):
+    def update_value(self, value=None):
         """Check if the value has changed. Emist signal valueChanged."""
-        _value = self.get_value()
-        self.emit("valueChanged", (_value))
+        if value is None:
+            value = self.get_value()
+        self.emit("valueChanged", (value,))

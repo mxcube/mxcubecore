@@ -27,26 +27,11 @@ class ID231MultiCollect(ESRFMultiCollect):
         shutterless = data_collect_parameters.get("shutterless")
         self._detector.shutterless = True if shutterless else False
 
-        self.getChannelObject("parameters").setValue(data_collect_parameters)
+        self.get_channel_object("parameters").setValue(data_collect_parameters)
         self.execute_command("build_collect_seq")
         # self.execute_command("local_set_experiment_type")
         self.execute_command("prepare_beamline")
         self.execute_command("musstPX_loadprog")
-
-    @task
-    def move_detector(self, detector_distance):
-        self.bl_control.detector_distance.set_value(detector_distance)
-        while self.bl_control.detector_distance.motorIsMoving():
-            time.sleep(0.5)
-
-    def get_detector_distance(self):
-        return self.bl_control.detector_distance.get_value()
-
-    @task
-    def set_resolution(self, new_resolution):
-        self.bl_control.resolution.set_value(new_resolution, wait=False)
-        while self.bl_control.resolution.motorIsMoving():
-            time.sleep(0.5)
 
     def get_beam_size(self):
         # should be moved to ESRFMultiCollect

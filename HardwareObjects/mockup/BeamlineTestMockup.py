@@ -212,7 +212,7 @@ class BeamlineTestMockup(HardwareObject):
         """Text one"""
         result = {}
 
-        current_energy = HWR.beamline.energy.get_energy()
+        current_energy = HWR.beamline.energy.get_value()
 
         result["result_bit"] = current_energy < 12
         result["result_short"] = "Test passed (energy = %.2f)" % current_energy

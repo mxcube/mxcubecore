@@ -133,7 +133,7 @@ class MetadataManagerClient(object):
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
-    def getState(self):
+    def get_state(self):
         return str(MetadataManagerClient.metadataManager.state())
 
 
@@ -216,7 +216,7 @@ class MXCuBEMetadataClient(object):
                 )
 
                 # First check the state of the device server
-                serverState = self._metadataManagerClient.getState()
+                serverState = self._metadataManagerClient.get_state()
                 if serverState == "RUNNING":
                     # Force end of scan
                     self._metadataManagerClient.end()
@@ -439,7 +439,7 @@ class MXCuBEMetadataClient(object):
         dictMetadata["MX_motors_name"] = motorNames
         dictMetadata["MX_motors_value"] = motorPositions
         # Detector distance
-        distance = self.esrf_multi_collect.get_detector_distance()
+        distance = HWR.beamline.detector.distance.get_value()
         if distance is not None:
             dictMetadata["MX_detectorDistance"] = distance
         # Aperture

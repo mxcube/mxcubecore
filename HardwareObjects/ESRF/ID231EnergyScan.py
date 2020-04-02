@@ -34,9 +34,3 @@ class ID231EnergyScan(ESRFEnergyScan):
     @task
     def execute_energy_scan(self, energy_scan_parameters):
         self.execute_command("executeScan", energy_scan_parameters)
-
-    def canScanEnergy(self):
-        return True
-
-    def canMoveEnergy(self):
-        return self.canScanEnergy()

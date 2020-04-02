@@ -476,7 +476,7 @@ class __HardwareRepositoryClient:
                     hwobj_instance.resolveReferences()
 
                     try:
-                        hwobj_instance._addChannelsAndCommands()
+                        hwobj_instance._add_channels_and_commands()
                     except BaseException:
                         logging.getLogger("HWR").exception(
                             "Error while adding commands and/or channels to Hardware Object %s",
@@ -795,14 +795,14 @@ class __HardwareRepositoryClient:
                 "python module": sys.modules[ho.__module__].__file__,
             }
 
-            if hasattr(ho, "isReady"):
-                d["is ready ?"] = str(ho.isReady())
+            if hasattr(ho, "is_ready"):
+                d["is ready ?"] = str(ho.is_ready())
 
-            if hasattr(ho, "getCommands"):
+            if hasattr(ho, "get_commands"):
                 # hardware object is a command container
                 d["commands"] = {}
 
-                for cmd in ho.getCommands():
+                for cmd in ho.get_commands():
                     if cmd.__class__.__name__ == "SpecCommand":
                         d["commands"][cmd.userName()] = {
                             "type": "spec",
@@ -839,7 +839,7 @@ class __HardwareRepositoryClient:
 
                 d["channels"] = {}
 
-                for chan in ho.getChannels():
+                for chan in ho.get_channels():
                     if chan.__class__.__name__ == "SpecChannel":
                         d["channels"][chan.userName()] = {
                             "type": "spec",

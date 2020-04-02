@@ -27,7 +27,7 @@ _objects:
     - machine_info: mach-info-mockup.xml
     - transmission: transmission-mockup.xml
     - energy: energy-mockup.xml
-    - beam: beam-mockup.xml
+    - beam: beam-info.xml
     - flux: flux-mockup.xml
     - detector: detector-mockup.xml
     - resolution: resolution-mockup.xml
@@ -36,14 +36,14 @@ _objects:
     - fast_shutter: fast-shutter-mockup.xml
     - sample_changer: sample-changer-mockup.xml
     # NBNB TODO remove plate_manipulater and treat as another smaple changer
-    - plate_manipulator: plate-manipulator-mockup.xml
+    - plate_manipulator: plate-manipulator.xml
     - diffractometer: diffractometer-mockup.xml
     - sample_view: sample-view.xml
     - lims: lims-client-mockup.xml
     - queue_manager: queue.xml
     - queue_model: queue-model.xml
     # Procedures:
-    - collect: collect-mockup.xml
+    - collect: mxcollect.xml
     - xrf_spectrum: xrf-spectrum-mockup.xml
     - energy_scan: energyscan-mockup.xml
 #    - imaging: xray-imaging.xml # Only in EMBL as of 201907
@@ -75,7 +75,7 @@ default_acquisition_parameters:
         first_image: 1              # (int)
         overlap: 0
         num_images: 1               # (int)
-        # detector_mode: 1          # Removed as not in practice used.
+        # detector_binning_mode: 1          # Removed as not in practice used.
         inverse_beam: false         # (bool)
         take_dark_current: true     # (bool)
         skip_existing_images: true  # (bool)
@@ -88,6 +88,13 @@ default_acquisition_parameters:
     characterisation:
         # Defaults for chareacterisation. Missing values are taken from default
         osc_range: 1
+        opt_sad: False
+        account_rad_damage: True
+        strategy_complexity: 0
+        max_crystal_vdim: 1.0
+        min_crystal_vdim: 1.0
+        max_crystal_vphi: 1.0
+        min_crystal_vphi: 1.0
 
     advanced:
         # Defaults for 'advanced' acquisition. Missing values are taken from default

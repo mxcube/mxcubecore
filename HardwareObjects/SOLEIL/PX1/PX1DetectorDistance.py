@@ -44,20 +44,20 @@ class PX1DetectorDistance(Device, AbstractMotor):
 
         self.setIsReady(True)
 
-        self.position_chan = self.getChannelObject("position")
-        self.state_chan = self.getChannelObject("state")
+        self.position_chan = self.get_channel_object("position")
+        self.state_chan = self.get_channel_object("state")
         self.stop_command = self.get_command_object("stop")
 
-        self.distance_min_chan = self.getChannelObject("minimum_distance")
+        self.distance_min_chan = self.get_channel_object("minimum_distance")
 
-        self.light_state_chan = self.getChannelObject("light_state")
+        self.light_state_chan = self.get_channel_object("light_state")
         self.light_extract_cmd = self.get_command_object("extract_light")
 
         self.position_chan.connectSignal("update", self.motor_position_changed)
         self.state_chan.connectSignal("update", self.motor_state_changed)
         self.distance_min_chan.connectSignal("update", self.distance_min_changed)
 
-    def isReady(self):
+    def is_ready(self):
         return self.state_value == "STANDBY"
 
     def connectNotify(self, signal):
@@ -70,7 +70,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
         self.setIsReady(True)
 
     def motor_state_changed(self, state=None):
-        state_code = self.getState(state)
+        state_code = self.get_state(state)
 
         if self.state_value not in ["RUNNING", "MOVING"]:
             position = self.position_chan.getValue()
@@ -93,9 +93,9 @@ class PX1DetectorDistance(Device, AbstractMotor):
                 self.old_value = position
 
     def distance_min_changed(self, value=None):
-        self.emit("limitsChanged", (self.getLimits(),))
+        self.emit("limitsChanged", (self.get_limits(),))
 
-    def getState(self, state=None):
+    def get_state(self, state=None):
         if state is None:
             state = str(self.state_chan.getValue())
         else:
@@ -108,7 +108,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
     def get_value(self):
         return self.position_chan.getValue()
 
-    def getLimits(self):
+    def get_limits(self):
         try:
             info = self.position_chan.getInfo()
             max = float(info.max_value)
@@ -118,43 +118,14 @@ class PX1DetectorDistance(Device, AbstractMotor):
             return [-1, 1]
 
     def is_moving(self):
-        self.getState()
+        self.get_state()
         return self.state_value in ["RUNNING", "MOVING"]
 
-    def move(self, position):
-        if not self.check_light(position):
+    def _set_value(self, value):
+        if not self.check_light(value):
             return (False, "Error while trying to extract the light arm!")
 
-        self.position_chan.setValue(position)
-
-    def syncMove(self, position):
-        if not self.check_light(position):
-            return (False, "Error while trying to extract the light arm!")
-
-        self.position_chan.setValue(position)
-
-        while self.is_moving():
-            gevent.sleep(0.03)
-
-    def moveRelative(self, position):
-        target_position = self.get_value() + position
-        if not self.check_light(target_position):
-            return (False, "Error while trying to extract the light arm!")
-
-        self.position_chan.setValue(target_position)
-
-        while self.is_moving():
-            gevent.sleep(0.03)
-
-    def syncMoveRelative(self, position):
-        target_position = self.get_value() + position
-        if not self.check_light(target_position):
-            return (False, "Error while trying to extract the light arm!")
-
-        self.position_chan.setValue(target_position)
-
-        while self.is_moving():
-            gevent.sleep(0.03)
+        self.position_chan.setValue(value)
 
     def getMotorMnemonic(self):
         return self.name()
@@ -164,7 +135,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
         # px1environment sets the distanceMin value used here as a lower limit
         # to avoid collision
 
-        limits = self.getLimits()
+        limits = self.get_limits()
         if None in limits:
             return False
         if position < limits[0]:
@@ -199,4 +170,4 @@ class PX1DetectorDistance(Device, AbstractMotor):
 
 def test_hwo(hwo):
     print(hwo.get_value())
-    print(hwo.getLimits())
+    print(hwo.get_limits())

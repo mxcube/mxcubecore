@@ -30,7 +30,7 @@ class SOLEILEnergyScan(Equipment):
         self._edge = None
         self.doEnergyScan = None
         try:
-            self.defaultWavelengthChannel = self.getChannelObject("default_wavelength")
+            self.defaultWavelengthChannel = self.get_channel_object("default_wavelength")
         except KeyError:
             self.defaultWavelengthChannel = None
         else:
@@ -45,7 +45,7 @@ class SOLEILEnergyScan(Equipment):
         if self.defaultWavelengthChannel is None:
             # MAD beamline
             try:
-                self.energyScanArgs = self.getChannelObject("escan_args")
+                self.energyScanArgs = self.get_channel_object("escan_args")
             except KeyError:
                 logging.getLogger("HWR").warning(
                     "EnergyScan: error initializing energy scan arguments (missing channel)"
@@ -53,7 +53,7 @@ class SOLEILEnergyScan(Equipment):
                 self.energyScanArgs = None
 
             try:
-                self.scanStatusMessage = self.getChannelObject("scanStatusMsg")
+                self.scanStatusMessage = self.get_channel_object("scanStatusMsg")
             except KeyError:
                 self.scanStatusMessage = None
                 logging.getLogger("HWR").warning(
@@ -196,13 +196,13 @@ class SOLEILEnergyScan(Equipment):
         logging.getLogger("HWR").debug("EnergyScan:newScan")
         self.emit("newScan", (scanParameters,))
 
-    # Energy scan commands
-    def canScanEnergy(self):
-        if not self.isConnected():
-            return False
-        if self.energy2WavelengthConstant is None or self.energyScanArgs is None:
-            return False
-        return self.doEnergyScan is not None
+    # # Energy scan commands
+    # def canScanEnergy(self):
+    #     if not self.isConnected():
+    #         return False
+    #     if self.energy2WavelengthConstant is None or self.energyScanArgs is None:
+    #         return False
+    #     return self.doEnergyScan is not None
 
     def startEnergyScan(
         self, element, edge, directory, prefix, session_id=None, blsample_id=None
@@ -231,7 +231,7 @@ class SOLEILEnergyScan(Equipment):
             "edgeEnergy": edge,
         }
         if self.fluodetectorHO is not None:
-            self.scanInfo["fluorescenceDetector"] = self.fluodetectorHO.userName()
+            self.scanInfo["fluorescenceDetector"] = self.fluodetectorHO.username
         if not os.path.isdir(directory):
             logging.getLogger("HWR").debug(
                 "EnergyScan: creating directory %s" % directory
@@ -677,8 +677,6 @@ class SOLEILEnergyScan(Equipment):
         pass
 
     # Move energy commands
-    def canMoveEnergy(self):
-        return self.canScanEnergy()
 
     def get_current_energy(self):
         if HWR.beamline.energy is not None:
@@ -701,8 +699,8 @@ class SOLEILEnergyScan(Equipment):
     def getEnergyLimits(self):
         lims = None
         if HWR.beamline.energy is not None:
-            if HWR.beamline.energy.isReady():
-                lims = HWR.beamline.energy.getLimits()
+            if HWR.beamline.energy.is_ready():
+                lims = HWR.beamline.energy.get_limits()
         return lims
 
     def get_wavelength(self):
@@ -718,7 +716,7 @@ class SOLEILEnergyScan(Equipment):
     def getWavelengthLimits(self):
         limits = None
         if HWR.beamline.energy is not None:
-            if HWR.beamline.energy.isReady():
+            if HWR.beamline.energy.is_ready():
                 limits = HWR.beamline.energy.get_wavelength_limits()
         return limits
 
@@ -741,7 +739,7 @@ class SOLEILEnergyScan(Equipment):
         if value != curr_energy:
             logging.getLogger("HWR").info("Moving energy: checking limits")
             try:
-                lims = HWR.beamline.energy.getLimits()
+                lims = HWR.beamline.energy.get_limits()
             except BaseException:
                 logging.getLogger("HWR").exception(
                     "EnergyScan: couldn't get energy limits"

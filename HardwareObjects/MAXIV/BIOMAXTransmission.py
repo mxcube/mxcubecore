@@ -15,7 +15,7 @@ class BIOMAXTransmission(Equipment):
                 "valueChanged", self.transmissionPositionChanged
             )
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
     def get_value(self):
@@ -24,7 +24,7 @@ class BIOMAXTransmission(Equipment):
     def getAttState(self):
         return 1
 
-    def getLimits(self):
+    def get_limits(self):
         return (0, 100)
 
     def setpoint_reached(self, setpoint):

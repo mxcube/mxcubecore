@@ -454,9 +454,9 @@ class HardwareObjectMixin(CommandContainer):
         Args:
             state (enum 'HardwareObjectState'): state
         """
+        if state is None:
+            state = self.get_state()
         if state != self._state:
-            if state is None:
-                state = self.get_state()
             if state == self.STATES.READY:
                 self._ready_event.set()
             elif not isinstance(state, self.STATES):
@@ -466,6 +466,20 @@ class HardwareObjectMixin(CommandContainer):
 
             self._state = state
             self.emit("stateChanged", (self._state,))
+
+    def update_specific_state(self, state=None):
+        """Check if the specific state has changed. Emits signal stateChanged.
+        Args:
+            state (enum 'HardwareObjectState'): state
+        """
+        if state is None:
+            state = self.get_specific_state()
+        if state != self._specific_state:
+            if not isinstance(state, self.SPECIFIC_STATES):
+                raise ValueError("Attempt to update to illegal specific state: %s" % state)
+
+            self._specific_state = state
+            self.emit("specificStateChanged", (state,))
 
     def update_values(self):
         """Method called from Qt bricks to ensure that bricks have values
@@ -480,6 +494,7 @@ class HardwareObjectMixin(CommandContainer):
            Normaly this method would emit all values
         """
         self.update_state()
+        self.update_specific_state()
 
     # Moved from HardwareObjectNode
     def clear_gevent(self):
@@ -560,6 +575,8 @@ class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
     def __init__(self, rootName):
         HardwareObjectNode.__init__(self, rootName)
         HardwareObjectMixin.__init__(self)
+        self.log = logging.getLogger('HWR').getChild(self.__class__.__name__)
+        self.user_log = logging.getLogger('user_log_level')
 
     def __getstate__(self):
         return self.name()
@@ -628,9 +645,6 @@ class Procedure(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
-    def addCommand(self, *args, **kwargs):
-        return HardwareObject.addCommand(self, *args, **kwargs)
-
     def userName(self):
         uname = self.getProperty("username")
         if uname is None:
@@ -658,11 +672,8 @@ class Device(HardwareObject):
             self.state = Device.NOTREADY
             self.emit("deviceNotReady")
 
-    def isReady(self):
-        return self.state == Device.READY
-
     def is_ready(self):
-        return self.isReady()
+        return self.state == Device.READY
 
     def userName(self):
         uname = self.getProperty("username")
@@ -722,14 +733,14 @@ class Equipment(HardwareObject, DeviceContainer):
     def __deviceReady(self):
         ready = True
         for device in self.getDevices():
-            ready = ready and device.isReady()
+            ready = ready and device.is_ready()
             if not ready:
                 break
 
         if self.__ready != ready:
             self.__ready = ready
 
-            if self.isReady():
+            if self.is_ready():
                 self.emit("equipmentReady")
             else:
                 self.emit("equipmentNotReady")
@@ -739,13 +750,10 @@ class Equipment(HardwareObject, DeviceContainer):
             self.__ready = False
             self.emit("equipmentNotReady")
 
-    def isReady(self):
-        return self.isValid() and self.__ready
-
     def is_ready(self):
-        return self.isReady()
+        return self.is_valid() and self.__ready
 
-    def isValid(self):
+    def is_valid(self):
         return True
 
     def userName(self):

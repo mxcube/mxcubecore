@@ -93,8 +93,7 @@ class BIOMAXMD2(GenericDiffractometer):
     def move_sync_motors(self, motors_dict, wait=False, timeout=None):
         argin = ""
         # print "start moving motors =============", time.time()
-        for motor in motors_dict.keys():
-            position = motors_dict[motor]
+        for motor, position in motors_dict.items():
             if position is None:
                 continue
             name = self.MOTOR_TO_EXPORTER_NAME[motor]
@@ -121,8 +120,10 @@ class BIOMAXMD2(GenericDiffractometer):
             self.beam_position = HWR.beamline.beam.get_beam_position()
             beam_xc = self.beam_position[0]
             beam_yc = self.beam_position[1]
-            self.centring_phiz.moveRelative((y - beam_yc) / float(self.pixelsPerMmZ))
-            self.centring_phiy.moveRelative(
+            self.centring_phiz.set_value_relative(
+                (y - beam_yc) / float(self.pixelsPerMmZ)
+            )
+            self.centring_phiy.set_value_relative(
                 -1 * (x - beam_xc) / float(self.pixelsPerMmY)
             )
         except BaseException:

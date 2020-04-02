@@ -107,7 +107,7 @@ class EDNACharacterisation(AbstractCharacterisation):
         beam = edna_input.getExperimentalCondition().getBeam()
 
         try:
-            transmission = self.collect_obj.get_transmission()
+            transmission = HWR.beamline.transmission.get_value()
             beam.setTransmission(XSDataDouble(transmission))
         except AttributeError:
             import traceback
@@ -118,13 +118,13 @@ class EDNACharacterisation(AbstractCharacterisation):
             logging.getLogger("HWR").debug(traceback.format_exc())
 
         try:
-            wavelength = self.collect_obj.get_wavelength()
+            wavelength = HWR.beamline.energy.get_wavelength()
             beam.setWavelength(XSDataWavelength(wavelength))
         except AttributeError:
             pass
 
         try:
-            beam.setFlux(XSDataFlux(self.collect_obj.get_measured_intensity()))
+            beam.setFlux(XSDataFlux(HWR.beamline.flux.get_value()))
         except AttributeError:
             pass
 

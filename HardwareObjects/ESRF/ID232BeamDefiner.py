@@ -10,8 +10,8 @@ class ID232BeamDefiner(HardwareObject, AbstractNState):
     def __init__(self, *args):
         HardwareObject.__init__(self, *args)
 
-    def userName(self):
-        return self.getProperty("username") or self.name()
+    # def userName(self):
+    #     return self.getProperty("username") or self.name()
 
     def init(self):
         HardwareObject.init(self)
@@ -42,23 +42,23 @@ class ID232BeamDefiner(HardwareObject, AbstractNState):
             self.sizeByName[name] = float(size)
             self.coefByName[name] = float(coef)
 
-    def isReady(self):
+    def is_ready(self):
         return self.controller is not None
 
-    def getState(self):
+    def get_state(self):
         return self.READY
 
-    def getLimits(self):
+    def get_limits(self):
         return (1, len(self.posNames))
 
     def get_value(self):
         try:
-            return self.posNames.index(self.getCurrentPositionName())
+            return self.posNames.index(self.get_current_position_name())
         except ValueError:
             return -1
 
     def _tf_state_updated(self, new_state=None):
-        name = self.getCurrentPositionName()
+        name = self.get_current_position_name()
         self.emit("predefinedPositionChanged", (name, None))
         self.emit("definerPosChanged", (name, (1e6, self.sizeByName.get(name, 1e6))))
 
@@ -68,7 +68,7 @@ class ID232BeamDefiner(HardwareObject, AbstractNState):
     def getPredefinedPositionsList(self):
         return self.posNames
 
-    def getCurrentPositionName(self, *args):
+    def get_current_position_name(self, *args):
         tf1_state = self.controller.tf.status_read()[1].split()
         tf2_state = self.controller.tf2.status_read()[1].split()
 

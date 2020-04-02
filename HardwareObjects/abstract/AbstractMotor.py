@@ -21,6 +21,7 @@
 """Abstract Motor API. Motor states definition"""
 
 import abc
+import math
 from enum import Enum, unique
 from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
@@ -74,7 +75,7 @@ class AbstractMotor(AbstractActuator):
         """
         self._velocity = velocity
 
-    def set_value_relative(self, relative_value, timeout=None):
+    def set_value_relative(self, relative_value, timeout=0):
         """
         Set actuator to relative to the current value
         Args:
@@ -99,6 +100,8 @@ class AbstractMotor(AbstractActuator):
         Returns:
             (bool): True if within the limits
         """
+        if math.isnan(value) or math.isinf(value):
+            return False
         limits = self._nominal_limits
         if None in limits:
             return True

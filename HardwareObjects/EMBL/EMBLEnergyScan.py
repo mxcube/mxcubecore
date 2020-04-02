@@ -71,11 +71,11 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.ready_event = gevent.event.Event()
         self.scan_info = {}
 
-        self.chan_scan_start = self.getChannelObject("energyScanStart")
+        self.chan_scan_start = self.get_channel_object("energyScanStart")
         self.chan_scan_start.connectSignal("update", self.scan_start_update)
-        self.chan_scan_status = self.getChannelObject("energyScanStatus")
+        self.chan_scan_status = self.get_channel_object("energyScanStatus")
         self.chan_scan_status.connectSignal("update", self.scan_status_update)
-        self.chan_scan_error = self.getChannelObject("energyScanError")
+        self.chan_scan_error = self.get_channel_object("energyScanError")
         self.chan_scan_error.connectSignal("update", self.scan_error_update)
 
         self.cmd_scan_abort = self.get_command_object("energyScanAbort")
@@ -156,9 +156,6 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
 
     def isConnected(self):
         return True
-
-    def canScanEnergy(self):
-        return self.isConnected()
 
     def startEnergyScan(
         self,

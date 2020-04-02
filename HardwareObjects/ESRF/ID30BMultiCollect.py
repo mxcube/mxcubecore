@@ -34,45 +34,25 @@ class ID30BMultiCollect(ESRFMultiCollect):
 
         return (None, None)
 
-    def get_measured_intensity(self):
-        return 0
-
     @task
     def get_beam_shape(self):
         return HWR.beamline.beam.get_value()[2].name
 
-    @task
-    def move_detector(self, detector_distance):
-        det_distance = self.getObjectByRole("detector_distance")
-        det_distance.set_value(detector_distance)
-        while det_distance.motorIsMoving():
-            gevent.sleep(0.1)
-
-    @task
-    def set_resolution(self, new_resolution):
-        HWR.beamline.resolution.set_value(new_resolution)
-        while HWR.beamline.resolution.motorIsMoving():
-            gevent.sleep(0.1)
-
     def get_resolution_at_corner(self):
         return HWR.beamline.resolution.get_value_at_corner()
-
-    def get_detector_distance(self):
-        det_distance = self.getObjectByRole("detector_distance")
-        return det_distance.get_value()
 
     def ready(*motors):
         return not any([m.motorIsMoving() for m in motors])
 
     @task
     def move_motors(self, motors_to_move_dict):
+        # We do not want to modify the input dict
+        motor_positions_copy = motors_to_move_dict.copy()
         diffr = HWR.beamline.diffractometer
-        try:
-            motors_to_move_dict.pop("kappa")
-            motors_to_move_dict.pop("kappa_phi")
-        except BaseException:
-            pass
-        diffr.moveSyncMotors(motors_to_move_dict, wait=True, timeout=200)
+        for tag in ("kappa", "kappa_phi"):
+            if tag in motor_positions_copy:
+                del motor_positions_copy[tag]
+        diffr.move_sync_motors(motors_to_move_dict, wait=True, timeout=200)
 
     @task
     def take_crystal_snapshots(self, number_of_snapshots):
@@ -81,11 +61,11 @@ class ID30BMultiCollect(ESRFMultiCollect):
                 number_of_snapshots = 1
         else:
             # this has to be done before each chage of phase
-            HWR.beamline.diffractometer.getCommandObject("save_centring_positions")()
+            HWR.beamline.diffractometer.get_command_object("save_centring_positions")()
             # not going to centring phase if in plate mode (too long)
             HWR.beamline.diffractometer.moveToPhase("Centring", wait=True, timeout=200)
 
-        HWR.beamline.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
+        HWR.beamline.diffractometer.take_snapshots(number_of_snapshots, wait=True)
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
@@ -96,7 +76,7 @@ class ID30BMultiCollect(ESRFMultiCollect):
         # send again the command as MD2 software only handles one
         # centered position!!
         # has to be where the motors are and before changing the phase
-        # diffr.getCommandObject("save_centring_positions")()
+        # diffr.get_command_object("save_centring_positions")()
 
         # move to DataCollection phase
         logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
@@ -186,12 +166,6 @@ class ID30BMultiCollect(ESRFMultiCollect):
         self.mesh_total_nb_frames = total_nb_frames
         self.mesh_range = mesh_range_param
         self.mesh_center = mesh_center_param
-
-    def set_transmission(self, transmission):
-        self.getObjectByRole("transmission").set_value(transmission)
-
-    def get_transmission(self):
-        return self.getObjectByRole("transmission").get_value()
 
     def get_cryo_temperature(self):
         return 0

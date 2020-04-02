@@ -45,13 +45,11 @@ class FixedEnergy:
 class TunableEnergy:
     @task
     def set_wavelength(self, wavelength):
-        energy_obj = HWR.beamline.energy
-        return energy_obj.startMoveWavelength(wavelength)
+        return HWR.beamline.energy.set_wavelength(wavelength)
 
     @task
     def set_energy(self, energy):
-        energy_obj = HWR.beamline.energy
-        return energy_obj.move_energy(energy)
+        return HWR.beamline.energy.set_value(energy)
 
     def get_energy(self):
         return HWR.beamline.energy.get_energy()
@@ -67,10 +65,10 @@ class TunableEnergy:
 #     def init(self, config, collect_obj):
 #         self.collect_obj = collect_obj
 #         if self._detector:
-#             self._detector.addChannel = self.addChannel
+#             self._detector.add_channel = self.add_channel
 #             self._detector.add_command = self.add_command
-#             self._detector.getChannelObject = self.getChannelObject
-#             self._detector.getCommandObject = self.getCommandObject
+#             self._detector.get_channel_object = self.get_channel_object
+#             self._detector.get_command_object = self.get_command_object
 #             self._detector.init(config, collect_obj)
 
 #     @task
@@ -103,7 +101,7 @@ class TunableEnergy:
 #                 trigger_mode,
 #             )
 #         else:
-#             self.getChannelObject("take_dark").setValue(take_dark)
+#             self.get_channel_object("take_dark").setValue(take_dark)
 #             self.execute_command(
 #                 "prepare_acquisition",
 #                 take_dark,
@@ -125,13 +123,13 @@ class TunableEnergy:
 #                 frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
 #             )
 #         else:
-#             self.getCommandObject("prepare_acquisition").executeCommand(
+#             self.get_command_object("prepare_acquisition").executeCommand(
 #                 'setMxCollectPars("current_phi", %f)' % start
 #             )
-#             self.getCommandObject("prepare_acquisition").executeCommand(
+#             self.get_command_object("prepare_acquisition").executeCommand(
 #                 'setMxCurrentFilename("%s")' % filename
 #             )
-#             self.getCommandObject("prepare_acquisition").executeCommand(
+#             self.get_command_object("prepare_acquisition").executeCommand(
 #                 "ccdfile(COLLECT_SEQ, %d)" % frame_number, wait=True
 #             )
 
@@ -189,7 +187,7 @@ class TunableEnergy:
 #         if self._detector:
 #             self._detector.stop()
 #         else:
-#             self.getCommandObject("reset_detector").abort()
+#             self.get_command_object("reset_detector").abort()
 #             self.execute_command("reset_detector")
 
 
@@ -206,10 +204,10 @@ class TunableEnergy:
 #     def init(self, config, collect_obj):
 #         self.collect_obj = collect_obj
 #         if self._detector:
-#             self._detector.addChannel = self.addChannel
+#             self._detector.add_channel = self.add_channel
 #             self._detector.add_command = self.add_command
-#             self._detector.getChannelObject = self.getChannelObject
-#             self._detector.getCommandObject = self.getCommandObject
+#             self._detector.get_channel_object = self.get_channel_object
+#             self._detector.get_command_object = self.get_command_object
 #             self._detector.init(config, collect_obj)
 
 #     def last_image_saved(self):
@@ -285,13 +283,13 @@ class TunableEnergy:
 #                 frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
 #             )
 #         else:
-#             self.getCommandObject("prepare_acquisition").executeCommand(
+#             self.get_command_object("prepare_acquisition").executeCommand(
 #                 'setMxCollectPars("current_phi", %f)' % start
 #             )
-#             self.getCommandObject("prepare_acquisition").executeCommand(
+#             self.get_command_object("prepare_acquisition").executeCommand(
 #                 'setMxCurrentFilename("%s")' % filename
 #             )
-#             self.getCommandObject("prepare_acquisition").executeCommand(
+#             self.get_command_object("prepare_acquisition").executeCommand(
 #                 "ccdfile(COLLECT_SEQ, %d)" % frame_number, wait=True
 #             )
 
@@ -374,7 +372,7 @@ class TunableEnergy:
 #         if self._detector:
 #             self._detector.stop()
 #         else:
-#             self.getCommandObject("reset_detector").abort()
+#             self.get_command_object("reset_detector").abort()
 #             self.execute_command("reset_detector")
 
 
@@ -399,7 +397,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def execute_command(self, command_name, *args, **kwargs):
         wait = kwargs.get("wait", True)
-        cmd_obj = self.getCommandObject(command_name)
+        cmd_obj = self.get_command_object(command_name)
         return cmd_obj(*args, wait=wait)
 
     def init(self):
@@ -463,7 +461,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     @task
     def take_crystal_snapshots(self, number_of_snapshots):
-        HWR.beamline.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
+        HWR.beamline.diffractometer.take_snapshots(number_of_snapshots, wait=True)
 
     @task
     def data_collection_hook(self, data_collect_parameters):
@@ -535,23 +533,12 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         else:
             return self.execute_command("do_oscillation", start, end, exptime, npass)
 
-    @task
-    def set_transmission(self, transmission_percent):
-        HWR.beamline.transmission.set_value(transmission_percent)
 
     def set_wavelength(self, wavelength):
         return self._tunable_bl.set_wavelength(wavelength)
 
     def set_energy(self, energy):
         return self._tunable_bl.set_energy(energy)
-
-    @task
-    def set_resolution(self, new_resolution):
-        return
-
-    @task
-    def move_detector(self, detector_distance):
-        return
 
     @task
     def data_collection_cleanup(self):
@@ -570,23 +557,25 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     @task
     def move_motors(self, motor_position_dict):
-        for motor in motor_position_dict.keys():  # iteritems():
-            position = motor_position_dict[motor]
+        # We do not wnta to modify the input dict
+        motor_positions_copy = motor_position_dict.copy()
+        for motor in motor_positions_copy.keys():  # iteritems():
+            position = motor_positions_copy[motor]
             if isinstance(motor, string_types):
                 # find right motor object from motor role in diffractometer obj.
                 motor_role = motor
                 motor = HWR.beamline.diffractometer.getDeviceByRole(motor_role)
-                del motor_position_dict[motor_role]
+                del motor_positions_copy[motor_role]
                 if motor is None:
                     continue
-                motor_position_dict[motor] = position
+                motor_positions_copy[motor] = position
 
             logging.getLogger("HWR").info(
                 "Moving motor '%s' to %f", motor.getMotorMnemonic(), position
             )
-            motor.move(position)
+            motor.set_value(position)
 
-        while any([motor.motorIsMoving() for motor in motor_position_dict]):
+        while any([motor.motorIsMoving() for motor in motor_positions_copy]):
             logging.getLogger("HWR").info("Waiting for end of motors motion")
             time.sleep(0.02)
 
@@ -800,15 +789,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def get_wavelength(self):
         return self._tunable_bl.get_wavelength()
 
-    def get_detector_distance(self):
-        return
-
-    def get_resolution(self):
-        return HWR.beamline.resolution.get_value()
-
-    def get_transmission(self):
-        return HWR.beamline.transmission.get_value()
-
     def get_undulators_gaps(self):
         all_gaps = {"Unknown": None}
         _gaps = {}
@@ -844,12 +824,12 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def get_beam_shape(self):
         return self.execute_command("get_beam_shape")
 
-    def get_measured_intensity(self):
-        try:
-            val = self.getChannelObject("image_intensity").getValue()
-            return float(val)
-        except BaseException:
-            return 0
+    # def get_measured_intensity(self):
+    #     try:
+    #         val = self.get_channel_object("image_intensity").getValue()
+    #         return float(val)
+    #     except BaseException:
+    #         return 0
 
     def get_machine_current(self):
         if HWR.beamline.machine_info:
@@ -884,7 +864,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                 return T
 
     def get_current_energy(self):
-        return self._tunable_bl.get_energy()
+        return self._tunable_bl.get_value()
 
     def get_beam_centre(self):
         return (
@@ -899,7 +879,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def isConnected(self):
         return True
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
     def sampleChangerHO(self):
@@ -923,11 +903,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def store_image_in_lims(self, frame, first_frame, last_frame):
         if first_frame or last_frame:
             return True
-
-    def get_flux(self):
-        return 0
-
-    #       return HWR.beamline.flux.get_value()
 
     @task
     def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
@@ -1005,10 +980,10 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         return []
 
     def set_helical(self, helical_on):
-        self.getChannelObject("helical").setValue(1 if helical_on else 0)
+        self.get_channel_object("helical").setValue(1 if helical_on else 0)
 
     def set_helical_pos(self, helical_oscil_pos):
-        self.getChannelObject("helical_pos").setValue(helical_oscil_pos)
+        self.get_channel_object("helical_pos").setValue(helical_oscil_pos)
 
     def get_archive_directory(self, directory):
         pt = PathTemplate()

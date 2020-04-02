@@ -111,7 +111,7 @@ class SpecShell(Equipment):
     def isConnected(self):
         return self.specConnection is not None and self.specConnection.isSpecConnected()
 
-    def isReady(self):
+    def is_ready(self):
         return self.isSpecReady
 
     def isRunning(self):
@@ -207,7 +207,7 @@ class SpecShell(Equipment):
         self.commandRunning = False
         self.emit("aborted", ())
 
-    def executeCommand(self, command):
+    def execute_command(self, command):
         try:
             self.specShellCommand.executeCommand(command)
         except SpecClient.SpecClientError.SpecClientError as diag:

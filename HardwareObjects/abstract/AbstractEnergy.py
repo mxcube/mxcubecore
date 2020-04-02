@@ -64,7 +64,7 @@ class AbstractEnergy(AbstractActuator):
     def get_wavelength(self):
         """Read the wavelength
         Returns:
-            (float): Wavelength [Å]
+            (float): Wavelength [Å].
         """
         self._wavelength_value = self._calculate_wavelength(self.get_value())
         return self._wavelength_value
@@ -72,12 +72,9 @@ class AbstractEnergy(AbstractActuator):
     def get_wavelength_limits(self):
         """Return wavelength low and high limits.
         Returns:
-            (tuple): two floats tuple (low limit, high limit).
+            (tuple): two floats tuple (low limit, high limit) [Å].
         """
-        if self.read_only:
-            _low, _high = (self.default_value, self.default_value)
-        else:
-            _low, _high = self._nominal_limits
+        _low, _high = self.get_limits()
         self._wavelength_limits = (
             self._calculate_wavelength(_low),
             self._calculate_wavelength(_high),
@@ -125,10 +122,11 @@ class AbstractEnergy(AbstractActuator):
             value: Not used, but kept in the method signature.
         """
 
-        if self._nominal_value is None:
-            self._nominal_value = self.get_value()
+        if value is None:
+            value = self.get_value()
+        self._nominal_value = value
 
         if not self._wavelength_value:
-            self._wavelength_value = self._calculate_wavelength(self._nominal_v_value)
-        self.emit("energyChanged", (self._nominal_v_value, self._wavelength_value))
-        self.emit("valueChanged", (self._nominal_value,))
+            self._wavelength_value = self._calculate_wavelength(value)
+        self.emit("energyChanged", (value, self._wavelength_value))
+        self.emit("valueChanged", (value,))

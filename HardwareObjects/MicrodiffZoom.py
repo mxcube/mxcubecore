@@ -17,60 +17,36 @@
 #
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+"""
+MicrodiffZoom
 
-"""Zoom as Expoorter motor"""
+Example xml file:
+<device class="MicrodiffZoom">
+  <username>zoom</username>
+  <exporter_address>wid30bmd2s:9001</exporter_address>
+  <value_channel_name>CoaxialCameraZoomValue</value_channel_name>
+  <state_channel_name>ZoomState</state_channel_name>
+</device>
+"""
 
-from HardwareRepository.HardwareObjects.ExporterMotor import ExporterMotor
+
+from enum import Enum
+from HardwareRepository.HardwareObjects.abstract.AbstractNState import BaseValueEnum
+from HardwareRepository.HardwareObjects.ExporterNState import ExporterNState
+
+__copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
 
-class MicrodiffZoom(ExporterMotor):
+class MicrodiffZoom(ExporterNState):
     """MicrodiffZoom class"""
-
     def __init__(self, name):
-        ExporterMotor.__init__(self, name)
-        self.predefined_positions = {}
-        self._exporter = None
-        self._limits = None
-        self.position_channel = None
-        self.motor_state = None
+        ExporterNState.__init__(self, name)
 
     def init(self):
         """Initialize the zoom"""
-        ExporterMotor.init(self)
-        _exporter_address = self.getProperty("exporter_address")
-        self.position_channel = self.add_channel(
-            {
-                "type": "exporter",
-                "exporter_address": _exporter_address,
-                "name": "zoom_position",
-            },
-            "CoaxialCameraZoomValue",
-        )
-        if self.position_channel:
-            self.get_value()
-            self.position_channel.connectSignal("update", self.update_value)
+        ExporterNState.init(self)
 
-        self.motor_state = self.add_channel(
-            {
-                "type": "exporter",
-                "exporter_address": _exporter_address,
-                "name": "zoom_state",
-            },
-            "State",
-        )
-
-        if self.motor_state:
-            self.motor_state.connectSignal("update", self._update_state)
-
-        _low, _high = self.get_limits()
-        for _idx in range(_low, _high + 1):
-            self.predefined_positions["Zoom %s" % _idx] = _idx
-
-    def get_limits(self):
-        """Returns zoom low and high limits.
-        Returns:
-            (tuple): two int tuple (low limit, high limit).
-        """
         try:
             _low, _high = self._exporter.execute("getZoomRange")
             # inf is a problematic value
@@ -80,21 +56,35 @@ class MicrodiffZoom(ExporterMotor):
             if _high == float("inf"):
                 _high = 10
 
-            self._limits = (_low, _high)
+            self.set_limits((_low, _high))
         except ValueError:
-            self._limits = (1, 10)
-        return self._limits
+            self.set_limits((1, 10))
 
-    def set_value(self, value, wait=False, timeout=None):
-        """Move motor to absolute value. Wait the move to finish.
+        self.initialise_values()
+
+    def set_limits(self, limits=(None, None)):
+        """Set the low and high limits.
         Args:
-            value (float): target value
-            wait (bool): optional - wait until motor movement finished.
-            timeout (float): optional - timeout [s].
+            limits (tuple): two element (low limit, high limit) tuple.
         """
-        self._set_value(value)
-        self.update_value(value)
-        self.update_state()
+        self._nominal_limits = limits
 
-        if wait:
-            self.wait_ready(timeout)
+    def get_limits(self):
+        """Returns zoom low and high limits.
+        Returns:
+            (tuple): two int tuple (low limit, high limit).
+        """
+        return self._nominal_limits
+
+    def initialise_values(self):
+        """Initialise the ValueEnum """
+        low, high = self.get_limits()
+
+        values = {
+            "LEVEL%s" % str(v): v
+            for v in range(low, high + 1)
+        }
+        self.VALUES = Enum(
+            "ValueEnum",
+            dict(values, **{item.name: item.value for item in BaseValueEnum}),
+        )

@@ -27,7 +27,7 @@ _objects:
     #- machine_info: mach-info-mockup.xml
     #- transmission: attenuators-mockup.xml
     - energy: energy-mockup.xml
-    - beam: beam-mockup.xml
+    #- beam: beam-info.xml
     #- flux: flux-mockup.xml
     - detector: detector-mockup.xml
     #- resolution: resolution-mockup.xml
@@ -76,7 +76,7 @@ default_acquisition_parameters:
         first_image: 1              # (int)
         overlap: 0
         num_images: 1               # (int)
-        # detector_mode: 1          # Removed as not in practice used.
+        # detector_binning_mode: 1          # Removed as not in practice used.
         inverse_beam: false         # (bool)
         take_dark_current: true     # (bool)
         skip_existing_images: true  # (bool)

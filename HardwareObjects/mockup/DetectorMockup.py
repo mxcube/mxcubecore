@@ -24,8 +24,8 @@ class DetectorMockup(AbstractDetector):
         AbstractDetector.init(self)
 
         # self.distance = 500
-        self.temperature = 25
-        self.humidity = 60
+        self._temperature = 25
+        self._humidity = 60
         self.actual_frame_rate = 50
         self._roi_modes_list = ("0", "C2", "C16")
         self._roi_mode = 0
@@ -34,35 +34,29 @@ class DetectorMockup(AbstractDetector):
 
         self._distance_motor_hwobj = self.getObjectByRole("detector_distance")
 
-    def get_distance(self):
-        return self._distance_motor_hwobj.get_value()
-
-    def set_distance(self, position, timeout=None):
-        self._distance_motor_hwobj.set_value(position, wait=True)
-
-    def get_distance_limits(self):
-        return [100, 1000]
-
     def set_roi_mode(self, roi_mode):
-        self.roi_mode = roi_mode
-        self.emit("detectorModeChanged", (self.roi_mode,))
+        self._roi_mode = roi_mode
+        self.emit("detectorModeChanged", (self._roi_mode,))
 
     def has_shutterless(self):
         """Returns always True
         """
         return True
 
-    def get_beam_centre(self):
-        """Get approx detector centre (default to Pilatus values)"""
-        xval = self.getProperty("width", 2463) / 2.0 + 0.4
-        yval = self.getProperty("height", 2527) / 2.0 + 0.4
+    def get_beam_position(self, distance=None):
+        """Get approx detector centre """
+        xval, yval = super(DetectorMockup, self).get_beam_position(distance=distance)
+        if None in (xval, yval):
+            # default to Pilatus values
+            xval = self.getProperty("width", 2463) / 2.0 + 0.4
+            yval = self.getProperty("height", 2527) / 2.0 + 0.4
         return xval, yval
 
     def update_values(self):
-        self.emit("detectorModeChanged", (self.roi_mode,))
-        self.emit("temperatureChanged", (self.temperature, True))
-        self.emit("humidityChanged", (self.humidity, True))
-        self.emit("expTimeLimitsChanged", (self.exposure_time_limits,))
+        self.emit("detectorModeChanged", (self._roi_mode,))
+        self.emit("temperatureChanged", (self._temperature, True))
+        self.emit("humidityChanged", (self._humidity, True))
+        self.emit("expTimeLimitsChanged", (self._exposure_time_limits,))
         self.emit("frameRateChanged", self.actual_frame_rate)
         self.emit("statusChanged", (self.status, "Ready"))
 

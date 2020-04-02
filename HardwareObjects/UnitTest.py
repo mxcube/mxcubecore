@@ -40,7 +40,7 @@ class TestMethods(unittest.TestCase):
     def test_get_value(self):
         logging.getLogger("HWR").debug("UnitTest: Testing return values...")
         self.assertIn(
-            type(BEAMLINE.energy.get_energy()),
+            type(BEAMLINE.energy.get_value()),
             (float, int),
             "Energy hwobj | get_current_energy() returns float",
         )
@@ -72,7 +72,7 @@ class TestMethods(unittest.TestCase):
     def test_get_limits(self):
         logging.getLogger("HWR").debug("UnitTest: Testing limits...")
         self.assertIsInstance(
-            BEAMLINE.energy.get_energy_limits(),
+            BEAMLINE.energy.get_limits(),
             list,
             "Energy hwobj | get_energy_limits() returns list with two floats",
         )

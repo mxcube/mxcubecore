@@ -61,13 +61,13 @@ class CatsBessy(SampleChanger):
         self._selected_sample = 1
         self._selected_basket = 1
 
-        self._state = self.getChannelObject("_state")
+        self._state = self.get_channel_object("_state")
         self._abort = self.get_command_object("_abort")
 
         self._basketChannels = []
         for basket_index in range(CatsBessy.NO_OF_BASKETS):
             self._basketChannels.append(
-                self.addChannel(
+                self.add_channel(
                     {
                         "type": "tango",
                         "name": "di_basket",
@@ -78,7 +78,7 @@ class CatsBessy(SampleChanger):
                 )
             )
 
-        self._lidStatus = self.addChannel(
+        self._lidStatus = self.add_channel(
             {
                 "type": "tango",
                 "name": "di_AllLidsClosed",
@@ -112,7 +112,7 @@ class CatsBessy(SampleChanger):
             {"type": "tango", "name": "abort", "tangoname": self.tangoname}, "abort"
         )
 
-        self._numSampleOnDiff = self.addChannel(
+        self._numSampleOnDiff = self.add_channel(
             {
                 "type": "tango",
                 "name": "NumSampleOnDiff",
@@ -121,7 +121,7 @@ class CatsBessy(SampleChanger):
             },
             "NumSampleOnDiff",
         )
-        self._lidSampleOnDiff = self.addChannel(
+        self._lidSampleOnDiff = self.add_channel(
             {
                 "type": "tango",
                 "name": "LidSampleOnDiff",
@@ -130,7 +130,7 @@ class CatsBessy(SampleChanger):
             },
             "LidSampleOnDiff",
         )
-        self._barcode = self.addChannel(
+        self._barcode = self.add_channel(
             {
                 "type": "tango",
                 "name": "Barcode",
@@ -139,7 +139,7 @@ class CatsBessy(SampleChanger):
             },
             "Barcode",
         )
-        self._pathRunning = self.addChannel(
+        self._pathRunning = self.add_channel(
             {
                 "type": "tango",
                 "name": "PathRunning",
@@ -295,7 +295,7 @@ class CatsBessy(SampleChanger):
             state = self._readState()
         except BaseException:
             state = SampleChangerState.Unknown
-        if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
+        if state == SampleChangerState.Moving and self._isDeviceBusy(self.get_state()):
             return
         if self._scIsCharging and not (state == SampleChangerState.Alarm):
             state = SampleChangerState.Charging

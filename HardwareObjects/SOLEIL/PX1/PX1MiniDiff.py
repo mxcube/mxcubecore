@@ -52,7 +52,7 @@ class PX1MiniDiff(GenericDiffractometer):
         if self.px1env_ho.isPhaseVisuSample():
             t0 = time.time()
             while True:
-                env_state = self.px1env_ho.getState()
+                env_state = self.px1env_ho.get_state()
                 if env_state != "RUNNING" and self.px1env_ho.isPhaseVisuSample():
                     break
                 if time.time() - t0 > timeout:
@@ -173,7 +173,7 @@ class PX1MiniDiff(GenericDiffractometer):
                 # if 3 click centring move -180
                 # if not self.in_plate_mode():
                 # self.wait_device_ready()
-                # self.motor_hwobj_dict['phi'].syncMoveRelative(-180)
+                # self.motor_hwobj_dict['phi'].set_value_relative(-180, timeout=None)
 
             if (
                 self.current_centring_method
@@ -200,7 +200,7 @@ class PX1MiniDiff(GenericDiffractometer):
 
     def move_omega_relative(self, relative_pos):
         omega_mot = self.motor_hwobj_dict.get("phi")
-        omega_mot.syncMoveRelative(relative_pos)
+        omega_mot.set_value_relative(relative_pos, timeout=None)
 
     def move_motors(self, motor_positions, timeout=15):
         """
@@ -215,30 +215,33 @@ class PX1MiniDiff(GenericDiffractometer):
         )
 
         if isinstance(motor_positions, CentredPosition):
-            motor_positions = motor_positions.as_dict()
+            motor_positions_copy = motor_positions.as_dict()
+        else:
+            # We do not want ot modify teh input dict
+            motor_positions_copy = motor_positions.copy()
 
         logging.getLogger("HWR").debug(
-            "MiniDiff moving motors. %s" % str(motor_positions)
+            "MiniDiff moving motors. %s" % str(motor_positions_copy)
         )
 
         self.wait_device_ready(timeout)
         logging.getLogger("HWR").debug("   now ready to move them")
-        for motor in motor_positions.keys():
-            position = motor_positions[motor]
+        for motor in motor_positions_copy.keys():
+            position = motor_positions_copy[motor]
             if type(motor) in (str, unicode):
                 motor_role = motor
                 motor = self.motor_hwobj_dict.get(motor_role)
-                del motor_positions[motor_role]
+                del motor_positions_copy[motor_role]
                 if None in (motor, position):
                     continue
-                motor_positions[motor] = position
+                motor_positions_copy[motor] = position
 
             logging.getLogger("HWR").debug(
                 "  / moving motor. %s to %s" % (motor.name(), position)
             )
             self.wait_device_ready(timeout)
             try:
-                motor.syncMove(position)
+                motor.set_value(position, timeout=None)
             except BaseException:
                 import traceback
 

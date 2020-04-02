@@ -12,7 +12,7 @@ class BIOMAXAperture(MicrodiffAperture):
 
     def init(self):
         MicrodiffAperture.init(self)
-        self.aperture_position = self.addChannel(
+        self.aperture_position = self.add_channel(
             {"type": "exporter", "name": "AperturePosition"}, "AperturePosition"
         )
         if self.aperture_position is not None:
@@ -38,7 +38,7 @@ class BIOMAXAperture(MicrodiffAperture):
                 )
             except BaseException:
                 logging.getLogger("HWR").exception(
-                    "Cannot move motor %s: invalid position name.", str(self.userName())
+                    "Cannot move motor %s: invalid position name.", str(self.username)
                 )
             if self.aperture_position.getValue() != "BEAM":
                 self.aperture_position.setValue("BEAM")

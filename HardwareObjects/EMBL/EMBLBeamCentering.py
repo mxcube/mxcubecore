@@ -67,19 +67,19 @@ class EMBLBeamCentering(HardwareObject):
         self.scale_ver = self.getProperty("scale_ver")
         self.scale_double_hor = self.getProperty("scale_double_hor")
         self.scale_double_ver = self.getProperty("scale_double_ver")
-        self.chan_pitch_scan_status = self.getChannelObject("chanPitchScanStatus")
+        self.chan_pitch_scan_status = self.get_channel_object("chanPitchScanStatus")
         self.connect(
             self.chan_pitch_scan_status, "update", self.pitch_scan_status_changed
         )
 
-        # self.chan_qbpm_ar = self.getChannelObject("chanQBPMAr")
+        # self.chan_qbpm_ar = self.get_channel_object("chanQBPMAr")
 
-        self.chan_pitch_position_ar = self.getChannelObject("chanPitchPositionAr")
-        self.cmd_set_pitch_position = self.getCommandObject("cmdSetPitchPosition")
-        self.cmd_set_pitch = self.getCommandObject("cmdSetPitch")
-        self.cmd_start_pitch_scan = self.getCommandObject("cmdStartPitchScan")
-        self.cmd_set_vmax_pitch = self.getCommandObject("cmdSetVMaxPitch")
-        self.cmd_set_qbmp_range = self.getCommandObject("cmdQBPMRangeSet")
+        self.chan_pitch_position_ar = self.get_channel_object("chanPitchPositionAr")
+        self.cmd_set_pitch_position = self.get_command_object("cmdSetPitchPosition")
+        self.cmd_set_pitch = self.get_command_object("cmdSetPitch")
+        self.cmd_start_pitch_scan = self.get_command_object("cmdStartPitchScan")
+        self.cmd_set_vmax_pitch = self.get_command_object("cmdSetVMaxPitch")
+        self.cmd_set_qbmp_range = self.get_command_object("cmdQBPMRangeSet")
 
         self.horizontal_motor_hwobj = self.getObjectByRole("horizontal_motor")
         self.vertical_motor_hwobj = self.getObjectByRole("vertical_motor")
@@ -90,7 +90,7 @@ class EMBLBeamCentering(HardwareObject):
             "vertical_double_mode_motor"
         )
 
-        # self.chan_pitch_second = self.getChannelObject("chanPitchSecond")
+        # self.chan_pitch_second = self.get_channel_object("chanPitchSecond")
         self.crl_hwobj = self.getObjectByRole("crl")
         self.connect(HWR.beamline.energy, "beamAlignmentRequested", self.center_beam)
 
@@ -334,7 +334,7 @@ class EMBLBeamCentering(HardwareObject):
                 gui_log.info("Beam centering: %s" % log_msg)
                 self.emit("progressStep", step, log_msg)
 
-                if HWR.beamline.energy.get_energy() <= 8.75:
+                if HWR.beamline.energy.get_value() <= 8.75:
                     self.cmd_set_qbmp_range(0)
                 else:
                     self.cmd_set_qbmp_range(1)
@@ -426,7 +426,7 @@ class EMBLBeamCentering(HardwareObject):
                         self.cmd_set_pitch(1)
                         gevent.sleep(0.1)
 
-                        if HWR.beamline.energy.get_energy() < 10:
+                        if HWR.beamline.energy.get_value() < 10:
                             crl_value = self.crl_hwobj.get_crl_value()
                             self.crl_hwobj.set_crl_value([1, 1, 1, 1, 1, 1], timeout=30)
 
@@ -446,7 +446,7 @@ class EMBLBeamCentering(HardwareObject):
                         self.cmd_set_vmax_pitch(1)
 
                         # GB : return original lenses only after scan finished
-                        if HWR.beamline.energy.get_energy() < 10:
+                        if HWR.beamline.energy.get_value() < 10:
                             self.crl_hwobj.set_crl_value(crl_value, timeout=30)
                         sleep(2)
 
@@ -464,7 +464,7 @@ class EMBLBeamCentering(HardwareObject):
                         delta_hor = (
                             beam_pos_displacement[0]
                             * self.scale_hor
-                            * HWR.beamline.energy.get_energy()
+                            * HWR.beamline.energy.get_value()
                             / 12.70
                         )
                         delta_ver = beam_pos_displacement[1] * self.scale_ver

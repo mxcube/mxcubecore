@@ -9,5 +9,4 @@
   <py>0.172</py>
   <hasShutterless>True</hasShutterless>
   <file_suffix>cbf</file_suffix>
-  <object hwrid="/dtox" role="distance_motor"/>
 </equipment>

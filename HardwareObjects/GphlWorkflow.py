@@ -626,7 +626,7 @@ class GphlWorkflow(HardwareObject, object):
             )
         if self.getProperty("disable_energy_change", False):
             # Use current energy and disallow changes
-            ll0[0]["defaultValue"] = HWR.beamline.energy.get_energy()
+            ll0[0]["defaultValue"] = HWR.beamline.energy.get_value()
             ll0[0]["readOnly"] = True
         field_list.extend(ll0)
 
@@ -775,16 +775,16 @@ class GphlWorkflow(HardwareObject, object):
             # so detector distance will trigger correct resolution later
             default_energy = ConvertUtils.H_OVER_E / beamSetting.wavelength
             # TODO NBNB put in wait-till ready to make sure value settles
-            HWR.beamline.energy.move_energy(default_energy)
+            HWR.beamline.energy.set_value(default_energy)
         else:
-            default_energy = HWR.beamline.energy.get_energy()
+            default_energy = HWR.beamline.energy.get_value()
 
         # Preset detector distance and resolution
         detectorSetting = geometric_strategy.defaultDetectorSetting
         if detectorSetting:
             # NBNB If this is ever set to editable, distance and resolution
             # must be varied in sync
-            HWR.beamline.detector.set_distance(
+            HWR.beamline.detector.distance.set_value(
                 detectorSetting.axisSettings.get("Distance")
             )
         # TODO NBNB put in wait-till-ready to make sure value settles
@@ -930,7 +930,7 @@ class GphlWorkflow(HardwareObject, object):
         )
         # set to wavelength of first energy
         # necessary so that resolution setting below gives right detector distance
-        HWR.beamline.energy.move_wavelength(wavelengths[0].wavelength)
+        HWR.beamline.energy.set_wavelength(wavelengths[0].wavelength)
         # TODO ensure that move is finished before resolution is set
 
         # get BcsDetectorSetting
@@ -953,7 +953,7 @@ class GphlWorkflow(HardwareObject, object):
             new_resolution,
             id_=id_,
             orgxy=orgxy,
-            Distance=HWR.beamline.detector.get_distance(),
+            Distance=HWR.beamline.detector.distance.get_value(),
         )
 
         sampleCentred = GphlMessages.SampleCentred(

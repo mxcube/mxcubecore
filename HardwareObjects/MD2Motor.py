@@ -106,7 +106,7 @@ class MD2Motor(AbstractMotor):
     #     self.emit("valueChanged", (self.__position,))
 
     def motorLimitsChanged(self):
-        self.emit("limitsChanged", (self.getLimits(),))
+        self.emit("limitsChanged", (self.get_limits(),))
 
     def get_state(self):
         return self.motor_state
@@ -137,15 +137,8 @@ class MD2Motor(AbstractMotor):
             raise RuntimeError("%s: motor position is None" % self.name())
         return ret
 
-    def move(self, position, wait=False, timeout=None):
-        self.position_attr.set_value(position)
-        # self.motorStateChanged(MotorStates.MOVING)
-
-        if wait:
-            try:
-                self.waitEndOfMove(timeout)
-            except BaseException:
-                raise MD2TimeoutError
+    def _set_value(self, value):
+        self.position_attr.set_value(value)
 
     def waitEndOfMove(self, timeout=None):
         self.wait_end_of_move(timeout)
@@ -158,13 +151,13 @@ class MD2Motor(AbstractMotor):
 
     def motorIsMoving(self):
         warn("motorIsMoving is deprecated. Use is_ready instead", DeprecationWarning)
-        return self.isReady() and self.motor_state == MotorStates.MOVING
+        return self.is_ready() and self.motor_state == MotorStates.MOVING
 
     def getMotorMnemonic(self):
         return self.actuator_name
 
     def stop(self):
-        if self.getState() != MotorStates.NOTINITIALIZED:
+        if self.get_state() != MotorStates.NOTINITIALIZED:
             self._motor_abort()
 
     def home_motor(self, timeout=None):

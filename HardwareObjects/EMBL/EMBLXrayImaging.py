@@ -207,26 +207,26 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.qimage = QtImport.QImage()
         self.qpixmap = QtImport.QPixmap()
 
-        self.chan_frame = self.getChannelObject("chanFrame")
+        self.chan_frame = self.get_channel_object("chanFrame")
         self.chan_frame.connectSignal("update", self.frame_changed)
 
-        self.chan_ff_ssim = self.getChannelObject("chanFFSSIM")
+        self.chan_ff_ssim = self.get_channel_object("chanFFSSIM")
         self.chan_ff_ssim.connectSignal("update", self.ff_ssim_changed)
 
-        self.chan_collect_status = self.getChannelObject("collectStatus")
+        self.chan_collect_status = self.get_channel_object("collectStatus")
         #self._actual_collect_status = self.chan_collect_status.getValue()
         self.chan_collect_status.connectSignal("update", self.collect_status_update)
 
-        self.chan_collect_frame = self.getChannelObject("chanFrameCount")
+        self.chan_collect_frame = self.get_channel_object("chanFrameCount")
         self.chan_collect_frame.connectSignal("update", self.collect_frame_update)
 
-        self.chan_collect_error = self.getChannelObject("collectError")
+        self.chan_collect_error = self.get_channel_object("collectError")
         self.chan_collect_error.connectSignal("update", self.collect_error_update)
 
-        self.chan_camera_warning = self.getChannelObject("cameraWarning")
+        self.chan_camera_warning = self.get_channel_object("cameraWarning")
         self.chan_camera_warning.connectSignal("update", self.camera_warning_update)
      
-        self.chan_camera_error = self.getChannelObject("cameraError")
+        self.chan_camera_error = self.get_channel_object("cameraError")
         self.chan_camera_error.connectSignal("update", self.camera_error_update) 
 
         self.cmd_collect_detector = self.get_command_object("collectDetector")
@@ -396,7 +396,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
                     tine.set("/P14/P14DetTrans/P14detHor2","Move.START", target)
             #TODO add later wait
             time.sleep(3)
-            HWR.beamline.detector.set_distance(im_params.detector_distance, timeout=30)
+            HWR.beamline.detector.distance.set_value(im_params.detector_distance, timeout=30)
             logging.getLogger("GUI").info("Imaging: Detector distance set")
 
         self.cmd_collect_detector("pco")

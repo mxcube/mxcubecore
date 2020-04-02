@@ -110,7 +110,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
         self.result_types = []
 
     def init(self):
-        self.chan_dozor_average_i = self.getChannelObject("chanDozorAverageI")
+        self.chan_dozor_average_i = self.get_channel_object("chanDozorAverageI")
         if self.chan_dozor_average_i is not None:
             key = "average_intensity"
             self.result_types.append(
@@ -122,11 +122,11 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
 
         AbstractOnlineProcessing.init(self)
 
-        self.chan_dozor_pass = self.getChannelObject("chanDozorPass")
+        self.chan_dozor_pass = self.get_channel_object("chanDozorPass")
         if self.chan_dozor_pass is not None:
             self.chan_dozor_pass.connectSignal("update", self.batch_processed)
 
-        self.chan_frame_count = self.getChannelObject("chanFrameCount")
+        self.chan_frame_count = self.get_channel_object("chanFrameCount")
         if self.chan_frame_count is not None:
             self.chan_frame_count.connectSignal("update", self.frame_count_changed)
 
@@ -516,7 +516,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
         # detector_size_y = 1679
 
         geom_file = CRYSTFEL_GEOM_FILE_TEMPLATE.format(
-            HWR.beamline.detector.get_distance() / 1000.0,
+            HWR.beamline.detector.distance.get_value() / 1000.0,
             acq_params.energy * 1000,
             1000.0 / pixel_size_mm_x,
             detector_size_x - 1,
@@ -650,7 +650,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
             detector_size_y=detector_size_y,
             org_x=beam_x / pixel_size_mm_x,
             org_y=beam_y / pixel_size_mm_y,
-            detector_distance=HWR.beamline.detector.get_distance(),
+            detector_distance=HWR.beamline.detector.distance.get_value(),
         )
 
         data_file = open(nxdsinp_filename, "w")
