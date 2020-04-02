@@ -36,7 +36,6 @@ class ALBABeamInfo(Equipment):
 
         self.aperture_hwobj = None
         self.slits_hwobj = None
-        self.beam_definer_hwobj = None
 
         self.beam_size_slits = None
         self.beam_size_aperture = None
@@ -56,10 +55,10 @@ class ALBABeamInfo(Equipment):
         self.beam_position = [0, 0]
         self.beam_info_dict = {}
 
-        self.beam_width_chan = self.getChannelObject("BeamWidth")
-        self.beam_height_chan = self.getChannelObject("BeamHeight")
-        self.beam_posx_chan = self.getChannelObject("BeamPositionHorizontal")
-        self.beam_posy_chan = self.getChannelObject("BeamPositionVertical")
+        self.beam_width_chan = self.get_channel_object("BeamWidth")
+        self.beam_height_chan = self.get_channel_object("BeamHeight")
+        self.beam_posx_chan = self.get_channel_object("BeamPositionHorizontal")
+        self.beam_posy_chan = self.get_channel_object("BeamPositionVertical")
 
         self.beam_height_chan.connectSignal("update", self.beam_height_changed)
         self.beam_width_chan.connectSignal("update", self.beam_width_changed)
@@ -195,5 +194,5 @@ class ALBABeamInfo(Equipment):
 
 
 def test_hwo(hwo):
-    print hwo.get_beam_info()
-    print hwo.get_beam_position()
+    print(hwo.get_beam_info())
+    print(hwo.get_beam_position())

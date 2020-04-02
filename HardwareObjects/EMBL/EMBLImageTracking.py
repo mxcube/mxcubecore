@@ -39,35 +39,42 @@ class EMBLImageTracking(Device):
     def __init__(self, *args):
         Device.__init__(self, *args)
 
-        self.target_ip = None
-        self.target_port = None
         self.state = None
-        self.active_socket = None
         self.state_dict = {"image_tracking": False, "filter_frames": False}
 
         self.chan_state = None
         self.chan_enable_image_tracking = None
         self.chan_filter_frames = None
+        self.chan_spot_list = None
         self.cmd_load_image = None
 
     def init(self):
 
-        self.chan_enable_image_tracking = self.getChannelObject(
-            "chanImageTrackingEnabled"
+        self.chan_enable_image_tracking = self.get_channel_object(
+            "chanImageTrackingEnabled", optional=True
         )
         self.chan_enable_image_tracking.connectSignal(
             "update", self.image_tracking_state_changed
         )
-        self.chan_filter_frames = self.getChannelObject("chanFilterFramesEnabled")
+        self.chan_filter_frames = self.get_channel_object(
+            "chanFilterFramesEnabled", optional=True
+        )
         if self.chan_filter_frames is not None:
             self.chan_filter_frames.connectSignal(
                 "update", self.filter_frames_enabled_changed
             )
 
-        self.chan_state = self.getChannelObject("chanState")
+        self.chan_spot_list = self.get_channel_object(
+            "chanSpotListEnabled", optional=True
+        )
+        if self.chan_spot_list is not None:
+            self.chan_spot_list.connectSignal("update", self.spot_list_enabled_changed)
+
+        self.chan_spot_list.setValue(True)
+        self.chan_state = self.get_channel_object("chanState")
         self.chan_state.connectSignal("update", self.state_changed)
 
-        self.cmd_load_image = self.getCommandObject("cmdLoadImage")
+        self.cmd_load_image = self.get_command_object("cmdLoadImage")
 
     def image_tracking_state_changed(self, state):
         """
@@ -119,6 +126,18 @@ class EMBLImageTracking(Device):
         :return:
         """
         self.chan_filter_frames.setValue(state)
+
+    def set_spot_list_enabled(self, state):
+        """
+        Enables/disables spot indication on Adxv
+        :param state:
+        :return:
+        """
+        self.chan_spot_list.setValue(state)
+
+    def spot_list_enabled_changed(self, state):
+        self.state_dict["spot_list"] = state
+        self.emit("imageTrackingStateChanged", (self.state_dict,))
 
     def load_image(self, image_name):
         """

@@ -1,5 +1,6 @@
-from HardwareRepository.BaseHardwareObjects import HardwareObject
 from PyTransmission import matt_control
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository as HWR
 
 
 class Transmission(HardwareObject):
@@ -10,12 +11,11 @@ class Transmission(HardwareObject):
         self.indexes = []
         self.attno = 0
         # TO DO: clean this!!!
-        self.getValue = self.get_value
-        self.getAttFactor = self.get_value
-        self.setTransmission = self.set_value
+        # self.getValue = self.get_value
+        # self.getAttFactor = self.get_value
+        # self.setTransmission = self.set_value
 
     def init(self):
-        self.energy = self.getObjectByRole("energy")
 
         self.__matt = matt_control.MattControl(
             self.getProperty("wago_ip"),
@@ -29,7 +29,7 @@ class Transmission(HardwareObject):
         )
         self.__matt.connect()
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
     def getAtteConfig(self):
@@ -43,14 +43,14 @@ class Transmission(HardwareObject):
     def getAttState(self):
         return self.__matt.pos_read()
 
-    def set_value(self, trans):
-        self.__matt.set_energy(self.energy.getCurrentEnergy())
-        self.__matt.transmission_set(trans)
+    def _set_value(self, value):
+        self.__matt.set_energy(HWR.beamline.energy.get_value())
+        self.__matt.transmission_set(value)
         self._update()
 
     def _update(self):
         self.emit("attStateChanged", self.getAttState())
-        self.emit("attFactorChanged", self.getAttFactor())
+        self.emit("attFactorChanged", self.get_value())
 
     def toggle(self, attenuator_index):
         idx = self.indexes[attenuator_index]
@@ -61,7 +61,7 @@ class Transmission(HardwareObject):
         self._update()
 
     def get_value(self):
-        self.__matt.set_energy(self.energy.getCurrentEnergy())
+        self.__matt.set_energy(HWR.beamline.energy.get_value())
         return self.__matt.transmission_get()
 
     def is_in(self, attenuator_index):

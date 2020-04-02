@@ -1,5 +1,5 @@
 [MASTER]
-
+#TEST
 init-hook="from pylint.config import find_pylintrc; import os, sys; sys.path.append(os.path.dirname(find_pylintrc()))"
 
 
@@ -279,7 +279,7 @@ ignore-mixin-members=yes
 # (useful for modules/projects where namespaces are manipulated during runtime
 # and thus existing member attributes cannot be deduced by static analysis. It
 # supports qualified module names, as well as Unix pattern matching.
-ignored-modules=email,numpy,scipy,matplotlib,PyMca4,PyMca5,tine,gui.utils,gui.utils.QtImport,f90nml,gevent,api
+ignored-modules=email,numpy,scipy,matplotlib,PyMca4,PyMca5,tine,gui.utils,gui.utils.QtImport,f90nml,gevent
 
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set). This supports can work

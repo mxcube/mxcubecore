@@ -69,7 +69,7 @@ class CatsMaintMockup(Equipment):
         return self._currenttool
 
     ################################################################################
-    def _doAbort(self):
+    def _do_abort(self):
         """
         Launch the "abort" trajectory on the CATS Tango DS
 
@@ -78,7 +78,7 @@ class CatsMaintMockup(Equipment):
         """
         pass
 
-    def _doReset(self):
+    def _do_reset(self):
         """
         Launch the "reset" command on the CATS Tango DS
 
@@ -114,7 +114,7 @@ class CatsMaintMockup(Equipment):
             puc_pos = ((int(sample_tmp[0]) - 1) % 3) * 10 + int(sample_tmp[1])
             argin = [str(lid), str(puc_pos), "0"]
             logging.getLogger().info("to SetOnDiff %s", argin)
-            # self._executeServerTask(self._cmdSetOnDiff,argin)
+            # self._execute_server_task(self._cmdSetOnDiff,argin)
 
     def _doPowerState(self, state=False):
         """
@@ -178,7 +178,7 @@ class CatsMaintMockup(Equipment):
 
     #########################          PROTECTED          #########################
 
-    def _executeTask(self, wait, method, *args):
+    def _execute_task(self, wait, method, *args):
         ret = self._run(method, *args)
         if wait:
             return ret.get()
@@ -194,7 +194,7 @@ class CatsMaintMockup(Equipment):
         except Exception as ex:
             exception = ex
         if exception is not None:
-            raise exception # pylint: disable-msg=E0702
+            raise exception  # pylint: disable-msg=E0702
         return ret
 
     #########################           PRIVATE           #########################
@@ -224,7 +224,7 @@ class CatsMaintMockup(Equipment):
         self.emit("regulationStateChanged", (value,))
         self._updateGlobalState()
 
-    def _updateState(self, value):
+    def _update_state(self, value):
         self._state = value
         self._updateGlobalState()
 
@@ -359,7 +359,7 @@ class CatsMaintMockup(Equipment):
         ]
         return cmd_list
 
-    def _executeServerTask(self, method, *args):
+    def _execute_server_task(self, method, *args):
         task_id = method(*args)
         ret = None
         # introduced wait because it takes some time before the attribute PathRunning is set
@@ -413,4 +413,4 @@ class CatsMaintMockup(Equipment):
 
 
 def test_hwo(hwo):
-    print(hwo.get_current_tool())
+    print((hwo.get_current_tool()))

@@ -47,7 +47,8 @@ Specific HwObj for M2D2 diffractometer @ ALBA
 import logging
 import time
 from HardwareRepository.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer, DiffractometerState
+    GenericDiffractometer,
+    DiffractometerState,
 )
 import gevent
 
@@ -91,10 +92,10 @@ class ALBAMiniDiff(GenericDiffractometer):
                 self.super_hwobj, "phaseChanged", self.supervisor_phase_changed
             )
 
-        self.state_channel = self.getChannelObject("State")
+        self.state_channel = self.get_channel_object("State")
         self.connect(self.state_channel, "update", self.state_changed)
         # This is not used
-        self.cmd_start_auto_focus = self.getCommandObject("startAutoFocus")
+        self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")
 
         self.phi_motor_hwobj = self.getObjectByRole("phi")
         self.phiz_motor_hwobj = self.getObjectByRole("phiz")
@@ -108,7 +109,7 @@ class ALBAMiniDiff(GenericDiffractometer):
             self.connect(
                 self.phi_motor_hwobj, "stateChanged", self.phi_motor_state_changed
             )
-            self.connect(self.phi_motor_hwobj, "positionChanged", self.phi_motor_moved)
+            self.connect(self.phi_motor_hwobj, "valueChanged", self.phi_motor_moved)
         else:
             logging.getLogger("HWR").error("ALBAMiniDiff: Phi motor is not defined")
 
@@ -117,7 +118,7 @@ class ALBAMiniDiff(GenericDiffractometer):
                 self.phiz_motor_hwobj, "stateChanged", self.phiz_motor_state_changed
             )
             self.connect(
-                self.phiz_motor_hwobj, "positionChanged", self.phiz_motor_moved
+                self.phiz_motor_hwobj, "valueChanged", self.phiz_motor_moved
             )
         else:
             logging.getLogger("HWR").error("ALBAMiniDiff: Phiz motor is not defined")
@@ -127,14 +128,14 @@ class ALBAMiniDiff(GenericDiffractometer):
                 self.phiy_motor_hwobj, "stateChanged", self.phiy_motor_state_changed
             )
             self.connect(
-                self.phiy_motor_hwobj, "positionChanged", self.phiy_motor_moved
+                self.phiy_motor_hwobj, "valueChanged", self.phiy_motor_moved
             )
         else:
             logging.getLogger("HWR").error("ALBAMiniDiff: Phiy motor is not defined")
 
         if self.zoom_motor_hwobj is not None:
             self.connect(
-                self.zoom_motor_hwobj, "positionChanged", self.zoom_position_changed
+                self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed
             )
             self.connect(
                 self.zoom_motor_hwobj,
@@ -154,7 +155,7 @@ class ALBAMiniDiff(GenericDiffractometer):
                 self.sampleX_motor_state_changed,
             )
             self.connect(
-                self.sample_x_motor_hwobj, "positionChanged", self.sampleX_motor_moved
+                self.sample_x_motor_hwobj, "valueChanged", self.sampleX_motor_moved
             )
         else:
             logging.getLogger("HWR").error("ALBAMiniDiff: Sampx motor is not defined")
@@ -166,14 +167,14 @@ class ALBAMiniDiff(GenericDiffractometer):
                 self.sampleY_motor_state_changed,
             )
             self.connect(
-                self.sample_y_motor_hwobj, "positionChanged", self.sampleY_motor_moved
+                self.sample_y_motor_hwobj, "valueChanged", self.sampleY_motor_moved
             )
         else:
             logging.getLogger("HWR").error("ALBAMiniDiff: Sampx motor is not defined")
 
         if self.focus_motor_hwobj is not None:
             self.connect(
-                self.focus_motor_hwobj, "positionChanged", self.focus_motor_moved
+                self.focus_motor_hwobj, "valueChanged", self.focus_motor_moved
             )
 
         GenericDiffractometer.init(self)
@@ -273,8 +274,8 @@ class ALBAMiniDiff(GenericDiffractometer):
         """
         calibx, caliby = self.calibration.getCalibration()
 
-        size_x = self.getChannelObject("beamInfoX").getValue() / 1000.0
-        size_y = self.getChannelObject("beamInfoY").getValue() / 1000.0
+        size_x = self.get_channel_object("beamInfoX").getValue() / 1000.0
+        size_y = self.get_channel_object("beamInfoY").getValue() / 1000.0
 
         data = {"size_x": size_x, "size_y": size_y, "shape": "ellipse"}
 
@@ -353,7 +354,7 @@ class ALBAMiniDiff(GenericDiffractometer):
     #            logging.getLogger("HWR").info("Cannot set SAMPLE VIEW phase")
     #            return False
 
-    #    phi_init_position = self.phi_motor_hwobj.getPosition()
+    #    phi_init_position = self.phi_motor_hwobj.get_value()
 
     #    for click in range(3):
     #        self.user_clicked_event = gevent.event.AsyncResult()
@@ -365,15 +366,15 @@ class ALBAMiniDiff(GenericDiffractometer):
     #        if self.in_plate_mode():
     #            dynamic_limits = self.phi_motor_hwobj.getDynamicLimits()
     #            if click == 0:
-    #                self.phi_motor_hwobj.move(dynamic_limits[0])
+    #                self.phi_motor_hwobj.set_value(dynamic_limits[0])
     #            elif click == 1:
-    #                self.phi_motor_hwobj.move(dynamic_limits[1])
+    #                self.phi_motor_hwobj.set_value(dynamic_limits[1])
     #        else:
     #            if click < 2:
-    #                self.phi_motor_hwobj.syncMoveRelative(-90)
+    #                self.phi_motor_hwobj.set_value_relative(-90, timeout=None)
 
     #    #logging.getLogger("HWR").info(" Returning phi to initial position %s" % phi_init_position)
-    #    #self.phi_motor_hwobj.syncMove(phi_init_position)
+    #    #self.phi_motor_hwobj.set_value(phi_init_position, timeout=None)
     #
     #    return self.centring_hwobj.centeredPosition(return_by_name=False)
 
@@ -534,7 +535,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         # turn it on
         if velocity is not None:
             self.phi_motor_hwobj.set_velocity(velocity)
-        self.phi_motor_hwobj.move(pos)
+        self.phi_motor_hwobj.set_value(pos)
         time.sleep(0.2)
         # it should wait here
 
@@ -545,9 +546,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         @relpos: target relative position
         """
         self.wait_device_ready()
-        self.phi_motor_hwobj.syncMoveRelative(relpos)
-        time.sleep(0.2)
-        self.wait_device_ready()
+        self.phi_motor_hwobj.set_value_relative(relpos, timeout=None)
 
     # TODO: define phases as enum members.
     def set_phase(self, phase):
@@ -569,4 +568,4 @@ class ALBAMiniDiff(GenericDiffractometer):
 
 
 def test_hwo(hwo):
-    print hwo.get_phase_list()
+    print(hwo.get_phase_list())

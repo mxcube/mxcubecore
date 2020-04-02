@@ -26,10 +26,10 @@ class PX2Attenuator(Device):
         self.labels = []
         self.attno = 0
         self.deviceOk = True
-        self.set_value = None
+        self.nominal_value = None
 
     def init(self):
-        #         cmdToggle = self.getCommandObject('toggle')
+        #         cmdToggle = self.get_command_object('toggle')
         #         cmdToggle.connectSignal('connected', self.connected)
         #         cmdToggle.connectSignal('disconnected', self.disconnected)
 
@@ -65,9 +65,9 @@ class PX2Attenuator(Device):
         if self.deviceOk:
             self.connected()
 
-            self.chanAttState = self.getChannelObject("State")
+            self.chanAttState = self.get_channel_object("State")
             self.chanAttState.connectSignal("update", self.attStateChanged)
-            self.chanAttFactor = self.getChannelObject("TrueTrans_FP")
+            self.chanAttFactor = self.get_channel_object("TrueTrans_FP")
             self.chanAttFactor.connectSignal("update", self.attFactorChanged)
 
     def getAtteConfig(self):
@@ -76,13 +76,15 @@ class PX2Attenuator(Device):
     def getAttState(self):
         try:
             value1 = Ps_attenuatorPX2.stateAttenuator[self.Ps_hdevice.State().name]
-            print "State hslit : ", Ps_attenuatorPX2.stateAttenuator[
-                self.Ps_hdevice.State().name
-            ]
+            print(
+                "State hslit : ",
+                Ps_attenuatorPX2.stateAttenuator[self.Ps_hdevice.State().name],
+            )
             value2 = Ps_attenuatorPX2.stateAttenuator[self.Ps_vdevice.State().name]
-            print "State vslit : ", Ps_attenuatorPX2.stateAttenuator[
-                self.Ps_vdevice.State().name
-            ]
+            print(
+                "State vslit : ",
+                Ps_attenuatorPX2.stateAttenuator[self.Ps_vdevice.State().name],
+            )
             if value1 == "ready" and value2 == "ready":
                 value = "ready"
             elif value1 == "error" or value2 == "error":
@@ -110,19 +112,19 @@ class PX2Attenuator(Device):
         )
         self.emit("attStateChanged", (value,))
 
-    def getAttFactor(self):
+    def get_value(self):
 
         try:
             if (
                 self.Attenuatordevice.TrueTrans_FP <= 100.0
             ):  # self.Attenuatordevice.Trans_FP  <= 100.0 :
-                if self.set_value is not None:
-                    value = self.set_value
+                if self.nominal_value is not None:
+                    value = self.nominal_value
                 else:
                     value = float(self.Attenuatordevice.TrueTrans_FP) * 1.3587
             else:
-                if self.set_value is not None:
-                    value = self.set_value
+                if self.nominal_value is not None:
+                    value = self.nominal_value
                 else:
                     value = float(self.Attenuatordevice.I_Trans) * 1.4646
             # Mettre une limite superieure car a une certaine ouverture de fentes on ne gagne plus rien en transmission
@@ -130,7 +132,7 @@ class PX2Attenuator(Device):
             # de 120%
         except BaseException:
             logging.getLogger("HWR").error(
-                "%s getAttFactor : received value on channel is not a float value",
+                "%s get_value : received value on channel is not a float value",
                 str(self.name()),
             )
             value = None
@@ -148,7 +150,7 @@ class PX2Attenuator(Device):
                 "%s attFactorChanged : received value %s"
                 % (str(self.name()), channelValue)
             )
-            value = self.getAttFactor()
+            value = self.get_value()
         except BaseException:
             logging.getLogger("HWR").error(
                 "%s attFactorChanged : received value on channel is not a float value",
@@ -172,8 +174,8 @@ class PX2Attenuator(Device):
         else:
             self.emit("toggleFilter", (value,))
 
-    def setTransmission(self, value):
-        self.set_value = float(value)
+    def _set_value(self, value):
+        self.nominal_value = float(value)
         try:
             if (
                 self.Constdevice.FP_Area_FWHM <= 0.1
@@ -185,16 +187,16 @@ class PX2Attenuator(Device):
                 self.Constdevice.Ratio_FP_Gap = 0.5
 
             truevalue = (2.0 - math.sqrt(4 - 0.04 * value)) / 0.02
-            print " truevalue : ", truevalue
+            print(" truevalue : ", truevalue)
             newGapFP_H = math.sqrt(
                 (truevalue / 100.0)
                 * self.Constdevice.FP_Area_FWHM
                 / self.Constdevice.Ratio_FP_Gap
             )
-            print " Gap FP_H : ", newGapFP_H
+            print(" Gap FP_H : ", newGapFP_H)
             self.Ps_hdevice.gap = newGapFP_H
             newGapFP_V = newGapFP_H * self.Constdevice.Ratio_FP_Gap
-            print " Gap FP_V : ", newGapFP_V
+            print(" Gap FP_V : ", newGapFP_V)
             self.Ps_vdevice.gap = newGapFP_V
             # self.attFactorChanged(channelValue)
         except BaseException:
@@ -217,4 +219,4 @@ class PX2Attenuator(Device):
 
 
 def test_hwo(hwo):
-    print "Atten. factor", hwo.getAttFactor()
+    print("Atten. factor", hwo.get_value())

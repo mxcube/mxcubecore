@@ -41,7 +41,7 @@ from HardwareRepository.HardwareObjects import GphlMessages
 # NB MUST be imported via full path to match imports elsewhere:
 from HardwareRepository.HardwareObjects.queue_model_enumerables import States
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareRepository import getHardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 
 try:
     # Needed for 3.6(?) onwards
@@ -133,7 +133,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         for tag, val in dd0.items():
             val2 = val.format(**locations)
             if not os.path.isabs(val2):
-                val2 = getHardwareRepository().findInRepository(val)
+                val2 = HWR.getHardwareRepository().findInRepository(val)
                 if val2 is None:
                     raise ValueError("File path %s not recognised" % val)
             paths[tag] = val2
@@ -141,7 +141,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         for tag, val in dd0.items():
             val2 = val.format(**locations)
             if not os.path.isabs(val2):
-                val2 = getHardwareRepository().findInRepository(val)
+                val2 = HWR.getHardwareRepository().findInRepository(val)
                 if val2 is None:
                     raise ValueError("File path %s not recognised" % val)
             paths[tag] = props[tag] = val2
@@ -276,6 +276,10 @@ class GphlWorkflowConnection(HardwareObject, object):
                 calibration_name,
                 workflow_model_obj.get_name(),
             )
+        elif not workflow_options.get("strategy"):
+            workflow_options[
+                "strategy"
+            ] = workflow_model_obj.get_characterisation_strategy()
         path_template = workflow_model_obj.get_path_template()
         if "prefix" in workflow_options:
             workflow_options["prefix"] = path_template.base_prefix

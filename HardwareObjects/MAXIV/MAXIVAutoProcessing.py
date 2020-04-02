@@ -93,7 +93,7 @@ class MAXIVAutoProcessing(HardwareObject):
         for program in self.autoproc_programs:
             if process_event == program.getProperty("event"):
                 module = program.getProperty("module").lower()
-                print 2 * "###########"
+                print(2 * "###########")
                 if process_event == "after":
                     input_filename, will_execute = self.create_autoproc_input(
                         process_event, params_dict
@@ -104,8 +104,8 @@ class MAXIVAutoProcessing(HardwareObject):
                     residues = 200
                     anomalous = False
                     cell = "0,0,0,0,0,0"
-                    print "Module: ", module, ">> Will execute: ", will_execute
-                    print "input_filename   ", input_filename
+                    print("Module: ", module, ">> Will execute: ", will_execute)
+                    print("input_filename   ", input_filename)
                     try:
                         if module == "ednaproc" and will_execute:
                             from ednaProcLauncher import EdnaProcLauncher
@@ -133,7 +133,7 @@ class MAXIVAutoProcessing(HardwareObject):
                                 None,
                             )
                     except Exception as ex:
-                        print ex
+                        print(ex)
                 if process_event == "image":
                     if (
                         frame_number == 1
@@ -158,7 +158,7 @@ class MAXIVAutoProcessing(HardwareObject):
                         logging.getLogger("HWR").error(
                             "[MAXIVAutoprocessing] Module %s  execution error." % module
                         )
-                        print module, ex
+                        print(module, ex)
 
     def autoproc_done(self, current_autoproc):
         """

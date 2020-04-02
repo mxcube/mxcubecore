@@ -19,8 +19,11 @@
 
 """EMBLDetector"""
 
+import ast
 import logging
+
 import gevent
+
 from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
     AbstractDetector,
 )
@@ -46,6 +49,19 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.temp_treshold = None
         self.hum_treshold = None
         self.cover_state = None
+        self.binning_mode = None
+        self.pixel_size_mm_x = None
+        self.pixel_size_mm_y = None
+
+        self.binding_mode = 1
+        self.tolerance = None
+        self.temperature = 0
+        self.humidity = 0
+        self.actual_frame_rate = None
+        self.pixel_min = None
+        self.pixel_max = None
+        self.roi_modes_list = []
+        self.roi_mode = None
 
         self.chan_beam_xy = None
         self.chan_cover_state = None
@@ -58,51 +74,11 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
         self.cmd_close_cover = None
         self.cmd_restart_daq = None
-        self.binding_mode = 1
-        self.tolerance = None
-        self.temperature = None
-        self.humidity = None
-        self.actual_frame_rate = None
-        self.pixel_min = None
-        self.pixel_max = None
-        self.roi_modes_list = []
-        self.roi_mode = None
 
         self.distance_motor_hwobj = None
 
     def init(self):
-
         self.cover_state = "unknown"
-        self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
-
-        self.chan_cover_state = self.getChannelObject("chanCoverState", optional=True)
-        if self.chan_cover_state is not None:
-            self.chan_cover_state.connectSignal("update", self.cover_state_changed)
-        self.chan_temperature = self.getChannelObject("chanTemperature")
-        self.chan_temperature.connectSignal("update", self.temperature_changed)
-        self.chan_humidity = self.getChannelObject("chanHumidity")
-        self.chan_humidity.connectSignal("update", self.humidity_changed)
-        self.chan_status = self.getChannelObject("chanStatus")
-        self.chan_status.connectSignal("update", self.status_changed)
-        self.chan_roi_mode = self.getChannelObject("chanRoiMode")
-        self.chan_roi_mode.connectSignal("update", self.roi_mode_changed)
-        self.chan_frame_rate = self.getChannelObject("chanFrameRate")
-        self.chan_frame_rate.connectSignal("update", self.frame_rate_changed)
-        self.frame_rate_changed(self.chan_frame_rate.getValue())
-
-        self.chan_actual_frame_rate = self.getChannelObject(
-            "chanActualFrameRate", optional=True
-        )
-        if self.chan_actual_frame_rate is not None:
-            self.chan_actual_frame_rate.connectSignal(
-                "update", self.actual_frame_rate_changed
-            )
-
-        self.chan_beam_xy = self.getChannelObject("chanBeamXY")
-
-        self.cmd_close_cover = self.getCommandObject("cmdCloseCover")
-        self.cmd_restart_daq = self.getCommandObject("cmdRestartDaq")
-
         self.collect_name = self.getProperty("collectName")
         self.shutter_name = self.getProperty("shutterName")
         self.tolerance = self.getProperty("tolerance")
@@ -110,28 +86,41 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.hum_treshold = self.getProperty("humidityThreshold")
         self.pixel_min = self.getProperty("px_min")
         self.pixel_max = self.getProperty("px_max")
-        self.roi_modes_list = eval(self.getProperty("roiModes"))
+        self.roi_modes_list = ast.literal_eval(self.getProperty("roiModes"))
+        self.binning_mode = "Unbinned"
 
-    def get_distance(self):
-        """Returns detector distance in mm"""
-        return self.distance_motor_hwobj.getPosition()
+        self.pixel_size_mm_x = self.getProperty("px")
+        self.pixel_size_mm_y = self.getProperty("py")
 
-    def set_distance(self, position, timeout=None):
-        """Sets detector distance
+        self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
 
-        :param position: distance in mm
-        :type position: float
-        :param timeout: timeout
-        :type timeout: float
-        :return: None
-        """
-        return self.distance_motor_hwobj.move(position, timeout)
+        self.chan_cover_state = self.get_channel_object("chanCoverState", optional=True)
+        if self.chan_cover_state is not None:
+            self.chan_cover_state.connectSignal("update", self.cover_state_changed)
+        self.chan_temperature = self.get_channel_object("chanTemperature")
+        self.chan_temperature.connectSignal("update", self.temperature_changed)
+        self.chan_humidity = self.get_channel_object("chanHumidity")
+        self.chan_humidity.connectSignal("update", self.humidity_changed)
+        self.chan_status = self.get_channel_object("chanStatus")
+        self.chan_status.connectSignal("update", self.status_changed)
+        self.chan_roi_mode = self.get_channel_object("chanRoiMode")
+        self.chan_roi_mode.connectSignal("update", self.roi_mode_changed)
+        self.chan_frame_rate = self.get_channel_object("chanFrameRate")
+        self.chan_frame_rate.connectSignal("update", self.frame_rate_changed)
+        self.frame_rate_changed(self.chan_frame_rate.getValue())
 
-    def get_distance_limits(self):
-        """Returns detector distance limits"""
-        if self.distance_motor_hwobj is not None:
-            return self.distance_motor_hwobj.getLimits()
-        return self.default_distance_limits
+        self.chan_actual_frame_rate = self.get_channel_object(
+            "chanActualFrameRate", optional=True
+        )
+        if self.chan_actual_frame_rate is not None:
+            self.chan_actual_frame_rate.connectSignal(
+                "update", self.actual_frame_rate_changed
+            )
+
+        self.chan_beam_xy = self.get_channel_object("chanBeamXY")
+
+        self.cmd_close_cover = self.get_command_object("cmdCloseCover")
+        self.cmd_restart_daq = self.get_command_object("cmdRestartDaq")
 
     def has_shutterless(self):
         """Return True if has shutterless mode"""
@@ -162,39 +151,36 @@ class EMBLDetector(AbstractDetector, HardwareObject):
     def status_changed(self, status):
         """Status changed event"""
         status = "uninitialized"
+        status_message = "Detector: "
+
         if self.chan_status is not None:
             status = self.chan_status.getValue()
-        status_message = "Detector: "
+
         if self.temperature > self.temp_treshold:
-            logging.getLogger("GUI").warning(
-                "Detector: Temperature %0.2f is greater than allowed %0.2f"
-                % (self.temperature, self.temp_treshold)
+            msg = "Detector: Temperature %0.2f is greater than allowed %0.2f" % (
+                self.temperature,
+                self.temp_treshold,
             )
+            logging.getLogger("GUI").warning(msg)
             status_message = "Temperature has exceeded threshold.\n"
+
         if self.humidity > self.hum_treshold:
-            logging.getLogger("GUI").warning(
-                "Detector: Humidity %0.2f is greater than allowed %0.2f"
-                % (self.humidity, self.hum_treshold)
+            msg = "Detector: Humidity %0.2f is greater than allowed %0.2f" % (
+                self.humidity,
+                self.hum_treshold,
             )
+            logging.getLogger("GUI").warning(msg)
             status_message = status_message + "Humidity has exceeded threshold.\n"
+
         if status == "calibrating":
-            status_message = status_message + "Energy change in progress.\n"
-            status_message = status_message + "Please wait...\n"
+            status_message = status_message + "Calibrating. Please wait...\n"
             logging.getLogger("GUI").warning(status_message)
-        """
-        elif status == "configuring":
-            status_message = status_message + "Configuring"
-        elif status != "ready":
-            status_message = status_message + "Detector is not ready.\n"
-            status_message = status_message + \
-                "Cannot start a collection at the moment."
-            logging.getLogger('GUI').warning(status_message)
-        """
+
         self.emit("statusChanged", (status, status_message))
 
     def roi_mode_changed(self, mode):
         """ROI mode change event"""
-        self.roi_mode = self.roi_modes_list.index(mode)
+        self.roi_mode = self.roi_modes_list.index(str(mode))
         self.emit("detectorRoiModeChanged", (self.roi_mode,))
 
     def frame_rate_changed(self, frame_rate):
@@ -227,6 +213,14 @@ class EMBLDetector(AbstractDetector, HardwareObject):
             beam_x = value[0]
             beam_y = value[1]
         return beam_x, beam_y
+
+    def get_beam_centre_pix(self):
+        beam_x, beam_y = self.get_beam_centre()
+        return beam_x / 0.075, beam_y / 0.075
+
+    def get_pixel_size_mm(self):
+        """Returns pixel size in mm"""
+        return self.pixel_size_mm_x, self.pixel_size_mm_y
 
     def cover_state_changed(self, state):
         """Updates guillotine state"

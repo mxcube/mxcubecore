@@ -35,7 +35,7 @@ class MAXIVMD2Camera(Device):
         self.specName = self.motor_name
         self.pollInterval = 80
 
-        self.image_attr = self.addChannel(
+        self.image_attr = self.add_channel(
             {"type": "exporter", "name": "image"}, "ImageJPG"
         )
 
@@ -51,7 +51,7 @@ class MAXIVMD2Camera(Device):
 
     def poll(self):
         logging.getLogger("HWR").info("going to poll images")
-        self.image_attr = self.addChannel(
+        self.image_attr = self.add_channel(
             {"type": "exporter", "name": "image"}, "ImageJPG"
         )
         while not self.stopper:
@@ -71,13 +71,13 @@ class MAXIVMD2Camera(Device):
                 return
             except BaseException:
                 logging.getLogger("HWR").exception("Could not read image")
-                self.image_attr = self.addChannel(
+                self.image_attr = self.add_channel(
                     {"type": "exporter", "name": "image"}, "ImageJPG"
                 )
 
     def imageUpdated(self, value):
-        print "<HW> got new image"
-        print value
+        print("<HW> got new image")
+        print(value)
 
     def gammaExists(self):
         return False

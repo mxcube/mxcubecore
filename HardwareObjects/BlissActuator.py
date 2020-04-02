@@ -10,7 +10,7 @@ Example xml file:
 import logging
 
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator
+    AbstractActuator,
 )
 from HardwareRepository.TaskUtils import task
 
@@ -47,6 +47,5 @@ class BlissActuator(AbstractActuator):
         self.value_changed(self._actuator.state())
 
     # Compatability with camelcase API
-    getActuatorState = get_actuator_state
     actuatorIn = actuator_in
     actuatorOut = actuator_out

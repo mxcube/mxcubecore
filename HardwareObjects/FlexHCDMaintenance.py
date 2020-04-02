@@ -4,7 +4,6 @@ CATS maintenance mockup.
 from HardwareRepository.BaseHardwareObjects import Equipment
 
 
-
 TOOL_FLANGE, TOOL_UNIPUCK, TOOL_SPINE, TOOL_PLATE, TOOL_LASER, TOOL_DOUBLE_GRIPPER = (
     0,
     1,
@@ -41,14 +40,14 @@ class FlexHCDMaintenance(Equipment):
     def get_current_tool(self):
         return self._sc.get_gripper()
 
-    def _doAbort(self):
+    def _do_abort(self):
         """
         Abort current command
 
         :returns: None
         :rtype: None
         """
-        return self._sc._doAbort()
+        return self._sc._do_abort()
 
     def _doHome(self):
         """
@@ -57,17 +56,17 @@ class FlexHCDMaintenance(Equipment):
         :returns: None
         :rtype: None
         """
-        self._sc._doAbort()
-        return self._sc._doReset()
+        self._sc._do_abort()
+        return self._sc._do_reset()
 
-    def _doReset(self):
+    def _do_reset(self):
         """
         Reset sample changer
 
         :returns: None
         :rtype: None
         """
-        self._sc._doReset()
+        self._sc._do_reset()
 
     def _doDefreezeGripper(self):
         """
@@ -83,7 +82,7 @@ class FlexHCDMaintenance(Equipment):
         """
         self._sc.change_gripper()
 
-    def _doResetSampleNumber(self):
+    def _do_resetSampleNumber(self):
         """
         :returns: None
         :rtype: None
@@ -97,8 +96,8 @@ class FlexHCDMaintenance(Equipment):
     def get_global_state(self):
         """
         """
-        state = self._sc._readState()
-        ready = self._sc._isDeviceBusy()
+        state = self._sc._read_state()
+        ready = self._sc._is_device_busy()
         running = state in ("RUNNING",)
 
         state_dict = {"running": running, "state": state}
@@ -144,10 +143,10 @@ class FlexHCDMaintenance(Equipment):
         if cmdname in ["defreeze"]:
             self._doDefreezeGripper()
         if cmdname in ["reset_sample_number"]:
-            self._doResetSampleNumber()
+            self._do_resetSampleNumber()
         if cmdname == "change_gripper":
             self._doChangeGripper()
         if cmdname == "abort":
-            self._doAbort()
+            self._do_abort()
 
         return True

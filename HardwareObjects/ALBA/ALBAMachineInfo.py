@@ -59,7 +59,7 @@ import time
 from gevent import spawn
 from urllib2 import urlopen
 from datetime import datetime, timedelta
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Equipment
 
 
@@ -101,17 +101,17 @@ class ALBAMachineInfo(Equipment):
         Descript. : Inits channels from xml configuration.
         """
         try:
-            self.chan_mach_current = self.getChannelObject("MachCurrent")
+            self.chan_mach_current = self.get_channel_object("MachCurrent")
             if self.chan_mach_current is not None:
                 self.chan_mach_current.connectSignal(
                     "update", self.mach_current_changed
                 )
 
-            self.chan_mach_status = self.getChannelObject("MachStatus")
+            self.chan_mach_status = self.get_channel_object("MachStatus")
             if self.chan_mach_status is not None:
                 self.chan_mach_status.connectSignal("update", self.mach_status_changed)
 
-            self.chan_topup_remaining = self.getChannelObject("TopUpRemaining")
+            self.chan_topup_remaining = self.get_channel_object("TopUpRemaining")
             if self.chan_topup_remaining is not None:
                 self.chan_topup_remaining.connectSignal(
                     "update", self.topup_remaining_changed
@@ -205,4 +205,4 @@ class ALBAMachineInfo(Equipment):
 
 
 def test_hwo(hwo):
-    print "Current is", hwo.get_current()
+    print("Current is", hwo.get_current())

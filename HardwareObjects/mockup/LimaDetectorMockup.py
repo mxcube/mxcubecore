@@ -1,19 +1,15 @@
 # pylint: skip-file
 
-import gevent
 import time
-import subprocess
-import os
-import math
-from HardwareRepository.TaskUtils import task, cleanup, error_cleanup
+from HardwareRepository.TaskUtils import task
 import logging
 from PyTango import DeviceProxy
+from HardwareRepository import HardwareRepository as HWR
 
 
 class LimaDetectorMockup:
-    def init(self, config, collect_obj):
+    def init(self, config, collect_obj=None):
         self.config = config
-        self.collect_obj = collect_obj
         self.header = dict()
 
         lima_device = config.getProperty("lima_device")
@@ -37,20 +33,20 @@ class LimaDetectorMockup:
             "saving_header_delimiter",
             "last_image_saved",
         ):
-            self.addChannel(
+            self.add_channel(
                 {"type": "tango", "name": channel_name, "tangoname": lima_device},
                 channel_name,
             )
 
         for channel_name in ("fill_mode", "threshold"):
-            self.addChannel(
+            self.add_channel(
                 {"type": "tango", "name": channel_name, "tangoname": pilatus_device},
                 channel_name,
             )
 
         pilatus_tg_device = DeviceProxy(pilatus_device)
         if hasattr(pilatus_tg_device, "working_energy"):
-            self.addChannel(
+            self.add_channel(
                 {
                     "type": "tango",
                     "name": "energy_threshold",
@@ -59,7 +55,7 @@ class LimaDetectorMockup:
                 "working_energy",
             )
         else:
-            self.addChannel(
+            self.add_channel(
                 {
                     "type": "tango",
                     "name": "energy_threshold",
@@ -68,20 +64,20 @@ class LimaDetectorMockup:
                 "energy_threshold",
             )
 
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "prepare_acq", "tangoname": lima_device},
             "prepareAcq",
         )
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "start_acq", "tangoname": lima_device}, "startAcq"
         )
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "stop_acq", "tangoname": lima_device}, "stopAcq"
         )
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "reset", "tangoname": lima_device}, "reset"
         )
-        self.addCommand(
+        self.add_command(
             {"type": "tango", "name": "set_image_header", "tangoname": lima_device},
             "SetImageHeader",
         )
@@ -108,9 +104,7 @@ class LimaDetectorMockup:
         energy,
         still,
     ):
-        diffractometer_positions = (
-            self.collect_obj.bl_control.diffractometer.getPositions()
-        )
+        diffractometer_positions = HWR.beamline.diffractometer.get_positions()
         self.start_angles = list()
         for i in range(number_of_images):
             self.start_angles.append("%0.4f deg." % (start + osc_range * i))

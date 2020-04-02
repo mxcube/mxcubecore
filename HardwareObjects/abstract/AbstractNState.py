@@ -22,88 +22,86 @@ Defines the interface for N state devices
 """
 
 import abc
-from enum import IntEnum, unique
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+import ast
+from enum import Enum, unique
+from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
+    AbstractActuator,
+)
 
 
-class AbstractNState(object):
-    """
-    Abstract base class for N state objects.
-    """
-    __metaclass__ = abc.ABCMeta
-
-    @abc.abstractmethod
-    def value_changed(self, value):
-        """ Emitted on value change
-
-        Args:
-            value: (int)
-
-        Emitts:
-            shutterStateChanged: (str) state name
-        """
-        return
-
-    @abc.abstractmethod
-    def get_state(self):
-        """
-        Returns:
-           str: The current state name
-        """
-        return
-
-    @abc.abstractmethod
-    def is_valid(self):
-        """ Checks if the shutter is in one of its predefined states """
-        return
-
-    @abc.abstractmethod
-    def set_state(self, state, wait=False, timeout=None):
-        """
-        Args:
-            state: (enum) The state to transition to
-            wait: (bool) Wait for state transition to complete before returning
-            timeout: (float) Raises TimeoutException if transition takes longer
-                     than timeout seconds
-        """
-        return
+__copyright__ = """ Copyright 2020 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
 
 @unique
-class ShutterState(IntEnum):
-    """
-    Defines the valid Shutter states
-    """
-    UNKOWN = 0
-    CLOSED = 1
-    OPEN = 2
-    MOVING = 3
-    AUTOMATIC = 4
-    DISABLED = 5
-    FAULT = -1
-    ERROR = -2
+class BaseValueEnum(Enum):
+    """defines only the compulsory unknown."""
+
+    UNKNOWN = "UNKNOWN"
 
 
-class AbstractShutter(HardwareObject, AbstractNState):
+class AbstractNState(AbstractActuator):
     """
-    Defines the common interface for shutters
+    Abstract base class for N state objects.
     """
-    STATE = ShutterState
+
+    __metaclass__ = abc.ABCMeta
+    VALUES = BaseValueEnum
 
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
+        AbstractActuator.__init__(self, name)
 
-    @abc.abstractmethod
-    def open(self, wait=False, timeout=None):
-        """Opens shutter"""
-        return
+    def init(self):
+        """Initilise the predefined values"""
+        AbstractActuator.init(self)
+        self.initialise_values()
 
-    @abc.abstractmethod
-    def close(self, wait=False, timeout=None):
-        """Closes shutter"""
-        return
+    def validate_value(self, value):
+        """Check if the value is within the predefined values.
+        Args:
+            value(Enum): value to check
+        Returns:
+            (bool): True if within the values.
+        """
+        return value in self.VALUES
 
+    def set_limits(self, limits):
+        """Set the low and high limits.
+        Args:
+            limits (tuple): two element (low limit, high limit) tuple.
+        """
+        raise NotImplementedError
 
-    def update_values(self):
-        """Reemits signals"""
-        self.emit("shutterStateChanged", self.current_state.name)
+    def update_limits(self, limits=None):
+        """Check if the limits have changed. Emits signal limitsChanged.
+        Args:
+            limits(tuple): two element (low limit, high limit) tuple.
+        """
+        raise NotImplementedError
+
+    def initialise_values(self):
+        """Initialise the ValueEnum with the values from the config.
+        """
+        try:
+            values = ast.literal_eval(self.getProperty("values"))
+            self.VALUES = Enum(
+                "ValueEnum",
+                dict(values, **{item.name: item.value for item in BaseValueEnum}),
+            )
+        except (ValueError, TypeError):
+            pass
+
+    def value_to_enum(self, value):
+        """Tranform a value to Enum
+        Args:
+           value(str, int, float, tuple): value
+        Returns:
+            (Enum): Enum member, corresponding to the value or UNKNOWN.
+        """
+        for enum_var in self.VALUES.__members__.values():
+            if value == enum_var.value:
+                return enum_var
+            if isinstance(enum_var.value, tuple) and value == enum_var.value[0]:
+                return enum_var
+
+        return self.VALUES.UNKNOWN

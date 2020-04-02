@@ -11,7 +11,6 @@ class ID30A3PhotonFlux(Equipment):
     def init(self):
         controller = self.getObjectByRole("controller")
         self.musst = controller.musst
-        self.energy_motor = self.getDeviceByRole("energy")
         self.shutter = self.getDeviceByRole("shutter")
         self.factor = self.getProperty("current_photons_factor")
 
@@ -68,7 +67,7 @@ class ID30A3PhotonFlux(Equipment):
         flux = None
 
         try:
-          egy = self.energy_motor.getPosition()*1000.0
+          egy = HWR.beamline.energy.get_value()*1000.0
         except:
           logging.getLogger("HWR").exception("%s: could not get energy", self.name())
         else:
@@ -77,7 +76,7 @@ class ID30A3PhotonFlux(Equipment):
             if calib_dict is None:
               logging.getLogger("HWR").error("%s: calibration is None", self.name())
             else:
-              calibs = [(float(c["energy"]), float(c[self.counter])) for c in calib_dict.itervalues()]
+              calibs = [(float(c["energy"]), float(c[self.counter])) for c in calib_dict.values()]
               calibs.sort()
               E = [c[0] for c in calibs]
               C = [c[1] for c in calibs]
@@ -96,7 +95,7 @@ class ID30A3PhotonFlux(Equipment):
             self.emitValueChanged("%1.3g" % flux)
         """
 
-    def getCurrentFlux(self):
+    def get_value(self):
         return self.current_flux
 
     def emitValueChanged(self, flux=None):

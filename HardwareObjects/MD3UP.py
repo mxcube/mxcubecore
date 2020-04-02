@@ -4,6 +4,7 @@ import logging
 
 from HardwareRepository.HardwareObjects import Microdiff
 from HardwareRepository.HardwareObjects.sample_centring import CentringMotor
+from HardwareRepository import HardwareRepository as HWR
 
 
 class MD3UP(Microdiff.Microdiff):
@@ -22,7 +23,7 @@ class MD3UP(Microdiff.Microdiff):
         self.scan_nb_frames = 1
 
         # Raster scan attributes
-        self.nb_frames = self.addChannel(
+        self.nb_frames = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -30,7 +31,7 @@ class MD3UP(Microdiff.Microdiff):
             },
             "ScanNumberOfFrames",
         )
-        self.scan_range = self.addChannel(
+        self.scan_range = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -38,7 +39,7 @@ class MD3UP(Microdiff.Microdiff):
             },
             "ScanRange",
         )
-        self.scan_exposure_time = self.addChannel(
+        self.scan_exposure_time = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -46,7 +47,7 @@ class MD3UP(Microdiff.Microdiff):
             },
             "ScanExposureTime",
         )
-        self.scan_start_angle = self.addChannel(
+        self.scan_start_angle = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -54,7 +55,7 @@ class MD3UP(Microdiff.Microdiff):
             },
             "ScanStartAngle",
         )
-        self.scan_detector_gate_pulse_enabled = self.addChannel(
+        self.scan_detector_gate_pulse_enabled = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -62,7 +63,7 @@ class MD3UP(Microdiff.Microdiff):
             },
             "DetectorGatePulseEnabled",
         )
-        self.scan_detector_gate_pulse_readout_time = self.addChannel(
+        self.scan_detector_gate_pulse_readout_time = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -71,11 +72,11 @@ class MD3UP(Microdiff.Microdiff):
             "DetectorGatePulseReadoutTime",
         )
 
-    def getBeamPosX(self):
-        return self.beam_info.get_beam_position()[0]
-
-    def getBeamPosY(self):
-        return self.beam_info.get_beam_position()[1]
+    # def getBeamPosX(self):
+    #     return self.beam_info.get_beam_position()[0]
+    #
+    # def getBeamPosY(self):
+    #     return self.beam_info.get_beam_position()[1]
 
     def setNbImages(self, number_of_images):
         self.scan_nb_frames = number_of_images
@@ -92,7 +93,7 @@ class MD3UP(Microdiff.Microdiff):
 
         params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
 
-        scan = self.addCommand(
+        scan = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -127,7 +128,7 @@ class MD3UP(Microdiff.Microdiff):
         params += "%0.3f\t" % motors_pos["2"]["sampx"]
         params += "%0.3f" % motors_pos["2"]["sampy"]
 
-        scan = self.addCommand(
+        scan = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -166,9 +167,9 @@ class MD3UP(Microdiff.Microdiff):
         )
 
         # Prepositionning at the center of the grid
-        self.moveMotors(mesh_center.as_dict())
+        self.move_motors(mesh_center.as_dict())
 
-        positions = self.getPositions()
+        positions = self.get_positions()
 
         params = "%0.3f\t" % (end - start)
         params += "%0.3f\t" % mesh_range["vertical_range"]
@@ -185,7 +186,7 @@ class MD3UP(Microdiff.Microdiff):
         params += "%r\t" % True
         params += "%r\t" % True
 
-        scan = self.addCommand(
+        scan = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -202,24 +203,25 @@ class MD3UP(Microdiff.Microdiff):
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
-            self.zoomMotor.getPosition()
+            self.zoomMotor.get_value()
         )
 
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
 
-        dx = (x - self.getBeamPosX()) / self.pixelsPerMmY
-        dy = (y - self.getBeamPosY()) / self.pixelsPerMmZ
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
+        dx = (x - beam_pos_x) / self.pixelsPerMmY
+        dy = (y - beam_pos_y) / self.pixelsPerMmZ
 
         phi_angle = math.radians(
-            self.centringPhi.direction * self.centringPhi.getPosition()
+            self.centringPhi.direction * self.centringPhi.get_value()
         )
 
-        sampx = -self.centringSamplex.direction * self.centringSamplex.getPosition()
-        sampy = self.centringSampley.direction * self.centringSampley.getPosition()
+        sampx = -self.centringSamplex.direction * self.centringSamplex.get_value()
+        sampy = self.centringSampley.direction * self.centringSampley.get_value()
 
-        phiy = -self.centringPhiy.direction * self.centringPhiy.getPosition()
-        phiz = self.centringPhiz.direction * self.centringPhiz.getPosition()
+        phiy = -self.centringPhiy.direction * self.centringPhiy.get_value()
+        phiz = self.centringPhiz.direction * self.centringPhiz.get_value()
 
         rotMatrix = numpy.matrix(
             [
@@ -246,7 +248,7 @@ class MD3UP(Microdiff.Microdiff):
         phiz = phiz + dy
 
         return {
-            "phi": self.centringPhi.getPosition(),
+            "phi": self.centringPhi.get_value(),
             "phiz": float(phiz),
             "phiy": float(phiy),
             "sampx": float(sampx),
@@ -255,26 +257,26 @@ class MD3UP(Microdiff.Microdiff):
 
     def motor_positions_to_screen(self, centred_positions_dict):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
-            self.zoomMotor.getPosition()
+            self.zoomMotor.get_value()
         )
 
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
 
         phi_angle = math.radians(
-            self.centringPhi.direction * self.centringPhi.getPosition()
+            self.centringPhi.direction * self.centringPhi.get_value()
         )
         sampx = self.centringSamplex.direction * (
-            centred_positions_dict["sampx"] - self.centringSamplex.getPosition()
+            centred_positions_dict["sampx"] - self.centringSamplex.get_value()
         )
         sampy = self.centringSampley.direction * (
-            centred_positions_dict["sampy"] - self.centringSampley.getPosition()
+            centred_positions_dict["sampy"] - self.centringSampley.get_value()
         )
         phiy = self.centringPhiy.direction * (
-            centred_positions_dict["phiy"] - self.centringPhiy.getPosition()
+            centred_positions_dict["phiy"] - self.centringPhiy.get_value()
         )
         phiz = self.centringPhiz.direction * (
-            centred_positions_dict["phiz"] - self.centringPhiz.getPosition()
+            centred_positions_dict["phiz"] - self.centringPhiz.get_value()
         )
 
         rotMatrix = numpy.matrix(
@@ -303,32 +305,31 @@ class MD3UP(Microdiff.Microdiff):
 
         sx, sy = numpy.dot(numpy.array([0, dsy]), numpy.array(chiRot))
 
-        beam_pos_x = self.getBeamPosX()
-        beam_pos_y = self.getBeamPosY()
-
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
         x = (sx + phiy) * self.pixelsPerMmY + beam_pos_x
         y = (sy + phiz) * self.pixelsPerMmZ + beam_pos_y
 
         return float(x), float(y)
 
-    def moveToBeam(self, x, y):
+    def move_to_beam(self, x, y):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
-            self.zoomMotor.getPosition()
+            self.zoomMotor.get_value()
         )
 
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
 
-        dx = (x - self.getBeamPosX()) / self.pixelsPerMmY
-        dy = (y - self.getBeamPosY()) / self.pixelsPerMmZ
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
+        dx = (x - beam_pos_x) / self.pixelsPerMmY
+        dy = (y - beam_pos_y) / self.pixelsPerMmZ
 
         phi_angle = math.radians(
-            self.centringPhi.direction * self.centringPhi.getPosition()
+            self.centringPhi.direction * self.centringPhi.get_value()
         )
 
-        sampx = -self.centringSamplex.direction * self.centringSamplex.getPosition()
-        sampy = self.centringSampley.direction * self.centringSampley.getPosition()
-        phiz = self.centringPhiz.direction * self.centringPhiz.getPosition()
+        sampx = -self.centringSamplex.direction * self.centringSamplex.get_value()
+        sampy = self.centringSampley.direction * self.centringSampley.get_value()
+        phiz = self.centringPhiz.direction * self.centringPhiz.get_value()
 
         rotMatrix = numpy.matrix(
             [
@@ -355,9 +356,9 @@ class MD3UP(Microdiff.Microdiff):
         phiz = phiz + dy
 
         try:
-            self.centringSamplex.move(sampx)
-            self.centringSampley.move(sampy)
-            self.centringPhiz.move(phiz)
+            self.centringSamplex.set_value(sampx)
+            self.centringSampley.set_value(sampy)
+            self.centringPhiz.set_value(phiz)
         except Exception:
             msg = "MiniDiff: could not center to beam, aborting"
             logging.getLogger("HWR").exception(msg)

@@ -1,4 +1,5 @@
 from HardwareRepository import BaseHardwareObjects
+from HardwareRepository import HardwareRepository as HWR
 
 
 class Q315dist(BaseHardwareObjects.Equipment):
@@ -10,11 +11,12 @@ class Q315dist(BaseHardwareObjects.Equipment):
 
     def init(self):
         self.detm = self.getDeviceByRole("detm")
-        self.dtox = self.getDeviceByRole("dtox")
 
         self.connect(self.detm, "stateChanged", self.detmStateChanged)
-        self.connect(self.dtox, "limitsChanged", self.dtoxLimitsChanged)
-        self.connect(self.detm, "positionChanged", self.detmPositionChanged)
+        self.connect(
+            HWR.beamline.detector.distance, "limitsChanged", self.dtoxLimitsChanged
+        )
+        self.connect(self.detm, "valueChanged", self.detmPositionChanged)
 
     def equipmentReady(self):
         self.emit("deviceReady")
@@ -22,29 +24,29 @@ class Q315dist(BaseHardwareObjects.Equipment):
     def equipmentNotReady(self):
         self.emit("deviceNotReady")
 
-    def isValid(self):
+    def is_valid(self):
         return (
             self.getDeviceByRole("detm") is not None
-            and self.getDeviceByRole("dtox") is not None
+            and self.getDeviceByRole("detector_distance") is not None
         )
 
     def __getattr__(self, attr):
         """Delegation to underlying motors"""
         if not attr.startswith("__"):
-            if attr in ("getPosition", "getDialPosition", "getState", "getLimits"):
-                # logging.getLogger().info("calling detm %s ; ready ? %s", attr, self.detm.isReady())
+            if attr in ("get_value", "get_state", "get_limits"):
+                # logging.getLogger().info("calling detm %s ; ready ? %s", attr, self.detm.is_ready())
                 return getattr(self.detm, attr)
             else:
                 # logging.getLogger().info("calling dtox %s", attr)
-                return getattr(self.dtox, attr)
+                return getattr(HWR.beamline.detector.distance, attr)
         else:
             raise AttributeError(attr)
 
     def connectNotify(self, signal):
         if signal == "stateChanged":
-            self.detmStateChanged(self.detm.getState())
-        elif signal == "positionChanged":
-            self.detmPositionChanged(self.detm.getPosition())
+            self.detmStateChanged(self.detm.get_state())
+        elif signal == "valueChanged":
+            self.detmPositionChanged(self.detm.get_value())
 
     def detmStateChanged(self, state):
         if (state == self.detm.NOTINITIALIZED) or (state > self.detm.UNUSABLE):
@@ -57,4 +59,4 @@ class Q315dist(BaseHardwareObjects.Equipment):
         self.emit("limitsChanged", (limits,))
 
     def detmPositionChanged(self, pos):
-        self.emit("positionChanged", (pos,))
+        self.emit("valueChanged", (pos,))

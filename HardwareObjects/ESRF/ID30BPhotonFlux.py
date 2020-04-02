@@ -1,28 +1,41 @@
-from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import task
 import time
 import logging
+from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository.TaskUtils import task
+from HardwareRepository import HardwareRepository as HWR
 
 
 class ID30BPhotonFlux(Equipment):
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
+        self.current_flux = 0
 
     def init(self):
+
         self.controller = self.getObjectByRole("controller")
         self.shutter = self.getDeviceByRole("shutter")
-        self.energy_motor = self.getObjectByRole("energy")
         self.aperture = self.getObjectByRole("aperture")
-        self.flux_calc = self.controller.CalculateFlux()
-        fname = self.getProperty("calibrated_diodes_file")
-        if fname:
-            self.flux_calc.init(fname)
+
+        try:
+            self.flux_calc = self.controller.CalculateFlux()
+            fname = self.getProperty("calibrated_diodes_file")
+            if fname:
+                self.flux_calc.init(fname)
+        except:
+            logging.getLogger("HWR").exception(
+                "Could not get flux calculation from BLISS"
+            )
+
         counter = self.getProperty("counter_name")
         if counter:
             self.counter = getattr(self.controller, counter)
         else:
             self.counter = self.getObjectByRole("counter")
-        self.shutter.connect("shutterStateChanged", self.shutterStateChanged)
+
+        try:
+            self.shutter.connect("shutterStateChanged", self.shutterStateChanged)
+        except Exception:
+            logging.exception("Could not connect to shutterStateChanged")
 
         self.counts_reading_task = self._read_counts_task(wait=False)
 
@@ -38,14 +51,15 @@ class ID30BPhotonFlux(Equipment):
 
     def _get_counts(self):
         try:
-            counts = self.counter.read()
+            # counts = self.counter.read()
+            counts = 0
             if counts == -9999:
                 counts = 0
         except Exception:
             counts = 0
             logging.getLogger("HWR").exception("%s: could not get counts", self.name())
         try:
-            egy = self.energy_motor.getCurrentEnergy() * 1000.0
+            egy = HWR.beamline.energy.get_value() * 1000.0
             calib = self.flux_calc.calc_flux_factor(egy)
         except BaseException:
             logging.getLogger("HWR").exception("%s: could not get energy", self.name())
@@ -73,9 +87,16 @@ class ID30BPhotonFlux(Equipment):
         flux = counts
         self.emitValueChanged("%1.3g" % flux)
 
-    def getCurrentFlux(self):
+    def get_value(self):
         self.updateFlux("dummy")
         return self.current_flux
+
+    # def getCurrentFlux(self):
+    #     self.updateFlux("dummy")
+    #     return self.current_flux
+    #
+    # def get_flux(self):
+    #     return self.current_flux
 
     def emitValueChanged(self, flux=None):
         if flux is None:

@@ -123,7 +123,7 @@ class ChannelObject:
             cmd, container_ref = self._onchange
             container = container_ref()
             if container is not None:
-                cmdobj = container.getCommandObject(cmd)
+                cmdobj = container.get_command_object(cmd)
                 if cmdobj is not None:
                     cmdobj(value)
 
@@ -146,20 +146,16 @@ class CommandContainer:
         except KeyError:
             raise AttributeError(attr)
 
-    def getChannelObject(self, channelName, optional=False):
+    def get_channel_object(self, channelName, optional=False):
         channel = self.__channels.get(channelName)
         if channel is None and not optional:
-            msg = "%s: Unable to add channel %s" % (self.name(), channelName)
+            msg = "%s: Unable to get channel %s" % (self.name(), channelName)
             logging.getLogger("user_level_log").error(msg)
             # raise Exception(msg)
         return channel
 
-    def getChannelNamesList(self):
+    def get_channel_names_list(self):
         return list(self.__channels.keys())
-
-    def addChannel(self, attributesDict, channel, addNow=True):
-        warn("addChannel is deprecated. Use add_channel instead", DeprecationWarning)
-        return self.add_channel(attributesDict, channel, addNow)
 
     def add_channel(self, attributesDict, channel, addNow=True):
         if not addNow:
@@ -328,13 +324,14 @@ class CommandContainer:
 
             try:
                 from HardwareRepository.Command.Mockup import MockupChannel
+
                 newChannel = MockupChannel(channelName, channel, **attributesDict)
             except BaseException:
                 logging.getLogger("HWR").exception(
                     "%s: cannot add Mockup channel %s (hint: check attributes)",
                     self.name(),
                     channelName,
-                ) 
+                )
 
         if newChannel is not None:
             if channelOnChange is not None:
@@ -352,40 +349,28 @@ class CommandContainer:
         else:
             logging.getLogger().exception("Channel is None")
 
-    def set_value(self, channel_name, value):
+    def set_channel_value(self, channel_name, value):
         self.__channels[channel_name].setValue(value)
 
-    def get_value(self, channel_name):
+    def get_channel_value(self, channel_name):
         return self.__channels[channel_name].getValue()
 
-    def setValue(self, channelName, value):
-        warn("setValue is deprecated. Use set_value instead", DeprecationWarning)
-        self.set_value(channelName, value)
-
-    def getValue(self, channelName):
-        warn("getValue is deprecated. Use get_value instead", DeprecationWarning)
-        return self.get_value(channelName)
-
-    def getChannels(self):
+    def get_channels(self):
         for chan in self.__channels.values():
             yield chan
 
-    def getCommandObject(self, cmdName):
+    def get_command_object(self, cmd_name):
         try:
-            return self.__commands.get(cmdName)
+            return self.__commands.get(cmd_name)
         except Exception as e:
             return None
 
-    def getCommands(self):
+    def get_commands(self):
         for cmd in self.__commands.values():
             yield cmd
 
-    def getCommandNamesList(self):
+    def get_command_namesList(self):
         return list(self.__commands.keys())
-
-    def addCommand(self, arg1, arg2=None, addNow=True):
-        warn("addCommand is deprecated. Use add_command instead", DeprecationWarning)
-        self.add_command(arg1, arg2, addNow)
 
     def add_command(self, arg1, arg2=None, addNow=True):
         if not addNow:
@@ -728,14 +713,14 @@ class CommandContainer:
 
             return newCommand
 
-    def _addChannelsAndCommands(self):
-        [self.addChannel(*args) for args in self.__channelsToAdd]
-        [self.addCommand(*args) for args in self.__commandsToAdd]
+    def _add_channels_and_commands(self):
+        [self.add_channel(*args) for args in self.__channelsToAdd]
+        [self.add_command(*args) for args in self.__commandsToAdd]
         self.__channelsToAdd = []
         self.__commandsToAdd = []
 
-    def executeCommand(self, cmdName, *args, **kwargs):
-        if cmdName in self.__commands:
-            return self.__commands[cmdName](*args, **kwargs)
+    def execute_command(self, command_name, *args, **kwargs):
+        if command_name in self.__commands:
+            return self.__commands[command_name](*args, **kwargs)
         else:
             raise AttributeError

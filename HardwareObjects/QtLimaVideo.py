@@ -46,7 +46,7 @@ Example Hardware Object XML file :
 import logging
 
 from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
-    AbstractVideoDevice
+    AbstractVideoDevice,
 )
 
 try:
@@ -160,5 +160,5 @@ class QtLimaVideo(AbstractVideoDevice):
 
 
 def test_hwo(hwo):
-    print ("Image dimensions: %s" % hwo.get_image_dimensions())
-    print ("Live Mode: %s" % hwo.get_video_live())
+    print(("Image dimensions: %s" % hwo.get_image_dimensions()))
+    print(("Live Mode: %s" % hwo.get_video_live()))

@@ -35,6 +35,7 @@ from gevent.event import AsyncResult
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.ConvertUtils import string_types
+from HardwareRepository import HardwareRepository as HWR
 
 # from HardwareRepository.HardwareObjects.GenericDiffractometer import GenericDiffractometer
 
@@ -78,10 +79,8 @@ class NanoDiff(HardwareObject):
         self.zoom_motor_hwobj = None
         self.sample_x_motor_hwobj = None
         self.sample_y_motor_hwobj = None
-        self.camera_hwobj = None
         self.focus_motor_hwobj = None
         self.omega_reference_motor = None
-        self.beam_info_hwobj = None
         self.centring_hwobj = None
         self.minikappa_correction_hwobj = None
 
@@ -102,8 +101,7 @@ class NanoDiff(HardwareObject):
         self.zoom_centre = None
         self.pixels_per_mm_x = None
         self.pixels_per_mm_y = None
-        self.image_width = None
-        self.image_height = None
+
         self.current_sample_info = None
         self.cancel_centring_methods = None
         self.current_centring_procedure = None
@@ -157,17 +155,17 @@ class NanoDiff(HardwareObject):
         self.user_clicked_event = AsyncResult()
         self.head_type = NanoDiff.PERMANENT
 
-        # self.chan_calib_x = self.getChannelObject('CoaxCamScaleX')
-        # self.chan_calib_y = self.getChannelObject('CoaxCamScaleY')
+        # self.chan_calib_x = self.get_channel_object('CoaxCamScaleX')
+        # self.chan_calib_y = self.get_channel_object('CoaxCamScaleY')
         self.update_pixels_per_mm()
 
-        # self.chan_head_type = self.getChannelObject('HeadType')
+        # self.chan_head_type = self.get_channel_object('HeadType')
         # if self.chan_head_type is not None:
         #    self.head_type = self.chan_head_type.getValue()
 
         print("PP__:  Attention, chan_head_type is commented out")
 
-        self.chan_current_phase = self.getChannelObject("CurrentPhase")
+        self.chan_current_phase = self.get_channel_object("CurrentPhase")
         if self.chan_current_phase is not None:
             self.connect(self.chan_current_phase, "update", self.current_phase_changed)
         else:
@@ -175,16 +173,15 @@ class NanoDiff(HardwareObject):
                 "NanoDiff: Current phase channel not defined"
             )
 
-        self.chan_fast_shutter_is_open = self.getChannelObject("FastShutterIsOpen")
+        self.chan_fast_shutter_is_open = self.get_channel_object("FastShutterIsOpen")
         if self.chan_fast_shutter_is_open is not None:
             self.chan_fast_shutter_is_open.connectSignal(
                 "update", self.fast_shutter_state_changed
             )
 
-        self.cmd_start_set_phase = self.getCommandObject("startSetPhase")
-        self.cmd_start_auto_focus = self.getCommandObject("startAutoFocus")
+        self.cmd_start_set_phase = self.get_command_object("startSetPhase")
+        self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")
 
-        self.camera_hwobj = self.getObjectByRole("camera")
         self.centring_hwobj = self.getObjectByRole("centring")
         if self.centring_hwobj is None:
             logging.getLogger("HWR").debug("NanoDiff: Centring math is not defined")
@@ -197,10 +194,9 @@ class NanoDiff(HardwareObject):
         self.sample_x_motor_hwobj = self.getObjectByRole("sampx")
         self.sample_y_motor_hwobj = self.getObjectByRole("sampy")
 
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        if self.beam_info_hwobj is not None:
+        if HWR.beamline.beam is not None:
             self.connect(
-                self.beam_info_hwobj, "beamPosChanged", self.beam_position_changed
+                HWR.beamline.beam, "beamPosChanged", self.beam_position_changed
             )
         else:
             logging.getLogger("HWR").debug("NanoDiff: Beaminfo is not defined")
@@ -209,7 +205,7 @@ class NanoDiff(HardwareObject):
             self.connect(
                 self.phi_motor_hwobj, "stateChanged", self.phi_motor_state_changed
             )
-            self.connect(self.phi_motor_hwobj, "positionChanged", self.phi_motor_moved)
+            self.connect(self.phi_motor_hwobj, "valueChanged", self.phi_motor_moved)
         else:
             logging.getLogger("HWR").error("NanoDiff: Phi motor is not defined")
 
@@ -218,7 +214,7 @@ class NanoDiff(HardwareObject):
                 self.phiz_motor_hwobj, "stateChanged", self.phiz_motor_state_changed
             )
             self.connect(
-                self.phiz_motor_hwobj, "positionChanged", self.phiz_motor_moved
+                self.phiz_motor_hwobj, "valueChanged", self.phiz_motor_moved
             )
         else:
             logging.getLogger("HWR").error("NanoDiff: Phiz motor is not defined")
@@ -228,14 +224,14 @@ class NanoDiff(HardwareObject):
                 self.phiy_motor_hwobj, "stateChanged", self.phiy_motor_state_changed
             )
             self.connect(
-                self.phiy_motor_hwobj, "positionChanged", self.phiy_motor_moved
+                self.phiy_motor_hwobj, "valueChanged", self.phiy_motor_moved
             )
         else:
             logging.getLogger("HWR").error("NanoDiff: Phiy motor is not defined")
 
         if self.zoom_motor_hwobj is not None:
             self.connect(
-                self.zoom_motor_hwobj, "positionChanged", self.update_pixels_per_mm
+                self.zoom_motor_hwobj, "valueChanged", self.update_pixels_per_mm
             )
             self.connect(
                 self.zoom_motor_hwobj,
@@ -255,7 +251,7 @@ class NanoDiff(HardwareObject):
                 self.sampleX_motor_state_changed,
             )
             self.connect(
-                self.sample_x_motor_hwobj, "positionChanged", self.sampleX_motor_moved
+                self.sample_x_motor_hwobj, "valueChanged", self.sampleX_motor_moved
             )
         else:
             logging.getLogger("HWR").error("NanoDiff: Sampx motor is not defined")
@@ -267,42 +263,30 @@ class NanoDiff(HardwareObject):
                 self.sampleY_motor_state_changed,
             )
             self.connect(
-                self.sample_y_motor_hwobj, "positionChanged", self.sampleY_motor_moved
+                self.sample_y_motor_hwobj, "valueChanged", self.sampleY_motor_moved
             )
         else:
             logging.getLogger("HWR").error("NanoDiff: Sampx motor is not defined")
 
         if self.focus_motor_hwobj is not None:
             self.connect(
-                self.focus_motor_hwobj, "positionChanged", self.focus_motor_moved
+                self.focus_motor_hwobj, "valueChanged", self.focus_motor_moved
             )
 
-        if self.camera_hwobj is None:
-            logging.getLogger("HWR").error("NanoDiff: Camera is not defined")
-        else:
-            self.image_height = self.camera_hwobj.getHeight()
-            self.image_width = self.camera_hwobj.getWidth()
+        # if HWR.beamline.sample_view.camera is None:
+        #     logging.getLogger("HWR").error("NanoDiff: Camera is not defined")
+        # else:
+        #     self.image_height = HWR.beamline.sample_view.camera.getHeight()
+        #     self.image_width = HWR.beamline.sample_view.camera.getWidth()
 
         try:
-            self.zoom_centre = eval(self.getProperty("zoomCentre"))
+            self.zoom_centre = eval(self.getProperty("zoom_centre"))
         except BaseException:
-            if self.image_width is not None and self.image_height is not None:
-                self.zoom_centre = {
-                    "x": self.image_width / 2,
-                    "y": self.image_height / 2,
-                }
-                self.beam_position = [self.image_width / 2, self.image_height / 2]
-                logging.getLogger("HWR").warning(
-                    "NanoDiff: Zoom center is "
-                    + "not defined continuing with the middle: %s" % self.zoom_centre
-                )
-            else:
-                logging.getLogger("HWR").warning(
-                    "NanoDiff: Neither zoom centre nor camera size iz defined"
-                )
+            self.zoom_centre = {"x": 0, "y": 0}
+            logging.getLogger("HWR").warning(
+                "NanoDiff: " + "zoom centre not configured"
+            )
 
-        # Compatibility
-        self.getCentringStatus = self.get_centring_status
 
         self.reversing_rotation = self.getProperty("reversingRotation")
         try:
@@ -317,10 +301,6 @@ class NanoDiff(HardwareObject):
             self.phase_list = eval(self.getProperty("phaseList"))
         except BaseException:
             self.phase_list = []
-
-        self.getPositions = self.get_positions
-        self.takeSnapshots = self.take_snapshots
-        self.moveMotors = self.move_motors
 
     def in_plate_mode(self):
         # self.head_type = self.chan_head_type.getValue()
@@ -352,11 +332,11 @@ class NanoDiff(HardwareObject):
         """
         self.emit("minidiffNotReady", ())
 
-    def isReady(self):
+    def is_ready(self):
         """
         Descript. :
         """
-        if self.isValid():
+        if self.is_valid():
             for motor in (
                 self.sample_x_motor_hwobj,
                 self.sample_y_motor_hwobj,
@@ -372,7 +352,7 @@ class NanoDiff(HardwareObject):
         else:
             return False
 
-    def isValid(self):
+    def is_valid(self):
         """
         Descript. :
         """
@@ -568,7 +548,7 @@ class NanoDiff(HardwareObject):
         Descript. :
         """
         if self.omega_reference_motor is not None:
-            reference_pos = self.omega_reference_motor.getPosition()
+            reference_pos = self.omega_reference_motor.get_value()
             self.omega_reference_motor_moved(reference_pos)
 
     def get_available_centring_methods(self):
@@ -646,11 +626,11 @@ class NanoDiff(HardwareObject):
         """
         Descript. :
         """
-        if self.camera_hwobj is not None:
+        if HWR.beamline.sample_view.camera is not None:
             if self.current_phase != "Unknown":
-                self.camera_hwobj.refresh_video()
-        if self.beam_info_hwobj is not None:
-            self.beam_position = self.beam_info_hwobj.get_beam_position()
+                HWR.beamline.sample_view.camera.refresh_video()
+        if HWR.beamline.beam is not None:
+            self.beam_position = HWR.beamline.beam.get_beam_position()
 
     def start_auto_focus(self):
         """
@@ -852,7 +832,7 @@ class NanoDiff(HardwareObject):
         for click in (0, 1, 2):
             self.user_clicked_event = AsyncResult()
             x, y = self.user_clicked_event.get()
-            phiValue = self.phi_motor_hwobj.getPosition()
+            phiValue = self.phi_motor_hwobj.get_value()
 
             self.centring_hwobj.appendCentringDataPoint(
                 {
@@ -866,12 +846,12 @@ class NanoDiff(HardwareObject):
             if self.in_plate_mode():
                 dynamic_limits = self.phi_motor_hwobj.getDynamicLimits()
                 if click == 0:
-                    self.phi_motor_hwobj.move(dynamic_limits[0])
+                    self.phi_motor_hwobj.set_value(dynamic_limits[0])
                 elif click == 1:
-                    self.phi_motor_hwobj.move(dynamic_limits[1])
+                    self.phi_motor_hwobj.set_value(dynamic_limits[1])
             else:
                 if click < 2:
-                    self.phi_motor_hwobj.moveRelative(90)
+                    self.phi_motor_hwobj.set_value_relative(90)
         self.omega_reference_add_constraint()
 
         # the following lines implement centering in horizontal direction (orthogonal)
@@ -883,12 +863,12 @@ class NanoDiff(HardwareObject):
         ) / 3.0
         horizontalCorrection = -horizontalCorrection / self.pixels_per_mm_x
         print(horizontalCorrection)
-        self.phiy_motor_hwobj.moveRelative(-horizontalCorrection)
+        self.phiy_motor_hwobj.set_value_relative(-horizontalCorrection)
 
         # the following 3 lines are debug version of centering procedure. Identical as in x direction
         # verticalCorrection = (self.centring_hwobj.centringDataMatrix[0][1] + self.centring_hwobj.centringDataMatrix[1][1] + self.centring_hwobj.centringDataMatrix[2][1])/3.0
         # verticalCorrection = -verticalCorrection/ self.pixels_per_mm_y
-        # self.phiz_motor_hwobj.moveRelative(verticalCorrection)
+        # self.phiz_motor_hwobj.set_value_relative(verticalCorrection)
 
         # Solving following system of linear equation example:
         # 1a + 1b = 35
@@ -936,9 +916,9 @@ class NanoDiff(HardwareObject):
         print("sampy correction = ", sampyc)
         print("sampx correction = ", sampxc)
 
-        self.phiz_motor_hwobj.moveRelative(-phizc)
-        self.sample_y_motor_hwobj.moveRelative(-sampyc)
-        self.sample_x_motor_hwobj.moveRelative(-sampxc)
+        self.phiz_motor_hwobj.set_value_relative(-phizc)
+        self.sample_y_motor_hwobj.set_value_relative(-sampyc)
+        self.sample_x_motor_hwobj.set_value_relative(-sampxc)
 
         # return self.centring_hwobj.centeredPosition(return_by_name=False)
         print("PP__:  Attention, return of manual_centring is replaced via 'dummy' one")
@@ -998,7 +978,7 @@ class NanoDiff(HardwareObject):
                 self.emit_centring_failed()
             else:
                 if not self.in_plate_mode():
-                    self.phi_motor_hwobj.syncMoveRelative(-180)
+                    self.phi_motor_hwobj.set_value_relative(-180, timeout=None)
             # logging.info("EMITTING CENTRING SUCCESSFUL")
             self.centring_time = time.time()
             self.emit_centring_successful()
@@ -1031,7 +1011,7 @@ class NanoDiff(HardwareObject):
                 self.emit_centring_failed()
             else:
                 if not self.in_plate_mode():
-                    self.phi_motor_hwobj.syncMoveRelative(-180)
+                    self.phi_motor_hwobj.set_value(-180, timeout=None)
             # logging.info("EMITTING CENTRING SUCCESSFUL")
             self.centring_time = time.time()
             self.emit_centring_successful()
@@ -1095,9 +1075,9 @@ class NanoDiff(HardwareObject):
             new_kappa,
             new_kappa_phi,
         ) and self.minikappa_correction_hwobj is not None:
-            sampx = self.sample_x_motor_hwobj.getPosition()
-            sampy = self.sample_y_motor_hwobj.getPosition()
-            phiy = self.phiy_motor_hwobj.getPosition()
+            sampx = self.sample_x_motor_hwobj.get_value()
+            sampy = self.sample_y_motor_hwobj.get_value()
+            phiy = self.phiy_motor_hwobj.get_value()
             new_sampx, new_sampy, new_phiy = self.minikappa_correction_hwobj.shift(
                 kappa, kappa_phi, [sampx, sampy, phiy], new_kappa, new_kappa_phi
             )
@@ -1141,21 +1121,23 @@ class NanoDiff(HardwareObject):
         Arg.      : motors positions in dict. Dictionary can contain motor names
                     as str or actual motor hwobj
         """
-        for motor in motor_position_dict.keys():
-            position = motor_position_dict[motor]
+        # We do not want to modify the input dict
+        motor_positions_copy = motor_position_dict.copy()
+        for motor in motor_positions_copy.keys():
+            position = motor_positions_copy[motor]
             if isinstance(motor, string_types):
                 motor_role = motor
                 motor = self.get_motor_hwobj(motor_role)
-                del motor_position_dict[motor_role]
+                del motor_positions_copy[motor_role]
                 if motor is None:
                     continue
-                motor_position_dict[motor] = position
+                motor_positions_copy[motor] = position
             # logging.getLogger("HWR").info("Moving motor '%s' to %f", motor.getMotorMnemonic(), position)
-            motor.move(position)
-        while any([motor.motorIsMoving() for motor in motor_position_dict]):
+            motor.set_value(position)
+        while any([motor.motorIsMoving() for motor in motor_positions_copy]):
             time.sleep(0.5)
         """with gevent.Timeout(15):
-             while not all([m.getState() == m.READY for m in motors_positions if m is not None]):
+             while not all([m.get_state() == m.READY for m in motors_positions if m is not None]):
                    time.sleep(0.1)"""
 
     def move_motors_done(self, move_motors_procedure):
@@ -1231,7 +1213,7 @@ class NanoDiff(HardwareObject):
             try:
                 motors[motor_role] = motor_pos[mot_obj]
             except KeyError:
-                motors[motor_role] = mot_obj.getPosition()
+                motors[motor_role] = mot_obj.get_value()
         motors["beam_x"] = (
             self.beam_position[0] - self.zoom_centre["x"]
         ) / self.pixels_per_mm_y
@@ -1287,9 +1269,9 @@ class NanoDiff(HardwareObject):
         centred_images = []
         for index in range(image_count):
             logging.getLogger("HWR").info("NanoDiff: taking snapshot #%d", index + 1)
-            # centred_images.append((self.phi_motor_hwobj.getPosition(), str(myimage(drawing))))
+            # centred_images.append((self.phi_motor_hwobj.get_value(), str(myimage(drawing))))
             if not self.in_plate_mode() and image_count > 1:
-                self.phi_motor_hwobj.syncMoveRelative(-90)
+                self.phi_motor_hwobj.set_value_relative(-90, timeout=None)
             centred_images.reverse()  # snapshot order must be according to positive rotation direction
         return centred_images
 
@@ -1339,8 +1321,8 @@ class NanoDiff(HardwareObject):
         else:
             t1 = [point_1.sampx, point_1.sampy, point_1.phiy]
             t2 = [point_2.sampx, point_2.sampy, point_2.phiy]
-            kappa = self.kappa_motor_hwobj.getPosition()
-            phi = self.kappa_phi_motor_hwobj.getPosition()
+            kappa = self.kappa_motor_hwobj.get_value()
+            phi = self.kappa_phi_motor_hwobj.get_value()
             new_kappa, new_phi, (
                 new_sampx,
                 new_sampy,
@@ -1369,6 +1351,6 @@ class NanoDiff(HardwareObject):
         snapshot_filename = os.path.join(
             tempfile.gettempdir(), "mxcube_sample_snapshot.png"
         )
-        self.camera_hwobj.take_snapshot(snapshot_filename, bw=True)
+        HWR.beamline.sample_view.camera.take_snapshot(snapshot_filename, bw=True)
         info, x, y = lucid.find_loop(snapshot_filename)
         return x, y

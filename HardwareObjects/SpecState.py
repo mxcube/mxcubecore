@@ -44,11 +44,11 @@ class SpecState(Procedure):
         speccommand = SpecClient.SpecCommand.SpecCommand(
             "sleep", self.specConnection, None
         )
-        self.addCommand(
+        self.add_command(
             {"name": "SpecStateMacro", "type": "spec", "version": self.specversion},
             "sleep",
         )
-        cmd = self.getCommandObject("SpecStateMacro")
+        cmd = self.get_command_object("SpecStateMacro")
         cmd.connectSignal("commandReady", self.commandReady)
         cmd.connectSignal("commandNotReady", self.commandNotReady)
         self.connectionStateMacro = cmd
@@ -60,7 +60,7 @@ class SpecState(Procedure):
     def specDisconnected(self):
         self.connectionStateMacro = None
         try:
-            cmd = self.getCommandObject("SpecStateMacro")
+            cmd = self.get_command_object("SpecStateMacro")
         except KeyError:
             pass
         else:
@@ -72,13 +72,13 @@ class SpecState(Procedure):
     def isConnected(self):
         return self.specConnection is not None and self.specConnection.isSpecConnected()
 
-    def isReady(self):
+    def is_ready(self):
         if self.isConnected():
             if self.connectionStateMacro is not None:
                 return self.connectionStateMacro.isSpecReady()
         return False
 
-    def getState(self):
+    def get_state(self):
         return (self.lastState, self.specversion)
 
     def getVersion(self):

@@ -1,10 +1,108 @@
 from __future__ import absolute_import
 
+import abc
+import enum
+from collections import OrderedDict
 import logging
+from gevent import event, Timeout
 
 from HardwareRepository.dispatcher import dispatcher
 from HardwareRepository.CommandContainer import CommandContainer
 from HardwareRepository.ConvertUtils import string_types
+
+
+@enum.unique
+class HardwareObjectState(enum.Enum):
+    UNKNOWN = 0
+    WARNING = 1
+    BUSY = 2
+    READY = 3
+    FAULT = 4
+    OFF = 5
+
+
+class HardwareObjectSpecificState(enum.Enum):
+    """This is subclassed with type- and object- specific states added"""
+
+    # It is not legal to define members here,
+    # but the following should always be present:
+    # UNKNOWN = 0
+    pass
+
+
+class ConfiguredObject(object):
+    """Superclass for classes that take configuration from YAML files"""
+
+    # Roles of defined objects and the category they belong to
+    # NB the double underscore is deliberate - attribute must be hidden from subclasses
+    __content_roles = []
+
+    # Procedure names - placeholder.
+    # Will be replaced by a set in any subclasses that can contain procedures
+    # Note that _procedure_names may *not* be set if it is already set in a superclass
+    _procedure_names = None
+
+    def __init__(self, name):
+
+        self.name = name
+
+        self._objects = OrderedDict((role, None) for role in self.all_roles)
+
+    def _init(self):
+        """Object initialisation - executed *before* loading contents"""
+        pass
+
+    def init(self):
+        """Object initialisation - executed *after* loading contents"""
+        pass
+
+    def replace_object(self, role, new_object):
+        """Replace already defined Object with a new one - for runtime use
+
+        Args:
+            role (text_str): Role name of contained Object
+            new_object (Optional[ConfiguredObject]): New contained Object
+
+        Returns:
+
+        """
+        if role in self._objects:
+            self._objects[role] = new_object
+        else:
+            raise ValueError("Unknown contained Object role: %s" % role)
+
+    # NB this function must be re-implemented in nested subclasses
+    @property
+    def all_roles(self):
+        """Tuple of all content object roles, indefinition and loading order
+
+        Returns:
+            tuple[text_str, ...]
+        """
+        return tuple(self.__content_roles)
+
+    @property
+    def all_objects_by_role(self):
+        """All contained Objects mapped by role (in specification order).
+            Includes objects defined in subclasses.
+
+        Returns:
+            OrderedDict[text_str, ConfiguredObject]:
+
+        """
+        return self._objects.copy()
+
+    @property
+    def procedures(self):
+        procedure_names = self.__class__._procedure_names
+        result = {}
+        if procedure_names:
+            for name in procedure_names:
+                procedure = getattr(self, name)
+                if procedure is not None:
+                    result[name] = procedure
+        #
+        return result
 
 
 class PropertySet(dict):
@@ -36,7 +134,7 @@ class PropertySet(dict):
         self.__propertiesChanged = {}  # reset changes at commit
 
 
-class HardwareObjectNode:
+class HardwareObjectNode(object):
     def __init__(self, nodeName):
         """Constructor"""
         self.__dict__["_propertySet"] = PropertySet()
@@ -146,14 +244,13 @@ class HardwareObjectNode:
     def resolveReferences(self):
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import getHardwareRepository
+
         while len(self.__references) > 0:
             reference, name, role, objectsNamesIndex, objectsIndex, objectsIndex2 = (
                 self.__references.pop()
             )
 
-            hw_object =getHardwareRepository().getHardwareObject(
-                reference
-            )
+            hw_object = getHardwareRepository().getHardwareObject(reference)
 
             if hw_object is not None:
                 self._objectsByRole[role] = hw_object
@@ -264,6 +361,126 @@ class HardwareObjectNode:
     def getProperties(self):
         return self._propertySet
 
+    def clear_gevent(self):
+        pass
+
+    def print_log(self, log_type="HWR", level="debug", msg=""):
+        if hasattr(logging.getLogger(log_type), level):
+            getattr(logging.getLogger(log_type), level)(msg)
+
+
+class HardwareObjectMixin(CommandContainer):
+    """HardwareObject functionality, for either xml- or yaml-configured subclasses"""
+
+    STATES = HardwareObjectState
+
+    # Override in subclasses
+    SPECIFIC_STATES = HardwareObjectSpecificState
+
+    def __init__(self):
+        CommandContainer.__init__(self)
+        self.connect_dict = {}
+
+        # event to handle waiting for object to be ready
+        self._ready_event = event.Event()
+        self._state = self.STATES.UNKNOWN
+        self._specific_state = None
+
+    def __bool__(self):
+        return True
+
+    def __nonzero__(self):
+        return True
+
+    def _init(self):
+        # 'protected' post-initialization method
+        pass
+
+    def init(self):
+        # 'public' post-initialization method
+        pass
+
+    @abc.abstractmethod
+    def abort(self):
+        """Immediately terminate HardwareObject action"""
+        pass
+
+    def stop(self):
+        """Gentler (?) alternative to abort
+
+        If implemented simply override this function"""
+        self.abort()
+
+    @abc.abstractmethod
+    def get_state(self):
+        """ Getter for state attribute
+
+        Returns:
+            HardwareObjectState
+        """
+        return self._state
+
+    def get_specific_state(self):
+        """ Getter for specific_state attribute. Override if needed.
+
+        Returns:
+            HardwareObjectSpecificState or None
+        """
+        return self._specific_state
+
+    def wait_ready(self, timeout=None):
+        """Wait timeout seconds till object is ready.
+
+        if timeout is None: wait forever.
+
+        Args:
+            timeout (s):
+
+        Returns:
+        """
+        with Timeout(timeout, RuntimeError("Timeout waiting for status ready")):
+            self._ready_event.wait(timeout=timeout)
+
+    def is_ready(self):
+        """Convenience function: Check if the object state is READY.
+        The same effect could be achieved with 'self.get_state() == self.STATES.READY'
+        Returns:
+            (bool): True if ready, otherwise False.
+        """
+        return self._ready_event.is_set()
+
+    def update_state(self, state=None):
+        """Check if the state has changed. Emits signal stateChanged.
+        Args:
+            state (enum 'HardwareObjectState'): state
+        """
+        if state is None:
+            state = self.get_state()
+        if state != self._state:
+            if state == self.STATES.READY:
+                self._ready_event.set()
+            elif not isinstance(state, self.STATES):
+                raise ValueError("Attempt to update to illegal state: %s" % state)
+            else:
+                self._ready_event.clear()
+
+            self._state = state
+            self.emit("stateChanged", (self._state,))
+
+    def update_specific_state(self, state=None):
+        """Check if the specific state has changed. Emits signal stateChanged.
+        Args:
+            state (enum 'HardwareObjectState'): state
+        """
+        if state is None:
+            state = self.get_specific_state()
+        if state != self._specific_state:
+            if not isinstance(state, self.SPECIFIC_STATES):
+                raise ValueError("Attempt to update to illegal specific state: %s" % state)
+
+            self._specific_state = state
+            self.emit("specificStateChanged", (state,))
+
     def update_values(self):
         """Method called from Qt bricks to ensure that bricks have values
            after the initialization.
@@ -276,57 +493,21 @@ class HardwareObjectNode:
 
            Normaly this method would emit all values
         """
-        return
+        self.update_state()
+        self.update_specific_state()
 
+    # Moved from HardwareObjectNode
     def clear_gevent(self):
-        pass
+        """Clear gevent tasks. Override in subclasses
 
-    def print_log(self, log_type="HWR", level="debug", msg=""):
-        if hasattr(logging.getLogger(log_type), level):
-            getattr(logging.getLogger(log_type), level)(msg)
+        NB Not sure why this is needed, except maybe for object reloading?
 
+        Returns:
 
-class HardwareObject(HardwareObjectNode, CommandContainer):
-    def __init__(self, rootName):
-        HardwareObjectNode.__init__(self, rootName)
-        CommandContainer.__init__(self)
-        self.connect_dict = {}
+        """
+        self.update_state(self.STATES.UNKNOWN)
 
-    def _init(self):
-        # 'protected' post-initialization method
-        pass
-
-    def init(self):
-        # 'public' post-initialization method
-        pass
-
-    def __getstate__(self):
-        return self.name()
-
-    def __setstate__(self, name):
-        # NB Must be here - importing at top level leads to circular imports
-        from .HardwareRepository import getHardwareRepository
-        o = getHardwareRepository().getHardwareObject(name)
-        self.__dict__.update(o.__dict__)
-
-    def __bool__(self):
-        return True
-
-    def __nonzero__(self):
-        return True
-
-    def __getattr__(self, attr):
-        if attr.startswith("__"):
-            raise AttributeError(attr)
-
-        try:
-            return CommandContainer.__getattr__(self, attr)
-        except AttributeError:
-            try:
-                return HardwareObjectNode.__getattr__(self, attr)
-            except AttributeError:
-                raise AttributeError(attr)
-
+    # Signal handling functions:
     def emit(self, signal, *args):
 
         signal = str(signal)
@@ -381,11 +562,43 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         if hasattr(sender, "disconnectNotify"):
             sender.disconnectNotify(signal)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         pass
 
-    def disconnectNotify(self, signal):
+    def disconnect_notify(self, signal):
         pass
+
+
+class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
+    """Xml-configured hardware object"""
+
+    def __init__(self, rootName):
+        HardwareObjectNode.__init__(self, rootName)
+        HardwareObjectMixin.__init__(self)
+        self.log = logging.getLogger('HWR').getChild(self.__class__.__name__)
+        self.user_log = logging.getLogger('user_log_level')
+
+    def __getstate__(self):
+        return self.name()
+
+    def __setstate__(self, name):
+        # NB Must be here - importing at top level leads to circular imports
+        from .HardwareRepository import getHardwareRepository
+
+        obj = getHardwareRepository().getHardwareObject(name)
+        self.__dict__.update(obj.__dict__)
+
+    def __getattr__(self, attr):
+        if attr.startswith("__"):
+            raise AttributeError(attr)
+
+        try:
+            return CommandContainer.__getattr__(self, attr)
+        except AttributeError:
+            try:
+                return HardwareObjectNode.__getattr__(self, attr)
+            except AttributeError:
+                raise AttributeError(attr)
 
     def commitChanges(self):
         """Commit last changes"""
@@ -411,21 +624,26 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         """Rewrite XML file"""
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import getHardwareRepository
+
         getHardwareRepository().rewrite_xml(self.name(), xml)
 
     def xml_source(self):
         """Get XML source code"""
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import getHardwareRepository
+
         return getHardwareRepository().xml_source[self.name()]
+
+
+class HardwareObjectYaml(ConfiguredObject, HardwareObjectMixin):
+    """Yaml-configured hardware object"""
+
+    pass
 
 
 class Procedure(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
-
-    def addCommand(self, *args, **kwargs):
-        return HardwareObject.addCommand(self, *args, **kwargs)
 
     def userName(self):
         uname = self.getProperty("username")
@@ -454,11 +672,8 @@ class Device(HardwareObject):
             self.state = Device.NOTREADY
             self.emit("deviceNotReady")
 
-    def isReady(self):
-        return self.state == Device.READY
-
     def is_ready(self):
-        return self.isReady()
+        return self.state == Device.READY
 
     def userName(self):
         uname = self.getProperty("username")
@@ -518,14 +733,14 @@ class Equipment(HardwareObject, DeviceContainer):
     def __deviceReady(self):
         ready = True
         for device in self.getDevices():
-            ready = ready and device.isReady()
+            ready = ready and device.is_ready()
             if not ready:
                 break
 
         if self.__ready != ready:
             self.__ready = ready
 
-            if self.isReady():
+            if self.is_ready():
                 self.emit("equipmentReady")
             else:
                 self.emit("equipmentNotReady")
@@ -535,13 +750,10 @@ class Equipment(HardwareObject, DeviceContainer):
             self.__ready = False
             self.emit("equipmentNotReady")
 
-    def isReady(self):
-        return self.isValid() and self.__ready
-
     def is_ready(self):
-        return self.isReady()
+        return self.is_valid() and self.__ready
 
-    def isValid(self):
+    def is_valid(self):
         return True
 
     def userName(self):

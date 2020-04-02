@@ -75,11 +75,11 @@ class SpecShell(Equipment):
             "sleep", self.specConnection, 0
         )
 
-        self.addCommand(
+        self.add_command(
             {"name": "SpecShellMacro", "type": "spec", "version": self.specversion},
             "sleep",
         )
-        cmd = self.getCommandObject("SpecShellMacro")
+        cmd = self.get_command_object("SpecShellMacro")
         cmd.connectSignal("commandReady", self.commandReady)
         cmd.connectSignal("commandNotReady", self.commandNotReady)
         cmd.connectSignal("commandReplyArrived", self.commandFinished)
@@ -88,11 +88,11 @@ class SpecShell(Equipment):
         cmd.connectSignal("commandAborted", self.commandAborted)
         self.specShellCommand = cmd
 
-        self.addCommand(
+        self.add_command(
             {"name": "SpecShellLsdef", "type": "spec", "version": self.specversion},
             "lsdef *",
         )
-        cmd = self.getCommandObject("SpecShellLsdef")
+        cmd = self.get_command_object("SpecShellLsdef")
         # cmd.connectSignal('commandReady',self.commandReady)
         # cmd.connectSignal('commandNotReady',self.commandNotReady)
         cmd.connectSignal("commandReplyArrived", self.commandFinished)
@@ -111,7 +111,7 @@ class SpecShell(Equipment):
     def isConnected(self):
         return self.specConnection is not None and self.specConnection.isSpecConnected()
 
-    def isReady(self):
+    def is_ready(self):
         return self.isSpecReady
 
     def isRunning(self):
@@ -207,7 +207,7 @@ class SpecShell(Equipment):
         self.commandRunning = False
         self.emit("aborted", ())
 
-    def executeCommand(self, command):
+    def execute_command(self, command):
         try:
             self.specShellCommand.executeCommand(command)
         except SpecClient.SpecClientError.SpecClientError as diag:

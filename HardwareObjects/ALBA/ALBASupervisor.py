@@ -1,4 +1,4 @@
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Device
 import logging
 
@@ -8,20 +8,20 @@ class ALBASupervisor(Device):
         Device.__init__(self, *args)
 
     def init(self):
-        self.state_chan = self.getChannelObject("state")
-        self.go_collect_cmd = self.getCommandObject("go_collect")
-        self.go_sample_view_cmd = self.getCommandObject("go_sample_view")
-        self.go_transfer_cmd = self.getCommandObject("go_transfer")
-        self.go_beam_view_cmd = self.getCommandObject("go_beam_view")
+        self.state_chan = self.get_channel_object("state")
+        self.go_collect_cmd = self.get_command_object("go_collect")
+        self.go_sample_view_cmd = self.get_command_object("go_sample_view")
+        self.go_transfer_cmd = self.get_command_object("go_transfer")
+        self.go_beam_view_cmd = self.get_command_object("go_beam_view")
 
-        self.phase_chan = self.getChannelObject("phase")
-        self.detector_cover_chan = self.getChannelObject("detector_cover_open")
+        self.phase_chan = self.get_channel_object("phase")
+        self.detector_cover_chan = self.get_channel_object("detector_cover_open")
 
         self.state_chan.connectSignal("update", self.state_changed)
         self.phase_chan.connectSignal("update", self.phase_changed)
         self.detector_cover_chan.connectSignal("update", self.detector_cover_changed)
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
     def getUserName(self):
@@ -70,7 +70,7 @@ class ALBASupervisor(Device):
 
 
 def test_hwo(hwo):
-    print '\nSupervisor control "%s"\n' % hwo.getUserName()
-    print "   Detector Cover  opened:", hwo.is_detector_cover_opened()
-    print "   Current Phase is:", hwo.get_current_phase()
-    print "   Current State is:", str(hwo.get_state())
+    print('\nSupervisor control "%s"\n' % hwo.getUserName())
+    print("   Detector Cover  opened:", hwo.is_detector_cover_opened())
+    print("   Current Phase is:", hwo.get_current_phase())
+    print("   Current State is:", str(hwo.get_state()))

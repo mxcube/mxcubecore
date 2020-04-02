@@ -36,7 +36,7 @@ import logging
 import gevent
 import time
 import PyTango
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Equipment
 
 
@@ -61,7 +61,7 @@ class MachInfo(Equipment):
 
     def init(self):
         try:
-            # self.mach_info_channel =  self.getChannelObject("mach_info")
+            # self.mach_info_channel =  self.get_channel_object("mach_info")
             channel = self.getProperty("mach_info")
             self.mach_info_channel = PyTango.DeviceProxy(channel)
             self.message = self.mach_info_channel.OperatorMessage
@@ -70,7 +70,7 @@ class MachInfo(Equipment):
             logging.getLogger("HWR").warning("Error initializing machine info channel")
 
         try:
-            # self.curr_info_channel =  self.getChannelObject("curr_info")
+            # self.curr_info_channel =  self.get_channel_object("curr_info")
             channel_current = self.getProperty("current")
             self.curr_info_channel = PyTango.DeviceProxy(channel_current)
             # why twice??
@@ -135,15 +135,15 @@ class MachInfo(Equipment):
 def test():
     import sys
 
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     conn = hwr.getHardwareObject(sys.argv[1])
 
-    print "Machine current: ", conn.getCurrent()
-    print "Life time: ", conn.getLifeTime()
-    print "TopUp remaining: ", conn.getTopUpRemaining()
-    print "Message: ", conn.getMessage()
+    print("Machine current: ", conn.getCurrent())
+    print("Life time: ", conn.getLifeTime())
+    print("TopUp remaining: ", conn.getTopUpRemaining())
+    print("Message: ", conn.getMessage())
 
     while True:
         gevent.wait(timeout=0.1)

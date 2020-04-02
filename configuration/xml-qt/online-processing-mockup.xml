@@ -1,0 +1,5 @@
+<object class="OnlineProcessingMockup">
+  <object href="/beamstop-mockup" role="beamstop"/>
+  <processing_command>/pathToProcessingScript</processing_command>
+  <run_as_mockup>True</run_as_mockup>
+</object>

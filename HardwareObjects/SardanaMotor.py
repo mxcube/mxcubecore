@@ -1,7 +1,8 @@
 import logging
 import time
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import (
-    AbstractMotor, MotorStates
+    AbstractMotor,
+    MotorStates,
 )
 from gevent import Timeout
 
@@ -11,7 +12,7 @@ taurusname is the only obligatory property.
 <device class="SardanaMotor">
     <taurusname>dmot01</taurusname>
     <username>Dummy</username>
-    <motor_name>dummy_motor</motor_name>
+    <actuator_name>dummy_motor</actuator_name>
     <threshold>0.005</threshold>
     <move_threshold>0.005</move_threshold>
     <interval>2000</interval>
@@ -66,16 +67,16 @@ class SardanaMotor(AbstractMotor):
         if not self.taurusname:
             raise RuntimeError("Undefined property taurusname")
 
-        self.motor_name = self.getProperty("motor_name")
+        self.actuator_name = self.getProperty("actuator_name")
         if not self.name:
             logging.getLogger("HWR").info(
-                "Undefined property motor_name in xml. Applying name during instance creation."
+                "Undefined property actuator_name in xml. Applying name during instance creation."
             )
-            self.motor_name = self.name()
+            self.actuator_name = self.name()
 
         self.threshold = self.getProperty("threshold", self.threshold_default)
         logging.getLogger("HWR").debug(
-            "Motor {0} threshold = {1}".format(self.motor_name, self.threshold)
+            "Motor {0} threshold = {1}".format(self.actuator_name, self.threshold)
         )
 
         self.move_threshold = self.getProperty(
@@ -83,55 +84,55 @@ class SardanaMotor(AbstractMotor):
         )
         logging.getLogger("HWR").debug(
             "Motor {0} move_threshold = {1}".format(
-                self.motor_name, self.move_threshold
+                self.actuator_name, self.move_threshold
             )
         )
 
         self.polling = self.getProperty("interval", self.polling_default)
         logging.getLogger("HWR").debug(
-            "Motor {0} polling = {1}".format(self.motor_name, self.polling)
+            "Motor {0} polling = {1}".format(self.actuator_name, self.polling)
         )
 
-        self.stop_command = self.addCommand(
+        self.stop_command = self.add_command(
             {
                 "type": "sardana",
-                "name": self.motor_name + SardanaMotor.suffix_stop,
+                "name": self.actuator_name + SardanaMotor.suffix_stop,
                 "taurusname": self.taurusname,
             },
             "Stop",
         )
-        self.position_channel = self.addChannel(
+        self.position_channel = self.add_channel(
             {
                 "type": "sardana",
-                "name": self.motor_name + SardanaMotor.suffix_position,
+                "name": self.actuator_name + SardanaMotor.suffix_position,
                 "taurusname": self.taurusname,
                 "polling": self.polling,
             },
             "Position",
         )
-        self.state_channel = self.addChannel(
+        self.state_channel = self.add_channel(
             {
                 "type": "sardana",
-                "name": self.motor_name + SardanaMotor.suffix_state,
+                "name": self.actuator_name + SardanaMotor.suffix_state,
                 "taurusname": self.taurusname,
                 "polling": self.polling,
             },
             "State",
         )
 
-        self.velocity_channel = self.addChannel(
+        self.velocity_channel = self.add_channel(
             {
                 "type": "sardana",
-                "name": self.motor_name + SardanaMotor.suffix_velocity,
+                "name": self.actuator_name + SardanaMotor.suffix_velocity,
                 "taurusname": self.taurusname,
             },
             "Velocity",
         )
 
-        self.acceleration_channel = self.addChannel(
+        self.acceleration_channel = self.add_channel(
             {
                 "type": "sardana",
-                "name": self.motor_name + SardanaMotor.suffix_acceleration,
+                "name": self.actuator_name + SardanaMotor.suffix_acceleration,
                 "taurusname": self.taurusname,
             },
             "Acceleration",
@@ -140,7 +141,7 @@ class SardanaMotor(AbstractMotor):
         self.position_channel.connectSignal("update", self.motor_position_changed)
         self.state_channel.connectSignal("update", self.motor_state_changed)
 
-        self.limits = self.getLimits()
+        self.limits = self.get_limits()
 
         (self.limit_lower, self.limit_upper) = self.limits
 
@@ -151,7 +152,7 @@ class SardanaMotor(AbstractMotor):
             self.limit_upper = self.static_limits[1]
 
     def connectNotify(self, signal):
-        if signal == "positionChanged":
+        if signal == "valueChanged":
             self.motor_position_changed()
         elif signal == "stateChanged":
             self.motor_state_changed()
@@ -193,23 +194,23 @@ class SardanaMotor(AbstractMotor):
         """
         Descript. : called by the position channels update event
                     if the position change exceeds threshold,
-                    positionChanged is fired
+                    valueChanged is fired
         """
         if position is None:
             position = self.position_channel.getValue()
         if abs(self.motor_position - position) >= self.threshold:
             self.motor_position = position
-            self.emit("positionChanged", (position,))
+            self.emit("valueChanged", (position,))
             self.motor_state_changed()
 
-    def getState(self):
+    def get_state(self):
         """
         Descript. : returns the current motor state
         """
         self.motor_state_changed()
         return self.motor_state
 
-    def getLimits(self):
+    def get_limits(self):
         """
         Descript. : returns motor limits. If no limits channel defined then
                     static_limits is returned
@@ -219,55 +220,23 @@ class SardanaMotor(AbstractMotor):
         except BaseException:
             return (None, None)
 
-    def getPosition(self):
+    def get_value(self):
         """
         Descript. : returns the current position
         """
         self.motor_position = self.position_channel.getValue()
         return self.motor_position
 
-    def get_position(self):
-        return self.getPosition()
-
     def update_values(self):
-        self.emit("limitsChanged", (self.getLimits(),))
-        self.emit("positionChanged", (self.getPosition(),))
+        self.emit("limitsChanged", (self.get_limits(),))
+        self.emit("valueChanged", (self.get_value(),))
 
-    def getDialPosition(self):
-        """
-        Descript. :
-        """
-        return self.getPosition()
-
-    def move(self, absolute_position):
+    def _set_value(self, value):
         """
         Descript. : move to the given position
         """
-        current_pos = self.position_channel.getValue()
-        if abs(absolute_position - current_pos) > self.move_threshold_default:
-            self.position_channel.setValue(absolute_position)
-
-    def moveRelative(self, relative_position):
-        """
-        Descript. : move for the given distance
-        """
-        self.move(self.getPosition() + relative_position)
-
-    def syncMove(self, position, timeout=None):
-        """
-        Descript. : move to the given position and wait till it's reached
-        """
-        self.move(position)
-        try:
-            self.wait_end_of_move(timeout)
-        except BaseException:
-            raise Timeout
-
-    def syncMoveRelative(self, relative_position, timeout=None):
-        """
-        Descript. : move for the given distance and wait till it's reached
-        """
-        self.syncMove(self.getPosition() + relative_position, timeout)
+        # if abs(absolute_position - current_pos) > self.move_threshold_default:
+        self.position_channel.setValue(value)
 
     def stop(self):
         """
@@ -279,7 +248,7 @@ class SardanaMotor(AbstractMotor):
         """
         Descript. : True if the motor is currently moving
         """
-        return self.isReady() and self.getState() == MotorStates.MOVING
+        return self.is_ready() and self.get_state() == MotorStates.MOVING
 
     motorIsMoving = is_moving
 
@@ -309,14 +278,14 @@ class SardanaMotor(AbstractMotor):
 
 
 def test_hwo(hwo):
-    print("Position for %s is: %s" % (hwo.username, hwo.getPosition()))
-    print("Velocity for %s is: %s" % (hwo.username, hwo.get_velocity()))
-    print("Acceleration for %s is: %s" % (hwo.username, hwo.get_acceleration()))
+    print(("Position for %s is: %s" % (hwo.username, hwo.get_value())))
+    print(("Velocity for %s is: %s" % (hwo.username, hwo.get_velocity())))
+    print(("Acceleration for %s is: %s" % (hwo.username, hwo.get_acceleration())))
 
 
 #    print("Moving motor to %s" % newpos)
-#    hwo.syncMove(newpos)
+#    hwo.set_value(newpos, timeout=None)
 #    while hwo.is_moving():
 #        print "Moving"
 #        time.sleep(0.3)
-#    print("Movement done. Position is now: %s" % hwo.getPosition())
+#    print("Movement done. Position is now: %s" % hwo.get_value())

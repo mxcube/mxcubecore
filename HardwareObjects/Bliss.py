@@ -38,7 +38,7 @@ def watch_data(scan_node, scan_new_callback, scan_data_callback, scan_end_callba
             data = data_channel.get(data_indexes.setdefault(channel_name, 0), -1)
             data_indexes[channel_name] += len(data)
             scan_data.setdefault(channel_name, []).extend(data)
-            if len(scan_data) == ndata and all_equal(data_indexes.itervalues()):
+            if len(scan_data) == ndata and all_equal(data_indexes.values()):
                 scan_data_callback(scan_info, scan_data)
                 if data_indexes[channel_name] == scan_info["npoints"]:
                     scan_end_callback(scan_info)

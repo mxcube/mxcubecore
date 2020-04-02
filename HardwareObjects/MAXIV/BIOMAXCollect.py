@@ -21,11 +21,12 @@ import uuid
 import json
 import sys
 
+from EigerDataSet import EigerDataSet
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 
-from EigerDataSet import EigerDataSet
+from HardwareRepository import HardwareRepository as HWR
 
 
 class BIOMAXCollect(AbstractCollect, HardwareObject):
@@ -70,25 +71,12 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         self.ready_event = gevent.event.Event()
-        self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
-        self.lims_client_hwobj = self.getObjectByRole("lims_client")
-        self.machine_info_hwobj = self.getObjectByRole("machine_info")
-        self.energy_hwobj = self.getObjectByRole("energy")
-        self.resolution_hwobj = self.getObjectByRole("resolution")
-        self.detector_hwobj = self.getObjectByRole("detector")
-        self.autoprocessing_hwobj = self.getObjectByRole("auto_processing")
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        self.transmission_hwobj = self.getObjectByRole("transmission")
-        self.sample_changer_hwobj = self.getObjectByRole("sample_changer")
         self.sample_changer_maint_hwobj = self.getObjectByRole(
             "sample_changer_maintenance"
         )
-        self.dtox_hwobj = self.getObjectByRole("dtox")
         self.detector_cover_hwobj = self.getObjectByRole("detector_cover")
-        self.session_hwobj = self.getObjectByRole("session")
         self.datacatalog_url = self.getProperty("datacatalog_url", None)
         self.datacatalog_enabled = self.getProperty("datacatalog_enabled", True)
-        self.shape_history_hwobj = self.getObjectByRole("shape_history")
 
         if self.datacatalog_enabled:
             logging.getLogger("HWR").info(
@@ -97,10 +85,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         else:
             logging.getLogger("HWR").warning("[COLLECT] Datacatalog not enabled")
 
-            self.safety_shutter_hwobj = self.getObjectByRole("safety_shutter")
-
         # todo
-        # self.fast_shutter_hwobj = self.getObjectByRole("fast_shutter")
         # self.cryo_stream_hwobj = self.getObjectByRole("cryo_stream")
 
         undulators = []
@@ -113,21 +98,21 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
         self.exp_type_dict = {"Mesh": "Mesh", "Helical": "Helical"}
         try:
-            min_exp = self.detector_hwobj.get_minimum_exposure_time()
+            min_exp = HWR.beamline.detector.get_minimum_exposure_time()
         except BaseException:
             logging.getLogger("HWR").error(
                 "[HWR] *** Detector min exposure not available, set to 0.1"
             )
             min_exp = 0.1
         try:
-            pix_x = self.detector_hwobj.get_pixel_size_x()
+            pix_x = HWR.beamline.detector.get_pixel_size_x()
         except BaseException:
             logging.getLogger("HWR").error(
                 "[HWR] *** Detector X pixel size not available, set to 7-5e5"
             )
             pix_x = 7.5e-5
         try:
-            pix_y = self.detector_hwobj.get_pixel_size_y()
+            pix_y = HWR.beamline.detector.get_pixel_size_y()
         except BaseException:
             logging.getLogger("HWR").error(
                 "[HWR] *** Detector Y pixel size not available, set to 7-5e5"
@@ -139,24 +124,24 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 directory_prefix=self.getProperty("directory_prefix"),
                 default_exposure_time=self.getProperty("default_exposure_time"),
                 minimum_exposure_time=min_exp,
-                detector_fileext=self.detector_hwobj.getProperty("file_suffix"),
-                detector_type=self.detector_hwobj.getProperty("type"),
-                detector_manufacturer=self.detector_hwobj.getProperty("manufacturer"),
-                detector_model=self.detector_hwobj.getProperty("model"),
+                detector_fileext=HWR.beamline.detector.getProperty("file_suffix"),
+                detector_type=HWR.beamline.detector.getProperty("type"),
+                detector_manufacturer=HWR.beamline.detector.getProperty("manufacturer"),
+                detector_model=HWR.beamline.detector.getProperty("model"),
                 detector_px=pix_x,
                 detector_py=pix_y,
                 undulators=undulators,
                 focusing_optic=self.getProperty("focusing_optic"),
                 monochromator_type=self.getProperty("monochromator"),
-                beam_divergence_vertical=self.beam_info_hwobj.get_beam_divergence_hor(),
-                beam_divergence_horizontal=self.beam_info_hwobj.get_beam_divergence_ver(),
+                beam_divergence_vertical=HWR.beamline.beam.get_beam_divergence_hor(),
+                beam_divergence_horizontal=HWR.beamline.beam.get_beam_divergence_ver(),
                 polarisation=self.getProperty("polarisation"),
                 input_files_server=self.getProperty("input_files_server"),
             )
 
         """ to add """
-        # self.chan_undulator_gap = self.getChannelObject('UndulatorGap')
-        # self.chan_machine_current = self.getChannelObject("MachineCurrent")
+        # self.chan_undulator_gap = self.get_channel_object('UndulatorGap')
+        # self.chan_machine_current = self.get_channel_object("MachineCurrent")
 
         self.emit("collectReady", (True,))
 
@@ -166,7 +151,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         logging.getLogger("HWR").info("[COLLECT] Moving to center position")
         shape_id = self.get_current_shape_id()
-        shape = self.shape_history_hwobj.get_shape(shape_id).as_dict()
+        shape = HWR.beamline.sample_view.shapes.get_shape(shape_id).as_dict()
 
         x = shape.get("screen_coord")[0]
         y = shape.get("screen_coord")[1]
@@ -181,7 +166,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
         x_cor = x + cell_width * x_ppmm * (num_cols - 1) + cell_width * x_ppmm / 2
         y_cor = y + cell_height * y_ppmm * (num_rows - 1) + cell_height * y_ppmm / 2
-        center_positions = self.diffractometer_hwobj.get_centred_point_from_coord(
+        center_positions = HWR.beamline.diffractometer.get_centred_point_from_coord(
             x_cor, y_cor, return_by_names=True
         )
         center_positions.pop("zoom")
@@ -236,7 +221,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 # No centring point defined
                 # create point based on the current position
                 current_diffractometer_position = (
-                    self.diffractometer_hwobj.getPositions()
+                    HWR.beamline.diffractometer.get_positions()
                 )
                 for motor in self.current_dc_parameters["motors"].keys():
                     self.current_dc_parameters["motors"][
@@ -252,7 +237,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             # to fix permission issues
             snapshots_files = []
 
-            for key, value in self.current_dc_parameters.iteritems():
+            for key, value in self.current_dc_parameters.items():
                 if key.startswith("xtalSnapshotFullPath"):
                     snapshots_files.append(value)
             try:
@@ -263,7 +248,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 for file in snapshots_files:
                     os.chmod(file, 0o777)
             except Exception as ex:
-                print ex
+                print(ex)
             # prepare beamline for data acquisiion
             self.prepare_acquisition()
             self.emit(
@@ -274,7 +259,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             self.data_collection_hook()
             self.emit_collection_finished()
         except Exception as ex:
-            logging.getLogger("HWR").error("[COLLECT] Data collection failed: %s" % ex)
+            logging.getLogger("HWR").error("[COLLECT] Data collection failed: %s", ex)
             self.emit_collection_failed()
             self.close_fast_shutter()
             self.close_detector_cover()
@@ -298,7 +283,9 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 self.current_dc_parameters["transmission"],
             )
             try:
-                self.set_transmission(self.current_dc_parameters["transmission"])
+                HWR.beamline.transmission.set_value(
+                    self.current_dc_parameters["transmission"]
+                )
             except Exception as ex:
                 log.error("Collection: cannot set beamline transmission.")
                 logging.getLogger("HWR").error(
@@ -340,7 +327,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                     "Collection: Setting detector to %s",
                     self.current_dc_parameters["detroi"],
                 )
-                self.set_detector_roi(self.current_dc_parameters["detroi"])
+                HWR.beamline.detector.set_roi_mode(self.current_dc_parameters["detroi"])
             except Exception as ex:
                 log.error("Collection: cannot set detector roi.")
                 logging.getLogger("HWR").error(
@@ -352,7 +339,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             try:
                 resolution = self.current_dc_parameters["resolution"]["upper"]
                 log.info("Collection: Setting resolution to %.3f", resolution)
-                self.set_resolution(resolution)
+                HWR.beamline.resolution.set_value(resolution)
             except Exception as ex:
                 log.error("Collection: cannot set resolution.")
                 logging.getLogger("HWR").error(
@@ -366,7 +353,9 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                     "Collection: Moving detector to %f",
                     self.current_dc_parameters["detector_distance"],
                 )
-                self.move_detector(self.current_dc_parameters["detector_distance"])
+                HWR.beamline.detector.distance.set_value(
+                    self.current_dc_parameters["detector_distance"]
+                )
             except Exception as ex:
                 log.error("Collection: cannot set detector distance.")
                 logging.getLogger("HWR").error(
@@ -387,7 +376,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         )
 
         try:
-            self.detector_hwobj.set_collection_uuid(self.collection_uuid)
+            HWR.beamline.detector.set_collection_uuid(self.collection_uuid)
         except Exception as ex:
             logging.getLogger("HWR").warning(
                 "[COLLECT] Error setting UUID in the detector: %s" % ex
@@ -397,7 +386,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 self.store_datacollection_uuid_datacatalog()
             except Exception as ex:
                 logging.getLogger("HWR").warning(
-                    "[COLLECT] Error sending uuid to data catalog: %s" % ex
+                    "[COLLECT] Error sending uuid to data catalog: %s", ex
                 )
 
         try:
@@ -410,9 +399,9 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             raise Exception("[COLLECT] Error preparing detector: %s" % ex)
 
         # move MD3 to DataCollection phase if it's not
-        if self.diffractometer_hwobj.get_current_phase() != "DataCollection":
+        if HWR.beamline.diffractometer.get_current_phase() != "DataCollection":
             log.info("Moving Diffractometer to Data Collection")
-            self.diffractometer_hwobj.set_phase(
+            HWR.beamline.diffractometer.set_phase(
                 "DataCollection", wait=True, timeout=200
             )
         if (
@@ -474,17 +463,17 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             # that conf is done before arming
             time.sleep(2)
             try:
-                self.detector_hwobj.wait_config_done()
-                self.detector_hwobj.start_acquisition()
-                self.detector_hwobj.wait_ready()
+                HWR.beamline.detector.wait_config_done()
+                HWR.beamline.detector.start_acquisition()
+                HWR.beamline.detector.wait_ready()
             except Exception as ex:
-                logging.getLogger("HWR").error("[COLLECT] Detector Error: %s" % ex)
+                logging.getLogger("HWR").error("[COLLECT] Detector Error: %s", ex)
                 raise RuntimeError("[COLLECT] Detector error while arming.")
 
             # call after start_acquisition (detector is armed), when all the config parameters are definitely
             # implemented
             try:
-                shutterless_exptime = self.detector_hwobj.get_acquisition_time()
+                shutterless_exptime = HWR.beamline.detector.get_acquisition_time()
             except Exception as ex:
                 logging.getLogger("HWR").error(
                     "[COLLECT] Detector error getting acquisition time: %s" % ex
@@ -493,7 +482,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
             # wait until detector is ready (will raise timeout RuntimeError), sometimes arm command
             # is accepted by the detector but without any effect at all... sad...
-            # self.detector_hwobj.wait_ready()
+            # HWR.beamline.detector.wait_ready()
             for (
                 osc_start,
                 trigger_num,
@@ -507,7 +496,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 osc_start, osc_end, shutterless_exptime, 1, wait=True
             )
             try:
-                self.detector_hwobj.stop_acquisition()
+                HWR.beamline.detector.stop_acquisition()
             except Exception as ex:
                 logging.getLogger("HWR").error(
                     "[COLLECT] Detector error stopping acquisition: %s" % ex
@@ -548,12 +537,12 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         logging.getLogger("HWR").info(msg)
 
         if self.helical:
-            self.diffractometer_hwobj.osc_scan_4d(
+            HWR.beamline.diffractometer.osc_scan_4d(
                 start, end, exptime, self.helical_pos, wait=True
             )
         elif self.current_dc_parameters["experiment_type"] == "Mesh":
             mesh_range = oscillation_parameters["mesh_range"]
-            # self.diffractometer_hwobj.raster_scan(20, 22, 10, 0.2, 0.2, 10, 10)
+            # HWR.beamline.diffractometer.raster_scan(20, 22, 10, 0.2, 0.2, 10, 10)
             logging.getLogger("HWR").info(
                 "Mesh oscillation requested: number of lines %s"
                 % self.get_mesh_num_lines()
@@ -563,10 +552,10 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 % self.get_mesh_total_nb_frames()
             )
             shape_id = self.get_current_shape_id()
-            shape = self.shape_history_hwobj.get_shape(shape_id).as_dict()
+            shape = HWR.beamline.sample_view.shapes.get_shape(shape_id).as_dict()
             range_x = shape.get("num_cols") * shape.get("cell_width") / 1000.0
             range_y = shape.get("num_rows") * shape.get("cell_height") / 1000.0
-            self.diffractometer_hwobj.raster_scan(
+            HWR.beamline.diffractometer.raster_scan(
                 start,
                 end,
                 exptime * self.get_mesh_num_lines(),
@@ -578,7 +567,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 wait=True,
             )
         else:
-            self.diffractometer_hwobj.osc_scan(start, end, exptime, wait=True)
+            HWR.beamline.diffractometer.osc_scan(start, end, exptime, wait=True)
 
     def _update_task_progress(self):
         logging.getLogger("HWR").info("[BIOMAXCOLLECT] update task progress launched")
@@ -587,7 +576,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         ]
         if self.current_dc_parameters.get("experiment_type") == "Mesh":
             shape_id = self.get_current_shape_id()
-            shape = self.shape_history_hwobj.get_shape(shape_id).as_dict()
+            shape = HWR.beamline.sample_view.shapes.get_shape(shape_id).as_dict()
             num_cols = shape.get("num_cols")
             num_rows = shape.get("num_rows")
             num_images = num_cols * num_rows
@@ -659,7 +648,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         if self.current_dc_parameters["experiment_type"] == "Mesh":
             # disable stream interface
             # stop spot finding
-            self.detector_hwobj.disable_stream()
+            HWR.beamline.detector.disable_stream()
             self.stop_spot_finder()
         success_msg = "Data collection successful"
         self.current_dc_parameters["status"] = success_msg
@@ -737,7 +726,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                     self.current_dc_parameters["fileinfo"]["filename"], 1
                 )
             except Exception as ex:
-                print ex
+                print(ex)
 
             last_frame = self.current_dc_parameters["oscillation_sequence"][0][
                 "number_of_images"
@@ -752,7 +741,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                         self.current_dc_parameters["fileinfo"]["filename"], last_frame
                     )
                 except Exception as ex:
-                    print ex
+                    print(ex)
 
         if self.datacatalog_enabled:
             self.store_datacollection_datacatalog()
@@ -814,13 +803,13 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 rings=rings,
             )
         except Exception as ex:
-            print ex
+            print(ex)
 
         try:
             os.chmod(os.path.dirname(jpeg_thumbnail_full_path), 0o777)
             os.chmod(jpeg_thumbnail_full_path, 0o777)
         except Exception as ex:
-            print ex
+            print(ex)
 
     def wait_for_file_copied(self, full_file_path):
         # first wait for the file being created
@@ -843,7 +832,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         Descript. :
         """
-        if self.lims_client_hwobj:
+        if HWR.beamline.lims:
             file_location = self.current_dc_parameters["fileinfo"]["directory"]
             image_file_template = self.current_dc_parameters["fileinfo"]["template"]
             filename = image_file_template % frame_number
@@ -852,7 +841,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 "fileName": filename,
                 "fileLocation": file_location,
                 "imageNumber": frame_number,
-                "measuredIntensity": self.get_measured_intensity(),
+                "measuredIntensity": HWR.beamline.flux.get_value(),
                 "synchrotronCurrent": self.get_machine_current(),
                 "machineMessage": self.get_machine_message(),
                 "temperature": self.get_cryo_temperature(),
@@ -889,15 +878,15 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 )
             )
             try:
-                image_id = self.lims_client_hwobj.store_image(lims_image)
+                image_id = HWR.beamline.lims.store_image(lims_image)
             except Exception as ex:
-                print ex
+                print(ex)
             # temp fix for ispyb permission issues
             try:
                 session_dir = os.path.join(archive_directory, "../../../")
                 os.system("chmod -R 777 %s" % (session_dir))
             except Exception as ex:
-                print ex
+                print(ex)
 
             return image_id
 
@@ -921,8 +910,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
             # for plate head, takes only one image
             if (
-                self.diffractometer_hwobj.head_type
-                == self.diffractometer_hwobj.HEAD_TYPE_PLATE
+                HWR.beamline.diffractometer.head_type
+                == HWR.beamline.diffractometer.HEAD_TYPE_PLATE
             ):
                 number_of_snapshots = 1
             else:
@@ -930,11 +919,13 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             logging.getLogger("user_level_log").info(
                 "Collection: Taking %d sample snapshot(s)" % number_of_snapshots
             )
-            if self.diffractometer_hwobj.get_current_phase() != "Centring":
+            if HWR.beamline.diffractometer.get_current_phase() != "Centring":
                 logging.getLogger("user_level_log").info(
                     "Moving Diffractometer to CentringPhase"
                 )
-                self.diffractometer_hwobj.set_phase("Centring", wait=True, timeout=200)
+                HWR.beamline.diffractometer.set_phase(
+                    "Centring", wait=True, timeout=200
+                )
                 self.move_to_centered_position()
 
             for snapshot_index in range(number_of_snapshots):
@@ -954,7 +945,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 self._take_crystal_snapshot(snapshot_filename)
                 time.sleep(1)  # needed, otherwise will get the same images
                 if number_of_snapshots > 1:
-                    self.diffractometer_hwobj.move_omega_relative(90)
+                    HWR.beamline.diffractometer.move_omega_relative(90)
                     time.sleep(1)  # needed, otherwise will get the same images
 
     def trigger_auto_processing(self, process_event, params_dict, frame_number):
@@ -990,8 +981,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         # return
 
         logging.getLogger("HWR").info("[COLLECT] Launching MAXIV Autoprocessing")
-        if self.autoprocessing_hwobj is not None:
-            self.autoprocessing_hwobj.execute_autoprocessing(
+        if HWR.beamline.offline_processing is not None:
+            HWR.beamline.offline_processing.execute_autoprocessing(
                 process_event, self.current_dc_parameters, frame_number
             )
 
@@ -999,8 +990,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         Descript. :
         """
-        if self.resolution_hwobj is not None:
-            return self.resolution_hwobj.get_beam_centre()
+        if HWR.beamline.resolution is not None:
+            return HWR.beamline.resolution.get_beam_centre()
         else:
             return None, None
 
@@ -1008,8 +999,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         Descript. :
         """
-        if self.beam_info_hwobj is not None:
-            return self.beam_info_hwobj.get_beam_shape()
+        if HWR.beamline.beam is not None:
+            return HWR.beamline.beam.get_beam_shape()
 
     def open_detector_cover(self):
         """
@@ -1040,19 +1031,19 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         # todo add time out? if over certain time, then stop acquisiion and
         # popup an error message
-        if self.safety_shutter_hwobj.getShutterState() == "opened":
+        if HWR.beamline.safety_shutter.getShutterState() == "opened":
             return
         timeout = 5
         count_time = 0
         logging.getLogger("HWR").info("Opening the safety shutter.")
-        self.safety_shutter_hwobj.openShutter()
+        HWR.beamline.safety_shutter.openShutter()
         while (
-            self.safety_shutter_hwobj.getShutterState() == "closed"
+            HWR.beamline.safety_shutter.getShutterState() == "closed"
             and count_time < timeout
         ):
             time.sleep(0.1)
             count_time += 0.1
-        if self.safety_shutter_hwobj.getShutterState() == "closed":
+        if HWR.beamline.safety_shutter.getShutterState() == "closed":
             logging.getLogger("HWR").exception("Could not open the safety shutter")
             raise Exception("Could not open the safety shutter")
 
@@ -1062,8 +1053,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         # todo, add timeout, same as open
         logging.getLogger("HWR").info("Closing the safety shutter.")
-        self.safety_shutter_hwobj.closeShutter()
-        while self.safety_shutter_hwobj.getShutterState() == "opened":
+        HWR.beamline.safety_shutter.closeShutter()
+        while HWR.beamline.safety_shutter.getShutterState() == "opened":
             time.sleep(0.1)
 
     def open_fast_shutter(self):
@@ -1087,13 +1078,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         # take image from server
-        self.diffractometer_hwobj.camera_hwobj.takeSnapshot(filename)
-
-    def set_detector_roi(self, value):
-        """
-        Descript. : set the detector roi mode
-        """
-        self.detector_hwobj.set_roi_mode(value)
+        HWR.beamline.sample_view.take_snapshot(filename)
 
     def set_helical(self, helical_on):
         """
@@ -1107,30 +1092,23 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         self.helical_pos = helical_oscil_pos
 
-    def set_resolution(self, value):
-        """
-        Descript. :
-        """
-        new_distance = self.resolution_hwobj.res2dist(value)
-        self.move_detector(new_distance)
-
     def set_energy(self, value):
         logging.getLogger("HWR").info("[COLLECT] Setting beamline energy")
-        self.energy_hwobj.startMoveEnergy(value)  # keV
+        HWR.beamline.energy.set_value(value)  # keV
         logging.getLogger("HWR").info("[COLLECT] Setting detector energy")
-        self.detector_hwobj.set_photon_energy(value * 1000)  # ev
+        HWR.beamline.detector.set_photon_energy(value * 1000)  # ev
 
     def set_wavelength(self, value):
-        self.energy_hwobj.startMoveWavelength(value)
-        current_energy = self.energy_hwobj.getCurrentEnergy()
-        self.detector_hwobj.set_photon_energy(current_energy * 1000)
+        HWR.beamline.energy.set_wavelength(value)
+        current_energy = HWR.beamline.energy.get_energy()
+        HWR.beamline.detector.set_photon_energy(current_energy * 1000)
 
     @task
     def move_motors(self, motor_position_dict):
         """
         Descript. :
         """
-        self.diffractometer_hwobj.move_sync_motors(motor_position_dict)
+        HWR.beamline.diffractometer.move_sync_motors(motor_position_dict)
 
     def create_file_directories(self):
         """
@@ -1197,54 +1175,39 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         )
         return xds_directory, auto_directory
 
-    def move_detector(self, value):
-        """
-        Descript. : move detector to the set distance
-        """
-        lower_limit, upper_limit = self.get_detector_distance_limits()
-        logging.getLogger("HWR").info(
-            "...................value %s, detector movement start..... %s"
-            % (value, self.dtox_hwobj.getPosition())
-        )
-        if upper_limit is not None and lower_limit is not None:
-            if value >= upper_limit or value <= lower_limit:
-                logging.getLogger("HWR").exception(
-                    "Can't move detector, the value is out of limits"
-                )
-                self.stop_collect()
-            else:
-                try:
-                    if self.dtox_hwobj is not None:
-                        self.dtox_hwobj.syncMove(
-                            value, timeout=50
-                        )  # 30s is not enough for the whole range
-                except BaseException:
-                    logging.getLogger("HWR").exception(
-                        "Problems when moving detector!!"
-                    )
-                    self.stop_collect()
-        else:
-            logging.getLogger("HWR").exception(
-                "Can't get distance limits, not moving detector!!"
-            )
-        logging.getLogger("HWR").info(
-            "....................value %s detector movement finished.....%s"
-            % (value, self.dtox_hwobj.getPosition())
-        )
-
-    def get_detector_distance(self):
-        """
-        Descript. :
-        """
-        if self.dtox_hwobj is not None:
-            return self.dtox_hwobj.getPosition()
-
-    def get_detector_distance_limits(self):
-        """
-        Descript. :
-        """
-        if self.dtox_hwobj is not None:
-            return self.dtox_hwobj.getLimits()
+    # def move_detector(self, value):
+    #     """
+    #     Descript. : move detector to the set distance
+    #     """
+    #     lower_limit, upper_limit = self.get_detector_distance_limits()
+    #     logging.getLogger("HWR").info(
+    #         "...................value %s, detector movement start..... %s"
+    #         % (value, HWR.beamline.detector.distance.get_value())
+    #     )
+    #     if upper_limit is not None and lower_limit is not None:
+    #         if value >= upper_limit or value <= lower_limit:
+    #             logging.getLogger("HWR").exception(
+    #                 "Can't move detector, the value is out of limits"
+    #             )
+    #             self.stop_collect()
+    #         else:
+    #             try:
+    #                 if HWR.beamline.detector.distance is not None:
+    #                     HWR.beamline.detector.distance.set_value(value, timeout=50)
+    #                     # 30s is not enough for the whole range
+    #             except BaseException:
+    #                 logging.getLogger("HWR").exception(
+    #                     "Problems when moving detector!!"
+    #                 )
+    #                 self.stop_collect()
+    #     else:
+    #         logging.getLogger("HWR").exception(
+    #             "Can't get distance limits, not moving detector!!"
+    #         )
+    #     logging.getLogger("HWR").info(
+    #         "....................value %s detector movement finished.....%s"
+    #         % (value, HWR.beamline.detector.distance.get_value())
+    #     )
 
     def prepare_detector(self):
 
@@ -1256,14 +1219,14 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             ntrigger = self.get_mesh_num_lines()
         else:
             ntrigger = len(self.triggers_to_collect)
-        config = self.detector_hwobj.col_config
+        config = HWR.beamline.detector.col_config
         """ move after setting energy
         if roi == "4M":
             config['RoiMode'] = "4M"
         else:
             config['RoiMode'] = "disabled" #disabled means 16M
 
-        config['PhotonEnergy'] = self._tunable_bl.getCurrentEnergy()
+        config['PhotonEnergy'] = self._tunable_bl.get_current_energy()
         """
         config["OmegaStart"] = osc_start  # oscillation_parameters['start']
         config["OmegaIncrement"] = osc_range  # oscillation_parameters["range"]
@@ -1272,7 +1235,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         )  # self.get_beam_centre_pixel() # returns pixel
         config["BeamCenterX"] = beam_centre_x  # unit, should be pixel for master file
         config["BeamCenterY"] = beam_centre_y
-        config["DetectorDistance"] = self.get_detector_distance() / 1000.0
+        config["DetectorDistance"] = HWR.beamline.detector.distance.get_value() / 1000.0
 
         config["CountTime"] = oscillation_parameters["exposure_time"]
 
@@ -1316,13 +1279,13 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         if self.current_dc_parameters["experiment_type"] == "Mesh":
             # enable stream interface
             # appendix with grid name, collection id
-            self.detector_hwobj.enable_stream()
+            HWR.beamline.detector.enable_stream()
             img_appendix = {
                 "exp_type": "mesh",
                 "col_id": self.current_dc_parameters["collection_id"],
                 "shape_id": self.get_current_shape_id(),
             }
-            self.detector_hwobj.set_image_appendix(json.dumps(img_appendix))
+            HWR.beamline.detector.set_image_appendix(json.dumps(img_appendix))
 
         if self.current_dc_parameters["experiment_type"] == "Mesh":
             self.start_spot_finder(
@@ -1331,7 +1294,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 image_file_template,
             )
 
-        return self.detector_hwobj.prepare_acquisition(config)
+        return HWR.beamline.detector.prepare_acquisition(config)
 
     def start_spot_finder(self, exp_time, path, prefix="mesh"):
         """
@@ -1365,33 +1328,18 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Stops data collection
         """
         logging.getLogger("HWR").error("Stopping collection ....")
-        self.diffractometer_hwobj.abort()
-        self.detector_hwobj.cancel()
-        self.detector_hwobj.disarm()
+        HWR.beamline.diffractometer.abort()
+        HWR.beamline.detector.cancel()
+        HWR.beamline.detector.disarm()
         if self.current_dc_parameters["experiment_type"] == "Mesh":
             # disable stream interface
             # stop spot finding
-            self.detector_hwobj.disable_stream()
+            HWR.beamline.detector.disable_stream()
             self.stop_spot_finder()
         if self.data_collect_task is not None:
             self.data_collect_task.kill(block=False)
         logging.getLogger("HWR").error("Collection stopped")
         self.stop_display = True
-
-    def get_transmission(self):
-        """
-        Descript. :
-        """
-        return self.transmission_hwobj.get_value()
-
-    def set_transmission(self, value):
-        """
-        Descript. :
-        """
-        try:
-            self.transmission_hwobj.set_value(float(value), True)
-        except Exception as ex:
-            raise Exception("cannot set transmission", ex)
 
     def get_undulators_gaps(self):
         """
@@ -1405,7 +1353,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         try:
-            return self.beam_info_hwobj.get_beam_size()
+            return HWR.beamline.beam.get_beam_size()
         except BaseException:
             return None
 
@@ -1414,7 +1362,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         try:
-            return self.machine_info_hwobj.getCurrent()
+            return HWR.beamline.machine_info.getCurrent()
         except BaseException:
             return None
 
@@ -1430,16 +1378,9 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         try:
-            return self.machine_info_hwobj.getFillingMode()
+            return HWR.beamline.machine_info.getFillingMode()
         except BaseException:
             return ""
-
-    def get_flux(self):
-        """
-        Descript. :
-        """
-        # todo
-        return 0
 
     def prepare_for_new_sample(self, manual_mode=True):
         """
@@ -1449,13 +1390,13 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         if manual_mode:
             if self.detector_cover_hwobj is not None:
                 self.close_detector_cover()
-            self.diffractometer_hwobj.set_phase("Transfer", wait=False)
+            HWR.beamline.diffractometer.set_phase("Transfer", wait=False)
             if (
-                self.safety_shutter_hwobj is not None
-                and self.safety_shutter_hwobj.getShutterState() == "opened"
+                HWR.beamline.safety_shutter is not None
+                and HWR.beamline.safety_shutter.getShutterState() == "opened"
             ):
                 self.close_safety_shutter()
-        self.move_detector(800)
+        HWR.beamline.detector.distance.set_value(800)
 
     def _update_image_to_display(self):
         fname1 = "/mxn/groups/biomax/wmxsoft/auto_load_img_cc/to_display"
@@ -1473,7 +1414,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 os.system("echo %s, %s > %s" % (self.display["file_name1"], i, fname1))
                 os.system("echo %s, %s > %s" % (self.display["file_name2"], i, fname2))
             except Exception as ex:
-                print ex
+                print(ex)
                 if self.stop_display:
                     break
                 time.sleep(frequency)
@@ -1484,12 +1425,10 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
     def store_datacollection_uuid_datacatalog(self):
         msg = {}
         collection = self.current_dc_parameters
-        proposal_code = self.session_hwobj.proposal_code
-        proposal_number = self.session_hwobj.proposal_number
+        proposal_code = HWR.beamline.session.proposal_code
+        proposal_number = HWR.beamline.session.proposal_number
 
-        proposal_info = self.lims_client_hwobj.get_proposal(
-            proposal_code, proposal_number
-        )
+        proposal_info = HWR.beamline.lims.get_proposal(proposal_code, proposal_number)
         msg["time"] = time.time()
         msg["proposal"] = proposal_number
         msg["uuid"] = self.collection_uuid
@@ -1524,16 +1463,14 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         msg = {}
         # files = []
         collection = self.current_dc_parameters
-        proposal_code = self.session_hwobj.proposal_code
-        proposal_number = self.session_hwobj.proposal_number
+        proposal_code = HWR.beamline.session.proposal_code
+        proposal_number = HWR.beamline.session.proposal_number
 
-        proposal_info = self.lims_client_hwobj.get_proposal(
-            proposal_code, proposal_number
-        )
+        proposal_info = HWR.beamline.lims.get_proposal(proposal_code, proposal_number)
         # session info is missing!
         sessionId = collection.get("sessionId", None)
         if sessionId:
-            session_info = self.lims_client_hwobj.get_session(sessionId)
+            session_info = HWR.beamline.lims.get_session(sessionId)
             proposal_info["Session"] = session_info
         else:
             # We do not send this info when the commissioning is the fake proposal

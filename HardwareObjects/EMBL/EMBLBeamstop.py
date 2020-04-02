@@ -18,6 +18,7 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 
 __credits__ = ["EMBL Hamburg"]
@@ -25,7 +26,7 @@ __version__ = "2.3."
 __category__ = "General"
 
 
-class EMBLBeamstop(Device):
+class EMBLBeamstop(Device, AbstractMotor):
     def __init__(self, name):
         Device.__init__(self, name)
 
@@ -44,15 +45,16 @@ class EMBLBeamstop(Device):
         self.default_direction = self.getProperty("defaultBeamstopDirection")
 
         if self.default_distance is None:
-            self.chan_distance = self.getChannelObject("BeamstopDistance")
+            self.chan_distance = self.get_channel_object("BeamstopDistance")
             if self.chan_distance is not None:
                 self.chan_distance.connectSignal("update", self.distance_changed)
+            self.distance_changed(self.chan_distance.getValue())
         else:
             self.distance = float(self.default_distance)
 
-        self.chan_position = self.getChannelObject("BeamstopPosition")
+        self.chan_position = self.get_channel_object("BeamstopPosition")
 
-    def isReady(self):
+    def is_ready(self):
         """Returns True if device ready
         """
         return True
@@ -83,20 +85,13 @@ class EMBLBeamstop(Device):
 
     def get_distance(self):
         """Returns beamstop distance in mm"""
-        distance = None
-        if self.chan_distance is not None:
-            distance = self.chan_distance.getValue()
-
-        if distance is None:
-            return self.default_distance
-        else:
-            return distance
+        return self.distance
 
     def get_direction(self):
         """Returns beamstop direction"""
         return self.default_direction
 
-    def get_position(self):
+    def get_value(self):
         """Returns beamstop position"""
         return self.chan_position.getValue()
 
@@ -110,6 +105,4 @@ class EMBLBeamstop(Device):
 
     def update_values(self):
         """Reemits available signals"""
-        if self.chan_distance is not None:
-            self.distance = self.chan_distance.getValue()
         self.emit("beamstopDistanceChanged", self.distance)

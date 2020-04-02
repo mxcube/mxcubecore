@@ -12,22 +12,44 @@ Example configuration:
 
 If video mode is not specified, BAYER_RG16 is used by default.
 """
-from HardwareRepository import BaseHardwareObjects
-from HardwareRepository.HardwareObjects.Camera import (
-    JpegType,
-    BayerType,
-    MmapType,
-    RawType,
-    RGBType,
-)
-from Qub.CTools import pixmaptools
-import gevent
 import logging
 import time
-import PyTango
-from PyTango.gevent import DeviceProxy
-import numpy
 import struct
+import numpy
+import gevent
+import PyTango
+from PIL import Image
+import io
+import gipc
+import os
+
+from PyTango.gevent import DeviceProxy
+
+from HardwareRepository import BaseHardwareObjects
+
+
+def poll_image(lima_tango_device, video_mode, FORMATS):
+    img_data = lima_tango_device.video_last_image
+
+    hfmt = ">IHHqiiHHHH"
+    hsize = struct.calcsize(hfmt)
+    _, _, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(
+        hfmt, img_data[1][:hsize]
+    )
+
+    raw_data = img_data[1][hsize:]
+    _from, _to = FORMATS.get(video_mode, (None, None))
+
+    if _from and _to:
+        img = Image.frombuffer(_from, (height, width), raw_data, "raw", _from, 0, 1)
+
+        img_bytes = io.BytesIO()
+        img.save(img_bytes, format=_to)
+        img = img.tobytes()
+    else:
+        img = raw_data
+
+    return img, width, height
 
 
 class TangoLimaVideo(BaseHardwareObjects.Device):
@@ -38,9 +60,18 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
         self.__gainExists = False
         self.__gammaExists = False
         self.__polling = None
-        self._video_mode = "BAYER_RG16"
-        self.scaling = pixmaptools.LUT.Scaling()
-        self.scaling.set_custom_mapping(0, 255)
+        self._video_mode = "RGB24"
+
+        # Dictionary containing conversion information for a given
+        # video_mode. The camera video mode is the key and the first
+        # index of the tuple contains the corresponding PIL mapping
+        # and the second the desried output format. The image is
+        # passed on as it is of the video mode is not in the dictionary
+        self._FORMATS = {
+            "RGB8": ("L", "BMP"),
+            "RGB24": ("RGB", "BMP"),
+            "RGB32": ("RGBA", "BMP"),
+        }
 
     def init(self):
         self.device = None
@@ -56,49 +87,23 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
 
             self.device = BaseHardwareObjects.Null()
         else:
-            self._video_mode = self.getProperty("video_mode") or "BAYER_RG16"
             self.device.video_mode = self._video_mode
             if self.getProperty("exposure_time"):
-                self.setExposure(float(self.getProperty("exposure_time")))
+                self.set_exposure(float(self.getProperty("exposure_time")))
             else:
-                self.setExposure(self.getProperty("interval") / 1000.0)
+                self.set_exposure(self.getProperty("interval") / 1000.0)
 
         self.setIsReady(True)
 
-    def imageType(self):
-        return BayerType("RG16") if self._video_mode == "BAYER_RG16" else RGBType(None)
-
-    def _get_last_image(self):
-        img_data = self.device.video_last_image
-        if img_data[0] == "VIDEO_IMAGE":
-            header_fmt = ">IHHqiiHHHH"
-            _, ver, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(
-                header_fmt, img_data[1][: struct.calcsize(header_fmt)]
-            )
-            if self._video_mode == "BAYER_RG16":
-                raw_buffer = numpy.fromstring(img_data[1][32:], numpy.uint16)
-                self.scaling.autoscale_min_max(
-                    raw_buffer, width, height, pixmaptools.LUT.Scaling.BAYER_RG16
-                )
-            else:
-                raw_buffer = numpy.fromstring(img_data[1][32:], numpy.uint8)
-            validFlag, qimage = pixmaptools.LUT.raw_video_2_image(
-                raw_buffer,
-                width,
-                height,
-                pixmaptools.LUT.Scaling.RGB24
-                if self._video_mode == "RGB24"
-                else pixmaptools.LUT.Scaling.BAYER_RG16,
-                self.scaling,
-            )
-            if validFlag:
-                return qimage
-
     def _do_polling(self, sleep_time):
-        while True:
-            qimage = self._get_last_image()
-            self.emit("imageReceived", qimage, qimage.width(), qimage.height(), False)
+        lima_tango_device = self.device
 
+        while True:
+            data, width, height = poll_image(
+                lima_tango_device, self.video_mode, self._FORMATS
+            )
+
+            self.emit("imageReceived", data, width, height, False)
             time.sleep(sleep_time)
 
     def connectNotify(self, signal):
@@ -108,56 +113,24 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
                     self._do_polling, self.device.video_exposure
                 )
 
-    # ############   CONTRAST   #################
-
-    def contrastExists(self):
-        return self.__contrastExists
-
-    # ############   BRIGHTNESS   #################
-    def brightnessExists(self):
-        return self.__brightnessExists
-
-    # ############   GAIN   #################
-    def gainExists(self):
-        return self.__gainExists
-
-    # ############   GAMMA   #################
-    def gammaExists(self):
-        return self.__gammaExists
-
-    # ############   WIDTH   #################
-    def getWidth(self):
-        """tango"""
+    def get_width(self):
         return self.device.image_width
 
-    def getHeight(self):
-        """tango"""
+    def get_height(self):
         return self.device.image_height
 
-    def setSize(self, width, height):
-        """Set new image size
+    def take_snapshot(self, path, bw):
+        data, width, height = self._get_last_image()
+        img = Image.frombytes("RGB", (width, height), data, pil_image=True)
 
-        Only takes width into account, because anyway
-        we can only set a scale factor
-        """
-        return
+        if bw:
+            img.convert("1")
 
-    def takeSnapshot(self, *args, **kwargs):
-        """tango"""
-        qimage = self._get_last_image()
-        try:
-            qimage.save(args[0], "PNG")
-        except BaseException:
-            logging.getLogger("HWR").exception(
-                "%s: could not save snapshot", self.name()
-            )
-            return False
-        else:
-            return True
+        img.save(path)
 
-    def setLive(self, mode):
-        """tango"""
+    def set_live(self, mode):
         curr_state = self.device.video_live
+
         if mode:
             if not curr_state:
                 self.device.video_live = True
@@ -165,5 +138,5 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
             if curr_state:
                 self.device.video_live = False
 
-    def setExposure(self, exposure):
+    def set_exposure(self, exposure):
         self.device.video_exposure = exposure

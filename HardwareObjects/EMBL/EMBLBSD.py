@@ -43,9 +43,7 @@ class EMBLBSD(GenericDiffractometer):
 
         # Hardware objects ----------------------------------------------------
         self.zoom_motor_hwobj = None
-        self.camera_hwobj = None
         self.omega_reference_motor = None
-        self.detector_distance_motor_hwobj = None
 
         # Channels and commands -----------------------------------------------
         self.chan_beamstop_position = None
@@ -74,38 +72,34 @@ class EMBLBSD(GenericDiffractometer):
 
         GenericDiffractometer.init(self)
 
-        self.chan_state = self.getChannelObject("State")
+        self.chan_state = self.get_channel_object("State")
         self.current_state = self.chan_state.getValue()
         self.chan_state.connectSignal("update", self.state_changed)
 
-        self.chan_status = self.getChannelObject("Status")
+        self.chan_status = self.get_channel_object("Status")
         self.chan_status.connectSignal("update", self.status_changed)
 
-        self.chan_calib_x = self.getChannelObject("CoaxCamScaleX")
-        self.chan_calib_y = self.getChannelObject("CoaxCamScaleY")
+        self.chan_calib_x = self.get_channel_object("CoaxCamScaleX")
+        self.chan_calib_y = self.get_channel_object("CoaxCamScaleY")
         self.update_pixels_per_mm()
 
-        self.chan_current_phase = self.getChannelObject("CurrentPhase")
+        self.chan_current_phase = self.get_channel_object("CurrentPhase")
         self.connect(self.chan_current_phase, "update", self.current_phase_changed)
 
-        self.chan_fast_shutter_is_open = self.getChannelObject("FastShutterIsOpen")
+        self.chan_fast_shutter_is_open = self.get_channel_object("FastShutterIsOpen")
         self.chan_fast_shutter_is_open.connectSignal(
             "update", self.fast_shutter_state_changed
         )
 
-        self.chan_scintillator_position = self.getChannelObject("ScintillatorPosition")
-        self.chan_capillary_position = self.getChannelObject("CapillaryPosition")
+        self.chan_scintillator_position = self.get_channel_object("ScintillatorPosition")
+        self.chan_capillary_position = self.get_channel_object("CapillaryPosition")
 
-        self.cmd_start_set_phase = self.getCommandObject("startSetPhase")
-        self.cmd_start_auto_focus = self.getCommandObject("startAutoFocus")
-
-        self.detector_distance_motor_hwobj = self.getObjectByRole(
-            "detector_distance_motor"
-        )
+        self.cmd_start_set_phase = self.get_command_object("startSetPhase")
+        self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")
 
         self.zoom_motor_hwobj = self.getObjectByRole("zoom")
         self.connect(
-            self.zoom_motor_hwobj, "positionChanged", self.zoom_position_changed
+            self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed
         )
         self.connect(
             self.zoom_motor_hwobj,
@@ -113,7 +107,7 @@ class EMBLBSD(GenericDiffractometer):
             self.zoom_motor_predefined_position_changed,
         )
 
-        self.chan_beamstop_position = self.getChannelObject("BeamstopPosition")
+        self.chan_beamstop_position = self.get_channel_object("BeamstopPosition")
 
     def use_sample_changer(self):
         """Returns true if sample changer is used

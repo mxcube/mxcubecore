@@ -17,7 +17,7 @@ class ObjectsController(HardwareObject):
         config.load(cfg_file)
         objects = config.get_context_objects("default")
 
-        for obj_name, obj in objects.iteritems():
+        for obj_name, obj in objects.items():
             setattr(self, obj_name, obj)
 
     def centrebeam(self):

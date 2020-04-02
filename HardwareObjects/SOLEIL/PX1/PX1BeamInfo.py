@@ -44,14 +44,14 @@ class PX1BeamInfo(Equipment):
     def init(self):
 
         try:
-            self.beamx_chan = self.getChannelObject("beamsizex")
+            self.beamx_chan = self.get_channel_object("beamsizex")
         except KeyError:
             logging.getLogger().warning(
                 "%s: cannot connect to beamsize x channel ", self.name()
             )
 
         try:
-            self.beamy_chan = self.getChannelObject("beamsizey")
+            self.beamy_chan = self.get_channel_object("beamsizey")
             self.beamy_chan.connectSignal("update", self.beamsize_x_changed)
         except KeyError:
             logging.getLogger().warning(
@@ -144,5 +144,5 @@ class PX1BeamInfo(Equipment):
 
 
 def test_hwo(hwo):
-    print "BEAM info: ", hwo.get_beam_info()
-    print "BEAM position: ", hwo.get_beam_position()
+    print("BEAM info: ", hwo.get_beam_info())
+    print("BEAM position: ", hwo.get_beam_position())

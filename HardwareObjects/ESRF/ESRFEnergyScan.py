@@ -7,29 +7,31 @@ import math
 import gevent
 import PyChooch
 
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects.abstract.AbstractEnergyScan import (
-    AbstractEnergyScan)
-
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_agg import FigureCanvasAgg
+    AbstractEnergyScan,
+)
+from HardwareRepository import HardwareRepository as HWR
 
 
 class FixedEnergy:
     @task
-    def get_energy(self):
-        return self._tunable_bl.energy_obj.getPosition()
+    def get_value(self):
+        return self._tunable_bl.energy_obj.get_value()
 
 
 class TunableEnergy:
     @task
-    def get_energy(self):
-        return self._tunable_bl.energy_obj.getCurrentEnergy()
+    def get_value(self):
+        return self._tunable_bl.energy_obj.get_value()
 
     @task
-    def move_energy(self, energy):
-        return self._tunable_bl.energy_obj.startMoveEnergy(energy, wait=True)
+    def set_value(self, value):
+        return self._tunable_bl.energy_obj.set_value(value, wait=True)
 
 
 class GetStaticParameters:
@@ -74,7 +76,7 @@ class GetStaticParameters:
                 static_pars["remoteEnergy"] = th_energy + 1
                 return static_pars
             except Exception as e:
-                print e
+                print(e)
                 return {}
 
 
@@ -86,17 +88,15 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
 
     def execute_command(self, command_name, *args, **kwargs):
         wait = kwargs.get("wait", True)
-        cmd_obj = self.getCommandObject(command_name)
+        cmd_obj = self.get_command_object(command_name)
         return cmd_obj(*args, wait=wait)
 
     def init(self):
         self.energy_obj = self.getObjectByRole("energy")
-        self.safety_shutter = self.getObjectByRole("safety_shutter")
         self.beamsize = self.getObjectByRole("beamsize")
         self.transmission = self.getObjectByRole("transmission")
         self.ready_event = gevent.event.Event()
-        self.dbConnection = self.getObjectByRole("dbserver")
-        if self.dbConnection is None:
+        if HWR.beamline.lims is None:
             logging.getLogger("HWR").warning(
                 "EnergyScan: you should specify the database hardware object"
             )
@@ -117,22 +117,22 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         return pars
 
     def open_safety_shutter(self, timeout=None):
-        self.safety_shutter.openShutter()
+        HWR.beamline.safety_shutter.openShutter()
         with gevent.Timeout(
             timeout, RuntimeError("Timeout waiting for safety shutter to open")
         ):
-            while self.safety_shutter.getShutterState() == "closed":
+            while HWR.beamline.safety_shutter.getShutterState() == "closed":
                 time.sleep(0.1)
 
     def close_safety_shutter(self, timeout=None):
-        self.safety_shutter.closeShutter()
-        while self.safety_shutter.getShutterState() == "opened":
+        HWR.beamline.safety_shutter.closeShutter()
+        while HWR.beamline.safety_shutter.getShutterState() == "opened":
             time.sleep(0.1)
 
     def escan_prepare(self):
 
         if self.beamsize:
-            bsX = self.beamsize.getCurrentPositionName()
+            bsX = self.beamsize.get_current_position_name()
             self.energy_scan_parameters["beamSizeHorizontal"] = bsX
             self.energy_scan_parameters["beamSizeVertical"] = bsX
 
@@ -174,7 +174,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         return elements
 
     def storeEnergyScan(self):
-        if self.dbConnection is None:
+        if HWR.beamline.lims is None:
             return
         try:
             int(self.energy_scan_parameters["sessionId"])
@@ -191,7 +191,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         self.energy_scan_parameters.pop("atomic_nb")
 
         gevent.spawn(
-            StoreEnergyScanThread, self.dbConnection, self.energy_scan_parameters
+            StoreEnergyScanThread, HWR.beamline.lims, self.energy_scan_parameters
         )
 
     def doChooch(self, elt, edge, directory, archive_directory, prefix):
@@ -245,7 +245,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         # PyChooch occasionally returns an error and the result
         # the sleep command assures that we get the result
         time.sleep(1)
-        print result[0]
+        print(result[0])
         pk = result[0] / 1000.0
         fppPeak = result[1]
         fpPeak = result[2]
@@ -400,4 +400,4 @@ def StoreEnergyScanThread(db_conn, scan_info):
                 asso = {"blSampleId": blsample_id, "energyScanId": escan_id}
                 db_conn.associateBLSampleAndEnergyScan(asso)
     except Exception as e:
-        print e
+        print(e)

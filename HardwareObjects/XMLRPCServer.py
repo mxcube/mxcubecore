@@ -19,6 +19,7 @@ import traceback
 
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository as HWR
 
 if sys.version_info > (3, 0):
     from xmlrpc.server import SimpleXMLRPCRequestHandler
@@ -138,9 +139,6 @@ class XMLRPCServer(HardwareObject):
         self.all_interfaces = None
         self.enforceUseOfToken = None
 
-        self.queue_model_hwobj = None
-        self.queue_hwobj = None
-        self.beamline_setup_hwobj = None
         self.wokflow_in_progress = True
         self.xmlrpc_prefixes = set()
         self.current_entry_task = None
@@ -158,7 +156,7 @@ class XMLRPCServer(HardwareObject):
         # Listen on all interfaces if <all_interfaces>True</all_interfaces>
         # otherwise only on the interface corresponding to socket.gethostname()
         if self.all_interfaces:
-            host = ''
+            host = ""
         else:
             host = socket.gethostname()
 
@@ -251,20 +249,13 @@ class XMLRPCServer(HardwareObject):
                     api.getProperty("module"), recurse=recurse
                 )
 
-        self.queue_hwobj = self.getObjectByRole("queue")
-        self.queue_model_hwobj = self.getObjectByRole("queue_model")
-        self.beamline_setup_hwobj = self.getObjectByRole("beamline_setup")
-        self.shape_history_hwobj = self.beamline_setup_hwobj.shape_history_hwobj
-        self.diffractometer_hwobj = self.beamline_setup_hwobj.diffractometer_hwobj
-
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
-        self.workflow_hwobj = self.getObjectByRole("workflow")
         self.beamcmds_hwobj = self.getObjectByRole("beamcmds")
 
     def anneal(self, time):
         cryoshutter_hwobj = self.getObjectByRole("cryoshutter")
         try:
-            cryoshutter_hwobj.getCommandObject("anneal")(time)
+            cryoshutter_hwobj.get_command_object("anneal")(time)
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
             raise
@@ -359,7 +350,7 @@ class XMLRPCServer(HardwareObject):
         :rtype: int
         """
         try:
-            node_id = self.queue_model_hwobj.add_child_at_id(parent_id, child)
+            node_id = HWR.beamline.queue_model.add_child_at_id(parent_id, child)
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
             raise
@@ -372,7 +363,7 @@ class XMLRPCServer(HardwareObject):
         :rtype: TaskNode
         """
         try:
-            node = self.queue_model_hwobj.get_node(node_id)
+            node = HWR.beamline.queue_model.get_node(node_id)
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
             raise
@@ -387,11 +378,13 @@ class XMLRPCServer(HardwareObject):
         :type node_id: int
         """
         try:
-            model = self.queue_model_hwobj.get_node(node_id)
-            entry = self.queue_hwobj.get_entry_with_model(model)
+            model = HWR.beamline.queue_model.get_node(node_id)
+            entry = HWR.beamline.queue_manager.get_entry_with_model(model)
 
             if entry:
-                self.current_entry_task = self.queue_hwobj.execute_entry(entry)
+                self.current_entry_task = HWR.beamline.queue_manager.execute_entry(
+                    entry
+                )
 
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
@@ -409,7 +402,7 @@ class XMLRPCServer(HardwareObject):
         :type lims_id: int
         """
         try:
-            model = self.queue_model_hwobj.get_node(node_id)
+            model = HWR.beamline.queue_model.get_node(node_id)
             model.lims_id = lims_id
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
@@ -423,7 +416,7 @@ class XMLRPCServer(HardwareObject):
         :rtype: bool
         """
         try:
-            return self.queue_hwobj.is_executing(node_id)
+            return HWR.beamline.queue_manager.is_executing(node_id)
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
             raise
@@ -448,17 +441,17 @@ class XMLRPCServer(HardwareObject):
          'angle': float}
 
         """
-        grid_dict = self.shape_history_hwobj.get_grid()
+        grid_dict = HWR.beamline.sample_view.shapes.get_grid()
         # self.shape_history_set_grid_data(grid_dict['id'], {})
 
         return grid_dict
 
     def shape_history_set_grid_data(self, key, result_data):
         int_based_result = {}
-        for result in result_data.iteritems():
+        for result in result_data.items():
             int_based_result[int(result[0])] = result[1]
 
-        self.shape_history_hwobj.set_grid_data(key, int_based_result)
+        HWR.beamline.sample_view.shapes.set_grid_data(key, int_based_result)
         return True
 
     def get_cp(self):
@@ -466,7 +459,7 @@ class XMLRPCServer(HardwareObject):
         :returns: a json encoded list with all centred positions
         """
         cplist = []
-        points = self.shape_history_hwobj.get_points()
+        points = HWR.beamline.sample_view.shapes.get_points()
 
         for point in points:
             cp = point.get_centred_positions()[0].as_dict()
@@ -477,11 +470,14 @@ class XMLRPCServer(HardwareObject):
         return json_cplist
 
     def beamline_setup_read(self, path):
-        try:
-            return self.beamline_setup_hwobj.read_value(path)
-        except Exception as ex:
-            logging.getLogger("HWR").exception(str(ex))
-            raise
+        raise NotImplementedError(
+            "There is no longer a BeamlineSetup object. Please refactor code"
+        )
+        # try:
+        #     return self.beamline_setup_hwobj.read_value(path)
+        # except Exception as ex:
+        #     logging.getLogger("HWR").exception(str(ex))
+        #     raise
 
     def workflow_set_in_progress(self, state):
         if state:
@@ -490,10 +486,10 @@ class XMLRPCServer(HardwareObject):
             self.wokflow_in_progress = False
 
     def get_diffractometer_positions(self):
-        return self.diffractometer_hwobj.getPositions()
+        return HWR.beamline.diffractometer.get_positions()
 
     def move_diffractometer(self, roles_positions_dict):
-        self.diffractometer_hwobj.moveMotors(roles_positions_dict)
+        HWR.beamline.diffractometer.move_motors(roles_positions_dict)
         return True
 
     def save_snapshot(self, imgpath, showScale=False):
@@ -501,9 +497,9 @@ class XMLRPCServer(HardwareObject):
 
         try:
             if showScale:
-                self.diffractometer_hwobj.save_snapshot(imgpath)
+                HWR.beamline.diffractometer.save_snapshot(imgpath)
             else:
-                self.diffractometer_hwobj.getObjectByRole("camera").takeSnapshot(
+                HWR.beamline.diffractometer.getObjectByRole("camera").takeSnapshot(
                     imgpath
                 )
         except Exception as ex:
@@ -516,36 +512,32 @@ class XMLRPCServer(HardwareObject):
         """
         Saves the current position as a centered position.
         """
-        self.diffractometer_hwobj.saveCurrentPos()
+        HWR.beamline.diffractometer.saveCurrentPos()
         return True
 
     def cryo_temperature(self):
-        return self.beamline_setup_hwobj.collect_hwobj.get_cryo_temperature()
+        return HWR.beamline.collect.get_cryo_temperature()
 
     def flux(self):
-        flux = self.beamline_setup_hwobj.collect_hwobj.get_flux()
+        flux = HWR.beamline.flux.get_value()
         if flux is None:
             flux = 0
         return float(flux)
 
     def set_aperture(self, pos_name, timeout=20):
-        self.diffractometer_hwobj.beam_info.aperture_hwobj.moveToPosition(pos_name)
+        HWR.beamline.beam.aperture_hwobj.moveToPosition(pos_name)
         t0 = time.time()
-        while self.diffractometer_hwobj.beam_info.aperture_hwobj.getState() == "MOVING":
+        while HWR.beamline.beam.aperture_hwobj.get_state() == "MOVING":
             time.sleep(0.1)
             if time.time() - t0 > timeout:
                 raise RuntimeError("Timeout waiting for aperture to move")
         return True
 
     def get_aperture(self):
-        return (
-            self.diffractometer_hwobj.beam_info.aperture_hwobj.getCurrentPositionName()
-        )
+        return HWR.beamline.beam.aperture_hwobj.get_current_position_name()
 
     def get_aperture_list(self):
-        return (
-            self.diffractometer_hwobj.beam_info.aperture_hwobj.getPredefinedPositionsList()
-        )
+        return HWR.beamline.beam.aperture_hwobj.getPredefinedPositionsList()
 
     def open_dialog(self, dict_dialog):
         """
@@ -553,8 +545,9 @@ class XMLRPCServer(HardwareObject):
         This call blocks util the dialog is ended by the user.
         """
         return_map = {}
-        if self.workflow_hwobj is not None:
-            return_map = self.workflow_hwobj.open_dialog(dict_dialog)
+        workflow_hwobj = HWR.beamline.workflow
+        if workflow_hwobj is not None:
+            return_map = workflow_hwobj.open_dialog(dict_dialog)
         self.emit("open_dialog", dict_dialog)
         return return_map
 
@@ -562,21 +555,18 @@ class XMLRPCServer(HardwareObject):
         """
         Notify the workflow HO that the workflow has finished.
         """
-        if self.workflow_hwobj is not None:
-            self.workflow_hwobj.workflow_end()
+        workflow_hwobj = HWR.beamline.workflow
+        if workflow_hwobj is not None:
+            workflow_hwobj.workflow_end()
 
     def dozor_batch_processed(self, dozor_batch_dict):
-        self.beamline_setup_hwobj.parallel_processing_hwobj.batch_processed(
-            dozor_batch_dict
-        )
+        HWR.beamline.online_processing.batch_processed(dozor_batch_dict)
 
     def dozor_status_changed(self, status):
-        self.beamline_setup_hwobj.parallel_processing_hwobj.set_processing_status(
-            status
-        )
+        HWR.beamline.online_processing.set_processing_status(status)
 
     def processing_status_changed(self, collection_id, method, status, msg=""):
-        for queue_entry in self.queue_model_hwobj.get_all_dc_queue_entries():
+        for queue_entry in HWR.beamline.queue_model.get_all_dc_queue_entries():
             data_model = queue_entry.get_data_model()
             if data_model.id == collection_id:
                 prefix = data_model.acquisitions[0].path_template.get_image_file_name()
@@ -584,12 +574,12 @@ class XMLRPCServer(HardwareObject):
 
                 if status in ("started", "success"):
                     logging.getLogger("user_level_log").info(
-                        "EDNA | %s: processing of data collection %s %s %s"
+                        "EDNA %s: processing of data collection %s %s %s"
                         % (method, prefix, status, msg)
                     )
                 elif status == "failed":
                     logging.getLogger("user_level_log").error(
-                        "EDNA | %s: processing of data collection %s %s %s"
+                        "EDNA %s: processing of data collection %s %s %s"
                         % (method, prefix, status, msg)
                     )
 
@@ -607,43 +597,43 @@ class XMLRPCServer(HardwareObject):
         """
         Sets the zoom to a pre-defined level.
         """
-        self.diffractometer_hwobj.zoomMotor.moveToPosition(zoom_level)
+        HWR.beamline.diffractometer.zoomMotor.moveToPosition(zoom_level)
 
     def get_zoom_level(self):
         """
         Returns the zoom level.
         """
-        return self.diffractometer_hwobj.zoomMotor.getCurrentPositionName()
+        return HWR.beamline.diffractometer.zoomMotor.get_current_position_name()
 
     def get_available_zoom_levels(self):
         """
         Returns the avaliable pre-defined zoom levels.
         """
-        return self.diffractometer_hwobj.zoomMotor.getPredefinedPositionsList()
+        return HWR.beamline.diffractometer.zoomMotor.getPredefinedPositionsList()
 
     def set_front_light_level(self, level):
         """
         Sets the level of the front light
         """
-        self.diffractometer_hwobj.setFrontLightLevel(level)
+        HWR.beamline.diffractometer.setFrontLightLevel(level)
 
     def get_front_light_level(self):
         """
         Gets the level of the front light
         """
-        return self.diffractometer_hwobj.getFrontLightLevel()
+        return HWR.beamline.diffractometer.getFrontLightLevel()
 
     def set_back_light_level(self, level):
         """
         Sets the level of the back light
         """
-        self.diffractometer_hwobj.setBackLightLevel(level)
+        HWR.beamline.diffractometer.setBackLightLevel(level)
 
     def get_back_light_level(self):
         """
         Gets the level of the back light
         """
-        return self.diffractometer_hwobj.getBackLightLevel()
+        return HWR.beamline.diffractometer.getBackLightLevel()
 
     def centre_beam(self):
         """
@@ -658,7 +648,7 @@ class XMLRPCServer(HardwareObject):
 
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
         log = logging.getLogger("HWR")
-        log.info("Registering functions in module %s with XML-RPC server" % module_name)
+        #log.info("Registering functions in module %s with XML-RPC server" % module_name)
 
         if module_name not in sys.modules:
             __import__(module_name)
@@ -689,10 +679,10 @@ class XMLRPCServer(HardwareObject):
             for f in inspect.getmembers(module, inspect.isfunction):
                 if f[0][0] != "_":
                     xmlrpc_name = prefix + f[0]
-                    log.info(
-                        "Registering function %s.%s as XML-RPC function %s"
-                        % (module_name, f[1].__name__, xmlrpc_name)
-                    )
+                    #log.info(
+                    #    "Registering function %s.%s as XML-RPC function %s"
+                    #    % (module_name, f[1].__name__, xmlrpc_name)
+                    #)
 
                     # Bind method to this XMLRPCServer instance but don't set attribute
                     # This is sufficient to register it as an xmlrpc function.

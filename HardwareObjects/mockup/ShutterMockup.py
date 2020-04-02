@@ -19,55 +19,36 @@
 
 import time
 import random
-from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractShutter
+from HardwareRepository.HardwareObjects.abstract import AbstractNState
 
 
-class ShutterMockup(AbstractShutter):
+class ShutterMockup(AbstractNState.AbstractNState):
     """
-    ShutterMockup for simulating a simple open/close shutter. For more detailed
-    method documentation see AbstractShutter
+    ShutterMockup for simulating a simple open/close shutter.
     """
 
-    def __init__(self, name):
-        AbstractShutter.__init__(self, name)
-        self.current_state = ShutterMockup.STATE.OPEN
+    def init(self):
+        super(ShutterMockup, self).init()
+        self._nominal_value = self.VALUES.UNKNOWN
+        self._state = self.STATES.UNKNOWN
 
-    def value_changed(self, value):
-        """See AbstractShutter"""
-        self.current_state = ShutterMockup.STATE(value)
-        self.emit("shutterStateChanged", self.current_state.name)
+    def get_value(self):
+        return self._nominal_value
 
-    def get_state(self):
-        """See AbstractShutter"""
-        return self.current_state.name
-
-    def getShutterState(self):
-        return "opened"
+    def _set_value(self, value):
+        self.update_state(self.STATES.BUSY)
+        time.sleep(random.uniform(0.1, 1.0))
+        self._nominal_value = value
+        self.update_state(self.STATES.READY)
 
     def is_open(self):
-        """See AbstractShutter"""
-        return self.current_state == ShutterMockup.STATE.OPEN
+        return self.get_value() is self.VALUES.OPEN
 
     def is_closed(self):
-        """See AbstractShutter"""
-        return self.current_state == ShutterMockup.STATE.CLOSED
-
-    def is_valid(self):
-        """See AbstractShutter"""
-        return self.current_state.name in dir(ShutterMockup.STATE)
+        return self.get_value() is self.VALUES.CLOSED
 
     def open(self):
-        """See AbstractShutter"""
-        self.set_state(ShutterMockup.STATE.OPEN)
+        self.set_value(self.VALUES.OPEN)
 
     def close(self):
-        """See AbstractShutter"""
-        self.set_state(ShutterMockup.STATE.CLOSED)
-
-    def set_state(self, state, wait=False, timeout=None):
-        """See AbstractShutter"""
-        time.sleep(random.uniform(0.1, 1.0))
-        self.current_state = state
-        self.value_changed(state.value)
-
-   
+        self.set_value(self.VALUES.CLOSED)

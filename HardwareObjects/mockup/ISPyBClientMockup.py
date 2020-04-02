@@ -3,12 +3,11 @@ A client for ISPyB Webservices.
 """
 
 import logging
-import os
 import datetime
 import time
 
-from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository as HWR
 
 try:
     from urlparse import urljoin
@@ -34,11 +33,13 @@ class ISPyBClientMockup(HardwareObject):
         self.__test_proposal = None
         self.loginType = None
         self.base_result_url = None
+        self.lims_rest = None
 
     def init(self):
         """
         Init method declared by HardwareObject.
         """
+        self.lims_rest = self.getObjectByRole("lims_rest")
         self.authServerType = self.getProperty("authServerType") or "ldap"
         if self.authServerType == "ldap":
             # Initialize ldap
@@ -47,8 +48,7 @@ class ISPyBClientMockup(HardwareObject):
                 logging.getLogger("HWR").debug("LDAP Server is not available")
 
         self.loginType = self.getProperty("loginType") or "proposal"
-        self.session_hwobj = self.getObjectByRole("session")
-        self.beamline_name = self.session_hwobj.beamline_name
+        self.beamline_name = HWR.beamline.session.beamline_name
 
         try:
             self.base_result_url = self.getProperty("base_result_url").strip()
@@ -197,7 +197,7 @@ class ISPyBClientMockup(HardwareObject):
             logging.getLogger("HWR").debug("getting local contact for %s" % session_id)
             localcontact = self.get_session_local_contact(session_id)
 
-        is_inhouse = self.session_hwobj.is_inhouse(
+        is_inhouse = HWR.beamline.session.is_inhouse(
             prop["Proposal"]["code"], prop["Proposal"]["number"]
         )
         return {
@@ -268,7 +268,7 @@ class ISPyBClientMockup(HardwareObject):
                     return True
         return False
 
-    def store_data_collection(self, mx_collection, beamline_setup=None):
+    def store_data_collection(self, mx_collection, bl_config=None):
         """
         Stores the data collection mx_collection, and the beamline setup
         if provided.
@@ -276,8 +276,8 @@ class ISPyBClientMockup(HardwareObject):
         :param mx_collection: The data collection parameters.
         :type mx_collection: dict
 
-        :param beamline_setup: The beamline setup.
-        :type beamline_setup: dict
+        :param bl_config: The beamline setup.
+        :type bl_config: dict
 
         :returns: None
 
@@ -286,21 +286,21 @@ class ISPyBClientMockup(HardwareObject):
             "Data collection parameters stored " + "in ISPyB: %s" % str(mx_collection)
         )
         logging.getLogger("HWR").debug(
-            "Beamline setup stored in ISPyB: %s" % str(beamline_setup)
+            "Beamline setup stored in ISPyB: %s" % str(bl_config)
         )
 
         return None, None
 
-    def store_beamline_setup(self, session_id, beamline_setup):
+    def store_beamline_setup(self, session_id, bl_config):
         """
-        Stores the beamline setup dict <beamline_setup>.
+        Stores the beamline setup dict <bl_config>.
 
-        :param session_id: The session id that the beamline_setup
+        :param session_id: The session id that the bl_config
                            should be associated with.
         :type session_id: int
 
-        :param beamline_setup: The dictonary with beamline settings.
-        :type beamline_setup: dict
+        :param bl_config: The dictonary with beamline settings.
+        :type bl_config: dict
 
         :returns beamline_setup_id: The database id of the beamline setup.
         :rtype: str

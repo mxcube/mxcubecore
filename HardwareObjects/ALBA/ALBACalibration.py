@@ -38,10 +38,9 @@ Example Hardware Object XML file :
 </device>
 """
 
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository import BaseHardwareObjects
 import logging
-import os
 
 __author__ = "Jordi Andreu"
 __credits__ = ["MXCuBE collaboration"]
@@ -58,8 +57,8 @@ class ALBACalibration(BaseHardwareObjects.Device):
 
     def init(self):
 
-        self.calibx = self.getChannelObject("calibx")
-        self.caliby = self.getChannelObject("caliby")
+        self.calibx = self.get_channel_object("calibx")
+        self.caliby = self.get_channel_object("caliby")
 
         if self.calibx is not None and self.caliby is not None:
             logging.getLogger().info("Connected to pixel size calibration channels")
@@ -74,11 +73,11 @@ class ALBACalibration(BaseHardwareObjects.Device):
 
 
 def test():
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     calib = hwr.getHardwareObject("/calibration")
-    print "Calibration is: ", calib.getCalibration()
+    print("Calibration is: ", calib.getCalibration())
 
 
 if __name__ == "__main__":

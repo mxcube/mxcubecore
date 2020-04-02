@@ -48,7 +48,7 @@ class CameraMockup(BaseHardwareObjects.Device):
         return False
 
     def setLive(self, live):
-        print("Setting camera live ", live)
+        print(("Setting camera live ", live))
         if live and self.liveState == live:
             return
 

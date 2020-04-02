@@ -1,7 +1,7 @@
 <device class="TangoDCMotor">
   <username>Back Light</username>
   <tangoname>i10-c-cx1/ex/light.1</tangoname>
-  <motor_name>BackLight</motor_name>
+  <actuator_name>BackLight</actuator_name>
   <channel type="tango" polling="500" name="position">intensity</channel>
   <channel type="tango" polling="1000" name="state">State</channel>
   <command type="tango" tangoname="i10-c-cx1/ex/light.1" name="move">move</command>

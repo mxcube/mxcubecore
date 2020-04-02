@@ -96,16 +96,16 @@ class PX2Qt4_LimaVideo(Qt4_LimaVideo):
 
     def set_exposure_time(self, exposure_time):
         was_live = False
-        print "Setting exposure to %s" % exposure_time
+        print("Setting exposure to %s" % exposure_time)
         if self.get_video_live():
             was_live = True
             self.set_video_live(False)
-            print "Stopped"
+            print("Stopped")
 
         self.video.setExposure(exposure_time)
 
         if was_live:
-            print "Starting"
+            print("Starting")
             self.set_video_live(True)
 
 
@@ -113,22 +113,22 @@ def test_hwo():
     from gui.utils.QtImport import *
     import time
 
-    from HardwareRepository.HardwareRepository import getHardwareRepository
+    from HardwareRepository import HardwareRepository as HWR
 
-    hwr = getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     hwo = hwr.getHardwareObject("/singleton_objects/limavideo")
 
-    print "Image dimensions: ", hwo.get_image_dimensions()
-    print "Live Mode: ", hwo.get_video_live()
+    print("Image dimensions: ", hwo.get_image_dimensions())
+    print("Live Mode: ", hwo.get_video_live())
 
     app = QApplication([])
 
     win = QMainWindow()
     lab = QLabel("toto")
 
-    print "Image dimensions: ", hwo.get_image_dimensions()
+    print("Image dimensions: ", hwo.get_image_dimensions())
     hwo.set_video_live(True)
     hwo.set_exposure_time(0.05)
     time.sleep(1)

@@ -1,8 +1,14 @@
 from __future__ import print_function
+import sys
+import json
+import time
+import itertools
+import os
 import traceback
 from pprint import pformat
 from collections import namedtuple
 from datetime import datetime
+
 try:
     from urlparse import urljoin
     from urllib2 import URLError
@@ -14,12 +20,9 @@ except:
 from suds.sudsobject import asdict
 from suds import WebFault
 from suds.client import Client
-import json
-import time
-import itertools
-import os
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.ConvertUtils import string_types
+from HardwareRepository import HardwareRepository as HWR
 
 """
 A client for ISPyB Webservices.
@@ -27,7 +30,12 @@ A client for ISPyB Webservices.
 
 import logging
 import gevent
-import suds
+
+
+suds_encode = str.encode
+
+if sys.version_info > (3, 0):
+    suds_encode = bytes.decode
 
 logging.getLogger("suds").setLevel(logging.INFO)
 
@@ -111,7 +119,9 @@ def utf_encode(res_d):
             utf_encode(value)
 
         try:
-            res_d[key] = value.encode("utf8", "ignore")
+            # Decode bytes object or encode str object depending
+            # on Python version
+            res_d[key] = suds_encode("utf8", "ignore")
         except BaseException:
             # If not primitive or Text data, complext type, try to convert to
             # dict or str if the first fails
@@ -131,7 +141,7 @@ def utf_decode(res_d):
         if isinstance(value, dict):
             utf_decode(value)
         try:
-            res_d[key] = value.decode('utf8', 'ignore')
+            res_d[key] = value.decode("utf8", "ignore")
         except BaseException:
             pass
 
@@ -147,6 +157,7 @@ class ISPyBClient(HardwareObject):
         HardwareObject.__init__(self, name)
         self.ldapConnection = None
         self.beamline_name = "unknown"
+        self.lims_rest = None
         self._shipping = None
         self._collection = None
         self._tools_ws = None
@@ -168,6 +179,7 @@ class ISPyBClient(HardwareObject):
         """
         Init method declared by HardwareObject.
         """
+        self.lims_rest = self.getObjectByRole("lims_rest")
         self.authServerType = self.getProperty("authServerType") or "ldap"
         if self.authServerType == "ldap":
             # Initialize ldap
@@ -177,8 +189,7 @@ class ISPyBClient(HardwareObject):
 
         self.loginType = self.getProperty("loginType") or "proposal"
         self.loginTranslate = self.getProperty("loginTranslate") or True
-        self.session_hwobj = self.getObjectByRole("session")
-        self.beamline_name = self.session_hwobj.beamline_name
+        self.beamline_name = HWR.beamline.session.beamline_name
 
         self.ws_root = self.getProperty("ws_root")
         self.ws_username = self.getProperty("ws_username")
@@ -291,8 +302,8 @@ class ISPyBClient(HardwareObject):
 
         # Add the porposal codes defined in the configuration xml file
         # to a directory. Used by translate()
-        if hasattr(self.session_hwobj, "proposals"):
-            for proposal in self.session_hwobj["proposals"]:
+        if hasattr(HWR.beamline.session, "proposals"):
+            for proposal in HWR.beamline.session["proposals"]:
                 code = proposal.code
                 self._translations[code] = {}
                 try:
@@ -718,7 +729,7 @@ class ISPyBClient(HardwareObject):
             proposal_code = "".join(
                 itertools.takewhile(lambda c: not c.isdigit(), loginID)
             )
-            proposal_number = loginID[len(proposal_code):]
+            proposal_number = loginID[len(proposal_code) :]
 
         # if translation of the loginID is needed, need to be tested by ESRF
         if self.loginTranslate is True:
@@ -858,14 +869,13 @@ class ISPyBClient(HardwareObject):
             localcontact = None
             logging.getLogger("HWR").debug("create new session")
         elif todays_session:
-            session_id = todays_session['sessionId']
-            logging.getLogger('HWR').debug(
-                'getting local contact for %s' % session_id)
+            session_id = todays_session["sessionId"]
+            logging.getLogger("HWR").debug("getting local contact for %s" % session_id)
             localcontact = self.get_session_local_contact(session_id)
         else:
             todays_session = {}
 
-        is_inhouse = self.session_hwobj.is_inhouse(
+        is_inhouse = HWR.beamline.session.is_inhouse(
             prop["Proposal"]["code"], prop["Proposal"]["number"]
         )
         return {
@@ -887,7 +897,7 @@ class ISPyBClient(HardwareObject):
             logging.exception("Could not store data collection")
             return (0, 0, 0)
 
-    def _store_data_collection(self, mx_collection, beamline_setup=None):
+    def _store_data_collection(self, mx_collection, bl_config=None):
         """
         Stores the data collection mx_collection, and the beamline setup
         if provided.
@@ -895,8 +905,8 @@ class ISPyBClient(HardwareObject):
         :param mx_collection: The data collection parameters.
         :type mx_collection: dict
 
-        :param beamline_setup: The beamline setup.
-        :type beamline_setup: dict
+        :param bl_config: The beamline setup.
+        :type bl_config: dict
 
         :returns: None
 
@@ -915,9 +925,9 @@ class ISPyBClient(HardwareObject):
             )
 
             detector_id = 0
-            if beamline_setup:
+            if bl_config:
                 lims_beamline_setup = ISPyBValueFactory.from_bl_config(
-                    self._collection, beamline_setup
+                    self._collection, bl_config
                 )
 
                 lims_beamline_setup.synchrotronMode = data_collection.synchrotronMode
@@ -927,7 +937,7 @@ class ISPyBClient(HardwareObject):
                 )
 
                 detector_params = ISPyBValueFactory().detector_from_blc(
-                    beamline_setup, mx_collection
+                    bl_config, mx_collection
                 )
 
                 detector = self.find_detector(*detector_params)
@@ -964,16 +974,16 @@ class ISPyBClient(HardwareObject):
         return url
 
     @trace
-    def store_beamline_setup(self, session_id, beamline_setup):
+    def store_beamline_setup(self, session_id, bl_config):
         """
-        Stores the beamline setup dict <beamline_setup>.
+        Stores the beamline setup dict <bl_config>.
 
         :param session_id: The session id that the beamline_setup
                            should be associated with.
         :type session_id: int
 
-        :param beamline_setup: The dictonary with beamline settings.
-        :type beamline_setup: dict
+        :param bl_config: The dictonary with beamline settings.
+        :type bl_config: dict
 
         :returns beamline_setup_id: The database id of the beamline setup.
         :rtype: str
@@ -993,7 +1003,7 @@ class ISPyBClient(HardwareObject):
                 if session is not None:
                     try:
                         blSetupId = self._collection.service.storeOrUpdateBeamLineSetup(
-                            beamline_setup
+                            bl_config
                         )
 
                         session["beamLineSetupId"] = blSetupId
@@ -1864,13 +1874,6 @@ class ISPyBClient(HardwareObject):
 
     def _store_workflow(self, info_dict):
         """
-        :param mx_collection: The data collection parameters.
-        :type mx_collection: dict
-
-        :param beamline_setup: The beamline setup.
-        :type beamline_setup: dict
-
-        :returns: None
         """
         if self._disabled:
             return None, None, None
@@ -1921,9 +1924,14 @@ class ISPyBClient(HardwareObject):
             )
             workflow_step_dict["status"] = workflow_info_dict.get("status", "")
             workflow_step_dict["folderPath"] = workflow_info_dict.get(
-                "result_file_path")
-            workflow_step_dict["imageResultFilePath"] = workflow_info_dict["cartography_path"]
-            workflow_step_dict["htmlResultFilePath"] = workflow_info_dict["html_file_path"]
+                "result_file_path"
+            )
+            workflow_step_dict["imageResultFilePath"] = workflow_info_dict[
+                "cartography_path"
+            ]
+            workflow_step_dict["htmlResultFilePath"] = workflow_info_dict[
+                "html_file_path"
+            ]
             workflow_step_dict["resultFilePath"] = workflow_info_dict["json_file_path"]
             workflow_step_dict["comments"] = workflow_info_dict.get("comments", "")
             workflow_step_dict["crystalSizeX"] = workflow_info_dict.get(
@@ -2068,7 +2076,7 @@ class ISPyBValueFactory:
 
         try:
             modes = ("Software binned", "Unbinned", "Hardware binned")
-            det_mode = int(mx_collect_dict["detector_mode"])
+            det_mode = int(mx_collect_dict["detector_binning_mode"])
             detector_mode = modes[det_mode]
         except (KeyError, IndexError, ValueError, TypeError):
             detector_mode = ""

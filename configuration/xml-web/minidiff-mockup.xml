@@ -28,8 +28,8 @@
   <kappa>
     <object hwrid="./udiff_omega"></object>  
   </kappa>
-  <zoomCentre>{"x":340,"y":250}</zoomCentre>
-  <omegaReference>{"motor_name": "phiz", "position":-0.2224, "camera_axis":"x"}</omegaReference>
+  <zoom_centre>{"x":340,"y":250}</zoom_centre>
+  <omegaReference>{"actuator_name": "phiz", "position":-0.2224, "camera_axis":"x"}</omegaReference>
   <phaseList>["Transfer","Centring","BeamLocation", "DataCollection"]</phaseList>
   <headType>MiniKappa</headType>
 </equipment>

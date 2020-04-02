@@ -36,25 +36,25 @@ class BIOMAXMD3Camera(Device):
         self.specName = self.motor_name
         self.pollInterval = 80
 
-        self.image_attr = self.addChannel(
+        self.image_attr = self.add_channel(
             {"type": "exporter", "name": "image"}, "ImageJPG"
         )
 
         # new attrs for the MD3 with extra camera options
         self.width = 680
         self.height = 512
-        self.chan_zoom = self.addChannel(
+        self.chan_zoom = self.add_channel(
             {"type": "exporter", "name": "ImageZoom"}, "ImageZoom"
         )
-        self.roi_x = self.addChannel({"type": "exporter", "name": "RoiX"}, "RoiX")
-        self.roi_y = self.addChannel({"type": "exporter", "name": "RoiY"}, "RoiY")
-        self.roi_width = self.addChannel(
+        self.roi_x = self.add_channel({"type": "exporter", "name": "RoiX"}, "RoiX")
+        self.roi_y = self.add_channel({"type": "exporter", "name": "RoiY"}, "RoiY")
+        self.roi_width = self.add_channel(
             {"type": "exporter", "name": "RoiWidth"}, "RoiWidth"
         )
-        self.roi_height = self.addChannel(
+        self.roi_height = self.add_channel(
             {"type": "exporter", "name": "RoiHeight"}, "RoiHeight"
         )
-        self.set_camera_roi = self.addCommand(
+        self.set_camera_roi = self.add_command(
             {"type": "exporter", "name": "setCameraROI"}, "setCameraROI"
         )
 
@@ -81,7 +81,7 @@ class BIOMAXMD3Camera(Device):
 
     def poll(self):
         logging.getLogger("HWR").info("going to poll images")
-        self.image_attr = self.addChannel(
+        self.image_attr = self.add_channel(
             {"type": "exporter", "name": "image"}, "ImageJPG"
         )
         while not self.stopper:
@@ -101,7 +101,7 @@ class BIOMAXMD3Camera(Device):
                 return
             except BaseException:
                 logging.getLogger("HWR").exception("Could not read image")
-                self.image_attr = self.addChannel(
+                self.image_attr = self.add_channel(
                     {"type": "exporter", "name": "image"}, "ImageJPG"
                 )
 
@@ -164,8 +164,8 @@ class BIOMAXMD3Camera(Device):
             return False
 
     def imageUpdated(self, value):
-        print "<HW> got new image"
-        print value
+        print("<HW> got new image")
+        print(value)
 
     def gammaExists(self):
         return False

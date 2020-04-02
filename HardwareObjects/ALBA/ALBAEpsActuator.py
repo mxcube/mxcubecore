@@ -11,7 +11,7 @@ Example XML::
 
 Public Interface:
    Commands:
-       int getState()
+       int get_state()
            Description:
                returns current state
            Output:
@@ -42,7 +42,7 @@ Public Interface:
 
 """
 
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository import BaseHardwareObjects
 import logging
 
@@ -76,7 +76,7 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
         self.actuator_state = STATE_UNKNOWN
 
         try:
-            self.actuator_channel = self.getChannelObject("actuator")
+            self.actuator_channel = self.get_channel_object("actuator")
             self.actuator_channel.connectSignal("update", self.stateChanged)
         except KeyError:
             logging.getLogger().warning(
@@ -96,7 +96,7 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
             logging.getLogger("HWR").warning(traceback.format_exc())
             self.state_strings = self.default_state_strings
 
-    def getState(self):
+    def get_state(self):
         state = self.actuator_channel.getValue()
         self.actuator_state = self.convert_state(state)
         return self.actuator_state
@@ -123,7 +123,7 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
     def getStatus(self):
         """
         """
-        state = self.getState()
+        state = self.get_state()
 
         if state in [STATE_OUT, STATE_IN]:
             return self.state_strings[state]
@@ -146,9 +146,9 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
 
 
 def test_hwo(hwo):
-    print "Name is: ", hwo.getUserName()
-    print "Shutter state is: ", hwo.getState()
-    print "Shutter status is: ", hwo.getStatus()
+    print("Name is: ", hwo.getUserName())
+    print("Shutter state is: ", hwo.get_state())
+    print("Shutter status is: ", hwo.getStatus())
 
     # print "Opening it"
     # print hwo.open()

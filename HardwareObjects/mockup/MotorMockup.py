@@ -45,59 +45,84 @@ DEFAULT_POSITION = 10.124
 
 
 class MotorMockup(AbstractMotor):
+
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
 
-        self.__move_task = None
-
     def init(self):
-        try:
-            self.set_velocity(float(self.getProperty("velocity")))
-        except BaseException:
-            self.set_velocity(DEFAULT_VELOCITY)
+        """
+        FWK2 Init method
+        """
+        self.set_velocity(self.getProperty("velocity", DEFAULT_VELOCITY))
 
         try:
-            self.set_limits(eval(self.getProperty("default_limits")))
+            limits = tuple(eval(self.getProperty("default_limits")))
         except BaseException:
-            self.set_limits(DEFAULT_LIMITS)
+            limits = DEFAULT_LIMITS
+        self.update_limits(limits)
 
-        self.set_state(self.motor_states.READY)
-        self.set_position(float(self.getProperty("start_position", DEFAULT_POSITION)))
+        start_position = self.getProperty("default_position", DEFAULT_POSITION)
+        start_position = self.getProperty("start_position", start_position)
+        self.update_value(start_position)
 
-    def move_task(self, position, wait=False, timeout=None):
-        if position is None:
-            # TODO is there a need to set motor position to None?
-            return
+        self.update_state(self.STATES.READY)
 
-        start_pos = self.get_position()
+    def _move(self, value):
+        """
+        Simulated motor movement
+        """
+        self.update_state(self.STATES.BUSY)
+        self.update_specific_state(self.SPECIFIC_STATES.MOVING)
+        start_pos = self.get_value()
+
         if start_pos is not None:
-            delta = abs(position - start_pos)
-            if position > self.get_position():
+            delta = abs(value - start_pos)
+
+            if value > self.get_value():
                 direction = 1
             else:
                 direction = -1
+
             start_time = time.time()
-            self.emit("stateChanged", (self.get_state(),))
+
             while (time.time() - start_time) < (delta / self.get_velocity()):
-                self.set_position(
-                    start_pos
-                    + direction * self.get_velocity() * (time.time() - start_time)
-                )
-                self.emit("positionChanged", (self.get_position(),))
+                val = start_pos + direction * self.get_velocity() * (time.time() - start_time)
+                self.update_value(val)
                 time.sleep(0.02)
-        self.set_position(position)
-        self.emit("positionChanged", (self.get_position(),))
+        self.update_value(value)
 
-    def move(self, position, wait=False, timeout=None):
-        self.__motor_state = self.motor_states.MOVING
-        if wait:
-            self.set_position(position)
-            self.emit("positionChanged", (self.get_position(),))
-            self.set_ready()
+        self.update_state(self.STATES.READY)
+        _low, _high = self.get_limits()
+        if value == self.default_value:
+            self.update_specific_state(self.SPECIFIC_STATES.HOME)
+        elif  value == _low:
+            self.update_specific_state(self.SPECIFIC_STATES.LOWLIMIT)
+        elif  value == _high:
+            self.update_specific_state(self.SPECIFIC_STATES.HIGHLIMIT)
         else:
-            self._move_task = gevent.spawn(self.move_task, position)
-            self._move_task.link(self.set_ready)
+            self.update_specific_state(None)
 
-    def stop(self):
+    def abort(self):
+        """Imediately halt movement. By default self.stop = self.abort"""
         if self.__move_task is not None:
             self.__move_task.kill()
+
+    def get_value(self):
+        """Read the actuator position.
+        Returns:
+            float: Actuator position.
+        """
+        return self._nominal_value
+
+    def _set_value(self, value):
+        """
+        Implementation of specific set actuator logic.
+
+        Args:
+            value (float): target value
+            timeout (float): optional - timeout [s],
+                             If timeout == 0: return at once and do not wait;
+        """
+        move_task = gevent.spawn(self._move, value)
+        move_task.get()
+

@@ -1,9 +1,10 @@
-from HardwareRepository import BaseHardwareObjects
 import logging
 import PyTango.gevent
 import gevent
 import time
 import sys
+from HardwareRepository import BaseHardwareObjects
+from HardwareRepository import HardwareRepository as HWR
 
 
 class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
@@ -64,15 +65,15 @@ class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
         logging.info(
             "%s: %s hutch", self.name(), "entering" if entering_hutch else "leaving"
         )
-        dtox = self.getObjectByRole("detector_distance")
+        dtox = HWR.beamline.detector.distance
         if not entering_hutch:
             if old["dtox"] is not None:
-                dtox.move(old["dtox"])
-            self.getCommandObject("macro")(0)
+                dtox.set_value(old["dtox"])
+            self.get_command_object("macro")(0)
         else:
-            old["dtox"] = dtox.getPosition()
-            self.getCommandObject("macro")(1)
-            dtox.move(700)
+            old["dtox"] = dtox.get_value()
+            self.get_command_object("macro")(1)
+            dtox.set_value(700)
         dtox.waitEndOfMove()
 
     def poll(self):

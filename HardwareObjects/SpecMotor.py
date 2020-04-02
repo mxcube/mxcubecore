@@ -15,11 +15,11 @@ class SpecMotor(Device, SpecMotorA):
     def connectNotify(self, signal):
         if self.connection.isSpecConnected():
             if signal == "stateChanged":
-                self.motorStateChanged(self.getState())
+                self.motorStateChanged(self.get_state())
             elif signal == "limitsChanged":
                 self.motorLimitsChanged()
-            elif signal == "positionChanged":
-                self.motorPositionChanged(self.getPosition())
+            elif signal == "valueChanged":
+                self.motorPositionChanged(self.get_value())
 
     def motorStateChanged(self, state):
         self.setIsReady(state > SpecMotor.UNUSABLE)
@@ -28,32 +28,24 @@ class SpecMotor(Device, SpecMotorA):
 
     def motorIsMoving(self):
         return not self._ready_state_event.is_set()
-        # return self.getState() in (SpecMotor.MOVESTARTED, SpecMotor.MOVING)
+        # return self.get_state() in (SpecMotor.MOVESTARTED, SpecMotor.MOVING)
 
     def motorLimitsChanged(self):
-        self.emit("limitsChanged", (self.getLimits(),))
+        self.emit("limitsChanged", (self.get_limits(),))
 
     def motorMoveDone(self, channelValue):
         SpecMotorA.motorMoveDone(self, channelValue)
 
         # print "motor state is ready ? %s (%s)" %
-        # ((self.getState()==SpecMotor.READY), self.getState())
-        if self.getState() == SpecMotor.READY:
+        # ((self.get_state()==SpecMotor.READY), self.get_state())
+        if self.get_state() == SpecMotor.READY:
             self.emit("moveDone", (self.specversion, self.specname))
 
     def motorPositionChanged(self, absolutePosition):
-        self.emit("positionChanged", (absolutePosition,))
+        self.emit("valueChanged", (absolutePosition,))
 
     def syncQuestionAnswer(self, specSteps, controllerSteps):
         pass  # return '0' #NO ('1' means YES)
-
-    def syncMove(self, position, timeout=None):
-        # timeout in seconds
-        self.move(position, wait=True, timeout=timeout)
-
-    def syncMoveRelative(self, position, timeout=None):
-        abs_pos = position + self.getPosition()
-        return self.syncMove(abs_pos, timeout)
 
     def getMotorMnemonic(self):
         return self.specName

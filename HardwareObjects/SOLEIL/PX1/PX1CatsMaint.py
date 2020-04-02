@@ -1,5 +1,6 @@
 #
 from HardwareRepository.HardwareObjects.CatsMaint import CatsMaint
+from HardwareRepository import HardwareRepository as HWR
 
 import logging
 import time
@@ -14,7 +15,7 @@ class PX1CatsMaint(CatsMaint):
 
         CatsMaint.init(self)
 
-        self._chnHomeOpened = self.addChannel(
+        self._chnHomeOpened = self.add_channel(
             {
                 "type": "tango",
                 "name": "_chnHomeOpened",
@@ -26,17 +27,15 @@ class PX1CatsMaint(CatsMaint):
 
         self._chnHomeOpened.connectSignal("update", self.update_home_opened)
 
-        self._cmdDrySoak = self.addCommand(
+        self._cmdDrySoak = self.add_command(
             {"type": "tango", "name": "_cmdDrySoak", "tangoname": self.tangoname},
             "DryAndSoak",
         )
 
-        self._cmdReset = self.addCommand(
+        self._cmdReset = self.add_command(
             {"type": "tango", "name": "_cmdReset", "tangoname": self.tangoname},
             "ResetError",
         )
-
-        self.cats_hwo = self.getObjectByRole("sample_changer")
 
     def update_home_opened(self, value):
         if value != self.home_opened:
@@ -51,9 +50,9 @@ class PX1CatsMaint(CatsMaint):
     def _doHomeOpen(self, unload=False):
         if unload and self.loaded:
             logging.getLogger("HWR").debug("Unloading sample first")
-            self.cats_hwo._doUnload()
+            self.cats_hwo._do_unload()
             time.sleep(3)
-            while self.cats_hwo._isDeviceBusy():
+            while HWR.beamline.sample_changer._is_device_busy():
                 time.sleep(0.3)
 
         logging.getLogger("HWR").debug("Running the home command (home/open) now")
@@ -62,6 +61,6 @@ class PX1CatsMaint(CatsMaint):
     def _doDrySoak(self):
         self._cmdDrySoak()
 
-    def _doReset(self):
-        logging.getLogger("HWR").debug("PX1CatsMaint: executing the _doReset function")
+    def _do_reset(self):
+        logging.getLogger("HWR").debug("PX1CatsMaint: executing the _do_reset function")
         self._cmdReset()

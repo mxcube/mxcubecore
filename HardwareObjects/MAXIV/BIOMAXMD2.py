@@ -1,12 +1,15 @@
 """
 BIOMAXMinidiff (MD2)
 """
-import os
 import time
 import logging
 import math
 
-from HardwareRepository.HardwareObjects.GenericDiffractometer import *
+from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+    GenericDiffractometer,
+    DiffractometerState,
+)
+from HardwareRepository import HardwareRepository as HWR
 
 
 class BIOMAXMD2(GenericDiffractometer):
@@ -37,9 +40,6 @@ class BIOMAXMD2(GenericDiffractometer):
         self.back_light = self.getObjectByRole("backlight")
         self.back_light_switch = self.getObjectByRole("backlightswitch")
         self.front_light_switch = self.getObjectByRole("frontlightswitch")
-
-        # to make it comaptible
-        self.camera = self.camera_hwobj
 
     def start3ClickCentring(self):
         self.start_centring_method(self.CENTRING_METHOD_MANUAL)
@@ -74,27 +74,26 @@ class BIOMAXMD2(GenericDiffractometer):
         scan = self.command_dict["startScanEx"]
         self.wait_device_ready(200)
         scan(scan_params)
-        print "scan started at ----------->", time.time()
+        print("scan started at ----------->", time.time())
         if wait:
             self.wait_device_ready(300)  # timeout of 5 min
-            print "finished at ---------->", time.time()
+            print("finished at ---------->", time.time())
 
     def set_phase(self, phase, wait=False, timeout=None):
         if self.is_ready():
-            print "current state is", self.current_state
+            print("current state is", self.current_state)
             self.command_dict["startSetPhase"](phase)
             if wait:
                 if not timeout:
                     timeout = 40
                 self.wait_device_ready(timeout)
         else:
-            print "moveToPhase - Ready is: ", self.is_ready()
+            print("moveToPhase - Ready is: ", self.is_ready())
 
     def move_sync_motors(self, motors_dict, wait=False, timeout=None):
         argin = ""
         # print "start moving motors =============", time.time()
-        for motor in motors_dict.keys():
-            position = motors_dict[motor]
+        for motor, position in motors_dict.items():
             if position is None:
                 continue
             name = self.MOTOR_TO_EXPORTER_NAME[motor]
@@ -118,11 +117,13 @@ class BIOMAXMD2(GenericDiffractometer):
 
     def moveToBeam(self, x, y):
         try:
-            self.beam_position = self.beam_info_hwobj.get_beam_position()
+            self.beam_position = HWR.beamline.beam.get_beam_position()
             beam_xc = self.beam_position[0]
             beam_yc = self.beam_position[1]
-            self.centring_phiz.moveRelative((y - beam_yc) / float(self.pixelsPerMmZ))
-            self.centring_phiy.moveRelative(
+            self.centring_phiz.set_value_relative(
+                (y - beam_yc) / float(self.pixelsPerMmZ)
+            )
+            self.centring_phiy.set_value_relative(
                 -1 * (x - beam_xc) / float(self.pixelsPerMmY)
             )
         except BaseException:

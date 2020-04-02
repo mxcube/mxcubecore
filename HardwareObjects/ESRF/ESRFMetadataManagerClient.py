@@ -13,6 +13,7 @@ from email.mime.text import MIMEText
 import smtplib
 
 from HardwareRepository.ConvertUtils import string_types
+from HardwareRepository import HardwareRepository as HWR
 
 
 class MetadataManagerClient(object):
@@ -132,7 +133,7 @@ class MetadataManagerClient(object):
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
-    def getState(self):
+    def get_state(self):
         return str(MetadataManagerClient.metadataManager.state())
 
 
@@ -157,9 +158,8 @@ class MXCuBEMetadataClient(object):
             self._emailReplyTo = self.esrf_multi_collect["metadata"].replyto_email
         else:
             self._emailReplyTo = None
-        self._sessionObject = self.esrf_multi_collect.getObjectByRole("session")
 
-        self._beamline = self._sessionObject.endstation_name
+        self._beamline = HWR.beamline.session.endstation_name
 
     def reportStackTrace(self):
         (exc_type, exc_value, exc_traceback) = sys.exc_info()
@@ -209,14 +209,14 @@ class MXCuBEMetadataClient(object):
             and self._metaExperimentName is not None
         ):
             try:
-                self._proposal = self._sessionObject.get_proposal()
+                self._proposal = HWR.beamline.session.get_proposal()
                 # Create proxy object
                 self._metadataManagerClient = MetadataManagerClient(
                     self._metadataManagerName, self._metaExperimentName
                 )
 
                 # First check the state of the device server
-                serverState = self._metadataManagerClient.getState()
+                serverState = self._metadataManagerClient.get_state()
                 if serverState == "RUNNING":
                     # Force end of scan
                     self._metadataManagerClient.end()
@@ -349,7 +349,7 @@ class MXCuBEMetadataClient(object):
                 dictMetadata = self.getMetadata(data_collect_parameters)
                 # import pprint
                 # pprint.pprint(dictMetadata)
-                for attributeName, value in dictMetadata.iteritems():
+                for attributeName, value in dictMetadata.items():
                     logging.getLogger("HWR").info(
                         "Setting metadata client attribute '{0}' to '{1}'".format(
                             attributeName, value
@@ -439,7 +439,7 @@ class MXCuBEMetadataClient(object):
         dictMetadata["MX_motors_name"] = motorNames
         dictMetadata["MX_motors_value"] = motorPositions
         # Detector distance
-        distance = self.esrf_multi_collect.get_detector_distance()
+        distance = HWR.beamline.detector.distance.get_value()
         if distance is not None:
             dictMetadata["MX_detectorDistance"] = distance
         # Aperture
@@ -448,7 +448,7 @@ class MXCuBEMetadataClient(object):
             and self.esrf_multi_collect.bl_control.beam_info.aperture_hwobj is not None
         ):
             aperture = (
-                self.esrf_multi_collect.bl_control.beam_info.aperture_hwobj.getPosition()
+                self.esrf_multi_collect.bl_control.beam_info.aperture_hwobj.get_value()
             )
             dictMetadata["MX_aperture"] = aperture
         return dictMetadata

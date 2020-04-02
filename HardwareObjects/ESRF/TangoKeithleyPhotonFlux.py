@@ -12,7 +12,6 @@ class TangoKeithleyPhotonFlux(Equipment):
 
     def init(self):
         self.getObjectByRole("controller")
-        self.energy_motor = self.getDeviceByRole("energy")
         self.shutter = self.getDeviceByRole("shutter")
         self.aperture = self.getObjectByRole("aperture")
         self.factor = self.getProperty("current_photons_factor")
@@ -63,7 +62,7 @@ class TangoKeithleyPhotonFlux(Equipment):
         flux = counts * self.factor
         self.emitValueChanged("%1.3g" % flux)
 
-    def getCurrentFlux(self):
+    def get_value(self):
         return self.current_flux
 
     def emitValueChanged(self, flux=None):

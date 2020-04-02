@@ -20,6 +20,7 @@
 import logging
 import gevent
 from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository import HardwareRepository as HWR
 
 
 __credits__ = ["EMBL Hamburg"]
@@ -46,9 +47,6 @@ class EMBLDoorInterlock(Device):
         self.door_interlock_final_state = None
         self.door_interlock_breakabled = None
 
-        self.detector_distance_hwobj = None
-        self.diffractometer_hwobj = None
-
         self.before_unlock_commands_present = None
         self.before_unlock_commands = None
 
@@ -60,14 +58,9 @@ class EMBLDoorInterlock(Device):
 
         self.ics_enabled = True
 
-        self.getState = self.get_state
-
     def init(self):
 
         self.door_interlock_state = "unknown"
-
-        self.detector_distance_hwobj = self.getObjectByRole("detector_distance")
-        self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
 
         self.before_unlock_commands_present = self.getProperty(
             "before_unlock_commands_present"
@@ -81,21 +74,21 @@ class EMBLDoorInterlock(Device):
         if self.use_door_interlock is None:
             self.use_door_interlock = True
 
-        self.chan_state_locked = self.getChannelObject("chanStateLocked")
+        self.chan_state_locked = self.get_channel_object("chanStateLocked")
         self.chan_state_locked.connectSignal("update", self.state_locked_changed)
-        self.chan_state_breakable = self.getChannelObject("chanStateBreakable")
+        self.chan_state_breakable = self.get_channel_object("chanStateBreakable")
         self.chan_state_breakable.connectSignal("update", self.state_breakable_changed)
 
-        self.chan_ics_error = self.getChannelObject("chanIcsErrorOne")
+        self.chan_ics_error = self.get_channel_object("chanIcsErrorOne")
         self.chan_ics_error.connectSignal("update", self.ics_error_msg_changed)
 
-        self.chan_cmd_break_error = self.getChannelObject("chanCmdBreakError")
+        self.chan_cmd_break_error = self.get_channel_object("chanCmdBreakError")
         if self.chan_cmd_break_error is not None:
             self.chan_cmd_break_error.connectSignal(
                 "update", self.cmd_break_error_msg_changed
             )
 
-        self.cmd_break_interlock = self.getCommandObject("cmdBreak")
+        self.cmd_break_interlock = self.get_command_object("cmdBreak")
 
     def cmd_break_error_msg_changed(self, error_msg):
         """Displays error log message if door interlock break do not work
@@ -169,22 +162,23 @@ class EMBLDoorInterlock(Device):
            It doesn't matter what we are sending in the command
            as long as it is a one char
         """
-        if self.diffractometer_hwobj is not None:
-            if self.diffractometer_hwobj.in_plate_mode():
-                if self.detector_distance_hwobj is not None:
-                    if self.detector_distance_hwobj.getPosition() < 780:
-                        self.detector_distance_hwobj.move(800, timeout=None)
-                        while self.detector_distance_hwobj.getPosition() < 360:
+        if HWR.beamline.diffractometer is not None:
+            detector_distance = HWR.beamline.detector.distance
+            if HWR.beamline.diffractometer.in_plate_mode():
+                if detector_distance is not None:
+                    if detector_distance.get_value() < 780:
+                        detector_distance.set_value(800, timeout=None)
+                        while detector_distance.get_value() < 360:
                             gevent.sleep(0.01)
                         gevent.sleep(2)
             else:
-                if self.detector_distance_hwobj is not None:
-                    if self.detector_distance_hwobj.getPosition() < 1099:
-                        self.detector_distance_hwobj.move(1100)
+                if detector_distance is not None:
+                    if detector_distance.get_value() < 1099:
+                        detector_distance.set_value(1100)
                         gevent.sleep(1)
             try:
-                self.diffractometer_hwobj.set_phase(
-                    self.diffractometer_hwobj.PHASE_TRANSFER, timeout=None
+                HWR.beamline.diffractometer.set_phase(
+                    HWR.beamline.diffractometer.PHASE_TRANSFER, timeout=None
                 )
             except BaseException:
                 logging.getLogger("GUI").error(
@@ -198,7 +192,7 @@ class EMBLDoorInterlock(Device):
         if self.door_interlock_state:
             if self.door_interlock_breakabled:
                 if self.cmd_break_interlock is None:
-                    self.cmd_break_interlock = self.getCommandObject(
+                    self.cmd_break_interlock = self.get_command_object(
                         "cmdBreakInterlock"
                     )
                 self.cmd_break_interlock()

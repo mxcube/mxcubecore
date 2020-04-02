@@ -19,8 +19,8 @@ beamInfoChanged
 """
 
 import logging
-from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository import HardwareRepository as HWR
 
 
 class BeamInfo(Equipment):
@@ -34,42 +34,40 @@ class BeamInfo(Equipment):
 
         self.aperture_HO = None
         self.slits_HO = None
-        self.beam_definer_HO = None
         self.beam_info_dict = {}
 
     def init(self):
         try:
-            self.aperture_HO = HardwareRepository.getHardwareRepository().getHardwareObject(
+            self.aperture_HO = HWR.getHardwareRepository().getHardwareObject(
                 self.getProperty("aperture")
             )
             self.connect(self.aperture_HO, "apertureChanged", self.aperture_pos_changed)
         except BaseException:
             logging.getLogger("HWR").debug("BeamInfo: aperture not defined correctly")
         try:
-            self.slits_HO = HardwareRepository.getHardwareRepository().getHardwareObject(
+            self.slits_HO = HWR.getHardwareRepository().getHardwareObject(
                 self.getProperty("slits")
             )
             self.connect(self.slits_HO, "gapSizeChanged", self.slits_gap_changed)
         except BaseException:
             logging.getLogger("HWR").debug("BeamInfo: slits not defined correctly")
         try:
-            self.beam_definer_HO = HardwareRepository.getHardwareRepository().getHardwareObject(
-                self.getProperty("definer")
-            )
             self.connect(
-                self.beam_definer_HO, "definerPosChanged", self.definer_pos_changed
+                HWR.beamline.beam.beam_definer,
+                "definerPosChanged",
+                self.definer_pos_changed,
             )
         except BaseException:
             logging.getLogger("HWR").debug(
                 "BeamInfo: beam definer not defined correctly"
             )
 
-        self.beam_position_hor = self.getChannelObject("beam_position_hor")
+        self.beam_position_hor = self.get_channel_object("beam_position_hor")
         self.beam_position_hor.connectSignal("update", self.beam_pos_hor_changed)
-        self.beam_position_ver = self.getChannelObject("beam_position_ver")
+        self.beam_position_ver = self.get_channel_object("beam_position_ver")
         self.beam_position_ver.connectSignal("update", self.beam_pos_ver_changed)
-        self.chan_beam_size_microns = self.getChannelObject("beam_size_microns")
-        self.chan_beam_shape_ellipse = self.getChannelObject("beam_shape_ellipse")
+        self.chan_beam_size_microns = self.get_channel_object("beam_size_microns")
+        self.chan_beam_shape_ellipse = self.get_channel_object("beam_shape_ellipse")
 
     def beam_pos_hor_changed(self, value):
         self.beam_position[0] = value

@@ -31,6 +31,7 @@ import gevent
 
 from HardwareRepository.HardwareObjects import SimpleHTML
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository import HardwareRepository as HWR
 
 
 __credits__ = ["MXCuBE collaboration"]
@@ -67,15 +68,12 @@ class BeamlineTestMockup(HardwareObject):
         self.results_list = None
         self.results_html_list = None
 
-        self.bl_hwobj = None
-
     def init(self):
         """init"""
 
         self.ready_event = gevent.event.Event()
 
-        self.bl_hwobj = self.getObjectByRole("beamline_setup")
-        self.beamline_name = self.bl_hwobj.session_hwobj.beamline_name
+        self.beamline_name = HWR.beamline.session.beamline_name
 
         self.test_directory = self.getProperty("results_directory")
         if self.test_directory is None:
@@ -214,7 +212,7 @@ class BeamlineTestMockup(HardwareObject):
         """Text one"""
         result = {}
 
-        current_energy = self.bl_hwobj.energy_hwobj.getCurrentEnergy()
+        current_energy = HWR.beamline.energy.get_value()
 
         result["result_bit"] = current_energy < 12
         result["result_short"] = "Test passed (energy = %.2f)" % current_energy
@@ -253,7 +251,7 @@ class BeamlineTestMockup(HardwareObject):
         Descript. :
         """
         html_filename = os.path.join(self.test_directory, self.test_filename + ".html")
-        #pdf_filename = os.path.join(self.test_directory, self.test_filename + ".pdf")
+        # pdf_filename = os.path.join(self.test_directory, self.test_filename + ".pdf")
         archive_filename = os.path.join(
             self.test_directory,
             datetime.now().strftime("%Y_%m_%d_%H") + "_" + self.test_filename,
@@ -299,10 +297,10 @@ class BeamlineTestMockup(HardwareObject):
                 "BeamlineTest: Unable to generate html report file %s" % html_filename
             )
 
-        #try:
+        # try:
         #    pdfkit.from_url(html_filename, pdf_filename)
         #    logging.getLogger("GUI").info("PDF report %s generated" % pdf_filename)
-        #except BaseException:
+        # except BaseException:
         #    logging.getLogger("GUI").info(
         #        "Unable to generate PDF report %s" % pdf_filename
         #    )

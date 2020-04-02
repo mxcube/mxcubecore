@@ -1,4 +1,4 @@
-from HardwareRepository import HardwareRepository
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Device
 
 import logging
@@ -10,20 +10,20 @@ class NamedState(Device):
         self.stateList = []
 
     def _init(self):
-        self.stateChan = self.getChannelObject("state")
+        self.stateChan = self.get_channel_object("state")
 
         try:
-            self.moveStateChan = self.getChannelObject("hardware_state")
+            self.moveStateChan = self.get_channel_object("hardware_state")
         except KeyError:
             self.moveStateChan = None
 
         try:
-            self.changeCmd = self.getCommandObject("command")
+            self.changeCmd = self.get_command_object("command")
         except KeyError:
             self.changeCmd = None
 
         try:
-            self.stateListChannel = self.getChannelObject("statelist")
+            self.stateListChannel = self.get_channel_object("statelist")
         except KeyError:
             self.stateListChannel = None
 
@@ -43,12 +43,12 @@ class NamedState(Device):
 
     def connectNotify(self, signal):
         if signal == "stateChanged":
-            self.emit(signal, (self.getState(),))
+            self.emit(signal, (self.get_state(),))
 
     def stateChanged(self, channelValue):
         logging.info("hw NamedState %s. got new value %s" % (self.name(), channelValue))
         self.setIsReady(True)
-        self.emit("stateChanged", (self.getState(),))
+        self.emit("stateChanged", (self.get_state(),))
 
     def hardwareStateChanged(self, channelValue):
         logging.info(
@@ -94,10 +94,7 @@ class NamedState(Device):
             name = ""
         return name
 
-    def getCurrentState(self):
-        return self.getState()
-
-    def getState(self):
+    def get_state(self):
         try:
             stateValue = self.stateChan.getValue()
             if self.commandtype is not None and self.commandtype == "index":
@@ -134,7 +131,7 @@ class NamedState(Device):
                     "changing state for %s to ws: %s.failed. not such state"
                     % (self.getUserName(), statename)
                 )
-                self.emit("stateChanged", (self.getState(),))
+                self.emit("stateChanged", (self.get_state(),))
                 self.emit("hardwareStateChanged", ("ERROR",))
                 return
         else:
@@ -154,7 +151,7 @@ class NamedState(Device):
                     self.stateChan.setValue(statevalue)
                 except BaseException:
                     logging.getLogger().exception("cannot write attribute")
-                    self.emit("stateChanged", (self.getState(),))
+                    self.emit("stateChanged", (self.get_state(),))
                     self.emit("hardwareStateChanged", ("ERROR",))
         except BaseException:
             logging.getLogger().exception(
@@ -163,7 +160,7 @@ class NamedState(Device):
 
 
 def test():
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
     ap_pos = hwr.getHardwareObject("/aperture_position")
@@ -171,10 +168,10 @@ def test():
     yag_pos = hwr.getHardwareObject("/scintillator")
     md2_phase = hwr.getHardwareObject("/md2j_phase")
 
-    print "Aperture Position: ", ap_pos.getState()
-    print "Aperture Diameter: ", ap_diam.getState()
-    print "Yag Posiion: ", yag_pos.getState()
-    print "MD2 Phase: ", md2_phase.getState()
+    print("Aperture Position: ", ap_pos.get_state())
+    print("Aperture Diameter: ", ap_diam.get_state())
+    print("Yag Posiion: ", yag_pos.get_state())
+    print("MD2 Phase: ", md2_phase.get_state())
 
 
 if __name__ == "__main__":

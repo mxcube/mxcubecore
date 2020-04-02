@@ -25,13 +25,15 @@ from HardwareRepository.HardwareObjects.abstract.AbstractXRFSpectrum import (
 )
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
+from HardwareRepository import HardwareRepository as HWR
+
+
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
 __category__ = "Task"
 
 
 class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
-
     def __init__(self, name):
         AbstractXRFSpectrum.__init__(self)
         HardwareObject.__init__(self, name)
@@ -43,11 +45,6 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         self.spectrum_data = None
         self.mca_calib = None
 
-        self.energy_hwobj = None
-        self.transmission_hwobj = None
-        self.db_connection_hwobj = None
-        self.beam_info_hwobj = None
-
         self.chan_spectrum_status = None
         self.chan_spectrum_consts = None
         self.chan_scan_error = None
@@ -57,36 +54,21 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
     def init(self):
         self.ready_event = gevent.event.Event()
 
-        self.energy_hwobj = self.getObjectByRole("energy")
+        self.cmd_spectrum_start = self.get_command_object("cmdSpectrumStart")
+        self.cmd_adjust_transmission = self.get_command_object("cmdAdjustTransmission")
 
-        self.transmission_hwobj = self.getObjectByRole("transmission")
-        if self.transmission_hwobj is None:
-            logging.getLogger("HWR").warning(
-                "EMBLXRFSpectrum: Transmission hwobj not defined"
-            )
-
-        self.db_connection_hwobj = self.getObjectByRole("dbserver")
-        if self.db_connection_hwobj is None:
-            logging.getLogger().warning("EMBLXRFSpectrum: DB hwobj not defined")
-
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        if self.beam_info_hwobj is None:
-            logging.getLogger("HWR").warning(
-                "EMBLXRFSpectrum: Beam info hwobj not defined"
-            )
-
-        self.cmd_spectrum_start = self.getCommandObject("cmdSpectrumStart")
-        self.cmd_adjust_transmission = self.getCommandObject("cmdAdjustTransmission")
-
-        self.chan_spectrum_status = self.getChannelObject("chanSpectrumStatus")
+        self.chan_spectrum_status = self.get_channel_object("chanSpectrumStatus")
         self.chan_spectrum_status.connectSignal("update", self.spectrum_status_update)
-        self.chan_spectrum_consts = self.getChannelObject("chanSpectrumConsts")
+        self.chan_spectrum_consts = self.get_channel_object("chanSpectrumConsts")
 
-        self.chan_scan_error = self.getChannelObject("chanSpectrumError")
+        self.chan_scan_error = self.get_channel_object("chanSpectrumError")
         self.chan_scan_error.connectSignal("update", self.scan_error_update)
 
         self.config_filename = self.getProperty("configFile")
         self.write_in_raw_data = False
+        self.mca_calib = [
+            x / 1000.0 for x in self.chan_spectrum_consts.getValue()
+        ]  # converted from eV to keV
 
     def can_spectrum(self):
         """
@@ -114,7 +96,7 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             elif status == "ready":
                 if self.spectrum_running:
                     self.spectrum_data = list(self.cmd_spectrum_start.get())
-                    self.mca_calib = self.chan_spectrum_consts.getValue()[::-1]
+                    # self.mca_calib = self.chan_spectrum_consts.getValue()[::-1]
                     self.spectrum_command_finished()
                     logging.getLogger("HWR").info("XRF spectrum finished")
             elif status == "aborting":
@@ -123,7 +105,7 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
                     logging.getLogger("HWR").info("XRF spectrum aborted!")
             elif status == "error":
                 self.spectrum_command_failed()
-                logging.getLogger("HWR").error("XRF spectrum error!")
+                logging.getLogger("HWR").error("XRF spectrum failed!")
 
     def cancel_spectrum(self, *args):
         """Cancels acquisition"""
@@ -142,5 +124,6 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         :type error_msg: str
         :return: None
         """
-        if len(error_msg) > 0 and self.spectrum_running:
-            logging.getLogger("GUI").error("Energy scan: %s" % error_msg)
+        if len(error_msg) > 0:
+            # and self.spectrum_running:
+            logging.getLogger("GUI").error("XRF spectrum: %s" % error_msg)

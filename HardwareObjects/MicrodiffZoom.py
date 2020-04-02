@@ -1,108 +1,90 @@
-from HardwareRepository.HardwareObjects.MicrodiffMotor import MicrodiffMotor
-import logging
-import math
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU General Lesser Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+"""
+MicrodiffZoom
+
+Example xml file:
+<device class="MicrodiffZoom">
+  <username>zoom</username>
+  <exporter_address>wid30bmd2s:9001</exporter_address>
+  <value_channel_name>CoaxialCameraZoomValue</value_channel_name>
+  <state_channel_name>ZoomState</state_channel_name>
+</device>
+"""
 
 
-class MicrodiffZoom(MicrodiffMotor):
+from enum import Enum
+from HardwareRepository.HardwareObjects.abstract.AbstractNState import BaseValueEnum
+from HardwareRepository.HardwareObjects.ExporterNState import ExporterNState
+
+__copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
+
+
+class MicrodiffZoom(ExporterNState):
+    """MicrodiffZoom class"""
     def __init__(self, name):
-        MicrodiffMotor.__init__(self, name)
+        ExporterNState.__init__(self, name)
 
     def init(self):
-        self.motor_name = "Zoom"
-        self.motor_pos_attr_suffix = "Position"
-        self._last_position_name = None
+        """Initialize the zoom"""
+        ExporterNState.init(self)
 
-        self.predefined_position_attr = self.getChannelObject("predefined_position")
-        if not self.predefined_position_attr:
-            self.predefined_position_attr = self.addChannel(
-                {"type": "exporter", "name": "predefined_position"},
-                "CoaxialCameraZoomValue",
-            )
-
-        self.predefinedPositions = {
-            "Zoom 1": 1,
-            "Zoom 2": 2,
-            "Zoom 3": 3,
-            "Zoom 4": 4,
-            "Zoom 5": 5,
-            "Zoom 6": 6,
-            "Zoom 7": 7,
-            "Zoom 8": 8,
-            "Zoom 9": 9,
-            "Zoom 10": 10,
-        }
-        self.sortPredefinedPositionsList()
-
-        MicrodiffMotor.init(self)
-
-    def sortPredefinedPositionsList(self):
-        self.predefinedPositionsNamesList = self.predefinedPositions.keys()
-        self.predefinedPositionsNamesList.sort(
-            lambda x, y: int(
-                round(self.predefinedPositions[x] - self.predefinedPositions[y])
-            )
-        )
-
-    def connectNotify(self, signal):
-        if signal == "predefinedPositionChanged":
-            positionName = self.getCurrentPositionName()
-
-            try:
-                pos = self.predefinedPositions[positionName]
-            except KeyError:
-                self.emit(signal, ("", None))
-            else:
-                self.emit(signal, (positionName, pos))
-        else:
-            return MicrodiffMotor.connectNotify.im_func(self, signal)
-
-    def getLimits(self):
-        return (1, 10)
-
-    def getPredefinedPositionsList(self):
-        return self.predefinedPositionsNamesList
-
-    def motorPositionChanged(self, absolutePosition, private={}):
-        MicrodiffMotor.motorPositionChanged.im_func(self, absolutePosition, private)
-
-        positionName = self.getCurrentPositionName(absolutePosition)
-        if self._last_position_name != positionName:
-            self._last_position_name = positionName
-            self.emit(
-                "predefinedPositionChanged",
-                (positionName, positionName and absolutePosition or None),
-            )
-
-    def getCurrentPositionName(self, pos=None):
-        pos = self.predefined_position_attr.getValue()
-
-        for positionName in self.predefinedPositions:
-            if math.fabs(self.predefinedPositions[positionName] - pos) <= 1e-3:
-                return positionName
-        return ""
-
-    def moveToPosition(self, positionName):
-        # logging.getLogger().debug("%s: trying to move %s to %s:%f", self.name(), self.motor_name, positionName,self.predefinedPositions[positionName])
         try:
-            self.predefined_position_attr.setValue(
-                self.predefinedPositions[positionName]
-            )
-        except BaseException:
-            logging.getLogger("HWR").exception(
-                "Cannot move motor %s: invalid position name.", str(self.userName())
-            )
+            _low, _high = self._exporter.execute("getZoomRange")
+            # inf is a problematic value
+            if _low == float("-inf"):
+                _low = 0
 
-    def setNewPredefinedPosition(self, positionName, positionOffset):
-        raise NotImplementedError
+            if _high == float("inf"):
+                _high = 10
 
-    def zoom_in(self):
-        position_name = self.getCurrentPositionName()
-        position_index = self.predefinedPositionsNamesList.index(position_name)
-        if position_index < len(self.predefinedPositionsNamesList) - 1:
-            self.moveToPosition(self.predefinedPositionsNamesList[position_index + 1])
+            self.set_limits((_low, _high))
+        except ValueError:
+            self.set_limits((1, 10))
 
-    def zoom_out(self):
-        position_name = self.getCurrentPositionName()
-        position_index = self.predefinedPositionsNamesList.index(position_name)
-        if position_index > 0:
-            self.moveToPosition(self.predefinedPositionsNamesList[position_index - 1])
+        self.initialise_values()
+
+    def set_limits(self, limits=(None, None)):
+        """Set the low and high limits.
+        Args:
+            limits (tuple): two element (low limit, high limit) tuple.
+        """
+        self._nominal_limits = limits
+
+    def get_limits(self):
+        """Returns zoom low and high limits.
+        Returns:
+            (tuple): two int tuple (low limit, high limit).
+        """
+        return self._nominal_limits
+
+    def initialise_values(self):
+        """Initialise the ValueEnum """
+        low, high = self.get_limits()
+
+        values = {
+            "LEVEL%s" % str(v): v
+            for v in range(low, high + 1)
+        }
+        self.VALUES = Enum(
+            "ValueEnum",
+            dict(values, **{item.name: item.value for item in BaseValueEnum}),
+        )

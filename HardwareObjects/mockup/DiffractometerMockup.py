@@ -23,8 +23,9 @@ import random
 import warnings
 
 from HardwareRepository.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer
+    GenericDiffractometer,
 )
+from HardwareRepository import HardwareRepository as HWR
 from gevent.event import AsyncResult
 
 
@@ -43,8 +44,8 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         Descript. :
         """
-        self.image_width = 100
-        self.image_height = 100
+        # self.image_width = 100
+        # self.image_height = 100
 
         GenericDiffractometer.init(self)
         self.x_calib = 0.000444
@@ -75,8 +76,8 @@ class DiffractometerMockup(GenericDiffractometer):
         self.centring_status = {"valid": False}
         self.centring_time = 0
 
-        self.image_width = 400
-        self.image_height = 400
+        # self.image_width = 400
+        # self.image_height = 400
 
         self.mount_mode = self.getProperty("sample_mount_mode")
         if self.mount_mode is None:
@@ -84,32 +85,28 @@ class DiffractometerMockup(GenericDiffractometer):
 
         self.equipment_ready()
 
-        # TODO FFS get this cleared up - one function, one name
-        self.getPositions = self.get_positions
-        self.moveMotors = self.move_motors
-
         self.connect(
-            self.motor_hwobj_dict["phi"], "positionChanged", self.phi_motor_moved
+            self.motor_hwobj_dict["phi"], "valueChanged", self.phi_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["phiy"], "positionChanged", self.phiy_motor_moved
+            self.motor_hwobj_dict["phiy"], "valueChanged", self.phiy_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["phiz"], "positionChanged", self.phiz_motor_moved
+            self.motor_hwobj_dict["phiz"], "valueChanged", self.phiz_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["kappa"], "positionChanged", self.kappa_motor_moved
+            self.motor_hwobj_dict["kappa"], "valueChanged", self.kappa_motor_moved
         )
         self.connect(
             self.motor_hwobj_dict["kappa_phi"],
-            "positionChanged",
+            "valueChanged",
             self.kappa_phi_motor_moved,
         )
         self.connect(
-            self.motor_hwobj_dict["sampx"], "positionChanged", self.sampx_motor_moved
+            self.motor_hwobj_dict["sampx"], "valueChanged", self.sampx_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["sampy"], "positionChanged", self.sampy_motor_moved
+            self.motor_hwobj_dict["sampy"], "valueChanged", self.sampy_motor_moved
         )
 
     def getStatus(self):
@@ -160,7 +157,7 @@ class DiffractometerMockup(GenericDiffractometer):
         """Get random centring result for current positions"""
 
         # Names of motors to vary during centring
-        vary_motor_names = ("sampx", "sampy", "phiy")
+        vary_actuator_names = ("sampx", "sampy", "phiy")
 
         # Range of random variation
         var_range = 0.08
@@ -169,7 +166,7 @@ class DiffractometerMockup(GenericDiffractometer):
         var_limit = 2.0
 
         result = self.current_motor_positions.copy()
-        for tag in vary_motor_names:
+        for tag in vary_actuator_names:
             val = result.get(tag)
             if val is not None:
                 random_num = random.random()
@@ -187,7 +184,7 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         return True
 
-    def isValid(self):
+    def is_valid(self):
         """
         Descript. :
         """
@@ -299,9 +296,9 @@ class DiffractometerMockup(GenericDiffractometer):
         Descript. :
         """
         self.emit("minidiffStateChanged", "testState")
-        if self.beam_info_hwobj:
-            self.beam_info_hwobj.beam_pos_hor_changed(300)
-            self.beam_info_hwobj.beam_pos_ver_changed(200)
+        if HWR.beamline.beam:
+            HWR.beamline.beam.beam_pos_hor_changed(300)
+            HWR.beamline.beam.beam_pos_ver_changed(200)
 
     def start_auto_focus(self):
         """
@@ -315,10 +312,12 @@ class DiffractometerMockup(GenericDiffractometer):
                     positions.
         """
 
-        print("moving to beam position: %d %d" % (
-            self.beam_position[0],
-            self.beam_position[1],
-        ))
+        print(
+            (
+                "moving to beam position: %d %d"
+                % (self.beam_position[0], self.beam_position[1])
+            )
+        )
 
     def move_to_coord(self, x, y, omega=None):
         """
@@ -387,7 +386,7 @@ class DiffractometerMockup(GenericDiffractometer):
         return (-360, 360)
 
     def move_omega_relative(self, relative_angle):
-        self.motor_hwobj_dict["phi"].syncMoveRelative(relative_angle, 5)
+        self.motor_hwobj_dict["phi"].set_value_relative(relative_angle, 5)
 
     def set_phase(self, phase, timeout=None):
         self.current_phase = str(phase)

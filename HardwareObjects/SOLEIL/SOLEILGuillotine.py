@@ -13,7 +13,7 @@ Example XML:
 from HardwareRepository import BaseHardwareObjects
 import logging
 import time
-import PyTango
+from HardwareRepository import HardwareRepository as HWR
 
 
 class SOLEILGuillotine(BaseHardwareObjects.Device):
@@ -97,17 +97,24 @@ class SOLEILGuillotine(BaseHardwareObjects.Device):
         self._d_security = self.getProperty("security_distance")
         self._d_home = self.getProperty("safe_distance")
         try:
-            self.shutChannel = self.getChannelObject("State")
+            self.shutChannel = self.get_channel_object("State")
             self.shutChannel.connectSignal("update", self.shutterStateChanged)
 
             self.pss = self.getObjectByRole("pss")
-            self.detector = self.getObjectByRole("detectordistance")
 
-            self.connect(self.detector, "positionChanged", self.shutterStateChanged)
-            self.connect(self.detector, "positionChanged", self.updateDetectorDistance)
+            self.connect(
+                HWR.beamline.detector.distance,
+                "valueChanged",
+                self.shutterStateChanged,
+            )
+            self.connect(
+                HWR.beamline.detector.distance,
+                "valueChanged",
+                self.updateDetectorDistance,
+            )
 
             for command_name in ("_Insert", "_Extract"):
-                setattr(self, command_name, self.getCommandObject(command_name))
+                setattr(self, command_name, self.get_command_object(command_name))
 
         except KeyError:
             logging.getLogger().warning("%s: cannot report State", self.name())
@@ -122,7 +129,7 @@ class SOLEILGuillotine(BaseHardwareObjects.Device):
             )
 
         if self.pss_door is not None:
-            self.memIntChan = self.getChannelObject("memInt")
+            self.memIntChan = self.get_channel_object("memInt")
             self.connect(self.memIntChan, "update", self.updateGuillotine)
         else:
             logging.getLogger("HWR").error("Guillotine: tangopssDevice is not defined ")
@@ -155,7 +162,7 @@ class SOLEILGuillotine(BaseHardwareObjects.Device):
         if state == "Transfer":
             self.goToSecurityDistance()
         if state == "Collect":
-            self.detector.move(180)
+            HWR.beamline.detector.distance.set_value(180)
 
     def updateGuillotine(self, value):
         # if open door close guillotine but test distance
@@ -168,7 +175,7 @@ class SOLEILGuillotine(BaseHardwareObjects.Device):
                 self._Insert()
             else:
                 self.goToSecurityDistance()
-                # self.detector.move(self._d_home)
+                # self.detector.set_value(self._d_home)
                 # time.sleep(1.0)# wait distance minimum to insert guillotine
                 # self._Insert()
 
@@ -179,17 +186,17 @@ class SOLEILGuillotine(BaseHardwareObjects.Device):
         )
         if self.isInsert():
             if not self.checkDistance():
-                # self.detector.move(180)
-                self.detector.move(self._d_security)
+                # self.detector.set_value(180)
+                HWR.beamline.detector.distance.set_value(self._d_security)
                 time.sleep(2.0)
-                while self.detector.motorIsMoving():
+                while HWR.beamline.detector.distance.motorIsMoving():
                     time.sleep(0.5)
                 self._Extract()
                 time.sleep(0.2)
-                # self.detector.move(150)
-                self.detector.move(currentDistance)
+                # self.detector.set_value(150)
+                HWR.beamline.detector.distance.set_value(currentDistance)
                 time.sleep(2.0)
-                while self.detector.motorIsMoving():
+                while HWR.beamline.detector.distance.motorIsMoving():
                     time.sleep(0.5)
             else:
                 self._Extract()
@@ -210,10 +217,10 @@ class SOLEILGuillotine(BaseHardwareObjects.Device):
 
     def goToSecurityDistance(self):
         if self._currentDistance < self._d_home:
-            self.detector.move(self._d_home)
+            HWR.beamline.detector.distance.set_value(self._d_home)
         if str(self.shutChannel.value) == "EXTRACT":
             self._Insert()
-        while self.detector.motorIsMoving():
+        while HWR.beamline.detector.distance.motorIsMoving():
             time.sleep(0.5)
 
     def isShutterOk(self):

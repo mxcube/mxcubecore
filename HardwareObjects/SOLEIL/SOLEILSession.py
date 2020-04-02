@@ -2,9 +2,8 @@ import os
 import time
 import logging
 
-from HardwareRepository import HardwareRepository
-
 import Session
+from HardwareRepository import HardwareRepository as HWR
 
 
 class SOLEILSession(Session.Session):
@@ -144,19 +143,19 @@ class SOLEILSession(Session.Session):
 
 
 def test():
-    hwr = HardwareRepository.getHardwareRepository()
+    hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    sess = hwr.getHardwareObject("/session")
+    sess = HWR.beamline.session
 
     sess.set_user_info("mx2014", "143301", "14330", "20100023")
 
     path = "/927bis/ccd/2015_Run2/visitor/mx2014/px2/20150120/ARCHIVE/mx2014/mx2014_2_4.snapshot.jpeg"
     ispyb_path = sess.path_to_ispyb(path)
 
-    print path
-    print "  will become "
-    print ispyb_path
+    print(path)
+    print("  will become ")
+    print(ispyb_path)
 
     # print sess.get_ruche_info(path)
 

@@ -40,11 +40,13 @@ from __future__ import print_function
 import os
 import math
 import logging
+
 try:
     import cPickle as pickle
 except:
     import _pickle as pickle
 
+from datetime import datetime
 from copy import deepcopy
 
 import gevent
@@ -65,24 +67,24 @@ except ImportError:
 from gui.utils import QtImport
 
 from HardwareRepository.HardwareObjects import queue_model_objects
-from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects import QtGraphicsLib as GraphicsLib
+from HardwareRepository.HardwareObjects.abstract.AbstractSampleView import AbstractSampleView
+
+from HardwareRepository import HardwareRepository as HWR
 
 __credits__ = ["MXCuBE collaboration"]
 __category__ = "Graphics"
 
 
-class QtGraphicsManager(HardwareObject):
+class QtGraphicsManager(AbstractSampleView):
     def __init__(self, name):
         """
         :param name: name
         :type name: str
         """
-        HardwareObject.__init__(self, name)
+        AbstractSampleView.__init__(self, name)
 
         self.diffractometer_hwobj = None
-        self.beam_info_hwobj = None
-        self.camera_hwobj = None
 
         self.graphics_config_filename = None
         self.omega_angle = 0
@@ -120,7 +122,6 @@ class QtGraphicsManager(HardwareObject):
         self.temp_animation_dir = None
         self.omega_move_delta = None
         self.cursor = None
-        self.get_snapshot = None
 
         self.graphics_view = None
         self.graphics_camera_frame = None
@@ -149,6 +150,8 @@ class QtGraphicsManager(HardwareObject):
         """
 
         self.graphics_view = GraphicsLib.GraphicsView()
+        self.graphics_view.setVerticalScrollBarPolicy(QtImport.Qt.ScrollBarAsNeeded)
+        self.graphics_view.setHorizontalScrollBarPolicy(QtImport.Qt.ScrollBarAsNeeded)
         self.graphics_camera_frame = GraphicsLib.GraphicsCameraFrame()
         self.graphics_scale_item = GraphicsLib.GraphicsItemScale(self)
         self.graphics_histogram_item = GraphicsLib.GraphicsItemHistogram(self)
@@ -167,6 +170,7 @@ class QtGraphicsManager(HardwareObject):
             self
         )
         self.graphics_measure_distance_item.hide()
+
         self.graphics_measure_angle_item = GraphicsLib.GraphicsItemMeasureAngle(self)
         self.graphics_measure_angle_item.hide()
         self.graphics_measure_area_item = GraphicsLib.GraphicsItemMeasureArea(self)
@@ -175,12 +179,6 @@ class QtGraphicsManager(HardwareObject):
         self.graphics_select_tool_item.hide()
         self.graphics_beam_define_item = GraphicsLib.GraphicsItemBeamDefine(self)
         self.graphics_beam_define_item.hide()
-        #self.graphics_move_up_item = GraphicsLib.GraphicsItemMoveButton(self, "up")
-        #self.graphics_move_right_item = GraphicsLib.GraphicsItemMoveButton(
-        #    self, "right"
-        #)
-        #self.graphics_move_down_item = GraphicsLib.GraphicsItemMoveButton(self, "down")
-        #self.graphics_move_left_item = GraphicsLib.GraphicsItemMoveButton(self, "left")
         self.graphics_magnification_item = GraphicsLib.GraphicsMagnificationItem(self)
         self.graphics_magnification_item.hide()
 
@@ -197,10 +195,6 @@ class QtGraphicsManager(HardwareObject):
         self.graphics_view.graphics_scene.addItem(self.graphics_measure_area_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_select_tool_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_beam_define_item)
-        #self.graphics_view.graphics_scene.addItem(self.graphics_move_up_item)
-        #self.graphics_view.graphics_scene.addItem(self.graphics_move_right_item)
-        #self.graphics_view.graphics_scene.addItem(self.graphics_move_down_item)
-        #self.graphics_view.graphics_scene.addItem(self.graphics_move_left_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_magnification_item)
 
         self.graphics_view.scene().mouseClickedSignal.connect(self.mouse_clicked)
@@ -213,11 +207,14 @@ class QtGraphicsManager(HardwareObject):
             self.item_double_clicked
         )
         self.graphics_view.scene().moveItemClickedSignal.connect(self.move_item_clicked)
+        #self.graphics_view.scene().gridClickedSignal.connect(self.grid_clicked)
+
         self.graphics_view.mouseMovedSignal.connect(self.mouse_moved)
         self.graphics_view.keyPressedSignal.connect(self.key_pressed)
         self.graphics_view.wheelSignal.connect(self.mouse_wheel_scrolled)
 
         self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
+
         if self.diffractometer_hwobj is not None:
             pixels_per_mm = self.diffractometer_hwobj.get_pixels_per_mm()
             self.diffractometer_pixels_per_mm_changed(pixels_per_mm)
@@ -275,19 +272,16 @@ class QtGraphicsManager(HardwareObject):
                 "GraphicsManager: Diffractometer hwobj not defined"
             )
 
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        if self.beam_info_hwobj is not None:
-            self.beam_info_dict = self.beam_info_hwobj.get_beam_info()
-            self.beam_position = self.beam_info_hwobj.get_beam_position()
+        if HWR.beamline.beam is not None:
+            self.beam_info_dict = HWR.beamline.beam.get_beam_info()
+            self.beam_position = HWR.beamline.beam.get_beam_position()
             self.connect(
-                self.beam_info_hwobj, "beamPosChanged", self.beam_position_changed
+                HWR.beamline.beam, "beamPosChanged", self.beam_position_changed
             )
-            self.connect(
-                self.beam_info_hwobj, "beamInfoChanged", self.beam_info_changed
-            )
+            self.connect(HWR.beamline.beam, "beamInfoChanged", self.beam_info_changed)
 
             self.beam_info_changed(self.beam_info_dict)
-            self.beam_position_changed(self.beam_info_hwobj.get_beam_position())
+            self.beam_position_changed(HWR.beamline.beam.get_beam_position())
         else:
             logging.getLogger("HWR").error(
                 "GraphicsManager: BeamInfo hwobj not defined"
@@ -326,7 +320,7 @@ class QtGraphicsManager(HardwareObject):
         try:
             self.auto_grid_size_mm = eval(self.getProperty("auto_grid_size_mm"))
         except BaseException:
-            self.auto_grid_size_mm = (0.2, 0.2)
+            self.auto_grid_size_mm = (0.1, 0.1)
 
         """
         self.graphics_move_up_item.setVisible(
@@ -358,18 +352,53 @@ class QtGraphicsManager(HardwareObject):
         # except:
         #    pass
 
-        #self.temp_animation_dir = os.path.join(self.user_file_directory, "animation")
+        # self.temp_animation_dir = os.path.join(self.user_file_directory, "animation")
 
         self.omega_move_delta = self.getProperty("omega_move_delta", 10)
 
         custom_cursor_filename = self.getProperty("custom_cursor", "")
         if os.path.exists(custom_cursor_filename):
-            self.cursor = QtImport.QCursor(QtImport.QPixmap(custom_cursor_filename), 0, 0)
+            self.cursor = QtImport.QCursor(
+                QtImport.QPixmap(custom_cursor_filename), 0, 0
+            )
             self.set_cursor_busy(False)
         else:
             self.cursor = QtImport.Qt.ArrowCursor
 
-        self.get_snapshot = self.get_scene_snapshot
+    @property
+    def zoom(self):
+        """zoom motor object
+
+        NBNB HACK TODO - configure this here instead
+        (instead of calling to diffractometer)
+
+        Returns:
+            AbstractActuator
+        """
+        return self.diffractometer_hwobj.zoom
+
+    @property
+    def focus(self):
+        """focus motor object
+
+        NBNB HACK TODO - configure this here instead
+        (instead of calling to diffractometer)
+
+        Returns:
+            AbstractActuator
+        """
+        return self.diffractometer_hwobj.alignment_x
+
+    @property
+    def camera(self):
+        """camera object
+
+        NBNB TODO clean up and simplify configuration
+
+        Returns:
+            AbstractActuator
+        """
+        return self.camera_hwobj
 
     def save_graphics_config(self):
         """Saves graphical objects in the file
@@ -494,24 +523,28 @@ class QtGraphicsManager(HardwareObject):
                 self.create_line(start_point, end_point, emit=False)
         self.de_select_all()
 
-    def camera_image_received(self, pixmap_image):
+    def camera_image_received(self, pixmap_image, msg=None):
         """Method called when a frame from camera arrives.
            Slot to signal 'imageReceived'
 
         :param pixmap_image: frame from camera
         :type pixmap_image: QtGui.QPixmapImage
         """
-        if self.image_scale:
-            pixmap_image = pixmap_image.scaled(
-                QtImport.QSize(
-                    pixmap_image.width() * self.image_scale,
-                    pixmap_image.height() * self.image_scale,
+        if pixmap_image:
+            if self.image_scale:
+                pixmap_image = pixmap_image.scaled(
+                    QtImport.QSize(
+                        pixmap_image.width() * self.image_scale,
+                        pixmap_image.height() * self.image_scale,
+                    )
                 )
-            )
-        self.graphics_camera_frame.setPixmap(pixmap_image)
+            self.graphics_camera_frame.setPixmap(pixmap_image)
 
-        if self.in_magnification_mode:
-            self.graphics_magnification_item.set_pixmap(pixmap_image)
+            if self.in_magnification_mode:
+                self.graphics_magnification_item.set_pixmap(pixmap_image)
+        else:
+            self.display_info_msg(msg, 10, 500, False)
+            
 
     def beam_position_changed(self, position):
         """Method called when beam position on the screen changed.
@@ -587,7 +620,7 @@ class QtGraphicsManager(HardwareObject):
 
             self.show_all_items()
             self.graphics_view.graphics_scene.update()
-            #self.update_histogram()
+            # self.update_histogram()
             self.emit("diffractometerReady", True)
         else:
             self.hide_all_items()
@@ -664,6 +697,23 @@ class QtGraphicsManager(HardwareObject):
             "infoMsg",
             "Click Save to store the centred point " + "or start a new centring",
         )
+        
+        gevent.spawn_later(2, self.save_crystal_image)
+
+    def save_crystal_image(self):
+        try:
+            raw_snapshot = self.get_raw_snapshot()
+            result_image = raw_snapshot.copy(
+                 self.beam_position[0] - self.beam_info_dict["size_x"] * self.pixels_per_mm[0] / 2,
+                 self.beam_position[1] - self.beam_info_dict["size_y"] * self.pixels_per_mm[1] / 2,
+                 self.beam_info_dict["size_x"] * self.pixels_per_mm[0] * 1.5,
+                 self.beam_info_dict["size_y"] * self.pixels_per_mm[1] * 1.5
+            )
+            date_time_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+            result_image.save("/opt/embl-hh/var/crystal_images/%s.png" % date_time_str)
+        except:
+            pass
+
 
     def diffractometer_centring_failed(self, method, centring_status):
         """CleanUp method after centring failed
@@ -823,6 +873,9 @@ class QtGraphicsManager(HardwareObject):
             self.emit("shapeCreated", self.graphics_grid_draw_item, "Grid")
             self.graphics_grid_draw_item.setSelected(True)
             self.graphics_grid_draw_item.update_coordinate_map()
+            #self._shapes.add_shape(self.graphics_grid_draw_item.get_display_name(),
+            #                       self.graphics_grid_draw_item
+            #)
             self.shape_dict[
                 self.graphics_grid_draw_item.get_display_name()
             ] = self.graphics_grid_draw_item
@@ -848,14 +901,23 @@ class QtGraphicsManager(HardwareObject):
         :type pos_y: int
         :emits: mouseMoved
         """
-        self.emit("mouseMoved", pos_x, pos_y)
-        self.mouse_position[0] = pos_x
-        self.mouse_position[1] = pos_y
+
+        # need to distinguish between View and Scene coordinates.
+        # moved_mouse connected to graphics_view's mouseMovedSignal
+        # I think we need Scene's coordinates here:
+        scene_point = self.graphics_view.mapToScene(QtImport.QPoint(pos_x, pos_y))
+        self.emit("mouseMoved", scene_point.x(), scene_point.y())
+        self.mouse_position[0] = scene_point.x()
+        self.mouse_position[1] = scene_point.y()
         if self.in_centring_state or self.in_one_click_centering:
-            self.graphics_centring_lines_item.set_start_position(pos_x, pos_y)
+            self.graphics_centring_lines_item.set_start_position(
+                scene_point.x(), scene_point.y()
+            )
         elif self.in_grid_drawing_state:
             if self.graphics_grid_draw_item.is_draw_mode():
-                self.graphics_grid_draw_item.set_end_position(pos_x, pos_y)
+                self.graphics_grid_draw_item.set_end_position(
+                    scene_point.x(), scene_point.y()
+                )
         elif self.in_measure_distance_state:
             self.graphics_measure_distance_item.set_coord(self.mouse_position)
         elif self.in_measure_angle_state:
@@ -872,16 +934,21 @@ class QtGraphicsManager(HardwareObject):
             )
         elif self.in_select_items_state:
 
-            self.graphics_select_tool_item.set_end_position(pos_x, pos_y)
+            self.graphics_select_tool_item.set_end_position(
+                scene_point.x(), scene_point.y()
+            )
             select_start_x = self.graphics_select_tool_item.start_coord[0]
             select_start_y = self.graphics_select_tool_item.start_coord[1]
-            if abs(select_start_x - pos_x) > 5 and abs(select_start_y - pos_y) > 5:
+            if (
+                abs(select_start_x - scene_point.x()) > 5
+                and abs(select_start_y - scene_point.y()) > 5
+            ):
                 painter_path = QtImport.QPainterPath()
                 painter_path.addRect(
-                    min(select_start_x, pos_x),
-                    min(select_start_y, pos_y),
-                    abs(select_start_x - pos_x),
-                    abs(select_start_y - pos_y),
+                    min(select_start_x, scene_point.x()),
+                    min(select_start_y, scene_point.y()),
+                    abs(select_start_x - scene_point.x()),
+                    abs(select_start_y - scene_point.y()),
                 )
                 self.graphics_view.graphics_scene.setSelectionArea(painter_path)
                 """
@@ -891,7 +958,9 @@ class QtGraphicsManager(HardwareObject):
                 self.select_lines_and_grids()
                 """
         elif self.in_magnification_mode:
-            self.graphics_magnification_item.set_end_position(pos_x, pos_y)
+            self.graphics_magnification_item.set_end_position(
+                scene_point.x(), scene_point.y()
+            )
 
         # TODO add grid commands
         # else:
@@ -983,9 +1052,15 @@ class QtGraphicsManager(HardwareObject):
         # TODO Not implemented yet
         print("Move screen: ", direction)
 
+    def grid_clicked(self, grid, image, line, image_num):
+        self.emit("gridClicked", (grid, image, line, image_num))
+
     def set_cursor_busy(self, state):
+        return 
         if state:
-            QtImport.QApplication.setOverrideCursor(QtImport.QCursor(QtImport.Qt.BusyCursor))
+            QtImport.QApplication.setOverrideCursor(
+                QtImport.QCursor(QtImport.Qt.BusyCursor)
+            )
         else:
             QtImport.QApplication.setOverrideCursor(self.cursor)
 
@@ -1083,6 +1158,7 @@ class QtGraphicsManager(HardwareObject):
             self.line_count += 1
             shape.index = self.line_count
         self.shape_dict[shape.get_display_name()] = shape
+        #self._shapes.add_shape(shape.get_display_name(), shape)
         self.graphics_view.graphics_scene.addItem(shape)
 
         if isinstance(shape, GraphicsLib.GraphicsItemPoint):
@@ -1109,7 +1185,7 @@ class QtGraphicsManager(HardwareObject):
         if isinstance(shape, GraphicsLib.GraphicsItemPoint):
             for s in self.get_shapes():
                 if isinstance(s, GraphicsLib.GraphicsItemLine):
-                    if shape in s.get_graphics_points():
+                    if shape in s.get_graphical_points():
                         self.delete_shape(s)
                         break
         shape_type = ""
@@ -1132,8 +1208,9 @@ class QtGraphicsManager(HardwareObject):
         :returns: GraphicsLib.GraphicsItem
         """
         return self.shape_dict.get(shape_name)
+        #self._shapes.get_shape_by_name(shape_name)
 
-    def clear_all(self):
+    def clear_all_shapes(self):
         """Clear the shape history, remove all contents.
         """
         self.point_count = 0
@@ -1319,7 +1396,7 @@ class QtGraphicsManager(HardwareObject):
         tt = image_list[0]
         write_gif(image_list, "/tmp/test_anim.gif", fps=15)
 
-    def get_raw_snapshot(self, bw=False, return_as_array=False):
+    def get_snapshot(self, overlay=True, bw=False, return_as_array=False):
         """Returns a raw snapshot from camera
 
         :param bw: black and white
@@ -1327,9 +1404,12 @@ class QtGraphicsManager(HardwareObject):
         :param return_as_array: return image as numpy array
         :type return_as_array: bool
         """
-        return self.camera_hwobj.get_snapshot(bw, return_as_array)
+        if overlay:
+            self.get_scene_snapshot(bw, return_as_array)
+        else:
+            self.camera_hwobj.get_snapshot(bw, return_as_array)
 
-    def save_raw_snapshot(self, filename, bw=False, image_type="PNG"):
+    def save_snapshot(self, filename, overlay=True, bw=False):
         """Save raw image from camera in file
 
         :param filename: filename
@@ -1340,13 +1420,13 @@ class QtGraphicsManager(HardwareObject):
         :type image_type: str
         """
         try:
-            logging.getLogger("user_level_log").debug(
-                "Saving raw snapshot: %s" % filename
-            )
-            self.camera_hwobj.save_snapshot(filename, image_type)
+            if overlay:
+                self.save_scene_snapshot(filename)
+            else:
+                self.camera_hwobj.save_snapshot(filename, "PNG")
         except BaseException:
             logging.getLogger("HWR").exception(
-                "Unable to save raw image: %s" % filename
+                "Unable to save snapshot in %s" % filename
             )
 
     def save_beam_profile(self, profile_filename):
@@ -1537,7 +1617,7 @@ class QtGraphicsManager(HardwareObject):
         self.in_move_beam_mark_state = False
         self.graphics_move_beam_mark_item.hide()
         self.graphics_view.graphics_scene.update()
-        self.beam_info_hwobj.set_beam_position(
+        HWR.beamline.beam.set_beam_position(
             self.graphics_move_beam_mark_item.end_coord[0],
             self.graphics_move_beam_mark_item.end_coord[1],
         )
@@ -1554,7 +1634,7 @@ class QtGraphicsManager(HardwareObject):
         self.graphics_beam_define_item.hide()
         self.graphics_view.graphics_scene.update()
         self.emit("infoMsg", "")
-        self.beam_info_hwobj.set_slits_gap(
+        HWR.beamline.beam.set_slits_gap(
             self.graphics_beam_define_item.width_microns,
             self.graphics_beam_define_item.height_microns,
         )
@@ -1730,10 +1810,9 @@ class QtGraphicsManager(HardwareObject):
             self.wait_grid_drawing_click = True
 
     def create_auto_grid(self):
-        #self.start_auto_centring(wait=True)
+        # self.start_auto_centring(wait=True)
         grid_size = (1, 1)
-        grid_spacing = (self.beam_info_dict["size_x"],
-                        self.beam_info_dict["size_y"])
+        grid_spacing = (self.beam_info_dict["size_x"], self.beam_info_dict["size_y"])
 
         GraphicsLib.GraphicsItemGrid.set_auto_grid_size(grid_size)
         temp_grid = GraphicsLib.GraphicsItemGrid(
@@ -1751,6 +1830,7 @@ class QtGraphicsManager(HardwareObject):
 
         self.emit("shapeCreated", temp_grid, "Grid")
         self.shape_dict[temp_grid.get_display_name()] = temp_grid
+        #self._shapes.add_shape(temp_grid.get_display_name(), temp_grid)
         self.grid_count += 1
 
         return temp_grid
@@ -1845,7 +1925,7 @@ class QtGraphicsManager(HardwareObject):
     def refresh_camera(self):
         """Not called, To be deleted
         """
-        self.beam_info_dict = self.beam_info_hwobj.get_beam_info()
+        self.beam_info_dict = HWR.beamline.beam.get_beam_info()
         self.beam_info_changed(self.beam_info_dict)
 
     def select_lines_and_grids(self):
@@ -1858,6 +1938,7 @@ class QtGraphicsManager(HardwareObject):
         select_middle_y = (select_start_coord[1] + select_end_coord[1]) / 2.0
 
         for shape in self.shape_dict.values():
+        #for shape in self._shapes.get_all_shapes():
             if isinstance(shape, GraphicsLib.GraphicsItemLine):
                 (start_point, end_point) = shape.get_graphics_points()
                 if min(
@@ -1940,7 +2021,7 @@ class QtGraphicsManager(HardwareObject):
            beam info.
         """
         beam_shape_dict = self.detect_object_shape()
-        self.beam_info_hwobj.set_beam_position(
+        HWR.beamline.beam.set_beam_position(
             beam_shape_dict["center"][0], beam_shape_dict["center"][1]
         )
         # self.graphics_beam_item.set_detected_beam_position(beam_shape_dict)
@@ -1982,14 +2063,14 @@ class QtGraphicsManager(HardwareObject):
                 object_shape_dict["width"] = int(hor_roots[-1] - hor_roots[0])
                 object_shape_dict["height"] = int(ver_roots[-1] - ver_roots[0])
 
-            #beam_spl_x = (hor_roots[0] + hor_roots[1]) / 2.0
-            #beam_spl_y = (ver_roots[0] + ver_roots[1]) / 2.0
+            # beam_spl_x = (hor_roots[0] + hor_roots[1]) / 2.0
+            # beam_spl_y = (ver_roots[0] + ver_roots[1]) / 2.0
         except BaseException:
             logging.getLogger("user_level_log").debug(
                 "QtGraphicsManager: " + "Unable to detect object shape"
             )
-            #beam_spl_x = 0
-            #beam_spl_y = 0
+            # beam_spl_x = 0
+            # beam_spl_y = 0
 
         f = interpolate.interp1d(np.arange(0, hor_sum.size, 1), hor_sum)
         xx = np.arange(0, hor_sum.size, 1)
@@ -2139,7 +2220,7 @@ class QtGraphicsManager(HardwareObject):
         """Display or hide magnification tool"""
         if mode:
             QtImport.QApplication.setOverrideCursor(
-               QtImport.QCursor(QtImport.Qt.ClosedHandCursor)
+                QtImport.QCursor(QtImport.Qt.ClosedHandCursor)
             )
         else:
             self.set_cursor_busy(False)
@@ -2149,5 +2230,9 @@ class QtGraphicsManager(HardwareObject):
     def set_scrollbars_off(self, state):
         """Enables or disables scrollbars"""
         if state:
-            self.graphics_view.setHorizontalScrollBarPolicy(QtImport.Qt.ScrollBarAlwaysOff)
-            self.graphics_view.setVerticalScrollBarPolicy(QtImport.Qt.ScrollBarAlwaysOff)
+            self.graphics_view.setHorizontalScrollBarPolicy(
+                QtImport.Qt.ScrollBarAlwaysOff
+            )
+            self.graphics_view.setVerticalScrollBarPolicy(
+                QtImport.Qt.ScrollBarAlwaysOff
+            )
