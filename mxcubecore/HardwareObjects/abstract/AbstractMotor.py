@@ -18,7 +18,11 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Abstract Motor API. Motor states definition"""
+"""Abstract Motor class.
+Defines the MotorStates enum, get/set velocity, home and set_value_relative
+methods. Implements validate_value.
+Emits signals valueChanged and limitsChanged.
+"""
 
 import abc
 import math
@@ -43,7 +47,7 @@ class MotorStates(Enum):
 
 
 class AbstractMotor(AbstractActuator):
-    """Abstract motor API"""
+    """Abstract motor class"""
 
     __metaclass__ = abc.ABCMeta
     unit = None
@@ -54,10 +58,9 @@ class AbstractMotor(AbstractActuator):
         AbstractActuator.__init__(self, name)
         self._velocity = None
         self._tolerance = None
-        self.specific_state = None
 
     def init(self):
-        """Initialise some parametrs."""
+        """Initialise tolerance property"""
         AbstractActuator.init(self)
         self._tolerance = self.getProperty("tolerance") or 1e-3
 
