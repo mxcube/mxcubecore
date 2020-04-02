@@ -72,14 +72,16 @@ class AbstractActuator(HardwareObject):
     def get_limits(self):
         """Return actuator low and high limits.
         Returns:
-            (tuple): two floats tuple (low limit, high limit).
+            (tuple): two elements (low limit, high limit) tuple.
         """
         return self._nominal_limits
 
     def set_limits(self, limits):
         """Set actuator low and high limits. Emits signal limitsChanged.
         Args:
-            limits (tuple): two floats tuple (low limit, high limit).
+            limits (tuple): two elements (low limit, high limit) tuple.
+        Raises:
+            ValueError: Attempt to set limits for read-only Actuator.
         """
         if self.read_only:
             raise ValueError("Attempt to set limits for read-only Actuator")
@@ -112,7 +114,7 @@ class AbstractActuator(HardwareObject):
                                               (default);
                              if timeout is None: wait forever.
         Raises:
-            ValueError: Value not valid or attemp to set write only actuator.
+            ValueError: Value not valid or attemp to set read only actuator.
         """
         if self.read_only:
             raise ValueError("Attempt to set value for read-only Actuator")
