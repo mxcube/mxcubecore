@@ -5,24 +5,24 @@ import gevent
 class Pin(Sample):
     def __init__(self, basket, cell_no, basket_no, sample_no):
         super(Pin, self).__init__(
-            basket, Pin.getSampleAddress(cell_no, basket_no, sample_no), True
+            basket, Pin.get_sample_address(cell_no, basket_no, sample_no), True
         )
-        self._setHolderLength(22.0)
+        self._set_holder_length(22.0)
 
-    def getBasketNo(self):
-        return self.getContainer().getIndex() + 1
+    def get_basket_no(self):
+        return self.get_container().get_index() + 1
 
-    def getVialNo(self):
-        return self.getIndex() + 1
+    def get_vial_no(self):
+        return self.get_index() + 1
 
-    def getCellNo(self):
-        return self.getContainer().getContainer().getIndex() + 1
+    def get_cell_no(self):
+        return self.get_container().get_container().get_index() + 1
 
-    def getCell(self):
-        return self.getContainer().getContainer()
+    def get_cell(self):
+        return self.get_container().get_container()
 
     @staticmethod
-    def getSampleAddress(cell_number, basket_number, sample_number):
+    def get_sample_address(cell_number, basket_number, sample_number):
         return (
             str(cell_number) + ":" + str(basket_number) + ":" + "%02d" % (sample_number)
         )
@@ -33,25 +33,25 @@ class Basket(Container):
 
     def __init__(self, container, cell_no, basket_no):
         super(Basket, self).__init__(
-            self.__TYPE__, container, Basket.getBasketAddress(cell_no, basket_no), True
+            self.__TYPE__, container, Basket.get_basket_address(cell_no, basket_no), True
         )
         for i in range(10):
             slot = Pin(self, cell_no, basket_no, i + 1)
-            self._addComponent(slot)
+            self._add_component(slot)
 
     @staticmethod
-    def getBasketAddress(cell_number, basket_number):
+    def get_basket_address(cell_number, basket_number):
         return str(cell_number) + ":" + str(basket_number)
 
-    def getCellNo(self):
-        return self.getContainer().getIndex() + 1
+    def get_cell_no(self):
+        return self.get_container().get_index() + 1
 
-    def getCell(self):
-        return self.getContainer()
+    def get_cell(self):
+        return self.get_container()
 
-    def clearInfo(self):
-        self.getContainer()._reset_basket_info(self.getIndex() + 1)
-        self.getContainer()._triggerInfoChangedEvent()
+    def clear_info(self):
+        self.get_container()._reset_basket_info(self.get_index() + 1)
+        self.get_container()._trigger_info_changed_event()
 
 
 class Cell(Container):
@@ -59,23 +59,23 @@ class Cell(Container):
 
     def __init__(self, container, number):
         super(Cell, self).__init__(
-            self.__TYPE__, container, Cell.getCellAddress(number), True
+            self.__TYPE__, container, Cell.get_cell_address(number), True
         )
         for i in range(3):
-            self._addComponent(Basket(self, number, i + 1))
+            self._add_component(Basket(self, number, i + 1))
 
     @staticmethod
-    def getCellAddress(cell_number):
+    def get_cell_address(cell_number):
         return str(cell_number)
 
     def _reset_basket_info(self, basket_no):
         pass
 
-    def clearInfo(self):
-        self.getContainer()._reset_cell_info(self.getIndex() + 1)
-        self.getContainer()._triggerInfoChangedEvent()
+    def clear_info(self):
+        self.get_container()._reset_cell_info(self.get_index() + 1)
+        self.get_container()._trigger_info_changed_event()
 
-    def getCell(self):
+    def get_cell(self):
         return self
 
 
@@ -87,7 +87,7 @@ class Robodiff(SampleChanger):
 
         for i in range(8):
             cell = Cell(self, i + 1)
-            self._addComponent(cell)
+            self._add_component(cell)
 
     def init(self):
         controller = self.getObjectByRole("controller")
@@ -98,25 +98,25 @@ class Robodiff(SampleChanger):
 
         return SampleChanger.init(self)
 
-    def getSampleProperties(self):
+    def get_sample_properties(self):
         return (Pin.__HOLDER_LENGTH_PROPERTY__,)
 
-    def getBasketList(self):
+    def get_basket_list(self):
         basket_list = []
-        for cell in self.getComponents():
-            for basket in cell.getComponents():
+        for cell in self.get_components():
+            for basket in cell.get_components():
                 if isinstance(basket, Basket):
                     basket_list.append(basket)
         return basket_list
 
-    def _doChangeMode(self, *args, **kwargs):
+    def _do_change_mode(self, *args, **kwargs):
         return
 
-    def _doUpdateInfo(self):
-        self._updateSelection()
-        self._updateState()
+    def _do_update_info(self):
+        self._update_selection()
+        self._update_state()
 
-    def _doScan(self, component, recursive=True, saved={"barcodes": None}):
+    def _do_scan(self, component, recursive=True, saved={"barcodes": None}):
         def read_barcodes():
             try:
                 logging.info("Datamatrix reader: Scanning barcodes")
@@ -132,56 +132,56 @@ class Robodiff(SampleChanger):
                 read_barcodes()
             return saved["barcodes"]
 
-        selected_cell = self.getSelectedComponent()
-        if (selected_cell is None) or (selected_cell != component.getCell()):
-            self._doSelect(component)
+        selected_cell = self.get_selected_component()
+        if (selected_cell is None) or (selected_cell != component.get_cell()):
+            self._do_select(component)
             read_barcodes()
 
         if isinstance(component, Sample):
             barcodes = get_barcodes()
 
             # read one sample dm
-            sample_index = component.getIndex()
-            basket_index = component.getContainer().getIndex()
+            sample_index = component.get_index()
+            basket_index = component.get_container().get_index()
             sample_dm = barcodes[basket_index][sample_index]
             sample_present_bool = self.dm_reader.sample_is_present(
                 basket_index, sample_index
             )
 
-            component._setInfo(sample_present_bool, sample_dm, True)
+            component._set_info(sample_present_bool, sample_dm, True)
         elif isinstance(component, Container) and (
-            component.getType() == Basket.__TYPE__
+            component.get_type() == Basket.__TYPE__
         ):
             barcodes = get_barcodes()
 
             if recursive:
                 # scan one basket dm
-                for sample in component.getComponents():
-                    self._doScan(sample)
+                for sample in component.get_components():
+                    self._do_scan(sample)
 
             # get basket dm
             basket_dm = ""
-            basket_present_bool = any(barcodes[component.getIndex()])
+            basket_present_bool = any(barcodes[component.get_index()])
             if basket_present_bool:
-                basket_dm = barcodes[component.getIndex()][-1]
-            component._setInfo(basket_present_bool, basket_dm, True)
+                basket_dm = barcodes[component.get_index()][-1]
+            component._set_info(basket_present_bool, basket_dm, True)
         elif isinstance(component, Container) and (
-            component.getType() == Cell.__TYPE__
+            component.get_type() == Cell.__TYPE__
         ):
-            for basket in component.getComponents():
-                self._doScan(basket, True)
+            for basket in component.get_components():
+                self._do_scan(basket, True)
         elif isinstance(component, Container) and (
-            component.getType() == Robodiff.__TYPE__
+            component.get_type() == Robodiff.__TYPE__
         ):
-            for cell in self.getComponents():
-                self._doScan(cell, True)
+            for cell in self.get_components():
+                self._do_scan(cell, True)
 
-    def _doSelect(self, component):
+    def _do_select(self, component):
         if isinstance(component, Cell):
-            cell_pos = component.getIndex()
+            cell_pos = component.get_index()
             self.dw.moveToPosition(cell_pos + 1)
             self.dw.waitEndOfMove()
-            self._updateSelection()
+            self._update_selection()
 
     @task
     def load_sample(
@@ -194,7 +194,7 @@ class Robodiff(SampleChanger):
         prepareCentring=True,
     ):
         cell, basket, sample = sample_location
-        sample = self.getComponentByAddress(Pin.getSampleAddress(cell, basket, sample))
+        sample = self.get_component_by_address(Pin.get_sample_address(cell, basket, sample))
         return self.load(sample)
 
     @task
@@ -207,7 +207,7 @@ class Robodiff(SampleChanger):
         failureCallback=None,
     ):
         cell, basket, sample = sample_location
-        sample = self.getComponentByAddress(Pin.getSampleAddress(cell, basket, sample))
+        sample = self.get_component_by_address(Pin.get_sample_address(cell, basket, sample))
         return self.unload(sample)
 
     def chained_load(self, sample_to_unload, sample_to_load):
@@ -217,19 +217,19 @@ class Robodiff(SampleChanger):
         finally:
             self.robot.tg_device.setval3variable(["0", "n_UnloadLoad"])
 
-    def _doLoad(self, sample=None):
-        self._doSelect(sample.getCell())
+    def _do_load(self, sample=None):
+        self._do_select(sample.get_cell())
         # move detector to high software limit, without waiting end of move
         # self.detector_translation.set_value(self.detector_translation.get_limits()[1])
         self.prepare_detector()
 
         # now call load procedure
         load_successful = self.robot.load_sample(
-            sample.getCellNo(), sample.getBasketNo(), sample.getVialNo()
+            sample.get_cell_no(), sample.get_basket_no(), sample.get_vial_no()
         )
         if not load_successful:
             return False
-        self._setLoadedSample(sample)
+        self._set_loaded_sample(sample)
         # update chi position and state
         self.robot.chi._update_channels()
         return True
@@ -242,48 +242,48 @@ class Robodiff(SampleChanger):
         while not self.robot.detcover.status() == "IN":
             time.sleep(0.5)
 
-    def _doUnload(self, sample=None):
+    def _do_unload(self, sample=None):
         # DN to speedup load/unload
         # self.detector_translation.set_value(self.detector_translation.get_limits()[1])
         self.prepare_detector()
 
-        loaded_sample = self.getLoadedSample()
+        loaded_sample = self.get_loaded_sample()
         if loaded_sample is not None and loaded_sample != sample:
             raise RuntimeError("Can't unload another sample")
         # sample_to_unload = basket_index*10+vial_index
         self.robot.unload_sample(
-            sample.getCellNo(), sample.getBasketNo(), sample.getVialNo()
+            sample.get_cell_no(), sample.get_basket_no(), sample.get_vial_no()
         )
-        self._resetLoadedSample()
+        self._reset_loaded_sample()
 
-    def _doAbort(self):
+    def _do_abort(self):
         return
 
-    def _doReset(self):
+    def _do_reset(self):
         pass
 
-    def clearBasketInfo(self, basket):
+    def clear_basket_info(self, basket):
         return self._reset_basket_info(basket)
 
     def _reset_basket_info(self, basket):
         pass
 
-    def clearCellInfo(self, cell):
+    def clear_cell_info(self, cell):
         return self._reset_cell_info(cell)
 
     def _reset_cell_info(self, cell):
         pass
 
-    def _updateState(self):
+    def _update_state(self):
         try:
-            state = self._readState()
+            state = self._read_state()
         except BaseException:
             state = SampleChangerState.Unknown
-        if state == SampleChangerState.Moving and self._isDeviceBusy(self.get_state()):
+        if state == SampleChangerState.Moving and self._is_device_busy(self.get_state()):
             return
-        self._setState(state)
+        self._set_state(state)
 
-    def _readState(self):
+    def _read_state(self):
         # should read state from robot
         state = self.robot.state()
         state_converter = {
@@ -295,9 +295,9 @@ class Robodiff(SampleChanger):
         }
         return state_converter.get(state, SampleChangerState.Unknown)
 
-    def _isDeviceBusy(self, state=None):
+    def _is_device_busy(self, state=None):
         if state is None:
-            state = self._readState()
+            state = self._read_state()
         return state not in (
             SampleChangerState.Ready,
             SampleChangerState.Loaded,
@@ -307,21 +307,21 @@ class Robodiff(SampleChanger):
             SampleChangerState.StandBy,
         )
 
-    def _isDeviceReady(self):
-        state = self._readState()
+    def _is_device_ready(self):
+        state = self._read_state()
         return state in (SampleChangerState.Ready, SampleChangerState.Charging)
 
-    def _waitDeviceReady(self, timeout=None):
+    def _wait_device_ready(self, timeout=None):
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
-            while not self._isDeviceReady():
+            while not self._is_device_ready():
                 gevent.sleep(0.01)
 
-    def _updateSelection(self):
+    def _update_selection(self):
         dw_pos = int(self.dw.get_current_position_name()) - 1
-        for cell in self.getComponents():
-            i = cell.getIndex()
+        for cell in self.get_components():
+            i = cell.get_index()
             if dw_pos == i:
-                self._setSelectedComponent(cell)
+                self._set_selected_component(cell)
                 break
         # read nSampleNumber
         robot_sample_no = int(
@@ -330,11 +330,11 @@ class Robodiff(SampleChanger):
         sample_no = 1 + ((robot_sample_no - 1) % 10)
         puck_no = 1 + ((robot_sample_no - 1) // 10)
         # find sample
-        cell = self.getSelectedComponent()
-        for sample in cell.getSampleList():
-            if sample.getVialNo() == sample_no and sample.getBasketNo() == puck_no:
-                self._setLoadedSample(sample)
-                self._setSelectedSample(sample)
+        cell = self.get_selected_component()
+        for sample in cell.get_sample_list():
+            if sample.get_vial_no() == sample_no and sample.get_basket_no() == puck_no:
+                self._set_loaded_sample(sample)
+                self._set_selected_sample(sample)
                 return
-        self._setLoadedSample(None)
-        self._setSelectedSample(None)
+        self._set_loaded_sample(None)
+        self._set_selected_sample(None)

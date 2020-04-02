@@ -185,9 +185,9 @@ class CatsMaint(Equipment):
             )
             self._chnLid3State.connectSignal("update", self._updateLid3State)
 
-        self._chnState.connectSignal("update", self._updateState)
-        self._chnPathRunning.connectSignal("update", self._updateRunningState)
-        self._chnPowered.connectSignal("update", self._updatePoweredState)
+        self._chnState.connectSignal("update", self._update_state)
+        self._chnPathRunning.connectSignal("update", self._update_running_state)
+        self._chnPowered.connectSignal("update", self._update_powered_state)
         self._chnToolOpenClose.connectSignal("update", self._updateToolState)
         self._chnMessage.connectSignal("update", self._updateMessage)
         self._chnLN2Regulation.connectSignal("update", self._updateRegulationState)
@@ -365,15 +365,15 @@ class CatsMaint(Equipment):
         """
         Moves a sample from the gripper back into the dewar to its logged position.
         """
-        return self._executeTask(False, self._doBack)
+        return self._execute_task(False, self._doBack)
 
     def safeTraj(self):
         """
         Safely Moves the robot arm and the gripper to the home position
         """
-        return self._executeTask(False, self._doSafe)
+        return self._execute_task(False, self._doSafe)
 
-    def _doAbort(self):
+    def _do_abort(self):
         """
         Launch the "abort" trajectory on the CATS Tango DS
 
@@ -382,7 +382,7 @@ class CatsMaint(Equipment):
         """
         self._cmdAbort()
 
-    def _doHome(self):
+    def _do_home(self):
         """
         Launch the "abort" trajectory on the CATS Tango DS
 
@@ -392,7 +392,7 @@ class CatsMaint(Equipment):
         tool = self.get_current_tool()
         self._cmdHome(tool)
 
-    def _doReset(self):
+    def _do_reset(self):
         """
         Launch the "reset" command on the CATS Tango DS
 
@@ -403,7 +403,7 @@ class CatsMaint(Equipment):
         return
         self._cmdReset()
 
-    def _doResetMemory(self):
+    def _do_reset_memory(self):
         """
         Launch the "reset memory" command on the CATS Tango DS
 
@@ -415,7 +415,7 @@ class CatsMaint(Equipment):
         self._cmdResetParameters()
         time.sleep(1)
 
-    def _doResetMotion(self):
+    def _do_resetMotion(self):
         """
         Launch the "reset_motion" command on the CATS Tango DS
 
@@ -489,7 +489,7 @@ class CatsMaint(Equipment):
             puc_pos = ((int(sample_tmp[0]) - 1) % 3) * 10 + int(sample_tmp[1])
             argin = [str(lid), str(puc_pos), "0"]
             logging.getLogger().info("to SetOnDiff %s", argin)
-            self._executeServerTask(self._cmdSetOnDiff, argin)
+            self._execute_server_task(self._cmdSetOnDiff, argin)
 
     def _doBack(self):
         """
@@ -500,7 +500,7 @@ class CatsMaint(Equipment):
         """
         tool = self.get_current_tool()
         argin = [str(tool), "0"]  # to send string array with two arg...
-        self._executeServerTask(self._cmdBack, argin)
+        self._execute_server_task(self._cmdBack, argin)
 
     def _doSafe(self):
         """
@@ -510,7 +510,7 @@ class CatsMaint(Equipment):
         :rtype: None
         """
         argin = self.get_current_tool()
-        self._executeServerTask(self._cmdSafe, argin)
+        self._execute_server_task(self._cmdSafe, argin)
 
     def _doPowerState(self, state=False):
         """
@@ -553,9 +553,9 @@ class CatsMaint(Equipment):
         :rtype: None
         """
         if state:
-            self._executeServerTask(self._cmdOpenLid1)
+            self._execute_server_task(self._cmdOpenLid1)
         else:
-            self._executeServerTask(self._cmdCloseLid1)
+            self._execute_server_task(self._cmdCloseLid1)
 
     def _doLid2State(self, state=True):
         """
@@ -565,9 +565,9 @@ class CatsMaint(Equipment):
         :rtype: None
         """
         if state:
-            self._executeServerTask(self._cmdOpenLid2)
+            self._execute_server_task(self._cmdOpenLid2)
         else:
-            self._executeServerTask(self._cmdCloseLid2)
+            self._execute_server_task(self._cmdCloseLid2)
 
     def _doLid3State(self, state=True):
         """
@@ -577,25 +577,25 @@ class CatsMaint(Equipment):
         :rtype: None
         """
         if state:
-            self._executeServerTask(self._cmdOpenLid3)
+            self._execute_server_task(self._cmdOpenLid3)
         else:
-            self._executeServerTask(self._cmdCloseLid3)
+            self._execute_server_task(self._cmdCloseLid3)
 
     def _doMagnetOn(self):
-        self._executeServerTask(self._cmdMagnetOn)
+        self._execute_server_task(self._cmdMagnetOn)
 
     def _doMagnetOff(self):
-        self._executeServerTask(self._cmdMagnetOff)
+        self._execute_server_task(self._cmdMagnetOff)
 
     def _doToolOpen(self):
-        self._executeServerTask(self._cmdToolOpen)
+        self._execute_server_task(self._cmdToolOpen)
 
     def _doToolClose(self):
-        self._executeServerTask(self._cmdToolClose)
+        self._execute_server_task(self._cmdToolClose)
 
     # ########################          PROTECTED          #########################
 
-    def _executeTask(self, wait, method, *args):
+    def _execute_task(self, wait, method, *args):
         ret = self._run(method, wait=False, *args)
         if wait:
             return ret.get()
@@ -616,58 +616,58 @@ class CatsMaint(Equipment):
 
     # ########################           PRIVATE           #########################
 
-    def _updateRunningState(self, value):
+    def _update_running_state(self, value):
         self._running = value
         self.emit("runningStateChanged", (value,))
-        self._updateGlobalState()
+        self._update_global_state()
 
-    def _updatePoweredState(self, value):
+    def _update_powered_state(self, value):
         self._powered = value
         self.emit("powerStateChanged", (value,))
-        self._updateGlobalState()
+        self._update_global_state()
 
     def _updateToolState(self, value):
         self._toolopen = value
         self.emit("toolStateChanged", (value,))
-        self._updateGlobalState()
+        self._update_global_state()
 
     def _updateMessage(self, value):
         self._message = value
         self.emit("messageChanged", (value,))
-        self._updateGlobalState()
+        self._update_global_state()
 
     def _updateRegulationState(self, value):
         self._regulating = value
         self.emit("regulationStateChanged", (value,))
-        self._updateGlobalState()
+        self._update_global_state()
 
     def _updateBarcode(self, value):
         self._barcode = value
         self.emit("barcodeChanged", (value,))
 
-    def _updateState(self, value):
+    def _update_state(self, value):
         self._state = value
-        self._updateGlobalState()
+        self._update_global_state()
 
     def _updateLid1State(self, value):
         self._lid1state = value
         self.emit("lid1StateChanged", (value,))
-        self._updateGlobalState()
+        self._update_global_state()
 
     def _updateLid2State(self, value):
         self._lid2state = value
         self.emit("lid2StateChanged", (value,))
-        self._updateGlobalState()
+        self._update_global_state()
 
     def _updateLid3State(self, value):
         self._lid3state = value
         self.emit("lid3StateChanged", (value,))
-        self._updateGlobalState()
+        self._update_global_state()
 
     def _updateOperationMode(self, value):
         self._charging = not value
 
-    def _updateGlobalState(self):
+    def _update_global_state(self):
         state_dict, cmd_state, message = self.get_global_state()
         self.emit("globalStateChanged", (state_dict, cmd_state, message))
 
@@ -780,7 +780,7 @@ class CatsMaint(Equipment):
         ]
         return cmd_list
 
-    def _executeServerTask(self, method, *args):
+    def _execute_server_task(self, method, *args):
         task_id = method(*args)
         ret = None
         # introduced wait because it takes some time before the attribute PathRunning is set

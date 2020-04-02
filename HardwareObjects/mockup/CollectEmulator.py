@@ -261,9 +261,9 @@ class CollectEmulator(CollectMockup):
 
         # get crystal data
         sample_name = self.getProperty("default_sample_name")
-        sample = HWR.beamline.sample_changer.getLoadedSample()
+        sample = HWR.beamline.sample_changer.get_loaded_sample()
         if sample:
-            ss0 = sample.getName()
+            ss0 = sample.get_name()
             if ss0 and ss0.startswith(self.TEST_SAMPLE_PREFIX):
                 sample_name = ss0[len(self.TEST_SAMPLE_PREFIX) :]
 

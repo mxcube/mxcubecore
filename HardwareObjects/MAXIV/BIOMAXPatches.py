@@ -24,7 +24,7 @@ class BIOMAXPatches(HardwareObject):
             try:
                 self.sample_changer_maintenance.send_command("soak")
                 time.sleep(0.25)
-                HWR.beamline.sample_changer._waitDeviceReady(45)
+                HWR.beamline.sample_changer._wait_device_ready(45)
             except Exception as ex:
                 raise RuntimeError(
                     "Cannot load sample, sample changer cannot go to SOAK position: %s"

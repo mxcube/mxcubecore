@@ -491,7 +491,7 @@ class Basket(TaskNode):
             else:
                 self.name = "%s %d" % (name, self.location)
         else:
-            self.location = self._basket_object.getCoords()
+            self.location = self._basket_object.get_coords()
             if len(self.location) == 2:
                 self.name = "Cell %d, puck %d" % self.location
             elif len(self.location) == 1:

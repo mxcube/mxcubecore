@@ -81,28 +81,28 @@ class BIOMAXBeamlineActions(HardwareObject):
             logging.getLogger("HWR").info("Moving detector to safe area...")
             HWR.beamline.detector.distance.set_value(800, timeout=50)
 
-        if HWR.beamline.sample_changer.isPowered():
-            if HWR.beamline.sample_changer.getLoadedSample() is not None:
+        if HWR.beamline.sample_changer.is_powered():
+            if HWR.beamline.sample_changer.get_loaded_sample() is not None:
                 logging.getLogger("HWR").info("Unloading mounted sample.")
                 HWR.beamline.sample_changer.unload(None, wait=True)
-                HWR.beamline.sample_changer._waitDeviceReady(30)
+                HWR.beamline.sample_changer._wait_device_ready(30)
             if HWR.beamline.sample_changer._chnInSoak.getValue():
                 logging.getLogger("HWR").info(
                     "Sample Changer was in SOAK, going to DRY"
                 )
                 self.sample_changer_maint_hwobj.send_command("dry")
                 gevent.sleep(1)
-                HWR.beamline.sample_changer._waitDeviceReady(300)
-            if HWR.beamline.sample_changer.isPowered():
+                HWR.beamline.sample_changer._wait_device_ready(300)
+            if HWR.beamline.sample_changer.is_powered():
                 logging.getLogger("HWR").info("Sample Changer to HOME")
                 self.sample_changer_maint_hwobj.send_command("home")
                 gevent.sleep(1)
-                HWR.beamline.sample_changer._waitDeviceReady(30)
+                HWR.beamline.sample_changer._wait_device_ready(30)
 
                 logging.getLogger("HWR").info("Sample Changer CLOSING LID")
                 self.sample_changer_maint_hwobj.send_command("closelid1")
                 gevent.sleep(1)
-                HWR.beamline.sample_changer._waitDeviceReady(10)
+                HWR.beamline.sample_changer._wait_device_ready(10)
 
                 logging.getLogger("HWR").info("Sample Changer POWER OFF")
                 self.sample_changer_maint_hwobj.send_command("powerOff")
