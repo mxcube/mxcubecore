@@ -176,6 +176,7 @@ class HardwareObjectHandler(ContentHandler):
                 self.objects[i], BaseHardwareObjects.DeviceContainer
             ):
                 # newClass = new.classobj("toto", (self.objects[i].__class__,) + self.objects[i].__class__.__bases__ + (BaseHardwareObjects.DeviceContainer, ), {})
+                # TODO replace deprecated DeviceContainerNode with a different class
                 self.objects[i].__class__ = BaseHardwareObjects.DeviceContainerNode
                 i -= 1
 
