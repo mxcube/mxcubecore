@@ -21,7 +21,7 @@ class MicrodiffZoomMockup(AbstractNState):
             limits = (min(values), max(values))
 
         self.update_limits(limits)
-        #self.update_value([**self.VALUES.__members__.values()][0])
+        self.update_value([*self.VALUES.__members__.values()][0])
         self.update_state(self.STATES.READY)
 
     def _set_zoom(self, value):
