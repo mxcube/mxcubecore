@@ -13,6 +13,8 @@ from HardwareRepository.ConvertUtils import string_types
 
 @enum.unique
 class HardwareObjectState(enum.Enum):
+    """Enumeration of ommon states, shared between all HardwraeObjects"""
+
     UNKNOWN = 0
     WARNING = 1
     BUSY = 2
@@ -21,13 +23,11 @@ class HardwareObjectState(enum.Enum):
     OFF = 5
 
 
-class HardwareObjectSpecificState(enum.Enum):
-    """This is subclassed with type- and object- specific states added"""
+class DefaultSpecificState(enum.Enum):
+    """Placeholder enumeration for HardwareObject-specific states
+    """
 
-    # It is not legal to define members here,
-    # but the following should always be present:
-    # UNKNOWN = 0
-    pass
+    UNKNOWN = "UNKNOWN"
 
 
 class ConfiguredObject(object):
@@ -62,9 +62,6 @@ class ConfiguredObject(object):
         Args:
             role (text_str): Role name of contained Object
             new_object (Optional[ConfiguredObject]): New contained Object
-
-        Returns:
-
         """
         if role in self._objects:
             self._objects[role] = new_object
@@ -84,6 +81,7 @@ class ConfiguredObject(object):
     @property
     def all_objects_by_role(self):
         """All contained Objects mapped by role (in specification order).
+
             Includes objects defined in subclasses.
 
         Returns:
@@ -94,8 +92,14 @@ class ConfiguredObject(object):
 
     @property
     def procedures(self):
+        """Procedures attached to this object  mapped by name (in specification order).
+
+        Returns:
+            OrderedDict[text_str, ConfiguredObject]:
+
+        """
         procedure_names = self.__class__._procedure_names
-        result = {}
+        result = OrderedDict()
         if procedure_names:
             for name in procedure_names:
                 procedure = getattr(self, name)
@@ -361,29 +365,36 @@ class HardwareObjectNode(object):
     def getProperties(self):
         return self._propertySet
 
-    def clear_gevent(self):
-        pass
-
     def print_log(self, log_type="HWR", level="debug", msg=""):
         if hasattr(logging.getLogger(log_type), level):
             getattr(logging.getLogger(log_type), level)(msg)
 
 
 class HardwareObjectMixin(CommandContainer):
-    """HardwareObject functionality, for either xml- or yaml-configured subclasses"""
+    """ Functionality for either xml- or yaml-configured HardwareObjects
 
+    Signals emited:
+
+        - stateChanged
+
+        - specificStateChanged"""
+
+    #: enum.Enum: General states, shared between all HardwareObjects. Do *not* overridde
     STATES = HardwareObjectState
 
-    # Override in subclasses
-    SPECIFIC_STATES = HardwareObjectSpecificState
+    #: enum.Enum: Placeholder for HardwareObject-specific states. To be overridden
+    SPECIFIC_STATES = DefaultSpecificState
 
     def __init__(self):
         CommandContainer.__init__(self)
-        self.connect_dict = {}
 
+        # Container for connections to HardwareObject
+        self.connect_dict = {}
         # event to handle waiting for object to be ready
         self._ready_event = event.Event()
+        # Internal general state attribute, used to check for state changes
         self._state = self.STATES.UNKNOWN
+        # Internal object-specific state attribute, used to check for state changes
         self._specific_state = None
 
     def __bool__(self):
@@ -393,11 +404,15 @@ class HardwareObjectMixin(CommandContainer):
         return True
 
     def _init(self):
-        # 'protected' post-initialization method
+        """'protected' post-initialization method. Override as needed
+
+        For COnfiguredObjects called before loading contained objects"""
         pass
 
     def init(self):
-        # 'public' post-initialization method
+        """"'public' post-initialization method. Override as needed
+
+        For COnfiguredObjects called after loading contained objects"""
         pass
 
     @abc.abstractmethod
@@ -408,12 +423,14 @@ class HardwareObjectMixin(CommandContainer):
     def stop(self):
         """Gentler (?) alternative to abort
 
-        If implemented simply override this function"""
+        Override as necessary to implement"""
         self.abort()
 
     @abc.abstractmethod
     def get_state(self):
         """ Getter for state attribute
+
+        Implementations must query the hardware directly, to ensure current results
 
         Returns:
             HardwareObjectState
@@ -443,14 +460,17 @@ class HardwareObjectMixin(CommandContainer):
 
     def is_ready(self):
         """Convenience function: Check if the object state is READY.
+
         The same effect could be achieved with 'self.get_state() == self.STATES.READY'
+
         Returns:
             (bool): True if ready, otherwise False.
         """
         return self._ready_event.is_set()
 
     def update_state(self, state=None):
-        """Check if the state has changed. Emits signal stateChanged.
+        """Update self._state, and emit signal stateChanged if the state has changed
+
         Args:
             state (enum 'HardwareObjectState'): state
         """
@@ -468,40 +488,47 @@ class HardwareObjectMixin(CommandContainer):
             self.emit("stateChanged", (self._state,))
 
     def update_specific_state(self, state=None):
-        """Check if the specific state has changed. Emits signal stateChanged.
+        """Update self._specific_state, and emit specificStateChanged if appropriate
+
         Args:
-            state (enum 'HardwareObjectState'): state
+            state (enum.Enum): specific state - the enumeration will be sepcific for
+            each HardwareObject class
         """
         if state is None:
             state = self.get_specific_state()
         if state != self._specific_state:
             if not isinstance(state, self.SPECIFIC_STATES):
-                raise ValueError("Attempt to update to illegal specific state: %s" % state)
+                raise ValueError(
+                    "Attempt to update to illegal specific state: %s" % state
+                )
 
             self._specific_state = state
             self.emit("specificStateChanged", (state,))
 
     def update_values(self):
-        """Method called from Qt bricks to ensure that bricks have values
-           after the initialization.
-           Problem arrise when a hardware object is used by several bricks.
-           If first brick connects to some signal emited by a brick then
-           other bricks connecting to the same signal will no receive the
-           values on the startup.
-           The easiest solution is to call update_values method directly
-           after getHardwareObject and connect.
+        """Update values for all internal attributes
 
-           Normaly this method would emit all values
+        The method is called from Qt bricks to ensure that bricks have values
+        after the initialization.
+        Problem arrise when a hardware object is used by several bricks.
+        If first brick connects to some signal emited by a brick then
+        other bricks connecting to the same signal will not receive the
+        values on the startup.
+        The easiest solution is to call update_values method directly
+        after getHardwareObject and connect.
+
+        Should be expanded in subclasse with more updatable attributes
+        (e.g. value, limits)
         """
         self.update_state()
         self.update_specific_state()
 
     # Moved from HardwareObjectNode
     def clear_gevent(self):
-        """Clear gevent tasks. Override in subclasses
+        """Clear gevent tasks, called when disconnecting a HardwareObject.
 
-        NB Not sure why this is needed, except maybe for object reloading?
-
+        Override in subclasses as needed.
+i
         Returns:
 
         """
@@ -509,6 +536,14 @@ class HardwareObjectMixin(CommandContainer):
 
     # Signal handling functions:
     def emit(self, signal, *args):
+        """Emit signal. Accepts both multiple args and a single tuple of args.
+
+        TODO This function would be unnecessary if all callers used
+        dispatcher.send(signal, self, *argtuple)
+
+        Args:
+            signal (hashable object): Signal. In practice a string, or dispatcher.Any
+            *args (tuple): Arguments sent with signal"""
 
         signal = str(signal)
 
@@ -518,13 +553,26 @@ class HardwareObjectMixin(CommandContainer):
         dispatcher.send(signal, self, *args)
 
     def connect(self, sender, signal, slot=None):
+        """Connect a signal sent by self to a slot
+
+        The functions provides syntactic sugar ; Instead of
+        self.connect(self, "signal", slot)
+        it is possible to do
+        self.connect("signal", slot)
+
+        TODO this would be much nicer if refactored as
+
+            def connect(self, signal, slot, sender=None)
+
+        Args:
+            sender (object): If a string, interprted as the signal
+            signal (Hashable object): In practice a string, or dispatcher.Any
+                if sender is a string interpreted as the slot
+            slot (Callable object): In practice a functon or method
+        """
+
         if slot is None:
-            # if type(sender) == bytes:
             if isinstance(sender, string_types):
-                # provides syntactic sugar ; for
-                # self.connect(self, "signal", slot)
-                # it is possible to do
-                # self.connect("signal", slot)
                 slot = signal
                 signal = sender
                 sender = self
@@ -541,14 +589,25 @@ class HardwareObjectMixin(CommandContainer):
             sender.connectNotify(signal)
 
     def disconnect(self, sender, signal, slot=None):
+        """Disconnect a signal sent by self to a slot
+
+        The functions provides syntactic sugar ; Instead of
+        self.connect(self, "signal", slot)
+        it is possible to do
+        self.connect("signal", slot)
+
+        TODO this would be much nicer if refactored as
+
+            def disconnect(self, signal, slot, sender=None)
+
+        Args:
+            sender (object): If a string, interprted as the signal
+            signal (Hashable object): In practice a string, or dispatcher.Any
+            if sender is a string interpreted as the slot
+            slot (Callable object): In practice a functon or method
+        """
         if slot is None:
-            # TODO 2to3
-            # if type(sender) == bytes:
             if isinstance(sender, string_types):
-                # provides syntactic sugar ; for
-                # self.connect(self, "signal", slot)
-                # it is possible to do
-                # self.connect("signal", slot)
                 slot = signal
                 signal = sender
                 sender = self
@@ -562,11 +621,11 @@ class HardwareObjectMixin(CommandContainer):
         if hasattr(sender, "disconnectNotify"):
             sender.disconnectNotify(signal)
 
-    def connect_notify(self, signal):
-        pass
-
-    def disconnect_notify(self, signal):
-        pass
+    # def connect_notify(self, signal):
+    #     pass
+    #
+    # def disconnect_notify(self, signal):
+    #     pass
 
 
 class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
@@ -575,8 +634,8 @@ class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
     def __init__(self, rootName):
         HardwareObjectNode.__init__(self, rootName)
         HardwareObjectMixin.__init__(self)
-        self.log = logging.getLogger('HWR').getChild(self.__class__.__name__)
-        self.user_log = logging.getLogger('user_log_level')
+        self.log = logging.getLogger("HWR").getChild(self.__class__.__name__)
+        self.user_log = logging.getLogger("user_log_level")
 
     def __getstate__(self):
         return self.name()
@@ -600,43 +659,53 @@ class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
             except AttributeError:
                 raise AttributeError(attr)
 
-    def commitChanges(self):
-        """Commit last changes"""
-        # NB Must be here - importing at top level leads to circular imports
+    def commit_changes(self):
+        """Commit last changes back to configuration
+
+        NB Must be here - importing at top level leads to circular imports
+        """
+
         from .HardwareRepository import getHardwareRepository
 
-        def getChanges(node):
+        def get_changes(node):
             updates = list(node._propertySet.getChanges())
-            if len(node) > 0:
-                for n in node:
-                    updates += getChanges(n)
+            if node:
+                for subnode in node:
+                    updates += get_changes(subnode)
 
             if isinstance(node, HardwareObject):
-                if len(updates) > 0:
+                if updates:
                     getHardwareRepository().update(node.name(), updates)
                 return []
             else:
                 return updates
 
-        getChanges(self)
+        get_changes(self)
 
     def rewrite_xml(self, xml):
-        """Rewrite XML file"""
-        # NB Must be here - importing at top level leads to circular imports
+        """Rewrite XML conifguration file
+
+        NB Must be here - importing at top level leads to circular imports"""
         from .HardwareRepository import getHardwareRepository
 
         getHardwareRepository().rewrite_xml(self.name(), xml)
 
     def xml_source(self):
-        """Get XML source code"""
-        # NB Must be here - importing at top level leads to circular imports
+        """Get XML configuration source
+
+        NB Must be here - importing at top level leads to circular imports"""
         from .HardwareRepository import getHardwareRepository
 
         return getHardwareRepository().xml_source[self.name()]
 
 
 class HardwareObjectYaml(ConfiguredObject, HardwareObjectMixin):
-    """Yaml-configured hardware object"""
+    """Yaml-configured hardware object.
+
+    For use when we move confiugratoin out of xml and into yaml.
+
+    The class is needed only to provide a single superclass
+    that combines ConfiguredObject and HardwareObjectMixin"""
 
     pass
 
@@ -657,6 +726,10 @@ class Procedure(HardwareObject):
 
 
 class Device(HardwareObject):
+    """Old superclass for devices
+
+    NB Deprecated - should be replaced by AbstractActuator"""
+
     (NOTREADY, READY) = (0, 1)  # device states
 
     def __init__(self, name):
@@ -676,6 +749,7 @@ class Device(HardwareObject):
         return self.state == Device.READY
 
     def userName(self):
+        # TODO standardise on 'username' or 'user_name' globaly
         uname = self.getProperty("username")
         if uname is None:
             return str(self.name())
@@ -684,6 +758,11 @@ class Device(HardwareObject):
 
 
 class DeviceContainer:
+    """Device ocntainer class - old style
+
+    NB Deprecated. Once DeviceContainerNode is removed,
+    this clould be merged into Equipment"""
+
     def __init__(self):
         pass
 
@@ -692,7 +771,7 @@ class DeviceContainer:
 
         for item in dir(self):
             if isinstance(item, Device):
-                devices.append(object)
+                devices.append(item)
             elif isinstance(item, DeviceContainer):
                 devices += item.getDevices()
 
@@ -706,17 +785,38 @@ class DeviceContainer:
                 return device
 
     def getDeviceByRole(self, role):
+        # TODO This gives a pylint ewrror, since getObjectByRoleis not in a superclass
+        # it is available in the subclases that use this, but fixing this
+        # woudl make more sense in conectoin with a general refactoring of
+        # Device / DeciveContainer/Equipment
         item = self.getObjectByRole(role)
 
         if isinstance(item, Device):
             return item
 
+    def clear_gevent(self):
+        pass
+
 
 class DeviceContainerNode(HardwareObjectNode, DeviceContainer):
+    """Class serves solely to provide a single supercalss
+    combining HardwareObjectNode and DeviceContaine
+
+    TODO.This class is Deprecated.
+
+    it is only used once,
+    in HardwareObjectFileParser.HardwareObjectHandler.startElement
+    And that use looks like it could be replaced by something else"""
+
     pass
 
 
 class Equipment(HardwareObject, DeviceContainer):
+    """Equipment class -old style
+
+    NB This class needs refactoring. Since many (soon: all??) contained
+     objects are no longer of class Devicem the code in here is unlikely to work."""
+
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         DeviceContainer.__init__(self)
