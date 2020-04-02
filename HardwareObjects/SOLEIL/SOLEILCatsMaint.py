@@ -41,13 +41,13 @@ class SOLEILCatsMaint(Equipment):
     def init(self):
         logging.info("CatsMaint: init")
 
-        tool = self.getProperty("tool")
+        tool = self.get_property("tool")
         if tool in TOOLS:
             self.tool = TOOLS[tool]
         else:
             self.tool = self.default_tool
 
-        soaklid = self.getProperty("soak_lid")
+        soaklid = self.get_property("soak_lid")
         if soaklid is not None:
             self.soaklid = soaklid
         else:
@@ -102,74 +102,74 @@ class SOLEILCatsMaint(Equipment):
         """
         Moves a sample from the gripper back into the dewar to its logged position.
         """
-        return self._executeTask(False, self._doBack)
+        return self._execute_task(False, self._doBack)
 
     def safeTraj(self):
         """
         Safely Moves the robot arm and the gripper to the home position
         """
-        return self._executeTask(False, self._doSafe)
+        return self._execute_task(False, self._doSafe)
 
     # MS 2014-11-18
     def homeTraj(self):
         """
         Moves the robot arm to the home position
         """
-        return self._executeTask(False, self._doHome)
+        return self._execute_task(False, self._doHome)
 
     def dryTraj(self):
         """
         Drying the gripper
         """
-        return self._executeTask(False, self._doDry)
+        return self._execute_task(False, self._doDry)
 
     def drySoakTraj(self):
         """
         Dry and Soak the gripper
         """
-        return self._executeTask(False, self._doDrySoak)
+        return self._execute_task(False, self._doDrySoak)
 
     def soakTraj(self):
         """
         Soaking the gripper
         """
-        return self._executeTask(False, self._doSoak)
+        return self._execute_task(False, self._doSoak)
 
     def integratedToolCal(self):
-        return self._executeTask(False, self._doIntegratedToolCal)
+        return self._execute_task(False, self._doIntegratedToolCal)
 
     def clearMemory(self):
         """
         Clears the memory
         """
-        return self._executeTask(False, self._doClearMemory)
+        return self._execute_task(False, self._doClearMemory)
 
     def ackSampleMemory(self):
         """
         Acknowledge incoherence between memorized and actual sample status -- e.g. if robot executed put trajectory but no sample was mounted on the gonio -- either because of empty position or problem with gripper.
         """
-        return self._executeTask(False, self._doAckSampleMemory)
+        return self._execute_task(False, self._doAckSampleMemory)
 
     def opentool(self):
         """
         Drying the gripper
         """
-        return self._executeTask(False, self._doOpentool)
+        return self._execute_task(False, self._doOpentool)
 
     def toolcalTraj(self):
         """
         Soaking the gripper
         """
-        return self._executeTask(False, self._doToolCal)
+        return self._execute_task(False, self._doToolCal)
 
     ###
 
     def missingSample(self):
         self._doAckSampleMemory()
         self._doClearMemory()
-        self._doResetError()
+        self._do_resetError()
 
-    def _doAbort(self):
+    def _do_abort(self):
         """
         Launch the "abort" trajectory on the CATS Tango DS
 
@@ -178,7 +178,7 @@ class SOLEILCatsMaint(Equipment):
         """
         self._cmdAbort()
 
-    def _doResetError(self):
+    def _do_resetError(self):
         """
         Launch the "reset" command on the CATS Tango DS
 
@@ -195,7 +195,7 @@ class SOLEILCatsMaint(Equipment):
         :rtype: None
         """
         argin = self.tool
-        self._executeServerTask(self._cmdBack, argin)
+        self._execute_server_task(self._cmdBack, argin)
 
     def _doSafe(self):
         """
@@ -205,7 +205,7 @@ class SOLEILCatsMaint(Equipment):
         :rtype: None
         """
         argin = self.tool
-        self._executeServerTask(self._cmdSafe, argin)
+        self._execute_server_task(self._cmdSafe, argin)
 
     # MS 2014-11-18
     def _doHome(self):
@@ -216,7 +216,7 @@ class SOLEILCatsMaint(Equipment):
         :rtype: None
         """
         argin = self.tool
-        self._executeServerTask(self._cmdHome, argin)
+        self._execute_server_task(self._cmdHome, argin)
 
     def _doDry(self):
         """
@@ -226,7 +226,7 @@ class SOLEILCatsMaint(Equipment):
         :rtype: None
         """
         argin = (str(self.tool),)
-        self._executeServerTask(self._cmdDry, argin)
+        self._execute_server_task(self._cmdDry, argin)
 
     def _doDryGripper(self):
         return self._doDrySoak()
@@ -239,7 +239,7 @@ class SOLEILCatsMaint(Equipment):
         :rtype: None
         """
         argin = map(str, (self.tool, self.soaklid))
-        self._executeServerTask(self._cmdDrySoak, argin)
+        self._execute_server_task(self._cmdDrySoak, argin)
 
     def _doSoak(self):
         """
@@ -249,7 +249,7 @@ class SOLEILCatsMaint(Equipment):
         :rtype: None
         """
         argin = map(str, (self.tool, self.soaklid))
-        self._executeServerTask(self._cmdSoak, argin)
+        self._execute_server_task(self._cmdSoak, argin)
 
     def _doIntegratedToolCal(self):
 
@@ -264,17 +264,17 @@ class SOLEILCatsMaint(Equipment):
         self.running_safe = True
         self._updateMessage("RUNNING Safe process. Phase is: going to Safe")
         logging.getLogger("HWR").info("Executing safe")
-        self._executeServerTask(self._cmdSafe, argin, waitstart=True)
+        self._execute_server_task(self._cmdSafe, argin, waitstart=True)
         logging.getLogger("HWR").info("Executing safe done")
 
         self._updateMessage("RUNNING Safe process. Phase is: Drying")
         logging.getLogger("HWR").info("Executing dry")
-        self._executeServerTask(self._cmdDry, argin, waitstart=True)
+        self._execute_server_task(self._cmdDry, argin, waitstart=True)
         logging.getLogger("HWR").info("Executing dry done")
 
         self._updateMessage("RUNNING Safe process. Phase is: SoakToolCal")
         logging.getLogger("Executing SoakToolCal")
-        self._executeServerTask(self._cmdSoakToolCal, argin, waitstart=True)
+        self._execute_server_task(self._cmdSoakToolCal, argin, waitstart=True)
         logging.getLogger("Executing SoakToolCal DONE")
 
         self._updateMessage("RUNNING Safe process. Phase is: ResetError")
@@ -285,7 +285,7 @@ class SOLEILCatsMaint(Equipment):
             "RUNNING Safe process. Phase is: Soak (will take 45 seconds)"
         )
         argin = map(str, (self.tool, self.soaklid))
-        self._executeServerTask(self._cmdSoak, argin, waitstart=True)
+        self._execute_server_task(self._cmdSoak, argin, waitstart=True)
         logging.getLogger("Executing SoakToolCal done")
         self._updateMessage("Safe process finished")
         self.running_safe = False
@@ -298,7 +298,7 @@ class SOLEILCatsMaint(Equipment):
         :rtype: None
         """
         # argin = 1
-        self._executeServerTask(self._cmdClearMemory)
+        self._execute_server_task(self._cmdClearMemory)
 
     def _doAckSampleMemory(self):
         """
@@ -308,7 +308,7 @@ class SOLEILCatsMaint(Equipment):
         :rtype: None
         """
         # argin = 1
-        self._executeServerTask(self._cmdAckSampleMemory)
+        self._execute_server_task(self._cmdAckSampleMemory)
 
     def _doOpentool(self):
         """
@@ -318,7 +318,7 @@ class SOLEILCatsMaint(Equipment):
         :rtype: None
         """
         # argin = 1
-        self._executeServerTask(self._cmdOpenTool)  # , argin)
+        self._execute_server_task(self._cmdOpenTool)  # , argin)
 
     def _doToolCal(self):
         """
@@ -328,7 +328,7 @@ class SOLEILCatsMaint(Equipment):
         :rtype: None
         """
         # argin = 1
-        self._executeServerTask(self._cmdToolCal)
+        self._execute_server_task(self._cmdToolCal)
 
     ###
 
@@ -361,9 +361,9 @@ class SOLEILCatsMaint(Equipment):
         :rtype: None
         """
         if state:
-            self._executeServerTask(self._cmdOpenLid1)
+            self._execute_server_task(self._cmdOpenLid1)
         else:
-            self._executeServerTask(self._cmdCloseLid1)
+            self._execute_server_task(self._cmdCloseLid1)
 
     def _doLid2State(self, state=True):
         """
@@ -373,9 +373,9 @@ class SOLEILCatsMaint(Equipment):
         :rtype: None
         """
         if state:
-            self._executeServerTask(self._cmdOpenLid2)
+            self._execute_server_task(self._cmdOpenLid2)
         else:
-            self._executeServerTask(self._cmdCloseLid2)
+            self._execute_server_task(self._cmdCloseLid2)
 
     def _doLid3State(self, state=True):
         """
@@ -385,13 +385,13 @@ class SOLEILCatsMaint(Equipment):
         :rtype: None
         """
         if state:
-            self._executeServerTask(self._cmdOpenLid3)
+            self._execute_server_task(self._cmdOpenLid3)
         else:
-            self._executeServerTask(self._cmdCloseLid3)
+            self._execute_server_task(self._cmdCloseLid3)
 
     #########################          PROTECTED          #########################
 
-    def _executeTask(self, wait, method, *args):
+    def _execute_task(self, wait, method, *args):
         ret = self._run(method, wait=False, *args)
         if wait:
             return ret.get()
@@ -466,13 +466,13 @@ class SOLEILCatsMaint(Equipment):
     def _updateOperationMode(self, value):
         self._scIsCharging = not value
 
-    def _executeServerTask(self, method, argin=None, waitstart=False):
+    def _execute_server_task(self, method, argin=None, waitstart=False):
         if argin is not None:
             task_id = method(argin)
         else:
             task_id = method()
 
-        print("CatsMaint._executeServerTask", task_id)
+        print("CatsMaint._execute_server_task", task_id)
         ret = None
         # introduced wait because it takes some time before the attribute PathRunning is set
         # after launching a transfer
