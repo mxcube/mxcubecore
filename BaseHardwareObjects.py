@@ -13,7 +13,7 @@ from HardwareRepository.ConvertUtils import string_types
 
 @enum.unique
 class HardwareObjectState(enum.Enum):
-    """Enumeration of ommon states, shared between all HardwraeObjects"""
+    """Enumeration of common states, shared between all HardwareObjects"""
 
     UNKNOWN = 0
     WARNING = 1
@@ -528,8 +528,6 @@ class HardwareObjectMixin(CommandContainer):
         """Clear gevent tasks, called when disconnecting a HardwareObject.
 
         Override in subclasses as needed.
-i
-        Returns:
 
         """
         self.update_state(self.STATES.UNKNOWN)
@@ -702,7 +700,7 @@ class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
 class HardwareObjectYaml(ConfiguredObject, HardwareObjectMixin):
     """Yaml-configured hardware object.
 
-    For use when we move confiugratoin out of xml and into yaml.
+    For use when we move confiugration out of xml and into yaml.
 
     The class is needed only to provide a single superclass
     that combines ConfiguredObject and HardwareObjectMixin"""
@@ -727,6 +725,12 @@ class Procedure(HardwareObject):
 
 class Device(HardwareObject):
     """Old superclass for devices
+
+    Signals:
+
+        - "deviceReady"
+
+        - "deviceNotReady"
 
     NB Deprecated - should be replaced by AbstractActuator"""
 
@@ -787,7 +791,7 @@ class DeviceContainer:
     def getDeviceByRole(self, role):
         # TODO This gives a pylint ewrror, since getObjectByRoleis not in a superclass
         # it is available in the subclases that use this, but fixing this
-        # woudl make more sense in conectoin with a general refactoring of
+        # would make more sense in conection with a general refactoring of
         # Device / DeciveContainer/Equipment
         item = self.getObjectByRole(role)
 
@@ -814,8 +818,14 @@ class DeviceContainerNode(HardwareObjectNode, DeviceContainer):
 class Equipment(HardwareObject, DeviceContainer):
     """Equipment class -old style
 
+    Signals:
+
+        - equipmentReady"
+
+        - "equipmentNotReady"
+
     NB This class needs refactoring. Since many (soon: all??) contained
-     objects are no longer of class Devicem the code in here is unlikely to work."""
+     objects are no longer of class Device, the code in here is unlikely to work."""
 
     def __init__(self, name):
         HardwareObject.__init__(self, name)
