@@ -17,35 +17,35 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-__credits__ = ["The MxCuBE collaboration"]
-__copyright__ = """ Copyright 2019 by the MXCuBE collaboration """
+__copyright__ = "Copyright 2019 by the MXCuBE collaboration "
 __license__ = "LGPLv3+"
-__version__ = "2.3."
-__api__ = "3"
-__category__ = "Actuator"
 
 
 from HardwareRepository.TaskUtils import task
-from HardwareRepository.HardwareObjects.abstract.AbstractActuator import \
-    (AbstractActuator)
+from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
+    AbstractActuator,
+)
 
 
 class TransmissionMockup(AbstractActuator):
+    """Transmission value as a percentage """
 
     def __init__(self, name):
         AbstractActuator.__init__(self, name)
 
     def init(self):
         AbstractActuator.init(self)
-        self.log.debug("Initializing")
+        self.log.debug("Init")
         self._nominal_value = self.default_value
-        self.update_limits((0, 1))
+        self.update_limits((0, 100))
         self.update_state(self.STATES.READY)
 
     def get_value(self):
-        """Read the transmission value.
+        """
+        Read the transmission value.
+
         Returns:
-            Normalized transmission value.
+            Transmission value.
         """
         return self._nominal_value
 
@@ -53,8 +53,9 @@ class TransmissionMockup(AbstractActuator):
     def _set_value(self, value):
         """
         Sets the hardware to target a given transmission.
+
         Args:
-            value: target normalized transmission value
+            value (float): target transmission value
         """
         self._nominal_value = value
 
@@ -62,4 +63,10 @@ class TransmissionMockup(AbstractActuator):
         pass
 
     def get_state(self):
+        """
+        Returns the HardwareObject state.
+
+        Returns:
+            HardwareObjectState: current HardwareObject state
+        """
         return self.STATES.READY
