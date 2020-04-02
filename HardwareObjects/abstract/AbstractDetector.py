@@ -21,7 +21,7 @@
 """
 Detector API
 
-signals:
+emits signals:
     detectorRoiModeChanged
     temperatureChanged
     humidityChanged
