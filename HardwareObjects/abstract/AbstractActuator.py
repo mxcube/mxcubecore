@@ -26,6 +26,7 @@ Emits signals valueChanged and limitsChanged.
 """
 
 import abc
+import math
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
@@ -142,6 +143,7 @@ class AbstractActuator(HardwareObject):
         if limits is None:
             limits = self.get_limits()
 
-        if all(limits):
+        # All values are not None nor NaN
+        if all([(l and not math.isnan(l)) for l in limits]):
             self._nominal_limits = limits
             self.emit("limitsChanged", (limits,))
