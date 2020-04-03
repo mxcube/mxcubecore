@@ -121,8 +121,9 @@ class AbstractActuator(HardwareObject):
         if self.validate_value(value):
             self._set_value(value)
             self.update_value()
-            if timeout or timeout is None:
-                self.wait_ready(timeout)
+            if timeout == 0:
+                return
+            self.wait_ready(timeout)
         else:
             raise ValueError("Invalid value %s" % str(value))
 
