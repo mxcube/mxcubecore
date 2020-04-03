@@ -19,7 +19,6 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import abc, os
-from collections import OrderedDict
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository import HardwareRepository as HWR
@@ -36,11 +35,11 @@ class AbstractMachineInfo(HardwareObject):
         self._temperature = None
         self._humidity = None
         self._flux = None
-        self._values_ordered_dict = OrderedDict()
+        self._values = {}
 
     def init(self):
         """Initialise some parameters."""
-        self._values_ordered_dict["current"] = {
+        self._values["current"] = {
             "value": None,
             "value_str": "-- mA",
             "in_range": False,
@@ -49,30 +48,30 @@ class AbstractMachineInfo(HardwareObject):
             "font": 14,
             "history": True,
         }
-        self._values_ordered_dict["message"] = {
+        self._values["message"] = {
             "value": 'None',
             "in_range": True,
             "title": "Machine state",
         }
-        self._values_ordered_dict["temp"] = {
+        self._values["temp"] = {
             "value": None,
             "value_str": "-- °C",
             "in_range": False,
             "title": "Hutch temperature",
         }
-        self._values_ordered_dict["hum"] = {
+        self._values["hum"] = {
             "value": None,
             "value_str": "-- %",
             "in_range": False,
             "title": "Hutch humidity",
         }
-        self._values_ordered_dict["flux"] = {
+        self._values["flux"] = {
             "value": None,
             "value_str": 'None',
             "in_range": False,
             "title": "Flux",
         }
-        self._values_ordered_dict["disk"] = {
+        self._values["disk"] = {
             "value": None,
             "value_str": "Not available",
             "in_range": False,
@@ -167,61 +166,62 @@ class AbstractMachineInfo(HardwareObject):
     def get_value(self):
         """Read machine info.
         Returns:
-            value: OrderedDict.
+            value: dict
         """
         current = self.get_current()
         self._current = current
-        self._values_ordered_dict['current']['value'] = current
+        self._values['current']['value'] = current
         try:
             float(current)
-            self._values_ordered_dict['current']['value_str'] = \
+            self._values['current']['value_str'] = \
             "%3.2f mA" % current
-            self._values_ordered_dict['current']['in_range'] = True
+            self._values['current']['in_range'] = True
         except TypeError:
-            self._values_ordered_dict['current']['value_str'] = str(current)
-            self._values_ordered_dict['current']['in_range'] = False
+            self._values['current']['value_str'] = str(current)
+            self._values['current']['in_range'] = False
 
         msg = self.get_message()
         self._message = msg
-        self._values_ordered_dict['message']['value'] = msg
-        self._values_ordered_dict['message']['in_range'] = (msg is not None)
+        self._values['message']['value'] = msg
+        self._values['message']['in_range'] = (msg is not None)
 
         temp = self.get_temperature()
         self._temperature = temp
-        self._values_ordered_dict['temp']['value'] = temp
+        self._values['temp']['value'] = temp
         try:
             float(temp)
-            self._values_ordered_dict['temp']['value_str'] = "%2.1f °C" % temp
-            self._values_ordered_dict['temp']['in_range'] = True
+            self._values['temp']['value_str'] = "%2.1f °C" % temp
+            self._values['temp']['in_range'] = True
         except TypeError:
-            self._values_ordered_dict['temp']['value_str'] = str(temp)
-            self._values_ordered_dict['temp']['in_range'] = False
+            self._values['temp']['value_str'] = str(temp)
+            self._values['temp']['in_range'] = False
 
         hum = self.get_humidity()
         self._humidity = hum
-        self._values_ordered_dict['hum']['value'] = hum
+        self._values['hum']['value'] = hum
         try:
             float(hum)
-            self._values_ordered_dict['hum']['value_str'] = "{:2.1f} %".format(hum)
-            self._values_ordered_dict['hum']['in_range'] = True
+            self._values['hum']['value_str'] = "{:2.1f} %".format(hum)
+            self._values['hum']['in_range'] = True
         except TypeError:
-            self._values_ordered_dict['hum']['value_str'] = str(hum)
-            self._values_ordered_dict['hum']['in_range'] = False
+            self._values['hum']['value_str'] = str(hum)
+            self._values['hum']['in_range'] = False
 
         flux = self.get_flux()
         self._flux = flux
-        self._values_ordered_dict['flux']['value'] = flux
+        self._values['flux']['value'] = flux
         try:
             float(flux)
-            self._values_ordered_dict['flux']['value_str'] = \
+            self._values['flux']['value_str'] = \
             "{:.2E} ph/s".format(flux)
-            self._values_ordered_dict['flux']['in_range'] = \
+            self._values['flux']['in_range'] = \
             self.in_range_flux(flux)
         except TypeError:
-            self._values_ordered_dict['flux']['value_str'] = str(flux)
-            self._values_ordered_dict['flux']['in_range'] = False
+            self._values['flux']['value_str'] = str(flux)
+            self._values['flux']['in_range'] = False
 
         disk = self.get_disk_space()
+        self._disk = disk
         try:
             total_str = self.sizeof_fmt(disk[0])
             free_str = self.sizeof_fmt(disk[1])
@@ -232,11 +232,11 @@ class AbstractMachineInfo(HardwareObject):
         except TypeError:
             disk_txt = "Not available"
             in_range = False
-        self._values_ordered_dict["disk"]["value"] = disk
-        self._values_ordered_dict["disk"]["value_str"] = disk_txt
-        self._values_ordered_dict["disk"]["in_range"] = in_range
+        self._values["disk"]["value"] = disk
+        self._values["disk"]["value_str"] = disk_txt
+        self._values["disk"]["in_range"] = in_range
 
-        return self._values_ordered_dict
+        return self._values
 
     def update_value(self, value=None):
         """Check if the value has changed. Emits signal valueChanged.
@@ -246,7 +246,7 @@ class AbstractMachineInfo(HardwareObject):
         if value is None:
             value = self.get_value()
 
-        self.__values_ordered_dict = value
+        self._values = value
         self.emit("valueChanged", value)
 
         # Compatibility signals. To be removed.
