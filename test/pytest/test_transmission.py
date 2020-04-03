@@ -23,10 +23,10 @@ def test_transmission_attributes(beamline):
         not beamline.energy is None
     ), "Energy hardware objects is None (not initialized)"
 
-    transmission = beamline.transmission.get_value()
+    value = beamline.transmission.get_value()
     limits = beamline.transmission.get_limits()
 
-    assert isinstance(transmission, float), "Transmission value has to be float"
+    assert isinstance(value, float), "Transmission value has to be float"
     assert isinstance(
         limits, (list, tuple)
     ), "Energy limits has to be defined as tuple or list"
