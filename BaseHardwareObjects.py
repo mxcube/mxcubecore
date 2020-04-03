@@ -415,10 +415,14 @@ class HardwareObjectMixin(CommandContainer):
         For COnfiguredObjects called after loading contained objects"""
         pass
 
-    @abc.abstractmethod
     def abort(self):
-        """Immediately terminate HardwareObject action"""
-        pass
+        """Immediately terminate HardwareObject action
+
+        Should not happen in state READY"""
+        if self.get_state() is self.STATES.READY:
+            return
+
+        # When overriding put active code here
 
     def stop(self):
         """Gentler (?) alternative to abort
