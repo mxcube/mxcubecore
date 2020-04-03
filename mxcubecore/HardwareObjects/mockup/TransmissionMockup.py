@@ -36,7 +36,6 @@ class TransmissionMockup(AbstractTransmission):
     def init(self):
         AbstractTransmission.init(self)
         self._nominal_value = self.default_value
-        self.update_limits((0, 100))
         self.update_state(self.STATES.READY)
 
     def get_value(self):
