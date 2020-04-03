@@ -406,7 +406,7 @@ class HardwareObjectMixin(CommandContainer):
     def _init(self):
         """'protected' post-initialization method. Override as needed
 
-        For COnfiguredObjects called before loading contained objects"""
+        For ConfiguredObjects called before loading contained objects"""
         pass
 
     def init(self):
