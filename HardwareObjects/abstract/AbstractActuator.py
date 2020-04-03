@@ -146,6 +146,6 @@ class AbstractActuator(HardwareObject):
             limits = self.get_limits()
 
         # All values are not None nor NaN
-        if all([(l and not math.isnan(l)) for l in limits]):
+        if all([not(lim is None or math.isnan(lim)) for lim in limits]):
             self._nominal_limits = limits
             self.emit("limitsChanged", (limits,))
