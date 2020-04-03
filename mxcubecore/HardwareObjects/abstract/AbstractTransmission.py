@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+# encoding: utf-8
+#
 #  Project: MXCuBE
 #  https://github.com/mxcube.
 #
@@ -17,45 +18,16 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Base class for transmission control."""
+"""Abstract Transmission"""
 
-import abc
-from HardwareRepository.HardwareObject.abstract.AbstractMotor import AbstractMotor
+from HardwareRepository.HardwareObjects.abstract.AbstractActuator import \
+    AbstractActuator
+
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
-class AbstractTransmission(AbstractMotor):
-    """
-    Base class for transmission control by filters, slits, apertures or other means
-    """
-
-    __metaclass__ = abc.ABCMeta
-
-    def __init__(self, name):
-        AbstractMotor.__init__(self, name)
-
-        self._value = None
-        self._limits = [0, 100]
-        self._state = None
-
-    @abc.abstractmethod
-    def _set_value(self, value):
-        """Set transmission to absolute level in percent.
-           Wait for the move  of all acutators to finish by default.
-        Args:
-            value (float): target position
-            wait (bool): optional - wait until all movements finished.
-            timeout (float): optional - timeout [s].
-        """
-        self._value = value
-        self.emit("valueChanged", self._value)
-
-    @abc.abstractmethod
-    def get_value(self):
-        """Get the current transmission in percents
-        Returns:
-            float: current transmission level.
-        """
-        return None
+class AbstractTransmission(AbstractActuator):
+    """Abstract Transmission"""
+    pass
