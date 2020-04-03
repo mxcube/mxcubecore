@@ -412,7 +412,7 @@ class HardwareObjectMixin(CommandContainer):
     def init(self):
         """"'public' post-initialization method. Override as needed
 
-        For COnfiguredObjects called after loading contained objects"""
+        For ConfiguredObjects called after loading contained objects"""
         pass
 
     def abort(self):
