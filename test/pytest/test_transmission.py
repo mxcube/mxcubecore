@@ -30,7 +30,7 @@ def test_transmission_attributes(beamline):
     assert isinstance(
         limits, (list, tuple)
     ), "Energy limits has to be defined as tuple or list"
-    assert not None in limits, "One or several limits is None"
+    assert None not in limits, "One or several limits is None"
     assert limits[0] < limits[1], "First value of energy limits has to be the low limit"
 
 
