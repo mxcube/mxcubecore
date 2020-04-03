@@ -20,6 +20,7 @@ def test_sample_changer_select(beamline):
     pass
 
 def test_sample_changer_abort(beamline):
+    assert(beamline.sample_changer.task_proc is not None)
     beamline.sample_changer.abort()
     assert(beamline.sample_changer.task_proc is None)
 
@@ -30,7 +31,7 @@ def test_sample_changer_get_state(beamline):
    assert(not beamline.sample_changer.SampleChangerState.STATE_DESC.get(state, "Unknown"))
 
 def test_sample_changer_get_status(beamline):
-    assert(beamline.sample_changer.get_status is not None)
+    assert(beamline.sample_changer.get_status() is not None)
 
 def test_sample_changer_get_loaded_sample(beamline):
     loaded_samples = len(beamline.sample_changer.get_sample_list())
