@@ -1,3 +1,4 @@
+# encoding: utf-8
 #
 #  Project: MXCuBE
 #  https://github.com/mxcube.
@@ -14,8 +15,11 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU Lesser General Public License
+#  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
+__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
 
 def test_transmission_attributes(beamline):
@@ -26,7 +30,7 @@ def test_transmission_attributes(beamline):
     value = beamline.transmission.get_value()
     limits = beamline.transmission.get_limits()
 
-    assert isinstance(value, float), "Transmission value has to be float"
+    assert isinstance(value, (int, float)), "Transmission value has to be int or float"
     assert isinstance(
         limits, (list, tuple)
     ), "Energy limits has to be defined as tuple or list"
