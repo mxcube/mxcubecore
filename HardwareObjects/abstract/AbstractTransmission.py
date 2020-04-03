@@ -30,4 +30,10 @@ __license__ = "LGPLv3+"
 
 class AbstractTransmission(AbstractActuator):
     """Abstract Transmission"""
-    pass
+
+    def __init__(self, name):
+        AbstractActuator.__init__(self, name)
+
+    def init(self):
+        AbstractActuator.init(self)
+        self.update_limits((0, 100))
