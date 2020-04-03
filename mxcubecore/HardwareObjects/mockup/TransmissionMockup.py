@@ -1,3 +1,4 @@
+# encoding: utf-8
 #
 #  Project: MXCuBE
 #  https://github.com/mxcube.
@@ -14,28 +15,26 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU Lesser General Public License
+#  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-__copyright__ = "Copyright 2019 by the MXCuBE collaboration "
+from HardwareRepository.TaskUtils import task
+from HardwareRepository.HardwareObjects.abstract.AbstractTransmission import \
+    AbstractTransmission
+
+
+__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator,
-)
-
-
-class TransmissionMockup(AbstractActuator):
+class TransmissionMockup(AbstractTransmission):
     """Transmission value as a percentage """
 
     def __init__(self, name):
-        AbstractActuator.__init__(self, name)
+        AbstractTransmission.__init__(self, name)
 
     def init(self):
-        AbstractActuator.init(self)
-        self.log.debug("Init")
+        AbstractTransmission.init(self)
         self._nominal_value = self.default_value
         self.update_limits((0, 100))
         self.update_state(self.STATES.READY)
