@@ -71,31 +71,31 @@ def test_state_seting(beamline):
 
         if isinstance(obj, AbstractActuator.AbstractActuator):
 
-            default = obj.get_value()
+            default_value = obj.get_value()
             default_limits = obj.get_limits()
             obj.update_value()
 
-            if default is not None:
+            if default_value is not None:
                 print ('@~@~ AbstractActuator default')
-                assert obj.validate_value(default), (
+                assert obj.validate_value(default_value), (
                     "%s default value %s evaluated as invalid"
-                    % (role, default)
+                    % (role, default_value)
                 )
-                obj.update_value(default)
+                obj.update_value(default_value)
 
                 if obj.read_only:
-                    assert default_limits == (default, default), (
+                    assert default_limits == (default_value, default_value), (
                         "read_only %s defualt limits %s do not match default value %s"
-                        % (role, default_limits, default)
+                        % (role, default_limits, default_value)
                     )
                 else:
-                    obj.set_value(default)
+                    obj.set_value(default_value)
                     obj.set_limits(default_limits)
 
                 if obj.read_only and default_limits and None not in default_limits:
-                    assert default_limits == (default, default), (
+                    assert default_limits == (default_value, default_value), (
                         "read_only %s defualt limits %s do not match default value %s"
-                        % (role, default_limits, default)
+                        % (role, default_limits, default_value)
                     )
 
             if not isinstance(obj, AbstractNState.AbstractNState):
