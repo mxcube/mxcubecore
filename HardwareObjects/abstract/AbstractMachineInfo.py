@@ -35,6 +35,7 @@ class AbstractMachineInfo(HardwareObject):
         self._temperature = None
         self._humidity = None
         self._flux = None
+        self._disk = None
         self._values = {}
 
     def init(self):
@@ -87,6 +88,15 @@ class AbstractMachineInfo(HardwareObject):
         """
         return None
 
+    def update_current(self, value=None):
+        """Check if current has changed.
+        Args:
+            value: value
+        """
+        if value is None:
+            value = self.get_current()
+        self._current = value
+
     @abc.abstractmethod
     def get_message(self):
         """Read message.
@@ -94,6 +104,15 @@ class AbstractMachineInfo(HardwareObject):
             value: Message.
         """
         return None
+
+    def update_message(self, value=None):
+        """Check if message has changed.
+        Args:
+            value: value
+        """
+        if value is None:
+            value = self.get_message()
+        self._message = value
 
     @abc.abstractmethod
     def get_temperature(self):
@@ -103,6 +122,15 @@ class AbstractMachineInfo(HardwareObject):
         """
         return None
 
+    def update_temperature(self, value=None):
+        """Check if temperature has changed.
+        Args:
+            value: value
+        """
+        if value is None:
+            value = self.get_temperature()
+        self._temperature = value
+
     @abc.abstractmethod
     def get_humidity(self):
         """Read hutch humidity.
@@ -111,6 +139,15 @@ class AbstractMachineInfo(HardwareObject):
         """
         return None
 
+    def update_humidity(self, value=None):
+        """Check if humidity has changed.
+        Args:
+            value: value
+        """
+        if value is None:
+            value = self.get_humidity()
+        self._humidity = value
+
     @abc.abstractmethod
     def get_flux(self):
         """Read flux.
@@ -118,6 +155,15 @@ class AbstractMachineInfo(HardwareObject):
             value: Flux.
         """
         return None
+
+    def update_flux(self, value=None):
+        """Check if flux has changed.
+        Args:
+            value: value
+        """
+        if value is None:
+            value = self.get_flux()
+        self._flux = value
 
     @abc.abstractmethod
     def in_range_flux(self, value):
@@ -128,14 +174,6 @@ class AbstractMachineInfo(HardwareObject):
             (bool): True if in range.
         """
         return True
-
-    def sizeof_fmt(self, num):
-        """Return disk space formated in string"""
-        for x in ["bytes", "KB", "MB", "GB"]:
-            if num < 1024.0:
-                return "{:3.1f}{}".format(num, x)
-            num /= 1024.0
-        return "{:3.1f}{}".format(num, "TB")
 
     def get_disk_space(self):
         """Retrieve disk space info.
@@ -153,6 +191,15 @@ class AbstractMachineInfo(HardwareObject):
             return (total, free, perc)
         return None
 
+    def update_disk_space(self, value=None):
+        """Check if disk space has changed.
+        Args:
+            value: value
+        """
+        if value is None:
+            value = self.get_disk_space()
+        self._disk = value
+
     @abc.abstractmethod
     def in_range_disk_space(self, value):
         """Check disk space is in range.
@@ -163,13 +210,21 @@ class AbstractMachineInfo(HardwareObject):
         """
         return True
 
+    def sizeof_fmt(self, num):
+        """Return disk space formated in string"""
+        for x in ["bytes", "KB", "MB", "GB"]:
+            if num < 1024.0:
+                return "{:3.1f}{}".format(num, x)
+            num /= 1024.0
+        return "{:3.1f}{}".format(num, "TB")
+
     def get_value(self):
         """Read machine info.
         Returns:
             value: dict
         """
-        current = self.get_current()
-        self._current = current
+        # current
+        current = self._current
         self._values['current']['value'] = current
         try:
             float(current)
@@ -180,12 +235,14 @@ class AbstractMachineInfo(HardwareObject):
             self._values['current']['value_str'] = str(current)
             self._values['current']['in_range'] = False
 
-        msg = self.get_message()
+        # message
+        msg = self._message
         self._message = msg
         self._values['message']['value'] = msg
         self._values['message']['in_range'] = (msg is not None)
 
-        temp = self.get_temperature()
+        # temperature
+        temp = self._temperature
         self._temperature = temp
         self._values['temp']['value'] = temp
         try:
@@ -196,7 +253,8 @@ class AbstractMachineInfo(HardwareObject):
             self._values['temp']['value_str'] = str(temp)
             self._values['temp']['in_range'] = False
 
-        hum = self.get_humidity()
+        # humidity
+        hum = self._humidity
         self._humidity = hum
         self._values['hum']['value'] = hum
         try:
@@ -207,7 +265,8 @@ class AbstractMachineInfo(HardwareObject):
             self._values['hum']['value_str'] = str(hum)
             self._values['hum']['in_range'] = False
 
-        flux = self.get_flux()
+        # flux
+        flux = self._flux
         self._flux = flux
         self._values['flux']['value'] = flux
         try:
@@ -220,7 +279,8 @@ class AbstractMachineInfo(HardwareObject):
             self._values['flux']['value_str'] = str(flux)
             self._values['flux']['in_range'] = False
 
-        disk = self.get_disk_space()
+        # disk
+        disk = self._disk
         self._disk = disk
         try:
             total_str = self.sizeof_fmt(disk[0])
@@ -244,8 +304,13 @@ class AbstractMachineInfo(HardwareObject):
             value: value
         """
         if value is None:
+            self.update_current()
+            self.update_message()
+            self.update_temperature()
+            self.update_humidity()
+            self.update_flux()
+            self.update_disk_space()
             value = self.get_value()
-
         self._values = value
         self.emit("valueChanged", value)
 
