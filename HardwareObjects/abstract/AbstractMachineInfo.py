@@ -175,7 +175,7 @@ class AbstractMachineInfo(HardwareObject):
         """
         return True
 
-    def get_disk_space(self):
+    def get_disk(self):
         """Retrieve disk space info.
         Returns:
             value: Tuple of total (bytes), free (bytes) and used (%) of disk
@@ -197,7 +197,7 @@ class AbstractMachineInfo(HardwareObject):
             value: value
         """
         if value is None:
-            value = self.get_disk_space()
+            value = self.get_disk()
         self._disk = value
 
     @abc.abstractmethod
