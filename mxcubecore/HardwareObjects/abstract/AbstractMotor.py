@@ -32,7 +32,7 @@ from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
 )
 
-__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 

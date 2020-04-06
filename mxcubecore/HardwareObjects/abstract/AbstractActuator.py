@@ -29,7 +29,7 @@ import abc
 import math
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-__copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
