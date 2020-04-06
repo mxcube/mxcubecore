@@ -143,7 +143,7 @@ class AbstractActuator(HardwareObject):
         Args:
             limits (tuple): two floats tuple (low limit, high limit).
         """
-        if limits is None:
+        if not limits:
             limits = self.get_limits()
 
         # All values are not None nor NaN
