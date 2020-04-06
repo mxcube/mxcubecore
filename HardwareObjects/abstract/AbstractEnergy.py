@@ -44,10 +44,6 @@ class AbstractEnergy(AbstractActuator):
         self._wavelength_value = None
         self._wavelength_limits = (None, None)
 
-    def init(self):
-        """Get the proprrties read_only, default_value"""
-        AbstractActuator.init(self)
-
     def is_ready(self):
         """Check if the state is ready.
         Returns:
