@@ -72,7 +72,7 @@ class AbstractActuator(HardwareObject):
     def get_limits(self):
         """Return actuator low and high limits.
         Returns:
-            (tuple): two floats (low limit, high limit).
+            (tuple): two elements (low limit, high limit) tuple.
         """
         return self._nominal_limits
 
@@ -110,7 +110,8 @@ class AbstractActuator(HardwareObject):
         Args:
             value: target value
             timeout (float): optional - timeout [s],
-                             If timeout == 0: return at once and do not wait (default);
+                             If timeout == 0: return at once and do not wait
+                                              (default);
                              if timeout is None: wait forever.
         Raises:
             ValueError: Value not valid or attemp to set read only actuator.
@@ -140,12 +141,12 @@ class AbstractActuator(HardwareObject):
     def update_limits(self, limits=None):
         """Check if the limits have changed. Emits signal limitsChanged.
         Args:
-            limits (tuple): two floats tuple (low limit, high limit).
+            limits (tuple): two elements tuple (low limit, high limit).
         """
         if not limits:
             limits = self.get_limits()
 
         # All values are not None nor NaN
-        if all([not(lim is None or math.isnan(lim)) for lim in limits]):
+        if all([not (lim is None or math.isnan(lim)) for lim in limits]):
             self._nominal_limits = limits
             self.emit("limitsChanged", (limits,))
