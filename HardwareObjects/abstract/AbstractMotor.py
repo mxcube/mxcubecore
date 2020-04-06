@@ -103,6 +103,8 @@ class AbstractMotor(AbstractActuator):
         Returns:
             (bool): True if within the limits
         """
+        if value is None:
+            return True
         if math.isnan(value) or math.isinf(value):
             return False
         limits = self._nominal_limits
@@ -115,15 +117,17 @@ class AbstractMotor(AbstractActuator):
         Args:
             value (float): value
         """
-        if self._nominal_value is None:
-            self._nominal_value = self.get_value()
 
         if value is None:
             value = self.get_value()
 
-        if self._tolerance:
+        if self._nominal_value is None:
+            if value is None:
+                return
+
+        elif value is not None and self._tolerance:
             if abs(value - self._nominal_value) <= self._tolerance:
                 return
 
         self._nominal_value = value
-        self.emit("valueChanged", (self._nominal_value,))
+        self.emit("valueChanged", (value,))

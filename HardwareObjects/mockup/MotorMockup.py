@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+# encoding: utf-8
 #
 #  Project: MXCuBE
 #  https://github.com/mxcube.
@@ -76,7 +78,7 @@ class MotorMockup(AbstractMotor):
         """
         start_pos = self.get_value()
 
-        if start_pos is not None:
+        if value is not None and start_pos is not None:
             delta = abs(value - start_pos)
 
             direction = -1 if value > self.get_value() else 1
@@ -95,6 +97,7 @@ class MotorMockup(AbstractMotor):
         """Imediately halt movement. By default self.stop = self.abort"""
         if self.__move_task is not None:
             self.__move_task.kill()
+        self.update_state(self.STATES.READY)
 
     def get_value(self):
         """Read the actuator position.
@@ -114,7 +117,7 @@ class MotorMockup(AbstractMotor):
                              If timeout == 0: return at once and do not wait (default);
                              if timeout is None: wait forever.
         Raises:
-            ValueError: Value not valid or attemp to set write only actuator.
+            ValueError: Value not valid or attemp to set read-only actuator.
         """
         if self.read_only:
             raise ValueError("Attempt to set value for read-only Actuator")
@@ -128,8 +131,8 @@ class MotorMockup(AbstractMotor):
                     self._move(value)
                     self._set_value(value)
             else:
-                move_task = gevent.spawn(self._move, value)
-                move_task.link(self._callback)
+                self.__move_task = gevent.spawn(self._move, value)
+                self.__move_task.link(self._callback)
         else:
             raise ValueError("Invalid value %s" % str(value))
 
