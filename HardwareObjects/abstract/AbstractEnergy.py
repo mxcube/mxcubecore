@@ -21,6 +21,7 @@
 """Abstract Energy and Wavelength"""
 
 import abc
+import math
 from scipy.constants import h, c, e
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
@@ -33,16 +34,19 @@ __license__ = "LGPLv3+"
 class AbstractEnergy(AbstractActuator):
     """Abstract Energy and Wavelength"""
 
+    # Unit for 'value' attribute
+    unit = "keV"
+
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, name):
-        AbstractActuator.__init__(self, name)
-        self._wavelength_value = None
-        self._wavelength_limits = (None, None)
-
-    def init(self):
-        """Get the proprrties read_only, default_value"""
-        AbstractActuator.init(self)
+    # These are not actually necessary. Do wewant them anyway, for clarity?
+    #
+    # def __init__(self, name):
+    #     AbstractActuator.__init__(self, name)
+    #
+    # def init(self):
+    #     """Get the proprrties read_only, default_value"""
+    #     AbstractActuator.init(self)
 
     def is_ready(self):
         """Check if the state is ready.
@@ -66,8 +70,7 @@ class AbstractEnergy(AbstractActuator):
         Returns:
             (float): Wavelength [Å].
         """
-        self._wavelength_value = self._calculate_wavelength(self.get_value())
-        return self._wavelength_value
+        return self._calculate_wavelength(self.get_value())
 
     def get_wavelength_limits(self):
         """Return wavelength low and high limits.
@@ -75,11 +78,7 @@ class AbstractEnergy(AbstractActuator):
             (tuple): two floats tuple (low limit, high limit) [Å].
         """
         _low, _high = self.get_limits()
-        self._wavelength_limits = (
-            self._calculate_wavelength(_low),
-            self._calculate_wavelength(_high),
-        )
-        return self._wavelength_limits
+        return (self._calculate_wavelength(_low), self._calculate_wavelength(_high),)
 
     def set_wavelength(self, value, timeout=None):
         """Move motor to absolute value. Wait the move to finish.
@@ -89,6 +88,7 @@ class AbstractEnergy(AbstractActuator):
                              if timeout = 0: return at once and do not wait
                              if timeout is None: wait forever
         """
+        self.set_value(self._calculate_energy(value), timeout=timeout)
 
     def _calculate_wavelength(self, energy=None):
         """Calculate wavelength from energy
@@ -99,10 +99,8 @@ class AbstractEnergy(AbstractActuator):
         """
         hc_over_e = h * c / e * 10e6
         energy = energy or self.get_value()
-
-        # energy in KeV to get wavelength in Å
-        energy = energy / 1000.0 if energy > 1000 else energy
-
+        if energy is None:
+            return
         return hc_over_e / energy
 
     def _calculate_energy(self, wavelength=None):
@@ -113,8 +111,26 @@ class AbstractEnergy(AbstractActuator):
             (float): Energy [keV]
         """
         hc_over_e = h * c / e * 10e6
-        wavelength = wavelength or self._wavelength_value
+        wavelength = wavelength or self.get_wavelength()
+        if wavelength is None:
+            return
         return hc_over_e / wavelength
+
+    def validate_value(self, value):
+        """Check if the value is within the limits
+        Args:
+            value(float): value
+        Returns:
+            (bool): True if within the limits
+        """
+        if value is None:
+            return True
+        if math.isnan(value) or math.isinf(value):
+            return False
+        limits = self.get_limits()
+        if None in limits:
+            return True
+        return limits[0] <= value <= limits[1]
 
     def update_value(self, value=None):
         """Emist signal energyChanged for both energy and wavelength
@@ -125,8 +141,5 @@ class AbstractEnergy(AbstractActuator):
         if value is None:
             value = self.get_value()
         self._nominal_value = value
-
-        if not self._wavelength_value:
-            self._wavelength_value = self._calculate_wavelength(value)
-        self.emit("energyChanged", (value, self._wavelength_value))
+        self.emit("energyChanged", (value, self._calculate_wavelength(value)))
         self.emit("valueChanged", (value,))
