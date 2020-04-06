@@ -23,7 +23,7 @@ class Sample(Component):
         super(Sample, self).__init__(container, address, scannable)
         self.properties = {}
         self.loaded = False
-        self.has_been_loaded = False
+        self._has_been_loaded = False
         self._leaf = True
 
     #########################           PUBLIC           #########################
@@ -40,7 +40,7 @@ class Sample(Component):
         Returns if the sample has already beenloaded for data collection
         :rtype: bool
         """
-        return self.has_been_loaded
+        return self._has_been_loaded
 
     def get_properties(self):
         """
@@ -86,8 +86,8 @@ class Sample(Component):
         if self.loaded:
             self.loaded = False
             changed = True
-        if self.has_been_loaded:
-            self.has_been_loaded = False
+        if self._has_been_loaded :
+            self._has_been_loaded = False
             changed = True
         if changed:
             self._set_dirty()
@@ -135,8 +135,8 @@ class Sample(Component):
         if has_been_loaded is None:
             if loaded:
                 has_been_loaded = True
-        if self.has_been_loaded != has_been_loaded:
-            self.has_been_loaded = has_been_loaded
+        if self._has_been_loaded  != has_been_loaded:
+            self._has_been_loaded  = has_been_loaded
             changed = True
         if changed:
             self._set_dirty()
