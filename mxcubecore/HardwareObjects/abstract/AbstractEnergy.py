@@ -27,7 +27,7 @@ from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
 )
 
-__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -39,14 +39,14 @@ class AbstractEnergy(AbstractActuator):
 
     __metaclass__ = abc.ABCMeta
 
-    # These are not actually necessary. Do wewant them anyway, for clarity?
-    #
-    # def __init__(self, name):
-    #     AbstractActuator.__init__(self, name)
-    #
-    # def init(self):
-    #     """Get the proprrties read_only, default_value"""
-    #     AbstractActuator.init(self)
+    def __init__(self, name):
+        AbstractActuator.__init__(self, name)
+        self._wavelength_value = None
+        self._wavelength_limits = (None, None)
+
+    def init(self):
+        """Get the proprrties read_only, default_value"""
+        AbstractActuator.init(self)
 
     def is_ready(self):
         """Check if the state is ready.
@@ -70,7 +70,8 @@ class AbstractEnergy(AbstractActuator):
         Returns:
             (float): Wavelength [Å].
         """
-        return self._calculate_wavelength(self.get_value())
+        self._wavelength_value = self._calculate_wavelength(self.get_value())
+        return self._wavelength_value
 
     def get_wavelength_limits(self):
         """Return wavelength low and high limits.
@@ -78,7 +79,11 @@ class AbstractEnergy(AbstractActuator):
             (tuple): two floats tuple (low limit, high limit) [Å].
         """
         _low, _high = self.get_limits()
-        return (self._calculate_wavelength(_low), self._calculate_wavelength(_high),)
+        self._wavelength_limits = (
+            self._calculate_wavelength(_low),
+            self._calculate_wavelength(_high),
+        )
+        return self._wavelength_limits
 
     def set_wavelength(self, value, timeout=None):
         """Move motor to absolute value. Wait the move to finish.
@@ -99,8 +104,10 @@ class AbstractEnergy(AbstractActuator):
         """
         hc_over_e = h * c / e * 10e6
         energy = energy or self.get_value()
-        if energy is None:
-            return
+
+        # energy in KeV to get wavelength in Å
+        energy = energy / 1000.0 if energy > 1000 else energy
+
         return hc_over_e / energy
 
     def _calculate_energy(self, wavelength=None):
@@ -111,9 +118,7 @@ class AbstractEnergy(AbstractActuator):
             (float): Energy [keV]
         """
         hc_over_e = h * c / e * 10e6
-        wavelength = wavelength or self.get_wavelength()
-        if wavelength is None:
-            return
+        wavelength = wavelength or self._wavelength_value
         return hc_over_e / wavelength
 
     def validate_value(self, value):
@@ -141,5 +146,8 @@ class AbstractEnergy(AbstractActuator):
         if value is None:
             value = self.get_value()
         self._nominal_value = value
-        self.emit("energyChanged", (value, self._calculate_wavelength(value)))
+
+        if not self._wavelength_value:
+            self._wavelength_value = self._calculate_wavelength(value)
+        self.emit("energyChanged", (value, self._wavelength_value))
         self.emit("valueChanged", (value,))
