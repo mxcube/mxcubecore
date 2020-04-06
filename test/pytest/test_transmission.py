@@ -25,7 +25,7 @@ __license__ = "LGPLv3+"
 def test_transmission_attributes(beamline):
     assert (
         not beamline.energy is None
-    ), "Energy hardware objects is None (not initialized)"
+    ), "Transmission hardware object is None (not initialized)"
 
     value = beamline.transmission.get_value()
     limits = beamline.transmission.get_limits()
@@ -35,7 +35,7 @@ def test_transmission_attributes(beamline):
         limits, (list, tuple)
     ), "Energy limits has to be defined as tuple or list"
     assert None not in limits, "One or several limits is None"
-    assert limits[0] < limits[1], "First value of energy limits has to be the low limit"
+    assert limits[0] < limits[1], "Transmission limits define an invalid range"
 
 
 def test_transmission_methods(beamline):
