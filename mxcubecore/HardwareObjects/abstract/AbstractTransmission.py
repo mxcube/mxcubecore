@@ -20,8 +20,10 @@
 
 """Abstract Transmission"""
 
-from HardwareRepository.HardwareObjects.abstract.AbstractActuator import \
-    AbstractActuator
+import abc
+from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
+    AbstractActuator,
+)
 
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
@@ -29,7 +31,15 @@ __license__ = "LGPLv3+"
 
 
 class AbstractTransmission(AbstractActuator):
-    """Abstract Transmission"""
+    """Abstract Transmission
+
+    The value of transmission is in % (float or int).
+    If transmission is not continuously variable,
+    beamlines should provide the nearest achievable value"""
+
+    unit = None
+
+    __metaclass__ = abc.ABCMeta
 
     def __init__(self, name):
         AbstractActuator.__init__(self, name)
