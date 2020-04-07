@@ -17,6 +17,8 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Mockup class for testing purposes"""
+
 import ast
 import time
 import gevent
@@ -28,18 +30,20 @@ DEFAULT_VALUE = 12.4
 # Default energy limits (keV)
 DEFAULT_LIMITS = (4, 20)
 
+
 class EnergyMockup(AbstractEnergy):
+    """Energy Mockup class"""
     def __init__(self, name):
         AbstractEnergy.__init__(self, name)
         self.__move_task = None
 
     def init(self):
+        """Initialise default values"""
         self.update_value(self.default_value or DEFAULT_VALUE)
         self.update_limits(
-            ast.literal_eval(self.getProperty("energy_limits") or DEFAULT_LIMITS)
+            ast.literal_eval(self.getProperty("energy_limits") or str(DEFAULT_LIMITS))
         )
         self.update_state(self.STATES.READY)
-
 
     def _move(self, value):
         """ Simulated energy change
@@ -49,8 +53,8 @@ class EnergyMockup(AbstractEnergy):
         start_pos = self.get_value()
         if value is not None and start_pos is not None:
             step = -1 if value < start_pos else 1
-            for ii in range(int(start_pos) + step, int(value) + step, step):
-                self.update_value(ii)
+            for _val in range(int(start_pos) + step, int(value) + step, step):
+                self.update_value(_val)
                 time.sleep(0.2)
         return value
 
