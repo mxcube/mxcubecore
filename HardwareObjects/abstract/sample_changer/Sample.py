@@ -49,7 +49,7 @@ class Sample(Component):
         """
         return self.properties
 
-    def has_Property(self, name):
+    def has_property(self, name):
         """
         Returns true if a property is defined
         :rtype: bool
@@ -61,14 +61,14 @@ class Sample(Component):
         Returns a given property or None if not defined
         :rtype: object
         """
-        if not self.has_Property(name):
+        if not self.has_property(name):
             return None
 
         return self.properties[name]
 
     def fetch_image(self):
         try:
-            if self.has_Property(self.__IMAGE_URL_PROPERTY__):
+            if self.has_property(self.__IMAGE_URL_PROPERTY__):
                 img_url = self.get_property(self.__IMAGE_URL_PROPERTY__)
                 if len(img_url) == 0:
                     return None
@@ -142,11 +142,11 @@ class Sample(Component):
             self._set_dirty()
 
     def _set_property(self, name, value):
-        if (not self.has_Property(name)) or (self.get_property(name) != value):
+        if (not self.has_property(name)) or (self.get_property(name) != value):
             self._set_dirty()
         self.properties[name] = value
 
     def _reset_property(self, name, value):
-        if self.has_Property(name):
+        if self.has_property(name):
             self.properties.pop(name)
             self._set_dirty()

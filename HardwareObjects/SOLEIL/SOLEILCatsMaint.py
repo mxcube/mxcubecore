@@ -60,9 +60,9 @@ class SOLEILCatsMaint(Equipment):
         self._chnPowered = self.get_channel_object("_chnPowered")
         self._chnPowered.connectSignal("update", self._update_powered_state)
         self._chnMessage = self.get_channel_object("_chnMessage")
-        self._chnMessage.connectSignal("update", self._updateMessage)
+        self._chnMessage.connectSignal("update", self._update_message)
         self._chnLN2Regulation = self.get_channel_object("_chnLN2RegulationDewar1")
-        self._chnLN2Regulation.connectSignal("update", self._updateRegulationState)
+        self._chnLN2Regulation.connectSignal("update", self._update_regulation_state)
 
         for command_name in (
             "_cmdResetError",
@@ -98,75 +98,75 @@ class SOLEILCatsMaint(Equipment):
 
     ################################################################################
 
-    def backTraj(self):
+    def back_traj(self):
         """
         Moves a sample from the gripper back into the dewar to its logged position.
         """
-        return self._execute_task(False, self._doBack)
+        return self._execute_task(False, self._do_back)
 
-    def safeTraj(self):
+    def safe_traj(self):
         """
         Safely Moves the robot arm and the gripper to the home position
         """
-        return self._execute_task(False, self._doSafe)
+        return self._execute_task(False, self._do_safe)
 
     # MS 2014-11-18
-    def homeTraj(self):
+    def home_traj(self):
         """
         Moves the robot arm to the home position
         """
         return self._execute_task(False, self._do_home)
 
-    def dryTraj(self):
+    def dry_traj(self):
         """
         Drying the gripper
         """
-        return self._execute_task(False, self._doDry)
+        return self._execute_task(False, self._do_dry)
 
-    def drySoakTraj(self):
+    def dry_soak_traj(self):
         """
         Dry and Soak the gripper
         """
-        return self._execute_task(False, self._doDrySoak)
+        return self._execute_task(False, self._do_dry_soak)
 
-    def soakTraj(self):
+    def soak_traj(self):
         """
         Soaking the gripper
         """
-        return self._execute_task(False, self._doSoak)
+        return self._execute_task(False, self._do_soak)
 
-    def integratedToolCal(self):
-        return self._execute_task(False, self._doIntegratedToolCal)
+    def integrated_tool_cal(self):
+        return self._execute_task(False, self._do_integrated_tool_cal)
 
-    def clearMemory(self):
+    def clear_memory(self):
         """
         Clears the memory
         """
-        return self._execute_task(False, self._doClearMemory)
+        return self._execute_task(False, self._do_clear_memory)
 
-    def ackSampleMemory(self):
+    def ack_sample_memory(self):
         """
         Acknowledge incoherence between memorized and actual sample status -- e.g. if robot executed put trajectory but no sample was mounted on the gonio -- either because of empty position or problem with gripper.
         """
-        return self._execute_task(False, self._doAckSampleMemory)
+        return self._execute_task(False, self._do_ack_sample_memory)
 
     def opentool(self):
         """
         Drying the gripper
         """
-        return self._execute_task(False, self._doOpentool)
+        return self._execute_task(False, self._do_opentool)
 
-    def toolcalTraj(self):
+    def toolcal_traj(self):
         """
         Soaking the gripper
         """
-        return self._execute_task(False, self._doToolCal)
+        return self._execute_task(False, self._do_tool_cal)
 
     ###
 
     def missingSample(self):
-        self._doAckSampleMemory()
-        self._doClearMemory()
+        self._do_ack_sample_memory()
+        self._do_clear_memory()
         self._do_resetError()
 
     def _do_abort(self):
@@ -187,7 +187,7 @@ class SOLEILCatsMaint(Equipment):
         """
         self._cmdResetError()
 
-    def _doBack(self):
+    def _do_back(self):
         """
         Launch the "back" trajectory on the CATS Tango DS
 
@@ -197,7 +197,7 @@ class SOLEILCatsMaint(Equipment):
         argin = self.tool
         self._execute_server_task(self._cmdBack, argin)
 
-    def _doSafe(self):
+    def _do_safe(self):
         """
         Launch the "safe" trajectory on the CATS Tango DS
 
@@ -218,7 +218,7 @@ class SOLEILCatsMaint(Equipment):
         argin = self.tool
         self._execute_server_task(self._cmdHome, argin)
 
-    def _doDry(self):
+    def _do_dry(self):
         """
         Launch the "dry" trajectory on the CATS Tango DS
 
@@ -228,10 +228,10 @@ class SOLEILCatsMaint(Equipment):
         argin = (str(self.tool),)
         self._execute_server_task(self._cmdDry, argin)
 
-    def _doDryGripper(self):
-        return self._doDrySoak()
+    def _do_dry_gripper(self):
+        return self._do_dry_soak()
 
-    def _doDrySoak(self):
+    def _do_dry_soak(self):
         """
         Launch the "dry_soak" trajectory on the CATS Tango DS
 
@@ -241,7 +241,7 @@ class SOLEILCatsMaint(Equipment):
         argin = map(str, (self.tool, self.soaklid))
         self._execute_server_task(self._cmdDrySoak, argin)
 
-    def _doSoak(self):
+    def _do_soak(self):
         """
         Launch the "soak" trajectory on the CATS Tango DS
 
@@ -251,7 +251,7 @@ class SOLEILCatsMaint(Equipment):
         argin = map(str, (self.tool, self.soaklid))
         self._execute_server_task(self._cmdSoak, argin)
 
-    def _doIntegratedToolCal(self):
+    def _do_integrated_tool_cal(self):
 
         argin = self.tool
 
@@ -262,35 +262,35 @@ class SOLEILCatsMaint(Equipment):
         # soak
 
         self.running_safe = True
-        self._updateMessage("RUNNING Safe process. Phase is: going to Safe")
+        self._update_message("RUNNING Safe process. Phase is: going to Safe")
         logging.getLogger("HWR").info("Executing safe")
         self._execute_server_task(self._cmdSafe, argin, waitstart=True)
         logging.getLogger("HWR").info("Executing safe done")
 
-        self._updateMessage("RUNNING Safe process. Phase is: Drying")
+        self._update_message("RUNNING Safe process. Phase is: Drying")
         logging.getLogger("HWR").info("Executing dry")
         self._execute_server_task(self._cmdDry, argin, waitstart=True)
         logging.getLogger("HWR").info("Executing dry done")
 
-        self._updateMessage("RUNNING Safe process. Phase is: SoakToolCal")
+        self._update_message("RUNNING Safe process. Phase is: SoakToolCal")
         logging.getLogger("Executing SoakToolCal")
         self._execute_server_task(self._cmdSoakToolCal, argin, waitstart=True)
         logging.getLogger("Executing SoakToolCal DONE")
 
-        self._updateMessage("RUNNING Safe process. Phase is: ResetError")
+        self._update_message("RUNNING Safe process. Phase is: ResetError")
         self._cmdResetError()
 
         logging.getLogger("Executing SoakToolCal")
-        self._updateMessage(
+        self._update_message(
             "RUNNING Safe process. Phase is: Soak (will take 45 seconds)"
         )
         argin = map(str, (self.tool, self.soaklid))
         self._execute_server_task(self._cmdSoak, argin, waitstart=True)
         logging.getLogger("Executing SoakToolCal done")
-        self._updateMessage("Safe process finished")
+        self._update_message("Safe process finished")
         self.running_safe = False
 
-    def _doClearMemory(self):
+    def _do_clear_memory(self):
         """
         Execute "clear_memory" command on the CATS Tango DS
 
@@ -300,7 +300,7 @@ class SOLEILCatsMaint(Equipment):
         # argin = 1
         self._execute_server_task(self._cmdClearMemory)
 
-    def _doAckSampleMemory(self):
+    def _do_ack_sample_memory(self):
         """
         Execute "clear_memory" command on the CATS Tango DS
 
@@ -310,7 +310,7 @@ class SOLEILCatsMaint(Equipment):
         # argin = 1
         self._execute_server_task(self._cmdAckSampleMemory)
 
-    def _doOpentool(self):
+    def _do_opentool(self):
         """
         Open tool via the CATS Tango DS
 
@@ -320,7 +320,7 @@ class SOLEILCatsMaint(Equipment):
         # argin = 1
         self._execute_server_task(self._cmdOpenTool)  # , argin)
 
-    def _doToolCal(self):
+    def _do_tool_cal(self):
         """
         Launch the "toolcal" trajectory on the CATS Tango DS
 
@@ -332,7 +332,7 @@ class SOLEILCatsMaint(Equipment):
 
     ###
 
-    def _doPowerState(self, state=False):
+    def _do_power_state(self, state=False):
         """
         Switch on CATS power if >state< == True, power off otherwise
 
@@ -344,7 +344,7 @@ class SOLEILCatsMaint(Equipment):
         else:
             self._cmdPowerOff()
 
-    def _doEnableRegulation(self):
+    def _do_enable_regulation(self):
         """
         Switch on CATS regulation
 
@@ -353,7 +353,7 @@ class SOLEILCatsMaint(Equipment):
         """
         self._cmdRegulOn()
 
-    def _doLid1State(self, state=True):
+    def _do_lid1_state(self, state=True):
         """
         Opens lid 1 if >state< == True, closes the lid otherwise
 
@@ -365,7 +365,7 @@ class SOLEILCatsMaint(Equipment):
         else:
             self._execute_server_task(self._cmdCloseLid1)
 
-    def _doLid2State(self, state=True):
+    def _do_lid2_state(self, state=True):
         """
         Opens lid 2 if >state< == True, closes the lid otherwise
 
@@ -377,7 +377,7 @@ class SOLEILCatsMaint(Equipment):
         else:
             self._execute_server_task(self._cmdCloseLid2)
 
-    def _doLid3State(self, state=True):
+    def _do_lid3_state(self, state=True):
         """
         Opens lid 3 if >state< == True, closes the lid otherwise
 
@@ -420,8 +420,8 @@ class SOLEILCatsMaint(Equipment):
         logging.info("CatsMaint _update_powered_state %s" % value)
         self.emit("powerStateChanged", (value,))
 
-    def _updateMessage(self, value):
-        logging.info("CatsMaint _updateMessage %s" % value)
+    def _update_message(self, value):
+        logging.info("CatsMaint _update_message %s" % value)
         if value.strip() == "" and self.running_safe:
             return
 
@@ -447,23 +447,23 @@ class SOLEILCatsMaint(Equipment):
             )
         self.emit("messageChanged", (value,))
 
-    def _updateRegulationState(self, value):
-        logging.info("CatsMaint _updateRegulationState %s" % value)
+    def _update_regulation_state(self, value):
+        logging.info("CatsMaint _update_regulation_state %s" % value)
         self.emit("regulationStateChanged", (value,))
 
-    def _updateLid1State(self, value):
-        logging.info("CatsMaint _updateLid1State %s" % value)
+    def _update_lid1_state(self, value):
+        logging.info("CatsMaint _update_lid1_state %s" % value)
         self.emit("lid1StateChanged", (value,))
 
-    def _updateLid2State(self, value):
-        logging.info("CatsMaint _updateLid2State %s" % value)
+    def _update_lid2_state(self, value):
+        logging.info("CatsMaint _update_lid2_state %s" % value)
         self.emit("lid2StateChanged", (value,))
 
-    def _updateLid3State(self, value):
-        logging.info("CatsMaint _updateLid3State %s" % value)
+    def _update_lid3_state(self, value):
+        logging.info("CatsMaint _update_lid3_state %s" % value)
         self.emit("lid3StateChanged", (value,))
 
-    def _updateOperationMode(self, value):
+    def _update_operation_mode(self, value):
         self._scIsCharging = not value
 
     def _execute_server_task(self, method, argin=None, waitstart=False):

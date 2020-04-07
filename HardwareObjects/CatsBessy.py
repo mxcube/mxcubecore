@@ -88,7 +88,7 @@ class CatsBessy(SampleChanger):
             "di_AllLidsClosed",
         )
         if self._lidStatus is not None:
-            self._lidStatus.connectSignal("update", self._updateOperationMode)
+            self._lidStatus.connectSignal("update", self._update_operation_mode)
         self._scIsCharging = None
 
         self._load = self.add_command(
@@ -267,7 +267,7 @@ class CatsBessy(SampleChanger):
         self._reset_basket_info(basket)
 
     # ########################           PRIVATE           #########################
-    def _updateOperationMode(self, value):
+    def _update_operation_mode(self, value):
         self._scIsCharging = not value
 
     def _execute_server_task(self, method, *args):
@@ -420,7 +420,7 @@ class CatsBessy(SampleChanger):
         for spl in sample_list:
             sample = self.get_component_by_address(Pin.get_sample_address(spl[1], spl[2]))
             datamatrix = None
-            present = scanned = loaded = _has_been_loaded = False
+            present = scanned = loaded = has_been_loaded = False
             sample._set_info(present, datamatrix, scanned)
             sample._set_loaded(loaded, has_been_loaded)
             sample._set_holder_length(spl[4])
@@ -460,5 +460,5 @@ class CatsBessy(SampleChanger):
                     scanned = False
                     sample._set_info(present, datamatrix, scanned)
                     # forget about any loaded state in newly mounted or removed basket)
-                    loaded = _has_been_loaded = False
+                    loaded = has_been_loaded = False
                     sample._set_loaded(loaded, has_been_loaded)
