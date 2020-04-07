@@ -58,7 +58,7 @@ class EnergyMockup(AbstractEnergy):
                 time.sleep(0.2)
         return value
 
-    def set_value(self, value, timeout=0):
+    def set_value(self, value, timeout=None):
         """
         Set energy to absolute value.
         This is NOT the recommended way, but for technical reasons
