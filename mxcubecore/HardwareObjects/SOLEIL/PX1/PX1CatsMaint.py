@@ -47,7 +47,7 @@ class PX1CatsMaint(CatsMaint):
         state_dict["homeopen"] = self.home_opened
         return state_dict, cmd_state, message
 
-    def _do_homeOpen(self, unload=False):
+    def _do_home_open(self, unload=False):
         if unload and self.loaded:
             logging.getLogger("HWR").debug("Unloading sample first")
             self.cats_hwo._do_unload()
@@ -58,7 +58,7 @@ class PX1CatsMaint(CatsMaint):
         logging.getLogger("HWR").debug("Running the home command (home/open) now")
         self._cmdHome()
 
-    def _doDrySoak(self):
+    def _do_dry_soak(self):
         self._cmdDrySoak()
 
     def _do_reset(self):
