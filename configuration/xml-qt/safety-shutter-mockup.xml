@@ -1,4 +1,4 @@
-<device class = "ShutterMockup">
+<device class = "NStateMockup">
     <actuator_name>safety_shutter</actuator_name>
     <user_name>SafetyShutter</user_name>
     <values>{"OPEN": "OPEN", "CLOSED": "CLOSED"}</values>
