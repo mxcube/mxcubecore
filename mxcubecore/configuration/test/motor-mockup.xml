@@ -1,0 +1,7 @@
+<device class = "MotorMockup">
+    <username>Mock motor</username>
+    <actuator_name>mock_motor</actuator_name>
+    <start_position>500</start_position>
+    <velocity>100</velocity>
+    <default_limits>[-360, 360]</default_limits>
+</device>
