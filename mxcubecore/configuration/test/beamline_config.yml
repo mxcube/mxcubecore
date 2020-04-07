@@ -32,7 +32,7 @@ _objects:
     - detector: detector-mockup.xml
     #- resolution: resolution-mockup.xml
     #- hutch_interlock: door-interlock-mockup.xml
-    #- safety_shutter: safety-shutter-mockup.xml
+    - safety_shutter: safety-shutter-mockup.xml
     #- fast_shutter: shutter-mockup.xml
     #- sample_changer: sc-mockup.xml
     # NBNB TODO remove plate_manipulater and treat as another smaple changer
