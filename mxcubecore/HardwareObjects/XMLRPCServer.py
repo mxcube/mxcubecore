@@ -525,7 +525,7 @@ class XMLRPCServer(HardwareObject):
         return float(flux)
 
     def set_aperture(self, pos_name, timeout=20):
-        HWR.beamline.beam.aperture.moveToPosition(pos_name)
+        HWR.beamline.beam.aperture.move_to_position(pos_name)
         t0 = time.time()
         while HWR.beamline.beam.aperture.get_state() == "MOVING":
             time.sleep(0.1)
@@ -537,7 +537,7 @@ class XMLRPCServer(HardwareObject):
         return HWR.beamline.beam.aperture.get_current_position_name()
 
     def get_aperture_list(self):
-        return HWR.beamline.beam.aperture.getPredefinedPositionsList()
+        return HWR.beamline.beam.aperture.get_predefined_positions_list()
 
     def open_dialog(self, dict_dialog):
         """

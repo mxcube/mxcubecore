@@ -69,7 +69,7 @@ class BeamMockup(AbstractBeam):
         self.evaluate_beam_info()
         self.emit_beam_info_change()
 
-    def set_beam_position(self, beam_x, beam_y):
+    def set_beam_position_on_screen(self, beam_x, beam_y):
         self._beam_position_on_screen = (beam_x, beam_y)
         self.emit("beamPosChanged", (self._beam_position_on_screen,))
 

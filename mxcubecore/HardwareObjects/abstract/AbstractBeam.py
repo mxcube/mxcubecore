@@ -30,9 +30,7 @@ __license__ = "LGPLv3+"
 import abc
 from enum import Enum, unique
 
-from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator,
-)
+from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
 @unique
@@ -44,13 +42,13 @@ class BeamShape(Enum):
     ELIPTICAL = "ellipse"
 
 
-class AbstractBeam(AbstractActuator):
+class AbstractBeam(HardwareObject):
     """ AbstractBeam class """
 
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, name):
-        AbstractActuator.__init__(self, name)
+        HardwareObject.__init__(self, name)
 
         self._aperture = None
         self._slits = None
@@ -113,34 +111,6 @@ class AbstractBeam(AbstractActuator):
         else:
             return self._beam_divergence
 
-    def get_value(self):
-        """ Get the size (width and height) of the beam and its shape.
-        Retunrs:
-            (float, float, Enum, str): Width, height, shape and label.
-        Raises:
-            NotImplementedError
-        """
-        return self._beam_width, self._beam_height, self._beam_shape, self._beam_label
-
-    def _set_value(self, beam_width, beam_height, beam_shape=None, beam_label=None):
-        """
-        Sets beam parameters
-        Args:
-            beam_width: width in microns
-            beam_height: height in microns
-            beam_shape: Enum BeamShape
-            beam_label: str
-
-        Returns:
-
-        """
-        self._beam_width = beam_width
-        self._beam_height = beam_height
-        if beam_shape:
-            self._beam_shape = beam_shape
-        if beam_label:
-            self._beam_label = beam_label
-
     def get_available_size(self):
         """ Get the available predefined beam definers configuration.
         Returns:
@@ -152,15 +122,6 @@ class AbstractBeam(AbstractActuator):
             NotImplementedError
         """
         raise NotImplementedError
-
-    def set_value(self, beam_width, beam_height, beam_shape=None, beam_label=None):
-        """Set the beam size
-        Args:
-            size (list): Width, height or
-                  (str): Position name
-        """
-        self._set_value(beam_width, beam_height, beam_shape, beam_label)
-        self.update_value()
 
     def get_beam_shape(self):
         """
@@ -182,6 +143,7 @@ class AbstractBeam(AbstractActuator):
         Returns:
             (tuple): Position (x, y) [pixel]
         """
+        #TODO move this method to AbstractSampleView
         return self._beam_position_on_screen
 
     def set_beam_position_on_screen(self, beam_x_y):
