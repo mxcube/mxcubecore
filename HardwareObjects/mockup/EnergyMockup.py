@@ -28,8 +28,7 @@ from HardwareRepository.HardwareObjects.abstract.AbstractEnergy import AbstractE
 # Default energy value (keV)
 DEFAULT_VALUE = 12.4
 # Default energy limits (keV)
-DEFAULT_LIMITS = (4, 20)
-
+DEFAULT_LIMITS = "(4, 20)"
 
 class EnergyMockup(AbstractEnergy):
     """Energy Mockup class"""
