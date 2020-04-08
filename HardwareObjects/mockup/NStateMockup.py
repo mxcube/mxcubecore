@@ -78,8 +78,3 @@ class NStateMockup(AbstractNState):
         else:
             _state = self.STATES.UNKNOWN
         return _state
-
-    def abort(self):
-        """Nothing to do here, but defined as an abstract method in
-           HardwareObject class
-        """
