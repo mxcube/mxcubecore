@@ -28,10 +28,12 @@ from HardwareRepository.HardwareObjects.abstract.AbstractEnergy import AbstractE
 # Default energy value (keV)
 DEFAULT_VALUE = 12.4
 # Default energy limits (keV)
-DEFAULT_LIMITS = "(4, 20)"
+DEFAULT_LIMITS = (4, 20)
+
 
 class EnergyMockup(AbstractEnergy):
     """Energy Mockup class"""
+
     def __init__(self, name):
         AbstractEnergy.__init__(self, name)
         self.__move_task = None
@@ -39,9 +41,11 @@ class EnergyMockup(AbstractEnergy):
     def init(self):
         """Initialise default values"""
         self.update_value(self.default_value or DEFAULT_VALUE)
-        self.update_limits(
-            ast.literal_eval(self.getProperty("energy_limits") or str(DEFAULT_LIMITS))
-        )
+
+        limits = self.getProperty("energy_limits", None)
+        limits = DEFAULT_LIMITS if limits is None else ast.literal_eval(limits)
+
+        self.update_limits(limits)
         self.update_state(self.STATES.READY)
 
     def _move(self, value):
