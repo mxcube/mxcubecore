@@ -417,7 +417,7 @@ class EMBLMiniDiff(GenericDiffractometer):
                     )
             else:
                 if click < 2:
-                    self.motor_hwobj_dict["phi"].move_relative(90)
+                    self.motor_hwobj_dict["phi"].set_value_relative(90)
         self.omega_reference_add_constraint()
         # _x = self.centring_hwobj.centeredPosition(return_by_name=True, shift_to_constraints=True)
         # logging.getLogger("HWR").debug("opti %s" %_x)
@@ -442,7 +442,7 @@ class EMBLMiniDiff(GenericDiffractometer):
                 # static_positions=self.imaging_static_positions
             )
             if click < 2:
-                self.motor_hwobj_dict["phi"].move_relative(90)
+                self.motor_hwobj_dict["phi"].set_value_relative(90)
         self.omega_reference_add_constraint()
         # _x = self.imaging_centring_hwobj.centeredPosition(return_by_name=True, shift_to_constraints=True)
         # logging.getLogger("HWR").debug("xray %s" %_x)
@@ -468,7 +468,7 @@ class EMBLMiniDiff(GenericDiffractometer):
                     }
                 )
             surface_score_list.append(score)
-            self.motor_hwobj_dict["phi"].move_relative(
+            self.motor_hwobj_dict["phi"].set_value_relative(
                 360.0 / EMBLMiniDiff.AUTOMATIC_CENTRING_IMAGES
             )
             gevent.sleep(0.01)
@@ -512,7 +512,7 @@ class EMBLMiniDiff(GenericDiffractometer):
                 static_positions=self.imaging_static_positions
             )
             if click < 2:
-                self.motor_hwobj_dict["phi"].move_relative(90)
+                self.motor_hwobj_dict["phi"].set_value_relative(90)
         self.omega_reference_add_constraint()
         return self.imaging_centring_hwobj.centeredPosition(return_by_name=False, shift_to_constraints=True)
 
@@ -699,7 +699,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.motor_hwobj_dict["phi"].set_value(angle, timeout=5)
 
     def move_omega_relative(self, relative_angle, timeout=5):
-        self.motor_hwobj_dict["phi"].move_relative(relative_angle, timeout=timeout)
+        self.motor_hwobj_dict["phi"].set_value_relative(relative_angle, timeout=timeout)
 
     def close_kappa(self):
         gevent.spawn(self.close_kappa_task)
@@ -857,7 +857,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.cmd_save_centring_positions()
 
     def move_sample_out(self):
-        self.motor_hwobj_dict["phiy"].move_relative(-2, wait=True, timeout=5)
+        self.motor_hwobj_dict["phiy"].set_value_relative(-2, wait=True, timeout=5)
 
     def move_sample_in(self):
-        self.motor_hwobj_dict["phiy"].move_relative(2, wait=True, timeout=5)
+        self.motor_hwobj_dict["phiy"].set_value_relative(2, wait=True, timeout=5)

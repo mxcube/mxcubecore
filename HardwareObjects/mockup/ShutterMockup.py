@@ -29,8 +29,8 @@ class ShutterMockup(AbstractNState.AbstractNState):
 
     def init(self):
         super(ShutterMockup, self).init()
-        self._nominal_value = self.VALUES.UNKNOWN
-        self._state = self.STATES.UNKNOWN
+        self._nominal_value = self.VALUES.CLOSED
+        self._state = self.STATES.READY
 
     def get_value(self):
         return self._nominal_value
