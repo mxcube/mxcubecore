@@ -1,4 +1,4 @@
-from HardwareRepository.HardwareObjects.abstract import AbstractNState
+from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 
 
 def test_shutter_init(beamline):
@@ -9,17 +9,18 @@ def test_shutter_init(beamline):
     # The methods are defined with abc.abstractmethod which will raise
     # an exception if the method is not defined. So there is no need to test for
     # the presence of each method
-    assert beamline.safety_shutter.get_state == AbstractNState.STATES.UNKNOWN
+    assert beamline.safety_shutter.get_state() == HardwareObjectState.READY
 
 
 def test_shutter_open_close(beamline):
     beamline.safety_shutter.open()
     assert beamline.safety_shutter.is_open() is True
 
-    assert beamline.safety_shutter.get_state == AbstractNState.STATES.READY
+    assert beamline.safety_shutter.get_state() == HardwareObjectState.READY
 
     beamline.safety_shutter.close()
     assert beamline.safety_shutter.is_closed() is True
+
 
 """
 def test_shutter_is_valid(beamline):
