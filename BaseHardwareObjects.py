@@ -793,7 +793,7 @@ class DeviceContainer:
                 return device
 
     def getDeviceByRole(self, role):
-        # TODO This gives a pylint ewrror, since getObjectByRoleis not in a superclass
+        # TODO This gives a pylint error, since getObjectByRoleis not in a superclass
         # it is available in the subclases that use this, but fixing this
         # would make more sense in connection with a general refactoring of
         # Device / DeciveContainer/Equipment

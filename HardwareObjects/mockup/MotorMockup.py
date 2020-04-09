@@ -36,7 +36,7 @@ import time
 import gevent
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
-__copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 DEFAULT_VELOCITY = 100
@@ -143,7 +143,6 @@ class MotorMockup(AbstractMotor):
     def _set_value(self, value):
         """
         Implementation of specific set actuator logic.
-
         Args:
             value (float): target value
         """
