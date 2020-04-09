@@ -81,7 +81,7 @@ class GrobMotor(Device, AbstractMotor):
     def _set_value(self, value):
         if isinstance(self.motor, self.grob.SampleMotor):
             # position has to be relative
-            self.motor.move_relative(value - self.get_value())
+            self.motor.set_value_relative(value - self.get_value())
         else:
             self.motor.start_one(value)
 
