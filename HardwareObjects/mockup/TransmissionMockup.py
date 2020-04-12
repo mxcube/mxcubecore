@@ -18,6 +18,7 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+import time
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.HardwareObjects.abstract.AbstractTransmission import \
     AbstractTransmission
@@ -55,16 +56,8 @@ class TransmissionMockup(AbstractTransmission):
         Args:
             value (float): target transmission value
         """
+        time.sleep(0.02)
         self._nominal_value = value
 
     def abort(self):
         pass
-
-    def get_state(self):
-        """
-        Returns the HardwareObject state.
-
-        Returns:
-            HardwareObjectState: current HardwareObject state
-        """
-        return self.STATES.READY

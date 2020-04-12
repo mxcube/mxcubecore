@@ -84,9 +84,3 @@ class DetectorMockup(AbstractDetector):
         Stops acquisition
         """
         return
-
-    def wait_ready(self):
-        """
-        Blocks until detector is ready
-        """
-        return
