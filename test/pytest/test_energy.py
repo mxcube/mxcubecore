@@ -61,5 +61,5 @@ class TestEnergy(TestAbstractActuatorBase.TestAbstractActuatorBase):
 
     def test_energy_methods(self, test_object):
         target = 12.7
-        test_object.set_value(target)
+        test_object.set_value(target, timeout=None)
         assert test_object.get_value() == target
