@@ -151,3 +151,9 @@ class AbstractActuator(HardwareObject):
         if not any(isinstance(lim, float) and math.isnan(lim) for lim in limits):
             self._nominal_limits = limits
             self.emit("limitsChanged", (limits,))
+
+    def update_values(self):
+        """Update values for all internal attributes"""
+        self.update_value(self.get_value())
+        self.update_limits(self.get_limits())
+        super(AbstractActuator, self).update_values()

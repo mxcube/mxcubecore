@@ -108,3 +108,8 @@ class AbstractNState(AbstractActuator):
                 return enum_var
 
         return self.VALUES.UNKNOWN
+
+    def update_values(self):
+        """Update values for all internal attributes"""
+        self.update_value(self.get_value())
+        super(AbstractActuator, self).update_values()
