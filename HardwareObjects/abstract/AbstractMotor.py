@@ -63,6 +63,9 @@ class AbstractMotor(AbstractActuator):
         """Initialise tolerance property"""
         AbstractActuator.init(self)
         self._tolerance = self.getProperty("tolerance") or 1e-3
+        velocity = self.getProperty("velocity")
+        if velocity:
+            self.set_velocity(velocity)
 
     def get_velocity(self):
         """Read motor velocity.
