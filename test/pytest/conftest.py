@@ -2,6 +2,9 @@ import pytest
 import sys
 import os
 
+from gevent import monkey
+monkey.patch_all(thread=False)
+
 TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
 MXCUBE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 HWR_DIR = os.path.join(MXCUBE_DIR, "HardwareRepository")
