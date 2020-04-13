@@ -86,11 +86,12 @@ class MotorMockup(AbstractMotor):
             start_time = time.time()
 
             while (time.time() - start_time) < (delta / self.get_velocity()):
+                time.sleep(0.02)
                 val = start_pos + direction * self.get_velocity() * (
                     time.time() - start_time
                 )
                 self.update_value(val)
-                time.sleep(0.02)
+        time.sleep(0.02)
         return value
 
     def abort(self):
