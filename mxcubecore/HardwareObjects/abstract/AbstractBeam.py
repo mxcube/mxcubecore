@@ -19,11 +19,14 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Beam abstract class - methods to define the size and shape of
-the beam, its presence.
+AbstracBeam class - methods to define the size and shape of the beam, its presence.
+
+emits:
+- beamSizeChanged (self._beam_width, self._beam_height)
+- beamInfoChanged (self._beam_info_dict.copy())
 """
 
-__copyright__ = """MXCuBE collaboration"""
+__copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -60,7 +63,7 @@ class AbstractBeam(HardwareObject):
         self._beam_shape = BeamShape.UNKNOWN
         self._beam_label = None
         self._beam_divergence = (None, None)
-        self._beam_position_on_screen = [None, None]
+        self._beam_position_on_screen = [None, None] #TODO move to sample_view
 
         self._beam_info_dict = {"size_x": self._beam_width,
                                 "size_y": self._beam_height,
@@ -69,7 +72,9 @@ class AbstractBeam(HardwareObject):
 
 
     def init(self):
-        """Initialise default values and objects"""
+        """
+        Initialise default values and objects
+        """
         _divergence_vertical = self.getProperty("beam_divergence_vertical")
         _divergence_horizontal = self.getProperty("beam_divergence_horizontal")
         self._beam_divergence = (_divergence_horizontal, _divergence_vertical)
@@ -78,28 +83,23 @@ class AbstractBeam(HardwareObject):
     @property
     def aperture(self):
         """
+        Returns aperture hwobj
         """
         return self._aperture
 
     @property
     def slits(self):
         """
+        Returns slits hwobj
         """
         return self._slits
 
     @property
     def definer(self):
+        """
+        Beam definer device, equipment like focusing optics, CRLs, and etc.
+        """
         return self._definer
-
-    def evaluate_beam_info(self):
-        """
-        Evaluates beam parameters and updates beam info dict
-
-        Returns:
-            (dict): self._beam_info_dict
-
-        """
-        return self._beam_info_dict
 
     def get_beam_divergence(self):
         """Get the beam divergence.
@@ -112,7 +112,7 @@ class AbstractBeam(HardwareObject):
             return self._beam_divergence
 
     def get_available_size(self):
-        """ Get the available predefined beam definers configuration.
+        """Get the available predefined beam definers configuration.
         Returns:
             (dict): Dictionary {"type": (list), "values": (list)}, where
                "type": the definer type
@@ -128,15 +128,30 @@ class AbstractBeam(HardwareObject):
         Returns:
             beam_shape: Enum BeamShape
         """
+        self.evaluate_beam_info()
         return self._beam_shape
 
     def get_beam_size(self):
         """
-
         Returns:
             (tuple): two floats
         """
+        self.evaluate_beam_info()
         return self._beam_width, self._beam_height
+
+    def set_beam_size_shape(self, beam_width, beam_height, beam_shape):
+        """
+        Sets beam size and shape
+        Args:
+            beam_width (float): requested beam width in microns
+            beam_height (float): requested beam height in microns
+            beam_shape (BeamShape enum): requested beam shape
+        """
+        if beam_shape == BeamShape.RECTANGULAR:
+            self._slits.set_horizontal_gap(beam_width)
+            self._slits.set_vertical_gap(beam_height)
+        elif beam_shape == BeamShape.ELIPTICAL:
+            self._aperture.set_diameter_size(beam_width)
 
     def get_beam_position_on_screen(self):
         """Get the beam position
@@ -155,14 +170,49 @@ class AbstractBeam(HardwareObject):
 
     def get_beam_info_dict(self):
         """
-
         Returns:
             (dict): copy of beam_info_dict
         """
         return self._beam_info_dict.copy()
 
-    def update_value(self, value=None):
-        """Check if the value has changed. Emist signal valueChanged."""
-        if value is None:
-            value = self.get_value()
-        self.emit("valueChanged", (value,))
+    def evaluate_beam_info(self):
+        """
+        Method called if aperture, slits or focusing has been changed
+        Returns: dictionary, {size_x: 0.1, size_y: 0.1, shape: BeamShape enum}
+        """
+        size_x = min(
+            self._beam_size_dict["aperture"][0],
+            self._beam_size_dict["slits"][0],
+        )
+        size_y = min(
+            self._beam_size_dict["aperture"][1],
+            self._beam_size_dict["slits"][1],
+        )
+
+        self._beam_width = size_x
+        self._beam_height = size_y
+
+        if tuple(self._beam_size_dict["aperture"]) < tuple(self._beam_size_dict["slits"]):
+            self._beam_shape = BeamShape.ELIPTICAL
+        else:
+            self._beam_shape = BeamShape.RECTANGULAR
+
+        self._beam_info_dict["size_x"] = size_x
+        self._beam_info_dict["size_y"] = size_y
+        self._beam_info_dict["shape"] = self._beam_shape
+
+        return self._beam_info_dict
+
+    def emit_beam_info_change(self):
+        """
+        Reemits beamSizeChanged and beamInfoChanged signals
+        """
+        if (
+            self._beam_width != 9999
+            and self._beam_height != 9999
+        ):
+            self.emit(
+                "beamSizeChanged",
+                (self._beam_width, self._beam_height)
+            )
+            self.emit("beamInfoChanged", (self._beam_info_dict))
