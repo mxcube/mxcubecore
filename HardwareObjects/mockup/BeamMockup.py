@@ -1,3 +1,4 @@
+# encoding: utf-8
 #
 #  Project: MXCuBE
 #  https://github.com/mxcube
@@ -15,13 +16,15 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-__copyright__ = """MXCuBE collaboration"""
+"""
+BeamMockup class
+"""
+
+__copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
-
-import logging
 
 from HardwareRepository.HardwareObjects.abstract.AbstractBeam import BeamShape, AbstractBeam
 
@@ -60,73 +63,58 @@ class BeamMockup(AbstractBeam):
         self.emit("beamPosChanged", (self._beam_position_on_screen,))
 
     def aperture_diameter_changed(self, name, size):
+        """
+        Method called when the aperture diameter changes
+        Args:
+            name (str): diameter name - not used.
+            size (float): diameter size in microns
+        """
         self._beam_size_dict["aperture"] = [size, size]
         self.evaluate_beam_info()
         self.emit_beam_info_change()
 
     def slits_gap_changed(self, size):
+        """
+        Method called when the slits gap changes
+        Args:
+            size (tuple): two floats indicates beam size in microns
+        """
         self._beam_size_dict["slits"] = size
         self.evaluate_beam_info()
         self.emit_beam_info_change()
 
     def set_beam_position_on_screen(self, beam_x, beam_y):
+        """
+        Sets beam mark position on screen
+        #TODO move method to sample_view
+        Args:
+            beam_x (int): horizontal position in pixels
+            beam_y (int): vertical position in pixels
+        """
         self._beam_position_on_screen = (beam_x, beam_y)
         self.emit("beamPosChanged", (self._beam_position_on_screen,))
 
-    def get_beam_shape(self):
-        self.evaluate_beam_info()
-        return self._beam_shape
-
     def get_slits_gap(self):
+        """
+        Returns: tuple with beam size in microns
+        """
         self.evaluate_beam_info()
         return self._beam_size_dict["slits"]
 
     def set_slits_gap(self, width_microns, height_microns):
+        """
+        Sets slits gap in microns
+        Args:
+            width_microns (int):
+            height_microns (int):
+        """
         if self._slits:
             self._slits.set_horizontal_gap(width_microns / 1000.0)
             self._slits.set_vertical_gap(height_microns / 1000.0)
 
-    def evaluate_beam_info(self):
-        """
-        Description: called if aperture, slits or focusing has been changed
-        Returns: dictionary, {size_x: 0.1, size_y: 0.1, shape: "rectangular"}
-        """
-
-        size_x = min(
-            self._beam_size_dict["aperture"][0],
-            self._beam_size_dict["slits"][0],
-        )
-        size_y = min(
-            self._beam_size_dict["aperture"][1],
-            self._beam_size_dict["slits"][1],
-        )
-
-        self._beam_width = size_x
-        self._beam_height = size_y
-
-        if tuple(self._beam_size_dict["aperture"]) < tuple(self._beam_size_dict["slits"]):
-            self._beam_shape = BeamShape.ELIPTICAL
-        else:
-            self._beam_shape = BeamShape.RECTANGULAR
-
-        self._beam_info_dict["size_x"] = size_x
-        self._beam_info_dict["size_y"] = size_y
-        self._beam_info_dict["shape"] = self._beam_shape
-
-    def emit_beam_info_change(self):
-        if (
-            self._beam_width != 9999
-            and self._beam_height != 9999
-        ):
-            self.emit(
-                "beamSizeChanged",
-                (self._beam_width, self._beam_height)
-            )
-            self.emit("beamInfoChanged", (self._beam_info_dict))
-
     def get_aperture_pos_name(self):
+        """
+        Returns (str): name of current aperture position
+        """
         if self._aperture:
             return self._aperture.get_current_pos_name()
-
-    def get_focus_mode(self):
-        return
