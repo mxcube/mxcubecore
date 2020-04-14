@@ -39,6 +39,7 @@ class TestAbstractNStateBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
     __metaclass__ = abc.ABCMeta
 
     def test_values(self, test_object):
+        """Test there are at last trhee values, including UNKNOWN"""
 
         assert len(test_object.VALUES) > 2, (
             "Less than three values in enumeration; %s" % test_object.VALUES
@@ -49,6 +50,8 @@ class TestAbstractNStateBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         )
 
     def test_limits_setting(self, test_object):
+        """Test that set_limits and update_limits are diabled
+        NB override ,ocally if you have an NState with limits"""
         limits = test_object.get_limits()
         with pytest.raises(NotImplementedError):
             test_object.update_limits(limits)
@@ -56,7 +59,9 @@ class TestAbstractNStateBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
             test_object.set_limits(limits)
 
     def test_setting_timeouts_1(self, test_object):
-        # NB this test may need adjusting
+        """Test that setting with timeout=0 works,
+        and that wait_ready raises an error afterwards
+        Using actual values"""
         if test_object.read_only:
             return
 
@@ -68,7 +73,9 @@ class TestAbstractNStateBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
             test_object.set_value(val2, timeout=1.0e-6)
 
     def test_setting_timeouts_2(self, test_object):
-        # NB this test may need adjusting
+        """Test that setting with timeout=0 works,
+        and that wait_ready raises an error afterwards
+        Using actual values"""
         if test_object.read_only:
             return
 
