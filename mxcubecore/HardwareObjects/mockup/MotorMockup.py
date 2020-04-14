@@ -26,7 +26,7 @@ Example of xml config file
   <username>Mock motor</username>
   <actuator_name>mock_motor</actuator_name>
   <!-- for the mockup only -->
-  <start_position>500</start_position>
+  <default_value>500</default_value>
   <velocity>100</velocity>
   <default_limits>[-360, 360]</default_limits>
 </device>
@@ -41,7 +41,7 @@ __license__ = "LGPLv3+"
 
 DEFAULT_VELOCITY = 100
 DEFAULT_LIMITS = (-360, 360)
-DEFAULT_POSITION = 10.124
+DEFAULT_VALUE = 10.124
 
 
 class MotorMockup(AbstractMotor):
@@ -66,8 +66,8 @@ class MotorMockup(AbstractMotor):
             limits = DEFAULT_LIMITS
         self.update_limits(limits)
 
-        start_position = self.getProperty("start_position", DEFAULT_POSITION)
-        self.update_value(start_position)
+        default_value = self.getProperty("default_value", DEFAULT_VALUE)
+        self.update_value(default_value)
 
         self.update_state(self.STATES.READY)
 
@@ -81,16 +81,17 @@ class MotorMockup(AbstractMotor):
         if value is not None and start_pos is not None:
             delta = abs(value - start_pos)
 
-            direction = -1 if value > self.get_value() else 1
+            direction = -1 if value < self.get_value() else 1
 
             start_time = time.time()
 
             while (time.time() - start_time) < (delta / self.get_velocity()):
+                time.sleep(0.02)
                 val = start_pos + direction * self.get_velocity() * (
                     time.time() - start_time
                 )
                 self.update_value(val)
-                time.sleep(0.02)
+        time.sleep(0.02)
         return value
 
     def abort(self):
@@ -134,7 +135,9 @@ class MotorMockup(AbstractMotor):
                 self.__move_task = gevent.spawn(self._move, value)
                 self.__move_task.link(self._callback)
         else:
-            raise ValueError("Invalid value %s" % str(value))
+            raise ValueError("Invalid value %s; limits are %s"
+                             % (value, self.get_limits())
+                             )
 
     def _callback(self, move_task):
         value = move_task.get()
@@ -157,4 +160,3 @@ class MotorMockup(AbstractMotor):
             self.update_specific_state(self.SPECIFIC_STATES.HIGHLIMIT)
         else:
             self.update_specific_state(None)
-

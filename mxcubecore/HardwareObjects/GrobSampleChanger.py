@@ -40,24 +40,24 @@ class GrobSampleChanger(Equipment):
 
         grob = self.getObjectByRole("grob")
         self.grob = grob.controller
-        self.connect(self.grob, "transfer_state", self.sampleChangerStateChanged)
-        self.connect(self.grob, "io_bits", self.ioBitsChanged)
-        self.connect(self.grob, "mounted_sample", self.mountedSampleChanged)
-        self.connect(self.grob, "samples_map", self.samplesMapChanged)
+        self.connect(self.grob, "transfer_state", self.sample_changer_state_changed)
+        self.connect(self.grob, "io_bits", self.io_bits_changed)
+        self.connect(self.grob, "mounted_sample", self.mounted_sample_changed)
+        self.connect(self.grob, "samples_map", self.samples_map_changed)
 
     def connectNotify(self, signal):
         logging.info("%s: connectNotify %s", self.name(), signal)
         if signal == "stateChanged":
-            self.sampleChangerStateChanged(self.get_state())
+            self.sample_changer_state_changed(self.get_state())
         elif signal == "loadedSampleChanged":
-            self.mountedSampleChanged(self._getLoadedSampleNum())
-        elif signal == "samplesMapChanged":
-            self.samplesMapChanged(self.getSamplesMap())
+            self.mounted_sample_changed(self._get_loaded_sampleNum())
+        elif signal == "samples_map_changed":
+            self.samples_map_changed(self.get_samples_map())
 
     def get_state(self):
         return self.grob.transfer_state()
 
-    def ioBitsChanged(self, bits):
+    def io_bits_changed(self, bits):
         bits, output_bits = map(int, bits.split())
         status = {}
         for bit_number, name in {
@@ -70,24 +70,24 @@ class GrobSampleChanger(Equipment):
             status[name] = bits & (1 << (bit_number - 1)) != 0
         self.emit("ioStatusChanged", (status,))
 
-    def samplesMapChanged(self, samples_map_dict):
+    def samples_map_changed(self, samples_map_dict):
         samples_map_int_keys = {}
         for k, v in samples_map_dict.items():
             samples_map_int_keys[int(k)] = v
         self.samples_map = samples_map_int_keys
-        self.emit("samplesMapChanged", (self.samples_map,))
+        self.emit("samples_map_changed", (self.samples_map,))
 
-    def getSamplesMap(self):
+    def get_samples_map(self):
         return self.samples_map
 
-    def mountedSampleChanged(self, sample_num=None):
+    def mounted_sample_changed(self, sample_num=None):
         self.emit("sampleIsLoaded", (sample_num > 0,))
 
         if sample_num > 0:
             basket = int((sample_num - 1) / 10) + 1
             vial = 1 + ((sample_num - 1) % 10)
 
-    def sampleChangerStateChanged(self, state):
+    def sample_changer_state_changed(self, state):
         self.emit("stateChanged", (state,))
 
     def _callSuccessCallback(self):
@@ -99,7 +99,7 @@ class GrobSampleChanger(Equipment):
                     "%s: exception while calling success callback", self.name()
                 )
 
-    def _callFailureCallback(self):
+    def _call_failure_callback(self):
         if callable(self._failureCallback):
             try:
                 self._failureCallback()
@@ -108,32 +108,32 @@ class GrobSampleChanger(Equipment):
                     "%s: exception while calling failure callback", self.name()
                 )
 
-    def _sampleTransferDone(self, transfer_greenlet):
+    def _sample_transfer_done(self, transfer_greenlet):
         status = transfer_greenlet.get()
         if status == "READY":
-            self.prepareCentring()
-            self.sampleChangerStateChanged("READY")
+            self.prepare_centring()
+            self.sample_changer_state_changed("READY")
             self._callSuccessCallback()
         else:
-            self.sampleChangerStateChanged("ERROR")
-            self._callFailureCallback()
+            self.sample_changer_state_changed("ERROR")
+            self._call_failure_callback()
 
-    def prepareCentring(self):
+    def prepare_centring(self):
         pass
 
-    def getLoadedSample(self):
+    def get_loaded_sample(self):
         return self.loaded_sample_dict
 
-    def _setMovingState(self):
-        self.sampleChangerStateChanged("MOVING")
+    def _set_moving_state(self):
+        self.sample_changer_state_changed("MOVING")
 
-    def _getLoadedSampleNum(self):
-        samples_map = self.getSamplesMap()
+    def _get_loaded_sampleNum(self):
+        samples_map = self.get_samples_map()
         for i in range(30):
             if samples_map[i] == "on_axis":
                 return i + 1
 
-    def unloadMountedSample(
+    def unload_mounted_sample(
         self,
         holderLength=None,
         sample_id=None,
@@ -146,11 +146,11 @@ class GrobSampleChanger(Equipment):
         self._successCallback = sampleIsUnloadedCallback
         self._failureCallback = failureCallback
 
-        gevent.spawn(self.continueTransfer, self.prepareTransfer()).link(
-            self._sampleTransferDone
+        gevent.spawn(self.continue_transfer, self.prepare_transfer()).link(
+            self._sample_transfer_done
         )
 
-    def loadSample(
+    def load_sample(
         self,
         holderLength,
         sample_id=None,
@@ -168,22 +168,22 @@ class GrobSampleChanger(Equipment):
         self._sample_id = sample_id
         self._sample_location = sample_location
 
-        if self._getLoadedSampleNum():
+        if self._get_loaded_sampleNum():
             self._procedure = "UNLOAD_LOAD"
         else:
             self._procedure = "LOAD"
 
-        gevent.spawn(self.continueTransfer, self.prepareTransfer()).link(
-            self._sampleTransferDone
+        gevent.spawn(self.continue_transfer, self.prepare_transfer()).link(
+            self._sample_transfer_done
         )
 
-    def prepareTransfer(self):
+    def prepare_transfer(self):
         return True
 
-    def continueTransfer(self, ok):
+    def continue_transfer(self, ok):
         if not ok:
-            self.sampleChangerStateChanged("ERROR")
-            self._callFailureCallback()
+            self.sample_changer_state_changed("ERROR")
+            self._call_failure_callback()
             return
 
         basket, vial = self._sample_location
@@ -193,7 +193,7 @@ class GrobSampleChanger(Equipment):
             logging.info("asking robot to load sample %d", sample_num)
             return self.grob.mount(sample_num)
         elif self._procedure == "UNLOAD_LOAD":
-            sample_to_unload_num = self._getLoadedSampleNum()
+            sample_to_unload_num = self._get_loaded_sampleNum()
             logging.info(
                 "asking robot to unload sample %d and to load sample %d",
                 sample_to_unload_num,
@@ -202,37 +202,37 @@ class GrobSampleChanger(Equipment):
             self.grob.unmount(sample_to_unload_num)
             return self.grob.mount(sample_num)
         elif self._procedure == "UNLOAD":
-            sample_num = self._getLoadedSampleNum()
+            sample_num = self._get_loaded_sampleNum()
             logging.info("asking robot to unload sample %d", sample_num)
             return self.grob.unmount(sample_num)
 
-    def isMicrodiff(self):
+    def is_microdiff(self):
         return False
 
-    def getLoadedSampleDataMatrix(self):
+    def get_loaded_sampleDataMatrix(self):
         return None
 
-    def getLoadedSampleLocation(self):
-        sample_num = self._getLoadedSampleNum()
+    def get_loaded_sampleLocation(self):
+        sample_num = self._get_loaded_sampleNum()
         if sample_num < 0:
             return None
         basket = int((sample_num - 1) / 10) + 1
         vial = 1 + ((sample_num - 1) % 10)
         return (basket, vial)
 
-    def getLoadedHolderLength(self):
+    def get_loaded_holder_length(self):
         return self._holderlength
 
-    def getMatrixCodes(self):
+    def get_matrix_codes(self):
         return self.matrix_codes
 
-    def updateDataMatrices(self):
+    def update_data_matrices(self):
         self.emit("matrixCodesUpdate", (self.matrix_codes,))
 
     def canLoadSample(self, sample_code=None, sample_location=None, holder_length=None):
         already_loaded = False
 
-        loaded_sample_location = self.getLoadedSampleLocation()
+        loaded_sample_location = self.get_loaded_sampleLocation()
 
         if loaded_sample_location is not None:
             if (
