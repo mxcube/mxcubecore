@@ -18,27 +18,39 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © 2019-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
+import pytest
 
-def test_transmission_attributes(beamline):
-    assert (
-        not beamline.energy is None
-    ), "Transmission hardware object is None (not initialized)"
+from HardwareRepository.HardwareObjects.abstract.testing import TestAbstractActuatorBase
 
-    value = beamline.transmission.get_value()
-    limits = beamline.transmission.get_limits()
+@pytest.fixture
+def test_object(beamline):
+    result = beamline.transmission
+    yield result
+    # Cleanup code here - restores starting state for next call:
+    # NBNB TODO
 
-    assert isinstance(value, (int, float)), "Transmission value has to be int or float"
-    assert isinstance(
-        limits, (list, tuple)
-    ), "Energy limits has to be defined as tuple or list"
-    assert None not in limits, "One or several limits is None"
-    assert limits[0] < limits[1], "Transmission limits define an invalid range"
+class TestTransmission(TestAbstractActuatorBase.TestAbstractActuatorBase):
 
 
-def test_transmission_methods(beamline):
-    target = 60.0
-    beamline.transmission.set_value(target)
-    assert beamline.transmission.get_value() == target
+    def test_transmission_attributes(self, beamline, test_object):
+        assert (
+            not beamline.energy is None
+        ), "Transmission hardware object is None (not initialized)"
+
+        value = test_object.get_value()
+        limits = test_object.get_limits()
+
+        assert isinstance(value, (int, float)), (
+            "Transmission value has to be int or float"
+        )
+        assert None not in limits, "One or several limits is None"
+        assert limits[0] < limits[1], "Transmission limits define an invalid range"
+
+
+    def test_transmission_methods(self, test_object):
+        target = 60.0
+        test_object.set_value(target)
+        assert test_object.get_value() == target

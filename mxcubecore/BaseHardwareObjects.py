@@ -393,7 +393,7 @@ class HardwareObjectMixin(CommandContainer):
         # event to handle waiting for object to be ready
         self._ready_event = event.Event()
         # Internal general state attribute, used to check for state changes
-        self._state = self.STATES.UNKNOWN
+        self._state = None
         # Internal object-specific state attribute, used to check for state changes
         self._specific_state = None
 
@@ -407,7 +407,7 @@ class HardwareObjectMixin(CommandContainer):
         """'protected' post-initialization method. Override as needed
 
         For ConfiguredObjects called before loading contained objects"""
-        pass
+        self.update_state(self.STATES.UNKNOWN)
 
     def init(self):
         """"'public' post-initialization method. Override as needed
@@ -430,7 +430,6 @@ class HardwareObjectMixin(CommandContainer):
         Override as necessary to implement"""
         self.abort()
 
-    @abc.abstractmethod
     def get_state(self):
         """ Getter for state attribute
 
@@ -480,14 +479,18 @@ class HardwareObjectMixin(CommandContainer):
         """
         if state is None:
             state = self.get_state()
-        if state != self._state:
-            if state == self.STATES.READY:
-                self._ready_event.set()
-            elif not isinstance(state, self.STATES):
-                raise ValueError("Attempt to update to illegal state: %s" % state)
-            else:
-                self._ready_event.clear()
 
+        is_set = self._ready_event.is_set()
+
+        if state == self.STATES.READY:
+            if not is_set:
+                self._ready_event.set()
+        elif not isinstance(state, self.STATES):
+            raise ValueError("Attempt to update to illegal state: %s" % state)
+        elif is_set:
+            self._ready_event.clear()
+
+        if state != self._state:
             self._state = state
             self.emit("stateChanged", (self._state,))
 
@@ -793,9 +796,9 @@ class DeviceContainer:
                 return device
 
     def getDeviceByRole(self, role):
-        # TODO This gives a pylint ewrror, since getObjectByRoleis not in a superclass
+        # TODO This gives a pylint error, since getObjectByRoleis not in a superclass
         # it is available in the subclases that use this, but fixing this
-        # would make more sense in conection with a general refactoring of
+        # would make more sense in connection with a general refactoring of
         # Device / DeciveContainer/Equipment
         item = self.getObjectByRole(role)
 
