@@ -34,7 +34,7 @@ _objects:
     #- hutch_interlock: door-interlock-mockup.xml
     - safety_shutter: safety-shutter-mockup.xml
     #- fast_shutter: shutter-mockup.xml
-    #- sample_changer: sc-mockup.xml
+    - sample_changer: sample-changer-mockup.xml
     # NBNB TODO remove plate_manipulater and treat as another smaple changer
     #- plate_manipulator: plate-manipulator.xml
     #- diffractometer: mini-diff-mockup.xml
