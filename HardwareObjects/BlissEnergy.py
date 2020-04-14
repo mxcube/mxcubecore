@@ -84,17 +84,6 @@ class BlissEnergy(AbstractEnergy):
         """Stop the energy motor movement"""
         self._energy_motor.stop()
 
-    def get_state(self):
-        """Get the state.
-        Returns:
-            (enum 'HardwareObjectState'): state.
-        """
-        if self.read_only:
-            self.update_state(HardwareObjectState.READY)
-        else:
-            self.update_state(self._energy_motor.get_state())
-        return self._state
-
     def _set_value(self, value):
         """Execute the sequence to move to an energy
         Args:
