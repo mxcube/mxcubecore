@@ -21,14 +21,16 @@
 MicrodiffZoom
 
 Example xml file:
-<device class="MicrodiffZoom">
+<object class="MicrodiffZoom">
   <username>zoom</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <value_channel_name>CoaxialCameraZoomValue</value_channel_name>
   <state_channel_name>ZoomState</state_channel_name>
-</device>
+  <!-- if levels do not corresponf to values -->
+  <values>{"LEVEL1": 1, "LEVEL2": 2, "LEVEL3": 3, "LEVEL4": 4, "LEVEL5": 5, "LEV
+EL6": 6}</values>
+</object>
 """
-
 
 from enum import Enum
 from HardwareRepository.HardwareObjects.abstract.AbstractNState import BaseValueEnum
@@ -40,6 +42,7 @@ __license__ = "LGPLv3+"
 
 class MicrodiffZoom(ExporterNState):
     """MicrodiffZoom class"""
+
     def __init__(self, name):
         ExporterNState.__init__(self, name)
 
@@ -47,44 +50,58 @@ class MicrodiffZoom(ExporterNState):
         """Initialize the zoom"""
         ExporterNState.init(self)
 
-        try:
-            _low, _high = self._exporter.execute("getZoomRange")
-            # inf is a problematic value
-            if _low == float("-inf"):
-                _low = 0
-
-            if _high == float("inf"):
-                _high = 10
-
-            self.set_limits((_low, _high))
-        except ValueError:
-            self.set_limits((1, 10))
-
         self.initialise_values()
+        # check if we have values other that UKNOWN
+        _len = len(self.VALUES) - 1
+        if _len > 0:
+            # we can only assume that the values are consecutive integers
+            # so the limits correspond to the keys.
+            self.set_limits((1, _len))
+        else:
+            # no values in the config file, initialise from the hardware.
+            self.set_limits(self._get_range())
+            self._initialise_values()
 
     def set_limits(self, limits=(None, None)):
         """Set the low and high limits.
         Args:
-            limits (tuple): two element (low limit, high limit) tuple.
+            limits (tuple): two integers tuple (low limit, high limit).
         """
         self._nominal_limits = limits
 
-    def get_limits(self):
-        """Returns zoom low and high limits.
-        Returns:
-            (tuple): two int tuple (low limit, high limit).
+    def update_limits(self, limits=None):
+        """Check if the limits have changed. Emits signal limitsChanged.
+        Args:
+            limits (tuple): two integers tuple (low limit, high limit).
         """
-        return self._nominal_limits
+        if not limits:
+            limits = self.get_limits()
 
-    def initialise_values(self):
-        """Initialise the ValueEnum """
+        # All values are not None nor NaN
+        self._nominal_limits = limits
+        self.emit("limitsChanged", (limits,))
+
+    def _initialise_values(self):
+        """Initialise the ValueEnum from the limits"""
         low, high = self.get_limits()
 
-        values = {
-            "LEVEL%s" % str(v): v
-            for v in range(low, high + 1)
-        }
+        values = {"LEVEL%s" % str(v): v for v in range(low, high + 1)}
         self.VALUES = Enum(
             "ValueEnum",
             dict(values, **{item.name: item.value for item in BaseValueEnum}),
         )
+
+    def _get_range(self):
+        """Get the zoom range.
+        Returns:
+            (tuple): two integers tuple - min and max value.
+        """
+        _low, _high = self._exporter.execute("getZoomRange")
+        # inf is a problematic value
+        if _low == float("-inf"):
+            _low = 1
+
+        if _high == float("inf"):
+            _high = 10
+
+        return _low, _high

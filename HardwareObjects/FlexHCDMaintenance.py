@@ -1,5 +1,5 @@
 """
-CATS maintenance mockup.
+FLEX HCD maintenance mockup.
 """
 from HardwareRepository.BaseHardwareObjects import Equipment
 
@@ -40,64 +40,64 @@ class FlexHCDMaintenance(Equipment):
     def get_current_tool(self):
         return self._sc.get_gripper()
 
-    def _doAbort(self):
+    def _do_abort(self):
         """
         Abort current command
 
         :returns: None
         :rtype: None
         """
-        return self._sc._doAbort()
+        return self._sc._do_abort()
 
-    def _doHome(self):
+    def _do_home(self):
         """
         Abort current command
 
         :returns: None
         :rtype: None
         """
-        self._sc._doAbort()
-        return self._sc._doReset()
+        self._sc._do_abort()
+        return self._sc._do_reset()
 
-    def _doReset(self):
+    def _do_reset(self):
         """
         Reset sample changer
 
         :returns: None
         :rtype: None
         """
-        self._sc._doReset()
+        self._sc._do_reset()
 
-    def _doDefreezeGripper(self):
+    def _do_defreeze_gripper(self):
         """
         :returns: None
         :rtype: None
         """
         self._sc.defreeze()
 
-    def _doChangeGripper(self):
+    def _do_change_gripper(self):
         """
         :returns: None
         :rtype: None
         """
         self._sc.change_gripper()
 
-    def _doResetSampleNumber(self):
+    def _do_reset_sample_number(self):
         """
         :returns: None
         :rtype: None
         """
         self._sc.reset_loaded_sample()
 
-    def _updateGlobalState(self):
+    def _update_global_state(self):
         state_dict, cmd_state, message = self.get_global_state()
         self.emit("globalStateChanged", (state_dict, cmd_state, message))
 
     def get_global_state(self):
         """
         """
-        state = self._sc._readState()
-        ready = self._sc._isDeviceBusy()
+        state = self._sc._read_state()
+        ready = self._sc._is_device_busy()
         running = state in ("RUNNING",)
 
         state_dict = {"running": running, "state": state}
@@ -139,14 +139,14 @@ class FlexHCDMaintenance(Equipment):
         tool = self.get_current_tool()
 
         if cmdname in ["home"]:
-            self._doHome()
+            self._do_home()
         if cmdname in ["defreeze"]:
-            self._doDefreezeGripper()
+            self._do_defreeze_gripper()
         if cmdname in ["reset_sample_number"]:
-            self._doResetSampleNumber()
+            self._do_reset_sample_number()
         if cmdname == "change_gripper":
-            self._doChangeGripper()
+            self._do_change_gripper()
         if cmdname == "abort":
-            self._doAbort()
+            self._do_abort()
 
         return True
