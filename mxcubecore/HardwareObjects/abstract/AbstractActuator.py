@@ -114,7 +114,8 @@ class AbstractActuator(HardwareObject):
                                               (default);
                              if timeout is None: wait forever.
         Raises:
-            ValueError: Value not valid or attemp to set read only actuator.
+            ValueError: Invalid value or attemp to set read only actuator.
+            RuntimeError: Timeout waiting for status ready  # From wait_ready
         """
         if self.read_only:
             raise ValueError("Attempt to set value for read-only Actuator")
@@ -146,7 +147,7 @@ class AbstractActuator(HardwareObject):
         if not limits:
             limits = self.get_limits()
 
-        # All values are not None nor NaN
-        if all([not (lim is None or math.isnan(lim)) for lim in limits]):
+        # All values are not NaN
+        if not any(isinstance(lim, float) and math.isnan(lim) for lim in limits):
             self._nominal_limits = limits
             self.emit("limitsChanged", (limits,))
