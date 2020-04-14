@@ -1743,7 +1743,7 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
                 )
 
     robot_action_dict["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
-    if sample_mount_device.hasLoadedSample():
+    if sample_mount_device.has_loaded_sample():
         robot_action_dict["status"] = "SUCCESS"
     else:
         robot_action_dict["message"] = "Sample was not loaded"
@@ -1751,7 +1751,7 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
 
     HWR.beamline.lims.store_robot_action(robot_action_dict)
 
-    if not sample_mount_device.hasLoadedSample():
+    if not sample_mount_device.has_loaded_sample():
         # Disables all related collections
         view.setOn(False)
         view.setText(1, "Sample not loaded")
