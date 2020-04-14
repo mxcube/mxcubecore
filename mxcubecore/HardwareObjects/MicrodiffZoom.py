@@ -52,7 +52,7 @@ class MicrodiffZoom(ExporterNState):
 
         self.initialise_values()
         # check if we have values other that UKNOWN
-        _len = self.VALUES.__members__.__len__() - 1
+        _len = len(self.VALUES) - 1
         if _len > 0:
             # we can only assume that the values are consecutive integers
             # so the limits correspond to the keys.
@@ -65,14 +65,14 @@ class MicrodiffZoom(ExporterNState):
     def set_limits(self, limits=(None, None)):
         """Set the low and high limits.
         Args:
-            limits (tuple): two elements (low limit, high limit) tuple.
+            limits (tuple): two integers tuple (low limit, high limit).
         """
         self._nominal_limits = limits
 
     def update_limits(self, limits=None):
         """Check if the limits have changed. Emits signal limitsChanged.
         Args:
-            limits (tuple): two elements tuple (low limit, high limit).
+            limits (tuple): two integers tuple (low limit, high limit).
         """
         if not limits:
             limits = self.get_limits()

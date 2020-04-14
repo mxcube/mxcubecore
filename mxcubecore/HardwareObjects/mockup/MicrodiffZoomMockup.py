@@ -26,7 +26,7 @@ class MicrodiffZoomMockup(AbstractNState):
         AbstractNState.init(self)
 
         self.initialise_values()
-        _len = self.VALUES.__members__.__len__() - 1
+        _len = len(self.VALUES) - 1
         if _len > 0:
             # we can only assume that the values are consecutive integers
             # so the limits correspond to the keys
