@@ -41,9 +41,15 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
 
     __metaclass__ = abc.ABCMeta
 
-    def test_value_setting(self, test_object):
+    def test_initial_value(self, test_object):
+        """Test initial and default values for newly loaded object"""
         startval = test_object.get_value()
         assert startval is not None, "initial value may not be None"
+
+        assert test_object._nominal_value == startval, (
+            "get_value() %s differs from _nominal_value %s"
+            % (startval, test_object._nominal_value)
+        )
 
         if test_object.default_value is not None:
             assert startval == test_object.default_value, (
@@ -51,10 +57,9 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
                 % (startval, test_object.default_value)
             )
 
-        assert test_object._nominal_value == startval, (
-            "get_value() %s differs from _nominal_value %s"
-            % (startval, test_object._nominal_value)
-        )
+    def test_value_setting(self, test_object):
+        """Test effect of update_value and (if not read_only) set_value"""
+        startval = test_object.get_value()
 
         test_object.update_value()
         assert (
@@ -69,6 +74,7 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
         )
 
         if not test_object.read_only:
+            # Test set_value with and without a timeout (different code branches)
             test_object._nominal_value = None
             test_object._set_value(startval)
             test_object.wait_ready()
@@ -94,6 +100,7 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
         )
 
     def test_limits_setting(self, test_object):
+        """Test update_limits and (if not read_oinly) set_limits"""
         limits = test_object.get_limits()
         if limits != (None, None):
             test_object.update_limits((None, None))
@@ -116,39 +123,39 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
                 )
 
     def test_setting_readonly(self, test_object):
+        """Test that setting is disabled for read_only"""
         if test_object.read_only:
             with pytest.raises(ValueError):
                 test_object.set_value(test_object.default_value)
 
     def test_validate_value(self, test_object):
+        """Ensure that initial value tests valid, """
         start_val = test_object.get_value()
         assert test_object.validate_value(start_val), (
             "Staring valuee %s evaluates invalid" % start_val
         )
-        default_limits = test_object.get_limits()
-        if test_object.read_only:
-            assert default_limits == (start_val, start_val), (
-                "read_only default limits %s do not match starting value %s"
-                % (default_limits, start_val)
-            )
 
     def test_setting_timeouts_1(self, test_object):
-        # NB this test may need adjusting
+        """Test that setting is not istantaneuos,
+        and that timeout is raised only if too slow"""
         if test_object.read_only:
             return
         startval = test_object.get_value()
+        test_object.set_value(startval, timeout=180)
 
         test_object._nominal_value = None
-        with pytest.raises(BaseException):
+        with pytest.raises(RuntimeError):
             test_object.set_value(startval, timeout=1.0e-6)
 
     def test_setting_timeouts_2(self, test_object):
-        # NB this test may need adjusting
+        """Test that setting with timeout=0 works,
+        and that wait_ready raises an error afterwards"""
         if test_object.read_only:
             return
         startval = test_object.get_value()
+        test_object.set_value(startval, timeout=0)
 
         test_object._nominal_value = None
-        with pytest.raises(BaseException):
+        with pytest.raises(RuntimeError):
             test_object.set_value(startval, timeout=0)
             test_object.wait_ready(timeout=1.0e-6)
