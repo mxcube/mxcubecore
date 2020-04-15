@@ -108,6 +108,7 @@ class AbstractMotor(AbstractActuator):
         if math.isnan(value) or math.isinf(value):
             return False
         limits = self._nominal_limits
+
         if None in limits:
             return True
         return limits[0] <= value <= limits[1]
