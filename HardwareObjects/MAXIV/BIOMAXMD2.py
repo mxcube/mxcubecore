@@ -117,7 +117,7 @@ class BIOMAXMD2(GenericDiffractometer):
 
     def moveToBeam(self, x, y):
         try:
-            self.beam_position = HWR.beamline.beam.get_beam_position()
+            self.beam_position = HWR.beamline.beam.get_beam_position_on_screen()
             beam_xc = self.beam_position[0]
             beam_yc = self.beam_position[1]
             self.centring_phiz.set_value_relative(
