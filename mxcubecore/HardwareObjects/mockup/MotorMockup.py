@@ -42,9 +42,9 @@ __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 DEFAULT_VELOCITY = 100
-DEFAULT_LIMITS = (0, 360)
+DEFAULT_LIMITS = (-10000, 10000)
 DEFAULT_VALUE = 10.124
-DEFAULT_WRAP_RANGE = 360
+DEFAULT_WRAP_RANGE = 1
 
 class MotorMockup(AbstractMotor):
     """Mock Motor implementation"""
