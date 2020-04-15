@@ -155,7 +155,7 @@ class EMBLBeamCentering(HardwareObject):
             self.ready_event.set()
             return
 
-        aperture_hwobj = HWR.beamline.beam.aperture_hwobj
+        aperture_hwobj = HWR.beamline.beam.aperture
         current_energy = HWR.beamline.energy.get_value()
         current_transmission = HWR.transmission.get_value()
         active_mode, beam_size = self.get_focus_mode()
@@ -247,7 +247,7 @@ class EMBLBeamCentering(HardwareObject):
                 gevent.sleep(1)
                 self.move_beam_to_center()
             else:
-                slits_hwobj = HWR.beamline.beam.slits_hwobj
+                slits_hwobj = HWR.beamline.beam.slits
 
                 if active_mode in ("Collimated", "Imaging", "TREXX"):
                     HWR.beamline.transmission.set_value(  # Transmission(
