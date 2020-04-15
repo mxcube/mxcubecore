@@ -51,7 +51,7 @@ class MicrodiffBeamstop(Equipment):
         self.beamstop.state_attr.connectSignal("update", self.checkPosition)
 
         self.motors = self["motors"]
-        self.roles = self.motors.getRoles()
+        self.roles = self.motors.get_roles()
 
         save_cmd_name = self.getProperty("save_cmd_name")
         self.beamstopSetInPosition = self.beamstop.add_command(

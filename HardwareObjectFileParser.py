@@ -209,12 +209,12 @@ class HardwareObjectHandler(ContentHandler):
                     self.classError = True
                     return
                 else:
-                    newObject.setPath(self.path)
+                    newObject.set_path(self.path)
                     self.objects.append(newObject)
             else:
                 newObjectClass = newObjectsClasses[name]
                 newObject = newObjectClass(objectName)
-                newObject.setPath(self.path)
+                newObject.set_path(self.path)
 
                 self.objects.append(newObject)
         elif name == "command":
@@ -241,7 +241,7 @@ class HardwareObjectHandler(ContentHandler):
                 else:
                     newObject = BaseHardwareObjects.HardwareObject(objectName)
 
-                newObject.setPath(self.path)
+                newObject.set_path(self.path)
                 self.objects.append(newObject)
                 """
                 # maybe we can create a HardwareObject ? be strict for the moment...
@@ -251,7 +251,7 @@ class HardwareObjectHandler(ContentHandler):
                 """
             else:
                 newObject = BaseHardwareObjects.HardwareObjectNode(objectName)
-                newObject.setPath(self.path)
+                newObject.set_path(self.path)
                 self.objects.append(newObject)
 
                 self.property = name  # element is supposed to be a Property
@@ -270,7 +270,7 @@ class HardwareObjectHandler(ContentHandler):
 
         if self.elementIsAReference:
             if len(self.objects) > 0:
-                self.objects[0].addReference(
+                self.objects[0].add_reference(
                     name, self.reference, role=self.elementRole
                 )
         else:
@@ -300,7 +300,7 @@ class HardwareObjectHandler(ContentHandler):
                         return
 
                     if len(self.objects) > 1:
-                        self.objects[-2].addObject(
+                        self.objects[-2].add_object(
                             name, self.objects[-1], role=self.elementRole
                         )
                     if len(self.objects) > 0:

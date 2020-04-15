@@ -14,6 +14,8 @@ import os
 import time
 import importlib
 from datetime import datetime
+from warnings import warn
+
 import gevent
 from ruamel.yaml import YAML
 
@@ -165,7 +167,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
                 msg1 = ""
                 time0 = time.time()
                 try:
-                    hwobj = _instance.getHardwareObject(fname)
+                    hwobj = _instance.get_hardware_object(fname)
                     if hwobj is None:
                         msg1 = "No object loaded"
                         class_name1 = "None"
@@ -230,8 +232,8 @@ def addHardwareObjectsDirs(hoDirs):
                 sys.path.insert(0, newHoDir)
 
 
-def setUserFileDirectory(user_file_directory):
-    BaseHardwareObjects.HardwareObjectNode.setUserFileDirectory(user_file_directory)
+def set_user_file_directory(user_file_directory):
+    BaseHardwareObjects.HardwareObjectNode.set_user_file_directory(user_file_directory)
 
 
 def init_hardware_repository(configuration_path):
@@ -266,7 +268,7 @@ def init_hardware_repository(configuration_path):
     beamline = load_from_yaml(BEAMLINE_CONFIG_FILE, role="beamline")
 
 
-def getHardwareRepository():
+def get_hardware_repository():
     """
     Get the HardwareRepository (singleton) instance,
 
@@ -279,6 +281,12 @@ def getHardwareRepository():
         raise RuntimeError("The HardwareRepository has not been initialised")
 
     return _instance
+
+def getHardwareRepository():
+    #TODO remove this method
+    logging.getLogger("HWR").warning("getHardwareRepository is deprecated. Use get_hardware_repository instead")
+    warn("getHardwareRepository is deprecated. Use get_hardware_repository instead", DeprecationWarning)
+    return get_hardware_repository()
 
 
 class __HardwareRepositoryClient:
@@ -472,7 +480,7 @@ class __HardwareRepositoryClient:
                         )
                         del self.hardwareObjects[name]
 
-                    hwobj_instance.resolveReferences()
+                    hwobj_instance.resolve_references()
 
                     try:
                         hwobj_instance._add_channels_and_commands()
@@ -595,9 +603,9 @@ class __HardwareRepositoryClient:
         elif item == "procedures":
             return self.getProcedures()
         elif item == "devices":
-            return self.getDevices()
+            return self.get_devices()
         else:
-            return self.getHardwareObject(item)
+            return self.get_hardware_object(item)
 
         raise KeyError
 
@@ -652,7 +660,7 @@ class __HardwareRepositoryClient:
 
         return result
 
-    def getDevices(self):
+    def get_devices(self):
         """Return the list of the currently loaded Devices Hardware Objects"""
         result = []
 
@@ -663,6 +671,12 @@ class __HardwareRepositoryClient:
         return result
 
     def getHardwareObject(self, objectName):
+        #TODO remove this method
+        logging.getLogger("HWR").warning("getHardwareObject is deprecated. Use get_hardware_object instead")
+        warn("getHardwareObject is deprecated. Use get_hardware_object instead", DeprecationWarning)
+        return self.get_hardware_object(objectName)
+
+    def get_hardware_object(self, objectName):
         """Return a Hardware Object given its name
 
         If the object is not in the Hardware Repository, try to load it.
