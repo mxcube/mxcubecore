@@ -44,7 +44,7 @@ __license__ = "LGPLv3+"
 DEFAULT_VELOCITY = 100
 DEFAULT_LIMITS = (-10000, 10000)
 DEFAULT_VALUE = 10.124
-DEFAULT_WRAP_RANGE = 1
+DEFAULT_WRAP_RANGE = None
 
 class MotorMockup(AbstractMotor):
     """Mock Motor implementation"""
@@ -64,7 +64,7 @@ class MotorMockup(AbstractMotor):
         self.set_velocity(velocity)
 
         try:
-            wr = self.getProperty("wrap_range", None)
+            wr = self.getProperty("wrap_range")
             self._wrap_range = DEFAULT_WRAP_RANGE if not wr else ast.literal_eval(wr)
         except (ValueError, SyntaxError):
             self._wrap_range = DEFAULT_WRAP_RANGE
