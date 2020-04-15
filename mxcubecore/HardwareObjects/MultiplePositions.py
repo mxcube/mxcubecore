@@ -156,7 +156,7 @@ class MultiplePositions(Equipment):
             self.mode = "absolute"
 
         motors = self["motors"]
-        self.roles = motors.getRoles()
+        self.roles = motors.get_roles()
 
         self.deltas = {}
         try:

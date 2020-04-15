@@ -62,7 +62,7 @@ class MotorWPositions(AbstractMotor, Device):
     def init(self):
         self._last_position_name = None
         try:
-            roles = self["motors"].getRoles()
+            roles = self["motors"].get_roles()
             role = roles[0]
             self.motor = self.getObjectByRole(role)
         except KeyError:
