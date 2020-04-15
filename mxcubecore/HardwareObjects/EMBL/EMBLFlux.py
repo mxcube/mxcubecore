@@ -197,7 +197,7 @@ class EMBLFlux(AbstractFlux):
 
         self.back_light_hwobj = self.getObjectByRole("backlight")
         self.beamstop_hwobj = self.getObjectByRole("beamstop")
-        self.aperture_hwobj = HWR.beamline.beam.aperture_hwobj
+        self.aperture_hwobj = HWR.beamline.beam.aperture
 
         self.connect(
             HWR.beamline.transmission, "valueChanged", self.transmission_changed
