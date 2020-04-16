@@ -425,6 +425,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         except IndexError:
             undulators = []
 
+        beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
+
         self.setBeamlineConfiguration(
             synchrotron_name="ESRF",
             directory_prefix=self.getProperty("directory_prefix"),
@@ -443,12 +445,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             undulators=undulators,
             focusing_optic=self.getProperty("focusing_optic"),
             monochromator_type=self.getProperty("monochromator"),
-            beam_divergence_vertical=HWR.beamline.beam.getProperty(
-                "beam_divergence_vertical"
-            ),
-            beam_divergence_horizontal=HWR.beamline.beam.getProperty(
-                "beam_divergence_horizontal"
-            ),
+            beam_divergence_vertical=beam_div_ver,
+            beam_divergence_horizontal=beam_div_hor,
             polarisation=self.getProperty("polarisation"),
             maximum_phi_speed=self.getProperty("maximum_phi_speed"),
             minimum_phi_oscillation=self.getProperty("minimum_phi_oscillation"),
