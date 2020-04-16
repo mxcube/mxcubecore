@@ -27,8 +27,11 @@ __author__ = "rhfogh"
 __date__ = "09/04/2020"
 
 import abc
+import gevent
 import pytest
-from HardwareRepository.test.pytest import TestAbstractActuatorBase
+from HardwareRepository.test.pytest import (
+    TestHardwareObjectBase, TestAbstractActuatorBase
+)
 
 test_object = TestAbstractActuatorBase.test_object
 
@@ -158,3 +161,18 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         with pytest.raises(BaseException):
             test_object.set_value(low, timeout=0)
             test_object.wait_ready(timeout=1.0e-6)
+
+    def test_signal_limits_changed(self, test_object):
+        catcher = TestHardwareObjectBase.SignalCatcher()
+        limits = test_object.get_limits()
+        test_object._nominal_limits = (None, None)
+        test_object.connect("limitsChanged", catcher.catch)
+        try:
+            test_object.update_limits(limits)
+            # Timeout to guard against waiting foreer if signal is not sent)
+            with gevent.Timeout(30):
+                result = catcher.async_result.get()
+                assert result == limits
+        finally:
+            test_object.disconnect("limitsChanged", catcher.catch)
+

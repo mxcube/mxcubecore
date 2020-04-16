@@ -29,6 +29,7 @@ __date__ = "09/04/2020"
 
 import abc
 import pytest
+import gevent.event
 from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 
 
@@ -100,3 +101,30 @@ class TestHardwareObjectBase:
         test_object.update_state(test_object.STATES.BUSY)
         with pytest.raises(RuntimeError):
             test_object.wait_ready(timeout=1.0e-6)
+
+    def test_signal_state_changed(self, test_object):
+        catcher = SignalCatcher()
+        test_object.update_state(test_object.STATES.READY)
+        test_object.connect("stateChanged", catcher.catch)
+        try:
+            test_object.update_state(test_object.STATES.BUSY)
+            # Timeout to guard against waiting foreer if signal is not sent)
+            with gevent.Timeout(1.0):
+                catcher.async_result.get()
+        finally:
+            test_object.disconnect("stateChanged", catcher.catch)
+
+
+
+class SignalCatcher(object):
+    """Utility class to test emissoi of signals
+
+    Connect the catch function ot the signal, and use async_result.get()
+    to get the value passed back by the signal.
+    NB consider timeout ot avoid waiting forever"""
+
+    def __init__(self,):
+        self.async_result = gevent.event.AsyncResult()
+
+    def catch(self, value):
+        self.async_result.set(value)
