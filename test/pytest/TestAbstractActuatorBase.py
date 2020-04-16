@@ -27,6 +27,7 @@ __author__ = "rhfogh"
 __date__ = "09/04/2020"
 
 import abc
+import gevent
 import pytest
 
 from HardwareRepository.test.pytest import TestHardwareObjectBase
@@ -157,3 +158,17 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
         with pytest.raises(RuntimeError):
             test_object.set_value(startval, timeout=0)
             test_object.wait_ready(timeout=1.0e-6)
+
+    def test_signal_value_changed(self, test_object):
+        catcher = TestHardwareObjectBase.SignalCatcher()
+        val = test_object.get_value()
+        test_object._nominal_value = None
+        test_object.connect("valueChanged", catcher.catch)
+        try:
+            test_object.update_value(val)
+            # Timeout to guard against waiting foreer if signal is not sent)
+            with gevent.Timeout(30):
+                result = catcher.async_result.get()
+                assert result == val
+        finally:
+            test_object.disconnect("valueChanged", catcher.catch)
