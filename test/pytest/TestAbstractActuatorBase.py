@@ -27,11 +27,9 @@ __author__ = "rhfogh"
 __date__ = "09/04/2020"
 
 import abc
-import time
-import gevent
 import pytest
 
-from HardwareRepository.HardwareObjects.abstract.testing import TestHardwareObjectBase
+from HardwareRepository.test.pytest import TestHardwareObjectBase
 
 test_object = TestHardwareObjectBase.test_object
 
