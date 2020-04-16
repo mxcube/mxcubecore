@@ -577,7 +577,8 @@ class BIOMAXMD3(GenericDiffractometer):
     def moveToBeam(self, x, y):
         try:
             self.emit_progress_message("Move to beam...")
-            self.beam_position = HWR.beamline.beam.get_beam_position()
+            pos_x, pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+            self.beam_position = (pos_x, pos_y)
             beam_xc = self.beam_position[0]
             beam_yc = self.beam_position[1]
             cent_vertical_to_move = self.cent_vertical_pseudo_motor.getValue() - (
