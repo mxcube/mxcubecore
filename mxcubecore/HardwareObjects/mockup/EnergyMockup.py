@@ -22,7 +22,7 @@
 import time
 
 from HardwareRepository.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
-from HardwareRepository.HardwareObjects.mockup.MockActuator import MockActuator
+from HardwareRepository.HardwareObjects.mockup.MockActuator import ActuatorMockup
 
 # Default energy value (keV)
 DEFAULT_VALUE = 12.4
@@ -30,7 +30,7 @@ DEFAULT_VALUE = 12.4
 DEFAULT_LIMITS = (4, 20)
 
 
-class EnergyMockup(MockActuator, AbstractEnergy):
+class EnergyMockup(ActuatorMockup, AbstractEnergy):
     """Energy Mockup class"""
 
     def init(self):
