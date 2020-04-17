@@ -35,7 +35,7 @@ Example of xml config file
 import time
 
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
-from HardwareRepository.HardwareObjects.mockup.MockActuator import ActuatorMockup
+from HardwareRepository.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

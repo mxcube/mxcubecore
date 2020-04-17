@@ -22,7 +22,7 @@
 import time
 
 from HardwareRepository.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
-from HardwareRepository.HardwareObjects.mockup.MockActuator import ActuatorMockup
+from HardwareRepository.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
 
 # Default energy value (keV)
 DEFAULT_VALUE = 12.4

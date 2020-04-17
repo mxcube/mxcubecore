@@ -18,7 +18,7 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 from HardwareRepository.HardwareObjects.abstract. AbstractNState import AbstractNState
-from HardwareRepository.HardwareObjects.mockup.MockActuator import ActuatorMockup
+from HardwareRepository.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
 
 
 class ShutterMockup(ActuatorMockup, AbstractNState):
