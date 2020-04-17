@@ -92,14 +92,14 @@ class BlissMotor(AbstractMotor):
         self.update_state(self.get_state())
 
     def _state2enum(self, state):
-        """Translate the state to HardwareObjectState ans BlissMotorStates
+        """Translate the state to HardwareObjectState and BlissMotorStates
         Args:
            state (string): state
         Returns:
            (tuple): (HardwareObjectState, BlissMotorStates)
         """
         try:
-            _specific_state = BlissMotorStates.__members__[state]
+            _specific_state = BlissMotorStates[state]
         except (AttributeError, KeyError):
             _specific_state = BlissMotorStates.UNKNOWN
 
