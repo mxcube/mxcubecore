@@ -58,7 +58,6 @@ class BlissMotorStates(enum.Enum):
     DISABLED = 7
     UNKNOWN = 8
 
-
 class BlissMotor(AbstractMotor):
     """Bliss Motor implementation"""
 
@@ -78,7 +77,7 @@ class BlissMotor(AbstractMotor):
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
         self.motor_obj = None
-
+        
     def init(self):
         """Initialise the motor"""
         AbstractMotor.init(self)
@@ -88,6 +87,9 @@ class BlissMotor(AbstractMotor):
         self.connect(self.motor_obj, "state", self.update_state)
         self.connect(self.motor_obj, "move_done", self.update_state)
 
+        # init state to match motor's one
+        self.update_state(self.motor_obj.state)
+        
     def update_state(self, state=None):
         """Check if the state has changed. Emits signal stateChanged.
         Args:
@@ -98,11 +100,21 @@ class BlissMotor(AbstractMotor):
             # at first and last event, True for ready and False for moving
             state = "READY" if state else "MOVING"
         else:
-            try:
-                state = state.current_states_names[0]
-            except (AttributeError, KeyError):
-                state = "UNKNOWN"
-
+            if state is None:
+                # this returns a HardwareObjectState
+                state = self.get_state()
+            
+            if state in HardwareObjectState:
+                # if 'state' is already a HardwareObjectState no need to convert it.
+                self._specific_state = state
+                AbstractMotor.update_state(self, state)  
+                return
+            else:
+                # state comming from bliss (with current_states_names attribute)
+                try:
+                    state = state.current_states_names[0]
+                except (AttributeError, KeyError):
+                    state = "UNKNOWN"
         try:
             self._specific_state = BlissMotorStates.__members__[state]
         except:
