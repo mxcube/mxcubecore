@@ -18,10 +18,10 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 from HardwareRepository.HardwareObjects.abstract. AbstractNState import AbstractNState
-from HardwareRepository.HardwareObjects.mockup.MockActuator import MockActuator
+from HardwareRepository.HardwareObjects.mockup.MockActuator import ActuatorMockup
 
 
-class ShutterMockup(MockActuator, AbstractNState):
+class ShutterMockup(ActuatorMockup, AbstractNState):
     """
     ShutterMockup for simulating a simple open/close shutter.
     """

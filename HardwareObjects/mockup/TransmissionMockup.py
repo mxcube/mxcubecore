@@ -20,14 +20,14 @@
 
 from HardwareRepository.HardwareObjects.abstract.AbstractTransmission import \
     AbstractTransmission
-from HardwareRepository.HardwareObjects.mockup.MockActuator import MockActuator
+from HardwareRepository.HardwareObjects.mockup.MockActuator import ActuatorMockup
 
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
-class TransmissionMockup(MockActuator, AbstractTransmission):
+class TransmissionMockup(ActuatorMockup, AbstractTransmission):
     """Transmission value as a percentage """
 
     # All necessary functionality is present in superclasses
