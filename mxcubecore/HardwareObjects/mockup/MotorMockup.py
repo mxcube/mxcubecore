@@ -28,11 +28,13 @@ Example of xml config file
   <!-- for the mockup only -->
   <default_value>500</default_value>
   <velocity>100</velocity>
+  <wrap_range>None</wrap_range>
   <default_limits>[-360, 360]</default_limits>
 </device>
 """
 
 import time
+import ast
 import gevent
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
@@ -40,9 +42,9 @@ __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 DEFAULT_VELOCITY = 100
-DEFAULT_LIMITS = (-360, 360)
+DEFAULT_LIMITS = (-10000, 10000)
 DEFAULT_VALUE = 10.124
-
+DEFAULT_WRAP_RANGE = None
 
 class MotorMockup(AbstractMotor):
     """Mock Motor implementation"""
@@ -50,6 +52,7 @@ class MotorMockup(AbstractMotor):
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
         self.__move_task = None
+        self._wrap_range = None
 
     def init(self):
         """ Initialisation method """
@@ -59,6 +62,12 @@ class MotorMockup(AbstractMotor):
         # local properties
         velocity = self.getProperty("velocity", DEFAULT_VELOCITY)
         self.set_velocity(velocity)
+
+        try:
+            wr = self.getProperty("wrap_range")
+            self._wrap_range = DEFAULT_WRAP_RANGE if not wr else ast.literal_eval(wr)
+        except (ValueError, SyntaxError):
+            self._wrap_range = DEFAULT_WRAP_RANGE
 
         try:
             limits = tuple(eval(self.getProperty("default_limits")))
@@ -90,6 +99,9 @@ class MotorMockup(AbstractMotor):
                 val = start_pos + direction * self.get_velocity() * (
                     time.time() - start_time
                 )
+
+                val = val if not self._wrap_range else val % self._wrap_range
+
                 self.update_value(val)
         time.sleep(0.02)
         return value
@@ -120,6 +132,8 @@ class MotorMockup(AbstractMotor):
         Raises:
             ValueError: Value not valid or attemp to set read-only actuator.
         """
+        value = value if not self._wrap_range else value % self._wrap_range
+
         if self.read_only:
             raise ValueError("Attempt to set value for read-only Actuator")
         if self.validate_value(value):
