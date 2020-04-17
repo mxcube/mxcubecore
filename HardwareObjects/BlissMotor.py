@@ -89,7 +89,7 @@ class BlissMotor(AbstractMotor):
 
         # init state to match motor's one
         self.update_state(self.motor_obj.state)
-        
+
     def update_state(self, state=None):
         """Check if the state has changed. Emits signal stateChanged.
         Args:
@@ -103,8 +103,7 @@ class BlissMotor(AbstractMotor):
             if state is None:
                 # this returns a HardwareObjectState
                 state = self.get_state()
-            
-            if state in HardwareObjectState:
+            if isinstance(state, HardwareObjectState):
                 # if 'state' is already a HardwareObjectState no need to convert it.
                 self._specific_state = state
                 AbstractMotor.update_state(self, state)  
