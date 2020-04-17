@@ -23,7 +23,7 @@ class Sample(Component):
         super(Sample, self).__init__(container, address, scannable)
         self.properties = {}
         self.loaded = False
-        self.has_been_loaded = False
+        self._has_been_loaded = False
         self._leaf = True
 
     #########################           PUBLIC           #########################
@@ -40,7 +40,7 @@ class Sample(Component):
         Returns if the sample has already beenloaded for data collection
         :rtype: bool
         """
-        return self.has_been_loaded
+        return self._has_been_loaded
 
     def get_properties(self):
         """
@@ -49,7 +49,7 @@ class Sample(Component):
         """
         return self.properties
 
-    def has_Property(self, name):
+    def has_property(self, name):
         """
         Returns true if a property is defined
         :rtype: bool
@@ -61,14 +61,14 @@ class Sample(Component):
         Returns a given property or None if not defined
         :rtype: object
         """
-        if not self.has_Property(name):
+        if not self.has_property(name):
             return None
 
         return self.properties[name]
 
     def fetch_image(self):
         try:
-            if self.has_Property(self.__IMAGE_URL_PROPERTY__):
+            if self.has_property(self.__IMAGE_URL_PROPERTY__):
                 img_url = self.get_property(self.__IMAGE_URL_PROPERTY__)
                 if len(img_url) == 0:
                     return None
@@ -86,8 +86,8 @@ class Sample(Component):
         if self.loaded:
             self.loaded = False
             changed = True
-        if self.has_been_loaded:
-            self.has_been_loaded = False
+        if self._has_been_loaded :
+            self._has_been_loaded = False
             changed = True
         if changed:
             self._set_dirty()
@@ -135,18 +135,18 @@ class Sample(Component):
         if has_been_loaded is None:
             if loaded:
                 has_been_loaded = True
-        if self.has_been_loaded != has_been_loaded:
-            self.has_been_loaded = has_been_loaded
+        if self._has_been_loaded  != has_been_loaded:
+            self._has_been_loaded  = has_been_loaded
             changed = True
         if changed:
             self._set_dirty()
 
     def _set_property(self, name, value):
-        if (not self.has_Property(name)) or (self.get_property(name) != value):
+        if (not self.has_property(name)) or (self.get_property(name) != value):
             self._set_dirty()
         self.properties[name] = value
 
     def _reset_property(self, name, value):
-        if self.has_Property(name):
+        if self.has_property(name):
             self.properties.pop(name)
             self._set_dirty()

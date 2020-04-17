@@ -819,7 +819,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             sample = self.get_component_by_address(\
                 Container.Pin.get_sample_address(spl[1], spl[2]))
             datamatrix = None
-            present = scanned = loaded = has_been_loaded = False
+            present = scanned = loaded = _has_been_loaded = False
             sample._set_info(present, datamatrix, scanned)
             sample._set_loaded(loaded, has_been_loaded)
             sample._set_holder_length(spl[4])    
@@ -865,7 +865,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                 scanned = False
                 sample._set_info(present, datamatrix, scanned)
                 # forget about any loaded state in newly mounted or removed basket)
-                loaded = has_been_loaded = False
+                loaded = _has_been_loaded = False
                 sample._set_loaded(loaded, has_been_loaded)
             """
 

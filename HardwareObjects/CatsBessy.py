@@ -88,7 +88,7 @@ class CatsBessy(SampleChanger):
             "di_AllLidsClosed",
         )
         if self._lidStatus is not None:
-            self._lidStatus.connectSignal("update", self._updateOperationMode)
+            self._lidStatus.connectSignal("update", self._update_operation_mode)
         self._scIsCharging = None
 
         self._load = self.add_command(
@@ -267,7 +267,7 @@ class CatsBessy(SampleChanger):
         self._reset_basket_info(basket)
 
     # ########################           PRIVATE           #########################
-    def _updateOperationMode(self, value):
+    def _update_operation_mode(self, value):
         self._scIsCharging = not value
 
     def _execute_server_task(self, method, *args):

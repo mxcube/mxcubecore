@@ -87,7 +87,7 @@ class CatsMaintMockup(Equipment):
         """
         pass
 
-    def _doDryGripper(self):
+    def _do_dry_gripper(self):
         """
         Launch the "dry" command on the CATS Tango DS
 
@@ -96,7 +96,7 @@ class CatsMaintMockup(Equipment):
         """
         pass
 
-    def _doSetOnDiff(self, sample):
+    def _do_set_on_diff(self, sample):
         """
         Launch the "setondiff" command on the CATS Tango DS, an example of sample value is 2:05
 
@@ -116,7 +116,7 @@ class CatsMaintMockup(Equipment):
             logging.getLogger().info("to SetOnDiff %s", argin)
             # self._execute_server_task(self._cmdSetOnDiff,argin)
 
-    def _doPowerState(self, state=False):
+    def _do_power_state(self, state=False):
         """
         Switch on CATS power if >state< == True, power off otherwise
 
@@ -126,7 +126,7 @@ class CatsMaintMockup(Equipment):
         self._powered = state
         self._update_powered_state(state)
 
-    def _doEnableRegulation(self):
+    def _do_enable_regulation(self):
         """
         Switch on CATS regulation
 
@@ -134,9 +134,9 @@ class CatsMaintMockup(Equipment):
         :rtype: None
         """
         self._regulating = True
-        self._updateRegulationState(True)
+        self._update_regulation_state(True)
 
-    def _doDisableRegulation(self):
+    def _do_disable_regulation(self):
         """
         Switch off CATS regulation
 
@@ -144,9 +144,9 @@ class CatsMaintMockup(Equipment):
         :rtype: None
         """
         self._regulating = False
-        self._updateRegulationState(False)
+        self._update_regulation_state(False)
 
-    def _doLid1State(self, state=True):
+    def _do_lid1_state(self, state=True):
         """
         Opens lid 1 if >state< == True, closes the lid otherwise
 
@@ -154,9 +154,9 @@ class CatsMaintMockup(Equipment):
         :rtype: None
         """
         self._lid1state = state
-        self._updateLid1State(state)
+        self._update_lid1_state(state)
 
-    def _doLid2State(self, state=True):
+    def _do_lid2_state(self, state=True):
         """
         Opens lid 2 if >state< == True, closes the lid otherwise
 
@@ -164,9 +164,9 @@ class CatsMaintMockup(Equipment):
         :rtype: None
         """
         self._lid2state = state
-        self._updateLid2State(state)
+        self._update_lid2_state(state)
 
-    def _doLid3State(self, state=True):
+    def _do_lid3_state(self, state=True):
         """
         Opens lid 3 if >state< == True, closes the lid otherwise
 
@@ -174,7 +174,7 @@ class CatsMaintMockup(Equipment):
         :rtype: None
         """
         self._lid3state = state
-        self._updateLid3State(state)
+        self._update_lid3_state(state)
 
     #########################          PROTECTED          #########################
 
@@ -209,17 +209,17 @@ class CatsMaintMockup(Equipment):
         self.emit("powerStateChanged", (value,))
         self._update_global_state()
 
-    def _updateToolState(self, value):
+    def _update_tool_state(self, value):
         self._toolopen = value
         self.emit("toolStateChanged", (value,))
         self._update_global_state()
 
-    def _updateMessage(self, value):
+    def _update_message(self, value):
         self._message = value
         self.emit("messageChanged", (value,))
         self._update_global_state()
 
-    def _updateRegulationState(self, value):
+    def _update_regulation_state(self, value):
         self._regulating = value
         self.emit("regulationStateChanged", (value,))
         self._update_global_state()
@@ -228,22 +228,22 @@ class CatsMaintMockup(Equipment):
         self._state = value
         self._update_global_state()
 
-    def _updateLid1State(self, value):
+    def _update_lid1_state(self, value):
         self._lid1state = value
         self.emit("lid1StateChanged", (value,))
         self._update_global_state()
 
-    def _updateLid2State(self, value):
+    def _update_lid2_state(self, value):
         self._lid2state = value
         self.emit("lid2StateChanged", (value,))
         self._update_global_state()
 
-    def _updateLid3State(self, value):
+    def _update_lid3_state(self, value):
         self._lid3state = value
         self.emit("lid3StateChanged", (value,))
         self._update_global_state()
 
-    def _updateOperationMode(self, value):
+    def _update_operation_mode(self, value):
         self._charging = not value
 
     def _update_global_state(self):
@@ -397,18 +397,18 @@ class CatsMaintMockup(Equipment):
                 raise Exception("Cannot detect type of TOOL in Cats. Command ignored")
 
         if cmdname == "powerOn":
-            self._doPowerState(True)
+            self._do_power_state(True)
         if cmdname == "powerOff":
-            self._doPowerState(False)
+            self._do_power_state(False)
 
         if cmdname == "regulon":
-            self._doEnableRegulation()
+            self._do_enable_regulation()
         if cmdname == "reguloff":
-            self._doDisableRegulation()
+            self._do_disable_regulation()
         if cmdname == "openlid1":
-            self._doLid1State(True)
+            self._do_lid1_state(True)
         if cmdname == "closelid1":
-            self._doLid1State(False)
+            self._do_lid1_state(False)
         return True
 
 

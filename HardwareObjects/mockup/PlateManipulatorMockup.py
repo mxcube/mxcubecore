@@ -60,37 +60,37 @@ class Xtal(Sample.Sample):
     __LOGIN_PROPERTY__ = "Login"
 
     def __init__(self, drop, index):
-        # Sample.__init__(self, drop, Xtal._getXtalAddress(drop, index), False)
-        super(Xtal, self).__init__(drop, Xtal._getXtalAddress(drop, index), False)
+        # Sample.__init__(self, drop, Xtal._get_xtal_address(drop, index), False)
+        super(Xtal, self).__init__(drop, Xtal._get_xtal_address(drop, index), False)
         self._drop = drop
         self._index = index
         self._set_image_x(None)
         self._set_image_y(None)
         self._set_image_url(None)
-        self._setName(None)
-        self._setLogin(None)
+        self._set_name(None)
+        self._set_login(None)
         self._set_info_url(None)
 
         self._set_info(False, False, False)
         self._set_loaded(False, False)
 
-    def _setName(self, value):
+    def _set_name(self, value):
         self._set_property(self.__NAME_PROPERTY__, value)
 
-    def _setLogin(self, value):
+    def _set_login(self, value):
         self._set_property(self.__LOGIN_PROPERTY__, value)
 
-    def getLogin(self):
+    def get_login(self):
         return self.get_property(self.__LOGIN_PROPERTY__)
 
-    def getDrop(self):
+    def get_drop(self):
         return self._drop
 
     def get_cell(self):
-        return self.getDrop().get_cell()
+        return self.get_drop().get_cell()
 
     @staticmethod
-    def _getXtalAddress(drop, index):
+    def _get_xtal_address(drop, index):
         return str(drop.get_address()) + "-" + str(index)
 
     def get_index(self):
@@ -100,7 +100,7 @@ class Xtal(Sample.Sample):
                     This should be changed to various num of xtals in the drop
         """
         cell_index = self.get_cell().get_index()
-        drops_in_cell_num = self.get_cell().getDropsNo()
+        drops_in_cell_num = self.get_cell().get_drops_no()
         drop_index = self._drop.get_index()
         return cell_index * drops_in_cell_num + drop_index
 
@@ -109,7 +109,7 @@ class Xtal(Sample.Sample):
 
     def get_name(self):
         return "%s%d:%d" % (
-            self.get_cell().getRowChr(),
+            self.get_cell().get_row_chr(),
             self.get_cell().get_index() + 1,
             self._drop.get_index() + 1,
         )
@@ -120,19 +120,19 @@ class Drop(Container.Container):
 
     def __init__(self, cell, drops_num):
         super(Drop, self).__init__(
-            self.__TYPE__, cell, Drop._getDropAddress(cell, drops_num), False
+            self.__TYPE__, cell, Drop._get_drop_address(cell, drops_num), False
         )
         self._cell = cell
         self._drops_num = drops_num
 
     @staticmethod
-    def _getDropAddress(cell, drop_num):
+    def _get_drop_address(cell, drop_num):
         return str(cell.get_address()) + ":" + str(drop_num)
 
     def get_cell(self):
         return self._cell
 
-    def getWellNo(self):
+    def get_well_no(self):
         return self.get_index() + 1
 
     def is_loaded(self):
@@ -140,10 +140,10 @@ class Drop(Container.Container):
         Returns if the sample is currently loaded for data collection
         :rtype: bool
         """
-        sample = self.getSample()
+        sample = self.get_sample()
         return sample.is_loaded()
 
-    def getSample(self):
+    def get_sample(self):
         """
         In this cas we assume that there is one crystal per drop
         """
@@ -175,19 +175,19 @@ class Cell(Container.Container):
             drop._add_component(xtal)
         self._transient = True
 
-    def getRow(self):
+    def get_row(self):
         return self._row
 
-    def getRowChr(self):
+    def get_row_chr(self):
         return self._row_chr
 
-    def getRowIndex(self):
+    def get_row_index(self):
         return ord(self._row_chr.upper()) - ord("A")
 
-    def getCol(self):
+    def get_col(self):
         return self._col_index
 
-    def getDropsNo(self):
+    def get_drops_no(self):
         return self._drops_num
 
     @staticmethod
@@ -230,7 +230,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
 
         AbstractSampleChanger.SampleChanger.init(self)
 
-    def _onStateChanged(self, state):
+    def _on_state_changed(self, state):
         """
         Descript. : state change callback. Based on diffractometer state
                     sets PlateManipulatorMockup state.
@@ -317,9 +317,9 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         col += 1
         cell = self.get_component_by_address("%s%d" % (chr(65 + row), col))
         drop = cell.get_component_by_address("%s%d:%d" % (chr(65 + row), col, drop))
-        new_sample = drop.getSample()
+        new_sample = drop.get_sample()
         old_sample = self.get_loaded_sample()
-        new_sample = drop.getSample()
+        new_sample = drop.get_sample()
         if old_sample != new_sample:
             msg = "Moving to position %s:%d" % ((chr(65 + row), col))
             logging.getLogger("user_level_log").warning(
@@ -343,7 +343,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         Descript. :
         """
         self._reset_loaded_sample()
-        self._onStateChanged("Ready")
+        self._on_state_changed("Ready")
 
     def _do_reset(self):
         """
@@ -361,7 +361,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         self._initializeData()
         if self.get_token() is None:
             raise Exception("No plate barcode defined")
-        self._loadData(self.get_token())
+        self._load_data(self.get_token())
 
     def _do_select(self, component):
         """
@@ -372,9 +372,9 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
 
         if isinstance(component, Xtal):
             self._select_sample(
-                component.get_cell().getRowIndex(),
-                component.get_cell().getCol() - 1,
-                component.getDrop().getWellNo() - 1,
+                component.get_cell().get_row_index(),
+                component.get_cell().get_col() - 1,
+                component.get_drop().get_well_no() - 1,
             )
             self._set_selected_sample(component)
             component.get_container()._set_selected(True)
@@ -388,20 +388,20 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
                 Cell._get_cell_address(component.Row, component.Column)
             )
             drop = self.get_component_by_address(
-                Drop._getDropAddress(cell, component.Shelf)
+                Drop._get_drop_address(cell, component.Shelf)
             )
             drop._set_selected(True)
             drop.get_container()._set_selected(True)
         elif isinstance(component, Drop):
             self._select_sample(
-                component.get_cell().getRowIndex(),
-                component.get_cell().getCol() - 1,
-                component.getWellNo() - 1,
+                component.get_cell().get_row_index(),
+                component.get_cell().get_col() - 1,
+                component.get_well_no() - 1,
             )
             component._set_selected(True)
             component.get_container().get_container()._set_selected(True)
         elif isinstance(component, Cell):
-            self._select_sample(component.getRowIndex(), component.getCol() - 1, 0)
+            self._select_sample(component.get_row_index(), component.get_col() - 1, 0)
             component._set_selected(True)
         elif isinstance(component, list):
             row = component[0]
@@ -416,7 +416,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         self._reset_loaded_sample()
         self._wait_device_ready()
 
-    def _loadData(self, barcode):
+    def _load_data(self, barcode):
         processing_plan = Crims.get_processing_plan(barcode, self.crims_url)
 
         if processing_plan is None:
@@ -430,15 +430,15 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
             for x in processing_plan.plate.xtal_list:
                 cell = self.get_component_by_address(Cell._get_cell_address(x.row, x.column))
                 cell._set_info(True, "", True)
-                drop = self.get_component_by_address(Drop._getDropAddress(cell, x.shelf))
+                drop = self.get_component_by_address(Drop._get_drop_address(cell, x.shelf))
                 drop._set_info(True, "", True)
                 xtal = Xtal(drop, drop.get_number_of_components())
                 xtal._set_info(True, x.pin_id, True)
                 xtal._set_image_url(x.image_url)
                 xtal._set_image_x(x.offset_x)
                 xtal._set_image_y(x.offset_y)
-                xtal._setLogin(x.login)
-                xtal._setName(x.sample)
+                xtal._set_login(x.login)
+                xtal._set_name(x.sample)
                 xtal._set_info_url(x.summary_url)
                 drop._add_component(xtal)
             return processing_plan
@@ -492,7 +492,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
             drop = cell.get_component_by_address(
                 "%s%d:%d" % (chr(65 + row), col + 1, drop_index)
             )
-            return drop.getSample()
+            return drop.get_sample()
 
     def get_sample_list(self):
         """
@@ -504,7 +504,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
                 for cell in basket.get_components():
                     if isinstance(cell, Cell):
                         for drop in cell.get_components():
-                            sample_list.append(drop.getSample())
+                            sample_list.append(drop.get_sample())
         return sample_list
 
     def is_mounted_sample(self, sample_location):
@@ -547,4 +547,4 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         return self.plate_location
 
     def sync_with_crims(self, barcode):
-        return self._loadData(barcode)
+        return self._load_data(barcode)
