@@ -1806,7 +1806,7 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
                 dm.disconnect("centringAccepted", centring_done_cb)
 
 
-def center_before_collect(view, dm, queue, shapes):
+def center_before_collect(view, dm, queue, sample_view):
     view.setText(1, "Waiting for input")
     log = logging.getLogger("user_level_log")
 
@@ -1815,8 +1815,8 @@ def center_before_collect(view, dm, queue, shapes):
     queue.pause(True)
     pos, shape = None, None
 
-    if len(shapes.get_selected_shapes()):
-        shape = shapes.get_selected_shapes()[0]
+    if len(sample_view.shapes.get_selected_shapes()):
+        shape = sample_view.shapes.get_selected_shapes()[0]
         pos = shape.mpos()
     else:
         msg = "No centred position selected, using current position."
@@ -1824,7 +1824,7 @@ def center_before_collect(view, dm, queue, shapes):
 
         # Create a centred postions of the current postion
         pos = dm.get_positions()
-        shape = shapes.add_shape_from_mpos([pos], (0, 0), "P")
+        shape = sample_view.shapes.add_shape_from_mpos([pos], (0, 0), "P")
 
     view(1, "Centring completed")
     log.info("Centring completed")
