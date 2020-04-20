@@ -545,7 +545,7 @@ class MiniDiff(Equipment):
 
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
-        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         dx = (x - beam_pos_x) / self.pixelsPerMmY
         dy = (y - beam_pos_y) / self.pixelsPerMmZ
 
@@ -664,7 +664,7 @@ class MiniDiff(Equipment):
         self.accept_centring()
 
     def start_manual_centring(self, sample_info=None):
-        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         self.current_centring_procedure = sample_centring.start(
             {
                 "phi": self.centringPhi,
@@ -727,7 +727,7 @@ class MiniDiff(Equipment):
         )
         chiRot.shape = (2, 2)
         sx, sy = numpy.dot(numpy.array([0, dsy]), numpy.array(chiRot))  # .I))
-        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
 
         x = sx + (phiy * self.pixelsPerMmY) + beam_pos_x
         y = sy + (phiz * self.pixelsPerMmZ) + beam_pos_y
@@ -735,7 +735,7 @@ class MiniDiff(Equipment):
         return float(x), float(y)
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
-        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         dx = (x - beam_pos_x) / self.pixelsPerMmY
         dy = (y - beam_pos_y) / self.pixelsPerMmZ
 
@@ -826,7 +826,7 @@ class MiniDiff(Equipment):
                     self.accept_centring()
 
     def start_auto_centring(self, sample_info=None, loop_only=False):
-        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
 
         self.current_centring_procedure = sample_centring.start_auto(
             self.camera,
