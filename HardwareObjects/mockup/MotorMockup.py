@@ -28,11 +28,13 @@ Example of xml config file
   <!-- for the mockup only -->
   <default_value>500</default_value>
   <velocity>100</velocity>
+  <wrap_range>None</wrap_range>
   <default_limits>[-360, 360]</default_limits>
 </device>
 """
 
 import time
+import ast
 
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 from HardwareRepository.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
@@ -41,12 +43,16 @@ __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 DEFAULT_VELOCITY = 100
-DEFAULT_LIMITS = (-360, 360)
+DEFAULT_LIMITS = (-10000, 10000)
 DEFAULT_VALUE = 10.124
-
+DEFAULT_WRAP_RANGE = None
 
 class MotorMockup(ActuatorMockup, AbstractMotor):
     """Mock Motor implementation"""
+
+    def __init__(self, name):
+        AbstractMotor.__init__(self, name)
+        self._wrap_range = None
 
     def init(self):
         """ Initialisation method """
@@ -58,6 +64,11 @@ class MotorMockup(ActuatorMockup, AbstractMotor):
             self.set_velocity(DEFAULT_VELOCITY)
         if None in self.get_limits():
             self.update_limits(DEFAULT_LIMITS)
+        try:
+            wr = self.getProperty("wrap_range")
+            self._wrap_range = DEFAULT_WRAP_RANGE if not wr else ast.literal_eval(wr)
+        except (ValueError, SyntaxError):
+            self._wrap_range = DEFAULT_WRAP_RANGE
         if self.default_value is None:
             self.default_value = DEFAULT_VALUE
             self.update_value(DEFAULT_VALUE)
@@ -84,6 +95,9 @@ class MotorMockup(ActuatorMockup, AbstractMotor):
                 val = start_pos + direction * self.get_velocity() * (
                     time.time() - start_time
                 )
+
+                val = val if not self._wrap_range else val % self._wrap_range
+
                 self.update_value(val)
         time.sleep(0.02)
 
