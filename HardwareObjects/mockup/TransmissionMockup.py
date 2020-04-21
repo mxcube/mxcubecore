@@ -18,46 +18,18 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-import time
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.HardwareObjects.abstract.AbstractTransmission import \
-    AbstractTransmission
+from HardwareRepository.HardwareObjects.abstract.AbstractTransmission import (
+    AbstractTransmission,
+)
+from HardwareRepository.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
 
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
-class TransmissionMockup(AbstractTransmission):
+class TransmissionMockup(ActuatorMockup, AbstractTransmission):
     """Transmission value as a percentage """
 
-    def __init__(self, name):
-        AbstractTransmission.__init__(self, name)
-
-    def init(self):
-        AbstractTransmission.init(self)
-        self._nominal_value = self.default_value
-        self.update_state(self.STATES.READY)
-
-    def get_value(self):
-        """
-        Read the transmission value.
-
-        Returns:
-            Transmission value.
-        """
-        return self._nominal_value
-
-    @task
-    def _set_value(self, value):
-        """
-        Sets the hardware to target a given transmission.
-
-        Args:
-            value (float): target transmission value
-        """
-        time.sleep(0.02)
-        self._nominal_value = value
-
-    def abort(self):
-        pass
+    # All necessary functionality is present in superclasses
+    pass
