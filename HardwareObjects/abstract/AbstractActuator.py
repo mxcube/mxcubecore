@@ -56,10 +56,15 @@ class AbstractActuator(HardwareObject):
         self.actuator_name = self.getProperty("actuator_name")
         self.read_only = self.getProperty("read_only") or False
         self.default_value = self.getProperty("default_value")
+        if self.default_value is not None:
+            self.update_value(self.default_value)
+        # NB We cannot set limits to (default_value, default_value) for read_only
+        # - the value might be variable even if unsettable.
+        # If this behaviour is desired e.g. for AbctractEnergy it must ba coded locally
+        limits = self.getProperty("default_limits")
+        if limits:
+            self.update_limits(tuple(eval(limits)))
         self.username = self.getProperty("username")
-        if self.read_only:
-            self._nominal_limits = (self.default_value, self.default_value)
-            self._nominal_value = self.default_value
 
     @abc.abstractmethod
     def get_value(self):
