@@ -17,28 +17,18 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-import time
-import random
-from HardwareRepository.HardwareObjects.abstract import AbstractNState
+from HardwareRepository.HardwareObjects.abstract. AbstractNState import AbstractNState
+from HardwareRepository.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
 
 
-class ShutterMockup(AbstractNState.AbstractNState):
+class ShutterMockup(ActuatorMockup, AbstractNState):
     """
     ShutterMockup for simulating a simple open/close shutter.
     """
 
     def init(self):
         super(ShutterMockup, self).init()
-        self._nominal_value = self.VALUES.CLOSED
-        self.update_state(self.STATES.READY)
-
-    def get_value(self):
-        return self._nominal_value
-
-    def _set_value(self, value):
-        self.update_state(self.STATES.BUSY)
-        time.sleep(random.uniform(0.1, 1.0))
-        self._nominal_value = value
+        self.update_value(self.VALUES.CLOSED)
         self.update_state(self.STATES.READY)
 
     def is_open(self):
@@ -48,7 +38,7 @@ class ShutterMockup(AbstractNState.AbstractNState):
         return self.get_value() is self.VALUES.CLOSED
 
     def open(self):
-        self.set_value(self.VALUES.OPEN)
+        self.set_value(self.VALUES.OPEN, timeout=None)
 
     def close(self):
-        self.set_value(self.VALUES.CLOSED)
+        self.set_value(self.VALUES.CLOSED, timeout=None)
