@@ -19,11 +19,10 @@
 
 """Mockup class for testing purposes"""
 
-import ast
 import time
-import gevent
 
 from HardwareRepository.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
+from HardwareRepository.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
 
 # Default energy value (keV)
 DEFAULT_VALUE = 12.4
@@ -31,21 +30,18 @@ DEFAULT_VALUE = 12.4
 DEFAULT_LIMITS = (4, 20)
 
 
-class EnergyMockup(AbstractEnergy):
+class EnergyMockup(ActuatorMockup, AbstractEnergy):
     """Energy Mockup class"""
 
-    def __init__(self, name):
-        AbstractEnergy.__init__(self, name)
-        self.__move_task = None
-
     def init(self):
-        """Initialise default values"""
-        self.update_value(self.default_value or DEFAULT_VALUE)
+        """Initialise default properties"""
+        super(EnergyMockup, self).init()
 
-        limits = self.getProperty("energy_limits", None)
-        limits = DEFAULT_LIMITS if limits is None else ast.literal_eval(limits)
-
-        self.update_limits(limits)
+        if None in self.get_limits():
+            self.update_limits(DEFAULT_LIMITS)
+        if self.default_value is None:
+            self.default_value = DEFAULT_VALUE
+            self.update_value(DEFAULT_VALUE)
         self.update_state(self.STATES.READY)
 
     def _move(self, value):
@@ -57,62 +53,7 @@ class EnergyMockup(AbstractEnergy):
         if value is not None and start_pos is not None:
             step = -1 if value < start_pos else 1
             for _val in range(int(start_pos) + step, int(value) + step, step):
-                self.update_value(_val)
                 time.sleep(0.2)
+                self.update_value(_val)
+        time.sleep(0.2)
         return value
-
-    def set_value(self, value, timeout=None):
-        """
-        Set energy to absolute value.
-        This is NOT the recommended way, but for technical reasons
-        overriding is necessary in this particular case
-        Args:
-            value (float): target value
-            timeout (float): optional - timeout [s],
-                             If timeout == 0: return at once and do not wait (default);
-                             if timeout is None: wait forever.
-        Raises:
-            ValueError: Value not valid or attemp to set read-only Energy.
-        """
-        if self.read_only:
-            raise ValueError("Attempt to set value for read-only Energy")
-        if self.validate_value(value):
-            self.update_state(self.STATES.BUSY)
-            if timeout or timeout is None:
-                with gevent.Timeout(
-                    timeout, RuntimeError("Energy %s timed out" % self.username)
-                ):
-                    self._move(value)
-                    self._set_value(value)
-            else:
-                self.__move_task = gevent.spawn(self._move, value)
-                self.__move_task.link(self._callback)
-        else:
-            raise ValueError("Invalid value %s" % str(value))
-
-    def _callback(self, move_task):
-        value = move_task.get()
-        self._set_value(value)
-
-    def _set_value(self, value):
-        """
-        Implementation of specific set actuator logic.
-
-        Args:
-            value (float): target value
-        """
-        self.update_value(value)
-        self.update_state(self.STATES.READY)
-
-    def get_value(self):
-        """Read the energy value.
-        Returns:
-            float: energy value
-        """
-        return self._nominal_value
-
-    def abort(self):
-        """Imediately halt movement. By default self.stop = self.abort"""
-        if self.__move_task is not None:
-            self.__move_task.kill()
-        self.update_state(self.STATES.READY)
