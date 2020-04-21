@@ -153,7 +153,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         logging.getLogger("HWR").info("[COLLECT] Moving to center position")
         shape_id = self.get_current_shape_id()
-        shape = HWR.beamline.sample_view.shapes.get_shape(shape_id).as_dict()
+        shape = HWR.beamline.sample_view.get_shape(shape_id).as_dict()
 
         x = shape.get("screen_coord")[0]
         y = shape.get("screen_coord")[1]
@@ -554,7 +554,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 % self.get_mesh_total_nb_frames()
             )
             shape_id = self.get_current_shape_id()
-            shape = HWR.beamline.sample_view.shapes.get_shape(shape_id).as_dict()
+            shape = HWR.beamline.sample_view.get_shape(shape_id).as_dict()
             range_x = shape.get("num_cols") * shape.get("cell_width") / 1000.0
             range_y = shape.get("num_rows") * shape.get("cell_height") / 1000.0
             HWR.beamline.diffractometer.raster_scan(
@@ -578,7 +578,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         ]
         if self.current_dc_parameters.get("experiment_type") == "Mesh":
             shape_id = self.get_current_shape_id()
-            shape = HWR.beamline.sample_view.shapes.get_shape(shape_id).as_dict()
+            shape = HWR.beamline.sample_view.get_shape(shape_id).as_dict()
             num_cols = shape.get("num_cols")
             num_rows = shape.get("num_rows")
             num_images = num_cols * num_rows
