@@ -1,0 +1,7 @@
+<device class="MotorMockup">
+  <actuator_name>Omega</actuator_name>
+  <default_value>0.0</default_value>
+  <velocity>90</velocity>
+  <default_limits>[0, 360]</default_limits>
+  <wrap_range>360</wrap_range>
+</device>
