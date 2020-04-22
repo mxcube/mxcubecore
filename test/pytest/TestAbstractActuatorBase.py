@@ -65,6 +65,7 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
             test_object._nominal_value == startval
         ), "Updating value to None does not set to get_value()"
 
+        # Must be set to None so the next command causes a change
         test_object._nominal_value = None
         test_object.update_value(startval)
         assert test_object._nominal_value == startval, (
@@ -74,6 +75,7 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
 
         if not test_object.read_only:
             # Test set_value with and without a timeout (different code branches)
+            # Must be set to None so the next command causes a change
             test_object._nominal_value = None
             test_object._set_value(startval)
             test_object.wait_ready()
@@ -82,6 +84,7 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
                 % (startval, test_object._nominal_value),
             )
 
+            # Must be set to None so the next command causes a change
             test_object._nominal_value = None
             test_object.set_value(startval, timeout=None)
             assert test_object._nominal_value == startval, (
@@ -114,6 +117,7 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
                 % (limits, test_object._nominal_limits)
             )
             if not test_object.read_only:
+                # Must be set to (None, None) so the next command causes a change
                 test_object._nominal_limits = (None, None)
                 test_object.set_limits(limits)
                 assert test_object._nominal_limits == limits, (
@@ -142,6 +146,7 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
         startval = test_object.get_value()
         test_object.set_value(startval, timeout=180)
 
+        # Must be set to None so the next command causes a change
         test_object._nominal_value = None
         with pytest.raises(RuntimeError):
             test_object.set_value(startval, timeout=1.0e-6)
@@ -154,6 +159,7 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
         startval = test_object.get_value()
         test_object.set_value(startval, timeout=0)
 
+        # Must be set to None so the next command causes a change
         test_object._nominal_value = None
         with pytest.raises(RuntimeError):
             test_object.set_value(startval, timeout=0)
@@ -162,6 +168,7 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
     def test_signal_value_changed(self, test_object):
         catcher = TestHardwareObjectBase.SignalCatcher()
         val = test_object.get_value()
+        # Must be set to None so the next command causes a change
         test_object._nominal_value = None
         test_object.connect("valueChanged", catcher.catch)
         try:

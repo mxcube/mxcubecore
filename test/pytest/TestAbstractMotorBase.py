@@ -84,7 +84,7 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
             limits = (0, 1)
         low, high = limits
         tol = test_object._tolerance
-        mid = (low + high) / 2
+        mid = (low + high) / 2.0
 
         test_object.set_value(high, timeout=None)
         val = test_object.get_value()
@@ -108,6 +108,7 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         with pytest.raises(ValueError):
             test_object.set_value(toobig, timeout=None)
 
+        # Must be set first so the next command causes a change
         test_object._set_value(low)
         test_object.wait_ready()
         test_object.set_value_relative(0.5 * (high - low), timeout=None)
@@ -142,6 +143,7 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
             limits = (0, 1)
         low, high = limits
 
+        # Must be set first so the next command causes a change
         test_object.set_value(low, timeout=90)
         with pytest.raises(BaseException):
             test_object.set_value(high, timeout=1.0e-6)
@@ -157,6 +159,7 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
             limits = (0, 1)
         low, high = limits
 
+        # Must be set first so the next command causes a change
         test_object.set_value(high, timeout=None)
         with pytest.raises(BaseException):
             test_object.set_value(low, timeout=0)
@@ -165,6 +168,7 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
     def test_signal_limits_changed(self, test_object):
         catcher = TestHardwareObjectBase.SignalCatcher()
         limits = test_object.get_limits()
+        # Must be set first so the next command causes a change
         test_object._nominal_limits = (None, None)
         test_object.connect("limitsChanged", catcher.catch)
         try:
