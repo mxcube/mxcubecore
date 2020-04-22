@@ -29,6 +29,7 @@ __date__ = "09/04/2020"
 
 import abc
 import pytest
+import gevent.event
 from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 
 
@@ -47,6 +48,7 @@ class TestHardwareObjectBase:
     __metaclass__ = abc.ABCMeta
 
     def tets_state_getting(self, test_object):
+        """Test that get_state reflects _state"""
 
         test_object._state = test_object.STATES.BUSY
         assert test_object.get_state() is test_object.STATES.BUSY, (
@@ -55,6 +57,7 @@ class TestHardwareObjectBase:
         )
 
     def test_state_enumeration(self, test_object):
+        """Test that STATES match HardwareObjectState"""
 
         for ho_state in HardwareObjectState:
             name = ho_state.name
@@ -63,11 +66,19 @@ class TestHardwareObjectBase:
             ), "state %s does not match HardwareObjectState.%s" % (name, name)
 
     def test_update_state(self, test_object):
+        """Test that update_state works for all states
+        that is_ready reflects the state,
+        and that get_state() reflects _state"""
         test_object._state = test_object.STATES.BUSY
         for ho_state in HardwareObjectState:
             test_object.update_state(ho_state)
-            assert test_object.get_state() is ho_state, (
+            result = test_object.get_state()
+            assert result is ho_state, (
                 "update_state(HardwareObjectState.%s) is not reflected in result"
+                % ho_state.name
+            )
+            assert test_object._state is ho_state, (
+                "get_state does not reflect _state for %s"
                 % ho_state.name
             )
             if ho_state is HardwareObjectState.READY:
@@ -78,18 +89,42 @@ class TestHardwareObjectBase:
                 assert not test_object.is_ready(), (
                     "is_ready=True does not reflect state %s" % ho_state.name
                 )
-
-    def test_update_state_2(self, test_object):
-        state = test_object.get_state()
-        test_object.update_state()
-        assert (
-            state is test_object.get_state()
-        ), "update_state() does not match get_state() "
+            test_object.update_state()
+            assert test_object._state is result, (
+                "update_state() does not set state to current state"
+            )
 
     def test_wait_ready(self, test_object):
         test_object.update_state(test_object.STATES.READY)
-        test_object.wait_ready(timeout=1)
+        test_object.wait_ready(timeout=1.0e-6)
 
         test_object.update_state(test_object.STATES.BUSY)
-        with pytest.raises(BaseException):
-            test_object.wait_ready(timeout=0.01)
+        with pytest.raises(RuntimeError):
+            test_object.wait_ready(timeout=1.0e-6)
+
+    def test_signal_state_changed(self, test_object):
+        catcher = SignalCatcher()
+        test_object.update_state(test_object.STATES.READY)
+        test_object.connect("stateChanged", catcher.catch)
+        try:
+            test_object.update_state(test_object.STATES.BUSY)
+            # Timeout to guard against waiting foreer if signal is not sent)
+            with gevent.Timeout(1.0):
+                catcher.async_result.get()
+        finally:
+            test_object.disconnect("stateChanged", catcher.catch)
+
+
+
+class SignalCatcher(object):
+    """Utility class to test emissoi of signals
+
+    Connect the catch function ot the signal, and use async_result.get()
+    to get the value passed back by the signal.
+    NB consider timeout ot avoid waiting forever"""
+
+    def __init__(self,):
+        self.async_result = gevent.event.AsyncResult()
+
+    def catch(self, value):
+        self.async_result.set(value)

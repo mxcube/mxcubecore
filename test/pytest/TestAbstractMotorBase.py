@@ -27,8 +27,11 @@ __author__ = "rhfogh"
 __date__ = "09/04/2020"
 
 import abc
+import gevent
 import pytest
-from HardwareRepository.HardwareObjects.abstract.testing import TestAbstractActuatorBase
+from HardwareRepository.test.pytest import (
+    TestHardwareObjectBase, TestAbstractActuatorBase
+)
 
 test_object = TestAbstractActuatorBase.test_object
 
@@ -38,7 +41,8 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
 
     __metaclass__ = abc.ABCMeta
 
-    def test_valocity(self, test_object):
+    def test_velocity(self, test_object):
+        """test getting and setting of velocity"""
         velocity = test_object.get_velocity()
         if velocity:
             vel2 = 0.9 * velocity
@@ -48,6 +52,8 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
             ), "Velocity set to %s ut remains as %s" % (vel2, velocity)
 
     def test_attribute_types(self, test_object):
+        """Test that values are int or float, and limits are two-tuples,
+        with lower lmit first"""
         value = test_object.get_value()
         assert value is None or isinstance(value, (int, float)), (
             "AbstractMotor.value must be int, flost, or None, was %s" % value
@@ -55,12 +61,19 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
 
         limits = test_object.get_limits()
         assert isinstance(limits, tuple), "get_limits() must return a tuple"
+        assert len(limits) == 2, "get_limits() must return a two-tuple"
         for lim in limits:
             assert lim is None or isinstance(lim, (int, float)), (
                 "AbstractMotor.limits must be int, flost, or None, was %s" % lim
             )
+        if None not in limits:
+            assert limits[0] <= limits[1], "Lower limit must precede higher limit"
 
-    def test_validate_value(self, test_object):
+    def test_setting_with_tolerance(self, test_object):
+        """Test that set_value works for both low and high limits,
+        that values set are within tolerance for both set_value, set_value_relative
+        and update_value, and that out-ot-range values are invalid"""
+
         super(TestAbstractMotorBase, self).test_validate_value(test_object)
 
         if test_object.read_only:
@@ -71,7 +84,7 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
             limits = (0, 1)
         low, high = limits
         tol = test_object._tolerance
-        mid = (low + high) / 2
+        mid = (low + high) / 2.0
 
         test_object.set_value(high, timeout=None)
         val = test_object.get_value()
@@ -95,6 +108,7 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         with pytest.raises(ValueError):
             test_object.set_value(toobig, timeout=None)
 
+        # Must be set first so the next command causes a change
         test_object._set_value(low)
         test_object.wait_ready()
         test_object.set_value_relative(0.5 * (high - low), timeout=None)
@@ -119,7 +133,9 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
             ), "update_value result does not respect tolerance cutoff"
 
     def test_setting_timeouts_1(self, test_object):
-        # NB this test may need adjusting
+        """Test that setting is not istantaneuos,
+        and that timeout is raised only if too slow
+        Using full range of valid values"""
         if test_object.read_only:
             return
         limits = test_object.get_limits()
@@ -127,12 +143,15 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
             limits = (0, 1)
         low, high = limits
 
+        # Must be set first so the next command causes a change
         test_object.set_value(low, timeout=90)
         with pytest.raises(BaseException):
             test_object.set_value(high, timeout=1.0e-6)
 
     def test_setting_timeouts_2(self, test_object):
-        # NB this test may need adjusting
+        """Test that setting with timeout=0 works,
+        and that wait_ready raises an error afterwards
+        Using full range of valid values"""
         if test_object.read_only:
             return
         limits = test_object.get_limits()
@@ -140,7 +159,24 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
             limits = (0, 1)
         low, high = limits
 
+        # Must be set first so the next command causes a change
         test_object.set_value(high, timeout=None)
         with pytest.raises(BaseException):
             test_object.set_value(low, timeout=0)
             test_object.wait_ready(timeout=1.0e-6)
+
+    def test_signal_limits_changed(self, test_object):
+        catcher = TestHardwareObjectBase.SignalCatcher()
+        limits = test_object.get_limits()
+        # Must be set first so the next command causes a change
+        test_object._nominal_limits = (None, None)
+        test_object.connect("limitsChanged", catcher.catch)
+        try:
+            test_object.update_limits(limits)
+            # Timeout to guard against waiting foreer if signal is not sent)
+            with gevent.Timeout(30):
+                result = catcher.async_result.get()
+                assert result == limits
+        finally:
+            test_object.disconnect("limitsChanged", catcher.catch)
+
