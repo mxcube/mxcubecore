@@ -23,7 +23,7 @@ __license__ = "LGPLv3+"
 
 import pytest
 
-from HardwareRepository.HardwareObjects.abstract.testing import TestAbstractActuatorBase
+from HardwareRepository.test.pytest import TestAbstractActuatorBase
 
 @pytest.fixture
 def test_object(beamline):
@@ -52,5 +52,5 @@ class TestTransmission(TestAbstractActuatorBase.TestAbstractActuatorBase):
 
     def test_transmission_methods(self, test_object):
         target = 60.0
-        test_object.set_value(target)
+        test_object.set_value(target, timeout=None)
         assert test_object.get_value() == target

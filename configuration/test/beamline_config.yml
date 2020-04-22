@@ -37,7 +37,7 @@ _objects:
     - sample_changer: sample-changer-mockup.xml
     # NBNB TODO remove plate_manipulater and treat as another smaple changer
     #- plate_manipulator: plate-manipulator.xml
-    #- diffractometer: mini-diff-mockup.xml
+    - diffractometer: diffractometer-mockup.xml
     #- microscope: graphics.xml
     #- lims: lims-client-mockup.xml
     #- queue_manager: queue.xml

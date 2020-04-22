@@ -1,8 +1,5 @@
-import os
-import sys
 import jsonschema
 
-from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.utils.dataobject import DataObject
 
 class MockDataObject(DataObject):

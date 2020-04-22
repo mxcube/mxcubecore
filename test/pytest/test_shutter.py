@@ -24,7 +24,7 @@ __license__ = "LGPLv3+"
 import pytest
 
 from HardwareRepository.BaseHardwareObjects import HardwareObjectState
-from HardwareRepository.HardwareObjects.abstract.testing import TestAbstractNStateBase
+from HardwareRepository.test.pytest import TestAbstractNStateBase
 
 @pytest.fixture
 def test_object(beamline):
