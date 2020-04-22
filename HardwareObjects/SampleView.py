@@ -34,7 +34,7 @@ class SampleView(AbstractSampleView):
     def __init__(self, name):
         AbstractSampleView.__init__(self, name)
         self._shapes = {}
-    
+
     def init(self):
         super(SampleView, self).init()
 
@@ -199,7 +199,7 @@ class SampleView(AbstractSampleView):
         """
         Clear the shapes, remove all contents.
         """
-        self.shapes = {}
+        self._shapes = {}
         Grid.SHAPE_COUNT = 0
         Line.SHAPE_COUNT = 0
         Point.SHAPE_COUNT = 0
