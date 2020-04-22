@@ -169,7 +169,7 @@ class SampleView(AbstractSampleView):
             (Boolean) True if Shape with <sid> is selected False otherwise
         """
         shape = self.shapes.get(sid, None)
-        return shape and shape.is_selected()
+        return bool(shape and shape.is_selected())
 
     def get_selected_shapes(self):
         """
