@@ -68,6 +68,7 @@ class TestAbstractNStateBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         values = list(val for val in test_object.VALUES if val != "UNKNOWN")
         val1, val2 = values[:2]
 
+        # Must be set first so the next command causes a change
         test_object.set_value(val1, timeout=90)
         with pytest.raises(BaseException):
             test_object.set_value(val2, timeout=1.0e-6)
@@ -82,6 +83,7 @@ class TestAbstractNStateBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         values = list(val for val in test_object.VALUES if val != "UNKNOWN")
         val1, val2 = values[:2]
 
+        # Must be set first so the next command causes a change
         test_object.set_value(val2, timeout=None)
         with pytest.raises(BaseException):
             test_object.set_value(val1, timeout=0)
