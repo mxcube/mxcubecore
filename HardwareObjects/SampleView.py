@@ -49,6 +49,24 @@ class SampleView(AbstractSampleView):
     def shapes(self):
         return self._shapes
 
+    def start_centring(self, tree_click=True):
+        """
+        Starts centring procedure
+        """
+        pass
+
+    def cancel_centring(self):
+        """
+        Cancels current centring procedure
+        """
+        pass
+
+    def start_auto_centring(self):
+        """
+        Start automatic centring procedure
+        """
+        pass
+
     def get_snapshot(self, overlay=True, bw=False, return_as_array=False):
         """ Get snappshot(s)
         Args:
