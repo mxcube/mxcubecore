@@ -17,9 +17,8 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-""" AbstractShutter class - interface for N state devices.
-Defines BaseValueEnum, initialise_values and value_to_enum methds.
-Implements validate_value, set/update limits.
+""" AbstractShutter class - interface for shutter type devices.
+Defines BaseValueEnum and ShutterStates Enums.
 """
 
 import abc
@@ -57,6 +56,7 @@ class AbstractShutter(AbstractNState):
 
     __metaclass__ = abc.ABCMeta
     SPECIFIC_STATES = ShutterStates
+    VALUES = BaseValueEnum
 
     def __init__(self, name):
         AbstractNState.__init__(self, name)
