@@ -617,7 +617,7 @@ class SampleChanger(Container, Equipment):
             sample (tuple): sample address on the form 
                             (component1, ... ,component_N-1, component_N)
             wait (boolean): True to wait for load to complete False otherwise
-            
+           
         Returns
             (Object): Value returned by _execute_task either a Task or result of the
                       operation
@@ -653,6 +653,7 @@ class SampleChanger(Container, Equipment):
             (Object): Value returned by _execute_task either a Task or result of the
                       operation
         """
+        import pdb; pdb.set_trace()
         sample_slot = self._resolve_component(sample_slot)
         self.assert_not_charging()
         # In case we have manually mounted we can command an unmount
@@ -681,7 +682,9 @@ class SampleChanger(Container, Equipment):
         self._do_unload(sample_slot)
 
     def _resolve_component(self, component):
-        if component is not None and isinstance(component, basestring):
+        # The builtin basestring abstract type was removed. Use str instead.
+        # if component is not None and isinstance(component, basestring):
+        if component is not None and isinstance(component, str):
             c = self.get_component_by_address(component)
             if c is None:
                 raise Exception("Invalid component: " + component)
