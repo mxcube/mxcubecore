@@ -47,7 +47,7 @@ class ShutterStates(Enum):
     OPEN = HardwareObjectState.READY, "OPEN"
     CLOSED = HardwareObjectState.READY, "CLOSED"
     MOVING = HardwareObjectState.BUSY, "MOVING"
-    DISABLED = HardwareObjectState.WARNING, "DISABLE"
+    DISABLED = HardwareObjectState.WARNING, "DISABLED"
     AUTOMATIC = HardwareObjectState.READY, "RUNNING"
 
 
