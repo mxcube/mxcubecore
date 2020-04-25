@@ -55,7 +55,7 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
                 if cpos != empty_cpos:
                     log.info("Moving sample to given position ...")
                     list_item.setText(1, "Moving sample")
-                    HWR.beamline.sample_view.shapes.select_shape_with_cpos(cpos)
+                    HWR.beamline.sample_view.select_shape_with_cpos(cpos)
                     self.centring_task = HWR.beamline.diffractometer.moveToCentredPosition(
                         cpos, wait=False
                     )
