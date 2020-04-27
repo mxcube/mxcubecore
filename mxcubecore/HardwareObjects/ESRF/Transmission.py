@@ -33,12 +33,12 @@ class Transmission(AbstractTransmission):
     unit = "%"
 
     def __init__(self, name):
-        AbstractTransmission.__init__(self, name)
+        super(Transmission, self).__init__(name)
         self._transmission = None
 
     def init(self):
         """Initialise from the config"""
-        AbstractTransmission.init(self)
+        super(Transmission, self).init()
         module_name = self.getProperty("module_name")
         ctrl = self.getObjectByRole("controller")
         self._transmission = getattr(ctrl, module_name)
