@@ -1,9 +1,14 @@
+from warnings import warn
 from BlissMotor import BlissMotor
 import logging
 
 
 class BlissMotorWPositions(BlissMotor):
     def __init__(self, name):
+        warn(
+            "BlissMotorWPositions class is deprecated. Use BlissNState instead",
+            DeprecationWarning,
+        )
         BlissMotor.__init__(self, name)
 
     def init(self):
