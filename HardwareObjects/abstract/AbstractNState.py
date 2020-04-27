@@ -111,4 +111,4 @@ class AbstractNState(AbstractActuator):
     def update_values(self):
         """Update values for all internal attributes"""
         self.update_value(self.get_value())
-        super(AbstractActuator, self).update_values()
+        super(AbstractNState, self).update_values()
