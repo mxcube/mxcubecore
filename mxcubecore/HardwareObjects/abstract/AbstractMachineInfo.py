@@ -31,6 +31,8 @@ class AbstractMachineInfo(HardwareObject):
         HardwareObject.__init__(self, name)
         self._current = None
         self._message = None
+        self._lifetime = None
+        self._topup_remaining = None
         self._values = {}
 
     def init(self):
@@ -50,6 +52,22 @@ class AbstractMachineInfo(HardwareObject):
         """Read message.
         Returns:
             value: Message.
+        """
+        return None
+
+    @abc.abstractmethod
+    def get_lifetime(self):
+        """Read life time.
+        Returns:
+            value: Life time.
+        """
+        return None
+
+    @abc.abstractmethod
+    def get_topup_remaining(self):
+        """Read top up remaining.
+        Returns:
+            value: Top up remaining.
         """
         return None
 
