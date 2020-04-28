@@ -47,7 +47,6 @@ class AbstractMachineInfo(HardwareObject):
         """
         return None
 
-    @abc.abstractmethod
     def get_message(self):
         """Read message.
         Returns:
@@ -55,7 +54,6 @@ class AbstractMachineInfo(HardwareObject):
         """
         return None
 
-    @abc.abstractmethod
     def get_lifetime(self):
         """Read life time.
         Returns:
@@ -63,7 +61,6 @@ class AbstractMachineInfo(HardwareObject):
         """
         return None
 
-    @abc.abstractmethod
     def get_topup_remaining(self):
         """Read top up remaining.
         Returns:
