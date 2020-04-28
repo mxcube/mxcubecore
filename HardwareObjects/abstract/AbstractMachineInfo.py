@@ -33,7 +33,7 @@ class AbstractMachineInfo(HardwareObject):
         self._message = None
         self._lifetime = None
         self._topup_remaining = None
-        self._values = {}
+        self._mach_info_dict = {}
 
     def init(self):
         """Initialise some parameters."""
@@ -69,9 +69,9 @@ class AbstractMachineInfo(HardwareObject):
         return None
 
     @abc.abstractmethod
-    def get_value(self):
-        """Read machine info.
+    def get_mach_info_dict(self):
+        """Read machine info dict.
         Returns:
-            value: dict
+            (dict): Copy of mach_info_dict.
         """
-        return None
+        return self._mach_info_dict.copy()
