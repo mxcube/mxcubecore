@@ -24,7 +24,7 @@ _objects:
     #
     # Hardware:
     #- session: session.xml
-    #- machine_info: mach-info-mockup.xml
+    - machine_info: mach-info-mockup.xml
     - transmission: transmission-mockup.xml
     - energy: energy-mockup.xml
     - beam: beam-mockup.xml
