@@ -65,6 +65,16 @@ class MicrodiffAperture(ExporterNState):
         if self.inout_obj:
             self._initialise_inout()
 
+    def _set_value(self, value):
+        """Set device to value
+        Args:
+            value (str, int, float or enum): Value to be set.
+        """
+        if value.name in ("IN", "OUT"):
+            self.inout_obj.set_value(value, timeout=60)
+        else:
+            super(MicrodiffAperture, self)._set_value(value)
+
     def _initialise_inout(self):
         """Add IN and OUT to the values Enum"""
         values_dict = {item.name: item.value for item in self.inout_obj.VALUES}
