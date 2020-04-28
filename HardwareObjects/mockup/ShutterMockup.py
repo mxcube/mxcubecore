@@ -17,28 +17,46 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-from HardwareRepository.HardwareObjects.abstract. AbstractNState import AbstractNState
+""" Mockup shutter implementation"""
+
+from enum import Enum, unique
+from HardwareRepository.HardwareObjects.abstract.AbstractShutter import AbstractShutter
+from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 from HardwareRepository.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
 
 
-class ShutterMockup(ActuatorMockup, AbstractNState):
+@unique
+class ShutterStates(Enum):
+    """Shutter states definitions."""
+
+    OPEN = HardwareObjectState.READY, 6
+    CLOSED = HardwareObjectState.READY, 7
+    MOVING = HardwareObjectState.BUSY, 8
+    DISABLED = HardwareObjectState.WARNING, 9
+    AUTOMATIC = HardwareObjectState.READY, 10
+
+
+class ShutterMockup(ActuatorMockup, AbstractShutter):
     """
     ShutterMockup for simulating a simple open/close shutter.
     """
 
+    SPECIFIC_STATES = ShutterStates
+
     def init(self):
+        """Initialisation"""
         super(ShutterMockup, self).init()
-        self.update_value(self.VALUES.CLOSED)
+        self.update_value(self.VALUES.CLOSE)
         self.update_state(self.STATES.READY)
 
     def is_open(self):
         return self.get_value() is self.VALUES.OPEN
 
     def is_closed(self):
-        return self.get_value() is self.VALUES.CLOSED
+        return self.get_value() is self.VALUES.CLOSE
 
     def open(self):
         self.set_value(self.VALUES.OPEN, timeout=None)
 
     def close(self):
-        self.set_value(self.VALUES.CLOSED, timeout=None)
+        self.set_value(self.VALUES.CLOSE, timeout=None)
