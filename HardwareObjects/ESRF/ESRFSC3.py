@@ -54,15 +54,15 @@ class ESRFSC3(SC3.SC3):
             sample_id = None
 
         if sample_id:
-            sample = self.getComponentById(sample_id)
+            sample = self.get_component_by_id(sample_id)
         else:
             if sample_location:
                 basket_number, sample_number = sample_location
-                sample = self.getComponentByAddress(
-                    SC3.Pin.getSampleAddress(basket_number, sample_number)
+                sample = self.get_component_by_address(
+                    SC3.Pin.get_sample_address(basket_number, sample_number)
                 )
             else:
-                sample = self.getSelectedSample()
+                sample = self.get_selected_sample()
 
         return sample
 
@@ -92,7 +92,7 @@ class ESRFSC3(SC3.SC3):
                 )
             ):
                 with cleanup(self.unlockMinidiffMotors, wait=True, timeout=3):
-                    loaded = self.__loadSample(holderLength, sample_id, sample_location)
+                    loaded = self.__load_sample(holderLength, sample_id, sample_location)
 
                 if loaded:
                     logging.getLogger("HWR").debug("%s: sample is loaded", self.name())
@@ -105,7 +105,7 @@ class ESRFSC3(SC3.SC3):
                         self.emit(
                             "statusChanged", "Preparing minidiff for sample centring"
                         )
-                        self.prepareCentring(wait=True, timeout=1000)
+                        self.prepare_centring(wait=True, timeout=1000)
 
                     self.emit("statusChanged", "Ready")
 
@@ -116,12 +116,12 @@ class ESRFSC3(SC3.SC3):
         # if needed, should wait for SC to be able to load (loading state)
         pass
 
-    def __loadSample(self, holderLength, sample_id, sample_location):
-        logging.getLogger("HWR").debug("%s: in loadSample", self.name())
+    def __load_sample(self, holderLength, sample_id, sample_location):
+        logging.getLogger("HWR").debug("%s: in load_sample", self.name())
 
         sample = self.__getSample(sample_id, sample_location)
 
-        if self.getLoadedSample() == sample:
+        if self.get_loaded_sample() == sample:
             return True
 
         if not holderLength:
@@ -132,7 +132,7 @@ class ESRFSC3(SC3.SC3):
                 holderLength,
             )
 
-        sample._setHolderLength(holderLength)
+        sample._set_holder_length(holderLength)
 
         self.emit("stateChanged", SC3.SampleChangerState.Moving)
         self.emit("statusChanged", "Moving diffractometer to loading position")
@@ -145,7 +145,7 @@ class ESRFSC3(SC3.SC3):
             raise
 
         self._getLoadingState()
-        return self.getLoadedSample() == sample
+        return self.get_loaded_sample() == sample
 
     def load_sample(self, *args, **kwargs):
         kwargs["wait"] = True
@@ -172,7 +172,7 @@ class ESRFSC3(SC3.SC3):
                 )
             ):
                 with cleanup(self.unlockMinidiffMotors, wait=True, timeout=3):
-                    unloaded = self.__unloadSample(
+                    unloaded = self.__unload_sample(
                         holderLength, sample_id, sample_location
                     )
 
@@ -186,7 +186,7 @@ class ESRFSC3(SC3.SC3):
                     if callable(sampleIsUnloadedCallback):
                         sampleIsUnloadedCallback()
 
-    def __unloadSample(self, holderLength, sample_id, sample_location):
+    def __unload_sample(self, holderLength, sample_id, sample_location):
         sample = self.__getSample(sample_id, sample_location)
 
         if not holderLength:
@@ -197,7 +197,7 @@ class ESRFSC3(SC3.SC3):
                 holderLength,
             )
 
-        sample._setHolderLength(holderLength)
+        sample._set_holder_length(holderLength)
 
         self.emit("stateChanged", SC3.SampleChangerState.Moving)
         self.emit("statusChanged", "Moving diffractometer to unloading position")
@@ -206,7 +206,7 @@ class ESRFSC3(SC3.SC3):
         SC3.SC3.unload(self, sample, wait=True)
 
         self._getLoadingState()
-        return not self.hasLoadedSample()
+        return not self.has_loaded_sample()
 
     def moveCryoIn(self):
         cryoDevice = self.getDeviceByRole("Cryo")
@@ -221,7 +221,7 @@ class ESRFSC3(SC3.SC3):
     # def getSCHolderLength(self):
     #    return
 
-    def isMicrodiff(self):
+    def is_microdiff(self):
         return not self.prepareCentringAfterLoad
 
     def operationalFlagsChanged(self, val):

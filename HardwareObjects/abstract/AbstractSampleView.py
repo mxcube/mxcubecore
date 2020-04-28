@@ -39,7 +39,7 @@ class AbstractSampleView(HardwareObject):
         self._backlight = None
         self._shapes = None
 
-    @abc.abstractmethod    
+    @abc.abstractmethod
     def get_snapshot(self, overlay=True, bw=False, return_as_array=False):
         """ Get snappshot(s)
         Args:
@@ -109,28 +109,198 @@ class AbstractSampleView(HardwareObject):
 
     @abc.abstractmethod
     def start_centring(self, tree_click=True):
+        """
+        Starts centring procedure
+        """
         return
 
     @abc.abstractmethod
     def cancel_centring(self):
+        """
+        Cancels current centring procedure
+        """
         return
 
     @abc.abstractmethod
     def start_auto_centring(self):
+        """
+        Start automatic centring procedure
+        """
+        return
+
+    # Not sure these should be abstarct ?
+    # @abc.abstractmethod
+    # def create_line(self):
+    #     return
+
+    # @abc.abstractmethod
+    # def create_auto_line(self):
+    #     return
+
+    # @abc.abstractmethod
+    # def create_grid(self, spacing):
+    #     return
+
+    @abc.abstractmethod
+    def add_shape(self, shape):
+        """
+        Add the shape <shape> to the dictionary of handled shapes.
+
+        Args:
+            (Shape): Shape to add
+        """
         return
 
     @abc.abstractmethod
-    def create_line(self):
+    def add_shape_from_mpos(self, mpos_list, screen_cord, _type):
+        """
+        Adds a shape of type <t>, with motor positions from mpos_list and
+        screen position screen_coord.
+
+        Args:
+            mpos_list (list[mpos_list]): List of motor positions
+            screen_coord (tuple(x, y): Screen cordinate for shape
+            t (str): Type str for shape, P (Point), L (Line), G (Grid)
+
+        Returns:
+            (Shape) Shape of type <t>
+        """
         return
 
     @abc.abstractmethod
-    def create_auto_line(self):
+    def delete_shape(self, sid):
+        """
+        Removes the shape with id <sid> from the list of handled shapes.
+
+        Args:
+            sid (str): The id of the shape to remove
+
+        Returns:
+            (Shape): The removed shape
+        """
+
+    @abc.abstractmethod
+    def select_shape(self, sid):
+        """
+        Select the shape <shape>.
+
+        Args:
+            sid (str): Id of the shape to select.
+        """
         return
 
     @abc.abstractmethod
-    def create_grid(self, spacing):
+    def de_select_shape(self, sid):
+        """
+        De-select the shape with id <sid>.
+
+        Args:
+            sid (str): The id of the shape to de-select.
+        """
         return
 
     @abc.abstractmethod
-    def clear_all_shapes(self):
+    def is_selected(self, sid):
+        """
+        Check if Shape with <sid> is selected.
+
+        Returns:
+            (Boolean) True if Shape with <sid> is selected False otherwise
+        """
+
+    @abc.abstractmethod
+    def get_selected_shapes(self):
+        """
+        Get all selected shapes.
+
+        Returns:
+           (list[Shape]) List fot selected Shapes
+        """
+        return
+
+    @abc.abstractmethod
+    def de_select_all(self):
+        """De select all shapes."""
+        return
+
+    @abc.abstractmethod
+    def select_shape_with_cpos(self, cpos):
+        """
+        Selects shape with the assocaitaed centerd posotion <cpos>
+
+        Args:
+            cpos (CenteredPosition)
+        """
+        return
+
+    @abc.abstractmethod
+    def clear_all(self):
+        """
+        Clear the shapes, remove all contents.
+        """
+        return
+
+    @abc.abstractmethod
+    def get_shape(self, sid):
+        """
+        Get Shape with id <sid>.
+
+        Args:
+            sid (str): id of Shape to retrieve
+
+        Returns:
+            (Shape) All the shapes
+        """
+        return
+
+    @abc.abstractmethod
+    def get_grid(self):
+        """
+        Get the first of the selected grids, (the one that was selected first in
+        a sequence of select operations)
+
+        Returns:
+            (dict): The first selected grid as a dictionary
+        """
+        return
+
+    @abc.abstractmethod
+    def get_points(self):
+        """
+        Get all Points currently handled.
+
+        Returns:
+            (list[Point]): All points currently handled
+        """
+        return
+
+    @abc.abstractmethod
+    def get_lines(self):
+        """
+        Get all Lines currently handled.
+
+        Returns:
+            (list[Line]): All lines currently handled
+        """
+        return
+
+    @abc.abstractmethod
+    def get_grids(self):
+        """
+        Get all Grids currently handled.
+
+        Returns:
+            (list[Grid]): All grids currently handled
+        """
+        return
+
+    @abc.abstractmethod
+    def inc_used_for_collection(self):
+        """
+        Increase counter that keepts on collect made on this shape, 
+        shape with associated CenteredPosition cpos
+
+        Args:
+            cpos (CenteredPosition): CenteredPosition of shape
+        """
         return

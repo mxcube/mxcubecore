@@ -1,6 +1,3 @@
 <object class="XRFSpectrumMockup">
-  <object hwrid="/transmission-mockup" role="transmission"/>
-  <object hwrid="/energy-mockup" role="energy"/>
-  <object hwrid="/beam-info" role="beam_info"/>
   <object hwrid="/lims-client-mockup" role="dbserver"/>
 </object>

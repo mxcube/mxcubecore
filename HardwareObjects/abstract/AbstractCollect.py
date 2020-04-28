@@ -99,6 +99,8 @@ class AbstractCollect(HardwareObject, object):
         else:
             synchrotron_name = "UNKNOWN"
 
+        beam_divergence_hor, beam_divergence_ver = HWR.beamline.beam.get_beam_divergence() 
+
         self.set_beamline_configuration(
             synchrotron_name=synchrotron_name,
             directory_prefix=self.getProperty("directory_prefix"),
@@ -117,8 +119,8 @@ class AbstractCollect(HardwareObject, object):
             undulators=undulators,
             focusing_optic=self.getProperty("focusing_optic"),
             monochromator_type=self.getProperty("monochromator"),
-            beam_divergence_vertical=HWR.beamline.beam.get_beam_divergence_hor(),
-            beam_divergence_horizontal=HWR.beamline.beam.get_beam_divergence_ver(),
+            beam_divergence_vertical=beam_divergence_ver,
+            beam_divergence_horizontal=beam_divergence_hor,
             polarisation=self.getProperty("polarisation"),
             input_files_server=self.getProperty("input_files_server"),
         )
@@ -328,14 +330,14 @@ class AbstractCollect(HardwareObject, object):
             pass
         elif sample_changer:
             try:
-                basket, vial = sample_changer.getLoadedSample().getCoords()
+                basket, vial = sample_changer.get_loaded_sample().get_coords()
 
                 cp.dangerously_set(
-                    "actualSampleBarcode", sample_changer.getLoadedSample().getID()
+                    "actualSampleBarcode", sample_changer.get_loaded_sample().get_id()
                 )
                 cp.dangerously_set(
                     "actualContainerBarcode",
-                    sample_changer.getLoadedSample().getContainer().getID(),
+                    sample_changer.get_loaded_sample().get_container().get_id(),
                 )
                 cp.dangerously_set("actualSampleSlotInContainer", vial)
                 cp.dangerously_set("actualContainerSlotInSC", basket)

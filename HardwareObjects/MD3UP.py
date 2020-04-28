@@ -73,10 +73,10 @@ class MD3UP(Microdiff.Microdiff):
         )
 
     # def getBeamPosX(self):
-    #     return self.beam_info.get_beam_position()[0]
+    #     return self.beam_info.get_beam_position_on_screen()[0]
     #
     # def getBeamPosY(self):
-    #     return self.beam_info.get_beam_position()[1]
+    #     return self.beam_info.get_beam_position_on_screen()[1]
 
     def setNbImages(self, number_of_images):
         self.scan_nb_frames = number_of_images
@@ -209,7 +209,7 @@ class MD3UP(Microdiff.Microdiff):
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
 
-        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         dx = (x - beam_pos_x) / self.pixelsPerMmY
         dy = (y - beam_pos_y) / self.pixelsPerMmZ
 
@@ -305,7 +305,7 @@ class MD3UP(Microdiff.Microdiff):
 
         sx, sy = numpy.dot(numpy.array([0, dsy]), numpy.array(chiRot))
 
-        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         x = (sx + phiy) * self.pixelsPerMmY + beam_pos_x
         y = (sy + phiz) * self.pixelsPerMmZ + beam_pos_y
 
@@ -319,7 +319,7 @@ class MD3UP(Microdiff.Microdiff):
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
 
-        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         dx = (x - beam_pos_x) / self.pixelsPerMmY
         dy = (y - beam_pos_y) / self.pixelsPerMmZ
 

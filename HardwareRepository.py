@@ -15,7 +15,6 @@ import time
 import importlib
 from datetime import datetime
 import gevent
-import gevent.monkey
 from ruamel.yaml import YAML
 
 try:

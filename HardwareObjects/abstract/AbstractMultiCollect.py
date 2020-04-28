@@ -426,13 +426,13 @@ class AbstractMultiCollect(object):
             try:
                 data_collect_parameters[
                     "actualSampleBarcode"
-                ] = HWR.beamline.sample_changer.getLoadedSample().getID()
+                ] = HWR.beamline.sample_changer.get_loaded_sample().get_id()
                 data_collect_parameters["actualContainerBarcode"] = (
-                    HWR.beamline.sample_changer.getLoadedSample().getContainer().getID()
+                    HWR.beamline.sample_changer.get_loaded_sample().get_container().get_id()
                 )
 
                 logging.getLogger("user_level_log").info("Getting loaded sample coords")
-                basket, vial = HWR.beamline.sample_changer.getLoadedSample().getCoords()
+                basket, vial = HWR.beamline.sample_changer.get_loaded_sample().get_coords()
 
                 data_collect_parameters["actualSampleSlotInContainer"] = vial
                 data_collect_parameters["actualContainerSlotInSC"] = basket

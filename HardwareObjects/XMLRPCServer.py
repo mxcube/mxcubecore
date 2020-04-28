@@ -441,7 +441,7 @@ class XMLRPCServer(HardwareObject):
          'angle': float}
 
         """
-        grid_dict = HWR.beamline.sample_view.shapes.get_grid()
+        grid_dict = HWR.beamline.sample_view.get_grid()
         # self.shape_history_set_grid_data(grid_dict['id'], {})
 
         return grid_dict
@@ -451,7 +451,7 @@ class XMLRPCServer(HardwareObject):
         for result in result_data.items():
             int_based_result[int(result[0])] = result[1]
 
-        HWR.beamline.sample_view.shapes.set_grid_data(key, int_based_result)
+        HWR.beamline.sample_view.set_grid_data(key, int_based_result)
         return True
 
     def get_cp(self):
@@ -459,7 +459,7 @@ class XMLRPCServer(HardwareObject):
         :returns: a json encoded list with all centred positions
         """
         cplist = []
-        points = HWR.beamline.sample_view.shapes.get_points()
+        points = HWR.beamline.sample_view.get_points()
 
         for point in points:
             cp = point.get_centred_positions()[0].as_dict()
@@ -525,19 +525,19 @@ class XMLRPCServer(HardwareObject):
         return float(flux)
 
     def set_aperture(self, pos_name, timeout=20):
-        HWR.beamline.beam.aperture_hwobj.moveToPosition(pos_name)
+        HWR.beamline.beam.aperture.move_to_position(pos_name)
         t0 = time.time()
-        while HWR.beamline.beam.aperture_hwobj.get_state() == "MOVING":
+        while HWR.beamline.beam.aperture.get_state() == "MOVING":
             time.sleep(0.1)
             if time.time() - t0 > timeout:
                 raise RuntimeError("Timeout waiting for aperture to move")
         return True
 
     def get_aperture(self):
-        return HWR.beamline.beam.aperture_hwobj.get_current_position_name()
+        return HWR.beamline.beam.aperture.get_current_position_name()
 
     def get_aperture_list(self):
-        return HWR.beamline.beam.aperture_hwobj.getPredefinedPositionsList()
+        return HWR.beamline.beam.aperture.get_predefined_positions_list()
 
     def open_dialog(self, dict_dialog):
         """

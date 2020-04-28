@@ -21,17 +21,21 @@
 """Abstract Energy and Wavelength"""
 
 import abc
+import math
 from scipy.constants import h, c, e
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
 )
 
-__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
 class AbstractEnergy(AbstractActuator):
     """Abstract Energy and Wavelength"""
+
+    # Unit for 'value' attribute
+    unit = "keV"
 
     __metaclass__ = abc.ABCMeta
 
@@ -39,10 +43,6 @@ class AbstractEnergy(AbstractActuator):
         AbstractActuator.__init__(self, name)
         self._wavelength_value = None
         self._wavelength_limits = (None, None)
-
-    def init(self):
-        """Get the proprrties read_only, default_value"""
-        AbstractActuator.init(self)
 
     def is_ready(self):
         """Check if the state is ready.
@@ -89,6 +89,7 @@ class AbstractEnergy(AbstractActuator):
                              if timeout = 0: return at once and do not wait
                              if timeout is None: wait forever
         """
+        self.set_value(self._calculate_energy(value), timeout=timeout)
 
     def _calculate_wavelength(self, energy=None):
         """Calculate wavelength from energy
@@ -115,6 +116,22 @@ class AbstractEnergy(AbstractActuator):
         hc_over_e = h * c / e * 10e6
         wavelength = wavelength or self._wavelength_value
         return hc_over_e / wavelength
+
+    def validate_value(self, value):
+        """Check if the value is within the limits
+        Args:
+            value(float): value
+        Returns:
+            (bool): True if within the limits
+        """
+        if value is None:
+            return True
+        if math.isnan(value) or math.isinf(value):
+            return False
+        limits = self.get_limits()
+        if None in limits:
+            return True
+        return limits[0] <= value <= limits[1]
 
     def update_value(self, value=None):
         """Emist signal energyChanged for both energy and wavelength

@@ -146,7 +146,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
 
         for i in range(self._num_basket):
             basket = Container.Basket(self, i + 1)
-            self._addComponent(basket)
+            self._add_component(basket)
 
         self.chan_mounted_sample_puck = self.get_channel_object("chanMountedSamplePuck")
         self.chan_mounted_sample_puck.connectSignal("update", self.mounted_sample_puck_changed)
@@ -192,10 +192,10 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         else:
             self._focusing_mode = "P13mode"
 
-        self._initSCContents()
-        self._updateState()
+        self._init_sc_contents()
+        self._update_state()
         self._updateSCContents()
-        self._updateLoadedSample()
+        self._update_loaded_sample()
 
         self.log_filename = self.getProperty("log_filename")
         if self.log_filename is None:
@@ -205,7 +205,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         logging.getLogger("HWR").debug("Marvin log filename: %s" % self.log_filename)
         AbstractSampleChanger.SampleChanger.init(self)
 
-        self._setState(AbstractSampleChanger.SampleChangerState.Ready)
+        self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
         self.status_list_changed(self.chan_status.getValue())
         self.puck_switches_changed(self.chan_puck_switches.getValue())
         self.mounted_sample_puck_changed(self.chan_mounted_sample_puck.getValue())
@@ -246,8 +246,8 @@ class Marvin(AbstractSampleChanger.SampleChanger):
 
             self._sample_detected = sample_detected
             self._info_dict["sample_detected"] = sample_detected
-            self._updateLoadedSample()
-            self.updateInfo()
+            self._update_loaded_sample()
+            self.update_info()
 
     def wait_command_acknowledgement(self, timeout):
         with gevent.Timeout(timeout, Exception("Timeout waiting for command acknowldegement")):
@@ -284,7 +284,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         with gevent.Timeout(timeout, Exception("Timeout waiting for centring phase")):
             while HWR.beamline.diffractometer.get_current_phase() != \
                   HWR.beamline.diffractometer.PHASE_CENTRING:
-                if not self._isDeviceBusy():
+                if not self._is_device_busy():
                     return
                 gevent.sleep(0.05)
 
@@ -315,7 +315,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                 self._info_dict["mounted_sample"] = mounted_sample
             else:
                 self._info_dict["mounted_sample"] = mounted_sample + 1
-            self._updateLoadedSample()
+            self._update_loaded_sample()
 
     def veto_changed(self, status):
         """Veto changed callback. Used to wait for ready"""
@@ -335,7 +335,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             logging.getLogger("GUI").error("Sample changer: %s" % self._process_step_info)
 	    # GB: 20190304: this seemd to lock mxcube forever on any marvin error
             #self._in_error_state = True
-            #self._setState(AbstractSampleChanger.SampleChangerState.Alarm)
+            #self._set_state(AbstractSampleChanger.SampleChangerState.Alarm)
             
         
         else:
@@ -364,63 +364,63 @@ class Marvin(AbstractSampleChanger.SampleChanger):
     def dry_gripper(self):
         self.cmd_dry_gripper(1)
 
-    def getSampleProperties(self):
+    def get_sample_properties(self):
         """Gets sample properties """
         return (Container.Pin.__HOLDER_LENGTH_PROPERTY__,)
 
-    def assertCanExecuteTask(self):
+    def assert_can_execute_task(self):
         return
         
-    def _doUpdateInfo(self):       
+    def _do_update_info(self):       
         """Updates the sample changers status: mounted pucks, state, 
            currently loaded sample
         """
-        #self._updateState()               
+        #self._update_state()               
         #self._updateSCContents()
         #call this method if status string changed
-        #self._updateLoadedSample()
+        #self._update_loaded_sample()
                     
-    def _directlyUpdateSelectedComponent(self, basket_no, sample_no):    
+    def _directly_update_selected_component(self, basket_no, sample_no):    
         """Directly updates necessary sample"""
         basket = None
         sample = None
         if basket_no is not None and basket_no>0 and \
            basket_no <=self._num_basket:
-            basket = self.getComponentByAddress(Container.Basket.getBasketAddress(basket_no))
+            basket = self.get_component_by_address(Container.Basket.get_basket_address(basket_no))
             if sample_no is not None and sample_no>0 and \
-               sample_no <= len(basket.getSampleList()):
-                sample = self.getComponentByAddress(Container.Pin.getSampleAddress(basket_no, sample_no))            
-        self._setSelectedComponent(basket)
-        self._setSelectedSample(sample)
+               sample_no <= len(basket.get_sample_list()):
+                sample = self.get_component_by_address(Container.Pin.get_sample_address(basket_no, sample_no))            
+        self._set_selected_component(basket)
+        self._set_selected_sample(sample)
 
-    def _doSelect(self,component):
+    def _do_select(self,component):
         """Selects a new component (basket or sample).
-           Uses method >_directlyUpdateSelectedComponent< to actually 
+           Uses method >_directly_update_selected_component< to actually 
            search and select the corrected positions.
         """
         if type(component) in (Container.Pin, Sample.Sample):
-            selected_basket_no = component.getBasketNo()
-            selected_sample_no = component.getIndex()+1
-        elif isinstance(component, Container.Container) and ( component.getType() == Container.Basket.__TYPE__):
-            selected_basket_no = component.getIndex()+1
+            selected_basket_no = component.get_basket_no()
+            selected_sample_no = component.get_index()+1
+        elif isinstance(component, Container.Container) and ( component.get_type() == Container.Basket.__TYPE__):
+            selected_basket_no = component.get_index()+1
             selected_sample_no = None
 
-        self._directlyUpdateSelectedComponent(selected_basket_no, selected_sample_no)
+        self._directly_update_selected_component(selected_basket_no, selected_sample_no)
             
-    def _doScan(self,component,recursive):
+    def _do_scan(self,component,recursive):
         """Scans the barcode of a single sample, puck or recursively even the 
            complete sample changer.
            Not implemented
         """
-        print("_doScan TODO")
+        print("_do_scan TODO")
     
-    def _doLoad(self,sample=None):
+    def _do_load(self,sample=None):
         """Loads a sample on the diffractometer. Performs a simple put operation
            if the diffractometer is empty, and a sample exchange (unmount of 
            old + mount of  new sample) if a sample is already mounted on 
            the diffractometer.
         """
-        #self._setState(AbstractSampleChanger.SampleChangerState.Ready)
+        #self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
         log = logging.getLogger("GUI")
 
         if self._focusing_mode not in ("Collimated", "Double", "Imaging", "TREXX", "P13mode"):
@@ -439,33 +439,33 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             return
         
         start_time = datetime.now()
-        selected = self.getSelectedSample()
+        selected = self.get_selected_sample()
 
         if sample is not None:
             if sample != selected:
-                self._doSelect(sample)
-                selected=self.getSelectedSample()
+                self._do_select(sample)
+                selected=self.get_selected_sample()
         else:
             if selected is not None:
                  sample = selected
             else:
                raise Exception("No sample selected")
 
-        basket_index = selected.getBasketNo()
-        sample_index = selected.getVialNo()
+        basket_index = selected.get_basket_no()
+        sample_index = selected.get_vial_no()
 
         # 1. Check if sample is on gonio. This should never happen
         # because if mount is requested and on gonio is sample then
         # first sample is dismounted
         if self._focusing_mode == "P13mode":
             if self.is_sample_on_gonio():
-                if selected==self.getLoadedSample():
+                if selected==self.get_loaded_sample():
                     msg = "The sample " + \
-                          str(self.getLoadedSample().getAddress()) + \
+                          str(self.get_loaded_sample().get_address()) + \
                           " is already loaded"
                     raise Exception(msg)
                 else:
-                    self._doUnload()
+                    self._do_unload()
 
         msg = "Sample changer: Loading sample %d:%d" %(\
                int(basket_index), int(sample_index))
@@ -505,17 +505,17 @@ class Marvin(AbstractSampleChanger.SampleChanger):
 
         # 4. Executed command and wait till device is ready 
         if self._focusing_mode == "P13mode":
-            self._executeServerTask(self.cmd_mount_sample,
+            self._execute_server_task(self.cmd_mount_sample,
                                     int(sample_index),
                                     int(basket_index))
         else:
             if self._focusing_mode == "Collimated" or self._focusing_mode == "Imaging" or self._focusing_mode == "TREXX":
-                self._executeServerTask(self.cmd_mount_sample,
+                self._execute_server_task(self.cmd_mount_sample,
                                         int(sample_index),
                                         int(basket_index),
                                         1)
             elif self._focusing_mode == "Double":
-                self._executeServerTask(self.cmd_mount_sample,
+                self._execute_server_task(self.cmd_mount_sample,
                                         int(sample_index),
                                         int(basket_index),
                                         3)
@@ -536,19 +536,19 @@ class Marvin(AbstractSampleChanger.SampleChanger):
 
     def load(self, sample=None, wait=True):
         """ Load a sample"""
-        #self._setState(AbstractSampleChanger.SampleChangerState.Ready)
+        #self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
         if self._focusing_mode == "P13mode":
             AbstractSampleChanger.SampleChanger.load(self, sample, wait)
         else:
-            sample = self._resolveComponent(sample)
-            self.assertNotCharging()
-            return self._executeTask(AbstractSampleChanger.SampleChangerState.Loading, wait, self._doLoad, sample)
+            sample = self._resolve_component(sample)
+            self.assert_not_charging()
+            return self._execute_task(AbstractSampleChanger.SampleChangerState.Loading, wait, self._do_load, sample)
 
-    def _doUnload(self, sample_slot=None):
+    def _do_unload(self, sample_slot=None):
         """Unloads a sample from the diffractometer"""
         log = logging.getLogger("GUI")
  
-        #self._setState(AbstractSampleChanger.SampleChangerState.Ready)
+        #self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
         if self._focusing_mode not in ("Collimated", "Double", "Imaging", "TREXX", "P13mode"):
             error_msg = "Focusing mode is undefined. Sample loading is disabled"
             log.error(error_msg)
@@ -598,18 +598,18 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         start_time = datetime.now()
 
         if self._focusing_mode == "P13mode":
-            self._executeServerTask(self.cmd_unmount_sample,
+            self._execute_server_task(self.cmd_unmount_sample,
                                     sample_index,
                                     basket_index)
         else:
             if self._focusing_mode == "Collimated" or self._focusing_mode == "Imaging" or self._focusing_mode == "TREXX":
 
-                self._executeServerTask(self.cmd_unmount_sample,
+                self._execute_server_task(self.cmd_unmount_sample,
                                         sample_index,
                                         basket_index,
                                         1)
             elif self._focusing_mode == "Double":
-                self._executeServerTask(self.cmd_unmount_sample,
+                self._execute_server_task(self.cmd_unmount_sample,
                                         sample_index,
                                         basket_index,
                                         3)
@@ -624,27 +624,27 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             log.info("Sample changer: Sample %d:%d unloaded" % \
                       (basket_index, sample_index))
 
-    def clearBasketInfo(self, basket):
+    def clear_basket_info(self, basket):
         """Clears information about basket"""
         #TODO
         return
 
-    def _doChangeMode(self, mode):
+    def _do_change_mode(self, mode):
         """Changes the mode of sample changer"""
         return
 
-    def _doAbort(self):
+    def _do_abort(self):
         """Aborts the sample changer"""
         return
 
-    def _doReset(self):
+    def _do_reset(self):
         """Clean all sample info, move sample to his position and move puck 
            from center to base"""
-        self._setState(AbstractSampleChanger.SampleChangerState.Ready)
-        self._initSCContents()
+        self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
+        self._init_sc_contents()
         self._in_error_state = False
 
-    def _executeServerTask(self, method, *args):
+    def _execute_server_task(self, method, *args):
         """Executes called cmd, waits until sample changer is ready and
            updates loaded sample info
         """
@@ -676,22 +676,22 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         logging.getLogger("HWR").debug("Sample changer: Waiting veto...")
         self.waitVeto(20.0)
         logging.getLogger("HWR").debug("Sample changer: Veto ready")
-        #if self._isDeviceBusy():
+        #if self._is_device_busy():
         #    raise Exception("Action finished to early. Sample changer is not ready!!!")
         self.sample_is_loaded_changed(self.chan_sample_is_loaded.getValue())
-        self._updateState()
-        self._updateLoadedSample()
-        self._setState(AbstractSampleChanger.SampleChangerState.Ready)
+        self._update_state()
+        self._update_loaded_sample()
+        self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
         self._action_started = False
 
-    def _updateState(self):
-        state = self._readState()
+    def _update_state(self):
+        state = self._read_state()
         if (state == AbstractSampleChanger.SampleChangerState.Moving and 
-            self._isDeviceBusy(self.get_state())):
+            self._is_device_busy(self.get_state())):
             return
-        self._setState(state)
+        self._set_state(state)
        
-    def _readState(self):
+    def _read_state(self):
         """Converts state string to defined state"""
         state_converter = {"ALARM": AbstractSampleChanger.SampleChangerState.Alarm,
                            "Err": AbstractSampleChanger.SampleChangerState.Fault,
@@ -699,10 +699,10 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                            "Bsy": AbstractSampleChanger.SampleChangerState.Moving }
         return state_converter.get(self._state_string, AbstractSampleChanger.SampleChangerState.Unknown)
                         
-    def _isDeviceBusy(self, state=None):
+    def _is_device_busy(self, state=None):
         """Checks whether Sample changer is busy"""
         if state is None:
-            state = self._readState()
+            state = self._read_state()
         if self._progress >= 100 and state in (AbstractSampleChanger.SampleChangerState.Ready, 
                                                AbstractSampleChanger.SampleChangerState.Loaded,
                                                AbstractSampleChanger.SampleChangerState.Alarm, 
@@ -713,16 +713,16 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         else:
             return True
 
-    def _isDeviceReady(self):
+    def _is_device_ready(self):
         """Checks whether Sample changer is ready"""
-        state = self._readState()
+        state = self._read_state()
         return state in (AbstractSampleChanger.SampleChangerState.Ready,
                          AbstractSampleChanger.SampleChangerState.Charging)
 
     def wait_ready(self, timeout=None):
         """Waits until the samle changer is ready"""
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
-            while self._isDeviceBusy():
+            while self._is_device_busy():
                 gevent.sleep(0.05)
 
     def waitVeto(self, timeout=20):
@@ -731,7 +731,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                 self.veto_changed(self.chan_veto.getValue)
                 gevent.sleep(0.1)
             
-    def _updateSelection(self):    
+    def _update_selection(self):    
         """Updates selected basked and sample"""
 
         basket = None
@@ -740,19 +740,19 @@ class Marvin(AbstractSampleChanger.SampleChanger):
           basket_no = self._selected_basket
           if basket_no is not None and basket_no>0 and \
              basket_no <= self._num_basket:
-              basket = self.getComponentByAddress(\
-                 Container.Basket.getBasketAddress(basket_no))
+              basket = self.get_component_by_address(\
+                 Container.Basket.get_basket_address(basket_no))
               sample_no = self._selected_sample
               if sample_no is not None and sample_no>0 and \
                  sample_no <= Container.Basket.NO_OF_SAMPLES_PER_PUCK:
-                  sample = self.getComponentByAddress(\
-                      Container.Pin.getSampleAddress(basket_no, sample_no))            
+                  sample = self.get_component_by_address(\
+                      Container.Pin.get_sample_address(basket_no, sample_no))            
         except:
           pass
-        self._setSelectedComponent(basket)
-        self._setSelectedSample(sample)
+        self._set_selected_component(basket)
+        self._set_selected_sample(sample)
 
-    def _updateLoadedSample(self):
+    def _update_loaded_sample(self):
         """
         Updates loaded sample
         """
@@ -762,31 +762,31 @@ class Marvin(AbstractSampleChanger.SampleChanger):
            self._mounted_puck > -1 and \
            self._centre_puck:
             if self._focusing_mode == "P13mode":
-                new_sample = self.getComponentByAddress(\
-                         Container.Pin.getSampleAddress(self._mounted_puck, 
+                new_sample = self.get_component_by_address(\
+                         Container.Pin.get_sample_address(self._mounted_puck, 
                                               self._mounted_sample))
             else:
-                new_sample = self.getComponentByAddress(\
-                         Container.Pin.getSampleAddress(self._mounted_puck + 1,
+                new_sample = self.get_component_by_address(\
+                         Container.Pin.get_sample_address(self._mounted_puck + 1,
                                               self._mounted_sample + 1))   
         else:
             new_sample = None
 
-        if self.getLoadedSample() != new_sample:
-            old_sample = self.getLoadedSample()
+        if self.get_loaded_sample() != new_sample:
+            old_sample = self.get_loaded_sample()
             if old_sample is not None:
                 # there was a sample on the gonio
                 loaded = False
                 has_been_loaded = True
-                old_sample._setLoaded(loaded, has_been_loaded)
+                old_sample._set_loaded(loaded, has_been_loaded)
             if new_sample is not None:
-                self._updateSampleBarcode(new_sample)
+                self._update_sample_barcode(new_sample)
                 loaded = True
                 has_been_loaded = True
-                new_sample._setLoaded(loaded, has_been_loaded)
+                new_sample._set_loaded(loaded, has_been_loaded)
 
 
-    def _updateSampleBarcode(self, sample):
+    def _update_sample_barcode(self, sample):
         """
         Updates the barcode of >sample< in the local database 
         after scanning with the barcode reader.
@@ -795,18 +795,18 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         scanned = (len(datamatrix) != 0)
         if not scanned:    
             datamatrix = '----------'   
-        sample._setInfo(sample.isPresent(), datamatrix, scanned)
+        sample._set_info(sample.is_present(), datamatrix, scanned)
 
-    def _initSCContents(self):
+    def _init_sc_contents(self):
         """
         Initializes the sample changer content with default values.
         """
         basket_list= [('', 4)] * self._num_basket
         for basket_index in range(self._num_basket):            
-            basket=self.getComponents()[basket_index]
+            basket=self.get_components()[basket_index]
             datamatrix = None
             present = scanned = True
-            basket._setInfo(present, datamatrix, scanned)
+            basket._set_info(present, datamatrix, scanned)
 
         # create temporary list with default sample information and indices
         sample_list=[]
@@ -816,20 +816,20 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                                     1, Container.Pin.STD_HOLDERLENGTH)) 
         # write the default sample information into permanent Pin objects 
         for spl in sample_list:
-            sample = self.getComponentByAddress(\
-                Container.Pin.getSampleAddress(spl[1], spl[2]))
+            sample = self.get_component_by_address(\
+                Container.Pin.get_sample_address(spl[1], spl[2]))
             datamatrix = None
-            present = scanned = loaded = has_been_loaded = False
-            sample._setInfo(present, datamatrix, scanned)
-            sample._setLoaded(loaded, has_been_loaded)
-            sample._setHolderLength(spl[4])    
+            present = scanned = loaded = _has_been_loaded = False
+            sample._set_info(present, datamatrix, scanned)
+            sample._set_loaded(loaded, has_been_loaded)
+            sample._set_holder_length(spl[4])    
 
     def _updateSCContents(self):
         """
         Updates sample changer content
         """
         for basket_index in range(self._num_basket):            
-            basket=self.getComponents()[basket_index]
+            basket=self.get_components()[basket_index]
  
             if self._focusing_mode == "P13mode":
                 bsk_index = basket_index + 1
@@ -849,13 +849,13 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                 scanned = False
                 datamatrix = None
 
-            basket._setInfo(present, datamatrix, scanned)
+            basket._set_info(present, datamatrix, scanned)
             # set the information for all dependent samples
             """
             for sample_index in range(10):
-                sample = self.getComponentByAddress(Pin.getSampleAddress(\
+                sample = self.get_component_by_address(Pin.get_sample_address(\
                     (basket_index + 1), (sample_index + 1)))
-                present = sample.getContainer().isPresent()
+                present = sample.get_container().is_present()
                 if present:
                     datamatrix = '%d:%d - Not defined' % \
                        (bsk_index, sample_index)
@@ -863,13 +863,13 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                     datamatrix = None
                 datamatrix = None
                 scanned = False
-                sample._setInfo(present, datamatrix, scanned)
+                sample._set_info(present, datamatrix, scanned)
                 # forget about any loaded state in newly mounted or removed basket)
-                loaded = has_been_loaded = False
-                sample._setLoaded(loaded, has_been_loaded)
+                loaded = _has_been_loaded = False
+                sample._set_loaded(loaded, has_been_loaded)
             """
 
-        self._triggerSelectionChangedEvent()
+        self._trigger_selection_changed_event()
 
     def status_list_changed(self, status_string):
         tmp_string = status_string.replace(" ", "")
@@ -891,7 +891,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                     self._state_string = prop_value
                     logging.getLogger("HWR").debug("Sample changer: status changed: %s" % \
                                                    self._state_string)
-                    self._updateState()
+                    self._update_state()
             elif prop_name == "Prgs":
                 try:
                    if int(prop_value) != self._progress and self._action_started:
@@ -910,7 +910,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                     self._centre_puck = centre_puck
                     self._info_dict["centre_puck"] = self._centre_puck
                     self._updateSCContents()
-                    self._updateLoadedSample()
+                    self._update_loaded_sample()
             elif prop_name == "Lid":
                 self._info_dict["lid_opened"] = prop_value == "Opn"
             elif prop_name == "Err":
@@ -937,5 +937,5 @@ class Marvin(AbstractSampleChanger.SampleChanger):
     def update_values(self):
         self.emit("statusListChanged", self._status_list)
         self.emit("infoDictChanged", self._info_dict)
-        self._triggerInfoChangedEvent()
-        self._triggerSelectionChangedEvent()
+        self._trigger_info_changed_event()
+        self._trigger_selection_changed_event()

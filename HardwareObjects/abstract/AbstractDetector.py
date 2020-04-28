@@ -120,11 +120,6 @@ class AbstractDetector(HardwareObject):
         Stops acquisition
         """
 
-    def wait_ready(self, timeout=None):
-        """
-        Blocks until detector is ready
-        """
-
     def get_roi_mode(self):
         """
         Returns:

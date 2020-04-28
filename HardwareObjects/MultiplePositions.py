@@ -282,7 +282,7 @@ class MultiplePositions(Equipment):
             position.setProperty(role, pos)
 
         self.checkPosition()
-        self.commitChanges()
+        self.commit_changes()
 
     def getPositionKeyValue(self, name, key):
         position = self.__getPositionObject(name)
@@ -302,7 +302,7 @@ class MultiplePositions(Equipment):
                 if pos.find(key) is not None:
                     position = self.__getPositionObject(name)
                     position.setProperty(key, str(value))
-                    self.commitChanges()
+                    self.commit_changes()
                     return True
                 else:
                     key_el = cElementTree.SubElement(pos, key)

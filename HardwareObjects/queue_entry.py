@@ -521,7 +521,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         self.get_queue_controller().pause(True)
         pos = None
 
-        shapes = list(HWR.beamline.sample_view.shapes.get_selected_shapes())
+        shapes = list(HWR.beamline.sample_view.get_selected_shapes())
         if shapes:
             pos = shapes[0]
             if hasattr(pos, "get_centred_position"):
@@ -603,7 +603,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             self.collect_dc(data_collection, self.get_view())
 
         if HWR.beamline.sample_view:
-            HWR.beamline.sample_view.shapes.de_select_all()
+            HWR.beamline.sample_view.de_select_all()
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
@@ -735,7 +735,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
                 empty_cpos = queue_model_objects.CentredPosition()
                 if cpos != empty_cpos:
-                    HWR.beamline.sample_view.shapes.select_shape_with_cpos(cpos)
+                    HWR.beamline.sample_view.select_shape_with_cpos(cpos)
                 else:
                     pos_dict = HWR.beamline.diffractometer.get_positions()
                     cpos = queue_model_objects.CentredPosition(pos_dict)
@@ -745,7 +745,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                         snapshot
                     )
 
-                HWR.beamline.sample_view.shapes.inc_used_for_collection(cpos)
+                HWR.beamline.sample_view.inc_used_for_collection(cpos)
                 param_list = queue_model_objects.to_collect_dict(
                     dc,
                     HWR.beamline.session,
@@ -1538,7 +1538,7 @@ class XrayCenteringQueueEntry(BaseQueueEntry):
         xray_centering = self.get_data_model()
         reference_image_collection = xray_centering.reference_image_collection
         reference_image_collection.grid = (
-            HWR.beamline.sample_view.shapes.create_auto_grid()
+            HWR.beamline.sample_view.create_auto_grid()
         )
         reference_image_collection.acquisitions[
             0
@@ -1640,7 +1640,7 @@ class AdvancedConnectorQueueEntry(BaseQueueEntry):
 
                 gevent.sleep(2)
                 auto_line, cpos_one, cpos_two = (
-                    HWR.beamline.sample_view.shapes.create_auto_line()
+                    HWR.beamline.sample_view.create_auto_line()
                 )
                 helical_model.acquisitions[
                     0
@@ -1691,7 +1691,7 @@ class OpticalCentringQueueEntry(BaseQueueEntry):
 
 def mount_sample(view, data_model, centring_done_cb, async_result):
     view.setText(1, "Loading sample")
-    HWR.beamline.sample_view.shapes.clear_all()
+    HWR.beamline.sample_view.clear_all()
     log = logging.getLogger("queue_exec")
 
     loc = data_model.location
@@ -1743,7 +1743,7 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
                 )
 
     robot_action_dict["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
-    if sample_mount_device.hasLoadedSample():
+    if sample_mount_device.has_loaded_sample():
         robot_action_dict["status"] = "SUCCESS"
     else:
         robot_action_dict["message"] = "Sample was not loaded"
@@ -1751,7 +1751,7 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
 
     HWR.beamline.lims.store_robot_action(robot_action_dict)
 
-    if not sample_mount_device.hasLoadedSample():
+    if not sample_mount_device.has_loaded_sample():
         # Disables all related collections
         view.setOn(False)
         view.setText(1, "Sample not loaded")
@@ -1806,7 +1806,7 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
                 dm.disconnect("centringAccepted", centring_done_cb)
 
 
-def center_before_collect(view, dm, queue, shapes):
+def center_before_collect(view, dm, queue, sample_view):
     view.setText(1, "Waiting for input")
     log = logging.getLogger("user_level_log")
 
@@ -1815,8 +1815,8 @@ def center_before_collect(view, dm, queue, shapes):
     queue.pause(True)
     pos, shape = None, None
 
-    if len(shapes.get_selected_shapes()):
-        shape = shapes.get_selected_shapes()[0]
+    if len(sample_view.get_selected_shapes()):
+        shape = sample_view.get_selected_shapes()[0]
         pos = shape.mpos()
     else:
         msg = "No centred position selected, using current position."
@@ -1824,7 +1824,7 @@ def center_before_collect(view, dm, queue, shapes):
 
         # Create a centred postions of the current postion
         pos = dm.get_positions()
-        shape = shapes.add_shape_from_mpos([pos], (0, 0), "P")
+        shape = sample_view.add_shape_from_mpos([pos], (0, 0), "P")
 
     view(1, "Centring completed")
     log.info("Centring completed")

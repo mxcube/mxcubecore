@@ -17,46 +17,43 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Mockup class for testing purposes"""
+
 import time
 
 from HardwareRepository.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
+from HardwareRepository.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
+
+# Default energy value (keV)
+DEFAULT_VALUE = 12.4
+# Default energy limits (keV)
+DEFAULT_LIMITS = (4, 20)
 
 
-class EnergyMockup(AbstractEnergy):
-    def __init__(self, name):
-        AbstractEnergy.__init__(self, name)
+class EnergyMockup(ActuatorMockup, AbstractEnergy):
+    """Energy Mockup class"""
 
     def init(self):
-        self.tunable = True
-        self._moving = False
-        self._nominal_value = 12.7
-        self.set_limits((4, 20))
+        """Initialise default properties"""
+        super(EnergyMockup, self).init()
 
-    def set_value(self, value, wait=True):
-        if wait:
-            self._aborted = False
-            self._moving = True
+        if None in self.get_limits():
+            self.update_limits(DEFAULT_LIMITS)
+        if self.default_value is None:
+            self.default_value = DEFAULT_VALUE
+            self.update_value(DEFAULT_VALUE)
+        self.update_state(self.STATES.READY)
 
-            # rhfogh: Modified as previous allowed only integer values
-            # First move towards energy, setting to integer keV values
-            step = -1 if value < self._nominal_value else 1
-            for ii in range(int(self._nominal_value) + step, int(value) + step, step):
-                if self._aborted:
-                    self._moving = False
-                    raise StopIteration("Energy change cancelled !")
-
-                self._nominal_value = ii
-                # self.update_values()
+    def _move(self, value):
+        """ Simulated energy change
+        Args:
+            value (float): target energy
+        """
+        start_pos = self.get_value()
+        if value is not None and start_pos is not None:
+            step = -1 if value < start_pos else 1
+            for _val in range(int(start_pos) + step, int(value) + step, step):
                 time.sleep(0.2)
-
-        # Now set final value
-        self._set_value(value)
-        self._moving = False
-        # self.update_values()
-        self.emit("stateChanged", ("ready"))
-
-    def _set_value(self, value):
-        self._nominal_value = value
-
-    def get_value(self):
-        return self._nominal_value
+                self.update_value(_val)
+        time.sleep(0.2)
+        return value

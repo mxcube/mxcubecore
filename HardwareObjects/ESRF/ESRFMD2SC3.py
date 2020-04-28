@@ -34,7 +34,7 @@ class ESRFMD2SC3(ESRFSC3.ESRFSC3):
         pass
 
     @task
-    def prepareCentring(self, *args, **kwargs):
+    def prepare_centring(self, *args, **kwargs):
         # self.controller.moveToPhase("Centring", wait=True, timeout=1000)
         pass
 

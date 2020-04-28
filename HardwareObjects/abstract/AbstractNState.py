@@ -17,8 +17,9 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-Defines the interface for N state devices
+""" AbstractNState class - interface for N state devices.
+Defines BaseValueEnum, initialise_values and value_to_enum methds.
+Implements validate_value, set/update limits.
 """
 
 import abc
@@ -35,15 +36,13 @@ __license__ = "LGPLv3+"
 
 @unique
 class BaseValueEnum(Enum):
-    """defines only the compulsory unknown."""
+    """Defines only the compulsory unknown."""
 
     UNKNOWN = "UNKNOWN"
 
 
 class AbstractNState(AbstractActuator):
-    """
-    Abstract base class for N state objects.
-    """
+    """Abstract base class for N state objects."""
 
     __metaclass__ = abc.ABCMeta
     VALUES = BaseValueEnum
@@ -57,7 +56,7 @@ class AbstractNState(AbstractActuator):
         self.initialise_values()
 
     def validate_value(self, value):
-        """Check if the value is within the predefined values.
+        """Check if the value is one of the predefined values.
         Args:
             value(Enum): value to check
         Returns:
@@ -69,13 +68,17 @@ class AbstractNState(AbstractActuator):
         """Set the low and high limits.
         Args:
             limits (tuple): two element (low limit, high limit) tuple.
+        Raises:
+            NotImplementedError
         """
         raise NotImplementedError
 
     def update_limits(self, limits=None):
-        """Check if the limits have changed. Emits signal limitsChanged.
+        """Check if the limits have changed.
         Args:
-            limits(tuple): two element (low limit, high limit) tuple.
+            limits(tuple): two elements (low limit, high limit) tuple.
+        Raises:
+            NotImplementedError
         """
         raise NotImplementedError
 
@@ -84,10 +87,9 @@ class AbstractNState(AbstractActuator):
         """
         try:
             values = ast.literal_eval(self.getProperty("values"))
-            self.VALUES = Enum(
-                "ValueEnum",
-                dict(values, **{item.name: item.value for item in BaseValueEnum}),
-            )
+            values_dict = dict(**{item.name: item.value for item in self.VALUES})
+            values_dict.update(values)
+            self.VALUES = Enum("ValueEnum", values_dict)
         except (ValueError, TypeError):
             pass
 
@@ -105,3 +107,8 @@ class AbstractNState(AbstractActuator):
                 return enum_var
 
         return self.VALUES.UNKNOWN
+
+    def update_values(self):
+        """Update values for all internal attributes"""
+        self.update_value(self.get_value())
+        super(AbstractNState, self).update_values()

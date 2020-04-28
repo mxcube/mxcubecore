@@ -18,7 +18,11 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Abstract Motor API. Motor states definition"""
+"""Abstract Motor class.
+Defines the MotorStates enum, get/set velocity, home and set_value_relative
+methods. Implements validate_value.
+Emits signals valueChanged and limitsChanged.
+"""
 
 import abc
 import math
@@ -28,7 +32,7 @@ from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
 )
 
-__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -43,7 +47,7 @@ class MotorStates(Enum):
 
 
 class AbstractMotor(AbstractActuator):
-    """Abstract motor API"""
+    """Abstract motor class"""
 
     __metaclass__ = abc.ABCMeta
     unit = None
@@ -54,10 +58,9 @@ class AbstractMotor(AbstractActuator):
         AbstractActuator.__init__(self, name)
         self._velocity = None
         self._tolerance = None
-        self.specific_state = None
 
     def init(self):
-        """Initialise some parametrs."""
+        """Initialise tolerance property"""
         AbstractActuator.init(self)
         self._tolerance = self.getProperty("tolerance") or 1e-3
 
@@ -100,6 +103,8 @@ class AbstractMotor(AbstractActuator):
         Returns:
             (bool): True if within the limits
         """
+        if value is None:
+            return True
         if math.isnan(value) or math.isinf(value):
             return False
         limits = self._nominal_limits
@@ -112,15 +117,17 @@ class AbstractMotor(AbstractActuator):
         Args:
             value (float): value
         """
-        if self._nominal_value is None:
-            self._nominal_value = self.get_value()
 
         if value is None:
             value = self.get_value()
 
-        if self._tolerance:
+        if self._nominal_value is None:
+            if value is None:
+                return
+
+        elif value is not None and self._tolerance:
             if abs(value - self._nominal_value) <= self._tolerance:
                 return
 
         self._nominal_value = value
-        self.emit("valueChanged", (self._nominal_value,))
+        self.emit("valueChanged", (value,))

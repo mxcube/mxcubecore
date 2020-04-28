@@ -1,4 +1,4 @@
 <device class="MotorMockup">
   <actuator_name>SampX</actuator_name>
-  <start_position>0</start_position>
+  <default_value>0</default_value>
 </device>

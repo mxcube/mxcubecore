@@ -82,9 +82,6 @@ class LimaDetectorMockup:
             "SetImageHeader",
         )
 
-    def wait_ready(self):
-        return
-
     def last_image_saved(self):
         return 2
 

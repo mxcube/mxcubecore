@@ -55,7 +55,7 @@ class PX1Configuration(Device):
         self.setProperty("centring_sample_type", value)
 
     def save(self):
-        self.commitChanges()
+        self.commit_changes()
 
 
 if __name__ == "__main__":

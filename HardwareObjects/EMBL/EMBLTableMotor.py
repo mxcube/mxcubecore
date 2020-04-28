@@ -87,7 +87,7 @@ class EMBLTableMotor(AbstractMotor):
         self.socket.send("disable (0,1,2,3)\r")
         self.enabled = False
 
-    def move_relative(self, relative_position, wait=False, timeout=None):
+    def set_value_relative(self, relative_position, wait=False, timeout=None):
         """
         Moves motor by a relative step
         :param relative_position: float

@@ -155,7 +155,7 @@ class EMBLBeamCentering(HardwareObject):
             self.ready_event.set()
             return
 
-        aperture_hwobj = HWR.beamline.beam.aperture_hwobj
+        aperture_hwobj = HWR.beamline.beam.aperture
         current_energy = HWR.beamline.energy.get_value()
         current_transmission = HWR.transmission.get_value()
         active_mode, beam_size = self.get_focus_mode()
@@ -247,7 +247,7 @@ class EMBLBeamCentering(HardwareObject):
                 gevent.sleep(1)
                 self.move_beam_to_center()
             else:
-                slits_hwobj = HWR.beamline.beam.slits_hwobj
+                slits_hwobj = HWR.beamline.beam.slits
 
                 if active_mode in ("Collimated", "Imaging", "TREXX"):
                     HWR.beamline.transmission.set_value(  # Transmission(
@@ -403,12 +403,12 @@ class EMBLBeamCentering(HardwareObject):
                             "Beam centering: Moving horizontal by %.4f" % delta_hor
                         )
                         gui_log.info(log_msg)
-                        self.horizontal_motor_hwobj.move_relative(delta_hor)
+                        self.horizontal_motor_hwobj.set_value_relative(delta_hor)
                         sleep(5)
                     if abs(delta_ver) > 0.0001:
                         log_msg = "Beam centering: Moving vertical by %.4f" % delta_ver
                         gui_log.info(log_msg)
-                        self.vertical_motor_hwobj.move_relative(delta_ver)
+                        self.vertical_motor_hwobj.set_value_relative(delta_ver)
                         sleep(5)
 
             else:
@@ -493,14 +493,14 @@ class EMBLBeamCentering(HardwareObject):
                         if abs(delta_hor) > 0.0001:
                             log_msg = "Moving horizontal by %.4f" % delta_hor
                             gui_log.info(log_msg)
-                            self.horizontal_motor_hwobj.move_relative(
+                            self.horizontal_motor_hwobj.set_value_relative(
                                 delta_hor, timeout=5
                             )
                             sleep(4)
                         if abs(delta_ver) > 0.100:
                             log_msg = "Moving vertical motor by %.4f" % delta_ver
                             gui_log.info(log_msg)
-                            # self.vertical_motor_hwobj.move_relative(delta_ver, timeout=5)
+                            # self.vertical_motor_hwobj.set_value_relative(delta_ver, timeout=5)
                             tine.set(
                                 "/p14/P14MonoMotor/Perp",
                                 "IncrementMove.START",
@@ -510,7 +510,7 @@ class EMBLBeamCentering(HardwareObject):
                         else:
                             log_msg = "Moving vertical piezo by %.4f" % delta_ver
                             gui_log.info(log_msg)
-                            self.vertical_motor_hwobj.move_relative(
+                            self.vertical_motor_hwobj.set_value_relative(
                                 -1.0 * delta_ver, timeout=5
                             )
                             sleep(2)
@@ -519,14 +519,14 @@ class EMBLBeamCentering(HardwareObject):
                         if abs(delta_hor) > 0.0001:
                             log_msg = "Moving horizontal by %.4f" % delta_hor
                             gui_log.info(log_msg)
-                            self.horizontal_double_mode_motor_hwobj.move_relative(
+                            self.horizontal_double_mode_motor_hwobj.set_value_relative(
                                 delta_hor, timeout=5
                             )
                             sleep(2)
                         if abs(delta_ver) > 0.001:
                             log_msg = "Moving vertical by %.4f" % delta_ver
                             gui_log.info(log_msg)
-                            self.vertical_double_mode_motor_hwobj.move_relative(
+                            self.vertical_double_mode_motor_hwobj.set_value_relative(
                                 delta_ver, timeout=5
                             )
                             sleep(2)

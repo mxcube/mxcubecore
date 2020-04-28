@@ -1,46 +1,35 @@
-from HardwareRepository.BaseHardwareObjects import Device
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU General Lesser Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
+from HardwareRepository.HardwareObjects.abstract.AbstractTransmission import (
+    AbstractTransmission,
+)
+from HardwareRepository.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
 
 
-class TransmissionMockup(Device):
-    def __init__(self, name):
-        Device.__init__(self, name)
+__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
-        self.labels = []
-        self.bits = []
-        self.attno = 0
-        self.value = 100
 
-    def init(self):
-        pass
+class TransmissionMockup(ActuatorMockup, AbstractTransmission):
+    """Transmission value as a percentage """
 
-    # remove following
-    def getAttState(self):
-        return 0
-
-    # remove following
-    def setAttFactor(self, value):
-        self.value = value
-        self.emit("valueChanged", self.value)
-
-    def get_value(self):
-        return self.value
-
-    def _set_value(self, value):
-        self.setAttFactor(value)
-
-    def connected(self):
-        self.setIsReady(True)
-
-    def disconnected(self):
-        self.setIsReady(False)
-
-    # remove following
-    def attStateChanged(self, channelValue):
-        pass
-
-    # remove following
-    def attFactorChanged(self, channelValue):
-        pass
-
-    def is_ready(self):
-        return True
+    # All necessary functionality is present in superclasses
+    pass

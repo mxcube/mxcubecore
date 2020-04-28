@@ -27,7 +27,7 @@ _objects:
     - machine_info: mach-info-mockup.xml
     - transmission: transmission-mockup.xml
     - energy: energy-mockup.xml
-    - beam: beam-info.xml
+    - beam: beam-mockup.xml
     - flux: flux-mockup.xml
     - detector: detector-mockup.xml
     - resolution: resolution-mockup.xml
@@ -36,7 +36,7 @@ _objects:
     - fast_shutter: fast-shutter-mockup.xml
     - sample_changer: sample-changer-mockup.xml
     # NBNB TODO remove plate_manipulater and treat as another smaple changer
-    - plate_manipulator: plate-manipulator.xml
+    - plate_manipulator: plate-manipulator-mockup.xml
     - diffractometer: diffractometer-mockup.xml
     - sample_view: sample-view.xml
     - lims: lims-client-mockup.xml

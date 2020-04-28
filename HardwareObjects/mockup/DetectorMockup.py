@@ -70,3 +70,9 @@ class DetectorMockup(AbstractDetector):
         Starts acquisition
         """
         return
+
+    def stop_acquisition(self):
+        """
+        Stops acquisition
+        """
+        return

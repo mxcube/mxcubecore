@@ -452,7 +452,7 @@ class Microdiff(MiniDiff.MiniDiff):
             MiniDiff.MiniDiff.move_to_beam(self, x, y)
         else:
             try:
-                beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
+                beam_pos_x, beam_pos_y = HWR.beamline.beam.get_screen_position()
 
                 self.centringVertical.set_value_relative(
                     self.centringPhiz.direction
@@ -471,7 +471,7 @@ class Microdiff(MiniDiff.MiniDiff):
                 )
 
     def start_manual_centring(self, sample_info=None):
-        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         if self.in_plate_mode():
             plateTranslation = self.getObjectByRole("plateTranslation")
             cmd_set_plate_vertical = self.add_command(

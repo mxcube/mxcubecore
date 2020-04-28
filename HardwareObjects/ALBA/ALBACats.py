@@ -43,10 +43,10 @@ class ALBACats(Cats90):
         self._chnPathSafe = self.get_channel_object("_chnPathSafe")
 
         if self._chnPathRunning is not None:
-            self._chnPathRunning.connectSignal("update", self._updateRunningState)
+            self._chnPathRunning.connectSignal("update", self._update_running_state)
 
         if self._chnPowered is not None:
-            self._chnPowered.connectSignal("update", self._updatePoweredState)
+            self._chnPowered.connectSignal("update", self._update_powered_state)
 
     def is_ready(self):
         """
@@ -199,24 +199,24 @@ class ALBACats(Cats90):
         sample_ht = self.is_ht_sample(sample)
 
         if not sample_ht:
-            sample = self._resolveComponent(sample)
-            self.assertNotCharging()
+            sample = self._resolve_component(sample)
+            self.assert_not_charging()
             use_ht = False
         else:
             sample = sample_ht
             use_ht = True
 
-        if self.hasLoadedSample():
-            if (wash is False) and self.getLoadedSample() == sample:
+        if self.has_loaded_sample():
+            if (wash is False) and self.get_loaded_sample() == sample:
                 raise Exception(
-                    "The sample " + sample.getAddress() + " is already loaded"
+                    "The sample " + sample.get_address() + " is already loaded"
                 )
             else:
                 # Unload first / do a chained load
                 pass
 
-        return self._executeTask(
-            SampleChangerState.Loading, wait, self._doLoad, sample, None, use_ht
+        return self._execute_task(
+            SampleChangerState.Loading, wait, self._do_load, sample, None, use_ht
         )
 
     def unload(self, sample_slot=None, wait=False):
@@ -227,31 +227,31 @@ class ALBACats(Cats90):
         @wait:
         @return:
         """
-        sample_slot = self._resolveComponent(sample_slot)
+        sample_slot = self._resolve_component(sample_slot)
 
-        self.assertNotCharging()
+        self.assert_not_charging()
 
         # In case we have manually mounted we can command an unmount
-        if not self.hasLoadedSample():
+        if not self.has_loaded_sample():
             raise Exception("No sample is loaded")
 
-        return self._executeTask(
-            SampleChangerState.Unloading, wait, self._doUnload, sample_slot
+        return self._execute_task(
+            SampleChangerState.Unloading, wait, self._do_unload, sample_slot
         )
 
     # TODO: this overides identical method from Cats90
-    def isPowered(self):
+    def is_powered(self):
         return self._chnPowered.getValue()
 
     # TODO: this overides identical method from Cats90
-    def isPathRunning(self):
+    def is_path_running(self):
         return self._chnPathRunning.getValue()
 
     # TODO: this overides method from AbstractSampleChanger
-    # def hasLoadedSample(self):  # not used.  to use it remove _
+    # def has_loaded_sample(self):  # not used.  to use it remove _
     #   return self._chnSampleIsDetected.getValue()
 
-    def _updateRunningState(self, value):
+    def _update_running_state(self, value):
         """
         Emits signal with new Running State
 
@@ -259,7 +259,7 @@ class ALBACats(Cats90):
         """
         self.emit("runningStateChanged", (value,))
 
-    def _updatePoweredState(self, value):
+    def _update_powered_state(self, value):
         """
         Emits signal with new Powered State
 
@@ -267,7 +267,7 @@ class ALBACats(Cats90):
         """
         self.emit("powerStateChanged", (value,))
 
-    def _doLoad(self, sample=None, shifts=None, use_ht=False):
+    def _do_load(self, sample=None, shifts=None, use_ht=False):
         """
         Loads a sample on the diffractometer. Performs a simple put operation if the diffractometer is empty, and
         a sample exchange (unmount of old + mount of new sample) if a sample is already mounted on the diffractometer.
@@ -289,7 +289,7 @@ class ALBACats(Cats90):
             logging.getLogger("user_level_log").error(
                 "Supervisor cmd transfer phase returned an error."
             )
-            self._updateState()  # remove transient states like Loading. Reflect hardware state
+            self._update_state()  # remove transient states like Loading. Reflect hardware state
             raise Exception(
                 "CATS cannot get to transfer phase. Aborting sample changer operation."
             )
@@ -309,7 +309,7 @@ class ALBACats(Cats90):
             xshift, yshift, zshift = map(str, shifts)
 
         # get sample selection
-        selected = self.getSelectedSample()
+        selected = self.get_selected_sample()
 
         logging.getLogger("HWR").debug(
             "  ==========CATS=== selected sample is %s (prev %s)"
@@ -319,8 +319,8 @@ class ALBACats(Cats90):
         if not use_ht:
             if sample is not None:
                 if sample != selected:
-                    self._doSelect(sample)
-                    selected = self.getSelectedSample()
+                    self._do_select(sample)
+                    selected = self.get_selected_sample()
             else:
                 if selected is not None:
                     sample = selected
@@ -330,28 +330,28 @@ class ALBACats(Cats90):
             selected = None
 
         # some cancel cases
-        if not use_ht and self.hasLoadedSample() and selected == self.getLoadedSample():
-            self._updateState()  # remove transient states like Loading. Reflect hardware state
+        if not use_ht and self.has_loaded_sample() and selected == self.get_loaded_sample():
+            self._update_state()  # remove transient states like Loading. Reflect hardware state
             raise Exception(
                 "The sample "
-                + str(self.getLoadedSample().getAddress())
+                + str(self.get_loaded_sample().get_address())
                 + " is already loaded"
             )
 
-        if not self.hasLoadedSample() and self.cats_sample_on_diffr() == 1:
+        if not self.has_loaded_sample() and self.cats_sample_on_diffr() == 1:
             logging.getLogger("HWR").warning(
                 "  ==========CATS=== sample on diffr, loading aborted"
             )
-            self._updateState()  # remove transient states like Loading. Reflect hardware state
+            self._update_state()  # remove transient states like Loading. Reflect hardware state
             raise Exception(
                 "The sample "
-                + str(self.getLoadedSample().getAddress())
+                + str(self.get_loaded_sample().get_address())
                 + " is already loaded"
             )
             return
 
         if self.cats_sample_on_diffr() == -1:
-            self._updateState()  # remove transient states like Loading. Reflect hardware state
+            self._update_state()  # remove transient states like Loading. Reflect hardware state
             raise Exception(
                 "Conflicting info between diffractometer and on-magnet detection. Consider 'Clear'"
             )
@@ -379,11 +379,11 @@ class ALBACats(Cats90):
                 "  ==========CATS=== about to load HT. %s" % str(argin)
             )
             if loaded_ht == 1:  # has ht loaded
-                cmd_ok = self._executeServerTask(
+                cmd_ok = self._execute_server_task(
                     self._cmdChainedLoadHT, argin, waitsafe=True
                 )
             else:
-                cmd_ok = self._executeServerTask(self._cmdLoadHT, argin, waitsafe=False)
+                cmd_ok = self._execute_server_task(self._cmdLoadHT, argin, waitsafe=False)
 
         #
         # Loading non HT sample
@@ -397,11 +397,11 @@ class ALBACats(Cats90):
                 return
 
             # calculate CATS specific lid/sample number
-            # lid = ((selected.getBasketNo() - 1) / 3) + 1
-            # sample = (((selected.getBasketNo() - 1) % 3) * 10) + selected.getVialNo()
+            # lid = ((selected.get_basket_no() - 1) / 3) + 1
+            # sample = (((selected.get_basket_no() - 1) % 3) * 10) + selected.get_vial_no()
 
-            basketno = selected.getBasketNo()
-            sampleno = selected.getVialNo()
+            basketno = selected.get_basket_no()
+            sampleno = selected.get_vial_no()
 
             lid, sample = self.basketsample_to_lidsample(basketno, sampleno)
             tool = self.tool_for_basket(basketno)
@@ -459,7 +459,7 @@ class ALBACats(Cats90):
                         "  ==========CATS=== chained load sample (barcode), sending to cats:  %s"
                         % argin
                     )
-                    cmd_ok = self._executeServerTask(
+                    cmd_ok = self._execute_server_task(
                         self._cmdChainedLoadBarcode, argin, waitsafe=True
                     )
                 else:
@@ -467,7 +467,7 @@ class ALBACats(Cats90):
                         "  ==========CATS=== chained load sample, sending to cats:  %s"
                         % argin
                     )
-                    cmd_ok = self._executeServerTask(
+                    cmd_ok = self._execute_server_task(
                         self._cmdChainedLoad, argin, waitsafe=True
                     )
             elif loaded_ht == 0:
@@ -476,14 +476,14 @@ class ALBACats(Cats90):
                         "  ==========CATS=== load sample (barcode), sending to cats:  %s"
                         % argin
                     )
-                    cmd_ok = self._executeServerTask(
+                    cmd_ok = self._execute_server_task(
                         self._cmdLoadBarcode, argin, waitsafe=True
                     )
                 else:
                     logging.getLogger("HWR").warning(
                         "  ==========CATS=== load sample, sending to cats:  %s" % argin
                     )
-                    cmd_ok = self._executeServerTask(
+                    cmd_ok = self._execute_server_task(
                         self._cmdLoad, argin, waitsafe=True
                     )
 
@@ -506,9 +506,9 @@ class ALBACats(Cats90):
 
         # load commands are executed until path is safe. Then we have to wait for
         # path to be finished
-        self._waitDeviceReady()
+        self._wait_device_ready()
 
-    def _doUnload(self, sample_slot=None, shifts=None):
+    def _do_unload(self, sample_slot=None, shifts=None):
         """
         Unloads a sample from the diffractometer.
         Overides Cats90 method.
@@ -530,7 +530,7 @@ class ALBACats(Cats90):
         shifts = self._get_shifts()
 
         if sample_slot is not None:
-            self._doSelect(sample_slot)
+            self._do_select(sample_slot)
 
         loaded_ht = self.is_loaded_ht()
 
@@ -560,11 +560,11 @@ class ALBACats(Cats90):
             "  ==========CATS=== unload sample, sending to cats:  %s" % argin
         )
         if loaded_ht == 1:
-            cmd_ret = self._executeServerTask(self._cmdUnloadHT, argin)
+            cmd_ret = self._execute_server_task(self._cmdUnloadHT, argin)
         else:
-            cmd_ret = self._executeServerTask(self._cmdUnload, argin)
+            cmd_ret = self._execute_server_task(self._cmdUnload, argin)
 
-    def _doAbort(self):
+    def _do_abort(self):
         """
         Aborts a running trajectory on the sample changer.
 
@@ -574,7 +574,7 @@ class ALBACats(Cats90):
         if self.super_abort_cmd is not None:
             self.super_abort_cmd()  # stops super
         self._cmdAbort()
-        self._updateState()  # remove software flags like Loading.. reflects current hardware state
+        self._update_state()  # remove software flags like Loading.. reflects current hardware state
 
     def _check_coherence(self):
         detected = self._chnSampleIsDetected.getValue()
@@ -598,7 +598,7 @@ class ALBACats(Cats90):
             shifts = None
         return shifts
 
-    # def pathRunning(self):
+    # def path_running(self):
     # """
     # Overides Cats90 method.
     #
@@ -643,7 +643,7 @@ class ALBACats(Cats90):
         """
         sample_lid = self._chnLidLoadedSample.getValue()
 
-        if self.hasLoadedSample():
+        if self.has_loaded_sample():
             if sample_lid == 100:
                 return 1
             else:
@@ -653,14 +653,14 @@ class ALBACats(Cats90):
 
 
 def test_hwo(hwo):
-    hwo._updateCatsContents()
-    print(" Is path running? ", hwo.isPathRunning())
+    hwo._update_cats_contents()
+    print(" Is path running? ", hwo.is_path_running())
     print(" Loading shifts:  ", hwo._get_shifts())
     print(" Sample on diffr :  ", hwo.cats_sample_on_diffr())
     print(" Baskets :  ", hwo.basket_presence)
-    print(" Baskets :  ", hwo.getBasketList())
-    if hwo.hasLoadedSample():
-        print(" Loaded is: ", hwo.getLoadedSample().getCoords())
+    print(" Baskets :  ", hwo.get_basket_list())
+    if hwo.has_loaded_sample():
+        print(" Loaded is: ", hwo.get_loaded_sample().get_coords())
     print(" Is mounted sample: ", hwo.is_mounted_sample((1, 1)))
 
 

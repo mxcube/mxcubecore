@@ -55,10 +55,10 @@ class BlissEnergy(AbstractEnergy):
         AbstractEnergy.init(self)
         self._energy_motor = self.getObjectByRole("energy_motor")
         self._bliss_session = self.getObjectByRole("bliss")
-        self._state = HardwareObjectState.READY
+        self.update_state(HardwareObjectState.READY)
 
         if self._energy_motor:
-            self._state = self._energy_motor.get_state()
+            self.update_state(self._energy_motor.get_state())
             self._energy_motor.connect("valueChanged", self.update_value)
             self._energy_motor.connect("stateChanged", self.update_state)
 
@@ -83,17 +83,6 @@ class BlissEnergy(AbstractEnergy):
     def stop(self):
         """Stop the energy motor movement"""
         self._energy_motor.stop()
-
-    def get_state(self):
-        """Get the state.
-        Returns:
-            (enum 'HardwareObjectState'): state.
-        """
-        if self.read_only:
-            self._state = HardwareObjectState.READY
-        else:
-            self._state = self._energy_motor.get_state()
-        return self._state
 
     def _set_value(self, value):
         """Execute the sequence to move to an energy

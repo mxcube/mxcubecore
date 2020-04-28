@@ -227,10 +227,6 @@ class SardanaMotor(AbstractMotor):
         self.motor_position = self.position_channel.getValue()
         return self.motor_position
 
-    def update_values(self):
-        self.emit("limitsChanged", (self.get_limits(),))
-        self.emit("valueChanged", (self.get_value(),))
-
     def _set_value(self, value):
         """
         Descript. : move to the given position

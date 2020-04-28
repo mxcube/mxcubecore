@@ -243,8 +243,8 @@ class BIOMAXEiger(Equipment):
         else:
             return False
 
-    def wait_ready(self):
-        with gevent.Timeout(20, RuntimeError("Detector not ready")):
+    def wait_ready(self, timeout=20):
+        with gevent.Timeout(timeout, RuntimeError("Detector not ready")):
             while not self.is_ready():
                 gevent.sleep(0.1)
 

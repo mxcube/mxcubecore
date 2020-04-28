@@ -259,7 +259,7 @@ class XRFSpectrum(Equipment):
                 if HWR.beamline.flux:
                     self.spectrumInfo["flux"] = HWR.beamline.flux.get_value()
 
-                beam_info = HWR.beamline.beam.get_beam_info()
+                beam_info = HWR.beamline.beam.get_beam_info_dict()
                 self.spectrumInfo["beamSizeHorizontal"] = beam_info["size_x"] * 1000.0
                 self.spectrumInfo["beamSizeVertical"] = beam_info["size_y"] * 1000.0
                 mcaConfig["att"] = self.spectrumInfo["beamTransmission"]

@@ -33,9 +33,9 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
             basket = Container.Basket(
                 self, i + 1, samples_num=self.no_of_samples_in_basket
             )
-            self._addComponent(basket)
+            self._add_component(basket)
 
-        self._initSCContents()
+        self._init_sc_contents()
         self.signal_wait_task = None
         AbstractSampleChanger.SampleChanger.init(self)
 
@@ -49,8 +49,8 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
 
     def load(self, sample, wait=False):
         self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
-        self._setState(AbstractSampleChanger.SampleChangerState.Loading)
-        self._resetLoadedSample()
+        self._set_state(AbstractSampleChanger.SampleChangerState.Loading)
+        self._reset_loaded_sample()
 
         if isinstance(sample, tuple):
             basket, sample = sample
@@ -70,69 +70,69 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
             self.emit("progressStep", int(step / 2.0))
             time.sleep(0.01)
 
-        mounted_sample = self.getComponentByAddress(
-            Container.Pin.getSampleAddress(basket, sample)
+        mounted_sample = self.get_component_by_address(
+            Container.Pin.get_sample_address(basket, sample)
         )
-        mounted_sample._setLoaded(True, False)
-        self._setState(AbstractSampleChanger.SampleChangerState.Ready)
+        mounted_sample._set_loaded(True, False)
+        self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
 
-        self._setLoadedSample(mounted_sample)
-        self.updateInfo()
+        self._set_loaded_sample(mounted_sample)
+        self.update_info()
         logging.getLogger("user_level_log").info("Sample changer: Sample loaded")
         self.emit("progressStop", ())
 
         self.emit("fsmConditionChanged", "sample_is_loaded", True)
         self.emit("fsmConditionChanged", "sample_mounting_sample_changer", False)
 
-        return self.getLoadedSample()
+        return self.get_loaded_sample()
 
     def unload(self, sample_slot=None, wait=None):
         logging.getLogger("user_level_log").info("Unloading sample")
-        sample = self.getLoadedSample()
-        sample._setLoaded(False, True)
+        sample = self.get_loaded_sample()
+        sample._set_loaded(False, True)
         self._selected_basket = -1
         self._selected_sample = -1
-        self._triggerLoadedSampleChangedEvent(self.getLoadedSample())
+        self._trigger_loaded_sample_changed_event(self.get_loaded_sample())
         self.emit("fsmConditionChanged", "sample_is_loaded", False)
 
-    def getLoadedSample(self):
-        return self.getComponentByAddress(
-            Container.Pin.getSampleAddress(self._selected_basket, self._selected_sample)
+    def get_loaded_sample(self):
+        return self.get_component_by_address(
+            Container.Pin.get_sample_address(self._selected_basket, self._selected_sample)
         )
 
     def is_mounted_sample(self, sample):
         return (
-            self.getComponentByAddress(
-                Container.Pin.getSampleAddress(sample[0], sample[1])
+            self.get_component_by_address(
+                Container.Pin.get_sample_address(sample[0], sample[1])
             )
-            == self.getLoadedSample()
+            == self.get_loaded_sample()
         )
 
-    def _doAbort(self):
+    def _do_abort(self):
         return
 
-    def _doChangeMode(self):
+    def _do_change_mode(self):
         return
 
-    def _doUpdateInfo(self):
+    def _do_update_info(self):
         return
 
-    def _doSelect(self, component):
+    def _do_select(self, component):
         return
 
-    def _doScan(self, component, recursive):
+    def _do_scan(self, component, recursive):
         return
 
-    def _doLoad(self, sample=None):
+    def _do_load(self, sample=None):
         return
 
-    def _doUnload(self, sample_slot=None):
+    def _do_unload(self, sample_slot=None):
         return
 
-    def _doReset(self):
+    def _do_reset(self):
         return
 
-    def _initSCContents(self):
+    def _init_sc_contents(self):
         """
         Initializes the sample changer content with default values.
 
@@ -145,11 +145,11 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
                 named_samples[val] = tag
 
         for basket_index in range(self.no_of_baskets):
-            basket = self.getComponents()[basket_index]
+            basket = self.get_components()[basket_index]
             datamatrix = None
             present = True
             scanned = False
-            basket._setInfo(present, datamatrix, scanned)
+            basket._set_info(present, datamatrix, scanned)
 
         sample_list = []
         for basket_index in range(self.no_of_baskets):
@@ -164,15 +164,15 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
                     )
                 )
         for spl in sample_list:
-            address = Container.Pin.getSampleAddress(spl[1], spl[2])
-            sample = self.getComponentByAddress(address)
+            address = Container.Pin.get_sample_address(spl[1], spl[2])
+            sample = self.get_component_by_address(address)
             sample_name = named_samples.get(address)
             if sample_name is not None:
                 sample._name = sample_name
             datamatrix = "matr%d_%d" % (spl[1], spl[2])
             present = scanned = loaded = has_been_loaded = False
-            sample._setInfo(present, datamatrix, scanned)
-            sample._setLoaded(loaded, has_been_loaded)
-            sample._setHolderLength(spl[4])
+            sample._set_info(present, datamatrix, scanned)
+            sample._set_loaded(loaded, has_been_loaded)
+            sample._set_holder_length(spl[4])
 
-        self._setState(AbstractSampleChanger.SampleChangerState.Ready)
+        self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
