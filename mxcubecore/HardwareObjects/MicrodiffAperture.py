@@ -18,7 +18,8 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 """
-MicrodiffAperture
+MicrodiffAperture. Move the aperture in the beam to a specified value or
+out of the beam.
 
 Example xml file:
 <object class="MicrodiffAperture">
@@ -30,6 +31,7 @@ Example xml file:
   <factor>(0.15, 0.3, 0.63, 0.9, 0.96)</factor>
   <!-- or complete, corresponding to label: (index, size[um], factor) -->
   <values>{"A10": (0, 10, 0.15), "A20": (1, 20, 0.3), "A30": (2, 30, 0.63), "A50": (3, 50, 0.9), "A75": (4, 75, 0.96)}</values>
+  <object role="inout" href="/udiff_apertureinout"/>
 </object>
 """
 from ast import literal_eval
@@ -47,16 +49,27 @@ class MicrodiffAperture(ExporterNState):
     unit = "um"
 
     def __init__(self, name):
-        ExporterNState.__init__(self, name)
+        super(MicrodiffAperture, self).__init__(name)
+        self.inout_obj = None
 
     def init(self):
         """Initialize the aperture"""
-        ExporterNState.init(self)
+        super(MicrodiffAperture, self).init()
 
-        self.initialise_values()
         # check if we have values other that UKNOWN (no values in config)
         if len(self.VALUES) == 1:
             self._initialise_values()
+
+        # now get the IN/OUT object
+        self.inout_obj = self.getObjectByRole("inout")
+        if self.inout_obj:
+            self._initialise_inout()
+
+    def _initialise_inout(self):
+        """Add IN and OUT to the values Enum"""
+        values_dict = {item.name: item.value for item in self.inout_obj.VALUES}
+        values_dict.update({item.name: item.value for item in self.VALUES})
+        self.VALUES = Enum("ValueEnum", values_dict)
 
     def _initialise_values(self):
         """Initialise the ValueEnum from the hardware
