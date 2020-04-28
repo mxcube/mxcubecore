@@ -254,7 +254,7 @@ class AbstractDetector(HardwareObject):
         Returns:
             (float): Detector threshold energy [eV]
         """
-        return _threshold_energy
+        return self._threshold_energy
     
     
         
