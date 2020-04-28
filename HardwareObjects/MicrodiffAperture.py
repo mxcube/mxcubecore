@@ -28,7 +28,7 @@ Example xml file:
   <state_channel_name>State</state_channel_name>
   <-- either only factor -->
   <factor>(0.15, 0.3, 0.63, 0.9, 0.96)</factor>
-  <!-- or complete, corresponding to label: (index, size[mm], factor) -->
+  <!-- or complete, corresponding to label: (index, size[um], factor) -->
   <values>{"A10": (0, 10, 0.15), "A20": (1, 20, 0.3), "A30": (2, 30, 0.63), "A50": (3, 50, 0.9), "A75": (4, 75, 0.96)}</values>
 </object>
 """
@@ -44,7 +44,7 @@ __license__ = "LGPLv3+"
 class MicrodiffAperture(ExporterNState):
     """MicrodiffAperture class"""
 
-    unit = "mm"
+    unit = "um"
 
     def __init__(self, name):
         ExporterNState.__init__(self, name)
