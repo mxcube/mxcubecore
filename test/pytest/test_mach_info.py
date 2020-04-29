@@ -27,6 +27,7 @@ from HardwareRepository.test.pytest import TestHardwareObjectBase
 __copyright__ = """ Copyright © 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
+
 @pytest.fixture
 def test_object(beamline):
     result = beamline.machine_info
@@ -34,8 +35,8 @@ def test_object(beamline):
     # Cleanup code here - restores starting state for next call:
     # NBNB TODO
 
-class TestMachineInfo(TestHardwareObjectBase.TestHardwareObjectBase):
 
+class TestMachineInfo(TestHardwareObjectBase.TestHardwareObjectBase):
     def test_mach_info_atributes(self, test_object):
         assert (
             test_object is not None
@@ -46,6 +47,6 @@ class TestMachineInfo(TestHardwareObjectBase.TestHardwareObjectBase):
         topup_remaining = test_object.get_topup_remaining()
         mach_info_dict = test_object.get_mach_info_dict()
 
-        assert (
-            isinstance(mach_info_dict, dict)
+        assert isinstance(
+            mach_info_dict, dict
         ), "Machine info dictionary has to be dict"
