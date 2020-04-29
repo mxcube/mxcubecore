@@ -51,6 +51,7 @@ class MachInfoMockup(AbstractMachineInfo):
         AbstractMachineInfo.__init__(self, *args)
 
     def init(self):
+        """Initialise some parameters and update routine."""
         self._current = self.default_current
         self._message = self.default_message
         self._lifetime = self.default_lifetime
@@ -58,6 +59,7 @@ class MachInfoMockup(AbstractMachineInfo):
         self._run()
 
     def _run(self):
+        """Spawn update routine."""
         gevent.spawn(self._update_me)
 
     def _update_me(self):
