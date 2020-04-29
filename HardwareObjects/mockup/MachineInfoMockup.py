@@ -1,8 +1,8 @@
 """
-[Name] MachInfoMockup
+[Name] MachineInfoMockup
 
 [Description]
-MachInfo hardware objects are used to obtain information from the accelerator
+MachineInfo hardware objects are used to obtain information from the accelerator
 control system.
 
 This is a mockup hardware object, it simulates the behaviour of an accelerator
@@ -41,7 +41,7 @@ from HardwareRepository.HardwareObjects.abstract.AbstractMachineInfo import (
 )
 
 
-class MachInfoMockup(AbstractMachineInfo):
+class MachineInfoMockup(AbstractMachineInfo):
     default_current = 200  # milliamps
     default_message = "Beam Delivered"
     default_lifetime = 45  # hours Lifetime
