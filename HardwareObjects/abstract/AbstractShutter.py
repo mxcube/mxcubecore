@@ -34,7 +34,7 @@ class BaseValueEnum(Enum):
     """Defines only the compulsory values."""
 
     OPEN = "OPEN"
-    CLOSE = "CLOSE"
+    CLOSED = "CLOSED"
     UNKNOWN = "UNKNOWN"
 
 
