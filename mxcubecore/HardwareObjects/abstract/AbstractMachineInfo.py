@@ -17,13 +17,18 @@
 #
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+"""Abstract machine info class"""
 
 import abc
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
+__copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
+
+
 class AbstractMachineInfo(HardwareObject):
-    """Abstract machine info"""
+    """Abstract machine info."""
 
     __metaclass__ = abc.ABCMeta
 
@@ -70,7 +75,7 @@ class AbstractMachineInfo(HardwareObject):
 
     @abc.abstractmethod
     def get_mach_info_dict(self):
-        """Read machine info dict.
+        """Read machine info dictionary.
         Returns:
             (dict): Copy of mach_info_dict.
         """
