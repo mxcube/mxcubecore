@@ -441,7 +441,7 @@ class XMLRPCServer(HardwareObject):
          'angle': float}
 
         """
-        grid_dict = HWR.beamline.sample_view.shapes.get_grid()
+        grid_dict = HWR.beamline.sample_view.get_grid()
         # self.shape_history_set_grid_data(grid_dict['id'], {})
 
         return grid_dict
@@ -451,7 +451,7 @@ class XMLRPCServer(HardwareObject):
         for result in result_data.items():
             int_based_result[int(result[0])] = result[1]
 
-        HWR.beamline.sample_view.shapes.set_grid_data(key, int_based_result)
+        HWR.beamline.sample_view.set_grid_data(key, int_based_result)
         return True
 
     def get_cp(self):
@@ -459,7 +459,7 @@ class XMLRPCServer(HardwareObject):
         :returns: a json encoded list with all centred positions
         """
         cplist = []
-        points = HWR.beamline.sample_view.shapes.get_points()
+        points = HWR.beamline.sample_view.get_points()
 
         for point in points:
             cp = point.get_centred_positions()[0].as_dict()
