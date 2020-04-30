@@ -8,6 +8,7 @@ Example xml file:
 </device>
 """
 import logging
+from warnings import warn
 
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
@@ -17,6 +18,10 @@ from HardwareRepository.TaskUtils import task
 
 class BlissActuator(AbstractActuator):
     def __init__(self, name):
+        warn(
+            "BlissActuator class is deprecated. Use BlissNState instead",
+            DeprecationWarning,
+        )
         AbstractActuator.__init__(self, name)
 
     def init(self):
