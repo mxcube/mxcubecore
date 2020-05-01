@@ -47,14 +47,12 @@ class AbstractResolution(AbstractMotor):
         super(AbstractResolution, self).__init__(name)
         self._hwr_detector = None
         self._hwr_energy = None
-        self.det_metadata = {}
 
     def init(self):
         """Initialisation"""
         super(AbstractResolution, self).init()
         self._hwr_detector = self.getObjectByRole("detector") or HWR.beamline.detector
         self._hwr_energy = HWR.beamline.energy
-        self.det_metadata = self._hwr_detector.get_metadata()
 
         self.connect(self._hwr_detector.distance, "stateChanged", self.update_state)
         self.connect(self._hwr_detector.distance, "valueChanged", self.update_distance)
@@ -151,17 +149,7 @@ class AbstractResolution(AbstractMotor):
 
         try:
             ttheta = 2 * arcsin(_wavelength / (2 * resolution))
-
-            dist_1 = self.det_metadata["bx"] / (tan(ttheta) - self.det_metadata["ax"])
-            dist_2 = self.det_metadata["by"] / (tan(ttheta) - self.det_metadata["ay"])
-            dist_3 = (self.det_metadata["width"] - self.det_metadata["bx"]) / (
-                tan(ttheta) + self.det_metadata["ax"]
-            )
-            dist_4 = (self.det_metadata["height"] - self.det_metadata["by"]) / (
-                tan(ttheta) + self.det_metadata["ay"]
-            )
-
-            return min(dist_1, dist_2, dist_3, dist_4)
+            return self._hwr_detector.get_radius() / ttheta
         except (KeyError, ZeroDivisionError):
             return None
 
@@ -171,17 +159,8 @@ class AbstractResolution(AbstractMotor):
             (float): Resolution [Å]
         """
         _distance = self._hwr_detector.distance.get_value()
-        beam_x, beam_y = self._hwr_detector.get_beam_position(_distance)
-        _width = self.det_metadata["width"]
-        _height = self.det_metadata["height"]
-
-        distance_at_corners = [
-            sqrt(beam_x ** 2 + beam_y ** 2),
-            sqrt((_width - beam_x) ** 2 + beam_y ** 2),
-            sqrt((beam_x ** 2 + (_height - beam_y) ** 2)),
-            sqrt((_width - beam_x) ** 2 + (_height - beam_y) ** 2),
-        ]
-        return self._calculate_resolution(max(distance_at_corners), _distance)
+        corner_distance = self._hwr_detector.get_outer_radius()
+        return self._calculate_resolution(corner_distance, _distance)
 
     def update_distance(self, value=None):
         """Update the resolution when distance changed.
