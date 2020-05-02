@@ -180,7 +180,7 @@ class AbstractDetector(HardwareObject):
             return None, None
 
     def get_radius(self, distance=None):
-        """Get distance form the beam position to the nearest detector edge.
+        """Get distance from the beam position to the nearest detector edge.
         Args:
             distance (float): Distance [mm]
         Returns:
