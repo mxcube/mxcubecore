@@ -46,17 +46,17 @@ class ShutterMockup(ActuatorMockup, AbstractShutter):
     def init(self):
         """Initialisation"""
         super(ShutterMockup, self).init()
-        self.update_value(self.VALUES.CLOSE)
+        self.update_value(self.VALUES.CLOSED)
         self.update_state(self.STATES.READY)
 
     def is_open(self):
         return self.get_value() is self.VALUES.OPEN
 
     def is_closed(self):
-        return self.get_value() is self.VALUES.CLOSE
+        return self.get_value() is self.VALUES.CLOSED
 
     def open(self):
         self.set_value(self.VALUES.OPEN, timeout=None)
 
     def close(self):
-        self.set_value(self.VALUES.CLOSE, timeout=None)
+        self.set_value(self.VALUES.CLOSED, timeout=None)
