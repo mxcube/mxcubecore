@@ -934,7 +934,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         self.emit("statusListChanged", self._status_list)
         self.emit("infoDictChanged", self._info_dict) 
     
-    def update_values(self):
+    def re_emit_values(self):
         self.emit("statusListChanged", self._status_list)
         self.emit("infoDictChanged", self._info_dict)
         self._trigger_info_changed_event()

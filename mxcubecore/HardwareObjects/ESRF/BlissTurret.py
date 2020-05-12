@@ -42,7 +42,7 @@ class BlissTurret(HardwareObject):
     def get_turret_mnemonic(self):
         return self.turret_name
 
-    def update_values(self):
+    def re_emit_values(self):
         self.emit("positionChanged", (self.get_value(),))
         self.emit("modeChanged", (self.get_mode(),))
 

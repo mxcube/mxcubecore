@@ -1002,7 +1002,7 @@ class __HardwareRepositoryClient:
                         )
                     try:
                         self.hardwareObjects[hwr_obj].init()
-                        self.hardwareObjects[hwr_obj].update_values()
+                        self.hardwareObjects[hwr_obj].re_emit_values()
                         logging.getLogger("HWR").debug(
                             "HardwareRepository: %s initialized and updated", item
                         )

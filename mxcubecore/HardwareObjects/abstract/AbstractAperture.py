@@ -173,7 +173,7 @@ class AbstractAperture(HardwareObject):
         """
         pass
 
-    def update_values(self):
+    def re_emit_values(self):
         """
         Reemits all signals
         """

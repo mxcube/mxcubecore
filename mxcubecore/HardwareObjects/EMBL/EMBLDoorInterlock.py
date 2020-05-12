@@ -205,6 +205,6 @@ class EMBLDoorInterlock(Device):
         else:
             logging.getLogger("HWR").info("Door is Interlocked")
 
-    def update_values(self):
+    def re_emit_values(self):
         """Updates state"""
         self.get_state()
