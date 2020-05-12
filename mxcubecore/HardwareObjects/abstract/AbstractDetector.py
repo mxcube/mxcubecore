@@ -20,6 +20,7 @@
 """Detector API"""
 
 import abc
+import math
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
@@ -179,7 +180,7 @@ class AbstractDetector(HardwareObject):
             return None, None
 
     def get_radius(self, distance=None):
-        """Get the detector radius for a given distance.
+        """Get distance from the beam position to the nearest detector edge.
         Args:
             distance (float): Distance [mm]
         Returns:
@@ -191,6 +192,19 @@ class AbstractDetector(HardwareObject):
             self.width - beam_x, self.height - beam_y, beam_x, beam_y
         )
         return self._det_radius
+
+    def get_outer_radius(self, distance=None):
+        """Get distance from beam_position to the furthest point on the detector.
+        Args:
+            distance (float): Distance [mm]
+        Returns:
+            (float): Detector router adius [mm]
+        """
+        distance = distance or self._distance_motor_hwobj.get_value()
+        beam_x, beam_y = self.get_beam_position(distance)
+        max_delta_x  = max(beam_x, self.width - beam_x)
+        max_delta_y = max(beam_y, self.height - beam_y)
+        return math.sqrt(max_delta_x * max_delta_x + max_delta_y * max_delta_y)
 
     def get_metadata(self):
         """Returns relevant metadata.
