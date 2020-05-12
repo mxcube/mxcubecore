@@ -278,7 +278,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         """
         self.cmd_restart_daq(0)
 
-    def update_values(self):
+    def re_emit_values(self):
         """Reemits signals"""
         self.emit("detectorRoiModeChanged", (self.roi_mode,))
         temp = self.chan_temperature.getValue()

@@ -130,7 +130,7 @@ class ALBAMachineInfo(Equipment):
             or abs(self.values_dict["mach_current"] - value) > 0.10
         ):
             self.values_dict["mach_current"] = value
-            self.update_values()
+            self.re_emit_values()
             self.logger.debug("New machine current value=%smA" % value)
 
     def mach_status_changed(self, status):
@@ -140,7 +140,7 @@ class ALBAMachineInfo(Equipment):
         Return    : -
         """
         self.values_dict["mach_status"] = str(status)
-        self.update_values()
+        self.re_emit_values()
         self.logger.debug("New machine status=%s" % status)
 
     def topup_remaining_changed(self, value):
@@ -150,10 +150,10 @@ class ALBAMachineInfo(Equipment):
         Return    : -
         """
         self.values_dict["topup_remaining"] = value
-        self.update_values()
+        self.re_emit_values()
         self.logger.debug("New top-up remaining time=%ss" % value)
 
-    def update_values(self):
+    def re_emit_values(self):
         """
         Descript. : Updates storage disc information, detects if intensity
                     and storage space is in limits, forms a value list

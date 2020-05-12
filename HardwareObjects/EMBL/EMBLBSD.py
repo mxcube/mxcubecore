@@ -210,7 +210,7 @@ class EMBLBSD(GenericDiffractometer):
         """Emits diffractometerMoved signal"""
         self.emit("diffractometerMoved", ())
 
-    def update_values(self):
+    def re_emit_values(self):
         """Reemits all signals"""
         self.emit("minidiffPhaseChanged", (self.current_phase,))
         self.emit("minidiffShutterStateChanged", (self.fast_shutter_is_open,))
