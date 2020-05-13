@@ -129,7 +129,7 @@ class AbstractSlits(HardwareObject, object):
             self._max_limits = new_limits
             self.emit("maxLimitsChanged", self._max_limits)
 
-    def update_values(self):
+    def re_emit_values(self):
         """
         Reemits all signals
         :return:

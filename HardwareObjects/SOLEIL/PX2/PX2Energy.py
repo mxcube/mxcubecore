@@ -26,7 +26,7 @@ class PX2Energy(EnergyMockup):
         self.checkLimits = self.check_limits
         self.cancelMoveEnergy = self.cancel_move_energy
 
-    def update_values(self):
+    def re_emit_values(self):
         self.emit("energyChanged", (self.current_energy, self.current_wavelength))
         self.emit("valueChanged", (self.current_energy,))
 
@@ -59,7 +59,7 @@ class PX2Energy(EnergyMockup):
         self.energy.set_energy(energy)
         self.current_energy = self.get_current_energy()
         self.current_wavelength = self.get_wavelegth_from_energy(self.current_energy)
-        self.update_values()
+        self.re_emit_values()
         self.emit("moveEnergyFinished", ())
 
     def set_wavelength(self, wavelength):
@@ -87,7 +87,7 @@ class PX2Energy(EnergyMockup):
                 self.current_energy = energy
                 self.current_wavelength = 12.3984 / energy
                 if self.current_wavelength is not None:
-                    self.update_values()
+                    self.re_emit_values()
         except BaseException:
             logging.getLogger("HWR").info(
                 "energy_changed: error occured during an energy update"

@@ -31,8 +31,8 @@ class ALBAEnergy(Device):
             self.wavelength_position = self.wavelength_hwobj.get_value()
         return self.wavelength_position
 
-    def update_values(self):
-        HWR.beamline.energy.update_values()
+    def re_emit_values(self):
+        HWR.beamline.energy.re_emit_values()
 
     def energy_position_changed(self, value):
         self.energy_position = value

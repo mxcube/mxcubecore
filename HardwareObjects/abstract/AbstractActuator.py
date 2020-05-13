@@ -158,8 +158,8 @@ class AbstractActuator(HardwareObject):
             self._nominal_limits = limits
             self.emit("limitsChanged", (limits,))
 
-    def update_values(self):
+    def re_emit_values(self):
         """Update values for all internal attributes"""
         self.update_value(self.get_value())
         self.update_limits(self.get_limits())
-        super(AbstractActuator, self).update_values()
+        super(AbstractActuator, self).re_emit_values()

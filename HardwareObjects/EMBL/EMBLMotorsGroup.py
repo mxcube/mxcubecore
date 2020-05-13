@@ -343,7 +343,7 @@ class EMBLMotorsGroup(Device):
                 break
         return is_ready
 
-    def update_values(self):
+    def re_emit_values(self):
         """
         Reemits all signals
         :return:

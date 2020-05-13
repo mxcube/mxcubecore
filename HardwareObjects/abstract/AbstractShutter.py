@@ -25,8 +25,6 @@ import abc
 from enum import Enum, unique
 from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractNState
 
-from HardwareRepository.BaseHardwareObjects import HardwareObjectState
-
 __copyright__ = """ Copyright 2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
@@ -36,26 +34,14 @@ class BaseValueEnum(Enum):
     """Defines only the compulsory values."""
 
     OPEN = "OPEN"
-    CLOSE = "CLOSE"
+    CLOSED = "CLOSED"
     UNKNOWN = "UNKNOWN"
-
-
-@unique
-class ShutterStates(Enum):
-    """Shutter states definitions."""
-
-    OPEN = HardwareObjectState.READY, 6
-    CLOSED = HardwareObjectState.READY, 7
-    MOVING = HardwareObjectState.BUSY, 8
-    DISABLED = HardwareObjectState.WARNING, 9
-    AUTOMATIC = HardwareObjectState.READY, 10
 
 
 class AbstractShutter(AbstractNState):
     """Abstract base class for N state objects."""
 
     __metaclass__ = abc.ABCMeta
-    SPECIFIC_STATES = ShutterStates
     VALUES = BaseValueEnum
 
     def __init__(self, name):

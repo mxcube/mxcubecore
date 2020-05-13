@@ -146,14 +146,14 @@ class EMBLSlitBox(AbstractSlits):
                 self.connect(
                     motor_group, "mGroupStatusChanged", self.motors_group_status_changed
                 )
-                motor_group.update_values()
+                motor_group.re_emit_values()
 
         self.beam_focus_hwobj = self.getObjectByRole("focusing")
         if self.beam_focus_hwobj:
             self.connect(
                 self.beam_focus_hwobj, "focusingModeChanged", self.focus_mode_changed
             )
-            self.beam_focus_hwobj.update_values()
+            self.beam_focus_hwobj.re_emit_values()
         else:
             logging.getLogger("HWR").debug("EMBLSlitBox: beamFocus HO not defined")
 
@@ -349,7 +349,7 @@ class EMBLSlitBox(AbstractSlits):
                 ([self.gaps_dict["Hor"]["maxGap"], self.gaps_dict["Ver"]["maxGap"]],),
             )
 
-    def update_values(self):
+    def re_emit_values(self):
         """Reemits signals"""
         self.emit("focusModeChanged", ((self.hor_gap_enabled, self.ver_gap_enabled),))
         self.emit(

@@ -154,7 +154,7 @@ class PX1Resolution(Equipment):
                 "%s: PX1Resolution.stop: error while trying to stop!", self.name()
             )
 
-    def update_values(self):
+    def re_emit_values(self):
         self.stateChanged()
         self.distanceChanged()
         self.resolutionChanged()

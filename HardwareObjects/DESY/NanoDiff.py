@@ -1338,7 +1338,7 @@ class NanoDiff(HardwareObject):
             }
         )
 
-    def update_values(self):
+    def re_emit_values(self):
         self.emit("minidiffPhaseChanged", (self.current_phase,))
         self.emit("omegaReferenceChanged", (self.reference_pos,))
         self.emit("minidiffShutterStateChanged", (self.fast_shutter_is_open,))
