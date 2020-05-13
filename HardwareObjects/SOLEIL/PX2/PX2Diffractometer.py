@@ -1103,7 +1103,7 @@ class PX2Diffractometer(GenericDiffractometer):
                 }
             )
 
-    def update_values(self):
+    def re_emit_values(self):
         """
         Description:
         """

@@ -357,7 +357,7 @@ class EMBLBeamInfo(Equipment):
         self.update_beam_info()
         return self.beam_info_dict
 
-    def update_values(self):
+    def re_emit_values(self):
         """Reemits all signals
 
         :return: None

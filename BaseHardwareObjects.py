@@ -512,7 +512,7 @@ class HardwareObjectMixin(CommandContainer):
             self._specific_state = state
             self.emit("specificStateChanged", (state,))
 
-    def update_values(self):
+    def re_emit_values(self):
         """Update values for all internal attributes
 
         The method is called from Qt bricks to ensure that bricks have values
@@ -521,7 +521,7 @@ class HardwareObjectMixin(CommandContainer):
         If first brick connects to some signal emited by a brick then
         other bricks connecting to the same signal will not receive the
         values on the startup.
-        The easiest solution is to call update_values method directly
+        The easiest solution is to call re_emit_values method directly
         after getHardwareObject and connect.
 
         Should be expanded in subclasse with more updatable attributes

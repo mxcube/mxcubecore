@@ -384,7 +384,7 @@ class EMBLEnergy(AbstractEnergy):
         """
         self.bragg_break_status = status
 
-    def update_values(self):
+    def re_emit_values(self):
         """
         Reemits signals
         :return:

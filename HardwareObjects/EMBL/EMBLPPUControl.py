@@ -153,7 +153,7 @@ class EMBLPPUControl(Device):
         self.cmd_all_restart("")
         self.get_status()
 
-    def update_values(self):
+    def re_emit_values(self):
         """
         Reemits signals
         :return:
