@@ -108,7 +108,7 @@ class AbstractNState(AbstractActuator):
 
         return self.VALUES.UNKNOWN
 
-    def update_values(self):
+    def re_emit_values(self):
         """Update values for all internal attributes"""
         self.update_value(self.get_value())
-        super(AbstractNState, self).update_values()
+        super(AbstractNState, self).re_emit_values()

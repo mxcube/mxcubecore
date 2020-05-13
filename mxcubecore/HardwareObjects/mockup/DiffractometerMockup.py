@@ -355,7 +355,7 @@ class DiffractometerMockup(GenericDiffractometer):
         self.current_centring_method = None
         self.current_centring_procedure = None
 
-    def update_values(self):
+    def re_emit_values(self):
         self.emit("zoomMotorPredefinedPositionChanged", None, None)
         omega_ref = [0, 238]
         self.emit("omegaReferenceChanged", omega_ref)

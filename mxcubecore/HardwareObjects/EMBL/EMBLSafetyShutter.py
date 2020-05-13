@@ -288,7 +288,7 @@ class EMBLSafetyShutter(Device):
         except BaseException:
             logging.getLogger("GUI").error("Safety shutter: unable to open shutter")
 
-    def update_values(self):
+    def re_emit_values(self):
         """Reemits all signals
 
         :return: None

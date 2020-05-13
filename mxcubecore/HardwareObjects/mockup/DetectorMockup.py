@@ -52,7 +52,7 @@ class DetectorMockup(AbstractDetector):
             yval = self.getProperty("height", 2527) / 2.0 + 0.4
         return xval, yval
 
-    def update_values(self):
+    def re_emit_values(self):
         self.emit("detectorModeChanged", (self._roi_mode,))
         self.emit("temperatureChanged", (self._temperature, True))
         self.emit("humidityChanged", (self._humidity, True))

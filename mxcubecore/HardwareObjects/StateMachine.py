@@ -121,7 +121,7 @@ class StateMachine(HardwareObject):
                     "fsmConditionChanged",
                     self.condition_changed,
                 )
-                getattr(self.bl_setup_hwobj, hwobj_name).update_values()
+                getattr(self.bl_setup_hwobj, hwobj_name).re_emit_values()
 
     def get_state_by_name(self, state_name):
         for state in self.state_list:
@@ -220,7 +220,7 @@ class StateMachine(HardwareObject):
         """Returns list of available transitions"""
         return self.transition_list
 
-    def update_values(self):
+    def re_emit_values(self):
         """Reemits signals"""
 
         if len(self.history_state_list):
