@@ -25,15 +25,11 @@ class DetectorMockup(AbstractDetector):
 
         self._temperature = 25
         self._humidity = 60
-        self.actual_frame_rate = 50
+        self._actual_frame_rate = 50
         self._roi_modes_list = ("0", "C2", "C16")
         self._roi_mode = 0
         self._exposure_time_limits = [0.04, 60000]
-        self.status = "ready"
-
-    def set_roi_mode(self, roi_mode):
-        self._roi_mode = roi_mode
-        self.emit("detectorRoiModeChanged", (self._roi_mode,))
+        self._state = "ready"
 
     def has_shutterless(self):
         """Returns always True
@@ -51,14 +47,6 @@ class DetectorMockup(AbstractDetector):
             yval = self.getProperty("height", 2527) / 2.0 + 0.4
         return xval, yval
 
-    def re_emit_values(self):
-        self.emit("detectorModeChanged", (self._roi_mode,))
-        self.emit("temperatureChanged", (self._temperature, True))
-        self.emit("humidityChanged", (self._humidity, True))
-        self.emit("expTimeLimitsChanged", (self._exposure_time_limits,))
-        self.emit("frameRateChanged", self.actual_frame_rate)
-        self.emit("statusChanged", (self.status, "Ready"))
-
     def prepare_acquisition(self, *args, **kwargs):
         """
         Prepares detector for acquisition
@@ -71,8 +59,3 @@ class DetectorMockup(AbstractDetector):
         """
         return
 
-    def stop_acquisition(self):
-        """
-        Stops acquisition
-        """
-        return
