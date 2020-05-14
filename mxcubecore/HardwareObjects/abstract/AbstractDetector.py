@@ -17,7 +17,19 @@
 #
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
-"""Detector API"""
+
+"""
+Detector API
+
+emits signals:
+    detectorRoiModeChanged
+    temperatureChanged
+    humidityChanged
+    expTimeLimitsChanged
+    frameRateChanged
+    stateChanged
+    specificStateChanged
+"""
 
 import abc
 import math
@@ -37,36 +49,47 @@ class AbstractDetector(HardwareObject):
 
         self._temperature = None
         self._humidity = None
+        self._actual_frame_rate = None
         self._exposure_time_limits = (None, None)
+        
         self._pixel_size = (None, None)
 
         self._binning_mode = 0
         self._roi_mode = 0
         self._roi_modes_list = []
-
+    
+        self._threshold_energy = None
         self._distance_motor_hwobj = None
-        self.width = None  # [pixel]
-        self.height = None  # [pixel]
-        self._det_radius = None
-        self._det_metadata = {}
-
+        self._width = None  # [pixel]
+        self._height = None  # [pixel]
+        self._metadata = {}
+        
     def init(self):
         """Initialise some common paramerters"""
-        self.width = self.getProperty("width")
-        self.height = self.getProperty("height")
 
         try:
-            self._det_metadata = self["beam"]
+            self._metadata = self["beam"]
         except KeyError:
             pass
-
+        
         try:
-            self._distance_motor_hwobj = self.getObjectByRole("detector_distance")
-        except KeyError:
+            self._distance_motor_hwobj = self.getObjectByRole("detector_distance")	
+        except KeyError:	
             pass
-
+        
         self._pixel_size = (self.getProperty("px"), self.getProperty("py"))
+        self._width = self.getProperty("width")
+        self._height = self.getProperty("height")
 
+    def re_emit_values(self):
+        self.emit("detectorRoiModeChanged", (self._roi_mode,))
+        self.emit("temperatureChanged", (self._temperature, True))
+        self.emit("humidityChanged", (self._humidity, True))
+        self.emit("expTimeLimitsChanged", (self._exposure_time_limits,))
+        self.emit("frameRateChanged", self._actual_frame_rate,)
+        self.emit("stateChanged", (self._state,))
+        self.emit("specificStateChanged", (self._specific_state,))
+        
     @property
     def distance(self):
         """Property for contained detector_distance hardware object
@@ -120,7 +143,8 @@ class AbstractDetector(HardwareObject):
             roi_mode (int): ROI mode to set.
         """
         self._roi_mode = roi_mode
-
+        self.emit("detectorRoiModeChanged", (self._roi_mode,))
+        
     def get_roi_mode_name(self):
         """
         Returns:
@@ -163,21 +187,33 @@ class AbstractDetector(HardwareObject):
         """
         self._binning_mode = value
 
-    def get_beam_position(self, distance=None):
+    def get_beam_position(self, distance=None, wavelength=None):
         """Calculate the beam position for a given distance.
         Args:
-            distance(float): Distance [mm]
+            distance (float): detector distance [mm]
+            wavelength (float): X-ray wavelength [Å]
         Returns:
             tuple(float, float): Beam position x,y coordinates [pixel].
         """
+        # Following is just an example of calculating beam center using
+        # simple linear regression,
+        # One needs to overload the method in case more complex calculation
+        # is required, e.g. using other detector positioning motors and
+        # wavelength
+
         distance = distance or self._distance_motor_hwobj.get_value()
+        wavelength = wavelength or HWR.beamline.energy.get_wavelength()
+        metadata = self.get_metadata()
+
         try:
-            return (
-                float(distance * self._det_metadata["ax"] + self._det_metadata["bx"]),
-                float(distance * self._det_metadata["ay"] + self._det_metadata["by"]),
+            beam_position = (
+                float(distance * metadata["ax"] + metadata["bx"]),
+                float(distance * metadata["ay"] + metadata["by"]),
             )
         except KeyError:
-            return None, None
+            beam_position = (None, None)
+
+        return beam_position
 
     def get_radius(self, distance=None):
         """Get distance from the beam position to the nearest detector edge.
@@ -188,10 +224,10 @@ class AbstractDetector(HardwareObject):
         """
         distance = distance or self._distance_motor_hwobj.get_value()
         beam_x, beam_y = self.get_beam_position(distance)
-        self._det_radius = min(
-            self.width - beam_x, self.height - beam_y, beam_x, beam_y
+        radius = min(
+            self.get_width() - beam_x, self.get_height() - beam_y, beam_x, beam_y
         )
-        return self._det_radius
+        return radius
 
     def get_outer_radius(self, distance=None):
         """Get distance from beam_position to the furthest point on the detector.
@@ -211,7 +247,38 @@ class AbstractDetector(HardwareObject):
         Returns:
             (dict): metadata
         """
-        self._det_metadata["width"] = self.width
-        self._det_metadata["height"] = self.height
+        self._metadata["width"] = self.get_width()
+        self._metadata["height"] = self.get_height()
 
-        return self._det_metadata
+        return self._metadata
+
+    def get_width(self):
+        """Returns detector width.
+        Returns:
+            (int): detector width [px]
+        """
+        return self._width
+
+    def get_height(self):
+        """Returns detector height.
+        Returns:
+            (int): detector height [px]
+        """
+        return self._width
+
+    def set_threshold_energy(self, threshold_energy):
+        """
+        Args:
+            threshold_energy (float): Detector threshold energy [eV]
+        """
+        self._threshold_energy = threshold_energy
+        
+    def get_threshold_energy(self):
+        """Returns detector threshold_energy
+        Returns:
+            (float): Detector threshold energy [eV]
+        """
+        return self._threshold_energy
+    
+    
+        
