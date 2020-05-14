@@ -27,8 +27,8 @@ emits signals:
     humidityChanged
     expTimeLimitsChanged
     frameRateChanged
-    statusChanged
-    
+    stateChanged
+    specificStateChanged
 """
 
 import abc
@@ -49,7 +49,9 @@ class AbstractDetector(HardwareObject):
 
         self._temperature = None
         self._humidity = None
+        self._actual_frame_rate = None
         self._exposure_time_limits = (None, None)
+        
         self._pixel_size = (None, None)
 
         self._binning_mode = 0
@@ -60,9 +62,8 @@ class AbstractDetector(HardwareObject):
         self._distance_motor_hwobj = None
         self._width = None  # [pixel]
         self._height = None  # [pixel]
-        self._radius = None
         self._metadata = {}
-
+        
     def init(self):
         """Initialise some common paramerters"""
 
@@ -80,6 +81,15 @@ class AbstractDetector(HardwareObject):
         self._width = self.getProperty("width")
         self._height = self.getProperty("height")
 
+    def re_emit_values(self):
+        self.emit("detectorRoiModeChanged", (self._roi_mode,))
+        self.emit("temperatureChanged", (self._temperature, True))
+        self.emit("humidityChanged", (self._humidity, True))
+        self.emit("expTimeLimitsChanged", (self._exposure_time_limits,))
+        self.emit("frameRateChanged", self._actual_frame_rate,)
+        self.emit("stateChanged", (self._state,))
+        self.emit("specificStateChanged", (self._specific_state,))
+        
     @property
     def distance(self):
         """Property for contained detector_distance hardware object
@@ -133,7 +143,8 @@ class AbstractDetector(HardwareObject):
             roi_mode (int): ROI mode to set.
         """
         self._roi_mode = roi_mode
-
+        self.emit("detectorRoiModeChanged", (self._roi_mode,))
+        
     def get_roi_mode_name(self):
         """
         Returns:
@@ -213,10 +224,10 @@ class AbstractDetector(HardwareObject):
         """
         distance = distance or self._distance_motor_hwobj.get_value()
         beam_x, beam_y = self.get_beam_position(distance)
-        self._radius = min(
+        radius = min(
             self.get_width() - beam_x, self.get_height() - beam_y, beam_x, beam_y
         )
-        return self._radius
+        return radius
 
     def get_outer_radius(self, distance=None):
         """Get distance from beam_position to the furthest point on the detector.
