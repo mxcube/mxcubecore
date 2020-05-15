@@ -33,6 +33,8 @@ emits signals:
 
 import abc
 import math
+
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
