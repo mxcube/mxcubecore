@@ -70,7 +70,7 @@ class AbstractDetector(HardwareObject):
         """Initialise some common paramerters"""
 
         try:
-            self._metadata = self["beam"]
+            self._metadata = dict(self["beam"].getProperties())
         except KeyError:
             pass
         
