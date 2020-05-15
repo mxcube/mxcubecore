@@ -100,6 +100,19 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
                 mid,
                 val,
             )
+            assert abs(test_object._nominal_value - mid) < tol, (
+                "update_value nominal result %s differs from target %s"
+                % (test_object._nominal_value, mid)
+            )
+        else:
+            assert val == mid, (
+                    "update_value result %s differs from target %s"
+                    % (val, mid)
+            )
+            assert test_object._nominal_value == mid, (
+                    "update_value nominal result %s differs from target %s"
+                    % (test_object._nominal_value, mid)
+            )
 
         toobig = high + 0.1 * (high - low)
         assert not test_object.validate_value(toobig), (
@@ -119,13 +132,6 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
                 % (val, tol, mid)
             )
 
-        test_object.update_value(mid)
-        assert test_object._nominal_value == mid, (
-            "update_value result %s differs from target %s"
-            % (test_object._nominal_value, mid)
-        )
-
-        if tol:
             test_object.update_value(low)
             test_object.update_value(low + 0.5 * tol)
             assert (
