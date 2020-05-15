@@ -77,9 +77,8 @@ class Resolution(AbstractMotor):
         Returns:
             (float): value.
         """
-        if self._nominal_value is None:
-            dtox_pos = self._hwr_detector.distance.get_value()
-            self._nominal_value = self.distance_to_resolution(dtox_pos)
+        dtox_pos = self._hwr_detector.distance.get_value()
+        self._nominal_value = self.distance_to_resolution(dtox_pos)
         return self._nominal_value
 
     def get_limits(self):
