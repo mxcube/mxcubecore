@@ -378,9 +378,7 @@ class EMBLCollect(AbstractCollect):
            Animation is saved as the fourth snapshot
         """
 
-        HWR.beamline.sample_view.save_scene_animation(
-            animation_filename, duration_sec
-        )
+        HWR.beamline.sample_view.save_scene_animation(animation_filename, duration_sec)
 
     # def set_energy(self, value):
     #     """Sets energy"""

@@ -87,20 +87,12 @@ class MicrodiffSamplePseudo(MD2Motor):
         phi = math.radians(self.phi.get_value())
         if self.direction == "horizontal":
             ver = sampx * math.sin(-phi) + sampy * math.cos(-phi)
-            self.sampx.set_value(
-                value * math.cos(-phi) + ver * math.sin(-phi)
-            )
-            self.sampy.set_value(
-                -value * math.sin(-phi) + ver * math.cos(-phi)
-            )
+            self.sampx.set_value(value * math.cos(-phi) + ver * math.sin(-phi))
+            self.sampy.set_value(-value * math.sin(-phi) + ver * math.cos(-phi))
         else:
             hor = sampx * math.cos(phi) + sampy * math.sin(phi)
-            self.sampx.set_value(
-                value * math.sin(-phi) + hor * math.cos(-phi)
-            )
-            self.sampy.set_value(
-                value * math.cos(-phi) - hor * math.sin(-phi)
-            )
+            self.sampx.set_value(value * math.sin(-phi) + hor * math.cos(-phi))
+            self.sampy.set_value(value * math.cos(-phi) - hor * math.sin(-phi))
 
     def _motor_abort(self):
         for m in (self.phi, self.sampx, self.sampy):

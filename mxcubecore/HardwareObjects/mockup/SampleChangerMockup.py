@@ -97,7 +97,9 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
 
     def get_loaded_sample(self):
         return self.get_component_by_address(
-            Container.Pin.get_sample_address(self._selected_basket, self._selected_sample)
+            Container.Pin.get_sample_address(
+                self._selected_basket, self._selected_sample
+            )
         )
 
     def is_mounted_sample(self, sample):

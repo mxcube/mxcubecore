@@ -45,7 +45,10 @@ class Basket(Container):
 
     def __init__(self, container, cell_no, basket_no, unipuck=False):
         super(Basket, self).__init__(
-            self.__TYPE__, container, Basket.get_basket_address(cell_no, basket_no), True
+            self.__TYPE__,
+            container,
+            Basket.get_basket_address(cell_no, basket_no),
+            True,
         )
         for i in range(16 if unipuck else 10):
             slot = Pin(self, cell_no, basket_no, i + 1)
@@ -285,7 +288,9 @@ class FlexHCD(SampleChanger):
         prepareCentring=True,
     ):
         cell, basket, sample = sample_location
-        sample = self.get_component_by_address(Pin.get_sample_address(cell, basket, sample))
+        sample = self.get_component_by_address(
+            Pin.get_sample_address(cell, basket, sample)
+        )
         return self.load(sample)
 
     def chained_load(self, old_sample, sample):
@@ -406,7 +411,9 @@ class FlexHCD(SampleChanger):
         failureCallback=None,
     ):
         cell, basket, sample = sample_location
-        sample = self.get_component_by_address(Pin.get_sample_address(cell, basket, sample))
+        sample = self.get_component_by_address(
+            Pin.get_sample_address(cell, basket, sample)
+        )
         return self.unload(sample)
 
     @task

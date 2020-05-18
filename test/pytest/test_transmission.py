@@ -25,6 +25,7 @@ import pytest
 
 from HardwareRepository.test.pytest import TestAbstractActuatorBase
 
+
 @pytest.fixture
 def test_object(beamline):
     result = beamline.transmission
@@ -32,9 +33,8 @@ def test_object(beamline):
     # Cleanup code here - restores starting state for next call:
     # NBNB TODO
 
+
 class TestTransmission(TestAbstractActuatorBase.TestAbstractActuatorBase):
-
-
     def test_transmission_attributes(self, beamline, test_object):
         assert (
             not beamline.energy is None
@@ -43,12 +43,11 @@ class TestTransmission(TestAbstractActuatorBase.TestAbstractActuatorBase):
         value = test_object.get_value()
         limits = test_object.get_limits()
 
-        assert isinstance(value, (int, float)), (
-            "Transmission value has to be int or float"
-        )
+        assert isinstance(
+            value, (int, float)
+        ), "Transmission value has to be int or float"
         assert None not in limits, "One or several limits is None"
         assert limits[0] < limits[1], "Transmission limits define an invalid range"
-
 
     def test_transmission_methods(self, test_object):
         target = 60.0

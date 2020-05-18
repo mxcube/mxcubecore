@@ -1537,9 +1537,7 @@ class XrayCenteringQueueEntry(BaseQueueEntry):
         BaseQueueEntry.pre_execute(self)
         xray_centering = self.get_data_model()
         reference_image_collection = xray_centering.reference_image_collection
-        reference_image_collection.grid = (
-            HWR.beamline.sample_view.create_auto_grid()
-        )
+        reference_image_collection.grid = HWR.beamline.sample_view.create_auto_grid()
         reference_image_collection.acquisitions[
             0
         ].acquisition_parameters.centred_position = (
@@ -1639,9 +1637,11 @@ class AdvancedConnectorQueueEntry(BaseQueueEntry):
                 logging.getLogger("user_level_log").info("Creating a helical line")
 
                 gevent.sleep(2)
-                auto_line, cpos_one, cpos_two = (
-                    HWR.beamline.sample_view.create_auto_line()
-                )
+                (
+                    auto_line,
+                    cpos_one,
+                    cpos_two,
+                ) = HWR.beamline.sample_view.create_auto_line()
                 helical_model.acquisitions[
                     0
                 ].acquisition_parameters.osc_start = cpos_one.phi

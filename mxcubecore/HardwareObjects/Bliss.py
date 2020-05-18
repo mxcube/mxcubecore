@@ -82,6 +82,7 @@ def watch_session(
 
 class Bliss(HardwareObject):
     """Bliss class"""
+
     def __init__(self, *args):
         HardwareObject.__init__(self, *args)
         self.__scan_data = {}
