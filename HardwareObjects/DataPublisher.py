@@ -29,7 +29,7 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 @unique
 class PlotType(Enum):
     """
-    Defines defualt plot
+    Defines default plot
     """
     SCATTER = "scatter"
 
