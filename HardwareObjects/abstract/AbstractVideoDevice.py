@@ -136,7 +136,7 @@ class AbstractVideoDevice(Device):
 
         # Apply defaults if necessary
         if self.cam_encoding is None:
-            self.cam_encoding = self.default_cam_encoding
+            self.cam_encoding = AbstractVideoDevice.default_cam_encoding
 
         if self.poll_interval is None:
             self.poll_interval = self.default_poll_interval
@@ -191,11 +191,12 @@ class AbstractVideoDevice(Device):
         raw_buffer, width, height = self.get_image()
 
         if raw_buffer is not None and raw_buffer.any():
-            if self.cam_type == "basler":
+            if self.cam_type == "basler" or self.cam_type == "bayer":
                 raw_buffer = self.decoder(raw_buffer)
                 qimage = QImage(
                     raw_buffer, width, height, width * 3, QImage.Format_RGB888
                 )
+            
             else:
                 qimage = QImage(raw_buffer, width, height, QImage.Format_RGB888)
 
@@ -250,6 +251,16 @@ class AbstractVideoDevice(Device):
         raw_dims = self.get_raw_image_size()
         image.resize(raw_dims[1], raw_dims[0], 2)
         return cv2.cvtColor(image, cv2.COLOR_YUV2RGB_UYVY)
+
+    def bayer_rg16_2_rgb(self, raw_buffer):
+        image = np.fromstring(raw_buffer, dtype=np.uint16)
+        raw_dims = self.get_raw_image_size()
+        image.resize(raw_dims[1], raw_dims[0])
+        out_buffer =  cv2.cvtColor(image, cv2.COLOR_BayerRG2BGR)
+        if out_buffer.ndim == 3 and out_buffer.itemsize > 1:
+            # decoding bayer16 gives 12 bit values => scale to 8 bit
+            out_buffer = np.right_shift(out_buffer, 4).astype(np.uint8)
+        return out_buffer
 
     def save_snapshot(self, filename, image_type="PNG"):
         if USEQT:
@@ -369,7 +380,10 @@ class AbstractVideoDevice(Device):
             self.decoder = self.y8_2_rgb
         elif cam_encoding == "y16":
             self.decoder = self.y16_2_rgb
-
+        elif cam_encoding.lower() == "bayer_rg16":
+            self.decoder = self.bayer_rg16_2_rgb
+        self.cam_encoding = cam_encoding
+        
     def get_image_dimensions(self):
         raw_width, raw_height = self.get_raw_image_size()
         width = raw_width * self.scale
