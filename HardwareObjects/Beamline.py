@@ -539,14 +539,6 @@ class Beamline(ConfiguredObject):
     __content_roles.append("mock_procedure")
 
     @property
-    def scan_mockup(self):
-        """
-        """
-        return self._objects.get("scan_mockup")
-
-    __content_roles.append("scan_mockup")
-
-    @property
     def data_publisher(self):
         """
         """
