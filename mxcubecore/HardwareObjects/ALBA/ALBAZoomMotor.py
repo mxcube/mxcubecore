@@ -147,7 +147,9 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
         try:
             n = int(self.positionChannel.getValue())
             value = "%s z%s" % (n, n)
-            logging.getLogger("HWR").debug("get_current_position_name: %s" % repr(value))
+            logging.getLogger("HWR").debug(
+                "get_current_position_name: %s" % repr(value)
+            )
             return value
         except BaseException:
             logging.getLogger("HWR").debug("cannot get name zoom value")

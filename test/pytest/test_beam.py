@@ -31,6 +31,7 @@ from HardwareRepository.HardwareObjects.abstract.AbstractBeam import BeamShape
 __copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
+
 @pytest.fixture
 def test_object(beamline):
     result = beamline.beam
@@ -38,26 +39,34 @@ def test_object(beamline):
     # Cleanup code here - restores starting state for next call:
     # NBNB TODO
 
-class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
 
+class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
     def test_beam_atributes(self, test_object):
-        assert (
-            test_object is not None
-        ), "Beam hardware object is None (not initialized)"
-    
+        assert test_object is not None, "Beam hardware object is None (not initialized)"
+
     def test_get(self, test_object):
         """
         Test get methods
         """
         beam_div_hor, beam_div_ver = test_object.get_beam_divergence()
-        assert isinstance(beam_div_hor, (int, float)), "Horizontal beam divergence has to be int or float"
-        assert isinstance(beam_div_ver, (int, float)), "Vertical beam divergence has to be int or float"
+        assert isinstance(
+            beam_div_hor, (int, float)
+        ), "Horizontal beam divergence has to be int or float"
+        assert isinstance(
+            beam_div_ver, (int, float)
+        ), "Vertical beam divergence has to be int or float"
         beam_shape = test_object.get_beam_shape()
-        assert isinstance(beam_shape, BeamShape), "Beam shape should be defined in BeamShape Enum"
-    
+        assert isinstance(
+            beam_shape, BeamShape
+        ), "Beam shape should be defined in BeamShape Enum"
+
         beam_width, beam_height = test_object.get_beam_size()
-        assert isinstance(beam_width, (int, float)), "Horizontal beam size has to be int or float"
-        assert isinstance(beam_height, (int, float)), "Vertical beam size has to be int or float"
+        assert isinstance(
+            beam_width, (int, float)
+        ), "Horizontal beam size has to be int or float"
+        assert isinstance(
+            beam_height, (int, float)
+        ), "Vertical beam size has to be int or float"
 
     def test_set(self, test_object):
         """
@@ -65,15 +74,17 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         """
         max_diameter = max(test_object.aperture.get_diameter_size_list())
         test_object.aperture.set_diameter_size(max_diameter)
-    
+
         target_width = 0.01
         target_height = 0.01
-        test_object.set_beam_size_shape(target_width, target_height, BeamShape.RECTANGULAR)
-    
+        test_object.set_beam_size_shape(
+            target_width, target_height, BeamShape.RECTANGULAR
+        )
+
         beam_width, beam_height = test_object.get_beam_size()
         assert target_width == beam_width
         assert target_height == beam_height
-    
+
         beam_shape = test_object.get_beam_shape()
         assert beam_shape == BeamShape.RECTANGULAR
 
@@ -87,9 +98,9 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         for aperture_diameter in test_object.aperture.get_diameter_size_list():
             test_object.aperture.set_diameter_size(aperture_diameter)
             beam_width, beam_height = test_object.get_beam_size()
-            #TODO get_beam_size returns size in mm, but aperture diameters are in microns
+            # TODO get_beam_size returns size in mm, but aperture diameters are in microns
             # Use microns in all beam related hwobj
-            assert beam_width == beam_height == aperture_diameter / 1000.
+            assert beam_width == beam_height == aperture_diameter / 1000.0
 
             beam_shape = test_object.get_beam_shape()
             assert beam_shape == BeamShape.ELIPTICAL

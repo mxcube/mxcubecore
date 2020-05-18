@@ -533,7 +533,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         else:
             return self.execute_command("do_oscillation", start, end, exptime, npass)
 
-
     def set_wavelength(self, wavelength):
         return self._tunable_bl.set_wavelength(wavelength)
 

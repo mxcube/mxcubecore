@@ -133,7 +133,9 @@ class Beamline(ConfiguredObject):
             if x not in self.SUPPORTED_LIMIT_PARAMETERS
         ]
         if unrecognised:
-            logging.getLogger("HWR").warning("Unrecognised parameter limits for: %s" % unrecognised)
+            logging.getLogger("HWR").warning(
+                "Unrecognised parameter limits for: %s" % unrecognised
+            )
 
     # NB this function must be re-implemented in nested subclasses
     @property

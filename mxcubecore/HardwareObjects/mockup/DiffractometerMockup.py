@@ -85,9 +85,7 @@ class DiffractometerMockup(GenericDiffractometer):
 
         self.equipment_ready()
 
-        self.connect(
-            self.motor_hwobj_dict["phi"], "valueChanged", self.phi_motor_moved
-        )
+        self.connect(self.motor_hwobj_dict["phi"], "valueChanged", self.phi_motor_moved)
         self.connect(
             self.motor_hwobj_dict["phiy"], "valueChanged", self.phiy_motor_moved
         )
