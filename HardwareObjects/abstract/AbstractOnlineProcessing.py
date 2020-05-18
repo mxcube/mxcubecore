@@ -468,9 +468,11 @@ class AbstractOnlineProcessing(HardwareObject):
             if self.workflow_info is not None:
                 self.params_dict["workflow_id"] = self.workflow_info["workflow_id"]
 
-            workflow_id, workflow_mesh_id, grid_info_id = HWR.beamline.lims.store_workflow(
-                self.params_dict
-            )
+            (
+                workflow_id,
+                workflow_mesh_id,
+                grid_info_id,
+            ) = HWR.beamline.lims.store_workflow(self.params_dict)
 
             self.params_dict["workflow_id"] = workflow_id
             self.params_dict["workflow_mesh_id"] = workflow_mesh_id

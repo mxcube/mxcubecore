@@ -428,9 +428,13 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
             self._set_info(True, processing_plan.plate.barcode, True)
 
             for x in processing_plan.plate.xtal_list:
-                cell = self.get_component_by_address(Cell._get_cell_address(x.row, x.column))
+                cell = self.get_component_by_address(
+                    Cell._get_cell_address(x.row, x.column)
+                )
                 cell._set_info(True, "", True)
-                drop = self.get_component_by_address(Drop._get_drop_address(cell, x.shelf))
+                drop = self.get_component_by_address(
+                    Drop._get_drop_address(cell, x.shelf)
+                )
                 drop._set_info(True, "", True)
                 xtal = Xtal(drop, drop.get_number_of_components())
                 xtal._set_info(True, x.pin_id, True)

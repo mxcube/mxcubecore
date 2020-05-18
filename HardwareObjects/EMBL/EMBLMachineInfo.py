@@ -214,7 +214,7 @@ class EMBLMachineInfo(HardwareObject):
             self.get_temp_hum_values, self.getProperty("updateIntervalS")
         )
 
-        self.update_values()
+        self.re_emit_values()
 
     def clear_gevent(self):
         """Clear gevent tasks
@@ -244,7 +244,7 @@ class EMBLMachineInfo(HardwareObject):
             self.values_ordered_dict["cryo"]["value"] = "NOT IN PLACE"
         else:
             self.values_ordered_dict["cryo"]["value"] = "Unknown"
-        self.update_values()
+        self.re_emit_values()
 
     def mach_current_changed(self, value):
         """Method called if the machine current is changed
@@ -259,7 +259,7 @@ class EMBLMachineInfo(HardwareObject):
             self.values_ordered_dict["current"]["value"] = value
             self.values_ordered_dict["current"]["value_str"] = "%.1f mA" % value
             self.values_ordered_dict["current"]["in_range"] = value > 60.0
-            self.update_values()
+            self.re_emit_values()
 
     def state_text_changed(self, text):
         """Function called if machine state text is changed
@@ -327,7 +327,7 @@ class EMBLMachineInfo(HardwareObject):
                 "Closed, %d mm" % self.undulator_gap
             )
 
-        self.update_values()
+        self.re_emit_values()
 
     def low_level_alarm_changed(self, value):
         """Low level alarm"""
@@ -388,7 +388,7 @@ class EMBLMachineInfo(HardwareObject):
         else:
             self.values_ordered_dict["sc"]["value"] = "Dewar level in range"
             self.values_ordered_dict["sc"]["in_range"] = True
-        self.update_values()
+        self.re_emit_values()
 
     def flux_info_changed(self, flux_info):
         """Sets flux value"""
@@ -412,9 +412,9 @@ class EMBLMachineInfo(HardwareObject):
             self.values_ordered_dict["flux"]["in_range"] = (
                 flux_info["measured"]["flux"] > 1e6
             )
-        self.update_values()
+        self.re_emit_values()
 
-    def update_values(self):
+    def re_emit_values(self):
         """Emits list of values"""
         self.emit("valuesChanged", self.values_ordered_dict)
 
@@ -439,7 +439,7 @@ class EMBLMachineInfo(HardwareObject):
                     self.values_ordered_dict["temp_hum"]["in_range"] = (
                         temp < 25 and hum < 60
                     )
-                    self.update_values()
+                    self.re_emit_values()
             time.sleep(sleep_time)
 
     def get_current(self):

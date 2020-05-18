@@ -226,6 +226,7 @@ class EMBLEnergy(AbstractEnergy):
         else:
             logging.getLogger("GUI").info("Energy: Requested value is out of limits")
         return result
+
     #
     # def start_move_wavelength(self, value, wait=True):
     #     """
@@ -384,7 +385,7 @@ class EMBLEnergy(AbstractEnergy):
         """
         self.bragg_break_status = status
 
-    def update_values(self):
+    def re_emit_values(self):
         """
         Reemits signals
         :return:

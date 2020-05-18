@@ -362,9 +362,7 @@ class Microdiff(MiniDiff.MiniDiff):
         self.scan_exposure_time.set_value(exptime / mesh_num_lines)
         self.scan_start_angle.set_value(start)
         self.scan_detector_gate_pulse_enabled.set_value(True)
-        servo_time = (
-            0.110
-        )  # adding the servo time to the readout time to avoid any servo cycle jitter
+        servo_time = 0.110  # adding the servo time to the readout time to avoid any servo cycle jitter
         self.scan_detector_gate_pulse_readout_time.set_value(
             dead_time * 1000 + servo_time
         )  # TODO

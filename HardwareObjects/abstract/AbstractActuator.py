@@ -27,6 +27,7 @@ Emits signals valueChanged and limitsChanged.
 
 import abc
 import math
+from ast import literal_eval
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
@@ -58,12 +59,12 @@ class AbstractActuator(HardwareObject):
         self.default_value = self.getProperty("default_value")
         if self.default_value is not None:
             self.update_value(self.default_value)
-        # NB We cannot set limits to (default_value, default_value) for read_only
-        # - the value might be variable even if unsettable.
-        # If this behaviour is desired e.g. for AbctractEnergy it must ba coded locally
         limits = self.getProperty("default_limits")
         if limits:
-            self.update_limits(tuple(eval(limits)))
+            try:
+                self._nominal_limits = tuple(literal_eval(limits))
+            except TypeError:
+                print("Invalid limits")
         self.username = self.getProperty("username")
 
     @abc.abstractmethod
@@ -157,8 +158,8 @@ class AbstractActuator(HardwareObject):
             self._nominal_limits = limits
             self.emit("limitsChanged", (limits,))
 
-    def update_values(self):
+    def re_emit_values(self):
         """Update values for all internal attributes"""
         self.update_value(self.get_value())
         self.update_limits(self.get_limits())
-        super(AbstractActuator, self).update_values()
+        super(AbstractActuator, self).re_emit_values()

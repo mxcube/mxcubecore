@@ -81,7 +81,7 @@ class NamedState(Device):
                     statename = state.getProperty("name")
                     self.stateList.append(statename)
 
-    def update_values(self):
+    def re_emit_values(self):
         pass
 
     def getUserName(self):

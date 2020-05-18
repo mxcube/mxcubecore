@@ -103,6 +103,6 @@ class EMBLBeamstop(Device, AbstractMotor):
         """
         self.chan_position.setValue(position)
 
-    def update_values(self):
+    def re_emit_values(self):
         """Reemits available signals"""
         self.emit("beamstopDistanceChanged", self.distance)

@@ -29,6 +29,7 @@ __license__ = "LGPLv3+"
 __author__ = "rhfogh"
 __date__ = "08/04/2020"
 
+
 @pytest.fixture
 def test_object(beamline):
     result = beamline.detector
@@ -36,8 +37,8 @@ def test_object(beamline):
     # Cleanup code here - restores starting state for next call:
     # NBNB TODO
 
-class TestDetector(TestHardwareObjectBase.TestHardwareObjectBase):
 
+class TestDetector(TestHardwareObjectBase.TestHardwareObjectBase):
     def test_detector_atributes(self, test_object):
         assert (
             test_object is not None

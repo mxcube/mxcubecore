@@ -213,7 +213,7 @@ class EMBLCRL(HardwareObject):
         """Return crl combination"""
         return self.crl_value
 
-    def update_values(self):
+    def re_emit_values(self):
         """Reemits signals"""
         self.emit("crlModeChanged", self.current_mode)
         self.emit("crlValueChanged", self.crl_value)

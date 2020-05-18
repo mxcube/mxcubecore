@@ -87,10 +87,9 @@ class AbstractNState(AbstractActuator):
         """
         try:
             values = ast.literal_eval(self.getProperty("values"))
-            self.VALUES = Enum(
-                "ValueEnum",
-                dict(values, **{item.name: item.value for item in BaseValueEnum}),
-            )
+            values_dict = dict(**{item.name: item.value for item in self.VALUES})
+            values_dict.update(values)
+            self.VALUES = Enum("ValueEnum", values_dict)
         except (ValueError, TypeError):
             pass
 
@@ -109,7 +108,7 @@ class AbstractNState(AbstractActuator):
 
         return self.VALUES.UNKNOWN
 
-    def update_values(self):
+    def re_emit_values(self):
         """Update values for all internal attributes"""
         self.update_value(self.get_value())
-        super(AbstractActuator, self).update_values()
+        super(AbstractNState, self).re_emit_values()

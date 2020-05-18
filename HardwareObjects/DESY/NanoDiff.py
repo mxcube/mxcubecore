@@ -213,9 +213,7 @@ class NanoDiff(HardwareObject):
             self.connect(
                 self.phiz_motor_hwobj, "stateChanged", self.phiz_motor_state_changed
             )
-            self.connect(
-                self.phiz_motor_hwobj, "valueChanged", self.phiz_motor_moved
-            )
+            self.connect(self.phiz_motor_hwobj, "valueChanged", self.phiz_motor_moved)
         else:
             logging.getLogger("HWR").error("NanoDiff: Phiz motor is not defined")
 
@@ -223,9 +221,7 @@ class NanoDiff(HardwareObject):
             self.connect(
                 self.phiy_motor_hwobj, "stateChanged", self.phiy_motor_state_changed
             )
-            self.connect(
-                self.phiy_motor_hwobj, "valueChanged", self.phiy_motor_moved
-            )
+            self.connect(self.phiy_motor_hwobj, "valueChanged", self.phiy_motor_moved)
         else:
             logging.getLogger("HWR").error("NanoDiff: Phiy motor is not defined")
 
@@ -269,9 +265,7 @@ class NanoDiff(HardwareObject):
             logging.getLogger("HWR").error("NanoDiff: Sampx motor is not defined")
 
         if self.focus_motor_hwobj is not None:
-            self.connect(
-                self.focus_motor_hwobj, "valueChanged", self.focus_motor_moved
-            )
+            self.connect(self.focus_motor_hwobj, "valueChanged", self.focus_motor_moved)
 
         # if HWR.beamline.sample_view.camera is None:
         #     logging.getLogger("HWR").error("NanoDiff: Camera is not defined")
@@ -286,7 +280,6 @@ class NanoDiff(HardwareObject):
             logging.getLogger("HWR").warning(
                 "NanoDiff: " + "zoom centre not configured"
             )
-
 
         self.reversing_rotation = self.getProperty("reversingRotation")
         try:
@@ -1323,10 +1316,10 @@ class NanoDiff(HardwareObject):
             t2 = [point_2.sampx, point_2.sampy, point_2.phiy]
             kappa = self.kappa_motor_hwobj.get_value()
             phi = self.kappa_phi_motor_hwobj.get_value()
-            new_kappa, new_phi, (
-                new_sampx,
-                new_sampy,
-                new_phiy,
+            (
+                new_kappa,
+                new_phi,
+                (new_sampx, new_sampy, new_phiy,),
             ) = self.minikappa_correction_hwobj.alignVector(t1, t2, kappa, phi)
         self.move_to_motors_positions(
             {
@@ -1338,7 +1331,7 @@ class NanoDiff(HardwareObject):
             }
         )
 
-    def update_values(self):
+    def re_emit_values(self):
         self.emit("minidiffPhaseChanged", (self.current_phase,))
         self.emit("omegaReferenceChanged", (self.reference_pos,))
         self.emit("minidiffShutterStateChanged", (self.fast_shutter_is_open,))

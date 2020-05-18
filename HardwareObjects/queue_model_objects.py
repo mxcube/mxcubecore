@@ -1660,7 +1660,7 @@ class XrayImagingParameters(object):
         self.camera_hw_roi = 0
         self.camera_write_data = True
 
-        self.detector_distance =  float()
+        self.detector_distance = float()
 
     def copy(self):
         return copy.deepcopy(self)

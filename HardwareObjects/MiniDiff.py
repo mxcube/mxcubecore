@@ -209,9 +209,7 @@ class MiniDiff(Equipment):
         if self.phizMotor is not None:
             self.connect(self.phizMotor, "stateChanged", self.phizMotorStateChanged)
             self.connect(self.phizMotor, "valueChanged", self.phizMotorMoved)
-            self.connect(
-                self.phizMotor, "valueChanged", self.emitDiffractometerMoved
-            )
+            self.connect(self.phizMotor, "valueChanged", self.emitDiffractometerMoved)
         else:
             logging.getLogger("HWR").error(
                 "MiniDiff: phiz motor is not defined in minidiff equipment %s",
@@ -220,9 +218,7 @@ class MiniDiff(Equipment):
         if self.phiyMotor is not None:
             self.connect(self.phiyMotor, "stateChanged", self.phiyMotorStateChanged)
             self.connect(self.phiyMotor, "valueChanged", self.phiyMotorMoved)
-            self.connect(
-                self.phiyMotor, "valueChanged", self.emitDiffractometerMoved
-            )
+            self.connect(self.phiyMotor, "valueChanged", self.emitDiffractometerMoved)
         else:
             logging.getLogger("HWR").error(
                 "MiniDiff: phiy motor is not defined in minidiff equipment %s",

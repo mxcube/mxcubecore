@@ -231,7 +231,7 @@ class SOLEILMachineInfo(HardwareObject):
             self.chan_temperature_exp.connectSignal("update", self.temperature_changed)
             self.temperature_changed(self.chan_temperature_exp.getValue())
 
-        self.update_values()
+        self.re_emit_values()
 
     def clear_gevent(self):
         self.temp_hum_polling.kill()
@@ -262,7 +262,7 @@ class SOLEILMachineInfo(HardwareObject):
             logging.getLogger("HWR").debug(
                 "chan_sample_temperature: %s" % self.chan_sample_temperature
             )
-        self.update_values()
+        self.re_emit_values()
 
     def mach_current_changed(self, value):
         """Method called if the machine current is changed
@@ -277,7 +277,7 @@ class SOLEILMachineInfo(HardwareObject):
             self.values_list[0]["value"] = value
             self.values_list[0]["value_str"] = "%.1f mA" % value
             self.values_list[0]["in_range"] = value > 60.0
-            self.update_values()
+            self.re_emit_values()
 
     def state_text_changed(self, text):
         """Function called if machine state text is changed
@@ -318,7 +318,7 @@ class SOLEILMachineInfo(HardwareObject):
             state_text += "Beam unusable"
         self.values_list[1]["value"] = state_text
         self.state_text = state_text
-        self.update_values()
+        self.re_emit_values()
 
     def low_level_alarm_changed(self, value):
         """Low level alarm"""
@@ -370,7 +370,7 @@ class SOLEILMachineInfo(HardwareObject):
             self.values_list[5]["value"] += ", refill OFF"
         else:
             self.values_list[5]["value"] += ", refill ON"
-        self.update_values()
+        self.re_emit_values()
 
     def flux_changed(self, value, beam_info=None, transmission=None):
         """Sets flux value"""
@@ -382,9 +382,9 @@ class SOLEILMachineInfo(HardwareObject):
         # transmission, beam_info['size_x'] * 1000, beam_info['size_y'] * 1000)
         self.values_list[3]["value_str"] = msg_str
         self.values_list[3]["in_range"] = value > 1e6
-        self.update_values()
+        self.re_emit_values()
 
-    def update_values(self):
+    def re_emit_values(self):
         """Emits list of values"""
         self.emit("valuesChanged", self.values_list)
 
@@ -397,7 +397,7 @@ class SOLEILMachineInfo(HardwareObject):
         """"Update hutch temperature"""
         self.values_list[2]["value"] = "%.1f C" % value
         self.values_list[2]["in_range"] = value < 25  # self.limits_dict['temp']
-        self.update_values()
+        self.re_emit_values()
 
     def get_temp_hum_values(self, sleep_time):
         """Updates temperatur and humidity values"""
@@ -412,7 +412,7 @@ class SOLEILMachineInfo(HardwareObject):
                     self.hutch_hum = hum
                     self.values_list[2]["value"] = "%.1f C, %.1f %%" % (temp, hum)
                     self.values_list[2]["in_range"] = temp < 25 and hum < 60
-                    self.update_values()
+                    self.re_emit_values()
             time.sleep(sleep_time)
 
     def get_current(self):
@@ -441,7 +441,7 @@ class SOLEILMachineInfo(HardwareObject):
                 )
                 self.values_list[-1]["in_range"] = free / 2 ** 30 > 10
             self.values_list[-1]["value"] = txt
-            self.update_values()
+            self.re_emit_values()
             time.sleep(sleep_time)
 
     def get_ramdisk_size(self):

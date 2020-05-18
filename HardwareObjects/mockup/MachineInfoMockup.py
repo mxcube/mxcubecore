@@ -98,10 +98,10 @@ class MachineInfoMockup(HardwareObject):
 
         self.connect(HWR.beamline.flux, "fluxInfoChanged", self.flux_info_changed)
 
-        self.update_values()
+        self.re_emit_values()
         spawn(self.change_mach_current)
 
-    def update_values(self):
+    def re_emit_values(self):
         """
         Updates storage disc information, detects if intensity
         and storage space is in limits, forms a value list
@@ -128,7 +128,7 @@ class MachineInfoMockup(HardwareObject):
             )
 
             self.update_disk_space()
-            self.update_values()
+            self.re_emit_values()
             time.sleep(5)
 
     def flux_info_changed(self, flux_info):
@@ -149,7 +149,7 @@ class MachineInfoMockup(HardwareObject):
             self.values_ordered_dict["flux"]["in_range"] = (
                 flux_info["measured"]["flux"] > 1e6
             )
-        self.update_values()
+        self.re_emit_values()
 
     def update_disk_space(self):
         data_path = HWR.beamline.session.get_base_data_directory()
