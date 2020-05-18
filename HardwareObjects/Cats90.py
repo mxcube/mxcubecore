@@ -582,7 +582,9 @@ class Cats90(SampleChanger):
 
         # write the default sample information into permanent Pin objects
         for spl in sample_list:
-            sample = self.get_component_by_address(Pin.get_sample_address(spl[1], spl[2]))
+            sample = self.get_component_by_address(
+                Pin.get_sample_address(spl[1], spl[2])
+            )
             datamatrix = None
             present = scanned = loaded = _has_been_loaded = False
             sample._set_info(present, datamatrix, scanned)
@@ -666,7 +668,9 @@ class Cats90(SampleChanger):
                 and basket_no > 0
                 and basket_no <= self.number_of_baskets
             ):
-                basket = self.get_component_by_address(Basket.get_basket_address(basket_no))
+                basket = self.get_component_by_address(
+                    Basket.get_basket_address(basket_no)
+                )
                 if (
                     sample_no is not None
                     and sample_no > 0
@@ -1048,7 +1052,9 @@ class Cats90(SampleChanger):
         )
         self.emit("barcodeChanged", (value,))
 
-        sample = self.get_component_by_address(Pin.get_sample_address(basketno, sampleno))
+        sample = self.get_component_by_address(
+            Pin.get_sample_address(basketno, sampleno)
+        )
         sample._set_info(sample.is_present(), value, scanned)
 
     def cats_sample_on_diffr(self):
@@ -1175,7 +1181,9 @@ class Cats90(SampleChanger):
             if trials > 2:
                 break
 
-        state = self._decide_state(_state, _powered, _lids_closed, _has_loaded, _on_diff)
+        state = self._decide_state(
+            _state, _powered, _lids_closed, _has_loaded, _on_diff
+        )
 
         return state
 

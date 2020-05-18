@@ -86,7 +86,7 @@ class Sample(Component):
         if self.loaded:
             self.loaded = False
             changed = True
-        if self._has_been_loaded :
+        if self._has_been_loaded:
             self._has_been_loaded = False
             changed = True
         if changed:
@@ -135,8 +135,8 @@ class Sample(Component):
         if has_been_loaded is None:
             if loaded:
                 has_been_loaded = True
-        if self._has_been_loaded  != has_been_loaded:
-            self._has_been_loaded  = has_been_loaded
+        if self._has_been_loaded != has_been_loaded:
+            self._has_been_loaded = has_been_loaded
             changed = True
         if changed:
             self._set_dirty()

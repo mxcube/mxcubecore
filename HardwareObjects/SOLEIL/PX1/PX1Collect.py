@@ -785,7 +785,6 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
     ## PX1 ENVIRONMENT PHASE HANDLING (END) ##
 
-
     @task
     def move_motors(self, motor_position_dict):
         """

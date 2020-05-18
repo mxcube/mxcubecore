@@ -58,4 +58,3 @@ class DetectorMockup(AbstractDetector):
         Starts acquisition
         """
         return
-

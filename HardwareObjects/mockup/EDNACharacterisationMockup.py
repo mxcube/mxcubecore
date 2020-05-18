@@ -18,9 +18,7 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 from HardwareRepository.HardwareObjects import edna_test_data
-from HardwareRepository.HardwareObjects.EDNACharacterisation import (
-    EDNACharacterisation,
-)
+from HardwareRepository.HardwareObjects.EDNACharacterisation import EDNACharacterisation
 
 from HardwareRepository.HardwareObjects.XSDataMXCuBEv1_3 import XSDataResultMXCuBE
 
@@ -46,4 +44,6 @@ class EDNACharacterisationMockup(EDNACharacterisation):
         return
 
     def get_default_characterisation_parameters(self):
-        return super(EDNACharacterisationMockup, self).get_default_characterisation_parameters()
+        return super(
+            EDNACharacterisationMockup, self
+        ).get_default_characterisation_parameters()

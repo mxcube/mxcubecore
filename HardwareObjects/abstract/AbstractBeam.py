@@ -63,13 +63,14 @@ class AbstractBeam(HardwareObject):
         self._beam_shape = BeamShape.UNKNOWN
         self._beam_label = None
         self._beam_divergence = (None, None)
-        self._beam_position_on_screen = [None, None] #TODO move to sample_view
+        self._beam_position_on_screen = [None, None]  # TODO move to sample_view
 
-        self._beam_info_dict = {"size_x": self._beam_width,
-                                "size_y": self._beam_height,
-                                "shape": self._beam_shape,
-                                "label": self._beam_label}
-
+        self._beam_info_dict = {
+            "size_x": self._beam_width,
+            "size_y": self._beam_height,
+            "shape": self._beam_shape,
+            "label": self._beam_label,
+        }
 
     def init(self):
         """
@@ -158,7 +159,7 @@ class AbstractBeam(HardwareObject):
         Returns:
             (tuple): Position (x, y) [pixel]
         """
-        #TODO move this method to AbstractSampleView
+        # TODO move this method to AbstractSampleView
         return self._beam_position_on_screen
 
     def set_beam_position_on_screen(self, beam_x_y):
@@ -181,18 +182,18 @@ class AbstractBeam(HardwareObject):
         Returns: dictionary, {size_x: 0.1, size_y: 0.1, shape: BeamShape enum}
         """
         size_x = min(
-            self._beam_size_dict["aperture"][0],
-            self._beam_size_dict["slits"][0],
+            self._beam_size_dict["aperture"][0], self._beam_size_dict["slits"][0],
         )
         size_y = min(
-            self._beam_size_dict["aperture"][1],
-            self._beam_size_dict["slits"][1],
+            self._beam_size_dict["aperture"][1], self._beam_size_dict["slits"][1],
         )
 
         self._beam_width = size_x
         self._beam_height = size_y
 
-        if tuple(self._beam_size_dict["aperture"]) < tuple(self._beam_size_dict["slits"]):
+        if tuple(self._beam_size_dict["aperture"]) < tuple(
+            self._beam_size_dict["slits"]
+        ):
             self._beam_shape = BeamShape.ELIPTICAL
         else:
             self._beam_shape = BeamShape.RECTANGULAR
@@ -207,12 +208,6 @@ class AbstractBeam(HardwareObject):
         """
         Reemits beamSizeChanged and beamInfoChanged signals
         """
-        if (
-            self._beam_width != 9999
-            and self._beam_height != 9999
-        ):
-            self.emit(
-                "beamSizeChanged",
-                (self._beam_width, self._beam_height)
-            )
+        if self._beam_width != 9999 and self._beam_height != 9999:
+            self.emit("beamSizeChanged", (self._beam_width, self._beam_height))
             self.emit("beamInfoChanged", (self._beam_info_dict))

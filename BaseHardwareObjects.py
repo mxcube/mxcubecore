@@ -250,9 +250,14 @@ class HardwareObjectNode(object):
         from .HardwareRepository import getHardwareRepository
 
         while len(self.__references) > 0:
-            reference, name, role, objectsNamesIndex, objectsIndex, objectsIndex2 = (
-                self.__references.pop()
-            )
+            (
+                reference,
+                name,
+                role,
+                objectsNamesIndex,
+                objectsIndex,
+                objectsIndex2,
+            ) = self.__references.pop()
 
             hw_object = getHardwareRepository().getHardwareObject(reference)
 

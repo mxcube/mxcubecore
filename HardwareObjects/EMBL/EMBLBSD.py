@@ -91,16 +91,16 @@ class EMBLBSD(GenericDiffractometer):
             "update", self.fast_shutter_state_changed
         )
 
-        self.chan_scintillator_position = self.get_channel_object("ScintillatorPosition")
+        self.chan_scintillator_position = self.get_channel_object(
+            "ScintillatorPosition"
+        )
         self.chan_capillary_position = self.get_channel_object("CapillaryPosition")
 
         self.cmd_start_set_phase = self.get_command_object("startSetPhase")
         self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")
 
         self.zoom_motor_hwobj = self.getObjectByRole("zoom")
-        self.connect(
-            self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed
-        )
+        self.connect(self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed)
         self.connect(
             self.zoom_motor_hwobj,
             "predefinedPositionChanged",
