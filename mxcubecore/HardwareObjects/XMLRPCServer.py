@@ -441,7 +441,7 @@ class XMLRPCServer(HardwareObject):
          'angle': float}
 
         """
-        grid_dict = HWR.beamline.sample_view.shapes.get_grid()
+        grid_dict = HWR.beamline.sample_view.get_grid()
         # self.shape_history_set_grid_data(grid_dict['id'], {})
 
         return grid_dict
@@ -451,7 +451,7 @@ class XMLRPCServer(HardwareObject):
         for result in result_data.items():
             int_based_result[int(result[0])] = result[1]
 
-        HWR.beamline.sample_view.shapes.set_grid_data(key, int_based_result)
+        HWR.beamline.sample_view.set_grid_data(key, int_based_result)
         return True
 
     def get_cp(self):
@@ -459,7 +459,7 @@ class XMLRPCServer(HardwareObject):
         :returns: a json encoded list with all centred positions
         """
         cplist = []
-        points = HWR.beamline.sample_view.shapes.get_points()
+        points = HWR.beamline.sample_view.get_points()
 
         for point in points:
             cp = point.get_centred_positions()[0].as_dict()
@@ -648,7 +648,7 @@ class XMLRPCServer(HardwareObject):
 
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
         log = logging.getLogger("HWR")
-        #log.info("Registering functions in module %s with XML-RPC server" % module_name)
+        # log.info("Registering functions in module %s with XML-RPC server" % module_name)
 
         if module_name not in sys.modules:
             __import__(module_name)
@@ -679,10 +679,10 @@ class XMLRPCServer(HardwareObject):
             for f in inspect.getmembers(module, inspect.isfunction):
                 if f[0][0] != "_":
                     xmlrpc_name = prefix + f[0]
-                    #log.info(
+                    # log.info(
                     #    "Registering function %s.%s as XML-RPC function %s"
                     #    % (module_name, f[1].__name__, xmlrpc_name)
-                    #)
+                    # )
 
                     # Bind method to this XMLRPCServer instance but don't set attribute
                     # This is sufficient to register it as an xmlrpc function.

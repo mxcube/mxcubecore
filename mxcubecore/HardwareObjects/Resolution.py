@@ -77,9 +77,8 @@ class Resolution(AbstractMotor):
         Returns:
             (float): value.
         """
-        if self._nominal_value is None:
-            dtox_pos = self._hwr_detector.distance.get_value()
-            self._nominal_value = self.distance_to_resolution(dtox_pos)
+        dtox_pos = self._hwr_detector.distance.get_value()
+        self._nominal_value = self.distance_to_resolution(dtox_pos)
         return self._nominal_value
 
     def get_limits(self):
@@ -157,7 +156,9 @@ class Resolution(AbstractMotor):
         """
         distance = distance or self._hwr_detector.distance.get_value()
 
-        return self._calculate_resolution(self._hwr_detector.get_radius(distance), distance)
+        return self._calculate_resolution(
+            self._hwr_detector.get_radius(distance), distance
+        )
 
     def resolution_to_distance(self, resolution=None):
         """Convert resolution to distance.
@@ -252,7 +253,6 @@ class Resolution(AbstractMotor):
                 self.emit("valueChanged", (self._nominal_value,))
         except (TypeError, ZeroDivisionError):
             logging.getLogger().exception("Error while calculating resolution")
-
 
     def abort(self):
         HWR.beamline.detector.distance.abort()

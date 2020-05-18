@@ -29,8 +29,8 @@ class PX1DetectorDistance(Device, AbstractMotor):
         self.current_position = 0.0
         self.state_value = "UNKNOWN"
         self.threshold = (
-            0.0018
-        )  # default value. change it with property threshold in xml
+            0.0018  # default value. change it with property threshold in xml
+        )
 
         self.old_value = 0.0
         self.tangoname = self.getProperty("tangoname")

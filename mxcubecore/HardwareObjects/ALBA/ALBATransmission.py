@@ -35,7 +35,7 @@ class ALBATransmission(Device):
     def _set_value(self, value):
         self.transmissionChannel.setValue(value)
 
-    def update_values(self):
+    def re_emit_values(self):
         value = self.get_value()
         self.emit("attFactorChanged", value)
 

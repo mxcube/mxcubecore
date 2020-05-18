@@ -19,93 +19,40 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 """Transmission with bliss """
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.HardwareObjects.abstract.AbstractTransmission import (
+    AbstractTransmission,
+)
+
+__copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
 
-class Transmission(HardwareObject):
+class Transmission(AbstractTransmission):
     """Transmission class"""
 
-    def __init__(self, name):
-        HardwareObject.__init__(self, name)
+    unit = "%"
 
-        self.__transmission = None
-        self.labels = []
-        self.indexes = []
-        self.attno = 0
+    def __init__(self, name):
+        super(Transmission, self).__init__(name)
+        self._transmission = None
 
     def init(self):
         """Initialise from the config"""
+        super(Transmission, self).init()
         module_name = self.getProperty("module_name")
         ctrl = self.getObjectByRole("controller")
-        self.__transmission = getattr(ctrl, module_name)
-
-    def is_ready(self):
-        """Always True
-        Returns:
-            (bool): True
-        """
-        return True
-
-    def get_att_config(self):
-        """Get the attenuators configuration"""
-        self.attno = len(self["filter"])
-
-        for att_i in range(self.attno):
-            obj = self["filter"][att_i]
-            self.labels.append(obj.label)
-            self.indexes.append(obj.index)
-
-    def get_att_state(self):
-        """Get the attenuators position
-        Returns:
-            (int): value
-        """
-        return self.__transmission.matt.pos_read()
+        self._transmission = getattr(ctrl, module_name)
 
     def _set_value(self, value):
-        """Set the transmission. Emit valueChanged.
+        """Set the transmission.
         Args:
-            trans(float): Transmission [%]
+            value(float): Transmission [%]
         """
-        self.__transmission.set(value)
-        self.emit("valueChanged", self.get_value())
-
-    def _update(self):
-        self.emit("attStateChanged", self.get_att_state())
-
-    def toggle(self, attenuator_index):
-        """Toggle the attenuatots
-        Args:
-            attenuator_index(int): Index of the attenuator, starting from 0.
-        """
-        idx = self.indexes[attenuator_index]
-        if self.is_in(attenuator_index):
-            self.__transmission.matt.mattout(idx)
-        else:
-            self.__transmission.matt.mattin(idx)
-        self._update()
+        self._transmission.set(value)
 
     def get_value(self):
         """Get the real transmission value
         Returns:
             (float): Transmission [%]
         """
-        return self.__transmission.get()
-
-    def get_limits(self):
-        """Get the limits
-        Returns:
-            (tuple): Transmission limits
-        """
-        return 0, 100
-
-    def is_in(self, attenuator_index):
-        """Check the attenuator position
-        Args:
-            attenuator_index(int): Index of the attenuator, starting from 0.
-        Returns:
-            (bool): True if in, False if out.
-        """
-        curr_bits = self.get_att_state()
-        idx = self.indexes[attenuator_index]
-        return bool((1 << idx) & curr_bits)
+        return self._transmission.get()

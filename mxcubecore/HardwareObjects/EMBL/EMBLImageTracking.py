@@ -149,7 +149,7 @@ class EMBLImageTracking(Device):
             self.set_image_tracking_state(False)
         self.cmd_load_image(str(image_name))
 
-    def update_values(self):
+    def re_emit_values(self):
         """
         Reemits values
         :return:

@@ -19,7 +19,9 @@
 
 from scipy.interpolate import interp1d
 
-from HardwareRepository.HardwareObjects.abstract.AbstractActuator import AbstractActuator
+from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
+    AbstractActuator,
+)
 
 from HardwareRepository import HardwareRepository as HWR
 
@@ -91,6 +93,5 @@ class AbstractFlux(AbstractActuator):
         )
         return result
 
-    def update_values(self):
+    def re_emit_values(self):
         self.emit("fluxValueChanged", self._value)
-

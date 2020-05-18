@@ -88,12 +88,12 @@ class EMBLBeamFocusing(HardwareObject):
                     "mGroupFocModeChanged",
                     self.motor_group_focus_mode_changed,
                 )
-                motors_group.update_values()
+                motors_group.re_emit_values()
         else:
             logging.getLogger("HWR").debug("BeamFocusing: No motors defined")
             self.active_focus_mode = self.focus_modes[0]["modeName"]
             self.size = self.focus_modes[0]["size"]
-        self.update_values()
+        self.re_emit_values()
 
         try:
             self.cmd_set_phase = eval(self.getProperty("setPhaseCmd"))
@@ -296,6 +296,6 @@ class EMBLBeamFocusing(HardwareObject):
             if focus_mode["modeName"] == self.active_focus_mode:
                 return focus_mode["diverg"][1]
 
-    def update_values(self):
+    def re_emit_values(self):
         """Reemits available signals"""
         self.emit("focusingModeChanged", self.active_focus_mode, self.size)

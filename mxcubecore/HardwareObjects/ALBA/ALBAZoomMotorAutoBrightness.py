@@ -152,6 +152,7 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device, AbstractMotor):
 
 def test():
     from HardwareRepository import HardwareRepository as HWR
+
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
