@@ -53,19 +53,19 @@ class AbstractDetector(HardwareObject):
         self._humidity = None
         self._actual_frame_rate = None
         self._exposure_time_limits = (None, None)
-        
+
         self._pixel_size = (None, None)
 
         self._binning_mode = 0
         self._roi_mode = 0
         self._roi_modes_list = []
-    
+
         self._threshold_energy = None
         self._distance_motor_hwobj = None
         self._width = None  # [pixel]
         self._height = None  # [pixel]
         self._metadata = {}
-        
+
     def init(self):
         """Initialise some common paramerters"""
 
@@ -73,12 +73,12 @@ class AbstractDetector(HardwareObject):
             self._metadata = dict(self["beam"].getProperties())
         except KeyError:
             pass
-        
+
         try:
-            self._distance_motor_hwobj = self.getObjectByRole("detector_distance")	
-        except KeyError:	
+            self._distance_motor_hwobj = self.getObjectByRole("detector_distance")
+        except KeyError:
             pass
-        
+
         self._pixel_size = (self.getProperty("px"), self.getProperty("py"))
         self._width = self.getProperty("width")
         self._height = self.getProperty("height")
@@ -88,10 +88,12 @@ class AbstractDetector(HardwareObject):
         self.emit("temperatureChanged", (self._temperature, True))
         self.emit("humidityChanged", (self._humidity, True))
         self.emit("expTimeLimitsChanged", (self._exposure_time_limits,))
-        self.emit("frameRateChanged", self._actual_frame_rate,)
+        self.emit(
+            "frameRateChanged", self._actual_frame_rate,
+        )
         self.emit("stateChanged", (self._state,))
         self.emit("specificStateChanged", (self._specific_state,))
-        
+
     @property
     def distance(self):
         """Property for contained detector_distance hardware object
@@ -146,7 +148,7 @@ class AbstractDetector(HardwareObject):
         """
         self._roi_mode = roi_mode
         self.emit("detectorRoiModeChanged", (self._roi_mode,))
-        
+
     def get_roi_mode_name(self):
         """
         Returns:
@@ -240,7 +242,7 @@ class AbstractDetector(HardwareObject):
         """
         distance = distance or self._distance_motor_hwobj.get_value()
         beam_x, beam_y = self.get_beam_position(distance)
-        max_delta_x  = max(beam_x, self.width - beam_x)
+        max_delta_x = max(beam_x, self.width - beam_x)
         max_delta_y = max(beam_y, self.height - beam_y)
         return math.sqrt(max_delta_x * max_delta_x + max_delta_y * max_delta_y)
 
@@ -274,13 +276,10 @@ class AbstractDetector(HardwareObject):
             threshold_energy (float): Detector threshold energy [eV]
         """
         self._threshold_energy = threshold_energy
-        
+
     def get_threshold_energy(self):
         """Returns detector threshold_energy
         Returns:
             (float): Detector threshold energy [eV]
         """
         return self._threshold_energy
-    
-    
-        

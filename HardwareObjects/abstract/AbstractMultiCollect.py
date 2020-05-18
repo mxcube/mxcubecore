@@ -408,7 +408,11 @@ class AbstractMultiCollect(object):
         self.create_directories(
             file_parameters["directory"], file_parameters["process_directory"]
         )
-        self.xds_directory, self.mosflm_directory, self.hkl2000_directory = self.prepare_input_files(
+        (
+            self.xds_directory,
+            self.mosflm_directory,
+            self.hkl2000_directory,
+        ) = self.prepare_input_files(
             file_parameters["directory"],
             file_parameters["prefix"],
             file_parameters["run_number"],
@@ -428,11 +432,16 @@ class AbstractMultiCollect(object):
                     "actualSampleBarcode"
                 ] = HWR.beamline.sample_changer.get_loaded_sample().get_id()
                 data_collect_parameters["actualContainerBarcode"] = (
-                    HWR.beamline.sample_changer.get_loaded_sample().get_container().get_id()
+                    HWR.beamline.sample_changer.get_loaded_sample()
+                    .get_container()
+                    .get_id()
                 )
 
                 logging.getLogger("user_level_log").info("Getting loaded sample coords")
-                basket, vial = HWR.beamline.sample_changer.get_loaded_sample().get_coords()
+                (
+                    basket,
+                    vial,
+                ) = HWR.beamline.sample_changer.get_loaded_sample().get_coords()
 
                 data_collect_parameters["actualSampleSlotInContainer"] = vial
                 data_collect_parameters["actualContainerSlotInSC"] = basket
@@ -690,18 +699,18 @@ class AbstractMultiCollect(object):
                     data_collect_parameters["flux_end"] = data_collect_parameters[
                         "flux"
                     ]
-                    data_collect_parameters["wavelength"] = (
-                        HWR.beamline.energy.get_wavelength()
-                    )
+                    data_collect_parameters[
+                        "wavelength"
+                    ] = HWR.beamline.energy.get_wavelength()
                     data_collect_parameters[
                         "detectorDistance"
                     ] = HWR.beamline.detector.distance.get_value()
-                    data_collect_parameters["resolution"] = (
-                        HWR.beamline.resolution.get_value()
-                    )
-                    data_collect_parameters["transmission"] = (
-                        HWR.beamline.transmission.get_value()
-                    )
+                    data_collect_parameters[
+                        "resolution"
+                    ] = HWR.beamline.resolution.get_value()
+                    data_collect_parameters[
+                        "transmission"
+                    ] = HWR.beamline.transmission.get_value()
                     beam_centre_x, beam_centre_y = self.get_beam_centre()
                     data_collect_parameters["xBeam"] = beam_centre_x
                     data_collect_parameters["yBeam"] = beam_centre_y
@@ -935,9 +944,12 @@ class AbstractMultiCollect(object):
                 failed = False
                 try:
                     # emit signals to make bricks happy
-                    osc_id, sample_id, sample_code, sample_location = self.update_oscillations_history(
-                        data_collect_parameters
-                    )
+                    (
+                        osc_id,
+                        sample_id,
+                        sample_code,
+                        sample_location,
+                    ) = self.update_oscillations_history(data_collect_parameters)
                     self.emit(
                         "collectOscillationStarted",
                         (
@@ -1069,9 +1081,12 @@ class AbstractMultiCollect(object):
         self.emit("collectOverallFramesTime", (total_frames, int(total_time_sec)))
         for data_collect_parameters in data_collect_parameters_list:
             self.actual_data_collect_parameters = data_collect_parameters
-            self.osc_id, sample_id, sample_code, sample_location = self.update_oscillations_history(
-                self.actual_data_collect_parameters
-            )
+            (
+                self.osc_id,
+                sample_id,
+                sample_code,
+                sample_location,
+            ) = self.update_oscillations_history(self.actual_data_collect_parameters)
             self.emit(
                 "collectOscillationStarted",
                 (

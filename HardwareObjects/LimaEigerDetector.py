@@ -204,7 +204,9 @@ class LimaEigerDetector(AbstractDetector):
         self.wait_ready()
 
         self.get_channel_object("saving_directory").setValue(saving_directory)
-        self.get_channel_object("saving_prefix").setValue(prefix + "%01d" % frame_number)
+        self.get_channel_object("saving_prefix").setValue(
+            prefix + "%01d" % frame_number
+        )
         self.get_channel_object("saving_suffix").setValue(suffix)
         # self.get_channel_object("saving_next_number").setValue(frame_number)
         # self.get_channel_object("saving_index_format").setValue("%04d")

@@ -40,9 +40,7 @@ class XalocMiniDiff(GenericDiffractometer):
             self.connect(
                 self.phiz_motor_hwobj, "stateChanged", self.phiz_motor_state_changed
             )
-            self.connect(
-                self.phiz_motor_hwobj, "valueChanged", self.phiz_motor_moved
-            )
+            self.connect(self.phiz_motor_hwobj, "valueChanged", self.phiz_motor_moved)
         else:
             logging.getLogger("HWR").error("EMBLMiniDiff: Phiz motor is not defined")
 
@@ -50,9 +48,7 @@ class XalocMiniDiff(GenericDiffractometer):
             self.connect(
                 self.phiy_motor_hwobj, "stateChanged", self.phiy_motor_state_changed
             )
-            self.connect(
-                self.phiy_motor_hwobj, "valueChanged", self.phiy_motor_moved
-            )
+            self.connect(self.phiy_motor_hwobj, "valueChanged", self.phiy_motor_moved)
         else:
             logging.getLogger("HWR").error("EMBLMiniDiff: Phiy motor is not defined")
 
@@ -96,9 +92,7 @@ class XalocMiniDiff(GenericDiffractometer):
             logging.getLogger("HWR").error("EMBLMiniDiff: Sampx motor is not defined")
 
         if self.focus_motor_hwobj is not None:
-            self.connect(
-                self.focus_motor_hwobj, "valueChanged", self.focus_motor_moved
-            )
+            self.connect(self.focus_motor_hwobj, "valueChanged", self.focus_motor_moved)
 
         GenericDiffractometer.init(self)
 

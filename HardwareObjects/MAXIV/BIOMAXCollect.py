@@ -1214,9 +1214,12 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
     def prepare_detector(self):
 
         oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
-        osc_start, trigger_num, nframes_per_trigger, osc_range = self.triggers_to_collect[
-            0
-        ]
+        (
+            osc_start,
+            trigger_num,
+            nframes_per_trigger,
+            osc_range,
+        ) = self.triggers_to_collect[0]
         if self.current_dc_parameters["experiment_type"] == "Mesh":
             ntrigger = self.get_mesh_num_lines()
         else:
@@ -1232,9 +1235,10 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         config["OmegaStart"] = osc_start  # oscillation_parameters['start']
         config["OmegaIncrement"] = osc_range  # oscillation_parameters["range"]
-        beam_centre_x, beam_centre_y = (
-            self.get_beam_centre()
-        )  # self.get_beam_centre_pixel() # returns pixel
+        (
+            beam_centre_x,
+            beam_centre_y,
+        ) = self.get_beam_centre()  # self.get_beam_centre_pixel() # returns pixel
         config["BeamCenterX"] = beam_centre_x  # unit, should be pixel for master file
         config["BeamCenterY"] = beam_centre_y
         config["DetectorDistance"] = HWR.beamline.detector.distance.get_value() / 1000.0
