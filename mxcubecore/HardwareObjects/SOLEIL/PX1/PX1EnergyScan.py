@@ -483,9 +483,15 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             if found:
                 self.log.debug("chooch got data back. %s" % result_line)
                 result_data = eval(result_line)
-                pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, chooch_graph_data = (
-                    result_data
-                )
+                (
+                    pk,
+                    fppPeak,
+                    fpPeak,
+                    ip,
+                    fppInfl,
+                    fpInfl,
+                    chooch_graph_data,
+                ) = result_data
             else:
                 self.store_energy_scan()
                 logging.getLogger("HWR").error(

@@ -30,7 +30,8 @@ import abc
 import gevent
 import pytest
 from HardwareRepository.test.pytest import (
-    TestHardwareObjectBase, TestAbstractActuatorBase
+    TestHardwareObjectBase,
+    TestAbstractActuatorBase,
 )
 
 test_object = TestAbstractActuatorBase.test_object
@@ -105,13 +106,13 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
                 % (test_object._nominal_value, mid)
             )
         else:
-            assert val == mid, (
-                    "update_value result %s differs from target %s"
-                    % (val, mid)
+            assert val == mid, "update_value result %s differs from target %s" % (
+                val,
+                mid,
             )
             assert test_object._nominal_value == mid, (
-                    "update_value nominal result %s differs from target %s"
-                    % (test_object._nominal_value, mid)
+                "update_value nominal result %s differs from target %s"
+                % (test_object._nominal_value, mid)
             )
 
         toobig = high + 0.1 * (high - low)
@@ -185,4 +186,3 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
                 assert result == limits
         finally:
             test_object.disconnect("limitsChanged", catcher.catch)
-

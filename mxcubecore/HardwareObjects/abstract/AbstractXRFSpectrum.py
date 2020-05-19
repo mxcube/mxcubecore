@@ -80,7 +80,7 @@ class AbstractXRFSpectrum(object):
                 self.spectrum_command_aborted()
                 return False
 
-        if not os.path.isdir(archive_directory): 
+        if not os.path.isdir(archive_directory):
             try:
                 if not os.path.exists(archive_directory):
                     os.makedirs(archive_directory)
@@ -227,9 +227,9 @@ class AbstractXRFSpectrum(object):
                     + self.mca_calib[0] * n * n
                 ) / 1000
                 if energy < 20:
-                    #if energy > xmax:
+                    # if energy > xmax:
                     #    xmax = value
-                    #if energy < xmin:
+                    # if energy < xmin:
                     #    xmin = value
                     calibrated_data.append([energy, value])
                     mca_data.append((n / 1000.0, value))
@@ -282,7 +282,7 @@ class AbstractXRFSpectrum(object):
             # tmpname=filename.split(".")
             # logging.getLogger().debug("finished %r", self.spectrum_info)
             self.store_xrf_spectrum()
-            #self.emit("xrfSpectrumFinished", (mca_data, self.mca_calib, mca_config))
+            # self.emit("xrfSpectrumFinished", (mca_data, self.mca_calib, mca_config))
 
     def spectrum_status_changed(self, status):
         """

@@ -182,8 +182,8 @@ class GenericDiffractometer(HardwareObject):
         self.delay_state_polling = None
 
         self.delay_state_polling = (
-            None
-        )  # time to delay for state polling for controllers
+            None  # time to delay for state polling for controllers
+        )
         # not updating state inmediately after cmd started
 
         # Internal values -----------------------------------------------------
@@ -413,7 +413,6 @@ class GenericDiffractometer(HardwareObject):
                 GenericDiffractometer.PHASE_COLLECTION,
                 GenericDiffractometer.PHASE_BEAM,
             ]
-
 
     # to make it compatibile
     def __getattr__(self, attr):
@@ -746,7 +745,6 @@ class GenericDiffractometer(HardwareObject):
                     "Diffractometer: problem while centring"
                 )
                 self.emit_centring_failed()
-
 
     def cancel_centring_method(self, reject=False):
         """

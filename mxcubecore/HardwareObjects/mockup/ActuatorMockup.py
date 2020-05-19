@@ -97,9 +97,9 @@ class ActuatorMockup(AbstractActuator.AbstractActuator):
                 self.__move_task = gevent.spawn(self._move, value)
                 self.__move_task.link(self._callback)
         else:
-            raise ValueError("Invalid value %s; limits are %s"
-                             % (value, self.get_limits())
-                             )
+            raise ValueError(
+                "Invalid value %s; limits are %s" % (value, self.get_limits())
+            )
 
     def abort(self):
         """Imediately halt movement. By default self.stop = self.abort"""

@@ -330,7 +330,11 @@ class ALBACats(Cats90):
             selected = None
 
         # some cancel cases
-        if not use_ht and self.has_loaded_sample() and selected == self.get_loaded_sample():
+        if (
+            not use_ht
+            and self.has_loaded_sample()
+            and selected == self.get_loaded_sample()
+        ):
             self._update_state()  # remove transient states like Loading. Reflect hardware state
             raise Exception(
                 "The sample "
@@ -383,7 +387,9 @@ class ALBACats(Cats90):
                     self._cmdChainedLoadHT, argin, waitsafe=True
                 )
             else:
-                cmd_ok = self._execute_server_task(self._cmdLoadHT, argin, waitsafe=False)
+                cmd_ok = self._execute_server_task(
+                    self._cmdLoadHT, argin, waitsafe=False
+                )
 
         #
         # Loading non HT sample

@@ -33,7 +33,10 @@ class Basket(Container):
 
     def __init__(self, container, cell_no, basket_no):
         super(Basket, self).__init__(
-            self.__TYPE__, container, Basket.get_basket_address(cell_no, basket_no), True
+            self.__TYPE__,
+            container,
+            Basket.get_basket_address(cell_no, basket_no),
+            True,
         )
         for i in range(10):
             slot = Pin(self, cell_no, basket_no, i + 1)
@@ -194,7 +197,9 @@ class Robodiff(SampleChanger):
         prepareCentring=True,
     ):
         cell, basket, sample = sample_location
-        sample = self.get_component_by_address(Pin.get_sample_address(cell, basket, sample))
+        sample = self.get_component_by_address(
+            Pin.get_sample_address(cell, basket, sample)
+        )
         return self.load(sample)
 
     @task
@@ -207,7 +212,9 @@ class Robodiff(SampleChanger):
         failureCallback=None,
     ):
         cell, basket, sample = sample_location
-        sample = self.get_component_by_address(Pin.get_sample_address(cell, basket, sample))
+        sample = self.get_component_by_address(
+            Pin.get_sample_address(cell, basket, sample)
+        )
         return self.unload(sample)
 
     def chained_load(self, sample_to_unload, sample_to_load):
@@ -279,7 +286,9 @@ class Robodiff(SampleChanger):
             state = self._read_state()
         except BaseException:
             state = SampleChangerState.Unknown
-        if state == SampleChangerState.Moving and self._is_device_busy(self.get_state()):
+        if state == SampleChangerState.Moving and self._is_device_busy(
+            self.get_state()
+        ):
             return
         self._set_state(state)
 

@@ -86,9 +86,10 @@ class EMBLBeamInfo(Equipment):
 
         self.beam_focusing_hwobj = self.getObjectByRole("beam_focusing")
         if self.beam_focusing_hwobj is not None:
-            focus_mode_name, self.beam_size_focusing = (
-                self.beam_focusing_hwobj.get_active_focus_mode()
-            )
+            (
+                focus_mode_name,
+                self.beam_size_focusing,
+            ) = self.beam_focusing_hwobj.get_active_focus_mode()
             self.connect(
                 self.beam_focusing_hwobj,
                 "focusingModeChanged",
