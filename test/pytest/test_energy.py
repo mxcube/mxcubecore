@@ -25,6 +25,7 @@ import pytest
 
 from HardwareRepository.test.pytest import TestAbstractActuatorBase
 
+
 @pytest.fixture
 def test_object(beamline):
     result = beamline.energy
@@ -32,11 +33,12 @@ def test_object(beamline):
     # Cleanup code here - restores starting state for next call:
     # NBNB TODO
 
-class TestEnergy(TestAbstractActuatorBase.TestAbstractActuatorBase):
 
+class TestEnergy(TestAbstractActuatorBase.TestAbstractActuatorBase):
     def test_energy_atributes(self, test_object):
 
-        assert (test_object is not None
+        assert (
+            test_object is not None
         ), "Energy hardware objects is None (not initialized)"
         current_energy = test_object.get_value()
         current_wavelength = test_object.get_wavelength()
@@ -57,7 +59,6 @@ class TestEnergy(TestAbstractActuatorBase.TestAbstractActuatorBase):
         assert (
             energy_limits[0] < energy_limits[1]
         ), "First value of energy limits has to be the low limit"
-
 
     def test_energy_methods(self, test_object):
         target = 12.7

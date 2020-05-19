@@ -2,6 +2,7 @@ import jsonschema
 
 from HardwareRepository.utils.dataobject import DataObject
 
+
 class MockDataObject(DataObject):
     _SCHEMA = {
         "type": "object",

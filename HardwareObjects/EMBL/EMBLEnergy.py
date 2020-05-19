@@ -226,6 +226,7 @@ class EMBLEnergy(AbstractEnergy):
         else:
             logging.getLogger("GUI").info("Energy: Requested value is out of limits")
         return result
+
     #
     # def start_move_wavelength(self, value, wait=True):
     #     """

@@ -68,7 +68,9 @@ from gui.utils import QtImport
 
 from HardwareRepository.HardwareObjects import queue_model_objects
 from HardwareRepository.HardwareObjects import QtGraphicsLib as GraphicsLib
-from HardwareRepository.HardwareObjects.abstract.AbstractSampleView import AbstractSampleView
+from HardwareRepository.HardwareObjects.abstract.AbstractSampleView import (
+    AbstractSampleView,
+)
 
 from HardwareRepository import HardwareRepository as HWR
 
@@ -207,7 +209,7 @@ class QtGraphicsManager(AbstractSampleView):
             self.item_double_clicked
         )
         self.graphics_view.scene().moveItemClickedSignal.connect(self.move_item_clicked)
-        #self.graphics_view.scene().gridClickedSignal.connect(self.grid_clicked)
+        # self.graphics_view.scene().gridClickedSignal.connect(self.grid_clicked)
 
         self.graphics_view.mouseMovedSignal.connect(self.mouse_moved)
         self.graphics_view.keyPressedSignal.connect(self.key_pressed)
@@ -544,7 +546,6 @@ class QtGraphicsManager(AbstractSampleView):
                 self.graphics_magnification_item.set_pixmap(pixmap_image)
         else:
             self.display_info_msg(msg, 10, 500, False)
-            
 
     def beam_position_changed(self, position):
         """Method called when beam position on the screen changed.
@@ -697,23 +698,24 @@ class QtGraphicsManager(AbstractSampleView):
             "infoMsg",
             "Click Save to store the centred point " + "or start a new centring",
         )
-        
+
         gevent.spawn_later(2, self.save_crystal_image)
 
     def save_crystal_image(self):
         try:
             raw_snapshot = self.get_raw_snapshot()
             result_image = raw_snapshot.copy(
-                 self.beam_position[0] - self.beam_info_dict["size_x"] * self.pixels_per_mm[0] / 2,
-                 self.beam_position[1] - self.beam_info_dict["size_y"] * self.pixels_per_mm[1] / 2,
-                 self.beam_info_dict["size_x"] * self.pixels_per_mm[0] * 1.5,
-                 self.beam_info_dict["size_y"] * self.pixels_per_mm[1] * 1.5
+                self.beam_position[0]
+                - self.beam_info_dict["size_x"] * self.pixels_per_mm[0] / 2,
+                self.beam_position[1]
+                - self.beam_info_dict["size_y"] * self.pixels_per_mm[1] / 2,
+                self.beam_info_dict["size_x"] * self.pixels_per_mm[0] * 1.5,
+                self.beam_info_dict["size_y"] * self.pixels_per_mm[1] * 1.5,
             )
             date_time_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
             result_image.save("/opt/embl-hh/var/crystal_images/%s.png" % date_time_str)
         except:
             pass
-
 
     def diffractometer_centring_failed(self, method, centring_status):
         """CleanUp method after centring failed
@@ -873,9 +875,9 @@ class QtGraphicsManager(AbstractSampleView):
             self.emit("shapeCreated", self.graphics_grid_draw_item, "Grid")
             self.graphics_grid_draw_item.setSelected(True)
             self.graphics_grid_draw_item.update_coordinate_map()
-            #self._shapes.add_shape(self.graphics_grid_draw_item.get_display_name(),
+            # self._shapes.add_shape(self.graphics_grid_draw_item.get_display_name(),
             #                       self.graphics_grid_draw_item
-            #)
+            # )
             self.shape_dict[
                 self.graphics_grid_draw_item.get_display_name()
             ] = self.graphics_grid_draw_item
@@ -1056,7 +1058,7 @@ class QtGraphicsManager(AbstractSampleView):
         self.emit("gridClicked", (grid, image, line, image_num))
 
     def set_cursor_busy(self, state):
-        return 
+        return
         if state:
             QtImport.QApplication.setOverrideCursor(
                 QtImport.QCursor(QtImport.Qt.BusyCursor)
@@ -1158,7 +1160,7 @@ class QtGraphicsManager(AbstractSampleView):
             self.line_count += 1
             shape.index = self.line_count
         self.shape_dict[shape.get_display_name()] = shape
-        #self._shapes.add_shape(shape.get_display_name(), shape)
+        # self._shapes.add_shape(shape.get_display_name(), shape)
         self.graphics_view.graphics_scene.addItem(shape)
 
         if isinstance(shape, GraphicsLib.GraphicsItemPoint):
@@ -1208,7 +1210,7 @@ class QtGraphicsManager(AbstractSampleView):
         :returns: GraphicsLib.GraphicsItem
         """
         return self.shape_dict.get(shape_name)
-        #self._shapes.get_shape_by_name(shape_name)
+        # self._shapes.get_shape_by_name(shape_name)
 
     def clear_all_shapes(self):
         """Clear the shape history, remove all contents.
@@ -1830,7 +1832,7 @@ class QtGraphicsManager(AbstractSampleView):
 
         self.emit("shapeCreated", temp_grid, "Grid")
         self.shape_dict[temp_grid.get_display_name()] = temp_grid
-        #self._shapes.add_shape(temp_grid.get_display_name(), temp_grid)
+        # self._shapes.add_shape(temp_grid.get_display_name(), temp_grid)
         self.grid_count += 1
 
         return temp_grid
@@ -1938,7 +1940,7 @@ class QtGraphicsManager(AbstractSampleView):
         select_middle_y = (select_start_coord[1] + select_end_coord[1]) / 2.0
 
         for shape in self.shape_dict.values():
-        #for shape in self._shapes.get_all_shapes():
+            # for shape in self._shapes.get_all_shapes():
             if isinstance(shape, GraphicsLib.GraphicsItemLine):
                 (start_point, end_point) = shape.get_graphics_points()
                 if min(

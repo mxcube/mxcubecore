@@ -60,7 +60,6 @@ class BIOMAXMD3(GenericDiffractometer):
         if self.centring_hwobj is None:
             logging.getLogger("HWR").debug("EMBLMinidiff: Centring math is not defined")
 
-
         self.phi_motor_hwobj = self.motor_hwobj_dict["phi"]
         self.phiz_motor_hwobj = self.motor_hwobj_dict["phiz"]
         self.phiy_motor_hwobj = self.motor_hwobj_dict["phiy"]

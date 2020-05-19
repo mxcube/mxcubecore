@@ -223,7 +223,9 @@ class CatsBessy(SampleChanger):
                     )
                     argin = ["2", str(lid), str(sample), "0", "0"]
                     self._execute_server_task(self._barcode, argin)
-        elif isinstance(component, Container) and (component.get_type() == SC3.__TYPE__):
+        elif isinstance(component, Container) and (
+            component.get_type() == SC3.__TYPE__
+        ):
             for basket in self.get_components():
                 self._do_scan(basket, True)
 
@@ -295,7 +297,9 @@ class CatsBessy(SampleChanger):
             state = self._read_state()
         except BaseException:
             state = SampleChangerState.Unknown
-        if state == SampleChangerState.Moving and self._is_device_busy(self.get_state()):
+        if state == SampleChangerState.Moving and self._is_device_busy(
+            self.get_state()
+        ):
             return
         if self._scIsCharging and not (state == SampleChangerState.Alarm):
             state = SampleChangerState.Charging
@@ -346,7 +350,9 @@ class CatsBessy(SampleChanger):
                 and basket_no > 0
                 and basket_no <= CatsBessy.NO_OF_BASKETS
             ):
-                basket = self.get_component_by_address(Basket.get_basket_address(basket_no))
+                basket = self.get_component_by_address(
+                    Basket.get_basket_address(basket_no)
+                )
                 sample_no = self._selected_sample
                 if (
                     sample_no is not None
@@ -418,7 +424,9 @@ class CatsBessy(SampleChanger):
                 )
         # write the default sample information into permanent Pin objects
         for spl in sample_list:
-            sample = self.get_component_by_address(Pin.get_sample_address(spl[1], spl[2]))
+            sample = self.get_component_by_address(
+                Pin.get_sample_address(spl[1], spl[2])
+            )
             datamatrix = None
             present = scanned = loaded = has_been_loaded = False
             sample._set_info(present, datamatrix, scanned)

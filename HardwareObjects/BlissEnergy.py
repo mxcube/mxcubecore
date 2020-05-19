@@ -44,6 +44,7 @@ __license__ = "LGPLv3+"
 
 class BlissEnergy(AbstractEnergy):
     """Energy and Wavelength with bliss."""
+
     def __init__(self, name):
         AbstractEnergy.__init__(self, name)
         self._energy_motor = None

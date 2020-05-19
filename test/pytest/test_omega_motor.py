@@ -1,18 +1,18 @@
 #! /usr/bin/env python
 # encoding: utf-8
-# 
+#
 # This file is part of MXCuBE.
-# 
+#
 # MXCuBE is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # MXCuBE is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public License
 # along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
 """
@@ -29,6 +29,7 @@ __license__ = "LGPLv3+"
 __author__ = "rhfogh"
 __date__ = "08/04/2020"
 
+
 @pytest.fixture
 def test_object(beamline):
     result = beamline.diffractometer.omega
@@ -36,9 +37,8 @@ def test_object(beamline):
     # Cleanup code here - restores starting state for next call:
     # NBNB TODO
 
+
 class TestOmegaMotor(TestAbstractMotorBase.TestAbstractMotorBase):
-
-
     def test_value_wrap(self, test_object):
         """Test wrap_range"""
         wrap_range = test_object._wrap_range
@@ -55,5 +55,3 @@ class TestOmegaMotor(TestAbstractMotorBase.TestAbstractMotorBase):
                 "Set value %s does not wrap to %s; result is %s"
                 % (toobig, low + 0.1 * (high - low), test_object.get_value())
             )
-
-

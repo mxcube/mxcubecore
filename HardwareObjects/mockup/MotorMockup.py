@@ -47,6 +47,7 @@ DEFAULT_LIMITS = (-10000, 10000)
 DEFAULT_VALUE = 10.124
 DEFAULT_WRAP_RANGE = None
 
+
 class MotorMockup(ActuatorMockup, AbstractMotor):
     """Mock Motor implementation"""
 
@@ -112,4 +113,3 @@ class MotorMockup(ActuatorMockup, AbstractMotor):
             self.update_specific_state(None)
 
         return value
-
