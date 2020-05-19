@@ -84,7 +84,6 @@ class TINEMotor(AbstractMotor):
         # NBNB TODO change config from 'epsilon' to 'tolerance'?
         self._tolerance = self.getProperty("epsilon")
 
-
         try:
             self.step_limits = eval(self.getProperty("stepLimits"))
         except BaseException:

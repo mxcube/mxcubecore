@@ -68,7 +68,9 @@ class PX1Cryotong(Cats90):
             "update", self._update_ack_sample_memory
         )
         self._chnDryAndSoakNeeded.connectSignal("update", self._dry_and_soak_needed)
-        self._chnSampleIsDetected.connectSignal("update", self._update_sample_is_detected)
+        self._chnSampleIsDetected.connectSignal(
+            "update", self._update_sample_is_detected
+        )
         self._chnCountDown.connectSignal("update", self._update_count_down)
 
         self._cmdDrySoak = self.add_command(

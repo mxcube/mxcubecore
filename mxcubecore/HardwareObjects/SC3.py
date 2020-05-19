@@ -221,12 +221,16 @@ class SC3(SampleChanger):
             component.get_type() == Basket.__TYPE__
         ):
             if recursive:
-                self._execute_server_task(self._scan_basket, (component.get_index() + 1))
+                self._execute_server_task(
+                    self._scan_basket, (component.get_index() + 1)
+                )
             else:
                 if (selected_basket is None) or (selected_basket != component):
                     self._do_select(component)
                 self._execute_server_task(self._scan_samples, (0,))
-        elif isinstance(component, Container) and (component.get_type() == SC3.__TYPE__):
+        elif isinstance(component, Container) and (
+            component.get_type() == SC3.__TYPE__
+        ):
             for basket in self.get_components():
                 self._do_scan(basket, True)
 
@@ -236,7 +240,9 @@ class SC3(SampleChanger):
             if (selected_basket is None) or (
                 selected_basket != component.get_container()
             ):
-                self._execute_server_task(self._select_basket, component.get_basket_no())
+                self._execute_server_task(
+                    self._select_basket, component.get_basket_no()
+                )
             self._execute_server_task(self._select_sample, component.get_index() + 1)
         elif isinstance(component, Container) and (
             component.get_type() == Basket.__TYPE__
@@ -254,7 +260,11 @@ class SC3(SampleChanger):
                 )
             self._execute_server_task(
                 self._chained_load,
-                [sample.get_basket_no(), sample.get_vial_no(), sample.get_holder_length()],
+                [
+                    sample.get_basket_no(),
+                    sample.get_vial_no(),
+                    sample.get_holder_length(),
+                ],
             )
         else:
             if sample is None:
@@ -300,7 +310,9 @@ class SC3(SampleChanger):
             state = self._read_state()
         except BaseException:
             state = SampleChangerState.Unknown
-        if state == SampleChangerState.Moving and self._is_device_busy(self.get_state()):
+        if state == SampleChangerState.Moving and self._is_device_busy(
+            self.get_state()
+        ):
             return
         self._set_state(state)
 
@@ -345,7 +357,9 @@ class SC3(SampleChanger):
         try:
             basket_no = self._selected_basket.getValue()
             if basket_no is not None and basket_no > 0 and basket_no <= 5:
-                basket = self.get_component_by_address(Basket.get_basket_address(basket_no))
+                basket = self.get_component_by_address(
+                    Basket.get_basket_address(basket_no)
+                )
                 sample_no = self._selected_sample.getValue()
                 if sample_no is not None and sample_no > 0 and sample_no <= 10:
                     sample = self.get_component_by_address(

@@ -58,7 +58,9 @@ class EMBLAperture(AbstractAperture):
         else:
             self._diameter_size_list = (10, 20)
 
-        self.chan_diameter_index = self.get_channel_object("CurrentApertureDiameterIndex")
+        self.chan_diameter_index = self.get_channel_object(
+            "CurrentApertureDiameterIndex"
+        )
         if self.chan_diameter_index is not None:
             self._current_diameter_index = self.chan_diameter_index.getValue()
             self.diameter_index_changed(self._current_diameter_index)

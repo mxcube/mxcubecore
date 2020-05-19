@@ -56,7 +56,6 @@ class Energy(Equipment):
             self.energy_motor.connect("valueChanged", self.energyPositionChanged)
             self.energy_motor.connect("stateChanged", self.energyStateChanged)
 
-
     def isConnected(self):
         return True
 

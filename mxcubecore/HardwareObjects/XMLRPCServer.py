@@ -648,7 +648,7 @@ class XMLRPCServer(HardwareObject):
 
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
         log = logging.getLogger("HWR")
-        #log.info("Registering functions in module %s with XML-RPC server" % module_name)
+        # log.info("Registering functions in module %s with XML-RPC server" % module_name)
 
         if module_name not in sys.modules:
             __import__(module_name)
@@ -679,10 +679,10 @@ class XMLRPCServer(HardwareObject):
             for f in inspect.getmembers(module, inspect.isfunction):
                 if f[0][0] != "_":
                     xmlrpc_name = prefix + f[0]
-                    #log.info(
+                    # log.info(
                     #    "Registering function %s.%s as XML-RPC function %s"
                     #    % (module_name, f[1].__name__, xmlrpc_name)
-                    #)
+                    # )
 
                     # Bind method to this XMLRPCServer instance but don't set attribute
                     # This is sufficient to register it as an xmlrpc function.

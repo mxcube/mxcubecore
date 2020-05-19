@@ -30,7 +30,9 @@ class SOLEILEnergyScan(Equipment):
         self._edge = None
         self.doEnergyScan = None
         try:
-            self.defaultWavelengthChannel = self.get_channel_object("default_wavelength")
+            self.defaultWavelengthChannel = self.get_channel_object(
+                "default_wavelength"
+            )
         except KeyError:
             self.defaultWavelengthChannel = None
         else:
@@ -129,9 +131,7 @@ class SOLEILEnergyScan(Equipment):
                 self.moveEnergy = None
 
             if HWR.beamline.energy is not None:
-                HWR.beamline.energy.connect(
-                    "valueChanged", self.energyPositionChanged
-                )
+                HWR.beamline.energy.connect("valueChanged", self.energyPositionChanged)
                 HWR.beamline.energy.connect("stateChanged", self.energyStateChanged)
                 HWR.beamline.energy.connect("limitsChanged", self.energyLimitsChanged)
             if HWR.beamline.resolution is None:

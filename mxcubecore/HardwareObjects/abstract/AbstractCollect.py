@@ -32,7 +32,7 @@ import collections
 import gevent
 import gevent.event
 
-from HardwareRepository.TaskUtils import task #, cleanup_and_handle_error
+from HardwareRepository.TaskUtils import task  # , cleanup_and_handle_error
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.ConvertUtils import string_types
 from HardwareRepository import HardwareRepository as HWR
@@ -99,7 +99,10 @@ class AbstractCollect(HardwareObject, object):
         else:
             synchrotron_name = "UNKNOWN"
 
-        beam_divergence_hor, beam_divergence_ver = HWR.beamline.beam.get_beam_divergence() 
+        (
+            beam_divergence_hor,
+            beam_divergence_ver,
+        ) = HWR.beamline.beam.get_beam_divergence()
 
         self.set_beamline_configuration(
             synchrotron_name=synchrotron_name,

@@ -26,6 +26,7 @@ import pytest
 from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 from HardwareRepository.test.pytest import TestAbstractNStateBase
 
+
 @pytest.fixture
 def test_object(beamline):
     result = beamline.safety_shutter
@@ -33,8 +34,8 @@ def test_object(beamline):
     # Cleanup code here - restores starting state for next call:
     # NBNB TODO
 
-class TestShutter(TestAbstractNStateBase.TestAbstractNStateBase):
 
+class TestShutter(TestAbstractNStateBase.TestAbstractNStateBase):
     def test_shutter_init(self, test_object):
         assert (
             test_object is not None
@@ -44,7 +45,6 @@ class TestShutter(TestAbstractNStateBase.TestAbstractNStateBase):
         # an exception if the method is not defined. So there is no need to test for
         # the presence of each method
         assert test_object.get_state() == HardwareObjectState.READY
-
 
     def test_shutter_open_close(self, test_object):
         test_object.open()

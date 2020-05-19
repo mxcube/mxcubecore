@@ -70,8 +70,9 @@ class InstanceServer(Procedure):
                     self.guiConfiguration = widget.configuration
                     break
             except NameError:
-                logging.getLogger().warning("Widget {} has no attribute {}"
-                                            .format(widget, "configuration"))
+                logging.getLogger().warning(
+                    "Widget {} has no attribute {}".format(widget, "configuration")
+                )
 
         self.emit("instanceInitializing", ())
         if self.isLocal():

@@ -48,8 +48,8 @@ class TangoDCMotor(Device):
 
         threshold = self.getProperty("threshold")
         self.threshold = (
-            0.0018
-        )  # default value. change it with property threshold in xml
+            0.0018  # default value. change it with property threshold in xml
+        )
 
         self.old_value = 0.0
         self.tangoname = self.getProperty("tangoname")
@@ -180,8 +180,8 @@ class TangoDCMotor(Device):
 
     def syncQuestionAnswer(self, specSteps, controllerSteps):
         return (
-            "0"
-        )  # This is only for spec motors. 0 means do not change anything on sync
+            "0"  # This is only for spec motors. 0 means do not change anything on sync
+        )
 
     def get_value(self):
         return self.positionChan.getValue()
@@ -209,9 +209,7 @@ class TangoDCMotor(Device):
             type(value),
         )
         value = float(value)
-        if not isinstance(value, float) and not isinstance(
-            value, int
-        ):
+        if not isinstance(value, float) and not isinstance(value, int):
             logging.getLogger("TangoClient").error(
                 "Cannot move %s: position '%s' is not a number. It is a %s",
                 self.tangoname,
@@ -223,9 +221,7 @@ class TangoDCMotor(Device):
             "TangoDCMotor.move to absolute position: %.3f" % value
         )
         logging.getLogger("TangoClient").info(
-            "TangoDCMotor move. Trying to go to %s: that is a '%s'",
-            value,
-            type(value),
+            "TangoDCMotor move. Trying to go to %s: that is a '%s'", value, type(value),
         )
         # if abs(self.get_value() - value) > epsilon:
         #     logging.info(

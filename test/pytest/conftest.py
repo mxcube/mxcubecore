@@ -3,6 +3,7 @@ import sys
 import os
 
 from gevent import monkey
+
 monkey.patch_all(thread=False)
 
 TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
