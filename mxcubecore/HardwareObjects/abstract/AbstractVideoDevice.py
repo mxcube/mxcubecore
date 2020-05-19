@@ -86,6 +86,8 @@ class AbstractVideoDevice(Device):
         self.default_cam_encoding = None
         self.default_poll_interval = None
 
+        self.decoder = None
+
     def init(self):
         self.cam_name = self.getProperty("name", "camera")
 
@@ -191,7 +193,7 @@ class AbstractVideoDevice(Device):
         raw_buffer, width, height = self.get_image()
 
         if raw_buffer is not None and raw_buffer.any():
-            if self.cam_type == "basler" or self.cam_type == "bayer":
+            if self.decoder:
                 raw_buffer = self.decoder(raw_buffer)
                 qimage = QImage(
                     raw_buffer, width, height, width * 3, QImage.Format_RGB888
