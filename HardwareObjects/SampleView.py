@@ -222,7 +222,6 @@ class SampleView(AbstractSampleView):
         Line.SHAPE_COUNT = 0
         Point.SHAPE_COUNT = 0
 
-
     def get_shapes(self):
         """
         Get all Shapes.

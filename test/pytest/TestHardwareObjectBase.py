@@ -78,8 +78,7 @@ class TestHardwareObjectBase:
                 % ho_state.name
             )
             assert test_object._state is ho_state, (
-                "get_state does not reflect _state for %s"
-                % ho_state.name
+                "get_state does not reflect _state for %s" % ho_state.name
             )
             if ho_state is HardwareObjectState.READY:
                 assert (
@@ -90,9 +89,9 @@ class TestHardwareObjectBase:
                     "is_ready=True does not reflect state %s" % ho_state.name
                 )
             test_object.update_state()
-            assert test_object._state is result, (
-                "update_state() does not set state to current state"
-            )
+            assert (
+                test_object._state is result
+            ), "update_state() does not set state to current state"
 
     def test_wait_ready(self, test_object):
         test_object.update_state(test_object.STATES.READY)
@@ -113,7 +112,6 @@ class TestHardwareObjectBase:
                 catcher.async_result.get()
         finally:
             test_object.disconnect("stateChanged", catcher.catch)
-
 
 
 class SignalCatcher(object):

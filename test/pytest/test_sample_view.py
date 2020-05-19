@@ -22,66 +22,72 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
 import pytest
+
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
+
 @pytest.fixture
 def sample_view(beamline):
-    assert (
-        beamline.sample_view is not None
-    ), "sample_view is None (not initialized)"
+    assert beamline.sample_view is not None, "sample_view is None (not initialized)"
 
     # Add a shape to work with
     beamline.sample_view.add_shape_from_mpos(
-        [{
-            'phi': 0,
-            'phiz': 0,
-            'phiy': 0,
-            'sampx': 0,
-            'sampy': 0,
-            'kappa': 0, 
-            'kappa_phi': 0
-        }],
+        [
+            {
+                "phi": 0,
+                "phiz": 0,
+                "phiy": 0,
+                "sampx": 0,
+                "sampy": 0,
+                "kappa": 0,
+                "kappa_phi": 0,
+            }
+        ],
         (0, 0),
-        "P"
+        "P",
     )
 
     beamline.sample_view.add_shape_from_mpos(
-        [{
-            'phi': 0,
-            'phiz': 0,
-            'phiy': 0,
-            'sampx': 0,
-            'sampy': 0,
-            'kappa': 0, 
-            'kappa_phi': 0
-        },{
-            'phi': 1,
-            'phiz': 1,
-            'phiy': 1,
-            'sampx': 1,
-            'sampy': 1,
-            'kappa': 1, 
-            'kappa_phi': 1
-        }],
+        [
+            {
+                "phi": 0,
+                "phiz": 0,
+                "phiy": 0,
+                "sampx": 0,
+                "sampy": 0,
+                "kappa": 0,
+                "kappa_phi": 0,
+            },
+            {
+                "phi": 1,
+                "phiz": 1,
+                "phiy": 1,
+                "sampx": 1,
+                "sampy": 1,
+                "kappa": 1,
+                "kappa_phi": 1,
+            },
+        ],
         [(0, 0)],
-        "L"
+        "L",
     )
 
     beamline.sample_view.add_shape_from_mpos(
-        [{
-            'phi': 0,
-            'phiz': 0,
-            'phiy': 0,
-            'sampx': 0,
-            'sampy': 0,
-            'kappa': 0, 
-            'kappa_phi': 0
-        }],
+        [
+            {
+                "phi": 0,
+                "phiz": 0,
+                "phiy": 0,
+                "sampx": 0,
+                "sampy": 0,
+                "kappa": 0,
+                "kappa_phi": 0,
+            }
+        ],
         [(0, 0)],
-        "G"
+        "G",
     )
-
 
     yield beamline.sample_view
 
@@ -92,16 +98,19 @@ def test_sample_view_get_shape(sample_view):
     s = sample_view.get_points()[0]
     assert sample_view.get_shape(s.id) is not None
 
+
 def test_sample_view_add_shape(sample_view):
     assert len(sample_view.get_points()) == 1
     assert len(sample_view.get_lines()) == 1
     assert len(sample_view.get_grids()) == 1
+
 
 def test_sample_view_delete_shape(sample_view):
     s = sample_view.get_points()[0]
 
     sample_view.delete_shape(s.id)
     assert len(sample_view.get_points()) == 0
+
 
 def test_sample_view_clear_all(sample_view):
     sample_view.clear_all()

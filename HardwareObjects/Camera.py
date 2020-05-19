@@ -540,11 +540,15 @@ class Camera(BaseHardwareObjects.Device):
                         except BaseException:
                             centery = -1
                         try:
-                            fwhmx = self.bpmDevice.get_channel_object("fwhmx").getValue()
+                            fwhmx = self.bpmDevice.get_channel_object(
+                                "fwhmx"
+                            ).getValue()
                         except BaseException:
                             fwhmx = -1
                         try:
-                            fwhmy = self.bpmDevice.get_channel_object("fwhmy").getValue()
+                            fwhmy = self.bpmDevice.get_channel_object(
+                                "fwhmy"
+                            ).getValue()
                         except BaseException:
                             fwhmy = -1
                         try:
@@ -715,14 +719,18 @@ class Camera(BaseHardwareObjects.Device):
                 def setROI(self, startx, endx, starty, endy):
                     """tango"""
                     # ?????# self.get_channel_object("roi").setValue([startx, starty, endx, endy])
-                    self.get_channel_object("roi").setValue([startx, endx, starty, endy])
+                    self.get_channel_object("roi").setValue(
+                        [startx, endx, starty, endy]
+                    )
 
                 def setExposure(self, exposure):
                     self.get_channel_object("exposure").setValue(exposure)
 
                 def setThreshold(self, threshold):
                     if self.bpmDevice is not None:
-                        self.bpmDevice.get_channel_object("threshold").setValue(threshold)
+                        self.bpmDevice.get_channel_object("threshold").setValue(
+                            threshold
+                        )
 
             self.__class__ = TangoCamera
             self._init()

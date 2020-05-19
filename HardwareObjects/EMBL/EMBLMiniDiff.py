@@ -111,7 +111,9 @@ class EMBLMiniDiff(GenericDiffractometer):
             "update", self.fast_shutter_state_changed
         )
 
-        self.chan_scintillator_position = self.get_channel_object("ScintillatorPosition")
+        self.chan_scintillator_position = self.get_channel_object(
+            "ScintillatorPosition"
+        )
         self.chan_capillary_position = self.get_channel_object("CapillaryPosition")
 
         self.cmd_start_set_phase = self.get_command_object("startSetPhase")
@@ -128,17 +130,13 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.minikappa_correction_hwobj = self.getObjectByRole("minikappa_correction")
 
         self.zoom_motor_hwobj = self.getObjectByRole("zoom")
-        self.connect(
-            self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed
-        )
+        self.connect(self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed)
         self.connect(
             self.zoom_motor_hwobj,
             "predefinedPositionChanged",
             self.zoom_motor_predefined_position_changed,
         )
-        self.connect(
-            self.motor_hwobj_dict["phi"], "valueChanged", self.phi_motor_moved
-        )
+        self.connect(self.motor_hwobj_dict["phi"], "valueChanged", self.phi_motor_moved)
         self.connect(
             self.motor_hwobj_dict["phiy"], "valueChanged", self.phiy_motor_moved
         )
@@ -665,10 +663,10 @@ class EMBLMiniDiff(GenericDiffractometer):
             t2 = [point_2.sampx, point_2.sampy, point_2.phiy]
             kappa = self.motor_hwobj_dict["kappa"].get_value()
             phi = self.motor_hwobj_dict["kappa_phi"].get_value()
-            new_kappa, new_phi, (
-                new_sampx,
-                new_sampy,
-                new_phiy,
+            (
+                new_kappa,
+                new_phi,
+                (new_sampx, new_sampy, new_phiy,),
             ) = self.minikappa_correction_hwobj.alignVector(t1, t2, kappa, phi)
             self.move_to_motors_positions(
                 {

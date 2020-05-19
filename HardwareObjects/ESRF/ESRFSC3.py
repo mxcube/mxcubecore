@@ -92,7 +92,9 @@ class ESRFSC3(SC3.SC3):
                 )
             ):
                 with cleanup(self.unlockMinidiffMotors, wait=True, timeout=3):
-                    loaded = self.__load_sample(holderLength, sample_id, sample_location)
+                    loaded = self.__load_sample(
+                        holderLength, sample_id, sample_location
+                    )
 
                 if loaded:
                     logging.getLogger("HWR").debug("%s: sample is loaded", self.name())
