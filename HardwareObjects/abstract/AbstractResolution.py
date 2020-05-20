@@ -29,7 +29,7 @@ one set from the beamline configuration is used.
 
 import abc
 import logging
-from numpy import arcsin, arctan, sin, sqrt, tan
+from numpy import arcsin, arctan, sin
 from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
@@ -46,23 +46,21 @@ class AbstractResolution(AbstractMotor):
     def __init__(self, name):
         super(AbstractResolution, self).__init__(name)
         self._hwr_detector = None
-        self._hwr_energy = None
 
     def init(self):
         """Initialisation"""
         super(AbstractResolution, self).init()
         self._hwr_detector = self.getObjectByRole("detector") or HWR.beamline.detector
-        self._hwr_energy = HWR.beamline.energy
 
         self.connect(self._hwr_detector.distance, "stateChanged", self.update_state)
         self.connect(self._hwr_detector.distance, "valueChanged", self.update_distance)
-        self.connect(self._hwr_energy, "valueChanged", self.update_energy)
-        self.connect(self._hwr_energy, "stateChanged", self.update_state)
+        self.connect(HWR.beamline.energy, "valueChanged", self.update_energy)
+        self.connect(HWR.beamline.energy, "stateChanged", self.update_state)
 
     def get_state(self):
         """Get the state of the distance motor.
         Returns:
-            (enum 'MotorStates'): Motor state.
+            (enum 'HardwareRepositoryStates'): The state.
         """
         return self._hwr_detector.distance.get_state()
 
@@ -71,9 +69,8 @@ class AbstractResolution(AbstractMotor):
         Returns:
             (float): value.
         """
-        if self._nominal_value is None:
-            _distance = self._hwr_detector.distance.get_value()
-            self._nominal_value = self.distance_to_resolution(_distance)
+        _distance = self._hwr_detector.distance.get_value()
+        self._nominal_value = self.distance_to_resolution(_distance)
         return self._nominal_value
 
     def get_limits(self):
@@ -115,7 +112,7 @@ class AbstractResolution(AbstractMotor):
         Returns:
             (float): Resolution [Å]
         """
-        _wavelength = self._hwr_energy.get_wavelength()
+        _wavelength = HWR.beamline.energy.get_wavelength()
         try:
             ttheta = arctan(radius / distance)
             if ttheta:
@@ -176,8 +173,8 @@ class AbstractResolution(AbstractMotor):
         Args:
             value(float): Energy [keV]
         """
-        value = value or self._hwr_energy.get_value()
-        _wavelength = self._hwr_energy._calculate_wavelength(value)
+        value = value or HWR.beamline.energy.get_value()
+        _wavelength = HWR.beamline.energy._calculate_wavelength(value)
         _distance = self._hwr_detector.distance.get_value()
         _radius = self._hwr_detector.get_radius(_distance)
         try:
