@@ -89,7 +89,8 @@ class QtTangoLimaVideo(AbstractVideoDevice):
             self.device.video_mode = "YUV422"
         elif cam_encoding == "y8":
             self.device.video_mode = "Y8"
-
+        elif cam_encoding.lower() == "bayer_rg16":
+            self.device.video_mode = "BAYER_RG16"
         AbstractVideoDevice.set_cam_encoding(self, cam_encoding)
 
     """ Overloading of AbstractVideoDevice methods """
