@@ -16,20 +16,26 @@ MOTOR_EGU  = 'epicsMotor_egu'
 class LNLSMotor(AbstractMotor):
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
-
-        self.__move_task = None
+        self._wrap_range = None
+        #self.__move_task = None
 
     def init(self):
-        """Override super class method."""
-        self.chan_motor_rbv = self.getChannelObject(MOTOR_RBV)
+        """ Initialisation method """
+        # get username, actuator_name and tolerance
+        super(LNLSMotor, self).init()
+
+        self.chan_motor_rbv = self.get_channel_object(MOTOR_RBV)
         if self.chan_motor_rbv is not None:
             self.chan_motor_rbv.connectSignal('update', self.position_changed)
 
-        self.chan_motor_dmov = self.getChannelObject(MOTOR_DMOV)
+        self.chan_motor_dmov = self.get_channel_object(MOTOR_DMOV)
         if self.chan_motor_dmov is not None:
             self.chan_motor_dmov.connectSignal('update', self.status_changed)
 
-        self.set_state(self.motor_states.READY)
+        self.update_state(self.STATES.READY)
+
+    def _move(self, value):
+        self.move(value)
 
     def move(self, position, wait=False, timeout=None):
         """Override super class method."""
@@ -47,7 +53,7 @@ class LNLSMotor(AbstractMotor):
 
     def get_position(self):
         """Override super class method."""
-        self.__position = self.getValue(MOTOR_RBV)
+        self.__position = self.get_channel_value(MOTOR_RBV)
         return self.__position
 
     def set_position(self, position):
@@ -61,25 +67,25 @@ class LNLSMotor(AbstractMotor):
 
     def status_changed(self, value):
         if (value == 0):
-            self.set_state(self.motor_states.MOVING)
+            self.update_specific_state(self.SPECIFIC_STATES.MOVING)
         elif (value == 1):
-            self.set_state(self.motor_states.READY)
+            self.update_state(self.STATES.READY)
 
     def wait_end_of_move(self, timeout=None):
         gevent.sleep(0.1)
-        if (self.getValue(MOTOR_DMOV) == 0):
-            self.set_state(self.motor_states.MOVING)
+        if (self.get_channel_value(MOTOR_DMOV) == 0):
+            self.update_specific_state(self.SPECIFIC_STATES.MOVING)
 
-        while (self.getValue(MOTOR_DMOV) == 0):
+        while (self.get_channel_value(MOTOR_DMOV) == 0):
             self.motorPosition = self.getPosition()
             self.emit('positionChanged', (self.motorPosition))
             gevent.sleep(0.1)
-        self.set_state(self.motor_states.READY)
+        self.update_state(self.STATES.READY)
 
     def get_limits(self):
         """Override super class method."""
         try:
-            self.__limits = (self.getValue(MOTOR_DLLM), self.getValue(MOTOR_DHLM))
+            self.__limits = (self.get_channel_value(MOTOR_DLLM), self.get_channel_value(MOTOR_DHLM))
         except:
             logging.getLogger("HWR").error('Error getting motor limits for: %s' % self.motor_name)
             # Set a default limit
@@ -89,7 +95,7 @@ class LNLSMotor(AbstractMotor):
 
     def get_velocity(self):
         """Override super class method."""
-        self.__velocity = self.getValue(MOTOR_VELO)
+        self.__velocity = self.get_channel_value(MOTOR_VELO)
         return self.__velocity
 
     def set_velocity(self, velocity):

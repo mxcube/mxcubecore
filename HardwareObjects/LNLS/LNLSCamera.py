@@ -41,6 +41,11 @@ class LNLSCamera(BaseHardwareObjects.Device):
         self.qImageHalf = None
         self.delay = None
         self.array_size = None
+        # Status (cam is getting images)
+        # This flag makes errors to be printed only when needed in the log,
+        # which prevents the log file to get gigantic.
+        self._print_cam_sucess = True
+        self._print_cam_error = True
 
     def _init(self):
         self.setIsReady(True)
@@ -68,16 +73,22 @@ class LNLSCamera(BaseHardwareObjects.Device):
 
     def getCameraImage(self):
         # Get the image from uEye camera IOC
-        self.imgArray = self.getValue(CAMERA_DATA)
+        self.imgArray = self.get_channel_value(CAMERA_DATA)
         if self.imgArray is None:
-            logging.getLogger("HWR").error("%s - Error: null camera image!" % (self.__class__.__name__))
+            if self._print_cam_error:
+                logging.getLogger("HWR").error("%s - Error: null camera image!" % (self.__class__.__name__))
+                self._print_cam_sucess = True
+                self._print_cam_error = False
             # Return error for this frame, but cam remains live for new frames
             return -1
 
         if len(self.imgArray) != self.array_size:
-            logging.getLogger("HWR").error(\
-            "%s - Error in array lenght! Expected %d, but got %d." % \
-            (self.__class__.__name__, self.array_size, len(self.imgArray)))
+            if self._print_cam_error:
+                logging.getLogger("HWR").error(\
+                "%s - Error in array lenght! Expected %d, but got %d." % \
+                (self.__class__.__name__, self.array_size, len(self.imgArray)))
+                self._print_cam_sucess = True
+                self._print_cam_error = False
             # Return error for this frame, but cam remains live for new frames
             return -1
 
@@ -103,14 +114,21 @@ class LNLSCamera(BaseHardwareObjects.Device):
             #logging.getLogger("HWR").debug('Got camera image: ' + \
             #str(img_bin_str[0:10]))
         except:
-            logging.getLogger("user_level_log").error('Error while formatting camera image')
+            if self._print_cam_error:
+                logging.getLogger("user_level_log").error('Error while formatting camera image')
+                self._print_cam_sucess = True
+                self._print_cam_error = False
 
+        if self._print_cam_sucess:
+            logging.getLogger("HWR").info("LNLSCamera is emitting images! Cam routine is ok.")
+            self._print_cam_sucess = False
+            self._print_cam_error = True
         return 0
 
     def get_pixel_size(self):
         pixel_size = 1
         try:
-            pixel_size = self.getValue(CAMERA_IMG_PIXEL_SIZE)
+            pixel_size = self.get_channel_value(CAMERA_IMG_PIXEL_SIZE)
             if pixel_size is None or pixel_size <= 0:
                 pixel_size = 1
         except:
@@ -122,7 +140,7 @@ class LNLSCamera(BaseHardwareObjects.Device):
     def get_width(self):
         width = 0
         try:
-            width = self.getValue(CAMERA_IMG_WIDTH)
+            width = self.get_channel_value(CAMERA_IMG_WIDTH)
             if width is None:
                 width = 0
         except:
@@ -134,7 +152,7 @@ class LNLSCamera(BaseHardwareObjects.Device):
     def get_height(self):
         height = 0
         try:
-            height = self.getValue(CAMERA_IMG_HEIGHT)
+            height = self.get_channel_value(CAMERA_IMG_HEIGHT)
             if height is None:
                 height = 0
         except:
@@ -183,7 +201,7 @@ class LNLSCamera(BaseHardwareObjects.Device):
         gain = None
 
         try:
-            gain = self.getValue(CAMERA_GAIN_RBV)
+            gain = self.get_channel_value(CAMERA_GAIN_RBV)
         except:
             print("Error getting gain of camera...")
 
@@ -199,7 +217,7 @@ class LNLSCamera(BaseHardwareObjects.Device):
         auto = None
 
         try:
-            auto = self.getValue(CAMERA_AUTO_GAIN_RBV)
+            auto = self.get_channel_value(CAMERA_AUTO_GAIN_RBV)
         except:
             print("Error getting auto-gain of camera...")
 
@@ -216,7 +234,7 @@ class LNLSCamera(BaseHardwareObjects.Device):
         exp = None
 
         try:
-            exp = self.getValue(CAMERA_ACQ_TIME_RBV)
+            exp = self.get_channel_value(CAMERA_ACQ_TIME_RBV)
         except:
             print("Error getting exposure time of camera...")
 

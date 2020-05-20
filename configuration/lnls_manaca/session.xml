@@ -13,11 +13,7 @@
     </proposal>
   </proposals>
 
-  <inhouse_users>
-    <proposal>
-      <code>idtest</code>
-      <number>0</number>
-    </proposal>
+  <inhouse_users> 
     <proposal>
       <code>opid</code>
       <number>291</number>

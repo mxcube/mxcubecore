@@ -19,5 +19,5 @@
     <!-- Properties -->
     <username>Camera</username>
     <source>/usr/local/src/mxcube/ExampleFiles/fakeimg.jpg</source>
-    <interval>67</interval>
+    <interval>100</interval>
 </device>

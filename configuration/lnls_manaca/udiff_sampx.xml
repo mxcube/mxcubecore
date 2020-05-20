@@ -1,18 +1,7 @@
-
-<device class="LNLS.LNLSMotor">
-    <!-- Channels -->
-    <channel type="epics" name="epicsMotor_val">SOL:m7.VAL</channel>
-    <channel type="epics" name="epicsMotor_rlv">SOL:m7.RLV</channel>
-    <channel type="epics" name="epicsMotor_rbv" polling="500">SOL:m7.RBV</channel>
-    <channel type="epics" name="epicsMotor_dmov" polling="500">SOL:m7.DMOV</channel>
-    <channel type="epics" name="epicsMotor_stop">SOL:m7.STOP</channel>
-    <channel type="epics" name="epicsMotor_velo">SOL:m7.VELO</channel>
-    <channel type="epics" name="epicsMotor_dllm">SOL:m7.DLLM</channel>
-    <channel type="epics" name="epicsMotor_dhlm">SOL:m7.DHLM</channel>
-    <channel type="epics" name="epicsMotor_egu">SOL:m7.EGU</channel>
-    <!-- Properties -->
-    <username>sampx</username>
-    <motor_name>CentringX</motor_name>
-    <GUIstep>0.01</GUIstep>
-    <unit>1e-5</unit>
+<device class="MotorMockup">
+  <username>sampx</username>
+  <exporter_address>130.235.94.124:9001</exporter_address>
+  <motor_name>CentringX</motor_name>
+  <GUIstep>0.01</GUIstep>
+  <unit>1e-5</unit>
 </device>

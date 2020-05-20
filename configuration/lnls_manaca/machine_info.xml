@@ -1,5 +1,3 @@
-<device class = "MachCurrent">
-  <channel type="epics" name="OperatorMsg" polling="500">SOL:m8.DESC</channel>
-  <channel type="epics" name="Current" polling="500">SOL:m8</channel>
-  <channel type="epics" name="FillingMode" polling="500">SOL:m8.NAME</channel>
-</device>
+<object class="MachInfoMockup" role="mach_info">
+</object>
+
