@@ -1,107 +1,88 @@
-import time
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU General Lesser Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
+""" Photon fluc calculations
+Example xml file:
+<object class="ESRF.ID30BPhotonFlux">
+  <username>Photon flux</username>
+  <object role="controller" href="/bliss"/>
+  <object role="aperture" href="/udiff_aperture"/>
+  <counter_name>i0</counter_name>
+</object>
+"""
 import logging
-from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import task
 from HardwareRepository import HardwareRepository as HWR
+from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
+    AbstractActuator,
+)
 
 
-class ID30BPhotonFlux(Equipment):
-    def __init__(self, *args, **kwargs):
-        Equipment.__init__(self, *args, **kwargs)
-        self.current_flux = 0
+class ID30BPhotonFlux(AbstractActuator):
+    """Photon flux calculation for ID30B"""
+
+    def __init__(self, name):
+        super(ID30BPhotonFlux, self).__init__(name)
+        self._counter = None
+        self._flux_calc = None
+        self._aperture = None
 
     def init(self):
-
-        self.controller = self.getObjectByRole("controller")
-        self.shutter = self.getDeviceByRole("shutter")
-        self.aperture = self.getObjectByRole("aperture")
+        """Initialisation"""
+        super(ID30BPhotonFlux, self).init()
+        controller = self.getObjectByRole("controller")
+        # ultimately it should be HWR.beamline.diffractometer.aperture
+        self._aperture = self.getObjectByRole("aperture")
 
         try:
-            self.flux_calc = self.controller.CalculateFlux()
-            fname = self.getProperty("calibrated_diodes_file")
-            if fname:
-                self.flux_calc.init(fname)
-        except:
+            self._flux_calc = controller.CalculateFlux()
+            self._flux_calc.init()
+        except AttributeError:
             logging.getLogger("HWR").exception(
                 "Could not get flux calculation from BLISS"
             )
 
         counter = self.getProperty("counter_name")
         if counter:
-            self.counter = getattr(self.controller, counter)
+            self._counter = getattr(controller, counter)
         else:
-            self.counter = self.getObjectByRole("counter")
+            self._counter = self.getObjectByRole("counter")
 
-        try:
-            self.shutter.connect("shutterStateChanged", self.shutterStateChanged)
-        except Exception:
-            logging.exception("Could not connect to shutterStateChanged")
-
-        self.counts_reading_task = self._read_counts_task(wait=False)
-
-    @task
-    def _read_counts_task(self):
-        old_counts = None
-        while True:
-            counts = self._get_counts()
-            if counts != old_counts:
-                old_counts = counts
-                self.countsUpdated(counts)
-            time.sleep(1)
-
-    def _get_counts(self):
-        try:
-            # counts = self.counter.read()
-            counts = 0
-            if counts == -9999:
-                counts = 0
-        except Exception:
-            counts = 0
-            logging.getLogger("HWR").exception("%s: could not get counts", self.name())
-        try:
-            egy = HWR.beamline.energy.get_value() * 1000.0
-            calib = self.flux_calc.calc_flux_factor(egy)
-        except BaseException:
-            logging.getLogger("HWR").exception("%s: could not get energy", self.name())
-        try:
-            aperture_factor = self.aperture.getApertureCoef()
-        except AttributeError:
-            aperture_factor = 1
-        counts = abs(counts * calib[self.counter.name] * aperture_factor)
-        return counts
-
-    def connectNotify(self, signal):
-        if signal == "valueChanged":
-            self.emitValueChanged()
-
-    def shutterStateChanged(self, _):
-        self.countsUpdated(self._get_counts())
-
-    def updateFlux(self, _):
-        self.countsUpdated(self._get_counts(), ignore_shutter_state=False)
-
-    def countsUpdated(self, counts, ignore_shutter_state=False):
-        if not ignore_shutter_state and self.shutter.getShutterState() != "opened":
-            self.emitValueChanged(0)
-            return
-        flux = counts
-        self.emitValueChanged("%1.3g" % flux)
+        HWR.beamline.safety_shutter.connect("stateChanged", self.update_value)
 
     def get_value(self):
-        self.updateFlux("dummy")
-        return self.current_flux
+        """Calculate the flux value as function of a reading
+        """
+        counts = self._counter._counter_controller.read_all(self._counter)
+        if isinstance(counts, list):
+            counts = counts[0]
+        if counts == -9999:
+            counts = 0
 
-    # def getCurrentFlux(self):
-    #     self.updateFlux("dummy")
-    #     return self.current_flux
-    #
-    # def get_flux(self):
-    #     return self.current_flux
+        egy = HWR.beamline.energy.get_value() * 1000.0
+        calib = self._flux_calc.calc_flux_factor(egy)[self._counter.name]
 
-    def emitValueChanged(self, flux=None):
-        if flux is None:
-            self.current_flux = None
-            self.emit("valueChanged", ("?",))
-        else:
-            self.current_flux = flux
-            self.emit("valueChanged", (self.current_flux,))
+        try:
+            label = self._aperture.get_value().name
+            aperture_factor = self._aperture.get_factor(label)
+        except AttributeError:
+            aperture_factor = 1
+        counts = abs(counts * calib * aperture_factor)
+        self._nominal_value = counts
+        return counts
