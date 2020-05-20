@@ -17,38 +17,35 @@
 #
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
-"""Resolution concrete implementation.
-Example xml file:
-<object class="Resolution">
-  <username>Resolution</username>
-  <actuator_name>resolution</actuator_name>
-  <tolerance>1e-4</tolerance>
-  <!-- optional -->
-  <object href="/pilatus" role="detector"/>
-</object>
+"""Resolution as motor."""
 
-"""
-
-from HardwareRepository.HardwareObjects.abstract.AbstracResolution import (
-    AbstractResolution,
-)
+import logging
+from scipy import arcsin, arctan, sin, sqrt, tan
+from scipy.constants import h, c, e
+from HardwareRepository import HardwareRepository as HWR
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
-class Resolution(AbstractResolution):
+class Resolution(AbstractMotor):
     """Resolution as motor"""
 
     unit = "Å"
 
     def __init__(self, name):
-        super(Resolution, self).__init__(name)
+        AbstractMotor.__init__(self, name=name)
+
+        self.det_width = None
+        self.det_height = None
+        self._hwr_detector = None
+        self._hwr_energy = None
+        self.det_beam = {}
 
     def init(self):
-        """Initialisation"""
-        super(Resolution, self).init()
-
+        """Initialise the motor"""
+        AbstractMotor.init(self)
         self._hwr_detector = HWR.beamline.detector
         self._hwr_energy = HWR.beamline.energy
 
