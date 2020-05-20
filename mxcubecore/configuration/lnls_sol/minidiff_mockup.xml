@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<equipment class="LNLS.LNLSDiffractometer">
+<equipment class="DiffractometerMockup">
   <object role="focus" hwrid="./udiff_phix"></object>
   <object role="zoom" hwrid="./udiff_zoom"></object>
   <object role="phi" hwrid="./udiff_omega"></object>
