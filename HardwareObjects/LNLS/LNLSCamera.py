@@ -48,6 +48,7 @@ class LNLSCamera(BaseHardwareObjects.Device):
         self._print_cam_error = True
 
     def _init(self):
+        self.stream_hash = "#"
         self.setIsReady(True)
 
     def init(self):
