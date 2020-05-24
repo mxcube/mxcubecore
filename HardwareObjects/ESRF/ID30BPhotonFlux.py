@@ -29,12 +29,12 @@ Example xml file:
 """
 import logging
 from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator,
+from HardwareRepository.HardwareObjects.abstract.AbstractFlux import (
+    AbstractFlux
 )
 
 
-class ID30BPhotonFlux(AbstractActuator):
+class ID30BPhotonFlux(AbstractFlux):
     """Photon flux calculation for ID30B"""
 
     def __init__(self, name):
