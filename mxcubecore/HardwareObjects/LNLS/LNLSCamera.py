@@ -45,22 +45,27 @@ class LNLSCamera(BaseHardwareObjects.Device):
         # This flag makes errors to be printed only when needed in the log,
         # which prevents the log file to get gigantic.
         self._print_cam_sucess = True
-        self._print_cam_error = True
+        self._print_cam_error_null = True
+        self._print_cam_error_size = True
+        self._print_cam_error_format = True
 
     def _init(self):
         self.stream_hash = "#"
         self.setIsReady(True)
 
     def init(self):
-        self.pixel_size = self.get_pixel_size()
-        self.width = self.get_width()
-        self.height = self.get_height()
-        self.array_size = self.get_array_size()
+        self.read_sizes()
         # Start camera image acquisition
         self.setLive(True)
         # Snapshot
         self.centring_status = {"valid": False}
         self.snapshots_procedure = None
+
+    def read_sizes(self):
+        self.pixel_size = self.get_pixel_size()
+        self.width = self.get_width()
+        self.height = self.get_height()
+        self.array_size = self.get_array_size()
 
     def poll(self):
         logging.getLogger("HWR").debug('LNLS Camera image acquiring has started.')
@@ -76,20 +81,28 @@ class LNLSCamera(BaseHardwareObjects.Device):
         # Get the image from uEye camera IOC
         self.imgArray = self.get_channel_value(CAMERA_DATA)
         if self.imgArray is None:
-            if self._print_cam_error:
+            if self._print_cam_error_null:
                 logging.getLogger("HWR").error("%s - Error: null camera image!" % (self.__class__.__name__))
                 self._print_cam_sucess = True
-                self._print_cam_error = False
+                self._print_cam_error_null = False
+                self._print_cam_error_size = True
+                self._print_cam_error_format = True
             # Return error for this frame, but cam remains live for new frames
             return -1
 
         if len(self.imgArray) != self.array_size:
-            if self._print_cam_error:
+            # PS: This check possibly can be removed and the treatment can be
+            # moved into the except scope.
+            if self._print_cam_error_size:
                 logging.getLogger("HWR").error(\
                 "%s - Error in array lenght! Expected %d, but got %d." % \
                 (self.__class__.__name__, self.array_size, len(self.imgArray)))
                 self._print_cam_sucess = True
-                self._print_cam_error = False
+                self._print_cam_error_null = True
+                self._print_cam_error_size = False
+                self._print_cam_error_format = True
+            # Try to read sizes again
+            self.read_sizes()
             # Return error for this frame, but cam remains live for new frames
             return -1
 
@@ -114,17 +127,21 @@ class LNLSCamera(BaseHardwareObjects.Device):
             self.emit("imageReceived", img_bin_str, self.height, self.width)
             #logging.getLogger("HWR").debug('Got camera image: ' + \
             #str(img_bin_str[0:10]))
+            if self._print_cam_sucess:
+                logging.getLogger("HWR").info("LNLSCamera is emitting images! Cam routine is ok.")
+                self._print_cam_sucess = False
+                self._print_cam_error_null = True
+                self._print_cam_error_size = True
+                self._print_cam_error_format = True
+            return 0
         except:
-            if self._print_cam_error:
-                logging.getLogger("user_level_log").error('Error while formatting camera image')
+            if self._print_cam_error_format:
+                logging.getLogger("HWR").error('Error while formatting camera image')
                 self._print_cam_sucess = True
-                self._print_cam_error = False
-
-        if self._print_cam_sucess:
-            logging.getLogger("HWR").info("LNLSCamera is emitting images! Cam routine is ok.")
-            self._print_cam_sucess = False
-            self._print_cam_error = True
-        return 0
+                self._print_cam_error_null = True
+                self._print_cam_error_size = True
+                self._print_cam_error_format = False
+            return -1
 
     def get_pixel_size(self):
         pixel_size = 1
