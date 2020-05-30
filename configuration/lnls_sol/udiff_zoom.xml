@@ -1,6 +1,7 @@
-<device class="MicrodiffZoomMockup">
+<device class="LNLS.LNLSZoom">
   <username>zoom</username>
   <motor_name>zoom</motor_name>
-  <exporter_address>130.235.94.124:9001</exporter_address>
-  <values>{"LEVEL1": 1, "LEVEL2": 2, "LEVEL3": 3, "LEVEL4": 4, "LEVEL5": 5, "LEVEL6": 7}</values>
+  <channel type="epics" name="epicsActuator_val">SOL:S:m1.VAL</channel>
+  <channel type="epics" name="epicsActuator_rbv" polling="500">SOL:S:m1.RBV</channel>
+  <values>{"LEVEL1": 1, "LEVEL2": 2, "LEVEL3": 3, "LEVEL4": 4, "LEVEL5": 5, "LEVEL6": 6, "LEVEL7": 7, "LEVEL8": 8, "LEVEL9": 9, "LEVEL10": 10}</values>
 </device>
