@@ -145,7 +145,7 @@ class LNLSDiffractometer(GenericDiffractometer):
             self.user_clicked_event = AsyncResult()
             x, y = self.user_clicked_event.get()
             if click < 2:
-                self.motor_hwobj_dict["phi"].move_relative(90)
+                self.motor_hwobj_dict["phi"].set_value_relative(90)
         self.last_centred_position[0] = x
         self.last_centred_position[1] = y
         centred_pos_dir = self._get_random_centring_position()
