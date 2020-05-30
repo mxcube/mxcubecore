@@ -1,7 +1,11 @@
-<device class="MicrodiffInOutMockup">
-  <username>Microdiff frontlight</username>
-  <motor_name>BackLightIsOn</motor_name>
-  <exporter_address>192.168.96.43:9001</exporter_address>
-  <cmd_name>BackLightIsOn</cmd_name>
-  <offset>0</offset>
+ <device class="LNLS.LNLSInOut">
+     <!-- Channels -->
+     <channel type="epics" name="epicsActuator_val">SOL:S:m4.VAL</channel>
+     <channel type="epics" name="epicsActuator_rbv" polling="500">SOL:S:m4.RBV</channel>
+     <!-- Properties -->
+     <username>Microdiff frontlight</username>
+     <motor_name>BackLightIsOn</motor_name>
+     <cmd_name>BackLightIsOn</cmd_name>
+     <offset>0</offset>
+     <!-- <GUIstep>1</GUIstep> This have to be defined on the GUI at the moment.-->
  </device>
