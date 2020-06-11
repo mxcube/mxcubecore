@@ -1,4 +1,4 @@
-<object class="MultiCollectMockup">
+<object class="LNLS.LNLSCollect">
   <object href="/minidiff_mockup" role="diffractometer"/>
   <object href="/mxlocal" role="beamline_configuration"/>
   <object href="/sc_mockup" role="sample_changer"/>
@@ -6,7 +6,7 @@
   <object href="/attenuators_mockup" role="transmission"/>
   <object href="/detector_mockup" role="detector"/>
   <object href="/resolution_mockup" role="resolution"/>
-  <object href="/lims" role="dbserver"/> 
+  <object href="/lims" role="dbserver"/>
   <num_snapshots>0</num_snapshots>
 
   <auto_processing>
