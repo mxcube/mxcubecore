@@ -47,16 +47,16 @@ class ESRFBeam(AbstractBeam):
     def init(self):
         """ Initialize hardware """
         AbstractBeam.init(self)
-        self._aperture = self.getObjectByRole("aperture")
-        _bliss_obj = self.getObjectByRole("bliss")
-        _slits = self.getProperty("slits")
+        self._aperture = self.get_object_by_role("aperture")
+        _bliss_obj = self.get_object_by_role("bliss")
+        _slits = self.get_property("slits")
         if _slits:
             for name in _slits.split():
                 _key, _val = name.split(":")
                 self._slits.update({_key: _bliss_obj.__getattribute__(_val)})
-        self._complex = self.getObjectByRole("complex")
-        self.definer = self.getProperty("definer")
-        beam_position = self.getProperty("beam_position")
+        self._complex = self.get_object_by_role("complex")
+        self.definer = self.get_property("definer")
+        beam_position = self.get_property("beam_position")
         if beam_position:
             self.beam_position = tuple(map(float, beam_position.split()))
 

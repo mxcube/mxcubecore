@@ -54,7 +54,7 @@ class CameraMockup(BaseHardwareObjects.Device):
 
         if live:
             self.imagegen = gevent.spawn(
-                self.imageGenerator, (self.getProperty("interval") or 500) / 1000.0
+                self.imageGenerator, (self.get_property("interval") or 500) / 1000.0
             )
             self.liveState = live
         else:

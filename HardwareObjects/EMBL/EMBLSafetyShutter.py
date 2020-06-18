@@ -76,41 +76,41 @@ class EMBLSafetyShutter(Device):
     def init(self):
         self.chan_collection_state = self.get_channel_object("chanCollectStatus")
         if self.chan_collection_state:
-            self.chan_collection_state.connectSignal(
+            self.chan_collection_state.connect_signal(
                 "update", self.data_collection_state_changed
             )
 
         self.chan_state_closed = self.get_channel_object("chanStateClosed")
-        self.chan_state_closed.connectSignal("update", self.state_closed_changed)
+        self.chan_state_closed.connect_signal("update", self.state_closed_changed)
         self.chan_state_open = self.get_channel_object("chanStateOpen")
-        self.chan_state_open.connectSignal("update", self.state_open_changed)
+        self.chan_state_open.connect_signal("update", self.state_open_changed)
 
         self.chan_state_open_permission = self.get_channel_object(
             "chanStateOpenPermission"
         )
-        self.chan_state_open_permission.connectSignal(
+        self.chan_state_open_permission.connect_signal(
             "update", self.state_open_permission_changed
         )
         self.state_open_permission_changed(self.chan_state_open_permission.getValue())
 
         self.chan_ics_error = self.get_channel_object("chanIcsError")
-        self.chan_ics_error.connectSignal("update", self.ics_error_msg_changed)
+        self.chan_ics_error.connect_signal("update", self.ics_error_msg_changed)
         self.ics_error_msg_changed(self.chan_ics_error.getValue())
 
         self.chan_cmd_close_error = self.get_channel_object("chanCmdCloseError")
         if self.chan_cmd_close_error is not None:
-            self.chan_cmd_close_error.connectSignal(
+            self.chan_cmd_close_error.connect_signal(
                 "update", self.cmd_error_msg_changed
             )
 
         self.chan_cmd_open_error = self.get_channel_object("chanCmdOpenError")
         if self.chan_cmd_open_error is not None:
-            self.chan_cmd_open_error.connectSignal("update", self.cmd_error_msg_changed)
+            self.chan_cmd_open_error.connect_signal("update", self.cmd_error_msg_changed)
 
         self.cmd_open = self.get_command_object("cmdOpen")
         self.cmd_close = self.get_command_object("cmdClose")
 
-        self.use_shutter = self.getProperty("useShutter", True)
+        self.use_shutter = self.get_property("useShutter", True)
 
         self.state_open_changed(self.chan_state_open.getValue())
 

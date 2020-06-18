@@ -46,18 +46,18 @@ class TangoDCMotor(Device):
         self.positionValue = 0.0
         self.stateValue = "UNKNOWN"
 
-        threshold = self.getProperty("threshold")
+        threshold = self.get_property("threshold")
         self.threshold = (
             0.0018  # default value. change it with property threshold in xml
         )
 
         self.old_value = 0.0
-        self.tangoname = self.getProperty("tangoname")
-        self.motor_name = self.getProperty("motor_name")
+        self.tangoname = self.get_property("tangoname")
+        self.motor_name = self.get_property("motor_name")
         self.ho = DeviceProxy(self.tangoname)
 
         try:
-            self.dataType = self.getProperty("datatype")
+            self.dataType = self.get_property("datatype")
             if self.dataType is None:
                 self.dataType = "float"
         except BaseException:
@@ -81,8 +81,8 @@ class TangoDCMotor(Device):
             "state"
         )  # utile seulement si statechan n'est pas defini dans le code
 
-        self.positionChan.connectSignal("update", self.positionChanged)
-        self.stateChan.connectSignal("update", self.motorStateChanged)
+        self.positionChan.connect_signal("update", self.positionChanged)
+        self.stateChan.connect_signal("update", self.motorStateChanged)
 
     def positionChanged(self, value):
         self.positionValue = value
@@ -100,8 +100,8 @@ class TangoDCMotor(Device):
     def is_ready(self):
         return self.stateValue == "STANDBY"
 
-    def connectNotify(self, signal):
-        if signal == "hardwareObjectName,stateChanged":
+    def connect_notify(self, signal):
+        if signal == "hardware_object_name,stateChanged":
             self.motorStateChanged(TangoDCMotor.stateDict[self.stateValue])
         elif signal == "limitsChanged":
             self.motorLimitsChanged()
@@ -155,7 +155,7 @@ class TangoDCMotor(Device):
 
         if limits is None:
             try:
-                limits = self.getProperty("min"), self.getProperty("max")
+                limits = self.get_property("min"), self.get_property("max")
                 logging.getLogger("HWR").info(
                     "TangoDCMotor.get_limits: %.4f ***** %.4f" % limits
                 )
@@ -245,14 +245,14 @@ class TangoDCMotor(Device):
 
     def isSpecConnected(self):
         logging.getLogger().debug("%s: TangoDCMotor.isSpecConnected()" % self.name())
-        return (TruehardwareObjectName,)
+        return (Truehardware_object_name,)
 
 
 def test():
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    motor = hwr.getHardwareObject("/phi")
+    motor = hwr.get_hardware_object("/phi")
     print(motor.get_value())
 
 

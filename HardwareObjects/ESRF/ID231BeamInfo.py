@@ -38,15 +38,15 @@ class BeamInfo(Equipment):
 
     def init(self):
         try:
-            self.aperture_HO = HWR.getHardwareRepository().getHardwareObject(
-                self.getProperty("aperture")
+            self.aperture_HO = HWR.getHardwareRepository().get_hardware_object(
+                self.get_property("aperture")
             )
             self.connect(self.aperture_HO, "apertureChanged", self.aperture_pos_changed)
         except BaseException:
             logging.getLogger("HWR").debug("BeamInfo: aperture not defined correctly")
         try:
-            self.slits_HO = HWR.getHardwareRepository().getHardwareObject(
-                self.getProperty("slits")
+            self.slits_HO = HWR.getHardwareRepository().get_hardware_object(
+                self.get_property("slits")
             )
             self.connect(self.slits_HO, "gapSizeChanged", self.slits_gap_changed)
         except BaseException:
@@ -63,9 +63,9 @@ class BeamInfo(Equipment):
             )
 
         self.beam_position_hor = self.get_channel_object("beam_position_hor")
-        self.beam_position_hor.connectSignal("update", self.beam_pos_hor_changed)
+        self.beam_position_hor.connect_signal("update", self.beam_pos_hor_changed)
         self.beam_position_ver = self.get_channel_object("beam_position_ver")
-        self.beam_position_ver.connectSignal("update", self.beam_pos_ver_changed)
+        self.beam_position_ver.connect_signal("update", self.beam_pos_ver_changed)
         self.chan_beam_size_microns = self.get_channel_object("beam_size_microns")
         self.chan_beam_shape_ellipse = self.get_channel_object("beam_shape_ellipse")
 

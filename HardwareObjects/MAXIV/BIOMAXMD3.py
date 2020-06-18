@@ -51,12 +51,12 @@ class BIOMAXMD3(GenericDiffractometer):
 
         GenericDiffractometer.init(self)
 
-        self.front_light = self.getObjectByRole("frontlight")
-        self.back_light = self.getObjectByRole("backlight")
-        self.back_light_switch = self.getObjectByRole("backlightswitch")
-        self.front_light_switch = self.getObjectByRole("frontlightswitch")
+        self.front_light = self.get_object_by_role("frontlight")
+        self.back_light = self.get_object_by_role("backlight")
+        self.back_light_switch = self.get_object_by_role("backlightswitch")
+        self.front_light_switch = self.get_object_by_role("frontlightswitch")
 
-        self.centring_hwobj = self.getObjectByRole("centring")
+        self.centring_hwobj = self.get_object_by_role("centring")
         if self.centring_hwobj is None:
             logging.getLogger("HWR").debug("EMBLMinidiff: Centring math is not defined")
 
@@ -92,13 +92,13 @@ class BIOMAXMD3(GenericDiffractometer):
             )
 
         try:
-            use_sc = self.getProperty("use_sc")
+            use_sc = self.get_property("use_sc")
             self.set_use_sc(use_sc)
         except BaseException:
             logging.getLogger("HWR").debug("Cannot set sc mode, use_sc: ", str(use_sc))
 
         try:
-            self.zoom_centre = eval(self.getProperty("zoom_centre"))
+            self.zoom_centre = eval(self.get_property("zoom_centre"))
             zoom = HWR.beamline.sample_view.camera.get_image_zoom()
             if zoom is not None:
                 self.zoom_centre["x"] = self.zoom_centre["x"] * zoom

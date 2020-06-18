@@ -165,70 +165,70 @@ class SOLEILMachineInfo(HardwareObject):
 
     def init(self):
         """init"""
-        self.update_interval = int(self.getProperty("updateIntervalS"))
-        self.limits_dict = eval(self.getProperty("limits"))
+        self.update_interval = int(self.get_property("updateIntervalS"))
+        self.limits_dict = eval(self.get_property("limits"))
 
         self.chan_mach_curr = self.get_channel_object("machCurrent")
         if self.chan_mach_curr is not None:
-            self.chan_mach_curr.connectSignal("update", self.mach_current_changed)
+            self.chan_mach_curr.connect_signal("update", self.mach_current_changed)
 
         self.chan_filling_mode = self.get_channel_object("fillingMode")
         if self.chan_filling_mode is not None:
-            self.chan_filling_mode.connectSignal("update", self.state_text_changed)
+            self.chan_filling_mode.connect_signal("update", self.state_text_changed)
 
         self.chan_state_text0 = self.get_channel_object("operatorMessage0")
         if self.chan_state_text0 is not None:
-            self.chan_state_text0.connectSignal("update", self.state_text_changed)
+            self.chan_state_text0.connect_signal("update", self.state_text_changed)
 
         self.chan_state_text1 = self.get_channel_object("operatorMessage1")
         if self.chan_state_text1 is not None:
-            self.chan_state_text1.connectSignal("update", self.state_text_changed)
+            self.chan_state_text1.connect_signal("update", self.state_text_changed)
 
         self.chan_state_text2 = self.get_channel_object("operatorMessage2")
         if self.chan_state_text2 is not None:
-            self.chan_state_text2.connectSignal("update", self.state_text_changed)
+            self.chan_state_text2.connect_signal("update", self.state_text_changed)
 
         self.chan_is_beam_usable = self.get_channel_object("isBeamUsable")
         if self.chan_is_beam_usable is not None:
-            self.chan_is_beam_usable.connectSignal("update", self.state_text_changed)
+            self.chan_is_beam_usable.connect_signal("update", self.state_text_changed)
 
         self.chan_cryojet_in = self.get_channel_object("cryojetIn")
         if self.chan_cryojet_in is not None:
             self.cryojet_in_changed(self.chan_cryojet_in.getValue())
-            self.chan_cryojet_in.connectSignal("update", self.cryojet_in_changed)
+            self.chan_cryojet_in.connect_signal("update", self.cryojet_in_changed)
         else:
             logging.getLogger("HWR").debug("MachineInfo: Cryojet channel not defined")
 
         self.chan_sample_temperature = self.get_channel_object("sampleTemp")
         if self.chan_sample_temperature is not None:
-            # self.chan_sample_temperature.connectSignal('update', self.cryojet_in_changed)
+            # self.chan_sample_temperature.connect_signal('update', self.cryojet_in_changed)
             self.cryojet_in_changed(self.chan_cryojet_in.getValue())
 
         self.chan_sc_auto_refill = self.get_channel_object("scAutoRefill")
         if self.chan_sc_auto_refill is not None:
-            self.chan_sc_auto_refill.connectSignal("update", self.sc_autorefill_changed)
+            self.chan_sc_auto_refill.connect_signal("update", self.sc_autorefill_changed)
             self.sc_autorefill_changed(self.chan_sc_auto_refill.getValue())
 
         self.chan_sc_dewar_low_level_alarm = self.get_channel_object("scLowLevelAlarm")
         if self.chan_sc_dewar_low_level_alarm is not None:
-            self.chan_sc_dewar_low_level_alarm.connectSignal(
+            self.chan_sc_dewar_low_level_alarm.connect_signal(
                 "update", self.low_level_alarm_changed
             )
             self.low_level_alarm_changed(self.chan_sc_dewar_low_level_alarm.getValue())
 
         self.chan_sc_dewar_overflow_alarm = self.get_channel_object("scOverflowAlarm")
         if self.chan_sc_dewar_overflow_alarm is not None:
-            self.chan_sc_dewar_overflow_alarm.connectSignal(
+            self.chan_sc_dewar_overflow_alarm.connect_signal(
                 "update", self.overflow_alarm_changed
             )
 
         # self.chan_flux = self.get_channel_object('flux')
         # if self.chan_flux is not None:
-        # self.chan_flux.connectSignal('update', self.flux_changed)
+        # self.chan_flux.connect_signal('update', self.flux_changed)
 
         self.chan_temperature_exp = self.get_channel_object("temperatureExp")
         if self.chan_temperature_exp is not None:
-            self.chan_temperature_exp.connectSignal("update", self.temperature_changed)
+            self.chan_temperature_exp.connect_signal("update", self.temperature_changed)
             self.temperature_changed(self.chan_temperature_exp.getValue())
 
         self.re_emit_values()

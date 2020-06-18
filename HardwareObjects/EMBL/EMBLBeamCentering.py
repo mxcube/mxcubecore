@@ -63,10 +63,10 @@ class EMBLBeamCentering(HardwareObject):
         """
         self.ready_event = gevent.event.Event()
 
-        self.scale_hor = self.getProperty("scale_hor")
-        self.scale_ver = self.getProperty("scale_ver")
-        self.scale_double_hor = self.getProperty("scale_double_hor")
-        self.scale_double_ver = self.getProperty("scale_double_ver")
+        self.scale_hor = self.get_property("scale_hor")
+        self.scale_ver = self.get_property("scale_ver")
+        self.scale_double_hor = self.get_property("scale_double_hor")
+        self.scale_double_ver = self.get_property("scale_double_ver")
         self.chan_pitch_scan_status = self.get_channel_object("chanPitchScanStatus")
         self.connect(
             self.chan_pitch_scan_status, "update", self.pitch_scan_status_changed
@@ -81,17 +81,17 @@ class EMBLBeamCentering(HardwareObject):
         self.cmd_set_vmax_pitch = self.get_command_object("cmdSetVMaxPitch")
         self.cmd_set_qbmp_range = self.get_command_object("cmdQBPMRangeSet")
 
-        self.horizontal_motor_hwobj = self.getObjectByRole("horizontal_motor")
-        self.vertical_motor_hwobj = self.getObjectByRole("vertical_motor")
-        self.horizontal_double_mode_motor_hwobj = self.getObjectByRole(
+        self.horizontal_motor_hwobj = self.get_object_by_role("horizontal_motor")
+        self.vertical_motor_hwobj = self.get_object_by_role("vertical_motor")
+        self.horizontal_double_mode_motor_hwobj = self.get_object_by_role(
             "horizontal_double_mode_motor"
         )
-        self.vertical_double_mode_motor_hwobj = self.getObjectByRole(
+        self.vertical_double_mode_motor_hwobj = self.get_object_by_role(
             "vertical_double_mode_motor"
         )
 
         # self.chan_pitch_second = self.get_channel_object("chanPitchSecond")
-        self.crl_hwobj = self.getObjectByRole("crl")
+        self.crl_hwobj = self.get_object_by_role("crl")
         self.connect(HWR.beamline.energy, "beamAlignmentRequested", self.center_beam)
 
         if hasattr(HWR.beamline.beam, "beam_focusing_hwobj"):

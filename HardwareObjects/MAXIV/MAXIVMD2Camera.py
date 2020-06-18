@@ -39,8 +39,8 @@ class MAXIVMD2Camera(Device):
             {"type": "exporter", "name": "image"}, "ImageJPG"
         )
 
-        if self.getProperty("interval"):
-            self.pollInterval = self.getProperty("interval")
+        if self.get_property("interval"):
+            self.pollInterval = self.get_property("interval")
         self.stopper = False  # self.pollingTimer(self.pollInterval, self.poll)
         thread = Thread(target=self.poll)
         thread.daemon = True

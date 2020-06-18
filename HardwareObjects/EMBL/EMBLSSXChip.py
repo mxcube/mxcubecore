@@ -59,7 +59,7 @@ class EMBLSSXChip(QtGraphicsManager):
         """Reads config xml, initiates all necessary hwobj, channels and cmds
         """
 
-        self.chip_config_list = eval(self.getProperty("chip_properties", "[]"))
+        self.chip_config_list = eval(self.get_property("chip_properties", "[]"))
         self.current_chip_index = 0
 
         self.chip_settings = {
@@ -67,9 +67,9 @@ class EMBLSSXChip(QtGraphicsManager):
             "quarter_density": 0,
             "meandering": 0,
             "old_num_of_exp": 1,
-            "num_channels": self.getProperty("num_channels"),
-            "channels": eval(self.getProperty("channels")),
-            "default_seq": eval(self.getProperty("default_sequence")),
+            "num_channels": self.get_property("num_channels"),
+            "channels": eval(self.get_property("channels")),
+            "default_seq": eval(self.get_property("default_sequence")),
         }
 
         self.graphics_view = GraphicsLib.GraphicsView()

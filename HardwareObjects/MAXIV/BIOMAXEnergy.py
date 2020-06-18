@@ -17,17 +17,17 @@ class BIOMAXEnergy(Energy.Energy):
         self.en_lims = []
 
         try:
-            self.default_en = self.getProperty("default_energy")
+            self.default_en = self.get_property("default_energy")
         except KeyError:
             logging.getLogger("HWR").warning("Energy: no default energy")
 
         try:
-            self.tunable = self.getProperty("tunable_energy")
+            self.tunable = self.get_property("tunable_energy")
         except KeyError:
             logging.getLogger("HWR").warning("Energy: will set to fixed energy")
 
         try:
-            self.ctrl = self.getObjectByRole("controller")
+            self.ctrl = self.get_object_by_role("controller")
         except KeyError:
             logging.getLogger("HWR").info("No controller used")
 

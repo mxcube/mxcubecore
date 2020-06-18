@@ -6,11 +6,11 @@ class RobodiffFShut(Equipment):
         Equipment.__init__(self, name)
 
     def init(self):
-        self.robodiff = self.getObjectByRole("robot")
+        self.robodiff = self.get_object_by_role("robot")
         self.connect(self.robodiff.controller.fshut, "state", self.valueChanged)
         self.actuatorState = "unknown"
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "actuatorStateChanged":
             self.get_actuator_state(read=True)
 

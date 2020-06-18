@@ -61,7 +61,7 @@ class MicrodiffAperture(ExporterNState):
             self._initialise_values()
 
         # now get the IN/OUT object
-        self.inout_obj = self.getObjectByRole("inout")
+        self.inout_obj = self.get_object_by_role("inout")
         if self.inout_obj:
             self._initialise_inout()
 
@@ -95,7 +95,7 @@ class MicrodiffAperture(ExporterNState):
         values = {}
         try:
             # get the factors
-            factor = literal_eval(self.getProperty("factor"))
+            factor = literal_eval(self.get_property("factor"))
             if len(predefined_postions) == len(factor):
                 for _pos, _fac in zip(predefined_postions, factor):
                     values["A{0}".format(_pos)] = (

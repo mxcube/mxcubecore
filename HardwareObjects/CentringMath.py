@@ -23,7 +23,7 @@ class CentringMath(Procedure):
                     "type": axis.type,
                     "direction": eval(axis.direction),
                     "motor_name": axis.motorname,
-                    "motor_HO": HWR.getHardwareRepository().getHardwareObject(
+                    "motor_HO": HWR.getHardwareRepository().get_hardware_object(
                         axis.motorHO
                     ),
                 }

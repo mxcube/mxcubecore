@@ -23,28 +23,28 @@ class ALBABackLight(Device):
         self.backlightin_channel = self.get_channel_object("backlightin")
         self.level_channel = self.get_channel_object("light_level")
 
-        limits = self.getProperty("limits")
+        limits = self.get_property("limits")
 
         if limits is not None:
             lims = limits.split(",")
             if len(lims) == 2:
                 self.limits = map(float, lims)
 
-        rest_level = self.getProperty("rest_level")
+        rest_level = self.get_property("rest_level")
 
         if rest_level is not None:
             self.rest_level = rest_level
         else:
             self.rest_level = self.default_rest_level
 
-        minimum_level = self.getProperty("minimum_level")
+        minimum_level = self.get_property("minimum_level")
         if minimum_level is not None:
             self.minimum_level = float(minimum_level)
         else:
             self.minimum_level = self.default_minimum_level
 
-        self.level_channel.connectSignal("update", self.level_changed)
-        self.backlightin_channel.connectSignal("update", self.state_changed)
+        self.level_channel.connect_signal("update", self.level_changed)
+        self.backlightin_channel.connect_signal("update", self.state_changed)
 
     def is_ready(self):
         return True

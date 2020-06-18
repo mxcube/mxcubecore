@@ -265,14 +265,14 @@ class MjpgStreamVideo(GenericVideoDevice):
         """
         Descript. :
         """
-        self.sleep_time = self.getProperty("interval")
-        width = self.getProperty("width")
-        height = self.getProperty("height")
+        self.sleep_time = self.get_property("interval")
+        width = self.get_property("width")
+        height = self.get_property("height")
         self.image_dimensions = (width, height)
-        self.flip["h"] = bool(self.getProperty("fliph"))
-        self.flip["v"] = bool(self.getProperty("flipv"))
-        self.host = self.getProperty("host")
-        self.port = int(self.getProperty("port"))
+        self.flip["h"] = bool(self.get_property("fliph"))
+        self.flip["v"] = bool(self.get_property("flipv"))
+        self.host = self.get_property("host")
+        self.port = int(self.get_property("port"))
         self.path = "/"
         self.plugin = 0
         self.update_controls = self.has_update_controls()

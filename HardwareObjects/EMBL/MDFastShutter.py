@@ -62,7 +62,7 @@ class MDFastShutter(Device):
 
         self.chan_shutter_state = self.get_channel_object("chanShutterState")
         if self.chan_shutter_state:
-            self.chan_shutter_state.connectSignal("update", self.shutter_state_changed)
+            self.chan_shutter_state.connect_signal("update", self.shutter_state_changed)
 
     def shutter_state_changed(self, value):
         """

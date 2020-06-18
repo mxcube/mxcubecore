@@ -61,7 +61,7 @@ def set_light_in(light, light_motor, zoom):
             light_level = None
 
             try:
-                light_level = zoom["positions"][0][zoom_level].getProperty("lightLevel")
+                light_level = zoom["positions"][0][zoom_level].get_property("lightLevel")
             except IndexError:
                 logging.getLogger("HWR").info("Could not get default light level")
                 light_level = 1
@@ -138,7 +138,7 @@ class MiniDiff(Equipment):
         self.connect(self, "equipmentNotReady", self.equipmentNotReady)
 
     def if_role_set_attr(self, role_name):
-        obj = self.getObjectByRole(role_name)
+        obj = self.get_object_by_role(role_name)
 
         if obj is not None:
             setattr(self, role_name, obj)
@@ -156,23 +156,23 @@ class MiniDiff(Equipment):
 
         self.centringStatus = {"valid": False}
 
-        self.chiAngle = self.getProperty("chi", 0)
+        self.chiAngle = self.get_property("chi", 0)
 
         try:
-            phiz_ref = self["centringReferencePosition"].getProperty("phiz")
+            phiz_ref = self["centringReferencePosition"].get_property("phiz")
         except BaseException:
             phiz_ref = None
 
-        self.phiMotor = self.getObjectByRole("phi")
-        self.phizMotor = self.getObjectByRole("phiz")
-        self.phiyMotor = self.getObjectByRole("phiy")
-        self.zoomMotor = self.getObjectByRole("zoom")
-        self.lightMotor = self.getObjectByRole("light")
-        self.focusMotor = self.getObjectByRole("focus")
-        self.sampleXMotor = self.getObjectByRole("sampx")
-        self.sampleYMotor = self.getObjectByRole("sampy")
-        self.kappaMotor = self.getObjectByRole("kappa")
-        self.kappaPhiMotor = self.getObjectByRole("kappa_phi")
+        self.phiMotor = self.get_object_by_role("phi")
+        self.phizMotor = self.get_object_by_role("phiz")
+        self.phiyMotor = self.get_object_by_role("phiy")
+        self.zoomMotor = self.get_object_by_role("zoom")
+        self.lightMotor = self.get_object_by_role("light")
+        self.focusMotor = self.get_object_by_role("focus")
+        self.sampleXMotor = self.get_object_by_role("sampx")
+        self.sampleYMotor = self.get_object_by_role("sampy")
+        self.kappaMotor = self.get_object_by_role("kappa")
+        self.kappaPhiMotor = self.get_object_by_role("kappa_phi")
 
         # mh 2013-11-05:why is the channel read directly? disabled for the moment
         # HWR.beamline.sample_view.camera.add_channel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
@@ -191,10 +191,10 @@ class MiniDiff(Equipment):
             self.if_role_set_attr(role)
 
         hwr = HWR.getHardwareRepository()
-        wl_prop = self.getProperty("wagolight")
+        wl_prop = self.get_property("wagolight")
         if wl_prop is not None:
             try:
-                self.lightWago = hwr.getHardwareObject(wl_prop)
+                self.lightWago = hwr.get_hardware_object(wl_prop)
             except BaseException:
                 pass
 
@@ -886,7 +886,7 @@ class MiniDiff(Equipment):
             self.centringStatus["motors"] = self.get_positions()
             centred_pos = self.current_centring_procedure.get()
             for role in self.centringStatus["motors"]:
-                motor = self.getObjectByRole(role)
+                motor = self.get_object_by_role(role)
                 try:
                     self.centringStatus["motors"][role] = centred_pos[motor]
                 except KeyError:

@@ -63,7 +63,7 @@ class PX2BeamInfo(Equipment):
 
         try:
             self.chanBeamSizeX = self.get_channel_object("beamsizex")
-            self.chanBeamSizeX.connectSignal("update", self.beamSizeXChanged)
+            self.chanBeamSizeX.connect_signal("update", self.beamSizeXChanged)
         except KeyError:
             logging.getLogger().warning(
                 "%s: cannot connect to beamsize x channel ", self.name()
@@ -71,7 +71,7 @@ class PX2BeamInfo(Equipment):
 
         try:
             self.chanBeamSizeY = self.get_channel_object("beamsizey")
-            self.chanBeamSizeY.connectSignal("update", self.beamSizeYChanged)
+            self.chanBeamSizeY.connect_signal("update", self.beamSizeYChanged)
         except KeyError:
             logging.getLogger().warning(
                 "%s: cannot connect to beamsize y channel ", self.name()
@@ -79,7 +79,7 @@ class PX2BeamInfo(Equipment):
 
         try:
             self.chanBeamPosX = self.get_channel_object("positionx")
-            self.chanBeamPosX.connectSignal("update", self.beamPosXChanged)
+            self.chanBeamPosX.connect_signal("update", self.beamPosXChanged)
         except KeyError:
             logging.getLogger().warning(
                 "%s: cannot connect to beamposition x channel ", self.name()
@@ -87,13 +87,13 @@ class PX2BeamInfo(Equipment):
 
         try:
             self.chanBeamPosY = self.get_channel_object("positiony")
-            self.chanBeamPosY.connectSignal("update", self.beamPosYChanged)
+            self.chanBeamPosY.connect_signal("update", self.beamPosYChanged)
         except KeyError:
             logging.getLogger().warning(
                 "%s: cannot connect to beamposition z channel ", self.name()
             )
 
-        self.zoomMotor = self.getDeviceByRole("zoom")
+        self.zoomMotor = self.get_deviceByRole("zoom")
 
         self.beam_position[0], self.beam_position[1] = (
             self.chanBeamPosX.value,
@@ -184,7 +184,7 @@ class PX2BeamInfo(Equipment):
         return None, None
 
     def get_beam_divergence_hor(self):
-        return self.getProperty("beam_divergence_hor")
+        return self.get_property("beam_divergence_hor")
 
     def get_beam_divergence_ver(self):
-        return self.getProperty("beam_divergence_vert")
+        return self.get_property("beam_divergence_vert")

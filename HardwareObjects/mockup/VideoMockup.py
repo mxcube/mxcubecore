@@ -174,7 +174,7 @@ class VideoMockup(BaseHardwareObjects.Device):
             )
             time.sleep(sleep_time)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         """
         Descript. :
         """

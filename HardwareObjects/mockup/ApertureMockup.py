@@ -46,7 +46,7 @@ class ApertureMockup(AbstractAperture):
 
     def init(self):
         try:
-            self._diameter_size_list = eval(self.getProperty("diameter_size_list"))
+            self._diameter_size_list = eval(self.get_property("diameter_size_list"))
         except BaseException:
             self._diameter_size_list = DEFAULT_DIAMETER_SIZE_LIST
             logging.getLogger("HWR").error(
@@ -54,7 +54,7 @@ class ApertureMockup(AbstractAperture):
             )
 
         try:
-            self._position_list = eval(self.getProperty("position_list"))
+            self._position_list = eval(self.get_property("position_list"))
         except BaseException:
             self._position_list = DEFAULT_POSITION_LIST
             logging.getLogger("HWR").error(

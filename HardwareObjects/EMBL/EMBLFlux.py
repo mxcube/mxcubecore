@@ -185,7 +185,7 @@ class EMBLFlux(AbstractFlux):
             logging.getLogger("HWR").error("BeamlineTest: No intensity ranges defined")
 
         self.chan_intens_mean = self.get_channel_object("intensMean")
-        self.chan_intens_mean.connectSignal("update", self.intens_mean_changed)
+        self.chan_intens_mean.connect_signal("update", self.intens_mean_changed)
 
         self.chan_intens_range = self.get_channel_object("intensRange")
         self.chan_flux_transmission = self.get_channel_object("fluxTransmission")
@@ -195,8 +195,8 @@ class EMBLFlux(AbstractFlux):
         self.cmd_set_intens_range = self.get_command_object("setIntensRange")
         self.cmd_flux_record = self.get_command_object("fluxRecord")
 
-        self.back_light_hwobj = self.getObjectByRole("backlight")
-        self.beamstop_hwobj = self.getObjectByRole("beamstop")
+        self.back_light_hwobj = self.get_object_by_role("backlight")
+        self.beamstop_hwobj = self.get_object_by_role("beamstop")
         self.aperture_hwobj = HWR.beamline.beam.aperture
 
         self.connect(
@@ -206,10 +206,10 @@ class EMBLFlux(AbstractFlux):
         # self.init_flux_values()
 
         self.chan_flux_status = self.get_channel_object("fluxStatus")
-        self.chan_flux_status.connectSignal("update", self.flux_status_changed)
+        self.chan_flux_status.connect_signal("update", self.flux_status_changed)
 
         self.chan_flux_message = self.get_channel_object("fluxMessage")
-        self.chan_flux_message.connectSignal("update", self.flux_message_changed)
+        self.chan_flux_message.connect_signal("update", self.flux_message_changed)
 
         self.connect(HWR.beamline.beam, "beamInfoChanged", self.beam_info_changed)
 
@@ -217,7 +217,7 @@ class EMBLFlux(AbstractFlux):
             self.aperture_hwobj, "diameterIndexChanged", self.aperture_diameter_changed
         )
 
-        self.beam_focusing_hwobj = self.getObjectByRole("beam_focusing")
+        self.beam_focusing_hwobj = self.get_object_by_role("beam_focusing")
         if self.beam_focusing_hwobj is not None:
             self.connect(
                 self.beam_focusing_hwobj,

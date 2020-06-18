@@ -44,9 +44,9 @@ class BeamstopMockup(HardwareObject):
         """
         Descrip. :
         """
-        self.default_size = self.getProperty("defaultBeamstopSize")
-        self.default_distance = self.getProperty("defaultBeamstopDistance")
-        self.default_direction = self.getProperty("defaultBeamstopDirection")
+        self.default_size = self.get_property("defaultBeamstopSize")
+        self.default_distance = self.get_property("defaultBeamstopDistance")
+        self.default_direction = self.get_property("defaultBeamstopDirection")
 
     def get_size(self):
         """

@@ -22,7 +22,7 @@ class ALBAFrontLight(Device):
 
         self.level_channel = self.get_channel_object("light_level")
         self.state_channel = self.get_channel_object("state")
-        threshold = self.getProperty("off_threshold")
+        threshold = self.get_property("off_threshold")
 
         if threshold is not None:
             try:
@@ -34,14 +34,14 @@ class ALBAFrontLight(Device):
                     % self.off_threshold
                 )
 
-        limits = self.getProperty("limits")
+        limits = self.get_property("limits")
         if limits is not None:
             lims = limits.split(",")
             if len(lims) == 2:
                 self.limits = map(float, lims)
 
-        self.level_channel.connectSignal("update", self.level_changed)
-        self.state_channel.connectSignal("update", self.register_state_changed)
+        self.level_channel.connect_signal("update", self.level_changed)
+        self.state_channel.connect_signal("update", self.register_state_changed)
 
     def is_ready(self):
         return True
@@ -121,7 +121,7 @@ def test():
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    light = hwr.getHardwareObject("/frontlight")
+    light = hwr.get_hardware_object("/frontlight")
     print('\nLight control for "%s"\n' % light.getUserName())
     print("   Level limits are:", light.get_limits())
     print("   Current level is:", light.getLevel())

@@ -41,18 +41,18 @@ class XrfSpectrum(Equipment):
                 "XRFSpectrum: energy messages will not appear (missing channel)"
             )
         else:
-            self.spectrumStatusMessage.connectSignal(
+            self.spectrumStatusMessage.connect_signal(
                 "update", self.spectrumStatusChanged
             )
 
         try:
-            self.doSpectrum.connectSignal(
+            self.doSpectrum.connect_signal(
                 "commandBeginWaitReply", self.spectrumCommandStarted
             )
-            self.doSpectrum.connectSignal("commandFailed", self.spectrumCommandFailed)
-            self.doSpectrum.connectSignal("commandAborted", self.spectrumCommandAborted)
-            self.doSpectrum.connectSignal("commandReady", self.spectrumCommandReady)
-            self.doSpectrum.connectSignal(
+            self.doSpectrum.connect_signal("commandFailed", self.spectrumCommandFailed)
+            self.doSpectrum.connect_signal("commandAborted", self.spectrumCommandAborted)
+            self.doSpectrum.connect_signal("commandReady", self.spectrumCommandReady)
+            self.doSpectrum.connect_signal(
                 "commandNotReady", self.spectrumCommandNotReady
             )
         except AttributeError as diag:
@@ -61,8 +61,8 @@ class XrfSpectrum(Equipment):
             )
             self.doSpectrum = None
         else:
-            self.doSpectrum.connectSignal("connected", self.sConnected)
-            self.doSpectrum.connectSignal("disconnected", self.sDisconnected)
+            self.doSpectrum.connect_signal("connected", self.sConnected)
+            self.doSpectrum.connect_signal("disconnected", self.sDisconnected)
 
         if HWR.beamline.lims is None:
             logging.getLogger().warning(
@@ -71,28 +71,28 @@ class XrfSpectrum(Equipment):
         self.spectrumInfo = None
 
         try:
-            self.ctrl_hwobj = self.getObjectByRole("controller")
+            self.ctrl_hwobj = self.get_object_by_role("controller")
         except BaseException:
             self.ctrl_hwobj = None
 
         try:
-            self.mca_hwobj = self.getObjectByRole("mca")
+            self.mca_hwobj = self.get_object_by_role("mca")
             # self.mca_hwobj.set_calibration(calib_cf=[0,0.008324,2.223e-06])
             self.mca_hwobj.set_calibration(calib_cf=self.mca_hwobj.calib_cf)
         except BaseException:
             self.mca_hwobj = None
 
         try:
-            self.datapath = self.getProperty("datapath")
+            self.datapath = self.get_property("datapath")
         except BaseException:
             self.datapath = "/data/pyarch/"
 
         try:
-            self.cfgpath = self.getProperty("cfgpath")
+            self.cfgpath = self.get_property("cfgpath")
         except BaseException:
             self.cfgpath = "/users/blissadm/local/userconf"
 
-        if self.isConnected():
+        if self.is_connected():
             self.sConnected()
 
     def isConnected(self):
@@ -112,7 +112,7 @@ class XrfSpectrum(Equipment):
 
     # Energy spectrum commands
     def canSpectrum(self):
-        if not self.isConnected():
+        if not self.is_connected():
             return False
         return self.doSpectrum is not None
 
@@ -362,7 +362,7 @@ class XrfSpectrum(Equipment):
             )
             return False
 
-        fluodet_ctrl = self.getObjectByRole("fluodet_ctrl")
+        fluodet_ctrl = self.get_object_by_role("fluodet_ctrl")
         fluodet_ctrl.actuatorIn()
         # open the safety and the fast shutter
         safshut.openShutter()
@@ -375,8 +375,8 @@ class XrfSpectrum(Equipment):
 
     def _findAttenuation(self, ct):
         tf = [0.1, 0.2, 0.3, 0.9, 1.3, 1.9, 2.6, 4.3, 6, 8, 12, 24, 36, 50, 71]
-        min_cnt = self.getProperty("min_cnt")
-        max_cnt = self.getProperty("max_cnt")
+        min_cnt = self.get_property("min_cnt")
+        max_cnt = self.get_property("max_cnt")
         self.mca_hwobj.set_roi(2, 15, channel=1)
         print(self.spectrumInfo["filename"])
         self.mca_hwobj.set_presets(

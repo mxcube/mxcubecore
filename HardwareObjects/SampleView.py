@@ -38,12 +38,12 @@ class SampleView(AbstractSampleView):
     def init(self):
         super(SampleView, self).init()
 
-        self._camera = self.getObjectByRole("camera")
-        self._focus = self.getObjectByRole("focus")
-        self._zoom = self.getObjectByRole("zoom")
-        self._frontlight = self.getObjectByRole("frontlight")
-        self._backlight = self.getObjectByRole("backlight")
-        self.hide_grid_threshold = self.getProperty("hide_grid_threshold", 5)
+        self._camera = self.get_object_by_role("camera")
+        self._focus = self.get_object_by_role("focus")
+        self._zoom = self.get_object_by_role("zoom")
+        self._frontlight = self.get_object_by_role("frontlight")
+        self._backlight = self.get_object_by_role("backlight")
+        self.hide_grid_threshold = self.get_property("hide_grid_threshold", 5)
 
     @property
     def shapes(self):

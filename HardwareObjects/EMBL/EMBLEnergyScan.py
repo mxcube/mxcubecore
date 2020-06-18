@@ -72,18 +72,18 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.scan_info = {}
 
         self.chan_scan_start = self.get_channel_object("energyScanStart")
-        self.chan_scan_start.connectSignal("update", self.scan_start_update)
+        self.chan_scan_start.connect_signal("update", self.scan_start_update)
         self.chan_scan_status = self.get_channel_object("energyScanStatus")
-        self.chan_scan_status.connectSignal("update", self.scan_status_update)
+        self.chan_scan_status.connect_signal("update", self.scan_status_update)
         self.chan_scan_error = self.get_channel_object("energyScanError")
-        self.chan_scan_error.connectSignal("update", self.scan_error_update)
+        self.chan_scan_error.connect_signal("update", self.scan_error_update)
 
         self.cmd_scan_abort = self.get_command_object("energyScanAbort")
         self.cmd_adjust_transmission = self.get_command_object("cmdAdjustTransmission")
         self.cmd_set_max_transmission = self.get_command_object("cmdSetMaxTransmission")
 
-        self.num_points = self.getProperty("numPoints", 60)
-        self.chooch_cmd = self.getProperty("chooch_command")
+        self.num_points = self.get_property("numPoints", 60)
+        self.chooch_cmd = self.get_property("chooch_command")
 
     def scan_start_update(self, values):
         """Emits new scan point
@@ -513,8 +513,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             for el in self["elements"]:
                 elements.append(
                     {
-                        "symbol": el.getProperty("symbol"),
-                        "energy": el.getProperty("energy"),
+                        "symbol": el.get_property("symbol"),
+                        "energy": el.get_property("energy"),
                     }
                 )
         except IndexError:

@@ -685,11 +685,11 @@ class Beamline(ConfiguredObject):
         path_template.run_number = self.run_number
 
         file_info = self.session["file_info"]
-        path_template.suffix = file_info.getProperty("file_suffix")
+        path_template.suffix = file_info.get_property("file_suffix")
         path_template.precision = "04"
         try:
-            if file_info.getProperty("precision"):
-                path_template.precision = eval(file_info.getProperty("precision"))
+            if file_info.get_property("precision"):
+                path_template.precision = eval(file_info.get_property("precision"))
         except BaseException:
             pass
 

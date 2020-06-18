@@ -143,7 +143,7 @@ class BIOMAXPatches(HardwareObject):
         return HWR.beamline.sample_changer._chnInSoak.getValue()
 
     def init(self, *args):
-        self.sample_changer_maintenance = self.getObjectByRole(
+        self.sample_changer_maintenance = self.get_object_by_role(
             "sample_changer_maintenance"
         )
         self.__load = HWR.beamline.sample_changer.load

@@ -66,7 +66,7 @@ class MotorMockup(ActuatorMockup, AbstractMotor):
         if None in self.get_limits():
             self.update_limits(DEFAULT_LIMITS)
         try:
-            wr = self.getProperty("wrap_range")
+            wr = self.get_property("wrap_range")
             self._wrap_range = DEFAULT_WRAP_RANGE if not wr else ast.literal_eval(wr)
         except (ValueError, SyntaxError):
             self._wrap_range = DEFAULT_WRAP_RANGE

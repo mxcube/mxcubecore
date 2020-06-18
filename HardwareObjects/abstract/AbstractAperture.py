@@ -39,12 +39,12 @@ class AbstractAperture(HardwareObject):
 
     def init(self):
         try:
-            self._diameter_size_list = eval(self.getProperty("diameter_size_list"))
+            self._diameter_size_list = eval(self.get_property("diameter_size_list"))
         except BaseException:
             logging.getLogger("HWR").error("Aperture: no diameter size list defined")
 
         try:
-            self._position_list = eval(self.getProperty("position_list"))
+            self._position_list = eval(self.get_property("position_list"))
         except BaseException:
             logging.getLogger("HWR").error("Aperture: no position list defined")
 

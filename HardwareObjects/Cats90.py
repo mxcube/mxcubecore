@@ -185,9 +185,9 @@ class Cats90(SampleChanger):
 
         # Create channels from XML
 
-        self.cats_device = PyTango.DeviceProxy(self.getProperty("tangoname"))
+        self.cats_device = PyTango.DeviceProxy(self.get_property("tangoname"))
 
-        no_of_lids = self.getProperty("no_of_lids")
+        no_of_lids = self.get_property("no_of_lids")
         if no_of_lids is None:
             self.number_of_lids = self.default_no_lids
         else:
@@ -436,8 +436,8 @@ class Cats90(SampleChanger):
         else:
             # ok. it does not. use good old way (xml or default) to find nb baskets
             # and samples
-            no_of_baskets = self.getProperty("no_of_baskets")
-            samples_per_basket = self.getProperty("samples_per_basket")
+            no_of_baskets = self.get_property("no_of_baskets")
+            samples_per_basket = self.get_property("samples_per_basket")
 
             if no_of_baskets is None:
                 self.number_of_baskets = self.baskets_per_lid * self.number_of_lids
@@ -500,30 +500,30 @@ class Cats90(SampleChanger):
 
         self.use_update_timer = False  # do not use update_timer for Cats
 
-        self._chnState.connectSignal("update", self.cats_state_changed)
-        self._chnStatus.connectSignal("update", self.cats_status_changed)
-        self._chnPathRunning.connectSignal("update", self.cats_pathrunning_changed)
-        self._chnPowered.connectSignal("update", self.cats_powered_changed)
-        self._chnPathSafe.connectSignal("update", self.cats_pathsafe_changed)
-        self._chnAllLidsClosed.connectSignal("update", self.cats_lids_closed_changed)
-        self._chnLidLoadedSample.connectSignal("update", self.cats_loaded_lid_changed)
-        self._chnNumLoadedSample.connectSignal("update", self.cats_loaded_num_changed)
-        self._chnSampleBarcode.connectSignal("update", self.cats_barcode_changed)
+        self._chnState.connect_signal("update", self.cats_state_changed)
+        self._chnStatus.connect_signal("update", self.cats_status_changed)
+        self._chnPathRunning.connect_signal("update", self.cats_pathrunning_changed)
+        self._chnPowered.connect_signal("update", self.cats_powered_changed)
+        self._chnPathSafe.connect_signal("update", self.cats_pathsafe_changed)
+        self._chnAllLidsClosed.connect_signal("update", self.cats_lids_closed_changed)
+        self._chnLidLoadedSample.connect_signal("update", self.cats_loaded_lid_changed)
+        self._chnNumLoadedSample.connect_signal("update", self.cats_loaded_num_changed)
+        self._chnSampleBarcode.connect_signal("update", self.cats_barcode_changed)
 
         # connect presence channels
         if self.basket_channels is not None:  # old device server
             for basket_index in range(self.number_of_baskets):
                 channel = self.basket_channels[basket_index]
-                channel.connectSignal("update", self.cats_basket_presence_changed)
+                channel.connect_signal("update", self.cats_basket_presence_changed)
         else:  # new device server with global CassettePresence attribute
-            self._chnBasketPresence.connectSignal("update", self.cats_baskets_changed)
+            self._chnBasketPresence.connect_signal("update", self.cats_baskets_changed)
 
         # Read other XML properties
-        read_datamatrix = self.getProperty("read_datamatrix")
+        read_datamatrix = self.get_property("read_datamatrix")
         if read_datamatrix:
             self.set_read_barcode(True)
 
-        unipuck_tool = self.getProperty("unipuck_tool")
+        unipuck_tool = self.get_property("unipuck_tool")
         try:
             unipuck_tool = int(unipuck_tool)
             if unipuck_tool:
@@ -533,7 +533,7 @@ class Cats90(SampleChanger):
 
         self.update_info()
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == SampleChanger.INFO_CHANGED_EVENT:
             self._update_cats_contents()
 

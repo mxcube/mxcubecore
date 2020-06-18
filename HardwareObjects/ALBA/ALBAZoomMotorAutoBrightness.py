@@ -72,11 +72,11 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device, AbstractMotor):
     def init(self):
         logging.getLogger("HWR").debug("Initializing zoom motor autobrightness IOR")
 
-        self.zoom = self.getObjectByRole("zoom")
-        self.blight = self.getObjectByRole("blight")
+        self.zoom = self.get_object_by_role("zoom")
+        self.blight = self.get_object_by_role("blight")
 
-        self.zoom.positionChannel.connectSignal("update", self.positionChanged)
-        self.zoom.stateChannel.connectSignal("update", self.stateChanged)
+        self.zoom.positionChannel.connect_signal("update", self.positionChanged)
+        self.zoom.stateChannel.connect_signal("update", self.stateChanged)
 
     def getPredefinedPositionsList(self):
         retlist = self.zoom.getPredefinedPositionsList()
@@ -156,7 +156,7 @@ def test():
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    zoom = hwr.getHardwareObject("/zoom-auto-brightness")
+    zoom = hwr.get_hardware_object("/zoom-auto-brightness")
 
     print(type(zoom.get_state()))
 

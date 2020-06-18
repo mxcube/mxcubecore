@@ -74,10 +74,10 @@ class EMBLBSD(GenericDiffractometer):
 
         self.chan_state = self.get_channel_object("State")
         self.current_state = self.chan_state.getValue()
-        self.chan_state.connectSignal("update", self.state_changed)
+        self.chan_state.connect_signal("update", self.state_changed)
 
         self.chan_status = self.get_channel_object("Status")
-        self.chan_status.connectSignal("update", self.status_changed)
+        self.chan_status.connect_signal("update", self.status_changed)
 
         self.chan_calib_x = self.get_channel_object("CoaxCamScaleX")
         self.chan_calib_y = self.get_channel_object("CoaxCamScaleY")
@@ -87,7 +87,7 @@ class EMBLBSD(GenericDiffractometer):
         self.connect(self.chan_current_phase, "update", self.current_phase_changed)
 
         self.chan_fast_shutter_is_open = self.get_channel_object("FastShutterIsOpen")
-        self.chan_fast_shutter_is_open.connectSignal(
+        self.chan_fast_shutter_is_open.connect_signal(
             "update", self.fast_shutter_state_changed
         )
 
@@ -99,7 +99,7 @@ class EMBLBSD(GenericDiffractometer):
         self.cmd_start_set_phase = self.get_command_object("startSetPhase")
         self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")
 
-        self.zoom_motor_hwobj = self.getObjectByRole("zoom")
+        self.zoom_motor_hwobj = self.get_object_by_role("zoom")
         self.connect(self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed)
         self.connect(
             self.zoom_motor_hwobj,

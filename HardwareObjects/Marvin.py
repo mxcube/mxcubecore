@@ -140,7 +140,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             
     def init(self):      
         self._puck_switches = 0
-        self._num_basket = self.getProperty("numBaskets")
+        self._num_basket = self.get_property("numBaskets")
         if not self._num_basket:
             self._num_basket = 17
 
@@ -149,30 +149,30 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             self._add_component(basket)
 
         self.chan_mounted_sample_puck = self.get_channel_object("chanMountedSamplePuck")
-        self.chan_mounted_sample_puck.connectSignal("update", self.mounted_sample_puck_changed)
+        self.chan_mounted_sample_puck.connect_signal("update", self.mounted_sample_puck_changed)
 
         self.chan_process_step_info = self.get_channel_object("chanProcessStepInfo",
                                                               optional=True)
         if self.chan_process_step_info is not None:
-            self.chan_process_step_info.connectSignal("update", self.process_step_info_changed)
+            self.chan_process_step_info.connect_signal("update", self.process_step_info_changed)
 
         self.chan_command_list = self.get_channel_object("chanCommandList",
                                                          optional=True)
         if self.chan_command_list is not None:
-            self.chan_command_list.connectSignal("update", self.command_list_changed)
+            self.chan_command_list.connect_signal("update", self.command_list_changed)
 
         self.chan_puck_switches = self.get_channel_object("chanPuckSwitches")
-        self.chan_puck_switches.connectSignal("update", self.puck_switches_changed)
+        self.chan_puck_switches.connect_signal("update", self.puck_switches_changed)
         
         self.chan_status = self.get_channel_object("chanStatusList")
-        self.chan_status.connectSignal("update", self.status_list_changed)
+        self.chan_status.connect_signal("update", self.status_list_changed)
 
         self.chan_sample_is_loaded = self.get_channel_object("chanSampleIsLoaded")
-        self.chan_sample_is_loaded.connectSignal("update", self.sample_is_loaded_changed)
+        self.chan_sample_is_loaded.connect_signal("update", self.sample_is_loaded_changed)
 
         self.chan_veto = self.get_channel_object("chanVeto", optional=True)
         if self.chan_veto is not None:
-            self.chan_veto.connectSignal("update", self.veto_changed)
+            self.chan_veto.connect_signal("update", self.veto_changed)
 
         self.cmd_mount_sample = self.get_command_object("cmdMountSample")
         self.cmd_unmount_sample = self.get_command_object("cmdUnmountSample")
@@ -182,7 +182,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         self.cmd_center_to_base = self.get_command_object("cmdCenterToBase")
         self.cmd_dry_gripper = self.get_command_object("cmdDryGripper")
 
-        self.beam_focusing_hwobj = self.getObjectByRole("beam_focusing")
+        self.beam_focusing_hwobj = self.get_object_by_role("beam_focusing")
         if self.beam_focusing_hwobj is not None:
             self.connect(self.beam_focusing_hwobj,
                          "focusingModeChanged",
@@ -197,7 +197,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         self._updateSCContents()
         self._update_loaded_sample()
 
-        self.log_filename = self.getProperty("log_filename")
+        self.log_filename = self.get_property("log_filename")
         if self.log_filename is None:
             self.log_filename = os.path.join(tempfile.gettempdir(),
                                              "mxcube",

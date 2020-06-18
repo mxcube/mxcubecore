@@ -233,7 +233,7 @@ class SampleChanger(Container, Equipment):
         """
         HardwareObject init method
         """
-        use_update_timer = self.getProperty("useUpdateTimer")
+        use_update_timer = self.get_property("useUpdateTimer")
 
         if use_update_timer is None:
             use_update_timer = True
@@ -294,8 +294,8 @@ class SampleChanger(Container, Equipment):
 
     # #######################    HardwareObject    #######################
 
-    def connectNotify(self, signal):
-        logging.getLogger().info("connectNotify " + str(signal))
+    def connect_notify(self, signal):
+        logging.getLogger().info("connect_notify " + str(signal))
 
     # ########################    PUBLIC    #########################
 

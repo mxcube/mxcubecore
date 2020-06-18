@@ -86,8 +86,8 @@ class QtLimaVideo(AbstractVideoDevice):
         self.master_mode = True
 
     def init(self):
-        self.cam_address = self.getProperty("address")
-        self.cam_type = self.getProperty("type").lower()
+        self.cam_address = self.get_property("address")
+        self.cam_type = self.get_property("type").lower()
 
         if self.cam_type == "prosilica":
             self.camera = Prosilica.Camera(self.cam_address, self.master_mode, False)

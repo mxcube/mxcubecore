@@ -37,10 +37,10 @@ class SOLEILEnergyScan(Equipment):
             self.defaultWavelengthChannel = None
         else:
             if self.defaultWavelengthChannel is not None:
-                self.defaultWavelengthChannel.connectSignal(
+                self.defaultWavelengthChannel.connect_signal(
                     "connected", self.sConnected
                 )
-                self.defaultWavelengthChannel.connectSignal(
+                self.defaultWavelengthChannel.connect_signal(
                     "disconnected", self.sDisconnected
                 )
 
@@ -65,18 +65,18 @@ class SOLEILEnergyScan(Equipment):
                 self.connect(self.scanStatusMessage, "update", self.scanStatusChanged)
 
             try:
-                self.doEnergyScan.connectSignal(
+                self.doEnergyScan.connect_signal(
                     "commandReplyArrived", self.scanCommandFinished
                 )
-                self.doEnergyScan.connectSignal(
+                self.doEnergyScan.connect_signal(
                     "commandBeginWaitReply", self.scanCommandStarted
                 )
-                self.doEnergyScan.connectSignal("commandFailed", self.scanCommandFailed)
-                self.doEnergyScan.connectSignal(
+                self.doEnergyScan.connect_signal("commandFailed", self.scanCommandFailed)
+                self.doEnergyScan.connect_signal(
                     "commandAborted", self.scanCommandAborted
                 )
-                self.doEnergyScan.connectSignal("commandReady", self.scanCommandReady)
-                self.doEnergyScan.connectSignal(
+                self.doEnergyScan.connect_signal("commandReady", self.scanCommandReady)
+                self.doEnergyScan.connect_signal(
                     "commandNotReady", self.scanCommandNotReady
                 )
             except AttributeError as diag:
@@ -85,8 +85,8 @@ class SOLEILEnergyScan(Equipment):
                 )
                 self.doEnergyScan = Xanes  # .xanes(None, None) #None
             else:
-                self.doEnergyScan.connectSignal("connected", self.sConnected)
-                self.doEnergyScan.connectSignal("disconnected", self.sDisconnected)
+                self.doEnergyScan.connect_signal("connected", self.sConnected)
+                self.doEnergyScan.connect_signal("disconnected", self.sDisconnected)
 
             self.previousResolution = None
             self.lastResolution = None
@@ -97,31 +97,31 @@ class SOLEILEnergyScan(Equipment):
                 )
             self.scanInfo = None
 
-            self.cryostreamHO = self.getObjectByRole("cryostream")
+            self.cryostreamHO = self.get_object_by_role("cryostream")
             if self.cryostreamHO is None:
                 logging.getLogger("HWR").warning(
                     "EnergyScan: you should specify the cryo stream hardware object"
                 )
 
-            self.machcurrentHO = self.getObjectByRole("machcurrent")
+            self.machcurrentHO = self.get_object_by_role("machcurrent")
             if self.machcurrentHO is None:
                 logging.getLogger("HWR").warning(
                     "EnergyScan: you should specify the machine current hardware object"
                 )
 
-            self.fluodetectorHO = self.getObjectByRole("fluodetector")
+            self.fluodetectorHO = self.get_object_by_role("fluodetector")
             if self.fluodetectorHO is None:
                 logging.getLogger("HWR").warning(
                     "EnergyScan: you should specify the fluorescence detector hardware object"
                 )
 
             try:
-                # self.moveEnergy.connectSignal('commandReplyArrived', self.moveEnergyCmdFinished)
-                # self.moveEnergy.connectSignal('commandBeginWaitReply', self.moveEnergyCmdStarted)
-                # self.moveEnergy.connectSignal('commandFailed', self.moveEnergyCmdFailed)
-                # self.moveEnergy.connectSignal('commandAborted', self.moveEnergyCmdAborted)
-                self.moveEnergy.connectSignal("commandReady", self.moveEnergyCmdReady)
-                self.moveEnergy.connectSignal(
+                # self.moveEnergy.connect_signal('commandReplyArrived', self.moveEnergyCmdFinished)
+                # self.moveEnergy.connect_signal('commandBeginWaitReply', self.moveEnergyCmdStarted)
+                # self.moveEnergy.connect_signal('commandFailed', self.moveEnergyCmdFailed)
+                # self.moveEnergy.connect_signal('commandAborted', self.moveEnergyCmdAborted)
+                self.moveEnergy.connect_signal("commandReady", self.moveEnergyCmdReady)
+                self.moveEnergy.connect_signal(
                     "commandNotReady", self.moveEnergyCmdNotReady
                 )
             except AttributeError as diag:
@@ -143,11 +143,11 @@ class SOLEILEnergyScan(Equipment):
                     "valueChanged", self.resolutionPositionChanged
                 )
 
-        self.thEdgeThreshold = self.getProperty("theoritical_edge_threshold")
+        self.thEdgeThreshold = self.get_property("theoritical_edge_threshold")
         if self.thEdgeThreshold is None:
             self.thEdgeThreshold = 0.01
 
-        if self.isConnected():
+        if self.is_connected():
             self.sConnected()
         logging.getLogger("HWR").info(
             "#############################    EnergyScan: INIT HWOBJ IS FINISHED ###################"
@@ -198,7 +198,7 @@ class SOLEILEnergyScan(Equipment):
 
     # # Energy scan commands
     # def canScanEnergy(self):
-    #     if not self.isConnected():
+    #     if not self.is_connected():
     #         return False
     #     if self.energy2WavelengthConstant is None or self.energyScanArgs is None:
     #         return False

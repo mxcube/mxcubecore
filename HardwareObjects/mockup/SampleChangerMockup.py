@@ -21,11 +21,11 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
         self._selected_basket = -1
         self._scIsCharging = None
 
-        self.no_of_baskets = self.getProperty(
+        self.no_of_baskets = self.get_property(
             "no_of_baskets", SampleChangerMockup.NO_OF_BASKETS
         )
 
-        self.no_of_samples_in_basket = self.getProperty(
+        self.no_of_samples_in_basket = self.get_property(
             "no_of_samples_in_basket", SampleChangerMockup.NO_OF_SAMPLES_IN_BASKET
         )
 
@@ -39,7 +39,7 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
         self.signal_wait_task = None
         AbstractSampleChanger.SampleChanger.init(self)
 
-        self.log_filename = self.getProperty("log_filename")
+        self.log_filename = self.get_property("log_filename")
 
     def get_log_filename(self):
         return self.log_filename
@@ -143,7 +143,7 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
         """
         named_samples = {}
         if self.hasObject("test_sample_names"):
-            for tag, val in self["test_sample_names"].getProperties().items():
+            for tag, val in self["test_sample_names"].get_properties().items():
                 named_samples[val] = tag
 
         for basket_index in range(self.no_of_baskets):

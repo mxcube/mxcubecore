@@ -26,7 +26,7 @@ class ESRFCryoMon(Device):
         self.tg_device = None
         while True:
             if self.tg_device is None:
-                self.tg_device = DeviceProxy(self.getProperty("tangoname"))
+                self.tg_device = DeviceProxy(self.get_property("tangoname"))
             try:
                 temp = self.tg_device.Gas_temp
             except BaseException:

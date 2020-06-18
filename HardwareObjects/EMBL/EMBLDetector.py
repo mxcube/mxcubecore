@@ -79,41 +79,41 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
     def init(self):
         self.cover_state = "unknown"
-        self.collect_name = self.getProperty("collectName")
-        self.shutter_name = self.getProperty("shutterName")
-        self.tolerance = self.getProperty("tolerance")
-        self.temp_treshold = self.getProperty("tempThreshold")
-        self.hum_treshold = self.getProperty("humidityThreshold")
-        self.pixel_min = self.getProperty("px_min")
-        self.pixel_max = self.getProperty("px_max")
-        self.roi_modes_list = ast.literal_eval(self.getProperty("roiModes"))
+        self.collect_name = self.get_property("collectName")
+        self.shutter_name = self.get_property("shutterName")
+        self.tolerance = self.get_property("tolerance")
+        self.temp_treshold = self.get_property("tempThreshold")
+        self.hum_treshold = self.get_property("humidityThreshold")
+        self.pixel_min = self.get_property("px_min")
+        self.pixel_max = self.get_property("px_max")
+        self.roi_modes_list = ast.literal_eval(self.get_property("roiModes"))
         self.binning_mode = "Unbinned"
 
-        self.pixel_size_mm_x = self.getProperty("px")
-        self.pixel_size_mm_y = self.getProperty("py")
+        self.pixel_size_mm_x = self.get_property("px")
+        self.pixel_size_mm_y = self.get_property("py")
 
-        self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
+        self.distance_motor_hwobj = self.get_object_by_role("distance_motor")
 
         self.chan_cover_state = self.get_channel_object("chanCoverState", optional=True)
         if self.chan_cover_state is not None:
-            self.chan_cover_state.connectSignal("update", self.cover_state_changed)
+            self.chan_cover_state.connect_signal("update", self.cover_state_changed)
         self.chan_temperature = self.get_channel_object("chanTemperature")
-        self.chan_temperature.connectSignal("update", self.temperature_changed)
+        self.chan_temperature.connect_signal("update", self.temperature_changed)
         self.chan_humidity = self.get_channel_object("chanHumidity")
-        self.chan_humidity.connectSignal("update", self.humidity_changed)
+        self.chan_humidity.connect_signal("update", self.humidity_changed)
         self.chan_status = self.get_channel_object("chanStatus")
-        self.chan_status.connectSignal("update", self.status_changed)
+        self.chan_status.connect_signal("update", self.status_changed)
         self.chan_roi_mode = self.get_channel_object("chanRoiMode")
-        self.chan_roi_mode.connectSignal("update", self.roi_mode_changed)
+        self.chan_roi_mode.connect_signal("update", self.roi_mode_changed)
         self.chan_frame_rate = self.get_channel_object("chanFrameRate")
-        self.chan_frame_rate.connectSignal("update", self.frame_rate_changed)
+        self.chan_frame_rate.connect_signal("update", self.frame_rate_changed)
         self.frame_rate_changed(self.chan_frame_rate.getValue())
 
         self.chan_actual_frame_rate = self.get_channel_object(
             "chanActualFrameRate", optional=True
         )
         if self.chan_actual_frame_rate is not None:
-            self.chan_actual_frame_rate.connectSignal(
+            self.chan_actual_frame_rate.connect_signal(
                 "update", self.actual_frame_rate_changed
             )
 
@@ -124,7 +124,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
     def has_shutterless(self):
         """Return True if has shutterless mode"""
-        return self.getProperty("hasShutterless")
+        return self.get_property("hasShutterless")
 
     def get_collect_name(self):
         """Returns collection name"""

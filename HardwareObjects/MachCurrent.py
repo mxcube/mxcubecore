@@ -23,7 +23,7 @@ class MachCurrent(BaseHardwareObjects.Device):
     def init(self):
         try:
             chanCurrent = self.get_channel_object("Current")
-            chanCurrent.connectSignal("update", self.valueChanged)
+            chanCurrent.connect_signal("update", self.valueChanged)
             self.setIsReady(True)
         except Exception as e:
             logging.getLogger("HWR").exception(e)

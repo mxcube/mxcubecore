@@ -73,44 +73,44 @@ class EMBLEnergy(AbstractEnergy):
 
         self.chan_energy = self.get_channel_object("chanEnergy")
         if self.chan_energy is not None:
-            self.chan_energy.connectSignal("update", self.energy_position_changed)
+            self.chan_energy.connect_signal("update", self.energy_position_changed)
 
         self.chan_limit_low = self.get_channel_object("chanLimitLow", optional=True)
         if self.chan_limit_low is not None:
-            self.chan_limit_low.connectSignal("update", self.energy_limits_changed)
+            self.chan_limit_low.connect_signal("update", self.energy_limits_changed)
 
         self.chan_limit_high = self.get_channel_object("chanLimitHigh", optional=True)
         if self.chan_limit_high is not None:
-            self.chan_limit_high.connectSignal("update", self.energy_limits_changed)
+            self.chan_limit_high.connect_signal("update", self.energy_limits_changed)
 
         self.chan_status = self.get_channel_object("chanStatus")
         if self.chan_status is not None:
-            self.chan_status.connectSignal("update", self.energy_state_changed)
+            self.chan_status.connect_signal("update", self.energy_state_changed)
 
         self.chan_undulator_gaps = self.get_channel_object(
             "chanUndulatorGap", optional=True
         )
         if self.chan_undulator_gaps is not None:
-            self.chan_undulator_gaps.connectSignal(
+            self.chan_undulator_gaps.connect_signal(
                 "update", self.undulator_gaps_changed
             )
 
         self.chan_status_bragg_break = self.get_channel_object("chanStatusBraggBreak")
         if self.chan_status_bragg_break is not None:
-            self.chan_status_bragg_break.connectSignal(
+            self.chan_status_bragg_break.connect_signal(
                 "update", self.bragg_break_status_changed
             )
 
         try:
-            self._default_energy = self.getProperty("defaultEnergy")
+            self._default_energy = self.get_property("defaultEnergy")
         except BaseException:
             logging.getLogger("HWR").warning("Energy: no default energy defined")
 
         try:
-            self._energy_limits = eval(self.getProperty("staticLimits"))
+            self._energy_limits = eval(self.get_property("staticLimits"))
         except BaseException:
             self._energy_limits = (None, None)
-        self.ctrl_bytes = eval(self.getProperty("ctrlBytes"))
+        self.ctrl_bytes = eval(self.get_property("ctrlBytes"))
 
         if not self.chan_energy:
             self.energy_position_changed(self._default_energy * 1000)

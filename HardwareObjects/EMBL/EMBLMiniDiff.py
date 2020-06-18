@@ -91,10 +91,10 @@ class EMBLMiniDiff(GenericDiffractometer):
 
         self.chan_state = self.get_channel_object("State")
         self.current_state = self.chan_state.getValue()
-        self.chan_state.connectSignal("update", self.state_changed)
+        self.chan_state.connect_signal("update", self.state_changed)
 
         self.chan_status = self.get_channel_object("Status")
-        self.chan_status.connectSignal("update", self.status_changed)
+        self.chan_status.connect_signal("update", self.status_changed)
 
         self.chan_calib_x = self.get_channel_object("CoaxCamScaleX")
         self.chan_calib_y = self.get_channel_object("CoaxCamScaleY")
@@ -107,7 +107,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.connect(self.chan_current_phase, "update", self.current_phase_changed)
 
         self.chan_fast_shutter_is_open = self.get_channel_object("FastShutterIsOpen")
-        self.chan_fast_shutter_is_open.connectSignal(
+        self.chan_fast_shutter_is_open.connect_signal(
             "update", self.fast_shutter_state_changed
         )
 
@@ -125,11 +125,11 @@ class EMBLMiniDiff(GenericDiffractometer):
             "saveCentringPositions"
         )
 
-        self.centring_hwobj = self.getObjectByRole("centring")
-        self.imaging_centring_hwobj = self.getObjectByRole("imaging-centring")
-        self.minikappa_correction_hwobj = self.getObjectByRole("minikappa_correction")
+        self.centring_hwobj = self.get_object_by_role("centring")
+        self.imaging_centring_hwobj = self.get_object_by_role("imaging-centring")
+        self.minikappa_correction_hwobj = self.get_object_by_role("minikappa_correction")
 
-        self.zoom_motor_hwobj = self.getObjectByRole("zoom")
+        self.zoom_motor_hwobj = self.get_object_by_role("zoom")
         self.connect(self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed)
         self.connect(
             self.zoom_motor_hwobj,
@@ -158,8 +158,8 @@ class EMBLMiniDiff(GenericDiffractometer):
             self.motor_hwobj_dict["sampy"], "valueChanged", self.sampy_motor_moved
         )
 
-        self.omega_reference_par = eval(self.getProperty("omega_reference"))
-        self.omega_reference_motor = self.getObjectByRole(
+        self.omega_reference_par = eval(self.get_property("omega_reference"))
+        self.omega_reference_motor = self.get_object_by_role(
             self.omega_reference_par["motor_name"]
         )
         self.connect(
@@ -168,7 +168,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             self.omega_reference_motor_moved,
         )
 
-        # self.use_sc = self.getProperty("use_sample_changer")
+        # self.use_sc = self.get_property("use_sample_changer")
         self.imaging_pixels_per_mm = [3076.923, 3076.923]
         self.centring_methods[
             EMBLMiniDiff.CENTRING_METHOD_IMAGING
@@ -640,7 +640,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             "kappa",
             "kappa_phi",
         ):
-            mot_obj = self.getObjectByRole(motor_role)
+            mot_obj = self.get_object_by_role(motor_role)
             try:
                 motors[motor_role] = motor_pos[mot_obj]
             except KeyError:

@@ -87,9 +87,9 @@ class DataPublisher(HardwareObject):
         """
         super(DataPublisher, self).init()
 
-        rhost = self.getProperty("host", "localhost")
-        rport = self.getProperty("port", 6379)
-        rdb = self.getProperty("db", 11)
+        rhost = self.get_property("host", "localhost")
+        rport = self.get_property("port", 6379)
+        rdb = self.get_property("db", 11)
 
         self._r = redis.Redis(
             host=rhost, port=rport, db=rdb, charset="utf-8", decode_responses=True

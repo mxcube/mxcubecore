@@ -23,8 +23,8 @@ class ALBAAutoProcessing(HardwareObject):
     def init(self):
         HardwareObject.init(self)
 
-        self.template_dir = self.getProperty("template_dir")
-        var_dsname = self.getProperty("variables_ds")
+        self.template_dir = self.get_property("template_dir")
+        var_dsname = self.get_property("variables_ds")
         logging.getLogger("HWR").debug(
             "ALBAAutoProcessing INIT: var_ds=%s, template_dir=%s"
             % (var_dsname, self.template_dir)

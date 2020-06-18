@@ -24,14 +24,14 @@ class PX1MiniDiff(GenericDiffractometer):
     ]
 
     def init(self):
-        self.smargon = self.getObjectByRole("smargon")
+        self.smargon = self.get_object_by_role("smargon")
         self.connect(self.smargon, "stateChanged", self.smargon_state_changed)
 
-        self.lightarm_hwobj = self.getObjectByRole("lightarm")
-        # self.centring_hwobj = self.getObjectByRole('centring')
+        self.lightarm_hwobj = self.get_object_by_role("lightarm")
+        # self.centring_hwobj = self.get_object_by_role('centring')
 
-        self.px1conf_ho = self.getObjectByRole("px1configuration")
-        self.px1env_ho = self.getObjectByRole("px1environment")
+        self.px1conf_ho = self.get_object_by_role("px1configuration")
+        self.px1env_ho = self.get_object_by_role("px1environment")
 
         self.pixels_per_mm_x = 0
         self.pixels_per_mm_y = 0

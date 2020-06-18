@@ -26,9 +26,9 @@ class ESRFSC3(SC3.SC3):
         try:
             operationalChan = self.get_channel_object("OperationalFlags")
             chan = operationalChan.getValue()
-            operationalChan.connectSignal("update", self.operationalFlagsChanged)
+            operationalChan.connect_signal("update", self.operationalFlagsChanged)
         except BaseException:
-            operationalChan = self.getProperty("OperationalFlags")
+            operationalChan = self.get_property("OperationalFlags")
             chan = operationalChan
 
         try:
@@ -211,12 +211,12 @@ class ESRFSC3(SC3.SC3):
         return not self.has_loaded_sample()
 
     def moveCryoIn(self):
-        cryoDevice = self.getDeviceByRole("Cryo")
+        cryoDevice = self.get_deviceByRole("Cryo")
         if cryoDevice is not None:
             cryoDevice.wagoIn()
 
     def moveLightIn(self):
-        lightDevice = self.getDeviceByRole("Light")
+        lightDevice = self.get_deviceByRole("Light")
         if lightDevice is not None:
             lightDevice.wagoIn()
 

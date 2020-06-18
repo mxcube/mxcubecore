@@ -85,8 +85,8 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
         self.currentposition = 0
         self.currentstate = None
 
-        self.positionChannel.connectSignal("update", self.positionChanged)
-        self.stateChannel.connectSignal("update", self.stateChanged)
+        self.positionChannel.connect_signal("update", self.positionChanged)
+        self.stateChannel.connect_signal("update", self.stateChanged)
 
     def getPredefinedPositionsList(self):
         labels = self.labelsChannel.getValue()

@@ -88,7 +88,7 @@ class CatsBessy(SampleChanger):
             "di_AllLidsClosed",
         )
         if self._lidStatus is not None:
-            self._lidStatus.connectSignal("update", self._update_operation_mode)
+            self._lidStatus.connect_signal("update", self._update_operation_mode)
         self._scIsCharging = None
 
         self._load = self.add_command(

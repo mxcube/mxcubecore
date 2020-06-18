@@ -76,10 +76,10 @@ class ALBAMiniDiff(GenericDiffractometer):
 
     def init(self):
 
-        self.calibration = self.getObjectByRole("calibration")
+        self.calibration = self.get_object_by_role("calibration")
 
-        self.centring_hwobj = self.getObjectByRole("centring")
-        self.super_hwobj = self.getObjectByRole("beamline-supervisor")
+        self.centring_hwobj = self.get_object_by_role("centring")
+        self.super_hwobj = self.get_object_by_role("beamline-supervisor")
 
         if self.centring_hwobj is None:
             logging.getLogger("HWR").debug("ALBAMinidiff: Centring math is not defined")
@@ -97,13 +97,13 @@ class ALBAMiniDiff(GenericDiffractometer):
         # This is not used
         self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")
 
-        self.phi_motor_hwobj = self.getObjectByRole("phi")
-        self.phiz_motor_hwobj = self.getObjectByRole("phiz")
-        self.phiy_motor_hwobj = self.getObjectByRole("phiy")
-        self.zoom_motor_hwobj = self.getObjectByRole("zoom")
-        self.focus_motor_hwobj = self.getObjectByRole("focus")
-        self.sample_x_motor_hwobj = self.getObjectByRole("sampx")
-        self.sample_y_motor_hwobj = self.getObjectByRole("sampy")
+        self.phi_motor_hwobj = self.get_object_by_role("phi")
+        self.phiz_motor_hwobj = self.get_object_by_role("phiz")
+        self.phiy_motor_hwobj = self.get_object_by_role("phiy")
+        self.zoom_motor_hwobj = self.get_object_by_role("zoom")
+        self.focus_motor_hwobj = self.get_object_by_role("focus")
+        self.sample_x_motor_hwobj = self.get_object_by_role("sampx")
+        self.sample_y_motor_hwobj = self.get_object_by_role("sampy")
 
         if self.phi_motor_hwobj is not None:
             self.connect(

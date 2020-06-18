@@ -76,7 +76,7 @@ def test():
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    calib = hwr.getHardwareObject("/calibration")
+    calib = hwr.get_hardware_object("/calibration")
     print("Calibration is: ", calib.getCalibration())
 
 

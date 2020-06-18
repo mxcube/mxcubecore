@@ -13,7 +13,7 @@ class GrobMotor(Device, AbstractMotor):
     def init(self):
         self.motorState = GrobMotor.NOTINITIALIZED
         self.username = self.motor_name
-        self.grob = self.getObjectByRole("grob")
+        self.grob = self.get_object_by_role("grob")
 
         # this is ugly : I added it to make the centring procedure happy
         self.specName = self.motor_name
@@ -22,7 +22,7 @@ class GrobMotor(Device, AbstractMotor):
         self.connect(self.motor, "position", self.positionChanged)
         self.connect(self.motor, "state", self.updateState)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "valueChanged":
             self.emit("valueChanged", (self.get_value(),))
         elif signal == "stateChanged":

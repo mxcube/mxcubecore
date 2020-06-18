@@ -219,10 +219,10 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         """
         Descript. :
         """
-        self.num_cols = self.getProperty("numCols")
-        self.num_rows = self.getProperty("numRows")
-        self.num_drops = self.getProperty("numDrops")
-        self.reference_pos_x = self.getProperty("referencePosX")
+        self.num_cols = self.get_property("numCols")
+        self.num_rows = self.get_property("numRows")
+        self.num_drops = self.get_property("numDrops")
+        self.reference_pos_x = self.get_property("referencePosX")
         if not self.reference_pos_x:
             self.reference_pos_x = 0.5
 

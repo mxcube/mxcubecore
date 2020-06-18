@@ -8,4 +8,4 @@ class GrobDiff(MiniDiff.MiniDiff):
         self.phiy_direction = -1
 
     def oscillate(self, range, exp_time, npasses=1):
-        self.getDeviceByRole("phi").oscillation(range, exp_time, npasses)
+        self.get_deviceByRole("phi").oscillation(range, exp_time, npasses)
