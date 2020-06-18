@@ -540,6 +540,14 @@ class Beamline(ConfiguredObject):
 
     __content_roles.append("mock_procedure")
 
+    @property
+    def data_publisher(self):
+        """
+        """
+        return self._objects.get("data_publisher")
+
+    __content_roles.append("data_publisher")
+
     # NB this is just an example of a globally shared procedure description
     @property
     def manual_centring(self):
