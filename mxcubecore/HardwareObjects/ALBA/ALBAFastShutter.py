@@ -88,14 +88,14 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
             self.motorpos_channel = self.get_channel_object("motorposition")
             self.motorstate_channel = self.get_channel_object("motorstate")
 
-            self.actuator_channel.connectSignal("update", self.stateChanged)
-            self.motorpos_channel.connectSignal("update", self.motorPositionChanged)
-            self.motorstate_channel.connectSignal("update", self.motorStateChanged)
+            self.actuator_channel.connect_signal("update", self.stateChanged)
+            self.motorpos_channel.connect_signal("update", self.motorPositionChanged)
+            self.motorstate_channel.connect_signal("update", self.motorStateChanged)
         except KeyError:
             logging.getLogger().warning("%s: cannot report FrontEnd State", self.name())
 
         try:
-            state_string = self.getProperty("states")
+            state_string = self.get_property("states")
             if state_string is None:
                 self.state_strings = self.default_state_strings
             else:

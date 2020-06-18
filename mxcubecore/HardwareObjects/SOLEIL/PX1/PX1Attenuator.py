@@ -19,10 +19,10 @@ class PX1Attenuator(Device):
         self.factor_chan = self.get_channel_object("parser")
 
         if self.state_chan is not None:
-            self.state_chan.connectSignal("update", self.state_changed)
+            self.state_chan.connect_signal("update", self.state_changed)
 
         if self.factor_chan is not None:
-            self.factor_chan.connectSignal("update", self.factor_changed)
+            self.factor_chan.connect_signal("update", self.factor_changed)
 
         self.connected()
 

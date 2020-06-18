@@ -33,9 +33,9 @@ class PX1DetectorDistance(Device, AbstractMotor):
         )
 
         self.old_value = 0.0
-        self.tangoname = self.getProperty("tangoname")
+        self.tangoname = self.get_property("tangoname")
 
-        threshold = self.getProperty("threshold")
+        threshold = self.get_property("threshold")
         if threshold is not None:
             try:
                 self.threshold = float(threshold)
@@ -53,15 +53,15 @@ class PX1DetectorDistance(Device, AbstractMotor):
         self.light_state_chan = self.get_channel_object("light_state")
         self.light_extract_cmd = self.get_command_object("extract_light")
 
-        self.position_chan.connectSignal("update", self.motor_position_changed)
-        self.state_chan.connectSignal("update", self.motor_state_changed)
-        self.distance_min_chan.connectSignal("update", self.distance_min_changed)
+        self.position_chan.connect_signal("update", self.motor_position_changed)
+        self.state_chan.connect_signal("update", self.motor_state_changed)
+        self.distance_min_chan.connect_signal("update", self.distance_min_changed)
 
     def is_ready(self):
         return self.state_value == "STANDBY"
 
-    def connectNotify(self, signal):
-        if signal == "hardwareObjectName,stateChanged":
+    def connect_notify(self, signal):
+        if signal == "hardware_object_name,stateChanged":
             self.motor_state_changed()
         elif signal == "position_changed":
             self.motor_position_changed()

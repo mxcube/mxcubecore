@@ -30,11 +30,11 @@ class Oxford700(HardwareObject):
             gevent.sleep(self.interval)
 
     def init(self):
-        controller = HWR.getHardwareRepository().getHardwareObject(
-            self.getProperty("controller")
+        controller = HWR.getHardwareRepository().get_hardware_object(
+            self.get_property("controller")
         )
-        cryostat = self.getProperty("cryostat")
-        self.interval = self.getProperty("interval") or 10
+        cryostat = self.get_property("cryostat")
+        self.interval = self.get_property("interval") or 10
         self.ctrl = getattr(controller, cryostat)
         if self.ctrl is not None:
             self.get_params()

@@ -31,8 +31,8 @@ class InstanceServer(Procedure):
     # Initializes the hardware object
     def init(self):
         # Read the HO configuration
-        self.serverPort = self.getProperty("port")
-        self.serverHost = self.getProperty("host")
+        self.serverPort = self.get_property("port")
+        self.serverHost = self.get_property("host")
         if self.serverHost is None:
             self.serverHost = socket.getfqdn("")
         self.asyncServer = None

@@ -41,19 +41,19 @@ class PX1Resolution(Equipment):
 
         self.stop_command = self.get_command_object("stop")
 
-        self.distance_chan.connectSignal("update", self.distanceChanged)
-        self.resolution_chan.connectSignal("update", self.resolutionChanged)
-        self.minimum_res_chan.connectSignal("update", self.minimumResolutionChanged)
-        self.maximum_res_chan.connectSignal("update", self.maximumResolutionChanged)
-        self.minimum_dist_chan.connectSignal("update", self.minimumDistanceChanged)
-        self.state_chan.connectSignal("update", self.stateChanged)
+        self.distance_chan.connect_signal("update", self.distanceChanged)
+        self.resolution_chan.connect_signal("update", self.resolutionChanged)
+        self.minimum_res_chan.connect_signal("update", self.minimumResolutionChanged)
+        self.maximum_res_chan.connect_signal("update", self.maximumResolutionChanged)
+        self.minimum_dist_chan.connect_signal("update", self.minimumDistanceChanged)
+        self.state_chan.connect_signal("update", self.stateChanged)
 
         self.currentDistance = self.distance_chan.getValue()
         self._nominal_value = self.resolution_chan.getValue()
 
         return Equipment._init(self)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "stateChanged":
             self.stateChanged()
         elif signal == "distanceChanged":

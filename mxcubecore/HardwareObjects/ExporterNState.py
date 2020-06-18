@@ -51,10 +51,10 @@ class ExporterNState(AbstractNState):
     def init(self):
         """Initialise the device"""
         AbstractNState.init(self)
-        value_channel = self.getProperty("value_channel_name")
-        state_channel = self.getProperty("state_channel_name", "State")
+        value_channel = self.get_property("value_channel_name")
+        state_channel = self.get_property("state_channel_name", "State")
 
-        _exporter_address = self.getProperty("exporter_address")
+        _exporter_address = self.get_property("exporter_address")
         _host, _port = _exporter_address.split(":")
         self._exporter = Exporter(_host, int(_port))
 
@@ -66,7 +66,7 @@ class ExporterNState(AbstractNState):
             },
             value_channel,
         )
-        self.value_channel.connectSignal("update", self.update_value)
+        self.value_channel.connect_signal("update", self.update_value)
 
         self.state_channel = self.add_channel(
             {
@@ -77,7 +77,7 @@ class ExporterNState(AbstractNState):
             state_channel,
         )
 
-        self.state_channel.connectSignal("update", self._update_state)
+        self.state_channel.connect_signal("update", self._update_state)
         self.update_state()
 
     def _update_state(self, state=None):

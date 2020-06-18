@@ -77,14 +77,14 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
 
         try:
             self.actuator_channel = self.get_channel_object("actuator")
-            self.actuator_channel.connectSignal("update", self.stateChanged)
+            self.actuator_channel.connect_signal("update", self.stateChanged)
         except KeyError:
             logging.getLogger().warning(
                 "%s: cannot report EPS Actuator State", self.name()
             )
 
         try:
-            state_string = self.getProperty("states")
+            state_string = self.get_property("states")
             if state_string is None:
                 self.state_strings = self.default_state_strings
             else:

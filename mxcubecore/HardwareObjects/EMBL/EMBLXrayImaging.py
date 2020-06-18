@@ -142,8 +142,8 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         AbstractCollect.init(self)
         self.ready_event = gevent.event.Event()
         self.image_dimension = (2048, 2048)
-        self.reference_distance = self.getProperty("reference_distance")
-        self.reference_angle = self.getProperty("reference_angle")
+        self.reference_distance = self.get_property("reference_distance")
+        self.reference_angle = self.get_property("reference_angle")
 
         QtGraphicsManager.init(self)
 
@@ -191,7 +191,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         )
 
         self.diffractometer_pixels_per_mm_changed((20.0, 20.0))
-        self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
+        self.graphics_manager_hwobj = self.get_object_by_role("graphics_manager")
 
         self.graphics_scale_item.set_start_position(20, self.image_dimension[1] - 20)
 
@@ -209,26 +209,26 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.qpixmap = QtImport.QPixmap()
 
         self.chan_frame = self.get_channel_object("chanFrame")
-        self.chan_frame.connectSignal("update", self.frame_changed)
+        self.chan_frame.connect_signal("update", self.frame_changed)
 
         self.chan_ff_ssim = self.get_channel_object("chanFFSSIM")
-        self.chan_ff_ssim.connectSignal("update", self.ff_ssim_changed)
+        self.chan_ff_ssim.connect_signal("update", self.ff_ssim_changed)
 
         self.chan_collect_status = self.get_channel_object("collectStatus")
         # self._actual_collect_status = self.chan_collect_status.getValue()
-        self.chan_collect_status.connectSignal("update", self.collect_status_update)
+        self.chan_collect_status.connect_signal("update", self.collect_status_update)
 
         self.chan_collect_frame = self.get_channel_object("chanFrameCount")
-        self.chan_collect_frame.connectSignal("update", self.collect_frame_update)
+        self.chan_collect_frame.connect_signal("update", self.collect_frame_update)
 
         self.chan_collect_error = self.get_channel_object("collectError")
-        self.chan_collect_error.connectSignal("update", self.collect_error_update)
+        self.chan_collect_error.connect_signal("update", self.collect_error_update)
 
         self.chan_camera_warning = self.get_channel_object("cameraWarning")
-        self.chan_camera_warning.connectSignal("update", self.camera_warning_update)
+        self.chan_camera_warning.connect_signal("update", self.camera_warning_update)
 
         self.chan_camera_error = self.get_channel_object("cameraError")
-        self.chan_camera_error.connectSignal("update", self.camera_error_update)
+        self.chan_camera_error.connect_signal("update", self.camera_error_update)
 
         self.cmd_collect_detector = self.get_command_object("collectDetector")
         self.cmd_collect_directory = self.get_command_object("collectDirectory")
@@ -255,7 +255,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.cmd_collect_start = self.get_command_object("collectStart")
         self.cmd_collect_abort = self.get_command_object("collectAbort")
 
-        self.beam_focusing_hwobj = self.getObjectByRole("beam_focusing")
+        self.beam_focusing_hwobj = self.get_object_by_role("beam_focusing")
 
     def frame_changed(self, data):
         if self._collecting:

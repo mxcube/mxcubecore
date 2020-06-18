@@ -32,7 +32,7 @@ class ALBACats(Cats90):
         self.super_abort_cmd = self.get_command_object("super_abort")
         self.super_state_channel = self.get_channel_object("super_state")
 
-        self.auto_prepare_diff = self.getProperty("auto_prepare_diff")
+        self.auto_prepare_diff = self.get_property("auto_prepare_diff")
         self.detdist_position_channel = self.get_channel_object("detdist_position")
         self.detdist_saved = None
 
@@ -43,10 +43,10 @@ class ALBACats(Cats90):
         self._chnPathSafe = self.get_channel_object("_chnPathSafe")
 
         if self._chnPathRunning is not None:
-            self._chnPathRunning.connectSignal("update", self._update_running_state)
+            self._chnPathRunning.connect_signal("update", self._update_running_state)
 
         if self._chnPowered is not None:
-            self._chnPowered.connectSignal("update", self._update_powered_state)
+            self._chnPowered.connect_signal("update", self._update_powered_state)
 
     def is_ready(self):
         """

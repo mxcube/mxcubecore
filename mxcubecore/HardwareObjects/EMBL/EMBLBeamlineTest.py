@@ -84,11 +84,11 @@ class EMBLBeamlineTest(HardwareObject):
         """
         self.ready_event = gevent.event.Event()
 
-        self.bl_hwobj = self.getObjectByRole("beamline_setup")
+        self.bl_hwobj = self.get_object_by_role("beamline_setup")
         self.test_filename = "mxcube_test_report"
 
         try:
-            for test in eval(self.getProperty("available_tests", "[]")):
+            for test in eval(self.get_property("available_tests", "[]")):
                 self.available_tests_dict[test] = TEST_DICT[test]
         except BaseException:
             logging.getLogger("HWR").debug(
@@ -98,10 +98,10 @@ class EMBLBeamlineTest(HardwareObject):
         if self.available_tests_dict is None:
             self.available_tests_dict = TEST_DICT
 
-        if self.getProperty("startup_tests"):
-            self.startup_test_list = eval(self.getProperty("startup_tests"))
+        if self.get_property("startup_tests"):
+            self.startup_test_list = eval(self.get_property("startup_tests"))
 
-        if self.getProperty("run_tests_at_startup") == True:
+        if self.get_property("run_tests_at_startup") == True:
             gevent.spawn_later(5, self.start_test_queue, self.startup_test_list)
 
     def start_test_queue(self, test_list, create_report=True):

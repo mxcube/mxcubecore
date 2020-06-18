@@ -21,7 +21,7 @@ def test():
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    flux = hwr.getHardwareObject("/flux")
+    flux = hwr.get_hardware_object("/flux")
 
     print("PX1 Flux is ", flux.get_value())
 

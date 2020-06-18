@@ -179,34 +179,34 @@ class ISPyBClient(HardwareObject):
         """
         Init method declared by HardwareObject.
         """
-        self.lims_rest = self.getObjectByRole("lims_rest")
-        self.authServerType = self.getProperty("authServerType") or "ldap"
+        self.lims_rest = self.get_object_by_role("lims_rest")
+        self.authServerType = self.get_property("authServerType") or "ldap"
         if self.authServerType == "ldap":
             # Initialize ldap
-            self.ldapConnection = self.getObjectByRole("ldapServer")
+            self.ldapConnection = self.get_object_by_role("ldapServer")
             if self.ldapConnection is None:
                 logging.getLogger("HWR").debug("LDAP Server is not available")
 
-        self.loginType = self.getProperty("loginType") or "proposal"
-        self.loginTranslate = self.getProperty("loginTranslate") or True
+        self.loginType = self.get_property("loginType") or "proposal"
+        self.loginTranslate = self.get_property("loginTranslate") or True
         self.beamline_name = HWR.beamline.session.beamline_name
 
-        self.ws_root = self.getProperty("ws_root")
-        self.ws_username = self.getProperty("ws_username")
+        self.ws_root = self.get_property("ws_root")
+        self.ws_username = self.get_property("ws_username")
         if not self.ws_username:
             self.ws_username = _WS_USERNAME
-        self.ws_password = str(self.getProperty("ws_password"))
+        self.ws_password = str(self.get_property("ws_password"))
         if not self.ws_password:
             self.ws_password = _WS_PASSWORD
 
-        self.proxy_address = self.getProperty("proxy_address")
+        self.proxy_address = self.get_property("proxy_address")
         if self.proxy_address:
             self.proxy = {"http": self.proxy_address, "https": self.proxy_address}
         else:
             self.proxy = {}
 
         try:
-            self.base_result_url = self.getProperty("base_result_url").strip()
+            self.base_result_url = self.get_property("base_result_url").strip()
         except AttributeError:
             pass
 

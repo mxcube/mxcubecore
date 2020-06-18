@@ -280,9 +280,9 @@ class HardwareObjectNode(object):
                 reference,
                 name,
                 role,
-                objectsNamesIndex,
-                objectsIndex,
-                objectsIndex2,
+                objects_names_index,
+                objects_index,
+                objects_index2,
             ) = self.__references.pop()
 
             hw_object = get_hardware_repository().get_hardware_object(reference)
@@ -354,7 +354,7 @@ class HardwareObjectNode(object):
             except IndexError:
                 break
             else:
-                object = obj.getObjectByRole(role)
+                object = obj.get_object_by_role(role)
                 if object is not None:
                     return object
 
@@ -553,7 +553,7 @@ class HardwareObjectMixin(CommandContainer):
         other bricks connecting to the same signal will not receive the
         values on the startup.
         The easiest solution is to call re_emit_values method directly
-        after getHardwareObject and connect.
+        after get_hardware_object and connect.
 
         Should be expanded in subclasse with more updatable attributes
         (e.g. value, limits)
@@ -621,8 +621,8 @@ class HardwareObjectMixin(CommandContainer):
 
         self.connect_dict[sender] = {"signal": signal, "slot": slot}
 
-        if hasattr(sender, "connectNotify"):
-            sender.connectNotify(signal)
+        if hasattr(sender, "connect_notify"):
+            sender.connect_notify(signal)
 
     def disconnect(self, sender, signal, slot=None):
         """Disconnect a signal sent by self to a slot
@@ -654,8 +654,8 @@ class HardwareObjectMixin(CommandContainer):
 
         dispatcher.disconnect(slot, signal, sender)
 
-        if hasattr(sender, "disconnectNotify"):
-            sender.disconnectNotify(signal)
+        if hasattr(sender, "disconnect_notify"):
+            sender.disconnect_notify(signal)
 
     # def connect_notify(self, signal):
     #     pass
@@ -827,7 +827,7 @@ class DeviceContainer:
                 return device
 
     def get_device_by_role(self, role):
-        # TODO This gives a pylint error, since getObjectByRoleis not in a superclass
+        # TODO This gives a pylint error, since get_object_by_roleis not in a superclass
         # it is available in the subclases that use this, but fixing this
         # would make more sense in connection with a general refactoring of
         # Device / DeciveContainer/Equipment

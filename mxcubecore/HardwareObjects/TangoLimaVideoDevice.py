@@ -86,8 +86,8 @@ class TangoLimaVideoDevice(AbstractVideoDevice):
         Descript. :
         """
 
-        tangoname = self.getProperty("tangoname")
-        endian = self.getProperty("endian")
+        tangoname = self.get_property("tangoname")
+        endian = self.get_property("endian")
 
         if endian in ["small", "Small", "Little", "little"]:
             self.header_fmt = "<IHHqiiHHHH"

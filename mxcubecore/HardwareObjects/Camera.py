@@ -77,7 +77,7 @@ class RGBType(ImageType):
 
 class Camera(BaseHardwareObjects.Device):
     def _init(self):
-        if self.getProperty("tangoname"):
+        if self.get_property("tangoname"):
             # Tango device
             import PyTango
 
@@ -168,7 +168,7 @@ class Camera(BaseHardwareObjects.Device):
                         """
                         Check wether there is a BPM device defined or not
                         """
-                        if self.getProperty("bpmname"):
+                        if self.get_property("bpmname"):
                             self.bpmDevice = CommandContainer.CommandContainer()
                             self.bpmDevice.tangoname = self.bpmname
                             threshold = self.bpmDevice.add_channel(
@@ -208,7 +208,7 @@ class Camera(BaseHardwareObjects.Device):
                             )
 
                 def setImageTypeFromXml(self, property_name):
-                    image_type = self.getProperty(property_name) or "Jpeg"
+                    image_type = self.get_property(property_name) or "Jpeg"
 
                     if image_type.lower() == "jpeg":
                         streamChan = self.add_channel(
@@ -266,7 +266,7 @@ class Camera(BaseHardwareObjects.Device):
                         self.__checkImageCounter()
                         time.sleep(sleep_time)
 
-                def connectNotify(self, signal):
+                def connect_notify(self, signal):
                     if signal == "imageReceived":
                         try:
                             display_num = os.environ["DISPLAY"].split(":")[1]
@@ -275,14 +275,14 @@ class Camera(BaseHardwareObjects.Device):
                         else:
                             remote_client = display_num != "0.0"
 
-                        if remote_client and self.getProperty("remote_imagetype"):
+                        if remote_client and self.get_property("remote_imagetype"):
                             self.setImageTypeFromXml("remote_imagetype")
 
                         if isinstance(self.imgtype, MmapType):
                             self.__mmapBgr = BgrImageMmap(self.imgtype.mmapFile)
                             self.__mmapBrgPolling = gevent.spawn(
                                 self._do_mmapBrgPolling,
-                                self.getProperty("interval") / 1000.0,
+                                self.get_property("interval") / 1000.0,
                             )
                         else:
                             try:
@@ -290,11 +290,11 @@ class Camera(BaseHardwareObjects.Device):
                                     {
                                         "type": "tango",
                                         "name": "img_cnt",
-                                        "polling": self.getProperty("interval"),
+                                        "polling": self.get_property("interval"),
                                     },
                                     "ImageCounter",
                                 )
-                                imgCnt.connectSignal("update", self.newImage)
+                                imgCnt.connect_signal("update", self.newImage)
                             except BaseException:
                                 pass
 
@@ -734,7 +734,7 @@ class Camera(BaseHardwareObjects.Device):
 
             self.__class__ = TangoCamera
             self._init()
-        elif self.getProperty("taconame"):
+        elif self.get_property("taconame"):
             # this is a Taco device
             import TacoDevice
 

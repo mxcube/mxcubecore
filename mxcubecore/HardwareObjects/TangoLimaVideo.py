@@ -88,10 +88,10 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
             self.device = BaseHardwareObjects.Null()
         else:
             self.device.video_mode = self._video_mode
-            if self.getProperty("exposure_time"):
-                self.set_exposure(float(self.getProperty("exposure_time")))
+            if self.get_property("exposure_time"):
+                self.set_exposure(float(self.get_property("exposure_time")))
             else:
-                self.set_exposure(self.getProperty("interval") / 1000.0)
+                self.set_exposure(self.get_property("interval") / 1000.0)
 
         self.setIsReady(True)
 
@@ -106,7 +106,7 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
             self.emit("imageReceived", data, width, height, False)
             time.sleep(sleep_time)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "imageReceived":
             if self.__polling is None:
                 self.__polling = gevent.spawn(

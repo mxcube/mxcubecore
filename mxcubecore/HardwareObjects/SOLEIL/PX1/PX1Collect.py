@@ -65,20 +65,20 @@ class PX1Collect(AbstractCollect, HardwareObject):
         Init method
         """
 
-        self.collect_devname = self.getProperty("tangoname")
+        self.collect_devname = self.get_property("tangoname")
         self.collect_device = DeviceProxy(self.collect_devname)
 
         self.collect_state_chan = self.get_channel_object("state")
 
-        self.px1env_hwobj = self.getObjectByRole("environment")
+        self.px1env_hwobj = self.get_object_by_role("environment")
 
-        self.frontend_hwobj = self.getObjectByRole("frontend")
+        self.frontend_hwobj = self.get_object_by_role("frontend")
 
-        self.lightarm_hwobj = self.getObjectByRole("lightarm")
+        self.lightarm_hwobj = self.get_object_by_role("lightarm")
 
-        self.mxlocal_object = self.getObjectByRole("beamline_configuration")
+        self.mxlocal_object = self.get_object_by_role("beamline_configuration")
 
-        self.img2jpeg = self.getProperty("imgtojpeg")
+        self.img2jpeg = self.get_property("imgtojpeg")
         undulators = self.get_undulators()
 
         self.exp_type_dict = {"Mesh": "raster", "Helical": "Helical"}
@@ -88,7 +88,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
         self.set_beamline_configuration(
             synchrotron_name="SOLEIL",
-            directory_prefix=self.getProperty("directory_prefix"),
+            directory_prefix=self.get_property("directory_prefix"),
             default_exposure_time=HWR.beamline.detector.get_default_exposure_time(),
             minimum_exposure_time=HWR.beamline.detector.get_minimum_exposure_time(),
             detector_fileext=HWR.beamline.detector.get_file_suffix(),
@@ -98,12 +98,12 @@ class PX1Collect(AbstractCollect, HardwareObject):
             detector_px=det_px,
             detector_py=det_py,
             undulators=undulators,
-            focusing_optic=self.getProperty("focusing_optic"),
-            monochromator_type=self.getProperty("monochromator"),
+            focusing_optic=self.get_property("focusing_optic"),
+            monochromator_type=self.get_property("monochromator"),
             beam_divergence_vertical=beam_div_ver,
             beam_divergence_horizontal=beam_div_hor,
-            polarisation=self.getProperty("polarisation"),
-            input_files_server=self.getProperty("input_files_server"),
+            polarisation=self.get_property("polarisation"),
+            input_files_server=self.get_property("input_files_server"),
         )
 
         self.emit("collectConnected", (True,))
@@ -850,10 +850,10 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
     def get_beam_configuration(self):
         pars_beam = self.mxlocal_object["SPEC_PARS"]["beam"]
-        ax = pars_beam.getProperty("ax")
-        ay = pars_beam.getProperty("ay")
-        bx = pars_beam.getProperty("bx")
-        by = pars_beam.getProperty("by")
+        ax = pars_beam.get_property("ax")
+        ay = pars_beam.get_property("ay")
+        bx = pars_beam.get_property("bx")
+        by = pars_beam.get_property("by")
         return [ax, ay, bx, by]
 
     def get_undulators(self):

@@ -35,7 +35,7 @@ class FlexHCDMaintenance(Equipment):
         Equipment.__init__(self, *args, **kwargs)
 
     def init(self):
-        self._sc = self.getObjectByRole("sample_changer")
+        self._sc = self.get_object_by_role("sample_changer")
 
     def get_current_tool(self):
         return self._sc.get_gripper()
@@ -135,18 +135,18 @@ class FlexHCDMaintenance(Equipment):
         ]
         return cmd_list
 
-    def send_command(self, cmdname, args=None):
+    def send_command(self, cmd_name, args=None):
         tool = self.get_current_tool()
 
-        if cmdname in ["home"]:
+        if cmd_name in ["home"]:
             self._do_home()
-        if cmdname in ["defreeze"]:
+        if cmd_name in ["defreeze"]:
             self._do_defreeze_gripper()
-        if cmdname in ["reset_sample_number"]:
+        if cmd_name in ["reset_sample_number"]:
             self._do_reset_sample_number()
-        if cmdname == "change_gripper":
+        if cmd_name == "change_gripper":
             self._do_change_gripper()
-        if cmdname == "abort":
+        if cmd_name == "abort":
             self._do_abort()
 
         return True

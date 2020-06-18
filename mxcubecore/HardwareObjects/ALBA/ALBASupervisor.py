@@ -17,9 +17,9 @@ class ALBASupervisor(Device):
         self.phase_chan = self.get_channel_object("phase")
         self.detector_cover_chan = self.get_channel_object("detector_cover_open")
 
-        self.state_chan.connectSignal("update", self.state_changed)
-        self.phase_chan.connectSignal("update", self.phase_changed)
-        self.detector_cover_chan.connectSignal("update", self.detector_cover_changed)
+        self.state_chan.connect_signal("update", self.state_changed)
+        self.phase_chan.connect_signal("update", self.phase_changed)
+        self.detector_cover_chan.connect_signal("update", self.detector_cover_changed)
 
     def is_ready(self):
         return True

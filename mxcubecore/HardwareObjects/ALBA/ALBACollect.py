@@ -65,11 +65,11 @@ class ALBACollect(AbstractCollect):
 
         self.ready_event = gevent.event.Event()
 
-        self.supervisor_hwobj = self.getObjectByRole("supervisor")
+        self.supervisor_hwobj = self.get_object_by_role("supervisor")
 
-        self.slowshut_hwobj = self.getObjectByRole("slow_shutter")
-        self.photonshut_hwobj = self.getObjectByRole("photon_shutter")
-        self.frontend_hwobj = self.getObjectByRole("frontend")
+        self.slowshut_hwobj = self.get_object_by_role("slow_shutter")
+        self.photonshut_hwobj = self.get_object_by_role("photon_shutter")
+        self.frontend_hwobj = self.get_object_by_role("frontend")
 
         self.ni_conf_cmd = self.get_command_object("ni_configure")
         self.ni_unconf_cmd = self.get_command_object("ni_unconfigure")
@@ -92,7 +92,7 @@ class ALBACollect(AbstractCollect):
 
         self.set_beamline_configuration(
             synchrotron_name="ALBA",
-            directory_prefix=self.getProperty("directory_prefix"),
+            directory_prefix=self.get_property("directory_prefix"),
             default_exposure_time=HWR.beamline.detector.get_default_exposure_time(),
             minimum_exposure_time=HWR.beamline.detector.get_minimum_exposure_time(),
             detector_fileext=HWR.beamline.detector.get_file_suffix(),
@@ -102,12 +102,12 @@ class ALBACollect(AbstractCollect):
             detector_px=det_px,
             detector_py=det_py,
             undulators=undulators,
-            focusing_optic=self.getProperty("focusing_optic"),
-            monochromator_type=self.getProperty("monochromator"),
+            focusing_optic=self.get_property("focusing_optic"),
+            monochromator_type=self.get_property("monochromator"),
             beam_divergence_vertical=beam_div_ver,
             beam_divergence_horizontal=beam_div_hor,
-            polarisation=self.getProperty("polarisation"),
-            input_files_server=self.getProperty("input_files_server"),
+            polarisation=self.get_property("polarisation"),
+            input_files_server=self.get_property("input_files_server"),
         )
 
         self.emit("collectConnected", (True,))

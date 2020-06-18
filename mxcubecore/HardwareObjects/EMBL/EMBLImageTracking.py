@@ -53,14 +53,14 @@ class EMBLImageTracking(Device):
         self.chan_enable_image_tracking = self.get_channel_object(
             "chanImageTrackingEnabled", optional=True
         )
-        self.chan_enable_image_tracking.connectSignal(
+        self.chan_enable_image_tracking.connect_signal(
             "update", self.image_tracking_state_changed
         )
         self.chan_filter_frames = self.get_channel_object(
             "chanFilterFramesEnabled", optional=True
         )
         if self.chan_filter_frames is not None:
-            self.chan_filter_frames.connectSignal(
+            self.chan_filter_frames.connect_signal(
                 "update", self.filter_frames_enabled_changed
             )
 
@@ -68,11 +68,11 @@ class EMBLImageTracking(Device):
             "chanSpotListEnabled", optional=True
         )
         if self.chan_spot_list is not None:
-            self.chan_spot_list.connectSignal("update", self.spot_list_enabled_changed)
+            self.chan_spot_list.connect_signal("update", self.spot_list_enabled_changed)
 
         self.chan_spot_list.setValue(True)
         self.chan_state = self.get_channel_object("chanState")
-        self.chan_state.connectSignal("update", self.state_changed)
+        self.chan_state.connect_signal("update", self.state_changed)
 
         self.cmd_load_image = self.get_command_object("cmdLoadImage")
 

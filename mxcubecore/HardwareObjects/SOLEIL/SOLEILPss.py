@@ -22,21 +22,21 @@ class SOLEILPss(Device):
 
     def init(self):
         try:
-            self.device = DeviceProxy(self.getProperty("tangoname"))
+            self.device = DeviceProxy(self.get_property("tangoname"))
         except BaseException:
             logging.getLogger("HWR").error(
-                "%s: unknown pss device name", self.getProperty("tangoname")
+                "%s: unknown pss device name", self.get_property("tangoname")
             )
 
-        if self.getProperty("hutch") not in ("optical", "experimental"):
+        if self.get_property("hutch") not in ("optical", "experimental"):
             logging.getLogger("HWR").error(
                 "SOLEILPss.init Hutch property %s is not correct",
-                self.getProperty("hutch"),
+                self.get_property("hutch"),
             )
         else:
-            self.hutch = self.getProperty("hutch")
+            self.hutch = self.get_property("hutch")
             self.stateChan = self.get_channel_object("State")
-            self.stateChan.connectSignal("update", self.valueChanged)
+            self.stateChan.connect_signal("update", self.valueChanged)
         if self.device:
             self.setIsReady(True)
 

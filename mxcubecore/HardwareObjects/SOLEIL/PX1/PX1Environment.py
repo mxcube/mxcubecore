@@ -78,18 +78,18 @@ class PX1Environment(Device):
 
     def init(self):
 
-        self.device = DeviceProxy(self.getProperty("tangoname"))
+        self.device = DeviceProxy(self.get_property("tangoname"))
 
         try:
             self.state_chan = self.get_channel_object("State")
-            self.state_chan.connectSignal("update", self.stateChanged)
+            self.state_chan.connect_signal("update", self.stateChanged)
 
         except KeyError:
             logging.getLogger().warning("%s: cannot report State", self.name())
 
         try:
             self.chanAuth = self.get_channel_object("beamlineMvtAuthorized")
-            self.chanAuth.connectSignal("update", self.setAuthorizationFlag)
+            self.chanAuth.connect_signal("update", self.setAuthorizationFlag)
             # state = self.state_chan.getValue()
 
         except KeyError:

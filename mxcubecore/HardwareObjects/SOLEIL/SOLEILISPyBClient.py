@@ -50,29 +50,29 @@ class SOLEILISPyBClient(ISPyBClient):
         """
         Init method declared by HardwareObject.
         """
-        self.authServerType = self.getProperty("authServerType") or "ldap"
+        self.authServerType = self.get_property("authServerType") or "ldap"
         if self.authServerType == "ldap":
             # Initialize ldap
-            self.ldapConnection = self.getObjectByRole("ldapServer")
+            self.ldapConnection = self.get_object_by_role("ldapServer")
             if self.ldapConnection is None:
                 logging.getLogger("HWR").debug("LDAP Server is not available")
 
-        self.loginType = self.getProperty("loginType") or "proposal"
-        self.loginTranslate = self.getProperty("loginTranslate") or True
+        self.loginType = self.get_property("loginType") or "proposal"
+        self.loginTranslate = self.get_property("loginTranslate") or True
         self.beamline_name = HWR.beamline.session.beamline_name
         print("self.beamline_name init", self.beamline_name)
 
-        self.ws_root = self.getProperty("ws_root")
-        self.ws_username = self.getProperty("ws_username")
+        self.ws_root = self.get_property("ws_root")
+        self.ws_username = self.get_property("ws_username")
         if not self.ws_username:
             self.ws_username = _WS_USERNAME
-        self.ws_password = self.getProperty("ws_password")
+        self.ws_password = self.get_property("ws_password")
         if not self.ws_password:
             self.ws_password = _WS_PASSWORD
 
-        self.ws_collection = self.getProperty("ws_collection")
-        self.ws_shipping = self.getProperty("ws_shipping")
-        self.ws_tools = self.getProperty("ws_tools")
+        self.ws_collection = self.get_property("ws_collection")
+        self.ws_shipping = self.get_property("ws_shipping")
+        self.ws_tools = self.get_property("ws_tools")
 
         logging.info("SOLEILISPyBClient: Initializing SOLEIL ISPyB Client")
         logging.info("   - using http_proxy = %s " % os.environ["http_proxy"])

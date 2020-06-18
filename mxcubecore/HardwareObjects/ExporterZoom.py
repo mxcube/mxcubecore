@@ -42,7 +42,7 @@ class ExporterZoom(ExporterMotor):
             )
         )
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "predefinedPositionChanged":
             position_name = self.get_current_position_name()
 
@@ -53,7 +53,7 @@ class ExporterZoom(ExporterMotor):
             else:
                 self.emit(signal, (position_name, pos))
         else:
-            return ExporterMotor.connectNotify.im_func(self, signal)
+            return ExporterMotor.connect_notify.im_func(self, signal)
 
     def get_predefined_positions_list(self):
         return self.predefined_positions_names_list

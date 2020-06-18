@@ -58,11 +58,11 @@ class RedisClient(HardwareObject):
         self.redis_client = None
 
     def init(self):
-        self.host = self.getProperty("host")
+        self.host = self.get_property("host")
         if self.host is None:
             self.host = "localhost"
 
-        self.port = self.getProperty("port")
+        self.port = self.get_property("port")
         if self.port is None:
             self.port = 6379
 

@@ -68,7 +68,7 @@ class EMBLBeamInfo(Equipment):
         self.beam_position = [0, 0]
         self.beam_info_dict = {"size_x": 0, "size_y": 0}
 
-        self.aperture_hwobj = self.getObjectByRole("aperture")
+        self.aperture_hwobj = self.get_object_by_role("aperture")
         if self.aperture_hwobj is not None:
             self.connect(
                 self.aperture_hwobj,
@@ -78,13 +78,13 @@ class EMBLBeamInfo(Equipment):
         else:
             logging.getLogger("HWR").debug("BeamInfo: Aperture hwobj not defined")
 
-        self.slits_hwobj = self.getObjectByRole("slits")
+        self.slits_hwobj = self.get_object_by_role("slits")
         if self.slits_hwobj is not None:
             self.connect(self.slits_hwobj, "valueChanged", self.slits_gap_changed)
         else:
             logging.getLogger("HWR").debug("BeamInfo: Slits hwobj not defined")
 
-        self.beam_focusing_hwobj = self.getObjectByRole("beam_focusing")
+        self.beam_focusing_hwobj = self.get_object_by_role("beam_focusing")
         if self.beam_focusing_hwobj is not None:
             (
                 focus_mode_name,
@@ -100,18 +100,18 @@ class EMBLBeamInfo(Equipment):
 
         self.chan_beam_position_hor = self.get_channel_object("BeamPositionHorizontal")
         if self.chan_beam_position_hor:
-            self.chan_beam_position_hor.connectSignal(
+            self.chan_beam_position_hor.connect_signal(
                 "update", self.beam_pos_hor_changed
             )
         self.chan_beam_position_ver = self.get_channel_object("BeamPositionVertical")
         if self.chan_beam_position_ver:
-            self.chan_beam_position_ver.connectSignal(
+            self.chan_beam_position_ver.connect_signal(
                 "update", self.beam_pos_ver_changed
             )
         self.chan_beam_size_microns = self.get_channel_object("BeamSizeMicrons")
         self.chan_beam_shape_ellipse = self.get_channel_object("BeamShapeEllipse")
         self.default_beam_divergence = ast.literal_eval(
-            self.getProperty("defaultBeamDivergence")
+            self.get_property("defaultBeamDivergence")
         )
 
     def get_beam_divergence_hor(self):

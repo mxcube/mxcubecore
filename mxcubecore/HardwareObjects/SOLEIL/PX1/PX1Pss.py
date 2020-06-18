@@ -9,7 +9,7 @@ class PX1Pss(Device):
 
     def init(self):
         self.state_chan = self.get_channel_object("state")
-        self.state_chan.connectSignal("update", self.value_changed)
+        self.state_chan.connect_signal("update", self.value_changed)
 
     def value_changed(self, value):
         state = self.get_state(value)

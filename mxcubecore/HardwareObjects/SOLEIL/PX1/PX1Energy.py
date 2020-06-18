@@ -33,36 +33,36 @@ class PX1Energy(Device, AbstractEnergy):
         self.current_state = None
 
         try:
-            self.monodevice = DeviceProxy(self.getProperty("mono_device"))
+            self.monodevice = DeviceProxy(self.get_property("mono_device"))
         except BaseException:
-            self.errorDeviceInstance(self.getProperty("mono_device"))
+            self.errorDeviceInstance(self.get_property("mono_device"))
 
         # Nom du device bivu (Energy to gap) : necessaire pour amelioration du
         # positionnement de l'onduleur (Backlash)
-        self.und_device = DeviceProxy(self.getProperty("undulator_device"))
-        self.doBacklashCompensation = self.getProperty("backlash")
+        self.und_device = DeviceProxy(self.get_property("undulator_device"))
+        self.doBacklashCompensation = self.get_property("backlash")
 
         # parameters for polling
-        self.isConnected()
+        self.is_connected()
 
         self.energy_chan = self.get_channel_object("energy")
-        self.energy_chan.connectSignal("update", self.energyChanged)
+        self.energy_chan.connect_signal("update", self.energyChanged)
 
         self.stop_cmd = self.get_command_object("stop")
 
         self.state_chan = self.get_channel_object("state")
-        self.state_chan.connectSignal("update", self.stateChanged)
+        self.state_chan.connect_signal("update", self.stateChanged)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "energyChanged":
             logging.getLogger("HWR").debug(
-                "PX1Energy. connectNotify. sending energy value %s" % self.get_value()
+                "PX1Energy. connect_notify. sending energy value %s" % self.get_value()
             )
             self.energyChanged(self.get_energy())
 
         if signal == "stateChanged":
             logging.getLogger("HWR").debug(
-                "PX1Energy. connectNotify. sending state value %s" % self.get_state()
+                "PX1Energy. connect_notify. sending state value %s" % self.get_state()
             )
             self.stateChanged(self.get_state())
 

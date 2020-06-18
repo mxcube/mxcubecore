@@ -45,7 +45,7 @@ class QtVideoMockup(AbstractVideoDevice):
         current_path = os.path.join(*current_path[1:-2])
 
         default_image_path = "/" + current_path + "/test/fakeimg.jpg"
-        image_path = self.getProperty("file_name", default_image_path)
+        image_path = self.get_property("file_name", default_image_path)
 
         self.image = QPixmap(image_path)
         self.image_dimensions = (self.image.width(), self.image.height())

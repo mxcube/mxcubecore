@@ -30,7 +30,7 @@ class ID30BMultiCollect(ESRFMultiCollect):
 
     @task
     def get_slit_gaps(self):
-        self.getObjectByRole("controller")
+        self.get_object_by_role("controller")
 
         return (None, None)
 
@@ -70,7 +70,7 @@ class ID30BMultiCollect(ESRFMultiCollect):
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
         # set the detector cover out
-        self.getObjectByRole("controller").detcover.set_out(20)
+        self.get_object_by_role("controller").detcover.set_out(20)
         diffr = HWR.beamline.diffractometer
 
         # send again the command as MD2 software only handles one
@@ -83,25 +83,25 @@ class ID30BMultiCollect(ESRFMultiCollect):
         diffr.moveToPhase("DataCollection", wait=True, timeout=200)
 
         # switch on the front light
-        diffr.getObjectByRole("FrontLight").set_value(2)
+        diffr.get_object_by_role("FrontLight").set_value(2)
 
         # take the back light out
-        diffr.getObjectByRole("BackLightSwitch").actuatorOut()
+        diffr.get_object_by_role("BackLightSwitch").actuatorOut()
 
     @task
     def data_collection_cleanup(self):
-        self.getObjectByRole("diffractometer")._wait_ready(10)
+        self.get_object_by_role("diffractometer")._wait_ready(10)
         self.close_fast_shutter()
 
     @task
     def oscil(self, start, end, exptime, npass, wait=True):
-        diffr = self.getObjectByRole("diffractometer")
+        diffr = self.get_object_by_role("diffractometer")
         if self.helical:
             diffr.oscilScan4d(start, end, exptime, self.helical_pos, wait=True)
         elif self.mesh:
             det = self._detector._detector
             latency_time = (
-                det.config.getProperty("latecy_time_mesh")
+                det.config.get_property("latecy_time_mesh")
                 or self._detector._detector.get_deadtime()
             )
             diffr.oscilScanMesh(
@@ -136,10 +136,10 @@ class ID30BMultiCollect(ESRFMultiCollect):
         )
 
     def open_fast_shutter(self):
-        self.getObjectByRole("fastshut").actuatorIn()
+        self.get_object_by_role("fastshut").actuatorIn()
 
     def close_fast_shutter(self):
-        self.getObjectByRole("fastshut").actuatorOut()
+        self.get_object_by_role("fastshut").actuatorOut()
 
     def set_helical(self, helical_on):
         self.helical = helical_on

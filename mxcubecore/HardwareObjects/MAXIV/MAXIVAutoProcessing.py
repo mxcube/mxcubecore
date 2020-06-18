@@ -91,8 +91,8 @@ class MAXIVAutoProcessing(HardwareObject):
                         - arg2 : file name
         """
         for program in self.autoproc_programs:
-            if process_event == program.getProperty("event"):
-                module = program.getProperty("module").lower()
+            if process_event == program.get_property("event"):
+                module = program.get_property("module").lower()
                 print(2 * "###########")
                 if process_event == "after":
                     input_filename, will_execute = self.create_autoproc_input(

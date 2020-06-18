@@ -54,18 +54,18 @@ class AbstractActuator(HardwareObject):
         """Initialise actuator_name, username, read_only and default_value
         properties.
         """
-        self.actuator_name = self.getProperty("actuator_name")
-        self.read_only = self.getProperty("read_only") or False
-        self.default_value = self.getProperty("default_value")
+        self.actuator_name = self.get_property("actuator_name")
+        self.read_only = self.get_property("read_only") or False
+        self.default_value = self.get_property("default_value")
         if self.default_value is not None:
             self.update_value(self.default_value)
-        limits = self.getProperty("default_limits")
+        limits = self.get_property("default_limits")
         if limits:
             try:
                 self._nominal_limits = tuple(literal_eval(limits))
             except TypeError:
                 print("Invalid limits")
-        self.username = self.getProperty("username")
+        self.username = self.get_property("username")
 
     @abc.abstractmethod
     def get_value(self):

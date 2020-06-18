@@ -53,8 +53,8 @@ class BlissNState(AbstractNState):
     def init(self):
         """Initialise the device"""
         AbstractNState.init(self)
-        _name = self.getProperty("object_name")
-        self._bliss_obj = getattr(self.getObjectByRole("controller"), _name)
+        _name = self.get_property("object_name")
+        self._bliss_obj = getattr(self.get_object_by_role("controller"), _name)
 
         self.device_type = "actuator"
         if "MultiplePositions" in self._bliss_obj.__class__:

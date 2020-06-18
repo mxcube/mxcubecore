@@ -12,8 +12,8 @@ class LimaDetectorMockup:
         self.config = config
         self.header = dict()
 
-        lima_device = config.getProperty("lima_device")
-        pilatus_device = config.getProperty("pilatus_device")
+        lima_device = config.get_property("lima_device")
+        pilatus_device = config.get_property("pilatus_device")
         if None in (lima_device, pilatus_device):
             return
 

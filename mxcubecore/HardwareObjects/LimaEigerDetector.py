@@ -21,8 +21,8 @@ class LimaEigerDetector(AbstractDetector):
 
         self.header = dict()
 
-        lima_device = self.getProperty("lima_device")
-        eiger_device = self.getProperty("eiger_device")
+        lima_device = self.get_property("lima_device")
+        eiger_device = self.get_property("eiger_device")
 
         for channel_name in (
             "acq_status",
@@ -88,7 +88,7 @@ class LimaEigerDetector(AbstractDetector):
         return self.get_channel_object("last_image_saved").getValue() + 1
 
     def get_deadtime(self):
-        return float(self.getProperty("deadtime"))
+        return float(self.get_property("deadtime"))
 
     @task
     def prepare_acquisition(
@@ -179,7 +179,7 @@ class LimaEigerDetector(AbstractDetector):
         self.get_channel_object("saving_managed_mode").setValue("HARDWARE")
 
     def set_energy_threshold(self, energy):
-        minE = self.getProperty("minE")
+        minE = self.get_property("minE")
         if energy < minE:
             energy = minE
 
@@ -199,7 +199,7 @@ class LimaEigerDetector(AbstractDetector):
         if dirname.startswith(os.path.sep):
             dirname = dirname[len(os.path.sep) :]
 
-        saving_directory = os.path.join(self.getProperty("buffer"), dirname)
+        saving_directory = os.path.join(self.get_property("buffer"), dirname)
 
         self.wait_ready()
 

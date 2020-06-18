@@ -56,11 +56,11 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         self.headers = {}
 
     def init(self):
-        self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
-        self.devname = self.getProperty("tangoname")
+        self.distance_motor_hwobj = self.get_object_by_role("distance_motor")
+        self.devname = self.get_property("tangoname")
 
         try:
-            self.latency_time = float(self.getProperty("latency_time"))
+            self.latency_time = float(self.get_property("latency_time"))
         except BaseException:
             self.latency_time = None
 
@@ -71,9 +71,9 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
             )
             self.latency_time = self.default_latency_time
 
-        self.devspecific = self.getProperty("device_specific")
+        self.devspecific = self.get_property("device_specific")
 
-        exp_time_limits = self.getProperty("exposure_limits")
+        exp_time_limits = self.get_property("exposure_limits")
         self.exp_time_limits = map(float, exp_time_limits.strip().split(","))
 
         self.device = DeviceProxy(self.devname)
@@ -114,30 +114,30 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         return beam_x, beam_y
 
     def get_manufacturer(self):
-        return self.getProperty("manufacturer")
+        return self.get_property("manufacturer")
         return "Dectris"
 
     def get_model(self):
-        return self.getProperty("model")
+        return self.get_property("model")
 
     def get_detector_type(self):
-        return self.getProperty("type")
+        return self.get_property("type")
 
     def get_default_exposure_time(self):
-        return self.getProperty("default_exposure_time")
+        return self.get_property("default_exposure_time")
 
     def get_minimum_exposure_time(self):
-        return self.getProperty("minimum_exposure_time")
+        return self.get_property("minimum_exposure_time")
 
     def get_exposure_time_limits(self):
         """Returns exposure time limits as list with two floats"""
         return self.exp_time_limits
 
     def get_file_suffix(self):
-        return self.getProperty("file_suffix")
+        return self.get_property("file_suffix")
 
     def get_pixel_size(self):
-        return self.getProperty("px"), self.getProperty("py")
+        return self.get_property("px"), self.get_property("py")
 
     # methods for data collection
     def set_energy_threshold(self):

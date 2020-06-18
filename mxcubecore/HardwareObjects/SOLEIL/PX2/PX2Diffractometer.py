@@ -157,8 +157,8 @@ class PX2Diffractometer(GenericDiffractometer):
         self.current_state = self.chan_state.getValue()
         self.current_status = self.chan_status.getValue()
 
-        self.chan_state.connectSignal("update", self.state_changed)
-        self.chan_status.connectSignal("update", self.status_changed)
+        self.chan_state.connect_signal("update", self.state_changed)
+        self.chan_status.connect_signal("update", self.status_changed)
 
         self.chan_calib_x = self.get_channel_object("CoaxCamScaleX")
         self.chan_calib_y = self.get_channel_object("CoaxCamScaleY")
@@ -171,7 +171,7 @@ class PX2Diffractometer(GenericDiffractometer):
         self.connect(self.chan_current_phase, "update", self.current_phase_changed)
 
         self.chan_fast_shutter_is_open = self.get_channel_object("FastShutterIsOpen")
-        self.chan_fast_shutter_is_open.connectSignal(
+        self.chan_fast_shutter_is_open.connect_signal(
             "update", self.fast_shutter_state_changed
         )
 
@@ -189,10 +189,10 @@ class PX2Diffractometer(GenericDiffractometer):
             "saveCentringPositions"
         )
 
-        self.centring_hwobj = self.getObjectByRole("centring")
-        self.minikappa_correction_hwobj = self.getObjectByRole("minikappa_correction")
+        self.centring_hwobj = self.get_object_by_role("centring")
+        self.minikappa_correction_hwobj = self.get_object_by_role("minikappa_correction")
 
-        self.zoom_motor_hwobj = self.getObjectByRole("zoom")
+        self.zoom_motor_hwobj = self.get_object_by_role("zoom")
         self.connect(self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed)
         self.connect(
             self.zoom_motor_hwobj,
@@ -222,8 +222,8 @@ class PX2Diffractometer(GenericDiffractometer):
             self.motor_hwobj_dict["sampy"], "valueChanged", self.sampy_motor_moved
         )
 
-        self.omega_reference_par = eval(self.getProperty("omega_reference"))
-        self.omega_reference_motor = self.getObjectByRole(
+        self.omega_reference_par = eval(self.get_property("omega_reference"))
+        self.omega_reference_motor = self.get_object_by_role(
             self.omega_reference_par["motor_name"]
         )
 
@@ -235,7 +235,7 @@ class PX2Diffractometer(GenericDiffractometer):
 
         self.omega_reference_motor_moved(self.omega_reference_motor.get_value())
 
-        # self.use_sc = self.getProperty("use_sample_changer")
+        # self.use_sc = self.get_property("use_sample_changer")
 
     def use_sample_changer(self):
         """
@@ -815,7 +815,7 @@ class PX2Diffractometer(GenericDiffractometer):
         # motors = {}
         # for motor_role in self.centring_motors_list:
         # self.log.info('motor_role %s' % motor_role)
-        # motor_obj = self.getObjectByRole(motor_role)
+        # motor_obj = self.get_object_by_role(motor_role)
         # try:
         # motors[motor_role] = motor_pos[motor_obj]
         # except KeyError:

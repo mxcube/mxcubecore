@@ -17,10 +17,10 @@ class MicrodiffSamplePseudo(MD2Motor):
         self.motorState = MotorStates.NOTINITIALIZED
 
     def init(self):
-        self.direction = self.getProperty("direction")
-        self.sampx = self.getObjectByRole("sampx")
-        self.sampy = self.getObjectByRole("sampy")
-        self.phi = self.getObjectByRole("phi")
+        self.direction = self.get_property("direction")
+        self.sampx = self.get_object_by_role("sampx")
+        self.sampy = self.get_object_by_role("sampy")
+        self.phi = self.get_object_by_role("phi")
         self.connect(self.sampx, "valueChanged", self.real_motor_moved)
         self.connect(self.sampx, "stateChanged", self.real_motor_changed)
         self.connect(self.sampy, "valueChanged", self.real_motor_moved)

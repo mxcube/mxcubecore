@@ -93,8 +93,8 @@ class MachineInfoMockup(HardwareObject):
         """
         Descript.
         """
-        self.min_current = self.getProperty("min_current", 80.1)
-        self.min_current = self.getProperty("max_current", 90.1)
+        self.min_current = self.get_property("min_current", 80.1)
+        self.min_current = self.get_property("max_current", 90.1)
 
         self.connect(HWR.beamline.flux, "fluxInfoChanged", self.flux_info_changed)
 

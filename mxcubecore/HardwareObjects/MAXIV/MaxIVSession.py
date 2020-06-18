@@ -27,24 +27,24 @@ class MaxIVSession(Session):
         self.default_precision = "04"
         self.login = ""
         self.is_commissioning = False
-        self.synchrotron_name = self.getProperty("synchrotron_name")
-        self.endstation_name = self.getProperty("endstation_name").lower()
-        self.suffix = self["file_info"].getProperty("file_suffix")
-        self.base_directory = self["file_info"].getProperty("base_directory")
-        self.base_process_directory = self["file_info"].getProperty(
+        self.synchrotron_name = self.get_property("synchrotron_name")
+        self.endstation_name = self.get_property("endstation_name").lower()
+        self.suffix = self["file_info"].get_property("file_suffix")
+        self.base_directory = self["file_info"].get_property("base_directory")
+        self.base_process_directory = self["file_info"].get_property(
             "processed_data_base_directory"
         )
 
-        self.raw_data_folder_name = self["file_info"].getProperty(
+        self.raw_data_folder_name = self["file_info"].get_property(
             "raw_data_folder_name"
         )
 
-        self.processed_data_folder_name = self["file_info"].getProperty(
+        self.processed_data_folder_name = self["file_info"].get_property(
             "processed_data_folder_name"
         )
 
         try:
-            self.in_house_users = self.getProperty("inhouse_users").split(",")
+            self.in_house_users = self.get_property("inhouse_users").split(",")
         except BaseException:
             self.in_house_users = []
 
@@ -54,10 +54,10 @@ class MaxIVSession(Session):
         except (TypeError, IndexError):
             pass
 
-        archive_base_directory = self["file_info"].getProperty("archive_base_directory")
+        archive_base_directory = self["file_info"].get_property("archive_base_directory")
         if archive_base_directory:
             queue_model_objects.PathTemplate.set_archive_path(
-                archive_base_directory, self["file_info"].getProperty("archive_folder")
+                archive_base_directory, self["file_info"].get_property("archive_folder")
             )
 
         queue_model_objects.PathTemplate.set_path_template_style(self.synchrotron_name)

@@ -103,17 +103,17 @@ class ALBAMachineInfo(Equipment):
         try:
             self.chan_mach_current = self.get_channel_object("MachCurrent")
             if self.chan_mach_current is not None:
-                self.chan_mach_current.connectSignal(
+                self.chan_mach_current.connect_signal(
                     "update", self.mach_current_changed
                 )
 
             self.chan_mach_status = self.get_channel_object("MachStatus")
             if self.chan_mach_status is not None:
-                self.chan_mach_status.connectSignal("update", self.mach_status_changed)
+                self.chan_mach_status.connect_signal("update", self.mach_status_changed)
 
             self.chan_topup_remaining = self.get_channel_object("TopUpRemaining")
             if self.chan_topup_remaining is not None:
-                self.chan_topup_remaining.connectSignal(
+                self.chan_topup_remaining.connect_signal(
                     "update", self.topup_remaining_changed
                 )
         except KeyError:

@@ -17,11 +17,11 @@ class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
                 self.poll()
             except BaseException:
                 sys.excepthook(*sys.exc_info())
-            time.sleep(self.getProperty("interval") / 1000.0 or 1)
+            time.sleep(self.get_property("interval") / 1000.0 or 1)
 
     def init(self):
         try:
-            self.device = PyTango.gevent.DeviceProxy(self.getProperty("tangoname"))
+            self.device = PyTango.gevent.DeviceProxy(self.get_property("tangoname"))
         except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger("HWR").error(
@@ -35,7 +35,7 @@ class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
         self.card = None
         self.channel = None
 
-        PSSinfo = self.getProperty("pss")
+        PSSinfo = self.get_property("pss")
         try:
             self.card, self.channel = map(int, PSSinfo.split("/"))
         except BaseException:

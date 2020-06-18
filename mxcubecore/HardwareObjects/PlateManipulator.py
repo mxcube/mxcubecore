@@ -69,13 +69,13 @@ class Xtal(Sample):
         self._set_property(self.__NAME_PROPERTY__, value)
 
     def get_name(self):
-        return self.getProperty(self.__NAME_PROPERTY__)
+        return self.get_property(self.__NAME_PROPERTY__)
 
     def _set_login(self, value):
         self._set_property(self.__LOGIN_PROPERTY__, value)
 
     def get_login(self):
-        return self.getProperty(self.__LOGIN_PROPERTY__)
+        return self.get_property(self.__LOGIN_PROPERTY__)
 
     def get_drop(self):
         return self._drop
@@ -228,17 +228,17 @@ class PlateManipulator(SampleChanger):
             except BaseException:
                 pass
         else:
-            self.num_cols = self.getProperty("numCols")
-            self.num_rows = self.getProperty("numRows")
-            self.num_drops = self.getProperty("numDrops")
-            self.reference_pos_x = self.getProperty("referencePosX")
+            self.num_cols = self.get_property("numCols")
+            self.num_rows = self.get_property("numRows")
+            self.num_drops = self.get_property("numDrops")
+            self.reference_pos_x = self.get_property("referencePosX")
             if not self.reference_pos_x:
                 self.reference_pos_x = 0.5
 
         self.stored_pos_x = self.reference_pos_x
         self.stored_pos_y = 0.5
 
-        self.crims_url = self.getProperty("crimsWsRoot")
+        self.crims_url = self.get_property("crimsWsRoot")
 
         self.cmd_move_to_drop = self.get_command_object("MoveToDrop")
         if not self.cmd_move_to_drop:
@@ -251,7 +251,7 @@ class PlateManipulator(SampleChanger):
         self.chan_current_phase = self.get_channel_object("CurrentPhase")
         self.chan_plate_location = self.get_channel_object("PlateLocation")
         if self.chan_plate_location is not None:
-            self.chan_plate_location.connectSignal(
+            self.chan_plate_location.connect_signal(
                 "update", self.plate_location_changed
             )
 
@@ -259,7 +259,7 @@ class PlateManipulator(SampleChanger):
 
         self.chan_state = self.get_channel_object("State")
         if self.chan_state is not None:
-            self.chan_state.connectSignal("update", self.state_changed)
+            self.chan_state.connect_signal("update", self.state_changed)
 
         SampleChanger.init(self)
 

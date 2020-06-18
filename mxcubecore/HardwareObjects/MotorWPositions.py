@@ -64,12 +64,12 @@ class MotorWPositions(AbstractMotor, Device):
         try:
             roles = self["motors"].get_roles()
             role = roles[0]
-            self.motor = self.getObjectByRole(role)
+            self.motor = self.get_object_by_role(role)
         except KeyError:
             logging.getLogger("HWR").error("MotorWPositions: motor not defined")
             return
         try:
-            self.delta = self["deltas"].getProperty(role)
+            self.delta = self["deltas"].get_property(role)
         except BaseException:
             logging.getLogger().info(
                 "MotorWPositions: no delta defined, setting to %f", self.delta
@@ -80,8 +80,8 @@ class MotorWPositions(AbstractMotor, Device):
             logging.getLogger().error("MotorWPositions: no positions defined")
         else:
             for position in positions:
-                name = position.getProperty("name")
-                pos = position.getProperty(role)
+                name = position.get_property("name")
+                pos = position.get_property(role)
                 self.predefined_positions[name] = pos
         self.connect(self.motor, "stateChanged", self.motor_state_changed)
         self.connect(self.motor, "valueChanged", self.motor_position_changed)

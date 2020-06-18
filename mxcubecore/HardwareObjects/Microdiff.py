@@ -13,8 +13,8 @@ class Microdiff(MiniDiff.MiniDiff):
     def init(self):
         global MICRODIFF
         MICRODIFF = self
-        self.phiMotor = self.getObjectByRole("phi")
-        self.exporter_addr = self.getProperty("exporter_address")
+        self.phiMotor = self.get_object_by_role("phi")
+        self.exporter_addr = self.get_property("exporter_address")
 
         self.x_calib = self.add_channel(
             {
@@ -86,7 +86,7 @@ class Microdiff(MiniDiff.MiniDiff):
             },
             "getOmegaMotorDynamicScanLimits",
         )
-        if self.getProperty("use_hwstate"):
+        if self.get_property("use_hwstate"):
             self.hwstate_attr = self.add_channel(
                 {
                     "type": "exporter",
@@ -189,25 +189,25 @@ class Microdiff(MiniDiff.MiniDiff):
         self.MOTOR_TO_EXPORTER_NAME = self.getMotorToExporterNames()
         self.move_to_coord = self.move_to_beam
 
-        self.centringVertical = self.getObjectByRole("centringVertical")
-        self.centringFocus = self.getObjectByRole("centringFocus")
+        self.centringVertical = self.get_object_by_role("centringVertical")
+        self.centringFocus = self.get_object_by_role("centringFocus")
 
-        self.frontLight = self.getObjectByRole("FrontLight")
-        self.backLight = self.getObjectByRole("BackLight")
+        self.frontLight = self.get_object_by_role("FrontLight")
+        self.backLight = self.get_object_by_role("BackLight")
 
         self.wait_ready = self._wait_ready
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(None)
 
     def getMotorToExporterNames(self):
         MOTOR_TO_EXPORTER_NAME = {
-            "focus": self.focusMotor.getProperty("actuator_name"),
-            "kappa": self.kappaMotor.getProperty("actuator_name"),
-            "kappa_phi": self.kappaPhiMotor.getProperty("actuator_name"),
-            "phi": self.phiMotor.getProperty("actuator_name"),
-            "phiy": self.phiyMotor.getProperty("actuator_name"),
-            "phiz": self.phizMotor.getProperty("actuator_name"),
-            "sampx": self.sampleXMotor.getProperty("actuator_name"),
-            "sampy": self.sampleYMotor.getProperty("actuator_name"),
+            "focus": self.focusMotor.get_property("actuator_name"),
+            "kappa": self.kappaMotor.get_property("actuator_name"),
+            "kappa_phi": self.kappaPhiMotor.get_property("actuator_name"),
+            "phi": self.phiMotor.get_property("actuator_name"),
+            "phiy": self.phiyMotor.get_property("actuator_name"),
+            "phiz": self.phizMotor.get_property("actuator_name"),
+            "sampx": self.sampleXMotor.get_property("actuator_name"),
+            "sampy": self.sampleYMotor.get_property("actuator_name"),
             "zoom": "Zoom",
         }
         return MOTOR_TO_EXPORTER_NAME
@@ -471,7 +471,7 @@ class Microdiff(MiniDiff.MiniDiff):
     def start_manual_centring(self, sample_info=None):
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         if self.in_plate_mode():
-            plateTranslation = self.getObjectByRole("plateTranslation")
+            plateTranslation = self.get_object_by_role("plateTranslation")
             cmd_set_plate_vertical = self.add_command(
                 {
                     "type": "exporter",
@@ -547,7 +547,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
 def set_light_in(light, light_motor, zoom):
     self.frontlight.set_value(0)
-    MICRODIFF.getObjectByRole("BackLightSwitch").actuatorIn()
+    MICRODIFF.get_object_by_role("BackLightSwitch").actuatorIn()
 
 
 MiniDiff.set_light_in = set_light_in

@@ -61,12 +61,12 @@ class BIOMAXMD3Camera(Device):
         self.width = self.roi_width.getValue()
         self.height = self.roi_height.getValue()
 
-        if self.getProperty("interval"):
-            self.pollInterval = self.getProperty("interval")
+        if self.get_property("interval"):
+            self.pollInterval = self.get_property("interval")
         self.stopper = False  # self.pollingTimer(self.pollInterval, self.poll)
-        # if self.getProperty("image_zoom"):
+        # if self.get_property("image_zoom"):
         try:
-            self.zoom = float(self.getProperty("image_zoom"))
+            self.zoom = float(self.get_property("image_zoom"))
             self.chan_zoom.setValue(self.zoom)
             self.width = self.roi_width.getValue() * self.zoom
             self.height = self.roi_height.getValue() * self.zoom

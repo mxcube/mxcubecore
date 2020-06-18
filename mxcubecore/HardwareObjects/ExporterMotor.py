@@ -54,10 +54,10 @@ class ExporterMotor(AbstractMotor):
         """Initialise the motor"""
         AbstractMotor.init(self)
 
-        self._motor_pos_suffix = self.getProperty("position_suffix", "Position")
-        self._motor_state_suffix = self.getProperty("state_suffix", "State")
+        self._motor_pos_suffix = self.get_property("position_suffix", "Position")
+        self._motor_state_suffix = self.get_property("state_suffix", "State")
 
-        self._exporter_address = self.getProperty("exporter_address")
+        self._exporter_address = self.get_property("exporter_address")
         _host, _port = self._exporter_address.split(":")
         self._exporter = Exporter(_host, int(_port))
 
@@ -71,7 +71,7 @@ class ExporterMotor(AbstractMotor):
         )
         if self.motor_position:
             self.get_value()
-            self.motor_position.connectSignal("update", self.update_value)
+            self.motor_position.connect_signal("update", self.update_value)
 
         self.motor_state = self.add_channel(
             {
@@ -83,7 +83,7 @@ class ExporterMotor(AbstractMotor):
         )
 
         if self.motor_state:
-            self.motor_state.connectSignal("update", self._update_state)
+            self.motor_state.connect_signal("update", self._update_state)
 
         self.update_state()
 

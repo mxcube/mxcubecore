@@ -15,10 +15,10 @@ class SOLEILSession(Session.Session):
         self.projuser = ""
 
     def path_to_ispyb(self, path):
-        ispyb_base = self["file_info"].getProperty("ispyb_base_directory") % {
+        ispyb_base = self["file_info"].get_property("ispyb_base_directory") % {
             "projuser": self.projuser
         }
-        path = path.replace(self["file_info"].getProperty("base_directory"), ispyb_base)
+        path = path.replace(self["file_info"].get_property("base_directory"), ispyb_base)
         return path
 
     def set_user_info(self, username, user_id, group_id, projuser=None):
@@ -127,7 +127,7 @@ class SOLEILSession(Session.Session):
             usertype = "users"
 
         basedir = os.path.dirname(path)
-        ruchepath = basedir.replace(self["file_info"].getProperty("base_directory"), "")
+        ruchepath = basedir.replace(self["file_info"].get_property("base_directory"), "")
         if ruchepath and ruchepath[0] == os.path.sep:
             ruchepath = ruchepath[1:]
 

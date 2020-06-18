@@ -31,7 +31,7 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
 
         self.aperture_pos_changed(self.aperture_hwobj.getApertureSize())
 
-    def connectNotify(self, *args):
+    def connect_notify(self, *args):
         self.evaluate_beam_info()
         self.emit_beam_info_change()
 

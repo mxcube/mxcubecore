@@ -40,9 +40,9 @@ class PX1Cryotong(Cats90):
 
         super(PX1Cryotong, self).init()
 
-        self.cats_device = DeviceProxy(self.getProperty("cats_device"))
+        self.cats_device = DeviceProxy(self.get_property("cats_device"))
 
-        self.environment = self.getObjectByRole("environment")
+        self.environment = self.get_object_by_role("environment")
 
         if self.environment is None:
             logging.error(
@@ -62,16 +62,16 @@ class PX1Cryotong(Cats90):
         ):
             setattr(self, channel_name, self.get_channel_object(channel_name))
 
-        self._chnSoftAuth.connectSignal("update", self._software_authorization)
-        self._chnHomeOpened.connectSignal("update", self._update_home_opened)
-        self._chnIncoherentGonioSampleState.connectSignal(
+        self._chnSoftAuth.connect_signal("update", self._software_authorization)
+        self._chnHomeOpened.connect_signal("update", self._update_home_opened)
+        self._chnIncoherentGonioSampleState.connect_signal(
             "update", self._update_ack_sample_memory
         )
-        self._chnDryAndSoakNeeded.connectSignal("update", self._dry_and_soak_needed)
-        self._chnSampleIsDetected.connectSignal(
+        self._chnDryAndSoakNeeded.connect_signal("update", self._dry_and_soak_needed)
+        self._chnSampleIsDetected.connect_signal(
             "update", self._update_sample_is_detected
         )
-        self._chnCountDown.connectSignal("update", self._update_count_down)
+        self._chnCountDown.connect_signal("update", self._update_count_down)
 
         self._cmdDrySoak = self.add_command(
             {"type": "tango", "name": "_cmdDrySoak", "tangoname": self.tangoname},

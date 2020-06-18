@@ -57,7 +57,7 @@ class StateMachine(HardwareObject):
         self.history_state_list = []
 
     def init(self):
-        with open(self.getProperty("structure_file"), "r") as stream:
+        with open(self.get_property("structure_file"), "r") as stream:
             data_loaded = yaml.load(stream)
 
         self.state_list = data_loaded["states"]
@@ -111,7 +111,7 @@ class StateMachine(HardwareObject):
 
         self.update_fsm_state()
 
-        self.bl_setup_hwobj = self.getObjectByRole("beamline_setup")
+        self.bl_setup_hwobj = self.get_object_by_role("beamline_setup")
         for hwobj_name in dir(self.bl_setup_hwobj):
             if hwobj_name.endswith("hwobj"):
                 # logging.getLogger("HWR").debug(\

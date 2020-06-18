@@ -157,7 +157,7 @@ class TangoShutter(BaseHardwareObjects.Device):
         self.state_value_str = "unknown"
         try:
             self.shutter_channel = self.get_channel_object("State")
-            self.shutter_channel.connectSignal("update", self.shutterStateChanged)
+            self.shutter_channel.connect_signal("update", self.shutterStateChanged)
         except KeyError:
             logging.getLogger().warning(
                 "%s: cannot connect to shutter channel", self.name()
@@ -203,7 +203,7 @@ def test():
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    shut = hwr.getHardwareObject("/fastshutter")
+    shut = hwr.get_hardware_object("/fastshutter")
 
     print(("Shutter State is: ", shut.readShutterState()))
 

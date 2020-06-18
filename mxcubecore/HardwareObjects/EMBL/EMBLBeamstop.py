@@ -40,14 +40,14 @@ class EMBLBeamstop(Device, AbstractMotor):
 
     def init(self):
         """Reads parameters from xml and adds neccessary channels"""
-        self.default_size = self.getProperty("defaultBeamstopSize")
-        self.default_distance = self.getProperty("defaultBeamstopDistance")
-        self.default_direction = self.getProperty("defaultBeamstopDirection")
+        self.default_size = self.get_property("defaultBeamstopSize")
+        self.default_distance = self.get_property("defaultBeamstopDistance")
+        self.default_direction = self.get_property("defaultBeamstopDirection")
 
         if self.default_distance is None:
             self.chan_distance = self.get_channel_object("BeamstopDistance")
             if self.chan_distance is not None:
-                self.chan_distance.connectSignal("update", self.distance_changed)
+                self.chan_distance.connect_signal("update", self.distance_changed)
             self.distance_changed(self.chan_distance.getValue())
         else:
             self.distance = float(self.default_distance)

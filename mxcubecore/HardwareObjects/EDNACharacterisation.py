@@ -39,11 +39,11 @@ class EDNACharacterisation(AbstractCharacterisation):
         self.start_edna_command = None
 
     def init(self):
-        self.collect_obj = self.getObjectByRole("collect")
-        self.start_edna_command = self.getProperty("edna_command")
-        self.edna_default_file = self.getProperty("edna_default_file")
+        self.collect_obj = self.get_object_by_role("collect")
+        self.start_edna_command = self.get_property("edna_command")
+        self.edna_default_file = self.get_property("edna_default_file")
 
-        fp = HWR.getHardwareRepository().findInRepository(self.edna_default_file)
+        fp = HWR.getHardwareRepository().find_in_repository(self.edna_default_file)
 
         if fp is None:
             fp = self.edna_default_file

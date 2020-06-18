@@ -60,10 +60,10 @@ class ALBABeamInfo(Equipment):
         self.beam_posx_chan = self.get_channel_object("BeamPositionHorizontal")
         self.beam_posy_chan = self.get_channel_object("BeamPositionVertical")
 
-        self.beam_height_chan.connectSignal("update", self.beam_height_changed)
-        self.beam_width_chan.connectSignal("update", self.beam_width_changed)
-        self.beam_posx_chan.connectSignal("update", self.beam_posx_changed)
-        self.beam_posy_chan.connectSignal("update", self.beam_posy_changed)
+        self.beam_height_chan.connect_signal("update", self.beam_height_changed)
+        self.beam_width_chan.connect_signal("update", self.beam_width_changed)
+        self.beam_posx_chan.connect_signal("update", self.beam_posx_changed)
+        self.beam_posy_chan.connect_signal("update", self.beam_posy_changed)
 
         # divergence can be added as fixed properties in xml
         default_beam_divergence_vertical = None
@@ -71,10 +71,10 @@ class ALBABeamInfo(Equipment):
 
         try:
             default_beam_divergence_vertical = int(
-                self.getProperty("beam_divergence_vertical")
+                self.get_property("beam_divergence_vertical")
             )
             default_beam_divergence_horizontal = int(
-                self.getProperty("beam_divergence_horizontal")
+                self.get_property("beam_divergence_horizontal")
             )
         except BaseException:
             pass
@@ -84,7 +84,7 @@ class ALBABeamInfo(Equipment):
             default_beam_divergence_vertical,
         ]
 
-    def connectNotify(self, *args):
+    def connect_notify(self, *args):
         self.evaluate_beam_info()
         self.emit_beam_info_change()
 

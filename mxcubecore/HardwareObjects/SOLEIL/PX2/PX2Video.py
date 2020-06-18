@@ -74,7 +74,7 @@ class PX2Video(GenericVideoDevice, camera):
         """
         Descript. :
         """
-        # tangoname = self.getProperty("tangoname")
+        # tangoname = self.get_property("tangoname")
 
         self.log.info("PX2Video init")
 

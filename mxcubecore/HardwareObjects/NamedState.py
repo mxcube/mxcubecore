@@ -28,20 +28,20 @@ class NamedState(Device):
             self.stateListChannel = None
 
         try:
-            self.commandtype = self.getProperty("commandtype")
+            self.commandtype = self.get_property("commandtype")
         except KeyError:
             self.commandtype = None
 
-        self.stateChan.connectSignal("update", self.stateChanged)
+        self.stateChan.connect_signal("update", self.stateChanged)
         if self.moveStateChan:
-            self.moveStateChan.connectSignal("update", self.hardwareStateChanged)
+            self.moveStateChan.connect_signal("update", self.hardwareStateChanged)
 
         Device._init(self)
 
     def init(self):
         self._getStateList()
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "stateChanged":
             self.emit(signal, (self.get_state(),))
 
@@ -78,7 +78,7 @@ class NamedState(Device):
                 )
             else:
                 for state in states:
-                    statename = state.getProperty("name")
+                    statename = state.get_property("name")
                     self.stateList.append(statename)
 
     def re_emit_values(self):
@@ -86,7 +86,7 @@ class NamedState(Device):
 
     def getUserName(self):
         try:
-            name = self.getProperty("username")
+            name = self.get_property("username")
         except BaseException:
             name = None
 
@@ -163,10 +163,10 @@ def test():
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    ap_pos = hwr.getHardwareObject("/aperture_position")
-    ap_diam = hwr.getHardwareObject("/aperture_diameter")
-    yag_pos = hwr.getHardwareObject("/scintillator")
-    md2_phase = hwr.getHardwareObject("/md2j_phase")
+    ap_pos = hwr.get_hardware_object("/aperture_position")
+    ap_diam = hwr.get_hardware_object("/aperture_diameter")
+    yag_pos = hwr.get_hardware_object("/scintillator")
+    md2_phase = hwr.get_hardware_object("/md2j_phase")
 
     print("Aperture Position: ", ap_pos.get_state())
     print("Aperture Diameter: ", ap_diam.get_state())

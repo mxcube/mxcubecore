@@ -20,11 +20,11 @@ class ControllerCommand(CommandObject):
     def isConnected(self):
         return True
 
-    def getArguments(self):
+    def get_arguments(self):
         if self.name() == "Anneal":
-            self.addArgument("Time [s]", "float")
+            self.add_argument("Time [s]", "float")
 
-        return CommandObject.getArguments(self)
+        return CommandObject.get_arguments(self)
 
     @task
     def __call__(self, *args, **kwargs):
@@ -138,10 +138,10 @@ class BIOMAXBeamlineActions(HardwareObject):
             HWR.beamline.detector.distance.set_value(800, timeout=50)
 
     def init(self):
-        self.sample_changer_maint_hwobj = self.getObjectByRole(
+        self.sample_changer_maint_hwobj = self.get_object_by_role(
             "sample_changer_maintenance"
         )
-        self.detector_cover_hwobj = self.getObjectByRole("detector_cover")
+        self.detector_cover_hwobj = self.get_object_by_role("detector_cover")
 
         self.prepare_open_hutch = ControllerCommand(
             "prepare_open_hutch", self._prepare_open_hutch_task
