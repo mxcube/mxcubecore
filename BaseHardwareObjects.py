@@ -327,12 +327,6 @@ class HardwareObjectNode(object):
     def has_object(self, object_name):
         return object_name in self.__objects_names
 
-    def hasObject(self, object_name):
-        #TODO remove this
-        logging.getLogger("HWR").warning("hasObject is deprecated. Use has_object instead")
-        warn("hasObject is deprecated. Use has_object instead", DeprecationWarning)
-        return self.has_object(object_name)
-
     def get_objects(self, object_name):
         try:
             i = self.__objects_names.index(object_name)
@@ -341,18 +335,6 @@ class HardwareObjectNode(object):
         else:
             for obj in self.__objects[i]:
                 yield obj
-
-    def getObject(self, object_name):
-        #TODO remove this
-        logging.getLogger("HWR").warning("getObject is deprecated. Use get_object instead")
-        warn("getObject is deprecated. Use get_object instead", DeprecationWarning)
-        return self.get_object(object_name)
-
-    def getObjectByRole(self, role):
-        #TODO remove this
-        logging.getLogger("HWR").warning("getObjectByRole is deprecated. Use get_object_by_role instead")
-        warn("getObjectByRole is deprecated. Use get_object_by_role instead", DeprecationWarning)
-        return self.get_object_by_role(role)
 
     def get_object_by_role(self, role):
         object = None
@@ -384,12 +366,6 @@ class HardwareObjectNode(object):
     def objects_names(self):
         return self.__objects_names[:]
 
-    def setProperty(self, name, value):
-        #TODO remove this method
-        logging.getLogger("HWR").warning("setProperty is deprecated. Use set_property instead")
-        warn("setProperty is deprecated. Use set_property instead", DeprecationWarning)
-        self.set_property(name, value)
-
     def set_property(self, name, value):
         name = str(name)
         value = str(value)
@@ -414,20 +390,8 @@ class HardwareObjectNode(object):
         self._property_set[name] = value
         self._property_set.set_property_path(name, self._path + "/" + str(name))
 
-    def getProperty(self, name, default_value=None):
-        #TODO remove this method
-        logging.getLogger("HWR").warning("getProperty is deprecated. Use get_property instead")
-        warn("getProperty is deprecated. Use get_property instead", DeprecationWarning)
-        return self.get_property(name, default_value)
-
     def get_property(self, name, default_value=None):
         return self._property_set.get(str(name), default_value)
-
-    def getProperties(self):
-        #TODO remove this method
-        logging.getLogger("HWR").warning("getProperties is deprecated. Use get_properties instead")
-        warn("getProperties is deprecated. Use get_properties instead", DeprecationWarning)
-        return self.get_properties()
 
     def get_properties(self):
         return self._property_set
@@ -815,12 +779,6 @@ class Device(HardwareObject):
 
         self.state = Device.NOTREADY
 
-    def setIsReady(self, ready):
-        #TODO remove this method
-        logging.getLogger("HWR").warning("setIsReady is deprecated. Use set_is_ready")
-        warn("setIsReady is deprecated. Use set_is_ready instead", DeprecationWarning)
-        self.set_is_ready(ready)
- 
     def set_is_ready(self, ready):
         if ready and self.state == Device.NOTREADY:
             self.state = Device.READY
@@ -867,12 +825,6 @@ class DeviceContainer:
         for device in devices:
             if str(device.name()) == device_name:
                 return device
-
-    def getDeviceByRole(self, role):
-        #TODO remove this
-        logging.getLogger("HWR").warning("getDeviceByRole is deprecated. Use get_device_by_role")
-        warn("getDeviceByRole is deprecated. Use get_device_by_role instead", DeprecationWarning)
-        return self.get_device_by_role(role)
 
     def get_device_by_role(self, role):
         # TODO This gives a pylint error, since getObjectByRoleis not in a superclass
