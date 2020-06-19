@@ -29,6 +29,6 @@ def beamline():
     hwr_path = os.path.join(HWR_DIR, "configuration/test")
     HWR._instance = HWR.beamline = None
     HWR.init_hardware_repository(hwr_path)
-    hwr = HWR.getHardwareRepository()
+    hwr = HWR.get_hardware_repository()
     hwr.connect()
     return HWR.beamline
