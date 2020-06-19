@@ -173,7 +173,7 @@ class AbstractVideoDevice(Device):
             self.image_polling.link_exception(self.polling_ended_exc)
             self.image_polling.link(self.polling_ended)
 
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def get_camera_name(self):
         return self.cam_name

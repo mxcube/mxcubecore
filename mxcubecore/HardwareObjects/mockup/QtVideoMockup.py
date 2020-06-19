@@ -60,7 +60,7 @@ class QtVideoMockup(AbstractVideoDevice):
         custom_brush.setColor(Qt.lightGray)
         self.painter.setBrush(custom_brush)
 
-        self.setIsReady(True)
+        self.set_is_ready(True)
         AbstractVideoDevice.init(self)
 
     def get_new_image(self):
