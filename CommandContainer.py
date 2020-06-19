@@ -27,11 +27,6 @@ for command launchers and channels (see Command package).
 - C*Object, command launcher & channel base class
 """
 
-__copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
-__license__ = "LGPLv3+"
-
-
-
 from __future__ import absolute_import
 
 import weakref
@@ -39,6 +34,10 @@ import logging
 from warnings import warn
 
 from HardwareRepository.dispatcher import dispatcher
+
+
+__copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
+__license__ = "LGPLv3+"
 
 
 class ConnectionError(Exception):

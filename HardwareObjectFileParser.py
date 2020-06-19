@@ -77,7 +77,7 @@ def parse_string(xml_hardware_object, name):
     global CURRENT_XML
     CURRENT_XML = xml_hardware_object
     cur_handler = HardwareObjectHandler(name)
-    xml.sax.parse_string(str.encode(xml_hardware_object), cur_handler)
+    xml.sax.parseString(str.encode(xml_hardware_object), cur_handler)
     return cur_handler.get_hardware_object()
 
 
@@ -376,7 +376,7 @@ class HardwareObjectHandler(ContentHandler):
                             )
                 elif name == self.property:
                     del self.objects[-1]  # remove empty object
-                    self.objects[-1].setProperty(name, self.buffer)
+                    self.objects[-1].set_property(name, self.buffer)
                 else:
                     if len(self.objects) == 1:
                         return

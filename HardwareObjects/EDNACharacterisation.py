@@ -43,7 +43,7 @@ class EDNACharacterisation(AbstractCharacterisation):
         self.start_edna_command = self.get_property("edna_command")
         self.edna_default_file = self.get_property("edna_default_file")
 
-        fp = HWR.getHardwareRepository().find_in_repository(self.edna_default_file)
+        fp = HWR.get_hardware_repository().find_in_repository(self.edna_default_file)
 
         if fp is None:
             fp = self.edna_default_file

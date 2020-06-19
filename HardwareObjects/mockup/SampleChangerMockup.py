@@ -142,7 +142,7 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
         :rtype: None
         """
         named_samples = {}
-        if self.hasObject("test_sample_names"):
+        if self.has_object("test_sample_names"):
             for tag, val in self["test_sample_names"].get_properties().items():
                 named_samples[val] = tag
 
