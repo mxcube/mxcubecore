@@ -52,7 +52,7 @@ class TINEMotor(AbstractMotor):
         self.chan_limits = self.get_channel_object("axisLimits", optional=True)
         if self.chan_limits is not None:
             self.chan_limits.connect_signal("update", self.update_limits)
-            self.update_limits(self.chan_limits.getValue())
+            self.update_limits(self.chan_limits.get_value())
         else:
             try:
                 if self.get_property("default_limits"):
@@ -63,7 +63,7 @@ class TINEMotor(AbstractMotor):
         self.chan_position = self.get_channel_object("axisPosition")
         if self.chan_position is not None:
             self.chan_position.connect_signal("update", self.update_value())
-        self.update_value(self.chan_position.getValue())
+        self.update_value(self.chan_position.get_value())
 
         self.chan_state = self.get_channel_object("axisState", optional=True)
         if self.chan_state is not None:
@@ -122,16 +122,16 @@ class TINEMotor(AbstractMotor):
         return self.step_limits
 
     # def get_position(self):
-    #    return self.chan_position.getValue()
+    #    return self.chan_position.get_value()
 
     def get_value(self):
-        return self.chan_position.getValue()
+        return self.chan_position.get_value()
 
     def get_state(self):
         """Get HardwareObject state"""
         # NNBNB TODO map channel states to all HardwareObject states
         # TODO add treatment of specific_states
-        state = self.chan_state.getValue()
+        state = self.chan_state.get_value()
         if type(state) in (tuple, list):
             state = state[0]
         if state in ("ready", 0):
@@ -154,7 +154,7 @@ class TINEMotor(AbstractMotor):
         """
         if self.chan_state is not None:
             self.update_state(self.STATES.BUSY)
-            self.chan_state.setOldValue("moving")
+            self.chan_state.set_old_value("moving")
         self.cmd_set_position(value)
 
     def update_value(self, value=None):

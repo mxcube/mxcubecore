@@ -58,18 +58,18 @@ class BIOMAXMD3Camera(Device):
             {"type": "exporter", "name": "setCameraROI"}, "setCameraROI"
         )
 
-        self.width = self.roi_width.getValue()
-        self.height = self.roi_height.getValue()
+        self.width = self.roi_width.get_value()
+        self.height = self.roi_height.get_value()
 
         if self.get_property("interval"):
             self.pollInterval = self.get_property("interval")
-        self.stopper = False  # self.pollingTimer(self.pollInterval, self.poll)
+        self.stopper = False  # self.polling_timer(self.pollInterval, self.poll)
         # if self.get_property("image_zoom"):
         try:
             self.zoom = float(self.get_property("image_zoom"))
             self.chan_zoom.setValue(self.zoom)
-            self.width = self.roi_width.getValue() * self.zoom
-            self.height = self.roi_height.getValue() * self.zoom
+            self.width = self.roi_width.get_value() * self.zoom
+            self.height = self.roi_height.get_value() * self.zoom
         except BaseException:
             logging.getLogger("HWR").info("cannot set image zoom level")
         thread = Thread(target=self.poll)
@@ -77,7 +77,7 @@ class BIOMAXMD3Camera(Device):
         thread.start()
 
     def getImage(self):
-        return self.image_attr.getValue()
+        return self.image_attr.get_value()
 
     def poll(self):
         logging.getLogger("HWR").info("going to poll images")
@@ -89,7 +89,7 @@ class BIOMAXMD3Camera(Device):
             # time.sleep(1)
             # print "polling", datetime.datetime.now().strftime("%H:%M:%S.%f")
             try:
-                img = self.image_attr.getValue()
+                img = self.image_attr.get_value()
                 imgArray = array.array("b", img)
                 imgStr = imgArray.tostring()
                 # self.emit("imageReceived", self.imageaux,1360,1024)
@@ -140,10 +140,10 @@ class BIOMAXMD3Camera(Device):
         """
         try:
             return [
-                self.roi_x.getValue(),
-                self.roi_y.getValue(),
-                self.roi_width.getValue(),
-                self.roi_height.getValue(),
+                self.roi_x.get_value(),
+                self.roi_y.get_value(),
+                self.roi_width.get_value(),
+                self.roi_height.get_value(),
             ]
         except BaseException:
             logging.getLogger("HWR").exception("Could not retrieve image roi settings")
@@ -151,7 +151,7 @@ class BIOMAXMD3Camera(Device):
 
     def getImageZoom(self):
         try:
-            return self.zoom.getValue()
+            return self.zoom.get_value()
         except Exception as e:
             logging.getLogger("HWR").exception("Could not retrieve image zoom settings")
             return False
@@ -180,11 +180,11 @@ class BIOMAXMD3Camera(Device):
         return False
 
     def getWidth(self):
-        # return self.roi_width.getValue()
+        # return self.roi_width.get_value()
         return self.width
 
     def getHeight(self):
-        # return self.roi_height.getValue()
+        # return self.roi_height.get_value()
         return self.height
 
     def setLive(self, state):
@@ -195,7 +195,7 @@ class BIOMAXMD3Camera(Device):
         return None
 
     def takeSnapshot(self, snapshot_filename, bw=True):
-        img = self.image_attr.getValue()
+        img = self.image_attr.get_value()
         imgArray = array.array("b", img)
         imgStr = imgArray.tostring()
         f = open(snapshot_filename, "wb")
@@ -204,6 +204,6 @@ class BIOMAXMD3Camera(Device):
         return True
 
     def get_snapshot_img_str(self):
-        img = self.image_attr.getValue()
+        img = self.image_attr.get_value()
         imgArray = array.array("b", img)
         return imgArray.tostring()

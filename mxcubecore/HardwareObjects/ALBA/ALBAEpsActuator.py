@@ -97,7 +97,7 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
             self.state_strings = self.default_state_strings
 
     def get_state(self):
-        state = self.actuator_channel.getValue()
+        state = self.actuator_channel.get_value()
         self.actuator_state = self.convert_state(state)
         return self.actuator_state
 

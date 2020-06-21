@@ -310,7 +310,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
         :param status: processing status (Success, Failed)
         :type status: str
         """
-        # self.batch_processed(self.chan_dozor_pass.getValue())
+        # self.batch_processed(self.chan_dozor_pass.get_value())
         # if self.params_dict["lines_num"] <= 1:
         #    self.smooth()
         GenericOnlineProcessing.set_processing_status(self, status)

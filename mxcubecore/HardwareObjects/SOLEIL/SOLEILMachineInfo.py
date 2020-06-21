@@ -194,7 +194,7 @@ class SOLEILMachineInfo(HardwareObject):
 
         self.chan_cryojet_in = self.get_channel_object("cryojetIn")
         if self.chan_cryojet_in is not None:
-            self.cryojet_in_changed(self.chan_cryojet_in.getValue())
+            self.cryojet_in_changed(self.chan_cryojet_in.get_value())
             self.chan_cryojet_in.connect_signal("update", self.cryojet_in_changed)
         else:
             logging.getLogger("HWR").debug("MachineInfo: Cryojet channel not defined")
@@ -202,19 +202,19 @@ class SOLEILMachineInfo(HardwareObject):
         self.chan_sample_temperature = self.get_channel_object("sampleTemp")
         if self.chan_sample_temperature is not None:
             # self.chan_sample_temperature.connect_signal('update', self.cryojet_in_changed)
-            self.cryojet_in_changed(self.chan_cryojet_in.getValue())
+            self.cryojet_in_changed(self.chan_cryojet_in.get_value())
 
         self.chan_sc_auto_refill = self.get_channel_object("scAutoRefill")
         if self.chan_sc_auto_refill is not None:
             self.chan_sc_auto_refill.connect_signal("update", self.sc_autorefill_changed)
-            self.sc_autorefill_changed(self.chan_sc_auto_refill.getValue())
+            self.sc_autorefill_changed(self.chan_sc_auto_refill.get_value())
 
         self.chan_sc_dewar_low_level_alarm = self.get_channel_object("scLowLevelAlarm")
         if self.chan_sc_dewar_low_level_alarm is not None:
             self.chan_sc_dewar_low_level_alarm.connect_signal(
                 "update", self.low_level_alarm_changed
             )
-            self.low_level_alarm_changed(self.chan_sc_dewar_low_level_alarm.getValue())
+            self.low_level_alarm_changed(self.chan_sc_dewar_low_level_alarm.get_value())
 
         self.chan_sc_dewar_overflow_alarm = self.get_channel_object("scOverflowAlarm")
         if self.chan_sc_dewar_overflow_alarm is not None:
@@ -229,7 +229,7 @@ class SOLEILMachineInfo(HardwareObject):
         self.chan_temperature_exp = self.get_channel_object("temperatureExp")
         if self.chan_temperature_exp is not None:
             self.chan_temperature_exp.connect_signal("update", self.temperature_changed)
-            self.temperature_changed(self.chan_temperature_exp.getValue())
+            self.temperature_changed(self.chan_temperature_exp.get_value())
 
         self.re_emit_values()
 
@@ -256,7 +256,7 @@ class SOLEILMachineInfo(HardwareObject):
         if self.chan_sample_temperature is not None:
             self.values_list[4]["value"] += (
                 "\n sample temperature: %.1f K"
-                % self.chan_sample_temperature.getValue()
+                % self.chan_sample_temperature.get_value()
             )
         else:
             logging.getLogger("HWR").debug(
@@ -291,11 +291,11 @@ class SOLEILMachineInfo(HardwareObject):
 
     def update_machine_state(self):
         """Machine state assembly"""
-        filling_mode = self.chan_filling_mode.getValue()
-        state_text0 = self.chan_state_text0.getValue()
-        state_text1 = self.chan_state_text1.getValue()
-        state_text2 = self.chan_state_text2.getValue()
-        is_beam_usable = self.chan_is_beam_usable.getValue()
+        filling_mode = self.chan_filling_mode.get_value()
+        state_text0 = self.chan_state_text0.get_value()
+        state_text1 = self.chan_state_text1.get_value()
+        state_text2 = self.chan_state_text2.get_value()
+        is_beam_usable = self.chan_is_beam_usable.get_value()
 
         date_boundary_string = " :"
         date_boundary = state_text1.find(date_boundary_string)
@@ -364,9 +364,9 @@ class SOLEILMachineInfo(HardwareObject):
             self.values_list[5]["in_range"] = True
 
         logging.getLogger("HWR").error(
-            "chan_sc_auto_refill %s" % self.chan_sc_auto_refill.getValue()
+            "chan_sc_auto_refill %s" % self.chan_sc_auto_refill.get_value()
         )
-        if self.chan_sc_auto_refill.getValue() == 0:
+        if self.chan_sc_auto_refill.get_value() == 0:
             self.values_list[5]["value"] += ", refill OFF"
         else:
             self.values_list[5]["value"] += ", refill ON"

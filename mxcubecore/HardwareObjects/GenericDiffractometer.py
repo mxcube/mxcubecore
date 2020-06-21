@@ -596,7 +596,7 @@ class GenericDiffractometer(HardwareObject):
 
             if (
                 self.transfer_mode is None
-                or self.channel_dict["TransferMode"].getValue() == "SAMPLE_CHANGER"
+                or self.channel_dict["TransferMode"].get_value() == "SAMPLE_CHANGER"
             ):
                 # if transferMode is not defined, ignore the checkup
                 self.use_sc = True
@@ -1253,8 +1253,8 @@ class GenericDiffractometer(HardwareObject):
     def update_zoom_calibration(self):
         """
         """
-        self.pixels_per_mm_x = 1.0 / self.channel_dict["CoaxCamScaleX"].getValue()
-        self.pixels_per_mm_y = 1.0 / self.channel_dict["CoaxCamScaleY"].getValue()
+        self.pixels_per_mm_x = 1.0 / self.channel_dict["CoaxCamScaleX"].get_value()
+        self.pixels_per_mm_y = 1.0 / self.channel_dict["CoaxCamScaleY"].get_value()
         self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y)))
 
     def zoom_motor_state_changed(self, state):

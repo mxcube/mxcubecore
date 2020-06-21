@@ -107,8 +107,8 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         beam_x = 0
         beam_y = 0
         try:
-            beam_x = self.beamx_chan.getValue()
-            beam_y = self.beamy_chan.getValue()
+            beam_x = self.beamx_chan.get_value()
+            beam_y = self.beamy_chan.get_value()
         except BaseException:
             pass
         return beam_x, beam_y
@@ -144,7 +144,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         eugap_ch = self.get_channel_object("eugap")
 
         try:
-            currentenergy = eugap_ch.getValue()
+            currentenergy = eugap_ch.get_value()
         except BaseException:
             currentenergy = 12.6
 

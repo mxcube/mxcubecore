@@ -132,21 +132,21 @@ class BIOMAXMD3(GenericDiffractometer):
         :returns: list with two floats
         """
         zoom = HWR.beamline.sample_view.camera.get_image_zoom()
-        # return (0.5/self.channel_dict["CoaxCamScaleX"].getValue(),
-        # 0.5/self.channel_dict["CoaxCamScaleY"].getValue())
+        # return (0.5/self.channel_dict["CoaxCamScaleX"].get_value(),
+        # 0.5/self.channel_dict["CoaxCamScaleY"].get_value())
         return (
-            zoom / self.channel_dict["CoaxCamScaleX"].getValue(),
-            1 / self.channel_dict["CoaxCamScaleY"].getValue(),
+            zoom / self.channel_dict["CoaxCamScaleX"].get_value(),
+            1 / self.channel_dict["CoaxCamScaleY"].get_value(),
         )
 
     def update_zoom_calibration(self):
         """
         """
-        # self.pixels_per_mm_x = 0.5/self.channel_dict["CoaxCamScaleX"].getValue()
-        # self.pixels_per_mm_y = 0.5/self.channel_dict["CoaxCamScaleY"].getValue()
+        # self.pixels_per_mm_x = 0.5/self.channel_dict["CoaxCamScaleX"].get_value()
+        # self.pixels_per_mm_y = 0.5/self.channel_dict["CoaxCamScaleY"].get_value()
         zoom = HWR.beamline.sample_view.camera.get_image_zoom()
-        self.pixels_per_mm_x = zoom / self.channel_dict["CoaxCamScaleX"].getValue()
-        self.pixels_per_mm_y = zoom / self.channel_dict["CoaxCamScaleY"].getValue()
+        self.pixels_per_mm_x = zoom / self.channel_dict["CoaxCamScaleX"].get_value()
+        self.pixels_per_mm_y = zoom / self.channel_dict["CoaxCamScaleY"].get_value()
 
     def manual_centring(self):
         """
@@ -580,7 +580,7 @@ class BIOMAXMD3(GenericDiffractometer):
             self.beam_position = (pos_x, pos_y)
             beam_xc = self.beam_position[0]
             beam_yc = self.beam_position[1]
-            cent_vertical_to_move = self.cent_vertical_pseudo_motor.getValue() - (
+            cent_vertical_to_move = self.cent_vertical_pseudo_motor.get_value() - (
                 x - beam_xc
             ) / float(self.pixelsPerMmY)
             self.emit_progress_message("")
@@ -628,7 +628,7 @@ class BIOMAXMD3(GenericDiffractometer):
         """
         Detects if device is ready
         """
-        return self.channel_dict["State"].getValue() == DiffractometerState.tostring(
+        return self.channel_dict["State"].get_value() == DiffractometerState.tostring(
             # return self.current_state == DiffractometerState.tostring(\
             DiffractometerState.Ready
         )

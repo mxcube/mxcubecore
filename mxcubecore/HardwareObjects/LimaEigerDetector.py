@@ -80,12 +80,12 @@ class LimaEigerDetector(AbstractDetector):
     def wait_ready(self, timeout=30):
         acq_status_chan = self.get_channel_object("acq_status")
         with gevent.Timeout(timeout, RuntimeError("Detector not ready")):
-            while acq_status_chan.getValue() != "Ready":
+            while acq_status_chan.get_value() != "Ready":
                 time.sleep(1)
 
     def last_image_saved(self):
         # return 0
-        return self.get_channel_object("last_image_saved").getValue() + 1
+        return self.get_channel_object("last_image_saved").get_value() + 1
 
     def get_deadtime(self):
         return float(self.get_property("deadtime"))
@@ -136,7 +136,7 @@ class LimaEigerDetector(AbstractDetector):
         self.header["Excluded_pixels:"] = " badpix_mask.tif"
         self.header["N_excluded_pixels:"] = "= 321"
         self.header["Threshold_setting"] = (
-            "%d eV" % self.get_channel_object("photon_energy").getValue()
+            "%d eV" % self.get_channel_object("photon_energy").get_value()
         )
         self.header["Count_cutoff"] = "1048500"
         self.header["Tau"] = "= 0 s"
@@ -184,7 +184,7 @@ class LimaEigerDetector(AbstractDetector):
             energy = minE
 
         working_energy_chan = self.get_channel_object("photon_energy")
-        working_energy = working_energy_chan.getValue() / 1000.0
+        working_energy = working_energy_chan.get_value() / 1000.0
         if math.fabs(working_energy - energy) > 0.1:
             egy = int(energy * 1000.0)
             working_energy_chan.setValue(egy)

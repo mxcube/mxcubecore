@@ -223,7 +223,7 @@ class BIOMAXEiger(Equipment):
             else:
                 return "not_init"
 
-        return self.status_chan.getValue().split("\n")[0]
+        return self.status_chan.get_value().split("\n")[0]
 
     def is_idle(self):
         return self.get_status()[:4] == "idle"
@@ -398,7 +398,7 @@ class BIOMAXEiger(Equipment):
         return self.get_channel_value("FrameTimeMin") - self.get_readout_time()
 
     def get_sensor_thickness(self):
-        return  # not available, self.get_channel_object("").getValue()
+        return  # not available, self.get_channel_object("").get_value()
 
     def has_shutterless(self):
         return True
@@ -668,7 +668,7 @@ class BIOMAXEiger(Equipment):
     def arm(self):
         logging.getLogger("HWR").info("[DETECTOR] Arm command requested")
         cmd = self.get_command_object("Arm")
-        cmd.setDeviceTimeout(10000)
+        cmd.set_device_timeout(10000)
         cmd()
         self.wait_ready()
         logging.getLogger("HWR").info(

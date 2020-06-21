@@ -731,10 +731,10 @@ class PX1Collect(AbstractCollect, HardwareObject):
             time.sleep(0.1)
 
     def is_standby(self):
-        return str(self.collect_state_chan.getValue()) == "STANDBY"
+        return str(self.collect_state_chan.get_value()) == "STANDBY"
 
     def is_moving(self):
-        return str(self.collect_state_chan.getValue()) in ["MOVING", "RUNNING"]
+        return str(self.collect_state_chan.get_value()) in ["MOVING", "RUNNING"]
 
     ## COLLECT SERVER STATE (END) ##
 

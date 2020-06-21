@@ -109,8 +109,8 @@ class PX1BeamInfo(Equipment):
 
     def sizeUpdated(self):
         if None not in [self.beamx_chan, self.beamy_chan]:
-            x_beam = self.beamx_chan.getValue()
-            y_beam = self.beamy_chan.getValue()
+            x_beam = self.beamx_chan.get_value()
+            y_beam = self.beamy_chan.get_value()
             self.beam_info_dict["size_x"] = x_beam
             self.beam_info_dict["size_y"] = y_beam
         self.emit("beamInfoChanged", (self.beam_info_dict,))

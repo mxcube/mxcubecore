@@ -77,7 +77,7 @@ class ALBABackLight(Device):
         return self.limits
 
     def get_state(self):
-        _state = self.backlightin_channel.getValue()
+        _state = self.backlightin_channel.get_value()
         if _state:
             return "on"
         else:
@@ -87,7 +87,7 @@ class ALBABackLight(Device):
         return self.username
 
     def getLevel(self):
-        self.current_level = self.level_channel.getValue()
+        self.current_level = self.level_channel.get_value()
         return self.current_level
 
     def setLevel(self, level):
@@ -99,7 +99,7 @@ class ALBABackLight(Device):
         self.on_task.link_exception(self._task_failed)
 
     def _setOn(self):
-        if self.backlightin_channel.getValue() is False:
+        if self.backlightin_channel.get_value() is False:
             self.set_backlight_in()
             wait_ok = self.wait_backlight_in()
             if not wait_ok:
@@ -123,7 +123,7 @@ class ALBABackLight(Device):
         t0 = time.time()
         elapsed = 0
         while elapsed < timeout:
-            isin = self.backlightin_channel.getValue()
+            isin = self.backlightin_channel.get_value()
             if isin == state:
                 logging.getLogger("HWR").debug(
                     "waiting for backlight took %s . In is: %s" % (elapsed, isin)

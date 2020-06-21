@@ -92,7 +92,7 @@ class EMBLCollect(AbstractCollect):
         self._exp_type_dict = {"Mesh": "raster", "Helical": "Helical"}
 
         self.chan_collect_status = self.get_channel_object("collectStatus")
-        self._actual_collect_status = self.chan_collect_status.getValue()
+        self._actual_collect_status = self.chan_collect_status.get_value()
         self.chan_collect_status.connect_signal("update", self.collect_status_update)
         self.chan_collect_frame = self.get_channel_object("collectFrame")
         self.chan_collect_frame.connect_signal("update", self.collect_frame_update)
@@ -433,7 +433,7 @@ class EMBLCollect(AbstractCollect):
         """
         und_gaps = {}
         if self.chan_undulator_gap:
-            und_gaps = self.chan_undulator_gap.getValue()
+            und_gaps = self.chan_undulator_gap.get_value()
             if not isinstance(und_gaps, (list, tuple)):
                 und_gaps = list(und_gaps)
         return und_gaps

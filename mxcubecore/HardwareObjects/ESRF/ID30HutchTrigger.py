@@ -99,9 +99,9 @@ class ID30HutchTrigger(BaseHardwareObjects.HardwareObject):
         else:
             self.__oldValue = value
 
-        self.valueChanged(value)
+        self.value_changed(value)
 
-    def valueChanged(self, value, *args):
+    def value_changed(self, value, *args):
         if value == 0:
             if self.initialized:
                 self.emit("hutchTrigger", (1,))

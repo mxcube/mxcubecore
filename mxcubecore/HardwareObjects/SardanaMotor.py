@@ -173,7 +173,7 @@ class SardanaMotor(AbstractMotor):
         motor_state = self.motor_state
 
         if state is None:
-            state = self.state_channel.getValue()
+            state = self.state_channel.get_value()
 
         state = str(state)
         motor_state = SardanaMotor.state_map[state]
@@ -197,7 +197,7 @@ class SardanaMotor(AbstractMotor):
                     valueChanged is fired
         """
         if position is None:
-            position = self.position_channel.getValue()
+            position = self.position_channel.get_value()
         if abs(self.motor_position - position) >= self.threshold:
             self.motor_position = position
             self.emit("valueChanged", (position,))
@@ -224,7 +224,7 @@ class SardanaMotor(AbstractMotor):
         """
         Descript. : returns the current position
         """
-        self.motor_position = self.position_channel.getValue()
+        self.motor_position = self.position_channel.get_value()
         return self.motor_position
 
     def _set_value(self, value):
@@ -259,7 +259,7 @@ class SardanaMotor(AbstractMotor):
 
     def get_velocity(self):
         try:
-            return self.velocity_channel.getValue()
+            return self.velocity_channel.get_value()
         except BaseException:
             return None
 
@@ -268,7 +268,7 @@ class SardanaMotor(AbstractMotor):
 
     def get_acceleration(self):
         try:
-            return self.acceleration_channel.getValue()
+            return self.acceleration_channel.get_value()
         except BaseException:
             return None
 

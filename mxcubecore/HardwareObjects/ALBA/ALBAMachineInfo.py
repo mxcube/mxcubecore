@@ -172,7 +172,7 @@ class ALBAMachineInfo(Equipment):
 
     def get_mach_current(self):
         try:
-            value = self.chan_mach_current.getValue()
+            value = self.chan_mach_current.get_value()
         except Exception as e:
             self.logger.error("Cannot read machine current value, returning 0")
             value = 0
@@ -193,12 +193,12 @@ class ALBAMachineInfo(Equipment):
     #        return self.values_dict['current']
 
     def get_mach_status(self):
-        return self.chan_mach_status.getValue()
+        return self.chan_mach_status.get_value()
 
     #        return self.values_dict['mach_status']
 
     def get_topup_remaining(self):
-        return self.chan_topup_remaining.getValue()
+        return self.chan_topup_remaining.get_value()
 
 
 #        return self.values_dict['remaining']

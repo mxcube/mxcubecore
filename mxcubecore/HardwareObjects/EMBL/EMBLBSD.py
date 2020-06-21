@@ -73,7 +73,7 @@ class EMBLBSD(GenericDiffractometer):
         GenericDiffractometer.init(self)
 
         self.chan_state = self.get_channel_object("State")
-        self.current_state = self.chan_state.getValue()
+        self.current_state = self.chan_state.get_value()
         self.chan_state.connect_signal("update", self.state_changed)
 
         self.chan_status = self.get_channel_object("Status")
@@ -160,8 +160,8 @@ class EMBLBSD(GenericDiffractometer):
     def update_pixels_per_mm(self, *args):
         """Updates pixels per mm"""
         if self.chan_calib_x:
-            self.pixels_per_mm_x = 1.0 / self.chan_calib_x.getValue()
-            self.pixels_per_mm_y = 1.0 / self.chan_calib_y.getValue()
+            self.pixels_per_mm_x = 1.0 / self.chan_calib_x.get_value()
+            self.pixels_per_mm_y = 1.0 / self.chan_calib_y.get_value()
             self.emit(
                 "pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),)
             )
@@ -184,7 +184,7 @@ class EMBLBSD(GenericDiffractometer):
             with gevent.Timeout(
                 timeout, Exception("Timeout waiting for phase %s" % phase)
             ):
-                while phase != self.chan_current_phase.getValue():
+                while phase != self.chan_current_phase.get_value():
                     gevent.sleep(0.1)
             self.wait_device_ready(30)
             self.wait_device_ready(30)
@@ -230,7 +230,7 @@ class EMBLBSD(GenericDiffractometer):
 
     def get_scintillator_position(self):
         """Returns scintillator position"""
-        return self.chan_scintillator_position.getValue()
+        return self.chan_scintillator_position.get_value()
 
     def set_scintillator_position(self, position):
         """Sets scintillator position"""
@@ -241,7 +241,7 @@ class EMBLBSD(GenericDiffractometer):
 
     def get_capillary_position(self):
         """Returns capillary position"""
-        return self.chan_capillary_position.getValue()
+        return self.chan_capillary_position.get_value()
 
     def set_capillary_position(self, position):
         """Moves capillary to requested position"""

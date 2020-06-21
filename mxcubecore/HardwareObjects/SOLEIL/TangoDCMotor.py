@@ -184,7 +184,7 @@ class TangoDCMotor(Device):
         )
 
     def get_value(self):
-        return self.positionChan.getValue()
+        return self.positionChan.get_value()
 
     def convertValue(self, value):
         logging.info("TangoDCMotor: converting value to %s " % str(self.dataType))

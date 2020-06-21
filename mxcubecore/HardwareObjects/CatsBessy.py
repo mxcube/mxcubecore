@@ -283,7 +283,7 @@ class CatsBessy(SampleChanger):
             while self._is_device_busy():
                 gevent.sleep(0.1)
         else:
-            while str(self._path_running.getValue()).lower() == "true":
+            while str(self._path_running.get_value()).lower() == "true":
                 gevent.sleep(0.1)
             # try:
             #    ret = self._check_task_result(task_id)
@@ -306,12 +306,12 @@ class CatsBessy(SampleChanger):
         self._set_state(state)
 
     def _read_state(self):
-        state = self._state.getValue()
+        state = self._state.get_value()
         if state is not None:
             stateStr = str(state).upper()
         else:
             stateStr = ""
-        # state = str(self._state.getValue() or "").upper()
+        # state = str(self._state.get_value() or "").upper()
         state_converter = {
             "ALARM": SampleChangerState.Alarm,
             "ON": SampleChangerState.Ready,
@@ -368,8 +368,8 @@ class CatsBessy(SampleChanger):
         self._set_selected_sample(sample)
 
     def _update_loaded_sample(self):
-        loadedSampleLid = self._lidSampleOnDiff.getValue()
-        loadedSampleNum = self._numSampleOnDiff.getValue()
+        loadedSampleLid = self._lidSampleOnDiff.get_value()
+        loadedSampleNum = self._numSampleOnDiff.get_value()
         if loadedSampleLid != -1 or loadedSampleNum != -1:
             lidBase = (loadedSampleLid - 1) * 3
             lidOffset = ((loadedSampleNum - 1) / 10) + 1
@@ -396,7 +396,7 @@ class CatsBessy(SampleChanger):
                 old_sample._set_loaded(loaded, has_been_loaded)
             if new_sample is not None:
                 # update information of recently loaded sample
-                datamatrix = str(self._barcode.getValue())
+                datamatrix = str(self._barcode.get_value())
                 scanned = len(datamatrix) != 0
                 if not scanned:
                     datamatrix = "----------"
@@ -436,7 +436,7 @@ class CatsBessy(SampleChanger):
     def _updateSCContents(self):
         for basket_index in range(CatsBessy.NO_OF_BASKETS):
             # get presence information from the device server
-            newBasketPresence = self._basketChannels[basket_index].getValue()
+            newBasketPresence = self._basketChannels[basket_index].get_value()
             # get saved presence information from object's internal bookkeeping
             basket = self.get_components()[basket_index]
 

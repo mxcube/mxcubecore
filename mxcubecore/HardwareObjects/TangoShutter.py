@@ -176,7 +176,7 @@ class TangoShutter(BaseHardwareObjects.Device):
         return state_str
 
     def readShutterState(self):
-        state = self.shutter_channel.getValue()
+        state = self.shutter_channel.get_value()
         return self._convert_state_to_str(state)
 
     def getShutterState(self):

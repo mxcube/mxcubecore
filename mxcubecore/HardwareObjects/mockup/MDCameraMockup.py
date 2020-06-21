@@ -36,7 +36,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
         logging.getLogger("HWR").info("initializing camera object")
         if self.get_property("interval"):
             self.pollInterval = self.get_property("interval")
-        self.stopper = False  # self.pollingTimer(self.pollInterval, self.poll)
+        self.stopper = False  # self.polling_timer(self.pollInterval, self.poll)
         gevent.spawn(self.poll)
 
     def udiffVersionChanged(self, value):

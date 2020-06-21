@@ -131,13 +131,13 @@ class MicrodiffMotor(AbstractMotor):
                     {"type": "exporter", "name": "homing"}, "startHomingMotor"
                 )
 
-        self.motorPositionChanged(self.position_attr.getValue())
+        self.motorPositionChanged(self.position_attr.get_value())
 
     def connect_notify(self, signal):
         if signal == "valueChanged":
             self.emit("valueChanged", (self.get_value(),))
         elif signal == "stateChanged":
-            self.motorStateChanged(self.state_attr.getValue())
+            self.motorStateChanged(self.state_attr.get_value())
         elif signal == "limitsChanged":
             self.motorLimitsChanged()
 
@@ -172,7 +172,7 @@ class MicrodiffMotor(AbstractMotor):
         self.emit("stateChanged", (state,))
 
     def _get_state(self):
-        state_value = self.state_attr.getValue()
+        state_value = self.state_attr.get_value()
         if state_value in MicrodiffMotor.EXPORTER_TO_MOTOR_STATE:
             self.motorState = MicrodiffMotor.EXPORTER_TO_MOTOR_STATE[state_value]
         else:
@@ -222,7 +222,7 @@ class MicrodiffMotor(AbstractMotor):
 
     def get_value(self):
         if self.position_attr is not None:
-            self.position = self.position_attr.getValue()
+            self.position = self.position_attr.get_value()
         return self.position
 
     def _set_value(self, value):

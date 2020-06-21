@@ -85,7 +85,7 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         pass
 
     def get_state(self):
-        return self.state_chan.getValue()
+        return self.state_chan.get_value()
 
     def read_state(self):
         return str(self.get_state())
@@ -94,7 +94,7 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         return str(self.get_state()) == "FAULT"
 
     def get_threshold(self):
-        return self.threshold_chan.getValue()
+        return self.threshold_chan.get_value()
 
     def get_threshold_gain(self):
         return None
@@ -109,7 +109,7 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         beam_y = 0
         try:
             if self.chan_beam_xy is not None:
-                value = self.chan_beam_xy.getValue()
+                value = self.chan_beam_xy.get_value()
                 beam_x = value[0]
                 beam_y = value[1]
         except BaseException:
@@ -201,7 +201,7 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         PILATUS_THRESHOLD_MIN = 3774.0  # en eV
         ENERGY_CALIBRATION_MIN = 7.6  # en keV
 
-        current_threshold = self.threshold_chan.getValue()
+        current_threshold = self.threshold_chan.get_value()
 
         energy_diff = energy - 2 * current_threshold / 1000.0
 

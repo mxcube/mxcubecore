@@ -161,7 +161,7 @@ class NanoDiff(HardwareObject):
 
         # self.chan_head_type = self.get_channel_object('HeadType')
         # if self.chan_head_type is not None:
-        #    self.head_type = self.chan_head_type.getValue()
+        #    self.head_type = self.chan_head_type.get_value()
 
         print("PP__:  Attention, chan_head_type is commented out")
 
@@ -296,7 +296,7 @@ class NanoDiff(HardwareObject):
             self.phase_list = []
 
     def in_plate_mode(self):
-        # self.head_type = self.chan_head_type.getValue()
+        # self.head_type = self.chan_head_type.get_value()
         print("PP__:  Attention, chan_head_type is commented out")
 
         return self.head_type == NanoDiff.PLATE
@@ -814,7 +814,7 @@ class NanoDiff(HardwareObject):
         Descript. :
         """
         self.centring_hwobj.initCentringProcedure()
-        # self.head_type = self.chan_head_type.getValue()
+        # self.head_type = self.chan_head_type.get_value()
 
         self.pixels_per_mm_x = 0.865
         self.pixels_per_mm_y = 0.830  # 865

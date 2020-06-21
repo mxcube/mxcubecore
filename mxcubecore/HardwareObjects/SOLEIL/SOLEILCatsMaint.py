@@ -481,7 +481,7 @@ class SOLEILCatsMaint(Equipment):
         if waitstart:
             timeout = 10.0
             t0 = time.time()
-            while str(self._chnPathRunning.getValue()).lower() != "true":
+            while str(self._chnPathRunning.get_value()).lower() != "true":
                 if time.time() - t0 > timeout:
                     logging.getLogger("HWR").info(
                         "Could not detect the start of the task. Continuing"
@@ -490,9 +490,9 @@ class SOLEILCatsMaint(Equipment):
                 gevent.sleep(0.1)
 
         logging.getLogger("HWR").info(
-            "server task started. path running %s" % self._chnPathRunning.getValue()
+            "server task started. path running %s" % self._chnPathRunning.get_value()
         )
-        while str(self._chnPathRunning.getValue()).lower() == "true":
+        while str(self._chnPathRunning.get_value()).lower() == "true":
             gevent.sleep(0.1)
         ret = True
         return ret

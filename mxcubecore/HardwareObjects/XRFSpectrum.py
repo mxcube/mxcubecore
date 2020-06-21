@@ -237,15 +237,15 @@ class XRFSpectrum(Equipment):
         self.scanning = False
         if result is not False:
             try:
-                mcaData = self.get_channel_object("mca_data").getValue()
-                mcaCalib = self.get_channel_object("calib_data").getValue()
+                mcaData = self.get_channel_object("mca_data").get_value()
+                mcaCalib = self.get_channel_object("calib_data").get_value()
             except BaseException:
                 fname = self.spectrumInfo["filename"].replace(".dat", ".raw")
                 self.mca_hwobj.set_presets(fname=str(fname))
                 mcaData = self.mca_hwobj.read_data(save_data=True)
                 mcaCalib = self.mca_hwobj.get_calibration()
             try:
-                mcaConfig = self.get_channel_object("config_data").getValue()
+                mcaConfig = self.get_channel_object("config_data").get_value()
                 self.spectrumInfo["beamTransmission"] = mcaConfig["att"]
                 self.spectrumInfo["energy"] = mcaConfig["energy"]
                 self.spectrumInfo["beamSizeHorizontal"] = float(mcaConfig["bsX"])
@@ -333,7 +333,7 @@ class XRFSpectrum(Equipment):
     def getSpectrumParams(self):
         if self.energySpectrumArgs:
             try:
-                self.curr = self.energySpectrumArgs.getValue()
+                self.curr = self.energySpectrumArgs.get_value()
                 return self.curr
             except BaseException:
                 logging.getLogger().exception(

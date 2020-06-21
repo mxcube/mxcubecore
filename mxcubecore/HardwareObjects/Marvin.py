@@ -206,10 +206,10 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         AbstractSampleChanger.SampleChanger.init(self)
 
         self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
-        self.status_list_changed(self.chan_status.getValue())
-        self.puck_switches_changed(self.chan_puck_switches.getValue())
-        self.mounted_sample_puck_changed(self.chan_mounted_sample_puck.getValue())
-        self.sample_is_loaded_changed(self.chan_sample_is_loaded.getValue())
+        self.status_list_changed(self.chan_status.get_value())
+        self.puck_switches_changed(self.chan_puck_switches.get_value())
+        self.mounted_sample_puck_changed(self.chan_mounted_sample_puck.get_value())
+        self.sample_is_loaded_changed(self.chan_sample_is_loaded.get_value())
 
     def get_status_str_desc(self):
         return STATUS_STR_DESC
@@ -289,10 +289,10 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                 gevent.sleep(0.05)
 
     def is_sample_on_gonio(self):
-        return self.chan_sample_is_loaded.getValue()
+        return self.chan_sample_is_loaded.get_value()
         #logging.getLogger("GUI").info("Sample on gonio check 1: %s" %first_try)
         #gevent.sleep(1.0)
-        #second_try = self.chan_sample_is_loaded.getValue()
+        #second_try = self.chan_sample_is_loaded.get_value()
         #logging.getLogger("GUI").info("Sample on gonio check 2: %s" %second_try)
         #return first_try and second_try
 
@@ -678,7 +678,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         logging.getLogger("HWR").debug("Sample changer: Veto ready")
         #if self._is_device_busy():
         #    raise Exception("Action finished to early. Sample changer is not ready!!!")
-        self.sample_is_loaded_changed(self.chan_sample_is_loaded.getValue())
+        self.sample_is_loaded_changed(self.chan_sample_is_loaded.get_value())
         self._update_state()
         self._update_loaded_sample()
         self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
@@ -728,7 +728,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
     def waitVeto(self, timeout=20):
         with gevent.Timeout(timeout, Exception("Timeout waiting for veto")):
             while self._veto == 1:
-                self.veto_changed(self.chan_veto.getValue)
+                self.veto_changed(self.chan_veto.get_value)
                 gevent.sleep(0.1)
             
     def _update_selection(self):    

@@ -109,9 +109,9 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
 
     def get_state(self):
         if self.actuator_state == STATE_UNKNOWN:
-            self.actuator_value = self.actuator_channel.getValue()
-            self.motor_position = self.motorpos_channel.getValue()
-            self.motor_state = self.motorstate_channel.getValue()
+            self.actuator_value = self.actuator_channel.get_value()
+            self.motor_position = self.motorpos_channel.get_value()
+            self.motor_state = self.motorstate_channel.get_value()
             self.update_state()
         return self.actuator_state
 
@@ -155,12 +155,12 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
 
     def getMotorPosition(self):
         if self.motor_position is None:
-            self.motor_position = self.motorpos_channel.getValue()
+            self.motor_position = self.motorpos_channel.get_value()
         return self.motor_position
 
     def getMotorState(self):
         if self.motor_state is None:
-            self.motor_state = self.motorstate_channel.getValue()
+            self.motor_state = self.motorstate_channel.get_value()
         return self.motor_state
 
     def getUserName(self):

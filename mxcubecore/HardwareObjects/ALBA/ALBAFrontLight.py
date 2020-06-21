@@ -83,7 +83,7 @@ class ALBAFrontLight(Device):
         return self.limits
 
     def get_state(self):
-        self.register_state = str(self.state_channel.getValue()).lower()
+        self.register_state = str(self.state_channel.get_value()).lower()
         self.update_current_state()
         return self.state
 
@@ -91,7 +91,7 @@ class ALBAFrontLight(Device):
         return self.username
 
     def getLevel(self):
-        self.current_level = self.level_channel.getValue()
+        self.current_level = self.level_channel.get_value()
         return self.current_level
 
     def setLevel(self, level):

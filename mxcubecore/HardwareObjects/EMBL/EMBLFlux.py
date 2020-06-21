@@ -228,13 +228,13 @@ class EMBLFlux(AbstractFlux):
         self.init_flux_values()
 
     def init_flux_values(self):
-        if not self.chan_flux_status.getValue():
+        if not self.chan_flux_status.get_value():
             logging.getLogger("GUI").error(
                 "No valid flux value available. Please remeasure flux!"
             )
             return
         flux_values = self.cmd_flux_record.get()
-        flux_transmission = self.chan_flux_transmission.getValue()
+        flux_transmission = self.chan_flux_transmission.get_value()
         aperture_diameter_list = self.aperture_hwobj.get_diameter_list()
 
         self.measured_flux_list = []
@@ -430,7 +430,7 @@ class EMBLFlux(AbstractFlux):
                 HWR.beamline.diffractometer.wait_device_ready(10)
 
                 gevent.sleep(1)
-                intens_value = self.chan_intens_mean.getValue(force=True)
+                intens_value = self.chan_intens_mean.get_value(force=True)
                 logging.getLogger("HWR").info("Measured current: %s" % intens_value)
                 # HWR.beamline.fast_shutter.closeShutter(wait=True)
                 intensity_value = intens_value[0] + 1.860e-5  # 2.780e-6
@@ -452,9 +452,9 @@ class EMBLFlux(AbstractFlux):
             logging.getLogger("HWR").debug("Measure flux: Fast shutter opened")
 
             gevent.sleep(0.5)
-            intens_value = self.chan_intens_mean.getValue()
+            intens_value = self.chan_intens_mean.get_value()
 
-            intens_range_now = self.chan_intens_range.getValue()
+            intens_range_now = self.chan_intens_range.get_value()
             HWR.beamline.fast_shutter.closeShutter(wait=True)
             logging.getLogger("HWR").debug("Measure flux: Fast shutter closed")
 

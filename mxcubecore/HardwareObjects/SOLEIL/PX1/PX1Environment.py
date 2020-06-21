@@ -90,7 +90,7 @@ class PX1Environment(Device):
         try:
             self.chanAuth = self.get_channel_object("beamlineMvtAuthorized")
             self.chanAuth.connect_signal("update", self.setAuthorizationFlag)
-            # state = self.state_chan.getValue()
+            # state = self.state_chan.get_value()
 
         except KeyError:
             logging.getLogger().warning("%s: cannot report State", self.name())
@@ -126,11 +126,11 @@ class PX1Environment(Device):
         self.emit("StateChanged", (value,))
 
     def get_state(self):
-        state = str(self.state_chan.getValue())
+        state = str(self.state_chan.get_value())
         return state
 
     def isBusy(self, timeout=None):
-        state = self.stateChan.getValue()
+        state = self.stateChan.get_value()
         return state not in [EnvironmentState.ON]
 
     def wait_ready(self, timeout=None):
@@ -306,7 +306,7 @@ class PX1Environment(Device):
 
     def getUsingCapillary(self):
         if self.usingCapillaryChannel is not None:
-            return self.usingCapillaryChannel.getValue()
+            return self.usingCapillaryChannel.get_value()
 
     def setUsingCapillary(self, value):
         self.capillary_value = value
@@ -319,7 +319,7 @@ class PX1Environment(Device):
 
     def getBeamstopPosition(self):
         if self.beamstopPositionChannel is not None:
-            return self.beamstopPositionChannel.getValue()
+            return self.beamstopPositionChannel.get_value()
 
     def setBeamstopPosition(self, value):
         self.beamstop_position = value

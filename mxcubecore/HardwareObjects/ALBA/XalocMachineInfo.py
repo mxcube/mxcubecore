@@ -164,7 +164,7 @@ class XalocMachineInfo(Equipment):
         self.emit("valuesChanged", values_to_send)
 
     def get_mach_current(self):
-        return self.chan_mach_current.getValue()
+        return self.chan_mach_current.get_value()
         # return self.values_dict['mach_current']
 
     #    def get_current_value(self):
@@ -174,12 +174,12 @@ class XalocMachineInfo(Equipment):
     #        return self.values_dict['current']
 
     def get_mach_status(self):
-        return self.chan_mach_status.getValue()
+        return self.chan_mach_status.get_value()
 
     #        return self.values_dict['mach_status']
 
     def get_topup_remaining(self):
-        return self.chan_topup_remaining.getValue()
+        return self.chan_topup_remaining.get_value()
 
 
 #        return self.values_dict['remaining']

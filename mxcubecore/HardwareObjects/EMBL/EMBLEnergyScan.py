@@ -212,7 +212,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                 return False
         """
 
-        if self.chan_scan_status.getValue() in ["ready", "unknown", "error"]:
+        if self.chan_scan_status.get_value() in ["ready", "unknown", "error"]:
             if hasattr(HWR.beamline.energy, "release_break_bragg"):
                 HWR.beamline.energy.release_break_bragg()
 
@@ -282,7 +282,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
 
     def scanCommandFailed(self, *args):
         with TaskUtils.cleanup(self.ready_event.set):
-            # error_msg = self.chan_scan_error.getValue()
+            # error_msg = self.chan_scan_error.get_value()
             # print error_msg
             # logging.getLogger("GUI").error("Energy scan: %s" % error_msg)
             self.scan_info["endTime"] = str(time.strftime("%Y-%m-%d %H:%M:%S"))

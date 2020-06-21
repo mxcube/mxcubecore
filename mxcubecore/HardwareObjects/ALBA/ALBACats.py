@@ -96,7 +96,7 @@ class ALBACats(Cats90):
 
         t0 = time.time()
         while True:
-            state = str(self.super_state_channel.getValue())
+            state = str(self.super_state_channel.get_value())
             if str(state) == "ON":
                 break
 
@@ -114,7 +114,7 @@ class ALBACats(Cats90):
 
     def _wait_super_ready(self):
         while True:
-            state = str(self.super_state_channel.getValue())
+            state = str(self.super_state_channel.get_value())
             if state == "ON":
                 logging.getLogger("user_level_log").error(
                     "Supervisor is in ON state. Returning"
@@ -130,7 +130,7 @@ class ALBACats(Cats90):
         @return: boolean
         """
         while True:
-            state = str(self.super_state_channel.getValue())
+            state = str(self.super_state_channel.get_value())
             if state == "ON":
                 logging.getLogger("user_level_log").error(
                     "Supervisor is in ON state. Returning"
@@ -156,13 +156,13 @@ class ALBACats(Cats90):
             return True
 
     def save_detdist_position(self):
-        self.detdist_saved = self.detdist_position_channel.getValue()
+        self.detdist_saved = self.detdist_position_channel.get_value()
         logging.getLogger("user_level_log").error(
             "Saving current det.distance (%s)" % self.detdist_saved
         )
 
     def restore_detdist_position(self):
-        if abs(self.detdist_saved - self.detdist_position_channel.getValue()) >= 0.1:
+        if abs(self.detdist_saved - self.detdist_position_channel.get_value()) >= 0.1:
             logging.getLogger("user_level_log").error(
                 "Restoring det.distance to %s" % self.detdist_saved
             )
@@ -176,7 +176,7 @@ class ALBACats(Cats90):
 
         @return: str
         """
-        return self.phase_channel.getValue()
+        return self.phase_channel.get_value()
 
     def load(self, sample=None, wait=False, wash=False):
         """
@@ -241,15 +241,15 @@ class ALBACats(Cats90):
 
     # TODO: this overides identical method from Cats90
     def is_powered(self):
-        return self._chnPowered.getValue()
+        return self._chnPowered.get_value()
 
     # TODO: this overides identical method from Cats90
     def is_path_running(self):
-        return self._chnPathRunning.getValue()
+        return self._chnPathRunning.get_value()
 
     # TODO: this overides method from AbstractSampleChanger
     # def has_loaded_sample(self):  # not used.  to use it remove _
-    #   return self._chnSampleIsDetected.getValue()
+    #   return self._chnSampleIsDetected.get_value()
 
     def _update_running_state(self, value):
         """
@@ -277,7 +277,7 @@ class ALBACats(Cats90):
         @shifts: mounting point offsets.
         @use_ht: mount a sample from hot tool.
         """
-        if not self._chnPowered.getValue():
+        if not self._chnPowered.get_value():
             self._cmdPowerOn()  # try switching power on
 
         current_tool = self.get_current_tool()
@@ -295,7 +295,7 @@ class ALBACats(Cats90):
             )
 
         gevent.sleep(3)
-        if not self._chnPowered.getValue():
+        if not self._chnPowered.get_value():
             raise Exception(
                 "CATS power is not enabled. Please switch on arm power before transferring samples."
             )
@@ -522,7 +522,7 @@ class ALBACats(Cats90):
         @sample_slot:
         @shifts: mounting position
         """
-        if not self._chnPowered.getValue():
+        if not self._chnPowered.get_value():
             self._cmdPowerOn()  # try switching power on
 
         ret = self.diff_send_transfer()
@@ -545,8 +545,8 @@ class ALBACats(Cats90):
         else:
             xshift, yshift, zshift = map(str, shifts)
 
-        loaded_lid = self._chnLidLoadedSample.getValue()
-        loaded_num = self._chnNumLoadedSample.getValue()
+        loaded_lid = self._chnLidLoadedSample.get_value()
+        loaded_num = self._chnNumLoadedSample.get_value()
 
         if loaded_lid == -1:
             logging.getLogger("HWR").warning(
@@ -583,9 +583,9 @@ class ALBACats(Cats90):
         self._update_state()  # remove software flags like Loading.. reflects current hardware state
 
     def _check_coherence(self):
-        detected = self._chnSampleIsDetected.getValue()
-        loaded_lid = self._chnLidLoadedSample.getValue()
-        loaded_num = self._chnNumLoadedSample.getValue()
+        detected = self._chnSampleIsDetected.get_value()
+        loaded_lid = self._chnLidLoadedSample.get_value()
+        loaded_num = self._chnNumLoadedSample.get_value()
 
         if -1 in [loaded_lid, loaded_num] and detected:
             return False, "Sample detected on Diffract. but there is no info about it"
@@ -599,7 +599,7 @@ class ALBACats(Cats90):
         @return: 3-tuple
         """
         if self.shifts_channel is not None:
-            shifts = self.shifts_channel.getValue()
+            shifts = self.shifts_channel.get_value()
         else:
             shifts = None
         return shifts
@@ -610,7 +610,7 @@ class ALBACats(Cats90):
     #
     # @return:
     # """
-    # return (self._chnPathSafe.getValue() is not True)
+    # return (self._chnPathSafe.get_value() is not True)
 
     # TODO: fix return type
     def is_ht_sample(self, address):
@@ -647,7 +647,7 @@ class ALBACats(Cats90):
            0 : nothing loaded
           -1 : loaded but not ht
         """
-        sample_lid = self._chnLidLoadedSample.getValue()
+        sample_lid = self._chnLidLoadedSample.get_value()
 
         if self.has_loaded_sample():
             if sample_lid == 100:

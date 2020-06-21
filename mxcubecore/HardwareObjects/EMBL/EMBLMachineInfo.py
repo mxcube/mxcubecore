@@ -127,7 +127,7 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_mach_curr.connect_signal("update", self.mach_current_changed)
         self.chan_state_text = self.get_channel_object("machStateText")
         self.chan_state_text.connect_signal("update", self.state_text_changed)
-        # self.state_text_changed(self.chan_state_text.getValue())
+        # self.state_text_changed(self.chan_state_text.get_value())
 
         self.chan_mach_energy = self.get_channel_object("machEnergy")
         self.chan_mach_energy.connect_signal("update", self.mach_energy_changed)
@@ -135,7 +135,7 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_bunch_count.connect_signal("update", self.bunch_count_changed)
         self.chan_frontend_status = self.get_channel_object("frontEndStatus")
         self.chan_frontend_status.connect_signal("update", self.frontend_status_changed)
-        # self.frontend_status_changed(self.chan_frontend_status.getValue())
+        # self.frontend_status_changed(self.chan_frontend_status.get_value())
 
         if HWR.beamline.flux is not None:
             self.connect(HWR.beamline.flux, "fluxInfoChanged", self.flux_info_changed)
@@ -149,7 +149,7 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_undulator_gap = self.get_channel_object("chanUndulatorGap")
         if self.chan_undulator_gap is not None:
             self.chan_undulator_gap.connect_signal("update", self.undulator_gap_changed)
-        self.undulator_gap_changed(self.chan_undulator_gap.getValue())
+        self.undulator_gap_changed(self.chan_undulator_gap.get_value())
 
         self.chan_cryojet_in = self.get_channel_object("cryojetIn", optional=True)
         if self.chan_cryojet_in is not None:
@@ -158,7 +158,7 @@ class EMBLMachineInfo(HardwareObject):
                 "in_range": None,
                 "title": "Cryoject in place",
             }
-            self.cryojet_in_changed(self.chan_cryojet_in.getValue())
+            self.cryojet_in_changed(self.chan_cryojet_in.get_value())
             self.chan_cryojet_in.connect_signal("update", self.cryojet_in_changed)
         else:
             logging.getLogger("HWR").debug("MachineInfo: Cryojet channel not defined")
@@ -176,7 +176,7 @@ class EMBLMachineInfo(HardwareObject):
             self.chan_sc_dewar_low_level_alarm.connect_signal(
                 "update", self.low_level_alarm_changed
             )
-            self.low_level_alarm_changed(self.chan_sc_dewar_low_level_alarm.getValue())
+            self.low_level_alarm_changed(self.chan_sc_dewar_low_level_alarm.get_value())
 
         self.chan_sc_dewar_overflow_alarm = self.get_channel_object(
             "scOverflowAlarm", optional=True

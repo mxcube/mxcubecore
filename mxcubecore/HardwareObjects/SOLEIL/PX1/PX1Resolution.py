@@ -48,8 +48,8 @@ class PX1Resolution(Equipment):
         self.minimum_dist_chan.connect_signal("update", self.minimumDistanceChanged)
         self.state_chan.connect_signal("update", self.stateChanged)
 
-        self.currentDistance = self.distance_chan.getValue()
-        self._nominal_value = self.resolution_chan.getValue()
+        self.currentDistance = self.distance_chan.get_value()
+        self._nominal_value = self.resolution_chan.get_value()
 
         return Equipment._init(self)
 
@@ -73,7 +73,7 @@ class PX1Resolution(Equipment):
 
     def get_state(self, value=None):
         if value is None:
-            value = self.state_chan.getValue()
+            value = self.state_chan.get_value()
         state_str = str(value)
         # return self.stateDict[state_str]
         return state_str
@@ -107,8 +107,8 @@ class PX1Resolution(Equipment):
         self.recalculateResolution()
 
     def recalculateResolution(self):
-        distance = self.distance_chan.getValue()
-        resolution = self.resolution_chan.getValue()
+        distance = self.distance_chan.get_value()
+        resolution = self.resolution_chan.get_value()
 
         if resolution is None or distance is None:
             return
@@ -130,13 +130,13 @@ class PX1Resolution(Equipment):
         chan_info = self.distance_chan.getInfo()
 
         high = float(chan_info.max_value)
-        low = self.minimum_dist_chan.getValue()
+        low = self.minimum_dist_chan.get_value()
 
         return [low, high]
 
     def get_limits(self):
-        high = self.maximum_res_chan.getValue()
-        low = self.minimum_res_chan.getValue()
+        high = self.maximum_res_chan.get_value()
+        low = self.minimum_res_chan.get_value()
 
         return (low, high)
 

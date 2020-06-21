@@ -32,7 +32,7 @@ class MicrodiffInOut(Device):
         self.cmd_attr = self.add_channel(
             {"type": "exporter", "name": "move"}, self.cmd_name
         )
-        self.cmd_attr.connect_signal("update", self.valueChanged)
+        self.cmd_attr.connect_signal("update", self.value_changed)
 
         self.statecmd_name = self.get_property("statecmd_name")
         if self.statecmd_name is None:
@@ -41,7 +41,7 @@ class MicrodiffInOut(Device):
         self.state_attr = self.add_channel(
             {"type": "exporter", "name": "state"}, self.statecmd_name
         )
-        self.state_attr.connect_signal("update", self.valueChanged)
+        self.state_attr.connect_signal("update", self.value_changed)
 
         self.states = {True: "in", False: "out"}
         self.offset = self.get_property("offset", 0)
@@ -73,9 +73,9 @@ class MicrodiffInOut(Device):
 
     def connect_notify(self, signal):
         if signal == "actuatorStateChanged":
-            self.valueChanged(self.state_attr.get_value())
+            self.value_changed(self.state_attr.get_value())
 
-    def valueChanged(self, value):
+    def value_changed(self, value):
         self.actuatorState = self.states.get(value, "unknown")
         self.emit("actuatorStateChanged", (self.actuatorState,))
 
@@ -114,7 +114,7 @@ class MicrodiffInOut(Device):
                 if wait:
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
-                self.valueChanged(self.state_attr.get_value())
+                self.value_changed(self.state_attr.get_value())
             except BaseException:
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s in", self.username
@@ -131,7 +131,7 @@ class MicrodiffInOut(Device):
                 if wait:
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
-                self.valueChanged(self.state_attr.get_value())
+                self.value_changed(self.state_attr.get_value())
             except BaseException:
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s out", self.username
