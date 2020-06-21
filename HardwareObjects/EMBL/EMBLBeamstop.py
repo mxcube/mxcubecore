@@ -48,7 +48,7 @@ class EMBLBeamstop(Device, AbstractMotor):
             self.chan_distance = self.get_channel_object("BeamstopDistance")
             if self.chan_distance is not None:
                 self.chan_distance.connect_signal("update", self.distance_changed)
-            self.distance_changed(self.chan_distance.getValue())
+            self.distance_changed(self.chan_distance.get_value())
         else:
             self.distance = float(self.default_distance)
 
@@ -93,7 +93,7 @@ class EMBLBeamstop(Device, AbstractMotor):
 
     def get_value(self):
         """Returns beamstop position"""
-        return self.chan_position.getValue()
+        return self.chan_position.get_value()
 
     def set_position(self, position):
         """Sets position

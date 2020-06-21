@@ -109,7 +109,7 @@ class EMBLImageTracking(Device):
         Returns True if image tracking is enabled
         :return:
         """
-        return self.chan_enable_image_tracking.getValue()
+        return self.chan_enable_image_tracking.get_value()
 
     def set_image_tracking_state(self, state):
         """

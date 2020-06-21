@@ -50,9 +50,9 @@ class MicrodiffInOutMockup(Device):
 
     def connect_notify(self, signal):
         if signal == "actuatorStateChanged":
-            self.valueChanged(self.state_attr)
+            self.value_changed(self.state_attr)
 
-    def valueChanged(self, value):
+    def value_changed(self, value):
         self.actuatorState = self.states.get(value, "unknown")
         self.emit("actuatorStateChanged", (self.actuatorState,))
 
@@ -85,7 +85,7 @@ class MicrodiffInOutMockup(Device):
                 if wait:
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
-                self.valueChanged(self.state_attr)
+                self.value_changed(self.state_attr)
             except BaseException:
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s in", self.username
@@ -102,7 +102,7 @@ class MicrodiffInOutMockup(Device):
                 if wait:
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
-                self.valueChanged(self.state_attr)
+                self.value_changed(self.state_attr)
             except BaseException:
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s out", self.username

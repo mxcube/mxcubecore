@@ -154,8 +154,8 @@ class PX2Diffractometer(GenericDiffractometer):
         self.chan_state = self.get_channel_object("State")
         self.chan_status = self.get_channel_object("Status")
 
-        self.current_state = self.chan_state.getValue()
-        self.current_status = self.chan_status.getValue()
+        self.current_state = self.chan_state.get_value()
+        self.current_status = self.chan_status.get_value()
 
         self.chan_state.connect_signal("update", self.state_changed)
         self.chan_status.connect_signal("update", self.status_changed)
@@ -165,7 +165,7 @@ class PX2Diffractometer(GenericDiffractometer):
         self.update_pixels_per_mm()
 
         self.chan_head_type = self.get_channel_object("HeadType")
-        self.head_type = self.chan_head_type.getValue()
+        self.head_type = self.chan_head_type.get_value()
 
         self.chan_current_phase = self.get_channel_object("CurrentPhase")
         self.connect(self.chan_current_phase, "update", self.current_phase_changed)
@@ -386,8 +386,8 @@ class PX2Diffractometer(GenericDiffractometer):
         Descript. :
         """
         if self.chan_calib_x:
-            self.pixels_per_mm_x = 1.0 / self.chan_calib_x.getValue()
-            self.pixels_per_mm_y = 1.0 / self.chan_calib_y.getValue()
+            self.pixels_per_mm_x = 1.0 / self.chan_calib_x.get_value()
+            self.pixels_per_mm_y = 1.0 / self.chan_calib_y.get_value()
             self.emit(
                 "pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),)
             )
@@ -427,7 +427,7 @@ class PX2Diffractometer(GenericDiffractometer):
             with gevent.Timeout(
                 timeout, Exception("Timeout waiting for phase %s" % phase)
             ):
-                while phase != self.chan_current_phase.getValue():
+                while phase != self.chan_current_phase.get_value():
                     gevent.sleep(0.01)
         else:
             self.cmd_start_set_phase(phase)
@@ -1158,7 +1158,7 @@ class PX2Diffractometer(GenericDiffractometer):
         self.zoom_motor_hwobj.moveToPosition(position)
 
     def get_status(self):
-        self.current_status = self.chan_status.getValue()
+        self.current_status = self.chan_status.get_value()
         return self.current_status
 
     def get_point_from_line(self, point_one, point_two, frame_num, frame_total):
@@ -1244,7 +1244,7 @@ class PX2Diffractometer(GenericDiffractometer):
         """
 
     def get_scintillator_position(self):
-        return self.chan_scintillator_position.getValue()
+        return self.chan_scintillator_position.get_value()
 
     def set_scintillator_position(self, position):
         self.chan_scintillator_position.setValue(position)
@@ -1253,7 +1253,7 @@ class PX2Diffractometer(GenericDiffractometer):
                 gevent.sleep(0.01)
 
     def get_capillary_position(self):
-        return self.chan_capillary_position.getValue()
+        return self.chan_capillary_position.get_value()
 
     def set_capillary_position(self, position):
         self.chan_capillary_position.setValue(position)

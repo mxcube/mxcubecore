@@ -243,7 +243,7 @@ class XSData2DCoordinates(object):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSData2DCoordinates")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -381,7 +381,7 @@ class XSDataRange(object):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataRange")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -787,7 +787,7 @@ class XSDataXdsCompletenessEntry(object):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataXdsCompletenessEntry")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -926,7 +926,7 @@ class XSDataXscaleCompletenessEntry(XSDataXdsCompletenessEntry):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataXscaleCompletenessEntry")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -1384,7 +1384,7 @@ class XSDataAutoprocImport(XSDataInput):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataAutoprocImport")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -1717,7 +1717,7 @@ class XSDataAutoprocImportOut(XSDataResult):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataAutoprocImportOut")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -2343,7 +2343,7 @@ class XSDataAutoprocInput(XSDataInput):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataAutoprocInput")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -2796,7 +2796,7 @@ class XSDataFileConversion(XSDataInput):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataFileConversion")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -3008,7 +3008,7 @@ class XSDataFileConversionOut(XSDataResult):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataFileConversionOut")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -3255,7 +3255,7 @@ class XSDataInputControlDimple(XSDataInput):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataInputControlDimple")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -3758,7 +3758,7 @@ class XSDataMinimalXdsIn(XSDataInput):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataMinimalXdsIn")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -3876,7 +3876,7 @@ class XSDataMinimalXdsOut(XSDataResult):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataMinimalXdsOut")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -4880,7 +4880,7 @@ class XSDataXdsOutput(XSDataResult):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataXdsOutput")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -5377,7 +5377,7 @@ class XSDataResCutoff(XSDataInput):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataResCutoff")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -5702,7 +5702,7 @@ class XSDataResCutoffResult(XSDataResult):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataResCutoffResult")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -5828,7 +5828,7 @@ class XSDataResultControlDimple(XSDataResult):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataResultControlDimple")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -5990,7 +5990,7 @@ class XSDataXdsGenerateInput(XSDataInput):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataXdsGenerateInput")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -6372,7 +6372,7 @@ class XSDataXdsGenerateOutput(XSDataResult):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataXdsGenerateOutput")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -6527,7 +6527,7 @@ class XSDataXdsOutputFile(XSDataInput):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataXdsOutputFile")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -6719,7 +6719,7 @@ class XSDataXscaleOutput(XSDataResult):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataXscaleOutput")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -6915,7 +6915,7 @@ class XSDataXscaleParsedOutput(XSDataResult):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataXscaleParsedOutput")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -7546,7 +7546,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataXscaleGeneratedFiles")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -7740,7 +7740,7 @@ class XSDataXscaleInputFile(XSDataInput):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataXscaleInputFile")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -8164,7 +8164,7 @@ class XSDataXscaleInput(XSDataInput):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataXscaleInput")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -8280,7 +8280,7 @@ class XSDataXscaleParsingInput(XSDataInput):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataXscaleParsingInput")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 

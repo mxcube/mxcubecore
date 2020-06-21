@@ -169,8 +169,8 @@ class EMBLBeamInfo(Equipment):
         """
         if self.chan_beam_position_hor and self.chan_beam_position_ver:
             self.beam_position = [
-                self.chan_beam_position_hor.getValue(),
-                self.chan_beam_position_ver.getValue(),
+                self.chan_beam_position_hor.get_value(),
+                self.chan_beam_position_ver.get_value(),
             ]
         return self.beam_position
 

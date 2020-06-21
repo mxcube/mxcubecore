@@ -244,7 +244,7 @@ class FlexHCD(SampleChanger):
                 "%s" % cmd[3:],
             )
             if cmd.startswith("get"):
-                return exp_attr.getValue()
+                return exp_attr.get_value()
             if cmd.startswith("set"):
                 ret = exp_attr.setValue(args_str)
 
@@ -252,7 +252,7 @@ class FlexHCD(SampleChanger):
         return ret
 
     def _ready(self):
-        # return self.swstate_attr.getValue() == "Ready"
+        # return self.swstate_attr.get_value() == "Ready"
         return True
 
     def _wait_ready(self, timeout=None):

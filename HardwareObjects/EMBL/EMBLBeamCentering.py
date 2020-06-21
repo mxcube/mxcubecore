@@ -127,7 +127,7 @@ class EMBLBeamCentering(HardwareObject):
         self.cmd_start_pitch_scan(1)
         sleep(3)
         with gevent.Timeout(20, Exception("Timeout waiting for pitch scan ready")):
-            while self.scan_status != 0:  # chan_pitch_scan_status.getValue() != 0:
+            while self.scan_status != 0:  # chan_pitch_scan_status.get_value() != 0:
                 gevent.sleep(0.1)
                 logging.getLogger("HWR").error("scan status %s" % self.scan_status)
         self.cmd_set_vmax_pitch(1)
@@ -178,7 +178,7 @@ class EMBLBeamCentering(HardwareObject):
             with gevent.Timeout(
                 10, RuntimeError("Timeout waiting for pitch scan ready")
             ):
-                while self.chan_pitch_scan_status.getValue() != 0:
+                while self.chan_pitch_scan_status.get_value() != 0:
                     gevent.sleep(0.1)
             self.cmd_set_vmax_pitch(1)
 
@@ -346,13 +346,13 @@ class EMBLBeamCentering(HardwareObject):
                 with gevent.Timeout(
                     20, Exception("Timeout waiting for pitch scan ready")
                 ):
-                    while self.chan_pitch_scan_status.getValue() == 1:
+                    while self.chan_pitch_scan_status.get_value() == 1:
                         gevent.sleep(0.1)
                 gevent.sleep(3)
                 self.cmd_set_vmax_pitch(1)
 
                 """
-                qbpm_arr = self.chan_qbpm_ar.getValue()
+                qbpm_arr = self.chan_qbpm_ar.get_value()
                 if max(qbpm_arr) < 10:
                     gui_log.error("Beam alignment failed! Pitch scan failed.")
                     self.emit("progressStop", ())
@@ -441,7 +441,7 @@ class EMBLBeamCentering(HardwareObject):
                         with gevent.Timeout(
                             10, RuntimeError("Timeout waiting for pitch scan ready")
                         ):
-                            while self.chan_pitch_scan_status.getValue() != 0:
+                            while self.chan_pitch_scan_status.get_value() != 0:
                                 gevent.sleep(0.1)
                         self.cmd_set_vmax_pitch(1)
 

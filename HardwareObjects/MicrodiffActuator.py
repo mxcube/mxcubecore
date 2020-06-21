@@ -39,7 +39,7 @@ class MicrodiffActuator(AbstractActuator):
         self.state_attr = self.add_channel(
             {"type": "exporter", "name": "state"}, self.statecmd_name
         )
-        self.value_changed(self.state_attr.getValue())
+        self.value_changed(self.state_attr.get_value())
         self.state_attr.connect_signal("update", self.value_changed)
 
         self.offset = self.get_property("offset")
@@ -71,12 +71,12 @@ class MicrodiffActuator(AbstractActuator):
     def _ready(self):
         if self.hwstate_attr:
             if (
-                self.hwstate_attr.getValue() == "Ready"
-                and self.swstate_attr.getValue() == "Ready"
+                self.hwstate_attr.get_value() == "Ready"
+                and self.swstate_attr.get_value() == "Ready"
             ):
                 return True
         else:
-            if self.swstate_attr.getValue() == "Ready":
+            if self.swstate_attr.get_value() == "Ready":
                 return True
         return False
 
@@ -91,7 +91,7 @@ class MicrodiffActuator(AbstractActuator):
 
     def get_actuator_state(self, read=False):
         if read is True:
-            value = self.state_attr.getValue()
+            value = self.state_attr.get_value()
             self.actuator_state = self.states.get(value, AbstractActuator.UNKNOWN)
 
         return self.actuator_state
@@ -104,7 +104,7 @@ class MicrodiffActuator(AbstractActuator):
                 if wait:
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
-                self.value_changed(self.state_attr.getValue())
+                self.value_changed(self.state_attr.get_value())
             except Exception as e:
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s in", self.username
@@ -122,7 +122,7 @@ class MicrodiffActuator(AbstractActuator):
                 if wait:
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
-                self.value_changed(self.state_attr.getValue())
+                self.value_changed(self.state_attr.get_value())
             except Exception as e:
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s out", self.username

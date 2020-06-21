@@ -353,7 +353,7 @@ class CatsMaint(Equipment):
         return self.cats_model != "ISARA"
 
     def get_current_tool(self):
-        current_value = self._chnCurrentTool.getValue()
+        current_value = self._chnCurrentTool.get_value()
 
         tool = TOOL_TO_STR.get(current_value, None)
 
@@ -787,7 +787,7 @@ class CatsMaint(Equipment):
         # after launching a transfer
         # after setting refresh in the Tango DS to 0.1 s a wait of 1s is enough
         time.sleep(1.0)
-        while str(self._chnPathRunning.getValue()).lower() == "true":
+        while str(self._chnPathRunning.get_value()).lower() == "true":
             gevent.sleep(0.1)
         ret = True
         return ret

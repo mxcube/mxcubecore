@@ -26,11 +26,11 @@ class ALBATransmission(Device):
         self.emit("attStateChanged", self.state)
 
     def getAttState(self):
-        self.state = self.stateChannel.getValue()
+        self.state = self.stateChannel.get_value()
         return self.state
 
     def get_value(self):
-        return self.transmissionChannel.getValue()
+        return self.transmissionChannel.get_value()
 
     def _set_value(self, value):
         self.transmissionChannel.setValue(value)

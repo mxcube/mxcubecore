@@ -105,7 +105,7 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device, AbstractMotor):
         return self.zoom.get_limits()
 
     def get_state(self):
-        #        state = self.stateChannel.getValue()
+        #        state = self.stateChannel.get_value()
         #        curr_pos = self.get_value()
         #        if state == PyTango.DevState.ON:
         #             return ALBAZoomMotor.READY
@@ -122,7 +122,7 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device, AbstractMotor):
         return self.zoom.get_value()
 
     def get_current_position_name(self):
-        #        n = int(self.positionChannel.getValue())
+        #        n = int(self.positionChannel.get_value())
         #        value = "%s z%s" % (n, n)
         #        logging.getLogger("HWR").debug("get_current_position_name: %s" % repr(value))
         #        return value

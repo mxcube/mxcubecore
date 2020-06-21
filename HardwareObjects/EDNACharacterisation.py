@@ -60,7 +60,7 @@ class EDNACharacterisation(AbstractCharacterisation):
             new_strategy_option = strategy_option
         else:
             new_strategy_option = (
-                diff_plan.getStrategyOption().getValue() + " " + strategy_option
+                diff_plan.getStrategyOption().get_value() + " " + strategy_option
             )
 
         diff_plan.setStrategyOption(XSDataString(new_strategy_option))
@@ -91,7 +91,7 @@ class EDNACharacterisation(AbstractCharacterisation):
         html_report = None
 
         try:
-            html_report = str(edna_result.getHtmlPage().getPath().getValue())
+            html_report = str(edna_result.getHtmlPage().getPath().get_value())
         except AttributeError:
             pass
 
@@ -252,7 +252,7 @@ class EDNACharacterisation(AbstractCharacterisation):
         # something more clever might be done to give a more significant
         # name, if there is no dc id.
         try:
-            dc_id = edna_input.getDataCollectionId().getValue()
+            dc_id = edna_input.getDataCollectionId().get_value()
         except BaseException:
             dc_id = id(edna_input)
 
@@ -287,7 +287,7 @@ class EDNACharacterisation(AbstractCharacterisation):
         else:
             try:
                 resolution = (
-                    collection_plan.getStrategySummary().getResolution().getValue()
+                    collection_plan.getStrategySummary().getResolution().get_value()
                 )
                 resolution = round(resolution, 3)
             except AttributeError:
@@ -295,14 +295,14 @@ class EDNACharacterisation(AbstractCharacterisation):
 
             try:
                 transmission = (
-                    collection_plan.getStrategySummary().getAttenuation().getValue()
+                    collection_plan.getStrategySummary().getAttenuation().get_value()
                 )
                 transmission = round(transmission, 2)
             except AttributeError:
                 transmission = None
 
             try:
-                screening_id = edna_result.getScreeningId().getValue()
+                screening_id = edna_result.getScreeningId().get_value()
             except AttributeError:
                 screening_id = None
 
@@ -343,21 +343,21 @@ class EDNACharacterisation(AbstractCharacterisation):
 
                 try:
                     acquisition_parameters.osc_start = (
-                        goniostat.getRotationAxisStart().getValue()
+                        goniostat.getRotationAxisStart().get_value()
                     )
                 except AttributeError:
                     pass
 
                 try:
                     acquisition_parameters.osc_end = (
-                        goniostat.getRotationAxisEnd().getValue()
+                        goniostat.getRotationAxisEnd().get_value()
                     )
                 except AttributeError:
                     pass
 
                 try:
                     acquisition_parameters.osc_range = (
-                        goniostat.getOscillationWidth().getValue()
+                        goniostat.getOscillationWidth().get_value()
                     )
                 except AttributeError:
                     pass
@@ -381,20 +381,20 @@ class EDNACharacterisation(AbstractCharacterisation):
 
                 try:
                     acquisition_parameters.transmission = (
-                        beam.getTransmission().getValue()
+                        beam.getTransmission().get_value()
                     )
                 except AttributeError:
                     pass
 
                 try:
                     acquisition_parameters.energy = round(
-                        (123984.0 / beam.getWavelength().getValue()) / 10000.0, 4
+                        (123984.0 / beam.getWavelength().get_value()) / 10000.0, 4
                     )
                 except AttributeError:
                     pass
 
                 try:
-                    acquisition_parameters.exp_time = beam.getExposureTime().getValue()
+                    acquisition_parameters.exp_time = beam.getExposureTime().get_value()
                 except AttributeError:
                     pass
 
@@ -419,16 +419,16 @@ class EDNACharacterisation(AbstractCharacterisation):
         # Optimisation parameters
         char_params.use_aimed_resolution = False
         try:
-            char_params.aimed_resolution = diff_plan.getAimedResolution().getValue()
+            char_params.aimed_resolution = diff_plan.getAimedResolution().get_value()
         except BaseException:
             char_params.aimed_resolution = None
 
         char_params.use_aimed_multiplicity = False
         try:
             char_params.aimed_i_sigma = (
-                diff_plan.getAimedIOverSigmaAtHighestResolution().getValue()
+                diff_plan.getAimedIOverSigmaAtHighestResolution().get_value()
             )
-            char_params.aimed_completness = diff_plan.getAimedCompleteness().getValue()
+            char_params.aimed_completness = diff_plan.getAimedCompleteness().get_value()
         except BaseException:
             char_params.aimed_i_sigma = None
             char_params.aimed_completness = None
@@ -441,8 +441,8 @@ class EDNACharacterisation(AbstractCharacterisation):
         char_params.low_res_pass_strat = False
 
         # Crystal
-        char_params.max_crystal_vdim = edna_sample.getSize().getY().getValue()
-        char_params.min_crystal_vdim = edna_sample.getSize().getZ().getValue()
+        char_params.max_crystal_vdim = edna_sample.getSize().getY().get_value()
+        char_params.min_crystal_vdim = edna_sample.getSize().getZ().get_value()
         char_params.max_crystal_vphi = 90
         char_params.min_crystal_vphi = 0.0
         char_params.space_group = ""
@@ -461,7 +461,7 @@ class EDNACharacterisation(AbstractCharacterisation):
         char_params.burn_osc_interval = 3
 
         # Radiation damage model
-        char_params.rad_suscept = edna_sample.getSusceptibility().getValue()
+        char_params.rad_suscept = edna_sample.getSusceptibility().get_value()
         char_params.beta = 1
         char_params.gamma = 0.06
 

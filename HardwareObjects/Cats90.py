@@ -610,10 +610,10 @@ class Cats90(SampleChanger):
         return basket_list
 
     def is_powered(self):
-        return self._chnPowered.getValue()
+        return self._chnPowered.get_value()
 
     def is_path_running(self):
-        return self._chnPathRunning.getValue()
+        return self._chnPathRunning.get_value()
 
     def set_read_barcode(self, value):
         """
@@ -763,7 +763,7 @@ class Cats90(SampleChanger):
             Add initial verification about the Powered:
             (NOTE) In fact should be already as the power is considered in the state handling
         """
-        if not self._chnPowered.getValue():
+        if not self._chnPowered.get_value():
             raise Exception(
                 "CATS power is not enabled. Please switch on arm power before transferring samples."
             )
@@ -787,10 +787,10 @@ class Cats90(SampleChanger):
         :returns: None
         :rtype: None
         """
-        if not self._chnPowered.getValue():
+        if not self._chnPowered.get_value():
             self._cmdPowerOn()
             gevent.sleep(2)
-            if not self._chnPowered.getValue():
+            if not self._chnPowered.get_value():
                 raise Exception(
                     "CATS power cannot be enabled. Please check arm power before transferring samples."
                 )
@@ -889,12 +889,12 @@ class Cats90(SampleChanger):
         :returns: None
         :rtype: None
         """
-        if not self._chnPowered.getValue():
+        if not self._chnPowered.get_value():
             raise Exception(
                 "CATS power is not enabled. Please switch on arm power before transferring samples."
             )
 
-        if not self.has_loaded_sample() or not self._chnSampleIsDetected.getValue():
+        if not self.has_loaded_sample() or not self._chnSampleIsDetected.get_value():
             logging.getLogger("HWR").warning(
                 "  Trying do unload sample, but it does not seem to be any on diffr:  %s"
                 % argin
@@ -908,8 +908,8 @@ class Cats90(SampleChanger):
         else:
             xshift, yshift, zshift = map(str, shifts)
 
-        loaded_lid = self._chnLidLoadedSample.getValue()
-        loaded_num = self._chnNumLoadedSample.getValue()
+        loaded_lid = self._chnLidLoadedSample.get_value()
+        loaded_num = self._chnNumLoadedSample.get_value()
 
         if loaded_lid == -1:
             logging.getLogger("HWR").warning(
@@ -970,7 +970,7 @@ class Cats90(SampleChanger):
                 logging.getLogger("HWR").warning(
                     "SAMPLE CHANGER could be in transient state. trying again"
                 )
-                value = self._chnState.getValue()
+                value = self._chnState.get_value()
                 if trials > 4:
                     break
 
@@ -1005,7 +1005,7 @@ class Cats90(SampleChanger):
     def cats_basket_presence_changed(self, value):
         presence = [None] * self.number_of_baskets
         for basket_index in range(self.number_of_baskets):
-            value = self.basket_channels[basket_index].getValue()
+            value = self.basket_channels[basket_index].get_value()
             presence[basket_index] = value
 
         if presence != self.basket_presence:
@@ -1025,11 +1025,11 @@ class Cats90(SampleChanger):
 
     def cats_loaded_lid_changed(self, value):
         cats_loaded_lid = value
-        cats_loaded_num = self._chnNumLoadedSample.getValue()
+        cats_loaded_num = self._chnNumLoadedSample.get_value()
         self._update_loaded_sample(cats_loaded_num, cats_loaded_lid)
 
     def cats_loaded_num_changed(self, value):
-        cats_loaded_lid = self._chnLidLoadedSample.getValue()
+        cats_loaded_lid = self._chnLidLoadedSample.get_value()
         cats_loaded_num = value
         self._update_loaded_sample(cats_loaded_num, cats_loaded_lid)
 
@@ -1058,7 +1058,7 @@ class Cats90(SampleChanger):
         sample._set_info(sample.is_present(), value, scanned)
 
     def cats_sample_on_diffr(self):
-        detected = self._chnSampleIsDetected.getValue()
+        detected = self._chnSampleIsDetected.get_value()
         on_diffr = -1 not in [self.cats_loaded_lid, self.cats_loaded_num]
 
         if detected and on_diffr:
@@ -1122,10 +1122,10 @@ class Cats90(SampleChanger):
         return ret
 
     def path_safe(self):
-        return str(self._chnPathSafe.getValue()).lower() == "true"
+        return str(self._chnPathSafe.get_value()).lower() == "true"
 
     def path_running(self):
-        return str(self._chnPathRunning.getValue()).lower() == "true"
+        return str(self._chnPathRunning.get_value()).lower() == "true"
 
     def _do_update_state(self):
         """
@@ -1134,16 +1134,16 @@ class Cats90(SampleChanger):
         :returns: None
         :rtype: None
         """
-        self.cats_running = self._chnPathRunning.getValue()
-        self.cats_powered = self._chnPowered.getValue()
-        self.cats_lids_closed = self._chnAllLidsClosed.getValue()
-        self.cats_status = self._chnStatus.getValue()
-        self.cats_state = self._chnState.getValue()
+        self.cats_running = self._chnPathRunning.get_value()
+        self.cats_powered = self._chnPowered.get_value()
+        self.cats_lids_closed = self._chnAllLidsClosed.get_value()
+        self.cats_status = self._chnStatus.get_value()
+        self.cats_state = self._chnState.get_value()
 
     def _update_state(self):
 
         has_loaded = self.has_loaded_sample()
-        on_diff = self._chnSampleIsDetected.getValue()
+        on_diff = self._chnSampleIsDetected.get_value()
 
         state = self._decide_state(
             self.cats_state,
@@ -1163,11 +1163,11 @@ class Cats90(SampleChanger):
         :returns: Sample changer state
         :rtype: AbstractSampleChanger.SampleChangerState
         """
-        _state = self._chnState.getValue()
-        _powered = self._chnPowered.getValue()
-        _lids_closed = self._chnAllLidsClosed.getValue()
+        _state = self._chnState.get_value()
+        _powered = self._chnPowered.get_value()
+        _lids_closed = self._chnAllLidsClosed.get_value()
         _has_loaded = self.has_loaded_sample()
-        _on_diff = self._chnSampleIsDetected.getValue()
+        _on_diff = self._chnSampleIsDetected.get_value()
 
         # hack for transient states
         trials = 0
@@ -1177,7 +1177,7 @@ class Cats90(SampleChanger):
             logging.getLogger("HWR").warning(
                 "SAMPLE CHANGER could be in transient state. trying again"
             )
-            _state = self._chnState.getValue()
+            _state = self._chnState.get_value()
             if trials > 2:
                 break
 
@@ -1208,7 +1208,7 @@ class Cats90(SampleChanger):
             # or registered but not on the gonio anymore
             logging.getLogger("HWR").warning(
                 "SAMPLE CHANGER Unknown 2 (hasLoaded: %s / detected: %s)"
-                % (self.has_loaded_sample(), self._chnSampleIsDetected.getValue())
+                % (self.has_loaded_sample(), self._chnSampleIsDetected.get_value())
             )
             _state = SampleChangerState.Unknown
         # elif not lids_closed:
@@ -1269,9 +1269,9 @@ class Cats90(SampleChanger):
         :returns: None
         :rtype: None
         """
-        cats_loaded_lid = self._chnLidLoadedSample.getValue()
-        cats_loaded_num = self._chnNumLoadedSample.getValue()
-        self.cats_datamatrix = str(self._chnSampleBarcode.getValue())
+        cats_loaded_lid = self._chnLidLoadedSample.get_value()
+        cats_loaded_num = self._chnNumLoadedSample.get_value()
+        self.cats_datamatrix = str(self._chnSampleBarcode.get_value())
         self._update_loaded_sample(cats_loaded_num, cats_loaded_lid)
 
     def lidsample_to_basketsample(self, lid, num):
@@ -1329,7 +1329,7 @@ class Cats90(SampleChanger):
         return tool
 
     def get_current_tool(self):
-        tool_str = self._chnCurrentTool.getValue()
+        tool_str = self._chnCurrentTool.get_value()
         return TOOL_TO_STR.get(tool_str, "Unknown")
 
     def get_cassette_type(self, basketno):
@@ -1350,8 +1350,8 @@ class Cats90(SampleChanger):
     def _update_loaded_sample(self, sample_num=None, lid=None):
 
         if None in [sample_num, lid]:
-            loadedSampleNum = self._chnNumLoadedSample.getValue()
-            loadedSampleLid = self._chnLidLoadedSample.getValue()
+            loadedSampleNum = self._chnNumLoadedSample.get_value()
+            loadedSampleLid = self._chnLidLoadedSample.get_value()
         else:
             loadedSampleNum = sample_num
             loadedSampleLid = lid
@@ -1436,7 +1436,7 @@ class Cats90(SampleChanger):
         for basket_index in range(self.number_of_baskets):
             # get presence information from the device server
             channel = self.basket_channels[basket_index]
-            is_present = channel.getValue()
+            is_present = channel.get_value()
             self.basket_presence[basket_index] = is_present
 
         self._update_cats_contents()
@@ -1513,7 +1513,7 @@ def test_hwo(hwo):
         )
     print("CATS state is: ", hwo.state)
     print("Sample on Magnet : ", hwo.cats_sample_on_diffr())
-    print("All lids closed: ", hwo._chnAllLidsClosed.getValue())
+    print("All lids closed: ", hwo._chnAllLidsClosed.get_value())
 
     print("Sample Changer State is: ", hwo.get_status())
     for basketno in range(hwo.number_of_baskets):

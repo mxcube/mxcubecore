@@ -90,7 +90,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.centring_status = {"valid": False}
 
         self.chan_state = self.get_channel_object("State")
-        self.current_state = self.chan_state.getValue()
+        self.current_state = self.chan_state.get_value()
         self.chan_state.connect_signal("update", self.state_changed)
 
         self.chan_status = self.get_channel_object("Status")
@@ -101,7 +101,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.update_pixels_per_mm()
 
         self.chan_head_type = self.get_channel_object("HeadType")
-        self.head_type = self.chan_head_type.getValue()
+        self.head_type = self.chan_head_type.get_value()
 
         self.chan_current_phase = self.get_channel_object("CurrentPhase")
         self.connect(self.chan_current_phase, "update", self.current_phase_changed)
@@ -292,8 +292,8 @@ class EMBLMiniDiff(GenericDiffractometer):
             self.omega_reference_motor_moved(reference_pos)
 
     def update_pixels_per_mm(self, *args):
-        self.pixels_per_mm_x = 1.0 / self.chan_calib_x.getValue()
-        self.pixels_per_mm_y = 1.0 / self.chan_calib_y.getValue()
+        self.pixels_per_mm_x = 1.0 / self.chan_calib_x.get_value()
+        self.pixels_per_mm_y = 1.0 / self.chan_calib_y.get_value()
         self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),))
 
     def set_phase(self, phase, timeout=80):
@@ -335,7 +335,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             with gevent.Timeout(
                 timeout, Exception("Timeout waiting for phase %s" % phase)
             ):
-                while phase != self.chan_current_phase.getValue():
+                while phase != self.chan_current_phase.get_value():
                     gevent.sleep(0.1)
             self.wait_device_ready(30)
             self.wait_device_ready(30)
@@ -828,7 +828,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         """
 
     def get_scintillator_position(self):
-        return self.chan_scintillator_position.getValue()
+        return self.chan_scintillator_position.get_value()
 
     def set_scintillator_position(self, position):
         self.chan_scintillator_position.setValue(position)
@@ -837,7 +837,7 @@ class EMBLMiniDiff(GenericDiffractometer):
                 gevent.sleep(0.01)
 
     def get_capillary_position(self):
-        return self.chan_capillary_position.getValue()
+        return self.chan_capillary_position.get_value()
 
     def set_capillary_position(self, position):
         self.chan_capillary_position.setValue(position)

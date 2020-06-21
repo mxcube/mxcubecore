@@ -70,7 +70,7 @@ class ExporterZoom(ExporterMotor):
             )
 
     def get_current_position_name(self, position=None):
-        position = self.chan_predefined_position.getValue()
+        position = self.chan_predefined_position.get_value()
 
         for position_name in self.predefined_positions:
             if math.fabs(self.predefined_positions[position_name] - position) <= 1e-3:

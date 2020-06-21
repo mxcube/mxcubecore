@@ -215,7 +215,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.chan_ff_ssim.connect_signal("update", self.ff_ssim_changed)
 
         self.chan_collect_status = self.get_channel_object("collectStatus")
-        # self._actual_collect_status = self.chan_collect_status.getValue()
+        # self._actual_collect_status = self.chan_collect_status.get_value()
         self.chan_collect_status.connect_signal("update", self.collect_status_update)
 
         self.chan_collect_frame = self.get_channel_object("chanFrameCount")
@@ -616,7 +616,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
                         self.ready_event.set()
                         self._collecting = False
                         # if self.ff_ssim is None:
-                        #    self.ff_ssim_changed(self.chan_ff_ssim.getValue())
+                        #    self.ff_ssim_changed(self.chan_ff_ssim.get_value())
                         logging.getLogger("GUI").info("Imaging: Acquisition done")
                     elif self._actual_collect_status == "aborting":
                         self.print_log("HWR", "info", "Imaging: Aborting...")

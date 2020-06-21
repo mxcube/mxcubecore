@@ -72,7 +72,7 @@ class ID30A3PhotonFlux(Equipment):
           logging.getLogger("HWR").exception("%s: could not get energy", self.name())
         else:
           try:
-            calib_dict = self.calibration_chan.getValue()
+            calib_dict = self.calibration_chan.get_value()
             if calib_dict is None:
               logging.getLogger("HWR").error("%s: calibration is None", self.name())
             else:

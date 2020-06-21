@@ -40,11 +40,11 @@ class BIOMAXAperture(MicrodiffAperture):
                 logging.getLogger("HWR").exception(
                     "Cannot move motor %s: invalid position name.", str(self.username)
                 )
-            if self.aperture_position.getValue() != "BEAM":
+            if self.aperture_position.get_value() != "BEAM":
                 self.aperture_position.setValue("BEAM")
 
     def get_position_list(self):
         return BIOMAXAperture.POSITIONS
 
     def position_changed(self, position):
-        self.emit("valueChanged", position)  # self.aperture_position.getValue())
+        self.emit("valueChanged", position)  # self.aperture_position.get_value())

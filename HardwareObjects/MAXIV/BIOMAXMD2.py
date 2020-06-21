@@ -54,8 +54,8 @@ class BIOMAXMD2(GenericDiffractometer):
         :returns: list with two floats
         """
         return (
-            1 / self.channel_dict["CoaxCamScaleX"].getValue(),
-            1 / self.channel_dict["CoaxCamScaleY"].getValue(),
+            1 / self.channel_dict["CoaxCamScaleX"].get_value(),
+            1 / self.channel_dict["CoaxCamScaleY"].get_value(),
         )
 
     def osc_scan(self, start, end, exptime, wait=False):
@@ -111,7 +111,7 @@ class BIOMAXMD2(GenericDiffractometer):
         """
         Detects if device is ready
         """
-        return self.channel_dict["State"].getValue() == DiffractometerState.tostring(
+        return self.channel_dict["State"].get_value() == DiffractometerState.tostring(
             DiffractometerState.Ready
         )
 

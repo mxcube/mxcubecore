@@ -7,14 +7,14 @@ class RobodiffFShut(Equipment):
 
     def init(self):
         self.robodiff = self.get_object_by_role("robot")
-        self.connect(self.robodiff.controller.fshut, "state", self.valueChanged)
+        self.connect(self.robodiff.controller.fshut, "state", self.value_changed)
         self.actuatorState = "unknown"
 
     def connect_notify(self, signal):
         if signal == "actuatorStateChanged":
             self.get_actuator_state(read=True)
 
-    def valueChanged(self, value):
+    def value_changed(self, value):
         if value == "CLOSED":
             self.actuatorState = "out"
         elif value == "OPENED":
@@ -29,7 +29,7 @@ class RobodiffFShut(Equipment):
 
     def get_actuator_state(self, read=False):
         if read:
-            self.valueChanged(self.robodiff.controller.fshut.state())
+            self.value_changed(self.robodiff.controller.fshut.state())
         return self.actuatorState
 
     def actuatorIn(self, wait=True, timeout=None):

@@ -14,7 +14,7 @@ class PX1TangoLight(Device):
     def init(self):
         # self.tangoname = self.
         self.attrchan = self.get_channel_object("attributeName")
-        self.attrchan.connect_signal("update", self.valueChanged)
+        self.attrchan.connect_signal("update", self.value_changed)
 
         self.attrchan.connect_signal("connected", self._setReady)
         self.attrchan.connect_signal("disconnected", self._setReady)
@@ -45,9 +45,9 @@ class PX1TangoLight(Device):
 
     def connect_notify(self, signal):
         if self.is_ready():
-            self.valueChanged(self.attrchan.getValue())
+            self.value_changed(self.attrchan.get_value())
 
-    def valueChanged(self, value):
+    def value_changed(self, value):
         self.currentState = value
 
         if value:

@@ -18,7 +18,7 @@ class XalocCalibration(BaseHardwareObjects.Device):
             print("Connected to calibration channels")
 
     def getCalibration(self):
-        return [self.calibx.getValue(), self.caliby.getValue()]
+        return [self.calibx.get_value(), self.caliby.get_value()]
 
 
 def test():

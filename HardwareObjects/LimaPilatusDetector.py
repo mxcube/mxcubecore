@@ -124,7 +124,7 @@ class LimaPilatusDetector(AbstractDetector):
 
     def last_image_saved(self):
         try:
-            return self.get_channel_object("last_image_saved").getValue() + 1
+            return self.get_channel_object("last_image_saved").get_value() + 1
         except Exception:
             return 0
 

@@ -366,7 +366,7 @@ class CatsMaintMockup(Equipment):
         # after launching a transfer
         # after setting refresh in the Tango DS to 0.1 s a wait of 1s is enough
         time.sleep(1.0)
-        while str(self._chnPathRunning.getValue()).lower() == "true":
+        while str(self._chnPathRunning.get_value()).lower() == "true":
             gevent.sleep(0.1)
         ret = True
         return ret

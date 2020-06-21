@@ -100,7 +100,7 @@ def read(inputFile, path):
 
     _parser.parse(inputFile)
 
-    return curHandler.getValue()
+    return curHandler.get_value()
 
 
 class XMLReadingHandler(ContentHandler):
@@ -176,7 +176,7 @@ class XMLReadingHandler(ContentHandler):
             : self.path.rfind("/")
         ]  # remove last added name and suffix
 
-    def getValue(self):
+    def get_value(self):
         return self.value
 
 
@@ -270,7 +270,7 @@ class XMLModifier(XMLGenerator):
         XMLGenerator.__init__(self, self.__buffer)
 
     def getBuffer(self):
-        return self.__buffer.getvalue()
+        return self.__buffer.get_value()
 
 
 class XMLUpdateHandler(XMLModifier):

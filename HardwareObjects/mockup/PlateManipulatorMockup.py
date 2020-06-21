@@ -465,7 +465,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         old_sample = self.get_loaded_sample()
         # plate_location = None
         # if self.chan_plate_location is not None:
-        #    plate_location = self.chan_plate_location.getValue()
+        #    plate_location = self.chan_plate_location.get_value()
 
         if self.plate_location is not None:
             new_sample = self.get_sample(self.plate_location)
@@ -547,7 +547,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
 
     def get_plate_location(self):
         # if self.chan_plate_location is not None:
-        #    self.plate_location = self.chan_plate_location.getValue()
+        #    self.plate_location = self.chan_plate_location.get_value()
         return self.plate_location
 
     def sync_with_crims(self, barcode):

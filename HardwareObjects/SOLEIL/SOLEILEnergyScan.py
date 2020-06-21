@@ -253,7 +253,7 @@ class SOLEILEnergyScan(Equipment):
         self.newScan(scanParameter)
 
         # try:
-        # curr=self.energyScanArgs.getValue()
+        # curr=self.energyScanArgs.get_value()
         # except:
         # logging.getLogger("HWR").exception('EnergyScan: error getting energy scan parameters')
         # self.emit('scanStatusChanged', ("Error getting energy scan parameters",))

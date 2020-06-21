@@ -825,7 +825,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     # def get_measured_intensity(self):
     #     try:
-    #         val = self.get_channel_object("image_intensity").getValue()
+    #         val = self.get_channel_object("image_intensity").get_value()
     #         return float(val)
     #     except BaseException:
     #         return 0

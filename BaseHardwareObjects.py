@@ -21,11 +21,9 @@
 
 from __future__ import absolute_import
 
-import abc
 import enum
 from collections import OrderedDict
 import logging
-from warnings import warn
 from gevent import event, Timeout
 
 from HardwareRepository.dispatcher import dispatcher
@@ -131,7 +129,7 @@ class ConfiguredObject(object):
                 procedure = getattr(self, name)
                 if procedure is not None:
                     result[name] = procedure
-        #
+
         return result
 
 
@@ -224,23 +222,23 @@ class HardwareObjectNode(object):
 
     def __getitem__(self, key):
         if isinstance(key, string_types):
-            objectName = key
+            object_name = key
 
             try:
-                i = self.__objects_names.index(objectName)
+                index = self.__objects_names.index(object_name)
             except BaseException:
                 raise KeyError
             else:
-                obj = self.__objects[i]
+                obj = self.__objects[index]
                 if len(obj) == 1:
                     return obj[0]
                 else:
                     return obj
         elif isinstance(key, int):
-            i = key
+            index = key
 
-            if i < len(self.__objects_names):
-                obj = self.__objects[i]
+            if index < len(self.__objects_names):
+                obj = self.__objects[index]
                 if len(obj) == 1:
                     return obj[0]
                 else:
@@ -254,7 +252,7 @@ class HardwareObjectNode(object):
         role = str(role).lower()
 
         try:
-            i = self.__objects_names.index(name)
+            index = self.__objects_names.index(name)
         except ValueError:
             objects_names_index = len(self.__objects_names)
             self.__objects_names.append(None)
@@ -263,9 +261,9 @@ class HardwareObjectNode(object):
             objects_index2 = -1
         else:
             objects_names_index = -1
-            objects_index = i
-            objects_index2 = len(self.__objects[i])
-            self.__objects[i].append(None)
+            objects_index = index
+            objects_index2 = len(self.__objects[index])
+            self.__objects[index].append(None)
 
         self.__references.append(
             (reference, name, role, objects_names_index, objects_index, objects_index2)
@@ -317,23 +315,23 @@ class HardwareObjectNode(object):
             hw_object.__role = role
 
         try:
-            i = self.__objects_names.index(name)
+            index = self.__objects_names.index(name)
         except ValueError:
             self.__objects_names.append(name)
             self.__objects.append([hw_object])
         else:
-            self.__objects[i].append(hw_object)
+            self.__objects[index].append(hw_object)
 
     def has_object(self, object_name):
         return object_name in self.__objects_names
 
     def get_objects(self, object_name):
         try:
-            i = self.__objects_names.index(object_name)
+            index = self.__objects_names.index(object_name)
         except ValueError:
             pass
         else:
-            for obj in self.__objects[i]:
+            for obj in self.__objects[index]:
                 yield obj
 
     def get_object_by_role(self, role):

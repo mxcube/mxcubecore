@@ -12,7 +12,7 @@ class SOLEILFlux(Device):
 
     def get_value(self):
         try:
-            return self.flux_channel.getValue()
+            return self.flux_channel.get_value()
         except PyTango.DevFailed:
             return -1
 

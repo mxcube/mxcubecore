@@ -18,7 +18,7 @@ class PX1Pss(Device):
 
     def get_state(self, value=None):
         if value is None:
-            value = self.state_chan.getValue()
+            value = self.state_chan.get_value()
 
         if value in self.states:
             self.state = self.states[value]

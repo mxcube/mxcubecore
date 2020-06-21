@@ -436,8 +436,8 @@ class MDClient(ExporterClient):
     def setStopScan4D(self):
         return self.execTask("setStopScan4D", None)
 
-    def get_deviceState(self, device_name):
-        return self.execute("get_deviceState", (device_name,))
+    def getDeviceState(self, device_name):
+        return self.execute("getDeviceState", (device_name,))
 
     # Motors Returns STATE_READY,STATE_INVALID(not
     # referenced),STATE_INITIALIZING(referencing),STATE_MOVING,STATE_OFFLINE,
@@ -712,7 +712,7 @@ if __name__ == "__main__":
         print(method)
 
     print("--------------   Listing properties  ------------------")
-    properties = md.get_propertyList()
+    properties = md.getPropertyList()
     print("Properties:")
     for property in properties:
         print(property)
@@ -907,7 +907,7 @@ if __name__ == "__main__":
     snapshot = md.getImageJPG()
 
     # Calling sync methods
-    print("Pmac State: " + md.get_deviceState(md.DEVICE_PMAC))
+    print("Pmac State: " + md.getDeviceState(md.DEVICE_PMAC))
     print("Omega State: " + md.getMotorState(md.MOTOR_OMEGA))
     print("Omega Position: " + str(md.getMotorPosition(md.MOTOR_OMEGA)))
     print("Organ Positions: " + str(md.getOrganDevicesPositions()))

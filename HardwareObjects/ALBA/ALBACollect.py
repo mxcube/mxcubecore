@@ -401,8 +401,8 @@ class ALBACollect(AbstractCollect):
         self.image_headers["Polarization"] = "0.99"
         self.image_headers["Alpha"] = "0 deg."
 
-        self.image_headers["Kappa"] = "%.4f deg." % self.kappapos_chan.getValue()
-        self.image_headers["Phi"] = "%.4f deg." % self.phipos_chan.getValue()
+        self.image_headers["Kappa"] = "%.4f deg." % self.kappapos_chan.get_value()
+        self.image_headers["Phi"] = "%.4f deg." % self.phipos_chan.get_value()
 
         self.image_headers["Chi"] = "0 deg."
         self.image_headers["Oscillation_axis"] = "X, CW"
@@ -810,7 +810,7 @@ class ALBACollect(AbstractCollect):
         # TODO
         try:
             if self.chan_undulator_gap:
-                und_gaps = self.chan_undulator_gap.getValue()
+                und_gaps = self.chan_undulator_gap.get_value()
                 if type(und_gaps) in (list, tuple):
                     return und_gaps
                 else:
@@ -873,5 +873,5 @@ def test_hwo(hwo):
     print("Shutters (ready for collect): ", hwo.check_shutters())
     print("Supervisor(collect phase): ", hwo.is_collect_phase())
 
-    print("Kappa ", hwo.kappapos_chan.getValue())
-    print("Phi ", hwo.phipos_chan.getValue())
+    print("Kappa ", hwo.kappapos_chan.get_value())
+    print("Phi ", hwo.phipos_chan.get_value())

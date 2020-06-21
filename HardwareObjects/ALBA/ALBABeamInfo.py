@@ -107,8 +107,8 @@ class ALBABeamInfo(Equipment):
         Return    :
         """
         self.beam_position = (
-            self.beam_posx_chan.getValue(),
-            self.beam_posy_chan.getValue(),
+            self.beam_posx_chan.get_value(),
+            self.beam_posy_chan.get_value(),
         )
         return self.beam_position
 
@@ -169,8 +169,8 @@ class ALBABeamInfo(Equipment):
         Return    : dictionary,{size_x:0.1, size_y:0.1, shape:"rectangular"}
         """
 
-        self.beam_info_dict["size_x"] = self.beam_width_chan.getValue() / 1000.0
-        self.beam_info_dict["size_y"] = self.beam_height_chan.getValue() / 1000.0
+        self.beam_info_dict["size_x"] = self.beam_width_chan.get_value() / 1000.0
+        self.beam_info_dict["size_y"] = self.beam_height_chan.get_value() / 1000.0
         self.beam_info_dict["shape"] = "rectangular"
 
         return self.beam_info_dict

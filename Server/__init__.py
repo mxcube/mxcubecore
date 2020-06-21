@@ -75,7 +75,7 @@ class XMLNodesWithRolesReadingHandler(ContentHandler):
             : self.path.rfind("/")
         ]  # remove last added name and suffix
 
-    def getValue(self):
+    def get_value(self):
         for val in self.value.values():
             val["__children__"].strip()
 
@@ -132,7 +132,7 @@ class XMLPropertiesReadingHandler(ContentHandler):
             : self.path.rfind("/")
         ]  # remove last added name and suffix
 
-    def getValue(self):
+    def get_value(self):
         return self.properties
 
 
@@ -238,7 +238,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                 except SAXParseException as msg:
                     return {"__error__": "Could not parse the XML file %s" % filename}
                 else:
-                    ret = curHandler.getValue()
+                    ret = curHandler.get_value()
 
                     if len(ret) > 0:
                         return ret
@@ -266,7 +266,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                 except SAXParseException as msg:
                     return {"__error__": "Could not parse the XML file %s" % filename}
                 else:
-                    ret = curHandler.getValue()
+                    ret = curHandler.get_value()
 
                     if len(ret) > 0:
                         return ret

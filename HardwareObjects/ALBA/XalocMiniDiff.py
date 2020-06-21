@@ -121,8 +121,8 @@ class XalocMiniDiff(GenericDiffractometer):
     def getBeamInfo(self, update_beam_callback):
         calibx, caliby = self.calibration.getCalibration()
 
-        size_x = self.get_channel_object("beamInfoX").getValue() / 1000.0
-        size_y = self.get_channel_object("beamInfoY").getValue() / 1000.0
+        size_x = self.get_channel_object("beamInfoX").get_value() / 1000.0
+        size_y = self.get_channel_object("beamInfoY").get_value() / 1000.0
 
         data = {"size_x": size_x, "size_y": size_y, "shape": "ellipse"}
 
@@ -137,7 +137,7 @@ class XalocMiniDiff(GenericDiffractometer):
         """
         self.centring_hwobj.initCentringProcedure()
 
-        # self.head_type = self.chan_head_type.getValue()
+        # self.head_type = self.chan_head_type.get_value()
 
         for click in range(3):
             self.user_clicked_event = gevent.event.AsyncResult()

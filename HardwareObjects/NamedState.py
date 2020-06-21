@@ -1,3 +1,22 @@
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Device
 
@@ -64,7 +83,7 @@ class NamedState(Device):
         if self.stateListChannel is not None:
             # This is the case for ApertureDiameterList *configured as statelist
             # channel in xml
-            statelist = self.stateListChannel.getValue()
+            statelist = self.stateListChannel.get_value()
             for statename in statelist:
                 # cenvert in str because statename is numpy.int32 from Tango and deosn't
                 self.stateList.append(str(statename))
@@ -96,7 +115,7 @@ class NamedState(Device):
 
     def get_state(self):
         try:
-            stateValue = self.stateChan.getValue()
+            stateValue = self.stateChan.get_value()
             if self.commandtype is not None and self.commandtype == "index":
                 # this is the case of aperture diameters. the state channel gives only
                 # the index in the list

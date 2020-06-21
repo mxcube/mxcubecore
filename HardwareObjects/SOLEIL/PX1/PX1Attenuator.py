@@ -37,7 +37,7 @@ class PX1Attenuator(Device):
             return
 
         if value is None:
-            value = self.state_chan.getValue()
+            value = self.state_chan.get_value()
 
         try:
             state_str = str(value)
@@ -49,7 +49,7 @@ class PX1Attenuator(Device):
 
     def get_value(self):
         try:
-            value = round(float(self.factor_chan.getValue()), 1)
+            value = round(float(self.factor_chan.get_value()), 1)
         except BaseException:
             value = None
 

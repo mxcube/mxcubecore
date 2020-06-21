@@ -111,10 +111,10 @@ class PX1Energy(Device, AbstractEnergy):
         return True
 
     def get_value(self):
-        return self.energy_chan.getValue()
+        return self.energy_chan.get_value()
 
     def get_state(self):
-        return str(self.state_chan.getValue())
+        return str(self.state_chan.get_value())
 
     def getEnergyComputedFromCurrentGap(self):
         return self.und_device.energy

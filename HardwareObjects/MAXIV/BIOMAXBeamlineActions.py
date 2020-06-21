@@ -86,7 +86,7 @@ class BIOMAXBeamlineActions(HardwareObject):
                 logging.getLogger("HWR").info("Unloading mounted sample.")
                 HWR.beamline.sample_changer.unload(None, wait=True)
                 HWR.beamline.sample_changer._wait_device_ready(30)
-            if HWR.beamline.sample_changer._chnInSoak.getValue():
+            if HWR.beamline.sample_changer._chnInSoak.get_value():
                 logging.getLogger("HWR").info(
                     "Sample Changer was in SOAK, going to DRY"
                 )

@@ -107,7 +107,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.chan_roi_mode.connect_signal("update", self.roi_mode_changed)
         self.chan_frame_rate = self.get_channel_object("chanFrameRate")
         self.chan_frame_rate.connect_signal("update", self.frame_rate_changed)
-        self.frame_rate_changed(self.chan_frame_rate.getValue())
+        self.frame_rate_changed(self.chan_frame_rate.get_value())
 
         self.chan_actual_frame_rate = self.get_channel_object(
             "chanActualFrameRate", optional=True
@@ -154,7 +154,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         status_message = "Detector: "
 
         if self.chan_status is not None:
-            status = self.chan_status.getValue()
+            status = self.chan_status.get_value()
 
         if self.temperature > self.temp_treshold:
             msg = "Detector: Temperature %0.2f is greater than allowed %0.2f" % (
@@ -209,7 +209,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         beam_x = 0
         beam_y = 0
         if self.chan_beam_xy is not None:
-            value = self.chan_beam_xy.getValue()
+            value = self.chan_beam_xy.get_value()
             beam_x = value[0]
             beam_y = value[1]
         return beam_x, beam_y
@@ -246,7 +246,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
         :return: str
         """
-        return self.cover_state_changed(self.chan_cover_state.getValue())
+        return self.cover_state_changed(self.chan_cover_state.get_value())
 
     def is_cover_closed(self):
         """Returns True if cover is closed
@@ -281,9 +281,9 @@ class EMBLDetector(AbstractDetector, HardwareObject):
     def re_emit_values(self):
         """Reemits signals"""
         self.emit("detectorRoiModeChanged", (self.roi_mode,))
-        temp = self.chan_temperature.getValue()
+        temp = self.chan_temperature.get_value()
         self.emit("temperatureChanged", (temp, temp < self.temp_treshold))
-        hum = self.chan_humidity.getValue()
+        hum = self.chan_humidity.get_value()
         self.emit("humidityChanged", (hum, hum < self.hum_treshold))
         self.status_changed("")
         self.emit("expTimeLimitsChanged", (self.exposure_time_limits,))

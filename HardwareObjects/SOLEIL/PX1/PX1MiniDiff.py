@@ -72,7 +72,7 @@ class PX1MiniDiff(GenericDiffractometer):
     def is_ready(self):
         return self.smargon.get_state() == "STANDBY"
 
-        # self.smargon_state = str(self.smargon_state_ch.getValue())
+        # self.smargon_state = str(self.smargon_state_ch.get_value())
         # return self.smargon_state == "STANDBY"
 
     def get_pixels_per_mm(self):
