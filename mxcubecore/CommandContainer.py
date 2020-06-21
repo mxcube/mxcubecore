@@ -114,7 +114,7 @@ class ChannelObject:
 
     def connect_notify(self, signal):
         if signal == "update" and self.is_connected():
-            self.emit(signal, self.getValue())
+            self.emit(signal, self.get_value())
 
     def emit(self, signal, *args):
         signal = str(signal)
@@ -288,7 +288,7 @@ class CommandContainer:
         elif channel_type.lower() == "tine":
             if "tinename" not in attributes_dict:
                 try:
-                    attributes_dict["tinename"] = self.tinename
+                    attributes_dict["tinename"] = self.tine_name
                 except AttributeError:
                     pass
 
@@ -386,7 +386,7 @@ class CommandContainer:
         for cmd in self.__commands.values():
             yield cmd
 
-    def get_command_namesList(self):
+    def get_command_names_list(self):
         return list(self.__commands.keys())
 
     def add_command(self, arg1, arg2=None, add_now=True):
@@ -630,7 +630,7 @@ class CommandContainer:
         elif cmd_type.lower() == "tine":
             if "tinename" not in attributes_dict:
                 try:
-                    attributes_dict["tinename"] = self.tinename
+                    attributes_dict["tinename"] = self.tine_name
                 except AttributeError:
                     pass
 
