@@ -1,6 +1,7 @@
 import time
 import gevent
 import math
+import logging
 
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 from HardwareRepository.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
@@ -46,11 +47,18 @@ class LNLSMotor(EPICSActuator, AbstractMotor):
     def get_limits(self):
         """Override super class method."""
         try:
-            self._nominal_limits = (self.get_channel_value(MOTOR_DLLM), self.get_channel_value(MOTOR_DHLM))
+            low_limit = float(self.get_channel_value(MOTOR_DLLM))
+            high_limit = float(self.get_channel_value(MOTOR_DHLM))
+            self._nominal_limits = (low_limit, high_limit)
         except:
             logging.getLogger("HWR").error('Error getting motor limits for: %s' % self.motor_name)
             # Set a default limit
             self._nominal_limits = (-1E4, 1E4)
+
+        if self._nominal_limits == (0, 0) or self._nominal_limits == (float('-inf'), float('inf')):
+            # Treat infinite limit values
+            self._nominal_limits = (-1E4, 1E4)
+            logging.getLogger("HWR").info('Motor %s: limits are %s. Considering them as %s.' % (self.motor_name, str(self._nominal_limits), str((-1E4, 1E4))))
 
         return self._nominal_limits
 
