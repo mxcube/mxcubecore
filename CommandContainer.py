@@ -43,6 +43,7 @@ __license__ = "LGPLv3+"
 class ConnectionError(Exception):
     pass
 
+
 class CommandObject:
     def __init__(self, name, username=None, **kwargs):
         self._name = name
