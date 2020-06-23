@@ -114,7 +114,7 @@ class EMBLAperture(AbstractAperture):
             diameter_index: diameter index (int)
         Returns:
         """
-        self.chan_diameter_index.setValue(diameter_index)
+        self.chan_diameter_index.set_value(diameter_index)
 
     def set_diameter(self, diameter_size, timeout=None):
         """
@@ -126,7 +126,7 @@ class EMBLAperture(AbstractAperture):
         Returns:
         """
         diameter_index = self._diameter_size_list.index(diameter_size)
-        self.chan_diameter_index.setValue(diameter_index)
+        self.chan_diameter_index.set_value(diameter_index)
         # if timeout:
         #    while diameter_index != self.chan_diameter_index.get_value():
         #         gevent.sleep(0.1)
@@ -139,7 +139,7 @@ class EMBLAperture(AbstractAperture):
             position_index: position index (int)
         Returns:
         """
-        self.chan_position.setValue(self._position_list[position_index])
+        self.chan_position.set_value(self._position_list[position_index])
 
     def set_in(self):
         """
@@ -147,14 +147,14 @@ class EMBLAperture(AbstractAperture):
 
         Returns:
         """
-        self.chan_position.setValue("BEAM")
+        self.chan_position.set_value("BEAM")
 
     def set_out(self):
         """Sets aperture to the OUT position
 
         Returns:
         """
-        self.chan_position.setValue("OFF")
+        self.chan_position.set_value("OFF")
 
     def wait_ready(self, timeout=20):
         """Waits till aperture is ready

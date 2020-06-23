@@ -101,7 +101,7 @@ class MDFastShutter(Device):
         :param wait:
         :return:
         """
-        self.chan_shutter_state.setValue(True)
+        self.chan_shutter_state.set_value(True)
         with gevent.Timeout(10, Exception("Timeout waiting for fast shutter open")):
             while not self.state_bit:
                 gevent.sleep(0.1)
@@ -122,7 +122,7 @@ class MDFastShutter(Device):
         self.shutter_state_changed(self.chan_shutter_state.get_value())
 
         if self.is_opened():
-            self.chan_shutter_state.setValue(False)
+            self.chan_shutter_state.set_value(False)
             with gevent.Timeout(
                 10, Exception("Timeout waiting for fast shutter close")
             ):

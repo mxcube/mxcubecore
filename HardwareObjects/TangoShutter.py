@@ -188,7 +188,7 @@ class TangoShutter(BaseHardwareObjects.Device):
         if self.open_cmd is not None:
             self.open_cmd()
         else:
-            self.shutter_channel.setValue(True)
+            self.shutter_channel.set_value(True)
 
     def closeShutter(self):
         # Try getting close command configured in xml
@@ -196,7 +196,7 @@ class TangoShutter(BaseHardwareObjects.Device):
         if self.close_cmd is not None:
             self.close_cmd()
         else:
-            self.shutter_channel.setValue(False)
+            self.shutter_channel.set_value(False)
 
 
 def test():

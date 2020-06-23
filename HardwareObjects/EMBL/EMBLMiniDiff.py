@@ -685,7 +685,7 @@ class EMBLMiniDiff(GenericDiffractometer):
 
     def toggle_fast_shutter(self):
         if self.chan_fast_shutter_is_open is not None:
-            self.chan_fast_shutter_is_open.setValue(not self.fast_shutter_is_open)
+            self.chan_fast_shutter_is_open.set_value(not self.fast_shutter_is_open)
 
     def find_loop(self):
         image_array = HWR.beamline.sample_view.camera.get_snapshot(return_as_array=True)
@@ -831,7 +831,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         return self.chan_scintillator_position.get_value()
 
     def set_scintillator_position(self, position):
-        self.chan_scintillator_position.setValue(position)
+        self.chan_scintillator_position.set_value(position)
         with gevent.Timeout(5, Exception("Timeout waiting for scintillator position")):
             while position != self.get_scintillator_position():
                 gevent.sleep(0.01)
@@ -840,7 +840,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         return self.chan_capillary_position.get_value()
 
     def set_capillary_position(self, position):
-        self.chan_capillary_position.setValue(position)
+        self.chan_capillary_position.set_value(position)
         with gevent.Timeout(5, Exception("Timeout waiting for capillary position")):
             while position != self.get_capillary_position():
                 gevent.sleep(0.01)

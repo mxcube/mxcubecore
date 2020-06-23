@@ -60,10 +60,10 @@ class ALBASupervisor(Device):
         # self.emit('levelChanged', self.current_level)
 
     def open_detector_cover(self):
-        self.detector_cover_chan.setValue(True)
+        self.detector_cover_chan.set_value(True)
 
     def close_detector_cover(self, value):
-        self.detector_cover_chan.setValue(False)
+        self.detector_cover_chan.set_value(False)
 
     def is_detector_cover_opened(self):
         return self.detector_cover_chan.get_value()

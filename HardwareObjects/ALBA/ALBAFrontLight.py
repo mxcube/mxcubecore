@@ -98,7 +98,7 @@ class ALBAFrontLight(Device):
         logging.getLogger("HWR").debug(
             "Setting level in %s to %s" % (self.username, level)
         )
-        self.level_channel.setValue(float(level))
+        self.level_channel.set_value(float(level))
 
     def setOn(self):
         logging.getLogger("HWR").debug("Setting front light on")
@@ -108,13 +108,13 @@ class ALBAFrontLight(Device):
             else:
                 value = self.memorized_level
             logging.getLogger("HWR").debug("   setting value to")
-            self.level_channel.setValue(value)
+            self.level_channel.set_value(value)
         else:
-            self.level_channel.setValue(self.off_threshold)
+            self.level_channel.set_value(self.off_threshold)
 
     def setOff(self):
         logging.getLogger("HWR").debug("Setting front light off")
-        self.level_channel.setValue(0.0)
+        self.level_channel.set_value(0.0)
 
 
 def test():

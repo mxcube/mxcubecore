@@ -90,7 +90,7 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device, AbstractMotor):
         # self.blight.moveToPosition(posno)
         self.zoom.moveToPosition(posno)
         state = self.zoom.get_state()
-        # state = self.positionChannel.setValue(int(no))
+        # state = self.positionChannel.set_value(int(no))
 
     def motorIsMoving(self):
         return self.zoom.motorIsMoving()

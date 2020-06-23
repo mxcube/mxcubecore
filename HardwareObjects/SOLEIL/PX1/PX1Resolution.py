@@ -141,10 +141,10 @@ class PX1Resolution(Equipment):
         return (low, high)
 
     def moveResolution(self, res):
-        self.resolution_chan.setValue(res)
+        self.resolution_chan.set_value(res)
 
     def moveDistance(self, dist):
-        self.distance_chan.setValue(dist)
+        self.distance_chan.set_value(dist)
 
     def stop(self):
         try:

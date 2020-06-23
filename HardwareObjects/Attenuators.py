@@ -56,4 +56,4 @@ class Attenuators(AbstractTransmission):
         self.emit("limitsChanged", (self._limits,))
 
     def _set_value(self, value):
-        self.chan_att_value.setValue(value)
+        self.chan_att_value.set_value(value)

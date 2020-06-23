@@ -33,7 +33,7 @@ class ALBATransmission(Device):
         return self.transmissionChannel.get_value()
 
     def _set_value(self, value):
-        self.transmissionChannel.setValue(value)
+        self.transmissionChannel.set_value(value)
 
     def re_emit_values(self):
         value = self.get_value()

@@ -139,10 +139,10 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
         self.cmdOut()
 
     def cmdIn(self):
-        self.actuator_channel.setValue(1)
+        self.actuator_channel.set_value(1)
 
     def cmdOut(self):
-        self.actuator_channel.setValue(0)
+        self.actuator_channel.set_value(0)
 
 
 def test_hwo(hwo):

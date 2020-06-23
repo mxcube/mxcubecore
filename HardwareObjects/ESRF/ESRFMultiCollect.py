@@ -101,7 +101,7 @@ class TunableEnergy:
 #                 trigger_mode,
 #             )
 #         else:
-#             self.get_channel_object("take_dark").setValue(take_dark)
+#             self.get_channel_object("take_dark").set_value(take_dark)
 #             self.execute_command(
 #                 "prepare_acquisition",
 #                 take_dark,
@@ -979,10 +979,10 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         return []
 
     def set_helical(self, helical_on):
-        self.get_channel_object("helical").setValue(1 if helical_on else 0)
+        self.get_channel_object("helical").set_value(1 if helical_on else 0)
 
     def set_helical_pos(self, helical_oscil_pos):
-        self.get_channel_object("helical_pos").setValue(helical_oscil_pos)
+        self.get_channel_object("helical_pos").set_value(helical_oscil_pos)
 
     def get_archive_directory(self, directory):
         pt = PathTemplate()

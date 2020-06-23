@@ -228,7 +228,7 @@ class TangoDCMotor(Device):
         #         "TangoDCMotor: difference larger then epsilon (%s), executing the move "
         #         % str(epsilon)
         #     )
-        self.positionChan.setValue(self.convertValue(value))
+        self.positionChan.set_value(self.convertValue(value))
         # else:
         #     logging.info(
         #         "TangoDCMotor: not moving really as epsilon is large %s " % str(epsilon)

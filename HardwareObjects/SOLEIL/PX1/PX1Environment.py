@@ -315,7 +315,7 @@ class PX1Environment(Device):
     @task
     def _setUsingCapillary(self):
         if self.usingCapillaryChannel is not None:
-            self.usingCapillaryChannel.setValue(self.capillary_value)
+            self.usingCapillaryChannel.set_value(self.capillary_value)
 
     def getBeamstopPosition(self):
         if self.beamstopPositionChannel is not None:
@@ -328,7 +328,7 @@ class PX1Environment(Device):
     @task
     def _setBeamstopPosition(self):
         if self.beamstopPositionChannel is not None:
-            self.beamstopPositionChannel.setValue(self.beamstop_position)
+            self.beamstopPositionChannel.set_value(self.beamstop_position)
 
 
 def test_hwo(hwo):

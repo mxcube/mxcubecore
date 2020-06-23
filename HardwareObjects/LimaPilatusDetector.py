@@ -142,7 +142,7 @@ class LimaPilatusDetector(AbstractDetector):
         :param mode: roi mode
         :type mode: str
         """
-        # self.chan_roi_mode.setValue(self.roi_modes_list[mode])
+        # self.chan_roi_mode.set_value(self.roi_modes_list[mode])
 
     def prepare_acquisition(
         self,

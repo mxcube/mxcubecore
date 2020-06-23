@@ -51,7 +51,7 @@ class MicrodiffKappaMotor(ExporterMotor):
         """
         with MicrodiffKappaMotor.lock:
             if self.get_state() != MotorStates.UNKNOWN:
-                self.position_attr.setValue(
+                self.position_attr.set_value(
                     absolutePosition
                 )  # absolutePosition-self.offset)
                 self.update_state(MotorStates.MOVING)

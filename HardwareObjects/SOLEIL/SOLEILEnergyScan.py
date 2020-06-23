@@ -269,7 +269,7 @@ class SOLEILEnergyScan(Equipment):
         self.archive_prefix = prefix
 
         try:
-            # self.energyScanArgs.setValue(curr)
+            # self.energyScanArgs.set_value(curr)
             logging.getLogger("HWR").debug(
                 "EnergyScan: current energy scan parameters (%s, %s, %s, %s)"
                 % (element, edge, directory, prefix)

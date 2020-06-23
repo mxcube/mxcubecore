@@ -91,7 +91,7 @@ class ALBABackLight(Device):
         return self.current_level
 
     def setLevel(self, level):
-        self.level_channel.setValue(float(level))
+        self.level_channel.set_value(float(level))
 
     def setOn(self):
         self.on_task = gevent.spawn(self._setOn)
@@ -117,7 +117,7 @@ class ALBABackLight(Device):
         self.setLevel(level)
 
     def set_backlight_in(self):
-        self.backlightin_channel.setValue(True)
+        self.backlightin_channel.set_value(True)
 
     def wait_backlight_in(self, state=True, timeout=10):
         t0 = time.time()
@@ -147,7 +147,7 @@ class ALBABackLight(Device):
         if self.current_level:
             self.memorized_level = self.current_level
             self.setLevel(self.rest_level)
-        self.backlightin_channel.setValue(False)
+        self.backlightin_channel.set_value(False)
 
 
 def test_hwo(hwo):

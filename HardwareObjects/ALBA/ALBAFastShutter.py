@@ -185,16 +185,16 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
         self.close()
 
     def close(self):
-        self.motorpos_channel.setValue(0)
+        self.motorpos_channel.set_value(0)
         self.set_ttl("High")
 
     def open(self):
-        self.motorpos_channel.setValue(0)
+        self.motorpos_channel.set_value(0)
         self.set_ttl("Low")
 
     def set_ttl(self, value):
         self.nistop_cmd()
-        self.actuator_channel.setValue(value)
+        self.actuator_channel.set_value(value)
         self.nistart_cmd()
 
     def is_open(self):

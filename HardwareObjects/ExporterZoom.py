@@ -78,7 +78,7 @@ class ExporterZoom(ExporterMotor):
         return ""
 
     def move_to_position(self, position_name):
-        self.chan_predefined_position.setValue(self.predefined_positions[position_name])
+        self.chan_predefined_position.set_value(self.predefined_positions[position_name])
 
     def zoom_in(self):
         position_name = self.get_current_position_name()

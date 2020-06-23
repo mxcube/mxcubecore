@@ -345,7 +345,7 @@ class XRFSpectrum(Equipment):
             return True
 
     def setSpectrumParams(self, pars):
-        self.energySpectrumArgs.setValue(pars)
+        self.energySpectrumArgs.set_value(pars)
 
     def _get_cfgfile(self, energy):
         if energy > 12.0:

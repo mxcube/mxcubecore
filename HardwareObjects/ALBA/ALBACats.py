@@ -166,7 +166,7 @@ class ALBACats(Cats90):
             logging.getLogger("user_level_log").error(
                 "Restoring det.distance to %s" % self.detdist_saved
             )
-            self.detdist_position_channel.setValue(self.detdist_saved)
+            self.detdist_position_channel.set_value(self.detdist_saved)
             time.sleep(0.4)
             self._wait_super_ready()
 

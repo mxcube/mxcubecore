@@ -186,8 +186,8 @@ class EMBLBeamInfo(Equipment):
         self.beam_position = [beam_x, beam_y]
 
         if self.chan_beam_position_hor and self.chan_beam_position_ver:
-            self.chan_beam_position_hor.setValue(int(beam_x))
-            self.chan_beam_position_ver.setValue(int(beam_y))
+            self.chan_beam_position_hor.set_value(int(beam_x))
+            self.chan_beam_position_ver.set_value(int(beam_y))
         else:
             self.emit("beamPosChanged", (self.beam_position,))
 
@@ -319,14 +319,14 @@ class EMBLBeamInfo(Equipment):
                 and self.beam_info_dict["size_x"] < 1.3
                 and self.beam_info_dict["size_y"] < 1.3
             ):
-                self.chan_beam_size_microns.setValue(
+                self.chan_beam_size_microns.set_value(
                     (
                         self.beam_info_dict["size_x"] * 1000,
                         self.beam_info_dict["size_y"] * 1000,
                     )
                 )
             if self.chan_beam_shape_ellipse:
-                self.chan_beam_shape_ellipse.setValue(
+                self.chan_beam_shape_ellipse.set_value(
                     self.beam_info_dict["shape"] == "ellipse"
                 )
 
@@ -376,13 +376,13 @@ class EMBLBeamInfo(Equipment):
         :return: None
         """
         if direction == "left":
-            self.chan_beam_position_hor.setValue(self.beam_position[0] - step)
+            self.chan_beam_position_hor.set_value(self.beam_position[0] - step)
         elif direction == "right":
-            self.chan_beam_position_hor.setValue(self.beam_position[0] + step)
+            self.chan_beam_position_hor.set_value(self.beam_position[0] + step)
         elif direction == "up":
-            self.chan_beam_position_ver.setValue(self.beam_position[1] - step)
+            self.chan_beam_position_ver.set_value(self.beam_position[1] - step)
         elif direction == "down":
-            self.chan_beam_position_ver.setValue(self.beam_position[1] + step)
+            self.chan_beam_position_ver.set_value(self.beam_position[1] + step)
 
     def get_focus_mode(self):
         """Returns current focusing mode

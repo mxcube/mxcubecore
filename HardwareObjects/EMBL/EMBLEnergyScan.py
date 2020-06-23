@@ -232,7 +232,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                 size_ver = size_ver * 1000
             self.scan_info["beamSizeHorizontal"] = size_hor
             self.scan_info["beamSizeVertical"] = size_ver
-            self.chan_scan_start.setValue("%s;%s" % (element, edge))
+            self.chan_scan_start.set_value("%s;%s" % (element, edge))
             self.scanCommandStarted()
         else:
             log.error(
