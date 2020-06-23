@@ -125,7 +125,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
         if not self.check_light(value):
             return (False, "Error while trying to extract the light arm!")
 
-        self.position_chan.setValue(value)
+        self.position_chan.set_value(value)
 
     def getMotorMnemonic(self):
         return self.name()

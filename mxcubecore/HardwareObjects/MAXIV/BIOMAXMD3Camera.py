@@ -67,7 +67,7 @@ class BIOMAXMD3Camera(Device):
         # if self.get_property("image_zoom"):
         try:
             self.zoom = float(self.get_property("image_zoom"))
-            self.chan_zoom.setValue(self.zoom)
+            self.chan_zoom.set_value(self.zoom)
             self.width = self.roi_width.get_value() * self.zoom
             self.height = self.roi_height.get_value() * self.zoom
         except BaseException:
@@ -158,7 +158,7 @@ class BIOMAXMD3Camera(Device):
 
     def setImageZoom(self, new_zoom):
         try:
-            return self.zoom.setValue(new_zoom)
+            return self.zoom.set_value(new_zoom)
         except Exception as e:
             logging.getLogger("HWR").exception("Could not retrieve image zoom settings")
             return False

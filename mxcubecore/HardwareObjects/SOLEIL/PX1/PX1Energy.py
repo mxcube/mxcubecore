@@ -179,7 +179,7 @@ class PX1Energy(Device, AbstractEnergy):
                             while str(self.und_device.State()) == "MOVING":
                                 time.sleep(0.2)
 
-                            self.energy_chan.setValue(value)
+                            self.energy_chan.set_value(value)
                         else:
                             self.und_device.gap = gaplimite
                             self.und_device.gap = newgap + backlash
@@ -192,7 +192,7 @@ class PX1Energy(Device, AbstractEnergy):
                     )
 
             try:
-                self.energy_chan.setValue(value)
+                self.energy_chan.set_value(value)
                 return value
             except BaseException:
                 logging.getLogger("HWR").error(

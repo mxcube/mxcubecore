@@ -70,7 +70,7 @@ class EMBLImageTracking(Device):
         if self.chan_spot_list is not None:
             self.chan_spot_list.connect_signal("update", self.spot_list_enabled_changed)
 
-        self.chan_spot_list.setValue(True)
+        self.chan_spot_list.set_value(True)
         self.chan_state = self.get_channel_object("chanState")
         self.chan_state.connect_signal("update", self.state_changed)
 
@@ -117,7 +117,7 @@ class EMBLImageTracking(Device):
         :param state:
         :return:
         """
-        self.chan_enable_image_tracking.setValue(state)
+        self.chan_enable_image_tracking.set_value(state)
 
     def set_filter_frames_state(self, state):
         """
@@ -125,7 +125,7 @@ class EMBLImageTracking(Device):
         :param state:
         :return:
         """
-        self.chan_filter_frames.setValue(state)
+        self.chan_filter_frames.set_value(state)
 
     def set_spot_list_enabled(self, state):
         """
@@ -133,7 +133,7 @@ class EMBLImageTracking(Device):
         :param state:
         :return:
         """
-        self.chan_spot_list.setValue(state)
+        self.chan_spot_list.set_value(state)
 
     def spot_list_enabled_changed(self, state):
         self.state_dict["spot_list"] = state

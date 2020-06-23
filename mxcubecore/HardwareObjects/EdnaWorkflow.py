@@ -29,14 +29,14 @@ class State(object):
     def get_value(self):
         return self._value
 
-    def setValue(self, newValue):
+    def set_value(self, newValue):
         self._value = newValue
         self._parent.state_changed(newValue)
 
     def delValue(self):
         pass
 
-    value = property(get_value, setValue, delValue, "Property for value")
+    value = property(get_value, set_value, delValue, "Property for value")
 
 
 class EdnaWorkflow(HardwareObject):

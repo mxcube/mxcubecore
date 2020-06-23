@@ -80,7 +80,7 @@ class EMBLBeamstop(Device, AbstractMotor):
         :type distance: float (mm)
         """
         if self.chan_distance is not None:
-            self.chan_distance.setValue(distance)
+            self.chan_distance.set_value(distance)
             self.distance_changed(distance)
 
     def get_distance(self):
@@ -101,7 +101,7 @@ class EMBLBeamstop(Device, AbstractMotor):
         :param position: beamstop position
         :type position: str
         """
-        self.chan_position.setValue(position)
+        self.chan_position.set_value(position)
 
     def re_emit_values(self):
         """Reemits available signals"""

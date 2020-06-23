@@ -82,8 +82,8 @@ class BeamInfo(Equipment):
 
     def set_beam_position(self, beam_x, beam_y):
         self.beam_position = [beam_x, beam_y]
-        self.beam_position_hor.setValue(int(beam_x))
-        self.beam_position_ver.setValue(int(beam_y))
+        self.beam_position_hor.set_value(int(beam_x))
+        self.beam_position_ver.set_value(int(beam_y))
 
     def aperture_pos_changed(self, nameList, name, size):
         self.beam_size_aperture = size
@@ -159,13 +159,13 @@ class BeamInfo(Equipment):
             )
             self.emit("beamInfoChanged", (self.beam_info_dict,))
             if self.chan_beam_size_microns is not None:
-                self.chan_beam_size_microns.setValue(
+                self.chan_beam_size_microns.set_value(
                     (
                         self.beam_info_dict["size_x"] * 1000,
                         self.beam_info_dict["size_y"] * 1000,
                     )
                 )
             if self.chan_beam_shape_ellipse is not None:
-                self.chan_beam_shape_ellipse.setValue(
+                self.chan_beam_shape_ellipse.set_value(
                     self.beam_info_dict["shape"] == "ellipse"
                 )

@@ -113,7 +113,7 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
         logging.getLogger("HWR").debug("type %s" % type(no))
         #        no = posno
         logging.getLogger("HWR").debug("Moving to position %s" % no)
-        state = self.positionChannel.setValue(int(no))
+        state = self.positionChannel.set_value(int(no))
 
     def motorIsMoving(self):
         if str(self.get_state()) == "MOVING":

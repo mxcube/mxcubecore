@@ -30,7 +30,7 @@ class BIOMAXAperture(MicrodiffAperture):
             self.predefinedPositions[positionName],
         )
         if positionName == "Outbeam":
-            self.aperture_position.setValue("OFF")
+            self.aperture_position.set_value("OFF")
         else:
             try:
                 self.set_value(
@@ -41,7 +41,7 @@ class BIOMAXAperture(MicrodiffAperture):
                     "Cannot move motor %s: invalid position name.", str(self.username)
                 )
             if self.aperture_position.get_value() != "BEAM":
-                self.aperture_position.setValue("BEAM")
+                self.aperture_position.set_value("BEAM")
 
     def get_position_list(self):
         return BIOMAXAperture.POSITIONS

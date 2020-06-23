@@ -173,7 +173,7 @@ class ALBAAutoProcessing(HardwareObject):
 
         input_file = XSDataFile()
         path = XSDataString()
-        path.setValue(xds_file)
+        path.set_value(xds_file)
         input_file.setPath(path)
 
         ednaproc_input.setInput_file(input_file)
@@ -181,7 +181,7 @@ class ALBAAutoProcessing(HardwareObject):
 
         # output_dir = XSDataFile()
         # outpath = XSDataString()
-        # outpath.setValue(output_dir)
+        # outpath.set_value(output_dir)
         # output_dir.setPath(path)
 
         # ednaproc_input.setOutput_directory( output_dir )

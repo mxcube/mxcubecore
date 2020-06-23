@@ -234,7 +234,7 @@ class EMBLBSD(GenericDiffractometer):
 
     def set_scintillator_position(self, position):
         """Sets scintillator position"""
-        self.chan_scintillator_position.setValue(position)
+        self.chan_scintillator_position.set_value(position)
         with gevent.Timeout(5, Exception("Timeout waiting for scintillator position")):
             while position != self.get_scintillator_position():
                 gevent.sleep(0.01)
@@ -245,7 +245,7 @@ class EMBLBSD(GenericDiffractometer):
 
     def set_capillary_position(self, position):
         """Moves capillary to requested position"""
-        self.chan_capillary_position.setValue(position)
+        self.chan_capillary_position.set_value(position)
         with gevent.Timeout(5, Exception("Timeout waiting for capillary position")):
             while position != self.get_capillary_position():
                 gevent.sleep(0.01)
@@ -260,8 +260,8 @@ class EMBLBSD(GenericDiffractometer):
 
     def set_beamstop_park(self):
         """Sets beamstop to the parking position"""
-        self.chan_beamstop_position.setValue("PARK")
+        self.chan_beamstop_position.set_value("PARK")
 
     def set_beamstop_beam(self):
         """Sets beamstop in the beam position"""
-        self.chan_beamstop_position.setValue("BEAM")
+        self.chan_beamstop_position.set_value("BEAM")

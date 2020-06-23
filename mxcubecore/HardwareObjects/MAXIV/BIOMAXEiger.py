@@ -208,10 +208,10 @@ class BIOMAXEiger(Equipment):
             self.energy_change_threshold = self.energy_change_threshold_default
 
         self.get_channel_object("Compression").init_device()
-        self.get_channel_object("Compression").setValue("bslz4")
+        self.get_channel_object("Compression").set_value("bslz4")
 
         # self.get_channel_object('TriggerMode').init_device()
-        # self.get_channel_object('TriggerMode').setValue("exts")
+        # self.get_channel_object('TriggerMode').set_value("exts")
 
     #  STATUS , status can be "idle", "ready", "UNKNOWN"
     def get_status(self):
@@ -321,7 +321,7 @@ class BIOMAXEiger(Equipment):
             logging.getLogger("HWR").debug(
                 "[DETECTOR] Setting value: %s for attribute %s" % (value, name)
             )
-            self.get_channel_object(name).setValue(value)
+            self.get_channel_object(name).set_value(value)
             self.wait_attribute_applied(name, value)
         except Exception as ex:
             logging.getLogger("HWR").error(ex)

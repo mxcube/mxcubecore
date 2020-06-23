@@ -36,5 +36,5 @@ A Channel object should emit the following signals :
 - 'update', when the value of the channel changes
 
 A channel object should have a 'get_value' method at least,
-and an optional 'setValue'
+and an optional 'set_value'
 """

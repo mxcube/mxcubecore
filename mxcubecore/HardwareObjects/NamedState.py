@@ -167,7 +167,7 @@ class NamedState(Device):
                 logging.getLogger().exception("  - using attribute mode")
                 try:
                     # probleme de unicode tester en mettant un unicode
-                    self.stateChan.setValue(statevalue)
+                    self.stateChan.set_value(statevalue)
                 except BaseException:
                     logging.getLogger().exception("cannot write attribute")
                     self.emit("stateChanged", (self.get_state(),))

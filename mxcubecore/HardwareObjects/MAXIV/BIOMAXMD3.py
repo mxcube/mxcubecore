@@ -463,10 +463,10 @@ class BIOMAXMD3(GenericDiffractometer):
         )
         logging.getLogger("HWR").info(msg)
 
-        self.channel_dict["ScanStartAngle"].setValue(start)
-        self.channel_dict["ScanExposureTime"].setValue(exptime)
-        self.channel_dict["ScanRange"].setValue(end - start)
-        self.channel_dict["ScanNumberOfFrames"].setValue(nframes)
+        self.channel_dict["ScanStartAngle"].set_value(start)
+        self.channel_dict["ScanExposureTime"].set_value(exptime)
+        self.channel_dict["ScanRange"].set_value(end - start)
+        self.channel_dict["ScanNumberOfFrames"].set_value(nframes)
 
         raster_params = "%0.5f\t%0.5f\t%i\t%i\t%i" % (
             vertical_range,

@@ -71,7 +71,7 @@ class PX1Attenuator(Device):
             self.emit("attFactorChanged", (value,))
 
     def _set_value(self, value):
-        self.factor_chan.setValue(value)
+        self.factor_chan.set_value(value)
 
 
 def test_hwo(self):

@@ -232,7 +232,7 @@ class SardanaMotor(AbstractMotor):
         Descript. : move to the given position
         """
         # if abs(absolute_position - current_pos) > self.move_threshold_default:
-        self.position_channel.setValue(value)
+        self.position_channel.set_value(value)
 
     def stop(self):
         """
@@ -264,7 +264,7 @@ class SardanaMotor(AbstractMotor):
             return None
 
     def set_velocity(self, value):
-        self.velocity_channel.setValue(value)
+        self.velocity_channel.set_value(value)
 
     def get_acceleration(self):
         try:

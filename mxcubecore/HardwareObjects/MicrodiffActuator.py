@@ -100,7 +100,7 @@ class MicrodiffActuator(AbstractActuator):
     def actuator_in(self, wait=True, timeout=None):
         if self._ready():
             try:
-                self.cmd_attr.setValue(self._moves["IN"])
+                self.cmd_attr.set_value(self._moves["IN"])
                 if wait:
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
@@ -118,7 +118,7 @@ class MicrodiffActuator(AbstractActuator):
     def actuator_out(self, wait=True, timeout=None):
         if self._ready():
             try:
-                self.cmd_attr.setValue(self._moves["OUT"])
+                self.cmd_attr.set_value(self._moves["OUT"])
                 if wait:
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)

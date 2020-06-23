@@ -307,7 +307,7 @@ class Camera(BaseHardwareObjects.Device):
                     """tango"""
                     try:
                         contrastChan = self.get_channel_object("contrast")
-                        contrastChan.setValue(str(contrast))
+                        contrastChan.set_value(str(contrast))
                     except BaseException:
                         self.oprint("setContrast failed")
                         sys.excepthook(
@@ -340,7 +340,7 @@ class Camera(BaseHardwareObjects.Device):
                     """tango"""
                     try:
                         brightnessChan = self.get_channel_object("brightness")
-                        brightnessChan.setValue(brightness)
+                        brightnessChan.set_value(brightness)
                     except BaseException:
                         self.oprint("setBrightness failed")
                         sys.excepthook(
@@ -372,8 +372,8 @@ class Camera(BaseHardwareObjects.Device):
                     """tango"""
                     try:
                         gainChan = self.get_channel_object("gain")
-                        # ???? gainChan.setValue(str(gain))
-                        gainChan.setValue(gain)
+                        # ???? gainChan.set_value(str(gain))
+                        gainChan.set_value(gain)
                     except BaseException:
                         self.oprint("setGain failed")
                         sys.excepthook(
@@ -406,7 +406,7 @@ class Camera(BaseHardwareObjects.Device):
                     """tango"""
                     try:
                         gammaChan = self.get_channel_object("gamma")
-                        gammaChan.setValue(gamma)
+                        gammaChan.set_value(gamma)
                     except BaseException:
                         sys.excepthook(
                             sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
@@ -718,17 +718,17 @@ class Camera(BaseHardwareObjects.Device):
 
                 def setROI(self, startx, endx, starty, endy):
                     """tango"""
-                    # ?????# self.get_channel_object("roi").setValue([startx, starty, endx, endy])
-                    self.get_channel_object("roi").setValue(
+                    # ?????# self.get_channel_object("roi").set_value([startx, starty, endx, endy])
+                    self.get_channel_object("roi").set_value(
                         [startx, endx, starty, endy]
                     )
 
                 def setExposure(self, exposure):
-                    self.get_channel_object("exposure").setValue(exposure)
+                    self.get_channel_object("exposure").set_value(exposure)
 
                 def setThreshold(self, threshold):
                     if self.bpmDevice is not None:
-                        self.bpmDevice.get_channel_object("threshold").setValue(
+                        self.bpmDevice.get_channel_object("threshold").set_value(
                             threshold
                         )
 
