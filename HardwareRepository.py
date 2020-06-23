@@ -147,7 +147,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
         try:
             # instantiate object
             result = cls(name=role, **initialise_class)
-        except:
+        except BaseException:
             if _container:
                 msg0 = "Error instantiating %s" % cls.__name__
             else:
@@ -163,7 +163,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
         try:
             # Initialise object
             result._init()
-        except:
+        except BaseException:
             if _container:
                 msg0 = "Error in %s._init()" % cls.__name__
             else:
@@ -230,7 +230,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
         try:
             # Initialise object
             result.init()
-        except:
+        except BaseException:
             if _container:
                 msg0 = "Error in %s.init()" % cls.__name__
             else:
@@ -771,7 +771,9 @@ class __HardwareRepositoryClient:
           True if the Hardware Object is a Procedure, False otherwise
         """
         try:
-            return isinstance(self.hardware_objects[name], BaseHardwareObjects.Procedure)
+            return isinstance(
+                self.hardware_objects[name], BaseHardwareObjects.Procedure
+            )
         except BaseException:
             return False
 
@@ -785,7 +787,9 @@ class __HardwareRepositoryClient:
           True if the Hardware Object is an Equipment, False otherwise
         """
         try:
-            return isinstance(self.hardware_objects[name], BaseHardwareObjects.Equipment)
+            return isinstance(
+                self.hardware_objects[name], BaseHardwareObjects.Equipment
+            )
         except BaseException:
             return False
 
@@ -887,7 +891,9 @@ class __HardwareRepositoryClient:
                             "attribute": str(chan.attributeName),
                         }
 
-            if "SpecMotorA" in [klass.__name__ for klass in hardware_obj.__class__.__bases__]:
+            if "SpecMotorA" in [
+                klass.__name__ for klass in hardware_obj.__class__.__bases__
+            ]:
                 d["spec version"] = hardware_obj.specVersion
                 d["motor mnemonic"] = hardware_obj.specName
                 try:

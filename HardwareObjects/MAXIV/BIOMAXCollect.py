@@ -128,7 +128,9 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 minimum_exposure_time=min_exp,
                 detector_fileext=HWR.beamline.detector.get_property("file_suffix"),
                 detector_type=HWR.beamline.detector.get_property("type"),
-                detector_manufacturer=HWR.beamline.detector.get_property("manufacturer"),
+                detector_manufacturer=HWR.beamline.detector.get_property(
+                    "manufacturer"
+                ),
                 detector_model=HWR.beamline.detector.get_property("model"),
                 detector_px=pix_x,
                 detector_py=pix_y,

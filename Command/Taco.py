@@ -58,7 +58,9 @@ class TacoCommand(CommandObject):
 
     def connect_device(self):
         try:
-            self.device = TacoDevice.TacoDevice(self.device_name, dc=self.data_collector)
+            self.device = TacoDevice.TacoDevice(
+                self.device_name, dc=self.data_collector
+            )
         except BaseException:
             logging.getLogger("HWR").exception(
                 "Problem with Taco ; could not open Device %s", self.device_name

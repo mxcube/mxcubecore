@@ -158,7 +158,10 @@ class TineChannel(ChannelObject):
             )
         else:
             self.linkid = TineChannel.attach[kwargs.get("attach", "timer")](
-                self.tine_name, self.attribute_name, self.tine_event_callback, self.timeout
+                self.tine_name,
+                self.attribute_name,
+                self.tine_event_callback,
+                self.timeout,
             )
         # except IOError as strerror:
         #   logging.getLogger("HWR").error("%s" %strerror)

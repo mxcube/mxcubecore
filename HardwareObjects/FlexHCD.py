@@ -130,7 +130,7 @@ class FlexHCD(SampleChanger):
                 },
                 "State",
             )
-        
+
         """
         self.controller = self.get_object_by_role("controller")
         self.prepareLoad = self.get_command_object("moveToLoadingPosition")

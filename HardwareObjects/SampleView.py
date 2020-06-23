@@ -322,7 +322,7 @@ class SampleView(AbstractSampleView):
 
     def inc_used_for_collection(self, cpos):
         """
-        Increase counter that keepts on collect made on this shape, 
+        Increase counter that keepts on collect made on this shape,
         shape with associated CenteredPosition cpos
 
         Args:

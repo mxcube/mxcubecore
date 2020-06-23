@@ -176,11 +176,12 @@ class EMBLSSXChip(QtGraphicsManager):
         for element in range(0, len(comp_v_divisor_list)):
             comp_v_divisor_list[element] = comp_v_divisor_list[element] * num_comp_h
 
-        # create a list which contains two lists of H and V (already multiplied) crystalalals
-        a_list = crystal_h_divisor_list + crystal_v_divisor_list
-        a_list.sort()
+        # create a list which contains two lists of H and V (already multiplied)
+        # crystalalals
+        a_list = sorted(crystal_h_divisor_list + crystal_v_divisor_list)
 
-        # create a list which contains two lists of H and V (already multiplied) compartments
+        # create a list which contains two lists of H and V (already multiplied)
+        # compartments
         b_list = comp_h_divisor_list + comp_v_divisor_list
         b_list.sort()
         del b_list[0]  # delete first element

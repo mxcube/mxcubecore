@@ -50,7 +50,7 @@ def _poll_image(sleep_time, video_device, device_uri, video_mode, formats):
         try:
             data = poll_image(lima_tango_device, video_mode, formats)[0]
             video_device.write(data)
-        except:
+        except BaseException:
             pass
         finally:
             time.sleep(sleep_time)

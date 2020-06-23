@@ -608,7 +608,7 @@ class Beamline(ConfiguredObject):
 
         try:
             acq_parameters.resolution = self.resolution.get_value()
-        except:
+        except BaseException:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
                 "No current resolution, setting to 0.0"
@@ -617,7 +617,7 @@ class Beamline(ConfiguredObject):
 
         try:
             acq_parameters.energy = self.energy.get_value()
-        except:
+        except BaseException:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
                 "No current energy, setting to 0.0"
@@ -626,7 +626,7 @@ class Beamline(ConfiguredObject):
 
         try:
             acq_parameters.transmission = self.transmission.get_value()
-        except:
+        except BaseException:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
                 "No current transmission, setting to 0.0"
@@ -635,7 +635,7 @@ class Beamline(ConfiguredObject):
 
         try:
             acq_parameters.shutterless = self.detector.has_shutterless()
-        except:
+        except BaseException:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
                 "Could not get has_shutterless, setting to False"
@@ -644,7 +644,7 @@ class Beamline(ConfiguredObject):
 
         try:
             acq_parameters.detector_binning_mode = self.detector.get_binning_mode()
-        except:
+        except BaseException:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
                 "Could not get detector mode, setting to ''"
@@ -653,7 +653,7 @@ class Beamline(ConfiguredObject):
 
         try:
             acq_parameters.detector_roi_mode = self.detector.get_roi_mode()
-        except:
+        except BaseException:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
                 "Could not get roi mode, setting to ''"

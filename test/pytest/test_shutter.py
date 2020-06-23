@@ -61,12 +61,12 @@ class TestShutter(TestAbstractNStateBase.TestAbstractNStateBase):
     def test_shutter_is_valid(self, test_object):
         test_object.close()
         assert test_object.is_valid()
-    
+
         try:
             test_object.current_state = None
         except Exception:
             assert True
-    
+
         test_object.open()
         assert test_object.is_valid()
     """

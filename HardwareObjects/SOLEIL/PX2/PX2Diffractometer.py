@@ -190,7 +190,9 @@ class PX2Diffractometer(GenericDiffractometer):
         )
 
         self.centring_hwobj = self.get_object_by_role("centring")
-        self.minikappa_correction_hwobj = self.get_object_by_role("minikappa_correction")
+        self.minikappa_correction_hwobj = self.get_object_by_role(
+            "minikappa_correction"
+        )
 
         self.zoom_motor_hwobj = self.get_object_by_role("zoom")
         self.connect(self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed)

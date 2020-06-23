@@ -105,7 +105,9 @@ class EMBLSafetyShutter(Device):
 
         self.chan_cmd_open_error = self.get_channel_object("chanCmdOpenError")
         if self.chan_cmd_open_error is not None:
-            self.chan_cmd_open_error.connect_signal("update", self.cmd_error_msg_changed)
+            self.chan_cmd_open_error.connect_signal(
+                "update", self.cmd_error_msg_changed
+            )
 
         self.cmd_open = self.get_command_object("cmdOpen")
         self.cmd_close = self.get_command_object("cmdClose")

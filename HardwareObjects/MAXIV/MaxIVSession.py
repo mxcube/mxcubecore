@@ -54,7 +54,9 @@ class MaxIVSession(Session):
         except (TypeError, IndexError):
             pass
 
-        archive_base_directory = self["file_info"].get_property("archive_base_directory")
+        archive_base_directory = self["file_info"].get_property(
+            "archive_base_directory"
+        )
         if archive_base_directory:
             queue_model_objects.PathTemplate.set_archive_path(
                 archive_base_directory, self["file_info"].get_property("archive_folder")

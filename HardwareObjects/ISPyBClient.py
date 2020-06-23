@@ -12,7 +12,7 @@ from datetime import datetime
 try:
     from urlparse import urljoin
     from urllib2 import URLError
-except:
+except BaseException:
     # Python3
     from urllib.parse import urljoin
     from urllib.error import URLError

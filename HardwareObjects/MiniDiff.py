@@ -61,7 +61,9 @@ def set_light_in(light, light_motor, zoom):
             light_level = None
 
             try:
-                light_level = zoom["positions"][0][zoom_level].get_property("lightLevel")
+                light_level = zoom["positions"][0][zoom_level].get_property(
+                    "lightLevel"
+                )
             except IndexError:
                 logging.getLogger("HWR").info("Could not get default light level")
                 light_level = 1

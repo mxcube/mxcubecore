@@ -43,7 +43,7 @@ import logging
 
 try:
     import cPickle as pickle
-except:
+except BaseException:
     import _pickle as pickle
 
 from datetime import datetime
@@ -336,7 +336,7 @@ class QtGraphicsManager(AbstractSampleView):
         )
         self.graphics_move_left_item.setVisible(
             self.get_property("enable_move_buttons") is True
-        ) 
+        )
         """
 
         # self.set_scrollbars_off(\
@@ -714,7 +714,7 @@ class QtGraphicsManager(AbstractSampleView):
             )
             date_time_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
             result_image.save("/opt/embl-hh/var/crystal_images/%s.png" % date_time_str)
-        except:
+        except BaseException:
             pass
 
     def diffractometer_centring_failed(self, method, centring_status):

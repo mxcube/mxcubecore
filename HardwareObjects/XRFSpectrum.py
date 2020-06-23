@@ -32,7 +32,9 @@ class XRFSpectrum(Equipment):
                 "commandBeginWaitReply", self.spectrumCommandStarted
             )
             self.doSpectrum.connect_signal("commandFailed", self.spectrumCommandFailed)
-            self.doSpectrum.connect_signal("commandAborted", self.spectrumCommandAborted)
+            self.doSpectrum.connect_signal(
+                "commandAborted", self.spectrumCommandAborted
+            )
             self.doSpectrum.connect_signal("commandReady", self.spectrumCommandReady)
             self.doSpectrum.connect_signal(
                 "commandNotReady", self.spectrumCommandNotReady
