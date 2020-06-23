@@ -441,7 +441,7 @@ class EMBLFlux(AbstractFlux):
             try:
                 self.cmd_flux_record([_x["flux"] for _x in self.measured_flux_list])
                 gevent.sleep(2)
-            except:
+            except BaseException:
                 pass
 
             max_frame_rate = 25

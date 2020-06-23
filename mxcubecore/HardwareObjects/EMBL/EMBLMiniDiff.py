@@ -127,7 +127,9 @@ class EMBLMiniDiff(GenericDiffractometer):
 
         self.centring_hwobj = self.get_object_by_role("centring")
         self.imaging_centring_hwobj = self.get_object_by_role("imaging-centring")
-        self.minikappa_correction_hwobj = self.get_object_by_role("minikappa_correction")
+        self.minikappa_correction_hwobj = self.get_object_by_role(
+            "minikappa_correction"
+        )
 
         self.zoom_motor_hwobj = self.get_object_by_role("zoom")
         self.connect(self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed)
@@ -710,7 +712,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.wait_device_ready(180)
         logging.getLogger("HWR").debug("Diffractometer: Done closing Kappa.")
         """
-        try:      
+        try:
            self.motor_hwobj_dict["kappa"].home()
            self.wait_device_ready(60)
            logging.getLogger("HWR").debug("Diffractometer: Done Closing Kappa")

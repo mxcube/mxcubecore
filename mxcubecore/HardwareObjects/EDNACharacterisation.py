@@ -405,8 +405,8 @@ class EDNACharacterisation(AbstractCharacterisation):
 
     def get_default_characterisation_parameters(self):
         """
-        Returns: 
-            (queue_model_objects.CharacterisationsParameters) object with default 
+        Returns:
+            (queue_model_objects.CharacterisationsParameters) object with default
             parameters.
         """
         edna_input = XSDataInputMXCuBE.parseString(self.edna_default_input)

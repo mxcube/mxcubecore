@@ -145,7 +145,9 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
                 self.crystfel_script_template = "".join(template_file.readlines())
 
         if self.get_property("crystfel_params") is not None:
-            self.crystfel_params = ast.literal_eval(self.get_property("crystfel_params"))
+            self.crystfel_params = ast.literal_eval(
+                self.get_property("crystfel_params")
+            )
 
     def create_processing_input_file(self, processing_input_filename):
         """Creates dozor input file base on data collection parameters

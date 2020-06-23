@@ -189,7 +189,9 @@ class GphlWorkflow(HardwareObject, object):
         else:
             properties = {}
         if self.hasObject("invocation_properties"):
-            invocation_properties = self["invocation_properties"].get_properties().copy()
+            invocation_properties = (
+                self["invocation_properties"].get_properties().copy()
+            )
         else:
             invocation_properties = {}
 
@@ -221,7 +223,9 @@ class GphlWorkflow(HardwareObject, object):
                 "name": name,
                 "strategy_type": strategy_type,
                 "application": wf_node.get_property("application"),
-                "documentation": wf_node.get_property("documentation", default_value=""),
+                "documentation": wf_node.get_property(
+                    "documentation", default_value=""
+                ),
                 "interleaveOrder": wf_node.get_property(
                     "interleave_order", default_value=""
                 ),

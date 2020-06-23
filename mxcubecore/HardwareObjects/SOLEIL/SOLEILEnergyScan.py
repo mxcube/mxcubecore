@@ -71,7 +71,9 @@ class SOLEILEnergyScan(Equipment):
                 self.doEnergyScan.connect_signal(
                     "commandBeginWaitReply", self.scanCommandStarted
                 )
-                self.doEnergyScan.connect_signal("commandFailed", self.scanCommandFailed)
+                self.doEnergyScan.connect_signal(
+                    "commandFailed", self.scanCommandFailed
+                )
                 self.doEnergyScan.connect_signal(
                     "commandAborted", self.scanCommandAborted
                 )

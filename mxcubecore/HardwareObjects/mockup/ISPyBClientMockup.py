@@ -11,7 +11,7 @@ from HardwareRepository import HardwareRepository as HWR
 
 try:
     from urlparse import urljoin
-except:
+except BaseException:
     # Python3
     from urllib.parse import urljoin
 

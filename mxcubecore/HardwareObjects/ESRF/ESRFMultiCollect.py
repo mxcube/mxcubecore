@@ -13,13 +13,13 @@ from ESRF.ESRFMetadataManagerClient import MXCuBEMetadataClient
 
 try:
     from httplib import HTTPConnection
-except:
+except BaseException:
     # Python3
     from http.client import HTTPConnection
 
 try:
     from urllib import urlencode
-except:
+except BaseException:
     # Python3
     from urllib.parse import urlencode
 

@@ -206,7 +206,9 @@ class SOLEILMachineInfo(HardwareObject):
 
         self.chan_sc_auto_refill = self.get_channel_object("scAutoRefill")
         if self.chan_sc_auto_refill is not None:
-            self.chan_sc_auto_refill.connect_signal("update", self.sc_autorefill_changed)
+            self.chan_sc_auto_refill.connect_signal(
+                "update", self.sc_autorefill_changed
+            )
             self.sc_autorefill_changed(self.chan_sc_auto_refill.get_value())
 
         self.chan_sc_dewar_low_level_alarm = self.get_channel_object("scLowLevelAlarm")

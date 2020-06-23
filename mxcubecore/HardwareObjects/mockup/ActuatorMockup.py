@@ -49,14 +49,14 @@ class ActuatorMockup(AbstractActuator.AbstractActuator):
 
     def _move(self, value):
         """ Simulated value change - override as needed
-        
+
         Must set specific_state as needed, take a non-zero amount of time
         call update_value for intermediate positions
         and return the final value (in case it does not match the input value)
-        
+
         Args:
             value : target actuator value
-        
+
         Returns:
             final actuator value (may differ from target value)
         """

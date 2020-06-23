@@ -60,7 +60,9 @@ class Session(HardwareObject):
             "processed_data_base_directory"
         )
 
-        base_archive_directory = self["file_info"].get_property("archive_base_directory")
+        base_archive_directory = self["file_info"].get_property(
+            "archive_base_directory"
+        )
 
         folder_name = self["file_info"].get_property("raw_data_folder_name")
         if folder_name and folder_name.strip():

@@ -520,7 +520,8 @@ class PlateManipulator(SampleChanger):
         Descript. :
         """
         self._update_state()
-        # TODO remove self._update_loaded_sample and add event to self.chan_plate_location
+        # TODO remove self._update_loaded_sample and add event to
+        # self.chan_plate_location
         self._update_loaded_sample()
 
     def _update_state(self):

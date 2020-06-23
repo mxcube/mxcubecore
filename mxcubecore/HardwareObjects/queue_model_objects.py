@@ -1785,7 +1785,7 @@ class CentredPosition(object):
             else:
                 cpos_pos = getattr(cpos, motor_name)
 
-            if self_pos == cpos_pos == None:
+            if self_pos == cpos_pos is None:
                 eq[i] = True
             elif None in (self_pos, cpos_pos):
                 continue

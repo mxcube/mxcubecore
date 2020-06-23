@@ -34,7 +34,7 @@ from HardwareRepository import HardwareRepository as HWR
 
 try:
     unicode
-except:
+except BaseException:
     # A quick fix for python3
     unicode = str
 

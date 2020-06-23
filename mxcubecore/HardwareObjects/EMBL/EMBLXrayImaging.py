@@ -505,7 +505,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             logging.getLogger("GUI").info(
                 "Imaging: Acquisition parameters saved in %s" % archive_config_path
             )
-        except:
+        except BaseException:
             logging.getLogger("GUI").error(
                 "Imaging: Unable to save acquisition parameters in %s"
                 % archive_config_path
@@ -827,12 +827,13 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             base_name_list = os.path.splitext(os.path.basename(data_path))
             ff_prefix = base_name_list[0][: -(ext_len + 1)]
             os.chdir(os.path.dirname(flat_field_path))
-            ff_filename_list = [
-                os.path.join(os.path.dirname(flat_field_path), f)
-                for f in os.listdir(os.path.dirname(flat_field_path))
-                if f.startswith("ff_" + prefix)
-            ]
-            ff_filename_list.sort()
+            ff_filename_list = sorted(
+                [
+                    os.path.join(os.path.dirname(flat_field_path), f)
+                    for f in os.listdir(os.path.dirname(flat_field_path))
+                    if f.startswith("ff_" + prefix)
+                ]
+            )
 
         # Reading raw images -------------------------------------------------
         if data_model:

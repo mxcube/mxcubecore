@@ -164,9 +164,13 @@ class LimaEigerDetector(AbstractDetector):
             self.get_channel_object("acq_trigger_mode").set_value("EXTERNAL_GATE")
         else:
             if still:
-                self.get_channel_object("acq_trigger_mode").set_value("INTERNAL_TRIGGER")
+                self.get_channel_object("acq_trigger_mode").set_value(
+                    "INTERNAL_TRIGGER"
+                )
             else:
-                self.get_channel_object("acq_trigger_mode").set_value("EXTERNAL_TRIGGER")
+                self.get_channel_object("acq_trigger_mode").set_value(
+                    "EXTERNAL_TRIGGER"
+                )
 
         self.get_channel_object("saving_frame_per_file").set_value(
             min(100, number_of_images)

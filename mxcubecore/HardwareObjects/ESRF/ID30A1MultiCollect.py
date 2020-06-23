@@ -108,7 +108,11 @@ class ID30A1MultiCollect(ESRFMultiCollect):
         )
         self.get_object_by_role("diffractometer").controller.diode(True, False)
         i0_range = decimal.Decimal(
-            str(self.get_object_by_role("diffractometer").controller.get_diode_range()[0])
+            str(
+                self.get_object_by_role("diffractometer").controller.get_diode_range()[
+                    0
+                ]
+            )
         )
         i1_range = float(
             str(i0_range.as_tuple().digits[0])

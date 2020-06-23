@@ -12,7 +12,7 @@ from HardwareRepository.HardwareObjects.XMLRPCServer import SecureXMLRpcRequestH
 
 try:
     from httplib import HTTPConnection
-except:
+except BaseException:
     # Python3
     from http.client import HTTPConnection
 

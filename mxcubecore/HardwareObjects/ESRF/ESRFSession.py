@@ -11,7 +11,9 @@ class ESRFSession(Session.Session):
     def init(self):
         Session.Session.init(self)
 
-        archive_base_directory = self["file_info"].get_property("archive_base_directory")
+        archive_base_directory = self["file_info"].get_property(
+            "archive_base_directory"
+        )
         if archive_base_directory:
             archive_folder = os.path.join(
                 self["file_info"].get_property("archive_folder"), time.strftime("%Y")

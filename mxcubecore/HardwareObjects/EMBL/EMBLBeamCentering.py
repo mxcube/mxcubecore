@@ -531,7 +531,7 @@ class EMBLBeamCentering(HardwareObject):
                             )
                             sleep(2)
             finished = True
-        except:
+        except BaseException:
             gui_log.error("Beam centering failed")
             finished = False
         finally:

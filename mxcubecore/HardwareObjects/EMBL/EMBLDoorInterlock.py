@@ -66,7 +66,9 @@ class EMBLDoorInterlock(Device):
             "before_unlock_commands_present"
         )
         try:
-            self.before_unlock_commands = eval(self.get_property("beforeUnlockCommands"))
+            self.before_unlock_commands = eval(
+                self.get_property("beforeUnlockCommands")
+            )
         except BaseException:
             pass
 
