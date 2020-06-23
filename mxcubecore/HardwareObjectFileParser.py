@@ -28,16 +28,14 @@ from xml.sax.handler import ContentHandler
 
 from HardwareRepository import BaseHardwareObjects
 
+
 CURRENT_XML = None
 
-try:
-    new_objects_classes = {
-        "equipment": BaseHardwareObjects.Equipment,
-        "device": BaseHardwareObjects.Device,
-        "procedure": BaseHardwareObjects.Procedure,
-    }
-except AttributeError:
-    pass
+new_objects_classes = {
+    "equipment": BaseHardwareObjects.Equipment,
+    "device": BaseHardwareObjects.Device,
+    "procedure": BaseHardwareObjects.Procedure,
+}
 
 
 def parse(filename, name):
@@ -54,8 +52,8 @@ def parse(filename, name):
 
     global CURRENT_XML
     try:
-        f = open(filename)
-        CURRENT_XML = f.read()
+        xml_file = open(filename)
+        CURRENT_XML = xml_file.read()
     except BaseException:
         CURRENT_XML = None
 
