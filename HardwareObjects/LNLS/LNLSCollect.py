@@ -72,12 +72,23 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
                     osc_id,
                 ),
             )
-            
+
             # Translate parameters to scan-utils flyscan
             config_yml = 'pilatus'
             message = "Flyscan called from mxcube3."
 
             output_directory = data_collect_parameters['fileinfo']['directory']
+            # Create dir
+            path = output_directory
+            try:
+                if os.path.isdir(path):
+                    logging.getLogger("HWR").info("Directory exists: %s " % path)
+                else:
+                    os.makedirs(path)
+                    logging.getLogger("HWR").info("Successfully created the directory %s " % path)
+            except OSError:
+                logging.getLogger("HWR").error("Creation of the directory %s failed." % path)
+            
             if not output_directory.endswith('/'):
                 output_directory = output_directory + '/'
             output_prefix =  data_collect_parameters['fileinfo']['prefix']
