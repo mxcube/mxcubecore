@@ -60,66 +60,6 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
             osc_id, sample_id, sample_code, sample_location = self.update_oscillations_history(
                 data_collect_parameters
             )
-            # Translate parameters to scan-utils flyscan
-            config_yml = 'test'
-            message = "Flyscan called from mxcube3."
-
-            output_directory = data_collect_parameters['fileinfo']['directory']
-            if not output_directory.endswith('/'):
-                output_directory + '/'
-            output_prefix =  data_collect_parameters['fileinfo']['prefix']
-            output_file = output_directory + output_prefix
-
-            motor_mnenomic = 'solm1'
-            xlabel = motor_mnenomic
-            plot_type = 'none'
-            mode = '--step-mode'
-
-            start_float = float(data_collect_parameters['oscillation_sequence'][0]['start']) # omega start pos
-            start = str(start_float)
-
-            step_size = float(data_collect_parameters['oscillation_sequence'][0]['range'])
-            num_of_points = int(data_collect_parameters['oscillation_sequence'][0]['number_of_images'])
-            end_float = start_float + step_size*num_of_points
-            end = str(end_float)
-
-            step_or_points = str(step_size)
-
-            time = str(data_collect_parameters['oscillation_sequence'][0]['exposure_time'])
-
-            prescan = ''
-            postscan = ''
-
-            # flyscan-only params
-            start_offset = str(0)
-            end_offset = str(0)
-            aquire_period = str(0.004) # min dead time for pilatus
-
-            command = 'flyscan -c {} -m "{}" -o {} --motor {} --xlabel {} --plot-type {} {} --start {} --end {} --step-or-points {} --time {} --prescan={} --postscan={} --start-offset {} --end-offset {} --aquire-period {}'.format(config_yml, message, output_file, motor_mnenomic, xlabel, plot_type, mode, start, end, step_or_points, time, prescan, postscan, start_offset, end_offset, aquire_period)
-
-            #command = 'scan -c {} -m "{}" -o {} --motor {} --xlabel {} --plot-type {} {} --start {} --end {} --step-or-points {} --time {} --prescan={} --postscan={}'.format(config_yml, message, output_file, motor_mnenomic, xlabel, plot_type, mode, start, end, step_or_points, time, prescan, postscan)
-
-            logging.getLogger("HWR").info("[scan-utils] Command: " + str(command))
-            print('\n[scan-utils] Command: ' + str(command) + '\n')
-
-            import sys, subprocess
-            try:
-                process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-                stdout, stderr = process.communicate()
-                # stdout
-                logging.getLogger("HWR").info('[scan-utils] output : ' + stdout.decode('utf-8'))
-                print('[scan-utils] output : ' + stdout.decode('utf-8'))
-                # stderr
-                logging.getLogger("HWR").error('[scan-utils] errors : ' + stderr.decode('utf-8'))
-                print('[scan-utils] errors : ' + stderr.decode('utf-8'))
-
-            except BaseException:
-                logging.getLogger("HWR").error("[scan-utils] Error in calling scan.")
-                #print("[scan-utils] Error in calling scan.")
-                raise
-            else:
-                logging.getLogger("HWR").info("[scan-utils] Finished scan!")
-                #print("[scan-utils] Finished scan!")
 
             self.emit(
                 "collectOscillationStarted",
@@ -132,6 +72,72 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
                     osc_id,
                 ),
             )
+            
+            # Translate parameters to scan-utils flyscan
+            config_yml = 'pilatus'
+            message = "Flyscan called from mxcube3."
+
+            output_directory = data_collect_parameters['fileinfo']['directory']
+            if not output_directory.endswith('/'):
+                output_directory = output_directory + '/'
+            output_prefix =  data_collect_parameters['fileinfo']['prefix']
+            output_file = output_directory + output_prefix
+
+            motor_mnenomic = 'gonio'
+            xlabel = motor_mnenomic
+            plot_type = 'none'
+            mode = '--points-mode'
+
+            start_float = float(data_collect_parameters['oscillation_sequence'][0]['start']) # omega start pos
+            start = str(start_float)
+
+            step_size = float(data_collect_parameters['oscillation_sequence'][0]['range'])
+            num_of_points = int(data_collect_parameters['oscillation_sequence'][0]['number_of_images'])
+            end_float = start_float + step_size*num_of_points
+            end = str(end_float)
+
+            step_or_points = str(num_of_points)
+
+            time_float = float(data_collect_parameters['oscillation_sequence'][0]['exposure_time'])
+            time = str(time_float)
+
+            prescan = ''
+            postscan = ''
+
+            # flyscan-only params
+            start_offset = str(0)
+            end_offset = str(0)
+            aquire_period = str(time_float + 0.004) # + pilatus readout time
+
+            command = 'flyscan -c {} -m "{}" -o {} -s --motor {} {} --start {} --end {} --step-or-points {} --time {} --prescan={} --postscan={} --start-offset {} --end-offset {} --aquire-period {}'.format(config_yml, message, output_file, motor_mnenomic, mode, start, end, step_or_points, time, prescan, postscan, start_offset, end_offset, aquire_period)
+
+            #command = 'scan -c {} -m "{}" -o {} --motor {} --xlabel {} --plot-type {} {} --start {} --end {} --step-or-points {} --time {} --prescan={} --postscan={}'.format(config_yml, message, output_file, motor_mnenomic, xlabel, plot_type, mode, start, end, step_or_points, time, prescan, postscan)
+
+            logging.getLogger("HWR").info("[SCAN-UTILS] Command: " + str(command))
+            print('\n[SCAN-UTILS] Command: ' + str(command) + '\n')
+
+            import sys, subprocess
+            try:
+                process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+
+                logging.getLogger("HWR").info('[SCAN-UTILS] Executing scan...')
+                logging.getLogger("user_level_log").info("Executing scan...")
+                stdout, stderr = process.communicate()
+                # stdout
+                logging.getLogger("HWR").info('[SCAN-UTILS] output : ' + stdout.decode('utf-8'))
+                print('[SCAN-UTILS] output : ' + stdout.decode('utf-8'))
+                # stderr
+                logging.getLogger("HWR").error('[SCAN-UTILS] errors : ' + stderr.decode('utf-8'))
+                print('[SCAN-UTILS] errors : ' + stderr.decode('utf-8'))
+
+            except BaseException:
+                logging.getLogger("HWR").error("[SCAN-UTILS] Error in calling scan.")
+                #print("[SCAN-UTILS] Error in calling scan.")
+                raise
+            else:
+                logging.getLogger("HWR").info("[SCAN-UTILS] Finished scan!")
+                logging.getLogger("user_level_log").info("Finished scan!")
+                #print("[SCAN-UTILS] Finished scan!")
 
             '''for image in range(
                 data_collect_parameters["oscillation_sequence"][0]["number_of_images"]
