@@ -62,10 +62,10 @@ class LNLSCamera(BaseHardwareObjects.Device):
         self.snapshots_procedure = None
 
     def read_sizes(self):
-        self.pixel_size = self.get_pixel_size()
-        self.width = self.get_width()
-        self.height = self.get_height()
-        self.array_size = self.get_array_size()
+        self.pixel_size = self.read_pixel_size()
+        self.width = self.read_width()
+        self.height = self.read_height()
+        self.array_size = self.read_array_size()
 
     def poll(self):
         logging.getLogger("HWR").debug('LNLS Camera image acquiring has started.')
@@ -143,7 +143,7 @@ class LNLSCamera(BaseHardwareObjects.Device):
                 self._print_cam_error_format = False
             return -1
 
-    def get_pixel_size(self):
+    def read_pixel_size(self):
         pixel_size = 1
         try:
             pixel_size = self.get_channel_value(CAMERA_IMG_PIXEL_SIZE)
@@ -155,7 +155,7 @@ class LNLSCamera(BaseHardwareObjects.Device):
             logging.getLogger("HWR").info("LNLSCamera pixel size is %d." % (pixel_size))
             return pixel_size
 
-    def get_width(self):
+    def read_width(self):
         width = 0
         try:
             width = self.get_channel_value(CAMERA_IMG_WIDTH)
@@ -167,7 +167,7 @@ class LNLSCamera(BaseHardwareObjects.Device):
             logging.getLogger("HWR").info("LNLSCamera width is %d." % (width))
             return width
 
-    def get_height(self):
+    def read_height(self):
         height = 0
         try:
             height = self.get_channel_value(CAMERA_IMG_HEIGHT)
@@ -179,16 +179,28 @@ class LNLSCamera(BaseHardwareObjects.Device):
             logging.getLogger("HWR").info("LNLSCamera height is %d." % (height))
             return height
 
-    def get_array_size(self):
+    def read_array_size(self):
         array_size = -1
         try:
-            pixel_size = self.get_pixel_size()
-            width = self.get_width()
-            height = self.get_height()
+            pixel_size = self.read_pixel_size()
+            width = self.read_width()
+            height = self.read_height()
             array_size = pixel_size * width * height
         except:
             print("Error on getting camera array size.")
         return array_size
+
+    def get_pixel_size(self):
+        return self.pixel_size
+
+    def get_width(self):
+        return self.width
+
+    def get_height(self):
+        return self.height
+
+    def get_array_size(self):
+        return self.array_size
 
     def getStaticImage(self):
         pass
@@ -196,15 +208,15 @@ class LNLSCamera(BaseHardwareObjects.Device):
         #self.emit("imageReceived", qtPixMap)
 
     def get_image_dimensions(self):
-        return (640*512)
+        return self.get_array_size()
 
     def getWidth(self):
         # X
-        return 640
+        return self.get_width()
 
     def getHeight(self):
         # Z
-        return 512
+        return self.get_height()
 
     def contrastExists(self):
         return False
