@@ -1,6 +1,17 @@
-<device class="MotorMockup">
-  <username>PhiZ</username>
-  <exporter_address>130.235.94.124:9001</exporter_address>
-  <motor_name>AlignmentZ</motor_name>
-  <unit>1e-5</unit>
+<device class="LNLS.LNLSMotor">
+    <!-- Channels -->
+    <channel type="epics" name="epicsActuator_val">MNC:B:PB05:m3.VAL</channel>
+    <channel type="epics" name="epicsActuator_rbv" polling="500">MNC:B:PB05:m3.RBV</channel>
+    <channel type="epics" name="epicsMotor_rlv">MNC:B:PB05:m3.RLV</channel>
+    <channel type="epics" name="epicsMotor_dmov" polling="500">MNC:B:PB05:m3.DMOV</channel>
+    <channel type="epics" name="epicsMotor_stop">MNC:B:PB05:m3.STOP</channel>
+    <channel type="epics" name="epicsMotor_velo">MNC:B:PB05:m3.VELO</channel>
+    <channel type="epics" name="epicsMotor_dllm">MNC:B:PB05:m3.DLLM</channel>
+    <channel type="epics" name="epicsMotor_dhlm">MNC:B:PB05:m3.DHLM</channel>
+    <channel type="epics" name="epicsMotor_egu">MNC:B:PB05:m3.EGU</channel>
+    <!-- Properties -->
+    <username>PhiZ</username>
+    <motor_name>AlignmentZ</motor_name>
+    <GUIstep>1.0</GUIstep>
+    <unit>1e-3</unit>
 </device>
