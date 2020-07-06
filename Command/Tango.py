@@ -1,5 +1,4 @@
 import logging
-import types
 import gevent
 import gevent.event
 from gevent.queue import Queue
@@ -251,6 +250,7 @@ class TangoChannel(ChannelObject):
         TangoChannel._tangoEventsProcessingTimer.send()
 
     def poll(self):
+
         if self.read_as_str:
             value = self.raw_device.read_attribute(
                 self.attributeName, PyTango.DeviceAttribute.ExtractAs.String
@@ -296,7 +296,7 @@ class TangoChannel(ChannelObject):
     def update(self, value=Poller.NotInitializedValue):
         if value == Poller.NotInitializedValue:
             value = self.getValue()
-        if isinstance(value, types.TupleType):
+        if isinstance(value, tuple):
             value = list(value)
 
         self.value = value
@@ -323,3 +323,4 @@ class TangoChannel(ChannelObject):
 
     def isConnected(self):
         return self.device is not None
+
