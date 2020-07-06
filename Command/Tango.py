@@ -9,7 +9,9 @@ from HardwareRepository.CommandContainer import (
     ConnectionError,
 )
 from HardwareRepository import Poller
-from HardwareRepository import saferef
+from HardwareRepository.dispatcher import saferef
+
+gevent_version = list(map(int,gevent.__version__.split('.')))
 
 try:
     import PyTango
@@ -18,6 +20,8 @@ try:
 except ImportError:
     logging.getLogger("HWR").warning("Tango support is not available.")
 
+
+log = logging.getLogger("HWR")
 
 class TangoCommand(CommandObject):
     def __init__(self, name, command, tangoname=None, username=None, **kwargs):
@@ -110,7 +114,11 @@ class E:
 class TangoChannel(ChannelObject):
     _tangoEventsQueue = Queue()
     _eventReceivers = {}
-    _tangoEventsProcessingTimer = gevent.get_hub().loop.async_()
+
+    if gevent_version < [1,3,0]:
+        _tangoEventsProcessingTimer = gevent.get_hub().loop.async()
+    else:
+        _tangoEventsProcessingTimer = gevent.get_hub().loop.async_()
 
     # start Tango events processing timer
     _tangoEventsProcessingTimer.start(processTangoEvents)
@@ -169,6 +177,7 @@ class TangoChannel(ChannelObject):
 
         if isinstance(self.polling, int):
             self.raw_device = RawDeviceProxy(self.deviceName)
+
             Poller.poll(
                 self.poll,
                 polling_period=self.polling,
