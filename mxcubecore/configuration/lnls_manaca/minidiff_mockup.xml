@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
-<equipment class="DiffractometerMockup">
-  <object role="focus" hwrid="./udiff_phix"></object>
+<equipment class="LNLS.LNLSDiffractometer">
+  <object role="focus" hwrid="./udiff_phiz"></object>
   <object role="zoom" hwrid="./udiff_zoom"></object>
   <object role="phi" hwrid="./udiff_omega"></object>
   <object role="phiy" hwrid="./udiff_phiy"></object>
-  <object role="phiz" hwrid="./udiff_phiz"></object>
+  <object role="phiz" hwrid="./udiff_phix"></object>
   <object role="sampx" hwrid="./udiff_sampx"></object>
   <object role="sampy" hwrid="./udiff_sampy"></object>
   <object role="kappa" hwrid="./udiff_kappa"></object>
