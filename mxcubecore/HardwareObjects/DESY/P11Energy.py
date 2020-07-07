@@ -26,11 +26,35 @@ class P11Energy(AbstractEnergy):
         if self.chan_status is not None:
             self.chan_status.connectSignal("update", self.energy_state_changed)
 
+        limits = self.getProperty('limits',None)
+
+        try:
+            limits = list(map(float,limits.split(',')))
+        except BaseException as e:
+            log.error("P11Transmission - cannot parse limits: {}".format(str(e)))
+            limits = None
+
+        if limits is None:
+            log.error("P11Transmission - Cannot read LIMITS from configuration xml file.  Check values")
+            return 
+        else:
+            self.set_limits(limits)
+
+        self.re_emit_values()
+
+    def re_emit_values(self):
+        self._energy_value = None
+        self._state = None
+        self.energy_state_changed()
+        self.energy_position_changed()
 
     def is_ready(self):
         return self._state == self.STATES.READY
 
-    def energy_state_changed(self, state):
+    def energy_state_changed(self, state=None):
+        if state is None:
+            state = self.chan_status.getValue()
+
         _state = str(state)
 
         log.debug("P11Energy - energy state changed. it is {}".format(_state))
@@ -46,20 +70,22 @@ class P11Energy(AbstractEnergy):
 
         self.emit("stateChanged", self._state)
 
-    def energy_position_changed(self, pos):
+    def energy_position_changed(self, pos=None):
         """
         Event called when energy value has been changed
         :param pos: float
         :return:
         """
+        if pos is None:
+            pos = self.chan_energy.getValue()
+
         energy = pos / 1000.0
 
-
         if self._energy_value is None or abs(energy - self._energy_value) > 1e-3:
-            log.debug("P11Energy - energy value changed. New value is {}".format(energy))
             self._energy_value = energy
             self._wavelength_value = 12.3984 / energy
             if self._wavelength_value is not None:
+                log.debug("P11Energy - energy value changed. New value is {}".format(energy))
                 self.emit("energyChanged", (self._energy_value, self._wavelength_value))
                 self.emit("valueChanged", (self._energy_value,))
 
@@ -84,10 +110,8 @@ class P11Energy(AbstractEnergy):
                 return None
         return value
 
-    def get_limits(self):
-        my_limits = (5,14)
-        log.debug("EnergyMockup. they asked me for my limits %s" % str(my_limits))
-        return my_limits
+    #def get_limits(self):
+        #return my_limits
 
 
 def test_hwo(hwo):
