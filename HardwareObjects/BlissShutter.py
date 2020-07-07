@@ -30,8 +30,8 @@ Example xml file:
   <object href="/bliss" role="controller"/>
 </device>
 """
-
 from enum import Enum, unique
+import gevent
 from HardwareRepository.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 
 from HardwareRepository.BaseHardwareObjects import HardwareObjectState
@@ -79,6 +79,12 @@ class BlissShutter(AbstractShutter):
             pass
         if self.shutter_type == "tango":
             self._initialise_values()
+        self._poll_task = gevent.spawn(self._poll_state)
+
+    def _poll_state(self):
+        while True:
+            self.update_value(self.get_value())
+            gevent.sleep(0.5)
 
     def _initialise_values(self):
         """ Add the tango states to VALUES"""
