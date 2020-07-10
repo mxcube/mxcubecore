@@ -74,7 +74,7 @@ class DigitalZoomMotor(AbstractMotor, Device):
 
         self.setIsReady(self.get_state() == MotorStates.READY)
 
-    def updateState(self):
+    def update_state(self):
         """
         Descript. : forces position update
         """
