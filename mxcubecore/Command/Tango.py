@@ -294,6 +294,7 @@ class TangoChannel(ChannelObject):
         return self.device.get_attribute_config(self.attributeName)
 
     def update(self, value=Poller.NotInitializedValue):
+
         if value == Poller.NotInitializedValue:
             value = self.getValue()
         if isinstance(value, tuple):
@@ -305,12 +306,16 @@ class TangoChannel(ChannelObject):
     def getValue(self):
         self._device_initialized.wait(timeout=3)
 
+        
         if self.read_as_str:
             value = self.device.read_attribute(
                 self.attributeName, PyTango.DeviceAttribute.ExtractAs.String
             ).value
         else:
             value = self.device.read_attribute(self.attributeName).value
+
+        if value != self.value:
+            self.update(value)
 
         return value
 
