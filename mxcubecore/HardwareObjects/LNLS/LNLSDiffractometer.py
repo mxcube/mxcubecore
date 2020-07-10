@@ -48,8 +48,9 @@ class LNLSDiffractometer(GenericDiffractometer):
         # self.image_height = 100
 
         GenericDiffractometer.init(self)
-        self.x_calib = 0.000444
-        self.y_calib = 0.000446
+        # Bzoom: 1.86 um/pixel (or 0.00186 mm/pixel) at minimum zoom
+        self.x_calib = 0.00186
+        self.y_calib = 0.00186
         self.last_centred_position = [318, 238]
 
         self.pixels_per_mm_x = 1.0 / self.x_calib
