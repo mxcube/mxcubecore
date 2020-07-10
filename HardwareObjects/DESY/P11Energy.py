@@ -57,8 +57,6 @@ class P11Energy(AbstractEnergy):
 
         _state = str(state)
 
-        log.debug("P11Energy - energy state changed. it is {}".format(_state))
-
         if _state == 'ON':
             self._state = self.STATES.READY
         elif _state == 'MOVING':
@@ -85,7 +83,6 @@ class P11Energy(AbstractEnergy):
             self._energy_value = energy
             self._wavelength_value = 12.3984 / energy
             if self._wavelength_value is not None:
-                log.debug("P11Energy - energy value changed. New value is {}".format(energy))
                 self.emit("energyChanged", (self._energy_value, self._wavelength_value))
                 self.emit("valueChanged", (self._energy_value,))
 
