@@ -82,17 +82,14 @@ class P11Transmission(AbstractTransmission):
             state = self.chan_state.getValue()
 
         _state = str(state)
-        log.debug("P11Transmission - state changed. Now is: %s" % _state)
         
         if _state == 'ON':
-           log.debug("P11Transmission - state changed. Now is READY")
            self._state = self.STATES.READY
         elif _state == 'MOVING':
            self._state = self.STATES.BUSY
         else:
            self._state = self.STATES.FAULT
 
-        log.debug("P11Transmission - ready? %s" % self.is_ready())
         self.emit("stateChanged", self._state)
 
     def value_changed(self, value=None):
@@ -102,7 +99,6 @@ class P11Transmission(AbstractTransmission):
         _value = value * 100.0
         if self._value is None or abs(self._value - _value) > 10e-1:
             self._value = _value
-            log.debug("P11Transmission - value changed. Now is: %s" % str(self._value))
             self.emit("valueChanged", self._value)
 
     def _set_value(self, value):
