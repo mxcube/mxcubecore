@@ -311,16 +311,87 @@ class LNLSDiffractometer(GenericDiffractometer):
         """
         return
 
+    def calculate_move_to_beam_pos(self, x, y):
+        """
+        Descript. : calculate motor positions to put sample on the beam.
+        Returns: dict of motor positions
+        """
+        # Update beam position
+        self.beam_position[0], self.beam_position[1] = HWR.beamline.beam.get_beam_position_on_screen()
+
+        print(("moving to beam position: %d %d" % (
+            self.beam_position[0],
+            self.beam_position[1],
+        )))
+
+        # Set velocity of omega to move during centring
+        #self.set_omega_default_velocity()
+
+        # Set scale of pixels per mm according to current zoom
+        #self.pixels_per_mm_x = self.motor_zoom_hwobj.getPixelsPerMm(0)
+        #self.pixels_per_mm_y = self.motor_zoom_hwobj.getPixelsPerMm(1)
+
+        # Get clicked position of mouse pointer
+        #self.user_clicked_event = AsyncResult()
+        #x, y = self.user_clicked_event.get()
+        # Last clicked position
+        self.last_centred_position[0] = x
+        self.last_centred_position[1] = y
+
+        # Get current value of involved motors
+        omega_pos  = self.motor_hwobj_dict["phi"].get_value()
+        # For now, phiz refers to gonio x motor
+        goniox_pos = self.motor_hwobj_dict["phiz"].get_value()
+        sampx_pos  = self.motor_hwobj_dict["sampx"].get_value()
+        sampy_pos  = self.motor_hwobj_dict["sampy"].get_value()
+
+        # Pixels to move axis X of whole goniometer
+        move_goniox = (self.beam_position[0] - self.last_centred_position[0])
+        # mm to move
+        move_goniox = move_goniox / self.pixels_per_mm_x
+
+        # Move absolute
+        move_goniox += goniox_pos
+
+        # Calculate new position of X
+        import math
+        move_sampx = (math.cos(math.radians(omega_pos)) * (self.beam_position[1] - float(self.last_centred_position[1])))
+        # print("math.cos(math.radians(omega_pos)): ", math.cos(math.radians(omega_pos)))
+        # print("self.beam_position[1]: ", self.beam_position[1])
+        # print("float(last_centred_position[1])", float(last_centred_position[1]))
+        # print("move_sampx = (math.cos(math.radians(omega_pos)) * (self.beam_position[1] - float(last_centred_position[1]))): ", move_sampx)
+        #move_sampx = move_sampx / self.pixels_per_mm_x
+        move_sampx = (move_sampx / self.pixels_per_mm_x) * -1
+        # print("move_sampx = move_sampx / self.pixels_per_mm_x: ", move_sampx)
+        # Move absolute
+        move_sampx += sampx_pos
+        # print("move_sampx += sampx_pos: ", move_sampx)
+
+        # Calculate new position of Y
+        move_sampy = (math.sin(math.radians(omega_pos)) * (self.beam_position[1] - float(self.last_centred_position[1])))
+        # print("math.sin(math.radians(omega_pos)): ", math.sin(math.radians(omega_pos)))
+        # print("self.beam_position[1]: ", self.beam_position[1])
+        # print("float(last_centred_position[1])", float(last_centred_position[1]))
+        # print("move_sampy = (math.sin(math.radians(omega_pos)) * (self.beam_position[1] - float(last_centred_position[1]))): ", move_sampy)
+        move_sampy = (move_sampy / self.pixels_per_mm_y) * -1
+        #move_sampy = move_sampy / self.pixels_per_mm_y
+        # print("move_sampy = move_sampy / self.pixels_per_mm_y: ", move_sampy)
+        # Move absolute
+        move_sampy += sampy_pos
+        # print("move_sampy += sampy_pos: ", move_sampy)
+        centred_pos_dir = { 'phiz': move_goniox, 'sampx': move_sampx, 'sampy': move_sampy }
+        return centred_pos_dir
+
     def move_to_beam(self, x, y, omega=None):
         """
         Descript. : function to create a centring point based on all motors
                     positions.
         """
 
-        print(("moving to beam position: %d %d" % (
-            self.beam_position[0],
-            self.beam_position[1],
-        )))
+        centred_pos_dir = self.calculate_move_to_beam_pos(x, y)
+        print('Moving motors to beam...')
+        self.move_to_motors_positions(centred_pos_dir, wait=True)
+        return centred_pos_dir
 
     def move_to_coord(self, x, y, omega=None):
         """
