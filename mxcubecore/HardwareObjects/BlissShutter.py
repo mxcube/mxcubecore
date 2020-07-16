@@ -30,8 +30,8 @@ Example xml file:
   <object href="/bliss" role="controller"/>
 </device>
 """
-
 from enum import Enum, unique
+import gevent
 from HardwareRepository.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 
 from HardwareRepository.BaseHardwareObjects import HardwareObjectState
@@ -41,7 +41,7 @@ __license__ = "LGPLv3+"
 
 
 @unique
-class ShutterStates(Enum):
+class BlissShutterStates(Enum):
     """Shutter states definitions."""
 
     OPEN = HardwareObjectState.READY, "OPEN"
@@ -49,12 +49,14 @@ class ShutterStates(Enum):
     MOVING = HardwareObjectState.BUSY, "MOVING"
     DISABLED = HardwareObjectState.WARNING, "DISABLED"
     AUTOMATIC = HardwareObjectState.READY, "RUNNING"
+    UNKNOWN = HardwareObjectState.UNKNOWN, "RUNNING"
+    FAULT = HardwareObjectState.WARNING, "FAULT"
 
 
 class BlissShutter(AbstractShutter):
     """BLISS implementation of AbstractShutter """
 
-    SPECIFIC_STATES = ShutterStates
+    SPECIFIC_STATES = BlissShutterStates
 
     def __init__(self, name):
         AbstractShutter.__init__(self, name)
@@ -75,6 +77,27 @@ class BlissShutter(AbstractShutter):
         except AttributeError:
             # there is no frontend property
             pass
+        if self.shutter_type == "tango":
+            self._initialise_values()
+        self._poll_task = gevent.spawn(self._poll_state)
+
+    def _poll_state(self):
+        while True:
+            self.update_value(self.get_value())
+            gevent.sleep(0.5)
+
+    def _initialise_values(self):
+        """ Add the tango states to VALUES"""
+        values_dict = {item.name: item.value for item in self.VALUES}
+        values_dict.update(
+            {
+                "MOVING": "MOVING",
+                "DISABLE": "DISABLE",
+                "STANDBY": "STANDBY",
+                "FAULT": "FAULT",
+            }
+        )
+        self.VALUES = Enum("ValueEnum", values_dict)
 
     def get_state(self):
         """Get the device state.
@@ -93,14 +116,14 @@ class BlissShutter(AbstractShutter):
             (Enum): Enum member, corresponding to the value or UNKNOWN.
         """
         # the return from BLISS value is an Enum
-        _val = self._bliss_obj.state
+        _val = self._bliss_obj.state.name
         self._nominal_value = self.value_to_enum(_val)
         return self._nominal_value
 
     def _set_value(self, value):
         if value.name == "OPEN":
             self._bliss_obj.open()
-        elif value.name == "CLOSE":
+        elif value.name == "CLOSED":
             self._bliss_obj.close()
 
     def set_mode(self, value):
