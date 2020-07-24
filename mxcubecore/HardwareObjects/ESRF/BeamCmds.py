@@ -18,11 +18,11 @@ class ControllerCommand(CommandObject):
     def isConnected(self):
         return True
 
-    def getArguments(self):
+    def get_arguments(self):
         if self.name() == "Anneal":
-            self.addArgument("Time [s]", "float")
+            self.add_argument("Time [s]", "float")
 
-        return CommandObject.getArguments(self)
+        return CommandObject.get_arguments(self)
 
     @task
     def __call__(self, *args, **kwargs):
@@ -61,7 +61,7 @@ class HWObjActuatorCommand(CommandObject):
     def isConnected(self):
         return True
 
-    def getArguments(self):
+    def get_arguments(self):
         if self.name() == "Anneal":
             self._arguments.append(("Time [s]", "float"))
         return self._arguments

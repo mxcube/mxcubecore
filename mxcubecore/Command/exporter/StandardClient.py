@@ -157,7 +157,7 @@ class StandardClient:
             msg = msg_number + cmd
             try:
                 self.__sock.sendto(encode(msg), (self.server_ip, self.server_port))
-            except:
+            except BaseException:
                 raise SocketError("Socket error:" + str(sys.exc_info()[1]))
             received = False
             while received is False:

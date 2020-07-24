@@ -45,13 +45,13 @@ class ISPyBRestClient(HardwareObject):
 
         logging.getLogger("requests").setLevel(logging.WARNING)
 
-        self.__rest_root = self.getProperty("restRoot").strip()
-        self.__rest_username = self.getProperty("restUserName").strip()
-        self.__rest_password = self.getProperty("restPass").strip()
-        self.__site = self.getProperty("site").strip()
+        self.__rest_root = self.get_property("restRoot").strip()
+        self.__rest_username = self.get_property("restUserName").strip()
+        self.__rest_password = self.get_property("restPass").strip()
+        self.__site = self.get_property("site").strip()
 
         try:
-            self.base_result_url = self.getProperty("base_result_url", "").strip()
+            self.base_result_url = self.get_property("base_result_url", "").strip()
         except AttributeError:
             pass
 

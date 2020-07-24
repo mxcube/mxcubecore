@@ -70,18 +70,18 @@ class AbstractDetector(HardwareObject):
         """Initialise some common paramerters"""
 
         try:
-            self._metadata = dict(self["beam"].getProperties())
+            self._metadata = dict(self["beam"].get_properties())
         except KeyError:
             pass
 
         try:
-            self._distance_motor_hwobj = self.getObjectByRole("detector_distance")
+            self._distance_motor_hwobj = self.get_object_by_role("detector_distance")
         except KeyError:
             pass
 
-        self._pixel_size = (self.getProperty("px"), self.getProperty("py"))
-        self._width = self.getProperty("width")
-        self._height = self.getProperty("height")
+        self._pixel_size = (self.get_property("px"), self.get_property("py"))
+        self._width = self.get_property("width")
+        self._height = self.get_property("height")
 
     def re_emit_values(self):
         self.emit("detectorRoiModeChanged", (self._roi_mode,))

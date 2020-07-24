@@ -11,7 +11,7 @@ from HardwareRepository import HardwareRepository as HWR
 
 try:
     from urlparse import urljoin
-except:
+except BaseException:
     # Python3
     from urllib.parse import urljoin
 
@@ -39,19 +39,19 @@ class ISPyBClientMockup(HardwareObject):
         """
         Init method declared by HardwareObject.
         """
-        self.lims_rest = self.getObjectByRole("lims_rest")
-        self.authServerType = self.getProperty("authServerType") or "ldap"
+        self.lims_rest = self.get_object_by_role("lims_rest")
+        self.authServerType = self.get_property("authServerType") or "ldap"
         if self.authServerType == "ldap":
             # Initialize ldap
-            self.ldapConnection = self.getObjectByRole("ldapServer")
+            self.ldapConnection = self.get_object_by_role("ldapServer")
             if self.ldapConnection is None:
                 logging.getLogger("HWR").debug("LDAP Server is not available")
 
-        self.loginType = self.getProperty("loginType") or "proposal"
+        self.loginType = self.get_property("loginType") or "proposal"
         self.beamline_name = HWR.beamline.session.beamline_name
 
         try:
-            self.base_result_url = self.getProperty("base_result_url").strip()
+            self.base_result_url = self.get_property("base_result_url").strip()
         except AttributeError:
             pass
 
@@ -88,7 +88,7 @@ class ISPyBClientMockup(HardwareObject):
         }
 
     def get_login_type(self):
-        self.loginType = self.getProperty("loginType") or "proposal"
+        self.loginType = self.get_property("loginType") or "proposal"
         return self.loginType
 
     def login(self, loginID, psd, ldap_connection=None, create_session=True):

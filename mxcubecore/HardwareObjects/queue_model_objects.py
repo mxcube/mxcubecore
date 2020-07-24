@@ -1,3 +1,22 @@
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 """
 This module contain objects that combined make up the data model.
 Any object that inherhits from TaskNode can be added to and handled by
@@ -1766,7 +1785,7 @@ class CentredPosition(object):
             else:
                 cpos_pos = getattr(cpos, motor_name)
 
-            if self_pos == cpos_pos == None:
+            if self_pos == cpos_pos is None:
                 eq[i] = True
             elif None in (self_pos, cpos_pos):
                 continue

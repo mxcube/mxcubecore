@@ -12,7 +12,7 @@ class ID30BeamInfo(BeamInfo.BeamInfo):
         BeamInfo.BeamInfo.init(self)
 
         self.beam_size_slits = tuple(
-            map(float, self.getProperty("beam_size_slits").split())
+            map(float, self.get_property("beam_size_slits").split())
         )  # [0.1, 0.05]
         self.beam_position = (
             HWR.beamline.microscope.camera.getWidth() / 2,

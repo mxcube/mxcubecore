@@ -67,10 +67,10 @@ class QtTangoLimaVideo(AbstractVideoDevice):
         Descript. :
         """
 
-        tangoname = self.getProperty("tangoname")
+        tangoname = self.get_property("tangoname")
 
-        width = self.getProperty("width")
-        height = self.getProperty("height")
+        width = self.get_property("width")
+        height = self.get_property("height")
 
         if None not in [width, height]:
             self.width = width

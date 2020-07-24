@@ -14,27 +14,27 @@ class PX2Resolution(Resolution):
         self.beam_center = beam_center()
 
         self.energy_channel = self.get_channel_object("energy")
-        self.energy_channel.connectSignal("update", self.update_resolution)
+        self.energy_channel.connect_signal("update", self.update_resolution)
 
         self.energy_state_channel = self.get_channel_object("energy_state")
-        self.energy_state_channel.connectSignal("update", self.update_energy_state)
+        self.energy_state_channel.connect_signal("update", self.update_energy_state)
 
         self.detector_distance_channel = self.get_channel_object("detector_position")
-        self.energy_channel.connectSignal("update", self.update_resolution)
-        self.energy_channel.connectSignal("valueChanged", self.update_resolution)
-        self.detector_distance_channel.connectSignal("update", self.update_resolution)
+        self.energy_channel.connect_signal("update", self.update_resolution)
+        self.energy_channel.connect_signal("valueChanged", self.update_resolution)
+        self.detector_distance_channel.connect_signal("update", self.update_resolution)
 
         self.detector_position_state_channel = self.get_channel_object(
             "detector_position_state"
         )
-        self.detector_position_state_channel.connectSignal(
+        self.detector_position_state_channel.connect_signal(
             "update", self.update_detector_position_state
         )
 
-        self.det_width = self.getProperty("detector_width")
-        self.det_height = self.getProperty("detector_height")
+        self.det_width = self.get_property("detector_width")
+        self.det_height = self.get_property("detector_height")
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "stateChanged":
             self.dtoxStateChanged(self.get_state())
 

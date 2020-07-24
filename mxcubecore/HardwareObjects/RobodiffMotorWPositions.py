@@ -11,7 +11,7 @@ class RobodiffMotorWPositions(RobodiffMotor):
 
         self.predefinedPositions = {}
         self.predefinedPositionsNamesList = []
-        self.delta = self.getProperty("delta") or 0
+        self.delta = self.get_property("delta") or 0
 
         try:
             positions = self["positions"]
@@ -21,10 +21,10 @@ class RobodiffMotorWPositions(RobodiffMotor):
             )
         else:
             for definedPosition in positions:
-                positionUsername = definedPosition.getProperty("username")
+                positionUsername = definedPosition.get_property("username")
 
                 try:
-                    offset = float(definedPosition.getProperty("offset"))
+                    offset = float(definedPosition.get_property("offset"))
                 except BaseException:
                     logging.getLogger("HWR").warning(
                         "%s, ignoring position %s: invalid offset.",
@@ -39,8 +39,8 @@ class RobodiffMotorWPositions(RobodiffMotor):
     def getPositionsData(self):
         return self["positions"]
 
-    def connectNotify(self, signal):
-        RobodiffMotor.connectNotify(self, signal)
+    def connect_notify(self, signal):
+        RobodiffMotor.connect_notify(self, signal)
 
         if signal == "predefinedPositionChanged":
             positionName = self.get_current_position_name()

@@ -7,11 +7,11 @@ class ID232BeamCmds(HardwareObject):
         HardwareObject.__init__(self, *args)
 
     def init(self):
-        controller = self.getObjectByRole("controller")
-        detcover = self.getObjectByRole("detcover")
-        scintillator = self.getObjectByRole("scintillator")
-        hutchtrigger = self.getObjectByRole("hutchtrigger")
-        cryo = self.getObjectByRole("cryo")
+        controller = self.get_object_by_role("controller")
+        detcover = self.get_object_by_role("detcover")
+        scintillator = self.get_object_by_role("scintillator")
+        hutchtrigger = self.get_object_by_role("hutchtrigger")
+        cryo = self.get_object_by_role("cryo")
 
         self.centrebeam = ControllerCommand("Centre beam", controller.centrebeam)
 

@@ -30,7 +30,7 @@ class BIOMAXAperture(MicrodiffAperture):
             self.predefinedPositions[positionName],
         )
         if positionName == "Outbeam":
-            self.aperture_position.setValue("OFF")
+            self.aperture_position.set_value("OFF")
         else:
             try:
                 self.set_value(
@@ -40,11 +40,11 @@ class BIOMAXAperture(MicrodiffAperture):
                 logging.getLogger("HWR").exception(
                     "Cannot move motor %s: invalid position name.", str(self.username)
                 )
-            if self.aperture_position.getValue() != "BEAM":
-                self.aperture_position.setValue("BEAM")
+            if self.aperture_position.get_value() != "BEAM":
+                self.aperture_position.set_value("BEAM")
 
     def get_position_list(self):
         return BIOMAXAperture.POSITIONS
 
     def position_changed(self, position):
-        self.emit("valueChanged", position)  # self.aperture_position.getValue())
+        self.emit("valueChanged", position)  # self.aperture_position.get_value())

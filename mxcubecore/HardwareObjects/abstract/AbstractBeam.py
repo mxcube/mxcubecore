@@ -76,8 +76,8 @@ class AbstractBeam(HardwareObject):
         """
         Initialise default values and objects
         """
-        _divergence_vertical = self.getProperty("beam_divergence_vertical")
-        _divergence_horizontal = self.getProperty("beam_divergence_horizontal")
+        _divergence_vertical = self.get_property("beam_divergence_vertical")
+        _divergence_horizontal = self.get_property("beam_divergence_horizontal")
         self._beam_divergence = (_divergence_horizontal, _divergence_vertical)
         self._beam_position_on_screen = (0, 0)
 

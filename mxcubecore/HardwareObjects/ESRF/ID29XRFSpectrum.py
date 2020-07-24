@@ -17,9 +17,9 @@ except ImportError:
 class ID29XRFSpectrum(XRFSpectrum):
     def __init__(self, *args, **kwargs):
         XRFSpectrum.__init__(self, *args, **kwargs)
-        self.mca_hwobj = self.getObjectByRole("mca")
-        self.ctrl_hwobj = self.getObjectByRole("controller")
-        self.fname = self.getProperty("cfgfile")
+        self.mca_hwobj = self.get_object_by_role("mca")
+        self.ctrl_hwobj = self.get_object_by_role("controller")
+        self.fname = self.get_property("cfgfile")
         self.config = ConfigDict.ConfigDict()
         self.mcafit = ClassMcaTheory.McaTheory(self.fname)
 
@@ -36,7 +36,7 @@ class ID29XRFSpectrum(XRFSpectrum):
         self.preset_mca(ctime, fname)
 
         # put the detector name
-        # self.spectrumInfo['fluorescenceDetector'] = self.mca_hwobj.getProperty('username')
+        # self.spectrumInfo['fluorescenceDetector'] = self.mca_hwobj.get_property('username')
 
         self.ctrl_hwobj.detcover.set_in()
         try:

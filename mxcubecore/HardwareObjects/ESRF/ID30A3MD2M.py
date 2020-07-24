@@ -9,7 +9,7 @@ class ID30A3MD2M(MiniDiff.MiniDiff):
         )
 
     def init(self):
-        self.controller = self.getObjectByRole("controller")
+        self.controller = self.get_object_by_role("controller")
         MiniDiff.MiniDiff.init(self)
 
     def oscil(self, *args, **kwargs):

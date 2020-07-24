@@ -161,7 +161,7 @@ class NanoDiff(HardwareObject):
 
         # self.chan_head_type = self.get_channel_object('HeadType')
         # if self.chan_head_type is not None:
-        #    self.head_type = self.chan_head_type.getValue()
+        #    self.head_type = self.chan_head_type.get_value()
 
         print("PP__:  Attention, chan_head_type is commented out")
 
@@ -175,24 +175,24 @@ class NanoDiff(HardwareObject):
 
         self.chan_fast_shutter_is_open = self.get_channel_object("FastShutterIsOpen")
         if self.chan_fast_shutter_is_open is not None:
-            self.chan_fast_shutter_is_open.connectSignal(
+            self.chan_fast_shutter_is_open.connect_signal(
                 "update", self.fast_shutter_state_changed
             )
 
         self.cmd_start_set_phase = self.get_command_object("startSetPhase")
         self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")
 
-        self.centring_hwobj = self.getObjectByRole("centring")
+        self.centring_hwobj = self.get_object_by_role("centring")
         if self.centring_hwobj is None:
             logging.getLogger("HWR").debug("NanoDiff: Centring math is not defined")
 
-        self.phi_motor_hwobj = self.getObjectByRole("phi")
-        self.phiz_motor_hwobj = self.getObjectByRole("phiz")
-        self.phiy_motor_hwobj = self.getObjectByRole("phiy")
-        self.zoom_motor_hwobj = self.getObjectByRole("zoom")
-        self.focus_motor_hwobj = self.getObjectByRole("focus")
-        self.sample_x_motor_hwobj = self.getObjectByRole("sampx")
-        self.sample_y_motor_hwobj = self.getObjectByRole("sampy")
+        self.phi_motor_hwobj = self.get_object_by_role("phi")
+        self.phiz_motor_hwobj = self.get_object_by_role("phiz")
+        self.phiy_motor_hwobj = self.get_object_by_role("phiy")
+        self.zoom_motor_hwobj = self.get_object_by_role("zoom")
+        self.focus_motor_hwobj = self.get_object_by_role("focus")
+        self.sample_x_motor_hwobj = self.get_object_by_role("sampx")
+        self.sample_y_motor_hwobj = self.get_object_by_role("sampy")
 
         if HWR.beamline.beam is not None:
             self.connect(
@@ -274,16 +274,16 @@ class NanoDiff(HardwareObject):
         #     self.image_width = HWR.beamline.sample_view.camera.getWidth()
 
         try:
-            self.zoom_centre = eval(self.getProperty("zoom_centre"))
+            self.zoom_centre = eval(self.get_property("zoom_centre"))
         except BaseException:
             self.zoom_centre = {"x": 0, "y": 0}
             logging.getLogger("HWR").warning(
                 "NanoDiff: " + "zoom centre not configured"
             )
 
-        self.reversing_rotation = self.getProperty("reversingRotation")
+        self.reversing_rotation = self.get_property("reversingRotation")
         try:
-            self.grid_direction = eval(self.getProperty("gridDirection"))
+            self.grid_direction = eval(self.get_property("gridDirection"))
         except BaseException:
             self.grid_direction = {"fast": (0, 1), "slow": (1, 0)}
             logging.getLogger("HWR").warning(
@@ -291,12 +291,12 @@ class NanoDiff(HardwareObject):
             )
 
         try:
-            self.phase_list = eval(self.getProperty("phaseList"))
+            self.phase_list = eval(self.get_property("phaseList"))
         except BaseException:
             self.phase_list = []
 
     def in_plate_mode(self):
-        # self.head_type = self.chan_head_type.getValue()
+        # self.head_type = self.chan_head_type.get_value()
         print("PP__:  Attention, chan_head_type is commented out")
 
         return self.head_type == NanoDiff.PLATE
@@ -814,7 +814,7 @@ class NanoDiff(HardwareObject):
         Descript. :
         """
         self.centring_hwobj.initCentringProcedure()
-        # self.head_type = self.chan_head_type.getValue()
+        # self.head_type = self.chan_head_type.get_value()
 
         self.pixels_per_mm_x = 0.865
         self.pixels_per_mm_y = 0.830  # 865
@@ -1202,7 +1202,7 @@ class NanoDiff(HardwareObject):
             "kappa",
             "kappa_phi",
         ):
-            mot_obj = self.getObjectByRole(motor_role)
+            mot_obj = self.get_object_by_role(motor_role)
             try:
                 motors[motor_role] = motor_pos[mot_obj]
             except KeyError:
@@ -1338,7 +1338,7 @@ class NanoDiff(HardwareObject):
 
     def toggle_fast_shutter(self):
         if self.chan_fast_shutter_is_open is not None:
-            self.chan_fast_shutter_is_open.setValue(not self.fast_shutter_is_open)
+            self.chan_fast_shutter_is_open.set_value(not self.fast_shutter_is_open)
 
     def find_loop(self):
         snapshot_filename = os.path.join(

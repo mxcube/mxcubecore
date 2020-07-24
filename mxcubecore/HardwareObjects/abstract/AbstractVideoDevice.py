@@ -47,9 +47,9 @@ except BaseException:
 from HardwareRepository.BaseHardwareObjects import Device
 
 
-modulenames = ["qt", "PyQt5", "PyQt4"]
+module_names = ["qt", "PyQt5", "PyQt4"]
 
-if any(mod in sys.modules for mod in modulenames):
+if any(mod in sys.modules for mod in module_names):
     USEQT = True
     try:
         from PyQt5.QtGui import QImage, QPixmap
@@ -89,19 +89,19 @@ class AbstractVideoDevice(Device):
         self.decoder = None
 
     def init(self):
-        self.cam_name = self.getProperty("name", "camera")
+        self.cam_name = self.get_property("name", "camera")
 
         try:
-            self.cam_mirror = eval(self.getProperty("mirror"))
+            self.cam_mirror = eval(self.get_property("mirror"))
         except BaseException:
             self.cam_mirror = [False, False]
 
         try:
-            self.cam_encoding = self.getProperty("encoding").lower()
+            self.cam_encoding = self.get_property("encoding").lower()
         except BaseException:
             pass
 
-        scale = self.getProperty("scale")
+        scale = self.get_property("scale")
         if scale is None:
             self.cam_scale_factor = self.default_scale_factor
         else:
@@ -115,24 +115,24 @@ class AbstractVideoDevice(Device):
                 self.cam_scale_factor = self.default_scale_factor
 
         try:
-            self.poll_interval = self.getProperty("interval")
+            self.poll_interval = self.get_property("interval")
         except BaseException:
             self.poll_interval = 1
 
         try:
-            self.cam_gain = float(self.getProperty("gain"))
+            self.cam_gain = float(self.get_property("gain"))
         except BaseException:
             pass
 
         try:
-            self.cam_exposure = float(self.getProperty("exposure"))
+            self.cam_exposure = float(self.get_property("exposure"))
         except BaseException:
             pass
 
-        self.scale = self.getProperty("scale", 1.0)
+        self.scale = self.get_property("scale", 1.0)
 
         try:
-            self.cam_type = self.getProperty("type").lower()
+            self.cam_type = self.get_property("type").lower()
         except BaseException:
             pass
 
@@ -173,7 +173,7 @@ class AbstractVideoDevice(Device):
             self.image_polling.link_exception(self.polling_ended_exc)
             self.image_polling.link(self.polling_ended)
 
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def get_camera_name(self):
         return self.cam_name
@@ -198,7 +198,7 @@ class AbstractVideoDevice(Device):
                 qimage = QImage(
                     raw_buffer, width, height, width * 3, QImage.Format_RGB888
                 )
-            
+
             else:
                 qimage = QImage(raw_buffer, width, height, QImage.Format_RGB888)
 
@@ -226,7 +226,7 @@ class AbstractVideoDevice(Device):
 
             strbuf = StringIO()
             image.save(strbuf, "JPEG")
-            jpgimg_str = strbuf.getvalue()
+            jpgimg_str = strbuf.get_value()
             if jpgimg_str is not None:
                 self.emit("imageReceived", jpgimg_str, width, height)
             return jpgimg_str
@@ -258,7 +258,7 @@ class AbstractVideoDevice(Device):
         image = np.fromstring(raw_buffer, dtype=np.uint16)
         raw_dims = self.get_raw_image_size()
         image.resize(raw_dims[1], raw_dims[0])
-        out_buffer =  cv2.cvtColor(image, cv2.COLOR_BayerRG2BGR)
+        out_buffer = cv2.cvtColor(image, cv2.COLOR_BayerRG2BGR)
         if out_buffer.ndim == 3 and out_buffer.itemsize > 1:
             # decoding bayer16 gives 12 bit values => scale to 8 bit
             out_buffer = np.right_shift(out_buffer, 4).astype(np.uint8)
@@ -359,7 +359,7 @@ class AbstractVideoDevice(Device):
                 self.get_jpg_image()
             time.sleep(sleep_time)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         """
         Descript. :
         """
@@ -385,7 +385,7 @@ class AbstractVideoDevice(Device):
         elif cam_encoding.lower() == "bayer_rg16":
             self.decoder = self.bayer_rg16_2_rgb
         self.cam_encoding = cam_encoding
-        
+
     def get_image_dimensions(self):
         raw_width, raw_height = self.get_raw_image_size()
         width = raw_width * self.scale

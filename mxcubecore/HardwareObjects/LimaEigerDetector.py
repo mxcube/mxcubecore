@@ -21,8 +21,8 @@ class LimaEigerDetector(AbstractDetector):
 
         self.header = dict()
 
-        lima_device = self.getProperty("lima_device")
-        eiger_device = self.getProperty("eiger_device")
+        lima_device = self.get_property("lima_device")
+        eiger_device = self.get_property("eiger_device")
 
         for channel_name in (
             "acq_status",
@@ -80,15 +80,15 @@ class LimaEigerDetector(AbstractDetector):
     def wait_ready(self, timeout=30):
         acq_status_chan = self.get_channel_object("acq_status")
         with gevent.Timeout(timeout, RuntimeError("Detector not ready")):
-            while acq_status_chan.getValue() != "Ready":
+            while acq_status_chan.get_value() != "Ready":
                 time.sleep(1)
 
     def last_image_saved(self):
         # return 0
-        return self.get_channel_object("last_image_saved").getValue() + 1
+        return self.get_channel_object("last_image_saved").get_value() + 1
 
     def get_deadtime(self):
-        return float(self.getProperty("deadtime"))
+        return float(self.get_property("deadtime"))
 
     @task
     def prepare_acquisition(
@@ -136,7 +136,7 @@ class LimaEigerDetector(AbstractDetector):
         self.header["Excluded_pixels:"] = " badpix_mask.tif"
         self.header["N_excluded_pixels:"] = "= 321"
         self.header["Threshold_setting"] = (
-            "%d eV" % self.get_channel_object("photon_energy").getValue()
+            "%d eV" % self.get_channel_object("photon_energy").get_value()
         )
         self.header["Count_cutoff"] = "1048500"
         self.header["Tau"] = "= 0 s"
@@ -153,7 +153,7 @@ class LimaEigerDetector(AbstractDetector):
             "omega_start=%0.4f" % start,
             "omega_increment=%0.4f" % osc_range,
         ]
-        self.get_channel_object("set_image_header").setValue(header_info)
+        self.get_channel_object("set_image_header").set_value(header_info)
 
         self.stop()
         self.wait_ready()
@@ -161,33 +161,37 @@ class LimaEigerDetector(AbstractDetector):
         self.set_energy_threshold(energy)
 
         if gate:
-            self.get_channel_object("acq_trigger_mode").setValue("EXTERNAL_GATE")
+            self.get_channel_object("acq_trigger_mode").set_value("EXTERNAL_GATE")
         else:
             if still:
-                self.get_channel_object("acq_trigger_mode").setValue("INTERNAL_TRIGGER")
+                self.get_channel_object("acq_trigger_mode").set_value(
+                    "INTERNAL_TRIGGER"
+                )
             else:
-                self.get_channel_object("acq_trigger_mode").setValue("EXTERNAL_TRIGGER")
+                self.get_channel_object("acq_trigger_mode").set_value(
+                    "EXTERNAL_TRIGGER"
+                )
 
-        self.get_channel_object("saving_frame_per_file").setValue(
+        self.get_channel_object("saving_frame_per_file").set_value(
             min(100, number_of_images)
         )
-        self.get_channel_object("saving_mode").setValue("AUTO_FRAME")
+        self.get_channel_object("saving_mode").set_value("AUTO_FRAME")
         logging.info("Acq. nb frames = %d", number_of_images)
-        self.get_channel_object("acq_nb_frames").setValue(number_of_images)
-        self.get_channel_object("acq_expo_time").setValue(exptime)
-        self.get_channel_object("saving_overwrite_policy").setValue("OVERWRITE")
-        self.get_channel_object("saving_managed_mode").setValue("HARDWARE")
+        self.get_channel_object("acq_nb_frames").set_value(number_of_images)
+        self.get_channel_object("acq_expo_time").set_value(exptime)
+        self.get_channel_object("saving_overwrite_policy").set_value("OVERWRITE")
+        self.get_channel_object("saving_managed_mode").set_value("HARDWARE")
 
     def set_energy_threshold(self, energy):
-        minE = self.getProperty("minE")
+        minE = self.get_property("minE")
         if energy < minE:
             energy = minE
 
         working_energy_chan = self.get_channel_object("photon_energy")
-        working_energy = working_energy_chan.getValue() / 1000.0
+        working_energy = working_energy_chan.get_value() / 1000.0
         if math.fabs(working_energy - energy) > 0.1:
             egy = int(energy * 1000.0)
-            working_energy_chan.setValue(egy)
+            working_energy_chan.set_value(egy)
 
     @task
     def set_detector_filenames(
@@ -199,18 +203,18 @@ class LimaEigerDetector(AbstractDetector):
         if dirname.startswith(os.path.sep):
             dirname = dirname[len(os.path.sep) :]
 
-        saving_directory = os.path.join(self.getProperty("buffer"), dirname)
+        saving_directory = os.path.join(self.get_property("buffer"), dirname)
 
         self.wait_ready()
 
-        self.get_channel_object("saving_directory").setValue(saving_directory)
-        self.get_channel_object("saving_prefix").setValue(
+        self.get_channel_object("saving_directory").set_value(saving_directory)
+        self.get_channel_object("saving_prefix").set_value(
             prefix + "%01d" % frame_number
         )
-        self.get_channel_object("saving_suffix").setValue(suffix)
-        # self.get_channel_object("saving_next_number").setValue(frame_number)
-        # self.get_channel_object("saving_index_format").setValue("%04d")
-        self.get_channel_object("saving_format").setValue("HDF5")
+        self.get_channel_object("saving_suffix").set_value(suffix)
+        # self.get_channel_object("saving_next_number").set_value(frame_number)
+        # self.get_channel_object("saving_index_format").set_value("%04d")
+        self.get_channel_object("saving_format").set_value("HDF5")
 
     @task
     def start_acquisition(self):

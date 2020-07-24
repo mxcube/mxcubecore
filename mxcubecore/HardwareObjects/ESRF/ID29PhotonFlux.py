@@ -13,10 +13,10 @@ class ID29PhotonFlux(Equipment):
         Equipment.__init__(self, *args, **kwargs)
 
     def init(self):
-        self.counter = self.getObjectByRole("counter")
-        self.shutter = self.getDeviceByRole("shutter")
-        self.aperture = self.getObjectByRole("aperture")
-        fname = self.getProperty("calibrated_diodes_file")
+        self.counter = self.get_object_by_role("counter")
+        self.shutter = self.get_deviceByRole("shutter")
+        self.aperture = self.get_object_by_role("aperture")
+        fname = self.get_property("calibrated_diodes_file")
 
         self.flux_calc = CalculateFlux()
         self.flux_calc.init(fname)
@@ -59,7 +59,7 @@ class ID29PhotonFlux(Equipment):
             counts = math.fabs(counts * calib[0] * aperture_coef)
         return counts
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "valueChanged":
             self.emitValueChanged()
 

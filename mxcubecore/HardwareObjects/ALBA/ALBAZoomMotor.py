@@ -85,11 +85,11 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
         self.currentposition = 0
         self.currentstate = None
 
-        self.positionChannel.connectSignal("update", self.positionChanged)
-        self.stateChannel.connectSignal("update", self.stateChanged)
+        self.positionChannel.connect_signal("update", self.positionChanged)
+        self.stateChannel.connect_signal("update", self.stateChanged)
 
     def getPredefinedPositionsList(self):
-        labels = self.labelsChannel.getValue()
+        labels = self.labelsChannel.get_value()
         labels = labels.split()
         retlist = []
         for label in labels:
@@ -113,7 +113,7 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
         logging.getLogger("HWR").debug("type %s" % type(no))
         #        no = posno
         logging.getLogger("HWR").debug("Moving to position %s" % no)
-        state = self.positionChannel.setValue(int(no))
+        state = self.positionChannel.set_value(int(no))
 
     def motorIsMoving(self):
         if str(self.get_state()) == "MOVING":
@@ -125,7 +125,7 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
         return (1, 12)
 
     def get_state(self):
-        state = self.stateChannel.getValue()
+        state = self.stateChannel.get_value()
         curr_pos = self.get_value()
         if state == PyTango.DevState.ON:
             return ALBAZoomMotor.READY
@@ -139,13 +139,13 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
 
     def get_value(self):
         try:
-            return self.positionChannel.getValue()
+            return self.positionChannel.get_value()
         except BaseException:
             return self.currentposition
 
     def get_current_position_name(self):
         try:
-            n = int(self.positionChannel.getValue())
+            n = int(self.positionChannel.get_value())
             value = "%s z%s" % (n, n)
             logging.getLogger("HWR").debug(
                 "get_current_position_name: %s" % repr(value)

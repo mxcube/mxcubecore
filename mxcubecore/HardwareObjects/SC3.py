@@ -317,7 +317,7 @@ class SC3(SampleChanger):
         self._set_state(state)
 
     def _read_state(self):
-        state = str(self._state.getValue() or "").upper()
+        state = str(self._state.get_value() or "").upper()
         state_converter = {
             "ALARM": SampleChangerState.Alarm,
             "FAULT": SampleChangerState.Fault,
@@ -355,12 +355,12 @@ class SC3(SampleChanger):
         basket = None
         sample = None
         try:
-            basket_no = self._selected_basket.getValue()
+            basket_no = self._selected_basket.get_value()
             if basket_no is not None and basket_no > 0 and basket_no <= 5:
                 basket = self.get_component_by_address(
                     Basket.get_basket_address(basket_no)
                 )
-                sample_no = self._selected_sample.getValue()
+                sample_no = self._selected_sample.get_value()
                 if sample_no is not None and sample_no > 0 and sample_no <= 10:
                     sample = self.get_component_by_address(
                         Pin.get_sample_address(basket_no, sample_no)

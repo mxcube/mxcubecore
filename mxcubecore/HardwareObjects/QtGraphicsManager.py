@@ -43,7 +43,7 @@ import logging
 
 try:
     import cPickle as pickle
-except:
+except BaseException:
     import _pickle as pickle
 
 from datetime import datetime
@@ -215,7 +215,7 @@ class QtGraphicsManager(AbstractSampleView):
         self.graphics_view.keyPressedSignal.connect(self.key_pressed)
         self.graphics_view.wheelSignal.connect(self.mouse_wheel_scrolled)
 
-        self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
+        self.diffractometer_hwobj = self.get_object_by_role("diffractometer")
 
         if self.diffractometer_hwobj is not None:
             pixels_per_mm = self.diffractometer_hwobj.get_pixels_per_mm()
@@ -289,8 +289,8 @@ class QtGraphicsManager(AbstractSampleView):
                 "GraphicsManager: BeamInfo hwobj not defined"
             )
 
-        self.camera_hwobj = self.getObjectByRole(
-            self.getProperty("camera_name", "camera")
+        self.camera_hwobj = self.get_object_by_role(
+            self.get_property("camera_name", "camera")
         )
         if self.camera_hwobj is not None:
             graphics_scene_size = self.camera_hwobj.get_image_dimensions()
@@ -301,17 +301,17 @@ class QtGraphicsManager(AbstractSampleView):
             logging.getLogger("HWR").error("GraphicsManager: Camera hwobj not defined")
 
         try:
-            self.image_scale_list = eval(self.getProperty("image_scale_list", "[]"))
+            self.image_scale_list = eval(self.get_property("image_scale_list", "[]"))
             if len(self.image_scale_list) > 0:
-                self.image_scale = self.getProperty("default_image_scale")
+                self.image_scale = self.get_property("default_image_scale")
                 self.set_image_scale(self.image_scale, self.image_scale is not None)
         except BaseException:
             pass
 
         """
-        if self.getProperty("store_graphics_config") == True:
+        if self.get_property("store_graphics_config") == True:
             #atexit.register(self.save_graphics_config)
-            self.graphics_config_filename = self.getProperty("graphics_config_filename")
+            self.graphics_config_filename = self.get_property("graphics_config_filename")
             if self.graphics_config_filename is None:
                 self.graphics_config_filename = os.path.join(
                     self.user_file_directory,
@@ -320,45 +320,45 @@ class QtGraphicsManager(AbstractSampleView):
         """
 
         try:
-            self.auto_grid_size_mm = eval(self.getProperty("auto_grid_size_mm"))
+            self.auto_grid_size_mm = eval(self.get_property("auto_grid_size_mm"))
         except BaseException:
             self.auto_grid_size_mm = (0.1, 0.1)
 
         """
         self.graphics_move_up_item.setVisible(
-            self.getProperty("enable_move_buttons") is True
+            self.get_property("enable_move_buttons") is True
         )
         self.graphics_move_right_item.setVisible(
-            self.getProperty("enable_move_buttons") is True
+            self.get_property("enable_move_buttons") is True
         )
         self.graphics_move_down_item.setVisible(
-            self.getProperty("enable_move_buttons") is True
+            self.get_property("enable_move_buttons") is True
         )
         self.graphics_move_left_item.setVisible(
-            self.getProperty("enable_move_buttons") is True
-        ) 
+            self.get_property("enable_move_buttons") is True
+        )
         """
 
         # self.set_scrollbars_off(\
-        #     self.getProperty("scrollbars_always_off") is True)
+        #     self.get_property("scrollbars_always_off") is True)
 
         try:
             self.graphics_magnification_item.set_properties(
-                eval(self.getProperty("magnification_tool"))
+                eval(self.get_property("magnification_tool"))
             )
         except BaseException:
             pass
 
         # try:
-        #    self.set_view_scale(self.getProperty("view_scale"))
+        #    self.set_view_scale(self.get_property("view_scale"))
         # except:
         #    pass
 
         # self.temp_animation_dir = os.path.join(self.user_file_directory, "animation")
 
-        self.omega_move_delta = self.getProperty("omega_move_delta", 10)
+        self.omega_move_delta = self.get_property("omega_move_delta", 10)
 
-        custom_cursor_filename = self.getProperty("custom_cursor", "")
+        custom_cursor_filename = self.get_property("custom_cursor", "")
         if os.path.exists(custom_cursor_filename):
             self.cursor = QtImport.QCursor(
                 QtImport.QPixmap(custom_cursor_filename), 0, 0
@@ -714,7 +714,7 @@ class QtGraphicsManager(AbstractSampleView):
             )
             date_time_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
             result_image.save("/opt/embl-hh/var/crystal_images/%s.png" % date_time_str)
-        except:
+        except BaseException:
             pass
 
     def diffractometer_centring_failed(self, method, centring_status):

@@ -13,13 +13,13 @@ from ESRF.ESRFMetadataManagerClient import MXCuBEMetadataClient
 
 try:
     from httplib import HTTPConnection
-except:
+except BaseException:
     # Python3
     from http.client import HTTPConnection
 
 try:
     from urllib import urlencode
-except:
+except BaseException:
     # Python3
     from urllib.parse import urlencode
 
@@ -101,7 +101,7 @@ class TunableEnergy:
 #                 trigger_mode,
 #             )
 #         else:
-#             self.get_channel_object("take_dark").setValue(take_dark)
+#             self.get_channel_object("take_dark").set_value(take_dark)
 #             self.execute_command(
 #                 "prepare_acquisition",
 #                 take_dark,
@@ -315,7 +315,7 @@ class TunableEnergy:
 #     @task
 #     def start_acquisition(self, exptime, npass, first_frame):
 #         try:
-#             self.collect_obj.getObjectByRole("detector_cover").set_out()
+#             self.collect_obj.get_object_by_role("detector_cover").set_out()
 #         except Exception:
 #             pass
 
@@ -404,20 +404,20 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self._detector = HWR.beamline.detector
 
         self.setControlObjects(
-            diffractometer=self.getObjectByRole("diffractometer"),
-            sample_changer=self.getObjectByRole("sample_changer"),
-            lims=self.getObjectByRole("dbserver"),
-            safety_shutter=self.getObjectByRole("safety_shutter"),
-            machine_current=self.getObjectByRole("machine_current"),
-            cryo_stream=self.getObjectByRole("cryo_stream"),
-            energy=self.getObjectByRole("energy"),
-            resolution=self.getObjectByRole("resolution"),
-            detector_distance=self.getObjectByRole("detector_distance"),
-            transmission=self.getObjectByRole("transmission"),
-            undulators=self.getObjectByRole("undulators"),
-            flux=self.getObjectByRole("flux"),
-            detector=self.getObjectByRole("detector"),
-            beam_info=self.getObjectByRole("beam_info"),
+            diffractometer=self.get_object_by_role("diffractometer"),
+            sample_changer=self.get_object_by_role("sample_changer"),
+            lims=self.get_object_by_role("dbserver"),
+            safety_shutter=self.get_object_by_role("safety_shutter"),
+            machine_current=self.get_object_by_role("machine_current"),
+            cryo_stream=self.get_object_by_role("cryo_stream"),
+            energy=self.get_object_by_role("energy"),
+            resolution=self.get_object_by_role("resolution"),
+            detector_distance=self.get_object_by_role("detector_distance"),
+            transmission=self.get_object_by_role("transmission"),
+            undulators=self.get_object_by_role("undulators"),
+            flux=self.get_object_by_role("flux"),
+            detector=self.get_object_by_role("detector"),
+            beam_info=self.get_object_by_role("beam_info"),
         )
 
         try:
@@ -429,28 +429,28 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
         self.setBeamlineConfiguration(
             synchrotron_name="ESRF",
-            directory_prefix=self.getProperty("directory_prefix"),
-            default_exposure_time=HWR.beamline.detector.getProperty(
+            directory_prefix=self.get_property("directory_prefix"),
+            default_exposure_time=HWR.beamline.detector.get_property(
                 "default_exposure_time"
             ),
-            minimum_exposure_time=HWR.beamline.detector.getProperty(
+            minimum_exposure_time=HWR.beamline.detector.get_property(
                 "minimum_exposure_time"
             ),
-            detector_fileext=HWR.beamline.detector.getProperty("file_suffix"),
-            detector_type=HWR.beamline.detector.getProperty("type"),
-            detector_manufacturer=HWR.beamline.detector.getProperty("manufacturer"),
-            detector_model=HWR.beamline.detector.getProperty("model"),
-            detector_px=HWR.beamline.detector.getProperty("px"),
-            detector_py=HWR.beamline.detector.getProperty("py"),
+            detector_fileext=HWR.beamline.detector.get_property("file_suffix"),
+            detector_type=HWR.beamline.detector.get_property("type"),
+            detector_manufacturer=HWR.beamline.detector.get_property("manufacturer"),
+            detector_model=HWR.beamline.detector.get_property("model"),
+            detector_px=HWR.beamline.detector.get_property("px"),
+            detector_py=HWR.beamline.detector.get_property("py"),
             undulators=undulators,
-            focusing_optic=self.getProperty("focusing_optic"),
-            monochromator_type=self.getProperty("monochromator"),
+            focusing_optic=self.get_property("focusing_optic"),
+            monochromator_type=self.get_property("monochromator"),
             beam_divergence_vertical=beam_div_ver,
             beam_divergence_horizontal=beam_div_hor,
-            polarisation=self.getProperty("polarisation"),
-            maximum_phi_speed=self.getProperty("maximum_phi_speed"),
-            minimum_phi_oscillation=self.getProperty("minimum_phi_oscillation"),
-            input_files_server=self.getProperty("input_files_server"),
+            polarisation=self.get_property("polarisation"),
+            maximum_phi_speed=self.get_property("maximum_phi_speed"),
+            minimum_phi_oscillation=self.get_property("minimum_phi_oscillation"),
+            input_files_server=self.get_property("input_files_server"),
         )
 
         # self._detector.init(HWR.beamline.detector, self)
@@ -564,7 +564,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             if isinstance(motor, string_types):
                 # find right motor object from motor role in diffractometer obj.
                 motor_role = motor
-                motor = HWR.beamline.diffractometer.getDeviceByRole(motor_role)
+                motor = HWR.beamline.diffractometer.get_deviceByRole(motor_role)
                 del motor_positions_copy[motor_role]
                 if motor is None:
                     continue
@@ -826,7 +826,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     # def get_measured_intensity(self):
     #     try:
-    #         val = self.get_channel_object("image_intensity").getValue()
+    #         val = self.get_channel_object("image_intensity").get_value()
     #         return float(val)
     #     except BaseException:
     #         return 0
@@ -928,7 +928,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         except BaseException:
             beamline = "unknown"
             proposal = "unknown"
-        host, port = self.getProperty("bes_jpeg_hostport").split(":")
+        host, port = self.get_property("bes_jpeg_hostport").split(":")
         conn = HTTPConnection(host, int(port))
 
         params = urlencode(
@@ -980,10 +980,10 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         return []
 
     def set_helical(self, helical_on):
-        self.get_channel_object("helical").setValue(1 if helical_on else 0)
+        self.get_channel_object("helical").set_value(1 if helical_on else 0)
 
     def set_helical_pos(self, helical_oscil_pos):
-        self.get_channel_object("helical_pos").setValue(helical_oscil_pos)
+        self.get_channel_object("helical_pos").set_value(helical_oscil_pos)
 
     def get_archive_directory(self, directory):
         pt = PathTemplate()

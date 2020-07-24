@@ -64,8 +64,8 @@ class ALBACalibration(BaseHardwareObjects.Device):
             logging.getLogger().info("Connected to pixel size calibration channels")
 
     def getCalibration(self):
-        calibx = self.calibx.getValue()
-        caliby = self.caliby.getValue()
+        calibx = self.calibx.get_value()
+        caliby = self.caliby.get_value()
         logging.getLogger().debug(
             "Returning calibration: x=%s, y=%s" % (calibx, caliby)
         )
@@ -76,7 +76,7 @@ def test():
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    calib = hwr.getHardwareObject("/calibration")
+    calib = hwr.get_hardware_object("/calibration")
     print("Calibration is: ", calib.getCalibration())
 
 

@@ -63,23 +63,23 @@ class SardanaMotor(AbstractMotor):
 
     def init(self):
 
-        self.taurusname = self.getProperty("taurusname")
+        self.taurusname = self.get_property("taurusname")
         if not self.taurusname:
             raise RuntimeError("Undefined property taurusname")
 
-        self.actuator_name = self.getProperty("actuator_name")
+        self.actuator_name = self.get_property("actuator_name")
         if not self.name:
             logging.getLogger("HWR").info(
                 "Undefined property actuator_name in xml. Applying name during instance creation."
             )
             self.actuator_name = self.name()
 
-        self.threshold = self.getProperty("threshold", self.threshold_default)
+        self.threshold = self.get_property("threshold", self.threshold_default)
         logging.getLogger("HWR").debug(
             "Motor {0} threshold = {1}".format(self.actuator_name, self.threshold)
         )
 
-        self.move_threshold = self.getProperty(
+        self.move_threshold = self.get_property(
             "move_threshold", self.move_threshold_default
         )
         logging.getLogger("HWR").debug(
@@ -88,7 +88,7 @@ class SardanaMotor(AbstractMotor):
             )
         )
 
-        self.polling = self.getProperty("interval", self.polling_default)
+        self.polling = self.get_property("interval", self.polling_default)
         logging.getLogger("HWR").debug(
             "Motor {0} polling = {1}".format(self.actuator_name, self.polling)
         )
@@ -138,8 +138,8 @@ class SardanaMotor(AbstractMotor):
             "Acceleration",
         )
 
-        self.position_channel.connectSignal("update", self.motor_position_changed)
-        self.state_channel.connectSignal("update", self.motor_state_changed)
+        self.position_channel.connect_signal("update", self.motor_position_changed)
+        self.state_channel.connect_signal("update", self.motor_state_changed)
 
         self.limits = self.get_limits()
 
@@ -151,7 +151,7 @@ class SardanaMotor(AbstractMotor):
         if self.limit_upper is None:
             self.limit_upper = self.static_limits[1]
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "valueChanged":
             self.motor_position_changed()
         elif signal == "stateChanged":
@@ -173,7 +173,7 @@ class SardanaMotor(AbstractMotor):
         motor_state = self.motor_state
 
         if state is None:
-            state = self.state_channel.getValue()
+            state = self.state_channel.get_value()
 
         state = str(state)
         motor_state = SardanaMotor.state_map[state]
@@ -197,7 +197,7 @@ class SardanaMotor(AbstractMotor):
                     valueChanged is fired
         """
         if position is None:
-            position = self.position_channel.getValue()
+            position = self.position_channel.get_value()
         if abs(self.motor_position - position) >= self.threshold:
             self.motor_position = position
             self.emit("valueChanged", (position,))
@@ -224,7 +224,7 @@ class SardanaMotor(AbstractMotor):
         """
         Descript. : returns the current position
         """
-        self.motor_position = self.position_channel.getValue()
+        self.motor_position = self.position_channel.get_value()
         return self.motor_position
 
     def _set_value(self, value):
@@ -232,7 +232,7 @@ class SardanaMotor(AbstractMotor):
         Descript. : move to the given position
         """
         # if abs(absolute_position - current_pos) > self.move_threshold_default:
-        self.position_channel.setValue(value)
+        self.position_channel.set_value(value)
 
     def stop(self):
         """
@@ -259,16 +259,16 @@ class SardanaMotor(AbstractMotor):
 
     def get_velocity(self):
         try:
-            return self.velocity_channel.getValue()
+            return self.velocity_channel.get_value()
         except BaseException:
             return None
 
     def set_velocity(self, value):
-        self.velocity_channel.setValue(value)
+        self.velocity_channel.set_value(value)
 
     def get_acceleration(self):
         try:
-            return self.acceleration_channel.getValue()
+            return self.acceleration_channel.get_value()
         except BaseException:
             return None
 

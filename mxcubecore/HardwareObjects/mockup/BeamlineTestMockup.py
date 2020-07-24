@@ -75,7 +75,7 @@ class BeamlineTestMockup(HardwareObject):
 
         self.beamline_name = HWR.beamline.session.beamline_name
 
-        self.test_directory = self.getProperty("results_directory")
+        self.test_directory = self.get_property("results_directory")
         if self.test_directory is None:
             self.test_directory = os.path.join(
                 tempfile.gettempdir(), "mxcube", "beamline_test"
@@ -91,7 +91,7 @@ class BeamlineTestMockup(HardwareObject):
         self.test_filename = "mxcube_test_report"
 
         try:
-            for test in eval(self.getProperty("available_tests")):
+            for test in eval(self.get_property("available_tests")):
                 self.available_tests_dict[test] = TEST_DICT[test]
         except BaseException:
             logging.getLogger("HWR").debug(
@@ -102,11 +102,11 @@ class BeamlineTestMockup(HardwareObject):
             self.available_tests_dict = TEST_DICT
 
         try:
-            self.startup_test_list = eval(self.getProperty("startup_tests"))
+            self.startup_test_list = eval(self.get_property("startup_tests"))
         except BaseException:
             logging.getLogger("HWR").debug("BeamlineTest: Test list not defined.")
 
-        if self.getProperty("run_tests_at_startup") is True:
+        if self.get_property("run_tests_at_startup") is True:
             self.start_test_queue(self.startup_test_list)
 
     def start_test_queue(self, test_list, create_report=True):

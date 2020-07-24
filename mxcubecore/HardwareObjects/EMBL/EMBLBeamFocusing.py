@@ -68,17 +68,17 @@ class EMBLBeamFocusing(HardwareObject):
             )
         self.focus_motors_dict = {}
 
-        focus_motors = eval(self.getProperty("focusMotors", "[]"))
+        focus_motors = eval(self.get_property("focusMotors", "[]"))
 
         for focus_motor in focus_motors:
             self.focus_motors_dict[focus_motor] = []
 
         self.motors_groups = [
-            self.getObjectByRole("P14ExpTbl"),
-            self.getObjectByRole("P14KB"),
-            self.getObjectByRole("P14DetTrans"),
-            self.getObjectByRole("P14BCU"),
-            self.getObjectByRole("slitsMotors"),
+            self.get_object_by_role("P14ExpTbl"),
+            self.get_object_by_role("P14KB"),
+            self.get_object_by_role("P14DetTrans"),
+            self.get_object_by_role("P14BCU"),
+            self.get_object_by_role("slitsMotors"),
         ]
 
         if len(self.motors_groups) > 0:
@@ -96,11 +96,11 @@ class EMBLBeamFocusing(HardwareObject):
         self.re_emit_values()
 
         try:
-            self.cmd_set_phase = eval(self.getProperty("setPhaseCmd"))
+            self.cmd_set_phase = eval(self.get_property("setPhaseCmd"))
         except BaseException:
             pass
 
-        self.aperture_hwobj = self.getObjectByRole("aperture")
+        self.aperture_hwobj = self.get_object_by_role("aperture")
 
     def get_focus_motors(self):
         """Returns a list with all focusing motors

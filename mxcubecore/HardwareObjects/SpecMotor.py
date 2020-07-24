@@ -12,7 +12,7 @@ class SpecMotor(Device, SpecMotorA):
     def _init(self):
         SpecMotorA.connectToSpec(self, self.specname, self.specversion)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if self.connection.isSpecConnected():
             if signal == "stateChanged":
                 self.motorStateChanged(self.get_state())

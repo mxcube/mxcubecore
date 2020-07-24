@@ -63,10 +63,10 @@ class EMBLBeamCentering(HardwareObject):
         """
         self.ready_event = gevent.event.Event()
 
-        self.scale_hor = self.getProperty("scale_hor")
-        self.scale_ver = self.getProperty("scale_ver")
-        self.scale_double_hor = self.getProperty("scale_double_hor")
-        self.scale_double_ver = self.getProperty("scale_double_ver")
+        self.scale_hor = self.get_property("scale_hor")
+        self.scale_ver = self.get_property("scale_ver")
+        self.scale_double_hor = self.get_property("scale_double_hor")
+        self.scale_double_ver = self.get_property("scale_double_ver")
         self.chan_pitch_scan_status = self.get_channel_object("chanPitchScanStatus")
         self.connect(
             self.chan_pitch_scan_status, "update", self.pitch_scan_status_changed
@@ -81,17 +81,17 @@ class EMBLBeamCentering(HardwareObject):
         self.cmd_set_vmax_pitch = self.get_command_object("cmdSetVMaxPitch")
         self.cmd_set_qbmp_range = self.get_command_object("cmdQBPMRangeSet")
 
-        self.horizontal_motor_hwobj = self.getObjectByRole("horizontal_motor")
-        self.vertical_motor_hwobj = self.getObjectByRole("vertical_motor")
-        self.horizontal_double_mode_motor_hwobj = self.getObjectByRole(
+        self.horizontal_motor_hwobj = self.get_object_by_role("horizontal_motor")
+        self.vertical_motor_hwobj = self.get_object_by_role("vertical_motor")
+        self.horizontal_double_mode_motor_hwobj = self.get_object_by_role(
             "horizontal_double_mode_motor"
         )
-        self.vertical_double_mode_motor_hwobj = self.getObjectByRole(
+        self.vertical_double_mode_motor_hwobj = self.get_object_by_role(
             "vertical_double_mode_motor"
         )
 
         # self.chan_pitch_second = self.get_channel_object("chanPitchSecond")
-        self.crl_hwobj = self.getObjectByRole("crl")
+        self.crl_hwobj = self.get_object_by_role("crl")
         self.connect(HWR.beamline.energy, "beamAlignmentRequested", self.center_beam)
 
         if hasattr(HWR.beamline.beam, "beam_focusing_hwobj"):
@@ -127,7 +127,7 @@ class EMBLBeamCentering(HardwareObject):
         self.cmd_start_pitch_scan(1)
         sleep(3)
         with gevent.Timeout(20, Exception("Timeout waiting for pitch scan ready")):
-            while self.scan_status != 0:  # chan_pitch_scan_status.getValue() != 0:
+            while self.scan_status != 0:  # chan_pitch_scan_status.get_value() != 0:
                 gevent.sleep(0.1)
                 logging.getLogger("HWR").error("scan status %s" % self.scan_status)
         self.cmd_set_vmax_pitch(1)
@@ -178,7 +178,7 @@ class EMBLBeamCentering(HardwareObject):
             with gevent.Timeout(
                 10, RuntimeError("Timeout waiting for pitch scan ready")
             ):
-                while self.chan_pitch_scan_status.getValue() != 0:
+                while self.chan_pitch_scan_status.get_value() != 0:
                     gevent.sleep(0.1)
             self.cmd_set_vmax_pitch(1)
 
@@ -346,13 +346,13 @@ class EMBLBeamCentering(HardwareObject):
                 with gevent.Timeout(
                     20, Exception("Timeout waiting for pitch scan ready")
                 ):
-                    while self.chan_pitch_scan_status.getValue() == 1:
+                    while self.chan_pitch_scan_status.get_value() == 1:
                         gevent.sleep(0.1)
                 gevent.sleep(3)
                 self.cmd_set_vmax_pitch(1)
 
                 """
-                qbpm_arr = self.chan_qbpm_ar.getValue()
+                qbpm_arr = self.chan_qbpm_ar.get_value()
                 if max(qbpm_arr) < 10:
                     gui_log.error("Beam alignment failed! Pitch scan failed.")
                     self.emit("progressStop", ())
@@ -441,7 +441,7 @@ class EMBLBeamCentering(HardwareObject):
                         with gevent.Timeout(
                             10, RuntimeError("Timeout waiting for pitch scan ready")
                         ):
-                            while self.chan_pitch_scan_status.getValue() != 0:
+                            while self.chan_pitch_scan_status.get_value() != 0:
                                 gevent.sleep(0.1)
                         self.cmd_set_vmax_pitch(1)
 
@@ -531,7 +531,7 @@ class EMBLBeamCentering(HardwareObject):
                             )
                             sleep(2)
             finished = True
-        except:
+        except BaseException:
             gui_log.error("Beam centering failed")
             finished = False
         finally:
