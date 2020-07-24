@@ -402,6 +402,89 @@ class QtGraphicsManager(AbstractSampleView):
         """
         return self.camera_hwobj
 
+    def add_shape_from_mpos(self, mpos_list, screen_cord, _type):
+        """
+        Adds a shape of type <t>, with motor positions from mpos_list and
+        screen position screen_coord.
+
+        Args:
+            mpos_list (list[mpos_list]): List of motor positions
+            screen_coord (tuple(x, y): Screen cordinate for shape
+            t (str): Type str for shape, P (Point), L (Line), G (Grid)
+
+        Returns:
+            (Shape) Shape of type <t>
+        """
+        return
+
+    def de_select_shape(self, sid):
+        """
+        De-select the shape with id <sid>.
+
+        Args:
+            sid (str): The id of the shape to de-select.
+        """
+        return
+
+    def clear_all(self):
+        """
+        Clear the shapes, remove all contents.
+        """
+        return
+
+    def de_select_all(self):
+        """De select all shapes."""
+        return
+
+    def get_shape(self, sid):
+        """
+        Get Shape with id <sid>.
+
+        Args:
+            sid (str): id of Shape to retrieve
+
+        Returns:
+            (Shape) All the shapes
+        """
+        return
+
+    def get_grid(self):
+        """
+        Get the first of the selected grids, (the one that was selected first in
+        a sequence of select operations)
+
+        Returns:
+            (dict): The first selected grid as a dictionary
+        """
+        return
+
+    def get_lines(self):
+        """
+        Get all Lines currently handled.
+
+        Returns:
+            (list[Line]): All lines currently handled
+        """
+        return
+
+    def get_grids(self):
+        """
+        Get all Grids currently handled.
+
+        Returns:
+            (list[Grid]): All grids currently handled
+        """
+        return
+
+    def is_selected(self, sid):
+        """
+        Check if Shape with <sid> is selected.
+
+        Returns:
+            (Boolean) True if Shape with <sid> is selected False otherwise
+        """
+        return
+
     def save_graphics_config(self):
         """Saves graphical objects in the file
         """
