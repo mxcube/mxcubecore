@@ -34,7 +34,7 @@ class BM14EnergyScan(ESRFEnergyScan):
 
     @task
     def execute_energy_scan(self, energy_scan_parameters):
-        energy_scan_parameters["exposureTime"] = self.getProperty("exposureTime")
+        energy_scan_parameters["exposureTime"] = self.get_property("exposureTime")
         self.execute_command("executeScan", energy_scan_parameters)
         self.energy_scan_parameters["exposureTime"] = energy_scan_parameters[
             "exposureTime"

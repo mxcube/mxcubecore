@@ -50,7 +50,7 @@ def _poll_image(sleep_time, video_device, device_uri, video_mode, formats):
         try:
             data = poll_image(lima_tango_device, video_mode, formats)[0]
             video_device.write(data)
-        except:
+        except BaseException:
             pass
         finally:
             time.sleep(sleep_time)
@@ -71,7 +71,7 @@ class TangoLimaVideoLoopback(TangoLimaVideo):
 
     def init(self):
         super(TangoLimaVideoLoopback, self).init()
-        self._polling_mode = self.getProperty("polling_mode", "process")
+        self._polling_mode = self.get_property("polling_mode", "process")
 
     def _do_polling(self, sleep_time):
         if self._polling_mode == "process":
@@ -80,7 +80,7 @@ class TangoLimaVideoLoopback(TangoLimaVideo):
                 args=(
                     sleep_time,
                     self.video_device,
-                    self.getProperty("tangoname"),
+                    self.get_property("tangoname"),
                     self.video_mode,
                     self._FORMATS,
                 ),
@@ -90,7 +90,7 @@ class TangoLimaVideoLoopback(TangoLimaVideo):
                 _poll_image,
                 sleep_time,
                 self.video_device,
-                self.getProperty("tangoname"),
+                self.get_property("tangoname"),
                 self.video_mode,
                 self._FORMATS,
             )

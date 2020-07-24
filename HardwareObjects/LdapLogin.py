@@ -32,10 +32,10 @@ class LdapLogin(Procedure):
 
     # Initializes the hardware object
     def init(self):
-        ldaphost = self.getProperty("ldaphost")
-        ldapport = self.getProperty("ldapport")
-        domain = self.getProperty("ldapdomain")
-        ldapou = self.getProperty("ldapou")
+        ldaphost = self.get_property("ldaphost")
+        ldapport = self.get_property("ldapport")
+        domain = self.get_property("ldapdomain")
+        ldapou = self.get_property("ldapou")
 
         self.field_values = None
 
@@ -79,8 +79,8 @@ class LdapLogin(Procedure):
             try:
                 self.ldapConnection.result(timeout=0)
             except ldap.LDAPError as err:
-                ldaphost = self.getProperty("ldaphost")
-                ldapport = self.getProperty("ldapport")
+                ldaphost = self.get_property("ldaphost")
+                ldapport = self.get_property("ldapport")
                 if ldapport is None:
                     logging.getLogger("HWR").debug(
                         "LdapLogin: reconnecting to LDAP server %s", ldaphost

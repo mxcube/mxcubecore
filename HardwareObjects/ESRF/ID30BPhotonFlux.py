@@ -29,9 +29,7 @@ Example xml file:
 """
 import logging
 from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.HardwareObjects.abstract.AbstractFlux import (
-    AbstractFlux
-)
+from HardwareRepository.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 
 
 class ID30BPhotonFlux(AbstractFlux):
@@ -46,9 +44,9 @@ class ID30BPhotonFlux(AbstractFlux):
     def init(self):
         """Initialisation"""
         super(ID30BPhotonFlux, self).init()
-        controller = self.getObjectByRole("controller")
+        controller = self.get_object_by_role("controller")
         # ultimately it should be HWR.beamline.diffractometer.aperture
-        self._aperture = self.getObjectByRole("aperture")
+        self._aperture = self.get_object_by_role("aperture")
 
         try:
             self._flux_calc = controller.CalculateFlux()
@@ -58,11 +56,11 @@ class ID30BPhotonFlux(AbstractFlux):
                 "Could not get flux calculation from BLISS"
             )
 
-        counter = self.getProperty("counter_name")
+        counter = self.get_property("counter_name")
         if counter:
             self._counter = getattr(controller, counter)
         else:
-            self._counter = self.getObjectByRole("counter")
+            self._counter = self.get_object_by_role("counter")
 
         HWR.beamline.safety_shutter.connect("stateChanged", self.update_value)
 

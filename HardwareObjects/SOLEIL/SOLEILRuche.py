@@ -10,7 +10,7 @@ class SOLEILRuche(HardwareObject):
         HardwareObject.__init__(self, *args, **kwargs)
 
     def init(self):
-        self.sync_dir = self.getProperty("sync_dir")
+        self.sync_dir = self.get_property("sync_dir")
 
     def trigger_sync(self, path):
 
@@ -61,7 +61,7 @@ def test():
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    ruche = hwr.getHardwareObject("/ruche")
+    ruche = hwr.get_hardware_object("/ruche")
     filename = sys.argv[1]
     ruche.trigger_sync(filename)
 

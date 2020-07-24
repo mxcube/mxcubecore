@@ -62,7 +62,7 @@ class AbstractFlux(AbstractActuator):
     def init(self):
         """Initialise some parameters."""
         super(AbstractFlux, self).init()
-        self.read_only = self.getProperty("read_only") or True
+        self.read_only = self.get_property("read_only") or True
 
     def _set_value(self, value):
         """Local setter function - not implemented for read_only clases"""

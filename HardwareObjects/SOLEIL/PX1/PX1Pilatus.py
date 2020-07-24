@@ -51,19 +51,19 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         self.headers = {}
 
     def init(self):
-        self.distance_motor_hwobj = self.getObjectByRole("detector_distance")
-        self.devname = self.getProperty("tangoname")
+        self.distance_motor_hwobj = self.get_object_by_role("detector_distance")
+        self.devname = self.get_property("tangoname")
 
         self.state_chan = self.get_channel_object("state")
-        self.state_chan.connectSignal("update", self.state_changed)
+        self.state_chan.connect_signal("update", self.state_changed)
 
         self.threshold_chan = self.get_channel_object("threshold")
-        self.threshold_chan.connectSignal("update", self.threshold_changed)
+        self.threshold_chan.connect_signal("update", self.threshold_changed)
 
         self.set_energy_cmd = self.get_command_object("set_energy")
         self.set_header_cmd = self.get_command_object("set_header")
 
-        exp_time_limits = self.getProperty("exposure_limits")
+        exp_time_limits = self.get_property("exposure_limits")
         self.exp_time_limits = map(float, exp_time_limits.strip().split(","))
 
     def state_changed(self, state):
@@ -85,7 +85,7 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         pass
 
     def get_state(self):
-        return self.state_chan.getValue()
+        return self.state_chan.get_value()
 
     def read_state(self):
         return str(self.get_state())
@@ -94,7 +94,7 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         return str(self.get_state()) == "FAULT"
 
     def get_threshold(self):
-        return self.threshold_chan.getValue()
+        return self.threshold_chan.get_value()
 
     def get_threshold_gain(self):
         return None
@@ -109,7 +109,7 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         beam_y = 0
         try:
             if self.chan_beam_xy is not None:
-                value = self.chan_beam_xy.getValue()
+                value = self.chan_beam_xy.get_value()
                 beam_x = value[0]
                 beam_y = value[1]
         except BaseException:
@@ -120,26 +120,26 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         return "Dectris"
 
     def get_model(self):
-        return self.getProperty("model")
+        return self.get_property("model")
 
     def get_detector_type(self):
-        return self.getProperty("type")
+        return self.get_property("type")
 
     def get_default_exposure_time(self):
-        return self.getProperty("default_exposure_time")
+        return self.get_property("default_exposure_time")
 
     def get_minimum_exposure_time(self):
-        return self.getProperty("minimum_exposure_time")
+        return self.get_property("minimum_exposure_time")
 
     def get_exposure_time_limits(self):
         """Returns exposure time limits as list with two floats"""
         return self.exp_time_limits
 
     def get_file_suffix(self):
-        return self.getProperty("file_suffix")
+        return self.get_property("file_suffix")
 
     def get_pixel_size(self):
-        return self.getProperty("px"), self.getProperty("py")
+        return self.get_property("px"), self.get_property("py")
 
     # methods for data collection
     def prepare_collection(self, dcpars):
@@ -201,7 +201,7 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         PILATUS_THRESHOLD_MIN = 3774.0  # en eV
         ENERGY_CALIBRATION_MIN = 7.6  # en keV
 
-        current_threshold = self.threshold_chan.getValue()
+        current_threshold = self.threshold_chan.get_value()
 
         energy_diff = energy - 2 * current_threshold / 1000.0
 

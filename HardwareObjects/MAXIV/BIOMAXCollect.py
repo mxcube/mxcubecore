@@ -71,12 +71,12 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         self.ready_event = gevent.event.Event()
-        self.sample_changer_maint_hwobj = self.getObjectByRole(
+        self.sample_changer_maint_hwobj = self.get_object_by_role(
             "sample_changer_maintenance"
         )
-        self.detector_cover_hwobj = self.getObjectByRole("detector_cover")
-        self.datacatalog_url = self.getProperty("datacatalog_url", None)
-        self.datacatalog_enabled = self.getProperty("datacatalog_enabled", True)
+        self.detector_cover_hwobj = self.get_object_by_role("detector_cover")
+        self.datacatalog_url = self.get_property("datacatalog_url", None)
+        self.datacatalog_enabled = self.get_property("datacatalog_enabled", True)
 
         if self.datacatalog_enabled:
             logging.getLogger("HWR").info(
@@ -86,7 +86,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             logging.getLogger("HWR").warning("[COLLECT] Datacatalog not enabled")
 
         # todo
-        # self.cryo_stream_hwobj = self.getObjectByRole("cryo_stream")
+        # self.cryo_stream_hwobj = self.get_object_by_role("cryo_stream")
 
         undulators = []
         # todo
@@ -123,22 +123,24 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
             self.set_beamline_configuration(
                 synchrotron_name="MAXIV",
-                directory_prefix=self.getProperty("directory_prefix"),
-                default_exposure_time=self.getProperty("default_exposure_time"),
+                directory_prefix=self.get_property("directory_prefix"),
+                default_exposure_time=self.get_property("default_exposure_time"),
                 minimum_exposure_time=min_exp,
-                detector_fileext=HWR.beamline.detector.getProperty("file_suffix"),
-                detector_type=HWR.beamline.detector.getProperty("type"),
-                detector_manufacturer=HWR.beamline.detector.getProperty("manufacturer"),
-                detector_model=HWR.beamline.detector.getProperty("model"),
+                detector_fileext=HWR.beamline.detector.get_property("file_suffix"),
+                detector_type=HWR.beamline.detector.get_property("type"),
+                detector_manufacturer=HWR.beamline.detector.get_property(
+                    "manufacturer"
+                ),
+                detector_model=HWR.beamline.detector.get_property("model"),
                 detector_px=pix_x,
                 detector_py=pix_y,
                 undulators=undulators,
-                focusing_optic=self.getProperty("focusing_optic"),
-                monochromator_type=self.getProperty("monochromator"),
+                focusing_optic=self.get_property("focusing_optic"),
+                monochromator_type=self.get_property("monochromator"),
                 beam_divergence_vertical=beam_div_ver,
                 beam_divergence_horizontal=beam_div_hor,
-                polarisation=self.getProperty("polarisation"),
-                input_files_server=self.getProperty("input_files_server"),
+                polarisation=self.get_property("polarisation"),
+                input_files_server=self.get_property("input_files_server"),
             )
 
         """ to add """

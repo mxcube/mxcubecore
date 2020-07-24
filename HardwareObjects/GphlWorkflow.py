@@ -120,9 +120,9 @@ class GphlWorkflow(HardwareObject, object):
 
         # Get dose budget data
         default_dose_budget_label = None
-        xx0 = next(self.getObjects("dose_budgets"))
-        for pulldown_item in xx0.getObjects("pulldown_item"):
-            dd0 = pulldown_item.getProperties()
+        xx0 = next(self.get_objects("dose_budgets"))
+        for pulldown_item in xx0.get_objects("pulldown_item"):
+            dd0 = pulldown_item.get_properties()
             self.dose_budgets[dd0["label"]] = float(dd0["value"])
             if default_dose_budget_label is None or dd0.get("is_default"):
                 default_dose_budget_label = dd0["label"]
@@ -185,16 +185,18 @@ class GphlWorkflow(HardwareObject, object):
 
         result = OrderedDict()
         if self.hasObject("workflow_properties"):
-            properties = self["workflow_properties"].getProperties().copy()
+            properties = self["workflow_properties"].get_properties().copy()
         else:
             properties = {}
         if self.hasObject("invocation_properties"):
-            invocation_properties = self["invocation_properties"].getProperties().copy()
+            invocation_properties = (
+                self["invocation_properties"].get_properties().copy()
+            )
         else:
             invocation_properties = {}
 
         if self.hasObject("all_workflow_options"):
-            all_workflow_options = self["all_workflow_options"].getProperties().copy()
+            all_workflow_options = self["all_workflow_options"].get_properties().copy()
             if "beamline" in all_workflow_options:
                 pass
             elif HWR.beamline.gphl_connection.hasObject("ssh_options"):
@@ -206,23 +208,25 @@ class GphlWorkflow(HardwareObject, object):
             all_workflow_options = {}
 
         acq_workflow_options = all_workflow_options.copy()
-        acq_workflow_options.update(self["acq_workflow_options"].getProperties())
+        acq_workflow_options.update(self["acq_workflow_options"].get_properties())
         # Add options for target directories:
         process_root = HWR.beamline.session.get_base_process_directory()
         acq_workflow_options["appdir"] = process_root
 
         mx_workflow_options = acq_workflow_options.copy()
-        mx_workflow_options.update(self["mx_workflow_options"].getProperties())
+        mx_workflow_options.update(self["mx_workflow_options"].get_properties())
 
         for wf_node in self["workflows"]:
             name = wf_node.name()
-            strategy_type = wf_node.getProperty("strategy_type")
+            strategy_type = wf_node.get_property("strategy_type")
             wf_dict = {
                 "name": name,
                 "strategy_type": strategy_type,
-                "application": wf_node.getProperty("application"),
-                "documentation": wf_node.getProperty("documentation", default_value=""),
-                "interleaveOrder": wf_node.getProperty(
+                "application": wf_node.get_property("application"),
+                "documentation": wf_node.get_property(
+                    "documentation", default_value=""
+                ),
+                "interleaveOrder": wf_node.get_property(
                     "interleave_order", default_value=""
                 ),
             }
@@ -231,7 +235,7 @@ class GphlWorkflow(HardwareObject, object):
             if strategy_type.startswith("transcal"):
                 wf_dict["options"] = dd0 = all_workflow_options.copy()
                 if wf_node.hasObject("options"):
-                    dd0.update(wf_node["options"].getProperties())
+                    dd0.update(wf_node["options"].get_properties())
                     relative_file_path = dd0.get("file")
                     if relative_file_path is not None:
                         # Special case - this option must be modified before use
@@ -242,22 +246,22 @@ class GphlWorkflow(HardwareObject, object):
             elif strategy_type.startswith("diffractcal"):
                 wf_dict["options"] = dd0 = acq_workflow_options.copy()
                 if wf_node.hasObject("options"):
-                    dd0.update(wf_node["options"].getProperties())
+                    dd0.update(wf_node["options"].get_properties())
 
             else:
                 wf_dict["options"] = dd0 = mx_workflow_options.copy()
                 if wf_node.hasObject("options"):
-                    dd0.update(wf_node["options"].getProperties())
+                    dd0.update(wf_node["options"].get_properties())
                 if wf_node.hasObject("beam_energies"):
                     wf_dict["beam_energies"] = dd0 = OrderedDict()
                     for wavelength in wf_node["beam_energies"]:
-                        dd0[wavelength.getProperty("role")] = wavelength.getProperty(
+                        dd0[wavelength.get_property("role")] = wavelength.get_property(
                             "value"
                         )
 
             wf_dict["properties"] = dd0 = properties.copy()
             if wf_node.hasObject("properties"):
-                dd0.update(wf_node["properties"].getProperties())
+                dd0.update(wf_node["properties"].get_properties())
             # Program-specific properties
             devmode = dd0.get("co.gphl.wf.devMode")
             if devmode and devmode[0] not in "fFnN":
@@ -266,7 +270,7 @@ class GphlWorkflow(HardwareObject, object):
 
             wf_dict["invocation_properties"] = dd0 = invocation_properties.copy()
             if wf_node.hasObject("invocation_properties"):
-                dd0.update(wf_node["invocation_properties"].getProperties())
+                dd0.update(wf_node["invocation_properties"].get_properties())
         #
         return result
 
@@ -393,7 +397,7 @@ class GphlWorkflow(HardwareObject, object):
             default_width_index = geometric_strategy.defaultWidthIdx or 0
         else:
             allowed_widths = [
-                float(x) for x in self.getProperty("default_image_widths").split()
+                float(x) for x in self.get_property("default_image_widths").split()
             ]
             val = allowed_widths[0]
             allowed_widths.sort()
@@ -624,7 +628,7 @@ class GphlWorkflow(HardwareObject, object):
                     "decimals": 4,
                 }
             )
-        if self.getProperty("disable_energy_change", False):
+        if self.get_property("disable_energy_change", False):
             # Use current energy and disallow changes
             ll0[0]["defaultValue"] = HWR.beamline.energy.get_value()
             ll0[0]["readOnly"] = True
@@ -642,7 +646,7 @@ class GphlWorkflow(HardwareObject, object):
                         "uiLabel": "Wedge width (deg)",
                         "type": "text",
                         "defaultValue": (
-                            "%s" % self.getProperty("default_wedge_width", 15)
+                            "%s" % self.get_property("default_wedge_width", 15)
                         ),
                         "lowerBound": 0,
                         "upperBound": 7200,
@@ -655,7 +659,7 @@ class GphlWorkflow(HardwareObject, object):
                     "variableName": "centre_at_start",
                     "uiLabel": "(Re)centre crystal before acquisition start?",
                     "type": "boolean",
-                    "defaultValue": bool(self.getProperty("centre_at_start")),
+                    "defaultValue": bool(self.get_property("centre_at_start")),
                 }
             )
 
@@ -665,7 +669,7 @@ class GphlWorkflow(HardwareObject, object):
                         "variableName": "centre_before_sweep",
                         "uiLabel": "(Re)centre crystal when orientation changes?",
                         "type": "boolean",
-                        "defaultValue": bool(self.getProperty("centre_before_sweep")),
+                        "defaultValue": bool(self.get_property("centre_before_sweep")),
                     }
                 )
             if isInterleaved:
@@ -674,7 +678,7 @@ class GphlWorkflow(HardwareObject, object):
                         "variableName": "centre_before_scan",
                         "uiLabel": "(Re)centre crystal at the start of each scan?",
                         "type": "boolean",
-                        "defaultValue": bool(self.getProperty("centre_before_scan")),
+                        "defaultValue": bool(self.get_property("centre_before_scan")),
                     }
                 )
             if data_model.get_snapshot_count():
@@ -704,7 +708,7 @@ class GphlWorkflow(HardwareObject, object):
         if value:
             image_width = result[tag] = float(value)
         else:
-            image_width = self.getProperty("default_image_width", 15)
+            image_width = self.get_property("default_image_width", 15)
         tag = "exposure"
         value = params.get(tag)
         if value:
@@ -770,7 +774,7 @@ class GphlWorkflow(HardwareObject, object):
 
         # Preset energy
         beamSetting = geometric_strategy.defaultBeamSetting
-        if beamSetting and not self.getProperty("disable_energy_change"):
+        if beamSetting and not self.get_property("disable_energy_change"):
             # First set beam_energy and give it time to settle,
             # so detector distance will trigger correct resolution later
             default_energy = ConvertUtils.H_OVER_E / beamSetting.wavelength

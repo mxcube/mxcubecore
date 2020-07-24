@@ -103,17 +103,17 @@ class ALBAMachineInfo(Equipment):
         try:
             self.chan_mach_current = self.get_channel_object("MachCurrent")
             if self.chan_mach_current is not None:
-                self.chan_mach_current.connectSignal(
+                self.chan_mach_current.connect_signal(
                     "update", self.mach_current_changed
                 )
 
             self.chan_mach_status = self.get_channel_object("MachStatus")
             if self.chan_mach_status is not None:
-                self.chan_mach_status.connectSignal("update", self.mach_status_changed)
+                self.chan_mach_status.connect_signal("update", self.mach_status_changed)
 
             self.chan_topup_remaining = self.get_channel_object("TopUpRemaining")
             if self.chan_topup_remaining is not None:
-                self.chan_topup_remaining.connectSignal(
+                self.chan_topup_remaining.connect_signal(
                     "update", self.topup_remaining_changed
                 )
         except KeyError:
@@ -172,7 +172,7 @@ class ALBAMachineInfo(Equipment):
 
     def get_mach_current(self):
         try:
-            value = self.chan_mach_current.getValue()
+            value = self.chan_mach_current.get_value()
         except Exception as e:
             self.logger.error("Cannot read machine current value, returning 0")
             value = 0
@@ -193,12 +193,12 @@ class ALBAMachineInfo(Equipment):
     #        return self.values_dict['current']
 
     def get_mach_status(self):
-        return self.chan_mach_status.getValue()
+        return self.chan_mach_status.get_value()
 
     #        return self.values_dict['mach_status']
 
     def get_topup_remaining(self):
-        return self.chan_topup_remaining.getValue()
+        return self.chan_topup_remaining.get_value()
 
 
 #        return self.values_dict['remaining']

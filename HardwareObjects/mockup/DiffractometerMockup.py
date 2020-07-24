@@ -79,7 +79,7 @@ class DiffractometerMockup(GenericDiffractometer):
         # self.image_width = 400
         # self.image_height = 400
 
-        self.mount_mode = self.getProperty("sample_mount_mode")
+        self.mount_mode = self.get_property("sample_mount_mode")
         if self.mount_mode is None:
             self.mount_mode = "manual"
 

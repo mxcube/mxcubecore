@@ -93,11 +93,11 @@ class Robodiff(SampleChanger):
             self._add_component(cell)
 
     def init(self):
-        controller = self.getObjectByRole("controller")
+        controller = self.get_object_by_role("controller")
         self.dm_reader = getattr(controller, "dm_reader")
-        self.dw = self.getObjectByRole("dewar")
+        self.dw = self.get_object_by_role("dewar")
         self.robot = controller
-        self.detector_translation = self.getObjectByRole("detector_translation")
+        self.detector_translation = self.get_object_by_role("detector_translation")
 
         return SampleChanger.init(self)
 

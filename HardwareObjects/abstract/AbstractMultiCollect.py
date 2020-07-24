@@ -278,7 +278,7 @@ class AbstractMultiCollect(object):
                     return
             if number_of_snapshots:
                 return self.take_crystal_snapshots(number_of_snapshots)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("Could not take crystal snapshots")
 
     @abc.abstractmethod

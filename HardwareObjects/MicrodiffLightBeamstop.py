@@ -34,8 +34,8 @@ class MicrodiffLightBeamstop(ExporterNState):
         super(MicrodiffLightBeamstop, self).init(self)
 
         # for now the beamstop only moves in X directiron.
-        self._beamstop_obj = self.getObjectByRole("beamstop")
-        self.safety_position = float(self.getProperty("safety_position", 38.0))
+        self._beamstop_obj = self.get_object_by_role("beamstop")
+        self.safety_position = float(self.get_property("safety_position", 38.0))
 
     def _set_value(self, value):
         """Set device to value. Move the beamstop, if needed.

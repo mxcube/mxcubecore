@@ -54,8 +54,8 @@ class BlissEnergy(AbstractEnergy):
     def init(self):
         """Initialisation"""
         AbstractEnergy.init(self)
-        self._energy_motor = self.getObjectByRole("energy_motor")
-        self._bliss_session = self.getObjectByRole("bliss")
+        self._energy_motor = self.get_object_by_role("energy_motor")
+        self._bliss_session = self.get_object_by_role("bliss")
         self.update_state(HardwareObjectState.READY)
 
         if self._energy_motor:

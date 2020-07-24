@@ -60,9 +60,9 @@ class QtAxisCamera(AbstractVideoDevice):
 
     def init(self):
         self.image_dimensions = [352, 288]
-        self.request = urllib2.Request(self.getProperty("address"))
+        self.request = urllib2.Request(self.get_property("address"))
         base64string = base64.b64encode(
-            "%s:%s" % (self.getProperty("user"), self.getProperty("password"))
+            "%s:%s" % (self.get_property("user"), self.get_property("password"))
         )
         self.request.add_header("Authorization", "Basic %s" % base64string)
         self.qpixmap = QPixmap()

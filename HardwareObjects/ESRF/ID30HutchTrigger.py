@@ -16,11 +16,11 @@ class ID30HutchTrigger(BaseHardwareObjects.HardwareObject):
                 self.poll()
             except BaseException:
                 sys.excepthook(*sys.exc_info())
-            time.sleep(self.getProperty("interval") / 1000.0 or 1)
+            time.sleep(self.get_property("interval") / 1000.0 or 1)
 
     def init(self):
         try:
-            self.device = PyTango.gevent.DeviceProxy(self.getProperty("tangoname"))
+            self.device = PyTango.gevent.DeviceProxy(self.get_property("tangoname"))
         except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger("HWR").error(
@@ -37,7 +37,7 @@ class ID30HutchTrigger(BaseHardwareObjects.HardwareObject):
         self.card = None
         self.channel = None
 
-        PSSinfo = self.getProperty("pss")
+        PSSinfo = self.get_property("pss")
         try:
             self.card, self.channel = map(int, PSSinfo.split("/"))
         except BaseException:
@@ -68,22 +68,22 @@ class ID30HutchTrigger(BaseHardwareObjects.HardwareObject):
         logging.info(
             "%s: %s hutch", self.name(), "entering" if entering_hutch else "leaving"
         )
-        eh_controller = self.getObjectByRole("eh_controller")
+        eh_controller = self.get_object_by_role("eh_controller")
         if not entering_hutch:
             if old["dtox"] is not None:
                 eh_controller.DtoX.set_value(old["dtox"], wait=False)
-            if self.getObjectByRole("aperture") and old["aperture"] is not None:
-                self.getObjectByRole("aperture").moveToPosition(old["aperture"])
-            self.getObjectByRole("beamstop").moveToPosition("in")
+            if self.get_object_by_role("aperture") and old["aperture"] is not None:
+                self.get_object_by_role("aperture").moveToPosition(old["aperture"])
+            self.get_object_by_role("beamstop").moveToPosition("in")
             eh_controller.DtoX.wait_move()
         else:
             old["dtox"] = eh_controller.DtoX.position()
-            if self.getObjectByRole("aperture"):
-                old["aperture"] = self.getObjectByRole("aperture").get_value()
+            if self.get_object_by_role("aperture"):
+                old["aperture"] = self.get_object_by_role("aperture").get_value()
             eh_controller.DtoX.set_value(700, wait=False)
-            if self.getObjectByRole("aperture"):
-                self.getObjectByRole("aperture").moveToPosition("Outbeam")
-            self.getObjectByRole("beamstop").moveToPosition("out")
+            if self.get_object_by_role("aperture"):
+                self.get_object_by_role("aperture").moveToPosition("Outbeam")
+            self.get_object_by_role("beamstop").moveToPosition("out")
             eh_controller.detcover.set_in()
             eh_controller.DtoX.wait_move()
 
@@ -99,9 +99,9 @@ class ID30HutchTrigger(BaseHardwareObjects.HardwareObject):
         else:
             self.__oldValue = value
 
-        self.valueChanged(value)
+        self.value_changed(value)
 
-    def valueChanged(self, value, *args):
+    def value_changed(self, value, *args):
         if value == 0:
             if self.initialized:
                 self.emit("hutchTrigger", (1,))

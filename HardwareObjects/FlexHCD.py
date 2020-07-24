@@ -109,17 +109,17 @@ class FlexHCD(SampleChanger):
         super(FlexHCD, self).__init__(self.__TYPE__, True, *args, **kwargs)
 
     def init(self):
-        sc3_pucks = self.getProperty("sc3_pucks", True)
+        sc3_pucks = self.get_property("sc3_pucks", True)
 
         for i in range(8):
             cell = Cell(self, i + 1, sc3_pucks)
             self._add_component(cell)
 
-        self.robot = self.getProperty("tango_device")
+        self.robot = self.get_property("tango_device")
         if self.robot:
             self.robot = DeviceProxy(self.robot)
 
-        self.exporter_addr = self.getProperty("exporter_address")
+        self.exporter_addr = self.get_property("exporter_address")
         """
         if self.exporter_addr:
             self.swstate_attr = self.add_channel(
@@ -130,9 +130,9 @@ class FlexHCD(SampleChanger):
                 },
                 "State",
             )
-        
+
         """
-        self.controller = self.getObjectByRole("controller")
+        self.controller = self.get_object_by_role("controller")
         self.prepareLoad = self.get_command_object("moveToLoadingPosition")
         self.timeout = 3
         self.gripper_types = {
@@ -244,15 +244,15 @@ class FlexHCD(SampleChanger):
                 "%s" % cmd[3:],
             )
             if cmd.startswith("get"):
-                return exp_attr.getValue()
+                return exp_attr.get_value()
             if cmd.startswith("set"):
-                ret = exp_attr.setValue(args_str)
+                ret = exp_attr.set_value(args_str)
 
         self._wait_ready(timeout=timeout)
         return ret
 
     def _ready(self):
-        # return self.swstate_attr.getValue() == "Ready"
+        # return self.swstate_attr.get_value() == "Ready"
         return True
 
     def _wait_ready(self, timeout=None):

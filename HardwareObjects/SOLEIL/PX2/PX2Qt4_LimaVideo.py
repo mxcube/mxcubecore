@@ -70,7 +70,7 @@ class PX2Qt4_LimaVideo(Qt4_LimaVideo):
     default_exposure_time = 0.5
 
     def init(self):
-        exposure_time = self.getProperty("exposure_time")
+        exposure_time = self.get_property("exposure_time")
 
         if exposure_time is not None:
             self.exposure_time = float(exposure_time)
@@ -118,7 +118,7 @@ def test_hwo():
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    hwo = hwr.getHardwareObject("/singleton_objects/limavideo")
+    hwo = hwr.get_hardware_object("/singleton_objects/limavideo")
 
     print("Image dimensions: ", hwo.get_image_dimensions())
     print("Live Mode: ", hwo.get_video_live())

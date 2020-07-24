@@ -78,19 +78,19 @@ class PX1Environment(Device):
 
     def init(self):
 
-        self.device = DeviceProxy(self.getProperty("tangoname"))
+        self.device = DeviceProxy(self.get_property("tangoname"))
 
         try:
             self.state_chan = self.get_channel_object("State")
-            self.state_chan.connectSignal("update", self.stateChanged)
+            self.state_chan.connect_signal("update", self.stateChanged)
 
         except KeyError:
             logging.getLogger().warning("%s: cannot report State", self.name())
 
         try:
             self.chanAuth = self.get_channel_object("beamlineMvtAuthorized")
-            self.chanAuth.connectSignal("update", self.setAuthorizationFlag)
-            # state = self.state_chan.getValue()
+            self.chanAuth.connect_signal("update", self.setAuthorizationFlag)
+            # state = self.state_chan.get_value()
 
         except KeyError:
             logging.getLogger().warning("%s: cannot report State", self.name())
@@ -126,11 +126,11 @@ class PX1Environment(Device):
         self.emit("StateChanged", (value,))
 
     def get_state(self):
-        state = str(self.state_chan.getValue())
+        state = str(self.state_chan.get_value())
         return state
 
     def isBusy(self, timeout=None):
-        state = self.stateChan.getValue()
+        state = self.stateChan.get_value()
         return state not in [EnvironmentState.ON]
 
     def wait_ready(self, timeout=None):
@@ -306,7 +306,7 @@ class PX1Environment(Device):
 
     def getUsingCapillary(self):
         if self.usingCapillaryChannel is not None:
-            return self.usingCapillaryChannel.getValue()
+            return self.usingCapillaryChannel.get_value()
 
     def setUsingCapillary(self, value):
         self.capillary_value = value
@@ -315,11 +315,11 @@ class PX1Environment(Device):
     @task
     def _setUsingCapillary(self):
         if self.usingCapillaryChannel is not None:
-            self.usingCapillaryChannel.setValue(self.capillary_value)
+            self.usingCapillaryChannel.set_value(self.capillary_value)
 
     def getBeamstopPosition(self):
         if self.beamstopPositionChannel is not None:
-            return self.beamstopPositionChannel.getValue()
+            return self.beamstopPositionChannel.get_value()
 
     def setBeamstopPosition(self, value):
         self.beamstop_position = value
@@ -328,7 +328,7 @@ class PX1Environment(Device):
     @task
     def _setBeamstopPosition(self):
         if self.beamstopPositionChannel is not None:
-            self.beamstopPositionChannel.setValue(self.beamstop_position)
+            self.beamstopPositionChannel.set_value(self.beamstop_position)
 
 
 def test_hwo(hwo):

@@ -49,7 +49,7 @@ class DigitalZoomMotor(AbstractMotor, Device):
     def init(self):
         self.set_limits((1.0, 1.0))
         try:
-            self.camera = self.getObjectByRole("camera")
+            self.camera = self.get_object_by_role("camera")
         except KeyError:
             logging.getLogger("HWR").warning("DigitalZoomMotor: camera not defined")
             return

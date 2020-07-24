@@ -12,7 +12,7 @@ from HardwareRepository.HardwareObjects.XMLRPCServer import SecureXMLRpcRequestH
 
 try:
     from httplib import HTTPConnection
-except:
+except BaseException:
     # Python3
     from http.client import HTTPConnection
 
@@ -26,17 +26,17 @@ class State(object):
         self._value = "ON"
         self._parent = parent
 
-    def getValue(self):
+    def get_value(self):
         return self._value
 
-    def setValue(self, newValue):
+    def set_value(self, newValue):
         self._value = newValue
         self._parent.state_changed(newValue)
 
     def delValue(self):
         pass
 
-    value = property(getValue, setValue, delValue, "Property for value")
+    value = property(get_value, set_value, delValue, "Property for value")
 
 
 class EdnaWorkflow(HardwareObject):
@@ -78,8 +78,8 @@ class EdnaWorkflow(HardwareObject):
 
     def init(self):
         self._gevent_event = gevent.event.Event()
-        self._bes_host = self.getProperty("bes_host")
-        self._bes_port = int(self.getProperty("bes_port"))
+        self._bes_host = self.get_property("bes_host")
+        self._bes_port = int(self.get_property("bes_port"))
         self.state.value = "ON"
 
     def getState(self):
@@ -153,7 +153,7 @@ class EdnaWorkflow(HardwareObject):
             dict_workflow["name"] = str(wf.title)
             dict_workflow["path"] = str(wf.path)
             try:
-                req = [r.strip() for r in wf.getProperty("requires").split(",")]
+                req = [r.strip() for r in wf.get_property("requires").split(",")]
                 dict_workflow["requires"] = req
             except (AttributeError, TypeError):
                 dict_workflow["requires"] = []

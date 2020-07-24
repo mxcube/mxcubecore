@@ -25,8 +25,8 @@ class LimaPilatusDetector(AbstractDetector):
     def init(self):
         AbstractDetector.init(self)
 
-        lima_device = self.getProperty("lima_device")
-        pilatus_device = self.getProperty("pilatus_device")
+        lima_device = self.get_property("lima_device")
+        pilatus_device = self.get_property("pilatus_device")
 
         if None in (lima_device, pilatus_device):
             return
@@ -105,7 +105,7 @@ class LimaPilatusDetector(AbstractDetector):
                 "SetImageHeader",
             )
 
-            self.get_channel_object("image_roi").connectSignal(
+            self.get_channel_object("image_roi").connect_signal(
                 "update", self.roi_mode_changed
             )
 
@@ -124,12 +124,12 @@ class LimaPilatusDetector(AbstractDetector):
 
     def last_image_saved(self):
         try:
-            return self.get_channel_object("last_image_saved").getValue() + 1
+            return self.get_channel_object("last_image_saved").get_value() + 1
         except Exception:
             return 0
 
     def get_deadtime(self):
-        return float(self.getProperty("deadtime"))
+        return float(self.get_property("deadtime"))
 
     def roi_mode_changed(self, mode):
         """ROI mode change event"""
@@ -142,7 +142,7 @@ class LimaPilatusDetector(AbstractDetector):
         :param mode: roi mode
         :type mode: str
         """
-        # self.chan_roi_mode.setValue(self.roi_modes_list[mode])
+        # self.chan_roi_mode.set_value(self.roi_modes_list[mode])
 
     def prepare_acquisition(
         self,
@@ -220,7 +220,7 @@ class LimaPilatusDetector(AbstractDetector):
         self.set_channel_value("saving_overwrite_policy", "OVERWRITE")
 
     def set_energy_threshold(self, energy):
-        minE = self.getProperty("minE")
+        minE = self.get_property("minE")
         if energy < minE:
             energy = minE
 
@@ -242,10 +242,10 @@ class LimaPilatusDetector(AbstractDetector):
         if dirname.startswith(os.path.sep):
             dirname = dirname[len(os.path.sep) :]
 
-        saving_directory = os.path.join(self.getProperty("buffer"), dirname)
+        saving_directory = os.path.join(self.get_property("buffer"), dirname)
         subprocess.Popen(
             "ssh %s@%s mkdir --parents %s"
-            % (os.environ["USER"], self.getProperty("control"), saving_directory),
+            % (os.environ["USER"], self.get_property("control"), saving_directory),
             shell=True,
             stdin=None,
             stdout=None,
@@ -266,7 +266,7 @@ class LimaPilatusDetector(AbstractDetector):
         headers = list()
 
         for i, start_angle in enumerate(self.start_angles):
-            header = "\n%s\n" % self.getProperty("serial")
+            header = "\n%s\n" % self.get_property("serial")
             header += "# %s\n" % time.strftime("%Y/%b/%d %T")
             header += "# Pixel_size 172e-6 m x 172e-6 m\n"
             header += "# Silicon sensor, thickness 0.000320 m\n"
@@ -279,7 +279,7 @@ class LimaPilatusDetector(AbstractDetector):
 
     def start_acquisition(self):
         try:
-            HWR.beamline.collect.getObjectByRole("detector_cover").set_out()
+            HWR.beamline.collect.get_object_by_role("detector_cover").set_out()
         except Exception:
             pass
 

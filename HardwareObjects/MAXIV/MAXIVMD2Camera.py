@@ -39,15 +39,15 @@ class MAXIVMD2Camera(Device):
             {"type": "exporter", "name": "image"}, "ImageJPG"
         )
 
-        if self.getProperty("interval"):
-            self.pollInterval = self.getProperty("interval")
-        self.stopper = False  # self.pollingTimer(self.pollInterval, self.poll)
+        if self.get_property("interval"):
+            self.pollInterval = self.get_property("interval")
+        self.stopper = False  # self.polling_timer(self.pollInterval, self.poll)
         thread = Thread(target=self.poll)
         thread.daemon = True
         thread.start()
 
     def getImage(self):
-        return self.image_attr.getValue()
+        return self.image_attr.get_value()
 
     def poll(self):
         logging.getLogger("HWR").info("going to poll images")
@@ -59,7 +59,7 @@ class MAXIVMD2Camera(Device):
             # time.sleep(1)
             # print "polling", datetime.datetime.now().strftime("%H:%M:%S.%f")
             try:
-                img = self.image_attr.getValue()
+                img = self.image_attr.get_value()
                 imgArray = array.array("b", img)
                 imgStr = imgArray.tostring()
                 # self.emit("imageReceived", self.imageaux,1360,1024)
@@ -107,7 +107,7 @@ class MAXIVMD2Camera(Device):
         return None
 
     def takeSnapshot(self, snapshot_filename, bw=True):
-        img = self.image_attr.getValue()
+        img = self.image_attr.get_value()
         imgArray = array.array("b", img)
         imgStr = imgArray.tostring()
         f = open(snapshot_filename, "wb")
@@ -116,6 +116,6 @@ class MAXIVMD2Camera(Device):
         return True
 
     def get_snapshot_img_str(self):
-        img = self.image_attr.getValue()
+        img = self.image_attr.get_value()
         imgArray = array.array("b", img)
         return imgArray.tostring()

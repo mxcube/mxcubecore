@@ -50,7 +50,7 @@ class EMBLTableMotor(AbstractMotor):
         Creates socket interface
         :return:
         """
-        self.direction = self.getProperty("direction")
+        self.direction = self.get_property("direction")
         self.set_position(0)
         self.update_state(self.motor_states.READY)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

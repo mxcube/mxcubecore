@@ -1,130 +1,200 @@
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
+__copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
+__license__ = "LGPLv3+"
+
+
 import logging
 import xml.sax
 from xml.sax.handler import ContentHandler
 
 from HardwareRepository import BaseHardwareObjects
 
-currentXML = None
 
-try:
-    newObjectsClasses = {
-        "equipment": BaseHardwareObjects.Equipment,
-        "device": BaseHardwareObjects.Device,
-        "procedure": BaseHardwareObjects.Procedure,
-    }
-except AttributeError:
-    pass
+CURRENT_XML = None
+
+new_objects_classes = {
+    "equipment": BaseHardwareObjects.Equipment,
+    "device": BaseHardwareObjects.Device,
+    "procedure": BaseHardwareObjects.Procedure,
+}
 
 
 def parse(filename, name):
-    curHandler = HardwareObjectHandler(name)
+    """[summary]
 
-    global currentXML
+    Args:
+        filename ([type]): [description]
+        name ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    cur_handler = HardwareObjectHandler(name)
+
+    global CURRENT_XML
     try:
-        f = open(filename)
-        currentXML = f.read()
+        xml_file = open(filename)
+        CURRENT_XML = xml_file.read()
     except BaseException:
-        currentXML = None
+        CURRENT_XML = None
 
-    xml.sax.parse(filename, curHandler)
+    xml.sax.parse(filename, cur_handler)
 
-    return curHandler.getHardwareObject()
-
-
-def parseString(XMLHardwareObject, name):
-    global currentXML
-    currentXML = XMLHardwareObject
-    curHandler = HardwareObjectHandler(name)
-    # LNLS
-    # python2.7
-    # xml.sax.parseString(XMLHardwareObject, curHandler)
-    # python3.4
-    xml.sax.parseString(str.encode(XMLHardwareObject), curHandler)
-    return curHandler.getHardwareObject()
+    return cur_handler.get_hardware_object()
 
 
-def loadModule(hardwareObjectName):
-    return __import__(hardwareObjectName, globals(), locals(), [""])
+def parse_string(xml_hardware_object, name):
+    """[summary]
+
+    Args:
+        xml_hardware_object ([type]): [description]
+        name ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    global CURRENT_XML
+    CURRENT_XML = xml_hardware_object
+    cur_handler = HardwareObjectHandler(name)
+    xml.sax.parseString(str.encode(xml_hardware_object), cur_handler)
+    return cur_handler.get_hardware_object()
 
 
-def instanciateClass(moduleName, className, objectName):
-    module = loadModule(moduleName)
+def load_module(hardware_object_name):
+    """[summary]
+
+    Args:
+        hardware_object_name ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    return __import__(hardware_object_name, globals(), locals(), [""])
+
+
+def instanciate_class(module_name, class_name, object_name):
+    """[summary]
+
+    Args:
+        module_name ([type]): [description]
+        class_name ([type]): [description]
+        object_name ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    module = load_module(module_name)
     if module is None:
         return
     else:
         try:
-            classObj = getattr(module, className)
+            class_obj = getattr(module, class_name)
         except AttributeError:
             logging.getLogger("HWR").error(
-                "No class %s in module %s", className, moduleName
+                "No class %s in module %s", class_name, module_name
             )
         else:
             # check the XML
-            if module.__doc__ is not None and currentXML is not None:
+            if module.__doc__ is not None and CURRENT_XML is not None:
                 i = module.__doc__.find("template:")
 
                 if i >= 0:
-                    XMLTemplate = module.__doc__[i + 10 :]
+                    xml_template = module.__doc__[i + 10 :]
 
-                    xmlStructureRetriever = XMLStructureRetriever()
-                    xml.sax.parseString(currentXML, xmlStructureRetriever)
-                    currentStructure = xmlStructureRetriever.getStructure()
-                    xmlStructureRetriever = XMLStructureRetriever()
-                    xml.sax.parseString(XMLTemplate, xmlStructureRetriever)
-                    templateStructure = xmlStructureRetriever.getStructure()
+                    xml_structure_retriever = XmlStructureRetriever()
+                    xml.sax.parseString(CURRENT_XML, xml_structure_retriever)
+                    current_structure = xml_structure_retriever.getStructure()
+                    xml_structure_retriever = XmlStructureRetriever()
+                    xml.sax.parseString(xml_template, xml_structure_retriever)
+                    template_structure = xml_structure_retriever.getStructure()
 
-                    if not templateStructure == currentStructure:
+                    if not template_structure == current_structure:
                         logging.getLogger("HWR").error(
                             "%s: XML file does not match the %s class template"
-                            % (objectName, className)
+                            % (object_name, class_name)
                         )
                         return
             try:
-                newInstance = classObj(objectName)
+                new_instance = class_obj(object_name)
             except BaseException:
                 logging.getLogger("HWR").exception(
-                    "Cannot instanciate class %s", className
+                    "Cannot instanciate class %s", class_name
                 )
             else:
-                return newInstance
+                return new_instance
 
 
 class HardwareObjectHandler(ContentHandler):
     def __init__(self, name):
+        """[summary]
+
+        Args:
+            name ([type]): [description]
+        """
         ContentHandler.__init__(self)
 
         self.name = name
-        self.classError = False
+        self.class_error = False
         self.objects = []
         self.reference = ""
         self.property = ""
-        self.elementIsAReference = False
-        self.elementRole = None
+        self.element_is_a_reference = False
+        self.element_role = None
         self.buffer = ""
         self.path = ""
-        self.previousPath = ""
+        self.previous_path = ""
         self.hwr_import_reference = None
 
-    def getHardwareObject(self):
+    def get_hardware_object(self):
+        """[summary]
+
+        Returns:
+            [type]: [description]
+        """
         if self.hwr_import_reference is not None:
             return self.hwr_import_reference
         elif len(self.objects) == 1:
             return self.objects[0]
 
     def startElement(self, name, attrs):
-        if self.classError:
+        """[summary]
+
+        Args:
+            name ([type]): [description]
+            attrs ([type]): [description]
+        """
+        if self.class_error:
             return
 
         self.buffer = ""
 
         if len(self.objects) == 0:
-            objectName = self.name
+            object_name = self.name
         else:
-            objectName = name
+            object_name = name
 
-        assert not self.elementIsAReference
+        assert not self.element_is_a_reference
 
-        self.elementRole = None
+        self.element_role = None
         self.property = ""
         self.command = {}
         self.channel = {}
@@ -133,14 +203,14 @@ class HardwareObjectHandler(ContentHandler):
         # determine path to the new object
         #
         self.path += "/" + str(name) + "[%d]"
-        i = self.previousPath.rfind("[")
+        i = self.previous_path.rfind("[")
 
-        if i >= 0 and self.path[:-4] == self.previousPath[:i]:
-            objectIndex = int(self.previousPath[i + 1 : -1]) + 1
+        if i >= 0 and self.path[:-4] == self.previous_path[:i]:
+            object_index = int(self.previous_path[i + 1 : -1]) + 1
         else:
-            objectIndex = 1  # XPath indexes begin at 1
+            object_index = 1  # XPath indexes begin at 1
 
-        self.path %= objectIndex
+        self.path %= object_index
 
         _attrs = attrs
         attrs = {}
@@ -167,7 +237,7 @@ class HardwareObjectHandler(ContentHandler):
             self.hwr_import_reference = attrs["href"]
 
         if "role" in attrs:
-            self.elementRole = attrs["role"]
+            self.element_role = attrs["role"]
         if name == "device":
             # maybe we have to add the DeviceContainer mix-in class to each node of
             # the Hardware Object hierarchy
@@ -185,7 +255,7 @@ class HardwareObjectHandler(ContentHandler):
         #
         ref = "hwrid" in attrs and attrs["hwrid"] or "href" in attrs and attrs["href"]
         if ref:
-            self.elementIsAReference = True
+            self.element_is_a_reference = True
             self.reference = str(ref)
 
             if self.reference.startswith("../"):
@@ -198,80 +268,90 @@ class HardwareObjectHandler(ContentHandler):
                 )
             return
 
-        if name in newObjectsClasses:
+        if name in new_objects_classes:
             if "class" in attrs:
-                moduleName = str(attrs["class"])
-                className = moduleName.split(".")[-1]
+                module_name = str(attrs["class"])
+                class_name = module_name.split(".")[-1]
 
-                newObject = instanciateClass(moduleName, className, objectName)
+                new_object = instanciate_class(module_name, class_name, object_name)
 
-                if newObject is None:
-                    self.classError = True
+                if new_object is None:
+                    self.class_error = True
                     return
                 else:
-                    newObject.set_path(self.path)
-                    self.objects.append(newObject)
+                    new_object.set_path(self.path)
+                    self.objects.append(new_object)
             else:
-                newObjectClass = newObjectsClasses[name]
-                newObject = newObjectClass(objectName)
-                newObject.set_path(self.path)
+                new_object_class = new_objects_classes[name]
+                new_object = new_object_class(object_name)
+                new_object.set_path(self.path)
 
-                self.objects.append(newObject)
+                self.objects.append(new_object)
         elif name == "command":
             if "name" in attrs and "type" in attrs:
                 # short command notation
                 self.command.update(attrs)
             else:
                 # long command notation (allow arguments)
-                self.objects.append(BaseHardwareObjects.HardwareObjectNode(objectName))
+                self.objects.append(BaseHardwareObjects.HardwareObjectNode(object_name))
         elif name == "channel":
             if "name" in attrs and "type" in attrs:
                 self.channel.update(attrs)
         else:
             if len(self.objects) == 0:
                 if "class" in attrs:
-                    moduleName = str(attrs["class"])
-                    className = moduleName.split(".")[-1]
+                    module_name = str(attrs["class"])
+                    class_name = module_name.split(".")[-1]
 
-                    newObject = instanciateClass(moduleName, className, objectName)
+                    new_object = instanciate_class(module_name, class_name, object_name)
 
-                    if newObject is None:
-                        self.classError = True
+                    if new_object is None:
+                        self.class_error = True
                         return
                 else:
-                    newObject = BaseHardwareObjects.HardwareObject(objectName)
+                    new_object = BaseHardwareObjects.HardwareObject(object_name)
 
-                newObject.set_path(self.path)
-                self.objects.append(newObject)
+                new_object.set_path(self.path)
+                self.objects.append(new_object)
                 """
                 # maybe we can create a HardwareObject ? be strict for the moment...
-                logging.getLogger("HWR").error("%s: unknown Hardware Object type (should be one of %s)", objectName, str(newObjectsClasses.keys()))
-                self.classError = True
+                logging.getLogger("HWR").error("%s: unknown Hardware Object type (should be one of %s)", object_name, str(new_objects_classes.keys()))
+                self.class_error = True
                 return
                 """
             else:
-                newObject = BaseHardwareObjects.HardwareObjectNode(objectName)
-                newObject.set_path(self.path)
-                self.objects.append(newObject)
+                new_object = BaseHardwareObjects.HardwareObjectNode(object_name)
+                new_object.set_path(self.path)
+                self.objects.append(new_object)
 
                 self.property = name  # element is supposed to be a Property
 
     def characters(self, content):
-        if self.classError:
+        """[summary]
+
+        Args:
+            content ([type]): [description]
+        """
+        if self.class_error:
             return
 
         self.buffer += str(content)
 
     def endElement(self, name):
-        if self.classError:
+        """[summary]
+
+        Args:
+            name ([type]): [description]
+        """
+        if self.class_error:
             return
 
         name = str(name)
 
-        if self.elementIsAReference:
+        if self.element_is_a_reference:
             if len(self.objects) > 0:
                 self.objects[0].add_reference(
-                    name, self.reference, role=self.elementRole
+                    name, self.reference, role=self.element_role
                 )
         else:
             try:
@@ -279,29 +359,29 @@ class HardwareObjectHandler(ContentHandler):
                     if len(self.command) > 0:
                         if len(self.objects) > 0:
                             self.objects[-1].add_command(
-                                self.command, self.buffer, addNow=False
+                                self.command, self.buffer, add_now=False
                             )
                     else:
                         if len(self.objects) > 1:
                             self.objects[-2].add_command(
-                                self.objects.pop(), addNow=False
+                                self.objects.pop(), add_now=False
                             )
                 elif name == "channel":
                     if len(self.channel) > 0:
                         if len(self.objects) > 0:
                             self.objects[-1].add_channel(
-                                self.channel, self.buffer, addNow=False
+                                self.channel, self.buffer, add_now=False
                             )
                 elif name == self.property:
                     del self.objects[-1]  # remove empty object
-                    self.objects[-1].setProperty(name, self.buffer)
+                    self.objects[-1].set_property(name, self.buffer)
                 else:
                     if len(self.objects) == 1:
                         return
 
                     if len(self.objects) > 1:
                         self.objects[-2].add_object(
-                            name, self.objects[-1], role=self.elementRole
+                            name, self.objects[-1], role=self.element_role
                         )
                     if len(self.objects) > 0:
                         del self.objects[-1]
@@ -310,10 +390,10 @@ class HardwareObjectHandler(ContentHandler):
                     "%s: error while creating Hardware Object from XML file", self.name
                 )
 
-        self.elementIsAReference = False
-        self.elementRole = None
+        self.element_is_a_reference = False
+        self.element_role = None
         self.buffer = ""
-        self.previousPath = self.path
+        self.previous_path = self.path
         self.path = self.path[
             : self.path.rfind("/")
         ]  # remove last added name and suffix
@@ -324,21 +404,35 @@ class XMLStructure:
         self.xmlpaths = set()
         self.attributes = {}
 
-    def add(self, xmlpath, attributesSet):
-        self.xmlpaths.add(xmlpath)
+    def add(self, xml_path, attributes_set):
+        """[summary]
 
-        if len(attributesSet) > 0:
-            self.attributes[xmlpath] = attributesSet
+        Args:
+            xml_path ([type]): [description]
+            attributes_set ([type]): [description]
+        """
+        self.xmlpaths.add(xml_path)
+
+        if len(attributes_set) > 0:
+            self.attributes[xml_path] = attributes_set
 
     def __eq__(self, s):
+        """[summary]
+
+        Args:
+            s ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
         if self.xmlpaths.issubset(s.xmlpaths):
-            for xmlpath, attributeSet in self.attributes.items():
+            for xml_path, attribute_set in self.attributes.items():
                 try:
-                    attributeSet2 = s.attributes[xmlpath]
+                    attribute_set_2 = s.attributes[xml_path]
                 except KeyError:
                     return False
                 else:
-                    if not attributeSet.issubset(attributeSet2):
+                    if not attribute_set.issubset(attribute_set_2):
                         return False
 
             return True
@@ -346,24 +440,35 @@ class XMLStructure:
             return False
 
 
-class XMLStructureRetriever(ContentHandler):
+class XmlStructureRetriever(ContentHandler):
     def __init__(self):
         ContentHandler.__init__(self)
 
         self.path = ""
-        self.previousPath = ""
-        self.currentAttributes = set()
+        self.previous_path = ""
+        self.current_attributes = set()
         self.structure = XMLStructure()
 
     def getStructure(self):
+        """[summary]
+
+        Returns:
+            [type]: [description]
+        """
         return self.structure
 
     def startElement(self, name, attrs):
-        self.path += "/" + str(name) + "[%d]"
-        i = self.previousPath.rfind("[")
+        """[summary]
 
-        if i >= 0 and self.path[:-4] == self.previousPath[:i]:
-            index = int(self.previousPath[i + 1 : -1]) + 1
+        Args:
+            name ([type]): [description]
+            attrs ([type]): [description]
+        """
+        self.path += "/" + str(name) + "[%d]"
+        i = self.previous_path.rfind("[")
+
+        if i >= 0 and self.path[:-4] == self.previous_path[:i]:
+            index = int(self.previous_path[i + 1 : -1]) + 1
         else:
             index = 1  # XPath indexes begin at 1
 
@@ -373,10 +478,15 @@ class XMLStructureRetriever(ContentHandler):
             if str(attr) == "hwrid":
                 attr = "href"
 
-            self.currentAttributes.add("%s=%s" % (str(attr), str(value)))
+            self.current_attributes.add("%s=%s" % (str(attr), str(value)))
 
     def endElement(self, name):
-        self.structure.add(self.path, self.currentAttributes)
+        """[summary]
 
-        self.previousPath = self.path
+        Args:
+            name ([type]): [description]
+        """
+        self.structure.add(self.path, self.current_attributes)
+
+        self.previous_path = self.path
         self.path = self.path[: self.path.rfind("/")]

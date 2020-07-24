@@ -19,9 +19,9 @@ class MD2Motor(AbstractMotor):
     def init(self):
         self.motor_state = MotorStates.UNKNOWN
         if self.actuator_name in [None, ""]:
-            self.actuator_name = self.getProperty("actuator_name")
+            self.actuator_name = self.get_property("actuator_name")
 
-        self.motor_resolution = self.getProperty("resolution")
+        self.motor_resolution = self.get_property("resolution")
         if self.motor_resolution is None:
             self.motor_resolution = 1e-3
 
@@ -31,7 +31,7 @@ class MD2Motor(AbstractMotor):
         )
 
         if self.position_attr is not None:
-            self.position_attr.connectSignal("update", self.update_value)
+            self.position_attr.connect_signal("update", self.update_value)
 
             self.state_attr = self.add_channel(
                 {"type": "exporter", "name": "%sState" % self.actuator_name}, "State"
@@ -41,7 +41,7 @@ class MD2Motor(AbstractMotor):
                 {"type": "exporter", "name": "MotorStates"}, "MotorStates"
             )
             if self.motors_state_attr is not None:
-                self.motors_state_attr.connectSignal("update", self.updateMotorState)
+                self.motors_state_attr.connect_signal("update", self.updateMotorState)
 
             self._motor_abort = self.add_command(
                 {"type": "exporter", "name": "abort"}, "abort"
@@ -61,7 +61,7 @@ class MD2Motor(AbstractMotor):
                 "startHomingMotor",
             )
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "valueChanged":
             self.emit("valueChanged", (self.get_value(),))
         elif signal == "stateChanged":

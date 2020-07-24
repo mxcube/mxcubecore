@@ -65,10 +65,10 @@ class BlissShutter(AbstractShutter):
     def init(self):
         """Initilise the predefined values"""
         AbstractShutter.init(self)
-        _name = self.getProperty("name")
-        self._bliss_obj = getattr(self.getObjectByRole("controller"), _name)
+        _name = self.get_property("name")
+        self._bliss_obj = getattr(self.get_object_by_role("controller"), _name)
         # for now we only treat tango type shutter
-        self.shutter_type = self.getProperty("type", "tango")
+        self.shutter_type = self.get_property("type", "tango")
         try:
             if self._bliss_obj.frontend:
                 self.opening_mode = self._bliss_obj.mode

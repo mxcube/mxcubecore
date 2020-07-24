@@ -34,11 +34,11 @@ class EMBLTransmission(AbstractTransmission):
 
     def init(self):
         self.chan_att_value = self.get_channel_object("chanValue")
-        self.chan_att_value.connectSignal("update", self.value_changed)
+        self.chan_att_value.connect_signal("update", self.value_changed)
         self.chan_att_state = self.get_channel_object("chanState")
-        self.chan_att_state.connectSignal("update", self.state_changed)
+        self.chan_att_state.connect_signal("update", self.state_changed)
         self.chan_att_limits = self.get_channel_object("chanLimits")
-        self.chan_att_limits.connectSignal("update", self.limits_changed)
+        self.chan_att_limits.connect_signal("update", self.limits_changed)
 
         self.re_emit_values()
 
@@ -55,4 +55,4 @@ class EMBLTransmission(AbstractTransmission):
         self.emit("limitsChanged", (self._limits,))
 
     def _set_value(self, value):
-        self.chan_att_value.setValue(value)
+        self.chan_att_value.set_value(value)

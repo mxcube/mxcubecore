@@ -18,9 +18,9 @@ class RobodiffMotor(Device):
     def end_init(self):
         if self.__initialized:
             return
-        controller = HWR.getHardwareRepository().getHardwareObject(
-            self.getProperty("controller")
-        )  # self.getObjectByRole("controller")
+        controller = HWR.getHardwareRepository().get_hardware_object(
+            self.get_property("controller")
+        )  # self.get_object_by_role("controller")
 
         # this is ugly : I added it to make the centring procedure happy
         self.specName = self.actuator_name
@@ -30,7 +30,7 @@ class RobodiffMotor(Device):
         self.connect(self.motor, "state", self.updateState)
         self.__initialized = True
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "valueChanged":
             self.emit("valueChanged", (self.get_value(),))
         elif signal == "stateChanged":
