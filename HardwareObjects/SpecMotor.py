@@ -22,7 +22,7 @@ class SpecMotor(Device, SpecMotorA):
                 self.motorPositionChanged(self.get_value())
 
     def motorStateChanged(self, state):
-        self.setIsReady(state > SpecMotor.UNUSABLE)
+        self.set_is_ready(state > SpecMotor.UNUSABLE)
 
         self.emit("stateChanged", (state,))
 

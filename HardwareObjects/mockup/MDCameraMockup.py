@@ -30,7 +30,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
         self.image_name = self.get_property("image_name")
         xml_path = HWR.getHardwareRepository().server_address[0]
         self.image = os.path.join(xml_path, self.image_name)
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def init(self):
         logging.getLogger("HWR").info("initializing camera object")

@@ -20,7 +20,7 @@ class ID30Cryo(Device):
         self.in_key = self.get_property("is_in")
         self.out_key = self.get_property("is_out")
         self.wago_polling = self._wago_polling(self.command_key, wait=False)
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     @task
     def _wago_polling(self, key):

@@ -93,7 +93,7 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
             else:
                 self.set_exposure(self.get_property("interval") / 1000.0)
 
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def _do_polling(self, sleep_time):
         lima_tango_device = self.device

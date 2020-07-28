@@ -19,7 +19,7 @@ class ESRFCryoMon(Device):
 
     def init(self):
         self.tg_device = None
-        self.setIsReady(True)
+        self.set_is_ready(True)
         self._monitoring_greenlet = gevent.spawn(self._monitor)
 
     def _monitor(self):

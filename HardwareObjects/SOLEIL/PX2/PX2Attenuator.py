@@ -139,10 +139,10 @@ class PX2Attenuator(Device):
         return value
 
     def connected(self):
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def disconnected(self):
-        self.setIsReady(False)
+        self.set_is_ready(False)
 
     def attFactorChanged(self, channelValue):
         try:

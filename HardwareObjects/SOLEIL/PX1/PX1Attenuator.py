@@ -27,10 +27,10 @@ class PX1Attenuator(Device):
         self.connected()
 
     def connected(self):
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def disconnected(self):
-        self.setIsReady(False)
+        self.set_is_ready(False)
 
     def getAttState(self, value=None):
         if not self.state_chan:

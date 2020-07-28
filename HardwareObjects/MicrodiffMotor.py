@@ -142,9 +142,9 @@ class MicrodiffMotor(AbstractMotor):
             self.motorLimitsChanged()
 
     def updateState(self):
-        self.setIsReady(self._get_state() > MicrodiffMotor.UNUSABLE)
+        self.set_is_ready(self._get_state() > MicrodiffMotor.UNUSABLE)
 
-    def setIsReady(self, value):
+    def set_is_ready(self, value):
         if value is True:
             self.set_ready()
 

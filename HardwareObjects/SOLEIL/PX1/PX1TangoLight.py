@@ -41,7 +41,7 @@ class PX1TangoLight(Device):
             self.states = ["out", "in"]
 
     def _setReady(self):
-        self.setIsReady(self.attrchan.isConnected())
+        self.set_is_ready(self.attrchan.isConnected())
 
     def connect_notify(self, signal):
         if self.is_ready():

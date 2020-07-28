@@ -38,7 +38,7 @@ class SOLEILPss(Device):
             self.stateChan = self.get_channel_object("State")
             self.stateChan.connect_signal("update", self.value_changed)
         if self.device:
-            self.setIsReady(True)
+            self.set_is_ready(True)
 
     def get_state(self, value):
         return SOLEILPss.states[value]

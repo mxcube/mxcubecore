@@ -42,7 +42,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
             except BaseException:
                 pass
 
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
         self.position_chan = self.get_channel_object("position")
         self.state_chan = self.get_channel_object("state")
@@ -67,7 +67,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
             self.motor_position_changed()
         elif signal == "limitsChanged":
             self.distance_min_changed()
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def motor_state_changed(self, state=None):
         state_code = self.get_state(state)
@@ -76,7 +76,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
             position = self.position_chan.get_value()
             self.motor_position_changed(position)
 
-        self.setIsReady(True)
+        self.set_is_ready(True)
         self.emit("stateChanged", (state_code,))
 
     def motor_position_changed(self, position=None):

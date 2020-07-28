@@ -121,14 +121,14 @@ class EMBLSafetyShutter(Device):
         Sets is ready
         :return:
         """
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def disconnected(self):
         """
         Sets not ready
         :return:
         """
-        self.setIsReady(False)
+        self.set_is_ready(False)
 
     def data_collection_state_changed(self, state):
         """Updates shutter state when data collection state changes

@@ -66,7 +66,7 @@ class QtAxisCamera(AbstractVideoDevice):
         )
         self.request.add_header("Authorization", "Basic %s" % base64string)
         self.qpixmap = QPixmap()
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
         AbstractVideoDevice.init(self)
 

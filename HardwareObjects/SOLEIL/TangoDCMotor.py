@@ -69,7 +69,7 @@ class TangoDCMotor(Device):
             except BaseException:
                 pass
 
-        self.setIsReady(True)
+        self.set_is_ready(True)
         try:
             self.limitsCommand = self.get_command_object("limits")
         except KeyError:
@@ -107,14 +107,14 @@ class TangoDCMotor(Device):
             self.motorLimitsChanged()
         elif signal == "valueChanged":
             self.motorPositionChanged(self.positionValue)
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def motorState(self):
         return TangoDCMotor.stateDict[self.stateValue]
 
     def motorStateChanged(self, state):
         self.stateValue = str(state)
-        self.setIsReady(True)
+        self.set_is_ready(True)
         logging.info("motor state changed. it is %s " % self.stateValue)
         self.emit("stateChanged", (TangoDCMotor.stateDict[self.stateValue],))
 

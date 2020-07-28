@@ -52,7 +52,7 @@ class RobodiffMotor(Device):
         else:
             state = RobodiffMotor.UNUSABLE
 
-        self.setIsReady(state > RobodiffMotor.UNUSABLE)
+        self.set_is_ready(state > RobodiffMotor.UNUSABLE)
 
         if self.motorState != state:
             self.motorState = state

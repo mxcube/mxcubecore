@@ -163,7 +163,7 @@ class Camera(BaseHardwareObjects.Device):
                             )
                             self.__gammaExists = True
 
-                        self.setIsReady(True)
+                        self.set_is_ready(True)
 
                         """
                         Check wether there is a BPM device defined or not
@@ -749,7 +749,7 @@ class Camera(BaseHardwareObjects.Device):
                         self.setPollCommand(
                             "DevCcdReadJpeg", 75, direct=True, compare=False
                         )  # 75: quality
-                        self.setIsReady(True)
+                        self.set_is_ready(True)
 
                 def oprint(self, msg):
                     print(("Camera.py--taco device--%s" % msg))
