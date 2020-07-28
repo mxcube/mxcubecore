@@ -60,15 +60,3 @@ class ShutterMockup(ActuatorMockup, AbstractShutter):
 
     def close(self):
         self.set_value(self.VALUES.CLOSED, timeout=None)
-
-    def update_limits(self, limits=None):
-        """Check if the limits have changed.
-        Args:
-            limits(tuple): two elements (low limit, high limit) tuple.
-        Raises:
-            NotImplementedError
-        """
-        return True
-
-    def set_limits(self, limits):
-        return True
