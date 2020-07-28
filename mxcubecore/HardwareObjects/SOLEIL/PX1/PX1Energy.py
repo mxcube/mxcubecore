@@ -66,7 +66,7 @@ class PX1Energy(Device, AbstractEnergy):
             )
             self.stateChanged(self.get_state())
 
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def stateChanged(self, value):
         str_state = str(value)

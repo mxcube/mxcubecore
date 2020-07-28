@@ -37,7 +37,7 @@ class VideoMockup(BaseHardwareObjects.Device):
         self.force_update = False
         self.image_dimensions = [600, 400]
         self.image_type = JpegType()
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def imageType(self):
         """

@@ -107,7 +107,7 @@ class PX1Environment(Device):
             self.beamstopPositionChannel = None
 
         if self.device is not None:
-            self.setIsReady(True)
+            self.set_is_ready(True)
 
             self.cmds = {
                 EnvironmentPhase.TRANSFER: self.device.GoToTransfertPhase,

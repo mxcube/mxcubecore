@@ -66,7 +66,7 @@ class NamedState(Device):
 
     def stateChanged(self, channelValue):
         logging.info("hw NamedState %s. got new value %s" % (self.name(), channelValue))
-        self.setIsReady(True)
+        self.set_is_ready(True)
         self.emit("stateChanged", (self.get_state(),))
 
     def hardwareStateChanged(self, channelValue):

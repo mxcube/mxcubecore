@@ -52,7 +52,7 @@ class GrobMotor(Device, AbstractMotor):
         else:
             state = GrobMotor.UNUSABLE
 
-        self.setIsReady(state > GrobMotor.UNUSABLE)
+        self.set_is_ready(state > GrobMotor.UNUSABLE)
 
         if self.motorState != state:
             self.motorState = state

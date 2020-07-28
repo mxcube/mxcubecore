@@ -85,7 +85,7 @@ class MotorWPositions(AbstractMotor, Device):
                 self.predefined_positions[name] = pos
         self.connect(self.motor, "stateChanged", self.motor_state_changed)
         self.connect(self.motor, "valueChanged", self.motor_position_changed)
-        self.setIsReady(self.motor.is_ready())
+        self.set_is_ready(self.motor.is_ready())
 
     def get_limits(self):
         return (1, len(self.predefined_positions))
@@ -139,7 +139,7 @@ class MotorWPositions(AbstractMotor, Device):
         """
         if state is None:
             state = self.get_state()
-        self.setIsReady(state > AbstractMotor.UNUSABLE)
+        self.set_is_ready(state > AbstractMotor.UNUSABLE)
 
     def get_state(self):
         """

@@ -119,11 +119,11 @@ class EMBLDoorInterlock(Device):
 
     def connected(self):
         """Sets is ready"""
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def disconnected(self):
         """Sets not ready"""
-        self.setIsReady(False)
+        self.set_is_ready(False)
 
     def state_breakable_changed(self, state):
         """Updates door interlock state"""

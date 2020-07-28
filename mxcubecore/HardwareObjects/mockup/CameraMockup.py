@@ -20,7 +20,7 @@ class CameraMockup(BaseHardwareObjects.Device):
         self.liveState = False
 
     def _init(self):
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def init(self):
         self.imagegen = None

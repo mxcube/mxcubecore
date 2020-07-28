@@ -28,7 +28,7 @@ class MAXIVMD2Camera(Device):
 
     def __init__(self, name):
         Device.__init__(self, name)
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def init(self):
         logging.getLogger("HWR").info("initializing camera object")

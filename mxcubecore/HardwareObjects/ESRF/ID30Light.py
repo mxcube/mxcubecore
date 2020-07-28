@@ -27,7 +27,7 @@ class ID30Light(Device, AbstractMotor):
         except BaseException:
             self._state = None
         # self.wago_polling = gevent.spawn(self._wago_polling, self.command_key)
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def _wago_polling(self, key):
         while True:
