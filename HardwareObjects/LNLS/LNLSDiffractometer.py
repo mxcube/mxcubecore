@@ -17,6 +17,7 @@
 #   You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+import ast
 import time
 import logging
 import random
@@ -55,6 +56,11 @@ class LNLSDiffractometer(GenericDiffractometer):
 
         self.pixels_per_mm_x = 1.0 / self.x_calib
         self.pixels_per_mm_y = 1.0 / self.y_calib
+        if "zoom" not in self.motor_hwobj_dict.keys():
+            self.motor_hwobj_dict["zoom"] = self.getObjectByRole("zoom")
+        calibration = self.zoom.getProperty("calibration")
+        self.zoom_calibration = ast.literal_eval(calibration)
+
         self.beam_position = [318, 238]
 
         self.current_phase = GenericDiffractometer.PHASE_CENTRING
@@ -468,3 +474,39 @@ class LNLSDiffractometer(GenericDiffractometer):
 
     def get_point_from_line(self, point_one, point_two, index, images_num):
         return point_one.as_dict()
+
+    @property
+    def zoom(self):
+        """
+        Override method.
+        """
+        return self.motor_hwobj_dict.get("zoom")
+
+    def get_zoom_calibration(self):
+        """Returns tuple with current zoom calibration (px per mm)."""
+        zoom_enum = self.zoom.get_value()  # Get current zoom enum
+        zoom_enum_str = zoom_enum.name # as str
+        calib_val = self.zoom_calibration.get(zoom_enum_str)
+        self.x_calib = calib_val
+        self.y_calib = calib_val
+        try:
+            float(calib_val)
+            self.pixels_per_mm_x = 1.0 / self.x_calib
+            self.pixels_per_mm_y = 1.0 / self.y_calib
+        except Exception as e:
+            print("[Zoom] Error on calibration: " + str(e))
+        return (self.pixels_per_mm_x, self.pixels_per_mm_y)
+
+    def get_pixels_per_mm(self):
+        """
+        Override method.
+        """
+        pixels_per_mm_x, pixels_per_mm_y = self.get_zoom_calibration()
+        return (pixels_per_mm_x, pixels_per_mm_y)
+
+    def update_zoom_calibration(self):
+        """
+        Override method.
+        """
+        self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x,
+                                          self.pixels_per_mm_y)))
