@@ -25,6 +25,7 @@ LNLSBeam class
 __copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
+import ast
 
 from HardwareRepository.HardwareObjects.abstract.AbstractBeam import BeamShape, AbstractBeam
 
@@ -57,6 +58,9 @@ class LNLSBeam(AbstractBeam):
 
             sx, sy = self._slits.get_gaps()
             self._beam_size_dict["slits"] = [sx, sy]
+
+        beam_pos = self.getProperty("default_beam_pos_on_screen")
+        self._beam_position_on_screen = list(ast.literal_eval(beam_pos))
 
         self.evaluate_beam_info()
         self.emit_beam_info_change()
