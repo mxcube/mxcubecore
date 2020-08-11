@@ -230,6 +230,8 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
 
         AbstractSampleChanger.SampleChanger.init(self)
 
+        self.update_state(self.STATES.READY)
+
     def _on_state_changed(self, state):
         """
         Descript. : state change callback. Based on diffractometer state
@@ -308,6 +310,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         Descript. : function to move to plate location.
                     Location is estimated by sample location and reference positions.
         """
+       
         row = sample_location[0] - 1
         col = (sample_location[1] - 1) / self.num_drops
         drop = sample_location[1] - self.num_drops * col
@@ -321,6 +324,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         old_sample = self.get_loaded_sample()
         new_sample = drop.get_sample()
         if old_sample != new_sample:
+            self.update_state(self.STATES.BUSY)
             msg = "Moving to position %s:%d" % ((chr(65 + row), col))
             logging.getLogger("user_level_log").warning(
                 "Plate Manipulator: %s Please wait..." % msg
@@ -337,6 +341,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
                 new_sample._set_loaded(True, True)
             self.update_info()
             logging.getLogger("user_level_log").info("Plate Manipulator: Sample loaded")
+            self.update_state(self.STATES.READY)
 
     def _do_unload(self, sample_slot=None):
         """
@@ -451,14 +456,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         """
         Descript. :
         """
-        self._update_state()
         self._update_loaded_sample()
-
-    def _update_state(self):
-        """
-        Descript. :
-        """
-        return "ready"
 
     def _update_loaded_sample(self):
         """Updates plate location"""
@@ -519,21 +517,6 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         sample = self.get_sample((row, col, drop, pos_y))
         return sample.loaded
 
-    def _ready(self):
-        if self._update_state() == "Ready":
-            return True
-        return False
-
-    def _wait_ready(self, timeout=None):
-        if timeout <= 0:
-            timeout = self.timeout
-        tt1 = time.time()
-        while time.time() - tt1 < timeout:
-            if self._ready():
-                break
-            else:
-                gevent.sleep(0.5)
-
     def get_plate_info(self):
         """
         Descript. : returns dict with plate info
@@ -552,3 +535,6 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
 
     def sync_with_crims(self, barcode):
         return self._load_data(barcode)
+    
+    def re_emit_values(self):
+        return
