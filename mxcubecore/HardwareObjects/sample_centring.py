@@ -8,7 +8,7 @@ import os
 import tempfile
 
 try:
-    import lucid2 as lucid
+    import lucid3 as lucid
 except ImportError:
     try:
         import lucid
