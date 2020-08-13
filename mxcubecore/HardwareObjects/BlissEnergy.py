@@ -29,7 +29,7 @@ If used, the controller should have method moveEnergy.
   - for fixed wavelength beamline:
 <object class="Energy">
   <read_only>True</read_only>
-  <default_value>12.8123</tunable_value>
+  <energy>12.8123</energy>
 </object>
 """
 import logging
@@ -62,6 +62,9 @@ class BlissEnergy(AbstractEnergy):
             self.update_state(self._energy_motor.get_state())
             self._energy_motor.connect("valueChanged", self.update_value)
             self._energy_motor.connect("stateChanged", self.update_state)
+            
+        if self.read_only:
+            self._nominal_value = float(self.getProperty("energy", 0))
 
     def get_value(self):
         """Read the energy.
@@ -106,7 +109,8 @@ class BlissEnergy(AbstractEnergy):
             ValueError: Value not valid or attemp to set write only actuator.
         """
         if self.read_only:
-            raise ValueError("Attempt to set value for read-only Actuator")
+            return
+
         if self.validate_value(value):
             current_value = self.get_value()
 
