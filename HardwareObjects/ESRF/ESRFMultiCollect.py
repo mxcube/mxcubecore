@@ -24,8 +24,366 @@ except:
     from urllib.parse import urlencode
 
 
+# class FixedEnergy:
+#     def __init__(self, wavelength, energy):
+#         self.wavelength = wavelength
+#         self.energy = energy
+
+#     def set_wavelength(self, wavelength):
+#         return
+
+#     def set_energy(self, energy):
+#         return
+
+#     def get_energy(self):
+#         return self.energy
+
+#     def get_wavelength(self):
+#         return self.wavelength
+
+
+# class TunableEnergy:
+#     @task
+#     def set_wavelength(self, wavelength):
+#         if HWR.beamline.tunable_wavelength:
+#             return HWR.beamline.energy.set_wavelength(wavelength)
+#         else:
+#             return
+
+#     @task
+#     def set_energy(self, energy):
+#          if HWR.beamline.tunable_wavelength:
+#              return HWR.beamline.energy.set_value(energy)
+#          else:
+#              return
+
+#     def get_energy(self):
+#         return HWR.beamline.energy.get_value()
+
+#     def get_wavelength(self):
+#         return HWR.beamline.energy.get_wavelength()
+
+
+# class CcdDetector:
+#     def __init__(self, detector_class=None):
+#         self._detector = detector_class() if detector_class else None
+
+#     def init(self, config, collect_obj):
+#         self.collect_obj = collect_obj
+#         if self._detector:
+#             self._detector.add_channel = self.add_channel
+#             self._detector.add_command = self.add_command
+#             self._detector.get_channel_object = self.get_channel_object
+#             self._detector.get_command_object = self.get_command_object
+#             self._detector.init(config, collect_obj)
+
+#     @task
+#     def prepare_acquisition(
+#         self,
+#         take_dark,
+#         start,
+#         osc_range,
+#         exptime,
+#         npass,
+#         number_of_images,
+#         comment="",
+#         energy=None,
+#     ):
+#         if osc_range < 1e-4:
+#             trigger_mode = "INTERNAL_TRIGGER"
+#         else:
+#             trigger_mode = "EXTERNAL_TRIGGER"
+
+#         if self._detector:
+#             self._detector.prepare_acquisition(
+#                 take_dark,
+#                 start,
+#                 osc_range,
+#                 exptime,
+#                 npass,
+#                 number_of_images,
+#                 comment,
+#                 energy,
+#                 trigger_mode,
+#             )
+#         else:
+#             self.get_channel_object("take_dark").setValue(take_dark)
+#             self.execute_command(
+#                 "prepare_acquisition",
+#                 take_dark,
+#                 start,
+#                 osc_range,
+#                 exptime,
+#                 npass,
+#                 comment,
+#                 energy,
+#                 trigger_mode,
+#             )
+
+#     @task
+#     def set_detector_filenames(
+#         self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
+#     ):
+#         if self._detector:
+#             self._detector.set_detector_filenames(
+#                 frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
+#             )
+#         else:
+#             self.get_command_object("prepare_acquisition").executeCommand(
+#                 'setMxCollectPars("current_phi", %f)' % start
+#             )
+#             self.get_command_object("prepare_acquisition").executeCommand(
+#                 'setMxCurrentFilename("%s")' % filename
+#             )
+#             self.get_command_object("prepare_acquisition").executeCommand(
+#                 "ccdfile(COLLECT_SEQ, %d)" % frame_number, wait=True
+#             )
+
+#     @task
+#     def prepare_oscillation(self, start, osc_range, exptime, npass):
+#         if osc_range < 1e-4:
+#             # still image
+#             pass
+#         else:
+#             self.collect_obj.do_prepare_oscillation(
+#                 start, start + osc_range, exptime, npass
+#             )
+#         return (start, start + osc_range)
+
+#     @task
+#     def start_acquisition(self, exptime, npass, first_frame):
+#         if self._detector:
+#             self._detector.start_acquisition(exptime, npass, first_frame)
+#         else:
+#             self.execute_command("start_acquisition")
+
+#     @task
+#     def no_oscillation(self, exptime):
+#         self.collect_obj.open_fast_shutter()
+#         time.sleep(exptime)
+#         self.collect_obj.close_fast_shutter()
+
+#     @task
+#     def do_oscillation(self, start, end, exptime, npass):
+#         still = math.fabs(end - start) < 1e-4
+#         if still:
+#             self.no_oscillation(exptime)
+#         else:
+#             self.collect_obj.oscil(start, end, exptime, npass)
+
+#     @task
+#     def write_image(self, last_frame):
+#         if self._detector:
+#             self._detector.write_image(last_frame)
+#         else:
+#             if last_frame:
+#                 self.execute_command("flush_detector")
+#             else:
+#                 self.execute_command("write_image")
+
+#     def stop_acquisition(self):
+#         # detector readout
+#         if self._detector:
+#             self._detector.stop_acquisition()
+#         else:
+#             self.execute_command("detector_readout")
+
+#     @task
+#     def reset_detector(self):
+#         if self._detector:
+#             self._detector.stop()
+#         else:
+#             self.get_command_object("reset_detector").abort()
+#             self.execute_command("reset_detector")
+
+
+# class PixelDetector:
+#     def __init__(self, detector_class=None):
+#         self._detector = detector_class() if detector_class else None
+#         self.shutterless = True
+#         self.new_acquisition = True
+#         self.oscillation_task = None
+#         self.shutterless_exptime = None
+#         self.shutterless_range = None
+#         self._mesh_steps = None
+
+#     def init(self, config, collect_obj):
+#         self.collect_obj = collect_obj
+#         if self._detector:
+#             self._detector.add_channel = self.add_channel
+#             self._detector.add_command = self.add_command
+#             self._detector.get_channel_object = self.get_channel_object
+#             self._detector.get_command_object = self.get_command_object
+#             self._detector.init(config, collect_obj)
+
+#     def last_image_saved(self):
+#         return self._detector.last_image_saved()
+
+#     def get_deadtime(self):
+#         return self._detector.get_deadtime()
+
+#     @task
+#     def prepare_acquisition(
+#         self,
+#         take_dark,
+#         start,
+#         osc_range,
+#         exptime,
+#         npass,
+#         number_of_images,
+#         comment="",
+#         energy=None,
+#         trigger_mode=None,
+#     ):
+#         take_dark = 0
+#         self.new_acquisition = True
+#         if trigger_mode is None:
+#             if osc_range < 1e-4:
+#                 trigger_mode = "INTERNAL_TRIGGER"
+#             else:
+#                 trigger_mode = "EXTERNAL_TRIGGER"
+#             if self._mesh_steps > 1:
+#                 trigger_mode = "EXTERNAL_prepare_acquisition_MULTI"
+#                 # reset mesh steps
+#                 self._mesh_steps = 1
+
+#         if self.shutterless:
+#             self.shutterless_range = osc_range * number_of_images
+#             self.shutterless_exptime = (
+#                 exptime + self._detector.get_deadtime()
+#             ) * number_of_images
+#         if self._detector:
+#             self._detector.prepare_acquisition(
+#                 take_dark,
+#                 start,
+#                 osc_range,
+#                 exptime,
+#                 npass,
+#                 number_of_images,
+#                 comment,
+#                 energy,
+#                 trigger_mode,
+#             )
+#         else:
+#             self.execute_command(
+#                 "prepare_acquisition",
+#                 take_dark,
+#                 start,
+#                 osc_range,
+#                 exptime,
+#                 npass,
+#                 comment,
+#                 energy,
+#                 trigger_mode,
+#             )
+
+#     @task
+#     def set_detector_filenames(
+#         self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
+#     ):
+#         if self.shutterless and not self.new_acquisition:
+#             return
+
+#         if self._detector:
+#             self._detector.set_detector_filenames(
+#                 frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
+#             )
+#         else:
+#             self.get_command_object("prepare_acquisition").executeCommand(
+#                 'setMxCollectPars("current_phi", %f)' % start
+#             )
+#             self.get_command_object("prepare_acquisition").executeCommand(
+#                 'setMxCurrentFilename("%s")' % filename
+#             )
+#             self.get_command_object("prepare_acquisition").executeCommand(
+#                 "ccdfile(COLLECT_SEQ, %d)" % frame_number, wait=True
+#             )
+
+#     @task
+#     def prepare_oscillation(self, start, osc_range, exptime, npass):
+#         if self.shutterless:
+#             end = start + self.shutterless_range
+#             if self.new_acquisition:
+#                 self.collect_obj.do_prepare_oscillation(
+#                     start, end, self.shutterless_exptime, npass
+#                 )
+#             return (start, end)
+#         else:
+#             if osc_range < 1e-4:
+#                 # still image
+#                 pass
+#             else:
+#                 self.collect_obj.do_prepare_oscillation(
+#                     start, start + osc_range, exptime, npass
+#                 )
+#             return (start, start + osc_range)
+
+#     @task
+#     def start_acquisition(self, exptime, npass, first_frame):
+#         try:
+#             self.collect_obj.getObjectByRole("detector_cover").set_out()
+#         except Exception:
+#             pass
+
+#         if not first_frame and self.shutterless:
+#             pass
+#         else:
+#             if self._detector:
+#                 self._detector.start_acquisition()
+#             else:
+#                 self.execute_command("start_acquisition")
+
+#     @task
+#     def no_oscillation(self, exptime):
+#         self.collect_obj.open_fast_shutter()
+#         time.sleep(exptime)
+#         self.collect_obj.close_fast_shutter()
+
+#     @task
+#     def do_oscillation(self, start, end, exptime, npass):
+#         still = math.fabs(end - start) < 1e-4
+#         if self.shutterless:
+#             if self.new_acquisition:
+#                 # only do this once per collect
+#                 # make oscillation an asynchronous task => do not wait here
+#                 if still:
+#                     self.oscillation_task = self.no_oscillation(
+#                         self.shutterless_exptime, wait=False
+#                     )
+#                 else:
+#                     self.oscillation_task = self.collect_obj.oscil(
+#                         start, end, self.shutterless_exptime, 1, wait=False
+#                     )
+#             if self.oscillation_task.ready():
+#                 self.oscillation_task.get()
+#         else:
+#             if still:
+#                 self.no_oscillation(exptime)
+#             else:
+#                 self.collect_obj.oscil(start, end, exptime, npass)
+
+#     @task
+#     def write_image(self, last_frame):
+#         if last_frame:
+#             if self.shutterless:
+#                 self.oscillation_task.get()
+
+#     def stop_acquisition(self):
+#         self.new_acquisition = False
+
+#     @task
+#     def reset_detector(self):
+#         if self.shutterless:
+#             self.oscillation_task.kill()
+#         if self._detector:
+#             self._detector.stop()
+#         else:
+#             self.get_command_object("reset_detector").abort()
+#             self.execute_command("reset_detector")
+
+
 class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
-    def __init__(self, name):
+    def __init__(self, name  ):
         AbstractMultiCollect.__init__(self)
         HardwareObject.__init__(self, name)
         self._centring_status = None
@@ -69,7 +427,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
         try:
             undulators = self["undulator"]
-        except IndexError:
+        except KeyError:
             undulators = []
 
         beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
@@ -87,6 +445,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             detector_type=HWR.beamline.detector.getProperty("type"),
             detector_manufacturer=HWR.beamline.detector.getProperty("manufacturer"),
             detector_model=HWR.beamline.detector.getProperty("model"),
+            detector_binning_mode=HWR.beamline.detector.getProperty("binning_mode"),
             detector_px=HWR.beamline.detector.getProperty("px"),
             detector_py=HWR.beamline.detector.getProperty("py"),
             undulators=undulators,
@@ -119,10 +478,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def data_collection_end_hook(self, data_collect_parameters):
         self._metadataClient.end(data_collect_parameters)
 
-    @task
     def prepare_oscillation(
-            self, start, osc_range, exptime, number_of_images, shutterless, npass, first_frame
-    ):
+        self, start, osc_range, exptime, number_of_images, shutterless, npass, first_frame
+    ):       
         if shutterless:
             end = start + osc_range * number_of_images
             exptime = (exptime + self._detector.get_deadtime()) * number_of_images
@@ -197,6 +555,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def data_collection_cleanup(self):
         try:
             self.stop_oscillation()
+            HWR.beamline.diffractometer.set_phase("Centring", wait=True, timeout=200)
         finally:
             self.close_fast_shutter()
 
@@ -232,21 +591,28 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             logging.getLogger("HWR").info("Waiting for end of motors motion")
             time.sleep(0.02)
 
-    @task
     def open_safety_shutter(self):
         try:
-            HWR.beamline.safety_shutter.set_value(HWR.beamline.safety_shutter.VALUES["OPEN"], timeout=10)
-        except RuntimeError:
+            HWR.beamline.safety_shutter.set_value(HWR.beamline.safety_shutter.VALUES.OPEN, timeout=10)        
+        except Exception:
             logging.getLogger("HWR").exception("")
 
     def safety_shutter_opened(self):
-        return HWR.beamline.safety_shutter.get_state().name == "OPENED"
+        state = False
+        
+        try:
+            state = HWR.beamline.safety_shutter.get_state().name == "OPENED"
+        except Exception:
+            logging.getLogger("HWR").exception("")
+            state = True
+
+        return state
 
     @task
     def close_safety_shutter(self):
         try:
             HWR.beamline.safety_shutter.set_value(HWR.beamline.safety_shutter.VALUES["CLOSE"])
-        except RuntimeError:
+        except Exception:
             logging.getLogger("HWR").exception("")
 
     @task
@@ -279,21 +645,15 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             comment,
             energy,
             trigger_mode,
-        )
-
-        self.open_fast_shutter()
-        
+        )        
 
     @task
-    def set_detector_filenames(
-        self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
-    ):
-        return self._detector.set_detector_filenames(
-            frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
-        )
+    def set_detector_filenames(self, frame_number, start, filename, shutterless):
+        if frame_number == 1 or not shutterless:
+            return self._detector.set_detector_filenames(frame_number, start, filename)
 
     def stop_oscillation(self):
-        pass
+        HWR.beamline.diffractometer.abort_cmd()
 
     @task
     def start_acquisition(self, exptime, npass, first_frame, shutterless):
@@ -385,10 +745,10 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         if r.status != 200:
             logging.error("Could not create hkl input file")
         else:
-            hkl_file.write(r.read())
+            hkl_file.write(r.read().decode())
         hkl_file.close()
         os.chmod(hkl_file_path, 0o666)
-
+        
         for input_file_dir, file_prefix in (
             (self.raw_data_input_file_dir, "../.."),
             (self.xds_directory, "../links"),
@@ -396,11 +756,11 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             xds_input_file = os.path.join(input_file_dir, "XDS.INP")
             conn.request("GET", "/xds.inp/%d?basedir=%s" % (collection_id, file_prefix))
             xds_file = open(xds_input_file, "w")
-            r = conn.getresponse()
-            if r.status != 200:
+            res = conn.getresponse()
+            if res.status != 200:
                 logging.error("Could not create xds input file")
             else:
-                xds_file.write(r.read())
+                xds_file.write(res.read().decode())
             xds_file.close()
             os.chmod(xds_input_file, 0o666)
 
@@ -409,7 +769,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         mosflm_input_file = os.path.join(input_file_dir, "mosflm.inp")
         conn.request("GET", "/mosflm.inp/%d?basedir=%s" % (collection_id, file_prefix))
         mosflm_file = open(mosflm_input_file, "w")
-        mosflm_file.write(conn.getresponse().read())
+        mosflm_file.write(conn.getresponse().read().decode())
         mosflm_file.close()
         os.chmod(mosflm_input_file, 0o666)
 
@@ -422,7 +782,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             stac_om_input_file = os.path.join(stac_om_dir, stac_om_input_file_name)
             conn.request("GET", "/stac.descr/%d" % collection_id)
             stac_om_file = open(stac_om_input_file, "w")
-            stac_template = conn.getresponse().read()
+            stac_template = conn.getresponse().read().decode()
             if stac_om_input_file_name.startswith("xds"):
                 om_type = "xds"
                 if stac_om_dir == self.raw_data_input_file_dir:
@@ -485,6 +845,13 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def get_beam_shape(self):
         return self.execute_command("get_beam_shape")
+
+    # def get_measured_intensity(self):
+    #     try:
+    #         val = self.get_channel_object("image_intensity").getValue()
+    #         return float(val)
+    #     except BaseException:
+    #         return 0
 
     def get_machine_current(self):
         if HWR.beamline.machine_info:

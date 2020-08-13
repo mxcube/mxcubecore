@@ -435,7 +435,10 @@ class MXCuBEMetadataClient(object):
                 motorPositions = str(round(position, 3))
             else:
                 motorNames += " " + motorName
-                motorPositions += " " + str(round(position, 3))
+                if position is not None:
+                    motorPositions += " " + str(round(position, 3))
+                else:
+                    motorPositions += " None"
         dictMetadata["MX_motors_name"] = motorNames
         dictMetadata["MX_motors_value"] = motorPositions
         # Detector distance
@@ -444,13 +447,10 @@ class MXCuBEMetadataClient(object):
             dictMetadata["MX_detectorDistance"] = distance
         # Aperture
         if (
-            self.esrf_multi_collect.bl_control.beam_info is not None
-            and self.esrf_multi_collect.bl_control.beam_info.aperture_hwobj is not None
+             HWR.beamline.beam is not None
+            and HWR.beamline.beam.aperture is not None
         ):
-            aperture = (
-                self.esrf_multi_collect.bl_control.beam_info.aperture_hwobj.get_value()
-            )
-            dictMetadata["MX_aperture"] = aperture
+            dictMetadata["MX_aperture"] = HWR.beamline.beam.aperture.get_value()
         return dictMetadata
 
 
