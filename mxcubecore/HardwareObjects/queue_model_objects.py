@@ -1380,7 +1380,7 @@ class PathTemplate(object):
         self.suffix = str()
         self.start_num = int()
         self.num_files = int()
-        self.compression = True
+        self.compression = False
 
         if not hasattr(self, "precision"):
             self.precision = str()
