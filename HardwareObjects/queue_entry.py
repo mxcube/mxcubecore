@@ -719,7 +719,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     )
                     HWR.beamline.collect.set_helical(False)
                     HWR.beamline.collect.set_mesh(True)
-                    dc.grid.used_count += 1
+                    HWR.beamline.sample_view.inc_used_for_collection(self.get_data_model().shape)
                 else:
                     HWR.beamline.collect.set_helical(False)
                     HWR.beamline.collect.set_mesh(False)
