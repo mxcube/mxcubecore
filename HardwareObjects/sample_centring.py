@@ -533,7 +533,7 @@ def find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
     snapshot_filename = os.path.join(
         tempfile.gettempdir(), "mxcube_sample_snapshot.png"
     )
-    camera.takeSnapshot(snapshot_filename, bw=True)
+    camera.take_snapshot(snapshot_filename, bw=True)
 
     info, x, y = lucid.find_loop(snapshot_filename, IterationClosing=6)
 
@@ -567,8 +567,8 @@ def auto_center(
     msg_cb,
     new_point_cb,
 ):
-    imgWidth = camera.getWidth()
-    imgHeight = camera.getHeight()
+    imgWidth = camera.get_width()
+    imgHeight = camera.get_height()
 
     # check if loop is there at the beginning
     i = 0
