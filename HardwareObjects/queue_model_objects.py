@@ -1981,14 +1981,15 @@ class GphlWorkflow(TaskNode):
         return self.path_template
 
     def get_workflow_parameters(self):
-        result = HWR.beamline.gphl_workflow.get_available_workflows().get(
-            self.get_type()
-        )
-        if result is None:
-            raise RuntimeError(
-                "No parameters for unknown workflow %s" % repr(self.get_type())
-            )
-        return result
+        pass
+        #result = HWR.beamline.gphl_workflow.get_available_workflows().get(
+        #    self.get_type()
+        #)
+        #if result is None:
+        #    raise RuntimeError(
+        #        "No parameters for unknown workflow %s" % repr(self.get_type())
+        #    )
+        #return result
 
 
 class XrayImaging(TaskNode):
