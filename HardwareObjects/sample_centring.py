@@ -580,7 +580,7 @@ def auto_center(
                 msg_cb("No loop detected, aborting")
             return
 
-    for k in range(2):
+    for k in range(1):
         if callable(msg_cb):
             msg_cb("Doing automatic centring")
 
