@@ -681,7 +681,7 @@ class SampleChanger(Container, Equipment):
         self._do_unload(sample_slot)
 
     def _resolve_component(self, component):
-        if component is not None and isinstance(component, basestring):
+        if component is not None and isinstance(component, str):
             c = self.get_component_by_address(component)
             if c is None:
                 raise Exception("Invalid component: " + component)
