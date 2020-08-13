@@ -142,8 +142,10 @@ class AbstractActuator(HardwareObject):
         if value is None:
             value = self.get_value()
 
-        self._nominal_value = value
-        self.emit("valueChanged", (value,))
+        if self._nominal_value != value:
+
+            self._nominal_value = value
+            self.emit("valueChanged", (value,))
 
     def update_limits(self, limits=None):
         """Check if the limits have changed. Emits signal limitsChanged.
@@ -153,10 +155,11 @@ class AbstractActuator(HardwareObject):
         if not limits:
             limits = self.get_limits()
 
-        # All values are not NaN
-        if not any(isinstance(lim, float) and math.isnan(lim) for lim in limits):
-            self._nominal_limits = limits
-            self.emit("limitsChanged", (limits,))
+        if self._nominal_limits != limits:
+            # All values are not NaN
+            if not any(isinstance(lim, float) and math.isnan(lim) for lim in limits):
+                self._nominal_limits = limits
+                self.emit("limitsChanged", (limits,))
 
     def re_emit_values(self):
         """Update values for all internal attributes"""
