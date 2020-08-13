@@ -55,8 +55,8 @@ class XRFSpectrum(Equipment):
 
         self.ctrl_hwobj = self.getObjectByRole("controller")
         self.mca_hwobj = self.getObjectByRole("mca")
-        if self.mca_hwobj:
-            self.mca_hwobj.set_calibration(calib_cf=self.mca_hwobj.calib_cf)
+        #if self.mca_hwobj:
+        #    self.mca_hwobj.set_calibration(calib_cf=self.mca_hwobj.calib_cf)
 
         self.archive_path = self.getProperty("archive_path")
         if not self.archive_path:
@@ -182,24 +182,15 @@ class XRFSpectrum(Equipment):
         return True
 
     def reallyStartXrfSpectrum(self, ct, filename):
-        if self.doSpectrum:
-            try:
-                res = self.doSpectrum(ct, filename, wait=True)
-            except BaseException:
-                logging.getLogger().exception("XRFSpectrum: problem calling SPEC macro")
-                self.spectrumStatusChanged("Error problem SPEC macro")
-            else:
-                self.spectrumCommandFinished(res)
+        try:
+            res = self._doSpectrum(ct, filename, wait=True)
+        except BaseException:
+            logging.getLogger("user_level_log").exception(
+                "XRFSpectrum: problem calling procedure"
+            )
+            self.spectrumStatusChanged("Error problem with spectrum procedure")
         else:
-            try:
-                res = self._doSpectrum(ct, filename, wait=True)
-            except BaseException:
-                logging.getLogger("user_level_log").exception(
-                    "XRFSpectrum: problem calling procedure"
-                )
-                self.spectrumStatusChanged("Error problem with spectrum procedure")
-            else:
-                self.spectrumCommandFinished(res)
+            self.spectrumCommandFinished(res)
 
     def cancelXrfSpectrum(self, *args):
         if self.scanning:
@@ -236,43 +227,33 @@ class XRFSpectrum(Equipment):
         logging.getLogger().debug("XRFSpectrum: XRF spectrum result is %s" % result)
         self.scanning = False
         if result is not False:
-            try:
-                mcaData = self.get_channel_object("mca_data").getValue()
-                mcaCalib = self.get_channel_object("calib_data").getValue()
-            except BaseException:
-                fname = self.spectrumInfo["filename"].replace(".dat", ".raw")
-                self.mca_hwobj.set_presets(fname=str(fname))
-                mcaData = self.mca_hwobj.read_data(save_data=True)
-                mcaCalib = self.mca_hwobj.get_calibration()
-            try:
-                mcaConfig = self.get_channel_object("config_data").getValue()
-                self.spectrumInfo["beamTransmission"] = mcaConfig["att"]
-                self.spectrumInfo["energy"] = mcaConfig["energy"]
-                self.spectrumInfo["beamSizeHorizontal"] = float(mcaConfig["bsX"])
-                self.spectrumInfo["beamSizeVertical"] = float(mcaConfig["bsY"])
-            except BaseException:
-                mcaConfig = {}
-                self.spectrumInfo[
-                    "beamTransmission"
-                ] = HWR.beamline.transmission.get_value()
-                self.spectrumInfo["energy"] = HWR.beamline.energy.get_value()
-                if HWR.beamline.flux:
-                    self.spectrumInfo["flux"] = HWR.beamline.flux.get_value()
+            fname = self.spectrumInfo["filename"].replace(".dat", ".raw")
+            self.mca_hwobj.set_presets(fname=str(fname))
+            mcaData = self.mca_hwobj.read_data(save_data=True)
+            mcaCalib = self.mca_hwobj.get_calibration()
 
-                beam_info = HWR.beamline.beam.get_beam_info_dict()
-                self.spectrumInfo["beamSizeHorizontal"] = beam_info["size_x"] * 1000.0
-                self.spectrumInfo["beamSizeVertical"] = beam_info["size_y"] * 1000.0
-                mcaConfig["att"] = self.spectrumInfo["beamTransmission"]
-                mcaConfig["energy"] = self.spectrumInfo["energy"]
+            mcaConfig = {}
+            self.spectrumInfo[
+                "beamTransmission"
+            ] = HWR.beamline.transmission.get_value()
+            self.spectrumInfo["energy"] = HWR.beamline.energy.get_value()
+            if HWR.beamline.flux:
+                self.spectrumInfo["flux"] = HWR.beamline.flux.get_value()
+            self.beamsize = self.getObjectByRole("beamsize")
+            if self.beamsize:
+                bsX = self.beamsize.get_size(self.beamsize.get_value().name)
+                self.spectrumInfo["beamSizeHorizontal"] = bsX
+                self.spectrumInfo["beamSizeVertical"] = bsX
                 mcaConfig["bsX"] = self.spectrumInfo["beamSizeHorizontal"]
                 mcaConfig["bsY"] = self.spectrumInfo["beamSizeVertical"]
-                roi = self.mca_hwobj.get_roi()
-                mcaConfig["min"] = roi["chmin"]
-                mcaConfig["max"] = roi["chmax"]
+            mcaConfig["att"] = self.spectrumInfo["beamTransmission"]
+            mcaConfig["energy"] = self.spectrumInfo["energy"]
+            roi = self.mca_hwobj.get_roi()
+            mcaConfig["min"] = roi["chmin"]
+            mcaConfig["max"] = roi["chmax"]
             mcaConfig["legend"] = self.spectrumInfo["annotatedPymcaXfeSpectrum"]
             mcaConfig["htmldir"], _ = os.path.split(mcaConfig["legend"])
             mcaConfig["file"] = self._get_cfgfile(self.spectrumInfo["energy"])
-
             try:
                 self.set_data(mcaData, mcaCalib, mcaConfig)
             except Exception:
@@ -290,7 +271,7 @@ class XRFSpectrum(Equipment):
             # copy raw data file to the archive directory
             try:
                 shutil.copyfile(
-                    self.spectrumInfo["filename"], self.spectrumInfo["scanFileFullPath"]
+                    fname, self.spectrumInfo["scanFileFullPath"]
                 )
             except Exception:
                 logging.getLogger().error(
@@ -373,7 +354,6 @@ class XRFSpectrum(Equipment):
 
         fluodet_ctrl = self.getObjectByRole("fluodet_ctrl")
         fluodet_ctrl.actuatorIn()
-
         # put the beamstop in
         try:
             self.ctrl_hwobj.diffractometer.set_phase("DataCollection", wait=True)
