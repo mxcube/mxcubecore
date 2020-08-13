@@ -43,6 +43,7 @@ class SampleView(AbstractSampleView):
         self._zoom = self.getObjectByRole("zoom")
         self._frontlight = self.getObjectByRole("frontlight")
         self._backlight = self.getObjectByRole("backlight")
+        self._diffractometer = self.getObjectByRole("diffractometer")
         self._ui_snapshot_cb = None
         
         self.hide_grid_threshold = self.getProperty("hide_grid_threshold", 5)
@@ -509,7 +510,7 @@ class Grid(Shape):
         self.set_id(Grid.SHAPE_COUNT)
 
     def update_position(self, transform):
-        phi_pos = self.shapes_hw_object.diffractometer.phiMotor.get_value() % 360
+        phi_pos = self.shapes_hw_object._diffractometer.phiMotor.get_value() % 360
         d = abs((self.get_centred_position().phi % 360) - phi_pos)
 
         if min(d, 360 - d) > self.shapes_hw_object.hide_grid_threshold:
