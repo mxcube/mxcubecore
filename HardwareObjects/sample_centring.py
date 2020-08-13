@@ -370,7 +370,6 @@ def centre_plate(
 
 
 def ready(*motors):
-    print([(m.actuator_name, m.is_ready()) for m in motors])
     return all([m.is_ready() for m in motors])
 
 
@@ -425,10 +424,8 @@ def center(
             except BaseException:
                 raise RuntimeError("Aborted while waiting for point selection")
             USER_CLICKED_EVENT = gevent.event.AsyncResult()
-            print("-------------------->", pixelsPerMm_Hor)
             X.append(x / float(pixelsPerMm_Hor))
             Y.append(y / float(pixelsPerMm_Ver))
-            print(phi.get_value())
             phi_positions.append(phi.direction * math.radians(phi.get_value()))
             if i != n_points - 1:
                 phi.set_value_relative(phi.direction * phi_angle)
