@@ -268,7 +268,7 @@ class AbstractDetector(HardwareObject):
         Returns:
             (int): detector height [px]
         """
-        return self._width
+        return self._height
 
     def set_threshold_energy(self, threshold_energy):
         """
