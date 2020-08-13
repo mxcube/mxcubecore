@@ -570,6 +570,7 @@ class DataCollection(TaskNode):
         self.run_offline_processing = True
         self.run_online_processing = False
         self.grid = None
+        self.shape = None
         self.online_processing_results = {"raw": None, "aligned": None}
         self.processing_msg_list = []
         self.workflow_id = None
