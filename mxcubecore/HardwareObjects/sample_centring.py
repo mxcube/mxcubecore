@@ -428,7 +428,7 @@ def center(
             Y.append(y / float(pixelsPerMm_Ver))
             phi_positions.append(phi.direction * math.radians(phi.get_value()))
             if i != n_points - 1:
-                phi.set_value_relative(phi.direction * phi_angle)
+                phi.set_value_relative(phi.direction * phi_angle, timeout=10)
             READY_FOR_NEXT_POINT.set()
             i += 1
     except BaseException:
