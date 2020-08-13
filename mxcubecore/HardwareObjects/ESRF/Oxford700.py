@@ -37,7 +37,7 @@ class Oxford700(HardwareObject):
         self.interval = self.getProperty("interval") or 10
         self.ctrl = getattr(controller, cryostat)
         if self.ctrl is not None:
-            self.get_params()
+            #self.get_params()
             gevent.spawn(self._do_polling)
 
     def value_changed(self):
@@ -46,7 +46,7 @@ class Oxford700(HardwareObject):
         self.emit("stateChanged", (self.get_state(),))
 
     def get_temperature(self):
-        return self.temp
+        return self.ctrl.read()
 
     def get_value(self):
         return self.get_temperature()
@@ -65,7 +65,7 @@ class Oxford700(HardwareObject):
                 action()
 
     def update_params(self):
-        self.ctrl.controller._oxford.update_cmd()
+        self.ctrl.controller._oxford._update_cmd()
 
     def stop_action(self, phase="HOLD"):
         if phase in PHASE_ACTION:
@@ -75,7 +75,12 @@ class Oxford700(HardwareObject):
         self.ctrl.pause(execute)
 
     def get_state(self):
-        _, _, _, run_mode = self.get_params()
+        #_, _, _, run_mode = self.get_params()
+        state = self.ctrl.state()
+        if isinstance(state, list):
+            run_mode = state[0]
+        else:
+            run_mode = state
         try:
             self.cryo_state = run_mode.upper()
         except TypeError:
