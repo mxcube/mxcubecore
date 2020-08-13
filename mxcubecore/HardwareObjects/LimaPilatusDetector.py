@@ -14,6 +14,8 @@ from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
     AbstractDetector,
 )
 
+from HardwareRepository.BaseHardwareObjects import HardwareObjectState
+
 
 class LimaPilatusDetector(AbstractDetector):
     def __init__(self, name):
@@ -110,6 +112,7 @@ class LimaPilatusDetector(AbstractDetector):
             )
 
         except ConnectionError:
+            self.update_state(HardwareObjectState.FAULT)
             logging.getLogger("HWR").error(
                 "Could not connect to detector %s" % lima_device
             )
@@ -117,14 +120,15 @@ class LimaPilatusDetector(AbstractDetector):
     def has_shutterless(self):
         return True
 
-    def wait_ready(self, timeout=10):
-        with gevent.Timeout(timeout, RuntimeError("Detector not ready")):
+    def wait_ready(self):
+        with gevent.Timeout(3500, RuntimeError("Detector not ready")):
             while self.get_channel_value("acq_status") != "Ready":
                 time.sleep(1)
 
     def last_image_saved(self):
         try:
-            return self.get_channel_object("last_image_saved").getValue() + 1
+            img = self.get_channel_object("last_image_saved").getValue() + 1
+            return img
         except Exception:
             return 0
 
@@ -186,12 +190,11 @@ class LimaPilatusDetector(AbstractDetector):
         self.header["Polarization"] = HWR.beamline.collect.bl_config.polarisation
         self.header["Detector_2theta"] = "0.0000 deg."
         self.header["Angle_increment"] = "%0.4f deg." % osc_range
-        # self.header["Start_angle"]="%0.4f deg." % start
         self.header["Transmission"] = HWR.beamline.transmission.get_value()
 
         self.header["Flux"] = HWR.beamline.flux.get_value()
         self.header["Beam_xy"] = "(%.2f, %.2f) pixels" % tuple(
-            [value / 0.172 for value in HWR.beamline.resolution.get_beam_centre()]
+            [value / 0.172 for value in HWR.beamline.detector.get_beam_position()]
         )
         self.header["Detector_Voffset"] = "0.0000 m"
         self.header["Energy_range"] = "(0, 0) eV"
@@ -233,9 +236,9 @@ class LimaPilatusDetector(AbstractDetector):
 
         self.set_channel_value("fill_mode", "ON")
 
+    @task
     def set_detector_filenames(
-        self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
-    ):
+        self, frame_number, start, filename):
         prefix, suffix = os.path.splitext(os.path.basename(filename))
         prefix = "_".join(prefix.split("_")[:-1]) + "_"
         dirname = os.path.dirname(filename)
@@ -243,6 +246,7 @@ class LimaPilatusDetector(AbstractDetector):
             dirname = dirname[len(os.path.sep) :]
 
         saving_directory = os.path.join(self.getProperty("buffer"), dirname)
+
         subprocess.Popen(
             "ssh %s@%s mkdir --parents %s"
             % (os.environ["USER"], self.getProperty("control"), saving_directory),
@@ -252,8 +256,6 @@ class LimaPilatusDetector(AbstractDetector):
             stderr=None,
             close_fds=True,
         ).wait()
-
-        self.wait_ready()
 
         self.set_channel_value("saving_directory", saving_directory)
         self.set_channel_value("saving_prefix", prefix)
@@ -268,14 +270,16 @@ class LimaPilatusDetector(AbstractDetector):
         for i, start_angle in enumerate(self.start_angles):
             header = "\n%s\n" % self.getProperty("serial")
             header += "# %s\n" % time.strftime("%Y/%b/%d %T")
-            header += "# Pixel_size 172e-6 m x 172e-6 m\n"
-            header += "# Silicon sensor, thickness 0.000320 m\n"
+            header += "\n%s\n" % self.getProperty("sensor")
+            header += "\n%s\n" % self.getProperty("pixel_size")
             self.header["Start_angle"] = start_angle
+
             for key, value in self.header.items():
                 header += "# %s %s\n" % (key, value)
+                    
             headers.append("%d : array_data/header_contents|%s;" % (i, header))
 
-        self.execute_command("set_image_header", headers)
+        self.execute_command("set_image_header", headers)        
 
     def start_acquisition(self):
         try:
@@ -283,6 +287,9 @@ class LimaPilatusDetector(AbstractDetector):
         except Exception:
             pass
 
+        self.wait_ready()
+
+        self.execute_command("stop_acq")
         self.execute_command("prepare_acq")
         return self.execute_command("start_acq")
 
