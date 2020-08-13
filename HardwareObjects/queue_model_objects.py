@@ -13,7 +13,6 @@ except ImportError:
     from ordereddict import OrderedDict
 
 from HardwareRepository.HardwareObjects import queue_model_enumerables
-from HardwareRepository import HardwareRepository as HWR
 
 
 class TaskNode(object):
@@ -386,6 +385,7 @@ class Sample(TaskNode):
             self.lims_id = lims_sample.sampleId
         else:
             self.lims_id = lims_sample.get("sampleId")
+        print("---------------->", self.lims_id)
 
         if hasattr(lims_sample, "sampleName"):
             self.name = str(lims_sample.sampleName)
@@ -1484,7 +1484,7 @@ class PathTemplate(object):
                 "PathTemplate (ALBA) - archive_directory is %s" % archive_directory
             )
         else:
-            directory = self.directory[len(PathTemplate.base_directory) :]
+            directory = self.directory[len(PathTemplate.base_directory):]
             folders = directory.split("/")
             if "visitor" in folders:
                 endstation_name = folders[3]
@@ -1982,14 +1982,14 @@ class GphlWorkflow(TaskNode):
 
     def get_workflow_parameters(self):
         pass
-        #result = HWR.beamline.gphl_workflow.get_available_workflows().get(
+        # result = HWR.beamline.gphl_workflow.get_available_workflows().get(
         #    self.get_type()
-        #)
-        #if result is None:
+        # )
+        # if result is None:
         #    raise RuntimeError(
         #        "No parameters for unknown workflow %s" % repr(self.get_type())
         #    )
-        #return result
+        # return result
 
 
 class XrayImaging(TaskNode):
