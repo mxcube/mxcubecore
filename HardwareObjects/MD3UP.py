@@ -13,11 +13,11 @@ class MD3UP(Microdiff.Microdiff):
 
     def init(self):
         Microdiff.Microdiff.init(self)
+        phiy_ref = self["centringReferencePosition"].getProperty("phiy")
+
         self.centringPhi = CentringMotor(self.phiMotor, direction=1)
         self.centringPhiz = CentringMotor(self.phizMotor)
-        self.centringPhiy = CentringMotor(
-            self.phiyMotor, direction=-1, reference_position=-0.3322
-        )
+        self.centringPhiy = CentringMotor(self.phiyMotor, direction=-1, reference_position=phiy_ref)
         self.centringSamplex = CentringMotor(self.sampleXMotor, direction=-1)
         self.centringSampley = CentringMotor(self.sampleYMotor)
         self.scan_nb_frames = 1
@@ -89,8 +89,8 @@ class MD3UP(Microdiff.Microdiff):
                 raise ValueError("Scan start below the allowed value %f" % low_lim)
             elif end > hi_lim:
                 raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
-        self.nb_frames.setValue(self.scan_nb_frames)
-
+        self.nb_frames.set_value(self.scan_nb_frames)
+        
         params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
 
         scan = self.add_command(
@@ -101,6 +101,9 @@ class MD3UP(Microdiff.Microdiff):
             },
             "startScanEx",
         )
+
+        self._wait_ready(300)
+        
         scan(params)
 
         if wait:
@@ -116,7 +119,7 @@ class MD3UP(Microdiff.Microdiff):
             elif end > hi_lim:
                 raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
 
-        self.nb_frames.setValue(self.scan_nb_frames)
+        self.nb_frames.set_value(self.scan_nb_frames)
 
         params = "%0.3f\t%0.3f\t%f\t" % (start, (end - start), exptime)
         params += "%0.3f\t" % motors_pos["1"]["phiz"]
@@ -156,13 +159,13 @@ class MD3UP(Microdiff.Microdiff):
         wait=False,
     ):
 
-        self.scan_detector_gate_pulse_enabled.setValue(True)
+        self.scan_detector_gate_pulse_enabled.set_value(True)
 
         # Adding the servo time to the readout time to avoid any
         # servo cycle jitter
         servo_time = 0.110
 
-        self.scan_detector_gate_pulse_readout_time.setValue(
+        self.scan_detector_gate_pulse_readout_time.set_value(
             dead_time * 1000 + servo_time
         )
 
