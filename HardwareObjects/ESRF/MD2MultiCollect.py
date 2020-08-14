@@ -131,14 +131,12 @@ class MD2MultiCollect(ESRFMultiCollect):
         )
 
     def open_fast_shutter(self):
-        self.getObjectByRole("fastshut").set_value(
-            self.getObjectByRole("fastshut").VALUES.OPEN
-        )
+        fs = HWR.beamline.fast_shutter
+        fs.set_value(fs.VALUES.OPEN)
 
     def close_fast_shutter(self):
-        self.getObjectByRole("fastshut").set_value(
-            self.getObjectByRole("fastshut").VALUES.CLOSED
-        )
+        fs = HWR.beamline.fast_shutter
+        fs.set_value(fs.VALUES.CLOSED)
 
     def set_helical(self, helical_on):
         self.helical = helical_on
