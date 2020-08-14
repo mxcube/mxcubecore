@@ -19,7 +19,8 @@ import uuid
 import psutil
 
 from HardwareRepository.HardwareObjects.TangoLimaVideo import TangoLimaVideo
-from HardwareRepository.HardwareObjects.video_utils import streaming_processes
+from HardwareRepository.utils.video_utils import streaming_processes
+
 
 class TangoLimaMpegVideo(TangoLimaVideo):
     def __init__(self, name):
