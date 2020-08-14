@@ -385,7 +385,6 @@ class Sample(TaskNode):
             self.lims_id = lims_sample.sampleId
         else:
             self.lims_id = lims_sample.get("sampleId")
-        print("---------------->", self.lims_id)
 
         if hasattr(lims_sample, "sampleName"):
             self.name = str(lims_sample.sampleName)
