@@ -157,7 +157,9 @@ class RedisClient(HardwareObject):
                 graphics_objects = self.redis_client.get(
                     "mxcube:%s:%s:graphics" % (self.proposal_id, self.beamline_name)
                 )
-                HWR.beamline.sample_view.load_shapes(jsonpickle.decode(graphics_objects))
+                HWR.beamline.sample_view.load_shapes(
+                    jsonpickle.decode(graphics_objects)
+                )
                 logging.getLogger("HWR").debug("RedisClient: Graphics loaded")
             except BaseException:
                 pass

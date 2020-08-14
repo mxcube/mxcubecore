@@ -446,10 +446,7 @@ class MXCuBEMetadataClient(object):
         if distance is not None:
             dictMetadata["MX_detectorDistance"] = distance
         # Aperture
-        if (
-             HWR.beamline.beam is not None
-            and HWR.beamline.beam.aperture is not None
-        ):
+        if HWR.beamline.beam is not None and HWR.beamline.beam.aperture is not None:
             dictMetadata["MX_aperture"] = HWR.beamline.beam.aperture.get_value()
         return dictMetadata
 

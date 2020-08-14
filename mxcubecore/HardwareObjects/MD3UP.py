@@ -17,7 +17,9 @@ class MD3UP(Microdiff.Microdiff):
 
         self.centringPhi = CentringMotor(self.phiMotor, direction=1)
         self.centringPhiz = CentringMotor(self.phizMotor)
-        self.centringPhiy = CentringMotor(self.phiyMotor, direction=-1, reference_position=phiy_ref)
+        self.centringPhiy = CentringMotor(
+            self.phiyMotor, direction=-1, reference_position=phiy_ref
+        )
         self.centringSamplex = CentringMotor(self.sampleXMotor, direction=-1)
         self.centringSampley = CentringMotor(self.sampleYMotor)
         self.scan_nb_frames = 1
@@ -90,7 +92,7 @@ class MD3UP(Microdiff.Microdiff):
             elif end > hi_lim:
                 raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
         self.nb_frames.set_value(self.scan_nb_frames)
-        
+
         params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
 
         scan = self.add_command(
@@ -103,7 +105,7 @@ class MD3UP(Microdiff.Microdiff):
         )
 
         self._wait_ready(300)
-        
+
         scan(params)
 
         if wait:

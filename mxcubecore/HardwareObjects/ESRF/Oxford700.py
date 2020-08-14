@@ -37,7 +37,7 @@ class Oxford700(HardwareObject):
         self.interval = self.getProperty("interval") or 10
         self.ctrl = getattr(controller, cryostat)
         if self.ctrl is not None:
-            #self.get_params()
+            # self.get_params()
             gevent.spawn(self._do_polling)
 
     def value_changed(self):
@@ -75,7 +75,7 @@ class Oxford700(HardwareObject):
         self.ctrl.pause(execute)
 
     def get_state(self):
-        #_, _, _, run_mode = self.get_params()
+        # _, _, _, run_mode = self.get_params()
         state = self.ctrl.state()
         if isinstance(state, list):
             run_mode = state[0]

@@ -70,7 +70,7 @@ class ID232BeamDefiner(AbstractNState):
     def get_predefined_positions_list(self):
         return self.posNames
 
-    def get_current_position_name(self, *args):       
+    def get_current_position_name(self, *args):
         tf1_state = self.controller.tf.status_read()[1].split()
         tf2_state = self.controller.tf2.status_read()[1].split()
 

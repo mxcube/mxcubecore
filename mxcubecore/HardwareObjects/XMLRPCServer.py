@@ -152,7 +152,7 @@ class XMLRPCServer(HardwareObject):
     def init(self):
         """
         Method inherited from HardwareObject, called by framework-2.
-        """        
+        """
         self.all_interfaces = self.getProperty("all_interfaces", False)
         # Listen on all interfaces if <all_interfaces>True</all_interfaces>
         # otherwise only on the interface corresponding to socket.gethostname()
@@ -213,7 +213,7 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.beamline_setup_read)
         self._server.register_function(self.get_default_path_template)
         self._server.register_function(self.get_default_acquisition_parameters)
-       
+
         self._server.register_function(self.get_diffractometer_positions)
         self._server.register_function(self.move_diffractometer)
         self._server.register_function(self.save_snapshot)
@@ -240,7 +240,6 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.set_back_light_level)
         self._server.register_function(self.get_back_light_level)
         self._server.register_function(self.centre_beam)
-
 
         # Register functions from modules specified in <apis> element
         if self.hasObject("apis"):
@@ -477,10 +476,10 @@ class XMLRPCServer(HardwareObject):
     def _getattr_from_path(self, obj, attr, delim="/"):
         """Recurses through an attribute chain to get the attribute."""
         return reduce(getattr, attr.split(delim), obj)
-    
+
     def beamline_setup_read(self, path):
         value = None
-        
+
         if path.strip("/").endswith("default-acquisition-parameters"):
             value = jsonpickle.encode(self.get_default_acquisition_parameters())
         elif path.strip("/").endswith("default-path-template"):
@@ -670,8 +669,8 @@ class XMLRPCServer(HardwareObject):
 
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
         log = logging.getLogger("HWR")
-        #log.info("Registering functions in module %s with XML-RPC server" % module_name)
-        
+        # log.info("Registering functions in module %s with XML-RPC server" % module_name)
+
         if module_name not in sys.modules:
             __import__(module_name)
         module = sys.modules[module_name]
@@ -701,10 +700,10 @@ class XMLRPCServer(HardwareObject):
             for f in inspect.getmembers(module, inspect.isfunction):
                 if f[0][0] != "_":
                     xmlrpc_name = prefix + f[0]
-                    #log.info(
+                    # log.info(
                     #    "Registering function %s.%s as XML-RPC function %s"
                     #    % (module_name, f[1].__name__, xmlrpc_name)
-                    #)
+                    # )
 
                     # Bind method to this XMLRPCServer instance but don't set attribute
                     # This is sufficient to register it as an xmlrpc function.

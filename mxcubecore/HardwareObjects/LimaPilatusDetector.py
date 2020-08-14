@@ -237,8 +237,7 @@ class LimaPilatusDetector(AbstractDetector):
         self.set_channel_value("fill_mode", "ON")
 
     @task
-    def set_detector_filenames(
-        self, frame_number, start, filename):
+    def set_detector_filenames(self, frame_number, start, filename):
         prefix, suffix = os.path.splitext(os.path.basename(filename))
         prefix = "_".join(prefix.split("_")[:-1]) + "_"
         dirname = os.path.dirname(filename)
@@ -276,10 +275,10 @@ class LimaPilatusDetector(AbstractDetector):
 
             for key, value in self.header.items():
                 header += "# %s %s\n" % (key, value)
-                    
+
             headers.append("%d : array_data/header_contents|%s;" % (i, header))
 
-        self.execute_command("set_image_header", headers)        
+        self.execute_command("set_image_header", headers)
 
     def start_acquisition(self):
         try:

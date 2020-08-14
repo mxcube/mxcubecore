@@ -193,7 +193,7 @@ class LimaEigerDetector(AbstractDetector):
         prefix = "_".join(prefix.split("_")[:-1]) + "_"
         dirname = os.path.dirname(filename)
         if dirname.startswith(os.path.sep):
-            dirname = dirname[len(os.path.sep):]
+            dirname = dirname[len(os.path.sep) :]
 
         saving_directory = os.path.join(self.getProperty("buffer"), dirname)
 

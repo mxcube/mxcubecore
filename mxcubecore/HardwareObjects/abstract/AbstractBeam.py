@@ -60,7 +60,7 @@ class AbstractBeam(HardwareObject):
 
         self._beam_size_dict = {
             "aperture": [sys.float_info.max, sys.float_info.max],
-            "slits": [sys.float_info.max, sys.float_info.max]
+            "slits": [sys.float_info.max, sys.float_info.max],
         }
         self._beam_width = None
         self._beam_height = None
@@ -185,7 +185,7 @@ class AbstractBeam(HardwareObject):
         Method called if aperture, slits or focusing has been changed
         Returns: dictionary, {size_x: 0.1, size_y: 0.1, shape: BeamShape enum}
         """
-        
+
         size_x = min(
             self._beam_size_dict["aperture"][0], self._beam_size_dict["slits"][0],
         )

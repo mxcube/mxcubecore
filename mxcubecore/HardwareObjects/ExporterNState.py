@@ -127,7 +127,7 @@ class ExporterNState(AbstractNState):
         # NB Workaround beacuse diffractomer does not send event on
         # change of light position
         self.update_state(self.STATES.BUSY)
-        
+
         if isinstance(value, Enum):
             if isinstance(value.value, tuple) or isinstance(value.value, list):
                 value = value.value[0]

@@ -150,7 +150,6 @@ class MicrodiffAperture(ExporterNState):
         except (ValueError, IndexError):
             raise RuntimeError("Unknown aperture size")
 
-
     def get_diameter_size_list(self):
         values = []
         for value in self.VALUES:

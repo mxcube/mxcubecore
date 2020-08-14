@@ -45,7 +45,7 @@ class SampleView(AbstractSampleView):
         self._backlight = self.getObjectByRole("backlight")
         self._diffractometer = self.getObjectByRole("diffractometer")
         self._ui_snapshot_cb = None
-        
+
         self.hide_grid_threshold = self.getProperty("hide_grid_threshold", 5)
 
     @property
@@ -72,7 +72,7 @@ class SampleView(AbstractSampleView):
 
     def set_ui_snapshot_cb(self, fun):
         self._ui_snapshot_cb = fun
-    
+
     def get_snapshot(self, overlay=True, bw=False, return_as_array=False):
         """ Get snappshot(s)
         Args:

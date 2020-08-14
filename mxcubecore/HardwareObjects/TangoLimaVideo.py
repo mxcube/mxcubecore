@@ -36,7 +36,7 @@ def poll_image(lima_tango_device, video_mode, FORMATS):
     _, _, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(
         hfmt, img_data[1][:hsize]
     )
-    
+
     raw_data = img_data[1][hsize:]
     _from, _to = FORMATS.get(video_mode, (None, None))
 
@@ -72,7 +72,7 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
             "RGB8": ("L", "BMP"),
             "RGB24": ("RGB", "BMP"),
             "RGB32": ("RGBA", "BMP"),
-            "NO_CONVERSION": (None, None)
+            "NO_CONVERSION": (None, None),
         }
 
     def init(self):
@@ -97,7 +97,7 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
                     self.device.video_live = False
 
                 self.device.video_mode = self._video_mode
-            
+
                 if self.getProperty("exposure_time"):
                     self.set_exposure(float(self.getProperty("exposure_time")))
                 elif self.getProperty("interval"):
@@ -111,7 +111,7 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
 
     def get_last_image(self):
         return self._last_image
-    
+
     def _do_polling(self, sleep_time):
         lima_tango_device = self.device
 
@@ -138,9 +138,7 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
         return self.device.image_height
 
     def take_snapshot(self, path=None, bw=False):
-        data, width, height = poll_image(
-            self.device, self.video_mode, self._FORMATS
-        )
+        data, width, height = poll_image(self.device, self.video_mode, self._FORMATS)
 
         img = Image.frombytes("RGB", (width, height), data)
 

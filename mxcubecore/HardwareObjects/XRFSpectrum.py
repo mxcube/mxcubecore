@@ -55,7 +55,7 @@ class XRFSpectrum(Equipment):
 
         self.ctrl_hwobj = self.getObjectByRole("controller")
         self.mca_hwobj = self.getObjectByRole("mca")
-        #if self.mca_hwobj:
+        # if self.mca_hwobj:
         #    self.mca_hwobj.set_calibration(calib_cf=self.mca_hwobj.calib_cf)
 
         self.archive_path = self.getProperty("archive_path")
@@ -270,9 +270,7 @@ class XRFSpectrum(Equipment):
 
             # copy raw data file to the archive directory
             try:
-                shutil.copyfile(
-                    fname, self.spectrumInfo["scanFileFullPath"]
-                )
+                shutil.copyfile(fname, self.spectrumInfo["scanFileFullPath"])
             except Exception:
                 logging.getLogger().error(
                     "XRFSpectrum: cannot copy %s", self.spectrumInfo["filename"]

@@ -43,7 +43,9 @@ class ID29EnergyScan(ESRFEnergyScan):
         eroi_min = self.energy_scan_parameters["eroi_min"]
         eroi_max = self.energy_scan_parameters["eroi_max"]
         self.ctrl.detcover.set_in()
-        self.ctrl.find_max_attenuation(ctime=2, roi=[eroi_min, eroi_max], datafile="/tmp/abb")
+        self.ctrl.find_max_attenuation(
+            ctime=2, roi=[eroi_min, eroi_max], datafile="/tmp/abb"
+        )
         self.energy_scan_parameters[
             "transmissionFactor"
         ] = self.transmission.get_value()
@@ -61,7 +63,7 @@ class ID29EnergyScan(ESRFEnergyScan):
             datetime.strftime(dd, "%Y"),
         )
         self.ctrl.do_energy_scan(startE, endE, datafile=fname)
-        #self.energy_scan_parameters["exposureTime"] = exposure_time
+        # self.energy_scan_parameters["exposureTime"] = exposure_time
         self.energy_scan_parameters["exposureTime"] = 10.11
 
     def escan_prepare(self):
