@@ -132,7 +132,7 @@ class FlexHCD(SampleChanger):
                 },
                 "State",
             )
-        
+
         self.controller = self.getObjectByRole("controller")
         self.prepareLoad = self.get_command_object("moveToLoadingPosition")
         self.timeout = 3
@@ -146,7 +146,7 @@ class FlexHCD(SampleChanger):
         }
 
         SampleChanger.init(self)
-        #self._set_state(SampleChangerState.Disabled)
+        # self._set_state(SampleChangerState.Disabled)
         self._update_selection()
         self.state = self._read_state()
 
@@ -188,7 +188,7 @@ class FlexHCD(SampleChanger):
         return
 
     def _do_update_info(self):
-        #self._update_selection()
+        # self._update_selection()
         self._update_state()
 
     def _do_scan(self, component, recursive=True, saved={"barcodes": None}):
@@ -259,7 +259,7 @@ class FlexHCD(SampleChanger):
         if self.exporter_addr:
             if not self._ready():
                 raise RuntimeError("Sample changer is busy cant mount/unmount")
-    
+
     def _ready(self):
         return self.swstate_attr.get_value() == "Ready"
 
@@ -519,7 +519,7 @@ class FlexHCD(SampleChanger):
                 loading_state = self._execute_cmd_exporter(
                     "getCurrentLoadSampleState", attribute=True
                 )
-               
+
                 if "on_gonio" in loading_state:
                     self._set_loaded_sample(sample)
                     with gevent.Timeout(20, RuntimeError(err_msg)):
@@ -530,13 +530,17 @@ class FlexHCD(SampleChanger):
                     return True
             else:
                 loading_state = str(
-                    self._execute_cmd("get_robot_cache_variable",
-                                      "LoadSampleStatus")
+                    self._execute_cmd("get_robot_cache_variable", "LoadSampleStatus")
                 )
                 if "on_gonio" in loading_state:
                     self._set_loaded_sample(sample)
                     with gevent.Timeout(20, RuntimeError(err_msg)):
-                        while (not self._execute_cmd("get_robot_cache_variable", "data:dioRobotIsSafe")  == "true"):
+                        while (
+                            not self._execute_cmd(
+                                "get_robot_cache_variable", "data:dioRobotIsSafe"
+                            )
+                            == "true"
+                        ):
                             gevent.sleep(0.5)
                     return True
             gevent.sleep(2)
@@ -556,7 +560,7 @@ class FlexHCD(SampleChanger):
             return True
         return self._check_pin_on_gonio()
 
-    def _do_unload(self, sample=None):       
+    def _do_unload(self, sample=None):
         loaded_sample = self.get_loaded_sample()
         if loaded_sample is not None and loaded_sample != sample:
             raise RuntimeError("Cannot unload another sample")
@@ -616,9 +620,9 @@ class FlexHCD(SampleChanger):
         # see if the command exists for exporter
         if not self.exporter_addr:
             pass
-            #defreezing = self._execute_cmd("isDefreezing")
-            
-            #if defreezing:
+            # defreezing = self._execute_cmd("isDefreezing")
+
+            # if defreezing:
             #    self._set_state(SampleChangerState.Moving)
 
         try:
@@ -644,7 +648,7 @@ class FlexHCD(SampleChanger):
             state = "RUNNING" if self._execute_cmd("robot.isBusy") else "STANDBY"
             if state == "STANDBY" and not self.is_sequencer_ready():
                 state = "RUNNING"
-                
+
         state_converter = {
             "ALARM": SampleChangerState.Alarm,
             "FAULT": SampleChangerState.Fault,

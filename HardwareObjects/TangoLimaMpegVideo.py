@@ -25,7 +25,7 @@ from HardwareRepository.utils.video_utils import streaming_processes
 class TangoLimaMpegVideo(TangoLimaVideo):
     def __init__(self, name):
         super(TangoLimaMpegVideo, self).__init__(name)
-        
+
         self._video_stream_process = None
         self._current_stream_size = "-1, -1"
         self._stream_script_path = ""
@@ -84,23 +84,24 @@ class TangoLimaMpegVideo(TangoLimaVideo):
                     python_executable,
                     streaming_processes.__file__,
                     self.getProperty("tangoname"),
-                    "%s, %s" % (self.get_width(), self.get_height()),  
+                    "%s, %s" % (self.get_width(), self.get_height()),
                     self._current_stream_size,
                     self.stream_hash,
                     self.video_mode,
                     self._loopback_device,
-                    str(self._debug)
+                    str(self._debug),
                 ],
                 close_fds=True,
             )
-                
+
     def stop_streaming(self):
         if self._video_stream_process:
-            ps = [self._video_stream_process] + psutil.Process(self._video_stream_process.pid).children()
+            ps = [self._video_stream_process] + psutil.Process(
+                self._video_stream_process.pid
+            ).children()
             for p in ps:
                 p.kill()
             self._video_stream_process = None
-            
 
     def start_streaming(self, size=()):
         if not size:
@@ -110,7 +111,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
 
         self.set_stream_size(w, h)
         self.start_video_stream_process()
-        
+
         return self.video_device
 
     def restart_streaming(self, size=()):

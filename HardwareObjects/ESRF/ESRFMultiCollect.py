@@ -383,7 +383,7 @@ except:
 
 
 class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
-    def __init__(self, name  ):
+    def __init__(self, name):
         AbstractMultiCollect.__init__(self)
         HardwareObject.__init__(self, name)
         self._centring_status = None
@@ -479,25 +479,28 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self._metadataClient.end(data_collect_parameters)
 
     def prepare_oscillation(
-        self, start, osc_range, exptime, number_of_images, shutterless, npass, first_frame
-    ):       
+        self,
+        start,
+        osc_range,
+        exptime,
+        number_of_images,
+        shutterless,
+        npass,
+        first_frame,
+    ):
         if shutterless:
             end = start + osc_range * number_of_images
             exptime = (exptime + self._detector.get_deadtime()) * number_of_images
 
             if first_frame:
-                self.do_prepare_oscillation(
-                    start, end, exptime, npass
-                )
+                self.do_prepare_oscillation(start, end, exptime, npass)
         else:
             if osc_range < 1e-4:
                 # still image
                 end = start
             else:
                 end = start + osc_range
-                self.do_prepare_oscillation(
-                    start, end, exptime, npass
-                )                
+                self.do_prepare_oscillation(start, end, exptime, npass)
 
         return start, end
 
@@ -508,7 +511,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self.close_fast_shutter()
 
     @task
-    def do_oscillation(self, start, end, exptime, number_of_images, shutterless, npass, first_frame):
+    def do_oscillation(
+        self, start, end, exptime, number_of_images, shutterless, npass, first_frame
+    ):
         still = math.fabs(end - start) < 1e-4
 
         if shutterless:
@@ -519,7 +524,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                 if still:
                     self.oscillation_task = self.no_oscillation(exptime, wait=False)
                 else:
-                    self.oscillation_task = self.oscil(start, end, exptime, 1, wait=False)
+                    self.oscillation_task = self.oscil(
+                        start, end, exptime, 1, wait=False
+                    )
 
             if self.oscillation_task.ready():
                 self.oscillation_task.get()
@@ -543,13 +550,12 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             return HWR.beamline.energy.set_wavelength(wavelength)
         else:
             return
-        
 
     def set_energy(self, energy):
         if HWR.beamline.tunable_wavelength:
             return HWR.beamline.energy.set_value(energy)
         else:
-            return    
+            return
 
     @task
     def data_collection_cleanup(self):
@@ -593,13 +599,15 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def open_safety_shutter(self):
         try:
-            HWR.beamline.safety_shutter.set_value(HWR.beamline.safety_shutter.VALUES.OPEN, timeout=10)        
+            HWR.beamline.safety_shutter.set_value(
+                HWR.beamline.safety_shutter.VALUES.OPEN, timeout=10
+            )
         except Exception:
             logging.getLogger("HWR").exception("")
 
     def safety_shutter_opened(self):
         state = False
-        
+
         try:
             state = HWR.beamline.safety_shutter.get_state().name == "OPENED"
         except Exception:
@@ -611,7 +619,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     @task
     def close_safety_shutter(self):
         try:
-            HWR.beamline.safety_shutter.set_value(HWR.beamline.safety_shutter.VALUES["CLOSE"])
+            HWR.beamline.safety_shutter.set_value(
+                HWR.beamline.safety_shutter.VALUES["CLOSE"]
+            )
         except Exception:
             logging.getLogger("HWR").exception("")
 
@@ -621,7 +631,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             self.execute_command("adjust_gains")
         except AttributeError:
             pass
-    
+
     @task
     def prepare_acquisition(
         self,
@@ -645,7 +655,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             comment,
             energy,
             trigger_mode,
-        )        
+        )
 
     @task
     def set_detector_filenames(self, frame_number, start, filename, shutterless):
@@ -748,7 +758,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             hkl_file.write(r.read().decode())
         hkl_file.close()
         os.chmod(hkl_file_path, 0o666)
-        
+
         for input_file_dir, file_prefix in (
             (self.raw_data_input_file_dir, "../.."),
             (self.xds_directory, "../links"),

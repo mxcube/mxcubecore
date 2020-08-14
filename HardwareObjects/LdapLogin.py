@@ -48,12 +48,14 @@ class LdapLogin(Procedure):
                 logging.getLogger("HWR").debug(
                     "LdapLogin: connecting to LDAP server %s", ldaphost
                 )
-                self.ldapConnection = ldap.initialize("ldap://" + ldaphost )
+                self.ldapConnection = ldap.initialize("ldap://" + ldaphost)
             else:
                 logging.getLogger("HWR").debug(
                     "LdapLogin: connecting to LDAP server %s:%s", ldaphost, ldapport
                 )
-                self.ldapConnection = ldap.initialize("ldap://%s:%s" % (ldaphost, int(ldapport)))
+                self.ldapConnection = ldap.initialize(
+                    "ldap://%s:%s" % (ldaphost, int(ldapport))
+                )
 
             logging.getLogger("HWR").debug(
                 "LdapLogin: got connection %s" % str(self.ldapConnection)
@@ -107,7 +109,7 @@ class LdapLogin(Procedure):
         return (False, msg)
 
     # Check password in LDAP
-    def login(self, username, password, retry=True, fields=None):       
+    def login(self, username, password, retry=True, fields=None):
         # fields can be used in local implementation to retrieve user information from
         # ldap.  In ALBA for example, it is used to obtain homeDirectory upon successful
         # login and use that value for programming session hwo directories

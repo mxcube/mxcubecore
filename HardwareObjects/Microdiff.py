@@ -191,7 +191,7 @@ class Microdiff(MiniDiff.MiniDiff):
                 "name": "abort",
             },
             "saveCentringPositions",
-        )        
+        )
 
         MiniDiff.MiniDiff.init(self)
         self.centringPhiy.direction = -1
@@ -352,9 +352,9 @@ class Microdiff(MiniDiff.MiniDiff):
             },
             "startScan4DEx",
         )
-        
+
         scan(scan_params)
-    
+
         print("helical scan started at ----------->", time.time())
         if wait:
             self._wait_ready(900)  # timeout of 15 min
@@ -399,7 +399,7 @@ class Microdiff(MiniDiff.MiniDiff):
         params += "%r\t" % True
         params += "%r\t" % True
         params += "%r\t" % True
-        
+
         scan = self.add_command(
             {
                 "type": "exporter",
@@ -412,7 +412,7 @@ class Microdiff(MiniDiff.MiniDiff):
         self._wait_ready(900)  # timeout of 15 min
 
         scan(params)
-      
+
         if wait:
             # timeout of 30 min
             self._wait_ready(1800)

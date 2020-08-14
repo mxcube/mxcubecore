@@ -13,6 +13,7 @@ TWO_STATE_COMMAND_ACTIVE_STATES = ["in", "on", "enabled"]
 ARGUMENT_TYPE_LIST = "List"
 ARGUMENT_TYPE_JSON_SCHEMA = "JSONSchema"
 
+
 class BaseBeamlineAction(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
@@ -20,7 +21,7 @@ class BaseBeamlineAction(HardwareObject):
         # From CommandObject consider removing
         self._arguments = []
         self._combo_arguments_items = {}
-    
+
 
 class ControllerCommand(BaseBeamlineAction):
     def __init__(self, name, cmd):

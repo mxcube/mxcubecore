@@ -131,7 +131,11 @@ class ExporterMotor(AbstractMotor):
         Returns:
             (bool): True if both "Ready", False otherwise.
         """
-        if self._get_swstate() == "Ready" and self._get_hwstate() == "Ready" and self.motor_state.get_value() == "Ready":
+        if (
+            self._get_swstate() == "Ready"
+            and self._get_hwstate() == "Ready"
+            and self.motor_state.get_value() == "Ready"
+        ):
             return True
         return False
 

@@ -136,8 +136,7 @@ class AbstractMultiCollect(object):
 
     @abc.abstractmethod
     @task
-    def set_detector_filenames(
-        self, frame_number, start, filename, shutterless):
+    def set_detector_filenames(self, frame_number, start, filename, shutterless):
         pass
 
     @abc.abstractmethod
@@ -399,7 +398,6 @@ class AbstractMultiCollect(object):
 
             if detector_id:
                 data_collect_parameters["detector_id"] = detector_id
-
 
         # Creating the directory for images and processing information
         logging.getLogger("user_level_log").info(
@@ -676,7 +674,7 @@ class AbstractMultiCollect(object):
 
         # 0: software binned, 1: unbinned, 2:hw binned
         # self.set_detector_mode(data_collect_parameters["detector_mode"])
-        
+
         with cleanup(self.data_collection_cleanup):
             if not self.safety_shutter_opened():
                 logging.getLogger("user_level_log").info("Opening safety shutter")
@@ -691,7 +689,7 @@ class AbstractMultiCollect(object):
             npass = oscillation_parameters["number_of_passes"]
 
             # update LIMS
-            if HWR.beamline.lims:               
+            if HWR.beamline.lims:
                 try:
                     logging.getLogger("user_level_log").info(
                         "Gathering data for LIMS update"
@@ -813,7 +811,7 @@ class AbstractMultiCollect(object):
                             frame_start,
                             str(file_path),
                             data_collect_parameters.get("shutterless", True),
-                            wait=False
+                            wait=False,
                         )
 
                         osc_start, osc_end = self.prepare_oscillation(
@@ -823,7 +821,7 @@ class AbstractMultiCollect(object):
                             wedge_size,
                             data_collect_parameters.get("shutterless", True),
                             npass,
-                            j == wedge_size
+                            j == wedge_size,
                         )
 
                         with error_cleanup(self.reset_detector):
@@ -840,7 +838,7 @@ class AbstractMultiCollect(object):
                                 wedge_size,
                                 data_collect_parameters.get("shutterless", True),
                                 npass,
-                                j == wedge_size
+                                j == wedge_size,
                             )
 
                             self.write_image(j == 1)
@@ -927,7 +925,7 @@ class AbstractMultiCollect(object):
             # possibly download diagnostics) so we cannot trigger the cleanup (that will send an abort on the diffractometer) as soon as
             # the last frame is counted
             self.diffractometer().wait_ready(10)
-            
+
         # data collection done
         self.data_collection_end_hook(data_collect_parameters)
 

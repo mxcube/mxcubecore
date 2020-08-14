@@ -1484,7 +1484,7 @@ class PathTemplate(object):
                 "PathTemplate (ALBA) - archive_directory is %s" % archive_directory
             )
         else:
-            directory = self.directory[len(PathTemplate.base_directory):]
+            directory = self.directory[len(PathTemplate.base_directory) :]
             folders = directory.split("/")
             if "visitor" in folders:
                 endstation_name = folders[3]

@@ -11,10 +11,10 @@ class ID30BBeamCmds(HardwareObject):
         controller.detcover.set_in()
         self.centrebeam = ControllerCommand("Centre beam", controller.centrebeam)
         self.test_cmd = TestCommand("Test command")
-        #self.quick_realign = ControllerCommand(
+        # self.quick_realign = ControllerCommand(
         #   "Quick realign", controller.quick_realign
-        #)
-        #self.anneal = ControllerCommand("Anneal", controller.anneal_procedure)
+        # )
+        # self.anneal = ControllerCommand("Anneal", controller.anneal_procedure)
 
     def get_commands(self):
         return [self.centrebeam, self.test_cmd]

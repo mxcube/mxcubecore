@@ -24,7 +24,8 @@ import gevent
 
 from HardwareRepository.HardwareObjects.TangoLimaVideo import TangoLimaVideo, poll_image
 
-def _poll_image(sleep_time, video_device, device_uri, video_mode, formats):   
+
+def _poll_image(sleep_time, video_device, device_uri, video_mode, formats):
     from PyTango import DeviceProxy
 
     connected = False
@@ -53,6 +54,7 @@ def _poll_image(sleep_time, video_device, device_uri, video_mode, formats):
         finally:
             time.sleep(sleep_time / 2)
 
+
 def start_video_stream(scale, _hash, fpath):
     """
     Start encoding and streaming from device video_device.
@@ -66,36 +68,44 @@ def start_video_stream(scale, _hash, fpath):
     FNULL = open(os.devnull, "w")
 
     relay = subprocess.Popen(
-        ["node", websocket_relay_js, _hash, "4041", "4042"],
-        close_fds=True
+        ["node", websocket_relay_js, _hash, "4041", "4042"], close_fds=True
     )
 
     # Make sure that the relay is running (socket is open)
     time.sleep(2)
 
-    scale = "%sx%s" % scale #tuple(scale.split(","))
+    scale = "%sx%s" % scale  # tuple(scale.split(","))
 
     ffmpeg = subprocess.Popen(
         [
             "ffmpeg",
-            "-f", "rawvideo",
-            "-pixel_format", "rgb24",
-            "-s", scale,
-            "-i", "-",
-            "-f", "mpegts",
-            "-b:v", "6000k",
-            "-q:v", "4",
+            "-f",
+            "rawvideo",
+            "-pixel_format",
+            "rgb24",
+            "-s",
+            scale,
+            "-i",
+            "-",
+            "-f",
+            "mpegts",
+            "-b:v",
+            "6000k",
+            "-q:v",
+            "4",
             "-an",
-            "-vcodec", "mpeg1video",
+            "-vcodec",
+            "mpeg1video",
             "http://localhost:4041/" + _hash,
         ],
         stderr=FNULL,
         stdin=subprocess.PIPE,
         shell=False,
-        close_fds=True
+        close_fds=True,
     )
 
     return relay, ffmpeg
+
 
 class TangoLimaVideoLoopback(TangoLimaVideo):
     def __init__(self, name):
@@ -213,7 +223,7 @@ class TangoLimaVideoLoopback(TangoLimaVideo):
             python_executable = os.sep.join(
                 os.path.dirname(os.__file__).split(os.sep)[:-2] + ["bin", "python"]
             )
-            
+
             # self._video_stream_process = subprocess.Popen(
             #     [
             #         python_executable,
@@ -244,12 +254,12 @@ class TangoLimaVideoLoopback(TangoLimaVideo):
         w, h = self.get_width(), self.get_height()
 
         self._open_video_device(loopback_device_path)
-        #self._initialize_video_device(v4l2.V4L2_PIX_FMT_RGB24, w, h, 3)
+        # self._initialize_video_device(v4l2.V4L2_PIX_FMT_RGB24, w, h, 3)
 
         self.set_stream_size(w, h)
         self._set_stream_original_size(w, h)
         self.start_video_stream_process()
-        
+
         self._do_polling(self.device.video_exposure)
 
         return self.video_device

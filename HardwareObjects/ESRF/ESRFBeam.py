@@ -111,16 +111,16 @@ class ESRFBeam(AbstractBeam):
 
     def _beam_size_compare(self, s):
         return s[0]
-    
+
     def get_value(self):
         """ Get the size (width and heigth) of the beam and its shape.
             The size is in mm.
         Retunrs:
             (tuple): Dictionary (width, heigth, shape, name), with types
                                (float, float, Enum, str)
-        """        
+        """
         _shape = BeamShape.UNKNOWN
-        
+
         _beamsize_dict = {}
         if self._aperture:
             _size, _name = self._get_aperture_size()
@@ -134,11 +134,11 @@ class ESRFBeam(AbstractBeam):
 
         if self._slits:
             _beamsize_dict.update({"slits": self._get_slits_size().values()})
-            
+
         # find which device has the minimum size
         try:
-            _val = min(_beamsize_dict.values(), key = self._beam_size_compare)
-            
+            _val = min(_beamsize_dict.values(), key=self._beam_size_compare)
+
             _key = [k for k, v in _beamsize_dict.items() if v == _val]
 
             _name = _key[0]
@@ -171,8 +171,11 @@ class ESRFBeam(AbstractBeam):
             return {"type": [_type], "values": aperture_list}
 
         if self._definer_type in (self._complex, "complex"):
-            #return {"type": [_type], "values": self._complex.size_list}
-            return {"type": [_type], "values": self._complex.get_predefined_positions_list()}
+            # return {"type": [_type], "values": self._complex.size_list}
+            return {
+                "type": [_type],
+                "values": self._complex.get_predefined_positions_list(),
+            }
 
         if self._definer_type in (self._slits, "slits"):
             # get the list of the slits motors range
@@ -245,7 +248,9 @@ class ESRFBeam(AbstractBeam):
     def get_beam_position_on_screen(self):
         if self._beam_position_on_screen == (0, 0):
             try:
-                _beam_position_on_screen = HWR.beamline.diffractometer.get_beam_position()
+                _beam_position_on_screen = (
+                    HWR.beamline.diffractometer.get_beam_position()
+                )
             except AttributeError:
                 _beam_position_on_screen = (
                     HWR.beamline.sample_view.camera.get_width() / 2,

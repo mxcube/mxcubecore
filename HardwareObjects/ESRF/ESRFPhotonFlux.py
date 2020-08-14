@@ -31,9 +31,7 @@ import logging
 import gevent
 
 from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.HardwareObjects.abstract.AbstractFlux import (
-    AbstractFlux
-)
+from HardwareRepository.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 
 
 class ESRFPhotonFlux(AbstractFlux):
@@ -52,7 +50,7 @@ class ESRFPhotonFlux(AbstractFlux):
         controller = self.getObjectByRole("controller")
 
         self._aperture = self.getObjectByRole("aperture")
-        self.threshold = self.getProperty("threshold") or 0.
+        self.threshold = self.getProperty("threshold") or 0.0
 
         try:
             self._flux_calc = controller.CalculateFlux()
@@ -70,12 +68,11 @@ class ESRFPhotonFlux(AbstractFlux):
 
         HWR.beamline.safety_shutter.connect("stateChanged", self.update_value)
         self._poll_task = gevent.spawn(self._poll_flux)
-        
+
     def _poll_flux(self):
-        while(True):
+        while True:
             self.re_emit_values()
             gevent.sleep(0.5)
-
 
     def get_value(self):
         """Calculate the flux value as function of a reading
@@ -86,7 +83,7 @@ class ESRFPhotonFlux(AbstractFlux):
             counts = float(counts[0])
         counts = float(self._counter.raw_read)
         if counts == -9999:
-            counts = 0.
+            counts = 0.0
 
         egy = HWR.beamline.energy.get_value() * 1000.0
         calib = self._flux_calc.calc_flux_factor(egy)[self._counter.name]
@@ -98,6 +95,6 @@ class ESRFPhotonFlux(AbstractFlux):
             aperture_factor = 1
         counts = abs(counts * calib * aperture_factor)
         if counts < self.threshold:
-            counts = 0.
+            counts = 0.0
         self._nominal_value = counts
         return counts

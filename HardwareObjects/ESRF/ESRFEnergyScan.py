@@ -5,7 +5,8 @@ import os.path
 import shutil
 import math
 import gevent
-#import PyChooch
+
+# import PyChooch
 # to run chooch in shell
 import subprocess
 import numpy
@@ -263,7 +264,20 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         chooch_graph_data = result[6]
         """
         # while waiting fro chooch to work...
-        subprocess.call(["/opt/pxsoft/bin/chooch",  "-e", elt, "-a", edge, "-o", efs_scan_file, "-g", png_scan_file, raw_data_file])
+        subprocess.call(
+            [
+                "/opt/pxsoft/bin/chooch",
+                "-e",
+                elt,
+                "-a",
+                edge,
+                "-o",
+                efs_scan_file,
+                "-g",
+                png_scan_file,
+                raw_data_file,
+            ]
+        )
         time.sleep(5)
         with open(efs_scan_file, "r") as f:
             for _ in range(3):
@@ -271,11 +285,11 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
             nparr = numpy.array([list(map(float, line.split())) for line in f])
         fppPeak = nparr[:, 1].max()
         idx = numpy.where(nparr[:, 1] == fppPeak)
-        pk = nparr[:, 0][idx][0] / 1000.
+        pk = nparr[:, 0][idx][0] / 1000.0
         fpPeak = nparr[:, 2][idx][0]
         fppInfl = nparr[:, 2].min()
         idx = numpy.where(nparr[:, 2] == fppInfl)
-        ip = nparr[:, 0][idx][0] / 1000.
+        ip = nparr[:, 0][idx][0] / 1000.0
         fpInfl = nparr[:, 1][idx][0]
         rm = pk + 0.03
 
@@ -393,9 +407,9 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
                 fppInfl,
                 fpInfl,
                 rm,
-                #chooch_graph_x,
-                #chooch_graph_y1,
-                #chooch_graph_y2,
+                # chooch_graph_x,
+                # chooch_graph_y1,
+                # chooch_graph_y2,
                 title,
             ),
         )
@@ -407,10 +421,12 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
             fppInfl,
             fpInfl,
             rm,
-            [], [], [],
-            #chooch_graph_x,
-            #chooch_graph_y1,
-            #chooch_graph_y2,
+            [],
+            [],
+            [],
+            # chooch_graph_x,
+            # chooch_graph_y1,
+            # chooch_graph_y2,
             title,
         )
 
