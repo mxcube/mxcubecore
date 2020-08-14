@@ -16,7 +16,10 @@ import statistics
 
 from multiprocessing import Process
 
-def initialize_loopback_device(loopback_device, width, height, channels, pixel_format=None):
+
+def initialize_loopback_device(
+    loopback_device, width, height, channels, pixel_format=None
+):
     import v4l2
 
     if os.path.exists(loopback_device):
@@ -26,7 +29,7 @@ def initialize_loopback_device(loopback_device, width, height, channels, pixel_f
         msg += "Make sure that the v4l2loopback kernel module is loaded (modprobe v4l2loopback). "
         msg += "Falling back to MJPEG."
         raise RuntimeError(msg)
-    
+
     f = v4l2.v4l2_format()
     f.type = v4l2.V4L2_BUF_TYPE_VIDEO_OUTPUT
     f.fmt.pix.pixelformat = v4l2.V4L2_PIX_FMT_RGB24
@@ -38,10 +41,10 @@ def initialize_loopback_device(loopback_device, width, height, channels, pixel_f
     f.fmt.pix.colorspace = v4l2.V4L2_COLORSPACE_SRGB
 
     res = fcntl.ioctl(device, v4l2.VIDIOC_S_FMT, f)
-    
+
     if res != 0:
         raise RuntimeError("Could not initialize video device: %d" % res)
-    
+
     return device
 
 
@@ -49,7 +52,7 @@ def get_image(lima_tango_device):
     global LAST_FRAME
 
     img_data = lima_tango_device.video_last_image
-    
+
     hfmt = ">IHHqiiHHHH"
     hsize = struct.calcsize(hfmt)
     _, _, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(
@@ -60,7 +63,8 @@ def get_image(lima_tango_device):
 
     return raw_data, width, height, frame_number
 
-def poll_image(encoder_input, device_uri, debug):   
+
+def poll_image(encoder_input, device_uri, debug):
     from PyTango import DeviceProxy
 
     connected = False
@@ -83,12 +87,12 @@ def poll_image(encoder_input, device_uri, debug):
     if isinstance(encoder_input, str):
         encoder_input = open(encoder_input, "wb", 0)
 
-    #sleep_time = lima_tango_device.video_exposure
+    # sleep_time = lima_tango_device.video_exposure
     sleep_time = 0.050
     last_frame_number = -1
     dtlist = []
     mean_poll_t = sleep_time
-    
+
     while True:
         try:
             t0 = time.perf_counter()
@@ -100,14 +104,14 @@ def poll_image(encoder_input, device_uri, debug):
 
             dt = time.perf_counter() - t0
             dtlist.append(dt)
-            
+
             if len(dtlist) > 25:
                 mean_poll_t = statistics.mean(dtlist)
                 if debug:
                     print("Poll took, %s(s) \n" % mean_poll_t)
 
                 dtlist = []
-                
+
         except Exception as ex:
             print(ex)
         finally:
@@ -118,7 +122,10 @@ def poll_image(encoder_input, device_uri, debug):
 
             time.sleep(_sleep_time)
 
-def start_video_stream(size, scale, _hash, video_mode, loopback_device=None, debug=False):
+
+def start_video_stream(
+    size, scale, _hash, video_mode, loopback_device=None, debug=False
+):
     """
     Start encoding with ffmpeg and stream the video with the node
     websocket relay.
@@ -129,15 +136,14 @@ def start_video_stream(size, scale, _hash, video_mode, loopback_device=None, deb
     :rtype: tuple
     """
     websocket_relay_js = os.path.join(os.path.dirname(__file__), "websocket-relay.js")
-  
+
     if debug:
         STDOUT = subprocess.STDOUT
     else:
         STDOUT = open(os.devnull, "w")
 
     relay = subprocess.Popen(
-        ["node", websocket_relay_js, _hash, "4041", "4042"],
-        close_fds=True
+        ["node", websocket_relay_js, _hash, "4041", "4042"], close_fds=True
     )
 
     # Make sure that the relay is running (socket is open)
@@ -149,45 +155,64 @@ def start_video_stream(size, scale, _hash, video_mode, loopback_device=None, deb
     if not loopback_device:
         ffmpeg_args = [
             "ffmpeg",
-            "-fflags", "nobuffer",
-            "-fflags", "discardcorrupt",
-            "-flags", "low_delay",            
-            "-f", "rawvideo",
-            "-pixel_format", "rgb24",
-            "-s", size,
-            "-i", "-",
-            "-vf", "scale=w=%s:h=%s" % (w, h),        
-            "-f", "mpegts",
-            "-b:v", "10M",
-            "-q:v", "4",
+            "-fflags",
+            "nobuffer",
+            "-fflags",
+            "discardcorrupt",
+            "-flags",
+            "low_delay",
+            "-f",
+            "rawvideo",
+            "-pixel_format",
+            "rgb24",
+            "-s",
+            size,
+            "-i",
+            "-",
+            "-vf",
+            "scale=w=%s:h=%s" % (w, h),
+            "-f",
+            "mpegts",
+            "-b:v",
+            "10M",
+            "-q:v",
+            "4",
             "-an",
-            "-vcodec", "mpeg1video",
+            "-vcodec",
+            "mpeg1video",
             "http://localhost:4041/" + _hash,
         ]
     else:
         ffmpeg_args = [
             "ffmpeg",
-            "-fflags", "nobuffer",
-            "-fflags", "discardcorrupt",
-            "-flags", "low_delay",
-            "-f", "v4l2",
-            "-framerate", "30",
-            "-i", loopback_device,
-            "-vf", "scale=w=%s:h=%s" % (w, h),
-            "-f", "mpegts",
-            "-b:v", "10M",
-            "-q:v", "4",
+            "-fflags",
+            "nobuffer",
+            "-fflags",
+            "discardcorrupt",
+            "-flags",
+            "low_delay",
+            "-f",
+            "v4l2",
+            "-framerate",
+            "30",
+            "-i",
+            loopback_device,
+            "-vf",
+            "scale=w=%s:h=%s" % (w, h),
+            "-f",
+            "mpegts",
+            "-b:v",
+            "10M",
+            "-q:v",
+            "4",
             "-an",
-            "-vcodec", "mpeg1video",
+            "-vcodec",
+            "mpeg1video",
             "http://localhost:4041/" + _hash,
         ]
 
     ffmpeg = subprocess.Popen(
-        ffmpeg_args,
-        stderr=STDOUT,
-        stdin=subprocess.PIPE,
-        shell=False,
-        close_fds=True
+        ffmpeg_args, stderr=STDOUT, stdin=subprocess.PIPE, shell=False, close_fds=True
     )
 
     with open("/tmp/mxcube.pid", "a") as f:
@@ -196,7 +221,7 @@ def start_video_stream(size, scale, _hash, video_mode, loopback_device=None, deb
     return relay, ffmpeg
 
 
-if __name__ == "__main__":  
+if __name__ == "__main__":
     try:
         video_device_uri = sys.argv[1].strip()
     except IndexError:
@@ -208,7 +233,7 @@ if __name__ == "__main__":
         size = "-1,-1"
     finally:
         size = tuple(size.split(","))
-        
+
     try:
         scale = sys.argv[3].strip()
     except IndexError:
@@ -234,22 +259,23 @@ if __name__ == "__main__":
     try:
         debug = ast.literal_eval(sys.argv[7].strip())
     except IndexError:
-        debug = False        
-
+        debug = False
 
     # The stream has to exist before encoding it using V4L2, so polling is
     # started in subprocess
     if loopback_device:
-        encoder_input = initialize_loopback_device(loopback_device, int(size[0]), int(size[1]), 3)
-        p = Process(target=poll_image, args=(
-            encoder_input, video_device_uri, debug
-        )).start()
+        encoder_input = initialize_loopback_device(
+            loopback_device, int(size[0]), int(size[1]), 3
+        )
+        p = Process(
+            target=poll_image, args=(encoder_input, video_device_uri, debug)
+        ).start()
 
-    relay, ffmpeg = start_video_stream(size, scale, _hash, video_mode, loopback_device, debug)
+    relay, ffmpeg = start_video_stream(
+        size, scale, _hash, video_mode, loopback_device, debug
+    )
 
     # Polling started after ffmpeg when using direct pipe as handle
     # to ffmpeg stdin is needed
-    if not loopback_device:   
-         poll_image(ffmpeg.stdin, video_device_uri, debug)
-
-         
+    if not loopback_device:
+        poll_image(ffmpeg.stdin, video_device_uri, debug)
