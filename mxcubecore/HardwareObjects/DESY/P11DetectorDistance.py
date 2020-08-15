@@ -68,13 +68,12 @@ class P11DetectorDistance(AbstractMotor):
         :param signal: signal
         :type signal: signal
         """
-        if self.connected():
-            if signal == "stateChanged":
-                self.update_state()
-            elif signal == "limitsChanged":
-                self.update_limits()
-            elif signal == "valueChanged":
-                self.update_value()
+        if signal == "stateChanged":
+            self.update_state()
+        elif signal == "limitsChanged":
+            self.update_limits()
+        elif signal == "valueChanged":
+            self.update_value()
 
     def connected(self):
         """
