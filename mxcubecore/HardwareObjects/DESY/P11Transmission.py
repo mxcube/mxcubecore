@@ -74,32 +74,34 @@ class P11Transmission(AbstractTransmission):
         return self._state
 
     def get_value(self):
-        self.value_changed()
-        return self._value
+        return self.chan_read_value.getValue() * 100.0
 
     def state_changed(self, state=None):
+
         if state is None:
             state = self.chan_state.getValue()
 
-        _state = str(state)
+        _str_state = str(state)
         
-        if _state == 'ON':
-           self._state = self.STATES.READY
-        elif _state == 'MOVING':
-           self._state = self.STATES.BUSY
+        if _str_state == 'ON':
+           _state = self.STATES.READY
+        elif _str_state == 'MOVING':
+           _state = self.STATES.BUSY
         else:
-           self._state = self.STATES.FAULT
+           _state = self.STATES.FAULT
 
-        self.emit("stateChanged", self._state)
+        self.update_state(_state)
 
     def value_changed(self, value=None):
         if value is None:
-            value = self.chan_read_value.getValue()
+            _value = self.get_value()
+        else:
+            _value = value * 100.0
 
-        _value = value * 100.0
+        # update only if needed
         if self._value is None or abs(self._value - _value) > 10e-1:
             self._value = _value
-            self.emit("valueChanged", self._value)
+            self.update_value(_value)
 
     def _set_value(self, value):
         value = value / 100.0
