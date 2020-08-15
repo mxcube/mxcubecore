@@ -1,11 +1,28 @@
+# encoding: utf-8
+# 
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 __credits__ = ["DESY P11"]
 __license__ = "LGPLv3+"
 __category__ = "Motor"
 
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
-
-from HardwareRepository.utils.mxcube_logging import log
 
 class P11DetectorDistance(AbstractMotor):
 
@@ -88,7 +105,7 @@ class P11DetectorDistance(AbstractMotor):
 
         if not self.interlock_set:
             state = self.STATES.FAULT
-            log.debug("P11 Detector Distance is FAULT because interlock is not set")
+            self.log.debug("P11 Detector Distance is FAULT because interlock is not set")
         else:
             if _state == 'ON':
                 state = self.STATES.READY
@@ -147,7 +164,7 @@ class P11DetectorDistance(AbstractMotor):
         if state is None:
             state = self.chan_interlock_state.getValue()
         self.interlock_set = state
-        log.debug("P11 DetectorDistance / INTERLOCK is %s" % (self.interlock_set and "SET" or "NOT SET") )
+        self.log.debug("P11 DetectorDistance / INTERLOCK is %s" % (self.interlock_set and "SET" or "NOT SET") )
   
     def interlock_state_changed(self, state=None):
         self.update_interlock_state(state)   

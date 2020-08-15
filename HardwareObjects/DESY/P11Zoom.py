@@ -1,10 +1,28 @@
+# encoding: utf-8
+# 
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 from enum import Enum
 import ast
 
 from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractNState
 from HardwareRepository.HardwareObjects.abstract.AbstractNState import BaseValueEnum
-from HardwareRepository.utils.mxcube_logging import log
 
 class P11Zoom(AbstractNState):
 
@@ -23,9 +41,9 @@ class P11Zoom(AbstractNState):
         self.connect(self.camera_hwobj, "zoomChanged", self.zoom_value_changed)
 
         if self.camera_hwobj is None:
-            log.debug("P11Zoom.py - cannot connect to camera hardware object")
+            self.log.debug("P11Zoom.py - cannot connect to camera hardware object")
         else:
-            log.debug("P11Zoom.py / current zoom is %s" % self.camera_hwobj.get_zoom())
+            self.log.debug("P11Zoom.py / current zoom is %s" % self.camera_hwobj.get_zoom())
 
         AbstractNState.init(self)
 
@@ -47,7 +65,7 @@ class P11Zoom(AbstractNState):
         return [px_per_mm, px_per_mm]
 
     def get_zoom(self):
-        log.debug("ZOOM: current zoom is : %s" % self.camera_hwobj.get_zoom())
+        self.log.debug("ZOOM: current zoom is : %s" % self.camera_hwobj.get_zoom())
         self.current_value = self.camera_hwobj.get_zoom()
         return self.current_value
 
@@ -63,7 +81,7 @@ class P11Zoom(AbstractNState):
         return self.closest_zoom, self.get_zoom()
 
     def zoom_value_changed(self,value):
-        log.debug("ZOOM - value changed: %s" % value)
+        self.log.debug("ZOOM - value changed: %s" % value)
         self.current_value = value
         self.update_value(value)
         self.update_zoom()
