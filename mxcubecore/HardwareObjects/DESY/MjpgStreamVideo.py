@@ -5,16 +5,16 @@
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#   You should have received a copy of the GNU General Public License
+#   You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 __author__ = "Jan Meyer"
@@ -31,7 +31,6 @@ try:
 except ImportError:
     from http.client import HTTPConnection
 import json
-import logging
 
 # from PyQt4.QtGui import QImage, QPixmap
 from gui.utils.QtImport import QImage, QPixmap
@@ -41,7 +40,6 @@ from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
     AbstractVideoDevice,
 )
 
-from HardwareRepository.utils.mxcube_logging import log
 
 class MjpgStreamVideo(AbstractVideoDevice):
     """
@@ -326,14 +324,14 @@ class MjpgStreamVideo(AbstractVideoDevice):
             http.request("GET", path + query)
             response = http.getresponse()
         except BaseException:
-            logging.getLogger().error(
+            self.log.error(
                 "MjpgStreamVideo: Connection to http://{0}:{1}{2}{3} refused".format(
                     host, port, path, query
                 )
             )
             return None
         if response.status != 200:
-            logging.getLogger().error(
+            self.log.error(
                 "MjpgStreamVideo: Error {0}, {1}".format(
                     response.status, response.reason
                 )
@@ -763,8 +761,8 @@ class MjpgStreamVideo(AbstractVideoDevice):
         width = self.image_dimensions[0] / zoom
         height = self.image_dimensions[1] / zoom
 
-        log.debug("ZOOM setting zoom %s" % zoom)
-        log.debug("  - image_dims: %s / sensor_dims: %s" % (str(self.image_dimensions), str(self.sensor_dimensions)))
+        self.log.debug("ZOOM setting zoom %s" % zoom)
+        self.log.debug("  - image_dims: %s / sensor_dims: %s" % (str(self.image_dimensions), str(self.sensor_dimensions)))
 
         self.changing_pars = True
 
@@ -790,11 +788,11 @@ class MjpgStreamVideo(AbstractVideoDevice):
             w_i = int(self.get_cmd_info(self.IN_CMD_AVT_WIDTH)['value'])
             h_i = int(self.get_cmd_info(self.IN_CMD_AVT_HEIGHT)['value'])
 
-            log.debug("(w) pos_x, pos_y: (%s,%s) / w, h (%s,%s)" % (pos_x, pos_y, width, height))
-            log.debug("(r) pos_x, pos_y: (%s,%s) / w, h (%s,%s)" % (x_i, y_i, w_i, h_i))
+            self.log.debug("(w) pos_x, pos_y: (%s,%s) / w, h (%s,%s)" % (pos_x, pos_y, width, height))
+            self.log.debug("(r) pos_x, pos_y: (%s,%s) / w, h (%s,%s)" % (x_i, y_i, w_i, h_i))
 
             if abs(x_i-pos_x) > 3 or abs(y_i-pos_y) >3 or abs(w_i-width) >3 or abs(h_i-height) >3:
-                log.debug(" - trying to program zoom again")
+                self.log.debug(" - trying to program zoom again")
                 gevent.sleep(0.1)
                 continue
             else:
@@ -869,7 +867,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
             #    qimage.setNumColors(0)
             qimage.save(filename, "PNG")
         except BaseException:
-            logging.getLogger().error(
+            self.log.error(
                 "MjpgStreamVideo: unable to save snapshot: %s" % filename
             )
 
@@ -879,7 +877,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
         """
         while True:
             if self.changing_pars:
-                log.debug("  / not reading image. busy changing pars")
+                self.log.debug("  / not reading image. busy changing pars")
                 gevent.sleep(sleep_time)
                 continue
 

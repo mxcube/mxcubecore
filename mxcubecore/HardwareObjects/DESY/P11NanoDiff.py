@@ -5,21 +5,20 @@
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#   You should have received a copy of the GNU General Public License
+#   You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
 import math
-import logging
 import random
 import warnings
 import sample_centring
@@ -29,7 +28,6 @@ from HardwareRepository.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
 )
 from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.utils.mxcube_logging import log 
 from gevent.event import AsyncResult
 
 
@@ -81,7 +79,7 @@ class P11NanoDiff(GenericDiffractometer):
     def update_zoom_calibration(self):
         zoom_hwobj = self.motor_hwobj_dict['zoom'] 
         self.pixels_per_mm_x, self.pixels_per_mm_y = zoom_hwobj.get_pixels_per_mm()
-        log.debug("P11NanoDiff - pixels per mm are: %s x %s " % (self.pixels_per_mm_x, self.pixels_per_mm_y))
+        self.log.debug("P11NanoDiff - pixels per mm are: %s x %s " % (self.pixels_per_mm_x, self.pixels_per_mm_y))
         self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),))
 
     def execute_server_task(self, method, timeout=30, *args):
@@ -200,7 +198,7 @@ class P11NanoDiff(GenericDiffractometer):
         try:
             return self.move_to_centred_position(centred_position)
         except BaseException:
-            logging.exception("Could not move to centred position")
+            self.log.exception("Could not move to centred position")
 
     def start_auto_focus(self):
         """
@@ -211,7 +209,7 @@ class P11NanoDiff(GenericDiffractometer):
     def start_manual_centring(self, sample_info=None, wait_result=None):
         """
         """
-        log.debug("Manual 3 click centring. using sample centring module: %s" % self.use_sample_centring)
+        self.log.debug("Manual 3 click centring. using sample centring module: %s" % self.use_sample_centring)
         self.emit_progress_message("Manual 3 click centring...")
 
         self.current_centring_procedure = gevent.spawn(self.manual_centring)
@@ -227,7 +225,7 @@ class P11NanoDiff(GenericDiffractometer):
         PHI = []
 
         beam_xc, beam_yc = self.beam_position
-        log.debug("STARTING Manual Centring")
+        self.log.debug("STARTING Manual Centring")
 
         motor_positions = {
                 'phi': self.centring_phi.motor.get_value(),
