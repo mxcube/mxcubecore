@@ -383,7 +383,7 @@ class FlexHCD(SampleChanger):
 
     def reset_loaded_sample(self):
         if self.exporter_addr:
-            self._execute_cmd_exporter("reset_loaded_position", command=True)
+            self._execute_cmd_exporter("resetLoadedPosition", command=True)
         else:
             self._execute_cmd("reset_loaded_position")
         self._reset_loaded_sample()
@@ -444,17 +444,22 @@ class FlexHCD(SampleChanger):
             )
         else:
             gripper_type = self._execute_cmd("get_gripper_type")
+
         return self.gripper_types.get(gripper_type, "?")
 
     def get_available_grippers(self):
         grippers = []
+
         if self.exporter_addr:
             ret = sorted(
                 self._execute_cmd_exporter("getSupportedGrippers", attribute=True)
             )
             for gripper in ret:
                 grippers.append(self.gripper_types[gripper])
-            return grippers
+        else:
+            grippers = [-1, 1, 2]
+
+        return grippers
 
     @task
     def change_gripper(self, gripper=None):
