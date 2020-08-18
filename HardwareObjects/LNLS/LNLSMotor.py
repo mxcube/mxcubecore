@@ -67,7 +67,7 @@ class LNLSMotor(EPICSActuator, AbstractMotor):
         self._velocity = self.get_channel_value(MOTOR_VELO)
         return self._velocity
 
-    def set_velocity(self, velocity):
+    def set_velocity(self, value):
         """Override super class method."""
         self.__velocity = self.set_channel_value(MOTOR_VELO, value)
 
