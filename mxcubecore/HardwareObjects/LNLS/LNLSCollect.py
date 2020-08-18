@@ -3,6 +3,7 @@ from HardwareRepository.HardwareObjects.abstract.AbstractMultiCollect import (
     AbstractMultiCollect,
 )
 from HardwareRepository.TaskUtils import task
+from HardwareRepository import HardwareRepository as HWR
 import logging
 import time
 import os
@@ -127,6 +128,17 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
             logging.getLogger("HWR").info("[SCAN-UTILS] Command: " + str(command))
             print('\n[SCAN-UTILS] Command: ' + str(command) + '\n')
 
+            # Store values for clean up
+            logging.getLogger("HWR").info("[Clean up] Configuring...")
+            omega = HWR.beamline.diffractometer.motor_hwobj_dict.get("phi")
+            if omega is None:
+                logging.getLogger("HWR").error("[Clean up] Could not get omega motor.")
+            else:
+                omega_original_velo = omega.get_velocity()
+                logging.getLogger("HWR").info(
+                    "[Clean up] Omega velo: {}".format(omega_original_velo))
+            logging.getLogger("HWR").info("[Clean up] Configured.")
+
             import sys, subprocess
             try:
                 process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -143,21 +155,24 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
 
             except BaseException:
                 logging.getLogger("HWR").error("[SCAN-UTILS] Error in calling scan.")
-                #print("[SCAN-UTILS] Error in calling scan.")
+                # print("[SCAN-UTILS] Error in calling scan.")
                 raise
             else:
                 logging.getLogger("HWR").info("[SCAN-UTILS] Finished scan!")
                 logging.getLogger("user_level_log").info("Finished scan!")
                 #print("[SCAN-UTILS] Finished scan!")
-                
-            '''for image in range(
-                data_collect_parameters["oscillation_sequence"][0]["number_of_images"]
-            ):
-                time.sleep(
-                    data_collect_parameters["oscillation_sequence"][0]["exposure_time"]
-                )
-                self.emit("collectImageTaken", image)
-                print("EMIT IMAGE TAKEN")'''
+            finally:
+                # Clean up
+                logging.getLogger("HWR").info("[Clean up] Applying...")
+                import time as timee
+                timee.sleep(10)
+                if omega is not None:
+                    # Restore omega default velocity
+                    omega.set_velocity(omega_original_velo)
+                    logging.getLogger("HWR").info(
+                        "[Clean up] Omega velo reset to: {}".format(
+                            omega_original_velo))
+                logging.getLogger("HWR").info("[Clean up] Done!")
 
             data_collect_parameters["status"] = "Running"
             data_collect_parameters["status"] = "Data collection successful"
