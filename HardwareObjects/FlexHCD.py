@@ -457,7 +457,7 @@ class FlexHCD(SampleChanger):
             for gripper in ret:
                 grippers.append(self.gripper_types[gripper])
         else:
-            grippers = [-1, 1, 2]
+            grippers = ["No Gripper", "UNIPUCK", "MINISPINE"]
 
         return grippers
 
