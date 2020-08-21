@@ -1,16 +1,7 @@
-<equipment class="EnergyMockup">
-  <mad>
-    <defaultenergy>
-      <energy>12.65950</energy>
-      <directory>pk</directory>
-    </defaultenergy>
-    <defaultenergy>
-      <energy>12.65950</energy>
-      <directory>ip</directory>
-    </defaultenergy>
-    <defaultenergy>
-      <energy>12.70800</energy>
-      <directory>rm</directory>
-    </defaultenergy>
-  </mad>
-</equipment>
+<device class="LNLS.LNLSEnergy">
+  <username>energy</username>
+  <motor_name>energy</motor_name>
+  <!-- Energy setting not allowed for now.-->
+  <channel type="epics" name="epicsActuator_val">SOL:S:m1.ACCL</channel>
+  <channel type="epics" name="epicsActuator_rbv" polling="500">SOL:S:m1.ACCL</channel>
+</device>
