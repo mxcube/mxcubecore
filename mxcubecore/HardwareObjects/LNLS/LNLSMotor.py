@@ -6,15 +6,17 @@ import logging
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 from HardwareRepository.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
 
-MOTOR_DMOV = 'epicsMotor_dmov'
-MOTOR_STOP = 'epicsMotor_stop'
-MOTOR_RLV  = 'epicsMotor_rlv'
-MOTOR_VELO = 'epicsMotor_velo'
-MOTOR_DLLM = 'epicsMotor_dllm'
-MOTOR_DHLM = 'epicsMotor_dhlm'
-MOTOR_EGU  = 'epicsMotor_egu'
 
 class LNLSMotor(EPICSActuator, AbstractMotor):
+
+    MOTOR_DMOV = 'epicsMotor_dmov'
+    MOTOR_STOP = 'epicsMotor_stop'
+    MOTOR_RLV = 'epicsMotor_rlv'
+    MOTOR_VELO = 'epicsMotor_velo'
+    MOTOR_DLLM = 'epicsMotor_dllm'
+    MOTOR_DHLM = 'epicsMotor_dhlm'
+    MOTOR_EGU = 'epicsMotor_egu'
+
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
         self._wrap_range = None
@@ -30,7 +32,7 @@ class LNLSMotor(EPICSActuator, AbstractMotor):
         """Override super class method."""
         self.update_specific_state(self.SPECIFIC_STATES.MOVING)
 
-        while (self.get_channel_value(MOTOR_DMOV) == 0):
+        while (self.get_channel_value(self.MOTOR_DMOV) == 0):
             time.sleep(0.2)
             current_value = self.get_value()
             self.update_value(current_value)
@@ -40,15 +42,15 @@ class LNLSMotor(EPICSActuator, AbstractMotor):
 
     def abort(self):
         """Override super class method."""
-        self.set_channel_value(MOTOR_STOP, 1)
+        self.set_channel_value(self.MOTOR_STOP, 1)
         if self.__move_task is not None:
             self.__move_task.kill()
 
     def get_limits(self):
         """Override super class method."""
         try:
-            low_limit = float(self.get_channel_value(MOTOR_DLLM))
-            high_limit = float(self.get_channel_value(MOTOR_DHLM))
+            low_limit = float(self.get_channel_value(self.MOTOR_DLLM))
+            high_limit = float(self.get_channel_value(self.MOTOR_DHLM))
             self._nominal_limits = (low_limit, high_limit)
         except:
             logging.getLogger("HWR").error('Error getting motor limits for: %s' % self.motor_name)
@@ -64,12 +66,12 @@ class LNLSMotor(EPICSActuator, AbstractMotor):
 
     def get_velocity(self):
         """Override super class method."""
-        self._velocity = self.get_channel_value(MOTOR_VELO)
+        self._velocity = self.get_channel_value(self.MOTOR_VELO)
         return self._velocity
 
     def set_velocity(self, value):
         """Override super class method."""
-        self.__velocity = self.set_channel_value(MOTOR_VELO, value)
+        self.__velocity = self.set_channel_value(self.MOTOR_VELO, value)
 
     def validate_value(self, value):
         """Override super class method."""

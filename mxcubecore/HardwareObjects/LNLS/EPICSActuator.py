@@ -34,11 +34,12 @@ from HardwareRepository.HardwareObjects.abstract import AbstractActuator
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
-ACTUATOR_VAL  = 'epicsActuator_val' # target
-ACTUATOR_RBV  = 'epicsActuator_rbv' # readback
 
 class EPICSActuator(AbstractActuator.AbstractActuator):
     """EPCIS actuator"""
+
+    ACTUATOR_VAL  = 'epicsActuator_val' # target
+    ACTUATOR_RBV  = 'epicsActuator_rbv' # readback
 
     def __init__(self, name):
         super(EPICSActuator, self).__init__(name)
@@ -71,7 +72,7 @@ class EPICSActuator(AbstractActuator.AbstractActuator):
         Returns:
             float: Actuator position.
         """
-        value = self.get_channel_value(ACTUATOR_RBV)
+        value = self.get_channel_value(self.ACTUATOR_RBV)
         return value
 
     def set_value(self, value, timeout=0):
@@ -121,6 +122,6 @@ class EPICSActuator(AbstractActuator.AbstractActuator):
         Args:
             value (float): target value
         """
-        self.set_channel_value(ACTUATOR_VAL, value)
+        self.set_channel_value(self.ACTUATOR_VAL, value)
         #self.update_value(value)
         #self.update_state(self.STATES.READY)
