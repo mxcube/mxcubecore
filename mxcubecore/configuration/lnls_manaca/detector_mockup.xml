@@ -1,4 +1,9 @@
-<equipment class = "DetectorMockup">
+<equipment class = "LNLS.LNLSPilatusDet">
+  <!-- Channels -->
+  <channel type="epics" name="det_threshols_energy">MX2:cam1:ThresholdEnergy</channel>
+  <!-- Status needs to be directly accessed. See LNLSPilatusDet. -->
+  <channel_status>MX2:cam1:StatusMessage_RBV</channel_status>
+  <!-- Properties -->
   <object hwrid="/dtox" role="detector_distance"/>
   <tempThreshold>33.5</tempThreshold>
   <humidityThreshold>20.0</humidityThreshold>
