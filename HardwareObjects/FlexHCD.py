@@ -457,7 +457,10 @@ class FlexHCD(SampleChanger):
             for gripper in ret:
                 grippers.append(self.gripper_types[gripper])
         else:
-            grippers = ["No Gripper", "UNIPUCK", "MINISPINE"]
+            ret = [1, 3] #self._execute_cmd("get_supported_grippers")
+
+            for gripper in ret:
+                grippers.append(self.gripper_types[gripper])
 
         return grippers
 
