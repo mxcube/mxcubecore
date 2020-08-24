@@ -22,12 +22,11 @@ from functools import reduce
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository import HardwareRepository as HWR
+from HardwareRepository.HardwareObjects.SecureXMLRpcRequestHandler import SecureXMLRpcRequestHandler
 
 if sys.version_info > (3, 0):
-    from xmlrpc.server import SimpleXMLRPCRequestHandler
     from xmlrpc.server import SimpleXMLRPCServer
 else:
-    from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
     from SimpleXMLRPCServer import SimpleXMLRPCServer
 
 
@@ -39,97 +38,6 @@ __version__ = ""
 __maintainer__ = "Marcus Oskarsson"
 __email__ = "marcus.oscarsson@esrf.fr"
 __status__ = "Draft"
-
-
-class SecureXMLRpcRequestHandler(SimpleXMLRPCRequestHandler):
-    """
-    Secure XML-RPC request handler class.
-
-    It it very similar to SimpleXMLRPCRequestHandler but it checks for a
-    "Token" entry in the header. If this token doesn't correspond to a
-    reference token the server sends a "401" (Unauthorized) reply.
-    """
-
-    __referenceToken = None
-
-    @staticmethod
-    def setReferenceToken(token):
-        SecureXMLRpcRequestHandler.__referenceToken = token
-
-    def setup(self):
-        self.connection = self.request
-        self.rfile = socket._fileobject(self.request, "rb", self.rbufsize)
-        self.wfile = socket._fileobject(self.request, "wb", self.wbufsize)
-
-    def do_POST(self):
-        """
-        Handles the HTTPS POST request.
-
-        It was copied out from SimpleXMLRPCServer.py and modified to check for "Token" in the headers.
-        """
-        # Check that the path is legal
-        if not self.is_rpc_path_valid():
-            self.report_404()
-            return
-
-        referenceToken = SecureXMLRpcRequestHandler.__referenceToken
-        if (
-            referenceToken is not None
-            and "Token" in self.headers
-            and referenceToken == self.headers["Token"]
-        ):
-            try:
-                # Get arguments by reading body of request.
-                # We read this in chunks to avoid straining
-                # socket.read(); around the 10 or 15Mb mark, some platforms
-                # begin to have problems (bug #792570).
-                max_chunk_size = 10 * 1024 * 1024
-                size_remaining = int(self.headers["content-length"])
-                L = []
-                while size_remaining:
-                    chunk_size = min(size_remaining, max_chunk_size)
-                    chunk = self.rfile.read(chunk_size)
-                    if not chunk:
-                        break
-                    L.append(chunk)
-                    size_remaining -= len(L[-1])
-                data = "".join(L)
-                # In previous versions of SimpleXMLRPCServer, _dispatch
-                # could be overridden in this class, instead of in
-                # SimpleXMLRPCDispatcher. To maintain backwards compatibility,
-                # check to see if a subclass implements _dispatch and dispatch
-                # using that method if present.
-                response = self.server._marshaled_dispatch(
-                    data, getattr(self, "_dispatch", None)
-                )
-            except Exception as e:  # This should only happen if the module is buggy
-                # internal error, report as HTTP server error
-                self.send_response(500)
-
-                # Send information about the exception if requested
-                if (
-                    hasattr(self.server, "_send_traceback_header")
-                    and self.server._send_traceback_header
-                ):
-                    self.send_header("X-exception", str(e))
-                    self.send_header("X-traceback", traceback.format_exc())
-
-                self.end_headers()
-            else:
-                # got a valid XML RPC response
-                self.send_response(200)
-                self.send_header("Content-type", "text/xml")
-                self.send_header("Content-length", str(len(response)))
-                self.end_headers()
-                self.wfile.write(response)
-
-                # shut down the connection
-                self.wfile.flush()
-                self.connection.shutdown(1)
-        else:
-            # Unrecognized token - access unauthorized
-            self.send_response(401)
-            self.end_headers()
 
 
 class XMLRPCServer(HardwareObject):
@@ -145,7 +53,7 @@ class XMLRPCServer(HardwareObject):
         self.xmlrpc_prefixes = set()
         self.current_entry_task = None
         self.host = None
-        self.doEnforceUseOfToken = False
+        self.use_token = True
 
         atexit.register(self.close)
 
@@ -164,7 +72,7 @@ class XMLRPCServer(HardwareObject):
         self.host = host
         self.port = self.getProperty("port")
 
-        self.doEnforceUseOfToken = self.getProperty("enforceUseOfToken", False)
+        self.use_token = self.getProperty("use_token", True)
 
         try:
             self.open()
@@ -187,7 +95,7 @@ class XMLRPCServer(HardwareObject):
             return
         self.xmlrpc_prefixes = set()
 
-        if self.doEnforceUseOfToken:
+        if self.use_token:
             self._server = SimpleXMLRPCServer(
                 (self.host, int(self.port)),
                 requestHandler=SecureXMLRpcRequestHandler,
@@ -428,7 +336,7 @@ class XMLRPCServer(HardwareObject):
     def queue_status(self):
         pass
 
-    def shape_history_get_grid(self):
+    def shape_history_get_grid(self, sid):
         """
         :returns: The currently selected grid
         :rtype: dict
@@ -444,9 +352,8 @@ class XMLRPCServer(HardwareObject):
          'y1': float,
          'angle': float}
 
-        """
-        grid_dict = HWR.beamline.sample_view.get_grid()
-        # self.shape_history_set_grid_data(grid_dict['id'], {})
+        """       
+        grid_dict = HWR.beamline.sample_view.get_shape(sid).as_dict()
 
         return grid_dict
 

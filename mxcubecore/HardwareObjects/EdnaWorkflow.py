@@ -8,7 +8,7 @@ import logging
 import binascii
 
 # import threading
-from HardwareRepository.HardwareObjects.XMLRPCServer import SecureXMLRpcRequestHandler
+from HardwareRepository.HardwareObjects.SecureXMLRpcRequestHandler import SecureXMLRpcRequestHandler
 from HardwareRepository import HardwareRepository as HWR
 
 try:
@@ -189,7 +189,7 @@ class EdnaWorkflow(HardwareObject):
 
     def generateNewToken(self):
         # See: https://wyattbaldwin.com/2014/01/09/generating-random-tokens-in-python/
-        self._token = binascii.hexlify(os.urandom(5))
+        self._token = binascii.hexlify(os.urandom(5)).decode('utf-8')
         SecureXMLRpcRequestHandler.setReferenceToken(self._token)
 
     def getToken(self):
