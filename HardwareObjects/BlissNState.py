@@ -64,7 +64,7 @@ class BlissNState(AbstractNState):
         self.initialise_values()
         if self.device_type == "actuator":
             self.connect(self._bliss_obj, "state", self.update_value)
-            self.connect(self._bliss_obj, "state", self.update_state)
+            #self.connect(self._bliss_obj, "state", self.update_state)
             self.__saved_state = self.get_value()
         elif self.device_type == "motor":
             self.connect(self._bliss_obj, "position", self.update_value)
