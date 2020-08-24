@@ -117,7 +117,7 @@ class HWObjActuatorCommand(CommandObject):
             value = self._hwobj.VALUES.OUT
         else:
             value = self._hwobj.VALUES.IN
-        cmd = getattr(self._hwobj, "set_value")(value)
+        cmd = getattr(self._hwobj, "set_value")(value, timeout=None)
         self._cmd_execution = gevent.spawn(cmd)
         self._cmd_execution.link(self._cmd_done)
 
@@ -125,7 +125,7 @@ class HWObjActuatorCommand(CommandObject):
         try:
             try:
                 cmd_execution.get()
-                res = getattr(self._hwobj, "get_value")().name.lower()
+                res = getattr(self._hwobj, "get_value")(timeout=None).name.lower()
             except BaseException:
                 self.emit("commandFailed", (str(self.name()),))
             else:
