@@ -40,9 +40,6 @@ class LNLSInOut(EPICSActuator, Device):
         self.state_attr = value
         self.actuatorState = self.states.get(value, "unknown")
         self.emit("actuatorStateChanged", (self.actuatorState,))
-        print("current_value = " + str(current_value))
-        print("value = " + str(value))
-        print("self.actuatorState = " + str(self.actuatorState))
 
         self.offset = self.getProperty("offset", 0)
         if self.offset > 0:
