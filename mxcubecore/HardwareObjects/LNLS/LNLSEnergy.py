@@ -19,12 +19,11 @@
 
 """LNLS Energy"""
 
+import logging
+
 from HardwareRepository.HardwareObjects.abstract.AbstractEnergy import (
     AbstractEnergy)
 from HardwareRepository.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
-
-# Default energy value (keV)
-DEFAULT_VALUE = 0.0
 
 
 class LNLSEnergy(EPICSActuator, AbstractEnergy):
@@ -33,12 +32,49 @@ class LNLSEnergy(EPICSActuator, AbstractEnergy):
     def init(self):
         """Initialise default properties"""
         super(LNLSEnergy, self).init()
-
-        if self.default_value is None:
-            self.default_value = DEFAULT_VALUE
-            self.update_value(DEFAULT_VALUE)
         self.update_state(self.STATES.READY)
+        self.detector = self.getObjectByRole("detector")
 
     def set_value(self):
         """Override method."""
         pass
+
+    def get_value(self):
+        """Read the actuator position.
+        Returns:
+            float: Actuator position.
+        """
+        value = super().get_value()
+        # Nominal value stores last energy value with valid threshold energy
+        if self._nominal_value != value:
+            threshold_ok = self.check_threshold_energy(value)
+            if threshold_ok:
+                self._nominal_value = value
+            else:
+                value = None  # Invalid energy because threshold is invalid
+        return value
+
+    def check_threshold_energy(self, energy):
+        """ Returns whether detector threshold energy is valid or not."""
+
+        logging.getLogger("HWR").info(
+        "Checking Pilatus threshold. Please wait..."
+        )
+        for i in range(3):
+            logging.getLogger("user_level_log").info(
+                "Checking Pilatus threshold. Please wait..."
+            )
+        threshold_ok = self.detector.set_threshold_energy(energy)
+
+        if threshold_ok:
+            logging.getLogger("HWR").info("Pilatus threshold is okay.")
+            logging.getLogger("user_level_log").info(
+                "Pilatus threshold is okay."
+            )
+            return True
+
+        logging.getLogger("HWR").error("Pilatus threshold is not okay.")
+        logging.getLogger("user_level_log").error(
+            "Pilatus threshold is not okay."
+        )
+        return False
