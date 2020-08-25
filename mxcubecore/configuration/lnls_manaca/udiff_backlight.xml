@@ -1,4 +1,9 @@
-<device class="MotorMockup">
-  <motor_name>BackLight</motor_name>
-  <exporter_address>192.168.96.43:9001</exporter_address>
+<device class="LNLS.EPICSActuator">
+    <!-- Channels -->
+    <channel type="epics" name="epicsActuator_val">MNC:B:LUCIOLE01:LIGHT_CH1</channel>
+    <channel type="epics" name="epicsActuator_rbv" polling="500">MNC:B:LUCIOLE01:LIGHT_CH1</channel>
+    <!-- Properties -->
+    <username>BackLight</username>
+    <motor_name>BackLight</motor_name>
+    <!-- <GUIstep>1</GUIstep> This have to be defined on the GUI at the moment.-->
 </device>
