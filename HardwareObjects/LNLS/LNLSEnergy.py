@@ -46,12 +46,16 @@ class LNLSEnergy(EPICSActuator, AbstractEnergy):
         """
         value = super().get_value()
         # Nominal value stores last energy value with valid threshold energy
-        if self._nominal_value != value:
-            threshold_ok = self.check_threshold_energy(value)
-            if threshold_ok:
-                self._nominal_value = value
-            else:
-                value = None  # Invalid energy because threshold is invalid
+        if abs(self._nominal_value - value) < 0.001:
+            logging.getLogger("HWR").info("Pilatus threshold is still okay.")
+            return value
+        
+        threshold_ok = self.check_threshold_energy(value)
+        if threshold_ok:
+            self._nominal_value = value
+        else:
+           value = None  # Invalid energy because threshold is invalid
+        
         return value
 
     def check_threshold_energy(self, energy):
