@@ -58,8 +58,10 @@ class LNLSDiffractometer(GenericDiffractometer):
         self.pixels_per_mm_y = 1.0 / self.y_calib
         if "zoom" not in self.motor_hwobj_dict.keys():
             self.motor_hwobj_dict["zoom"] = self.getObjectByRole("zoom")
-        calibration = self.zoom.getProperty("calibration")
-        self.zoom_calibration = ast.literal_eval(calibration)
+        calibration_x = self.zoom.getProperty("mm_per_pixel_x")
+        calibration_y = self.zoom.getProperty("mm_per_pixel_y")
+        self.zoom_calibration_x = ast.literal_eval(calibration_x)
+        self.zoom_calibration_y = ast.literal_eval(calibration_y)
 
         self.beam_position = [318, 238]
 
@@ -352,7 +354,13 @@ class LNLSDiffractometer(GenericDiffractometer):
         sampy_pos  = self.motor_hwobj_dict["sampy"].get_value()
 
         # Pixels to move axis X of whole goniometer
-        move_goniox = (self.beam_position[0] - self.last_centred_position[0])
+        import math
+        drx_goniox = abs(- x - y + 1152) / math.sqrt(2)
+        if y <= (- x + 1152):
+            dir_goniox = 1
+        else:
+            dir_goniox = -1         
+        move_goniox = dir_goniox * drx_goniox
         # mm to move
         move_goniox = move_goniox / self.pixels_per_mm_x
 
@@ -360,8 +368,15 @@ class LNLSDiffractometer(GenericDiffractometer):
         move_goniox += goniox_pos
 
         # Calculate new position of X
-        import math
-        move_sampx = (math.cos(math.radians(omega_pos)) * (self.beam_position[1] - float(self.last_centred_position[1])))
+        dry_samp = abs(x - y - 128) / math.sqrt(2)
+        if (y >= x - 128):
+            dir_samp = 1
+        else:
+            dir_samp = -1
+        move_samp = dir_samp * dry_samp
+        print('move_samp = ' + str(move_samp))
+
+        move_sampx = (math.sin(math.radians(omega_pos)) * move_samp)
         # print("math.cos(math.radians(omega_pos)): ", math.cos(math.radians(omega_pos)))
         # print("self.beam_position[1]: ", self.beam_position[1])
         # print("float(last_centred_position[1])", float(last_centred_position[1]))
@@ -374,18 +389,20 @@ class LNLSDiffractometer(GenericDiffractometer):
         # print("move_sampx += sampx_pos: ", move_sampx)
 
         # Calculate new position of Y
-        move_sampy = (math.sin(math.radians(omega_pos)) * (self.beam_position[1] - float(self.last_centred_position[1])))
+        move_sampy = (math.cos(math.radians(omega_pos)) * move_samp)
         # print("math.sin(math.radians(omega_pos)): ", math.sin(math.radians(omega_pos)))
         # print("self.beam_position[1]: ", self.beam_position[1])
         # print("float(last_centred_position[1])", float(last_centred_position[1]))
         # print("move_sampy = (math.sin(math.radians(omega_pos)) * (self.beam_position[1] - float(last_centred_position[1]))): ", move_sampy)
-        move_sampy = (move_sampy / self.pixels_per_mm_y) * -1
+        move_sampy = (move_sampy / self.pixels_per_mm_y)
+        print('move_sampy = ' + str(move_sampy))
         #move_sampy = move_sampy / self.pixels_per_mm_y
         # print("move_sampy = move_sampy / self.pixels_per_mm_y: ", move_sampy)
         # Move absolute
         move_sampy += sampy_pos
         # print("move_sampy += sampy_pos: ", move_sampy)
         centred_pos_dir = { 'phiz': move_goniox, 'sampx': move_sampx, 'sampy': move_sampy }
+        print('Target pos = ' + str(centred_pos_dir))
         return centred_pos_dir
 
     def move_to_beam(self, x, y, omega=None):
@@ -486,11 +503,11 @@ class LNLSDiffractometer(GenericDiffractometer):
         """Returns tuple with current zoom calibration (px per mm)."""
         zoom_enum = self.zoom.get_value()  # Get current zoom enum
         zoom_enum_str = zoom_enum.name # as str
-        calib_val = self.zoom_calibration.get(zoom_enum_str)
-        self.x_calib = calib_val
-        self.y_calib = calib_val
+        self.x_calib = self.zoom_calibration_x.get(zoom_enum_str)
+        self.y_calib = self.zoom_calibration_y.get(zoom_enum_str)
         try:
-            float(calib_val)
+            float(self.x_calib)
+            float(self.y_calib)
             self.pixels_per_mm_x = 1.0 / self.x_calib
             self.pixels_per_mm_y = 1.0 / self.y_calib
         except Exception as e:
