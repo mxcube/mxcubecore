@@ -117,8 +117,7 @@ class BlissShutter(AbstractShutter):
         """
         # the return from BLISS value is an Enum
         _val = self._bliss_obj.state.name
-        self._nominal_value = self.value_to_enum(_val)
-        return self._nominal_value
+        return self.value_to_enum(_val)
 
     def _set_value(self, value):
         if value.name == "OPEN":
