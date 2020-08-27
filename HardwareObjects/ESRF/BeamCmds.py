@@ -14,9 +14,9 @@ ARGUMENT_TYPE_LIST = "List"
 ARGUMENT_TYPE_JSON_SCHEMA = "JSONSchema"
 
 
-class BaseBeamlineAction(HardwareObject):
+class BaseBeamlineAction(CommandObject):
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
+        super(BaseBeamlineAction, self).__init__(name)
 
         # From CommandObject consider removing
         self._arguments = []
@@ -40,7 +40,7 @@ class ControllerCommand(BaseBeamlineAction):
 
     def getArguments(self):
         if self.name() == "Anneal":
-            self.addArgument("Time [s]", "float")
+            self._arguments.append(("Time [s]", "float"))
 
         return CommandObject.getArguments(self)
 
@@ -62,7 +62,7 @@ class ControllerCommand(BaseBeamlineAction):
                 else:
                     self.emit("commandReplyArrived", (str(self.name()), res))
         finally:
-            self.emit("commandReady")
+            self.emit("commandReady", (str(self.name()), None))
 
     def abort(self):
         if self._cmd_execution and not self._cmd_execution.ready():
@@ -134,7 +134,7 @@ class HWObjActuatorCommand(CommandObject):
                 else:
                     self.emit("commandReplyArrived", (str(self.name()), res))
         finally:
-            self.emit("commandReady")
+            self.emit("commandReady", (str(self.name()), None))
 
     def abort(self):
         if self._cmd_execution and not self._cmd_execution.ready():
