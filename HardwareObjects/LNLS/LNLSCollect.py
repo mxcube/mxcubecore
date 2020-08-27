@@ -139,6 +139,9 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
                     "[Clean up] Omega velo: {}".format(omega_original_velo))
             logging.getLogger("HWR").info("[Clean up] Configured.")
 
+            # Set detector cbf header
+            self.set_pilatus_det_header()
+
             import sys, subprocess
             try:
                 process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -196,6 +199,18 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
         )
         logging.getLogger("HWR").info("data collection successful in loop")
         self.emit("collectReady", (True,))
+
+    def set_pilatus_det_header(self):
+        # Read current params
+        logging.getLogger("HWR").info("Setting Pilatus CBF header.")
+        wl = self.bl_control.energy.get_wavelength()
+        dd = self.bl_control.detector_distance.get_value()
+
+        # Write to det (values will be on the cbf header)
+        self.bl_control.detector.set_wavelength(wl)
+        self.bl_control.detector.set_detector_distance(dd)
+        self.bl_control.detector.set_beam_x()
+        self.bl_control.detector.set_beam_y()
 
     @task
     def take_crystal_snapshots(self, number_of_snapshots):

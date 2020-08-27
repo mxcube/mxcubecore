@@ -10,7 +10,11 @@ import epics
 class LNLSPilatusDet(AbstractDetector):
 
     DET_THRESHOLD = 'det_threshols_energy'
-    #DET_STATUS = 'det_status_message'
+    # DET_STATUS = 'det_status_message'
+    DET_WAVELENGTH = 'det_wavelength'
+    DET_DETDIST = 'det_detdist'
+    DET_BEAM_X = 'det_beam_x'
+    DET_BEAM_Y = 'det_beam_y'
 
     def __init__(self, name):
         """
@@ -34,6 +38,12 @@ class LNLSPilatusDet(AbstractDetector):
         self.status = "ready"
         self.pv_status = epics.PV(self.getProperty("channel_status"))
         self.threshold = -1  # Starts with invalid value. To be set.
+        self.wavelength = -1
+        self.det_distance = -1
+        self.beam_x = -1
+        self.beam_y = -1
+        self.default_beam_x = float(self.getProperty("default_beam_x"))
+        self.default_beam_y = float(self.getProperty("default_beam_y"))
 
         self._distance_motor_hwobj = self.getObjectByRole("detector_distance")
         self.threshold = self.get_threshold_energy()
@@ -102,7 +112,7 @@ class LNLSPilatusDet(AbstractDetector):
         Set threshold energy and returns whether it was successful or not.
         """
         target_threshold = energy / 2
-        if self.threshold == target_threshold:
+        if abs(self.threshold - target_threshold) < 0.0001:
             return True
 
         logging.getLogger("HWR").info(
@@ -123,13 +133,13 @@ class LNLSPilatusDet(AbstractDetector):
             time.sleep(3)
             status = self.pv_status.get(as_string=True)
 
-        current_threshold = self.get_threshold_energy()
+        self.threshold = self.get_threshold_energy()
         logging.getLogger("HWR").info(
             'Pilatus: current threshold is %s (target is %s)' %
-            (current_threshold, target_threshold)
+            (self.threshold, target_threshold)
         )
         if (status == "Camserver returned OK"
-        and current_threshold == target_threshold):
+        and self.threshold == target_threshold):
             logging.getLogger("HWR").info('Pilatus status: %s' % status)
             logging.getLogger("HWR").info(
                 "Pilatus threshold successfully set."
@@ -139,5 +149,155 @@ class LNLSPilatusDet(AbstractDetector):
         logging.getLogger("HWR").error('Pilatus status: %s' % status)
         logging.getLogger("HWR").error(
             "Error while setting Pilatus threshold. Please, check the detector."
+        )
+        return False
+
+    def get_wavelength(self):
+        """
+        Returns:
+            float: wavelength
+        """
+        value = float(self.get_channel_value(self.DET_WAVELENGTH))
+        return value
+
+    def set_wavelength(self, wavelength):
+        """
+        Set wavelength and returns whether it was successful or not.
+        """
+        if abs(self.wavelength - wavelength) < 0.0001:
+            logging.getLogger("HWR").info(
+                "Pilatus wavelength still okay."
+            )
+            return True
+
+        logging.getLogger("HWR").info("Setting Pilatus wavelength...")
+        self.set_channel_value(self.DET_WAVELENGTH, wavelength)
+        time.sleep(0.3)
+
+        self.wavelength = self.get_wavelength()
+
+        if self.wavelength == wavelength:
+            logging.getLogger("HWR").info(
+                "Pilatus wavelength successfully set."
+            )
+            return True
+
+        logging.getLogger("HWR").error(
+            "Error while setting Pilatus wavelength. Please, check the detector."
+        )
+        return False
+
+    def get_detector_distance(self):
+        """
+        Returns:
+            float: detector distance
+        """
+        value = float(self.get_channel_value(self.DET_DETDIST))
+        return value
+
+    def set_detector_distance(self, det_distance):
+        """
+        Set detector distance and returns whether it was successful or not.
+        """
+        if abs(self.det_distance - det_distance) < 0.001:
+            logging.getLogger("HWR").info(
+                "Pilatus det distance still okay."
+            )
+            return True
+
+        logging.getLogger("HWR").info("Setting Pilatus det distance...")
+        self.set_channel_value(self.DET_DETDIST, det_distance)
+        time.sleep(0.3)
+
+        self.det_distance = self.get_detector_distance()
+
+        if self.det_distance == det_distance:
+            logging.getLogger("HWR").info(
+                "Pilatus det distance successfully set."
+            )
+            return True
+
+        logging.getLogger("HWR").error(
+            "Error while setting Pilatus det distance. Please, check the detector."
+        )
+        return False
+
+    def get_beam_x(self):
+        """
+        Returns:
+            float: detector beam x
+        """
+        value = float(self.get_channel_value(self.DET_BEAM_X))
+        return value
+
+    def set_beam_x(self, beam_x=None):
+        """
+        Set detector beam_x and returns whether it was successful or not.
+        """
+        if beam_x is None:
+            beam_x = self.default_beam_x
+
+        if abs(self.beam_x - beam_x) == 0:
+            logging.getLogger("HWR").info(
+                "Pilatus beam X still okay."
+            )
+            return True
+
+        logging.getLogger("HWR").info("Setting Pilatus beam X...")
+        self.set_channel_value(self.DET_BEAM_X, beam_x)
+        time.sleep(1)
+
+        self.beam_x = self.get_beam_x()
+        print('self.beam_x = ' + str(self.beam_x))
+        print('beam_x = ' + str(beam_x))
+
+        if float(self.beam_x) == float(beam_x):
+            logging.getLogger("HWR").info(
+                "Pilatus det beam X successfully set."
+            )
+            return True
+
+        logging.getLogger("HWR").error(
+            "Error while setting Pilatus beam X. Please, check the detector."
+        )
+        return False
+
+    def get_beam_y(self):
+        """
+        Returns:
+            float: detector beam y
+        """
+        value = float(self.get_channel_value(self.DET_BEAM_Y))
+        return value
+
+    def set_beam_y(self, beam_y=None):
+        """
+        Set detector beam_y and returns whether it was successful or not.
+        """
+        if beam_y is None:
+            beam_y = self.default_beam_y
+
+        if abs(self.beam_y - beam_y) == 0:
+            logging.getLogger("HWR").info(
+                "Pilatus beam X still okay."
+            )
+            return True
+
+        logging.getLogger("HWR").info("Setting Pilatus beam X...")
+        self.set_channel_value(self.DET_BEAM_Y, beam_y)
+        time.sleep(1)
+
+        self.beam_y = self.get_beam_y()
+        print('self.beam_y = ' + str(self.beam_y))
+        print('beam_y = ' + str(beam_y))
+
+        if float(self.beam_y) == float(beam_y):
+            logging.getLogger("HWR").info(
+                "Pilatus det beam Y successfully set."
+            )
+            return True
+
+        logging.getLogger("HWR").error(
+            "Error while setting Pilatus beam Y. Please, check the detector."
         )
         return False

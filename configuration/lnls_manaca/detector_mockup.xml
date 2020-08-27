@@ -1,9 +1,15 @@
 <equipment class = "LNLS.LNLSPilatusDet">
   <!-- Channels -->
   <channel type="epics" name="det_threshols_energy">MX2:cam1:ThresholdEnergy</channel>
-  <!-- Status needs to be directly accessed. See LNLSPilatusDet. -->
+  <channel type="epics" name="det_wavelength">MX2:cam1:Wavelength</channel>
+  <channel type="epics" name="det_detdist">MX2:cam1:DetDist</channel>
+  <channel type="epics" name="det_beam_x">MX2:cam1:BeamX</channel>
+  <channel type="epics" name="det_beam_y">MX2:cam1:BeamY</channel>
+  <!-- Status needs to be directly accessed. See details in LNLSPilatusDet. -->
   <channel_status>MX2:cam1:StatusMessage_RBV</channel_status>
   <!-- Properties -->
+  <default_beam_x>730</default_beam_x>
+  <default_beam_y>857</default_beam_y>
   <object hwrid="/dtox" role="detector_distance"/>
   <tempThreshold>33.5</tempThreshold>
   <humidityThreshold>20.0</humidityThreshold>
