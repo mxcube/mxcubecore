@@ -33,7 +33,7 @@ class CommandObject:
     def name(self):
         return self._name
 
-    def connectSignal(self, signalName, callableFunc):
+    def connect(self, signalName, callableFunc):
         try:
             dispatcher.disconnect(callableFunc, signalName, self)
         except BaseException:
