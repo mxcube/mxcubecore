@@ -2,7 +2,6 @@ import gevent
 import time
 import subprocess
 import os
-import math
 import logging
 
 from PyTango import DeviceProxy
@@ -11,7 +10,7 @@ from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.CommandContainer import ConnectionError
 
 from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
-    AbstractDetector,
+    AbstractDetector
 )
 
 from HardwareRepository.BaseHardwareObjects import HardwareObjectState
@@ -73,20 +72,19 @@ class LimaPilatusDetector(AbstractDetector):
                 self.add_channel(
                     {
                         "type": "tango",
-                        "name": "energy_threshold",
+                        "name": "working_energy",
                         "tangoname": pilatus_device,
                     },
                     "working_energy",
                 )
-            else:
-                self.add_channel(
-                    {
-                        "type": "tango",
-                        "name": "energy_threshold",
-                        "tangoname": pilatus_device,
-                    },
-                    "energy_threshold",
-                )
+            self.add_channel(
+                {
+                    "type": "tango",
+                    "name": "energy_threshold",
+                    "tangoname": pilatus_device,
+                },
+                "energy_threshold",
+            )
 
             self.add_command(
                 {"type": "tango", "name": "prepare_acq", "tangoname": lima_device},
@@ -172,7 +170,6 @@ class LimaPilatusDetector(AbstractDetector):
                 # reset mesh steps
                 self._mesh_steps = 1
 
-
         diffractometer_positions = HWR.beamline.diffractometer.get_positions()
         self.start_angles = list()
         for i in range(number_of_images):
@@ -229,15 +226,22 @@ class LimaPilatusDetector(AbstractDetector):
         self.set_channel_value("saving_overwrite_policy", "OVERWRITE")
 
     def set_energy_threshold(self, energy):
+        """Set the energy threshold.
+        Args:
+            energy (int): Energy [eV]
+        """
         minE = self.getProperty("minE")
         if energy < minE:
             energy = minE
 
-        energy_threshold = self.get_channel_value("energy_threshold")
-        if math.fabs(energy_threshold - energy) > 0.1:
-            self.set_channel_value("energy_threshold", energy)
+        # check if need to convert energy in eV.
+        if energy < 100:
+            energy *= 1000
 
-            while math.fabs(self.get_channel_value("energy_threshold") - energy) > 0.1:
+        energy_threshold = self.get_channel_value("energy_threshold")
+        if abs(energy_threshold - energy) > 0.1:
+            self.set_channel_value("energy_threshold", energy)
+            while abs(self.get_channel_value("energy_threshold") - energy) > 0.1:
                 time.sleep(1)
 
         self.set_channel_value("fill_mode", "ON")
