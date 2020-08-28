@@ -144,5 +144,8 @@ class HWObjActuatorCommand(CommandObject):
         value = "UNKNOWN"
 
         if hasattr(self._hwobj, "get_value"):
-            value = getattr(self._hwobj, "get_value")().name
-        return value
+            value = getattr(self._hwobj, "get_value")()
+            try:
+                return value.name
+            except AttributeError:
+                return value
