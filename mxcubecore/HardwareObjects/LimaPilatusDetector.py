@@ -35,6 +35,7 @@ class LimaPilatusDetector(AbstractDetector):
 
         try:
             for channel_name in (
+                "latency_time",
                 "acq_status",
                 "acq_trigger_mode",
                 "saving_mode",
@@ -165,10 +166,12 @@ class LimaPilatusDetector(AbstractDetector):
                 trigger_mode = "INTERNAL_TRIGGER"
             else:
                 trigger_mode = "EXTERNAL_TRIGGER"
+
             if self._mesh_steps > 1:
                 trigger_mode = "EXTERNAL_TRIGGER_MULTI"
                 # reset mesh steps
                 self._mesh_steps = 1
+
 
         diffractometer_positions = HWR.beamline.diffractometer.get_positions()
         self.start_angles = list()
@@ -216,6 +219,9 @@ class LimaPilatusDetector(AbstractDetector):
         self.set_energy_threshold(energy)
 
         self.set_channel_value("acq_trigger_mode", trigger_mode)
+
+        if self.getProperty("set_latency_time", False):
+            self.set_channel_value("latency_time", 0.003)
 
         self.set_channel_value("saving_mode", "AUTO_FRAME")
         self.set_channel_value("acq_nb_frames", number_of_images)
