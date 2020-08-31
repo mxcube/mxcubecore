@@ -6,13 +6,13 @@
   <channel type="epics" name="epicsMotor_dmov" polling="500">MNC:B:PB04:m5.DMOV</channel>
   <channel type="epics" name="epicsMotor_stop">MNC:B:PB04:m5.STOP</channel>
   <channel type="epics" name="epicsMotor_velo">MNC:B:PB04:m5.VELO</channel>
-  <channel type="epics" name="epicsMotor_dllm">MNC:B:PB04:m5.DLLM</channel>
-  <channel type="epics" name="epicsMotor_dhlm">MNC:B:PB04:m5.DHLM</channel>
+  <channel type="epics" name="epicsMotor_dllm">nope</channel>
+  <channel type="epics" name="epicsMotor_dhlm">nope</channel>
   <channel type="epics" name="epicsMotor_egu">MNC:B:PB04:m5.EGU</channel>
   <!-- Pmac channels -->
   <channel type="epics" name="pmac_sendcmd">MNC:B:PB04:SendCmd</channel>
   <!-- Properties -->
   <motor_name>DtoX</motor_name>
   <username>Detector distance</username>
-  <default_limits>(-1E7, 1E7)</default_limits>
+  <default_limits>(-1E20, 1E20)</default_limits>
 </device>
