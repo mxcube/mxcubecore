@@ -1,5 +1,4 @@
-from .ESRFMultiCollect import ESRFMultiCollect, PixelDetector, TunableEnergy, task, time
-from HardwareRepository.HardwareObjects.LimaPilatusDetector import LimaPilatusDetector
+from .ESRFMultiCollect import ESRFMultiCollect, task, time
 import shutil
 import logging
 import os
@@ -7,7 +6,7 @@ import os
 
 class ID231MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
-        ESRFMultiCollect.__init__(self, name, TunableEnergy())
+        ESRFMultiCollect.__init__(self, name)
 
     @task
     def data_collection_hook(self, data_collect_parameters):
