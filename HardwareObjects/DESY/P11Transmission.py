@@ -35,8 +35,6 @@ class P11Transmission(AbstractTransmission):
         self.chan_set_value = None
         self.chan_state = None
 
-        self._value = None
-
     def init(self):
 
         limits = self.getProperty('limits',None)
@@ -99,8 +97,8 @@ class P11Transmission(AbstractTransmission):
             _value = value * 100.0
 
         # update only if needed
-        if self._value is None or abs(self._value - _value) > 10e-1:
-            self._value = _value
+        if self._nominal_value is None or abs(self._nominal_value - _value) > 10e-1:
+            self._nominal_value = _value
             self.update_value(_value)
 
     def _set_value(self, value):
