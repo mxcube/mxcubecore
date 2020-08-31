@@ -16,7 +16,9 @@ import time
 import json
 import atexit
 import traceback
+import jsonpickle
 
+from functools import reduce
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository import HardwareRepository as HWR
@@ -151,7 +153,6 @@ class XMLRPCServer(HardwareObject):
         """
         Method inherited from HardwareObject, called by framework-2.
         """
-
         self.all_interfaces = self.getProperty("all_interfaces", False)
         # Listen on all interfaces if <all_interfaces>True</all_interfaces>
         # otherwise only on the interface corresponding to socket.gethostname()
@@ -210,6 +211,9 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.shape_history_get_grid)
         self._server.register_function(self.shape_history_set_grid_data)
         self._server.register_function(self.beamline_setup_read)
+        self._server.register_function(self.get_default_path_template)
+        self._server.register_function(self.get_default_acquisition_parameters)
+
         self._server.register_function(self.get_diffractometer_positions)
         self._server.register_function(self.move_diffractometer)
         self._server.register_function(self.save_snapshot)
@@ -255,7 +259,7 @@ class XMLRPCServer(HardwareObject):
     def anneal(self, time):
         cryoshutter_hwobj = self.getObjectByRole("cryoshutter")
         try:
-            cryoshutter_hwobj.get_command_object("anneal")(time)
+            cryoshutter_hwobj.getCommandObject("anneal")(time)
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
             raise
@@ -469,15 +473,32 @@ class XMLRPCServer(HardwareObject):
 
         return json_cplist
 
+    def _getattr_from_path(self, obj, attr, delim="/"):
+        """Recurses through an attribute chain to get the attribute."""
+        return reduce(getattr, attr.split(delim), obj)
+
     def beamline_setup_read(self, path):
-        raise NotImplementedError(
-            "There is no longer a BeamlineSetup object. Please refactor code"
-        )
-        # try:
-        #     return self.beamline_setup_hwobj.read_value(path)
-        # except Exception as ex:
-        #     logging.getLogger("HWR").exception(str(ex))
-        #     raise
+        value = None
+
+        if path.strip("/").endswith("default-acquisition-parameters"):
+            value = jsonpickle.encode(self.get_default_acquisition_parameters())
+        elif path.strip("/").endswith("default-path-template"):
+            value = jsonpickle.encode(self.get_default_path_template())
+        else:
+            try:
+                path = path[1:] if path[0] == "/" else path
+                ho = self._getattr_from_path(HWR, path)
+                value = ho.get_value()
+            except:
+                logging.getLogger("HWR").exception("Could no get %s " % str(path))
+
+        return value
+
+    def get_default_path_template(self):
+        return HWR.beamline.get_default_path_template()
+
+    def get_default_acquisition_parameters(self):
+        return HWR.beamline.get_default_acquisition_parameters()
 
     def workflow_set_in_progress(self, state):
         if state:
@@ -499,7 +520,7 @@ class XMLRPCServer(HardwareObject):
             if showScale:
                 HWR.beamline.diffractometer.save_snapshot(imgpath)
             else:
-                HWR.beamline.diffractometer.getObjectByRole("camera").takeSnapshot(
+                HWR.beamline.sample_view.getObjectByRole("camera").take_snapshot(
                     imgpath
                 )
         except Exception as ex:
@@ -525,19 +546,19 @@ class XMLRPCServer(HardwareObject):
         return float(flux)
 
     def set_aperture(self, pos_name, timeout=20):
-        HWR.beamline.beam.aperture.move_to_position(pos_name)
+        HWR.beamline.beam.aperture_hwobj.moveToPosition(pos_name)
         t0 = time.time()
-        while HWR.beamline.beam.aperture.get_state() == "MOVING":
+        while HWR.beamline.beam.aperture_hwobj.getState() == "MOVING":
             time.sleep(0.1)
             if time.time() - t0 > timeout:
                 raise RuntimeError("Timeout waiting for aperture to move")
         return True
 
     def get_aperture(self):
-        return HWR.beamline.beam.aperture.get_current_position_name()
+        return HWR.beamline.beam.aperture_hwobj.getCurrentPositionName()
 
     def get_aperture_list(self):
-        return HWR.beamline.beam.aperture.get_predefined_positions_list()
+        return HWR.beamline.beam.aperture_hwobj.getPredefinedPositionsList()
 
     def open_dialog(self, dict_dialog):
         """
@@ -597,13 +618,13 @@ class XMLRPCServer(HardwareObject):
         """
         Sets the zoom to a pre-defined level.
         """
-        HWR.beamline.diffractometer.zoomMotor.moveToPosition(zoom_level)
+        HWR.beamline.diffractometer.zoomMotor._set_value(int(zoom_level))
 
     def get_zoom_level(self):
         """
         Returns the zoom level.
         """
-        return HWR.beamline.diffractometer.zoomMotor.get_current_position_name()
+        return HWR.beamline.diffractometer.zoomMotor.get_value().value
 
     def get_available_zoom_levels(self):
         """
@@ -686,7 +707,7 @@ class XMLRPCServer(HardwareObject):
 
                     # Bind method to this XMLRPCServer instance but don't set attribute
                     # This is sufficient to register it as an xmlrpc function.
-                    bound_method = types.MethodType(f[1], self, self.__class__)
+                    bound_method = types.MethodType(f[1], self)
                     self._server.register_function(bound_method, xmlrpc_name)
 
             # TODO: Still need to test with deeply-nested modules, in particular that

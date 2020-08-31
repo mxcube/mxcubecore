@@ -92,6 +92,3 @@ class AbstractFlux(AbstractActuator):
             / 1000.0  # Converts to kGy/s
         )
         return result
-
-    def re_emit_values(self):
-        self.emit("fluxValueChanged", self._value)

@@ -118,15 +118,19 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                 }
 
             sample_model = task_model.get_sample_node()
-            # task_model.get_parent()
-            if sample_model.lims_container_location > -1:
-                group_data[
-                    "actualContainerSlotInSC"
-                ] = sample_model.lims_container_location
-            if sample_model.lims_sample_location > -1:
-                group_data[
-                    "actualSampleSlotInContainer"
-                ] = sample_model.lims_sample_location
+            task_model.get_parent()
+            if sample_model.lims_container_location != -1:
+                loc = sample_model.lims_container_location
+
+                if isinstance(loc, str):
+                    cell, puck = list(map(int, "2:2".split(":")))
+                    loc = (cell - 1) * 3 + puck
+
+                group_data["actualContainerSlotInSC"] = loc
+            if sample_model.lims_sample_location != -1:
+                group_data["actualSampleSlotInContainer"] = int(
+                    sample_model.lims_sample_location
+                )
 
             try:
                 gid = HWR.beamline.lims._store_data_collection_group(group_data)
@@ -719,7 +723,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     )
                     HWR.beamline.collect.set_helical(False)
                     HWR.beamline.collect.set_mesh(True)
-                    dc.grid.used_count += 1
+                    HWR.beamline.sample_view.inc_used_for_collection(
+                        self.get_data_model().shape
+                    )
                 else:
                     HWR.beamline.collect.set_helical(False)
                     HWR.beamline.collect.set_mesh(False)

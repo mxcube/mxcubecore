@@ -13,7 +13,6 @@ except ImportError:
     from ordereddict import OrderedDict
 
 from HardwareRepository.HardwareObjects import queue_model_enumerables
-from HardwareRepository import HardwareRepository as HWR
 
 
 class TaskNode(object):
@@ -277,10 +276,12 @@ class Sample(TaskNode):
         print(("sample: %s" % self.loc_str))
 
     def has_lims_data(self):
-        if self.lims_id > -1:
-            return True
-        else:
+        try:
+            if int(self.lims_id) > -1:
+                return True
+        except TypeError:
             return False
+        return False
 
     def get_name(self):
         return self._name
@@ -568,6 +569,7 @@ class DataCollection(TaskNode):
         self.run_offline_processing = True
         self.run_online_processing = False
         self.grid = None
+        self.shape = None
         self.online_processing_results = {"raw": None, "aligned": None}
         self.processing_msg_list = []
         self.workflow_id = None
@@ -1380,7 +1382,7 @@ class PathTemplate(object):
         self.suffix = str()
         self.start_num = int()
         self.num_files = int()
-        self.compression = True
+        self.compression = False
 
         if not hasattr(self, "precision"):
             self.precision = str()
@@ -1978,14 +1980,15 @@ class GphlWorkflow(TaskNode):
         return self.path_template
 
     def get_workflow_parameters(self):
-        result = HWR.beamline.gphl_workflow.get_available_workflows().get(
-            self.get_type()
-        )
-        if result is None:
-            raise RuntimeError(
-                "No parameters for unknown workflow %s" % repr(self.get_type())
-            )
-        return result
+        pass
+        # result = HWR.beamline.gphl_workflow.get_available_workflows().get(
+        #    self.get_type()
+        # )
+        # if result is None:
+        #    raise RuntimeError(
+        #        "No parameters for unknown workflow %s" % repr(self.get_type())
+        #    )
+        # return result
 
 
 class XrayImaging(TaskNode):
