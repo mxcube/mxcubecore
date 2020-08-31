@@ -33,8 +33,6 @@ class P11Energy(AbstractEnergy):
 
     def __init__(self, name):
         super(P11Energy,self).__init__(name)
-        self._energy_value = None
-        self._state = None
 
     def init(self):
         self.chan_energy = self.get_channel_object("chanEnergy")
@@ -62,7 +60,7 @@ class P11Energy(AbstractEnergy):
         self.re_emit_values()
 
     def re_emit_values(self):
-        self._energy_value = None
+        self._nominal_value = None
         self._state = None
         self.energy_state_changed()
         self.energy_position_changed()
@@ -98,12 +96,12 @@ class P11Energy(AbstractEnergy):
 
         energy = pos / 1000.0
 
-        if self._energy_value is None or abs(energy - self._energy_value) > 1e-3:
-            self._energy_value = energy
+        if self._nominal_value is None or abs(energy - self._nominal_value) > 1e-3:
+            self._nominal_value = energy
             self._wavelength_value = 12.3984 / energy
             if self._wavelength_value is not None:
-                self.emit("energyChanged", (self._energy_value, self._wavelength_value))
-                self.emit("valueChanged", (self._energy_value,))
+                self.emit("energyChanged", (self._nominal_value, self._wavelength_value))
+                self.emit("valueChanged", (self._nominal_value,))
 
     def _set_value(self, value):
         """

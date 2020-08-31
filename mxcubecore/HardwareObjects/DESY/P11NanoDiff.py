@@ -191,14 +191,15 @@ class P11NanoDiff(GenericDiffractometer):
 
         return x,y
 
-    def moveToCentredPosition(self, centred_position, wait=False):
-        """
-        Descript. :
-        """
-        try:
-            return self.move_to_centred_position(centred_position)
-        except BaseException:
-            self.log.exception("Could not move to centred position")
+    #def moveToCentredPosition(self, centred_position, wait=False):
+    #    REMOVED. test pending at beamline
+    #    """
+    #    Descript. :
+    #    """
+    #    try:
+    #        return self.move_to_centred_position(centred_position)
+    #    except BaseException:
+    #        self.log.exception("Could not move to centred position")
 
     def start_auto_focus(self):
         """
