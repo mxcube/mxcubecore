@@ -8,8 +8,8 @@
   <!-- Status needs to be directly accessed. See details in LNLSPilatusDet. -->
   <channel_status>MX2:cam1:StatusMessage_RBV</channel_status>
   <!-- Properties -->
-  <default_beam_x>730</default_beam_x>
-  <default_beam_y>857</default_beam_y>
+  <default_beam_x>746</default_beam_x>
+  <default_beam_y>858</default_beam_y>
   <object hwrid="/dtox" role="detector_distance"/>
   <tempThreshold>33.5</tempThreshold>
   <humidityThreshold>20.0</humidityThreshold>
