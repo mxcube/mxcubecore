@@ -63,7 +63,7 @@ class AbstractNState(AbstractActuator):
         Returns:
             (bool): True if within the values.
         """
-        return value in self.VALUES
+        return value in self.VALUES.__members__
 
     def initialise_values(self):
         """Initialise the ValueEnum with the values from the config.
