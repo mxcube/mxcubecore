@@ -63,7 +63,7 @@ class AbstractNState(AbstractActuator):
         Returns:
             (bool): True if within the values.
         """
-        return value in self.VALUES.__members__
+        return value in self.VALUES
 
     def initialise_values(self):
         """Initialise the ValueEnum with the values from the config.
@@ -90,8 +90,3 @@ class AbstractNState(AbstractActuator):
                 return enum_var
 
         return self.VALUES.UNKNOWN
-
-    def re_emit_values(self):
-        """Update values for all internal attributes"""
-        self.update_value(self.get_value())
-        super(AbstractNState, self).re_emit_values()

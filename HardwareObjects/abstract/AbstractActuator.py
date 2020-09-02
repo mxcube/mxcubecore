@@ -170,8 +170,6 @@ class AbstractActuator(HardwareObject):
             limits (tuple): two elements tuple (low limit, high limit).
         """
         if not self.check_limits:
-            if limits != (None,None):
-                raise ValueError("Attempt to update limits for Actuator with no limits checking")
             return
 
         if not limits:
@@ -186,5 +184,6 @@ class AbstractActuator(HardwareObject):
     def re_emit_values(self):
         """Update values for all internal attributes"""
         self.update_value(self.get_value())
-        self.update_limits(self.get_limits())
+        if self.check_limits:
+            self.update_limits(self.get_limits())
         super(AbstractActuator, self).re_emit_values()
