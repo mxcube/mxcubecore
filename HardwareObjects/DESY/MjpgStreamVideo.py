@@ -5,16 +5,16 @@
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#   You should have received a copy of the GNU General Public License
+#   You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 __author__ = "Jan Meyer"
@@ -24,17 +24,24 @@ __license__ = "GPL"
 
 
 import gevent
-import httplib
+import time
+
+try:
+    from httplib import HTTPConnection
+except ImportError:
+    from http.client import HTTPConnection
 import json
-import logging
 
 # from PyQt4.QtGui import QImage, QPixmap
 from gui.utils.QtImport import QImage, QPixmap
-from HardwareRepository.HardwareObjects.GenericVideoDevice import GenericVideoDevice
 from HardwareRepository.ConvertUtils import string_types
 
+from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
+    AbstractVideoDevice,
+)
 
-class MjpgStreamVideo(GenericVideoDevice):
+
+class MjpgStreamVideo(AbstractVideoDevice):
     """
     Hardware object to capture images using mjpg-streamer
     and it's input_avt.so plugin for AVT Prosilica cameras.
@@ -245,7 +252,7 @@ class MjpgStreamVideo(GenericVideoDevice):
         """
         Descript. :
         """
-        GenericVideoDevice.__init__(self, name)
+        AbstractVideoDevice.__init__(self, name)
         self.force_update = None
         self.sensor_dimensions = None
         self.image_dimensions = None
@@ -260,6 +267,8 @@ class MjpgStreamVideo(GenericVideoDevice):
         self.plugin = 0
         self.update_controls = None
         self.input_avt = None
+
+        self.changing_pars = False
 
     def init(self):
         """
@@ -278,6 +287,7 @@ class MjpgStreamVideo(GenericVideoDevice):
         self.update_controls = self.has_update_controls()
         self.input_avt = self.is_input_avt()
         self.image = self.get_new_image()
+
         if self.input_avt:
             sensor_info = self.get_cmd_info(self.IN_CMD_AVT_SENSOR_WIDTH)
             if sensor_info:
@@ -286,6 +296,7 @@ class MjpgStreamVideo(GenericVideoDevice):
             if sensor_info:
                 sensor_height = int(sensor_info["value"])
             self.sensor_dimensions = (sensor_width, sensor_height)
+
         self.setIsReady(True)
 
     def http_get(self, query, host=None, port=None, path=None):
@@ -308,19 +319,19 @@ class MjpgStreamVideo(GenericVideoDevice):
         if path is None:
             path = self.path
         # send get request and return response
-        http = httplib.HTTPConnection(host, port, timeout=3)
+        http = HTTPConnection(host, port, timeout=3)
         try:
             http.request("GET", path + query)
             response = http.getresponse()
         except BaseException:
-            logging.getLogger().error(
+            self.log.error(
                 "MjpgStreamVideo: Connection to http://{0}:{1}{2}{3} refused".format(
                     host, port, path, query
                 )
             )
             return None
         if response.status != 200:
-            logging.getLogger().error(
+            self.log.error(
                 "MjpgStreamVideo: Error {0}, {1}".format(
                     response.status, response.reason
                 )
@@ -474,7 +485,7 @@ class MjpgStreamVideo(GenericVideoDevice):
         if query is not None:
             data = self.http_get(query)
             if data is not None:
-                data = json.loads(data)
+                data = json.loads(data.decode('utf-8'))
                 if dest != self.DEST_PROGRAM and "controls" in data:
                     data = data["controls"]
                 return data
@@ -746,16 +757,50 @@ class MjpgStreamVideo(GenericVideoDevice):
         limits = self.get_zoom_min_max()
         if zoom < limits[0] or zoom > limits[1]:
             return
+
         width = self.image_dimensions[0] / zoom
         height = self.image_dimensions[1] / zoom
+
+        self.log.debug("ZOOM setting zoom %s" % zoom)
+        self.log.debug("  - image_dims: %s / sensor_dims: %s" % (str(self.image_dimensions), str(self.sensor_dimensions)))
+
+        self.changing_pars = True
+
         pos_x = (self.sensor_dimensions[0] - width) / 2
         pos_y = (self.sensor_dimensions[1] - height) / 2
+
+        pos_x = int(pos_x)
+        pos_y = int(pos_y)
+        width = int(width)
+        height = int(height)
+
         self.send_cmd(1, self.IN_CMD_AVT_BINNING_X)
         self.send_cmd(1, self.IN_CMD_AVT_BINNING_Y)
-        self.send_cmd(int(pos_x), self.IN_CMD_AVT_REGION_X)
-        self.send_cmd(int(pos_y), self.IN_CMD_AVT_REGION_Y)
-        self.send_cmd(int(width), self.IN_CMD_AVT_WIDTH)
-        self.send_cmd(int(height), self.IN_CMD_AVT_HEIGHT)
+
+        for i in range(3):  # try to program it three times
+            self.send_cmd(width, self.IN_CMD_AVT_WIDTH)
+            self.send_cmd(height, self.IN_CMD_AVT_HEIGHT)
+            self.send_cmd(pos_x, self.IN_CMD_AVT_REGION_X)
+            self.send_cmd(pos_y, self.IN_CMD_AVT_REGION_Y)
+
+            x_i = int(self.get_cmd_info(self.IN_CMD_AVT_REGION_X)['value'])
+            y_i = int(self.get_cmd_info(self.IN_CMD_AVT_REGION_Y)['value'])
+            w_i = int(self.get_cmd_info(self.IN_CMD_AVT_WIDTH)['value'])
+            h_i = int(self.get_cmd_info(self.IN_CMD_AVT_HEIGHT)['value'])
+
+            self.log.debug("(w) pos_x, pos_y: (%s,%s) / w, h (%s,%s)" % (pos_x, pos_y, width, height))
+            self.log.debug("(r) pos_x, pos_y: (%s,%s) / w, h (%s,%s)" % (x_i, y_i, w_i, h_i))
+
+            if abs(x_i-pos_x) > 3 or abs(y_i-pos_y) >3 or abs(w_i-width) >3 or abs(h_i-height) >3:
+                self.log.debug(" - trying to program zoom again")
+                gevent.sleep(0.1)
+                continue
+            else:
+                break
+
+        self.changing_pars = False
+
+        self.emit("zoomChanged", self.get_zoom())
 
     def get_zoom(self):
         """
@@ -822,7 +867,7 @@ class MjpgStreamVideo(GenericVideoDevice):
             #    qimage.setNumColors(0)
             qimage.save(filename, "PNG")
         except BaseException:
-            logging.getLogger().error(
+            self.log.error(
                 "MjpgStreamVideo: unable to save snapshot: %s" % filename
             )
 
@@ -831,8 +876,13 @@ class MjpgStreamVideo(GenericVideoDevice):
         Descript. : worker method
         """
         while True:
+            if self.changing_pars:
+                self.log.debug("  / not reading image. busy changing pars")
+                gevent.sleep(sleep_time)
+                continue
+
             image = self.get_new_image()
             if image is not None:
                 self.image = QPixmap.fromImage(image.scaled(self.width, self.height))
                 self.emit("imageReceived", self.image)
-            gevent.sleep(sleep_time)
+            #gevent.sleep(sleep_time)
