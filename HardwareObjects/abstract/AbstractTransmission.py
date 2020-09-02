@@ -47,6 +47,3 @@ class AbstractTransmission(AbstractActuator):
     def init(self):
         AbstractActuator.init(self)
         self.update_limits((0, 100))
-
-    def validate_value(self, value):
-        return self._nominal_limits[0] <= value <= self._nominal_limits[-1]

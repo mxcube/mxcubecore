@@ -102,13 +102,23 @@ class AbstractActuator(HardwareObject):
         self.emit("limitsChanged", (self._nominal_limits,))
 
     def validate_value(self, value):
-        """Check if the value is within limits.
+        """Check if the value is within the limits
         Args:
-            value: value
+            value(float): value
         Returns:
             (bool): True if within the limits
         """
-        return True
+        if not self.check_limits:
+            return True
+
+        if value is None:
+            return True
+        if math.isnan(value) or math.isinf(value):
+            return False
+        limits = self._nominal_limits
+        if None in limits:
+            return True
+        return limits[0] <= value <= limits[1]
 
     @abc.abstractmethod
     def _set_value(self, value):

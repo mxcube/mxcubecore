@@ -96,22 +96,6 @@ class AbstractMotor(AbstractActuator):
         """
         raise NotImplementedError
 
-    def validate_value(self, value):
-        """Check if the value is within the limits
-        Args:
-            value(float): value
-        Returns:
-            (bool): True if within the limits
-        """
-        if value is None:
-            return True
-        if math.isnan(value) or math.isinf(value):
-            return False
-        limits = self._nominal_limits
-        if None in limits:
-            return True
-        return limits[0] <= value <= limits[1]
-
     def update_value(self, value=None):
         """Check if the value has changed. Emits signal valueChanged.
         Args:

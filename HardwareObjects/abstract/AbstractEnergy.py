@@ -117,22 +117,6 @@ class AbstractEnergy(AbstractActuator):
         wavelength = wavelength or self._wavelength_value
         return hc_over_e / wavelength
 
-    def validate_value(self, value):
-        """Check if the value is within the limits
-        Args:
-            value(float): value
-        Returns:
-            (bool): True if within the limits
-        """
-        if value is None:
-            return True
-        if math.isnan(value) or math.isinf(value):
-            return False
-        limits = self.get_limits()
-        if None in limits:
-            return True
-        return limits[0] <= value <= limits[1]
-
     def update_value(self, value=None):
         """Emist signal energyChanged for both energy and wavelength
         Argin:
