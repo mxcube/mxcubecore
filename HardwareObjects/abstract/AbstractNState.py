@@ -49,6 +49,7 @@ class AbstractNState(AbstractActuator):
 
     def __init__(self, name):
         AbstractActuator.__init__(self, name)
+        self.check_limits = False
 
     def init(self):
         """Initilise the predefined values"""
@@ -63,24 +64,6 @@ class AbstractNState(AbstractActuator):
             (bool): True if within the values.
         """
         return value in self.VALUES
-
-    def set_limits(self, limits):
-        """Set the low and high limits.
-        Args:
-            limits (tuple): two element (low limit, high limit) tuple.
-        Raises:
-            NotImplementedError
-        """
-        raise NotImplementedError
-
-    def update_limits(self, limits=None):
-        """Check if the limits have changed.
-        Args:
-            limits(tuple): two elements (low limit, high limit) tuple.
-        Raises:
-            NotImplementedError
-        """
-        raise NotImplementedError
 
     def initialise_values(self):
         """Initialise the ValueEnum with the values from the config.

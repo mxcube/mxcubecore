@@ -50,13 +50,15 @@ class TestAbstractNStateBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         )
 
     def test_limits_setting(self, test_object):
-        """Test that set_limits and update_limits are diabled
-        NB override ,ocally if you have an NState with limits"""
-        limits = test_object.get_limits()
-        with pytest.raises(NotImplementedError):
-            test_object.update_limits(limits)
-        with pytest.raises(NotImplementedError):
-            test_object.set_limits(limits)
+        #"""Test that set_limits and update_limits behave as
+        # expected for AbstractNState
+        with pytest.raises(ValueError):
+            test_object.set_limits([0,100])
+
+        try:
+            test_object.set_limits((None,None))
+        except ValueError:
+            pytest.fail("set_limits with should be accepted")
 
     def test_setting_timeouts_1(self, test_object):
         """Test that setting with timeout=0 works,

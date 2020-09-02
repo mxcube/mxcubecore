@@ -47,6 +47,7 @@ class AbstractActuator(HardwareObject):
         self._nominal_limits = (None, None)
         self.actuator_name = None
         self.read_only = False
+        self.check_limits = True
         self.default_value = None
         self.username = None
 
@@ -91,6 +92,11 @@ class AbstractActuator(HardwareObject):
         """
         if self.read_only:
             raise ValueError("Attempt to set limits for read-only Actuator")
+
+        if not self.check_limits: 
+            if limits != (None,None):
+                raise ValueError("Attempt to set limits for Actuator with no limits checking")
+            return
 
         self._nominal_limits = limits
         self.emit("limitsChanged", (self._nominal_limits,))
@@ -153,6 +159,11 @@ class AbstractActuator(HardwareObject):
         Args:
             limits (tuple): two elements tuple (low limit, high limit).
         """
+        if not self.check_limits:
+            if limits != (None,None):
+                raise ValueError("Attempt to update limits for Actuator with no limits checking")
+            return
+
         if not limits:
             limits = self.get_limits()
 
