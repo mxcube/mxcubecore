@@ -24,38 +24,44 @@ except:
     from urllib.parse import urlencode
 
 
-class FixedEnergy:
-    def __init__(self, wavelength, energy):
-        self.wavelength = wavelength
-        self.energy = energy
+# class FixedEnergy:
+#     def __init__(self, wavelength, energy):
+#         self.wavelength = wavelength
+#         self.energy = energy
 
-    def set_wavelength(self, wavelength):
-        return
+#     def set_wavelength(self, wavelength):
+#         return
 
-    def set_energy(self, energy):
-        return
+#     def set_energy(self, energy):
+#         return
 
-    def get_energy(self):
-        return self.energy
+#     def get_energy(self):
+#         return self.energy
 
-    def get_wavelength(self):
-        return self.wavelength
+#     def get_wavelength(self):
+#         return self.wavelength
 
 
-class TunableEnergy:
-    @task
-    def set_wavelength(self, wavelength):
-        return HWR.beamline.energy.set_wavelength(wavelength)
+# class TunableEnergy:
+#     @task
+#     def set_wavelength(self, wavelength):
+#         if HWR.beamline.tunable_wavelength:
+#             return HWR.beamline.energy.set_wavelength(wavelength)
+#         else:
+#             return
 
-    @task
-    def set_energy(self, energy):
-        return HWR.beamline.energy.set_value(energy)
+#     @task
+#     def set_energy(self, energy):
+#          if HWR.beamline.tunable_wavelength:
+#              return HWR.beamline.energy.set_value(energy)
+#          else:
+#              return
 
-    def get_energy(self):
-        return HWR.beamline.energy.get_energy()
+#     def get_energy(self):
+#         return HWR.beamline.energy.get_value()
 
-    def get_wavelength(self):
-        return HWR.beamline.energy.get_wavelength()
+#     def get_wavelength(self):
+#         return HWR.beamline.energy.get_wavelength()
 
 
 # class CcdDetector:
@@ -377,10 +383,9 @@ class TunableEnergy:
 
 
 class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
-    def __init__(self, name, tunable_bl):
+    def __init__(self, name):
         AbstractMultiCollect.__init__(self)
         HardwareObject.__init__(self, name)
-        self._tunable_bl = tunable_bl
         self._centring_status = None
         self._metadataClient = None
         self.__mesh_steps = None
@@ -422,7 +427,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
         try:
             undulators = self["undulator"]
-        except IndexError:
+        except KeyError:
             undulators = []
 
         beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
@@ -440,6 +445,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             detector_type=HWR.beamline.detector.getProperty("type"),
             detector_manufacturer=HWR.beamline.detector.getProperty("manufacturer"),
             detector_model=HWR.beamline.detector.getProperty("model"),
+            detector_binning_mode=HWR.beamline.detector.getProperty("binning_mode"),
             detector_px=HWR.beamline.detector.getProperty("px"),
             detector_py=HWR.beamline.detector.getProperty("py"),
             undulators=undulators,
@@ -454,7 +460,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         )
 
         # self._detector.init(HWR.beamline.detector, self)
-        self._tunable_bl.bl_control = HWR.beamline
 
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True,))
@@ -474,28 +479,30 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self._metadataClient.end(data_collect_parameters)
 
     def prepare_oscillation(
-        self, start, osc_range, exptime, number_of_images, shutterless, npass
+        self,
+        start,
+        osc_range,
+        exptime,
+        number_of_images,
+        shutterless,
+        npass,
+        first_frame,
     ):
         if shutterless:
             end = start + osc_range * number_of_images
             exptime = (exptime + self._detector.get_deadtime()) * number_of_images
+
+            if first_frame:
+                self.do_prepare_oscillation(start, end, exptime, npass)
         else:
             if osc_range < 1e-4:
                 # still image
                 end = start
             else:
                 end = start + osc_range
+                self.do_prepare_oscillation(start, end, exptime, npass)
 
         return start, end
-
-        # self.execute_command(
-        #     "prepare_oscillation",
-        #     start,
-        #     end,
-        #     exptime,
-        #     number_of_images,
-        #     shutterless,
-        #     npass)
 
     @task
     def no_oscillation(self, exptime):
@@ -504,20 +511,25 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self.close_fast_shutter()
 
     @task
-    def do_oscillation(self, start, end, exptime, number_of_images, shutterless, npass):
+    def do_oscillation(
+        self, start, end, exptime, number_of_images, shutterless, npass, first_frame
+    ):
         still = math.fabs(end - start) < 1e-4
 
         if shutterless:
-            exptime = (exptime + self._detector.get_deadtime()) * number_of_images
-            # only do this once per collect
-            # make oscillation an asynchronous task => do not wait here
-            if still:
-                self.oscillation_task = self.no_oscillation(exptime, wait=False)
-            else:
-                oscillation_task = self.oscil(start, end, exptime, 1, wait=False)
+            if first_frame:
+                exptime = (exptime + self._detector.get_deadtime()) * number_of_images
+                # only do this once per collect
+                # make oscillation an asynchronous task => do not wait here
+                if still:
+                    self.oscillation_task = self.no_oscillation(exptime, wait=False)
+                else:
+                    self.oscillation_task = self.oscil(
+                        start, end, exptime, 1, wait=False
+                    )
 
-            if oscillation_task.ready():
-                oscillation_task.get()
+            if self.oscillation_task.ready():
+                self.oscillation_task.get()
         else:
             if still:
                 self.no_oscillation(exptime)
@@ -534,15 +546,22 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             return self.execute_command("do_oscillation", start, end, exptime, npass)
 
     def set_wavelength(self, wavelength):
-        return self._tunable_bl.set_wavelength(wavelength)
+        if HWR.beamline.tunable_wavelength:
+            return HWR.beamline.energy.set_wavelength(wavelength)
+        else:
+            return
 
     def set_energy(self, energy):
-        return self._tunable_bl.set_energy(energy)
+        if HWR.beamline.tunable_wavelength:
+            return HWR.beamline.energy.set_value(energy)
+        else:
+            return
 
     @task
     def data_collection_cleanup(self):
         try:
             self.stop_oscillation()
+            HWR.beamline.diffractometer.set_phase("Centring", wait=True, timeout=200)
         finally:
             self.close_fast_shutter()
 
@@ -578,20 +597,33 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             logging.getLogger("HWR").info("Waiting for end of motors motion")
             time.sleep(0.02)
 
-    @task
     def open_safety_shutter(self):
-        HWR.beamline.safety_shutter.openShutter()
-        while HWR.beamline.safety_shutter.getShutterState() == "closed":
-            time.sleep(0.1)
+        try:
+            HWR.beamline.safety_shutter.set_value(
+                HWR.beamline.safety_shutter.VALUES.OPEN, timeout=10
+            )
+        except Exception:
+            logging.getLogger("HWR").exception("")
 
     def safety_shutter_opened(self):
-        return HWR.beamline.safety_shutter.getShutterState() == "opened"
+        state = False
+
+        try:
+            state = HWR.beamline.safety_shutter.get_state().name == "OPENED"
+        except Exception:
+            logging.getLogger("HWR").exception("")
+            state = True
+
+        return state
 
     @task
     def close_safety_shutter(self):
-        HWR.beamline.safety_shutter.closeShutter()
-        while HWR.beamline.safety_shutter.getShutterState() == "opened":
-            time.sleep(0.1)
+        try:
+            HWR.beamline.safety_shutter.set_value(
+                HWR.beamline.safety_shutter.VALUES["CLOSE"]
+            )
+        except Exception:
+            logging.getLogger("HWR").exception("")
 
     @task
     def prepare_intensity_monitors(self):
@@ -600,6 +632,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         except AttributeError:
             pass
 
+    @task
     def prepare_acquisition(
         self,
         take_dark,
@@ -611,8 +644,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         comment="",
         trigger_mode=None,
     ):
-        energy = self._tunable_bl.get_energy()
-        return self._detector.prepare_acquisition(
+        energy = HWR.beamline.energy.get_value()
+        self._detector.prepare_acquisition(
             take_dark,
             start,
             osc_range,
@@ -624,20 +657,20 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             trigger_mode,
         )
 
-    def set_detector_filenames(
-        self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
-    ):
-        return self._detector.set_detector_filenames(
-            frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
-        )
+    @task
+    def set_detector_filenames(self, frame_number, start, filename, shutterless):
+        if frame_number == 1 or not shutterless:
+            return self._detector.set_detector_filenames(frame_number, start, filename)
 
     def stop_oscillation(self):
-        pass
+        HWR.beamline.diffractometer.abort_cmd()
 
+    @task
     def start_acquisition(self, exptime, npass, first_frame, shutterless):
-        if first_frame and shutterless:
+        if first_frame:
             return self._detector.start_acquisition()
 
+    @task
     def write_image(self, last_frame):
         if last_frame:
             return self._detector.wait_ready()
@@ -722,7 +755,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         if r.status != 200:
             logging.error("Could not create hkl input file")
         else:
-            hkl_file.write(r.read())
+            hkl_file.write(r.read().decode())
         hkl_file.close()
         os.chmod(hkl_file_path, 0o666)
 
@@ -733,11 +766,11 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             xds_input_file = os.path.join(input_file_dir, "XDS.INP")
             conn.request("GET", "/xds.inp/%d?basedir=%s" % (collection_id, file_prefix))
             xds_file = open(xds_input_file, "w")
-            r = conn.getresponse()
-            if r.status != 200:
+            res = conn.getresponse()
+            if res.status != 200:
                 logging.error("Could not create xds input file")
             else:
-                xds_file.write(r.read())
+                xds_file.write(res.read().decode())
             xds_file.close()
             os.chmod(xds_input_file, 0o666)
 
@@ -746,7 +779,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         mosflm_input_file = os.path.join(input_file_dir, "mosflm.inp")
         conn.request("GET", "/mosflm.inp/%d?basedir=%s" % (collection_id, file_prefix))
         mosflm_file = open(mosflm_input_file, "w")
-        mosflm_file.write(conn.getresponse().read())
+        mosflm_file.write(conn.getresponse().read().decode())
         mosflm_file.close()
         os.chmod(mosflm_input_file, 0o666)
 
@@ -759,7 +792,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             stac_om_input_file = os.path.join(stac_om_dir, stac_om_input_file_name)
             conn.request("GET", "/stac.descr/%d" % collection_id)
             stac_om_file = open(stac_om_input_file, "w")
-            stac_template = conn.getresponse().read()
+            stac_template = conn.getresponse().read().decode()
             if stac_om_input_file_name.startswith("xds"):
                 om_type = "xds"
                 if stac_om_dir == self.raw_data_input_file_dir:
@@ -786,14 +819,14 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             os.chmod(stac_om_input_file, 0o666)
 
     def get_wavelength(self):
-        return self._tunable_bl.get_wavelength()
+        return HWR.beamline.energy.get_wavelength()
 
     def get_undulators_gaps(self):
         all_gaps = {"Unknown": None}
         _gaps = {}
 
         try:
-            _gaps = HWR.beamline.undulators.getUndulatorGaps()
+            _gaps = HWR.beamline.undulators
         except BaseException:
             logging.getLogger("HWR").exception("Could not get undulator gaps")
         all_gaps.clear()
@@ -863,7 +896,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                 return T
 
     def get_current_energy(self):
-        return self._tunable_bl.get_value()
+        return HWR.beamline.energy.get_value()
 
     def get_beam_centre(self):
         return (

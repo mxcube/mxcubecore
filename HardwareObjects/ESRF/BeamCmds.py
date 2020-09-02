@@ -1,22 +1,42 @@
+import logging
+import gevent
+
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.CommandContainer import CommandObject
-import gevent
+from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
 PROCEDURE_COMMAND_T = "CONTROLLER"
 TWO_STATE_COMMAND_T = "INOUT"
 TWO_STATE_COMMAND_ACTIVE_STATES = ["in", "on", "enabled"]
 
+ARGUMENT_TYPE_LIST = "List"
+ARGUMENT_TYPE_JSON_SCHEMA = "JSONSchema"
 
-class ControllerCommand(CommandObject):
+
+class BaseBeamlineAction(HardwareObject):
+    def __init__(self, name):
+        HardwareObject.__init__(self, name)
+
+        # From CommandObject consider removing
+        self._arguments = []
+        self._combo_arguments_items = {}
+
+
+class ControllerCommand(BaseBeamlineAction):
     def __init__(self, name, cmd):
-        CommandObject.__init__(self, name)
+        super().__init__(name)
         self._cmd = cmd
         self._cmd_execution = None
         self.type = PROCEDURE_COMMAND_T
+        self.argument_type = ARGUMENT_TYPE_LIST
 
-    def isConnected(self):
+    def is_connected(self):
         return True
+
+    def set_argument_json_schema(self, json_schema_str):
+        self.argument_type = ARGUMENT_TYPE_JSON_SCHEMA
+        self._arguments = json_schema_str
 
     def getArguments(self):
         if self.name() == "Anneal":
@@ -52,13 +72,34 @@ class ControllerCommand(CommandObject):
         return None
 
 
+class TestCommand(ControllerCommand):
+    def __init__(self, name):
+        super(TestCommand, self).__init__(name, None)
+
+    def _count(self):
+        for i in range(0, 10):
+            gevent.sleep(1)
+            print(i)
+            logging.getLogger("user_level_log").info("%s done.", i)
+
+    @task
+    def __call__(self, *args, **kwargs):
+        self.emit("commandBeginWaitReply", (str(self.name()),))
+        self._cmd_execution = gevent.spawn(self._count)
+        self._cmd_execution.link(self._cmd_done)
+
+    def value(self):
+        return None
+
+
 class HWObjActuatorCommand(CommandObject):
     def __init__(self, name, hwobj):
         CommandObject.__init__(self, name)
         self._hwobj = hwobj
         self.type = TWO_STATE_COMMAND_T
+        self.argument_type = ARGUMENT_TYPE_LIST
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def getArguments(self):
@@ -69,15 +110,14 @@ class HWObjActuatorCommand(CommandObject):
     @task
     def __call__(self, *args, **kwargs):
         self.emit("commandBeginWaitReply", (str(self.name()),))
-
         if (
-            getattr(self._hwobj, "get_actuator_state")().lower()
+            getattr(self._hwobj, "get_value")().name.lower()
             in TWO_STATE_COMMAND_ACTIVE_STATES
         ):
-            cmd = getattr(self._hwobj, "actuatorOut")
+            value = self._hwobj.VALUES.OUT
         else:
-            cmd = getattr(self._hwobj, "actuatorIn")
-
+            value = self._hwobj.VALUES.IN
+        cmd = getattr(self._hwobj, "set_value")(value)
         self._cmd_execution = gevent.spawn(cmd)
         self._cmd_execution.link(self._cmd_done)
 
@@ -85,7 +125,7 @@ class HWObjActuatorCommand(CommandObject):
         try:
             try:
                 cmd_execution.get()
-                res = getattr(self._hwobj, "get_actuator_state")().lower()
+                res = getattr(self._hwobj, "get_value")().name.lower()
             except BaseException:
                 self.emit("commandFailed", (str(self.name()),))
             else:
@@ -103,7 +143,6 @@ class HWObjActuatorCommand(CommandObject):
     def value(self):
         value = "UNKNOWN"
 
-        if hasattr(self._hwobj, "get_actuator_state"):
-            value = getattr(self._hwobj, "get_actuator_state")().lower()
-
+        if hasattr(self._hwobj, "get_value"):
+            value = getattr(self._hwobj, "get_value")().name
         return value

@@ -25,7 +25,7 @@ Example xml file:
   <username>Detector Cover</username>
   <object_name>detcover</>
   <object href="/bliss" role="controller"/>
-  <values>{"IN": "in", "OUT": "out"}</values>
+  <values>{"IN": "IN", "OUT": "OUT"}</values>
 </device>
 """
 from enum import Enum
@@ -52,21 +52,23 @@ class BlissNState(AbstractNState):
 
     def init(self):
         """Initialise the device"""
+
         AbstractNState.init(self)
         _name = self.getProperty("object_name")
         self._bliss_obj = getattr(self.getObjectByRole("controller"), _name)
 
         self.device_type = "actuator"
-        if "MultiplePositions" in self._bliss_obj.__class__:
+        if "MultiplePositions" in self._bliss_obj.__class__.__name__:
             self.device_type = "motor"
 
+        self.initialise_values()
         if self.device_type == "actuator":
-            self.connect(self.bliss_obj, "state", self.update_value)
-            self.connect(self.bliss_obj, "state", self.update_state)
+            self.connect(self._bliss_obj, "state", self.update_value)
+            self.connect(self._bliss_obj, "state", self.update_state)
             self.__saved_state = self.get_value()
         elif self.device_type == "motor":
-            self.connect(self.bliss_obj, "position", self.update_value)
-            self.connect(self.bliss_obj, "state", self._update_state_motor)
+            self.connect(self._bliss_obj, "position", self.update_value)
+            self.connect(self._bliss_obj, "state", self._update_state_motor)
 
     def get_value(self):
         """Get the device value
@@ -87,9 +89,9 @@ class BlissNState(AbstractNState):
         """
         if isinstance(value, Enum):
             self.__saved_state = value.name
-            try:
+            if isinstance(value.value, tuple) or isinstance(value.value, list):
                 value = value.value[0]
-            except TypeError:
+            else:
                 value = value.value
         else:
             self.__saved_state = value.upper()

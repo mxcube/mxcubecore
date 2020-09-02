@@ -8,7 +8,7 @@ import os
 import tempfile
 
 try:
-    import lucid2 as lucid
+    import lucid3 as lucid
 except ImportError:
     try:
         import lucid
@@ -382,7 +382,6 @@ def centre_plate(
 
 
 def ready(*motors):
-    print([(m.actuator_name, m.is_ready()) for m in motors])
     return all([m.is_ready() for m in motors])
 
 
@@ -437,13 +436,11 @@ def center(
             except BaseException:
                 raise RuntimeError("Aborted while waiting for point selection")
             USER_CLICKED_EVENT = gevent.event.AsyncResult()
-            print("-------------------->", pixelsPerMm_Hor)
             X.append(x / float(pixelsPerMm_Hor))
             Y.append(y / float(pixelsPerMm_Ver))
-            print(phi.get_value())
             phi_positions.append(phi.direction * math.radians(phi.get_value()))
             if i != n_points - 1:
-                phi.set_value_relative(phi.direction * phi_angle)
+                phi.set_value_relative(phi.direction * phi_angle, timeout=10)
             READY_FOR_NEXT_POINT.set()
             i += 1
     except BaseException:
@@ -548,9 +545,11 @@ def find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
     snapshot_filename = os.path.join(
         tempfile.gettempdir(), "mxcube_sample_snapshot.png"
     )
-    camera.takeSnapshot(snapshot_filename, bw=True)
+    camera.take_snapshot(snapshot_filename, bw=True)
 
-    info, x, y = lucid.find_loop(snapshot_filename, IterationClosing=6)
+    info, x, y = lucid.find_loop(
+        snapshot_filename, rotation=-chi_angle, debug=False, IterationClosing=6
+    )
 
     try:
         x = float(x)
@@ -582,8 +581,8 @@ def auto_center(
     msg_cb,
     new_point_cb,
 ):
-    imgWidth = camera.getWidth()
-    imgHeight = camera.getHeight()
+    imgWidth = camera.get_width()
+    imgHeight = camera.get_height()
 
     # check if loop is there at the beginning
     i = 0
@@ -595,7 +594,7 @@ def auto_center(
                 msg_cb("No loop detected, aborting")
             return
 
-    for k in range(2):
+    for k in range(1):
         if callable(msg_cb):
             msg_cb("Doing automatic centring")
 
