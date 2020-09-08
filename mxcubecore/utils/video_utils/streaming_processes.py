@@ -175,7 +175,7 @@ def start_video_stream(
             "-b:v",
             "10M",
             "-q:v",
-            "4",
+            "5",
             "-an",
             "-vcodec",
             "mpeg1video",
@@ -203,7 +203,7 @@ def start_video_stream(
             "-b:v",
             "10M",
             "-q:v",
-            "4",
+            "5",
             "-an",
             "-vcodec",
             "mpeg1video",
@@ -215,7 +215,7 @@ def start_video_stream(
     )
 
     with open("/tmp/mxcube.pid", "a") as f:
-        f.write("%s %s" % (relay.pid, ffmpeg.pid))
+        f.write("%s %s " % (relay.pid, ffmpeg.pid))
 
     return relay, ffmpeg
 
