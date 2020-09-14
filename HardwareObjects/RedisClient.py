@@ -130,7 +130,7 @@ class RedisClient(HardwareObject):
                 HWR.beamline.queue_model.select_model(selected_model)
                 HWR.beamline.queue_model.load_queue_from_json_list(
                     eval(serialized_queue),
-                    snapshot=HWR.beamline.microscope.get_scene_snapshot(),
+                    snapshot=HWR.beamline.sample_view.get_scene_snapshot(),
                 )
 
             self.active = True
@@ -144,7 +144,7 @@ class RedisClient(HardwareObject):
                 "RedisClient: Graphics saved at "
                 + "mxcube:%s:%s:graphics" % (self.proposal_id, self.beamline_name)
             )
-            graphic_objects = HWR.beamline.microscope.dump_shapes()
+            graphic_objects = HWR.beamline.sample_view.dump_shapes()
             self.redis_client.set(
                 "mxcube:%s:%s:graphics" % (self.proposal_id, self.beamline_name),
                 jsonpickle.encode(graphic_objects),
@@ -157,7 +157,9 @@ class RedisClient(HardwareObject):
                 graphics_objects = self.redis_client.get(
                     "mxcube:%s:%s:graphics" % (self.proposal_id, self.beamline_name)
                 )
-                HWR.beamline.microscope.load_shapes(jsonpickle.decode(graphics_objects))
+                HWR.beamline.sample_view.load_shapes(
+                    jsonpickle.decode(graphics_objects)
+                )
                 logging.getLogger("HWR").debug("RedisClient: Graphics loaded")
             except BaseException:
                 pass

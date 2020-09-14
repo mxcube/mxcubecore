@@ -20,9 +20,9 @@ import logging
 import traceback
 from collections import namedtuple
 
-status_list = ["SUCCESS", "WARNING", "FAILED", "SKIPPED"]
+status_list = ["SUCCESS", "WARNING", "FAILED", "SKIPPED", "RUNNING", "NOT_EXECUTED"]
 QueueEntryStatusType = namedtuple("QueueEntryStatusType", status_list)
-QUEUE_ENTRY_STATUS = QueueEntryStatusType(0, 1, 2, 3)
+QUEUE_ENTRY_STATUS = QueueEntryStatusType(0, 1, 2, 3, 4, 5)
 
 
 __credits__ = ["MXCuBE collaboration"]
@@ -201,7 +201,7 @@ class BaseQueueEntry(QueueEntryContainer):
         self.set_data_model(data_model)
         self.set_view(view, view_set_queue_entry)
         self._checked_for_exec = False
-        self.status = QUEUE_ENTRY_STATUS.SUCCESS
+        self.status = QUEUE_ENTRY_STATUS.NOT_EXECUTED
         self.type_str = ""
 
     def is_failed(self):

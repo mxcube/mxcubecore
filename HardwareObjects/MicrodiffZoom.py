@@ -96,7 +96,11 @@ class MicrodiffZoom(ExporterNState):
         Returns:
             (tuple): two integers tuple - min and max value.
         """
-        _low, _high = self._exporter.execute("getZoomRange")
+        try:
+            _low, _high = self._exporter.execute("getZoomRange")
+        except Exception:
+            _low, _high = 1, 10
+
         # inf is a problematic value
         if _low == float("-inf"):
             _low = 1

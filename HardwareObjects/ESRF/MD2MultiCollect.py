@@ -4,15 +4,15 @@ import logging
 import os
 
 from HardwareRepository.TaskUtils import task
-from .ESRFMultiCollect import ESRFMultiCollect, TunableEnergy
+from .ESRFMultiCollect import ESRFMultiCollect
 from HardwareRepository.HardwareObjects.LimaPilatusDetector import LimaPilatusDetector
 
 from HardwareRepository import HardwareRepository as HWR
 
 
-class ID30BMultiCollect(ESRFMultiCollect):
+class MD2MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
-        ESRFMultiCollect.__init__(self, name, TunableEnergy())
+        ESRFMultiCollect.__init__(self, name)
 
     @task
     def data_collection_hook(self, data_collect_parameters):
@@ -49,10 +49,11 @@ class ID30BMultiCollect(ESRFMultiCollect):
         # We do not want to modify the input dict
         motor_positions_copy = motors_to_move_dict.copy()
         diffr = HWR.beamline.diffractometer
-        for tag in ("kappa", "kappa_phi"):
+        for tag in ("kappa", "kappa_phi", "zoom"):
             if tag in motor_positions_copy:
                 del motor_positions_copy[tag]
-        diffr.move_sync_motors(motors_to_move_dict, wait=True, timeout=200)
+
+        diffr.move_sync_motors(motor_positions_copy, wait=True, timeout=200)
 
     @task
     def take_crystal_snapshots(self, number_of_snapshots):
@@ -61,13 +62,12 @@ class ID30BMultiCollect(ESRFMultiCollect):
                 number_of_snapshots = 1
         else:
             # this has to be done before each chage of phase
-            HWR.beamline.diffractometer.get_command_object("save_centring_positions")()
+            HWR.beamline.diffractometer.save_centring_positions()
             # not going to centring phase if in plate mode (too long)
-            HWR.beamline.diffractometer.moveToPhase("Centring", wait=True, timeout=200)
+            HWR.beamline.diffractometer.set_phase("Centring", wait=True, timeout=200)
 
         HWR.beamline.diffractometer.take_snapshots(number_of_snapshots, wait=True)
 
-    @task
     def do_prepare_oscillation(self, *args, **kwargs):
         # set the detector cover out
         self.get_object_by_role("controller").detcover.set_out(20)
@@ -80,13 +80,19 @@ class ID30BMultiCollect(ESRFMultiCollect):
 
         # move to DataCollection phase
         logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
-        diffr.moveToPhase("DataCollection", wait=True, timeout=200)
+        diffr.set_phase("DataCollection", wait=True, timeout=200)
 
         # switch on the front light
+<<<<<<< HEAD:HardwareObjects/ESRF/ID30BMultiCollect.py
         diffr.get_object_by_role("FrontLight").set_value(2)
 
         # take the back light out
         diffr.get_object_by_role("BackLightSwitch").actuatorOut()
+=======
+        front_light_switch = diffr.get_object_by_role("FrontLightSwitch")
+        front_light_switch.set_value(front_light_switch.VALUES.IN)
+        # diffr.get_object_by_role("FrontLight").set_value(2)
+>>>>>>> upstream/master:HardwareObjects/ESRF/MD2MultiCollect.py
 
     @task
     def data_collection_cleanup(self):
@@ -99,11 +105,16 @@ class ID30BMultiCollect(ESRFMultiCollect):
         if self.helical:
             diffr.oscilScan4d(start, end, exptime, self.helical_pos, wait=True)
         elif self.mesh:
+<<<<<<< HEAD:HardwareObjects/ESRF/ID30BMultiCollect.py
             det = self._detector._detector
             latency_time = (
                 det.config.get_property("latecy_time_mesh")
                 or self._detector._detector.get_deadtime()
             )
+=======
+            det = HWR.beamline.detector
+            latency_time = det.getProperty("latecy_time_mesh") or det.get_deadtime()
+>>>>>>> upstream/master:HardwareObjects/ESRF/MD2MultiCollect.py
             diffr.oscilScanMesh(
                 start,
                 end,
@@ -121,7 +132,6 @@ class ID30BMultiCollect(ESRFMultiCollect):
     def prepare_acquisition(
         self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""
     ):
-        self._tunable_bl.get_energy()
         trigger_mode = "EXTERNAL_GATE" if self.mesh else None
         return ESRFMultiCollect.prepare_acquisition(
             self,
@@ -136,10 +146,19 @@ class ID30BMultiCollect(ESRFMultiCollect):
         )
 
     def open_fast_shutter(self):
+<<<<<<< HEAD:HardwareObjects/ESRF/ID30BMultiCollect.py
         self.get_object_by_role("fastshut").actuatorIn()
 
     def close_fast_shutter(self):
         self.get_object_by_role("fastshut").actuatorOut()
+=======
+        fs = HWR.beamline.fast_shutter
+        fs.set_value(fs.VALUES.OPEN)
+
+    def close_fast_shutter(self):
+        fs = HWR.beamline.fast_shutter
+        fs.set_value(fs.VALUES.CLOSED)
+>>>>>>> upstream/master:HardwareObjects/ESRF/MD2MultiCollect.py
 
     def set_helical(self, helical_on):
         self.helical = helical_on
@@ -175,7 +194,7 @@ class ID30BMultiCollect(ESRFMultiCollect):
         return
 
     def get_beam_centre(self):
-        return HWR.beamline.resolution.get_beam_centre()
+        return HWR.beamline.detector.get_beam_position()
 
     @task
     def write_input_files(self, datacollection_id):
@@ -189,7 +208,10 @@ class ID30BMultiCollect(ESRFMultiCollect):
                     if os.path.exists(dest):
                         continue
                     shutil.copyfile(
-                        os.path.join("/data/id30b/inhouse/opid30b/", filename), dest
+                        os.path.join(
+                            self.getProperty(template_file_directory), filename
+                        ),
+                        dest,
                     )
         except BaseException:
             logging.exception("Exception happened while copying geo_corr files")

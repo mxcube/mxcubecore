@@ -5,7 +5,11 @@ import os.path
 import shutil
 import math
 import gevent
-import PyChooch
+
+# import PyChooch
+# to run chooch in shell
+import subprocess
+import numpy
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -132,7 +136,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
     def escan_prepare(self):
 
         if self.beamsize:
-            bsX = self.beamsize.get_current_position_name()
+            bsX = self.beamsize.get_size(self.beamsize.get_value().name)
             self.energy_scan_parameters["beamSizeHorizontal"] = bsX
             self.energy_scan_parameters["beamSizeVertical"] = bsX
 
@@ -157,7 +161,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
 
     def move_energy(self, energy):
         try:
-            self._tunable_bl.energy_obj.move_energy(energy)
+            HWR.beamline.energy.set_value(energy)
         except BaseException:
             self.emit("energyScanFailed", ())
             raise RuntimeError("Cannot move energy")
@@ -204,12 +208,16 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         raw_scan_file = os.path.join(directory, (archive_prefix + ".raw"))
         efs_scan_file = raw_scan_file.replace(".raw", ".efs")
         raw_arch_file = os.path.join(archive_directory, (archive_prefix + "1" + ".raw"))
+
         i = 0
         while os.path.isfile(raw_arch_file):
             i += 1
             raw_arch_file = os.path.join(
                 archive_directory, (archive_prefix + str(i) + ".raw")
             )
+
+        png_scan_file = raw_scan_file.replace(".raw", ".png")
+        png_arch_file = raw_arch_file.replace(".raw", ".png")
 
         if not os.path.exists(archive_directory):
             os.makedirs(archive_directory)
@@ -241,6 +249,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         shutil.copy2(raw_scan_file, raw_arch_file)
         self.energy_scan_parameters["scanFileFullPath"] = raw_arch_file
 
+        """
         result = PyChooch.calc(scan_data, elt, edge, efs_scan_file)
         # PyChooch occasionally returns an error and the result
         # the sleep command assures that we get the result
@@ -253,7 +262,35 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         fppInfl = result[4]
         fpInfl = result[5]
         chooch_graph_data = result[6]
-
+        """
+        # while waiting fro chooch to work...
+        subprocess.call(
+            [
+                "/opt/pxsoft/bin/chooch",
+                "-e",
+                elt,
+                "-a",
+                edge,
+                "-o",
+                efs_scan_file,
+                "-g",
+                png_scan_file,
+                raw_data_file,
+            ]
+        )
+        time.sleep(5)
+        with open(efs_scan_file, "r") as f:
+            for _ in range(3):
+                next(f)
+            nparr = numpy.array([list(map(float, line.split())) for line in f])
+        fppPeak = nparr[:, 1].max()
+        idx = numpy.where(nparr[:, 1] == fppPeak)
+        pk = nparr[:, 0][idx][0] / 1000.0
+        fpPeak = nparr[:, 2][idx][0]
+        fppInfl = nparr[:, 2].min()
+        idx = numpy.where(nparr[:, 2] == fppInfl)
+        ip = nparr[:, 0][idx][0] / 1000.0
+        fpInfl = nparr[:, 1][idx][0]
         rm = pk + 0.03
 
         comm = ""
@@ -275,7 +312,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
                 % (pk, edge_shift, comm, th_edge)
             )
 
-            logging.getLogger("user_level_log").warning(
+            logging.getLogger("user_level_log").info(
                 "EnergyScan: %s Check your scan and choose the energies manually" % comm
             )
             pk = 0
@@ -299,10 +336,11 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         self.energy_scan_parameters["inflectionFDoublePrime"] = fppInfl
         self.energy_scan_parameters["comments"] = comm
 
+        """
         chooch_graph_x, chooch_graph_y1, chooch_graph_y2 = zip(*chooch_graph_data)
         chooch_graph_x = list(chooch_graph_x)
         chooch_graph_x = [x / 1000.0 for x in chooch_graph_x]
-
+        """
         logging.getLogger("HWR").info("Saving png")
         # prepare to save png files
         title = "%10s  %6s  %6s\n%10s  %6.2f  %6.2f\n%10s  %6.2f  %6.2f" % (
@@ -316,6 +354,13 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
             fpInfl,
             fppInfl,
         )
+        if os.path.isfile(png_scan_file):
+            shutil.copy2(png_scan_file, png_arch_file)
+        else:
+            self.storeEnergyScan()
+            self.emit("energyScanFailed", ())
+            return
+        """
         fig = Figure(figsize=(15, 11))
         ax = fig.add_subplot(211)
         ax.set_title("%s\n%s" % (efs_scan_file, title))
@@ -331,10 +376,9 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         handles.append(ax2.plot(chooch_graph_x, chooch_graph_y1, color="blue"))
         handles.append(ax2.plot(chooch_graph_x, chooch_graph_y2, color="red"))
         canvas = FigureCanvasAgg(fig)
-
-        png_scan_file = raw_scan_file.replace(".raw", ".png")
-        png_arch_file = raw_arch_file.replace(".raw", ".png")
+        """
         self.energy_scan_parameters["jpegChoochFileFullPath"] = str(png_arch_file)
+        """
         try:
             logging.getLogger("HWR").info(
                 "Rendering energy scan and Chooch graphs to PNG file : %s",
@@ -350,7 +394,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
             canvas.print_figure(png_arch_file, dpi=80)
         except BaseException:
             logging.getLogger("HWR").exception("could not save figure")
-
+        """
         self.storeEnergyScan()
 
         self.emit(
@@ -363,9 +407,9 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
                 fppInfl,
                 fpInfl,
                 rm,
-                chooch_graph_x,
-                chooch_graph_y1,
-                chooch_graph_y2,
+                # chooch_graph_x,
+                # chooch_graph_y1,
+                # chooch_graph_y2,
                 title,
             ),
         )
@@ -377,9 +421,12 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
             fppInfl,
             fpInfl,
             rm,
-            chooch_graph_x,
-            chooch_graph_y1,
-            chooch_graph_y2,
+            [],
+            [],
+            [],
+            # chooch_graph_x,
+            # chooch_graph_y1,
+            # chooch_graph_y2,
             title,
         )
 

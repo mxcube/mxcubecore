@@ -165,7 +165,7 @@ class Microdiff(MiniDiff.MiniDiff):
             "abort",
         )
 
-        self.move_sync_motors = self.add_command(
+        self._move_sync_motors = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -182,6 +182,15 @@ class Microdiff(MiniDiff.MiniDiff):
         self.beam_position_vertical = self.add_channel(
             {"type": "exporter", "exporter_address": self.exporter_addr, "name": "bpv"},
             "BeamPositionVertical",
+        )
+
+        self.save_centring_positions = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "abort",
+            },
+            "saveCentringPositions",
         )
 
         MiniDiff.MiniDiff.init(self)
@@ -220,7 +229,7 @@ class Microdiff(MiniDiff.MiniDiff):
         self._wait_ready(10)
 
         # save position in MD2 software
-        # self.get_command_object("save_centring_positions")()
+        self.save_centring_positions()
 
         # do normal stuff
         return MiniDiff.MiniDiff.emitCentringSuccessful(self)
@@ -248,7 +257,7 @@ class Microdiff(MiniDiff.MiniDiff):
             while not self._ready():
                 time.sleep(0.5)
 
-    def moveToPhase(self, phase, wait=False, timeout=None):
+    def set_phase(self, phase, wait=False, timeout=None):
         if self._ready():
             if phase in self.phases:
                 self.movePhase(phase)
@@ -259,8 +268,11 @@ class Microdiff(MiniDiff.MiniDiff):
         else:
             print("moveToPhase - Ready is: ", self._ready())
 
-    def getPhase(self):
+    def get_current_phase(self):
         return self.readPhase.get_value()
+
+    def get_phase_list(self):
+        return list(self.phases.keys())
 
     def move_sync_motors(self, motors_dict, wait=False, timeout=None):
         in_kappa_mode = self.in_kappa_mode()
@@ -279,7 +291,7 @@ class Microdiff(MiniDiff.MiniDiff):
         if not argin:
             return
 
-        self.move_sync_motors(argin)
+        self._move_sync_motors(argin)
 
         if wait:
             time.sleep(0.1)
@@ -340,7 +352,9 @@ class Microdiff(MiniDiff.MiniDiff):
             },
             "startScan4DEx",
         )
+
         scan(scan_params)
+
         print("helical scan started at ----------->", time.time())
         if wait:
             self._wait_ready(900)  # timeout of 15 min
@@ -358,30 +372,33 @@ class Microdiff(MiniDiff.MiniDiff):
         mesh_range,
         wait=False,
     ):
-        self.scan_range.set_value(end - start)
-        self.scan_exposure_time.set_value(exptime / mesh_num_lines)
-        self.scan_start_angle.set_value(start)
         self.scan_detector_gate_pulse_enabled.set_value(True)
-        servo_time = 0.110  # adding the servo time to the readout time to avoid any servo cycle jitter
+
+        # Adding the servo time to the readout time to avoid any
+        # servo cycle jitter
+        servo_time = 0.110
+
         self.scan_detector_gate_pulse_readout_time.set_value(
             dead_time * 1000 + servo_time
-        )  # TODO
+        )
 
-        # Prepositionning at the center of the grid
         self.move_motors(mesh_center.as_dict())
-        self.centringVertical.set_value_relative(
-            (mesh_range["vertical_range"]) / 2, timeout=None
-        )
-        self.centringPhiy.set_value_relative(
-            -(mesh_range["horizontal_range"]) / 2, timeout=None
-        )
+        positions = self.get_positions()
 
-        scan_params = "%0.3f\t" % -mesh_range["horizontal_range"]
-        scan_params += "%0.3f\t" % mesh_range["vertical_range"]
-        scan_params += "%d\t" % mesh_num_lines
-        scan_params += "%d\t" % (mesh_total_nb_frames / mesh_num_lines)
-        # scan_params += "%d\t" % 1
-        scan_params += "%r" % True  # TODO
+        params = "%0.3f\t" % (end - start)
+        params += "%0.3f\t" % -mesh_range["horizontal_range"]
+        params += "%0.3f\t" % mesh_range["vertical_range"]
+        params += "%0.3f\t" % start
+        params += "%0.3f\t" % positions["phiy"]
+        params += "%0.3f\t" % positions["phiz"]
+        params += "%0.3f\t" % positions["sampx"]
+        params += "%0.3f\t" % positions["sampy"]
+        params += "%d\t" % mesh_num_lines
+        params += "%d\t" % (mesh_total_nb_frames / mesh_num_lines)
+        params += "%0.3f\t" % (exptime / mesh_num_lines)
+        params += "%r\t" % True
+        params += "%r\t" % True
+        params += "%r\t" % True
 
         scan = self.add_command(
             {
@@ -389,13 +406,16 @@ class Microdiff(MiniDiff.MiniDiff):
                 "exporter_address": self.exporter_addr,
                 "name": "start_raster_scan",
             },
-            "startRasterScan",
+            "startRasterScanEx",
         )
-        scan(scan_params)
-        print("mesh scan started at ----------->", time.time())
+
+        self._wait_ready(900)  # timeout of 15 min
+
+        scan(params)
+
         if wait:
-            self._wait_ready(1800)  # timeout of 30 min
-            print("finished at ---------->", time.time())
+            # timeout of 30 min
+            self._wait_ready(1800)
 
     def stillScan(self, pulse_duration, pulse_period, pulse_nb, wait=False):
         scan_params = "%0.6f\t%0.6f\t%d" % (pulse_duration, pulse_period, pulse_nb)
@@ -450,7 +470,7 @@ class Microdiff(MiniDiff.MiniDiff):
             MiniDiff.MiniDiff.move_to_beam(self, x, y)
         else:
             try:
-                beam_pos_x, beam_pos_y = HWR.beamline.beam.get_screen_position()
+                beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
 
                 self.centringVertical.set_value_relative(
                     self.centringPhiz.direction
@@ -511,7 +531,7 @@ class Microdiff(MiniDiff.MiniDiff):
                 self.pixelsPerMmY,
                 self.pixelsPerMmZ,
                 beam_pos_x,
-                beam_pos_x,
+                beam_pos_y,
                 chi_angle=self.chiAngle,
             )
 

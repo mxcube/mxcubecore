@@ -76,8 +76,8 @@ class AbstractEnergy(AbstractActuator):
         """
         _low, _high = self.get_limits()
         self._wavelength_limits = (
-            self._calculate_wavelength(_low),
             self._calculate_wavelength(_high),
+            self._calculate_wavelength(_low),
         )
         return self._wavelength_limits
 
