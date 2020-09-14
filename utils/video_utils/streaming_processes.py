@@ -199,7 +199,7 @@ def start_video_stream(
             "-f",
             "mpegts",
             "-b:v", "750000",
-            "-q:v", "4",
+            "-q:v", "%s" % quality,
             "-an",
             "-vcodec",
             "mpeg1video",
