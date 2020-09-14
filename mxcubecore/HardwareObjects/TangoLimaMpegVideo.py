@@ -112,6 +112,9 @@ class TangoLimaMpegVideo(TangoLimaVideo):
                 close_fds=True,
             )
 
+            with open("/tmp/mxcube.pid", "a") as f:
+                f.write("%s " % self._video_stream_process.pid)
+
     def stop_streaming(self):
         if self._video_stream_process:
             ps = [self._video_stream_process] + psutil.Process(
