@@ -5,16 +5,16 @@
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
+#  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 """
@@ -75,12 +75,13 @@ class AbstractCollect(HardwareObject, object):
         HardwareObject.__init__(self, name)
         self.bl_config = BeamlineConfig(*[None] * 17)
 
+        self._collecting = False
         self._error_msg = ""
         self.exp_type_dict = {}
 
         self.data_collect_task = None
-        self.run_processing_after = None
-        self.run_processing_parallel = None
+        self.run_offline_processing = None
+        self.run_online_prcessing = None
         self.ready_event = None
 
     def init(self):
@@ -142,12 +143,12 @@ class AbstractCollect(HardwareObject, object):
         """
         self.ready_event.clear()
         self.data_collect_task = gevent.spawn(
-            self._pre_collect, owner, DataObject(cp_dict)
+            self._start_collect_task, owner, cp_dict
         )
         self.ready_event.wait()
         self.ready_event.clear()
 
-    def _pre_collect(self, owner, cp):
+    def _start_collect_task(self, owner, cp):
         """
         Actual collect sequence
         """
@@ -158,7 +159,7 @@ class AbstractCollect(HardwareObject, object):
 
         try:
             # Prepare data collection
-            self._prepare(cp)
+            self._pre_collect(cp)
             logging.getLogger("HWR").info("Collection parameters: %s" % str(cp))
 
             # Create directories and input files for processing, XDS, mossflm etc
@@ -223,7 +224,8 @@ class AbstractCollect(HardwareObject, object):
 
     def _post_collect(self, cp):
         """Collection finished beahviour"""
-        cp.dangerously_set("status", "Data collection successful")
+        #cp.dangerously_set("status", "Data collection successful")
+        cp["status"] = "Data collection successful"
 
         if cp["experiment_type"] != "Collect - Multiwedge":
             self._update_data_collection_in_lims(cp)
@@ -264,8 +266,8 @@ class AbstractCollect(HardwareObject, object):
         """Collection failed method"""
         failed_msg = "Data collection failed!\n%s" % exc_value
 
-        cp.dangerously_set("status", "Failed")
-        cp.dangerously_set("comments", "%s\n%s" % (failed_msg, self._error_msg))
+        #cp.dangerously_set("status", "Failed")
+        #cp.dangerously_set("comments", "%s\n%s" % (failed_msg, self._error_msg))
 
         self.emit(
             "collectOscillationFailed",
@@ -275,10 +277,12 @@ class AbstractCollect(HardwareObject, object):
         self.emit("progressStop", ())
         self._update_data_collection_in_lims(cp)
 
-    def prepare(self, cp):
-        cp.dangerously_set("status", "Running")
-        cp.dangerously_set("collection_start_time", time.strftime("%Y-%m-%d %H:%M:%S"))
+    def _pre_collect(self, cp):
+        #cp.dangerously_set("status", "Running")
+        #cp.dangerously_set("collection_start_time", time.strftime("%Y-%m-%d %H:%M:%S"))
 
+        cp["status"] =  "Running"
+        cp["collection_start_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
         self.open_detector_cover()
         self.open_safety_shutter()
         self.open_fast_shutter()
@@ -299,7 +303,8 @@ class AbstractCollect(HardwareObject, object):
         xds_directory, mosflm_directory, hkl2000_directory = self.prepare_input_files()
 
         if xds_directory:
-            cp.dangerously_set("xds_dir", xds_directory)
+            # cp.dangerously_set("xds_dir", xds_directory)
+            cp["xds_dir"] = xds_directory
 
     def create_directories(self, *args):
         """
@@ -800,28 +805,13 @@ class AbstractCollect(HardwareObject, object):
 
     # @abc.abstractmethod
     # def trigger_auto_processing(self, process_event, frame_number):
-    #     """
-    #     Descript. :
-    #     """
     #     pass
 
-    # def set_helical(self, arg):
-    #     """
-    #     Descript. :
-    #     """
-    #     pass
+    def set_helical(self, arg):
+        pass
 
-    # def set_helical_pos(self, arg):
-    #     """
-    #     Descript. :
-    #     """
-    #     pass
-
-    # def setCentringStatus(self, status):
-    #     """
-    #     Descript. :
-    #     """
-    #     pass
+    def set_helical_pos(self, arg):
+        pass
 
     # specifies the next scan will be a mesh scan
     def set_mesh(self, mesh_on):

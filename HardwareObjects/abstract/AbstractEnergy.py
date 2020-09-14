@@ -133,17 +133,12 @@ class AbstractEnergy(AbstractActuator):
             return True
         return limits[0] <= value <= limits[1]
 
-    def update_value(self, value=None):
+    def re_emit_values(self, value=None):
         """Emist signal energyChanged for both energy and wavelength
         Argin:
             value: Not used, but kept in the method signature.
         """
-
-        if value is None:
-            value = self.get_value()
-        self._nominal_value = value
-
         if not self._wavelength_value:
-            self._wavelength_value = self._calculate_wavelength(value)
-        self.emit("energyChanged", (value, self._wavelength_value))
-        self.emit("valueChanged", (value,))
+            self._wavelength_value = self._calculate_wavelength(self.get_value())
+        self.emit("energyChanged", (self.get_value(), self._wavelength_value))
+        self.emit("valueChanged", (self.get_value(),))
