@@ -88,17 +88,17 @@ class BeamInfo(Equipment):
     def aperture_pos_changed(self, nameList, name, size):
         self.beam_size_aperture = size
         self.evaluate_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def slits_gap_changed(self, size):
         self.beam_size_slits = size
         self.evaluate_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def definer_pos_changed(self, name, size):
         self.beam_size_definer = size
         self.evaluate_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def get_beam_info(self):
         return self.evaluate_beam_info()
@@ -148,7 +148,7 @@ class BeamInfo(Equipment):
 
         return self.beam_info_dict
 
-    def emit_beam_info_change(self):
+    def re_emit_values(self):
         if (
             self.beam_info_dict["size_x"] != 9999
             and self.beam_info_dict["size_y"] != 9999
