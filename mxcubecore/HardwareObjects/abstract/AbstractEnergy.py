@@ -133,7 +133,10 @@ class AbstractEnergy(AbstractActuator):
             return True
         return limits[0] <= value <= limits[1]
 
-    def re_emit_values(self, value=None):
+    def get_undulator_gaps(self):
+        return ()
+
+    def re_emit_values(self):
         """Emist signal energyChanged for both energy and wavelength
         Argin:
             value: Not used, but kept in the method signature.
