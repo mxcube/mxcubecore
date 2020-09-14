@@ -1,57 +1,53 @@
+# -*- coding: utf-8 -*-
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU General Lesser Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Exporter, ExporterChannel and ExporterCommand implementation """
+
+# from warnings import warn
 import logging
 import gevent
 from gevent.queue import Queue
-from warnings import warn
 from HardwareRepository.CommandContainer import CommandObject, ChannelObject
 from .exporter import ExporterClient
+from .exporter.StandardClient import PROTOCOL
 
-exporter_clients = {}
+__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
+
+EXPORTER_CLIENTS = {}
 
 
 def start_exporter(address, port, timeout=3, retries=1):
-    global exporter_clients
-    if not (address, port) in exporter_clients:
+    """Start the exporter"""
+    global EXPORTER_CLIENTS
+    if (address, port) not in EXPORTER_CLIENTS:
         client = Exporter(address, port, timeout)
-        exporter_clients[(address, port)] = client
+        EXPORTER_CLIENTS[(address, port)] = client
         client.start()
         return client
-    else:
-        return exporter_clients[(address, port)]
+    return EXPORTER_CLIENTS[(address, port)]
 
 
-class ExporterCommand(CommandObject):
-    def __init__(
-        self, name, command, username=None, address=None, port=None, timeout=3, **kwargs
-    ):
-        CommandObject.__init__(self, name, username, **kwargs)
-        self.command = command
-        self.__exporter = start_exporter(address, port, timeout)
+class Exporter(ExporterClient.ExporterClient, object):
+    """Exporter class"""
 
-    def __call__(self, *args, **kwargs):
-        self.emit("commandBeginWaitReply", (str(self.name()),))
-
-        try:
-            ret = self.__exporter.execute(self.command, args, kwargs.get("timeout", -1))
-        except BaseException:
-            # logging.getLogger('HWR').exception("%s: an error occured when calling Exporter command %s", str(self.name()), self.command)
-            self.emit("commandFailed", (-1, self.name()))
-            raise
-        else:
-            self.emit("commandReplyArrived", (ret, str(self.name())))
-            return ret
-
-    def abort(self):
-        # TODO: implement async commands
-        pass
-
-    def get_state(self):
-        return self.__exporter.get_state()
-
-    def isConnected(self):
-        return self.__exporter.isConnected()
-
-
-class Exporter(ExporterClient.ExporterClient):
     STATE_EVENT = "State"
     STATUS_EVENT = "Status"
     VALUE_EVENT = "Value"
@@ -74,9 +70,7 @@ class Exporter(ExporterClient.ExporterClient):
     STATE_UNKNOWN = "Unknown"
 
     def __init__(self, address, port, timeout=3, retries=1):
-        ExporterClient.ExporterClient.__init__(
-            self, address, port, ExporterClient.PROTOCOL.STREAM, timeout, retries
-        )
+        super(Exporter, self).__init__(address, port, PROTOCOL.STREAM, timeout, retries)
 
         self.started = False
         self.callbacks = {}
@@ -84,78 +78,83 @@ class Exporter(ExporterClient.ExporterClient):
         self.events_processing_task = None
 
     def start(self):
-        pass
-        # self.started=True
-        # self.reconnect()
+        """Start"""
 
     def stop(self):
-        # self.started=False
+        """Stop"""
         self.disconnect()
 
     def execute(self, *args, **kwargs):
+        """Execute"""
         ret = ExporterClient.ExporterClient.execute(self, *args, **kwargs)
         return self._to_python_value(ret)
 
     def get_state(self):
+        """Read the state"""
         return self.execute("getState")
 
-    def readProperty(self, *args, **kwargs):
-        ret = ExporterClient.ExporterClient.readProperty(self, *args, **kwargs)
+    def read_property(self, *args, **kwargs):
+        """Read a property"""
+        ret = ExporterClient.ExporterClient.read_property(self, *args, **kwargs)
         return self._to_python_value(ret)
 
     def reconnect(self):
+        """Reconnect"""
         return
-        if self.started:
-            try:
-                self.disconnect()
-                self.connect()
-            except BaseException:
-                gevent.sleep(1.0)
-                self.reconnect()
 
-    def onDisconnected(self):
-        pass  # self.reconnect()
+    def on_disconnected(self):
+        """Actions on disconnect"""
 
     def register(self, name, cb):
+        """Register to a callback"""
         if callable(cb):
             self.callbacks.setdefault(name, []).append(cb)
         if not self.events_processing_task:
-            self.events_processing_task = gevent.spawn(self.processEventsFromQueue)
+            self.events_processing_task = gevent.spawn(self.process_events_from_queue)
 
     def _to_python_value(self, value):
+        """Convert exporter value to python one
+        Args:
+            value (str): String from the exporter
+        """
         if value is None:
-            return
+            return value
 
-        # IK TODO make this with eval
         if "\x1f" in value:
-            value = self.parseArray(value)
+            value = self.parse_array(value)
             try:
-                value = map(int, value)
-            except BaseException:
+                value = list(map(int, value))
+            except (TypeError, ValueError):
                 try:
-                    value = map(float, value)
-                except BaseException:
+                    value = list(map(float, value))
+                except (TypeError, ValueError):
                     pass
         else:
-            try:
-                value = int(value)
-            except BaseException:
+            if value == "false":
+                value = False
+            elif value == "true":
+                value = True
+            else:
                 try:
-                    value = float(value)
-                except BaseException:
+                    value = int(value)
+                except (TypeError, ValueError):
                     try:
-                        if value == "false":
-                            value = False
-                        elif value == "true":
-                            value = True
-                    except BaseException:
+                        value = float(value)
+                    except (TypeError, ValueError):
                         pass
         return value
 
-    def onEvent(self, name, value, timestamp):
+    def on_event(self, name, value, timestamp):
+        """Put the event in the queue
+        Args:
+            name: Name
+            value: Value
+            timestamp: Timestamp
+        """
         self.events_queue.put((name, value))
 
-    def processEventsFromQueue(self):
+    def process_events_from_queue(self):
+        """Process events from the queue"""
         while True:
             try:
                 name, value = self.events_queue.get()
@@ -166,13 +165,58 @@ class Exporter(ExporterClient.ExporterClient):
                 try:
                     cb(self._to_python_value(value))
                 except BaseException:
-                    logging.exception(
-                        "Exception while executing callback %s for event %s", cb, name
+                    msg = "Exception while executing callback {} for event {}".format(
+                        cb, name
                     )
+                    logging.exception(msg)
                     continue
 
 
+class ExporterCommand(CommandObject):
+    """Command implementation for Exporter"""
+
+    def __init__(
+        self, name, command, username=None, address=None, port=None, timeout=3, **kwargs
+    ):
+        CommandObject.__init__(self, name, username, **kwargs)
+        self.command = command
+        self.__exporter = start_exporter(address, port, timeout)
+        msg = "Attaching Exporter command: {} {}".format(address, name)
+        logging.getLogger("HWR").debug(msg)
+
+    def __call__(self, *args, **kwargs):
+        self.emit("commandBeginWaitReply", (str(self.name()),))
+
+        try:
+            ret = self.__exporter.execute(self.command, args, kwargs.get("timeout", -1))
+        except BaseException:
+            self.emit("commandFailed", (-1, self.name()))
+            raise
+        else:
+            self.emit("commandReplyArrived", (ret, str(self.name())))
+            return ret
+
+    def abort(self):
+        """Abort"""
+
+    def get_state(self):
+        """FRead the state
+        Returns:
+            (str): State
+        """
+        return self.__exporter.get_state()
+
+    def is_connected(self):
+        """Check if connected.
+        Returns:
+            (bool): True if connected
+        """
+        return self.__exporter.is_connected()
+
+
 class ExporterChannel(ChannelObject):
+    """Channel implementation for Exporter"""
+
     def __init__(
         self,
         name,
@@ -186,19 +230,18 @@ class ExporterChannel(ChannelObject):
         ChannelObject.__init__(self, name, username, **kwargs)
 
         self.__exporter = start_exporter(address, port, timeout)
-
-        self.attributeName = attribute_name
+        self.attribute_name = attribute_name
         self.value = None
 
         self.__exporter.register(attribute_name, self.update)
 
-        logging.getLogger("HWR").debug(
-            "Attaching Exporter channel: %s %s " % (address, name)
-        )
+        msg = "Attaching Exporter channel: {} {} ".format(address, name)
+        logging.getLogger("HWR").debug(msg)
 
         self.update()
 
     def update(self, value=None):
+        """Emit signal update when value changed"""
         value = value or self.get_value()
         if isinstance(value, tuple):
             value = list(value)
@@ -207,21 +250,23 @@ class ExporterChannel(ChannelObject):
         self.emit("update", value)
 
     def get_value(self):
-        value = self.__exporter.readProperty(self.attributeName)
+        """Get the value
+        Returns:
+            (str): The value
+        """
+        value = self.__exporter.read_property(self.attribute_name)
         return value
 
     def set_value(self, value):
-        self.__exporter.writeProperty(self.attributeName, value)
+        """Set a value
+        Args:
+            value (str): Value to set
+        """
+        self.__exporter.write_property(self.attribute_name, value)
 
-    def isConnected(self):
-        return self.__exporter.isConnected()
-
-    """ obsolete, keep for backward compatibility """
-
-    def getValue(self):
-        warn("getValue is deprecated. Use get_value instead", DeprecationWarning)
-        return self.get_value()
-
-    def setValue(self, newValue):
-        warn("setValue is deprecated. Use set_value instead", DeprecationWarning)
-        self.set_value(newValue)
+    def is_connected(self):
+        """Check if connected.
+        Returns:
+            (bool): True if connected.
+        """
+        return self.__exporter.is_connected()

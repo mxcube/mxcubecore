@@ -1,41 +1,82 @@
-"""
-  Project: JLib
+# -*- coding: utf-8 -*-
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU General Lesser Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-  Date       Author    Changes
-  01.07.09   Gobbo     Created
-
-  Copyright 2009 by European Molecular Biology Laboratory - Grenoble
-"""
+""" ProtocolError and StandardClient implementation"""
+import sys
+import socket
 import gevent
 import gevent.lock
-import time
-import socket
-import sys
+
+__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
 
 class TimeoutError(Exception):
-    pass
+    """Protype"""
 
 
 class ProtocolError(Exception):
-    pass
+    """Protype"""
 
 
 class SocketError(Exception):
-    pass
+    """Protype"""
 
 
-STX = chr(2)
-ETX = chr(3)
+if sys.version_info > (3, 0):
+    STX = 2  # b'\x02'
+    ETX = 3  # b'\x03'
+
+    def empty_buffer():
+        """Empty buffer"""
+        return b""
+
+    _bytes = bytes
+
+    encode = str.encode
+
+else:
+    STX = chr(2)
+    ETX = chr(3)
+
+    def empty_buffer():
+        """Empty buffer"""
+        return ""
+
+    _bytes = str
+
+    encode = str
+
 MAX_SIZE_STREAM_MSG = 500000
 
 
 class PROTOCOL:
+    """Protocol"""
+
     DATAGRAM = 1
     STREAM = 2
 
 
 class StandardClient:
+    """Standard JLib client"""
+
     def __init__(self, server_ip, server_port, protocol, timeout, retries):
         self.server_ip = server_ip
         self.server_port = server_port
@@ -44,69 +85,84 @@ class StandardClient:
         self.retries = retries
         self.protocol = protocol
         self.error = None
+        self.received_msg = None
+        self.receiving_greenlet = None
         self.msg_received_event = gevent.event.Event()
         self._lock = gevent.lock.Semaphore()
         self.__msg_index__ = -1
-        self.__sock__ = None
-        self.__CONSTANT_LOCAL_PORT__ = True
-        self._isConnected = False
+        self.__sock = None
+        self.__constant_local_port = True
+        self._is_connected = False
 
-    def __createSocket__(self):
+    def __create_socket(self):
+        """Create socket"""
         if self.protocol == PROTOCOL.DATAGRAM:
-            self.__sock__ = socket.socket(
-                socket.AF_INET, socket.SOCK_DGRAM
-            )  # , socket.IPPROTO_UDP)
-            self.__sock__.settimeout(self.timeout)
+            self.__sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.__sock.settimeout(self.timeout)
         else:
-            self.__sock__ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.__sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    def __closeSocket__(self):
+    def __close_socket(self):
+        """Close socket"""
         try:
-            self.__sock__.close()
+            self.__sock.close()
         except BaseException:
             pass
-        self._isConnected = False
-        self.__sock__ = None
+        self._is_connected = False
+        self.__sock = None
         self.received_msg = None
 
     def connect(self):
+        """Socket connect"""
         if self.protocol == PROTOCOL.DATAGRAM:
             return
-        if self.__sock__ is None:
-            self.__createSocket__()
-        self.__sock__.connect((self.server_ip, self.server_port))
-        self._isConnected = True
+        if self.__sock is None:
+            self.__create_socket()
+        self.__sock.connect((self.server_ip, self.server_port))
+        self._is_connected = True
         self.error = None
         self.received_msg = None
-        # thread.start_new_thread(self.recv_thread,())
         self.receiving_greenlet = gevent.spawn(self.recv_thread)
 
-    def isConnected(self):
+    def is_connected(self):
+        """Check if connected
+        Returns:
+            (bool): True if connected
+        """
         if self.protocol == PROTOCOL.DATAGRAM:
             return False
-        if self.__sock__ is None:
+        if self.__sock is None:
             return False
-        return self._isConnected
+        return self._is_connected
 
     def disconnect(self):
-        if self.isConnected():
+        """Disconnect"""
+        if self.is_connected():
             self.receiving_greenlet.kill()
-        self.__closeSocket__()
+        self.__close_socket()
 
-    def __sendReceiveDatagramSingle__(self, cmd):
+    def __send_receive_datagram_single(self, cmd):
+        """Send and receive single datagram.
+        Args:
+            cmd(str): Command
+        Returns:
+            (str): return message
+        Raises:
+            SocketError, TimeoutError
+        """
         try:
-            if self.__CONSTANT_LOCAL_PORT__ is False or self.__sock__ is None:
-                self.__createSocket__()
+            if self.__constant_local_port is False or self.__sock is None:
+                self.__create_socket()
             msg_number = "%04d " % self.__msg_index__
             msg = msg_number + cmd
             try:
-                self.__sock__.sendto(msg, (self.server_ip, self.server_port))
-            except BaseException:
+                self.__sock.sendto(encode(msg), (self.server_ip, self.server_port))
+            except:
                 raise SocketError("Socket error:" + str(sys.exc_info()[1]))
             received = False
             while received is False:
                 try:
-                    ret = self.__sock__.recv(4096)
+                    ret = self.__sock.recv(4096).decode()
                 except socket.timeout:
                     raise TimeoutError("Timeout error:" + str(sys.exc_info()[1]))
                 except BaseException:
@@ -115,23 +171,31 @@ class StandardClient:
                     received = True
             ret = ret[5:]
         except SocketError:
-            self.__closeSocket__()
+            self.__close_socket()
             raise
         except BaseException:
-            if self.__CONSTANT_LOCAL_PORT__ is False:
-                self.__closeSocket__()
+            if self.__constant_local_port is False:
+                self.__close_socket()
             raise
-        if self.__CONSTANT_LOCAL_PORT__ is False:
-            self.__closeSocket__()
+        if self.__constant_local_port is False:
+            self.__close_socket()
         return ret
 
-    def __sendReceiveDatagram__(self, cmd, timeout=-1):
+    def __send_receive_datagram(self, cmd):
+        """Send/receive datagram.
+        Args:
+            (str): command
+        Returns:
+            (str): datagram
+        Raises:
+            TimeoutError, ProtocolError
+        """
         self.__msg_index__ = self.__msg_index__ + 1
         if self.__msg_index__ >= 10000:
             self.__msg_index__ = 1
         for i in range(0, self.retries):
             try:
-                ret = self.__sendReceiveDatagramSingle__(cmd)
+                ret = self.__send_receive_datagram_single(encode(cmd))
                 return ret
             except TimeoutError:
                 if i >= self.retries - 1:
@@ -145,81 +209,110 @@ class StandardClient:
             except BaseException:
                 raise
 
-    def setTimeout(self, timeout):
+    def set_timeout(self, timeout):
+        """Set the socket timeout.
+        Args:
+            timeout(float): Timeout value
+        """
         self.timeout = timeout
         if self.protocol == PROTOCOL.DATAGRAM:
-            if self.__sock__ is not None:
-                self.__sock__.settimeout(self.timeout)
+            if self.__sock is not None:
+                self.__sock.settimeout(self.timeout)
 
-    def restoreTimeout(self):
-        self.setTimeout(self.default_timeout)
+    def restore_timeout(self):
+        """Restore the default timeout"""
+        self.set_timeout(self.default_timeout)
 
     def dispose(self):
+        """Disconnect or close socket"""
         if self.protocol == PROTOCOL.DATAGRAM:
-            if self.__CONSTANT_LOCAL_PORT__:
-                self.__closeSocket__()
+            if self.__constant_local_port:
+                self.__close_socket()
             else:
                 pass
         else:
             self.disconnect()
 
-    def onMessageReceived(self, msg):
+    def on_message_received(self, msg):
+        """Actions
+        Args:
+            msg(str): Message
+        """
         self.received_msg = msg
         self.msg_received_event.set()
 
     def recv_thread(self):
+        """Receive thread"""
         try:
-            self.onConnected()
+            self.on_connected()
         except BaseException:
             pass
-        buffer = ""
+        buffer = empty_buffer()
         mReceivedSTX = False
         while True:
-            ret = self.__sock__.recv(4096)
+            ret = self.__sock.recv(4096)
             if not ret:
                 # connection reset by peer
                 self.error = "Disconnected"
-                self.__closeSocket__()
+                self.__close_socket()
                 break
             for b in ret:
                 if b == STX:
-                    buffer = ""
+                    buffer = empty_buffer()
                     mReceivedSTX = True
                 elif b == ETX:
-                    if mReceivedSTX is True:
-                        self.onMessageReceived(buffer)
+                    if mReceivedSTX:
+                        try:
+                            # Unicode decoding exception catching,
+                            # consider errors='ignore'
+                            buffer_utf8 = buffer.decode()
+                        except UnicodeDecodeError as e:
+                            # Syntax not allowed in Python 2
+                            # raise ProtocolError from e
+                            raise ProtocolError(
+                                "UnicodeDecodeError: %s" % sys.exc_info()
+                            )
+                        self.on_message_received(buffer_utf8)
                         mReceivedSTX = False
-                        buffer = ""
+                        buffer = empty_buffer()
                 else:
-                    if mReceivedSTX is True:
-                        buffer = buffer + b
+                    if mReceivedSTX:
+                        buffer += _bytes([b])
 
             if len(buffer) > MAX_SIZE_STREAM_MSG:
                 mReceivedSTX = False
-                buffer = ""
+                buffer = empty_buffer()
         try:
-            self.onDisconnected()
+            self.on_disconnected()
         except BaseException:
             pass
 
-    def __sendStream__(self, cmd):
-        if not self.isConnected():
+    def __send_stream(self, cmd):
+        """Send a command.
+        Args:
+            cmd(str): command
+        """
+        if not self.is_connected():
             self.connect()
-
         try:
-            pack = STX + cmd + ETX
-            self.__sock__.send(pack)
+            pack = _bytes([STX]) + encode(cmd) + _bytes([ETX])
+            self.__sock.send(pack)
         except SocketError:
             self.disconnect()
-            # raise SocketError,"Socket error:" + str(sys.exc_info()[1])
 
-    def __sendReceiveStream__(self, cmd):
+    def __send_receive_stream(self, cmd):
+        """Send/receive event.
+        Args:
+            cmd(str): command
+        Returns:
+            (str): reply form the socket
+        """
         self.error = None
         self.received_msg = None
         self.msg_received_event.clear()  # = gevent.event.Event()
-        if not self.isConnected():
+        if not self.is_connected():
             self.connect()
-        self.__sendStream__(cmd)
+        self.__send_stream(cmd)
 
         with gevent.Timeout(self.timeout, TimeoutError):
             while self.received_msg is None:
@@ -228,32 +321,44 @@ class StandardClient:
                 self.msg_received_event.wait()
             return self.received_msg
 
-    def sendReceive(self, cmd, timeout=-1):
+    def send_receive(self, cmd, timeout=-1):
+        """Send/receive command, locking the socket.
+        Args:
+            cmd(str): command
+        Returns:
+            (str): reply form the socket
+        """
         self._lock.acquire()
         try:
             if (timeout is None) or (timeout >= 0):
-                self.setTimeout(timeout)
+                self.set_timeout(timeout)
             if self.protocol == PROTOCOL.DATAGRAM:
-                return self.__sendReceiveDatagram__(cmd)
-            else:
-                return self.__sendReceiveStream__(cmd)
+                return self.__send_receive_datagram(cmd)
+            return self.__send_receive_stream(cmd)
         finally:
             try:
                 if (timeout is None) or (timeout >= 0):
-                    self.restoreTimeout()
+                    self.restore_timeout()
             finally:
                 self._lock.release()
 
     def send(self, cmd):
+        """Send command.
+        Args:
+            cmd(str): command
+        Returns:
+            (str): reply form the socket
+        Raises:
+            ProtocolError
+        """
         if self.protocol == PROTOCOL.DATAGRAM:
             raise ProtocolError(
                 "Protocol error: send command not support in datagram clients"
             )
-        else:
-            return self.__sendStream__(cmd)
+        return self.__send_stream(cmd)
 
-    def onConnected(self):
-        pass
+    def on_connected(self):
+        """On connect"""
 
-    def onDisconnected(self):
-        pass
+    def on_disconnected(self):
+        """On disconnect"""
