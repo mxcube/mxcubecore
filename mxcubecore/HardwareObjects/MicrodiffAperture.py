@@ -71,7 +71,8 @@ class MicrodiffAperture(ExporterNState):
             value (str, int, float or enum): Value to be set.
         """
         if value.name in ("IN", "OUT"):
-            self.inout_obj.set_value(value, timeout=60)
+            _e = self.inout_obj.value_to_enum(value.value)
+            self.inout_obj.set_value(_e, timeout=60)
         else:
             super(MicrodiffAperture, self)._set_value(value)
 
@@ -148,3 +149,15 @@ class MicrodiffAperture(ExporterNState):
             return float(label.value[1])
         except (ValueError, IndexError):
             raise RuntimeError("Unknown aperture size")
+
+    def get_diameter_size_list(self):
+        values = []
+        for value in self.VALUES:
+            _n = value.name
+
+            if _n in ["IN", "OUT"]:
+                values.append(_n)
+            elif _n not in ["UNKNOWN"]:
+                values.append(_n[1:])
+
+        return values

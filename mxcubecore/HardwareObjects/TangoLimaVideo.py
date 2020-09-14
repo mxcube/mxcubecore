@@ -60,7 +60,8 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
         self.__gainExists = False
         self.__gammaExists = False
         self.__polling = None
-        self._video_mode = "RGB24"
+        self._video_mode = None
+        self._last_image = (0, 0, 0)
 
         # Dictionary containing conversion information for a given
         # video_mode. The camera video mode is the key and the first
@@ -71,12 +72,14 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
             "RGB8": ("L", "BMP"),
             "RGB24": ("RGB", "BMP"),
             "RGB32": ("RGBA", "BMP"),
+            "NO_CONVERSION": (None, None),
         }
 
     def init(self):
         self.device = None
 
         try:
+            self._video_mode = self.getProperty("video_mode", "RGB24")
             self.device = DeviceProxy(self.tangoname)
             # try a first call to get an exception if the device
             # is not exported
@@ -87,13 +90,27 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
 
             self.device = BaseHardwareObjects.Null()
         else:
-            self.device.video_mode = self._video_mode
-            if self.get_property("exposure_time"):
-                self.set_exposure(float(self.get_property("exposure_time")))
+            if self.get_property("control_video", "True"):
+                logging.getLogger("HWR").info("MXCuBE controlling video")
+
+                if self.device.video_live:
+                    self.device.video_live = False
+
+                self.device.video_mode = self._video_mode
+
+                if self.get_property("exposure_time"):
+                    self.set_exposure(float(self.get_property("exposure_time")))
+                elif self.get_property("interval"):
+                    self.set_exposure(self.get_property("interval") / 1000.0)
+
+                self.device.video_live = True
             else:
-                self.set_exposure(self.get_property("interval") / 1000.0)
+                logging.getLogger("HWR").info("MXCuBE NOT controlling video")
 
         self.set_is_ready(True)
+
+    def get_last_image(self):
+        return self._last_image
 
     def _do_polling(self, sleep_time):
         lima_tango_device = self.device
@@ -103,6 +120,7 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
                 lima_tango_device, self.video_mode, self._FORMATS
             )
 
+            self._last_image = data, width, heigh
             self.emit("imageReceived", data, width, height, False)
             time.sleep(sleep_time)
 
@@ -119,14 +137,18 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
     def get_height(self):
         return self.device.image_height
 
-    def take_snapshot(self, path, bw):
-        data, width, height = self._get_last_image()
-        img = Image.frombytes("RGB", (width, height), data, pil_image=True)
+    def take_snapshot(self, path=None, bw=False):
+        data, width, height = poll_image(self.device, self.video_mode, self._FORMATS)
+
+        img = Image.frombytes("RGB", (width, height), data)
 
         if bw:
             img.convert("1")
 
-        img.save(path)
+        if path:
+            img.save(path)
+
+        return img
 
     def set_live(self, mode):
         curr_state = self.device.video_live

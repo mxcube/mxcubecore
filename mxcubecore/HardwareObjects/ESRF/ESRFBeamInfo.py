@@ -49,8 +49,8 @@ class ESRFBeamInfo(BeamInfo.BeamInfo):
                 self.beam_position = HWR.beamline.diffractometer.beam.get_value()
             except AttributeError:
                 self.beam_position = (
-                    HWR.beamline.microscope.camera.get_width() / 2,
-                    HWR.beamline.microscope.camera.get_height() / 2,
+                    HWR.beamline.sample_view.camera.get_width() / 2,
+                    HWR.beamline.sample_view.camera.get_height() / 2,
                 )
         return self.beam_position
 

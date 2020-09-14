@@ -29,6 +29,8 @@ from HardwareRepository.HardwareObjects.abstract.AbstractSampleView import (
     AbstractSampleView,
 )
 
+from HardwareRepository import HardwareRepository as HWR
+
 
 class SampleView(AbstractSampleView):
     def __init__(self, name):
@@ -43,7 +45,9 @@ class SampleView(AbstractSampleView):
         self._zoom = self.get_object_by_role("zoom")
         self._frontlight = self.get_object_by_role("frontlight")
         self._backlight = self.get_object_by_role("backlight")
-        self.hide_grid_threshold = self.get_property("hide_grid_threshold", 5)
+        self._ui_snapshot_cb = None
+
+        self.hide_grid_threshold = self.getProperty("hide_grid_threshold", 5)
 
     @property
     def shapes(self):
@@ -67,6 +71,9 @@ class SampleView(AbstractSampleView):
         """
         pass
 
+    def set_ui_snapshot_cb(self, fun):
+        self._ui_snapshot_cb = fun
+
     def get_snapshot(self, overlay=True, bw=False, return_as_array=False):
         """ Get snappshot(s)
         Args:
@@ -76,14 +83,17 @@ class SampleView(AbstractSampleView):
         """
         pass
 
-    def save_snapshot(self, filename, overlay=True, bw=False):
+    def save_snapshot(self, path, overlay=True, bw=False):
         """ Save a snapshot to file.
         Args:
             filename (str): The filename.
             overlay(bool): Display shapes and other items on the snapshot
             bw(bool): return grayscale image
         """
-        pass
+        if overlay:
+            img = self._ui_snapshot_cb(path, bw)
+        else:
+            self.camera.take_snapshot(path, bw)
 
     def add_shape(self, shape):
         """
@@ -501,7 +511,7 @@ class Grid(Shape):
         self.set_id(Grid.SHAPE_COUNT)
 
     def update_position(self, transform):
-        phi_pos = self.shapes_hw_object.diffractometer.phiMotor.get_value() % 360
+        phi_pos = HWR.beamline.diffractometer.phiMotor.get_value() % 360
         d = abs((self.get_centred_position().phi % 360) - phi_pos)
 
         if min(d, 360 - d) > self.shapes_hw_object.hide_grid_threshold:

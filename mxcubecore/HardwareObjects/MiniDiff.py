@@ -162,8 +162,13 @@ class MiniDiff(Equipment):
 
         try:
             phiz_ref = self["centringReferencePosition"].get_property("phiz")
-        except BaseException:
+        except:
             phiz_ref = None
+
+        try:
+            phiy_ref = self["centringReferencePosition"].get_property("phiy")
+        except:
+            phiy_ref = None
 
         self.phiMotor = self.get_object_by_role("phi")
         self.phizMotor = self.get_object_by_role("phiz")
@@ -183,7 +188,9 @@ class MiniDiff(Equipment):
         self.centringPhiz = sample_centring.CentringMotor(
             self.phizMotor, reference_position=phiz_ref
         )
-        self.centringPhiy = sample_centring.CentringMotor(self.phiyMotor)
+        self.centringPhiy = sample_centring.CentringMotor(
+            self.phiyMotor, reference_position=phiy_ref
+        )
         self.centringSamplex = sample_centring.CentringMotor(self.sampleXMotor)
         self.centringSampley = sample_centring.CentringMotor(self.sampleYMotor)
 
@@ -202,7 +209,7 @@ class MiniDiff(Equipment):
 
         if self.phiMotor is not None:
             self.connect(self.phiMotor, "stateChanged", self.phiMotorStateChanged)
-            self.connect(self.phiMotor, "valueChanged", self.emitDiffractometerMoved)
+            self.connect(self.phiMotor, "valueChanged", self.emit_diffractometer_moved)
         else:
             logging.getLogger("HWR").error(
                 "MiniDiff: phi motor is not defined in minidiff equipment %s",
@@ -211,7 +218,7 @@ class MiniDiff(Equipment):
         if self.phizMotor is not None:
             self.connect(self.phizMotor, "stateChanged", self.phizMotorStateChanged)
             self.connect(self.phizMotor, "valueChanged", self.phizMotorMoved)
-            self.connect(self.phizMotor, "valueChanged", self.emitDiffractometerMoved)
+            self.connect(self.phizMotor, "valueChanged", self.emit_diffractometer_moved)
         else:
             logging.getLogger("HWR").error(
                 "MiniDiff: phiz motor is not defined in minidiff equipment %s",
@@ -220,7 +227,7 @@ class MiniDiff(Equipment):
         if self.phiyMotor is not None:
             self.connect(self.phiyMotor, "stateChanged", self.phiyMotorStateChanged)
             self.connect(self.phiyMotor, "valueChanged", self.phiyMotorMoved)
-            self.connect(self.phiyMotor, "valueChanged", self.emitDiffractometerMoved)
+            self.connect(self.phiyMotor, "valueChanged", self.emit_diffractometer_moved)
         else:
             logging.getLogger("HWR").error(
                 "MiniDiff: phiy motor is not defined in minidiff equipment %s",
@@ -248,7 +255,7 @@ class MiniDiff(Equipment):
             )
             self.connect(self.sampleXMotor, "valueChanged", self.sampleXMotorMoved)
             self.connect(
-                self.sampleXMotor, "valueChanged", self.emitDiffractometerMoved
+                self.sampleXMotor, "valueChanged", self.emit_diffractometer_moved
             )
         else:
             logging.getLogger("HWR").error(
@@ -261,7 +268,7 @@ class MiniDiff(Equipment):
             )
             self.connect(self.sampleYMotor, "valueChanged", self.sampleYMotorMoved)
             self.connect(
-                self.sampleYMotor, "valueChanged", self.emitDiffractometerMoved
+                self.sampleYMotor, "valueChanged", self.emit_diffractometer_moved
             )
         else:
             logging.getLogger("HWR").error(
@@ -404,10 +411,10 @@ class MiniDiff(Equipment):
     def set_light_in(self):
         set_light_in(self.lightWago, self.lightMotor, self.zoomMotor)
 
-    def setSampleInfo(self, sample_info):
+    def set_sample_info(self, sample_info):
         self.currentSampleInfo = sample_info
 
-    def emitDiffractometerMoved(self, *args):
+    def emit_diffractometer_moved(self, *args):
         self.emit("diffractometerMoved", ())
 
     def is_ready(self):
@@ -616,6 +623,7 @@ class MiniDiff(Equipment):
         self.emitCentringStarted(method)
 
         try:
+            self.wait_ready()
             fun = self.centringMethods[method]
         except KeyError as diag:
             logging.getLogger("HWR").error(
@@ -826,8 +834,10 @@ class MiniDiff(Equipment):
     def start_auto_centring(self, sample_info=None, loop_only=False):
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
 
+        self.set_phase("centring", wait=True)
+
         self.current_centring_procedure = sample_centring.start_auto(
-            self.camera,
+            HWR.beamline.sample_view.camera,
             {
                 "phi": self.centringPhi,
                 "phiy": self.centringPhiy,

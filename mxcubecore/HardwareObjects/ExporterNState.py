@@ -30,6 +30,7 @@ Example xml file:
 """
 from enum import Enum
 from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractNState
+from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 from HardwareRepository.Command.Exporter import Exporter
 from HardwareRepository.Command.exporter.ExporterStates import ExporterStates
 
@@ -123,13 +124,18 @@ class ExporterNState(AbstractNState):
         Args:
             value (str, int, float or enum): Value to be set.
         """
+        # NB Workaround beacuse diffractomer does not send event on
+        # change of light position
+        self.update_state(self.STATES.BUSY)
+
         if isinstance(value, Enum):
-            try:
+            if isinstance(value.value, tuple) or isinstance(value.value, list):
                 value = value.value[0]
-            except TypeError:
+            else:
                 value = value.value
+
         self.value_channel.set_value(value)
-        self.update_state()
+        self.update_state(self.STATES.READY)
 
     def get_value(self):
         """Get the device value

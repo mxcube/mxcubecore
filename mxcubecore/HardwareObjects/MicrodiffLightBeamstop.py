@@ -24,14 +24,14 @@ class MicrodiffLightBeamstop(ExporterNState):
     """Control backlight, move the beamstop to safety position"""
 
     def __init__(self, name):
-        super(MicrodiffLightBeamstop, self).__init__(self, name)
+        super(MicrodiffLightBeamstop, self).__init__(name)
         self.safety_position = None
         self._beamstop_obj = None
         self._saved_value = None
 
     def init(self):
         """Initialize the light and the beamstop object"""
-        super(MicrodiffLightBeamstop, self).init(self)
+        super(MicrodiffLightBeamstop, self).init()
 
         # for now the beamstop only moves in X directiron.
         self._beamstop_obj = self.get_object_by_role("beamstop")
@@ -44,29 +44,27 @@ class MicrodiffLightBeamstop(ExporterNState):
         """
         # move the beamstop backwords before setting the back light in
         if self._beamstop_obj:
-            self.handle_beamstop(value.name)
-
-        super(MicrodiffLightBeamstop, self)._set_value(value)
-
-        # move the beamstop to the previous position after extracting
-        # the back light
-        if self._beamstop_obj:
-            self.handle_beamstop(value.name)
+            self.handle_beamstop(value)
+        else:
+            super(MicrodiffLightBeamstop, self)._set_value(value)
 
     def handle_beamstop(self, value):
         """ Move the beamstop as function of the value of the back light.
         Args:
             (str): value name
         """
-        if value == "IN":
+        if value.name == "IN":
             _pos = self._beamstop_obj.get_value()
+
             # only move if the beamstop is closer than the sefety_position
             if _pos < self.safety_position:
                 self._saved_value = _pos
                 self._beamstop_obj.set_value(self.safety_position, timeout=60)
-        elif value == "OUT":
+
+            super(MicrodiffLightBeamstop, self)._set_value(value)
+
+        elif value.name == "OUT":
+            super(MicrodiffLightBeamstop, self)._set_value(value)
+
             if self._saved_value:
                 self._beamstop_obj.set_value(self._saved_value, timeout=60)
-        else:
-            # do nothing
-            pass

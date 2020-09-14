@@ -13,10 +13,12 @@ class MD3UP(Microdiff.Microdiff):
 
     def init(self):
         Microdiff.Microdiff.init(self)
+        phiy_ref = self["centringReferencePosition"].getProperty("phiy")
+
         self.centringPhi = CentringMotor(self.phiMotor, direction=1)
         self.centringPhiz = CentringMotor(self.phizMotor)
         self.centringPhiy = CentringMotor(
-            self.phiyMotor, direction=-1, reference_position=-0.3322
+            self.phiyMotor, direction=-1, reference_position=phiy_ref
         )
         self.centringSamplex = CentringMotor(self.sampleXMotor, direction=-1)
         self.centringSampley = CentringMotor(self.sampleYMotor)
@@ -101,6 +103,9 @@ class MD3UP(Microdiff.Microdiff):
             },
             "startScanEx",
         )
+
+        self._wait_ready(300)
+
         scan(params)
 
         if wait:

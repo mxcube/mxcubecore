@@ -67,11 +67,12 @@ class ID30BPhotonFlux(AbstractFlux):
     def get_value(self):
         """Calculate the flux value as function of a reading
         """
-        counts = self._counter._counter_controller.read_all(self._counter)
-        if isinstance(counts, list):
-            counts = counts[0]
+        # counts = self._counter._counter_controller.read_all(self._counter)
+        # if isinstance(counts, list):
+        #    counts = float(counts[0])
+        counts = float(self._counter.raw_read)
         if counts == -9999:
-            counts = 0
+            counts = 0.0
 
         egy = HWR.beamline.energy.get_value() * 1000.0
         calib = self._flux_calc.calc_flux_factor(egy)[self._counter.name]

@@ -29,7 +29,7 @@ one set from the beamline configuration is used.
 
 import abc
 import logging
-from numpy import arcsin, arctan, sin
+from math import asin, atan, sin, tan
 from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
@@ -73,6 +73,7 @@ class AbstractResolution(AbstractMotor):
         """
         _distance = self._hwr_detector.distance.get_value()
         self._nominal_value = self.distance_to_resolution(_distance)
+
         return self._nominal_value
 
     def get_limits(self):
@@ -116,7 +117,7 @@ class AbstractResolution(AbstractMotor):
         """
         _wavelength = HWR.beamline.energy.get_wavelength()
         try:
-            ttheta = arctan(radius / distance)
+            ttheta = atan(radius / distance)
             if ttheta:
                 return _wavelength / (2 * sin(ttheta / 2))
         except (TypeError, ZeroDivisionError):
@@ -144,11 +145,14 @@ class AbstractResolution(AbstractMotor):
             (float): distance [mm].
         """
         resolution = resolution or self._nominal_value
-        _wavelength = self._hwr_detector.get_wavelength()
+        _wavelength = HWR.beamline.energy.get_wavelength()
 
         try:
-            ttheta = 2 * arcsin(_wavelength / (2 * resolution))
-            return self._hwr_detector.get_radius() / ttheta
+            return round(
+                self._hwr_detector.get_radius()
+                / (tan(2 * asin(_wavelength / (2 * resolution)))),
+                2,
+            )
         except (KeyError, ZeroDivisionError):
             return None
 
@@ -180,7 +184,7 @@ class AbstractResolution(AbstractMotor):
         _distance = self._hwr_detector.distance.get_value()
         _radius = self._hwr_detector.get_radius(_distance)
         try:
-            ttheta = arctan(_radius / _distance)
+            ttheta = atan(_radius / _distance)
             if ttheta:
                 self._nominal_value = _wavelength / (2 * sin(ttheta / 2))
                 self.emit("valueChanged", (self._nominal_value,))

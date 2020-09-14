@@ -9,6 +9,7 @@ import binascii
 
 # import threading
 from HardwareRepository.HardwareObjects.XMLRPCServer import SecureXMLRpcRequestHandler
+from HardwareRepository import HardwareRepository as HWR
 
 try:
     from httplib import HTTPConnection
@@ -261,7 +262,7 @@ class EdnaWorkflow(HardwareObject):
         response = conn.getresponse()
         if response.status == 200:
             self.state.value = "RUNNING"
-            requestId = response.read()
+            requestId = response.read().decode("utf-8")
             logging.info("Workflow started, request id: %r" % requestId)
             self._besWorkflowId = requestId
         else:
