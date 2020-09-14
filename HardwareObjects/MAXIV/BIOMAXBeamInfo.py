@@ -33,7 +33,7 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
 
     def connectNotify(self, *args):
         self.evaluate_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def beam_position_changed(self, value):
         self.get_beam_position()
