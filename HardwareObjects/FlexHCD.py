@@ -431,6 +431,10 @@ class FlexHCD(SampleChanger):
     def unload(self, sample):
         self.prepare_load(wait=True)
         self.enable_power()
+
+        if not sample:
+            sample = self.get_loaded_sample().get_address()
+        
         try:
             SampleChanger.unload(self, sample)
         finally:
