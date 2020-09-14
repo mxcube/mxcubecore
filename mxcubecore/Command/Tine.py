@@ -2,12 +2,12 @@ import time
 import logging
 import Queue
 import weakref
-import atexit
-
 import gevent
-import tine
 
 from HardwareRepository.CommandContainer import CommandObject, ChannelObject
+import atexit
+
+import tine
 
 
 class TineCommand(CommandObject):
@@ -49,6 +49,7 @@ class TineCommand(CommandObject):
     def get(self):
         result = None
         try:
+            #logging.getLogger("user_level_log").exception("Synchronous get: server %s command %s timeout %s"%(self.tineName, self.commandName, self.timeout))
             result = tine.get(self.tineName, self.commandName, self.timeout)
         except IOError as strerror:
             logging.getLogger("HWR").error("%s" % strerror)
@@ -108,10 +109,19 @@ class TineChannel(ChannelObject):
         self.oldvalue = None
 
         self.callback_fail_counter = 0
+ 
+        self.show_callback_error = False
 
         logging.getLogger("HWR").debug(
             "Attaching TINE channel: %s %s" % (self.tineName, self.attributeName)
         )
+
+        if kwargs.get("verbose"):
+           logging.getLogger("HWR").debug(
+               "GUI logging TINE channel: %s %s" % (self.tineName, self.attributeName)
+           )
+           self.show_callback_error = True
+
         if kwargs.get("size"):
             self.linkid = TineChannel.attach[kwargs.get("attach", "timer")](
                 self.tineName,
@@ -138,7 +148,7 @@ class TineChannel(ChannelObject):
                     tine.tolerance(self.linkid, float(tolerance), 0.0)
 
         # TODO Remove this sleep. Tine lib bug when after attach directly get is called
-        # time.sleep(0.025)
+        #time.sleep(0.025)
 
         atexit.register(self.__del__)
 
@@ -164,65 +174,68 @@ class TineChannel(ChannelObject):
             self.update(data_list)
         elif str(cc) != 103 and self.attributeName not in ("dozor-pass", "ff-ssim"):
             self.callback_fail_counter = self.callback_fail_counter + 1
-            logging.getLogger("HWR").error(
-                "Tine event callback error %s, Channel: %s, Server: %s/%s"
-                % (str(cc), self.name(), self.tineName, self.attributeName)
-            )
+            if self.show_callback_error:
+               logging.getLogger("GUI").error(
+                   "Tine event callback error %s, Channel: %s, Server: %s/%s"
+                   % (str(cc), self.name(), self.tineName, self.attributeName)
+               )
+            else:
+               logging.getLogger("HWR").error(
+                   "Tine event callback error %s, Channel: %s, Server: %s/%s"
+                   % (str(cc), self.name(), self.tineName, self.attributeName)
+               )
+
+            """
             if self.callback_fail_counter >= 3:
                 logging.getLogger("HWR").error(
                     "Repeated tine event callback errors %s, Channel: %s, Server: %s/%s"
                     % (str(cc), self.name(), self.tineName, self.attributeName)
                 )
-
+            """
     def update(self, value=None):
         if value is None:
-            msg = "Update with value None on: %s %s" % (
-                self.tineName,
-                self.attributeName,
-            )
-            logging.getLogger("HWR").warning(msg)
-            value = self.getValue()
+           logging.getLogger("HWR").warning('Update with value None on: %s %s'%(self.tineName,self.attributeName))
+           value = self.getValue()
         self.value = value
 
         if value != self.oldvalue:
             TineChannel.updates.put((weakref.ref(self), value))
             self.oldvalue = value
+            #if self.tineName == "/P14/BCUIntensity/Device0":
+            #    logging.getLogger("HWR").debug('----------------- %s %s' %(self.attributeName,self.value))
+
 
     def getValue(self, force=False):
+        # logging.getLogger("HWR").debug('TINE channel %s, %s get at val=%s'%(self.tineName,self.attributeName,self.value))
+        # if self.tineName == "/P14/BCUIntensity/Device0":
+        #   print self.attributeName, self.value
+
+        # GB: if forced while having a value already, i.e. well after connecting a channel, do a real synchronous get and return
         if force:
-            if self.value is not None:
-                logging.getLogger("HWR").warning(
-                    "Executing synch get on: %s %s"
-                    % (self.tineName, self.attributeName)
-                )
-                return self._synchronous_get()
-            else:
-                logging.getLogger("HWR").warning(
-                    "Attempting to force unconnected channel: %s %s"
-                    % (self.tineName, self.attributeName)
-                )
-                return None
+           if self.value is not None:
+              logging.getLogger("HWR").warning('Executing synch get on: %s %s'%(self.tineName,self.attributeName))
+	      return self._synchronous_get()
+           else:
+              logging.getLogger("HWR").warning('Attempting to force unconnected channel: %s %s'%(self.tineName,self.attributeName))
+              return None
 
         # GB: if there is no value yet, wait and hope it will appear somehow:
-        _counter = 0
-        while self.value is None and _counter <= 10:
-            logging.getLogger("HWR").warning(
-                "Waiting for a first update on: %s %s"
-                % (self.tineName, self.attributeName)
-            )
-            # but now tine lib should be standing the get, so we try....
-            # self.value = self._synchronous_get()
-            time.sleep(0.02)
-            _counter += 1
-        if self.value is None:
-            logging.getLogger("HWR").warning(
-                "Gave up waiting for a first update on: %s %s"
-                % (self.tineName, self.attributeName)
-            )
+        _counter = 1
+        while self.value is None and _counter <= 500 :
+           time.sleep(0.020)
+           logging.getLogger("HWR").warning('No update after %d ms on: %s %s, executing synchronous get'%(_counter*50,self.tineName,self.attributeName))
+           # but now tine lib should be standing the get, so we try....
+           
+           self.value = self._synchronous_get()
+           #time.sleep(0.02) 
+           _counter += 1
+        if self.value is None: 
+           logging.getLogger("HWR").warning('Gave up waiting for a first update on: %s %s'%(self.tineName,self.attributeName))
         return self.value
-
+  
     def _synchronous_get(self):
         try:
+            #logging.getLogger("user_level_log").exception("Synchronous get: server %s command %s timeout %s"%(self.tineName, self.attributeName, self.timeout))
             value = tine.get(self.tineName, self.attributeName, self.timeout)
             return value
         except IOError as strerror:

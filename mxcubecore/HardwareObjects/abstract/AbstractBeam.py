@@ -209,10 +209,11 @@ class AbstractBeam(HardwareObject):
 
         return self._beam_info_dict
 
-    def emit_beam_info_change(self):
+    def re_emit_values(self):
         """
         Reemits beamSizeChanged and beamInfoChanged signals
         """
         if self._beam_width != 9999 and self._beam_height != 9999:
             self.emit("beamSizeChanged", (self._beam_width, self._beam_height))
             self.emit("beamInfoChanged", (self._beam_info_dict))
+            self.emit("beamPosChanged", (self._beam_position_on_screen,))

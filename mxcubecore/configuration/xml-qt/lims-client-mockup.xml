@@ -1,3 +1,22 @@
-<object class="ISPyBClientMockup">
-   <loginType>user</loginType>
-</object> 
+<object class="ISPyBClient">
+  <ws_root>http://ispyb-test.embl-hamburg.de:8080/ispyb/ispyb-ws/ispybWS/</ws_root>
+  <object role="session" href="/session"/>
+  <ws_username>mx0000</ws_username>
+  <ws_password>test</ws_password>
+  <loginType>user</loginType> 
+  <authServerType>ispyb</authServerType>
+</object>
+
+<!--
+
+<object class="ISPyBRestClient">
+  <restRoot>http://ispyb-test.embl-hamburg.de:8080/ispyb/ispyb-ws/rest/</restRoot>
+  <object role="session" href="/session"/>
+  <restUserName>mx0000</restUserName>
+  <site>EMBL</site>
+  <restPass>test</restPass>
+  <loginType>user</loginType>
+  <authServerType>ispyb</authServerType>
+</object>
+
+-->

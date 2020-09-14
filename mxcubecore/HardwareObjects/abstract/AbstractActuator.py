@@ -54,6 +54,7 @@ class AbstractActuator(HardwareObject):
         """Initialise actuator_name, username, read_only and default_value
         properties.
         """
+        HardwareObject.init(self)
         self.actuator_name = self.getProperty("actuator_name")
         self.read_only = self.getProperty("read_only") or False
         self.default_value = self.getProperty("default_value")
@@ -163,7 +164,10 @@ class AbstractActuator(HardwareObject):
                 self.emit("limitsChanged", (limits,))
 
     def re_emit_values(self):
-        """Update values for all internal attributes"""
-        self.update_value(self.get_value())
-        self.update_limits(self.get_limits())
-        super(AbstractActuator, self).re_emit_values()
+        """re emits values for all internal attributes"""
+        self.emit("valueChanged", (self.get_value(),))
+        self.emit("limitsChanged", (self.get_limits(),))
+        self.emit("stateChanged", (self.get_state(),))
+        #self.update_value(self.get_value())
+        #self.update_limits(self.get_limits())
+        #super(AbstractActuator, self).re_emit_values()
