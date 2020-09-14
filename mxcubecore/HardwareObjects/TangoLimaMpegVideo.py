@@ -32,7 +32,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
         self.stream_hash = str(uuid.uuid1())
         self.video_device = None
         self._p = None
-        self._quality = 4
+        self._quality_str = "High"
         self._QUALITY_STR_TO_INT = {
             "High": 4,
             "Medium": 10,
@@ -44,6 +44,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
         super().init()
         self._debug = self.getProperty("debug", False)
         self._loopback_device = self.getProperty("loopback_device", "")
+        self._quality = self.getProperty("compression", 10)
 
     def _encoder_friendly_size(self, w, h):
         # Some video decoders have difficulties to decode videos with odd image dimensions
@@ -54,11 +55,12 @@ class TangoLimaMpegVideo(TangoLimaVideo):
         return w, h
 
     def get_quality(self):
-        return self._quality
+        return self._quality_str
 
     def set_quality(self, q):
+        self._quality_str = q
         self._quality = self._QUALITY_STR_TO_INT[q]
-        return self._quality
+        self.restart_streaming()
 
     def set_stream_size(self, w, h):
         w, h = self._encoder_friendly_size(w, h)
