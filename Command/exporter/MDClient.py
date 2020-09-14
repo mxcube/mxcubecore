@@ -215,11 +215,11 @@ class MDClient(ExporterClient):
     # STATE_CLOSING, STATE_STOPPED, STATE_COMMUNICATION_ERROR, STATE_ALARM or
     # STATE_FAULT
 
-    def getState(self):
-        return self.readPropertyAsString("State")
+    def get_state(self):
+        return self.read_property("State")
 
     def getStatus(self):
-        return self.readPropertyAsString("Status")
+        return self.read_property("Status")
 
     def restart(self, init_hardware=False):
         return self.execute("restart", (init_hardware,))
@@ -229,10 +229,10 @@ class MDClient(ExporterClient):
 
     # Task synchronization
 
-    def waitReady(self, timeout=0):
+    def wait_ready(self, timeout=0):
         start = time.clock()
         while True:
-            state = self.getState()
+            state = self.get_state()
             if self.isBusy(state) is False:
                 return
             if (timeout > 0) and ((time.clock() - start) > timeout):
@@ -241,7 +241,7 @@ class MDClient(ExporterClient):
 
     def isTaskRunning(self, task_id=-1):
         if task_id < 0:
-            if self.isBusy(self.getState()):
+            if self.isBusy(self.get_state()):
                 return True
         elif self.execute("isTaskRunning", (task_id,)) == "true":
             return True
@@ -252,7 +252,7 @@ class MDClient(ExporterClient):
 
     def waitTaskResult(self, task_id=-1, timeout=DEFAULT_TASK_TIMEOUT):
         if task_id < 0:
-            self.waitReady(timeout)
+            self.wait_ready(timeout)
             info = self.getLastTaskInfo()
             exception = info[5]
             if (exception != "") and (exception != "null"):
@@ -425,10 +425,10 @@ class MDClient(ExporterClient):
 
     # Syncronous methods
     def setScanParameters(self, start, range, time, passes):
-        self.writeProperty("ScanStartAngle", start)
-        self.writeProperty("ScanRange", range)
-        self.writeProperty("ScanExposureTime", time)
-        self.writeProperty("ScanNumberOfPasses", passes)
+        self.write_property("ScanStartAngle", start)
+        self.write_property("ScanRange", range)
+        self.write_property("ScanExposureTime", time)
+        self.write_property("ScanNumberOfPasses", passes)
 
     def setStartScan4D(self):
         return self.execTask("setStartScan4D", None)
@@ -514,170 +514,170 @@ class MDClient(ExporterClient):
 
     # Properties
     def getAlarmList(self):
-        return self.readPropertyAsStringArray(self.PROPERTY_ALARM_LIST)
+        return self.read_property_as_string_array(self.PROPERTY_ALARM_LIST)
 
     def getMotorStates(self):
-        array = self.readPropertyAsStringArray(self.PROPERTY_MOTOR_STATES)
+        array = self.read_property_as_string_array(self.PROPERTY_MOTOR_STATES)
         dict = self.createDictFromStringList(array)
         return dict
 
     def getMotorPositions(self):
-        array = self.readPropertyAsStringArray(self.PROPERTY_MOTOR_POSITIONS)
+        array = self.read_property_as_string_array(self.PROPERTY_MOTOR_POSITIONS)
         dict = self.createDictFromStringList(array)
         for key in dict.keys():
             dict[key] = float(dict[key])
         return dict
 
     def getVersion(self):
-        return self.readPropertyAsString(self.PROPERTY_VERSION)
+        return self.read_property(self.PROPERTY_VERSION)
 
     def getUptime(self):
-        return self.readPropertyAsString(self.PROPERTY_UPTIME)
+        return self.read_property(self.PROPERTY_UPTIME)
 
     def getScanSpeed(self):
-        return self.readPropertyAsFloat(self.PROPERTY_SCAN_SPEED)
+        return float(self.read_property(self.PROPERTY_SCAN_SPEED))
 
     def getScanPassDuration(self):
-        return self.readPropertyAsFloat(self.PROPERTY_SCAN_PASS_DURATION)
+        return float(self.read_property(self.PROPERTY_SCAN_PASS_DURATION))
 
     def isSampleLoaded(self):
-        return self.readPropertyAsBoolean(self.PROPERTY_SAMPLE_IS_LOADED)
+        return self.read_property(self.PROPERTY_SAMPLE_IS_LOADED) == "true"
 
     def isSampleCentred(self):
-        return self.readPropertyAsBoolean(self.PROPERTY_SAMPLE_IS_CENTRED)
+        return self.read_property(self.PROPERTY_SAMPLE_IS_CENTRED) == "true"
 
     def isSampleChangerUsed(self):
-        return self.readPropertyAsBoolean(self.PROPERTY_USE_SAMPLE_CHANGER)
+        return self.read_property(self.PROPERTY_USE_SAMPLE_CHANGER) == "true"
 
     def getScaleX(self):
-        return self.readPropertyAsFloat(self.PROPERTY_SCALE_X)
+        return float(self.read_property(self.PROPERTY_SCALE_X))
 
     def getScaleY(self):
-        return self.readPropertyAsFloat(self.PROPERTY_SCALE_Y)
+        return float(self.read_property(self.PROPERTY_SCALE_Y))
 
     def isGUILocked(self):
-        return self.readPropertyAsBoolean(self.PROPERTY_LOCKOUT)
+        return self.read_property(self.PROPERTY_LOCKOUT) == "true"
 
     def setGUILocked(self, value):
-        return self.writeProperty(self.PROPERTY_LOCKOUT, value)
+        return self.write_property(self.PROPERTY_LOCKOUT, value)
 
     def isKappaEnabled(self):
-        return self.readPropertyAsBoolean(self.PROPERTY_KAPPA_ENABLED)
+        return self.read_property(self.PROPERTY_KAPPA_ENABLED) == "true"
 
     def setKappaEnabled(self, value):
-        return self.writeProperty(self.PROPERTY_KAPPA_ENABLED, value)
+        return self.write_property(self.PROPERTY_KAPPA_ENABLED, value)
 
     def isFastShutterOpen(self):
-        return self.readPropertyAsBoolean(self.PROPERTY_FAST_SHUTTER_OPEN)
+        return self.read_property(self.PROPERTY_FAST_SHUTTER_OPEN) == "true"
 
     def setFastShutterOpen(self, value):
-        return self.writeProperty(self.PROPERTY_FAST_SHUTTER_OPEN, value)
+        return self.write_property(self.PROPERTY_FAST_SHUTTER_OPEN, value)
 
     def isFluoDetectorBack(self):
-        return self.readPropertyAsBoolean(self.PROPERTY_FLUO_DETECTOR_BACK)
+        return self.read_property(self.PROPERTY_FLUO_DETECTOR_BACK) == "true"
 
     def setFluoDetectorBack(self, value):
-        return self.writeProperty(self.PROPERTY_FLUO_DETECTOR_BACK, value)
+        return self.write_property(self.PROPERTY_FLUO_DETECTOR_BACK, value)
 
     def isCryoBack(self):
-        return self.readPropertyAsBoolean(self.PROPERTY_CRYO_BACK)
+        return self.read_property(self.PROPERTY_CRYO_BACK) == "true"
 
     def setCryoBack(self, value):
-        return self.writeProperty(self.PROPERTY_CRYO_BACK, value)
+        return self.write_property(self.PROPERTY_CRYO_BACK, value)
 
     def isInterlockEnabled(self):
-        return self.readPropertyAsBoolean(self.PROPERTY_INTERLOCK_ENABLED)
+        return self.read_property(self.PROPERTY_INTERLOCK_ENABLED) == "true"
 
     def setInterlockEnabled(self, value):
-        return self.writeProperty(self.PROPERTY_INTERLOCK_ENABLED, value)
+        return self.write_property(self.PROPERTY_INTERLOCK_ENABLED, value)
 
     def getScanNumberOfPasses(self):
-        return self.readPropertyAsInt(self.PROPERTY_SCAN_NUMBER_OF_PASSES)
+        return int(self.read_property(self.PROPERTY_SCAN_NUMBER_OF_PASSES))
 
     def setScanNumberOfPasses(self, value):
-        return self.writeProperty(self.PROPERTY_SCAN_NUMBER_OF_PASSES, value)
+        return self.write_property(self.PROPERTY_SCAN_NUMBER_OF_PASSES, value)
 
     def getScanFrameNumber(self):
-        return self.readPropertyAsInt(self.PROPERTY_FRAME_NUMBER)
+        return int(self.read_property(self.PROPERTY_FRAME_NUMBER))
 
     def setScanFrameNumber(self, value):
-        return self.writeProperty(self.PROPERTY_FRAME_NUMBER, value)
+        return self.write_property(self.PROPERTY_FRAME_NUMBER, value)
 
     def getScanStartAngle(self):
-        return self.readPropertyAsFloat(self.PROPERTY_SCAN_START_ANGLE)
+        return float(self.read_property(self.PROPERTY_SCAN_START_ANGLE))
 
     def setScanStartAngle(self, value):
-        return self.writeProperty(self.PROPERTY_SCAN_START_ANGLE, value)
+        return self.write_property(self.PROPERTY_SCAN_START_ANGLE, value)
 
     def getScanExposureTime(self):
-        return self.readPropertyAsFloat(self.PROPERTY_SCAN_EXPOSURE_TIME)
+        return float(self.read_property(self.PROPERTY_SCAN_EXPOSURE_TIME))
 
     def setScanExposureTime(self, value):
-        return self.writeProperty(self.PROPERTY_SCAN_EXPOSURE_TIME, value)
+        return self.write_property(self.PROPERTY_SCAN_EXPOSURE_TIME, value)
 
     def getScanRange(self):
-        return self.readPropertyAsFloat(self.PROPERTY_SCAN_RANGE)
+        return float(self.read_property(self.PROPERTY_SCAN_RANGE))
 
     def setScanRange(self, value):
-        return self.writeProperty(self.PROPERTY_SCAN_RANGE, value)
+        return self.write_property(self.PROPERTY_SCAN_RANGE, value)
 
     def getBeamSizeHorizontal(self):
-        return self.readPropertyAsFloat(self.PROPERTY_BEAM_SIZE_HORIZONTAL)
+        return float(self.read_property(self.PROPERTY_BEAM_SIZE_HORIZONTAL))
 
     def setBeamSizeHorizontal(self, value):
-        return self.writeProperty(self.PROPERTY_BEAM_SIZE_HORIZONTAL, value)
+        return self.write_property(self.PROPERTY_BEAM_SIZE_HORIZONTAL, value)
 
     def getBeamSizeVertical(self):
-        return self.readPropertyAsFloat(self.PROPERTY_BEAM_SIZE_VERTICAL)
+        return self.read_propertyAsFloat(self.PROPERTY_BEAM_SIZE_VERTICAL)
 
     def setBeamSizeVertical(self, value):
-        return self.writeProperty(self.PROPERTY_BEAM_SIZE_VERTICAL, value)
+        return self.write_property(self.PROPERTY_BEAM_SIZE_VERTICAL, value)
 
     def getFrontLightLevel(self):
-        return self.readPropertyAsFloat(self.PROPERTY_FRONT_LIGHT_LEVEL)
+        return float(self.read_property(self.PROPERTY_FRONT_LIGHT_LEVEL))
 
     def setFrontLightLevel(self, value):
-        return self.writeProperty(self.PROPERTY_FRONT_LIGHT_LEVEL, value)
+        return self.write_property(self.PROPERTY_FRONT_LIGHT_LEVEL, value)
 
     def getBackLightLevel(self):
-        return self.readPropertyAsFloat(self.PROPERTY_BACK_LIGHT_LEVEL)
+        return float(self.read_property(self.PROPERTY_BACK_LIGHT_LEVEL))
 
     def setBackLightLevel(self, value):
-        return self.writeProperty(self.PROPERTY_BACK_LIGHT_LEVEL, value)
+        return self.write_property(self.PROPERTY_BACK_LIGHT_LEVEL, value)
 
     def getSampleLoopSize(self):
-        return self.readPropertyAsFloat(self.PROPERTY_SAMPLE_LOOP_SIZE)
+        return self.read_propertyAsFloat(self.PROPERTY_SAMPLE_LOOP_SIZE)
 
     def setSampleLoopSize(self, value):
-        return self.writeProperty(self.PROPERTY_SAMPLE_LOOP_SIZE, value)
+        return self.write_property(self.PROPERTY_SAMPLE_LOOP_SIZE, value)
 
     def getSampleHolderLength(self):
-        return self.readPropertyAsFloat(self.PROPERTY_SAMPLE_HOLDER_LENGTH)
+        return float(self.read_property(self.PROPERTY_SAMPLE_HOLDER_LENGTH))
 
     def setSampleHolderLength(self, value):
-        return self.writeProperty(self.PROPERTY_SAMPLE_HOLDER_LENGTH, value)
+        return self.write_property(self.PROPERTY_SAMPLE_HOLDER_LENGTH, value)
 
     def getSampleUID(self):
-        return self.readPropertyAsString(self.PROPERTY_SAMPLE_UID)
+        return self.read_property(self.PROPERTY_SAMPLE_UID)
 
     def setSampleUID(self, value):
-        return self.writeProperty(self.PROPERTY_SAMPLE_UID, value)
+        return self.write_property(self.PROPERTY_SAMPLE_UID, value)
 
     def getSampleLoopType(self):
-        return self.readPropertyAsString(self.PROPERTY_SAMPLE_LOOP_TYPE)
+        return self.read_property(self.PROPERTY_SAMPLE_LOOP_TYPE)
 
     def setSampleLoopType(self, value):
-        return self.writeProperty(self.PROPERTY_SAMPLE_LOOP_TYPE, value)
+        return self.write_property(self.PROPERTY_SAMPLE_LOOP_TYPE, value)
 
     def getSampleImageName(self):
-        return self.readPropertyAsString(self.PROPERTY_SAMPLE_IMAGE_NAME)
+        return self.read_property(self.PROPERTY_SAMPLE_IMAGE_NAME)
 
     def setSampleImageName(self, value):
-        return self.writeProperty(self.PROPERTY_SAMPLE_IMAGE_NAME, value)
+        return self.write_property(self.PROPERTY_SAMPLE_IMAGE_NAME, value)
 
     def getImageJPG(self):
         # TODO: OPTIMIZE
-        return self.readPropertyAsStringArray(self.PROPERTY_IMAGE_JPG)
+        return self.read_property_as_string_array(self.PROPERTY_IMAGE_JPG)
 
 
 if __name__ == "__main__":
@@ -761,7 +761,7 @@ if __name__ == "__main__":
     scan_time = 3.0
     md.setScanParameters(0.0, 1.0, 3.0, 1)
     md.scan(sync=True, timeout=(scan_time + md.DEFAULT_TASK_TIMEOUT))
-    md.waitReady()
+    md.wait_ready()
     task_result_code = md.getLastTaskResultCode()
     if task_result_code is None:
         print("Scan still running")
@@ -792,7 +792,7 @@ if __name__ == "__main__":
             and property_name != md.PROPERTY_IMAGE_JPG
         ):
             try:
-                value = md.readProperty(property_name)
+                value = md.read_property(property_name)
                 if property_type.endswith("[]"):
                     value = md.parseArray(value)
                 print(property_name + " = " + str(value))
@@ -802,7 +802,7 @@ if __name__ == "__main__":
     print(
         "--------------   Reading/Writing all properties by their get/set methods --------------------"
     )
-    print("State: " + md.getState())
+    print("State: " + md.get_state())
     print("State: " + md.getStatus())
     print("Alarms")
     print(md.getAlarmList())

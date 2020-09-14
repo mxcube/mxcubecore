@@ -1,15 +1,30 @@
-"""
-  Project: JLib
+# -*- coding: utf-8 -*-
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU General Lesser Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-  Date       Author    Changes
-  01.07.09   Gobbo     Created
-
-  Copyright 2009 by European Molecular Biology Laboratory - Grenoble
-"""
+"""Exporter Client implementation"""
 
 import logging
+from .StandardClient import StandardClient, ProtocolError
 
-from StandardClient import *
+__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
 CMD_SYNC_CALL = "EXEC"
 CMD_ASNC_CALL = "ASNC"
@@ -28,22 +43,30 @@ ARRAY_SEPARATOR = ""  # 0x001F
 
 
 class ExporterClient(StandardClient):
-    def onMessageReceived(self, msg):
-        if msg[:4] == "EVT:":
+    """ExporterClient class"""
+
+    def on_message_received(self, msg):
+        """Act if the message is an event, pass to StandardClient otherwise.
+        Args:
+            msg(str): The message.
+        """
+        if msg[:4] == EVENT:
             try:
-                evtstr = msg[4:]
-                tokens = evtstr.split(PARAMETER_SEPARATOR)
-                self.onEvent(tokens[0], tokens[1], long(tokens[2]))
+                tokens = msg[4:].split(PARAMETER_SEPARATOR)
+                self.on_event(tokens[0], tokens[1], int(tokens[2]))
             except BaseException:
-                # print "Error processing event: " + str(sys.exc_info()[1])
                 pass
         else:
-            StandardClient.onMessageReceived(self, msg)
+            StandardClient.on_message_received(self, msg)
 
-    def getMethodList(self):
+    def get_method_list(self):
+        """Get the list of the methods
+        Returns:
+            (list): List of strings (the methods)
+        """
         cmd = CMD_METHOD_LIST
-        ret = self.sendReceive(cmd)
-        ret = self.__processReturn(ret)
+        ret = self.send_receive(cmd)
+        ret = self.__process_return(ret)
         if ret is None:
             return None
         ret = ret.split(PARAMETER_SEPARATOR)
@@ -52,10 +75,14 @@ class ExporterClient(StandardClient):
                 ret = ret[0:-1]
         return ret
 
-    def getPropertyList(self):
+    def get_property_list(self):
+        """Get the list of the properties.
+        Returns:
+            (list): List of strings (the properties)
+        """
         cmd = CMD_PROPERTY_LIST
-        ret = self.sendReceive(cmd)
-        ret = self.__processReturn(ret)
+        ret = self.send_receive(cmd)
+        ret = self.__process_return(ret)
         if ret is None:
             return None
         ret = ret.split(PARAMETER_SEPARATOR)
@@ -64,77 +91,108 @@ class ExporterClient(StandardClient):
                 ret = ret[0:-1]
         return ret
 
-    def getServerObjectName(self):
+    def get_server_object_name(self):
+        """Get the server object name
+        Returns:
+            (str): The name.
+        """
         cmd = CMD_NAME
-        ret = self.sendReceive(cmd)
-        return self.__processReturn(ret)
+        ret = self.send_receive(cmd)
+        return self.__process_return(ret)
 
     def execute(self, method, pars=None, timeout=-1):
-        cmd = CMD_SYNC_CALL + " " + method + " "
+        """Execute a command synchronous.
+        Args:
+            method(str): Method name
+            pars(str): parameters
+            timeout(float): Timeout [s]
+        """
+        cmd = "{} {} ".format(CMD_SYNC_CALL, method)
         if pars is not None:
             for par in pars:
-                if isinstance(par, list) or isinstance(par, tuple):
-                    par = self.createArrayParameter(par)
+                if isinstance(par, (list, tuple)):
+                    par = self.create_array_parameter(par)
                 cmd += str(par) + PARAMETER_SEPARATOR
-        ret = self.sendReceive(cmd, timeout)
-        return self.__processReturn(ret)
 
-    def __processReturn(self, ret):
+        ret = self.send_receive(cmd, timeout)
+        return self.__process_return(ret)
+
+    def __process_return(self, ret):
+        """Analyse the return message.
+        Args:
+            ret(str): Returned message
+        Returns:
+            (str): The stripped message or None
+        Raises:
+            ProtocolError
+        """
         if ret[:4] == RET_ERR:
-            logging.getLogger("user_level_log").error(
-                "Diffractometer: %s" % str(ret[4:])
-            )
+            msg = "Diffractometer: {}".format(str(ret[4:]))
+            logging.getLogger("user_level_log").error(msg)
             raise Exception(ret[4:])
-        elif ret == RET_NULL:
+        if ret == RET_NULL:
             return None
-        elif ret[:4] == RET_OK:
+        if ret[:4] == RET_OK:
             return ret[4:]
-        else:
-            raise ProtocolError
+        raise ProtocolError
 
-    def executeAsync(self, method, pars=None):
-        cmd = CMD_ASNC_CALL + " " + method + " "
+    def execute_async(self, method, pars=None):
+        """Execute command asynchronous.
+        Args:
+            method(str): Method name
+            pars(str): parameters
+        """
+        cmd = "{} {} ".format(CMD_ASNC_CALL, method)
         if pars is not None:
             for par in pars:
                 cmd += str(par) + PARAMETER_SEPARATOR
         return self.send(cmd)
 
-    def writeProperty(self, property, value, timeout=-1):
-        if isinstance(value, list) or isinstance(value, tuple):
-            value = self.createArrayParameter(value)
-        cmd = CMD_PROPERTY_WRITE + " " + property + " " + str(value)
-        ret = self.sendReceive(cmd, timeout)
-        return self.__processReturn(ret)
+    def write_property(self, prop, value, timeout=-1):
+        """Write property synchronous.
+        Args:
+            prop(str): property name
+            value: sample, list or tuple
+        """
+        if isinstance(value, (list, tuple)):
+            value = self.create_array_parameter(value)
+        cmd = "{} {} {}".format(CMD_PROPERTY_WRITE, prop, str(value))
+        ret = self.send_receive(cmd, timeout)
+        return self.__process_return(ret)
 
-    def readProperty(self, property, timeout=-1):
-        cmd = CMD_PROPERTY_READ + " " + property
-        ret = self.sendReceive(cmd, timeout)
+    def read_property(self, prop, timeout=-1):
+        """Read a property
+        Args:
+            prop(str): property name
+        Returns:
+            (str): reply from the process.
+        """
+        cmd = "{} {}".format(CMD_PROPERTY_READ, prop)
+        ret = self.send_receive(cmd, timeout)
         process_return = None
         try:
-            process_return = self.__processReturn(ret)
+            process_return = self.__process_return(ret)
         except BaseException:
             pass
         return process_return
 
-    def readPropertyAsString(self, property):
-        return self.readProperty(property)
+    def read_property_as_string_array(self, prop):
+        """Read a propery and convert the return value to list of strings.
+        Args:
+            prop(str): property name
+        Returns:
+            (list): List of strings
+        """
+        ret = self.read_property(prop)
+        return self.parse_array(ret)
 
-    def readPropertyAsFloat(self, property):
-        return float(self.readProperty(property))
-
-    def readPropertyAsInt(self, property):
-        return int(self.readProperty(property))
-
-    def readPropertyAsBoolean(self, property):
-        if self.readProperty(property) == "true":
-            return True
-        return False
-
-    def readPropertyAsStringArray(self, property):
-        ret = self.readProperty(property)
-        return self.parseArray(ret)
-
-    def parseArray(self, value):
+    def parse_array(self, value):
+        """Parse to list
+        Args:
+            value(str): input string
+        Returns:
+            (list): List of strings
+        """
         value = str(value)
         if value.startswith(ARRAY_SEPARATOR) is False:
             return None
@@ -143,16 +201,21 @@ class ExporterClient(StandardClient):
         value = value.lstrip(ARRAY_SEPARATOR).rstrip(ARRAY_SEPARATOR)
         return value.split(ARRAY_SEPARATOR)
 
-    def createArrayParameter(self, value):
-        ret = "" + ARRAY_SEPARATOR
+    def create_array_parameter(self, value):
+        """Create a string to send.
+        Args:
+            value: simple, tuple ot list
+        Returns:
+            (str): formated string
+        """
+        ret = ARRAY_SEPARATOR
         if value is not None:
-            if isinstance(value, list) or isinstance(value, tuple):
+            if isinstance(value, (list, tuple)):
                 for item in value:
-                    ret = ret + str(item)
-                    ret = ret + ARRAY_SEPARATOR
+                    ret += str(item) + ARRAY_SEPARATOR
             else:
-                ret = ret + str(value)
+                ret += str(value)
         return ret
 
-    def onEvent(self, name, value, timestamp):
-        pass
+    def on_event(self, name, value, timestamp):
+        """Action"""
