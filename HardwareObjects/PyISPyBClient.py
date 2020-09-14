@@ -52,6 +52,34 @@ class PyISPyBClient(HardwareObject):
             self.update_state(self.STATES.READY)
         else:
             self.__update_rest_token()
+    
+    def call_get(self, relative_url, host="ispyb_core", params=None):
+        url = "{root_url}/{relative_url}".format(
+            root_url=self.__root_url,
+            relative_url=relative_url
+            )
+        headers = {
+            "Authorization": "Bearer " + self.__token,
+            "Content-type": "application/json",
+            "Host": host
+        }
+        response = get(url, headers=headers, params=params)
+
+        return response.status_code, response.json()
+
+    def call_post(self, relative_url, json_data, host="ispyb_core"):
+        url = "{root_url}/{relative_url}".format(
+            root_url=self.__root_url,
+            relative_url=relative_url
+            )
+        headers = {
+            "Authorization": "Bearer " + self.__token,
+            "Content-type": "application/json",
+            "Host": host
+        }
+        response = post(url, headers=headers, json=json_data)
+
+        return response.status_code, response.json()
 
     def get_login_type(self):
         return "user"
@@ -107,14 +135,13 @@ class PyISPyBClient(HardwareObject):
         result = []
         if self.__token:
             try:
-                url = "{root_url}/proposal/login_name/{login_name}"
-                url = url.format(
-                    root_url=self.__root_url,
-                    login_name=user_name
-                )
-                headers = {"Authorization": "Bearer " + self.__token}
-                response = get(url, headers=headers)
-                proposal_list = response.json()
+                user_name = "Boaty"
+                url = "proposals"
+                params = {"login_name" : user_name}
+
+                status_code, data_json = self.call_get(url, params=params)
+                proposal_list = data_json["data"]["rows"]
+
                 if not proposal_list:
                     ispyb_log.debug("No proposal assicated with user %s found" % user_name)
                 else:
@@ -128,14 +155,15 @@ class PyISPyBClient(HardwareObject):
                             sessions = self.get_proposal_sessions(proposal["proposalId"])
 
                             for session in sessions:
+                                session["beamlineName"] = session["beamLineName"]
                                 date_object = datetime.strptime(
-                                    session["startDate"], "%b %d, %Y %I:%M:%S %p"
+                                    session["startDate"][:-6], "%Y-%m-%dT%H:%M:%S"
                                 )
                                 session["startDate"] = datetime.strftime(
                                     date_object, "%Y-%m-%d %H:%M:%S"
                                 )
                                 date_object = datetime.strptime(
-                                    session["endDate"], "%b %d, %Y %I:%M:%S %p"
+                                    session["endDate"][:-6], "%Y-%m-%dT%H:%M:%S"
                                 )
                                 session["endDate"] = datetime.strftime(
                                     date_object, "%Y-%m-%d %H:%M:%S"
@@ -154,14 +182,10 @@ class PyISPyBClient(HardwareObject):
         #self.__update_rest_token()
         session_list = []
         try:
-            url = "{root_url}/session/params".format(
-                root_url=self.__root_url,
-                )
-            headers = {"Authorization": "Bearer " + self.__token}
             params = {"proposalId" : proposal_id}
-            response = get(url, headers=headers, params=params)
 
-            session_list = response.json()
+            status_code, data_json = self.call_get("/sessions", params=params)
+            session_list = data_json["data"]["rows"]
         except BaseException:
             logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
         return session_list
@@ -188,19 +212,7 @@ class PyISPyBClient(HardwareObject):
                 session_dict["sessionTitle"] = session_dict["comments"]
                 session_dict.pop("comments")
 
-                
-
-                #session = 
-                url = "{root_url}/session".format(root_url=self.__root_url)
-                headers = {
-                    "Authorization": "Bearer " + self.__token,
-                    "Content-type": "application/json"
-                    }
-                print('To be stored %s' % str(session_dict))
-                response = post(url, headers=headers, json=session_dict)
-                print(response.status_code)
-                result = response.json()
-
+                status_code, result = self.call_post("/sessions", session_dict)
             #except WebFault as e:
             #    session = {}
             #    ispyb_log.exception(str(e))
@@ -215,17 +227,25 @@ class PyISPyBClient(HardwareObject):
             )
         return result
 
-    def translate(self, code, what):
+    def get_session_local_contact(self, session_id):
         """
-        Given a proposal code, returns the correct code to use in the GUI,
-        or what to send to LDAP, user office database, or the ISPyB database.
+        Descript. : Retrieves the person entry associated with the session
+                    id <session_id>
+        Args      : param session_id (ype session_id: int)
+        Return    : Person object as dict (type: dict)
         """
-        try:
-            translated = self.__translations[code][what]
-        except KeyError:
-            translated = code
+        url = "session/descr/%d" % session_id
+        status_code, result = self.call_get(url)
 
-        return translated
+        return result["proposal"]["person"]
+
+    def _store_data_collection_group(self, group_data):
+        """
+        """
+        group_id = None
+        
+
+        return group_id
 
     def store_data_collection(self, mx_collection, bl_config=None):
         """
@@ -285,6 +305,9 @@ class PyISPyBClient(HardwareObject):
 
     def get_samples(self, proposal_id, session_id):
         pass
+
+    def store_robot_action(self, robot_action_dict):
+        return
 
 
 
