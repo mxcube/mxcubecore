@@ -142,6 +142,23 @@ class FlexHCDMaintenance(Equipment):
                 "Gripper: %s" % self._sc.get_gripper().title().replace("_", " "), gripper_cmd_list,
             ]
         ]
+
+        try:
+            grippers = self._sc.get_available_grippers()
+        except Exception:
+            pass
+        else:
+            gripper_cmd_list = []
+
+            for gripper in grippers:
+                arg = list(self._sc.gripper_types.keys())[list(self._sc.gripper_types.values()).index(gripper)]
+                gripper_cmd_list.append(["change_gripper", gripper.title().replace("_", " "), "Gripper", arg])
+
+            grippers_cmd = ["Gripper: %s" % self._sc.get_gripper().title().replace("_", " "), gripper_cmd_list,]
+
+            cmd_list.append(grippers_cmd)
+
+
         return cmd_list
 
     def send_command(self, cmdname, args=None):

@@ -111,7 +111,7 @@ class HWObjActuatorCommand(CommandObject):
     def __call__(self, *args, **kwargs):
         self.emit("commandBeginWaitReply", (str(self.name()),))
         if (
-            getattr(self._hwobj, "get_value")().name.lower()
+            getattr(self._hwobj, "get_value")().value.lower()
             in TWO_STATE_COMMAND_ACTIVE_STATES
         ):
             value = self._hwobj.VALUES.OUT
@@ -125,7 +125,7 @@ class HWObjActuatorCommand(CommandObject):
         try:
             try:
                 cmd_execution.get()
-                res = getattr(self._hwobj, "get_value")(timeout=None).name.lower()
+                res = getattr(self._hwobj, "get_value")().value
             except BaseException:
                 self.emit("commandFailed", (str(self.name()),))
             else:
@@ -134,7 +134,7 @@ class HWObjActuatorCommand(CommandObject):
                 else:
                     self.emit("commandReplyArrived", (str(self.name()), res))
         finally:
-            self.emit("commandReady", (str(self.name()), None))
+            self.emit("commandReady", (str(self.name()), res))
 
     def abort(self):
         if self._cmd_execution and not self._cmd_execution.ready():
@@ -142,10 +142,9 @@ class HWObjActuatorCommand(CommandObject):
 
     def value(self):
         value = "UNKNOWN"
-
         if hasattr(self._hwobj, "get_value"):
             value = getattr(self._hwobj, "get_value")()
             try:
-                return value.name
+                return value.value
             except AttributeError:
                 return value

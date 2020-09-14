@@ -32,6 +32,13 @@ class TangoLimaMpegVideo(TangoLimaVideo):
         self.stream_hash = str(uuid.uuid1())
         self.video_device = None
         self._p = None
+        self._quality = 4
+        self._QUALITY_STR_TO_INT = {
+            "High": 4,
+            "Medium": 10,
+            "Low": 20,
+            "Adaptive": -1
+        }
 
     def init(self):
         super().init()
@@ -46,6 +53,13 @@ class TangoLimaMpegVideo(TangoLimaVideo):
 
         return w, h
 
+    def get_quality(self):
+        return self._quality
+
+    def set_quality(self, q):
+        self._quality = self._QUALITY_STR_TO_INT[q]
+        return self._quality
+
     def set_stream_size(self, w, h):
         w, h = self._encoder_friendly_size(w, h)
         self._current_stream_size = "%s,%s" % (w, h)
@@ -54,6 +68,9 @@ class TangoLimaMpegVideo(TangoLimaVideo):
         current_size = self._current_stream_size.split(",")
         scale = float(current_size[0]) / self.get_width()
         return current_size + list((scale,))
+
+    def get_quality_options(self):
+        return list(self._QUALITY_STR_TO_INT.keys())
 
     def get_available_stream_sizes(self):
         try:
