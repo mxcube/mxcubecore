@@ -454,17 +454,21 @@ class FlexHCD(SampleChanger):
     def get_available_grippers(self):
         grippers = []
 
-        if self.exporter_addr:
-            ret = sorted(
-                self._execute_cmd_exporter("getSupportedGrippers", attribute=True)
-            )
-            for gripper in ret:
-                grippers.append(self.gripper_types[gripper])
-        else:
-            ret = [1, 3] #self._execute_cmd("get_supported_grippers")
+        try:
+        
+            if self.exporter_addr:
+                ret = sorted(
+                    self._execute_cmd_exporter("getSupportedGrippers", attribute=True)
+                )
+                for gripper in ret:
+                    grippers.append(self.gripper_types[gripper])
+            else:
+                ret = [1, 3] #self._execute_cmd("get_supported_grippers")
 
-            for gripper in ret:
-                grippers.append(self.gripper_types[gripper])
+                for gripper in ret:
+                    grippers.append(self.gripper_types[gripper])
+        except Exception:
+            grippers = [-1]
 
         return grippers
 
