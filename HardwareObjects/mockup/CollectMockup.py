@@ -30,8 +30,6 @@ __credits__ = ["MXCuBE collaboration"]
 
 
 class CollectMockup(AbstractCollect.AbstractCollect):
-    """
-    """
 
     def __init__(self, name):
         """
@@ -53,18 +51,18 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True,))
 
-    def data_collection_hook(self):
+    def _execute(self, cp):
         """Main collection hook
         """
         self.emit("collectStarted", (None, 1))
         self.emit("fsmConditionChanged", "data_collection_started", True)
-        self.store_image_in_lims_by_frame_num(1)
-        number_of_images = self.current_dc_parameters["oscillation_sequence"][0][
+        self._store_image_in_lims(cp, 1)
+        number_of_images = cp["oscillation_sequence"][0][
             "number_of_images"
         ]
 
         for image in range(
-            self.current_dc_parameters["oscillation_sequence"][0]["number_of_images"]
+            cp["oscillation_sequence"][0]["number_of_images"]
         ):
             if self.aborted_by_user:
                 self.ready_event.set()
@@ -79,42 +77,42 @@ class CollectMockup(AbstractCollect.AbstractCollect):
             #    return
 
             time.sleep(
-                self.current_dc_parameters["oscillation_sequence"][0]["exposure_time"]
+                cp["oscillation_sequence"][0]["exposure_time"]
             )
             self.emit("collectImageTaken", image)
             self.emit("progressStep", (int(float(image) / number_of_images * 100)))
-        self.emit_collection_finished()
+        self.emit_collection_finished(cp)
 
-    def emit_collection_finished(self):
+    def emit_collection_finished(self, cp):
         """Collection finished beahviour
         """
-        if self.current_dc_parameters["experiment_type"] != "Collect - Multiwedge":
-            self.update_data_collection_in_lims()
+        if cp["experiment_type"] != "Collect - Multiwedge":
+            self._update_data_collection_in_lims(cp)
 
-            last_frame = self.current_dc_parameters["oscillation_sequence"][0][
+            last_frame = cp["oscillation_sequence"][0][
                 "number_of_images"
             ]
             if last_frame > 1:
-                self.store_image_in_lims_by_frame_num(last_frame)
+                self._store_image_in_lims(cp, last_frame)
             if (
-                self.current_dc_parameters["experiment_type"] in ("OSC", "Helical")
-                and self.current_dc_parameters["oscillation_sequence"][0]["overlap"]
+                cp["experiment_type"] in ("OSC", "Helical")
+                and cp["oscillation_sequence"][0]["overlap"]
                 == 0
                 and last_frame > 19
             ):
-                self.trigger_auto_processing("after", self.current_dc_parameters, 0)
+                self.trigger_auto_processing(cp, "after", 0)
 
         success_msg = "Data collection successful"
-        self.current_dc_parameters["status"] = success_msg
+        cp.dangerously_set("status", success_msg)
         self.emit(
             "collectOscillationFinished",
             (
                 None,
                 True,
                 success_msg,
-                self.current_dc_parameters.get("collection_id"),
+                cp.get("collection_id"),
                 None,
-                self.current_dc_parameters,
+                cp,
             ),
         )
         self.emit("collectEnded", None, success_msg)
@@ -125,24 +123,16 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         self._collecting = False
         self.ready_event.set()
 
-    def store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
-        """
-        Descript. :
-        """
-        self.trigger_auto_processing("image", self.current_dc_parameters, frame)
-        image_id = self.store_image_in_lims(frame)
-        return image_id
-
-    def trigger_auto_processing(self, process_event, params_dict, frame_number):
+    def trigger_auto_processing(self, cp, process_event, frame_number):
         """
         Descript. :
         """
         if HWR.beamline.offline_processing is not None:
             HWR.beamline.offline_processing.execute_autoprocessing(
                 process_event,
-                self.current_dc_parameters,
+                cp,
                 frame_number,
-                self.run_processing_after,
+                self.run_offline_processing,
             )
 
     def stopCollect(self, owner="MXCuBE"):
@@ -164,30 +154,21 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         """
         HWR.beamline.sample_view.save_scene_animation(animation_filename, duration_sec)
 
-    # @task
-    # def move_motors(self, motor_position_dict):
-    #     """
-    #     Descript. :
-    #     """
-    #     return
-
     @task
     def move_motors(self, motor_position_dict):
         HWR.beamline.diffractometer.move_motors(motor_position_dict)
 
-    def prepare_input_files(self):
-        """
-        Descript. :
-        """
+    def prepare_input_files(self, cp):
+
         i = 1
         while True:
             xds_input_file_dirname = "xds_%s_%s_%d" % (
-                self.current_dc_parameters["fileinfo"]["prefix"],
-                self.current_dc_parameters["fileinfo"]["run_number"],
+                cp["fileinfo"]["prefix"],
+                cp["fileinfo"]["run_number"],
                 i,
             )
             xds_directory = os.path.join(
-                self.current_dc_parameters["fileinfo"]["process_directory"],
+                cp["fileinfo"]["process_directory"],
                 xds_input_file_dirname,
             )
             if not os.path.exists(xds_directory):
@@ -195,12 +176,12 @@ class CollectMockup(AbstractCollect.AbstractCollect):
             i += 1
 
         mosflm_input_file_dirname = "mosflm_%s_run%s_%d" % (
-            self.current_dc_parameters["fileinfo"]["prefix"],
-            self.current_dc_parameters["fileinfo"]["run_number"],
+            cp["fileinfo"]["prefix"],
+            cp["fileinfo"]["run_number"],
             i,
         )
         mosflm_directory = os.path.join(
-            self.current_dc_parameters["fileinfo"]["process_directory"],
+            cp["fileinfo"]["process_directory"],
             mosflm_input_file_dirname,
         )
 
