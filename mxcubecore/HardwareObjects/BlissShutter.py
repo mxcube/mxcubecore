@@ -81,6 +81,8 @@ class BlissShutter(AbstractShutter):
             self._initialise_values()
         self._poll_task = gevent.spawn(self._poll_state)
 
+        self.update_state()
+
     def _poll_state(self):
         while True:
             self.update_value(self.get_value())
