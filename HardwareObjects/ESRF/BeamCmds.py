@@ -104,6 +104,7 @@ class ControllerCommand(BaseBeamlineAction):
         try:
             try:
                 res = cmd_execution.get()
+                res = res if res else ""
             except BaseException:
                 self.emit("commandFailed", (str(self.name()),))
             else:
@@ -112,7 +113,7 @@ class ControllerCommand(BaseBeamlineAction):
                 else:
                     self.emit("commandReplyArrived", (str(self.name()), res))
         finally:
-            self.emit("commandReady", (str(self.name()), None))
+            self.emit("commandReady", (str(self.name()), ""))
 
     def abort(self):
         """Abort the execution.
@@ -121,7 +122,7 @@ class ControllerCommand(BaseBeamlineAction):
             self._cmd_execution.kill()
 
     def value(self):
-        """Rerturn nothing - a command has no return value"""
+        """Return nothing - a command has no return value"""
         return None
 
 
@@ -183,18 +184,18 @@ class HWObjActuatorCommand(CommandObject):
         Args:
             (obj): Command execution greenlet.
         """
+        #try:
         try:
-            try:
-                res = self._hwobj.get_value().name
-            except BaseException:
+            res = self._hwobj.get_value().name
+        except BaseException:
+            self.emit("commandFailed", (str(self.name()),))
+        else:
+            if isinstance(res, gevent.GreenletExit):
                 self.emit("commandFailed", (str(self.name()),))
             else:
-                if isinstance(res, gevent.GreenletExit):
-                    self.emit("commandFailed", (str(self.name()),))
-                else:
-                    self.emit("commandReplyArrived", (str(self.name()), res))
-        finally:
-            self.emit("commandReady", (str(self.name()), None))
+                self.emit("commandReplyArrived", (str(self.name()), res))
+        #finally:
+        #    self.emit("commandReady", (str(self.name()), None))
 
     def value(self):
         """Return the current command vaue.
