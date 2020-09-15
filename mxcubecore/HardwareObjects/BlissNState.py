@@ -64,11 +64,16 @@ class BlissNState(AbstractNState):
         self.initialise_values()
         if self.device_type == "actuator":
             self.connect(self._bliss_obj, "state", self.update_value)
-            #self.connect(self._bliss_obj, "state", self.update_state)
+            self.connect(self._bliss_obj, "state", self._update_state)
             self.__saved_state = self.get_value()
         elif self.device_type == "motor":
             self.connect(self._bliss_obj, "position", self.update_value)
             self.connect(self._bliss_obj, "state", self._update_state_motor)
+
+        self.update_state()
+
+    def _update_state(self, state):
+        self.update_state(self.STATES.READY)
 
     def get_value(self):
         """Get the device value
@@ -87,6 +92,8 @@ class BlissNState(AbstractNState):
         Args:
             value (str or enum): target value
         """
+        self.update_state(self.STATES.BUSY)
+
         if isinstance(value, Enum):
             self.__saved_state = value.name
             if isinstance(value.value, tuple) or isinstance(value.value, list):
@@ -111,7 +118,7 @@ class BlissNState(AbstractNState):
             _state = self._bliss_obj.state.upper()
         except (AttributeError, KeyError):
             return self.STATES.UNKNOWN
-
+        
         if _state in ("IN", "OUT"):
             if self.__saved_state == _state:
                 _state = self.STATES.READY
