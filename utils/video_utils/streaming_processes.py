@@ -123,7 +123,7 @@ def poll_image(encoder_input, device_uri, debug, sleep_time):
 
 
 def start_video_stream(
-    size, scale, _hash, video_mode, loopback_device=None, debug=False
+    size, scale, _hash, video_mode, loopback_device=None, debug=False, quality=4
 ):
     """
     Start encoding with ffmpeg and stream the video with the node
@@ -172,10 +172,8 @@ def start_video_stream(
             "scale=w=%s:h=%s" % (w, h),
             "-f",
             "mpegts",
-            "-b:v",
-            "10M",
-            "-q:v",
-            "5",
+            "-b:v", "750000",
+            "-q:v", "%s" % quality,
             "-an",
             "-vcodec",
             "mpeg1video",
@@ -200,10 +198,8 @@ def start_video_stream(
             "scale=w=%s:h=%s" % (w, h),
             "-f",
             "mpegts",
-            "-b:v",
-            "10M",
-            "-q:v",
-            "5",
+            "-b:v", "750000",
+            "-q:v", "%s" % quality,
             "-an",
             "-vcodec",
             "mpeg1video",
@@ -215,7 +211,7 @@ def start_video_stream(
     )
 
     with open("/tmp/mxcube.pid", "a") as f:
-        f.write("%s %s " % (relay.pid, ffmpeg.pid))
+        f.write("%s %s" % (relay.pid, ffmpeg.pid))
 
     return relay, ffmpeg
 
@@ -265,6 +261,11 @@ if __name__ == "__main__":
     except IndexError:
         sleep_time = 0.05
 
+    try:
+        quality = int(sys.argv[9].strip())
+    except IndexError:
+        quality = 4
+
     # The stream has to exist before encoding it using V4L2, so polling is
     # started in subprocess
     if loopback_device:
@@ -276,7 +277,7 @@ if __name__ == "__main__":
         ).start()
 
     relay, ffmpeg = start_video_stream(
-        size, scale, _hash, video_mode, loopback_device, debug
+        size, scale, _hash, video_mode, loopback_device, debug, quality
     )
 
     # Polling started after ffmpeg when using direct pipe as handle
