@@ -217,8 +217,8 @@ class LimaPilatusDetector(AbstractDetector):
 
         self.set_channel_value("acq_trigger_mode", trigger_mode)
 
-        if self.getProperty("set_latency_time", False):
-            self.set_channel_value("latency_time", 0.003)
+        if self.getProperty("set_latency_time",  False):
+            self.set_channel_value("latency_time", self.get_deadtime())
 
         self.set_channel_value("saving_mode", "AUTO_FRAME")
         self.set_channel_value("acq_nb_frames", number_of_images)
