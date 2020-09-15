@@ -110,6 +110,8 @@ class LimaPilatusDetector(AbstractDetector):
                 "update", self.roi_mode_changed
             )
 
+            self.get_command_object("prepare_acq").setDeviceTimeout(10000)
+
         except ConnectionError:
             self.update_state(HardwareObjectState.FAULT)
             logging.getLogger("HWR").error(
