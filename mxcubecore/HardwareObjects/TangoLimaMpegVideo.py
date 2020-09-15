@@ -109,7 +109,8 @@ class TangoLimaMpegVideo(TangoLimaVideo):
                     self.video_mode,
                     self._loopback_device,
                     str(self._debug),
-                    str(self._sleep_time)
+                    str(self._sleep_time),
+                    str(self._quality)
                 ],
                 close_fds=True,
             )
