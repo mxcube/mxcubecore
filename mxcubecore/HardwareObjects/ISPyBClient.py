@@ -783,18 +783,21 @@ class ISPyBClient(HardwareObject):
         logging.getLogger("HWR").debug(prop)
 
         proposal = prop["Proposal"]
-        todays_session = self.get_todays_session(prop)
+        todays_session = self.get_todays_session(prop, create_session)
 
         logging.getLogger("HWR").debug(
             "LOGGED IN and todays session: " + str(todays_session)
         )
+
+        todays_session = todays_session["session"]
+        todays_session_id = todays_session.get("sessionId", None)
+        local_contact = self.get_session_local_contact(todays_session_id) if todays_session_id else {}
+
         return {
             "status": {"code": "ok", "msg": msg},
             "Proposal": proposal,
             "Session": todays_session,
-            "local_contact": self.get_session_local_contact(
-                todays_session["session"]["sessionId"]
-            ),
+            "local_contact": local_contact,
             "Person": prop["Person"],
             "Laboratory": prop["Laboratory"],
         }
