@@ -233,15 +233,16 @@ class LimaPilatusDetector(AbstractDetector):
             energy (int): Energy [eV]
         """
         minE = self.getProperty("minE")
-        factor = 1000 if minE > 100 else 1
-        if energy < minE:
-            energy = minE
+        factor = 1000 if minE > 100 else 1.
 
         energy_threshold = self.get_channel_value("energy_threshold")
 
         # check if need to convert energy in eV.
         if energy < 100:
              energy *= factor
+
+        if energy < minE:
+            energy = minE
 
         if abs(energy_threshold - energy) > 0.1:
             self.set_channel_value("energy_threshold", energy)
