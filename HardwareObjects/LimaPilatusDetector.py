@@ -72,20 +72,19 @@ class LimaPilatusDetector(AbstractDetector):
                 self.add_channel(
                     {
                         "type": "tango",
-                        "name": "energy_threshold",
+                        "name": "working_energy",
                         "tangoname": pilatus_device,
                     },
                     "working_energy",
                 )
-            else:
-                self.add_channel(
-                    {
-                        "type": "tango",
-                        "name": "energy_threshold",
-                        "tangoname": pilatus_device,
-                    },
-                    "energy_threshold",
-                )
+            self.add_channel(
+                {
+                    "type": "tango",
+                    "name": "energy_threshold",
+                    "tangoname": pilatus_device,
+                },
+                "energy_threshold",
+            )
 
             self.add_command(
                 {"type": "tango", "name": "prepare_acq", "tangoname": lima_device},
@@ -223,15 +222,27 @@ class LimaPilatusDetector(AbstractDetector):
         self.set_channel_value("saving_overwrite_policy", "OVERWRITE")
 
     def set_energy_threshold(self, energy):
+        """Set the energy threshold.
+        Args:
+            energy (int): Energy [eV] or [keV]
+        """
         minE = self.getProperty("minE")
+        # some versions of Lima Pilatus server take the energy ergument in keV
+        # some in eV. From minE we can set a convertion factor.
+        factor = 1000 if minE > 100 else 1.
+
+        energy_threshold = self.get_channel_value("energy_threshold")
+
+        # check if need to convert energy in eV.
+        if energy < 100:
+             energy *= factor
+
         if energy < minE:
             energy = minE
 
-        energy_threshold = self.get_channel_value("energy_threshold")
-        if math.fabs(energy_threshold - energy) > 0.1:
+        if abs(energy_threshold - energy) > 0.1:
             self.set_channel_value("energy_threshold", energy)
-
-            while math.fabs(self.get_channel_value("energy_threshold") - energy) > 0.1:
+            while abs(self.get_channel_value("energy_threshold") - energy) > 0.1:
                 time.sleep(1)
 
         self.set_channel_value("fill_mode", "ON")
