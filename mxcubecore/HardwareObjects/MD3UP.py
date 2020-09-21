@@ -90,7 +90,7 @@ class MD3UP(Microdiff.Microdiff):
             if start < low_lim:
                 raise ValueError("Scan start below the allowed value %f" % low_lim)
             elif end > hi_lim:
-                raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
+                raise ValueError("Scan end above the allowed value %f" % hi_lim)
         self.nb_frames.set_value(self.scan_nb_frames)
 
         params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
