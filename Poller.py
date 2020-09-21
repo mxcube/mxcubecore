@@ -134,6 +134,7 @@ class _Poller:
             try:
                 #res = Queue().get_nowait()
                 res = self.queue.get_nowait()
+
             except Empty:
                 break
 

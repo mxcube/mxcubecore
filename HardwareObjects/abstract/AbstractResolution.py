@@ -57,6 +57,8 @@ class AbstractResolution(AbstractMotor):
         self.connect(HWR.beamline.energy, "valueChanged", self.update_energy)
         self.connect(HWR.beamline.energy, "stateChanged", self.update_state)
 
+        self.update_state(self.get_state())
+
     def get_state(self):
         """Get the state of the distance motor.
         Returns:
