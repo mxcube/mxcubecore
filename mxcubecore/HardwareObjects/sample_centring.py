@@ -548,7 +548,7 @@ def find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
     camera.take_snapshot(snapshot_filename, bw=True)
 
     info, x, y = lucid.find_loop(
-        snapshot_filename, rotation=-chi_angle, debug=False, IterationClosing=6
+        snapshot_filename, rotation=None, debug=False, IterationClosing=6
     )
 
     try:

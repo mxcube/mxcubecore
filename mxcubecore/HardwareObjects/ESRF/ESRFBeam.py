@@ -95,8 +95,12 @@ class ESRFBeam(AbstractBeam):
         Returns:
             (float, str): Size [mm], label.
         """
-        _size = self._complex.sizeByName[self._complex.get_current_position_name()]
-        _name = self._complex.get_current_position_name()
+        try:
+            _size = self._complex.sizeByName[self._complex.get_current_position_name()]
+            _name = self._complex.get_current_position_name()
+        except KeyError:
+            _size, _name = (-1, -1), "UNKNOWN"
+
         return _size, _name
 
     def _get_slits_size(self):

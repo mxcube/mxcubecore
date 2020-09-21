@@ -90,6 +90,11 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
 
             self.device = BaseHardwareObjects.Null()
         else:
+            if self.getProperty("exposure_time"):
+                self._sleep_time = float(self.getProperty("exposure_time"))
+            elif self.getProperty("interval"):
+                self._sleep_time = float(self.getProperty("interval")) / 1000.0
+
             if self.getProperty("control_video", "True"):
                 logging.getLogger("HWR").info("MXCuBE controlling video")
 
@@ -97,11 +102,7 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
                     self.device.video_live = False
 
                 self.device.video_mode = self._video_mode
-
-                if self.getProperty("exposure_time"):
-                    self.set_exposure(float(self.getProperty("exposure_time")))
-                elif self.getProperty("interval"):
-                    self.set_exposure(self.getProperty("interval") / 1000.0)
+                self.set_exposure(self._sleep_time)
 
                 self.device.video_live = True
             else:
