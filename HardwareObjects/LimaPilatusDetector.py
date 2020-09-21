@@ -2,7 +2,6 @@ import gevent
 import time
 import subprocess
 import os
-import math
 import logging
 
 from PyTango import DeviceProxy
@@ -11,7 +10,7 @@ from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.CommandContainer import ConnectionError
 
 from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
-    AbstractDetector,
+    AbstractDetector
 )
 
 from HardwareRepository.BaseHardwareObjects import HardwareObjectState
@@ -35,6 +34,7 @@ class LimaPilatusDetector(AbstractDetector):
 
         try:
             for channel_name in (
+                "latency_time",
                 "acq_status",
                 "acq_trigger_mode",
                 "saving_mode",
@@ -110,6 +110,8 @@ class LimaPilatusDetector(AbstractDetector):
                 "update", self.roi_mode_changed
             )
 
+            self.get_command_object("prepare_acq").setDeviceTimeout(10000)
+
         except ConnectionError:
             self.update_state(HardwareObjectState.FAULT)
             logging.getLogger("HWR").error(
@@ -164,6 +166,7 @@ class LimaPilatusDetector(AbstractDetector):
                 trigger_mode = "INTERNAL_TRIGGER"
             else:
                 trigger_mode = "EXTERNAL_TRIGGER"
+
             if self._mesh_steps > 1:
                 trigger_mode = "EXTERNAL_TRIGGER_MULTI"
                 # reset mesh steps
@@ -216,6 +219,9 @@ class LimaPilatusDetector(AbstractDetector):
 
         self.set_channel_value("acq_trigger_mode", trigger_mode)
 
+        if self.getProperty("set_latency_time",  False):
+            self.set_channel_value("latency_time", self.get_deadtime())
+
         self.set_channel_value("saving_mode", "AUTO_FRAME")
         self.set_channel_value("acq_nb_frames", number_of_images)
         self.set_channel_value("acq_expo_time", exptime)
@@ -224,22 +230,20 @@ class LimaPilatusDetector(AbstractDetector):
     def set_energy_threshold(self, energy):
         """Set the energy threshold.
         Args:
-            energy (int): Energy [eV] or [keV]
+            energy (int): Energy [eV]
         """
         minE = self.getProperty("minE")
-        # some versions of Lima Pilatus server take the energy ergument in keV
-        # some in eV. From minE we can set a convertion factor.
-        factor = 1000 if minE > 100 else 1.
+        factor = 1000 if minE > 100 else 1
+
+        if energy < minE:
+            energy = minE
 
         energy_threshold = self.get_channel_value("energy_threshold")
 
         # check if need to convert energy in eV.
         if energy < 100:
              energy *= factor
-
-        if energy < minE:
-            energy = minE
-
+ 
         if abs(energy_threshold - energy) > 0.1:
             self.set_channel_value("energy_threshold", energy)
             while abs(self.get_channel_value("energy_threshold") - energy) > 0.1:
