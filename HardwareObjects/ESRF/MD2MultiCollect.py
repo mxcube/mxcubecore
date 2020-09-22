@@ -70,7 +70,14 @@ class MD2MultiCollect(ESRFMultiCollect):
 
     def do_prepare_oscillation(self, *args, **kwargs):
         # set the detector cover out
-        self.getObjectByRole("controller").detcover.set_out(20)
+        try:
+            detcover = self.getObjectByRole("controller").detcover
+
+            if detcover.state == "IN":
+                detcover.set_out(10)
+        except:
+            logging.getLogger("HWR").exception("Got the tricky one !")
+
         diffr = HWR.beamline.diffractometer
 
         # send again the command as MD2 software only handles one
