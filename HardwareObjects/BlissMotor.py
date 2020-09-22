@@ -37,15 +37,15 @@ __license__ = "LGPLv3+"
 
 @enum.unique
 class BlissMotorStates(enum.Enum):
-    """"
-    MOVING  : 'Axis is moving'
-    READY   : 'Axis is ready to be moved (not moving ?)'
-    FAULT   : 'Error from controller'
-    LIMPOS  : 'Hardware high limit active'
-    LIMNEG  : 'Hardware low limit active'
-    HOME    : 'Home signal active'
-    OFF     : 'Axis power is off'
-    DISABLED: 'Axis cannot move (must be enabled - not ready ?)'
+    """
+    MOVING = "Axis is moving"
+    READY = "Axis is ready to be moved (not moving ?)"
+    FAULT = "Error from controller"
+    LIMPOS = "Hardware high limit active"
+    LIMNEG = "Hardware low limit active"
+    HOME = "Home signal active"
+    OFF = "Axis power is off"
+    DISABLED = "Axis cannot move"
     """
 
     MOVING = 0
@@ -109,7 +109,7 @@ class BlissMotor(AbstractMotor):
     def get_state(self):
         """Get the motor state.
         Returns:
-            (enum 'HardwareObjectState'): Motor state.
+            (enum HardwareObjectState): Motor state.
         """
         state = HardwareObjectState.UNKNOWN
         for stat in self.motor_obj.state.current_states_names:
@@ -119,7 +119,10 @@ class BlissMotor(AbstractMotor):
                 # we need to treat DISABLED before any other auxillary state
                 return HardwareObjectState.OFF
             if stat == "MOVING":
+                # MOVING has higher priority than other auxillary states
                 return HardwareObjectState.BUSY
+            # finally the state will corresponf to the last in the list
+            # of the auxillary states.
             state = self._state2enum(stat)[0]
         return state
 
@@ -130,11 +133,8 @@ class BlissMotor(AbstractMotor):
         """
         state = self.motor_obj.state.current_states_names
         state_list = []
-        state_list.append(self._state2enum(state[0])[1])
-        if len(state) > 1:
-            for _state in state[1:]:
-                state_list.append(self._state2enum(_state)[1])
-
+        for _state in state:
+            state_list.append(self._state2enum(_state)[1])
         return state_list
 
     def _update_state(self, state=None):
@@ -145,15 +145,13 @@ class BlissMotor(AbstractMotor):
         if isinstance(state, bool):
             # It seems like the current version of BLISS gives us a boolean
             # at first and last event, True for ready and False for moving
-            state = HardwareObjectState.READY if state else HardwareObjectState.BUSY
+            _state = HardwareObjectState.READY if state else HardwareObjectState.BUSY
         else:
-            # state comming from bliss (with current_states_names attribute)
-            try:
-                state = self.get_state()
-            except (AttributeError, KeyError):
-                state = HardwareObjectState.UNKNOWN
+            _state = self.get_state()
+        # actualise the  self._specific_state every time
         self._specific_state = self.get_specific_state()
-        self.update_state(state)
+        # this will emit stateChanged if _state different from the previous one
+        self.update_state(_state)
 
     def get_value(self):
         """Read the motor position.
