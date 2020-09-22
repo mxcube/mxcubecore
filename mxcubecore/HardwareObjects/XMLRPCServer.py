@@ -338,7 +338,8 @@ class XMLRPCServer(HardwareObject):
 
     def shape_history_get_grid(self, sid):
         """
-        :returns: The currently selected grid
+        :param sid: Shape id 
+        :returns: Grid with id <sid>
         :rtype: dict
 
         Format of the returned dictionary:
