@@ -321,11 +321,13 @@ class LimaPilatusDetector(AbstractDetector):
 
         time.sleep(1)
         self.execute_command("reset")
+
+        self.wait_ready()
+
         self._emit_status()
 
     def reset(self):
         self.stop_acquisition()
-        self._emit_status()
 
     @property
     def status(self):
@@ -341,6 +343,5 @@ class LimaPilatusDetector(AbstractDetector):
         return status
 
     def _emit_status(self):
-        print(self.status)
         self.emit("statusChanged", self.status)
 
