@@ -5,6 +5,7 @@ import time
 import gevent
 import pprint
 import logging
+import requests
 import binascii
 
 # import threading
@@ -30,9 +31,9 @@ class State(object):
     def getValue(self):
         return self._value
 
-    def setValue(self, newValue):
-        self._value = newValue
-        self._parent.state_changed(newValue)
+    def setValue(self, new_value):
+        self._value = new_value
+        self._parent.state_changed(new_value)
 
     def delValue(self):
         pass
@@ -67,27 +68,27 @@ class EdnaWorkflow(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self._state = State(self)
-        self._command_failed = False
-        self._besWorkflowId = None
-        self._gevent_event = None
-        self._bes_host = None
-        self._bes_port = None
-        self._token = None
+        self.command_failed = False
+        self.bes_workflow_id = None
+        self.gevent_event = None
+        self.bes_host = None
+        self.bes_port = None
+        self.token = None
 
     def _init(self):
         pass
 
     def init(self):
-        self._gevent_event = gevent.event.Event()
-        self._bes_host = self.getProperty("bes_host")
-        self._bes_port = int(self.getProperty("bes_port"))
-        self.state.value = "ON"
+        self.gevent_event = gevent.event.Event()
+        self.bes_host = self.getProperty("bes_host")
+        self.bes_port = int(self.getProperty("bes_port"))
+        self._state.value = "ON"
 
     def getState(self):
         return self._state
 
-    def setState(self, newState):
-        self._state = newState
+    def setState(self, new_state):
+        self._state = new_state
 
     def delState(self):
         pass
@@ -95,11 +96,11 @@ class EdnaWorkflow(HardwareObject):
     state = property(getState, setState, delState, "Property for state")
 
     def command_failure(self):
-        return self._command_failed
+        return self.command_failed
 
     def set_command_failed(self, *args):
         logging.getLogger("HWR").error("Workflow '%s' Tango command failed!" % args[1])
-        self._command_failed = True
+        self.command_failed = True
 
     def state_changed(self, new_value):
         new_value = str(new_value)
@@ -113,28 +114,28 @@ class EdnaWorkflow(HardwareObject):
         The workflow has finished, sets the state to 'ON'
         """
         # If necessary unblock dialog
-        if not self._gevent_event.is_set():
-            self._gevent_event.set()
+        if not self.gevent_event.is_set():
+            self.gevent_event.set()
         self.state.value = "ON"
 
     def open_dialog(self, dict_dialog):
         # If necessary unblock dialog
-        if not self._gevent_event.is_set():
-            self._gevent_event.set()
+        if not self.gevent_event.is_set():
+            self.gevent_event.set()
         self.params_dict = dict()
         if "reviewData" in dict_dialog and "inputMap" in dict_dialog:
             review_data = dict_dialog["reviewData"]
-            for dictEntry in dict_dialog["inputMap"]:
-                if "value" in dictEntry:
-                    value = dictEntry["value"]
+            for dict_entry in dict_dialog["inputMap"]:
+                if "value" in dict_entry:
+                    value = dict_entry["value"]
                 else:
-                    value = dictEntry["defaultValue"]
-                self.params_dict[dictEntry["variableName"]] = str(value)
+                    value = dict_entry["defaultValue"]
+                self.params_dict[dict_entry["variableName"]] = str(value)
             self.emit("parametersNeeded", (review_data,))
             self.state.value = "OPEN"
-            self._gevent_event.clear()
-            while not self._gevent_event.is_set():
-                self._gevent_event.wait()
+            self.gevent_event.clear()
+            while not self.gevent_event.is_set():
+                self.gevent_event.wait()
                 time.sleep(0.1)
         return self.params_dict
 
@@ -143,7 +144,7 @@ class EdnaWorkflow(HardwareObject):
 
     def set_values_map(self, params):
         self.params_dict = params
-        self._gevent_event.set()
+        self.gevent_event.set()
 
     def get_available_workflows(self):
         workflow_list = list()
@@ -166,61 +167,55 @@ class EdnaWorkflow(HardwareObject):
         self.generateNewToken()
         logging.getLogger("HWR").info("Aborting current workflow")
         # If necessary unblock dialog
-        if not self._gevent_event.is_set():
-            self._gevent_event.set()
-        self._command_failed = False
-        if self._besWorkflowId is not None:
-            abortWorkflowURL = os.path.join(
-                "/BES",
-                "bridge",
-                "rest",
-                "processes",
-                self._besWorkflowId,
-                "STOP?timeOut=0",
-            )
-            logging.info("BES web service URL: %r" % abortWorkflowURL)
-            conn = HTTPConnection(self._bes_host, self._bes_port)
-            conn.request("POST", abortWorkflowURL)
-            response = conn.getresponse()
-            if response.status == 200:
-                workflowStatus = response.read()
-                logging.info("BES {0}: {1}".format(self._besWorkflowId, workflowStatus))
+        if not self.gevent_event.is_set():
+            self.gevent_event.set()
+        self.command_failed = False
+        if self.bes_workflow_id is not None:
+            abort_URL = os.path.join("http://{0}:{1}".format(self.bes_host, 
+                                                             self.bes_port),
+                                     "ABORT", 
+                                     self.bes_workflow_id)
+            logging.getLogger("HWR").info("BES abort web service URL: %r" % abort_URL)
+            response = requests.get(abort_URL)
+            if response.status_code == 200:
+                workflow_status=response.text
+                logging.getLogger("HWR").info("BES workflow id {0}: {1}".format(self.bes_workflow_id, workflow_status))
         self.state.value = "ON"
 
     def generateNewToken(self):
         # See: https://wyattbaldwin.com/2014/01/09/generating-random-tokens-in-python/
-        self._token = binascii.hexlify(os.urandom(5)).decode('utf-8')
-        SecureXMLRpcRequestHandler.setReferenceToken(self._token)
+        self.token = binascii.hexlify(os.urandom(5)).decode('utf-8')
+        SecureXMLRpcRequestHandler.setReferenceToken(self.token)
 
     def getToken(self):
-        return self._token
+        return self.token
 
-    def start(self, listArguments):
+    def start(self, list_arguments):
         self.generateNewToken()
         # If necessary unblock dialog
-        if not self._gevent_event.is_set():
-            self._gevent_event.set()
+        if not self.gevent_event.is_set():
+            self.gevent_event.set()
         self.state.value = "RUNNING"
 
-        self.dictParameters = {}
-        iIndex = 0
-        if len(listArguments) == 0:
+        self.dict_parameters = {}
+        index = 0
+        if len(list_arguments) == 0:
             self.error_stream("ERROR! No input arguments!")
             return
-        elif len(listArguments) % 2 != 0:
+        elif len(list_arguments) % 2 != 0:
             self.error_stream("ERROR! Odd number of input arguments!")
             return
-        while iIndex < len(listArguments):
-            self.dictParameters[listArguments[iIndex]] = listArguments[iIndex + 1]
-            iIndex += 2
+        while index < len(list_arguments):
+            self.dict_parameters[list_arguments[index]] = list_arguments[index + 1]
+            index += 2
         logging.info("Input arguments:")
-        logging.info(pprint.pformat(self.dictParameters))
+        logging.info(pprint.pformat(self.dict_parameters))
 
-        if "modelpath" in self.dictParameters:
-            modelPath = self.dictParameters["modelpath"]
-            if "." in modelPath:
-                modelPath = modelPath.split(".")[0]
-            self.workflowName = os.path.basename(modelPath)
+        if "modelpath" in self.dict_parameters:
+            modelpath = self.dict_parameters["modelpath"]
+            if "." in modelpath:
+                modelpath = modelpath.split(".")[0]
+            self.workflow_name = os.path.basename(modelpath)
         else:
             self.error_stream("ERROR! No modelpath in input arguments!")
             return
@@ -231,41 +226,29 @@ class EdnaWorkflow(HardwareObject):
         logging.info("Time to start workflow: {0}".format(time1 - time0))
 
     def startBESWorkflow(self):
-
-        logging.info("Starting workflow {0}".format(self.workflowName))
+        logging.info("Starting workflow {0}".format(self.workflow_name))
         logging.info(
-            "Starting a workflow on http://%s:%d/BES" % (self._bes_host, self._bes_port)
+            "Starting a workflow on http://%s:%d/BES" % (self.bes_host, self.bes_port)
         )
-        startWorkflowURL = os.path.join(
-            "/BES", "bridge", "rest", "processes", self.workflowName, "RUN"
+        start_URL = os.path.join(
+            "/BES", "bridge", "rest", "processes", self.workflow_name, "RUN"
         )
-        isFirstParameter = True
-        self.dictParameters["initiator"] = HWR.beamline.session.endstation_name
-        self.dictParameters["sessionId"] = HWR.beamline.session.session_id
-        self.dictParameters["externalRef"] = HWR.beamline.session.get_proposal()
-        self.dictParameters["token"] = self._token
-        # Build the URL
-        for key in self.dictParameters:
-            urlParameter = "%s=%s" % (
-                key,
-                str(self.dictParameters[key]).replace(" ", "_"),
-            )
-            if isFirstParameter:
-                startWorkflowURL += "?%s" % urlParameter
-            else:
-                startWorkflowURL += "&%s" % urlParameter
-            isFirstParameter = False
-        logging.info("BES web service URL: %r" % startWorkflowURL)
-        conn = HTTPConnection(self._bes_host, self._bes_port)
-        headers = {"Accept": "text/plain"}
-        conn.request("POST", startWorkflowURL, headers=headers)
-        response = conn.getresponse()
-        if response.status == 200:
+        self.dict_parameters["initiator"] = HWR.beamline.session.endstation_name
+        self.dict_parameters["sessionId"] = HWR.beamline.session.session_id
+        self.dict_parameters["externalRef"] = HWR.beamline.session.get_proposal()
+        self.dict_parameters["token"] = self.token
+        start_URL = os.path.join("http://{0}:{1}".format(self.bes_host, 
+                                                         self.bes_port),
+                                 "RUN", 
+                                 self.workflow_name)
+        logging.getLogger("HWR").info("BES start URL: %r" % start_URL)
+        response = requests.post(start_URL, json=self.dict_parameters)
+        if response.status_code == 200:
             self.state.value = "RUNNING"
-            requestId = response.read().decode("utf-8")
-            logging.info("Workflow started, request id: %r" % requestId)
-            self._besWorkflowId = requestId
+            request_id = response.text
+            logging.getLogger("HWR").info("Workflow started, request id: %r" % request_id)
+            self.bes_workflow_id = request_id
         else:
-            logging.error("Workflow didn't start!")
-            requestId = None
+            logging.getLogger("HWR").error("Workflow didn't start!")
+            request_id = None
             self.state.value = "ON"
