@@ -35,6 +35,7 @@ class LimaPilatusDetector(AbstractDetector):
         try:
             for channel_name in (
                 "latency_time",
+                "State",
                 "acq_status",
                 "acq_trigger_mode",
                 "saving_mode",
@@ -111,12 +112,14 @@ class LimaPilatusDetector(AbstractDetector):
             )
 
             self.get_command_object("prepare_acq").setDeviceTimeout(10000)
+            self._emit_status()
 
         except ConnectionError:
             self.update_state(HardwareObjectState.FAULT)
             logging.getLogger("HWR").error(
                 "Could not connect to detector %s" % lima_device
             )
+            self._emit_status()
 
     def has_shutterless(self):
         return True
@@ -230,9 +233,11 @@ class LimaPilatusDetector(AbstractDetector):
     def set_energy_threshold(self, energy):
         """Set the energy threshold.
         Args:
-            energy (int): Energy [eV]
+            energy (int): Energy [eV] or [keV]
         """
         minE = self.getProperty("minE")
+        # some versions of Lima Pilatus server take the energy ergument in keV
+        # some in eV. From minE we can set a convertion factor.
         factor = 1000 if minE > 100 else 1.
 
         energy_threshold = self.get_channel_value("energy_threshold")
@@ -305,7 +310,8 @@ class LimaPilatusDetector(AbstractDetector):
 
         self.execute_command("stop_acq")
         self.execute_command("prepare_acq")
-        return self.execute_command("start_acq")
+        self.execute_command("start_acq")
+        self._emit_status()
 
     def stop_acquisition(self):
         try:
@@ -316,5 +322,26 @@ class LimaPilatusDetector(AbstractDetector):
         time.sleep(1)
         self.execute_command("reset")
 
+        self.wait_ready()
+
+        self._emit_status()
+
     def reset(self):
         self.stop_acquisition()
+
+    @property
+    def status(self):
+        try:
+            acq_status = self.get_channel_value("acq_status")
+        except Exception:
+            acq_status = "OFFLINE"
+
+        status = {
+            "acq_satus": acq_status.upper(),
+        }
+
+        return status
+
+    def _emit_status(self):
+        self.emit("statusChanged", self.status)
+
