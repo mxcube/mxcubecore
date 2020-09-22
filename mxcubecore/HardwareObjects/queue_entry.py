@@ -839,13 +839,13 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         HWR.beamline.collect.stop_collect()
         if self.online_processing_task is not None:
             HWR.beamline.online_processing.stop_processing()
-            logging.getLogger("user_level_log").error("Processing: Stoppend")
+            logging.getLogger("user_level_log").error("Processing: Stopped")
         if self.centring_task is not None:
             self.centring_task.kill(block=False)
 
         self.get_view().setText(1, "Stopped")
         logging.getLogger("queue_exec").info("Calling stop on: " + str(self))
-        logging.getLogger("user_level_log").error("Collection: Stoppend")
+        logging.getLogger("user_level_log").error("Collection: Stopped")
         # this is to work around the remote access problem
         dispatcher.send("collect_finished")
         raise QueueAbortedException("Queue stopped", self)
@@ -1517,6 +1517,8 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         self.get_data_model().set_enabled(False)
 
     def stop(self):
+        import pdb
+        pdb.set_trace()
         BaseQueueEntry.stop(self)
         workflow_hwobj = HWR.beamline.workflow
         workflow_hwobj.abort()
