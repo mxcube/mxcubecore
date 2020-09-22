@@ -184,7 +184,6 @@ class HWObjActuatorCommand(CommandObject):
         Args:
             (obj): Command execution greenlet.
         """
-        #try:
         try:
             res = self._hwobj.get_value().name
         except BaseException:
@@ -194,8 +193,6 @@ class HWObjActuatorCommand(CommandObject):
                 self.emit("commandFailed", (str(self.name()),))
             else:
                 self.emit("commandReplyArrived", (str(self.name()), res))
-        #finally:
-        #    self.emit("commandReady", (str(self.name()), None))
 
     def value(self):
         """Return the current command vaue.
