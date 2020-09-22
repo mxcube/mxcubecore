@@ -230,9 +230,11 @@ class LimaPilatusDetector(AbstractDetector):
     def set_energy_threshold(self, energy):
         """Set the energy threshold.
         Args:
-            energy (int): Energy [eV]
+            energy (int): Energy [eV] or [keV]
         """
         minE = self.getProperty("minE")
+        # some versions of Lima Pilatus server take the energy ergument in keV
+        # some in eV. From minE we can set a convertion factor.
         factor = 1000 if minE > 100 else 1.
 
         energy_threshold = self.get_channel_value("energy_threshold")
