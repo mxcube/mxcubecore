@@ -673,7 +673,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     @task
     def write_image(self, last_frame):
         if last_frame:
-            return self._detector.wait_ready()
+            res = self._detector.wait_ready()
+            self._detector._emit_status()
+            return res
 
     def last_image_saved(self):
         return self._detector.last_image_saved()
