@@ -557,10 +557,10 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         else:
             return
 
-    @task
     def data_collection_cleanup(self):
         try:
             self.stop_oscillation()
+            HWR.beamline.detector.stop_acquisition()
             HWR.beamline.diffractometer.set_phase("Centring", wait=True, timeout=200)
         finally:
             self.close_fast_shutter()
@@ -684,7 +684,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         return self._detector.stop_acquisition()
 
     def reset_detector(self):
-        return self._detector.reset_detector()
+        return self._detector.reset()
 
     def prepare_input_files(
         self, files_directory, prefix, run_number, process_directory
