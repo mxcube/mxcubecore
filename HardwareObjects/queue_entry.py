@@ -1517,8 +1517,6 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         self.get_data_model().set_enabled(False)
 
     def stop(self):
-        import pdb
-        pdb.set_trace()
         BaseQueueEntry.stop(self)
         workflow_hwobj = HWR.beamline.workflow
         workflow_hwobj.abort()
