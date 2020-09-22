@@ -50,7 +50,7 @@ class Transmission(AbstractTransmission):
         """
         self._transmission.set(value)
 
-        # Busy is set by Abstractactuator, simply set state to ready
+        # Busy is set by AbstractActuator, simply set state to ready
         # when done so that ready event is set.
         self.update_state(self.STATES.READY)
 

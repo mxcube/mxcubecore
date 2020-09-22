@@ -36,7 +36,7 @@ class MD2MultiCollect(ESRFMultiCollect):
                 gevent.sleep(0.5)
 
             # Wait for cryo
-            while HWR.beamline.diffractometer.cryostream.get_value() < cryo_threshold:
+            while HWR.beamline.diffractometer.cryostream.get_value() > cryo_threshold:
                 logging.getLogger("user_level_log").info("Cryo temperature too high ...")
                 gevent.sleep(0.5)
 
