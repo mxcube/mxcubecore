@@ -47,7 +47,7 @@ class BlissShutterStates(Enum):
     OPEN = HardwareObjectState.READY, "OPEN"
     CLOSED = HardwareObjectState.READY, "CLOSED"
     MOVING = HardwareObjectState.BUSY, "MOVING"
-    DISABLED = HardwareObjectState.WARNING, "DISABLED"
+    DISABLE = HardwareObjectState.WARNING, "DISABLE"
     AUTOMATIC = HardwareObjectState.READY, "RUNNING"
     UNKNOWN = HardwareObjectState.UNKNOWN, "RUNNING"
     FAULT = HardwareObjectState.WARNING, "FAULT"
@@ -80,6 +80,8 @@ class BlissShutter(AbstractShutter):
         if self.shutter_type == "tango":
             self._initialise_values()
         self._poll_task = gevent.spawn(self._poll_state)
+
+        self.update_state()
 
     def _poll_state(self):
         while True:
@@ -117,8 +119,7 @@ class BlissShutter(AbstractShutter):
         """
         # the return from BLISS value is an Enum
         _val = self._bliss_obj.state.name
-        self._nominal_value = self.value_to_enum(_val)
-        return self._nominal_value
+        return self.value_to_enum(_val)
 
     def _set_value(self, value):
         if value.name == "OPEN":
