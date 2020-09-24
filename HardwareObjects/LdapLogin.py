@@ -32,12 +32,14 @@ class LdapLogin(Procedure):
 
     # Initializes the hardware object
     def init(self):
+        self.field_values = None
+        self.connect()
+
+    def connect(self):
         ldaphost = self.get_property("ldaphost")
         ldapport = self.get_property("ldapport")
         domain = self.get_property("ldapdomain")
         ldapou = self.get_property("ldapou")
-
-        self.field_values = None
 
         if ldaphost is None:
             logging.getLogger("HWR").error(
@@ -87,14 +89,14 @@ class LdapLogin(Procedure):
                     logging.getLogger("HWR").debug(
                         "LdapLogin: reconnecting to LDAP server %s", ldaphost
                     )
-                    self.ldapConnection = ldap.open(ldaphost)
+                    self.connect()
                 else:
                     logging.getLogger("HWR").debug(
                         "LdapLogin: reconnecting to LDAP server %s:%s",
                         ldaphost,
                         ldapport,
                     )
-                    self.ldapConnection = ldap.open(ldaphost, int(ldapport))
+                    self.connect()
 
     # Logs the error message (or LDAP exception) and returns the respective tuple
     def cleanup(self, ex=None, msg=None):
@@ -103,9 +105,11 @@ class LdapLogin(Procedure):
                 msg = ex[0]["desc"]
             except (IndexError, KeyError, ValueError, TypeError):
                 msg = "generic LDAP error"
-        logging.getLogger("HWR").debug("LdapLogin: %s" % msg)
-        if ex is not None:
+
+            logging.getLogger("HWR").debug("LdapLogin: %s" % msg)
+
             self.reconnect()
+
         return (False, msg)
 
     # Check password in LDAP

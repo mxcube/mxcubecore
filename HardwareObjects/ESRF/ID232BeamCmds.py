@@ -14,6 +14,7 @@ class ID232BeamCmds(HardwareObject):
         cryo = self.get_object_by_role("cryo")
 
         self.centrebeam = ControllerCommand("Centre beam", controller.centrebeam)
+        self.anneal = ControllerCommand("Anneal", controller.anneal)
 
         self.detcover = HWObjActuatorCommand("Detector cover", detcover)
         self.scintillator = HWObjActuatorCommand("Scintillator", scintillator)
@@ -23,6 +24,7 @@ class ID232BeamCmds(HardwareObject):
     def get_commands(self):
         return [
             self.centrebeam,
+            self.anneal,
             self.detcover,
             self.scintillator,
             self.hutchtrigger,

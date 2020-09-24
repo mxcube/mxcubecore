@@ -50,6 +50,10 @@ class Transmission(AbstractTransmission):
         """
         self._transmission.set(value)
 
+        # Busy is set by AbstractActuator, simply set state to ready
+        # when done so that ready event is set.
+        self.update_state(self.STATES.READY)
+
     def get_value(self):
         """Get the real transmission value
         Returns:
