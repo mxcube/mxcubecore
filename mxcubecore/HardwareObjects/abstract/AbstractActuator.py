@@ -127,7 +127,6 @@ class AbstractActuator(HardwareObject):
         if self.read_only:
             raise ValueError("Attempt to set value for read-only Actuator")
         if self.validate_value(value):
-            self.update_state(self.STATES.BUSY)
             self._set_value(value)
             self.update_value()
             if timeout == 0:
@@ -145,7 +144,6 @@ class AbstractActuator(HardwareObject):
             value = self.get_value()
 
         if self._nominal_value != value:
-
             self._nominal_value = value
             self.emit("valueChanged", (value,))
 

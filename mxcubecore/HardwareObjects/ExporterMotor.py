@@ -224,6 +224,7 @@ class ExporterMotor(AbstractMotor):
         Args:
             value (float): target value
         """
+        self.update_state(self.STATES.BUSY)
         self.motor_position.set_value(value)
 
     def abort(self):

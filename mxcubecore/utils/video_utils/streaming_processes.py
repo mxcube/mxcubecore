@@ -64,7 +64,7 @@ def get_image(lima_tango_device):
     return raw_data, width, height, frame_number
 
 
-def poll_image(encoder_input, device_uri, debug):
+def poll_image(encoder_input, device_uri, debug, sleep_time):
     from PyTango import DeviceProxy
 
     connected = False
@@ -88,7 +88,6 @@ def poll_image(encoder_input, device_uri, debug):
         encoder_input = open(encoder_input, "wb", 0)
 
     # sleep_time = lima_tango_device.video_exposure
-    sleep_time = 0.050
     last_frame_number = -1
     dtlist = []
     mean_poll_t = sleep_time
@@ -124,7 +123,7 @@ def poll_image(encoder_input, device_uri, debug):
 
 
 def start_video_stream(
-    size, scale, _hash, video_mode, loopback_device=None, debug=False
+    size, scale, _hash, video_mode, loopback_device=None, debug=False, quality=4
 ):
     """
     Start encoding with ffmpeg and stream the video with the node
@@ -173,10 +172,8 @@ def start_video_stream(
             "scale=w=%s:h=%s" % (w, h),
             "-f",
             "mpegts",
-            "-b:v",
-            "10M",
-            "-q:v",
-            "4",
+            "-b:v", "750000",
+            "-q:v", "%s" % quality,
             "-an",
             "-vcodec",
             "mpeg1video",
@@ -201,10 +198,8 @@ def start_video_stream(
             "scale=w=%s:h=%s" % (w, h),
             "-f",
             "mpegts",
-            "-b:v",
-            "10M",
-            "-q:v",
-            "4",
+            "-b:v", "750000",
+            "-q:v", "%s" % quality,
             "-an",
             "-vcodec",
             "mpeg1video",
@@ -261,6 +256,16 @@ if __name__ == "__main__":
     except IndexError:
         debug = False
 
+    try:
+        sleep_time = float(sys.argv[8].strip())
+    except IndexError:
+        sleep_time = 0.05
+
+    try:
+        quality = int(sys.argv[9].strip())
+    except IndexError:
+        quality = 4
+
     # The stream has to exist before encoding it using V4L2, so polling is
     # started in subprocess
     if loopback_device:
@@ -268,14 +273,14 @@ if __name__ == "__main__":
             loopback_device, int(size[0]), int(size[1]), 3
         )
         p = Process(
-            target=poll_image, args=(encoder_input, video_device_uri, debug)
+            target=poll_image, args=(encoder_input, video_device_uri, debug, sleep_time)
         ).start()
 
     relay, ffmpeg = start_video_stream(
-        size, scale, _hash, video_mode, loopback_device, debug
+        size, scale, _hash, video_mode, loopback_device, debug, quality
     )
 
     # Polling started after ffmpeg when using direct pipe as handle
     # to ffmpeg stdin is needed
     if not loopback_device:
-        poll_image(ffmpeg.stdin, video_device_uri, debug)
+        poll_image(ffmpeg.stdin, video_device_uri, debug, sleep_time)
