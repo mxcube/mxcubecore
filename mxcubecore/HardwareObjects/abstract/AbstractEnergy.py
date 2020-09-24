@@ -134,14 +134,17 @@ class AbstractEnergy(AbstractActuator):
         return limits[0] <= value <= limits[1]
 
     def get_undulator_gaps(self):
+        """Returns undulator gaps
+
+        Returns:
+            list: undulator gaps in mm as a list of floats
+        """
         return ()
 
     def re_emit_values(self):
-        """Emist signal energyChanged for both energy and wavelength
+        """Emits signal energyChanged for both energy and wavelength
         Argin:
             value: Not used, but kept in the method signature.
         """
-        if not self._wavelength_value:
-            self._wavelength_value = self._calculate_wavelength(self.get_value())
-        self.emit("energyChanged", (self.get_value(), self._wavelength_value))
-        self.emit("valueChanged", (self.get_value(),))
+        self.emit("valueChanged", self.get_value())
+        self.emit("wavelengthChanged", self.get_wavelength())

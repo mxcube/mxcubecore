@@ -491,7 +491,7 @@ class AbstractCollect(HardwareObject, object):
                     i += 1
 
             #TODO check if this is used
-            cp.dangerously_set("resolutionAtCorner", HWR.beamline.resolution.get_value())
+            #cp.dangerously_set("resolutionAtCorner", HWR.beamline.resolution.get_value())
 
             beam_size_x, beam_size_y = HWR.beamline.beam.get_beam_size()
             cp.dangerously_set("beamSizeAtSampleX", beam_size_x)

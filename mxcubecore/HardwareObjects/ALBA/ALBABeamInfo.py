@@ -149,19 +149,19 @@ class ALBABeamInfo(Equipment):
 
     def beam_width_changed(self, value):
         self.beam_info_dict["size_x"] = value
-        self.re_emit_valuesd()
+        self.re_emit_values()
 
     def beam_height_changed(self, value):
         self.beam_info_dict["size_y"] = value
-        self.re_emit_valuesd()
+        self.re_emit_values()
 
     def beam_posx_changed(self, value):
         self.beam_position["x"] = value
-        self.re_emit_valuesd()
+        self.re_emit_values()
 
     def beam_posy_changed(self, value):
         self.beam_position["y"] = value
-        self.re_emit_valuesd()
+        self.re_emit_values()
 
     def evaluate_beam_info(self):
         """

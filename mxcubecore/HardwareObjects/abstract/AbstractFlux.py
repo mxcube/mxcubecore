@@ -5,16 +5,16 @@
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU Lesser General Public License as published by
+#  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU Lesser General Public License for more details.
+#  GNU General Public License for more details.
 #
-#  You should have received a copy of the GNU Lesser General Public License
+#  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 from scipy.interpolate import interp1d
@@ -64,6 +64,10 @@ class AbstractFlux(AbstractActuator):
         super(AbstractFlux, self).init()
         self.read_only = self.getProperty("read_only") or True
 
+    def _set_value(self, value):
+        """Local setter function - not implemented for read_only clases"""
+        raise NotImplementedError
+
     def get_dose_rate(self, energy=None):
         """
         Get dose rate in kGy/s for a standard crystal at current settings.
@@ -88,3 +92,6 @@ class AbstractFlux(AbstractActuator):
             / 1000.0  # Converts to kGy/s
         )
         return result
+
+    def re_emit_values(self):
+        self.emit("fluxValueChanged", self._value)
