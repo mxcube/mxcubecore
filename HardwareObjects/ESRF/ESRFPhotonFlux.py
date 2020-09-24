@@ -28,6 +28,8 @@ Example xml file:
 </object>
 """
 import logging
+import gevent
+
 from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 
@@ -40,13 +42,15 @@ class ESRFPhotonFlux(AbstractFlux):
         self._counter = None
         self._flux_calc = None
         self._aperture = None
+        self.threshold = None
 
     def init(self):
         """Initialisation"""
         super(ESRFPhotonFlux, self).init()
         controller = self.getObjectByRole("controller")
-        # ultimately it should be HWR.beamline.diffractometer.aperture
+
         self._aperture = self.getObjectByRole("aperture")
+        self.threshold = self.getProperty("threshold") or 0.0
 
         try:
             self._flux_calc = controller.CalculateFlux()
@@ -63,13 +67,20 @@ class ESRFPhotonFlux(AbstractFlux):
             self._counter = self.getObjectByRole("counter")
 
         HWR.beamline.safety_shutter.connect("stateChanged", self.update_value)
+        self._poll_task = gevent.spawn(self._poll_flux)
+
+    def _poll_flux(self):
+        while True:
+            self.re_emit_values()
+            gevent.sleep(0.5)
 
     def get_value(self):
         """Calculate the flux value as function of a reading
         """
-        # counts = self._counter._counter_controller.read_all(self._counter)
-        # if isinstance(counts, list):
-        #    counts = float(counts[0])
+
+        counts = self._counter.raw_read
+        if isinstance(counts, list):
+            counts = float(counts[0])
         counts = float(self._counter.raw_read)
         if counts == -9999:
             counts = 0.0
@@ -83,5 +94,7 @@ class ESRFPhotonFlux(AbstractFlux):
         except AttributeError:
             aperture_factor = 1
         counts = abs(counts * calib * aperture_factor)
-        self._nominal_value = counts
+        if counts < self.threshold:
+            counts = 0.0
+
         return counts

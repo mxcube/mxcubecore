@@ -2,7 +2,6 @@ import gevent
 import time
 import subprocess
 import os
-import math
 import logging
 
 from PyTango import DeviceProxy
@@ -11,8 +10,10 @@ from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.CommandContainer import ConnectionError
 
 from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
-    AbstractDetector,
+    AbstractDetector
 )
+
+from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 
 
 class LimaPilatusDetector(AbstractDetector):
@@ -33,6 +34,7 @@ class LimaPilatusDetector(AbstractDetector):
 
         try:
             for channel_name in (
+                "latency_time",
                 "acq_status",
                 "acq_trigger_mode",
                 "saving_mode",
@@ -70,20 +72,19 @@ class LimaPilatusDetector(AbstractDetector):
                 self.add_channel(
                     {
                         "type": "tango",
-                        "name": "energy_threshold",
+                        "name": "working_energy",
                         "tangoname": pilatus_device,
                     },
                     "working_energy",
                 )
-            else:
-                self.add_channel(
-                    {
-                        "type": "tango",
-                        "name": "energy_threshold",
-                        "tangoname": pilatus_device,
-                    },
-                    "energy_threshold",
-                )
+            self.add_channel(
+                {
+                    "type": "tango",
+                    "name": "energy_threshold",
+                    "tangoname": pilatus_device,
+                },
+                "energy_threshold",
+            )
 
             self.add_command(
                 {"type": "tango", "name": "prepare_acq", "tangoname": lima_device},
@@ -109,7 +110,10 @@ class LimaPilatusDetector(AbstractDetector):
                 "update", self.roi_mode_changed
             )
 
+            self.get_command_object("prepare_acq").setDeviceTimeout(10000)
+
         except ConnectionError:
+            self.update_state(HardwareObjectState.FAULT)
             logging.getLogger("HWR").error(
                 "Could not connect to detector %s" % lima_device
             )
@@ -117,14 +121,15 @@ class LimaPilatusDetector(AbstractDetector):
     def has_shutterless(self):
         return True
 
-    def wait_ready(self, timeout=10):
+    def wait_ready(self, timeout=3500):
         with gevent.Timeout(timeout, RuntimeError("Detector not ready")):
             while self.get_channel_value("acq_status") != "Ready":
                 time.sleep(1)
 
     def last_image_saved(self):
         try:
-            return self.get_channel_object("last_image_saved").getValue() + 1
+            img = self.get_channel_object("last_image_saved").getValue() + 1
+            return img
         except Exception:
             return 0
 
@@ -161,6 +166,7 @@ class LimaPilatusDetector(AbstractDetector):
                 trigger_mode = "INTERNAL_TRIGGER"
             else:
                 trigger_mode = "EXTERNAL_TRIGGER"
+
             if self._mesh_steps > 1:
                 trigger_mode = "EXTERNAL_TRIGGER_MULTI"
                 # reset mesh steps
@@ -186,12 +192,11 @@ class LimaPilatusDetector(AbstractDetector):
         self.header["Polarization"] = HWR.beamline.collect.bl_config.polarisation
         self.header["Detector_2theta"] = "0.0000 deg."
         self.header["Angle_increment"] = "%0.4f deg." % osc_range
-        # self.header["Start_angle"]="%0.4f deg." % start
         self.header["Transmission"] = HWR.beamline.transmission.get_value()
 
         self.header["Flux"] = HWR.beamline.flux.get_value()
         self.header["Beam_xy"] = "(%.2f, %.2f) pixels" % tuple(
-            [value / 0.172 for value in HWR.beamline.resolution.get_beam_centre()]
+            [value / 0.172 for value in HWR.beamline.detector.get_beam_position()]
         )
         self.header["Detector_Voffset"] = "0.0000 m"
         self.header["Energy_range"] = "(0, 0) eV"
@@ -214,28 +219,42 @@ class LimaPilatusDetector(AbstractDetector):
 
         self.set_channel_value("acq_trigger_mode", trigger_mode)
 
+        if self.getProperty("set_latency_time",  False):
+            self.set_channel_value("latency_time", self.get_deadtime())
+
         self.set_channel_value("saving_mode", "AUTO_FRAME")
         self.set_channel_value("acq_nb_frames", number_of_images)
         self.set_channel_value("acq_expo_time", exptime)
         self.set_channel_value("saving_overwrite_policy", "OVERWRITE")
 
     def set_energy_threshold(self, energy):
+        """Set the energy threshold.
+        Args:
+            energy (int): Energy [eV] or [keV]
+        """
         minE = self.getProperty("minE")
+        # some versions of Lima Pilatus server take the energy ergument in keV
+        # some in eV. From minE we can set a convertion factor.
+        factor = 1000 if minE > 100 else 1.
+
+        energy_threshold = self.get_channel_value("energy_threshold")
+
+        # check if need to convert energy in eV.
+        if energy < 100:
+             energy *= factor
+
         if energy < minE:
             energy = minE
 
-        energy_threshold = self.get_channel_value("energy_threshold")
-        if math.fabs(energy_threshold - energy) > 0.1:
+        if abs(energy_threshold - energy) > 0.1:
             self.set_channel_value("energy_threshold", energy)
-
-            while math.fabs(self.get_channel_value("energy_threshold") - energy) > 0.1:
+            while abs(self.get_channel_value("energy_threshold") - energy) > 0.1:
                 time.sleep(1)
 
         self.set_channel_value("fill_mode", "ON")
 
-    def set_detector_filenames(
-        self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
-    ):
+    @task
+    def set_detector_filenames(self, frame_number, start, filename):
         prefix, suffix = os.path.splitext(os.path.basename(filename))
         prefix = "_".join(prefix.split("_")[:-1]) + "_"
         dirname = os.path.dirname(filename)
@@ -243,6 +262,7 @@ class LimaPilatusDetector(AbstractDetector):
             dirname = dirname[len(os.path.sep) :]
 
         saving_directory = os.path.join(self.getProperty("buffer"), dirname)
+
         subprocess.Popen(
             "ssh %s@%s mkdir --parents %s"
             % (os.environ["USER"], self.getProperty("control"), saving_directory),
@@ -252,8 +272,6 @@ class LimaPilatusDetector(AbstractDetector):
             stderr=None,
             close_fds=True,
         ).wait()
-
-        self.wait_ready()
 
         self.set_channel_value("saving_directory", saving_directory)
         self.set_channel_value("saving_prefix", prefix)
@@ -268,11 +286,13 @@ class LimaPilatusDetector(AbstractDetector):
         for i, start_angle in enumerate(self.start_angles):
             header = "\n%s\n" % self.getProperty("serial")
             header += "# %s\n" % time.strftime("%Y/%b/%d %T")
-            header += "# Pixel_size 172e-6 m x 172e-6 m\n"
-            header += "# Silicon sensor, thickness 0.000320 m\n"
+            header += "\n%s\n" % self.getProperty("sensor")
+            header += "\n%s\n" % self.getProperty("pixel_size")
             self.header["Start_angle"] = start_angle
+
             for key, value in self.header.items():
                 header += "# %s %s\n" % (key, value)
+
             headers.append("%d : array_data/header_contents|%s;" % (i, header))
 
         self.execute_command("set_image_header", headers)
@@ -283,6 +303,9 @@ class LimaPilatusDetector(AbstractDetector):
         except Exception:
             pass
 
+        self.wait_ready()
+
+        self.execute_command("stop_acq")
         self.execute_command("prepare_acq")
         return self.execute_command("start_acq")
 

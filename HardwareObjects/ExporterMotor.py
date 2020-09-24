@@ -28,6 +28,8 @@ Example xml file:
 """
 
 import sys
+import math
+
 from gevent import Timeout, sleep
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 from HardwareRepository.Command.Exporter import Exporter
@@ -129,7 +131,11 @@ class ExporterMotor(AbstractMotor):
         Returns:
             (bool): True if both "Ready", False otherwise.
         """
-        if self._get_swstate() == "Ready" and self._get_hwstate() == "Ready":
+        if (
+            self._get_swstate() == "Ready"
+            and self._get_hwstate() == "Ready"
+            and self.motor_state.get_value() == "Ready"
+        ):
             return True
         return False
 
@@ -167,7 +173,13 @@ class ExporterMotor(AbstractMotor):
         Returns:
             (float): Motor position.
         """
-        self._nominal_value = self.motor_position.get_value()
+        _v = self.motor_position.get_value()
+
+        if math.isnan(_v):
+            _v = 0
+
+        self._nominal_value = _v
+
         return self._nominal_value
 
     def __get_limits(self, cmd):
@@ -212,6 +224,7 @@ class ExporterMotor(AbstractMotor):
         Args:
             value (float): target value
         """
+        self.update_state(self.STATES.BUSY)
         self.motor_position.set_value(value)
 
     def abort(self):

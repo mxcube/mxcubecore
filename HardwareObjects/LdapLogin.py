@@ -16,7 +16,7 @@ otherwise it is uid=xxx,ou=xxx,dc=xx,dc=xx
   <ldaphost>ldaphost.mydomain</ldaphost>
   <ldapport>389</ldapport>
   <ldapdomain>example.com</ldapdomain>
-  <ldapou>maxivusers</ldapou>
+  <ldapou>users</ldapou>
 </procedure>
 """
 
@@ -32,12 +32,14 @@ class LdapLogin(Procedure):
 
     # Initializes the hardware object
     def init(self):
+        self.field_values = None
+        self.connect()
+
+    def connect(self):
         ldaphost = self.getProperty("ldaphost")
         ldapport = self.getProperty("ldapport")
         domain = self.getProperty("ldapdomain")
         ldapou = self.getProperty("ldapou")
-
-        self.field_values = None
 
         if ldaphost is None:
             logging.getLogger("HWR").error(
@@ -48,12 +50,14 @@ class LdapLogin(Procedure):
                 logging.getLogger("HWR").debug(
                     "LdapLogin: connecting to LDAP server %s", ldaphost
                 )
-                self.ldapConnection = ldap.open(ldaphost)
+                self.ldapConnection = ldap.initialize("ldap://" + ldaphost)
             else:
                 logging.getLogger("HWR").debug(
                     "LdapLogin: connecting to LDAP server %s:%s", ldaphost, ldapport
                 )
-                self.ldapConnection = ldap.open(ldaphost, int(ldapport))
+                self.ldapConnection = ldap.initialize(
+                    "ldap://%s:%s" % (ldaphost, int(ldapport))
+                )
 
             logging.getLogger("HWR").debug(
                 "LdapLogin: got connection %s" % str(self.ldapConnection)
@@ -85,14 +89,14 @@ class LdapLogin(Procedure):
                     logging.getLogger("HWR").debug(
                         "LdapLogin: reconnecting to LDAP server %s", ldaphost
                     )
-                    self.ldapConnection = ldap.open(ldaphost)
+                    self.connect()
                 else:
                     logging.getLogger("HWR").debug(
                         "LdapLogin: reconnecting to LDAP server %s:%s",
                         ldaphost,
                         ldapport,
                     )
-                    self.ldapConnection = ldap.open(ldaphost, int(ldapport))
+                    self.connect()
 
     # Logs the error message (or LDAP exception) and returns the respective tuple
     def cleanup(self, ex=None, msg=None):
@@ -101,14 +105,15 @@ class LdapLogin(Procedure):
                 msg = ex[0]["desc"]
             except (IndexError, KeyError, ValueError, TypeError):
                 msg = "generic LDAP error"
-        logging.getLogger("HWR").debug("LdapLogin: %s" % msg)
-        if ex is not None:
+
+            logging.getLogger("HWR").debug("LdapLogin: %s" % msg)
+
             self.reconnect()
+
         return (False, msg)
 
     # Check password in LDAP
     def login(self, username, password, retry=True, fields=None):
-
         # fields can be used in local implementation to retrieve user information from
         # ldap.  In ALBA for example, it is used to obtain homeDirectory upon successful
         # login and use that value for programming session hwo directories

@@ -42,6 +42,7 @@ BeamlineConfig = collections.namedtuple(
         "detector_fileext",
         "detector_type",
         "detector_manufacturer",
+        "detector_binning_mode",
         "detector_model",
         "detector_px",
         "detector_py",
@@ -63,7 +64,7 @@ class AbstractMultiCollect(object):
 
     def __init__(self):
         self.bl_control = BeamlineControl(*[None] * 14)
-        self.bl_config = BeamlineConfig(*[None] * 19)
+        self.bl_config = BeamlineConfig(*[None] * 20)
         self.data_collect_task = None
         self.oscillation_task = None
         self.oscillations_history = []
@@ -128,7 +129,6 @@ class AbstractMultiCollect(object):
         pass
 
     @abc.abstractmethod
-    @task
     def prepare_oscillation(
         self, start, osc_range, exptime, number_of_images, shutterless, npass
     ):
@@ -136,9 +136,7 @@ class AbstractMultiCollect(object):
 
     @abc.abstractmethod
     @task
-    def set_detector_filenames(
-        self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
-    ):
+    def set_detector_filenames(self, frame_number, start, filename, shutterless):
         pass
 
     @abc.abstractmethod
@@ -495,6 +493,7 @@ class AbstractMultiCollect(object):
         data_collect_parameters["actualCenteringPosition"] = positions_str.strip()
 
         self.move_motors(motors_to_move_before_collect)
+        HWR.beamline.diffractometer.save_centring_positions()
 
         # take snapshots, then assign centring status (which contains images) to
         # centring_info variable
@@ -646,31 +645,31 @@ class AbstractMultiCollect(object):
             logging.getLogger("user_level_log").info(
                 "Setting transmission to %f", data_collect_parameters["transmission"]
             )
-            HWR.beamline.transmission.set_value(data_collect_parameters["transmission"])
+            HWR.beamline.transmission.set_value(data_collect_parameters["transmission"], timeout=30)
 
         if "wavelength" in data_collect_parameters:
             logging.getLogger("user_level_log").info(
                 "Setting wavelength to %f", data_collect_parameters["wavelength"]
             )
-            HWR.beamline.energy.set_wavelength(data_collect_parameters["wavelength"])
+            HWR.beamline.energy.set_wavelength(data_collect_parameters["wavelength"], timeout=None)
         elif "energy" in data_collect_parameters:
             logging.getLogger("user_level_log").info(
                 "Setting energy to %f", data_collect_parameters["energy"]
             )
-            HWR.beamline.energy.set_value(data_collect_parameters["energy"])
+            HWR.beamline.energy.set_value(data_collect_parameters["energy"], timeout=None)
 
         if "resolution" in data_collect_parameters:
             resolution = data_collect_parameters["resolution"]["upper"]
             logging.getLogger("user_level_log").info(
                 "Setting resolution to %f", resolution
             )
-            HWR.beamline.resolution.set_value(resolution)
+            HWR.beamline.resolution.set_value(resolution, timeout=3500)
         elif "detector_distance" in oscillation_parameters:
             logging.getLogger("user_level_log").info(
                 "Moving detector to %f", data_collect_parameters["detector_distance"]
             )
             HWR.beamline.detector.distance.set_value(
-                oscillation_parameters["detector_distance"]
+                oscillation_parameters["detector_distance"], timeout=3500
             )
 
         # 0: software binned, 1: unbinned, 2:hw binned
@@ -679,7 +678,7 @@ class AbstractMultiCollect(object):
         with cleanup(self.data_collection_cleanup):
             if not self.safety_shutter_opened():
                 logging.getLogger("user_level_log").info("Opening safety shutter")
-                self.open_safety_shutter(timeout=10)
+                self.open_safety_shutter()
 
             logging.getLogger("user_level_log").info("Preparing intensity monitors")
             self.prepare_intensity_monitors()
@@ -811,9 +810,8 @@ class AbstractMultiCollect(object):
                             frame,
                             frame_start,
                             str(file_path),
-                            str(jpeg_full_path),
-                            str(jpeg_thumbnail_full_path),
-                            wait=False
+                            data_collect_parameters.get("shutterless", True),
+                            wait=False,
                         )
 
                         osc_start, osc_end = self.prepare_oscillation(
@@ -823,7 +821,7 @@ class AbstractMultiCollect(object):
                             wedge_size,
                             data_collect_parameters.get("shutterless", True),
                             npass,
-                            j == wedge_size
+                            j == wedge_size,
                         )
 
                         with error_cleanup(self.reset_detector):
@@ -840,10 +838,9 @@ class AbstractMultiCollect(object):
                                 wedge_size,
                                 data_collect_parameters.get("shutterless", True),
                                 npass,
-                                j == wedge_size
+                                j == wedge_size,
                             )
 
-                            # self.stop_acquisition()
                             self.write_image(j == 1)
 
                         # Store image in lims
@@ -903,12 +900,11 @@ class AbstractMultiCollect(object):
                                     "Timeout waiting for detector trigger, no image taken"
                                 ),
                             ):
-                                print("HERE")
-                                print(self.last_image_saved())
                                 while self.last_image_saved() == 0:
                                     time.sleep(exptime)
 
                             last_image_saved = self.last_image_saved()
+
                             if last_image_saved < wedge_size:
                                 time.sleep(exptime)
                                 last_image_saved = self.last_image_saved()
@@ -1121,7 +1117,6 @@ class AbstractMultiCollect(object):
             )
         return self.data_collect_task
 
-    # TODO: rename to stop_collect
     def stop_collect(self, owner=None):
         if self.data_collect_task is not None:
             self.data_collect_task.kill(block=False)

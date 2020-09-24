@@ -6,6 +6,7 @@ from __future__ import print_function
 import os
 import sys
 import math
+import time
 import logging
 import PyTango.client
 import traceback
@@ -61,6 +62,36 @@ class MetadataManagerClient(object):
         print("Sample: %s" % MetadataManagerClient.metaExperiment.sample)
         print("Dataset: %s" % MetadataManagerClient.metadataManager.scanName)
 
+    def __setAttribute(self, proxy, attributeName, newValue):
+        """
+        This method sets an attribute on either the MetadataManager or MetaExperiment server.
+        The method checks that the attribute has been set, and repeats up to five times
+        setting the attribute if not. If the attribute is not set after five trials the method
+        raises an 'RuntimeError' exception.
+        """
+        currentValue = "unknown"
+        if newValue == currentValue:
+            currentValue = "Current value not known"
+        counter = 0
+        while counter < 5:
+            counter += 1
+            try:
+                setattr(proxy, attributeName, newValue)
+                time.sleep(0.1)
+                currentValue = getattr(proxy, attributeName)
+                if currentValue == newValue:
+                    break
+            except BaseException as e:
+                print("Unexpected error in MetadataManagerClient._setAttribute: {0}".format(e))
+                print("proxy = '{0}', attributeName = '{1}', newValue = '{2}'".format(
+                    proxy, attributeName, newValue))
+                print("Trying again, trial #{0}".format(counter))
+                time.sleep(1)
+        if currentValue == newValue:
+            setattr(self, attributeName, newValue)
+        else:
+            raise RuntimeError("Cannot set '{0}' attribute '{1}' to '{2}'!".format(proxy, attributeName, newValue))
+
     def __setDataRoot(self, dataRoot):
         try:
             MetadataManagerClient.metaExperiment.dataRoot = dataRoot
@@ -106,16 +137,21 @@ class MetadataManagerClient(object):
         if MetadataManagerClient.metaExperiment:
             try:
                 # setting proposal
-                self.__setProposal(proposal)
+                # self.__setProposal(proposal)
+                self.__setAttribute(MetadataManagerClient.metaExperiment, "proposal", proposal)
 
                 # setting dataRoot
-                self.__setDataRoot(dataRoot)
+                # self.__setDataRoot(dataRoot)
+                self.__setAttribute(MetadataManagerClient.metaExperiment, "dataRoot", dataRoot)
 
                 # setting sample
-                self.__setSample(sampleName)
+                # self.__setSample(sampleName)
+                self.__setAttribute(MetadataManagerClient.metaExperiment, "sample", sampleName)
 
                 # setting dataset
-                self.__setDataset(datasetName)
+                # self.__setDataset(datasetName)
+                self.__setAttribute(MetadataManagerClient.metadataManager, "scanName", datasetName)
+                self.datasetName = datasetName
 
                 # setting datasetName
                 if str(MetadataManagerClient.metaExperiment.state()) == "ON":
@@ -435,7 +471,10 @@ class MXCuBEMetadataClient(object):
                 motorPositions = str(round(position, 3))
             else:
                 motorNames += " " + motorName
-                motorPositions += " " + str(round(position, 3))
+                if position is not None:
+                    motorPositions += " " + str(round(position, 3))
+                else:
+                    motorPositions += " None"
         dictMetadata["MX_motors_name"] = motorNames
         dictMetadata["MX_motors_value"] = motorPositions
         # Detector distance
@@ -443,14 +482,8 @@ class MXCuBEMetadataClient(object):
         if distance is not None:
             dictMetadata["MX_detectorDistance"] = distance
         # Aperture
-        if (
-            self.esrf_multi_collect.bl_control.beam_info is not None
-            and self.esrf_multi_collect.bl_control.beam_info.aperture_hwobj is not None
-        ):
-            aperture = (
-                self.esrf_multi_collect.bl_control.beam_info.aperture_hwobj.get_value()
-            )
-            dictMetadata["MX_aperture"] = aperture
+        if HWR.beamline.beam is not None and HWR.beamline.beam.aperture is not None:
+            dictMetadata["MX_aperture"] = HWR.beamline.beam.aperture.get_value()
         return dictMetadata
 
 

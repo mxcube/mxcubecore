@@ -123,8 +123,9 @@ class _Poller:
     def new_event(self):
         while True:
             try:
-                res = Queue().get_nowait()
-            except Empty:
+                #res = Queue().get_nowait()
+                res = self.queue.get_nowait()
+            except _threading.Empty:
                 break
 
             if isinstance(res, PollingException):

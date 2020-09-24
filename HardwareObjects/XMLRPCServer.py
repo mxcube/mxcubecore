@@ -16,16 +16,17 @@ import time
 import json
 import atexit
 import traceback
+import jsonpickle
 
+from functools import reduce
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository import HardwareRepository as HWR
+from HardwareRepository.HardwareObjects.SecureXMLRpcRequestHandler import SecureXMLRpcRequestHandler
 
 if sys.version_info > (3, 0):
-    from xmlrpc.server import SimpleXMLRPCRequestHandler
     from xmlrpc.server import SimpleXMLRPCServer
 else:
-    from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
     from SimpleXMLRPCServer import SimpleXMLRPCServer
 
 
@@ -37,97 +38,6 @@ __version__ = ""
 __maintainer__ = "Marcus Oskarsson"
 __email__ = "marcus.oscarsson@esrf.fr"
 __status__ = "Draft"
-
-
-class SecureXMLRpcRequestHandler(SimpleXMLRPCRequestHandler):
-    """
-    Secure XML-RPC request handler class.
-
-    It it very similar to SimpleXMLRPCRequestHandler but it checks for a
-    "Token" entry in the header. If this token doesn't correspond to a
-    reference token the server sends a "401" (Unauthorized) reply.
-    """
-
-    __referenceToken = None
-
-    @staticmethod
-    def setReferenceToken(token):
-        SecureXMLRpcRequestHandler.__referenceToken = token
-
-    def setup(self):
-        self.connection = self.request
-        self.rfile = socket._fileobject(self.request, "rb", self.rbufsize)
-        self.wfile = socket._fileobject(self.request, "wb", self.wbufsize)
-
-    def do_POST(self):
-        """
-        Handles the HTTPS POST request.
-
-        It was copied out from SimpleXMLRPCServer.py and modified to check for "Token" in the headers.
-        """
-        # Check that the path is legal
-        if not self.is_rpc_path_valid():
-            self.report_404()
-            return
-
-        referenceToken = SecureXMLRpcRequestHandler.__referenceToken
-        if (
-            referenceToken is not None
-            and "Token" in self.headers
-            and referenceToken == self.headers["Token"]
-        ):
-            try:
-                # Get arguments by reading body of request.
-                # We read this in chunks to avoid straining
-                # socket.read(); around the 10 or 15Mb mark, some platforms
-                # begin to have problems (bug #792570).
-                max_chunk_size = 10 * 1024 * 1024
-                size_remaining = int(self.headers["content-length"])
-                L = []
-                while size_remaining:
-                    chunk_size = min(size_remaining, max_chunk_size)
-                    chunk = self.rfile.read(chunk_size)
-                    if not chunk:
-                        break
-                    L.append(chunk)
-                    size_remaining -= len(L[-1])
-                data = "".join(L)
-                # In previous versions of SimpleXMLRPCServer, _dispatch
-                # could be overridden in this class, instead of in
-                # SimpleXMLRPCDispatcher. To maintain backwards compatibility,
-                # check to see if a subclass implements _dispatch and dispatch
-                # using that method if present.
-                response = self.server._marshaled_dispatch(
-                    data, getattr(self, "_dispatch", None)
-                )
-            except Exception as e:  # This should only happen if the module is buggy
-                # internal error, report as HTTP server error
-                self.send_response(500)
-
-                # Send information about the exception if requested
-                if (
-                    hasattr(self.server, "_send_traceback_header")
-                    and self.server._send_traceback_header
-                ):
-                    self.send_header("X-exception", str(e))
-                    self.send_header("X-traceback", traceback.format_exc())
-
-                self.end_headers()
-            else:
-                # got a valid XML RPC response
-                self.send_response(200)
-                self.send_header("Content-type", "text/xml")
-                self.send_header("Content-length", str(len(response)))
-                self.end_headers()
-                self.wfile.write(response)
-
-                # shut down the connection
-                self.wfile.flush()
-                self.connection.shutdown(1)
-        else:
-            # Unrecognized token - access unauthorized
-            self.send_response(401)
-            self.end_headers()
 
 
 class XMLRPCServer(HardwareObject):
@@ -143,7 +53,7 @@ class XMLRPCServer(HardwareObject):
         self.xmlrpc_prefixes = set()
         self.current_entry_task = None
         self.host = None
-        self.doEnforceUseOfToken = False
+        self.use_token = True
 
         atexit.register(self.close)
 
@@ -151,7 +61,6 @@ class XMLRPCServer(HardwareObject):
         """
         Method inherited from HardwareObject, called by framework-2.
         """
-
         self.all_interfaces = self.getProperty("all_interfaces", False)
         # Listen on all interfaces if <all_interfaces>True</all_interfaces>
         # otherwise only on the interface corresponding to socket.gethostname()
@@ -163,7 +72,7 @@ class XMLRPCServer(HardwareObject):
         self.host = host
         self.port = self.getProperty("port")
 
-        self.doEnforceUseOfToken = self.getProperty("enforceUseOfToken", False)
+        self.use_token = self.getProperty("use_token", True)
 
         try:
             self.open()
@@ -186,7 +95,7 @@ class XMLRPCServer(HardwareObject):
             return
         self.xmlrpc_prefixes = set()
 
-        if self.doEnforceUseOfToken:
+        if self.use_token:
             self._server = SimpleXMLRPCServer(
                 (self.host, int(self.port)),
                 requestHandler=SecureXMLRpcRequestHandler,
@@ -210,6 +119,9 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.shape_history_get_grid)
         self._server.register_function(self.shape_history_set_grid_data)
         self._server.register_function(self.beamline_setup_read)
+        self._server.register_function(self.get_default_path_template)
+        self._server.register_function(self.get_default_acquisition_parameters)
+
         self._server.register_function(self.get_diffractometer_positions)
         self._server.register_function(self.move_diffractometer)
         self._server.register_function(self.save_snapshot)
@@ -255,7 +167,7 @@ class XMLRPCServer(HardwareObject):
     def anneal(self, time):
         cryoshutter_hwobj = self.getObjectByRole("cryoshutter")
         try:
-            cryoshutter_hwobj.get_command_object("anneal")(time)
+            cryoshutter_hwobj.getCommandObject("anneal")(time)
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
             raise
@@ -424,9 +336,10 @@ class XMLRPCServer(HardwareObject):
     def queue_status(self):
         pass
 
-    def shape_history_get_grid(self):
+    def shape_history_get_grid(self, sid):
         """
-        :returns: The currently selected grid
+        :param sid: Shape id 
+        :returns: Grid with id <sid>
         :rtype: dict
 
         Format of the returned dictionary:
@@ -440,9 +353,8 @@ class XMLRPCServer(HardwareObject):
          'y1': float,
          'angle': float}
 
-        """
-        grid_dict = HWR.beamline.sample_view.get_grid()
-        # self.shape_history_set_grid_data(grid_dict['id'], {})
+        """       
+        grid_dict = HWR.beamline.sample_view.get_shape(sid).as_dict()
 
         return grid_dict
 
@@ -469,15 +381,32 @@ class XMLRPCServer(HardwareObject):
 
         return json_cplist
 
+    def _getattr_from_path(self, obj, attr, delim="/"):
+        """Recurses through an attribute chain to get the attribute."""
+        return reduce(getattr, attr.split(delim), obj)
+
     def beamline_setup_read(self, path):
-        raise NotImplementedError(
-            "There is no longer a BeamlineSetup object. Please refactor code"
-        )
-        # try:
-        #     return self.beamline_setup_hwobj.read_value(path)
-        # except Exception as ex:
-        #     logging.getLogger("HWR").exception(str(ex))
-        #     raise
+        value = None
+
+        if path.strip("/").endswith("default-acquisition-parameters"):
+            value = jsonpickle.encode(self.get_default_acquisition_parameters())
+        elif path.strip("/").endswith("default-path-template"):
+            value = jsonpickle.encode(self.get_default_path_template())
+        else:
+            try:
+                path = path[1:] if path[0] == "/" else path
+                ho = self._getattr_from_path(HWR, path)
+                value = ho.get_value()
+            except:
+                logging.getLogger("HWR").exception("Could no get %s " % str(path))
+
+        return value
+
+    def get_default_path_template(self):
+        return HWR.beamline.get_default_path_template()
+
+    def get_default_acquisition_parameters(self):
+        return HWR.beamline.get_default_acquisition_parameters()
 
     def workflow_set_in_progress(self, state):
         if state:
@@ -499,7 +428,7 @@ class XMLRPCServer(HardwareObject):
             if showScale:
                 HWR.beamline.diffractometer.save_snapshot(imgpath)
             else:
-                HWR.beamline.diffractometer.getObjectByRole("camera").takeSnapshot(
+                HWR.beamline.sample_view.getObjectByRole("camera").take_snapshot(
                     imgpath
                 )
         except Exception as ex:
@@ -525,19 +454,19 @@ class XMLRPCServer(HardwareObject):
         return float(flux)
 
     def set_aperture(self, pos_name, timeout=20):
-        HWR.beamline.beam.aperture.move_to_position(pos_name)
+        HWR.beamline.beam.aperture_hwobj.moveToPosition(pos_name)
         t0 = time.time()
-        while HWR.beamline.beam.aperture.get_state() == "MOVING":
+        while HWR.beamline.beam.aperture_hwobj.getState() == "MOVING":
             time.sleep(0.1)
             if time.time() - t0 > timeout:
                 raise RuntimeError("Timeout waiting for aperture to move")
         return True
 
     def get_aperture(self):
-        return HWR.beamline.beam.aperture.get_current_position_name()
+        return HWR.beamline.beam.aperture_hwobj.getCurrentPositionName()
 
     def get_aperture_list(self):
-        return HWR.beamline.beam.aperture.get_predefined_positions_list()
+        return HWR.beamline.beam.aperture_hwobj.getPredefinedPositionsList()
 
     def open_dialog(self, dict_dialog):
         """
@@ -597,13 +526,13 @@ class XMLRPCServer(HardwareObject):
         """
         Sets the zoom to a pre-defined level.
         """
-        HWR.beamline.diffractometer.zoomMotor.moveToPosition(zoom_level)
+        HWR.beamline.diffractometer.zoomMotor._set_value(int(zoom_level))
 
     def get_zoom_level(self):
         """
         Returns the zoom level.
         """
-        return HWR.beamline.diffractometer.zoomMotor.get_current_position_name()
+        return HWR.beamline.diffractometer.zoomMotor.get_value().value
 
     def get_available_zoom_levels(self):
         """
@@ -686,7 +615,7 @@ class XMLRPCServer(HardwareObject):
 
                     # Bind method to this XMLRPCServer instance but don't set attribute
                     # This is sufficient to register it as an xmlrpc function.
-                    bound_method = types.MethodType(f[1], self, self.__class__)
+                    bound_method = types.MethodType(f[1], self)
                     self._server.register_function(bound_method, xmlrpc_name)
 
             # TODO: Still need to test with deeply-nested modules, in particular that
