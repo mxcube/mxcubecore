@@ -398,7 +398,7 @@ class Microdiff(MiniDiff.MiniDiff):
         params += "%0.3f\t" % (exptime / mesh_num_lines)
         params += "%r\t" % True
         params += "%r\t" % True
-        params += "%r\t" % True
+        params += "%r\t" % self.getProperty("use_fast_mesh", True)
 
         scan = self.add_command(
             {

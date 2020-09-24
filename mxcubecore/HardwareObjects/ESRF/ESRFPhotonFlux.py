@@ -96,5 +96,5 @@ class ESRFPhotonFlux(AbstractFlux):
         counts = abs(counts * calib * aperture_factor)
         if counts < self.threshold:
             counts = 0.0
-        self._nominal_value = counts
+
         return counts

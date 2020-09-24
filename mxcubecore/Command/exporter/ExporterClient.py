@@ -128,7 +128,7 @@ class ExporterClient(StandardClient):
         """
         if ret[:4] == RET_ERR:
             msg = "Diffractometer: {}".format(str(ret[4:]))
-            logging.getLogger("user_level_log").error(msg)
+            logging.getLogger("HWR").error(msg)
             raise Exception(ret[4:])
         if ret == RET_NULL:
             return None

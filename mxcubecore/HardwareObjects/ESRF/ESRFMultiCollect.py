@@ -621,7 +621,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def close_safety_shutter(self):
         try:
             HWR.beamline.safety_shutter.set_value(
-                HWR.beamline.safety_shutter.VALUES["CLOSE"]
+                HWR.beamline.safety_shutter.VALUES["CLOSED"]
             )
         except Exception:
             logging.getLogger("HWR").exception("")

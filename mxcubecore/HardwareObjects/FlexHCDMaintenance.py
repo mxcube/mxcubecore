@@ -75,12 +75,12 @@ class FlexHCDMaintenance(Equipment):
         """
         self._sc.defreeze()
 
-    def _do_change_gripper(self):
+    def _do_change_gripper(self, args):
         """
         :returns: None
         :rtype: None
         """
-        self._sc.change_gripper()
+        self._sc.change_gripper(gripper=args)
 
     def _do_reset_sample_number(self):
         """
@@ -121,18 +121,34 @@ class FlexHCDMaintenance(Equipment):
            [ cmd_name,  display_name, category ]
         """
         """ [cmd_id, cmd_display_name, nb_args, cmd_category, description ] """
+
         cmd_list = [
             [
                 "Actions",
                 [
-                    ["home", "Home", "Actions"],
-                    ["defreeze", "Defreeze gripper", "Actions"],
-                    ["reset_sample_number", "Reset sample number", "Actions"],
-                    ["change_gripper", "Change Gripper", "Actions"],
-                    ["abort", "Abort", "Actions"],
+                    ["home", "Home", "Actions", None],
+                    ["defreeze", "Defreeze gripper", "Actions", None],
+                    ["reset_sample_number", "Reset sample number", "Actions", None],
+                    ["abort", "Abort", "Actions", None],
                 ],
-            ]
+            ],
         ]
+
+        try:
+            grippers = self._sc.get_available_grippers()
+        except Exception:
+            pass
+        else:
+            gripper_cmd_list = []
+
+            for gripper in grippers:
+                arg = list(self._sc.gripper_types.keys())[list(self._sc.gripper_types.values()).index(gripper)]
+                gripper_cmd_list.append(["change_gripper", gripper.title().replace("_", " "), "Gripper", arg])
+
+            grippers_cmd = ["Gripper: %s" % self._sc.get_gripper().title().replace("_", " "), gripper_cmd_list,]
+
+            cmd_list.append(grippers_cmd)
+
         return cmd_list
 
     def send_command(self, cmd_name, args=None):
@@ -144,9 +160,9 @@ class FlexHCDMaintenance(Equipment):
             self._do_defreeze_gripper()
         if cmd_name in ["reset_sample_number"]:
             self._do_reset_sample_number()
-        if cmd_name == "change_gripper":
-            self._do_change_gripper()
-        if cmd_name == "abort":
+        if cmdname == "change_gripper":
+            self._do_change_gripper(int(args))
+        if cmdname == "abort":
             self._do_abort()
 
         return True

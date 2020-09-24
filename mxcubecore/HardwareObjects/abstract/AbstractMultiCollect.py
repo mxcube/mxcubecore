@@ -645,31 +645,31 @@ class AbstractMultiCollect(object):
             logging.getLogger("user_level_log").info(
                 "Setting transmission to %f", data_collect_parameters["transmission"]
             )
-            HWR.beamline.transmission.set_value(data_collect_parameters["transmission"])
+            HWR.beamline.transmission.set_value(data_collect_parameters["transmission"], timeout=30)
 
         if "wavelength" in data_collect_parameters:
             logging.getLogger("user_level_log").info(
                 "Setting wavelength to %f", data_collect_parameters["wavelength"]
             )
-            HWR.beamline.energy.set_wavelength(data_collect_parameters["wavelength"])
+            HWR.beamline.energy.set_wavelength(data_collect_parameters["wavelength"], timeout=None)
         elif "energy" in data_collect_parameters:
             logging.getLogger("user_level_log").info(
                 "Setting energy to %f", data_collect_parameters["energy"]
             )
-            HWR.beamline.energy.set_value(data_collect_parameters["energy"])
+            HWR.beamline.energy.set_value(data_collect_parameters["energy"], timeout=None)
 
         if "resolution" in data_collect_parameters:
             resolution = data_collect_parameters["resolution"]["upper"]
             logging.getLogger("user_level_log").info(
                 "Setting resolution to %f", resolution
             )
-            HWR.beamline.resolution.set_value(resolution)
+            HWR.beamline.resolution.set_value(resolution, timeout=3500)
         elif "detector_distance" in oscillation_parameters:
             logging.getLogger("user_level_log").info(
                 "Moving detector to %f", data_collect_parameters["detector_distance"]
             )
             HWR.beamline.detector.distance.set_value(
-                oscillation_parameters["detector_distance"]
+                oscillation_parameters["detector_distance"], timeout=3500
             )
 
         # 0: software binned, 1: unbinned, 2:hw binned
