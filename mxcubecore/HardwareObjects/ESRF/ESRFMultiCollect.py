@@ -658,8 +658,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         )
 
     @task
-    def set_detector_filenames(self, frame_number, start, filename, shutterless):
-        if frame_number == 1 or not shutterless:
+    def set_detector_filenames(self, is_first_frame, frame_number, start, filename, shutterless):
+        if is_first_frame or not shutterless:
             return self._detector.set_detector_filenames(frame_number, start, filename)
 
     def stop_oscillation(self):
