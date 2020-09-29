@@ -680,6 +680,19 @@ class AbstractMultiCollect(object):
                 logging.getLogger("user_level_log").info("Opening safety shutter")
                 self.open_safety_shutter()
 
+            flux_threshold = self.getProperty("flux_threshold", False)
+            cryo_threshold = self.getProperty("cryo_threshold", False)
+
+            # Wait for flux
+            while flux_threshold and HWR.beamline.flux.get_value() < flux_threshold:
+                logging.getLogger("user_level_log").info("Waiting for beam ...")
+                gevent.sleep(0.5)
+
+            # Wait for cryo
+            while cryo_threshold and HWR.beamline.diffractometer.cryostream.get_value() > cryo_threshold:
+                logging.getLogger("user_level_log").info("Cryo temperature too high ...")
+                gevent.sleep(0.5)
+
             logging.getLogger("user_level_log").info("Preparing intensity monitors")
             self.prepare_intensity_monitors()
 
