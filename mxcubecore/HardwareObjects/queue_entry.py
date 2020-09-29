@@ -262,8 +262,6 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                     .path_template
                 )
 
-                #acq_path_template.run_number = item["sw_index"] + 1
-
                 acq_first_image = acq_par.first_image
 
                 acq_par.first_image = item["sw_first_image"]
