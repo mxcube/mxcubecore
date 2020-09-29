@@ -136,7 +136,7 @@ class AbstractMultiCollect(object):
 
     @abc.abstractmethod
     @task
-    def set_detector_filenames(self, frame_number, start, filename, shutterless):
+    def set_detector_filenames(self, is_first_frame, frame_number, start, filename, shutterless):
         pass
 
     @abc.abstractmethod
@@ -805,8 +805,9 @@ class AbstractMultiCollect(object):
                             jpeg_thumbnail_full_path = None
                         file_location = file_parameters["directory"]
                         file_path = os.path.join(file_location, filename)
-
+                        
                         self.set_detector_filenames(
+                            i == 1,
                             frame,
                             frame_start,
                             str(file_path),
@@ -1118,6 +1119,8 @@ class AbstractMultiCollect(object):
         return self.data_collect_task
 
     def stop_collect(self, owner=None):
+        self.data_collection_cleanup()
+
         if self.data_collect_task is not None:
             self.data_collect_task.kill(block=False)
 
