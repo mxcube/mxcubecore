@@ -572,8 +572,6 @@ def auto_center(
     imgWidth = camera.get_width()
     imgHeight = camera.get_height()
 
-    logging.getLogger("user_level_log").info("Auto loop centering")
-
     # check if loop is there at the beginning
     i = 0
     while -1 in find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
@@ -605,7 +603,6 @@ def auto_center(
 
         for a in range(n_points):
             x, y = find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb)
-            logging.getLogger("user_level_log").info("Auto loop centering, found position (%f,%f)" %(x,y))
             # logging.info("in autocentre, x=%f, y=%f",x,y)
             if x < 0 or y < 0:
                 for i in range(1, 18):
@@ -632,13 +629,11 @@ def auto_center(
                 if -1 in (x, y):
                     centring_greenlet.kill()
                     raise RuntimeError("Could not centre sample automatically.")
-                    logging.getLogger("user_level_log").info("Could not centre sample automatically.")
                 phi.set_value_relative(-i * 5)
             else:
                 user_click(x, y, wait=True)
 
         centred_pos = centring_greenlet.get()
         end(centred_pos)
-        logging.getLogger("user_level_log").info("Auto loop centering, moving sample to %s" % str(centered_pos))
 
     return centred_pos
