@@ -789,8 +789,9 @@ class ISPyBClient(HardwareObject):
             "LOGGED IN and todays session: " + str(todays_session)
         )
 
-        todays_session = todays_session["session"]
-        todays_session_id = todays_session.get("sessionId", None)
+        session = todays_session["session"]
+        session["is_inhouse"] = todays_session["is_inhouse"]
+        todays_session_id = session.get("sessionId", None)
         local_contact = self.get_session_local_contact(todays_session_id) if todays_session_id else {}
 
         return {
