@@ -134,7 +134,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
         else:
             w, h = size
 
-        self.set_stream_size(w * self.mpeg_scale, h * self.mpeg_scale)
+        self.set_stream_size(w * self._mpeg_scale, h * self._mpeg_scale)
         self.start_video_stream_process()
 
         return self.video_device
