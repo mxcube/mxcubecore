@@ -476,6 +476,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     @task
     def data_collection_end_hook(self, data_collect_parameters):
+        self._detector._emit_status()
         self._metadataClient.end(data_collect_parameters)
 
     def prepare_oscillation(
