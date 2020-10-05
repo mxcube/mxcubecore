@@ -61,5 +61,3 @@ class ShutterMockup(ActuatorMockup, AbstractShutter):
     def close(self):
         self.set_value(self.VALUES.CLOSED, timeout=None)
 
-    def update_limits(self, limits=None):
-        pass
