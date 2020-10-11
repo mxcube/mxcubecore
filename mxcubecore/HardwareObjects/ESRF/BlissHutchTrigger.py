@@ -27,11 +27,12 @@ when enter (1) or interlock (0) the hutch.
       detecto to a safe position, set MD2 to sample Transfer.
 Example xml file:
 <object class = "ESRF.BlissHutchTrigger">
-  <username>Hutchtrigger</username>
-  <pss_tangoname>acs:10000/bl/sa-pss/id30-crate02</pss_tangoname>
-  <polling_interval>1</polling_interval>
+  <username>Hutch Trigger</username>
+  <pss_tango_device>acs:10000/bl/sa-pss/id30-crate02</pss_tango_device>
+  <polling_interval>5</polling_interval>
   <pss_card_ch>9/4</pss_card_ch>
   <object href="/bliss" role="controller"/>
+  <values>{"ENABLED: 1, "DISABLED": 0}</values>
 </object>
 """
 
@@ -39,33 +40,33 @@ import logging
 from gevent import sleep, spawn
 from PyTango.gevent import DeviceProxy
 from PyTango import DevFailed
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractNState
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
-class BlissHutchTrigger(HardwareObject):
+class BlissHutchTrigger(AbstractNState):
     """Read the state of the hutch from the PSS and take actions."""
 
     def __init__(self, name):
         super(BlissHutchTrigger, self).__init__(name)
-        self.read_only = True
+        self._bliss_obj = None
         self._proxy = None
         self.card = None
         self.channel = None
+        self._pss_value = None
         self._nominal_value = None
+        self._polling_interval = None
         self._poll_task = None
-        self.username = None
-        self.ctrl_obj = None
 
     def init(self):
         """Initialise properties and polling"""
-        self.username = self.getProperty("username")
-        self.ctrl_obj = self.getObjectByRole("controller")
-        tangoname = self.getProperty("pss_tangoname")
+        super(BlissHutchTrigger, self).init()
+        self._bliss_obj = self.getObjectByRole("controller")
+        tango_device = self.getProperty("pss_tango_device")
         try:
-            self._proxy = DeviceProxy(tangoname)
+            self._proxy = DeviceProxy(tango_device)
         except DevFailed as _traceback:
             last_error = _traceback[-1]
             msg = f"{self.name()}: {last_error['desc']}"
@@ -78,15 +79,39 @@ class BlissHutchTrigger(HardwareObject):
             msg = f"{self.name()}: cannot find PSS number"
             raise RuntimeError(msg)
 
-        self._nominal_value = self.get_value()
+        # polling interval [s]
+        self._polling_interval = self.getProperty("polling_interval", 5)
+        self._pss_value = self.get_pss_value()
+        # enable by default
+        self.update_value(self.VALUES.ENABLED)
         self._poll_task = spawn(self._do_polling)
 
     def _do_polling(self):
+        """Do the polling of the PSS system"""
         while True:
-            self.update_value(self.get_value())
-            sleep(self.getProperty("polling_interval", 1))
+            self._update_value(self.get_pss_value())
+            sleep(self._polling_interval)
 
     def get_value(self):
+        """The value corresponds to activate/deactivate the hutch trigger
+        polling.
+        Returns:
+            (ValueEnum): Last set value.
+        """
+        return self._nominal_value
+
+    def set_value(self, value, timeout=0):
+        super(BlissHutchTrigger, self).set_value(value, timeout=0)
+
+    def _set_value(self, value):
+        """Set the hutch trigger enable/disable value
+        Args:
+            value (ValueEnum): ENABLED/DISABLED.
+        """
+        self._nominal_value = value
+        self.emit("valueChanged", (value,))
+
+    def get_pss_value(self):
         """Get the interlock value
         Returns:
             (bool): 0 = Hutch interlocked, 1 = Hutch not interlocked.
@@ -97,26 +122,25 @@ class BlissHutchTrigger(HardwareObject):
         )[0]
         return _ch1 & _ch2
 
-    def update_value(self, value=None):
-        """Check if the value has changed. Emits signal valueChanged.
+    def _update_value(self, value=None):
+        """Check if the pss value has changed (door opens/closes).
         Args:
-            value: value
+            value (bool): The value
         """
-        if value is None:
-            value = self.get_value()
+        if self._nominal_value == self.VALUES.ENABLED:
+            if value is None:
+                value = self.get_pss_value()
 
-        if self._nominal_value != value:
-            self._nominal_value = value
-            self.emit("valueChanged", (value,))
+            if self._pss_value != value:
+                self._pss_value = value
+                # now do the action
+                self.hutch_actions(1 - value)
 
-            self.macro(1 - value)
-
-    def macro(self, entering_hutch, **kwargs):
+    def hutch_actions(self, enter, **kwargs):
         """Take action as function of the PSS state
         Args:
-            entering_hutch (bool): True if entering (interlock state = 1)
+            enter(bool): True if entering hutch (interlock state = 1)
         """
-        logging.getLogger("user_level_log").info(
-            "%s hutch", "entering" if entering_hutch else "leaving"
-        )
-        self.ctrl_obj.hutch_actions(entering_hutch, hutch_trigger=True, **kwargs)
+        msg = "%s hutch" % ("Entering" if enter else "Leaving")
+        logging.getLogger("user_level_log").info(msg)
+        self._bliss_obj.hutch_actions(enter, hutch_trigger=True, **kwargs)
