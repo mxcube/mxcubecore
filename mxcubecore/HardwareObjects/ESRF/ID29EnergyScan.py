@@ -67,12 +67,8 @@ class ID29EnergyScan(ESRFEnergyScan):
         self.energy_scan_parameters["exposureTime"] = 10.11
 
     def escan_prepare(self):
-<<<<<<< HEAD
         self.ctrl = self.get_object_by_role("controller")
 
-=======
-        self.ctrl = self.get_object_by_role("controller")
->>>>>>> upstream/master
         self.ctrl.detcover.set_in()
         self.ctrl.diffractometer.fldet_in()
         self.ctrl.diffractometer.set_phase("DataCollection", wait=True)
