@@ -163,6 +163,7 @@ class PropertySet(dict):
 
 
 class HardwareObjectNode(object):
+    
     def __init__(self, node_name):
         """Constructor"""
         self.__dict__["_property_set"] = PropertySet()

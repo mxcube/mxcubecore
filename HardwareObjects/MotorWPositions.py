@@ -111,7 +111,7 @@ class MotorWPositions(AbstractMotor, Device):
     def setNewPredefinedPosition(self, positionName, positionOffset):
         raise NotImplementedError
 
-    def getMotorMnemonic(self):
+    def get_motor_mnemonic(self):
         """
         Descript. :
         """

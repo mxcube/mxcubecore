@@ -93,7 +93,7 @@ class PX2BeamInfo(Equipment):
                 "%s: cannot connect to beamposition z channel ", self.name()
             )
 
-        self.zoomMotor = self.get_deviceByRole("zoom")
+        self.zoomMotor = self.get_deviceby_role("zoom")
 
         self.beam_position[0], self.beam_position[1] = (
             self.chanBeamPosX.value,

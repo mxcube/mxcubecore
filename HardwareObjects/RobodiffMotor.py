@@ -94,7 +94,7 @@ class RobodiffMotor(Device):
         self.end_init()
         return self.motorState == RobodiffMotor.MOVING
 
-    def getMotorMnemonic(self):
+    def get_motor_mnemonic(self):
         self.end_init()
         return self.actuator_name
 

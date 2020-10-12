@@ -193,7 +193,7 @@ class TangoDCMotor(Device):
             retvalue = int(value)
         return retvalue
 
-    def getMotorMnemonic(self):
+    def get_motor_mnemonic(self):
         return self.name()
 
     def _set_value(self, value):

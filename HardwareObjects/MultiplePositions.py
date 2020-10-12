@@ -190,7 +190,7 @@ class MultiplePositions(Equipment):
 
         self.motors = {}
         for mot in self["motors"]:
-            self.motors[mot.getMotorMnemonic()] = mot
+            self.motors[mot.get_motor_mnemonic()] = mot
             self.connect(mot, "moveDone", self.checkPosition)
             self.connect(mot, "valueChanged", self.checkPosition)
             self.connect(mot, "stateChanged", self.stateChanged)
@@ -215,7 +215,7 @@ class MultiplePositions(Equipment):
     def moveToPosition(self, name, wait=False):
         move_list = []
         for role in self.roles:
-            device = self.get_deviceByRole(role)
+            device = self.get_deviceby_role(role)
             pos = self.positions[name][role]
             move_list.append((device, pos))
 
@@ -239,7 +239,7 @@ class MultiplePositions(Equipment):
 
             for role in self.roles:
                 pos = position[role]
-                mot = self.get_deviceByRole(role)
+                mot = self.get_deviceby_role(role)
 
                 if mot is not None:
                     motpos = mot.get_value()

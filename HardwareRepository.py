@@ -388,7 +388,7 @@ class __HardwareRepositoryClient:
             #
             return
 
-    def require(self, mnemonicsList):
+    def require(self, mnemonics_list):
         """Download a list of Hardware Objects in one go"""
         self.required_hardware_objects = {}
 
@@ -397,7 +397,7 @@ class __HardwareRepositoryClient:
 
         try:
             t0 = time.time()
-            mnemonics = ",".join([repr(mne) for mne in mnemonicsList])
+            mnemonics = ",".join([repr(mne) for mne in mnemonics_list])
             if len(mnemonics) > 0:
                 self.required_hardware_objects = SpecWaitObject.waitReply(
                     self.server,

@@ -47,7 +47,7 @@ class SpecMotor(Device, SpecMotorA):
     def syncQuestionAnswer(self, specSteps, controllerSteps):
         pass  # return '0' #NO ('1' means YES)
 
-    def getMotorMnemonic(self):
+    def get_motor_mnemonic(self):
         return self.specName
 
 

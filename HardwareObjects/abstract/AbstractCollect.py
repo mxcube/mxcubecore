@@ -401,7 +401,7 @@ class AbstractCollect(HardwareObject, object):
                 if isinstance(motor, string_types):
                     positions_str += " %s=%f" % (motor, position)
                 else:
-                    positions_str += " %s=%f" % (motor.getMotorMnemonic(), position)
+                    positions_str += " %s=%f" % (motor.get_motor_mnemonic(), position)
         cp["actualCenteringPosition"] = positions_str
         self.move_motors(cp["motors"])
         dd0 = HWR.beamline.diffractometer.get_positions()

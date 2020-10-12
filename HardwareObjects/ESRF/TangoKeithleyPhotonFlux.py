@@ -12,7 +12,7 @@ class TangoKeithleyPhotonFlux(Equipment):
 
     def init(self):
         self.get_object_by_role("controller")
-        self.shutter = self.get_deviceByRole("shutter")
+        self.shutter = self.get_deviceby_role("shutter")
         self.aperture = self.get_object_by_role("aperture")
         self.factor = self.get_property("current_photons_factor")
 

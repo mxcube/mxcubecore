@@ -10,7 +10,7 @@ class Q315dist(BaseHardwareObjects.Equipment):
         return BaseHardwareObjects.Equipment._init(self)
 
     def init(self):
-        self.detm = self.get_deviceByRole("detm")
+        self.detm = self.get_deviceby_role("detm")
 
         self.connect(self.detm, "stateChanged", self.detmStateChanged)
         self.connect(
@@ -26,8 +26,8 @@ class Q315dist(BaseHardwareObjects.Equipment):
 
     def is_valid(self):
         return (
-            self.get_deviceByRole("detm") is not None
-            and self.get_deviceByRole("detector_distance") is not None
+            self.get_deviceby_role("detm") is not None
+            and self.get_deviceby_role("detector_distance") is not None
         )
 
     def __getattr__(self, attr):
