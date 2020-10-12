@@ -63,7 +63,7 @@ class BlissHutchTrigger(AbstractNState):
     def init(self):
         """Initialise properties and polling"""
         super(BlissHutchTrigger, self).init()
-        self._bliss_obj = self.getObjectByRole("controller")
+        self._bliss_obj = self.get_object_by_role("controller")
         tango_device = self.getProperty("pss_tango_device")
         try:
             self._proxy = DeviceProxy(tango_device)

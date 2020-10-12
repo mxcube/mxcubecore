@@ -1125,7 +1125,7 @@ class NanoDiff(HardwareObject):
                 if motor is None:
                     continue
                 motor_positions_copy[motor] = position
-            # logging.getLogger("HWR").info("Moving motor '%s' to %f", motor.getMotorMnemonic(), position)
+            # logging.getLogger("HWR").info("Moving motor '%s' to %f", motor.get_motor_mnemonic(), position)
             motor.set_value(position)
         while any([motor.motorIsMoving() for motor in motor_positions_copy]):
             time.sleep(0.5)

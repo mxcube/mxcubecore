@@ -58,7 +58,7 @@ class PX1BeamInfo(Equipment):
                 "%s: cannot connect to beamsize y channel ", self.name()
             )
 
-        self.zoomMotor = self.get_deviceByRole("zoom")
+        self.zoomMotor = self.get_deviceby_role("zoom")
 
         if self.beamx_chan is not None:
             self.beamx_chan.connect_signal("update", self.beamsize_x_changed)

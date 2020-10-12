@@ -67,7 +67,7 @@ class ID232MultiCollect(ESRFMultiCollect):
         # diffr.moveToPhase("Centring", wait=True, timeout=200)
         if number_of_snapshots:
             # put the back light in
-            diffr.get_deviceByRole("BackLightSwitch").actuatorIn()
+            diffr.get_deviceby_role("BackLightSwitch").actuatorIn()
             self.bl_control.diffractometer.take_snapshots(
                 number_of_snapshots, wait=True
             )

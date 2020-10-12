@@ -240,7 +240,7 @@ class MicrodiffMotor(AbstractMotor):
     def motorIsMoving(self):
         return self.is_ready() and self.motorState == MicrodiffMotor.MOVING
 
-    def getMotorMnemonic(self):
+    def get_motor_mnemonic(self):
         return self.actuator_name
 
     def stop(self):

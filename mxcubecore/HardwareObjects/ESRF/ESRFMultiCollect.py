@@ -583,14 +583,14 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             if isinstance(motor, string_types):
                 # find right motor object from motor role in diffractometer obj.
                 motor_role = motor
-                motor = HWR.beamline.diffractometer.get_deviceByRole(motor_role)
+                motor = HWR.beamline.diffractometer.get_deviceby_role(motor_role)
                 del motor_positions_copy[motor_role]
                 if motor is None:
                     continue
                 motor_positions_copy[motor] = position
 
             logging.getLogger("HWR").info(
-                "Moving motor '%s' to %f", motor.getMotorMnemonic(), position
+                "Moving motor '%s' to %f", motor.get_motor_mnemonic(), position
             )
             motor.set_value(position)
 

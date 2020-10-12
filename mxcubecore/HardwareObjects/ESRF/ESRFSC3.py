@@ -211,12 +211,12 @@ class ESRFSC3(SC3.SC3):
         return not self.has_loaded_sample()
 
     def moveCryoIn(self):
-        cryoDevice = self.get_deviceByRole("Cryo")
+        cryoDevice = self.get_deviceby_role("Cryo")
         if cryoDevice is not None:
             cryoDevice.wagoIn()
 
     def moveLightIn(self):
-        lightDevice = self.get_deviceByRole("Light")
+        lightDevice = self.get_deviceby_role("Light")
         if lightDevice is not None:
             lightDevice.wagoIn()
 

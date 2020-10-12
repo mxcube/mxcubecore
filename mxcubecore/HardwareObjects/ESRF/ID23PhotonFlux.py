@@ -19,7 +19,7 @@ class ID23PhotonFlux(Equipment):
             self.threshold = map(float, self.get_property("threshold").split())
         except AttributeError:
             self.threshold = [0, 9999]
-        self.shutter = self.get_deviceByRole("shutter")
+        self.shutter = self.get_deviceby_role("shutter")
         self.aperture = self.get_object_by_role("aperture")
         fname = self.get_property("calibrated_diodes_file")
 

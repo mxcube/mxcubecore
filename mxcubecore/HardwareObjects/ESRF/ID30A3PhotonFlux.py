@@ -11,7 +11,7 @@ class ID30A3PhotonFlux(Equipment):
     def init(self):
         controller = self.get_object_by_role("controller")
         self.musst = controller.musst
-        self.shutter = self.get_deviceByRole("shutter")
+        self.shutter = self.get_deviceby_role("shutter")
         self.factor = self.get_property("current_photons_factor")
 
         self.shutter.connect("shutterStateChanged", self.shutterStateChanged)
