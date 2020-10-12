@@ -122,11 +122,7 @@ class TangoLimaVideoLoopback(TangoLimaVideo):
 
     def init(self):
         super(TangoLimaVideoLoopback, self).init()
-<<<<<<< HEAD
-        self._polling_mode = self.get_property("polling_mode", "process")
-=======
-        self._polling_mode = self.getProperty("polling_mode", "gevent")
->>>>>>> upstream/master
+        self._polling_mode = self.get_property("polling_mode", "gevent")
 
     def _do_polling(self, sleep_time):
         if self._polling_mode == "process":

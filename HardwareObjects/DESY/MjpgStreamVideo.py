@@ -296,12 +296,9 @@ class MjpgStreamVideo(AbstractVideoDevice):
             if sensor_info:
                 sensor_height = int(sensor_info["value"])
             self.sensor_dimensions = (sensor_width, sensor_height)
-<<<<<<< HEAD
-        self.set_is_ready(True)
-=======
 
-        self.setIsReady(True)
->>>>>>> upstream/master
+        self.set_is_ready(True)
+
 
     def http_get(self, query, host=None, port=None, path=None):
         """Sends HTTP GET requests and returns the answer.

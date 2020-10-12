@@ -83,16 +83,9 @@ class MD2MultiCollect(ESRFMultiCollect):
         diffr.set_phase("DataCollection", wait=True, timeout=200)
 
         # switch on the front light
-<<<<<<< HEAD:HardwareObjects/ESRF/ID30BMultiCollect.py
-        diffr.get_object_by_role("FrontLight").set_value(2)
-
-        # take the back light out
-        diffr.get_object_by_role("BackLightSwitch").actuatorOut()
-=======
         front_light_switch = diffr.get_object_by_role("FrontLightSwitch")
         front_light_switch.set_value(front_light_switch.VALUES.IN)
         # diffr.get_object_by_role("FrontLight").set_value(2)
->>>>>>> upstream/master:HardwareObjects/ESRF/MD2MultiCollect.py
 
     @task
     def data_collection_cleanup(self):
@@ -105,16 +98,8 @@ class MD2MultiCollect(ESRFMultiCollect):
         if self.helical:
             diffr.oscilScan4d(start, end, exptime, self.helical_pos, wait=True)
         elif self.mesh:
-<<<<<<< HEAD:HardwareObjects/ESRF/ID30BMultiCollect.py
-            det = self._detector._detector
-            latency_time = (
-                det.config.get_property("latecy_time_mesh")
-                or self._detector._detector.get_deadtime()
-            )
-=======
             det = HWR.beamline.detector
-            latency_time = det.getProperty("latecy_time_mesh") or det.get_deadtime()
->>>>>>> upstream/master:HardwareObjects/ESRF/MD2MultiCollect.py
+            latency_time = det.get_property("latecy_time_mesh") or det.get_deadtime()
             diffr.oscilScanMesh(
                 start,
                 end,
@@ -146,19 +131,12 @@ class MD2MultiCollect(ESRFMultiCollect):
         )
 
     def open_fast_shutter(self):
-<<<<<<< HEAD:HardwareObjects/ESRF/ID30BMultiCollect.py
-        self.get_object_by_role("fastshut").actuatorIn()
-
-    def close_fast_shutter(self):
-        self.get_object_by_role("fastshut").actuatorOut()
-=======
         fs = HWR.beamline.fast_shutter
         fs.set_value(fs.VALUES.OPEN)
 
     def close_fast_shutter(self):
         fs = HWR.beamline.fast_shutter
         fs.set_value(fs.VALUES.CLOSED)
->>>>>>> upstream/master:HardwareObjects/ESRF/MD2MultiCollect.py
 
     def set_helical(self, helical_on):
         self.helical = helical_on
