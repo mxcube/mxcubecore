@@ -1674,7 +1674,7 @@ class GphlWorkflow(HardwareObject, object):
 
         # Result in kGy/s
         result = (
-            HWR.beamline.flux.dose_rate_per_photon_per_mmsq(energy)
+            HWR.beamline.flux.get_dose_rate_per_photon_per_mmsq(energy)
             * HWR.beamline.flux.get_flux()
             / beam_size[0]
             / beam_size[1]
