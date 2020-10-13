@@ -150,7 +150,7 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.centre_beam)
 
         # Register functions from modules specified in <apis> element
-        if self.hasObject("apis"):
+        if self.has_object("apis"):
             apis = next(self.get_objects("apis"))
             for api in apis.get_objects("api"):
                 recurse = api.get_property("recurse")
