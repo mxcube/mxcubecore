@@ -14,7 +14,7 @@ class BlissTurret(HardwareObject):
         self.connect(self.turret, "position", self.position_changed)
         self.connect(self.turret, "mode", self.mode_changed)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "positionChanged":
             self.emit("positionChanged", (self.get_value(),))
         elif signal == "modeChanged":

@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -14,8 +14,8 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
-#   You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 
 import os
@@ -57,7 +57,7 @@ class Centring(Device):
         # for axis in self['gonioAxes']:
         #  self.gonioAxes.append({'type':axis.type,'direction':eval(axis.direction),\
         #                   'motor_name':axis.motorname,'motor_HO':
-        # HardwareRepository.getHardwareRepository().getHardwareObject(axis.motorHO)
+        # HardwareRepository.getHardwareRepository().get_hardware_object(axis.motorHO)
         # })
 
         print("Centring Init")

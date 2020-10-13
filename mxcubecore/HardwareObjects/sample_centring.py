@@ -238,7 +238,7 @@ def centre_plate1Click(
             USER_CLICKED_EVENT = gevent.event.AsyncResult()
             try:
                 x, y = USER_CLICKED_EVENT.get()
-            except BaseException:
+            except Exception:
                 raise RuntimeError("Aborted while waiting for point selection")
 
             # Move to beam
@@ -266,7 +266,7 @@ def centre_plate1Click(
 
             READY_FOR_NEXT_POINT.set()
             i += 1
-    except BaseException:
+    except Exception:
         logging.exception("Exception while centring")
         move_motors(SAVED_INITIAL_POSITIONS)
         raise
@@ -308,7 +308,7 @@ def centre_plate(
         while i < n_points:
             try:
                 x, y = USER_CLICKED_EVENT.get()
-            except BaseException:
+            except Exception:
                 raise RuntimeError("Aborted while waiting for point selection")
             USER_CLICKED_EVENT = gevent.event.AsyncResult()
             X.append(x / float(pixelsPerMm_Hor))
@@ -318,7 +318,7 @@ def centre_plate(
                 phi.set_value_relative(phi.direction * phi_angle, timeout=None)
             READY_FOR_NEXT_POINT.set()
             i += 1
-    except BaseException:
+    except Exception:
         logging.exception("Exception while centring")
         move_motors(SAVED_INITIAL_POSITIONS)
         raise
@@ -433,7 +433,7 @@ def center(
         while i < n_points:
             try:
                 x, y = USER_CLICKED_EVENT.get()
-            except BaseException:
+            except Exception:
                 raise RuntimeError("Aborted while waiting for point selection")
             USER_CLICKED_EVENT = gevent.event.AsyncResult()
             X.append(x / float(pixelsPerMm_Hor))
@@ -443,7 +443,7 @@ def center(
                 phi.set_value_relative(phi.direction * phi_angle, timeout=10)
             READY_FOR_NEXT_POINT.set()
             i += 1
-    except BaseException:
+    except Exception:
         logging.exception("Exception while centring")
         move_motors(SAVED_INITIAL_POSITIONS)
         raise
@@ -499,7 +499,7 @@ def end(centred_pos=None):
         centred_pos = CURRENT_CENTRING.get()
     try:
         move_motors(centred_pos)
-    except BaseException:
+    except Exception:
         logging.exception("Exception in centring 'end`, centred pos is %s", centred_pos)
         move_motors(SAVED_INITIAL_POSITIONS)
         raise

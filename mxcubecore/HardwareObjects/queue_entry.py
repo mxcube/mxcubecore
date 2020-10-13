@@ -289,7 +289,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                     self.interleave_items[item["collect_index"]][
                         "queue_entry"
                     ].execute()
-                except BaseException:
+                except Exception:
                     pass
                 self.interleave_items[item["collect_index"]][
                     "queue_entry"
@@ -1008,7 +1008,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                 strategy_result = (
                     self.edna_result.getCharacterisationResult().getStrategyResult()
                 )
-            except BaseException:
+            except Exception:
                 strategy_result = None
 
             if strategy_result:
@@ -1258,7 +1258,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         energy_scan.result.title = title
         try:
             energy_scan.result.data = HWR.beamline.energy_scan.get_scan_data()
-        except BaseException:
+        except Exception:
             pass
 
         if (

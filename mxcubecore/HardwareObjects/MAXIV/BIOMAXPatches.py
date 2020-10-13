@@ -15,7 +15,7 @@ class BIOMAXPatches(HardwareObject):
         """
         Ensure that the detector is in safe position and sample changer in SOAK
         """
-        if not HWR.beamline.sample_changer._chnPowered.getValue():
+        if not HWR.beamline.sample_changer._chnPowered.get_value():
             raise RuntimeError("Cannot load sample, sample changer not powered")
         if not self.sc_in_soak():
             logging.getLogger("HWR").info(
@@ -71,7 +71,7 @@ class BIOMAXPatches(HardwareObject):
         """
         Move to centring after loading the sample
         """
-        if not HWR.beamline.sample_changer._chnPowered.getValue():
+        if not HWR.beamline.sample_changer._chnPowered.get_value():
             raise RuntimeError(
                 "Not proceeding with the steps after sample loading, sample changer not powered"
             )
@@ -85,7 +85,7 @@ class BIOMAXPatches(HardwareObject):
             )
             try:
                 HWR.beamline.diffractometer.wait_device_ready(15)
-            except BaseException:
+            except Exception:
                 pass
             HWR.beamline.diffractometer.set_phase("Centring")
             logging.getLogger("HWR").info(
@@ -101,7 +101,7 @@ class BIOMAXPatches(HardwareObject):
             "Moving detector to pre-mount position %s" % self.curr_dtox_pos
         )
         try:
-            if not HWR.beamline.sample_changer._chnPowered.getValue():
+            if not HWR.beamline.sample_changer._chnPowered.get_value():
                 raise RuntimeError(
                     "Not moving detector to pre-mount position, sample changer not powered"
                 )
@@ -140,10 +140,10 @@ class BIOMAXPatches(HardwareObject):
                 gevent.sleep(0.5)
 
     def sc_in_soak(self):
-        return HWR.beamline.sample_changer._chnInSoak.getValue()
+        return HWR.beamline.sample_changer._chnInSoak.get_value()
 
     def init(self, *args):
-        self.sample_changer_maintenance = self.getObjectByRole(
+        self.sample_changer_maintenance = self.get_object_by_role(
             "sample_changer_maintenance"
         )
         self.__load = HWR.beamline.sample_changer.load

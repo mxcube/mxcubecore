@@ -41,19 +41,19 @@ class PX1Resolution(Equipment):
 
         self.stop_command = self.get_command_object("stop")
 
-        self.distance_chan.connectSignal("update", self.distanceChanged)
-        self.resolution_chan.connectSignal("update", self.resolutionChanged)
-        self.minimum_res_chan.connectSignal("update", self.minimumResolutionChanged)
-        self.maximum_res_chan.connectSignal("update", self.maximumResolutionChanged)
-        self.minimum_dist_chan.connectSignal("update", self.minimumDistanceChanged)
-        self.state_chan.connectSignal("update", self.stateChanged)
+        self.distance_chan.connect_signal("update", self.distanceChanged)
+        self.resolution_chan.connect_signal("update", self.resolutionChanged)
+        self.minimum_res_chan.connect_signal("update", self.minimumResolutionChanged)
+        self.maximum_res_chan.connect_signal("update", self.maximumResolutionChanged)
+        self.minimum_dist_chan.connect_signal("update", self.minimumDistanceChanged)
+        self.state_chan.connect_signal("update", self.stateChanged)
 
-        self.currentDistance = self.distance_chan.getValue()
-        self._nominal_value = self.resolution_chan.getValue()
+        self.currentDistance = self.distance_chan.get_value()
+        self._nominal_value = self.resolution_chan.get_value()
 
         return Equipment._init(self)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "stateChanged":
             self.stateChanged()
         elif signal == "distanceChanged":
@@ -73,7 +73,7 @@ class PX1Resolution(Equipment):
 
     def get_state(self, value=None):
         if value is None:
-            value = self.state_chan.getValue()
+            value = self.state_chan.get_value()
         state_str = str(value)
         # return self.stateDict[state_str]
         return state_str
@@ -107,8 +107,8 @@ class PX1Resolution(Equipment):
         self.recalculateResolution()
 
     def recalculateResolution(self):
-        distance = self.distance_chan.getValue()
-        resolution = self.resolution_chan.getValue()
+        distance = self.distance_chan.get_value()
+        resolution = self.resolution_chan.get_value()
 
         if resolution is None or distance is None:
             return
@@ -130,26 +130,26 @@ class PX1Resolution(Equipment):
         chan_info = self.distance_chan.getInfo()
 
         high = float(chan_info.max_value)
-        low = self.minimum_dist_chan.getValue()
+        low = self.minimum_dist_chan.get_value()
 
         return [low, high]
 
     def get_limits(self):
-        high = self.maximum_res_chan.getValue()
-        low = self.minimum_res_chan.getValue()
+        high = self.maximum_res_chan.get_value()
+        low = self.minimum_res_chan.get_value()
 
         return (low, high)
 
     def moveResolution(self, res):
-        self.resolution_chan.setValue(res)
+        self.resolution_chan.set_value(res)
 
     def moveDistance(self, dist):
-        self.distance_chan.setValue(dist)
+        self.distance_chan.set_value(dist)
 
     def stop(self):
         try:
             self.stop_command()
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").err(
                 "%s: PX1Resolution.stop: error while trying to stop!", self.name()
             )

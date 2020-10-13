@@ -22,7 +22,7 @@ class MicrodiffApertureMockup(Device):
             )
         )
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "predefinedPositionChanged":
             positionName = self.get_current_position_name()
 
@@ -66,5 +66,5 @@ class MicrodiffApertureMockup(Device):
         try:
             self.predefined_position_attr = self.predefinedPositions[positionName]
             return True
-        except BaseException:
+        except Exception:
             return False

@@ -36,10 +36,10 @@ class BIOMAXMD2(GenericDiffractometer):
 
         GenericDiffractometer.init(self)
 
-        self.front_light = self.getObjectByRole("frontlight")
-        self.back_light = self.getObjectByRole("backlight")
-        self.back_light_switch = self.getObjectByRole("backlightswitch")
-        self.front_light_switch = self.getObjectByRole("frontlightswitch")
+        self.front_light = self.get_object_by_role("frontlight")
+        self.back_light = self.get_object_by_role("backlight")
+        self.back_light_switch = self.get_object_by_role("backlightswitch")
+        self.front_light_switch = self.get_object_by_role("frontlightswitch")
 
     def start3ClickCentring(self):
         self.start_centring_method(self.CENTRING_METHOD_MANUAL)
@@ -54,8 +54,8 @@ class BIOMAXMD2(GenericDiffractometer):
         :returns: list with two floats
         """
         return (
-            1 / self.channel_dict["CoaxCamScaleX"].getValue(),
-            1 / self.channel_dict["CoaxCamScaleY"].getValue(),
+            1 / self.channel_dict["CoaxCamScaleX"].get_value(),
+            1 / self.channel_dict["CoaxCamScaleY"].get_value(),
         )
 
     def osc_scan(self, start, end, exptime, wait=False):
@@ -111,7 +111,7 @@ class BIOMAXMD2(GenericDiffractometer):
         """
         Detects if device is ready
         """
-        return self.channel_dict["State"].getValue() == DiffractometerState.tostring(
+        return self.channel_dict["State"].get_value() == DiffractometerState.tostring(
             DiffractometerState.Ready
         )
 
@@ -126,7 +126,7 @@ class BIOMAXMD2(GenericDiffractometer):
             self.centring_phiy.set_value_relative(
                 -1 * (x - beam_xc) / float(self.pixelsPerMmY)
             )
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "MiniDiff: could not center to beam, aborting"
             )

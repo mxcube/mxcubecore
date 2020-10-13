@@ -8,12 +8,12 @@ class ID231BeamCmds(HardwareObject):
         HardwareObject.__init__(self, *args)
 
     def init(self):
-        controller = self.getObjectByRole("controller")
-        detcover = self.getObjectByRole("detcover")
-        scintilator = self.getObjectByRole("scintilator")
-        aperture = self.getObjectByRole("aperture")
-        hutchtrigger = self.getObjectByRole("hutchtrigger")
-        cryo = self.getObjectByRole("cryostream")
+        controller = self.get_object_by_role("controller")
+        detcover = self.get_object_by_role("detcover")
+        scintilator = self.get_object_by_role("scintilator")
+        aperture = self.get_object_by_role("aperture")
+        hutchtrigger = self.get_object_by_role("hutchtrigger")
+        cryo = self.get_object_by_role("cryostream")
 
         self.centrebeam = ControllerCommand("Centre beam", controller.centrebeam)
         self.quick_realign = ControllerCommand(

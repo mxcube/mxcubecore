@@ -33,22 +33,22 @@ class Energy(Equipment):
         self.en_lims = []
 
         try:
-            self.energy_motor = self.getObjectByRole("energy")
+            self.energy_motor = self.get_object_by_role("energy")
         except KeyError:
             logging.getLogger("HWR").warning("Energy: error initializing energy motor")
 
         try:
-            self.default_en = self.getProperty("default_energy")
+            self.default_en = self.get_property("default_energy")
         except KeyError:
             logging.getLogger("HWR").warning("Energy: no default energy")
 
         try:
-            self.tunable = self.getProperty("tunable_energy")
+            self.tunable = self.get_property("tunable_energy")
         except KeyError:
             logging.getLogger("HWR").warning("Energy: will set to fixed energy")
 
         try:
-            self.ctrl = self.getObjectByRole("controller")
+            self.ctrl = self.get_object_by_role("controller")
         except KeyError:
             logging.getLogger("HWR").info("No controller used")
 
@@ -63,7 +63,7 @@ class Energy(Equipment):
         if self.energy_motor is not None:
             try:
                 return self.energy_motor.get_value()
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "EnergyHO: could not read current energy"
                 )
@@ -86,7 +86,7 @@ class Energy(Equipment):
             try:
                 self.en_lims = self.energy_motor.get_limits()
                 return self.en_lims
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "EnergyHO: could not read energy motor limits"
                 )
@@ -126,7 +126,7 @@ class Energy(Equipment):
     #     def change_egy():
     #         try:
     #             self.set_value(value, wait=True)
-    #         except BaseException:
+    #         except Exception:
     #             sys.excepthook(*sys.exc_info())
     #             self.moveEnergyCmdFailed()
     #         else:

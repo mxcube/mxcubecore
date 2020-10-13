@@ -160,7 +160,7 @@ class AutoProcLauncher:
         try:
             beamline = directories[3]
             proposal = directories[4]
-        except BaseException:
+        except Exception:
             beamline = "unknown"
             proposal = "unknown"
 

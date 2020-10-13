@@ -13,13 +13,13 @@ class SOLEILSafetyShutter(HardwareObject):
 
     def init(self):
         try:
-            self.shutter = self.getObjectByRole("shutter")
-            self.pss = self.getObjectByRole("pss")
+            self.shutter = self.get_object_by_role("shutter")
+            self.pss = self.get_object_by_role("pss")
             logging.debug("shutter is " + str(self.shutter))
             logging.debug("pss is " + str(self.pss))
             self.connect(self.shutter, "shutterStateChanged", self.shutterStateChanged)
             self.connect(self.pss, "wagoStateChanged", self.shutterStateChanged)
-        except BaseException:
+        except Exception:
             import traceback
 
             print(traceback.print_exc())

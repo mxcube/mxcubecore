@@ -14,7 +14,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import time
@@ -90,15 +90,15 @@ class AbstractOnlineProcessing(HardwareObject):
 
     def init(self):
         self.done_event = gevent.event.Event()
-        self.ssx_setup = self.getObjectByRole("ssx_setup")
-        self.beamstop_hwobj = self.getObjectByRole("beamstop")
+        self.ssx_setup = self.get_object_by_role("ssx_setup")
+        self.beamstop_hwobj = self.get_object_by_role("beamstop")
         if self.beamstop_hwobj is None:
             logging.info("ParallelProcessing: Beamstop hwobj not defined")
 
-        self.result_types = self.getProperty("result_types", DEFAULT_RESULT_TYPES)
-        self.start_command = str(self.getProperty("processing_command"))
-        self.kill_command = str(self.getProperty("kill_command"))
-        self.interpolate_results = self.getProperty("interpolate_results")
+        self.result_types = self.get_property("result_types", DEFAULT_RESULT_TYPES)
+        self.start_command = str(self.get_property("processing_command"))
+        self.kill_command = str(self.get_property("kill_command"))
+        self.interpolate_results = self.get_property("interpolate_results")
 
     def get_result_types(self):
         return self.result_types
@@ -177,7 +177,7 @@ class AbstractOnlineProcessing(HardwareObject):
         try:
             if not os.path.isdir(process_directory):
                 os.makedirs(process_directory)
-        except BaseException:
+        except Exception:
             logging.getLogger("GUI").exception(
                 "Parallel processing: Unable to create processing directory %s"
                 % process_directory
@@ -291,7 +291,7 @@ class AbstractOnlineProcessing(HardwareObject):
             gevent.spawn(
                 self.save_snapshot_task, os.path.join(archive_directory, "snapshot.png")
             )
-        except BaseException:
+        except Exception:
             logging.getLogger("GUI").exception(
                 "Parallel processing: Could not save snapshot: %s"
                 % os.path.join(archive_directory, "snapshot.png")
@@ -373,7 +373,7 @@ class AbstractOnlineProcessing(HardwareObject):
                 logging.getLogger("HWR").info(
                     "Parallel processing: Snapshot %s saved." % snapshot_filename
                 )
-        except BaseException:
+        except Exception:
             logging.getLogger("GUI").exception(
                 "Parallel processing: Could not save snapshot %s" % snapshot_filename
             )
@@ -548,7 +548,7 @@ class AbstractOnlineProcessing(HardwareObject):
                     "Parallel processing: Grid overlay figure saved %s"
                     % processing_grid_overlay_file
                 )
-            except BaseException:
+            except Exception:
                 log.exception(
                     "Parallel processing: Could not save grid overlay figure %s"
                     % processing_grid_overlay_file
@@ -647,7 +647,7 @@ class AbstractOnlineProcessing(HardwareObject):
                 "Parallel processing: Plot saved in %s"
                 % self.params_dict["cartography_path"]
             )
-        except BaseException:
+        except Exception:
             log.exception(
                 "Parallel processing: Could not save plot in %s"
                 % self.params_dict["cartography_path"]
@@ -667,7 +667,7 @@ class AbstractOnlineProcessing(HardwareObject):
                 "Parallel processing: Plot for ISPyB saved in %s"
                 % self.params_dict["cartography_path"]
             )
-        except BaseException:
+        except Exception:
             log.exception(
                 "Parallel processing: Could not save plot for ISPyB %s"
                 % self.params_dict["cartography_path"]
@@ -689,7 +689,7 @@ class AbstractOnlineProcessing(HardwareObject):
                 "Parallel processing: Json report saved in %s"
                 % self.params_dict["json_file_path"]
             )
-        except BaseException:
+        except Exception:
             log.exception(
                 "Parallel processing: Could not save results html %s"
                 % self.params_dict["html_file_path"]
@@ -735,7 +735,7 @@ class AbstractOnlineProcessing(HardwareObject):
                 % processing_csv_archive_file
             )
             processing_csv_file.close()
-        except BaseException:
+        except Exception:
             log.error(
                 "Parallel processing: Unable to store raw data in %s"
                 % processing_csv_archive_file

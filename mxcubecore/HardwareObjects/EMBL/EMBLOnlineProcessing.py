@@ -116,7 +116,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
             self.result_types.append(
                 {"key": key, "descr": "Average I", "color": (255, 0, 0), "size": 0}
             )
-            self.chan_dozor_average_i.connectSignal(
+            self.chan_dozor_average_i.connect_signal(
                 "update", self.dozor_average_i_changed
             )
 
@@ -124,28 +124,30 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
 
         self.chan_dozor_pass = self.get_channel_object("chanDozorPass")
         if self.chan_dozor_pass is not None:
-            self.chan_dozor_pass.connectSignal("update", self.batch_processed)
+            self.chan_dozor_pass.connect_signal("update", self.batch_processed)
 
         self.chan_frame_count = self.get_channel_object("chanFrameCount")
         if self.chan_frame_count is not None:
-            self.chan_frame_count.connectSignal("update", self.frame_count_changed)
+            self.chan_frame_count.connect_signal("update", self.frame_count_changed)
 
-        self.crystfel_script = self.getProperty("crystfel_script")
+        self.crystfel_script = self.get_property("crystfel_script")
 
-        if self.getProperty("nxds_input_template_file") is not None:
+        if self.get_property("nxds_input_template_file") is not None:
             with open(
-                self.getProperty("nxds_input_template_file"), "r"
+                self.get_property("nxds_input_template_file"), "r"
             ) as template_file:
                 self.nxds_input_template = "".join(template_file.readlines())
 
-        if self.getProperty("crystfel_script_template_file") is not None:
+        if self.get_property("crystfel_script_template_file") is not None:
             with open(
-                self.getProperty("crystfel_script_template_file"), "r"
+                self.get_property("crystfel_script_template_file"), "r"
             ) as template_file:
                 self.crystfel_script_template = "".join(template_file.readlines())
 
-        if self.getProperty("crystfel_params") is not None:
-            self.crystfel_params = ast.literal_eval(self.getProperty("crystfel_params"))
+        if self.get_property("crystfel_params") is not None:
+            self.crystfel_params = ast.literal_eval(
+                self.get_property("crystfel_params")
+            )
 
     def create_processing_input_file(self, processing_input_filename):
         """Creates dozor input file base on data collection parameters
@@ -310,7 +312,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
         :param status: processing status (Success, Failed)
         :type status: str
         """
-        # self.batch_processed(self.chan_dozor_pass.getValue())
+        # self.batch_processed(self.chan_dozor_pass.get_value())
         # if self.params_dict["lines_num"] <= 1:
         #    self.smooth()
         GenericOnlineProcessing.set_processing_status(self, status)
@@ -367,7 +369,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
                 "debug",
                 "Online processing: All image list stored in %s" % all_file_filename,
             )
-        except BaseException:
+        except Exception:
             self.print_log(
                 "GUI",
                 "error",
@@ -432,7 +434,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
                 % dozor_resolution_filename,
             )
 
-        except BaseException:
+        except Exception:
             self.print_log(
                 "GUI",
                 "error",
@@ -486,7 +488,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
         self.print_log(
             "HWR",
             "debug",
-            "detector:          " + str(HWR.beamline.detector.getProperty("type")),
+            "detector:          " + str(HWR.beamline.detector.get_property("type")),
         )
         self.print_log(
             "HWR", "debug", "resolution cutoff: " + str(proc_params.resolution_cutoff)

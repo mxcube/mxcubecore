@@ -22,7 +22,7 @@ class ID30SC3(ESRFSC3.ESRFSC3):
         ESRFSC3.ESRFSC3.__init__(self, *args, **kwargs)
 
     def init(self):
-        controller = self.getObjectByRole("controller")
+        controller = self.get_object_by_role("controller")
 
         SC3.SC3.init(self)
         self.prepareCentringAfterLoad = True

@@ -30,7 +30,7 @@ class MD2MultiCollect(ESRFMultiCollect):
 
     @task
     def get_slit_gaps(self):
-        self.getObjectByRole("controller")
+        self.get_object_by_role("controller")
 
         return (None, None)
 
@@ -70,7 +70,7 @@ class MD2MultiCollect(ESRFMultiCollect):
 
     def do_prepare_oscillation(self, *args, **kwargs):
         # set the detector cover out
-        self.getObjectByRole("controller").detcover.set_out(20)
+        self.get_object_by_role("controller").detcover.set_out(20)
         diffr = HWR.beamline.diffractometer
 
         # send again the command as MD2 software only handles one
@@ -83,23 +83,23 @@ class MD2MultiCollect(ESRFMultiCollect):
         diffr.set_phase("DataCollection", wait=True, timeout=200)
 
         # switch on the front light
-        front_light_switch = diffr.getObjectByRole("FrontLightSwitch")
+        front_light_switch = diffr.get_object_by_role("FrontLightSwitch")
         front_light_switch.set_value(front_light_switch.VALUES.IN)
-        # diffr.getObjectByRole("FrontLight").set_value(2)
+        # diffr.get_object_by_role("FrontLight").set_value(2)
 
     @task
     def data_collection_cleanup(self):
-        self.getObjectByRole("diffractometer")._wait_ready(10)
+        self.get_object_by_role("diffractometer")._wait_ready(10)
         self.close_fast_shutter()
 
     @task
     def oscil(self, start, end, exptime, npass, wait=True):
-        diffr = self.getObjectByRole("diffractometer")
+        diffr = self.get_object_by_role("diffractometer")
         if self.helical:
             diffr.oscilScan4d(start, end, exptime, self.helical_pos, wait=True)
         elif self.mesh:
             det = HWR.beamline.detector
-            latency_time = det.getProperty("latecy_time_mesh") or det.get_deadtime()
+            latency_time = det.get_property("latecy_time_mesh") or det.get_deadtime()
             diffr.oscilScanMesh(
                 start,
                 end,
@@ -191,7 +191,7 @@ class MD2MultiCollect(ESRFMultiCollect):
                         ),
                         dest,
                     )
-        except BaseException:
+        except Exception:
             logging.exception("Exception happened while copying geo_corr files")
 
         return ESRFMultiCollect.write_input_files(self, datacollection_id)

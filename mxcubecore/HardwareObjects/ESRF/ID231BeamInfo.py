@@ -38,18 +38,18 @@ class BeamInfo(Equipment):
 
     def init(self):
         try:
-            self.aperture_HO = HWR.getHardwareRepository().getHardwareObject(
-                self.getProperty("aperture")
+            self.aperture_HO = HWR.getHardwareRepository().get_hardware_object(
+                self.get_property("aperture")
             )
             self.connect(self.aperture_HO, "apertureChanged", self.aperture_pos_changed)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").debug("BeamInfo: aperture not defined correctly")
         try:
-            self.slits_HO = HWR.getHardwareRepository().getHardwareObject(
-                self.getProperty("slits")
+            self.slits_HO = HWR.getHardwareRepository().get_hardware_object(
+                self.get_property("slits")
             )
             self.connect(self.slits_HO, "gapSizeChanged", self.slits_gap_changed)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").debug("BeamInfo: slits not defined correctly")
         try:
             self.connect(
@@ -57,15 +57,15 @@ class BeamInfo(Equipment):
                 "definerPosChanged",
                 self.definer_pos_changed,
             )
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").debug(
                 "BeamInfo: beam definer not defined correctly"
             )
 
         self.beam_position_hor = self.get_channel_object("beam_position_hor")
-        self.beam_position_hor.connectSignal("update", self.beam_pos_hor_changed)
+        self.beam_position_hor.connect_signal("update", self.beam_pos_hor_changed)
         self.beam_position_ver = self.get_channel_object("beam_position_ver")
-        self.beam_position_ver.connectSignal("update", self.beam_pos_ver_changed)
+        self.beam_position_ver.connect_signal("update", self.beam_pos_ver_changed)
         self.chan_beam_size_microns = self.get_channel_object("beam_size_microns")
         self.chan_beam_shape_ellipse = self.get_channel_object("beam_shape_ellipse")
 
@@ -82,8 +82,8 @@ class BeamInfo(Equipment):
 
     def set_beam_position(self, beam_x, beam_y):
         self.beam_position = [beam_x, beam_y]
-        self.beam_position_hor.setValue(int(beam_x))
-        self.beam_position_ver.setValue(int(beam_y))
+        self.beam_position_hor.set_value(int(beam_x))
+        self.beam_position_ver.set_value(int(beam_y))
 
     def aperture_pos_changed(self, nameList, name, size):
         self.beam_size_aperture = size
@@ -159,13 +159,13 @@ class BeamInfo(Equipment):
             )
             self.emit("beamInfoChanged", (self.beam_info_dict,))
             if self.chan_beam_size_microns is not None:
-                self.chan_beam_size_microns.setValue(
+                self.chan_beam_size_microns.set_value(
                     (
                         self.beam_info_dict["size_x"] * 1000,
                         self.beam_info_dict["size_y"] * 1000,
                     )
                 )
             if self.chan_beam_shape_ellipse is not None:
-                self.chan_beam_shape_ellipse.setValue(
+                self.chan_beam_shape_ellipse.set_value(
                     self.beam_info_dict["shape"] == "ellipse"
                 )

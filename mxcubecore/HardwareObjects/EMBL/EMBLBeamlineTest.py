@@ -5,17 +5,17 @@
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import tine
@@ -37,7 +37,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 # try:
 #    import pdfkit
-# except BaseException:
+# except Exception:
 #    logging.getLogger("HWR").warning("pdfkit not available")
 
 from HardwareRepository.HardwareObjects import SimpleHTML
@@ -84,13 +84,13 @@ class EMBLBeamlineTest(HardwareObject):
         """
         self.ready_event = gevent.event.Event()
 
-        self.bl_hwobj = self.getObjectByRole("beamline_setup")
+        self.bl_hwobj = self.get_object_by_role("beamline_setup")
         self.test_filename = "mxcube_test_report"
 
         try:
-            for test in eval(self.getProperty("available_tests", "[]")):
+            for test in eval(self.get_property("available_tests", "[]")):
                 self.available_tests_dict[test] = TEST_DICT[test]
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").debug(
                 "BeamlineTest: No test define in xml. "
                 + "Setting all tests as available."
@@ -98,10 +98,10 @@ class EMBLBeamlineTest(HardwareObject):
         if self.available_tests_dict is None:
             self.available_tests_dict = TEST_DICT
 
-        if self.getProperty("startup_tests"):
-            self.startup_test_list = eval(self.getProperty("startup_tests"))
+        if self.get_property("startup_tests"):
+            self.startup_test_list = eval(self.get_property("startup_tests"))
 
-        if self.getProperty("run_tests_at_startup") == True:
+        if self.get_property("run_tests_at_startup") == True:
             gevent.spawn_later(5, self.start_test_queue, self.startup_test_list)
 
     def start_test_queue(self, test_list, create_report=True):
@@ -125,7 +125,7 @@ class EMBLBeamlineTest(HardwareObject):
                 )
                 if not os.path.exists(self.test_directory):
                     os.makedirs(self.test_directory)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").warning(
                     "BeamlineTest: Unable to create test directories"
                 )
@@ -397,7 +397,7 @@ class EMBLBeamlineTest(HardwareObject):
             logging.getLogger("HWR").info(
                 "BeamlineTest: Test result written in file %s" % html_filename
             )
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error(
                 "BeamlineTest: Unable to generate html report file %s" % html_filename
             )
@@ -405,7 +405,7 @@ class EMBLBeamlineTest(HardwareObject):
         # try:
         #    pdfkit.from_url(html_filename, pdf_filename)
         #    logging.getLogger("GUI").info("PDF report %s generated" % pdf_filename)
-        # except BaseException:
+        # except Exception:
         #    logging.getLogger("HWR").error(
         #        "BeamlineTest: Unable to generate pdf report file %s" % pdf_filename
         #    )

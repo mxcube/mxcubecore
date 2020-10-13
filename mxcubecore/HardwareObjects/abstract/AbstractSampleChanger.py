@@ -1,20 +1,20 @@
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 """
 
 --------------------------------------------
@@ -233,7 +233,7 @@ class SampleChanger(Container, Equipment):
         """
         HardwareObject init method
         """
-        use_update_timer = self.getProperty("useUpdateTimer")
+        use_update_timer = self.get_property("useUpdateTimer")
 
         if use_update_timer is None:
             use_update_timer = True
@@ -265,7 +265,7 @@ class SampleChanger(Container, Equipment):
             try:
                 if self.is_enabled():
                     self._on_timer_1s()
-            except BaseException:
+            except Exception:
                 pass
 
     @task
@@ -278,7 +278,7 @@ class SampleChanger(Container, Equipment):
                     if self._timer_update_counter >= self._timer_update_counter:
                         self._on_timer_update()
                         self._timer_update_counter = 0
-            except BaseException:
+            except Exception:
                 pass
 
     # ########################    TIMER    #########################
@@ -294,8 +294,8 @@ class SampleChanger(Container, Equipment):
 
     # #######################    HardwareObject    #######################
 
-    def connectNotify(self, signal):
-        logging.getLogger().info("connectNotify " + str(signal))
+    def connect_notify(self, signal):
+        logging.getLogger().info("connect_notify " + str(signal))
 
     # ########################    PUBLIC    #########################
 
@@ -463,7 +463,7 @@ class SampleChanger(Container, Equipment):
 
     def update_info(self):
         """
-        Update sample changer sample information, currently loaded sample 
+        Update sample changer sample information, currently loaded sample
         and emits infoChanged and loadedSampleChanged when loaded sample
         have changed
         """
@@ -506,7 +506,7 @@ class SampleChanger(Container, Equipment):
     def change_mode(self, mode, wait=True):
         """
         Change the mode (SC specific, imply change of the State)
-        Args: 
+        Args:
             mode (int):
                 Modes:
                 Unknown   = 0
@@ -537,7 +537,7 @@ class SampleChanger(Container, Equipment):
         Scan component or list of components for prescence.
 
         Args:
-            component (Component): Root component to start scan from, sample changer root 
+            component (Component): Root component to start scan from, sample changer root
                                    is used if None is passed
             (recursive) (boolean): Recurse down the component structure if True otherwise
                                    scan only component.
@@ -556,7 +556,7 @@ class SampleChanger(Container, Equipment):
         Scan component or list of components for samples.
 
         Args:
-            component (Component): Root component to start scan from, sample changer root 
+            component (Component): Root component to start scan from, sample changer root
                                    is used if None is passed
             (recursive) (boolean): Recurse down the component structure if True otherwise
                                    scan only component.
@@ -581,7 +581,7 @@ class SampleChanger(Container, Equipment):
         Args:
             component (Component): Component to select
             wait (boolean): True to wait for selection to complete otherwise False
-        
+
         Rerturns:
             (Object): Value returned by _execute_task either a Task or result of the
                       operation
@@ -598,9 +598,9 @@ class SampleChanger(Container, Equipment):
         Chain the unload of a sample with a load.
 
         Args:
-            sample_to_unload (tuple): sample address on the form 
+            sample_to_unload (tuple): sample address on the form
                                       (component1, ... ,component_N-1, component_N)
-            sample_to_load (tuple): sample address on the form 
+            sample_to_load (tuple): sample address on the form
                                       (component1, ... ,component_N-1, component_N)
             (Object): Value returned by _execute_task either a Task or result of the
                       operation
@@ -614,10 +614,10 @@ class SampleChanger(Container, Equipment):
         Load a sample.
 
         Args:
-            sample (tuple): sample address on the form 
+            sample (tuple): sample address on the form
                             (component1, ... ,component_N-1, component_N)
             wait (boolean): True to wait for load to complete False otherwise
-            
+
         Returns
             (Object): Value returned by _execute_task either a Task or result of the
                       operation
@@ -641,11 +641,11 @@ class SampleChanger(Container, Equipment):
 
     def unload(self, sample_slot=None, wait=True):
         """
-        Unload sample to location sample_slot, unloads to the same slot as it 
+        Unload sample to location sample_slot, unloads to the same slot as it
         was loaded from if None is passed
 
         Args:
-            sample_slot (tuple): sample address on the form 
+            sample_slot (tuple): sample address on the form
                                (component1, ... ,component_N-1, component_N)
             wait: If True wait for unload to finish otherwise return immediately
 

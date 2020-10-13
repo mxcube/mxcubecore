@@ -90,12 +90,12 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
 
             self.device = BaseHardwareObjects.Null()
         else:
-            if self.getProperty("exposure_time"):
-                self._sleep_time = float(self.getProperty("exposure_time"))
-            elif self.getProperty("interval"):
-                self._sleep_time = float(self.getProperty("interval")) / 1000.0
+            if self.get_property("exposure_time"):
+                self._sleep_time = float(self.get_property("exposure_time"))
+            elif self.get_property("interval"):
+                self._sleep_time = float(self.get_property("interval")) / 1000.0
 
-            if self.getProperty("control_video", "True"):
+            if self.get_property("control_video", "True"):
                 logging.getLogger("HWR").info("MXCuBE controlling video")
 
                 if self.device.video_live:
@@ -108,7 +108,7 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
             else:
                 logging.getLogger("HWR").info("MXCuBE NOT controlling video")
 
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def get_last_image(self):
         return self._last_image
@@ -125,7 +125,7 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
             self.emit("imageReceived", data, width, height, False)
             time.sleep(sleep_time)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "imageReceived":
             if self.__polling is None:
                 self.__polling = gevent.spawn(

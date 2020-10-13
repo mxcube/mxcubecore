@@ -18,7 +18,7 @@ class XMLNodesWithRolesReadingHandler(ContentHandler):
         ContentHandler.__init__(self)
 
         self.path = ""
-        self.previousPath = ""
+        self.previous_path = ""
         self.elementName = None
         self.value = {}
         self.currentValue = None
@@ -29,10 +29,10 @@ class XMLNodesWithRolesReadingHandler(ContentHandler):
         # determine path to the new object
         #
         self.path += "/" + str(name) + "[%d]"
-        i = self.previousPath.rfind("[")
+        i = self.previous_path.rfind("[")
 
-        if i >= 0 and self.path[:-4] == self.previousPath[:i]:
-            objectIndex = int(self.previousPath[i + 1 : -1]) + 1
+        if i >= 0 and self.path[:-4] == self.previous_path[:i]:
+            objectIndex = int(self.previous_path[i + 1 : -1]) + 1
         else:
             objectIndex = 1  # XPath indexes begin at 1
 
@@ -70,12 +70,12 @@ class XMLNodesWithRolesReadingHandler(ContentHandler):
             self.elementName = None
 
         self.childDepth -= 1
-        self.previousPath = self.path
+        self.previous_path = self.path
         self.path = self.path[
             : self.path.rfind("/")
         ]  # remove last added name and suffix
 
-    def getValue(self):
+    def get_value(self):
         for val in self.value.values():
             val["__children__"].strip()
 
@@ -87,10 +87,10 @@ class XMLPropertiesReadingHandler(ContentHandler):
         ContentHandler.__init__(self)
 
         self.path = ""
-        self.previousPath = ""
+        self.previous_path = ""
         self.queryPath = queryPath + "/*"
         self.properties = {}
-        self.getProperty = False
+        self.get_property = False
         self.propertyName = ""
         self.propertyValue = ""
 
@@ -99,40 +99,40 @@ class XMLPropertiesReadingHandler(ContentHandler):
         # determine path to the new object
         #
         self.path += "/" + str(name) + "[%d]"
-        i = self.previousPath.rfind("[")
+        i = self.previous_path.rfind("[")
 
-        if i >= 0 and self.path[:-4] == self.previousPath[:i]:
-            objectIndex = int(self.previousPath[i + 1 : -1]) + 1
+        if i >= 0 and self.path[:-4] == self.previous_path[:i]:
+            objectIndex = int(self.previous_path[i + 1 : -1]) + 1
         else:
             objectIndex = 1  # XPath indexes begin at 1
 
         self.path %= objectIndex
 
         if SimpleXMLReadWriteSupport.testPath(self.path, self.queryPath, attrs):
-            self.getProperty = True
+            self.get_property = True
             self.propertyName = str(name)
             self.propertyValue = ""
         else:
-            self.getProperty = False
+            self.get_property = False
 
     def characters(self, content):
-        if self.getProperty:
+        if self.get_property:
             self.propertyValue += str(content)
 
     def endElement(self, name):
-        if self.getProperty:
-            self.getProperty = False
+        if self.get_property:
+            self.get_property = False
             self.properties[self.propertyName] = {
                 "__value__": self.propertyValue,
                 "__path__": self.path,
             }
 
-        self.previousPath = self.path
+        self.previous_path = self.path
         self.path = self.path[
             : self.path.rfind("/")
         ]  # remove last added name and suffix
 
-    def getValue(self):
+    def get_value(self):
         return self.properties
 
 
@@ -178,10 +178,10 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
             return False
         return True
 
-    def xml_read(self, hardwareObjectName, path):
+    def xml_read(self, hardware_object_name, path):
         if self.server.hardwareRepositoryDirectory is not None:
             filename = os.path.normpath(
-                self.server.hardwareRepositoryDirectory + hardwareObjectName + ".xml"
+                self.server.hardwareRepositoryDirectory + hardware_object_name + ".xml"
             )
 
             if os.path.exists(filename):
@@ -190,12 +190,12 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                 except SAXParseException as msg:
                     return {
                         "__error__": "Could not parse hardware object file %s : %s"
-                        % (hardwareObjectName, msg)
+                        % (hardware_object_name, msg)
                     }
-                except BaseException:
+                except Exception:
                     return {
                         "__error__": "Could not read hardware object %s"
-                        % hardwareObjectName
+                        % hardware_object_name
                     }
 
                 #
@@ -220,14 +220,14 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                 else:
                     return {"__error__": "No match."}
             else:
-                return {"__error__": "%s does not exist." % hardwareObjectName}
+                return {"__error__": "%s does not exist." % hardware_object_name}
         else:
             return {"__error__": "No server."}
 
-    def xml_readNodesWithRoles(self, hardwareObjectName):
+    def xml_readNodesWithRoles(self, hardware_object_name):
         if self.server.hardwareRepositoryDirectory is not None:
             filename = os.path.normpath(
-                self.server.hardwareRepositoryDirectory + hardwareObjectName + ".xml"
+                self.server.hardwareRepositoryDirectory + hardware_object_name + ".xml"
             )
 
             if os.path.exists(filename):
@@ -238,21 +238,21 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                 except SAXParseException as msg:
                     return {"__error__": "Could not parse the XML file %s" % filename}
                 else:
-                    ret = curHandler.getValue()
+                    ret = curHandler.get_value()
 
                     if len(ret) > 0:
                         return ret
                     else:
                         return {"__error__": "No match."}
             else:
-                return {"__error__": "%s does not exist." % hardwareObjectName}
+                return {"__error__": "%s does not exist." % hardware_object_name}
         else:
             return {"__error__": "No server."}
 
-    def xml_readProperties(self, hardwareObjectName, path=None):
+    def xml_readProperties(self, hardware_object_name, path=None):
         if self.server.hardwareRepositoryDirectory is not None:
             filename = os.path.normpath(
-                self.server.hardwareRepositoryDirectory + hardwareObjectName + ".xml"
+                self.server.hardwareRepositoryDirectory + hardware_object_name + ".xml"
             )
 
             if os.path.exists(filename):
@@ -266,21 +266,21 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                 except SAXParseException as msg:
                     return {"__error__": "Could not parse the XML file %s" % filename}
                 else:
-                    ret = curHandler.getValue()
+                    ret = curHandler.get_value()
 
                     if len(ret) > 0:
                         return ret
                     else:
                         return {"__error__": "No match."}
             else:
-                return {"__error__": "%s does not exist." % hardwareObjectName}
+                return {"__error__": "%s does not exist." % hardware_object_name}
         else:
             return {"__error__": "No server."}
 
-    def xml_writefile(self, hardwareObjectName, xml):
+    def xml_writefile(self, hardware_object_name, xml):
         if self.server.hardwareRepositoryDirectory is not None:
             filename = os.path.normpath(
-                self.server.hardwareRepositoryDirectory + hardwareObjectName + ".xml"
+                self.server.hardwareRepositoryDirectory + hardware_object_name + ".xml"
             )
 
             if os.path.exists(filename):
@@ -297,19 +297,19 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                     f = open(filename, "w")
                     f.write(xml)
                     f.close()
-                except BaseException:
-                    return {"__error__": "%s update failed" % hardwareObjectName}
+                except Exception:
+                    return {"__error__": "%s update failed" % hardware_object_name}
                 else:
-                    self.server.broadcast_update_event(hardwareObjectName)
+                    self.server.broadcast_update_event(hardware_object_name)
             else:
-                return {"__error__": "%s does not exist." % hardwareObjectName}
+                return {"__error__": "%s does not exist." % hardware_object_name}
         else:
             return {"__error__": "No server."}
 
-    def xml_write(self, hardwareObjectName, path, value):
+    def xml_write(self, hardware_object_name, path, value):
         if self.server.hardwareRepositoryDirectory is not None:
             filename = os.path.normpath(
-                self.server.hardwareRepositoryDirectory + hardwareObjectName + ".xml"
+                self.server.hardwareRepositoryDirectory + hardware_object_name + ".xml"
             )
 
             if os.path.exists(filename):
@@ -320,30 +320,30 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                 except SAXParseException as msg:
                     return {
                         "__error__": "Could not parse hardware object file %s : %s"
-                        % (hardwareObjectName, msg)
+                        % (hardware_object_name, msg)
                     }
-                except BaseException:
+                except Exception:
                     return {
                         "__error__": "Could not update hardware object %s"
-                        % hardwareObjectName
+                        % hardware_object_name
                     }
                 else:
-                    self.server.broadcast_update_event(hardwareObjectName)
+                    self.server.broadcast_update_event(hardware_object_name)
             else:
-                return {"__error__": "%s does not exist." % hardwareObjectName}
+                return {"__error__": "%s does not exist." % hardware_object_name}
         else:
             return {"__error__": "No server."}
 
-    def xml_multiwrite(self, hardwareObjectName, str_updateList):
+    def xml_multiwrite(self, hardware_object_name, str_updateList):
         if self.server.hardwareRepositoryDirectory is not None:
             filename = os.path.normpath(
-                self.server.hardwareRepositoryDirectory + hardwareObjectName + ".xml"
+                self.server.hardwareRepositoryDirectory + hardware_object_name + ".xml"
             )
 
             if os.path.exists(filename):
                 try:
                     pathvalueList = eval(str_updateList)
-                except BaseException:
+                except Exception:
                     return {"__error__": "Bad update list format."}
 
                 if type(pathvalueList) in (list, tuple):
@@ -360,27 +360,27 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                     except SAXParseException as msg:
                         return {
                             "__error__": "Could not parse hardware object file %s : %s"
-                            % (hardwareObjectName, msg)
+                            % (hardware_object_name, msg)
                         }
-                    except BaseException:
+                    except Exception:
                         return {
                             "__error__": "Could not update hardware object %s"
-                            % hardwareObjectName
+                            % hardware_object_name
                         }
                     else:
-                        self.server.broadcast_update_event(hardwareObjectName)
+                        self.server.broadcast_update_event(hardware_object_name)
                         return {}
                 else:
                     return {"__error__": "Could not eval. update list"}
             else:
-                return {"__error__": "%s does not exist." % hardwareObjectName}
+                return {"__error__": "%s does not exist." % hardware_object_name}
         else:
             return {"__error__": "No server."}
 
-    def xml_view(self, hardwareObjectName):
+    def xml_view(self, hardware_object_name):
         if self.server.hardwareRepositoryDirectory is not None:
             filename = os.path.normpath(
-                self.server.hardwareRepositoryDirectory + hardwareObjectName + ".xml"
+                self.server.hardwareRepositoryDirectory + hardware_object_name + ".xml"
             )
 
             #
@@ -389,25 +389,25 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
             try:
                 f = open(filename)
                 return f.read()
-            except BaseException:
+            except Exception:
                 return ""
         else:
             return ""  # { '__error__': 'No server.' }
 
-    def xml_viewList(self, hardwareObjectNames):
-        hoNamesList = hardwareObjectNames.split()
+    def xml_viewList(self, hardware_object_names):
+        ho_namesList = hardware_object_names.split()
         data = {}
 
-        for hoName in hoNamesList:
-            data[hoName] = self.xml_view(hoName)
+        for ho_name in ho_namesList:
+            data[ho_name] = self.xml_view(ho_name)
 
         # print 'returning %d objects' % len(data)
         return data
 
-    def xml_get(self, hardwareObjectName, old_mtime=-1):
+    def xml_get(self, hardware_object_name, old_mtime=-1):
         if self.server.hardwareRepositoryDirectory is not None:
             filename = os.path.normpath(
-                self.server.hardwareRepositoryDirectory + hardwareObjectName + ".xml"
+                self.server.hardwareRepositoryDirectory + hardware_object_name + ".xml"
             )
 
             try:
@@ -418,23 +418,23 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                 mtime = file_stats[stat.ST_MTIME]
                 if mtime > old_mtime:
                     return {
-                        "xmldata": self.xml_view(hardwareObjectName),
+                        "xmldata": self.xml_view(hardware_object_name),
                         "mtime": mtime,
                     }
                 return {"xmldata": "", "mtime": mtime}
         else:
             return {"xmldata": ""}
 
-    def xml_getall(self, *hoNames):  # hardwareObjectName):
+    def xml_getall(self, *ho_names):  # hardware_object_name):
         hardwareObjectsDict = {}
 
-        for hoName in hoNames:
-            hoDict = self.xml_get(hoName)
-            hardwareObjectsDict[hoName] = hoDict
+        for ho_name in ho_names:
+            hoDict = self.xml_get(ho_name)
+            hardwareObjectsDict[ho_name] = hoDict
 
             if self.server.hardwareRepositoryDirectory is not None:
                 filename = os.path.normpath(
-                    self.server.hardwareRepositoryDirectory + hoName + ".xml"
+                    self.server.hardwareRepositoryDirectory + ho_name + ".xml"
                 )
 
                 if os.path.exists(filename):
@@ -487,10 +487,10 @@ class HardwareRepositorySpecServer(SpecServer.SpecServer):
                 for file in filenames:
                     if file.endswith(".xml"):
                         shortName = ".".join(file.split(os.extsep)[:-1])
-                        hoName = os.path.join(prefix, shortName)
-                        if hoName[0] != os.sep:
-                            hoName = os.sep + hoName
-                        hardwareObjectFilenames[hoName] = os.path.join(dirpath, file)
+                        ho_name = os.path.join(prefix, shortName)
+                        if ho_name[0] != os.sep:
+                            ho_name = os.sep + ho_name
+                        hardwareObjectFilenames[ho_name] = os.path.join(dirpath, file)
 
             return hardwareObjectFilenames
         else:

@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 """
@@ -34,20 +34,20 @@ class BeamlineTools(HardwareObject):
 
     def init(self):
         for tool in self["tools"]:
-            if tool.getProperty("separator"):
+            if tool.get_property("separator"):
                 self.tools_list.append("separator")
             else:
                 tool_dict = {
-                    "hwobj": self.getObjectByRole(tool.getProperty("hwobj")),
-                    "display": tool.getProperty("display"),
-                    "method": tool.getProperty("method"),
+                    "hwobj": self.get_object_by_role(tool.get_property("hwobj")),
+                    "display": tool.get_property("display"),
+                    "method": tool.get_property("method"),
                 }
-                if tool.getProperty("icon"):
-                    tool_dict["icon"] = tool.getProperty("icon")
-                if tool.getProperty("confirmation"):
-                    tool_dict["confirmation"] = tool.getProperty("confirmation")
-                if tool.getProperty("expertMode"):
-                    tool_dict["expertMode"] = tool.getProperty("expertMode")
+                if tool.get_property("icon"):
+                    tool_dict["icon"] = tool.get_property("icon")
+                if tool.get_property("confirmation"):
+                    tool_dict["confirmation"] = tool.get_property("confirmation")
+                if tool.get_property("expertMode"):
+                    tool_dict["expertMode"] = tool.get_property("expertMode")
                 self.tools_list.append(tool_dict)
 
     def get_tools_list(self):

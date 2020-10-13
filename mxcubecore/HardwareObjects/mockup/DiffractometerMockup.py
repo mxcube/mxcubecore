@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#   You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#   You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import time
 import logging
@@ -79,7 +79,7 @@ class DiffractometerMockup(GenericDiffractometer):
         # self.image_width = 400
         # self.image_height = 400
 
-        self.mount_mode = self.getProperty("sample_mount_mode")
+        self.mount_mode = self.get_property("sample_mount_mode")
         if self.mount_mode is None:
             self.mount_mode = "manual"
 
@@ -247,7 +247,7 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         try:
             return self.move_to_centred_position(centred_position)
-        except BaseException:
+        except Exception:
             logging.exception("Could not move to centred position")
 
     def phi_motor_moved(self, pos):

@@ -100,7 +100,7 @@ def read(inputFile, path):
 
     _parser.parse(inputFile)
 
-    return curHandler.getValue()
+    return curHandler.get_value()
 
 
 class XMLReadingHandler(ContentHandler):
@@ -109,7 +109,7 @@ class XMLReadingHandler(ContentHandler):
 
         self.queryPathParts = path.split("/")
         self.path = ""
-        self.previousPath = ""
+        self.previous_path = ""
         self.elementName = None
         self.value = []
         self.childDepth = 0
@@ -127,10 +127,10 @@ class XMLReadingHandler(ContentHandler):
         # determine path to the new object
         #
         self.path += "/" + str(name) + "[%d]"
-        i = self.previousPath.rfind("[")
+        i = self.previous_path.rfind("[")
 
-        if i >= 0 and self.path[:-4] == self.previousPath[:i]:
-            objectIndex = int(self.previousPath[i + 1 : -1]) + 1
+        if i >= 0 and self.path[:-4] == self.previous_path[:i]:
+            objectIndex = int(self.previous_path[i + 1 : -1]) + 1
         else:
             objectIndex = 1  # XPath indexes begin at 1
 
@@ -171,12 +171,12 @@ class XMLReadingHandler(ContentHandler):
             self.elementName = None
 
         self.childDepth -= 1
-        self.previousPath = self.path
+        self.previous_path = self.path
         self.path = self.path[
             : self.path.rfind("/")
         ]  # remove last added name and suffix
 
-    def getValue(self):
+    def get_value(self):
         return self.value
 
 
@@ -270,7 +270,7 @@ class XMLModifier(XMLGenerator):
         XMLGenerator.__init__(self, self.__buffer)
 
     def getBuffer(self):
-        return self.__buffer.getvalue()
+        return self.__buffer.get_value()
 
 
 class XMLUpdateHandler(XMLModifier):
@@ -278,7 +278,7 @@ class XMLUpdateHandler(XMLModifier):
         XMLModifier.__init__(self)
 
         self.path = ""
-        self.previousPath = ""
+        self.previous_path = ""
         self.modifiedContent = None
         self.queryPathParts = path.split("/")
         self.updatedValue = str(newValue)
@@ -296,10 +296,10 @@ class XMLUpdateHandler(XMLModifier):
         # determine path to the new element
         #
         self.path += "/" + str(name) + "[%d]"
-        i = self.previousPath.rfind("[")
+        i = self.previous_path.rfind("[")
 
-        if i >= 0 and self.path[:-4] == self.previousPath[:i]:
-            elementIndex = int(self.previousPath[i + 1 : -1]) + 1
+        if i >= 0 and self.path[:-4] == self.previous_path[:i]:
+            elementIndex = int(self.previous_path[i + 1 : -1]) + 1
         else:
             elementIndex = 1  # XPath indexes begin at 1
 
@@ -333,7 +333,7 @@ class XMLUpdateHandler(XMLModifier):
 
         XMLModifier.endElement(self, name)
 
-        self.previousPath = self.path
+        self.previous_path = self.path
         self.path = self.path[
             : self.path.rfind("/")
         ]  # remove last added name and suffix
@@ -344,7 +344,7 @@ class XMLBatchUpdateHandler(XMLModifier):
         XMLModifier.__init__(self)
 
         self.path = ""
-        self.previousPath = ""
+        self.previous_path = ""
         self.modifiedContent = None
         self.queryPathsParts = []
         self.queryAttribute = []
@@ -366,10 +366,10 @@ class XMLBatchUpdateHandler(XMLModifier):
         # determine path to the new element
         #
         self.path += "/" + str(name) + "[%d]"
-        i = self.previousPath.rfind("[")
+        i = self.previous_path.rfind("[")
 
-        if i >= 0 and self.path[:-4] == self.previousPath[:i]:
-            elementIndex = int(self.previousPath[i + 1 : -1]) + 1
+        if i >= 0 and self.path[:-4] == self.previous_path[:i]:
+            elementIndex = int(self.previous_path[i + 1 : -1]) + 1
         else:
             elementIndex = 1  # XPath indexes begin at 1
 
@@ -406,7 +406,7 @@ class XMLBatchUpdateHandler(XMLModifier):
 
         XMLModifier.endElement(self, name)
 
-        self.previousPath = self.path
+        self.previous_path = self.path
         self.path = self.path[
             : self.path.rfind("/")
         ]  # remove last added name and suffix
@@ -417,7 +417,7 @@ class XMLRemoveHandler(XMLModifier):
         XMLModifier.__init__(self)
 
         self.path = ""
-        self.previousPath = ""
+        self.previous_path = ""
         self.skip = False
         self.skipElementPath = None
         self.queryPathParts = path.split("/")
@@ -435,10 +435,10 @@ class XMLRemoveHandler(XMLModifier):
         # determine path to the new element
         #
         self.path += "/" + str(name) + "[%d]"
-        i = self.previousPath.rfind("[")
+        i = self.previous_path.rfind("[")
 
-        if i >= 0 and self.path[:-4] == self.previousPath[:i]:
-            elementIndex = int(self.previousPath[i + 1 : -1]) + 1
+        if i >= 0 and self.path[:-4] == self.previous_path[:i]:
+            elementIndex = int(self.previous_path[i + 1 : -1]) + 1
         else:
             elementIndex = 1  # XPath indexes begin at 1
 
@@ -476,7 +476,7 @@ class XMLRemoveHandler(XMLModifier):
         else:
             XMLModifier.endElement(self, name)
 
-        self.previousPath = self.path
+        self.previous_path = self.path
         self.path = self.path[
             : self.path.rfind("/")
         ]  # remove last added name and suffix

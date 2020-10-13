@@ -96,9 +96,9 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         return cmd_obj(*args, wait=wait)
 
     def init(self):
-        self.energy_obj = self.getObjectByRole("energy")
-        self.beamsize = self.getObjectByRole("beamsize")
-        self.transmission = self.getObjectByRole("transmission")
+        self.energy_obj = self.get_object_by_role("energy")
+        self.beamsize = self.get_object_by_role("beamsize")
+        self.transmission = self.get_object_by_role("transmission")
         self.ready_event = gevent.event.Event()
         if HWR.beamline.lims is None:
             logging.getLogger("HWR").warning(
@@ -113,7 +113,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
     def get_static_parameters(self, config_file, element, edge):
         pars = GetStaticParameters(config_file, element, edge).STATICPARS_DICT
 
-        offset_keV = self.getProperty("offset_keV")
+        offset_keV = self.get_property("offset_keV")
         pars["startEnergy"] += offset_keV
         pars["endEnergy"] += offset_keV
         pars["element"] = element
@@ -162,7 +162,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
     def move_energy(self, energy):
         try:
             HWR.beamline.energy.set_value(energy)
-        except BaseException:
+        except Exception:
             self.emit("energyScanFailed", ())
             raise RuntimeError("Cannot move energy")
 
@@ -234,7 +234,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
                     for line in raw_file.readlines()[2:]:
                         try:
                             (x, y) = line.split("\t")
-                        except BaseException:
+                        except Exception:
                             (x, y) = line.split()
                         x = float(x.strip())
                         y = float(y.strip())
@@ -385,14 +385,14 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
                 png_scan_file,
             )
             canvas.print_figure(png_scan_file, dpi=80)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("could not print figure")
         try:
             logging.getLogger("HWR").info(
                 "Saving energy scan to archive directory for ISPyB : %s", png_arch_file
             )
             canvas.print_figure(png_arch_file, dpi=80)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("could not save figure")
         """
         self.storeEnergyScan()

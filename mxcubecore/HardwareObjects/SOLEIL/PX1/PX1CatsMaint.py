@@ -25,7 +25,7 @@ class PX1CatsMaint(CatsMaint):
             "homeOpened",
         )
 
-        self._chnHomeOpened.connectSignal("update", self.update_home_opened)
+        self._chnHomeOpened.connect_signal("update", self.update_home_opened)
 
         self._cmdDrySoak = self.add_command(
             {"type": "tango", "name": "_cmdDrySoak", "tangoname": self.tangoname},

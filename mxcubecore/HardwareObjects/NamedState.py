@@ -1,3 +1,22 @@
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
 from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Device
 
@@ -28,26 +47,26 @@ class NamedState(Device):
             self.stateListChannel = None
 
         try:
-            self.commandtype = self.getProperty("commandtype")
+            self.commandtype = self.get_property("commandtype")
         except KeyError:
             self.commandtype = None
 
-        self.stateChan.connectSignal("update", self.stateChanged)
+        self.stateChan.connect_signal("update", self.stateChanged)
         if self.moveStateChan:
-            self.moveStateChan.connectSignal("update", self.hardwareStateChanged)
+            self.moveStateChan.connect_signal("update", self.hardwareStateChanged)
 
         Device._init(self)
 
     def init(self):
         self._getStateList()
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "stateChanged":
             self.emit(signal, (self.get_state(),))
 
     def stateChanged(self, channelValue):
         logging.info("hw NamedState %s. got new value %s" % (self.name(), channelValue))
-        self.setIsReady(True)
+        self.set_is_ready(True)
         self.emit("stateChanged", (self.get_state(),))
 
     def hardwareStateChanged(self, channelValue):
@@ -64,7 +83,7 @@ class NamedState(Device):
         if self.stateListChannel is not None:
             # This is the case for ApertureDiameterList *configured as statelist
             # channel in xml
-            statelist = self.stateListChannel.getValue()
+            statelist = self.stateListChannel.get_value()
             for statename in statelist:
                 # cenvert in str because statename is numpy.int32 from Tango and deosn't
                 self.stateList.append(str(statename))
@@ -72,13 +91,13 @@ class NamedState(Device):
             # This is the case where state names are listed in xml
             try:
                 states = self["states"]
-            except BaseException:
+            except Exception:
                 logging.getLogger().error(
                     "%s does not define named states.", str(self.name())
                 )
             else:
                 for state in states:
-                    statename = state.getProperty("name")
+                    statename = state.get_property("name")
                     self.stateList.append(statename)
 
     def re_emit_values(self):
@@ -86,8 +105,8 @@ class NamedState(Device):
 
     def getUserName(self):
         try:
-            name = self.getProperty("username")
-        except BaseException:
+            name = self.get_property("username")
+        except Exception:
             name = None
 
         if name is None:
@@ -96,7 +115,7 @@ class NamedState(Device):
 
     def get_state(self):
         try:
-            stateValue = self.stateChan.getValue()
+            stateValue = self.stateChan.get_value()
             if self.commandtype is not None and self.commandtype == "index":
                 # this is the case of aperture diameters. the state channel gives only
                 # the index in the list
@@ -104,7 +123,7 @@ class NamedState(Device):
                 return listvalue
             else:
                 return stateValue
-        except BaseException:
+        except Exception:
             import traceback
 
             logging.debug(traceback.format_exc())
@@ -126,7 +145,7 @@ class NamedState(Device):
                     "   this is index mode. setting actual value s to ws: %s."
                     % (statevalue)
                 )
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     "changing state for %s to ws: %s.failed. not such state"
                     % (self.getUserName(), statename)
@@ -148,12 +167,12 @@ class NamedState(Device):
                 logging.getLogger().exception("  - using attribute mode")
                 try:
                     # probleme de unicode tester en mettant un unicode
-                    self.stateChan.setValue(statevalue)
-                except BaseException:
+                    self.stateChan.set_value(statevalue)
+                except Exception:
                     logging.getLogger().exception("cannot write attribute")
                     self.emit("stateChanged", (self.get_state(),))
                     self.emit("hardwareStateChanged", ("ERROR",))
-        except BaseException:
+        except Exception:
             logging.getLogger().exception(
                 "Cannot change state for %s to %s: " % (self.getUserName(), statevalue)
             )
@@ -163,10 +182,10 @@ def test():
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    ap_pos = hwr.getHardwareObject("/aperture_position")
-    ap_diam = hwr.getHardwareObject("/aperture_diameter")
-    yag_pos = hwr.getHardwareObject("/scintillator")
-    md2_phase = hwr.getHardwareObject("/md2j_phase")
+    ap_pos = hwr.get_hardware_object("/aperture_position")
+    ap_diam = hwr.get_hardware_object("/aperture_diameter")
+    yag_pos = hwr.get_hardware_object("/scintillator")
+    md2_phase = hwr.get_hardware_object("/md2j_phase")
 
     print("Aperture Position: ", ap_pos.get_state())
     print("Aperture Diameter: ", ap_diam.get_state())
