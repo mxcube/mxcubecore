@@ -76,7 +76,7 @@ Pull request (PR) is the most convinient way of submitting a new code to the rep
 ### Coding convention and style guidelines
 
 #### Units
-Functions return a value representing a physical quantity should in general be assoicated with 
+Functions returning a value representing a physical quantity should in general be assoicated with 
 a unit. It has been agreed that the following units should, where applicable, be used across the 
 code base
 
