@@ -40,8 +40,6 @@ class AbstractFlux(AbstractActuator):
     def __init__(self, name):
         AbstractActuator.__init__(self, name)
 
-        self.dose_rate_per_photon_per_mmsq = dose_rate_per_photon_per_mmsq
-
     def init(self):
         """Initialise some parameters."""
         super(AbstractFlux, self).init()
@@ -55,9 +53,9 @@ class AbstractFlux(AbstractActuator):
     # As a function of energy in keV
     #
     # NB this can be called as a function, the same as if it was defined thus:
-    # def dose_rate_per_photon_per_mmsq(self, energy):
+    # def get_dose_rate_per_photon_per_mmsq(self, energy):
     #
-    # The interpolation table dose_rate_per_photon_per_mmsq was created using
+    # The interpolation table get_dose_rate_per_photon_per_mmsq was created using
     # "Absorbed dose calculations for macromolecular crystals: improvements to RADDOSE"
     # Paithankar, K.S., Owen, R.L and Garman, E.F J. Syn. Rad. (2009), 16, 152-162,
     # for some sensible crystal composition, by Gleb Bourenkov
@@ -67,7 +65,7 @@ class AbstractFlux(AbstractActuator):
     # The necessary approximations should be done locally.
     # See GphlWorkflow for an example of how to do it.
     #
-    dose_rate_per_photon_per_mmsq = interp1d(
+    get_dose_rate_per_photon_per_mmsq = interp1d(
         [4.0, 6.6, 9.2, 11.8, 14.4, 17.0, 19.6, 22.2, 24.8, 27.4, 30.0],
         [
             4590.0e-12,

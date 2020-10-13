@@ -110,7 +110,7 @@ carbon_window_transmission = interp1d(
     ],
 )
 
-# # Replaced by AbstractFLux.dose_rate_per_photon_per_mmsq (same values0
+# # Replaced by AbstractFLux.get_dose_rate_per_photon_per_mmsq (same values0
 #
 # dose_rate_per_10to14_ph_per_mmsq = interp1d(
 #     [4.0, 6.6, 9.2, 11.8, 14.4, 17.0, 19.6, 22.2, 24.8, 27.4, 30.0],
@@ -543,7 +543,7 @@ class EMBLFlux(AbstractFlux):
         dose_rate = (
             1e-3
             # * 1e-14
-            * self.dose_rate_per_photon_per_mmsq(energy)
+            * self.get_dose_rate_per_photon_per_mmsq(energy)
             * flux
             / beam_size[0]
             / beam_size[1]
