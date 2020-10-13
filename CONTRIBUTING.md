@@ -75,7 +75,7 @@ Pull request (PR) is the most convinient way of submitting a new code to the rep
 
 ### Coding convention
 
-## Units
+#### Units
 Functions return a value representing a physical quantity should in general be assoicated with 
 a unit. It has been agreed that the following units should, where applicable, be used across the 
 code base
@@ -89,7 +89,7 @@ code base
  * Pixels are to be used for beam location (center)
  * Datetime YYYY-MM-DD HH:MM:SS possible with hundreds of seconds and with 24 hour clock
 
-## Value update signals/callbacks
+#### Value update signals/callbacks
 The "valueChanged" and "stateChanged" signals should be used when a HardwareObjects value or state
 has been changed. Defined in for instance the base class [HardwareObject](https://github.com/mxcube/HardwareRepository/blob/ea8369ab2c08dbe539fd92ffee18fd21bb3a81b8/BaseHardwareObjects.py#L666), [AbstractMotor](https://github.com/mxcube/HardwareRepository/blob/master/HardwareObjects/abstract/AbstractMotor.py) and 
 [AbstractActutor](https://github.com/mxcube/HardwareRepository/blob/master/HardwareObjects/abstract/AbstractActuator.py)
@@ -98,12 +98,12 @@ The use of the the signal "attributeChanged" with a key, value pair is encourage
 attributes, for instance ```self.emit("attributeChanged", "attr1", 0)``` instead of using a 
 specific signal with for instance a single dictionary as data.
 
-## Naming convention
+### Naming convention
 
-# Functions
+#### Functions
   * functions names should generally contain a verb
 
-# Variables and parameters:
+#### Variables and parameters:
  * names of objects and values are singular
  * names of collections and maps are plural or contain 'map', 'dict','data', or an internel '2', like 'name2state'
  
