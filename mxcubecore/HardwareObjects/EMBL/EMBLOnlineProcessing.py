@@ -369,7 +369,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
                 "debug",
                 "Online processing: All image list stored in %s" % all_file_filename,
             )
-        except BaseException:
+        except Exception:
             self.print_log(
                 "GUI",
                 "error",
@@ -434,7 +434,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
                 % dozor_resolution_filename,
             )
 
-        except BaseException:
+        except Exception:
             self.print_log(
                 "GUI",
                 "error",

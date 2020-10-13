@@ -97,7 +97,7 @@ class EMBLBeamFocusing(HardwareObject):
 
         try:
             self.cmd_set_phase = eval(self.get_property("setPhaseCmd"))
-        except BaseException:
+        except Exception:
             pass
 
         self.aperture_hwobj = self.get_object_by_role("aperture")

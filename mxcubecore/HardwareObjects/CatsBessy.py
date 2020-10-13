@@ -295,7 +295,7 @@ class CatsBessy(SampleChanger):
     def _update_state(self):
         try:
             state = self._read_state()
-        except BaseException:
+        except Exception:
             state = SampleChangerState.Unknown
         if state == SampleChangerState.Moving and self._is_device_busy(
             self.get_state()
@@ -362,7 +362,7 @@ class CatsBessy(SampleChanger):
                     sample = self.get_component_by_address(
                         Pin.get_sample_address(basket_no, sample_no)
                     )
-        except BaseException:
+        except Exception:
             pass
         self._set_selected_component(basket)
         self._set_selected_sample(sample)

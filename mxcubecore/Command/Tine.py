@@ -88,7 +88,7 @@ class TineCommand(CommandObject):
             result = tine.get(self.tine_name, self.command_name, self.timeout)
         except IOError as strerror:
             logging.getLogger("HWR").error("%s" % strerror)
-        except BaseException:
+        except Exception:
             pass
         return result
 
@@ -110,7 +110,7 @@ def emit_tine_channel_updates():
             if channel_object is not None:
                 try:
                     channel_object.emit("update", (value,))
-                except BaseException:
+                except Exception:
                     logging.getLogger("HWR").exception(
                         "Exception while emitting new value for channel %s",
                         channel_object.name(),
@@ -192,7 +192,7 @@ class TineChannel(ChannelObject):
             logging.getLogger("HWR").error(
                 "%s detaching %s %s" % (strerror, self.tine_name, self.attribute_name)
             )
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error(
                 "Exception on detaching %s %s" % (self.tine_name, self.attribute_name)
             )

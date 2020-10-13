@@ -79,7 +79,7 @@ class Sample(Component):
                 f = urlopen(img_url)
                 img = f.read()
                 return img
-        except BaseException:
+        except Exception:
             print((sys.exc_info()[1]))
 
     def clear_info(self):

@@ -34,7 +34,7 @@ from HardwareRepository import HardwareRepository as HWR
 
 try:
     unicode
-except BaseException:
+except Exception:
     # A quick fix for python3
     unicode = str
 
@@ -264,7 +264,7 @@ class GenericDiffractometer(HardwareObject):
         if ss0:
             try:
                 self.used_channels_list = eval(ss0)
-            except BaseException:
+            except Exception:
                 pass  # used the default value
 
         for channel_name in self.used_channels_list:
@@ -293,7 +293,7 @@ class GenericDiffractometer(HardwareObject):
         # Commands -----------------------------------------------------------
         try:
             self.used_commands_list = eval(self.get_property("used_commands", "[]"))
-        except BaseException:
+        except Exception:
             pass  # used the default value
         for command_name in self.used_commands_list:
             self.command_dict[command_name] = self.get_command_object(command_name)
@@ -301,7 +301,7 @@ class GenericDiffractometer(HardwareObject):
         # Centring motors ----------------------------------------------------
         try:
             self.centring_motors_list = eval(self.get_property("centring_motors"))
-        except BaseException:
+        except Exception:
             self.centring_motors_list = GenericDiffractometer.CENTRING_MOTORS_NAME
 
         queue_model_objects.CentredPosition.set_diffractometer_motor_names(
@@ -375,18 +375,18 @@ class GenericDiffractometer(HardwareObject):
                 self.centring_sampy = sample_centring.CentringMotor(
                     self.motor_hwobj_dict["sampy"]
                 )
-        except BaseException:
+        except Exception:
             pass  # used the default value
 
         try:
             self.delay_state_polling = self.get_property("delay_state_polling")
-        except BaseException:
+        except Exception:
             pass
 
         # Other parameters ---------------------------------------------------
         try:
             self.zoom_centre = eval(self.get_property("zoom_centre"))
-        except BaseException:
+        except Exception:
             self.zoom_centre = {"x": 0, "y": 0}
             logging.getLogger("HWR").warning(
                 "Diffractometer: " + "zoom centre not configured"
@@ -398,7 +398,7 @@ class GenericDiffractometer(HardwareObject):
             # 'fast' is collection direction and 'slow' describes
             # move to the next collection line
             self.grid_direction = eval(self.get_property("grid_direction"))
-        except BaseException:
+        except Exception:
             self.grid_direction = {"fast": (0, 1), "slow": (1, 0), "omega_ref": 0}
             logging.getLogger("HWR").warning(
                 "Diffractometer: Grid " + "direction is not defined. Using default."
@@ -406,7 +406,7 @@ class GenericDiffractometer(HardwareObject):
 
         try:
             self.phase_list = eval(self.get_property("phase_list"))
-        except BaseException:
+        except Exception:
             self.phase_list = [
                 GenericDiffractometer.PHASE_TRANSFER,
                 GenericDiffractometer.PHASE_CENTRING,
@@ -740,7 +740,7 @@ class GenericDiffractometer(HardwareObject):
         else:
             try:
                 centring_method(sample_info, wait_result=wait)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "Diffractometer: problem while centring"
                 )
@@ -753,7 +753,7 @@ class GenericDiffractometer(HardwareObject):
         if self.current_centring_procedure is not None:
             try:
                 self.current_centring_procedure.kill()
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "Diffractometer: problem aborting the centring method"
                 )
@@ -766,7 +766,7 @@ class GenericDiffractometer(HardwareObject):
             else:
                 try:
                     fun()
-                except BaseException:
+                except Exception:
                     self.emit_centring_failed()
         else:
             self.emit_centring_failed()
@@ -866,7 +866,7 @@ class GenericDiffractometer(HardwareObject):
             self.accept_centring()
             self.current_centring_method = None
             self.current_centring_procedure = None
-        except BaseException:
+        except Exception:
             logging.exception("Diffractometer: Could not complete 2D centring")
 
     def centring_done(self, centring_procedure):
@@ -877,7 +877,7 @@ class GenericDiffractometer(HardwareObject):
             motor_pos = centring_procedure.get()
             if isinstance(motor_pos, gevent.GreenletExit):
                 raise motor_pos
-        except BaseException:
+        except Exception:
             logging.exception("Could not complete centring")
             self.emit_centring_failed()
         else:
@@ -889,7 +889,7 @@ class GenericDiffractometer(HardwareObject):
                     "Centring finished. Moving motoros to position %s" % str(motor_pos)
                 )
                 self.move_to_motors_positions(motor_pos, wait=True)
-            except BaseException:
+            except Exception:
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()
             else:
@@ -1058,7 +1058,7 @@ class GenericDiffractometer(HardwareObject):
             if omega is not None:
                 pos["phiMotor"] = omega
             self.move_to_motors_positions(pos)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "Diffractometer: could not center to beam, aborting"
             )
@@ -1327,7 +1327,7 @@ class GenericDiffractometer(HardwareObject):
                 "update",
                 self.sample_is_loaded_changed,
             )
-        except BaseException:
+        except Exception:
             pass
 
         if (

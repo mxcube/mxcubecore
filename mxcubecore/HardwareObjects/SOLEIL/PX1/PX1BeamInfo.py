@@ -85,7 +85,7 @@ class PX1BeamInfo(Equipment):
                     beamx, beamy = beam_size.split(",")
                     self.beam_info_dict["size_x"] = self.beam_size[0] = float(beamx)
                     self.beam_info_dict["size_y"] = self.beam_size[1] = float(beamy)
-            except BaseException:
+            except Exception:
                 pass
 
     def connect_notify(self, signal):

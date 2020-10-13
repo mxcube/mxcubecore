@@ -146,7 +146,7 @@ class PX1MiniDiff(GenericDiffractometer):
             motor_pos = centring_procedure.get()
             if isinstance(motor_pos, gevent.GreenletExit):
                 raise motor_pos
-        except BaseException:
+        except Exception:
             logging.exception("Could not complete centring")
             self.emit_centring_failed()
         else:
@@ -164,7 +164,7 @@ class PX1MiniDiff(GenericDiffractometer):
             self.emit_centring_moving()
             try:
                 self.move_to_motors_positions(motor_pos, wait=True)
-            except BaseException:
+            except Exception:
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()
             else:
@@ -242,7 +242,7 @@ class PX1MiniDiff(GenericDiffractometer):
             self.wait_device_ready(timeout)
             try:
                 motor.set_value(position, timeout=None)
-            except BaseException:
+            except Exception:
                 import traceback
 
                 logging.getLogger("HWR").debug(

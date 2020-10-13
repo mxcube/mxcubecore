@@ -181,7 +181,7 @@ class EMBLFlux(AbstractFlux):
             self.intensity_ranges = sorted(
                 self.intensity_ranges, key=lambda item: item["max"]
             )
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error("BeamlineTest: No intensity ranges defined")
 
         self.chan_intens_mean = self.get_channel_object("intensMean")
@@ -441,7 +441,7 @@ class EMBLFlux(AbstractFlux):
             try:
                 self.cmd_flux_record([_x["flux"] for _x in self.measured_flux_list])
                 gevent.sleep(2)
-            except BaseException:
+            except Exception:
                 pass
 
             max_frame_rate = 25

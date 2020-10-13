@@ -121,7 +121,7 @@ class PX2Guillotine(BaseHardwareObjects.Device):
 
         try:
             self.pss_door = self.get_property("tangoname_pss")
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error(
                 "Guillotine I11-MA-CE/PSS/DB_DATA: tangopssDevice is not defined "
             )

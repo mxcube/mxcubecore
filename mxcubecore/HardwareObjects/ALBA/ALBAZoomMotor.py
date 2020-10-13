@@ -140,7 +140,7 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
     def get_value(self):
         try:
             return self.positionChannel.get_value()
-        except BaseException:
+        except Exception:
             return self.currentposition
 
     def get_current_position_name(self):
@@ -151,7 +151,7 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
                 "get_current_position_name: %s" % repr(value)
             )
             return value
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").debug("cannot get name zoom value")
             return None
 

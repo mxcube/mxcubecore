@@ -188,7 +188,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
             adxv_notify_socket.connect(("aelita.esrf.fr", 8100))
             adxv_notify_socket.sendall("load_image %s\n" % image_filename)
             adxv_notify_socket.close()
-        except BaseException:
+        except Exception:
             pass
         else:
             gevent.sleep(3)
@@ -197,7 +197,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
         try:
             albula_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             albula_socket.connect(("localhost", 31337))
-        except BaseException:
+        except Exception:
             pass
         else:
             albula_socket.sendall(

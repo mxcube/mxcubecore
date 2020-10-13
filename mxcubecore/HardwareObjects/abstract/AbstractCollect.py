@@ -90,7 +90,7 @@ class AbstractCollect(HardwareObject, object):
         try:
             for undulator in self["undulators"]:
                 undulators.append(undulator)
-        except BaseException:
+        except Exception:
             pass
 
         session = HWR.beamline.session
@@ -210,7 +210,7 @@ class AbstractCollect(HardwareObject, object):
 
             # Update information in LIMS
             self._update_data_collection_in_lims(cp)
-        except BaseException:
+        except Exception:
             exc_type, exc_value, exc_tb = sys.exc_info()
             self._collection_failed(cp, exc_type, exc_value, exc_tb)
         else:
@@ -323,7 +323,7 @@ class AbstractCollect(HardwareObject, object):
 
         try:
             sample_id = int(sample_info["blSampleId"])
-        except BaseException:
+        except Exception:
             sample_id = None
 
         cp.dangerously_set("blSampleId", sample_id)
@@ -344,7 +344,7 @@ class AbstractCollect(HardwareObject, object):
                 )
                 cp.dangerously_set("actualSampleSlotInContainer", vial)
                 cp.dangerously_set("actualContainerSlotInSC", basket)
-            except BaseException:
+            except Exception:
                 cp.dangerously_set("actualSampleBarcode", None)
                 cp.dangerously_set("actualContainerBarcode", None)
         else:
@@ -369,7 +369,7 @@ class AbstractCollect(HardwareObject, object):
                 if detector_id:
                     cp.dangerously_set("detector_id", detector_id)
 
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "Could not store data collection in LIMS"
                 )
@@ -419,7 +419,7 @@ class AbstractCollect(HardwareObject, object):
             if not os.path.exists(snapshot_directory):
                 try:
                     self.create_directories(snapshot_directory)
-                except BaseException:
+                except Exception:
                     logging.getLogger("HWR").exception(
                         "Collection: Error creating snapshot directory"
                     )
@@ -498,7 +498,7 @@ class AbstractCollect(HardwareObject, object):
 
             try:
                 HWR.beamline.lims.update_data_collection(cp)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "Could not update data collection in LIMS"
                 )
@@ -556,7 +556,7 @@ class AbstractCollect(HardwareObject, object):
                 if grid_snapshot_filename:
                     cp.dangerously_set("xtalSnapshotFullPath3", grid_snapshot_filename)
                 HWR.beamline.lims.update_data_collection(cp)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "Could not store data collection into ISPyB"
                 )

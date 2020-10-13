@@ -39,7 +39,7 @@ class BIOMAXEnergy(Energy.Energy):
     #     if HWR.beamline.energy is not None:
     #         try:
     #             return HWR.beamline.energy.get_value() / 1000
-    #         except BaseException:
+    #         except Exception:
     #             logging.getLogger("HWR").exception(
     #                 "EnergyHO: could not read current energy"
     #             )
@@ -58,7 +58,7 @@ class BIOMAXEnergy(Energy.Energy):
                     float(self.en_lims[1]) / 1000,
                 )
                 return self.en_lims
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "EnergyHO: could not read energy motor limits"
                 )

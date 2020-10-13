@@ -467,5 +467,5 @@ class SOLEILMachineInfo(HardwareObject):
                     return "%3.1f%s" % (num, x)
                 num /= 1024.0
             return "%3.1f%s" % (num, "TB")
-        except BaseException:
+        except Exception:
             return "???"

@@ -158,7 +158,7 @@ def dev_init(mdevname):
         #     have to import the device and create place in dict
         try:
             mpt = esrf_import(locname)
-        except BaseException:
+        except Exception:
             #         print error
             #         print "dev_init: error on importing device %s" % locname
             raise Dev_Exception("dev_init: error on importing device %s" % locname)
@@ -195,7 +195,7 @@ def dev_initC(mdevname):
         #     have to import the device and create place in dict
         try:
             mpt = esrf_dc_import(locname)
-        except BaseException:
+        except Exception:
             #         print error
             #         print "dev_initC: error on importing device %s" % locname
             raise Dev_Exception("dev_initC: error on importing device %s" % locname)
@@ -232,7 +232,7 @@ def dev_query(mdevname):
 
         try:
             return esrf_query(loc_c_pt)
-        except BaseException:
+        except Exception:
             pass
             # raise Dev_Exception
     else:
@@ -255,7 +255,7 @@ def dev_queryC(mdevname):
     # --------------------------------------------------------------
     try:
         locdict = esrf_dc_info(mdevname)
-    except BaseException:
+    except Exception:
         raise Dev_Exception("dev_queryC: error on query for device %s" % mdevname)
         return {}
 
@@ -280,7 +280,7 @@ def dev_tcpudp(mdevname, mode):
             return 0
         try:
             ret = esrf_tcpudp(loc_c_pt, mode)
-        except BaseException:
+        except Exception:
             raise Dev_Exception(
                 "dev_tcpudp: error on esrf_tcpudp for device %s" % mdevname
             )
@@ -311,7 +311,7 @@ def dev_timeout(mdevname, *mtime):
             print("dev_timeout readmode ")
             try:
                 ret = esrf_timeout(loc_c_pt)
-            except BaseException:
+            except Exception:
                 raise Dev_Exception("error on esrf_timeout for device " + mdevname)
                 return 0
             return ret
@@ -321,7 +321,7 @@ def dev_timeout(mdevname, *mtime):
                 print("dev_timeout set mode %f" % itime)
                 try:
                     ret = esrf_timeout(loc_c_pt, itime)
-                except BaseException:
+                except Exception:
                     raise Dev_Exception("error on esrf_timeout for device " + mdevname)
                     return 0
                 return ret
@@ -341,7 +341,7 @@ def dev_getresource(mdevname, resname):
     # --------------------------------------------------------------
     try:
         ret = esrf_getresource(mdevname, resname)
-    except BaseException:
+    except Exception:
         raise Dev_Exception(
             "dev_getresource: error for device %s on resource %s" % (mdevname, resname)
         )
@@ -366,7 +366,7 @@ def dev_putresource(mdevname, resname, value):
         print("dev_putresource: resource value must be packed as string")
     try:
         ret = esrf_putresource(mdevname, resname, value)
-    except BaseException:
+    except Exception:
         raise Dev_Exception(
             "dev_putresource: error for device %s on resource %s" % (mdevname, resname)
         )
@@ -386,7 +386,7 @@ def dev_delresource(mdevname, resname):
     # --------------------------------------------------------------
     try:
         ret = esrf_delresource(mdevname, resname)
-    except BaseException:
+    except Exception:
         raise Dev_Exception(
             "dev_delresource: error for device %s on resource %s" % (mdevname, resname)
         )
@@ -455,7 +455,7 @@ def dev_io(mdevname, mdevcommand, *parin, **kw):
                     parin,
                     **kw
                 )
-            except BaseException:
+            except Exception:
                 raise Dev_Exception(
                     "Cannot execute esrf_io %s,%s" % (mdevname, mdevcommand)
                 )
@@ -512,7 +512,7 @@ def dev_ioC(mdevname, mdevcommand, **kw):
 
                 if Dev_deb[0] == 1:
                     print("returned from esrf_io: %s" % ret)
-            except BaseException:
+            except Exception:
                 raise Dev_Exception("esrf_ioC: error on device %s" % mdevname)
             return ret
         else:

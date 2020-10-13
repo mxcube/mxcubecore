@@ -70,13 +70,13 @@ class MotorWPositions(AbstractMotor, Device):
             return
         try:
             self.delta = self["deltas"].get_property(role)
-        except BaseException:
+        except Exception:
             logging.getLogger().info(
                 "MotorWPositions: no delta defined, setting to %f", self.delta
             )
         try:
             positions = self["positions"]
-        except BaseException:
+        except Exception:
             logging.getLogger().error("MotorWPositions: no positions defined")
         else:
             for position in positions:
@@ -105,7 +105,7 @@ class MotorWPositions(AbstractMotor, Device):
     def moveToPosition(self, position_name):
         try:
             self.motor.set_value(self.predefined_positions[position_name])
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("MotorWPositions: invalid position name")
 
     def setNewPredefinedPosition(self, positionName, positionOffset):

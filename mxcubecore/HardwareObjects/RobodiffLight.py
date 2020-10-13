@@ -29,7 +29,7 @@ class RobodiffLight(Device, AbstractMotor):
         while True:
             try:
                 reading = int(self.wago_controller.get(key))
-            except BaseException:
+            except Exception:
                 time.sleep(1)
                 continue
             if self._state != reading:

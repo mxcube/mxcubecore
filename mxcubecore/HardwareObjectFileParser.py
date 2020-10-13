@@ -54,7 +54,7 @@ def parse(filename, name):
     try:
         xml_file = open(filename)
         CURRENT_XML = xml_file.read()
-    except BaseException:
+    except Exception:
         CURRENT_XML = None
 
     xml.sax.parse(filename, cur_handler)
@@ -135,7 +135,7 @@ def instanciate_class(module_name, class_name, object_name):
                         return
             try:
                 new_instance = class_obj(object_name)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "Cannot instanciate class %s", class_name
                 )
@@ -223,10 +223,10 @@ class HardwareObjectHandler(ContentHandler):
             else:
                 try:
                     attrs[str(k)] = int(v)
-                except BaseException:
+                except Exception:
                     try:
                         attrs[str(k)] = float(v)
-                    except BaseException:
+                    except Exception:
                         if v == "False":
                             attrs[str(k)] = False
                         elif v == "True":
@@ -385,7 +385,7 @@ class HardwareObjectHandler(ContentHandler):
                         )
                     if len(self.objects) > 0:
                         del self.objects[-1]
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "%s: error while creating Hardware Object from XML file", self.name
                 )

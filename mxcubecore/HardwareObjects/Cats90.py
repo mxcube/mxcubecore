@@ -528,7 +528,7 @@ class Cats90(SampleChanger):
             unipuck_tool = int(unipuck_tool)
             if unipuck_tool:
                 self.set_unipuck_tool(unipuck_tool)
-        except BaseException:
+        except Exception:
             pass
 
         self.update_info()
@@ -679,7 +679,7 @@ class Cats90(SampleChanger):
                     sample = self.get_component_by_address(
                         Pin.get_sample_address(basket_no, sample_no)
                     )
-        except BaseException:
+        except Exception:
             pass
         self._set_selected_component(basket)
         self._set_selected_sample(sample)
@@ -1080,7 +1080,7 @@ class Cats90(SampleChanger):
         self._wait_device_ready(3.0)
         try:
             task_id = method(*args)
-        except BaseException:
+        except Exception:
             import traceback
 
             logging.getLogger("HWR").debug(

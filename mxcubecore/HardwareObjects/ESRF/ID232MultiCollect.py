@@ -51,7 +51,7 @@ class ID232MultiCollect(ESRFMultiCollect):
         diffr = self.bl_control.diffractometer
         try:
             self.get_object_by_role("controller").detcover.set_out()
-        except BaseException:
+        except Exception:
             pass
         for tag in ("kappa", "kappa_phi"):
             if tag in motor_positions_copy:
@@ -195,7 +195,7 @@ class ID232MultiCollect(ESRFMultiCollect):
                     shutil.copyfile(
                         os.path.join("/data/id29/inhouse/opid291", filename), dest
                     )
-        except BaseException:
+        except Exception:
             logging.exception("Exception happened while copying geo_corr files")
 
         return ESRFMultiCollect.write_input_files(self, datacollection_id)

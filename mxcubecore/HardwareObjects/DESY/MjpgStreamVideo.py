@@ -324,7 +324,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
         try:
             http.request("GET", path + query)
             response = http.getresponse()
-        except BaseException:
+        except Exception:
             self.log.error(
                 "MjpgStreamVideo: Connection to http://{0}:{1}{2}{3} refused".format(
                     host, port, path, query
@@ -364,7 +364,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
         group = str(int(group))
         try:
             value = str(int(value))
-        except BaseException:
+        except Exception:
             option = value
             value = None
             if isinstance(option, string_types):
@@ -867,7 +867,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
             # if bw:
             #    qimage.setNumColors(0)
             qimage.save(filename, "PNG")
-        except BaseException:
+        except Exception:
             self.log.error(
                 "MjpgStreamVideo: unable to save snapshot: %s" % filename
             )

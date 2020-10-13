@@ -69,7 +69,7 @@ class SpecMotorWSpecPositions(SpecMotor.SpecMotor):
     def moveToPosition(self, positionName):
         try:
             self.move(self.predefinedPositions[positionName])
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "Cannot move motor %s: invalid position name.", str(self.username)
             )

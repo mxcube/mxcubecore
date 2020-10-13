@@ -103,12 +103,12 @@ class EMBLEnergy(AbstractEnergy):
 
         try:
             self._default_energy = self.get_property("defaultEnergy")
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").warning("Energy: no default energy defined")
 
         try:
             self._energy_limits = eval(self.get_property("staticLimits"))
-        except BaseException:
+        except Exception:
             self._energy_limits = (None, None)
         self.ctrl_bytes = eval(self.get_property("ctrlBytes"))
 
@@ -134,7 +134,7 @@ class EMBLEnergy(AbstractEnergy):
             try:
                 value = self.chan_energy.get_value()
                 return value[0] / 1000
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "Energy: could not read current energy"
                 )
@@ -164,7 +164,7 @@ class EMBLEnergy(AbstractEnergy):
                     self.chan_limit_low.get_value(),
                     self.chan_limit_high.get_value(),
                 )
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "Energy: could not read energy limits"
                 )

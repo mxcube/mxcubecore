@@ -96,7 +96,7 @@ class EpicsCommand(CommandObject):
                 # no arguments available -> get the pv's current value
                 try:
                     ret = self.pv.get(as_string=self.read_as_str)
-                except BaseException:
+                except Exception:
                     logging.getLogger("HWR").error(
                         "%s: an error occured when calling Epics command %s",
                         str(self.name()),
@@ -111,7 +111,7 @@ class EpicsCommand(CommandObject):
                     # LNLS
                     # self.pv.put(args[0], wait = True)
                     self.pv.put(args[0], wait=False)
-                except BaseException:
+                except Exception:
                     logging.getLogger("HWR").error(
                         "%s: an error occured when calling Epics command %s",
                         str(self.name()),
@@ -125,7 +125,7 @@ class EpicsCommand(CommandObject):
     def value_changed(self, value):
         try:
             callback = self.__value_changed_callback_ref()
-        except BaseException:
+        except Exception:
             pass
         else:
             if callback is not None:
@@ -138,7 +138,7 @@ class EpicsCommand(CommandObject):
         if poller is not None:
             try:
                 poller.restart(1000)
-            except BaseException:
+            except Exception:
                 pass
 
     def get_pv_value(self):
@@ -191,7 +191,7 @@ class EpicsChannel(ChannelObject):
 
         try:
             self.polling = int(polling)
-        except BaseException:
+        except Exception:
             self.polling = None
         else:
             self.command.poll(self.polling, self.command.arg_list, self.value_changed)

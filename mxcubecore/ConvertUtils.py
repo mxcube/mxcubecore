@@ -35,7 +35,7 @@ try:
     string_types = (basestring,)
     text_type = unicode
     binary_type = str
-except BaseException:
+except Exception:
     # Python 3+
     string_types = (str,)
     text_type = str

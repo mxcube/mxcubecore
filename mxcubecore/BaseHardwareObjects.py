@@ -227,7 +227,7 @@ class HardwareObjectNode(object):
 
             try:
                 index = self.__objects_names.index(object_name)
-            except BaseException:
+            except Exception:
                 raise KeyError
             else:
                 obj = self.__objects[index]
@@ -377,10 +377,10 @@ class HardwareObjectNode(object):
             #
             try:
                 value = int(value)
-            except BaseException:
+            except Exception:
                 try:
                     value = float(value)
-                except BaseException:
+                except Exception:
                     if value == "True":
                         value = True
                     elif value == "False":

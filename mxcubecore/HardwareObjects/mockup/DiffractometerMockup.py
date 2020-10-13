@@ -247,7 +247,7 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         try:
             return self.move_to_centred_position(centred_position)
-        except BaseException:
+        except Exception:
             logging.exception("Could not move to centred position")
 
     def phi_motor_moved(self, pos):

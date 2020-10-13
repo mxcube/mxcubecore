@@ -34,7 +34,7 @@ class PX1Energy(Device, AbstractEnergy):
 
         try:
             self.monodevice = DeviceProxy(self.get_property("mono_device"))
-        except BaseException:
+        except Exception:
             self.errorDeviceInstance(self.get_property("mono_device"))
 
         # Nom du device bivu (Energy to gap) : necessaire pour amelioration du
@@ -184,7 +184,7 @@ class PX1Energy(Device, AbstractEnergy):
                             self.und_device.gap = gaplimite
                             self.und_device.gap = newgap + backlash
                         time.sleep(1)
-                except BaseException:
+                except Exception:
                     logging.getLogger("HWR").error(
                         "%s: Cannot move undulator U20 : State device = %s",
                         self.name(),
@@ -194,7 +194,7 @@ class PX1Energy(Device, AbstractEnergy):
             try:
                 self.energy_chan.set_value(value)
                 return value
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").error(
                     "%s: Cannot move Energy : State device = %s",
                     self.name(),

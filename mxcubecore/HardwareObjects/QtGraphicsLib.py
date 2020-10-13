@@ -470,7 +470,7 @@ class GraphicsItemPoint(GraphicsItem):
                 self.__centred_position.kappa,
                 self.__centred_position.kappa_phi,
             )
-        except BaseException:
+        except Exception:
             pass
         return full_name
 
@@ -606,7 +606,7 @@ class GraphicsItemLine(GraphicsItem):
                 start_cpos.kappa,
                 start_cpos.kappa_phi,
             )
-        except BaseException:
+        except Exception:
             pass
         return full_name
 

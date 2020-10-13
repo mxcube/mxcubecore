@@ -58,7 +58,7 @@ class ID29XRFSpectrum(XRFSpectrum):
                 ctime=ctime, fname=fname, roi=[2.0, 15.0]
             )
             self.spectrumInfo["beamTransmission"] = _transm
-        except BaseException as exp:
+        except Exception as exp:
             logging.getLogger("user_level_log").exception(str(exp))
             res = False
 

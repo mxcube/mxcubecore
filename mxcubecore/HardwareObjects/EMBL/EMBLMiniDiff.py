@@ -585,7 +585,7 @@ class EMBLMiniDiff(GenericDiffractometer):
                     self.motor_hwobj_dict["kappa_phi"]: centred_position.kappa_phi,
                 }
                 self.move_to_motors_positions(motor_pos)
-            except BaseException:
+            except Exception:
                 logging.exception("Could not move to centred position")
         else:
             logging.getLogger("HWR").debug(
@@ -595,7 +595,7 @@ class EMBLMiniDiff(GenericDiffractometer):
     def move_kappa_and_phi(self, kappa=None, kappa_phi=None, wait=False):
         try:
             return self.move_kappa_and_phi_procedure(kappa, kappa_phi)
-        except BaseException:
+        except Exception:
             logging.exception("Could not move kappa and kappa_phi")
 
     @task
@@ -716,7 +716,7 @@ class EMBLMiniDiff(GenericDiffractometer):
            self.motor_hwobj_dict["kappa"].home()
            self.wait_device_ready(60)
            logging.getLogger("HWR").debug("Diffractometer: Done Closing Kappa")
-        except BaseException:
+        except Exception:
            logging.getLogger("GUI").error("Diffractometer: Kappa homing failed")
         """
 
