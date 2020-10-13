@@ -1,5 +1,5 @@
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -14,7 +14,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU General Lesser Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 """
 Energy and Wavelength with bliss.
 Example xml file:
@@ -54,8 +54,8 @@ class BlissEnergy(AbstractEnergy):
     def init(self):
         """Initialisation"""
         AbstractEnergy.init(self)
-        self._energy_motor = self.getObjectByRole("energy_motor")
-        self._bliss_session = self.getObjectByRole("bliss")
+        self._energy_motor = self.get_object_by_role("energy_motor")
+        self._bliss_session = self.get_object_by_role("bliss")
         self.update_state(HardwareObjectState.READY)
 
         if self._energy_motor:

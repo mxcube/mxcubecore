@@ -148,7 +148,7 @@ class AbstractEnergyScan(object):
         STATICPARS_DICT = {}
         # Set the energy from the element and edge parameters
         STATICPARS_DICT = self.get_static_parameters(
-            self.getProperty("config_file"), element, edge
+            self.get_property("config_file"), element, edge
         )
 
         self.energy_scan_parameters = STATICPARS_DICT
@@ -159,14 +159,14 @@ class AbstractEnergyScan(object):
         # Calculate the MCA ROI (if needed)
         try:
             self.set_mca_roi(STATICPARS_DICT["eroi_min"], STATICPARS_DICT["eroi_max"])
-        except BaseException:
+        except Exception:
             pass
 
         # Calculate undulator gaps (if any)
         GAPS = {}
         try:
             GAPS = self.calculate_und_gaps(STATICPARS_DICT["edgeEnergy"])
-        except BaseException:
+        except Exception:
             pass
 
         # create the directory if needed

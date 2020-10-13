@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import time
@@ -154,24 +154,24 @@ class PX2Diffractometer(GenericDiffractometer):
         self.chan_state = self.get_channel_object("State")
         self.chan_status = self.get_channel_object("Status")
 
-        self.current_state = self.chan_state.getValue()
-        self.current_status = self.chan_status.getValue()
+        self.current_state = self.chan_state.get_value()
+        self.current_status = self.chan_status.get_value()
 
-        self.chan_state.connectSignal("update", self.state_changed)
-        self.chan_status.connectSignal("update", self.status_changed)
+        self.chan_state.connect_signal("update", self.state_changed)
+        self.chan_status.connect_signal("update", self.status_changed)
 
         self.chan_calib_x = self.get_channel_object("CoaxCamScaleX")
         self.chan_calib_y = self.get_channel_object("CoaxCamScaleY")
         self.update_pixels_per_mm()
 
         self.chan_head_type = self.get_channel_object("HeadType")
-        self.head_type = self.chan_head_type.getValue()
+        self.head_type = self.chan_head_type.get_value()
 
         self.chan_current_phase = self.get_channel_object("CurrentPhase")
         self.connect(self.chan_current_phase, "update", self.current_phase_changed)
 
         self.chan_fast_shutter_is_open = self.get_channel_object("FastShutterIsOpen")
-        self.chan_fast_shutter_is_open.connectSignal(
+        self.chan_fast_shutter_is_open.connect_signal(
             "update", self.fast_shutter_state_changed
         )
 
@@ -189,10 +189,12 @@ class PX2Diffractometer(GenericDiffractometer):
             "saveCentringPositions"
         )
 
-        self.centring_hwobj = self.getObjectByRole("centring")
-        self.minikappa_correction_hwobj = self.getObjectByRole("minikappa_correction")
+        self.centring_hwobj = self.get_object_by_role("centring")
+        self.minikappa_correction_hwobj = self.get_object_by_role(
+            "minikappa_correction"
+        )
 
-        self.zoom_motor_hwobj = self.getObjectByRole("zoom")
+        self.zoom_motor_hwobj = self.get_object_by_role("zoom")
         self.connect(self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed)
         self.connect(
             self.zoom_motor_hwobj,
@@ -222,8 +224,8 @@ class PX2Diffractometer(GenericDiffractometer):
             self.motor_hwobj_dict["sampy"], "valueChanged", self.sampy_motor_moved
         )
 
-        self.omega_reference_par = eval(self.getProperty("omega_reference"))
-        self.omega_reference_motor = self.getObjectByRole(
+        self.omega_reference_par = eval(self.get_property("omega_reference"))
+        self.omega_reference_motor = self.get_object_by_role(
             self.omega_reference_par["motor_name"]
         )
 
@@ -235,7 +237,7 @@ class PX2Diffractometer(GenericDiffractometer):
 
         self.omega_reference_motor_moved(self.omega_reference_motor.get_value())
 
-        # self.use_sc = self.getProperty("use_sample_changer")
+        # self.use_sc = self.get_property("use_sample_changer")
 
     def use_sample_changer(self):
         """
@@ -386,8 +388,8 @@ class PX2Diffractometer(GenericDiffractometer):
         Descript. :
         """
         if self.chan_calib_x:
-            self.pixels_per_mm_x = 1.0 / self.chan_calib_x.getValue()
-            self.pixels_per_mm_y = 1.0 / self.chan_calib_y.getValue()
+            self.pixels_per_mm_x = 1.0 / self.chan_calib_x.get_value()
+            self.pixels_per_mm_y = 1.0 / self.chan_calib_y.get_value()
             self.emit(
                 "pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),)
             )
@@ -427,7 +429,7 @@ class PX2Diffractometer(GenericDiffractometer):
             with gevent.Timeout(
                 timeout, Exception("Timeout waiting for phase %s" % phase)
             ):
-                while phase != self.chan_current_phase.getValue():
+                while phase != self.chan_current_phase.get_value():
                     gevent.sleep(0.01)
         else:
             self.cmd_start_set_phase(phase)
@@ -455,7 +457,7 @@ class PX2Diffractometer(GenericDiffractometer):
             # if isinstance(motor_pos, gevent.GreenletExit):
             # raise motor_pos
             # self.log.info('motor_pos from centring_procedure %s' % motor_pos)
-        except BaseException:
+        except Exception:
             logging.exception("Could not complete centring")
             self.emit_centring_failed()
         else:
@@ -463,7 +465,7 @@ class PX2Diffractometer(GenericDiffractometer):
             self.emit_centring_moving()
             try:
                 self.move_to_motors_positions(motor_pos)
-            except BaseException:
+            except Exception:
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()
 
@@ -815,7 +817,7 @@ class PX2Diffractometer(GenericDiffractometer):
         # motors = {}
         # for motor_role in self.centring_motors_list:
         # self.log.info('motor_role %s' % motor_role)
-        # motor_obj = self.getObjectByRole(motor_role)
+        # motor_obj = self.get_object_by_role(motor_role)
         # try:
         # motors[motor_role] = motor_pos[motor_obj]
         # except KeyError:
@@ -918,7 +920,7 @@ class PX2Diffractometer(GenericDiffractometer):
                 if c[key] is None:
                     try:
                         c[key] = self.motor_hwobj_dict[key].get_value()
-                    except BaseException:
+                    except Exception:
                         # self.log.info('motor_positions_to_screen exception key %s' % key)
                         self.log.info(traceback.format_exc())
 
@@ -974,7 +976,7 @@ class PX2Diffractometer(GenericDiffractometer):
                     "y"
                 ]
                 return x, y
-        except BaseException:
+        except Exception:
             return 0, 0
 
     def move_to_centred_position(self, centred_position):
@@ -1015,7 +1017,7 @@ class PX2Diffractometer(GenericDiffractometer):
                     self.motor_hwobj_dict["kappa_phi"]: centred_position.kappa_phi,
                 }
                 self.move_to_motors_positions(motor_pos)
-            except BaseException:
+            except Exception:
                 logging.exception("Could not move to centred position")
         else:
             logging.getLogger("HWR").debug(
@@ -1037,7 +1039,7 @@ class PX2Diffractometer(GenericDiffractometer):
         """
         try:
             return self.move_kappa_and_phi_procedure(kappa, kappa_phi, wait=wait)
-        except BaseException:
+        except Exception:
             logging.exception("Could not move kappa and kappa_phi")
 
     @task
@@ -1116,7 +1118,7 @@ class PX2Diffractometer(GenericDiffractometer):
         Description:
         """
         if self.chan_fast_shutter_is_open is not None:
-            self.chan_fast_shutter_is_open.setValue(not self.fast_shutter_is_open)
+            self.chan_fast_shutter_is_open.set_value(not self.fast_shutter_is_open)
 
     def find_loop(self):
         """
@@ -1158,7 +1160,7 @@ class PX2Diffractometer(GenericDiffractometer):
         self.zoom_motor_hwobj.moveToPosition(position)
 
     def get_status(self):
-        self.current_status = self.chan_status.getValue()
+        self.current_status = self.chan_status.get_value()
         return self.current_status
 
     def get_point_from_line(self, point_one, point_two, frame_num, frame_total):
@@ -1244,19 +1246,19 @@ class PX2Diffractometer(GenericDiffractometer):
         """
 
     def get_scintillator_position(self):
-        return self.chan_scintillator_position.getValue()
+        return self.chan_scintillator_position.get_value()
 
     def set_scintillator_position(self, position):
-        self.chan_scintillator_position.setValue(position)
+        self.chan_scintillator_position.set_value(position)
         with gevent.Timeout(5, Exception("Timeout waiting for scintillator position")):
             while position != self.get_scintillator_position():
                 gevent.sleep(0.01)
 
     def get_capillary_position(self):
-        return self.chan_capillary_position.getValue()
+        return self.chan_capillary_position.get_value()
 
     def set_capillary_position(self, position):
-        self.chan_capillary_position.setValue(position)
+        self.chan_capillary_position.set_value(position)
         with gevent.Timeout(5, Exception("Timeout waiting for capillary position")):
             while position != self.get_capillary_position():
                 gevent.sleep(0.01)
@@ -1410,14 +1412,14 @@ class PX2Diffractometer(GenericDiffractometer):
         )
         try:
             self.nclicks = int(nclicks)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(traceback.format_exc())
 
     def set_step(self, step):
         self.log.info("PX2Diffractometer: centring step changed: %s" % step)
         try:
             self.step = float(step)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(traceback.format_exc())
 
     def set_centring_method(self, centring_method):
@@ -1426,7 +1428,7 @@ class PX2Diffractometer(GenericDiffractometer):
         )
         try:
             self.centring_method = centring_method
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(traceback.format_exc())
 
     def is_ready(self):

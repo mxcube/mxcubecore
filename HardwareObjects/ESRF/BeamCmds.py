@@ -78,12 +78,11 @@ class ControllerCommand(BaseBeamlineAction):
         self.argument_type = ARGUMENT_TYPE_JSON_SCHEMA
         self._arguments = json_schema_str
 
-    def getArguments(self):
+    def get_arguments(self):
         """Get the command object arguments"""
         if self.name() == "Anneal":
-            self._arguments.append(("Time [s]", "float"))
-
-        return CommandObject.getArguments(self)
+            self.add_argument("Time [s]", "float")
+        return CommandObject.get_arguments(self)
 
     @task
     def __call__(self, *args, **kwargs):
@@ -101,7 +100,7 @@ class ControllerCommand(BaseBeamlineAction):
             try:
                 res = cmd_execution.get()
                 res = res if res else ""
-            except BaseException:
+            except Exception:
                 self.emit("commandFailed", (str(self.name()),))
             else:
                 if isinstance(res, gevent.GreenletExit):
@@ -162,7 +161,7 @@ class HWObjActuatorCommand(CommandObject):
         values = [v.name for v in self._hwobj.VALUES]
         values.remove("UNKNOWN")
         values.remove(self._hwobj.get_value().name)
-
+        
         return self._hwobj.VALUES[values[0]]
 
     @task
@@ -183,7 +182,7 @@ class HWObjActuatorCommand(CommandObject):
         gevent.sleep(1)
         try:
             res = self._hwobj.get_value().name
-        except BaseException:
+        except Exception:
             self.emit("commandFailed", (str(self.name()),))
         else:
             if isinstance(res, gevent.GreenletExit):
@@ -218,10 +217,10 @@ class BeamCmds(HardwareObject):
         """Initialise the controller commands and the actuator object
            to be used.
         """
-        ctrl_cmds = self["controller_commands"].getProperties().items()
+        ctrl_cmds = self["controller_commands"].get_properties().items()
 
         if ctrl_cmds:
-            controller = self.getObjectByRole("controller")
+            controller = self.get_object_by_role("controller")
             for key, name in ctrl_cmds:
                 # name = self.getProperty(cmd)
                 action = getattr(controller, key)
@@ -233,7 +232,7 @@ class BeamCmds(HardwareObject):
 
         if hwobj_cmd_roles:
             for role in hwobj_cmd_roles:
-                hwobj_cmd = self.getObjectByRole(role)
+                hwobj_cmd = self.get_object_by_role(role)
                 self.hwobj_list.append(
                     HWObjActuatorCommand(hwobj_cmd.username, hwobj_cmd)
                 )

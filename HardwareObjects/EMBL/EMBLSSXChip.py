@@ -59,7 +59,7 @@ class EMBLSSXChip(QtGraphicsManager):
         """Reads config xml, initiates all necessary hwobj, channels and cmds
         """
 
-        self.chip_config_list = eval(self.getProperty("chip_properties", "[]"))
+        self.chip_config_list = eval(self.get_property("chip_properties", "[]"))
         self.current_chip_index = 0
 
         self.chip_settings = {
@@ -67,9 +67,9 @@ class EMBLSSXChip(QtGraphicsManager):
             "quarter_density": 0,
             "meandering": 0,
             "old_num_of_exp": 1,
-            "num_channels": self.getProperty("num_channels"),
-            "channels": eval(self.getProperty("channels")),
-            "default_seq": eval(self.getProperty("default_sequence")),
+            "num_channels": self.get_property("num_channels"),
+            "channels": eval(self.get_property("channels")),
+            "default_seq": eval(self.get_property("default_sequence")),
         }
 
         self.graphics_view = GraphicsLib.GraphicsView()
@@ -176,11 +176,12 @@ class EMBLSSXChip(QtGraphicsManager):
         for element in range(0, len(comp_v_divisor_list)):
             comp_v_divisor_list[element] = comp_v_divisor_list[element] * num_comp_h
 
-        # create a list which contains two lists of H and V (already multiplied) crystalalals
-        a_list = crystal_h_divisor_list + crystal_v_divisor_list
-        a_list.sort()
+        # create a list which contains two lists of H and V (already multiplied)
+        # crystalalals
+        a_list = sorted(crystal_h_divisor_list + crystal_v_divisor_list)
 
-        # create a list which contains two lists of H and V (already multiplied) compartments
+        # create a list which contains two lists of H and V (already multiplied)
+        # compartments
         b_list = comp_h_divisor_list + comp_v_divisor_list
         b_list.sort()
         del b_list[0]  # delete first element

@@ -12,7 +12,7 @@ class SpecMotor(Device, SpecMotorA):
     def _init(self):
         SpecMotorA.connectToSpec(self, self.specname, self.specversion)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if self.connection.isSpecConnected():
             if signal == "stateChanged":
                 self.motorStateChanged(self.get_state())
@@ -22,7 +22,7 @@ class SpecMotor(Device, SpecMotorA):
                 self.motorPositionChanged(self.get_value())
 
     def motorStateChanged(self, state):
-        self.setIsReady(state > SpecMotor.UNUSABLE)
+        self.set_is_ready(state > SpecMotor.UNUSABLE)
 
         self.emit("stateChanged", (state,))
 
@@ -47,7 +47,7 @@ class SpecMotor(Device, SpecMotorA):
     def syncQuestionAnswer(self, specSteps, controllerSteps):
         pass  # return '0' #NO ('1' means YES)
 
-    def getMotorMnemonic(self):
+    def get_motor_mnemonic(self):
         return self.specName
 
 

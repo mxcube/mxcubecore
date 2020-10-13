@@ -63,16 +63,16 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
     def init(self):
         self.ready_event = gevent.event.Event()
 
-        self.ruche_hwo = self.getObjectByRole("ruche")
+        self.ruche_hwo = self.get_object_by_role("ruche")
 
-        self.fluodet_hwo = self.getObjectByRole("fluodet")
-        self.px1env_hwo = self.getObjectByRole("px1environment")
+        self.fluodet_hwo = self.get_object_by_role("fluodet")
+        self.px1env_hwo = self.get_object_by_role("px1environment")
 
-        self.mono_dp = DeviceProxy(self.getProperty("mono_dev"))
-        self.ble_dp = DeviceProxy(self.getProperty("ble_dev"))
-        self.fp_dp = DeviceProxy(self.getProperty("fp_dev"))
+        self.mono_dp = DeviceProxy(self.get_property("mono_dev"))
+        self.ble_dp = DeviceProxy(self.get_property("ble_dev"))
+        self.fp_dp = DeviceProxy(self.get_property("fp_dev"))
 
-        test_data_file = self.getProperty("test_data")
+        test_data_file = self.get_property("test_data")
 
         self.log.debug(" using test data %s" % test_data_file)
 
@@ -86,10 +86,10 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
         # USING TEST. UNCOMMENT NEXT LINE TO USE REAL DATA IN ALL CASES
         # self.test_data_mode = False
 
-        normdiode = self.getProperty("normalization_diode")
+        normdiode = self.get_property("normalization_diode")
         self.norm_diode_dev = DeviceProxy(normdiode)
 
-        self.number_of_steps = self.getProperty("number_of_steps")
+        self.number_of_steps = self.get_property("number_of_steps")
         if self.number_of_steps is None:
             self.number_of_steps = self.default_steps
 
@@ -259,7 +259,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             size_hor, size_ver = HWR.beamline.beam.get_beam_size()
             size_hor *= 1000
             size_ver *= 1000
-        except BaseException:
+        except Exception:
             size_hor = None
             size_ver = None
 
@@ -314,7 +314,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             self.ready_event.set()
 
             self.scanCommandFinished()
-        except BaseException:
+        except Exception:
             import traceback
 
             logging.getLogger("HWR").error(
@@ -427,7 +427,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
                 os.makedirs(scan_directory)
             if not os.path.exists(archive_directory):
                 os.makedirs(archive_directory)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "PX1EnergyScan: could not create results directory."
             )
@@ -506,7 +506,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             # self.log.debug("          chooch returns : %s" % str(result))
             # pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, chooch_graph_data = \
             #       result
-        except BaseException:
+        except Exception:
             import traceback
 
             self.log.debug(traceback.format_exc())
@@ -629,7 +629,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
                 scan_file_png_filename,
             )
             canvas.print_figure(scan_file_png_filename, dpi=80)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("could not print figure")
         try:
             logging.getLogger("HWR").info(
@@ -637,7 +637,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
                 archive_file_png_filename,
             )
             canvas.print_figure(archive_file_png_filename, dpi=80)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("could not save figure")
 
         self.store_energy_scan()
@@ -683,7 +683,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             archive_file_raw = open(archive_filename, "w")
             self.log.info("EnergyScan. saving data in %s" % scan_filename)
             self.log.info("EnergyScan. archiving data in %s" % archive_filename)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "EMBLEnergyScan: could not create results raw file"
             )
@@ -706,7 +706,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             with open(from_file) as ifd, open(to_file, "w") as ofd:
                 ofd.write(ifd.read())
             return True
-        except BaseException:
+        except Exception:
             return False
 
     @task
@@ -766,7 +766,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
                 x, y = map(float, line.split())
                 # got good data... i
                 in_header = False
-            except BaseException:
+            except Exception:
                 if in_header:
                     continue
                 else:

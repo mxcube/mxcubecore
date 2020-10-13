@@ -22,26 +22,26 @@ class ALBAFrontLight(Device):
 
         self.level_channel = self.get_channel_object("light_level")
         self.state_channel = self.get_channel_object("state")
-        threshold = self.getProperty("off_threshold")
+        threshold = self.get_property("off_threshold")
 
         if threshold is not None:
             try:
                 self.off_threshold = float(threshold)
-            except BaseException:
+            except Exception:
                 self.off_threshold = self.default_threshold
                 logging.getLogger("HWR").info(
                     "OFF Threshold for front light is not valid. Using %s"
                     % self.off_threshold
                 )
 
-        limits = self.getProperty("limits")
+        limits = self.get_property("limits")
         if limits is not None:
             lims = limits.split(",")
             if len(lims) == 2:
                 self.limits = map(float, lims)
 
-        self.level_channel.connectSignal("update", self.level_changed)
-        self.state_channel.connectSignal("update", self.register_state_changed)
+        self.level_channel.connect_signal("update", self.level_changed)
+        self.state_channel.connect_signal("update", self.register_state_changed)
 
     def is_ready(self):
         return True
@@ -83,7 +83,7 @@ class ALBAFrontLight(Device):
         return self.limits
 
     def get_state(self):
-        self.register_state = str(self.state_channel.getValue()).lower()
+        self.register_state = str(self.state_channel.get_value()).lower()
         self.update_current_state()
         return self.state
 
@@ -91,14 +91,14 @@ class ALBAFrontLight(Device):
         return self.username
 
     def getLevel(self):
-        self.current_level = self.level_channel.getValue()
+        self.current_level = self.level_channel.get_value()
         return self.current_level
 
     def setLevel(self, level):
         logging.getLogger("HWR").debug(
             "Setting level in %s to %s" % (self.username, level)
         )
-        self.level_channel.setValue(float(level))
+        self.level_channel.set_value(float(level))
 
     def setOn(self):
         logging.getLogger("HWR").debug("Setting front light on")
@@ -108,20 +108,20 @@ class ALBAFrontLight(Device):
             else:
                 value = self.memorized_level
             logging.getLogger("HWR").debug("   setting value to")
-            self.level_channel.setValue(value)
+            self.level_channel.set_value(value)
         else:
-            self.level_channel.setValue(self.off_threshold)
+            self.level_channel.set_value(self.off_threshold)
 
     def setOff(self):
         logging.getLogger("HWR").debug("Setting front light off")
-        self.level_channel.setValue(0.0)
+        self.level_channel.set_value(0.0)
 
 
 def test():
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    light = hwr.getHardwareObject("/frontlight")
+    light = hwr.get_hardware_object("/frontlight")
     print('\nLight control for "%s"\n' % light.getUserName())
     print("   Level limits are:", light.get_limits())
     print("   Current level is:", light.getLevel())

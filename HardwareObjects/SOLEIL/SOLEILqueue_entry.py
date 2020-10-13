@@ -30,7 +30,7 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
             try:
                 if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:
                     acq_1, acq_2 = (dc.acquisitions[0], dc.acquisitions[1])
-                    # HWR.beamline.collect.get_channel_object("helical").setValue(1)
+                    # HWR.beamline.collect.get_channel_object("helical").set_value(1)
 
                     start_cpos = acq_1.acquisition_parameters.centred_position
                     end_cpos = acq_2.acquisition_parameters.centred_position
@@ -39,7 +39,7 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
                         "1": start_cpos.as_dict(),
                         "2": end_cpos.as_dict(),
                     }
-                    # HWR.beamline.collect.get_channel_object('helical_pos').setValue(helical_oscil_pos)
+                    # HWR.beamline.collect.get_channel_object('helical_pos').set_value(helical_oscil_pos)
                     HWR.beamline.collect.set_helical(True, helical_oscil_pos)
 
                     msg = "Helical data collection, moving to start position"
@@ -47,7 +47,7 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
                     log.info("Moving sample to given position ...")
                     list_item.setText(1, "Moving sample")
                 else:
-                    # HWR.beamline.collect.get_channel_object("helical").setValue(0)
+                    # HWR.beamline.collect.get_channel_object("helical").set_value(0)
                     HWR.beamline.collect.set_helical(False)
 
                 empty_cpos = queue_model_objects.CentredPosition()

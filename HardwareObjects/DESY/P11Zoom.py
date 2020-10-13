@@ -36,7 +36,7 @@ class P11Zoom(AbstractNState):
     def init(self):
 
         self.pixels_per_mm = self.getProperty("pixels_per_mm")
-        self.camera_hwobj = self.getObjectByRole("camera")
+        self.camera_hwobj = self.get_object_by_role("camera")
 
         self.connect(self.camera_hwobj, "zoomChanged", self.zoom_value_changed)
 

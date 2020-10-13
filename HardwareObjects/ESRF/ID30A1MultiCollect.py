@@ -29,7 +29,7 @@ class ID30A1MultiCollect(ESRFMultiCollect):
             os.path.join(file_info["directory"], file_info["prefix"])
             + "_%d_diag.dat" % file_info["run_number"]
         )
-        self.getObjectByRole("diffractometer").controller.set_diagfile(diagfile)
+        self.get_object_by_role("diffractometer").controller.set_diagfile(diagfile)
 
         # Metadata management
         ESRFMultiCollect.data_collection_hook(self, data_collect_parameters)
@@ -56,12 +56,12 @@ class ID30A1MultiCollect(ESRFMultiCollect):
     def move_motors(self, motors_to_move_dict):
         motion = ESRFMultiCollect.move_motors(self, motors_to_move_dict, wait=False)
 
-        cover_task = self.getObjectByRole("eh_controller").detcover.set_out(
+        cover_task = self.get_object_by_role("eh_controller").detcover.set_out(
             wait=False, timeout=15
         )
 
-        self.getObjectByRole("beamstop").moveToPosition("in")
-        self.getObjectByRole("light").wagoOut()
+        self.get_object_by_role("beamstop").moveToPosition("in")
+        self.get_object_by_role("light").wagoOut()
 
         motion.get()
         cover_task.get()
@@ -75,7 +75,7 @@ class ID30A1MultiCollect(ESRFMultiCollect):
         save_diagnostic = True
         operate_shutter = True
         if self.helical:
-            self.getObjectByRole("diffractometer").helical_oscil(
+            self.get_object_by_role("diffractometer").helical_oscil(
                 start,
                 end,
                 self.helical_pos,
@@ -85,15 +85,15 @@ class ID30A1MultiCollect(ESRFMultiCollect):
                 operate_shutter,
             )
         else:
-            self.getObjectByRole("diffractometer").oscil(
+            self.get_object_by_role("diffractometer").oscil(
                 start, end, exptime, npass, save_diagnostic, operate_shutter
             )
 
     def open_fast_shutter(self):
-        self.getObjectByRole("diffractometer").controller.fshut.open()
+        self.get_object_by_role("diffractometer").controller.fshut.open()
 
     def close_fast_shutter(self):
-        self.getObjectByRole("diffractometer").controller.fshut.close()
+        self.get_object_by_role("diffractometer").controller.fshut.close()
 
     def set_helical(self, helical_on):
         self.helical = helical_on
@@ -103,19 +103,23 @@ class ID30A1MultiCollect(ESRFMultiCollect):
 
     @task
     def prepare_intensity_monitors(self):
-        self.getObjectByRole("diffractometer").controller.set_diode_autorange(
+        self.get_object_by_role("diffractometer").controller.set_diode_autorange(
             "i0", True, "i1", False
         )
-        self.getObjectByRole("diffractometer").controller.diode(True, False)
+        self.get_object_by_role("diffractometer").controller.diode(True, False)
         i0_range = decimal.Decimal(
-            str(self.getObjectByRole("diffractometer").controller.get_diode_range()[0])
+            str(
+                self.get_object_by_role("diffractometer").controller.get_diode_range()[
+                    0
+                ]
+            )
         )
         i1_range = float(
             str(i0_range.as_tuple().digits[0])
             + "e"
             + str(len(i0_range.as_tuple().digits[1:]) + i0_range.as_tuple().exponent)
         )
-        self.getObjectByRole("diffractometer").controller.set_i1_range(i1_range)
+        self.get_object_by_role("diffractometer").controller.set_i1_range(i1_range)
         return
 
     def get_beam_centre(self):
@@ -135,7 +139,7 @@ class ID30A1MultiCollect(ESRFMultiCollect):
                     shutil.copyfile(
                         os.path.join("/data/id30a1/inhouse/opid30a1/", filename), dest
                     )
-        except BaseException:
+        except Exception:
             logging.exception("Exception happened while copying geo_corr files")
 
         return ESRFMultiCollect.write_input_files(self, datacollection_id)

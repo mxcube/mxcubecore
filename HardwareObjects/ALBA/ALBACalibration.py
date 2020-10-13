@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 [Name]
@@ -64,8 +64,8 @@ class ALBACalibration(BaseHardwareObjects.Device):
             logging.getLogger().info("Connected to pixel size calibration channels")
 
     def getCalibration(self):
-        calibx = self.calibx.getValue()
-        caliby = self.caliby.getValue()
+        calibx = self.calibx.get_value()
+        caliby = self.caliby.get_value()
         logging.getLogger().debug(
             "Returning calibration: x=%s, y=%s" % (calibx, caliby)
         )
@@ -76,7 +76,7 @@ def test():
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    calib = hwr.getHardwareObject("/calibration")
+    calib = hwr.get_hardware_object("/calibration")
     print("Calibration is: ", calib.getCalibration())
 
 

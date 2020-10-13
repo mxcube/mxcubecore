@@ -88,7 +88,7 @@ class TangoMotor(AbstractMotor):
             try:
                 if self.getProperty("default_limits"):
                     self.update_limits(eval(self.getProperty("default_limits")))
-            except BaseException:
+            except Exception:
                 pass
 
         self.cmd_stop = self.get_command_object("stopAxis")

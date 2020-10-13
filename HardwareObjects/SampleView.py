@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -40,11 +40,11 @@ class SampleView(AbstractSampleView):
     def init(self):
         super(SampleView, self).init()
 
-        self._camera = self.getObjectByRole("camera")
-        self._focus = self.getObjectByRole("focus")
-        self._zoom = self.getObjectByRole("zoom")
-        self._frontlight = self.getObjectByRole("frontlight")
-        self._backlight = self.getObjectByRole("backlight")
+        self._camera = self.get_object_by_role("camera")
+        self._focus = self.get_object_by_role("focus")
+        self._zoom = self.get_object_by_role("zoom")
+        self._frontlight = self.get_object_by_role("frontlight")
+        self._backlight = self.get_object_by_role("backlight")
         self._ui_snapshot_cb = None
 
         self.hide_grid_threshold = self.getProperty("hide_grid_threshold", 5)
@@ -332,7 +332,7 @@ class SampleView(AbstractSampleView):
 
     def inc_used_for_collection(self, cpos):
         """
-        Increase counter that keepts on collect made on this shape, 
+        Increase counter that keepts on collect made on this shape,
         shape with associated CenteredPosition cpos
 
         Args:

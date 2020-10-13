@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,7 +15,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 from HardwareRepository.BaseHardwareObjects import Device
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
@@ -40,15 +40,15 @@ class EMBLBeamstop(Device, AbstractMotor):
 
     def init(self):
         """Reads parameters from xml and adds neccessary channels"""
-        self.default_size = self.getProperty("defaultBeamstopSize")
-        self.default_distance = self.getProperty("defaultBeamstopDistance")
-        self.default_direction = self.getProperty("defaultBeamstopDirection")
+        self.default_size = self.get_property("defaultBeamstopSize")
+        self.default_distance = self.get_property("defaultBeamstopDistance")
+        self.default_direction = self.get_property("defaultBeamstopDirection")
 
         if self.default_distance is None:
             self.chan_distance = self.get_channel_object("BeamstopDistance")
             if self.chan_distance is not None:
-                self.chan_distance.connectSignal("update", self.distance_changed)
-            self.distance_changed(self.chan_distance.getValue())
+                self.chan_distance.connect_signal("update", self.distance_changed)
+            self.distance_changed(self.chan_distance.get_value())
         else:
             self.distance = float(self.default_distance)
 
@@ -80,7 +80,7 @@ class EMBLBeamstop(Device, AbstractMotor):
         :type distance: float (mm)
         """
         if self.chan_distance is not None:
-            self.chan_distance.setValue(distance)
+            self.chan_distance.set_value(distance)
             self.distance_changed(distance)
 
     def get_distance(self):
@@ -93,7 +93,7 @@ class EMBLBeamstop(Device, AbstractMotor):
 
     def get_value(self):
         """Returns beamstop position"""
-        return self.chan_position.getValue()
+        return self.chan_position.get_value()
 
     def set_position(self, position):
         """Sets position
@@ -101,7 +101,7 @@ class EMBLBeamstop(Device, AbstractMotor):
         :param position: beamstop position
         :type position: str
         """
-        self.chan_position.setValue(position)
+        self.chan_position.set_value(position)
 
     def re_emit_values(self):
         """Reemits available signals"""

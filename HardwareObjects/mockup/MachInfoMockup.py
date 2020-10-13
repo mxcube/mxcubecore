@@ -105,7 +105,7 @@ def test():
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    conn = hwr.getHardwareObject(sys.argv[1])
+    conn = hwr.get_hardware_object(sys.argv[1])
 
     print(("Machine current: ", conn.getCurrent()))
     print(("Life time: ", conn.getLifeTime()))

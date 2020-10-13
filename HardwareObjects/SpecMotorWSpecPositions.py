@@ -25,8 +25,8 @@ class SpecMotorWSpecPositions(SpecMotor.SpecMotor):
 
     def init(self):
         chanPositionsArray = self.get_channel_object("positions")
-        chanPositionsArray.connectSignal("update", self.positionsArrayChanged)
-        self.delta = self.getProperty("delta") or 0
+        chanPositionsArray.connect_signal("update", self.positionsArrayChanged)
+        self.delta = self.get_property("delta") or 0
 
     def disconnected(self):
         self.predefinedPositions = {}
@@ -69,7 +69,7 @@ class SpecMotorWSpecPositions(SpecMotor.SpecMotor):
     def moveToPosition(self, positionName):
         try:
             self.move(self.predefinedPositions[positionName])
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "Cannot move motor %s: invalid position name.", str(self.username)
             )

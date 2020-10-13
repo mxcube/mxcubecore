@@ -16,7 +16,7 @@
 # GNU Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
-# along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
+# along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 
 """General data and functions, that can be shared between different HardwareObjects
 """
@@ -35,7 +35,7 @@ try:
     string_types = (basestring,)
     text_type = unicode
     binary_type = str
-except:
+except Exception:
     # Python 3+
     string_types = (str,)
     text_type = str

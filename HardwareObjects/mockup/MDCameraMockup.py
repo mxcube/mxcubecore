@@ -27,16 +27,16 @@ class MDCameraMockup(BaseHardwareObjects.Device):
         self.badimg = 0
         self.pollInterval = 500
         self.connected = False
-        self.image_name = self.getProperty("image_name")
-        xml_path = HWR.getHardwareRepository().serverAddress[0]
+        self.image_name = self.get_property("image_name")
+        xml_path = HWR.getHardwareRepository().server_address[0]
         self.image = os.path.join(xml_path, self.image_name)
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def init(self):
         logging.getLogger("HWR").info("initializing camera object")
-        if self.getProperty("interval"):
-            self.pollInterval = self.getProperty("interval")
-        self.stopper = False  # self.pollingTimer(self.pollInterval, self.poll)
+        if self.get_property("interval"):
+            self.pollInterval = self.get_property("interval")
+        self.stopper = False  # self.polling_timer(self.pollInterval, self.poll)
         gevent.spawn(self.poll)
 
     def udiffVersionChanged(self, value):
@@ -59,7 +59,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
             try:
                 img = open(self.image, "rb").read()
                 self.emit("imageReceived", img, 659, 493)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception("Could not read image")
 
     def imageUpdated(self, value):

@@ -30,45 +30,45 @@ class PX2Attenuator(Device):
 
     def init(self):
         #         cmdToggle = self.get_command_object('toggle')
-        #         cmdToggle.connectSignal('connected', self.connected)
-        #         cmdToggle.connectSignal('disconnected', self.disconnected)
+        #         cmdToggle.connect_signal('connected', self.connected)
+        #         cmdToggle.connect_signal('disconnected', self.disconnected)
 
         # Connect to device FP_Parser defined "tangoname" in the xml file
         try:
-            # self.Attenuatordevice = SimpleDevice(self.getProperty("tangoname"), verbose=False)
-            self.Attenuatordevice = DeviceProxy(self.getProperty("tangoname"))
-        except BaseException:
-            self.errorDeviceInstance(self.getProperty("tangoname"))
+            # self.Attenuatordevice = SimpleDevice(self.get_property("tangoname"), verbose=False)
+            self.Attenuatordevice = DeviceProxy(self.get_property("tangoname"))
+        except Exception:
+            self.errorDeviceInstance(self.get_property("tangoname"))
 
         try:
-            # self.Attenuatordevice = SimpleDevice(self.getProperty("tangoname"), verbose=False)
-            self.Constdevice = DeviceProxy(self.getProperty("tangoname_const"))
-        except BaseException:
-            self.errorDeviceInstance(self.getProperty("tangoname_const"))
+            # self.Attenuatordevice = SimpleDevice(self.get_property("tangoname"), verbose=False)
+            self.Constdevice = DeviceProxy(self.get_property("tangoname_const"))
+        except Exception:
+            self.errorDeviceInstance(self.get_property("tangoname_const"))
 
         # Connect to device Primary slit horizontal defined "tangonamePs_h" in the
         # xml file
         try:
-            # self.Ps_hdevice = SimpleDevice(self.getProperty("tangonamePs_h"), verbose=False)
-            self.Ps_hdevice = DeviceProxy(self.getProperty("tangonamePs_h"))
-        except BaseException:
-            self.errorDeviceInstance(self.getProperty("tangonamePs_h"))
+            # self.Ps_hdevice = SimpleDevice(self.get_property("tangonamePs_h"), verbose=False)
+            self.Ps_hdevice = DeviceProxy(self.get_property("tangonamePs_h"))
+        except Exception:
+            self.errorDeviceInstance(self.get_property("tangonamePs_h"))
 
         # Connect to device Primary slit vertical defined "tangonamePs_v" in the
         # xml file
         try:
-            # self.Ps_vdevice = SimpleDevice(self.getProperty("tangonamePs_v"), verbose=False)
-            self.Ps_vdevice = DeviceProxy(self.getProperty("tangonamePs_v"))
-        except BaseException:
-            self.errorDeviceInstance(self.getProperty("tangonamePs_v"))
+            # self.Ps_vdevice = SimpleDevice(self.get_property("tangonamePs_v"), verbose=False)
+            self.Ps_vdevice = DeviceProxy(self.get_property("tangonamePs_v"))
+        except Exception:
+            self.errorDeviceInstance(self.get_property("tangonamePs_v"))
 
         if self.deviceOk:
             self.connected()
 
             self.chanAttState = self.get_channel_object("State")
-            self.chanAttState.connectSignal("update", self.attStateChanged)
+            self.chanAttState.connect_signal("update", self.attStateChanged)
             self.chanAttFactor = self.get_channel_object("TrueTrans_FP")
-            self.chanAttFactor.connectSignal("update", self.attFactorChanged)
+            self.chanAttFactor.connect_signal("update", self.attFactorChanged)
 
     def getAtteConfig(self):
         return
@@ -97,7 +97,7 @@ class PX2Attenuator(Device):
                 value = None
             logging.getLogger().debug("Attenuator state read from the device %s", value)
 
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error(
                 "%s getAttState : received value on channel is not a integer value",
                 str(self.name()),
@@ -130,7 +130,7 @@ class PX2Attenuator(Device):
             # Mettre une limite superieure car a une certaine ouverture de fentes on ne gagne plus rien en transmission
             # Trouver la valeur de transmission par mesure sur QBPM1 doit etre autour
             # de 120%
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error(
                 "%s get_value : received value on channel is not a float value",
                 str(self.name()),
@@ -139,10 +139,10 @@ class PX2Attenuator(Device):
         return value
 
     def connected(self):
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def disconnected(self):
-        self.setIsReady(False)
+        self.set_is_ready(False)
 
     def attFactorChanged(self, channelValue):
         try:
@@ -151,7 +151,7 @@ class PX2Attenuator(Device):
                 % (str(self.name()), channelValue)
             )
             value = self.get_value()
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error(
                 "%s attFactorChanged : received value on channel is not a float value",
                 str(self.name()),
@@ -166,7 +166,7 @@ class PX2Attenuator(Device):
     def attToggleChanged(self, channelValue):
         try:
             value = int(channelValue)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error(
                 "%s attToggleChanged : received value on channel is not a float value",
                 str(self.name()),
@@ -199,7 +199,7 @@ class PX2Attenuator(Device):
             print(" Gap FP_V : ", newGapFP_V)
             self.Ps_vdevice.gap = newGapFP_V
             # self.attFactorChanged(channelValue)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error(
                 "%s set Transmission : received value on channel is not valid",
                 str(self.name()),
@@ -213,7 +213,7 @@ class PX2Attenuator(Device):
     def errorDeviceInstance(self, device):
         db = DeviceProxy("sys/database/dbds1")
         logging.getLogger().error(
-            "Check Instance of Device server %s" % db.DbGetDeviceInfo(device)[1][3]
+            "Check Instance of Device server %s" % db.Dbget_deviceInfo(device)[1][3]
         )
         self.sDisconnected()
 

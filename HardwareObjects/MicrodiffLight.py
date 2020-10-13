@@ -10,7 +10,7 @@ class MicrodiffLight(ExporterMotor):
     def init(self):
         ExporterMotor.init(self)
         try:
-            _low, _high = self.getProperty("limits").split(",")
+            _low, _high = self.get_property("limits").split(",")
             self._limits = (float(_low), float(_high))
         except (AttributeError, TypeError, ValueError):
             self._limits = (0, 10)
