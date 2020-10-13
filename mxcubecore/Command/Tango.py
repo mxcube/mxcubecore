@@ -1,5 +1,4 @@
 import logging
-import types
 import gevent
 import gevent.event
 from gevent.queue import Queue
@@ -9,7 +8,9 @@ from HardwareRepository.CommandContainer import (
     ConnectionError,
 )
 from HardwareRepository import Poller
-from HardwareRepository import saferef
+from HardwareRepository.dispatcher import saferef
+
+gevent_version = list(map(int,gevent.__version__.split('.')))
 
 try:
     import PyTango
@@ -18,6 +19,8 @@ try:
 except ImportError:
     logging.getLogger("HWR").warning("Tango support is not available.")
 
+
+log = logging.getLogger("HWR")
 
 class TangoCommand(CommandObject):
     def __init__(self, name, command, tangoname=None, username=None, **kwargs):
@@ -110,7 +113,11 @@ class E:
 class TangoChannel(ChannelObject):
     _tangoEventsQueue = Queue()
     _eventReceivers = {}
-    _tangoEventsProcessingTimer = gevent.get_hub().loop.async_()
+
+    if gevent_version < [1,3,0]:
+        _tangoEventsProcessingTimer = gevent.get_hub().loop.async()
+    else:
+        _tangoEventsProcessingTimer = gevent.get_hub().loop.async_()
 
     # start Tango events processing timer
     _tangoEventsProcessingTimer.start(processTangoEvents)
@@ -169,6 +176,7 @@ class TangoChannel(ChannelObject):
 
         if isinstance(self.polling, int):
             self.raw_device = RawDeviceProxy(self.deviceName)
+
             Poller.poll(
                 self.poll,
                 polling_period=self.polling,
@@ -242,6 +250,7 @@ class TangoChannel(ChannelObject):
         TangoChannel._tangoEventsProcessingTimer.send()
 
     def poll(self):
+
         if self.read_as_str:
             value = self.raw_device.read_attribute(
                 self.attributeName, PyTango.DeviceAttribute.ExtractAs.String
@@ -285,9 +294,10 @@ class TangoChannel(ChannelObject):
         return self.device.get_attribute_config(self.attributeName)
 
     def update(self, value=Poller.NotInitializedValue):
+
         if value == Poller.NotInitializedValue:
             value = self.getValue()
-        if isinstance(value, types.TupleType):
+        if isinstance(value, tuple):
             value = list(value)
 
         self.value = value
@@ -296,12 +306,16 @@ class TangoChannel(ChannelObject):
     def getValue(self):
         self._device_initialized.wait(timeout=3)
 
+        
         if self.read_as_str:
             value = self.device.read_attribute(
                 self.attributeName, PyTango.DeviceAttribute.ExtractAs.String
             ).value
         else:
             value = self.device.read_attribute(self.attributeName).value
+
+        if value != self.value:
+            self.update(value)
 
         return value
 
@@ -314,3 +328,4 @@ class TangoChannel(ChannelObject):
 
     def isConnected(self):
         return self.device is not None
+
