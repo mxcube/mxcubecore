@@ -44,6 +44,9 @@ class EnergyMockup(ActuatorMockup, AbstractEnergy):
             self.update_value(DEFAULT_VALUE)
         self.update_state(self.STATES.READY)
 
+    def get_limits(self):
+        my_limits = ActuatorMockup.get_limits(self)
+        return my_limits
     def _move(self, value):
         """ Simulated energy change
         Args:
