@@ -87,7 +87,7 @@ code base
  * K (Kelvin) for temperature
  * Å (Ångström) for resolution
  * Pixels are to be used for beam location (center)
- * Datetime YYYY-MM-DD HH:MM:SS possible with hundreds of seconds and with 24 hour clock
+ * Datetime YYYY-MM-DD HH:MM:SS(.ff) ,possibly with hundreds of seconds (ff), and with 24 hour clock.
 
 #### Value update signals/callbacks
 The "valueChanged" and "stateChanged" signals should be used when a HardwareObjects value or state
