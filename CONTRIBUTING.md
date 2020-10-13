@@ -73,7 +73,7 @@ Pull request (PR) is the most convinient way of submitting a new code to the rep
 * The last reviewer to review the PR have the responsibility of merging it.
 * A PR that has no reviewer can be approved and merged by anyone.
 
-### Coding convention and style guidlines
+### Coding convention and style guidelines
 
 #### Units
 Functions return a value representing a physical quantity should in general be assoicated with 
