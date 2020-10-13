@@ -73,7 +73,7 @@ Pull request (PR) is the most convinient way of submitting a new code to the rep
 * The last reviewer to review the PR have the responsibility of merging it.
 * A PR that has no reviewer can be approved and merged by anyone.
 
-### Coding convention
+### Coding convention and style guidlines
 
 #### Units
 Functions return a value representing a physical quantity should in general be assoicated with 
@@ -98,12 +98,12 @@ The use of the the signal "attributeChanged" with a key, value pair is encourage
 attributes, for instance ```self.emit("attributeChanged", "attr1", 0)``` instead of using a 
 specific signal with for instance a single dictionary as data.
 
-### Coding style guidline and naming convention
+#### Naming convention
 
-#### Functions
+##### Functions
   * functions names should generally contain a verb
 
-#### Variables and parameters:
+##### Variables and parameters:
  * names of objects and values are singular
  * names of collections and maps are plural or contain 'map', 'dict','data', or an internel '2', like 'name2state'
  
