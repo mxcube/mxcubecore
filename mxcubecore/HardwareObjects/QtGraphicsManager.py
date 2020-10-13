@@ -216,6 +216,7 @@ class QtGraphicsManager(AbstractSampleView):
         self.graphics_view.wheelSignal.connect(self.mouse_wheel_scrolled)
 
         self.diffractometer_hwobj = self.get_object_by_role("diffractometer")
+        self.graphics_view.resizeEvent = self.resizeEvent
 
         if self.diffractometer_hwobj is not None:
             pixels_per_mm = self.diffractometer_hwobj.get_pixels_per_mm()
@@ -710,6 +711,14 @@ class QtGraphicsManager(AbstractSampleView):
             self.hide_all_items()
             self.emit("diffractometerReady", False)
 
+    def resizeEvent(self, event):
+        GraphicsLib.GraphicsView.resizeEvent(self.graphics_view, event)
+        if self.graphics_view.verticalScrollBar().isVisible():
+            self.graphics_scale_item.set_anchor(GraphicsLib.GraphicsItemScale.UPPER_LEFT)
+        else:
+            self.graphics_scale_item.set_anchor(GraphicsLib.GraphicsItemScale.LOWER_LEFT)
+        self.graphics_view.update()
+ 
     def diffractometer_phase_changed(self, phase):
         """Phase changed event.
            If PHASE_BEAM then displays a grid on the screen

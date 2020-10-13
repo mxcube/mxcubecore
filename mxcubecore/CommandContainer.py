@@ -89,7 +89,7 @@ class CommandObject:
         return False
 
 
-class ChannelObject:
+class ChannelObject(object):
     def __init__(self, name, username=None, **kwargs):
         self._name = name
         self._username = username

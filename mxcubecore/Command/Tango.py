@@ -19,7 +19,6 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import types
 import gevent
 import gevent.event
 from gevent.queue import Queue
@@ -29,7 +28,9 @@ from HardwareRepository.CommandContainer import (
     ConnectionError,
 )
 from HardwareRepository import Poller
-from HardwareRepository import saferef
+from HardwareRepository.dispatcher import saferef
+
+gevent_version = list(map(int,gevent.__version__.split('.')))
 
 try:
     import PyTango
@@ -42,6 +43,7 @@ except ImportError:
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
+log = logging.getLogger("HWR")
 
 class TangoCommand(CommandObject):
     def __init__(self, name, command, tangoname=None, username=None, **kwargs):
@@ -134,7 +136,11 @@ class E:
 class TangoChannel(ChannelObject):
     _tangoEventsQueue = Queue()
     _eventReceivers = {}
-    _tangoEventsProcessingTimer = gevent.get_hub().loop.async_()
+
+    if gevent_version < [1,3,0]:
+        _tangoEventsProcessingTimer = gevent.get_hub().loop.async()
+    else:
+        _tangoEventsProcessingTimer = gevent.get_hub().loop.async_()
 
     # start Tango events processing timer
     _tangoEventsProcessingTimer.start(process_tango_events)
@@ -192,7 +198,9 @@ class TangoChannel(ChannelObject):
         # self.init_poller.stop()
 
         if isinstance(self.polling, int):
+
             self.raw_device = RawDeviceProxy(self.device_name)
+            
             Poller.poll(
                 self.poll,
                 polling_period=self.polling,
@@ -266,6 +274,7 @@ class TangoChannel(ChannelObject):
         TangoChannel._tangoEventsProcessingTimer.send()
 
     def poll(self):
+
         if self.read_as_str:
             value = self.raw_device.read_attribute(
                 self.attribute_name, PyTango.DeviceAttribute.ExtractAs.String
@@ -309,9 +318,10 @@ class TangoChannel(ChannelObject):
         return self.device.get_attribute_config(self.attribute_name)
 
     def update(self, value=Poller.NotInitializedValue):
+
         if value == Poller.NotInitializedValue:
             value = self.get_value()
-        if isinstance(value, types.TupleType):
+        if isinstance(value, tuple):
             value = list(value)
 
         self.value = value
@@ -320,12 +330,16 @@ class TangoChannel(ChannelObject):
     def get_value(self, force=False):
         self._device_initialized.wait(timeout=3)
 
+        
         if self.read_as_str:
             value = self.device.read_attribute(
                 self.attribute_name, PyTango.DeviceAttribute.ExtractAs.String
             ).value
         else:
             value = self.device.read_attribute(self.attribute_name).value
+
+        if value != self.value:
+            self.update(value)
 
         return value
 
@@ -338,3 +352,4 @@ class TangoChannel(ChannelObject):
 
     def is_connected(self):
         return self.device is not None
+
