@@ -70,7 +70,7 @@ class BIOMAXMD3Camera(Device):
             self.chan_zoom.set_value(self.zoom)
             self.width = self.roi_width.get_value() * self.zoom
             self.height = self.roi_height.get_value() * self.zoom
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").info("cannot set image zoom level")
         thread = Thread(target=self.poll)
         thread.daemon = True
@@ -99,7 +99,7 @@ class BIOMAXMD3Camera(Device):
                 self.stopper = True
                 logging.getLogger("HWR").info("poll images stopped")
                 return
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception("Could not read image")
                 self.image_attr = self.add_channel(
                     {"type": "exporter", "name": "image"}, "ImageJPG"
@@ -130,7 +130,7 @@ class BIOMAXMD3Camera(Device):
             self.width = x2 - x1
             self.height = y1 - y2
             return True
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("Could not set image roi")
             return False
 
@@ -145,7 +145,7 @@ class BIOMAXMD3Camera(Device):
                 self.roi_width.get_value(),
                 self.roi_height.get_value(),
             ]
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("Could not retrieve image roi settings")
             return False
 

@@ -265,7 +265,7 @@ class SampleChanger(Container, Equipment):
             try:
                 if self.is_enabled():
                     self._on_timer_1s()
-            except BaseException:
+            except Exception:
                 pass
 
     @task
@@ -278,7 +278,7 @@ class SampleChanger(Container, Equipment):
                     if self._timer_update_counter >= self._timer_update_counter:
                         self._on_timer_update()
                         self._timer_update_counter = 0
-            except BaseException:
+            except Exception:
                 pass
 
     # ########################    TIMER    #########################

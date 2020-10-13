@@ -796,7 +796,7 @@ if __name__ == "__main__":
                 if property_type.endswith("[]"):
                     value = md.parseArray(value)
                 print(property_name + " = " + str(value))
-            except BaseException:
+            except Exception:
                 print("Error reading " + property_name + ": " + str(sys.exc_info()[1]))
 
     print(

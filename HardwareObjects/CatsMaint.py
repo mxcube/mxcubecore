@@ -77,7 +77,7 @@ class CatsMaint(Equipment):
 
         try:
             self.cats_model = self.cats_device.read_attribute("CatsModel").value
-        except BaseException:
+        except Exception:
             self.cats_model = "CATS"
 
         if self.is_isara():

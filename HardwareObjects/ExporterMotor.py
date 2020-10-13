@@ -116,7 +116,7 @@ class ExporterMotor(AbstractMotor):
         """
         try:
             return self._exporter.read_property("HardwareState")
-        except BaseException:
+        except Exception:
             return "Ready"
 
     def _get_swstate(self):

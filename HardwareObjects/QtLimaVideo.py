@@ -51,7 +51,7 @@ from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
 
 try:
     from Lima import Core
-except BaseException:
+except Exception:
     pass
 
 try:

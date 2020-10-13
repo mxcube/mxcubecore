@@ -123,7 +123,7 @@ class ALBADataAnalysis(EDNACharacterisation):
         try:
             state = self.job.state
             logging.getLogger("HWR").debug("Job / is %s" % str(state))
-        except BaseException:
+        except Exception:
             import traceback
 
             logging.getLogger("HWR").debug(

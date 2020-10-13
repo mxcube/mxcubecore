@@ -161,7 +161,7 @@ class DataPublisher(HardwareObject):
                     else:
                         msg = "Unknown frame type %s" % message
                         logging.getLogger("HWR").error(msg)
-                except BaseException:
+                except Exception:
                     msg = "Could not parse data in %s" % message
                     logging.getLogger("HWR").exception(msg)
 

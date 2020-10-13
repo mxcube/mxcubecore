@@ -70,7 +70,7 @@ class CalculateFlux:
         y1 = arr[min_index][1]
         try:
             z1 = arr[min_index][2]
-        except BaseException:
+        except Exception:
             pass
         if debug:
             print(arr[min_index])
@@ -86,7 +86,7 @@ class CalculateFlux:
         y2 = arr[min_index][1]
         try:
             z2 = arr[min_index][2]
-        except BaseException:
+        except Exception:
             pass
         bb = (y2 - y1) / (x2 - x1)
         aa = y1 - bb * x1
@@ -94,7 +94,7 @@ class CalculateFlux:
             dd = (z2 - z1) / (x2 - x1)
             cc = z1 - dd * x1
             return [aa + bb * val, cc + dd * val]
-        except BaseException:
+        except Exception:
             return aa + bb * val
 
 

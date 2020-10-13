@@ -158,13 +158,13 @@ class Exporter(ExporterClient.ExporterClient, object):
         while True:
             try:
                 name, value = self.events_queue.get()
-            except BaseException:
+            except Exception:
                 return
 
             for cb in self.callbacks.get(name, []):
                 try:
                     cb(self._to_python_value(value))
-                except BaseException:
+                except Exception:
                     msg = "Exception while executing callback {} for event {}".format(
                         cb, name
                     )
@@ -189,7 +189,7 @@ class ExporterCommand(CommandObject):
 
         try:
             ret = self.__exporter.execute(self.command, args, kwargs.get("timeout", -1))
-        except BaseException:
+        except Exception:
             self.emit("commandFailed", (-1, self.name()))
             raise
         else:

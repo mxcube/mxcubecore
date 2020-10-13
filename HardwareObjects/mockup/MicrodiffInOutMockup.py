@@ -43,7 +43,7 @@ class MicrodiffInOutMockup(Device):
         try:
             tt = float(self.get_property("timeout"))
             self.timeout = tt
-        except BaseException:
+        except Exception:
             pass
 
         self.moves = dict((self.states[k], k) for k in self.states)
@@ -86,7 +86,7 @@ class MicrodiffInOutMockup(Device):
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
                 self.value_changed(self.state_attr)
-            except BaseException:
+            except Exception:
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s in", self.username
                 )
@@ -103,7 +103,7 @@ class MicrodiffInOutMockup(Device):
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
                 self.value_changed(self.state_attr)
-            except BaseException:
+            except Exception:
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s out", self.username
                 )

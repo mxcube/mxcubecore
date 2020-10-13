@@ -204,7 +204,7 @@ class MiniDiff(Equipment):
         if wl_prop is not None:
             try:
                 self.lightWago = hwr.get_hardware_object(wl_prop)
-            except BaseException:
+            except Exception:
                 pass
 
         if self.phiMotor is not None:
@@ -297,7 +297,7 @@ class MiniDiff(Equipment):
                     "sampleIsLoaded",
                     self.sampleChangerSampleIsLoaded,
                 )
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "MiniDiff: could not connect to sample changer smart magnet"
                 )
@@ -592,7 +592,7 @@ class MiniDiff(Equipment):
             self.centringSamplex.set_value(-sampx)
             self.centringSampley.set_value(sampy)
             self.centringPhiy.set_value(-phiy)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "MiniDiff: could not center to beam, aborting"
             )
@@ -633,7 +633,7 @@ class MiniDiff(Equipment):
         else:
             try:
                 fun(sample_info)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception("MiniDiff: problem while centring")
                 self.emitCentringFailed()
 
@@ -641,7 +641,7 @@ class MiniDiff(Equipment):
         if self.current_centring_procedure is not None:
             try:
                 self.current_centring_procedure.kill()
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "MiniDiff: problem aborting the centring method"
                 )
@@ -652,7 +652,7 @@ class MiniDiff(Equipment):
             else:
                 try:
                     fun()
-                except BaseException:
+                except Exception:
                     self.emitCentringFailed()
         else:
             self.emitCentringFailed()
@@ -794,7 +794,7 @@ class MiniDiff(Equipment):
             motor_pos = manual_centring_procedure.get()
             if isinstance(motor_pos, gevent.GreenletExit):
                 raise motor_pos
-        except BaseException:
+        except Exception:
             logging.exception("Could not complete manual centring")
             self.emitCentringFailed()
         else:
@@ -802,7 +802,7 @@ class MiniDiff(Equipment):
             self.emitCentringMoving()
             try:
                 sample_centring.end()
-            except BaseException:
+            except Exception:
                 logging.exception("Could not move to centred position")
                 self.emitCentringFailed()
 
@@ -991,7 +991,7 @@ class MiniDiff(Equipment):
 
         try:
             self.centringStatus["images"] = snapshotsProcedure.get()
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "MiniDiff: could not take crystal snapshots"
             )

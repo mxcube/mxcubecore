@@ -27,7 +27,7 @@ class ID232HutchTrigger(BaseHardwareObjects.HardwareObject):
         while True:
             try:
                 self.poll()
-            except BaseException:
+            except Exception:
                 sys.excepthook(*sys.exc_info())
             time.sleep(self.get_property("interval") / 1000.0 or 1)
 
@@ -61,7 +61,7 @@ class ID232HutchTrigger(BaseHardwareObjects.HardwareObject):
         PSSinfo = self.get_property("pss")
         try:
             self.card, self.channel = map(int, PSSinfo.split("/"))
-        except BaseException:
+        except Exception:
             logging.getLogger().error("%s: cannot find PSS number", self.name())
             return
 

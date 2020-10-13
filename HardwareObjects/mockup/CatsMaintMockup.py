@@ -62,7 +62,7 @@ class CatsMaintMockup(Equipment):
 
         try:
             self.cats_model = self.cats_device.read_attribute("CatsModel").value
-        except BaseException:
+        except Exception:
             self.cats_model = "CATS"
 
     def get_current_tool(self):

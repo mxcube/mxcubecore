@@ -119,7 +119,7 @@ class MD2Motor(AbstractMotor):
             if low_lim == float(1e999) or hi_lim == float(1e999):
                 raise ValueError
             return low_lim, hi_lim
-        except BaseException:
+        except Exception:
             return (-1e4, 1e4)
 
     def get_limits(self):
@@ -128,7 +128,7 @@ class MD2Motor(AbstractMotor):
             if low_lim == float(1e999) or hi_lim == float(1e999):
                 raise ValueError
             return low_lim, hi_lim
-        except BaseException:
+        except Exception:
             return (-1e4, 1e4)
 
     def get_value(self):
@@ -164,7 +164,7 @@ class MD2Motor(AbstractMotor):
         self.home_cmd(self.actuator_name)
         try:
             self.waitEndOfMove(timeout)
-        except BaseException:
+        except Exception:
             raise MD2TimeoutError
 
     """ obsolete, keep for backward compatibility """

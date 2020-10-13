@@ -86,7 +86,7 @@ class TangoCommand(CommandObject):
             logging.getLogger("HWR").error(
                 "%s: Tango, %s", str(self.name()), error_dict
             )
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "%s: an error occured when calling Tango command %s",
                 str(self.name()),
@@ -222,7 +222,7 @@ class TangoChannel(ChannelObject):
                     )
                     # except PyTango.EventSystemFailed:
                     #   pass
-                except BaseException:
+                except Exception:
                     logging.getLogger("HWR").exception("could not subscribe event")
         self._device_initialized.set()
 

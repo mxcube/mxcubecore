@@ -13,13 +13,13 @@ from ESRF.ESRFMetadataManagerClient import MXCuBEMetadataClient
 
 try:
     from httplib import HTTPConnection
-except BaseException:
+except Exception:
     # Python3
     from http.client import HTTPConnection
 
 try:
     from urllib import urlencode
-except BaseException:
+except Exception:
     # Python3
     from urllib.parse import urlencode
 
@@ -734,7 +734,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             except os.error as e:
                 if e.errno != errno.EEXIST:
                     raise
-        except BaseException:
+        except Exception:
             logging.exception("Could not create processing file directory")
 
         return autoprocessing_directory, "", ""
@@ -828,7 +828,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
         try:
             _gaps = HWR.beamline.undulators
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("Could not get undulator gaps")
         all_gaps.clear()
         for key in _gaps:
@@ -861,14 +861,14 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     #     try:
     #         val = self.get_channel_object("image_intensity").getValue()
     #         return float(val)
-    #     except BaseException:
+    #     except Exception:
     #         return 0
 
     def get_machine_current(self):
         if HWR.beamline.machine_info:
             try:
                 return HWR.beamline.machine_info.getCurrent()
-            except BaseException:
+            except Exception:
                 return -1
         else:
             return 0
@@ -958,7 +958,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             else:
                 beamline = directories[2]
                 proposal = directories[4]
-        except BaseException:
+        except Exception:
             beamline = "unknown"
             proposal = "unknown"
         host, port = self.get_property("bes_jpeg_hostport").split(":")

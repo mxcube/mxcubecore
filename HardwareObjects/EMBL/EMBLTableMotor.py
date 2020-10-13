@@ -113,5 +113,5 @@ class EMBLTableMotor(AbstractMotor):
         try:
             self.socket.close()
             logging.getLogger("HWR").info("EMBLTableMotor: Socket closed")
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error("EMBLTableMotor: Failed to close the socket")

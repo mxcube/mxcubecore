@@ -389,7 +389,7 @@ class ISPyBRestClient(HardwareObject):
                             temp_proposal_dict["Sessions"] = proposal_sessions
 
                         result.append(temp_proposal_dict)
-            except BaseException:
+            except Exception:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
         else:
             logging.getLogger("ispyb_client").exception(_NO_TOKEN_MSG)
@@ -409,7 +409,7 @@ class ISPyBRestClient(HardwareObject):
                 # for session in all_sessions:
                 #    if session['proposalVO']['proposalId'] == proposal_id:
                 # session_list.append(all_sessions)
-            except BaseException:
+            except Exception:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
         else:
             logging.getLogger("ispyb_client").exception(_NO_TOKEN_MSG)
@@ -595,7 +595,7 @@ class ISPyBRestClient(HardwareObject):
                 for session in all_sessions:
                     if session["proposalVO"]["proposalId"] == proposal_id:
                         session_list.append(session)
-            except BaseException:
+            except Exception:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
         else:
             logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)

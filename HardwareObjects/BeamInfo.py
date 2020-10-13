@@ -89,7 +89,7 @@ class BeamInfo(Equipment):
             default_beam_divergence_horizontal = int(
                 self.get_property("beam_divergence_horizontal")
             )
-        except BaseException:
+        except Exception:
             pass
         self.default_beam_divergence = [
             default_beam_divergence_horizontal,

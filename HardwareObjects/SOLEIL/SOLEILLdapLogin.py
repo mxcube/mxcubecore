@@ -195,7 +195,7 @@ class SOLEILLdapLogin(Procedure):
         found = self.ldapConnection.search_s(dcparts, ldap.SCOPE_SUBTREE, filter)
         try:
             return found[0][1]["description"][0]
-        except BaseException:
+        except Exception:
             return None
 
     def find_sessions_for_user(self, username):
@@ -238,7 +238,7 @@ class SOLEILLdapLogin(Procedure):
                         projuser, usertype, beamline, int(sessbeg), int(sessend)
                     )
                     retlist.append(sessinfo)
-        except BaseException:
+        except Exception:
             print("Cannot parse session info in ldap", session_info)
 
         return retlist

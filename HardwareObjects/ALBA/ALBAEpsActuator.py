@@ -90,7 +90,7 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
             else:
                 states = state_string.split(",")
                 self.state_strings = states[1].strip(), states[0].strip()
-        except BaseException:
+        except Exception:
             import traceback
 
             logging.getLogger("HWR").warning(traceback.format_exc())

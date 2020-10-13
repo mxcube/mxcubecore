@@ -276,7 +276,7 @@ class EMBLSafetyShutter(Device):
         logging.getLogger("HWR").info("Safety shutter: Closing beam shutter...")
         try:
             self.cmd_close()
-        except BaseException:
+        except Exception:
             logging.getLogger("GUI").error("Safety shutter: unable to close shutter")
 
     def open_shutter(self):
@@ -287,7 +287,7 @@ class EMBLSafetyShutter(Device):
         logging.getLogger("HWR").info("Safety shutter: Openning beam shutter...")
         try:
             self.cmd_open()
-        except BaseException:
+        except Exception:
             logging.getLogger("GUI").error("Safety shutter: unable to open shutter")
 
     def re_emit_values(self):

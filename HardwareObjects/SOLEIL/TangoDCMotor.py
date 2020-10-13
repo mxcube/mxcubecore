@@ -60,13 +60,13 @@ class TangoDCMotor(Device):
             self.dataType = self.get_property("datatype")
             if self.dataType is None:
                 self.dataType = "float"
-        except BaseException:
+        except Exception:
             self.dataType = "float"
 
         if threshold is not None:
             try:
                 self.threshold = float(threshold)
-            except BaseException:
+            except Exception:
                 pass
 
         self.set_is_ready(True)
@@ -91,7 +91,7 @@ class TangoDCMotor(Device):
                 # logging.getLogger("HWR").error("%s: TangoDCMotor new position  , %s", self.name(), value)
                 self.emit("valueChanged", (value,))
                 self.old_value = value
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").error(
                     "%s: TangoDCMotor not responding, %s", self.name(), ""
                 )
@@ -136,7 +136,7 @@ class TangoDCMotor(Device):
             )
             if numpy.inf in limits:
                 limits = numpy.array([-10000, 10000])
-        except BaseException:
+        except Exception:
             # import traceback
             # logging.getLogger("HWR").info("TangoDCMotor.get_limits: Cannot get limits for %s.\nException %s " % (self.motor_name, traceback.print_exc()))
             if self.motor_name in [
@@ -160,7 +160,7 @@ class TangoDCMotor(Device):
                     "TangoDCMotor.get_limits: %.4f ***** %.4f" % limits
                 )
                 limits = numpy.array(limits)
-            except BaseException:
+            except Exception:
                 # logging.getLogger("HWR").info("TangoDCMotor.get_limits: Cannot get limits for %s" % self.name())
                 limits = None
         return limits

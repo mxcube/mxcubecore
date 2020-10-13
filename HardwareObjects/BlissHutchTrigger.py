@@ -33,7 +33,7 @@ class BlissHutchTrigger(BaseHardwareObjects.HardwareObject):
         while True:
             try:
                 self.poll()
-            except BaseException:
+            except Exception:
                 sys.excepthook(*sys.exc_info())
             gevent.sleep(self.get_property("polling_interval") / 1000.0 or 1)
 
@@ -56,7 +56,7 @@ class BlissHutchTrigger(BaseHardwareObjects.HardwareObject):
         PSSinfo = self.get_property("pss_card_ch")
         try:
             self.card, self.channel = map(int, PSSinfo.split("/"))
-        except BaseException:
+        except Exception:
             logging.getLogger().error("%s: cannot find PSS number", self.name())
             return
 

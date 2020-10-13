@@ -13,7 +13,7 @@ from HardwareRepository import HardwareRepository as HWR
 
 try:
     from httplib import HTTPConnection
-except BaseException:
+except Exception:
     # Python3
     from http.client import HTTPConnection
 

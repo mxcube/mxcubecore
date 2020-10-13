@@ -339,7 +339,7 @@ class GphlWorkflow(HardwareObject, object):
                     if result_list is not None:
                         result_list.append((response, correlation_id))
 
-        except BaseException:
+        except Exception:
             self.workflow_end()
             logging.getLogger("HWR").error(
                 "Uncaught error during GPhL workflow execution", exc_info=True
@@ -974,7 +974,7 @@ class GphlWorkflow(HardwareObject, object):
         if os.path.isfile(fp0):
             try:
                 transcal_data = f90nml.read(fp0)["sdcp_instrument_list"]
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").error(
                     "Error reading transcal.nml file: %s", fp0
                 )
@@ -1016,7 +1016,7 @@ class GphlWorkflow(HardwareObject, object):
         fp0 = self.file_paths.get("diffractcal_file")
         try:
             diffractcal_data = f90nml.read(fp0)["sdcp_instrument_list"]
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").debug(
                 "diffractcal file not present - using instrumentation.nml %s", fp0
             )
@@ -1618,7 +1618,7 @@ class GphlWorkflow(HardwareObject, object):
             if text:
                 try:
                     sampleId = uuid.UUID(text)
-                except BaseException:
+                except Exception:
                     # The error expected if this goes wrong is ValueError.
                     # But whatever the error we want to continue
                     pass
@@ -1634,7 +1634,7 @@ class GphlWorkflow(HardwareObject, object):
             # This direstory must exist by the time the WF software checks for it
             try:
                 os.makedirs(image_root)
-            except BaseException:
+            except Exception:
                 # No need to raise error - program will fail downstream
                 logging.getLogger("HWR").error(
                     "Could not create image root directory: %s", image_root

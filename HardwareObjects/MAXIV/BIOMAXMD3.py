@@ -69,11 +69,11 @@ class BIOMAXMD3(GenericDiffractometer):
         self.sample_y_motor_hwobj = self.motor_hwobj_dict["sampy"]
         try:
             self.kappa_motor_hwobj = self.motor_hwobj_dict["kappa"]
-        except BaseException:
+        except Exception:
             self.kappa_motor_hwobj = None
         try:
             self.kappa_phi_motor_hwobj = self.motor_hwobj_dict["kappa_phi"]
-        except BaseException:
+        except Exception:
             self.kappa_phi_motor_hwobj = None
 
         self.cent_vertical_pseudo_motor = None
@@ -86,7 +86,7 @@ class BIOMAXMD3(GenericDiffractometer):
                 self.connect(
                     self.cent_vertcial_pseudo_motor, "update", self.centring_motor_moved
                 )
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").warning(
                 "Cannot initialize CentringTableVerticalPosition"
             )
@@ -94,7 +94,7 @@ class BIOMAXMD3(GenericDiffractometer):
         try:
             use_sc = self.get_property("use_sc")
             self.set_use_sc(use_sc)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").debug("Cannot set sc mode, use_sc: ", str(use_sc))
 
         try:
@@ -105,7 +105,7 @@ class BIOMAXMD3(GenericDiffractometer):
                 self.zoom_centre["y"] = self.zoom_centre["y"] * zoom
             self.beam_position = [self.zoom_centre["x"], self.zoom_centre["y"]]
             HWR.beamline.beam.set_beam_position(self.beam_position)
-        except BaseException:
+        except Exception:
             self.zoom_centre = {"x": 0, "y": 0}
             logging.getLogger("HWR").warning(
                 "BIOMAXMD3: " + "zoom centre not configured"
@@ -284,7 +284,7 @@ class BIOMAXMD3(GenericDiffractometer):
                 np.array(img_rot, order="C"), IterationClosing=6
             )
             x = HWR.beamline.sample_view.camera.getWidth() - x
-        except BaseException:
+        except Exception:
             return -1, -1, 0
         if info == "Coord":
             surface_score = 10
@@ -530,7 +530,7 @@ class BIOMAXMD3(GenericDiffractometer):
             for motor in motors:
                 try:
                     current_positions[motor] = self.motor_hwobj_dict[motor].get_value()
-                except BaseException:
+                except Exception:
                     pass
         try:
             self.wait_device_ready(10)
@@ -590,7 +590,7 @@ class BIOMAXMD3(GenericDiffractometer):
             )
             self.cent_vertical_pseudo_motor.set_value(cent_vertical_to_move)
             self.wait_device_ready(5)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("MD3: could not move to beam.")
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):

@@ -9,7 +9,7 @@ from HardwareRepository import HardwareRepository as HWR
 
 try:
     from urlparse import urljoin
-except BaseException:
+except Exception:
     # Python3
     from urllib.parse import urljoin
 

@@ -225,7 +225,7 @@ class PlateManipulator(SampleChanger):
                     self.num_cols,
                     self.num_drops,
                 ) = cmd_get_config.get_value()
-            except BaseException:
+            except Exception:
                 pass
         else:
             self.num_cols = self.get_property("numCols")

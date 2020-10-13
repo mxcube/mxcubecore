@@ -139,7 +139,7 @@ class ID30A1MultiCollect(ESRFMultiCollect):
                     shutil.copyfile(
                         os.path.join("/data/id30a1/inhouse/opid30a1/", filename), dest
                     )
-        except BaseException:
+        except Exception:
             logging.exception("Exception happened while copying geo_corr files")
 
         return ESRFMultiCollect.write_input_files(self, datacollection_id)

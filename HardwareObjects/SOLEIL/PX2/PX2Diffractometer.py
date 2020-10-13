@@ -457,7 +457,7 @@ class PX2Diffractometer(GenericDiffractometer):
             # if isinstance(motor_pos, gevent.GreenletExit):
             # raise motor_pos
             # self.log.info('motor_pos from centring_procedure %s' % motor_pos)
-        except BaseException:
+        except Exception:
             logging.exception("Could not complete centring")
             self.emit_centring_failed()
         else:
@@ -465,7 +465,7 @@ class PX2Diffractometer(GenericDiffractometer):
             self.emit_centring_moving()
             try:
                 self.move_to_motors_positions(motor_pos)
-            except BaseException:
+            except Exception:
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()
 
@@ -920,7 +920,7 @@ class PX2Diffractometer(GenericDiffractometer):
                 if c[key] is None:
                     try:
                         c[key] = self.motor_hwobj_dict[key].get_value()
-                    except BaseException:
+                    except Exception:
                         # self.log.info('motor_positions_to_screen exception key %s' % key)
                         self.log.info(traceback.format_exc())
 
@@ -976,7 +976,7 @@ class PX2Diffractometer(GenericDiffractometer):
                     "y"
                 ]
                 return x, y
-        except BaseException:
+        except Exception:
             return 0, 0
 
     def move_to_centred_position(self, centred_position):
@@ -1017,7 +1017,7 @@ class PX2Diffractometer(GenericDiffractometer):
                     self.motor_hwobj_dict["kappa_phi"]: centred_position.kappa_phi,
                 }
                 self.move_to_motors_positions(motor_pos)
-            except BaseException:
+            except Exception:
                 logging.exception("Could not move to centred position")
         else:
             logging.getLogger("HWR").debug(
@@ -1039,7 +1039,7 @@ class PX2Diffractometer(GenericDiffractometer):
         """
         try:
             return self.move_kappa_and_phi_procedure(kappa, kappa_phi, wait=wait)
-        except BaseException:
+        except Exception:
             logging.exception("Could not move kappa and kappa_phi")
 
     @task
@@ -1412,14 +1412,14 @@ class PX2Diffractometer(GenericDiffractometer):
         )
         try:
             self.nclicks = int(nclicks)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(traceback.format_exc())
 
     def set_step(self, step):
         self.log.info("PX2Diffractometer: centring step changed: %s" % step)
         try:
             self.step = float(step)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(traceback.format_exc())
 
     def set_centring_method(self, centring_method):
@@ -1428,7 +1428,7 @@ class PX2Diffractometer(GenericDiffractometer):
         )
         try:
             self.centring_method = centring_method
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(traceback.format_exc())
 
     def is_ready(self):

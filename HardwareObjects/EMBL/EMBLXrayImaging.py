@@ -505,7 +505,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             logging.getLogger("GUI").info(
                 "Imaging: Acquisition parameters saved in %s" % archive_config_path
             )
-        except BaseException:
+        except Exception:
             logging.getLogger("GUI").error(
                 "Imaging: Unable to save acquisition parameters in %s"
                 % archive_config_path

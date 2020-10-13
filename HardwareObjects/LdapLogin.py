@@ -167,7 +167,7 @@ class LdapLogin(Procedure):
             handle = self.ldapConnection.simple_bind(bind_str, password)
             try:
                 result = self.ldapConnection.result(handle)
-            except BaseException:
+            except Exception:
                 return self.cleanup(msg="invalid password for %s" % username)
         except ldap.LDAPError as err:
             if retry:

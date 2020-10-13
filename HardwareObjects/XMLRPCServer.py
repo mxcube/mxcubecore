@@ -76,7 +76,7 @@ class XMLRPCServer(HardwareObject):
 
         try:
             self.open()
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").debug("Can't start XML-RPC server")
 
     def close(self):

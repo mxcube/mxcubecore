@@ -885,7 +885,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                     sample = self.get_component_by_address(
                         Container.Pin.get_sample_address(basket_no, sample_no)
                     )
-        except BaseException:
+        except Exception:
             pass
         self._set_selected_component(basket)
         self._set_selected_sample(sample)
@@ -1056,7 +1056,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                         self._progress = int(prop_value)
                         self.emit("progressStep", self._progress)
                         self._info_dict["progress"] = self._progress
-                except BaseException:
+                except Exception:
                     pass
             elif prop_name == "CPuck":
                 if prop_value == "1":

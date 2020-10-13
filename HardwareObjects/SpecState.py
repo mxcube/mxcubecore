@@ -84,7 +84,7 @@ class SpecState(Procedure):
     def getVersion(self):
         try:
             version = self.specversion.split(":")
-        except BaseException:
+        except Exception:
             version = None
         return version
 

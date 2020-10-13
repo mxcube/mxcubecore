@@ -82,7 +82,7 @@ class ALBACollect(AbstractCollect):
         try:
             for undulator in self["undulators"]:
                 undulators.append(undulator)
-        except BaseException:
+        except Exception:
             pass
 
         self.exp_type_dict = {"Mesh": "raster", "Helical": "Helical"}
@@ -730,7 +730,7 @@ class ALBACollect(AbstractCollect):
                     raise
             """
             # os.symlink(files_directory, os.path.join(process_directory, "img"))
-        except BaseException:
+        except Exception:
             logging.exception("Could not create processing file directory")
             return
 
@@ -815,7 +815,7 @@ class ALBACollect(AbstractCollect):
                     return und_gaps
                 else:
                     return und_gaps
-        except BaseException:
+        except Exception:
             pass
         return {}
 

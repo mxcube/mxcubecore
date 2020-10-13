@@ -254,7 +254,7 @@ class EDNACharacterisation(AbstractCharacterisation):
         # name, if there is no dc id.
         try:
             dc_id = edna_input.getDataCollectionId().get_value()
-        except BaseException:
+        except Exception:
             dc_id = id(edna_input)
 
         if hasattr(edna_input, "process_directory"):
@@ -284,7 +284,7 @@ class EDNACharacterisation(AbstractCharacterisation):
             edna_strategy = char_results.getStrategyResult()
             collection_plan = edna_strategy.getCollectionPlan()[0]
             wedges = collection_plan.getCollectionStrategy().getSubWedge()
-        except BaseException:
+        except Exception:
             pass
         else:
             try:
@@ -422,7 +422,7 @@ class EDNACharacterisation(AbstractCharacterisation):
         char_params.use_aimed_resolution = False
         try:
             char_params.aimed_resolution = diff_plan.getAimedResolution().get_value()
-        except BaseException:
+        except Exception:
             char_params.aimed_resolution = None
 
         char_params.use_aimed_multiplicity = False
@@ -431,7 +431,7 @@ class EDNACharacterisation(AbstractCharacterisation):
                 diff_plan.getAimedIOverSigmaAtHighestResolution().get_value()
             )
             char_params.aimed_completness = diff_plan.getAimedCompleteness().get_value()
-        except BaseException:
+        except Exception:
             char_params.aimed_i_sigma = None
             char_params.aimed_completness = None
 

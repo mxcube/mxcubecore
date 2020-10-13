@@ -37,7 +37,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 # try:
 #    import pdfkit
-# except BaseException:
+# except Exception:
 #    logging.getLogger("HWR").warning("pdfkit not available")
 
 from HardwareRepository.HardwareObjects import SimpleHTML
@@ -90,7 +90,7 @@ class EMBLBeamlineTest(HardwareObject):
         try:
             for test in eval(self.get_property("available_tests", "[]")):
                 self.available_tests_dict[test] = TEST_DICT[test]
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").debug(
                 "BeamlineTest: No test define in xml. "
                 + "Setting all tests as available."
@@ -125,7 +125,7 @@ class EMBLBeamlineTest(HardwareObject):
                 )
                 if not os.path.exists(self.test_directory):
                     os.makedirs(self.test_directory)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").warning(
                     "BeamlineTest: Unable to create test directories"
                 )
@@ -397,7 +397,7 @@ class EMBLBeamlineTest(HardwareObject):
             logging.getLogger("HWR").info(
                 "BeamlineTest: Test result written in file %s" % html_filename
             )
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error(
                 "BeamlineTest: Unable to generate html report file %s" % html_filename
             )
@@ -405,7 +405,7 @@ class EMBLBeamlineTest(HardwareObject):
         # try:
         #    pdfkit.from_url(html_filename, pdf_filename)
         #    logging.getLogger("GUI").info("PDF report %s generated" % pdf_filename)
-        # except BaseException:
+        # except Exception:
         #    logging.getLogger("HWR").error(
         #        "BeamlineTest: Unable to generate pdf report file %s" % pdf_filename
         #    )

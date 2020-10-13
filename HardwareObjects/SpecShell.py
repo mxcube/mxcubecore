@@ -150,7 +150,7 @@ class SpecShell(Equipment):
             for buf in self.lsdefBuffer:
                 try:
                     buf_list = buf.split()
-                except BaseException:
+                except Exception:
                     pass
                 else:
                     i = 0
@@ -158,20 +158,20 @@ class SpecShell(Equipment):
                         cmd_name = buf_list[i]
                         try:
                             cmd_aux = buf_list[i + 1]
-                        except BaseException:
+                        except Exception:
                             pass
                         else:
                             try:
                                 left_par = cmd_aux[0]
                                 right_par = cmd_aux[-1]
                                 midle_num = cmd_aux[1:-1]
-                            except BaseException:
+                            except Exception:
                                 pass
                             else:
                                 if left_par == "(" and right_par == ")":
                                     try:
                                         int(midle_num)
-                                    except BaseException:
+                                    except Exception:
                                         pass
                                     else:
                                         commands_list.append(cmd_name.lstrip("*"))
@@ -239,13 +239,13 @@ class SpecShell(Equipment):
             for cmd in self["usercmds"]:
                 try:
                     cmd_args = cmd.args
-                except BaseException:
+                except Exception:
                     cmd_args = ""
                 if len(cmd_args):
                     cmds.append("%s %s" % (cmd.method, cmd_args))
                 else:
                     cmds.append(cmd.method)
-        except BaseException:
+        except Exception:
             pass
         return cmds
 
