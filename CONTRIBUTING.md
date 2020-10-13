@@ -98,7 +98,7 @@ The use of the the signal "attributeChanged" with a key, value pair is encourage
 attributes, for instance ```self.emit("attributeChanged", "attr1", 0)``` instead of using a 
 specific signal with for instance a single dictionary as data.
 
-### Naming convention
+### Coding style guidline and naming convention
 
 #### Functions
   * functions names should generally contain a verb
@@ -108,7 +108,7 @@ specific signal with for instance a single dictionary as data.
  * names of collections and maps are plural or contain 'map', 'dict','data', or an internel '2', like 'name2state'
  
  
-### Coding style guidlines
+#### Style guidlines
 
 It is very important to write a clean and readable code. Therefore we follow the [PEP8 guidlines](https://www.python.org/dev/peps/pep-0008/). Minimal required guidlines are:
 * Maximum 88 characters per line.
