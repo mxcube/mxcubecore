@@ -18,10 +18,13 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""Abstract Energy and Wavelength"""
+"""Abstract Energy and Wavelength class.
+Defines the get/set wavelength, get_wavelength_limits methods and is_tunable
+property. Implements update_value
+Emits signals valueChanged and attributeChanged.
+"""
 
 import abc
-import math
 from scipy.constants import h, c, e
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
@@ -116,22 +119,6 @@ class AbstractEnergy(AbstractActuator):
         hc_over_e = h * c / e * 10e6
         wavelength = wavelength or self._wavelength_value
         return hc_over_e / wavelength
-
-    def validate_value(self, value):
-        """Check if the value is within the limits
-        Args:
-            value(float): value
-        Returns:
-            (bool): True if within the limits
-        """
-        if value is None:
-            return True
-        if math.isnan(value) or math.isinf(value):
-            return False
-        limits = self.get_limits()
-        if None in limits:
-            return True
-        return limits[0] <= value <= limits[1]
 
     def update_value(self, value=None):
         """Emist signal energyChanged for both energy and wavelength
