@@ -20,7 +20,7 @@
 
 """Abstract Actuator class.
 Defines the set/update value, get/set/update limits and validate_value
-methods and the get_value and_set_value abstract methods.
+methods and the get_value and _set_value abstract methods.
 Initialises the actuator_name, username, read_only and default_value properties.
 Emits signals valueChanged and limitsChanged.
 """
@@ -100,11 +100,17 @@ class AbstractActuator(HardwareObject):
     def validate_value(self, value):
         """Check if the value is within limits.
         Args:
-            value: value
+            value(numerical): value
         Returns:
             (bool): True if within the limits
         """
-        return True
+        if value is None:
+            return True
+        if math.isnan(value) or math.isinf(value):
+            return False
+        if None in self._nominal_limits:
+            return True
+        return self._nominal_limits[0] <= value <= self._nominal_limits[1]
 
     @abc.abstractmethod
     def _set_value(self, value):
