@@ -41,13 +41,13 @@ class PyISPyBClient(HardwareObject):
 
 
     def init(self):
-        self.__root_url = self.getProperty("root_url").strip()
-        self.__username = self.getProperty("username").strip()
-        self.__password = self.getProperty("password").strip()
-        self.base_result_url = self.getProperty("base_result_url", "").strip()
+        self.__root_url = self.get_property("root_url").strip()
+        self.__username = self.get_property("username").strip()
+        self.__password = self.get_property("password").strip()
+        self.base_result_url = self.get_property("base_result_url", "").strip()
 
-        if self.getProperty("master_token"):
-            self.__token = self.getProperty("master_token")
+        if self.get_roperty("master_token"):
+            self.__token = self.get_property("master_token")
             self.__token_timestamp = datetime.now()
             self.update_state(self.STATES.READY)
         else:
@@ -207,7 +207,6 @@ class PyISPyBClient(HardwareObject):
         if True:
             #try:
             if True:
-                session_dict["beamLineName"] = session_dict["beamlineName"]
                 session_dict.pop("beamlineName")
                 session_dict["sessionTitle"] = session_dict["comments"]
                 session_dict.pop("comments")
