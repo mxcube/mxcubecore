@@ -154,7 +154,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                     self.emit("scanNewPoint", ((x < 1000 and x * 1000.0 or x), y))
                     self.emit("progressStep", (len(self.scan_data)))
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def startEnergyScan(

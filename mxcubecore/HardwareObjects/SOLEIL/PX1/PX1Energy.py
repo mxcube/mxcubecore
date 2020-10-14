@@ -98,7 +98,7 @@ class PX1Energy(Device, AbstractEnergy):
     def isSpecConnected(self):
         return True
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def sConnected(self):

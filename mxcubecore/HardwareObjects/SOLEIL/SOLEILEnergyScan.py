@@ -155,16 +155,16 @@ class SOLEILEnergyScan(Equipment):
             "#############################    EnergyScan: INIT HWOBJ IS FINISHED ###################"
         )
 
-    def isConnected(self):
+    def is_connected(self):
         if self.defaultWavelengthChannel is not None:
             # single wavelength beamline
             try:
-                return self.defaultWavelengthChannel.isConnected()
+                return self.defaultWavelengthChannel.is_connected()
             except Exception:
                 return False
         else:
             try:
-                return self.doEnergyScan.isConnected()
+                return self.doEnergyScan.is_connected()
             except Exception:
                 return False
 

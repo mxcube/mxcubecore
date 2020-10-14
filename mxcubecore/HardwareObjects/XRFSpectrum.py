@@ -71,9 +71,9 @@ class XRFSpectrum(Equipment):
         if self.is_connected():
             self.sConnected()
 
-    def isConnected(self):
+    def is_connected(self):
         try:
-            return self.doSpectrum.isConnected()
+            return self.doSpectrum.is_connected()
         except Exception:
             return False
 
