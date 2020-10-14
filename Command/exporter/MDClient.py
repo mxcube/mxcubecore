@@ -721,7 +721,7 @@ if __name__ == "__main__":
     # It is not needed to call connect explicitly.
     # Connectiong is set with any command/attributr access.
     # Connection may be explicitly restored though to for receiving events
-    if md.isConnected() is False:
+    if md.is_connected() is False:
         md.connect()
 
     # print("--------------   Just waiting  events  ------------------")

@@ -16,11 +16,11 @@ class PX1TangoLight(Device):
         self.attrchan = self.get_channel_object("attributeName")
         self.attrchan.connect_signal("update", self.value_changed)
 
-        self.attrchan.connect_signal("connected", self._setReady)
-        self.attrchan.connect_signal("disconnected", self._setReady)
+        self.attrchan.connect_signal("connected", self._set_ready)
+        self.attrchan.connect_signal("disconnected", self._set_ready)
         self.set_in = self.get_command_object("set_in")
-        self.set_in.connect_signal("connected", self._setReady)
-        self.set_in.connect_signal("disconnected", self._setReady)
+        self.set_in.connect_signal("connected", self._set_ready)
+        self.set_in.connect_signal("disconnected", self._set_ready)
         self.set_out = self.get_command_object("set_out")
 
         self.px1env_hwo = self.get_object_by_role("px1environment")
@@ -29,7 +29,7 @@ class PX1TangoLight(Device):
 
         self.connect(self.zoom_hwo, "predefinedPositionChanged", self.zoom_changed)
 
-        self._setReady()
+        self._set_ready()
         try:
             self.inversed = self.get_property("inversed")
         except Exception:
@@ -40,8 +40,8 @@ class PX1TangoLight(Device):
         else:
             self.states = ["out", "in"]
 
-    def _setReady(self):
-        self.set_is_ready(self.attrchan.isConnected())
+    def _set_ready(self):
+        self.set_is_ready(self.attrchan.is_connected())
 
     def connect_notify(self, signal):
         if self.is_ready():
@@ -78,7 +78,7 @@ class PX1TangoLight(Device):
         self.adjustLightLevel()
 
     def setOut(self):
-        self._setReady()
+        self._set_ready()
         if self.is_ready():
             if self.inversed:
                 self.set_in()

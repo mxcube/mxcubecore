@@ -23,7 +23,7 @@ class XRFMockup(Equipment):
 
         # self.plottin_hwobj = self.get_object_by_role('plotting')
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def canSpectrum(self):
