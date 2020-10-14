@@ -56,11 +56,9 @@ class AbstractActuator(HardwareObject):
         """Initialise actuator_name, username, read_only and default_value
         properties.
         """
-
         self.actuator_name = self.get_property("actuator_name")
         self.read_only = self.get_property("read_only") or False
         self.default_value = self.get_property("default_value")
-
         if self.default_value is not None:
             self.update_value(self.default_value)
         limits = self.get_property("default_limits")
@@ -165,10 +163,17 @@ class AbstractActuator(HardwareObject):
                 self.emit("limitsChanged", (limits,))
 
     def re_emit_values(self):
-        """re emits values for all internal attributes"""
-        self.emit("valueChanged", (self.get_value(),))
-        self.emit("limitsChanged", (self.get_limits(),))
-        self.emit("stateChanged", (self.get_state(),))
-        #self.update_value(self.get_value())
-        #self.update_limits(self.get_limits())
-        #super(AbstractActuator, self).re_emit_values()
+        """Update values for all internal attributes"""
+        self.update_value(self.get_value())
+        self.update_limits(self.get_limits())
+        super(AbstractActuator, self).re_emit_values()
+
+    def force_emit_signals(self):
+        """Forces to emit all signals.
+
+        Method is called from gui
+        Do not call it within HWR
+        """
+        self.emit("valueChanged", (self.get_value(), ))
+        self.emit("limitsChanged", (self.get_limits(), ))
+        self.emit("stateChanged", (self.get_state(), ))

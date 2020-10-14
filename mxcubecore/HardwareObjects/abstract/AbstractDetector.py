@@ -86,7 +86,7 @@ class AbstractDetector(HardwareObject):
         self._width = self.get_property("width")
         self._height = self.get_property("height")
 
-    def re_emit_values(self):
+    def force_emit_signals(self):
         self.emit("detectorRoiModeChanged", (self._roi_mode,))
         self.emit("temperatureChanged", (self._temperature, True))
         self.emit("humidityChanged", (self._humidity, True))

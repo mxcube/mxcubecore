@@ -141,10 +141,10 @@ class AbstractEnergy(AbstractActuator):
         """
         return ()
 
-    def re_emit_values(self):
+    def force_emit_signals(self):
         """Emits signal energyChanged for both energy and wavelength
         Argin:
             value: Not used, but kept in the method signature.
         """
-        self.emit("valueChanged", self.get_value())
+        AbstractActuator.force_emit_signals(self)
         self.emit("wavelengthChanged", self.get_wavelength())
