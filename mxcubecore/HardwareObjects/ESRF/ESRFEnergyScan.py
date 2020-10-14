@@ -107,7 +107,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         self.scanInfo = None
         self._tunable_bl.energy_obj = self.energy_obj
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def get_static_parameters(self, config_file, element, edge):

@@ -37,7 +37,7 @@ class SpecScan(Procedure):
     def connected(self):
         pass
 
-    def isConnected(self):
+    def is_connected(self):
         return self.specConnection is not None and self.specConnection.isSpecConnected()
 
     def disconnected(self):

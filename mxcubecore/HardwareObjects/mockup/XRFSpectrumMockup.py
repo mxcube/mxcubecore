@@ -60,7 +60,7 @@ class XRFSpectrumMockup(AbstractXRFSpectrum, HardwareObject):
     def init(self):
         pass
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def can_spectrum(self):

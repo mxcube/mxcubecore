@@ -63,7 +63,7 @@ class SpecCommand(CommandObject, SpecCommandA):
         self.__cmdExecution = False
         self.emit("commandAborted", (str(self.name()),))
 
-    def isConnected(self):
+    def is_connected(self):
         return SpecCommandA.isSpecConnected(self)
 
     def connected(self):
@@ -111,7 +111,7 @@ class SpecChannel(ChannelObject, SpecVariableA):
     def disconnected(self):
         self.emit("disconnected", ())
 
-    def isConnected(self):
+    def is_connected(self):
         return SpecVariableA.isSpecConnected(self)
 
     def get_value(self):

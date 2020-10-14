@@ -49,9 +49,9 @@ class TangoMotor(AbstractMotor):
 
     def init(self):
         """Connects to all Tine channels and commands"""
-        self.polling = self.getProperty("polling", TangoMotor.default_polling)
-        self.actuator_name = self.getProperty("actuator_name", self.name())
-        self._tolerance = self.getProperty("tolerance", None)
+        self.polling = self.get_property("polling", TangoMotor.default_polling)
+        self.actuator_name = self.get_property("actuator_name", self.name())
+        self._tolerance = self.get_property("tolerance", None)
 
         self.chan_position = self.get_channel_object("axisPosition", optional=True)
         if self.chan_position is None:
@@ -86,8 +86,8 @@ class TangoMotor(AbstractMotor):
             self.update_limits(self.chan_limits.getValue())
         else:
             try:
-                if self.getProperty("default_limits"):
-                    self.update_limits(eval(self.getProperty("default_limits")))
+                if self.get_property("default_limits"):
+                    self.update_limits(eval(self.get_property("default_limits")))
             except Exception:
                 pass
 

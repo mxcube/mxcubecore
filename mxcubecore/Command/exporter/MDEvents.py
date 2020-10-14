@@ -243,7 +243,7 @@ if __name__ == "__main__":
 
     while True:
         time.sleep(1.0)
-        if not md.isConnected():
+        if not md.is_connected():
             print "Not Connected"
 
     md.stop()

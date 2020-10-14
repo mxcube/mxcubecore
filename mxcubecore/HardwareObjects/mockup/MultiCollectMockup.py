@@ -262,7 +262,7 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
     def getBeamlineConfiguration(self, *args):
         return self.bl_config._asdict()
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def is_ready(self):

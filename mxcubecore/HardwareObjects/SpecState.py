@@ -69,7 +69,7 @@ class SpecState(Procedure):
                 cmd.disconnect_signal("commandNotReady", self.commandNotReady)
         self.emitSpecState("Disconnected")
 
-    def isConnected(self):
+    def is_connected(self):
         return self.specConnection is not None and self.specConnection.isSpecConnected()
 
     def is_ready(self):
