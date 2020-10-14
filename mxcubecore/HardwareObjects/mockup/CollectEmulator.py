@@ -58,7 +58,7 @@ class CollectEmulator(CollectMockup):
         CollectMockup.init(self)
         # NBNB you get an error if you use 'HWR.beamline.session'
         session = HWR.beamline.session
-        if session and self.hasObject("override_data_directories"):
+        if session and self.has_object("override_data_directories"):
             dirs = self["override_data_directories"].get_properties()
             session.set_base_data_directories(**dirs)
 

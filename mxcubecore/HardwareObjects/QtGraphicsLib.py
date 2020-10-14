@@ -51,7 +51,7 @@ from gui.utils import QtImport
 
 from HardwareRepository.HardwareObjects import queue_model_objects
 from HardwareRepository.ConvertUtils import string_types
-from HardwareRepository.utils.mxcube_logging import log
+
 
 SELECTED_COLOR = QtImport.Qt.green
 NORMAL_COLOR = QtImport.Qt.yellow

@@ -64,7 +64,7 @@ class BlissEnergy(AbstractEnergy):
             self._energy_motor.connect("stateChanged", self.update_state)
 
         if self.read_only:
-            self._nominal_value = float(self.getProperty("energy", 0))
+            self._nominal_value = float(self.get_property("energy", 0))
 
     def get_value(self):
         """Read the energy.

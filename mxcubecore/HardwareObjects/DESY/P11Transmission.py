@@ -37,7 +37,7 @@ class P11Transmission(AbstractTransmission):
 
     def init(self):
 
-        limits = self.getProperty('limits',None)
+        limits = self.get_property('limits',None)
 
         try:
             limits = list(map(float,limits.split(',')))

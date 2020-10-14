@@ -184,22 +184,22 @@ class GphlWorkflow(HardwareObject, object):
         # TODO this could be cached for speed
 
         result = OrderedDict()
-        if self.hasObject("workflow_properties"):
+        if self.has_object("workflow_properties"):
             properties = self["workflow_properties"].get_properties().copy()
         else:
             properties = {}
-        if self.hasObject("invocation_properties"):
+        if self.has_object("invocation_properties"):
             invocation_properties = (
                 self["invocation_properties"].get_properties().copy()
             )
         else:
             invocation_properties = {}
 
-        if self.hasObject("all_workflow_options"):
+        if self.has_object("all_workflow_options"):
             all_workflow_options = self["all_workflow_options"].get_properties().copy()
             if "beamline" in all_workflow_options:
                 pass
-            elif HWR.beamline.gphl_connection.hasObject("ssh_options"):
+            elif HWR.beamline.gphl_connection.has_object("ssh_options"):
                 # We are running workflow through ssh - set beamline url
                 all_workflow_options["beamline"] = "py4j:%s:" % socket.gethostname()
             else:
@@ -234,7 +234,7 @@ class GphlWorkflow(HardwareObject, object):
 
             if strategy_type.startswith("transcal"):
                 wf_dict["options"] = dd0 = all_workflow_options.copy()
-                if wf_node.hasObject("options"):
+                if wf_node.has_object("options"):
                     dd0.update(wf_node["options"].get_properties())
                     relative_file_path = dd0.get("file")
                     if relative_file_path is not None:
@@ -245,14 +245,14 @@ class GphlWorkflow(HardwareObject, object):
 
             elif strategy_type.startswith("diffractcal"):
                 wf_dict["options"] = dd0 = acq_workflow_options.copy()
-                if wf_node.hasObject("options"):
+                if wf_node.has_object("options"):
                     dd0.update(wf_node["options"].get_properties())
 
             else:
                 wf_dict["options"] = dd0 = mx_workflow_options.copy()
-                if wf_node.hasObject("options"):
+                if wf_node.has_object("options"):
                     dd0.update(wf_node["options"].get_properties())
-                if wf_node.hasObject("beam_energies"):
+                if wf_node.has_object("beam_energies"):
                     wf_dict["beam_energies"] = dd0 = OrderedDict()
                     for wavelength in wf_node["beam_energies"]:
                         dd0[wavelength.get_property("role")] = wavelength.get_property(
@@ -260,7 +260,7 @@ class GphlWorkflow(HardwareObject, object):
                         )
 
             wf_dict["properties"] = dd0 = properties.copy()
-            if wf_node.hasObject("properties"):
+            if wf_node.has_object("properties"):
                 dd0.update(wf_node["properties"].get_properties())
             # Program-specific properties
             devmode = dd0.get("co.gphl.wf.devMode")
@@ -269,7 +269,7 @@ class GphlWorkflow(HardwareObject, object):
                 dd0["co.gphl.wf.stratcal.opt.--strategy_type"] = strategy_type
 
             wf_dict["invocation_properties"] = dd0 = invocation_properties.copy()
-            if wf_node.hasObject("invocation_properties"):
+            if wf_node.has_object("invocation_properties"):
                 dd0.update(wf_node["invocation_properties"].get_properties())
         #
         return result

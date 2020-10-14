@@ -72,7 +72,7 @@ class ID232HutchTrigger(BaseHardwareObjects.HardwareObject):
     def hutchIsOpened(self):
         return self.hutch_opened
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def connected(self):
