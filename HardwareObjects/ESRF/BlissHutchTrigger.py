@@ -64,7 +64,7 @@ class BlissHutchTrigger(AbstractNState):
         """Initialise properties and polling"""
         super(BlissHutchTrigger, self).init()
         self._bliss_obj = self.get_object_by_role("controller")
-        tango_device = self.getProperty("pss_tango_device")
+        tango_device = self.get_property("pss_tango_device")
         try:
             self._proxy = DeviceProxy(tango_device)
         except DevFailed as _traceback:
@@ -72,7 +72,7 @@ class BlissHutchTrigger(AbstractNState):
             msg = f"{self.name()}: {last_error['desc']}"
             raise RuntimeError(msg)
 
-        pss = self.getProperty("pss_card_ch")
+        pss = self.get_property("pss_card_ch")
         try:
             self.card, self.channel = map(int, pss.split("/"))
         except AttributeError:
@@ -80,7 +80,7 @@ class BlissHutchTrigger(AbstractNState):
             raise RuntimeError(msg)
 
         # polling interval [s]
-        self._polling_interval = self.getProperty("polling_interval", 5)
+        self._polling_interval = self.get_property("polling_interval", 5)
         self._pss_value = self.get_pss_value()
         # enable by default
         self.update_value(self.VALUES.ENABLED)

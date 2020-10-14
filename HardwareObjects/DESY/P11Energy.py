@@ -43,7 +43,7 @@ class P11Energy(AbstractEnergy):
         if self.chan_status is not None:
             self.chan_status.connectSignal("update", self.energy_state_changed)
 
-        limits = self.getProperty('limits',None)
+        limits = self.get_property('limits',None)
 
         try:
             limits = list(map(float,limits.split(',')))

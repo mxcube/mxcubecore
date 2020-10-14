@@ -705,14 +705,14 @@ if __name__ == "__main__":
 
     md = Microdiff(SERVER_ADDRESS, SERVER_PORT, PROTOCOL.STREAM, TIMEOUT, RETRIES)
 
-    methods = md.getMethodList()
+    methods = md.get_method_list()
     print("--------------   Listing methods  ------------------")
     print("Methods:")
     for method in methods:
         print(method)
 
     print("--------------   Listing properties  ------------------")
-    properties = md.getPropertyList()
+    properties = md.get_property_list()
     print("Properties:")
     for property in properties:
         print(property)
@@ -721,7 +721,7 @@ if __name__ == "__main__":
     # It is not needed to call connect explicitly.
     # Connectiong is set with any command/attributr access.
     # Connection may be explicitly restored though to for receiving events
-    if md.isConnected() is False:
+    if md.is_connected() is False:
         md.connect()
 
     # print("--------------   Just waiting  events  ------------------")

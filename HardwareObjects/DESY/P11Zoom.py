@@ -35,7 +35,7 @@ class P11Zoom(AbstractNState):
 
     def init(self):
 
-        self.pixels_per_mm = self.getProperty("pixels_per_mm")
+        self.pixels_per_mm = self.get_property("pixels_per_mm")
         self.camera_hwobj = self.get_object_by_role("camera")
 
         self.connect(self.camera_hwobj, "zoomChanged", self.zoom_value_changed)
@@ -48,7 +48,7 @@ class P11Zoom(AbstractNState):
         AbstractNState.init(self)
 
     def initialise_values(self):
-        self.VALUES = Enum("ZoomEnum", ast.literal_eval(self.getProperty('values')))
+        self.VALUES = Enum("ZoomEnum", ast.literal_eval(self.get_property('values')))
 
     def get_state(self):
         return self.STATES.READY

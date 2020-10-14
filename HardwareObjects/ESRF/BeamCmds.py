@@ -222,12 +222,12 @@ class BeamCmds(HardwareObject):
         if ctrl_cmds:
             controller = self.get_object_by_role("controller")
             for key, name in ctrl_cmds:
-                # name = self.getProperty(cmd)
+                # name = self.get_property(cmd)
                 action = getattr(controller, key)
                 self.ctrl_list.append(ControllerCommand(name, action))
 
         hwobj_cmd_roles = ast.literal_eval(
-            self.getProperty("hwobj_command_roles").strip()
+            self.get_property("hwobj_command_roles").strip()
         )
 
         if hwobj_cmd_roles:

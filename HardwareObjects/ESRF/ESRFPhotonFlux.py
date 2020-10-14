@@ -50,7 +50,7 @@ class ESRFPhotonFlux(AbstractFlux):
         controller = self.get_object_by_role("controller")
 
         self._aperture = self.get_object_by_role("aperture")
-        self.threshold = self.getProperty("threshold") or 0.0
+        self.threshold = self.get_property("threshold") or 0.0
 
         try:
             self._flux_calc = controller.CalculateFlux()
@@ -60,7 +60,7 @@ class ESRFPhotonFlux(AbstractFlux):
                 "Could not get flux calculation from BLISS"
             )
 
-        counter = self.getProperty("counter_name")
+        counter = self.get_property("counter_name")
         if counter:
             self._counter = getattr(controller, counter)
         else:

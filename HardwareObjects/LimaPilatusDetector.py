@@ -219,7 +219,7 @@ class LimaPilatusDetector(AbstractDetector):
 
         self.set_channel_value("acq_trigger_mode", trigger_mode)
 
-        if self.getProperty("set_latency_time",  False):
+        if self.get_property("set_latency_time",  False):
             self.set_channel_value("latency_time", self.get_deadtime())
 
         self.set_channel_value("saving_mode", "AUTO_FRAME")
@@ -286,8 +286,8 @@ class LimaPilatusDetector(AbstractDetector):
         for i, start_angle in enumerate(self.start_angles):
             header = "\n%s\n" % self.get_property("serial")
             header += "# %s\n" % time.strftime("%Y/%b/%d %T")
-            header += "\n%s\n" % self.getProperty("sensor")
-            header += "\n%s\n" % self.getProperty("pixel_size")
+            header += "\n%s\n" % self.get_property("sensor")
+            header += "\n%s\n" % self.get_property("pixel_size")
             self.header["Start_angle"] = start_angle
 
             for key, value in self.header.items():

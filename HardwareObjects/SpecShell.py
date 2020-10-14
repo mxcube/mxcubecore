@@ -108,7 +108,7 @@ class SpecShell(Equipment):
             pass
         """
 
-    def isConnected(self):
+    def is_connected(self):
         return self.specConnection is not None and self.specConnection.isSpecConnected()
 
     def is_ready(self):

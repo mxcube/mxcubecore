@@ -117,11 +117,11 @@ class GphlWorkflowConnection(HardwareObject, object):
 
     def init(self):
         super(GphlWorkflowConnection, self).init()
-        if self.hasObject("connection_parameters"):
+        if self.has_object("connection_parameters"):
             self._connection_parameters.update(
                 self["connection_parameters"].get_properties()
             )
-        if self.hasObject("ssh_options"):
+        if self.has_object("ssh_options"):
             # We are running through ssh - so we need python_address
             # If not, we stick to default, which is localhost (127.0.0.1)
             self._connection_parameters["python_address"] = socket.gethostname()
@@ -239,7 +239,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         self._workflow_name = workflow_model_obj.get_type()
         params = workflow_model_obj.get_workflow_parameters()
 
-        in_shell = self.hasObject("ssh_options")
+        in_shell = self.has_object("ssh_options")
         if in_shell:
             dd0 = self["ssh_options"].get_properties().copy()
             #

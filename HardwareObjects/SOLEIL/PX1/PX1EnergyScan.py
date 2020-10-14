@@ -93,7 +93,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
         if self.number_of_steps is None:
             self.number_of_steps = self.default_steps
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     # SCAN info (for graph)
