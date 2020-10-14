@@ -21,9 +21,9 @@ class XRFMockup(Equipment):
         self.ready_event = gevent.event.Event()
         self.__scan_data = dict()
 
-        # self.plottin_hwobj = self.getObjectByRole('plotting')
+        # self.plottin_hwobj = self.get_object_by_role('plotting')
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def canSpectrum(self):

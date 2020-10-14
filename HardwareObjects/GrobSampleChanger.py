@@ -38,15 +38,15 @@ class GrobSampleChanger(Equipment):
                 ("HA%d" % sample_num, basket, vial, "A%d" % basket, 0)
             )
 
-        grob = self.getObjectByRole("grob")
+        grob = self.get_object_by_role("grob")
         self.grob = grob.controller
         self.connect(self.grob, "transfer_state", self.sample_changer_state_changed)
         self.connect(self.grob, "io_bits", self.io_bits_changed)
         self.connect(self.grob, "mounted_sample", self.mounted_sample_changed)
         self.connect(self.grob, "samples_map", self.samples_map_changed)
 
-    def connectNotify(self, signal):
-        logging.info("%s: connectNotify %s", self.name(), signal)
+    def connect_notify(self, signal):
+        logging.info("%s: connect_notify %s", self.name(), signal)
         if signal == "stateChanged":
             self.sample_changer_state_changed(self.get_state())
         elif signal == "loadedSampleChanged":
@@ -94,7 +94,7 @@ class GrobSampleChanger(Equipment):
         if callable(self._successCallback):
             try:
                 self._successCallback()
-            except BaseException:
+            except Exception:
                 logging.exception(
                     "%s: exception while calling success callback", self.name()
                 )
@@ -103,7 +103,7 @@ class GrobSampleChanger(Equipment):
         if callable(self._failureCallback):
             try:
                 self._failureCallback()
-            except BaseException:
+            except Exception:
                 logging.exception(
                     "%s: exception while calling failure callback", self.name()
                 )

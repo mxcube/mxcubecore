@@ -36,10 +36,22 @@ READY_FOR_NEXT_POINT = gevent.event.Event()
 
 
 class CentringMotor:
-    def __init__(self, motor, reference_position=None, direction=1):
+    def __init__(self, motor, reference_position=None, direction=1, units='mm'):
         self.motor = motor
         self.direction = direction
         self.reference_position = reference_position
+        self.units = units.lower()
+
+        self._scale = 1.0 # mm or deg
+
+        if units == 'micron' or units == 'microns':
+            self._scale = 1000.0
+        
+    def mm_to_units(self, mm_dist):
+        return mm_dist * self._scale
+
+    def units_to_mm(self, mm_dist):
+        return mm_dist / self._scale
 
     def __getattr__(self, attr):
         # delegate to motor object
@@ -226,7 +238,7 @@ def centre_plate1Click(
             USER_CLICKED_EVENT = gevent.event.AsyncResult()
             try:
                 x, y = USER_CLICKED_EVENT.get()
-            except BaseException:
+            except Exception:
                 raise RuntimeError("Aborted while waiting for point selection")
 
             # Move to beam
@@ -254,7 +266,7 @@ def centre_plate1Click(
 
             READY_FOR_NEXT_POINT.set()
             i += 1
-    except BaseException:
+    except Exception:
         logging.exception("Exception while centring")
         move_motors(SAVED_INITIAL_POSITIONS)
         raise
@@ -296,7 +308,7 @@ def centre_plate(
         while i < n_points:
             try:
                 x, y = USER_CLICKED_EVENT.get()
-            except BaseException:
+            except Exception:
                 raise RuntimeError("Aborted while waiting for point selection")
             USER_CLICKED_EVENT = gevent.event.AsyncResult()
             X.append(x / float(pixelsPerMm_Hor))
@@ -306,7 +318,7 @@ def centre_plate(
                 phi.set_value_relative(phi.direction * phi_angle, timeout=None)
             READY_FOR_NEXT_POINT.set()
             i += 1
-    except BaseException:
+    except Exception:
         logging.exception("Exception while centring")
         move_motors(SAVED_INITIAL_POSITIONS)
         raise
@@ -421,7 +433,7 @@ def center(
         while i < n_points:
             try:
                 x, y = USER_CLICKED_EVENT.get()
-            except BaseException:
+            except Exception:
                 raise RuntimeError("Aborted while waiting for point selection")
             USER_CLICKED_EVENT = gevent.event.AsyncResult()
             X.append(x / float(pixelsPerMm_Hor))
@@ -431,7 +443,7 @@ def center(
                 phi.set_value_relative(phi.direction * phi_angle, timeout=10)
             READY_FOR_NEXT_POINT.set()
             i += 1
-    except BaseException:
+    except Exception:
         logging.exception("Exception while centring")
         move_motors(SAVED_INITIAL_POSITIONS)
         raise
@@ -487,7 +499,7 @@ def end(centred_pos=None):
         centred_pos = CURRENT_CENTRING.get()
     try:
         move_motors(centred_pos)
-    except BaseException:
+    except Exception:
         logging.exception("Exception in centring 'end`, centred pos is %s", centred_pos)
         move_motors(SAVED_INITIAL_POSITIONS)
         raise

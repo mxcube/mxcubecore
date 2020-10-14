@@ -43,11 +43,11 @@ class P11Energy(AbstractEnergy):
         if self.chan_status is not None:
             self.chan_status.connectSignal("update", self.energy_state_changed)
 
-        limits = self.getProperty('limits',None)
+        limits = self.get_property('limits',None)
 
         try:
             limits = list(map(float,limits.split(',')))
-        except BaseException as e:
+        except Exception as e:
             log.error("P11Transmission - cannot parse limits: {}".format(str(e)))
             limits = None
 
@@ -120,7 +120,7 @@ class P11Energy(AbstractEnergy):
             try:
                 value = self.chan_energy.getValue()
                 return value / 1000
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "Energy: could not read current energy"
                 )

@@ -142,9 +142,9 @@ class EMBLMotorsGroup(Device):
                 },
                 self.positionAddr,
             )
-            self.chan_positions.connectSignal("update", self.positions_changed)
-            self.positions_changed(self.chan_positions.getValue())
-        except BaseException:
+            self.chan_positions.connect_signal("update", self.positions_changed)
+            self.positions_changed(self.chan_positions.get_value())
+        except Exception:
             msg = "EMBLMotorsGroup: unable to add channel %s/%s %s" % (
                 self.server_address,
                 self.group_address,
@@ -161,9 +161,9 @@ class EMBLMotorsGroup(Device):
                 },
                 self.statusAddr,
             )
-            self.chan_status.connectSignal("update", self.status_changed)
-            self.status_changed(self.chan_status.getValue())
-        except BaseException:
+            self.chan_status.connect_signal("update", self.status_changed)
+            self.status_changed(self.chan_status.get_value())
+        except Exception:
             msg = "EMBLMotorsGroup: unable to add channel %s/%s %s" % (
                 self.server_address,
                 self.group_address,
@@ -329,7 +329,7 @@ class EMBLMotorsGroup(Device):
 
     def wait_motor_ready(self, motor_name, timeout):
         """Waits motor ready"""
-        self.status_changed(self.chan_status.getValue())
+        self.status_changed(self.chan_status.get_value())
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
             while not self.is_motor_ready(motor_name):
                 gevent.sleep(0.01)

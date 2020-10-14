@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 [Name]
@@ -72,11 +72,11 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device, AbstractMotor):
     def init(self):
         logging.getLogger("HWR").debug("Initializing zoom motor autobrightness IOR")
 
-        self.zoom = self.getObjectByRole("zoom")
-        self.blight = self.getObjectByRole("blight")
+        self.zoom = self.get_object_by_role("zoom")
+        self.blight = self.get_object_by_role("blight")
 
-        self.zoom.positionChannel.connectSignal("update", self.positionChanged)
-        self.zoom.stateChannel.connectSignal("update", self.stateChanged)
+        self.zoom.positionChannel.connect_signal("update", self.positionChanged)
+        self.zoom.stateChannel.connect_signal("update", self.stateChanged)
 
     def getPredefinedPositionsList(self):
         retlist = self.zoom.getPredefinedPositionsList()
@@ -90,7 +90,7 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device, AbstractMotor):
         # self.blight.moveToPosition(posno)
         self.zoom.moveToPosition(posno)
         state = self.zoom.get_state()
-        # state = self.positionChannel.setValue(int(no))
+        # state = self.positionChannel.set_value(int(no))
 
     def motorIsMoving(self):
         return self.zoom.motorIsMoving()
@@ -105,7 +105,7 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device, AbstractMotor):
         return self.zoom.get_limits()
 
     def get_state(self):
-        #        state = self.stateChannel.getValue()
+        #        state = self.stateChannel.get_value()
         #        curr_pos = self.get_value()
         #        if state == PyTango.DevState.ON:
         #             return ALBAZoomMotor.READY
@@ -122,7 +122,7 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device, AbstractMotor):
         return self.zoom.get_value()
 
     def get_current_position_name(self):
-        #        n = int(self.positionChannel.getValue())
+        #        n = int(self.positionChannel.get_value())
         #        value = "%s z%s" % (n, n)
         #        logging.getLogger("HWR").debug("get_current_position_name: %s" % repr(value))
         #        return value
@@ -156,7 +156,7 @@ def test():
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    zoom = hwr.getHardwareObject("/zoom-auto-brightness")
+    zoom = hwr.get_hardware_object("/zoom-auto-brightness")
 
     print(type(zoom.get_state()))
 

@@ -17,7 +17,7 @@ class BIOMAXResolution(Resolution.Resolution):
             try:
                 self.det_width = detector.get_x_pixels_in_detector()
                 self.det_height = detector.get_y_pixels_in_detector()
-            except BaseException:
+            except Exception:
                 self.det_width = 4150
                 self.det_height = 4371
 

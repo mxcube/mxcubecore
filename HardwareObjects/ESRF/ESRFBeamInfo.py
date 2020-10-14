@@ -28,20 +28,20 @@ class ESRFBeamInfo(BeamInfo.BeamInfo):
         self.chan_beam_shape_ellipse = None
         BeamInfo.BeamInfo.init(self)
 
-        beam_size_slits = self.getProperty("beam_size_slits")
+        beam_size_slits = self.get_property("beam_size_slits")
         if beam_size_slits:
             self.beam_size_slits = tuple(map(float, beam_size_slits.split()))
 
-        beam_position = self.getProperty("beam_position")
+        beam_position = self.get_property("beam_position")
         if beam_position:
             self.beam_position = tuple(map(float, beam_position.split()))
         else:
             logging.getLogger("HWR").warning(
                 "ESRFBeamInfo: " + "beam position not configured"
             )
-        self.difrractometer_hwobj = self.getObjectByRole("difrractometer")
-        self.flux = self.getObjectByRole("flux")
-        self.beam_definer = self.getObjectByRole("beam_definer")
+        self.difrractometer_hwobj = self.get_object_by_role("difrractometer")
+        self.flux = self.get_object_by_role("flux")
+        self.beam_definer = self.get_object_by_role("beam_definer")
 
     def get_beam_position(self):
         if self.beam_position == (0, 0):

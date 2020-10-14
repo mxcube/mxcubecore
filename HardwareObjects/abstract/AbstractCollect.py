@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,7 +15,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 AbstractCollect defines a sequence how data collection is executed.
@@ -92,34 +92,40 @@ class AbstractCollect(HardwareObject, object):
         try:
             for undulator in self["undulators"]:
                 undulators.append(undulator)
-        except BaseException:
+        except Exception:
             pass
+
+        session = HWR.beamline.session
+        if session:
+            synchrotron_name = session.get_property("synchrotron_name")
+        else:
+            synchrotron_name = "UNKNOWN"
 
 
         beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
 
         self.set_beamline_configuration(
-            synchrotron_name=HWR.beamline.session.getProperty("synchrotron_name"),
-            directory_prefix=self.getProperty("directory_prefix"),
-            default_exposure_time=HWR.beamline.detector.getProperty(
+            synchrotron_name=synchrotron_name,
+            directory_prefix=self.get_property("directory_prefix"),
+            default_exposure_time=HWR.beamline.detector.get_property(
                 "default_exposure_time"
             ),
-            minimum_exposure_time=HWR.beamline.detector.getProperty(
+            minimum_exposure_time=HWR.beamline.detector.get_property(
                 "minimum_exposure_time"
             ),
-            detector_fileext=HWR.beamline.detector.getProperty("fileSuffix"),
-            detector_type=HWR.beamline.detector.getProperty("type"),
-            detector_manufacturer=HWR.beamline.detector.getProperty("manufacturer"),
-            detector_model=HWR.beamline.detector.getProperty("model"),
-            detector_px=HWR.beamline.detector.getProperty("px"),
-            detector_py=HWR.beamline.detector.getProperty("py"),
+            detector_fileext=HWR.beamline.detector.get_property("fileSuffix"),
+            detector_type=HWR.beamline.detector.get_property("type"),
+            detector_manufacturer=HWR.beamline.detector.get_property("manufacturer"),
+            detector_model=HWR.beamline.detector.get_property("model"),
+            detector_px=HWR.beamline.detector.get_property("px"),
+            detector_py=HWR.beamline.detector.get_property("py"),
             undulators=undulators,
-            focusing_optic=self.getProperty("focusing_optic"),
-            monochromator_type=self.getProperty("monochromator"),
-            beam_divergence_vertical=beam_div_ver,
-            beam_divergence_horizontal=beam_div_hor,
-            polarisation=self.getProperty("polarisation"),
-            input_files_server=self.getProperty("input_files_server"),
+            focusing_optic=self.get_property("focusing_optic"),
+            monochromator_type=self.get_property("monochromator"),
+            beam_divergence_vertical=beam_divergence_ver,
+            beam_divergence_horizontal=beam_divergence_hor,
+            polarisation=self.get_property("polarisation"),
+            input_files_server=self.get_property("input_files_server"),
         )
 
     def set_beamline_configuration(self, **configuration_parameters):
@@ -204,7 +210,7 @@ class AbstractCollect(HardwareObject, object):
 
             # Update information in LIMS
             self._update_data_collection_in_lims(cp)
-        except BaseException:
+        except Exception:
             exc_type, exc_value, exc_tb = sys.exc_info()
             self._execute_failed(cp, exc_type, exc_value, exc_tb)
         else:
@@ -327,7 +333,7 @@ class AbstractCollect(HardwareObject, object):
 
         try:
             sample_id = int(sample_info["blSampleId"])
-        except BaseException:
+        except Exception:
             sample_id = None
 
         cp.dangerously_set("blSampleId", sample_id)
@@ -348,7 +354,7 @@ class AbstractCollect(HardwareObject, object):
                 )
                 cp.dangerously_set("actualSampleSlotInContainer", vial)
                 cp.dangerously_set("actualContainerSlotInSC", basket)
-            except BaseException:
+            except Exception:
                 cp.dangerously_set("actualSampleBarcode", None)
                 cp.dangerously_set("actualContainerBarcode", None)
         else:
@@ -373,7 +379,7 @@ class AbstractCollect(HardwareObject, object):
                 if detector_id:
                     cp.dangerously_set("detector_id", detector_id)
 
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "Could not store data collection in LIMS"
                 )
@@ -405,8 +411,8 @@ class AbstractCollect(HardwareObject, object):
                 if isinstance(motor, string_types):
                     positions_str += " %s=%f" % (motor, position)
                 else:
-                    positions_str += " %s=%f" % (motor.getMotorMnemonic(), position)
-        cp.dangerously_set("actualCenteringPosition", positions_str)
+                    positions_str += " %s=%f" % (motor.get_motor_mnemonic(), position)
+        cp["actualCenteringPosition"] = positions_str
         self.move_motors(cp["motors"])
         dd0 = HWR.beamline.diffractometer.get_positions()
         logging.getLogger("HWR").debug(
@@ -423,7 +429,7 @@ class AbstractCollect(HardwareObject, object):
             if not os.path.exists(snapshot_directory):
                 try:
                     self.create_directories(snapshot_directory)
-                except BaseException:
+                except Exception:
                     logging.getLogger("HWR").exception(
                         "Collection: Error creating snapshot directory"
                     )
@@ -507,7 +513,7 @@ class AbstractCollect(HardwareObject, object):
 
             try:
                 HWR.beamline.lims.update_data_collection(cp)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "Could not update data collection in LIMS"
                 )
@@ -568,7 +574,7 @@ class AbstractCollect(HardwareObject, object):
                 if grid_snapshot_filename:
                     cp.dangerously_set("xtalSnapshotFullPath3", grid_snapshot_filename)
                 HWR.beamline.lims.update_data_collection(cp)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "Could not store data collection into ISPyB"
                 )

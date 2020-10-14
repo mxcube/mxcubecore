@@ -11,14 +11,14 @@ class TangoKeithleyPhotonFlux(Equipment):
         Equipment.__init__(self, *args, **kwargs)
 
     def init(self):
-        self.getObjectByRole("controller")
-        self.shutter = self.getDeviceByRole("shutter")
-        self.aperture = self.getObjectByRole("aperture")
-        self.factor = self.getProperty("current_photons_factor")
+        self.get_object_by_role("controller")
+        self.shutter = self.get_deviceby_role("shutter")
+        self.aperture = self.get_object_by_role("aperture")
+        self.factor = self.get_property("current_photons_factor")
 
         self.shutter.connect("shutterStateChanged", self.shutterStateChanged)
 
-        self.tg_device = DeviceProxy(self.getProperty("tango_device"))
+        self.tg_device = DeviceProxy(self.get_property("tango_device"))
         self.counts_reading_task = self._read_counts_task(wait=False)
 
     @task
@@ -45,7 +45,7 @@ class TangoKeithleyPhotonFlux(Equipment):
         counts *= aperture_coef
         return counts
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "valueChanged":
             self.emitValueChanged()
 

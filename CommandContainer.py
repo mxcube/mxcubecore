@@ -1,3 +1,23 @@
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
 """CommandContainer module
 
 Classes:
@@ -6,6 +26,7 @@ Hardware Objects. It defines a container
 for command launchers and channels (see Command package).
 - C*Object, command launcher & channel base class
 """
+
 from __future__ import absolute_import
 
 import weakref
@@ -15,8 +36,8 @@ from warnings import warn
 from HardwareRepository.dispatcher import dispatcher
 
 
-__author__ = "Matias Guijarro"
-__version__ = 1.0
+__copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
+__license__ = "LGPLv3+"
 
 
 class ConnectionError(Exception):
@@ -33,12 +54,12 @@ class CommandObject:
     def name(self):
         return self._name
 
-    def connect(self, signalName, callableFunc):
+    def connect(self, signal_name, callable_func):
         try:
-            dispatcher.disconnect(callableFunc, signalName, self)
-        except BaseException:
+            dispatcher.disconnect(callable_func, signal_name, self)
+        except Exception:
             pass
-        dispatcher.connect(callableFunc, signalName, self)
+        dispatcher.connect(callable_func, signal_name, self)
 
     def emit(self, signal, *args):
         signal = str(signal)
@@ -49,7 +70,7 @@ class CommandObject:
 
         dispatcher.send(signal, self, *args)
 
-    def addArgument(
+    def add_argument(
         self, argName, argType, combo_items=None, onchange=None, valuefrom=None
     ):
         arg_names = [arg[0] for arg in self._arguments]
@@ -58,46 +79,43 @@ class CommandObject:
         if combo_items is not None:
             self._combo_arguments_items[argName] = combo_items
 
-    def getArguments(self):
+    def get_arguments(self):
         return self._arguments
-
-    def getComboArgumentItems(self, argName):
-        return self._combo_arguments_items[argName]
 
     def userName(self):
         return self._username or str(self.name())
 
-    def isConnected(self):
+    def is_connected(self):
         return False
 
 
-class ChannelObject:
+class ChannelObject(object):
     def __init__(self, name, username=None, **kwargs):
         self._name = name
         self._username = username
         self._attributes = kwargs
-        self._onchange = None
-        self.__firstUpdate = True
+        self._on_change = None
+        self.__first_update = True
 
     def name(self):
         return self._name
 
-    def connectSignal(self, signalName, callableFunc):
+    def connect_signal(self, signalName, callableFunc):
         try:
             dispatcher.disconnect(callableFunc, signalName, self)
-        except BaseException:
+        except Exception:
             pass
         dispatcher.connect(callableFunc, signalName, self)
 
-    def disconnectSignal(self, signalName, callableFunc):
+    def disconnect_signal(self, signalName, callableFunc):
         try:
             dispatcher.disconnect(callableFunc, signalName, self)
-        except BaseException:
+        except Exception:
             pass
 
-    def connectNotify(self, signal):
-        if signal == "update" and self.isConnected():
-            self.emit(signal, self.getValue())
+    def connect_notify(self, signal):
+        if signal == "update" and self.is_connected():
+            self.emit(signal, self.get_value())
 
     def emit(self, signal, *args):
         signal = str(signal)
@@ -111,23 +129,23 @@ class ChannelObject:
     def userName(self):
         return self._username or str(self.name())
 
-    def isConnected(self):
+    def is_connected(self):
         return False
 
     def update(self, value):
-        if self.__firstUpdate:
-            self.__firstUpdate = False
+        if self.__first_update:
+            self.__first_update = False
             return
 
-        if self._onchange is not None:
-            cmd, container_ref = self._onchange
+        if self._on_change is not None:
+            cmd, container_ref = self._on_change
             container = container_ref()
             if container is not None:
                 cmdobj = container.get_command_object(cmd)
                 if cmdobj is not None:
                     cmdobj(value)
 
-    def getValue(self, force=False):
+    def get_value(self, force=False):
         raise NotImplementedError
 
 
@@ -137,8 +155,8 @@ class CommandContainer:
     def __init__(self):
         self.__commands = {}
         self.__channels = {}
-        self.__commandsToAdd = []
-        self.__channelsToAdd = []
+        self.__commands_to_add = []
+        self.__channels_to_add = []
 
     def __getattr__(self, attr):
         try:
@@ -146,10 +164,10 @@ class CommandContainer:
         except KeyError:
             raise AttributeError(attr)
 
-    def get_channel_object(self, channelName, optional=False):
-        channel = self.__channels.get(channelName)
+    def get_channel_object(self, channel_name, optional=False):
+        channel = self.__channels.get(channel_name)
         if channel is None and not optional:
-            msg = "%s: Unable to get channel %s" % (self.name(), channelName)
+            msg = "%s: Unable to get channel %s" % (self.name(), channel_name)
             logging.getLogger("user_level_log").error(msg)
             # raise Exception(msg)
         return channel
@@ -157,143 +175,143 @@ class CommandContainer:
     def get_channel_names_list(self):
         return list(self.__channels.keys())
 
-    def add_channel(self, attributesDict, channel, addNow=True):
-        if not addNow:
-            self.__channelsToAdd.append((attributesDict, channel))
+    def add_channel(self, attributes_dict, channel, add_now=True):
+        if not add_now:
+            self.__channels_to_add.append((attributes_dict, channel))
             return
-        channelName = attributesDict["name"]
-        channelType = attributesDict["type"]
-        channelOnChange = attributesDict.get("onchange", None)
-        if channelOnChange is not None:
-            del attributesDict["onchange"]
-        channelValueFrom = attributesDict.get("valuefrom", None)
-        if channelValueFrom is not None:
-            del attributesDict["valuefrom"]
-        channelValueFrom = attributesDict.get("valuefrom", None)
-        del attributesDict["name"]
-        del attributesDict["type"]
+        channel_name = attributes_dict["name"]
+        channel_type = attributes_dict["type"]
+        channel_on_change = attributes_dict.get("onchange", None)
+        if channel_on_change is not None:
+            del attributes_dict["onchange"]
+        channel_value_from = attributes_dict.get("valuefrom", None)
+        if channel_value_from is not None:
+            del attributes_dict["valuefrom"]
+        channel_value_from = attributes_dict.get("valuefrom", None)
+        del attributes_dict["name"]
+        del attributes_dict["type"]
 
-        newChannel = None
-        if self.__channels.get(channelName) is not None:
-            return self.__channels[channelName]
+        new_channel = None
+        if self.__channels.get(channel_name) is not None:
+            return self.__channels[channel_name]
 
-        if channelType.lower() == "spec":
-            if "version" not in attributesDict:
+        if channel_type.lower() == "spec":
+            if "version" not in attributes_dict:
                 try:
-                    attributesDict["version"] = self.specversion
+                    attributes_dict["version"] = self.specversion
                 except AttributeError:
                     pass
 
             try:
                 from HardwareRepository.Command.Spec import SpecChannel
 
-                newChannel = SpecChannel(channelName, channel, **attributesDict)
-            except BaseException:
+                new_channel = SpecChannel(channel_name, channel, **attributes_dict)
+            except Exception:
                 logging.getLogger().error(
                     "%s: cannot add channel %s (hint: check attributes)",
                     self.name(),
-                    channelName,
+                    channel_name,
                 )
-        elif channelType.lower() == "taco":
-            if "taconame" not in attributesDict:
+        elif channel_type.lower() == "taco":
+            if "taconame" not in attributes_dict:
                 try:
-                    attributesDict["taconame"] = self.taconame
+                    attributes_dict["taconame"] = self.taconame
                 except AttributeError:
                     pass
 
             try:
                 from HardwareRepository.Command.Taco import TacoChannel
 
-                newChannel = TacoChannel(channelName, channel, **attributesDict)
-            except BaseException:
+                new_channel = TacoChannel(channel_name, channel, **attributes_dict)
+            except Exception:
                 logging.getLogger().error(
                     "%s: cannot add channel %s (hint: check attributes)",
                     self.name(),
-                    channelName,
+                    channel_name,
                 )
-        elif channelType.lower() == "tango":
-            if "tangoname" not in attributesDict:
+        elif channel_type.lower() == "tango":
+            if "tangoname" not in attributes_dict:
                 try:
-                    attributesDict["tangoname"] = self.tangoname
+                    attributes_dict["tangoname"] = self.tangoname
                 except AttributeError:
                     pass
 
             try:
                 from HardwareRepository.Command.Tango import TangoChannel
 
-                newChannel = TangoChannel(channelName, channel, **attributesDict)
+                new_channel = TangoChannel(channel_name, channel, **attributes_dict)
             except ConnectionError:
                 logging.getLogger().error(
                     "%s: could not connect to device server %s (hint: is it running ?)",
                     self.name(),
-                    attributesDict["tangoname"],
+                    attributes_dict["tangoname"],
                 )
                 raise ConnectionError
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     "%s: cannot add channel %s (hint: check attributes)",
                     self.name(),
-                    channelName,
+                    channel_name,
                 )
-        elif channelType.lower() == "exporter":
-            if "exporter_address" not in attributesDict:
+        elif channel_type.lower() == "exporter":
+            if "exporter_address" not in attributes_dict:
                 try:
-                    attributesDict["exporter_address"] = self.exporter_address
+                    attributes_dict["exporter_address"] = self.exporter_address
                 except AttributeError:
                     pass
-            host, port = attributesDict["exporter_address"].split(":")
+            host, port = attributes_dict["exporter_address"].split(":")
 
             try:
-                attributesDict["address"] = host
-                attributesDict["port"] = int(port)
-                del attributesDict["exporter_address"]
+                attributes_dict["address"] = host
+                attributes_dict["port"] = int(port)
+                del attributes_dict["exporter_address"]
 
                 from HardwareRepository.Command.Exporter import ExporterChannel
 
-                newChannel = ExporterChannel(channelName, channel, **attributesDict)
-            except BaseException:
+                new_channel = ExporterChannel(channel_name, channel, **attributes_dict)
+            except Exception:
                 logging.getLogger().exception(
                     "%s: cannot add exporter channel %s (hint: check attributes)",
                     self.name(),
-                    channelName,
+                    channel_name,
                 )
-        elif channelType.lower() == "epics":
+        elif channel_type.lower() == "epics":
             try:
                 from HardwareRepository.Command.Epics import EpicsChannel
 
-                newChannel = EpicsChannel(channelName, channel, **attributesDict)
-            except BaseException:
+                new_channel = EpicsChannel(channel_name, channel, **attributes_dict)
+            except Exception:
                 logging.getLogger().exception(
                     "%s: cannot add EPICS channel %s (hint: check PV name)",
                     self.name(),
-                    channelName,
+                    channel_name,
                 )
-        elif channelType.lower() == "tine":
-            if "tinename" not in attributesDict:
+        elif channel_type.lower() == "tine":
+            if "tinename" not in attributes_dict:
                 try:
-                    attributesDict["tinename"] = self.tinename
+                    attributes_dict["tinename"] = self.tine_name
                 except AttributeError:
                     pass
 
             try:
                 from HardwareRepository.Command.Tine import TineChannel
 
-                newChannel = TineChannel(channelName, channel, **attributesDict)
-            except BaseException:
+                new_channel = TineChannel(channel_name, channel, **attributes_dict)
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "%s: cannot add TINE channel %s (hint: check attributes)",
                     self.name(),
-                    channelName,
+                    channel_name,
                 )
 
-        elif channelType.lower() == "sardana":
+        elif channel_type.lower() == "sardana":
 
-            if "taurusname" not in attributesDict:
+            if "taurusname" not in attributes_dict:
                 try:
-                    attributesDict["taurusname"] = self.taurusname
+                    attributes_dict["taurusname"] = self.taurusname
                 except AttributeError:
                     pass
-            uribase = attributesDict["taurusname"]
+            uribase = attributes_dict["taurusname"]
 
             try:
                 from HardwareRepository.Command.Sardana import SardanaChannel
@@ -301,59 +319,59 @@ class CommandContainer:
                 logging.getLogger().debug(
                     "Creating a sardanachannel - %s / %s / %s",
                     self.name(),
-                    channelName,
-                    str(attributesDict),
+                    channel_name,
+                    str(attributes_dict),
                 )
-                newChannel = SardanaChannel(
-                    channelName, channel, uribase=uribase, **attributesDict
+                new_channel = SardanaChannel(
+                    channel_name, channel, uribase=uribase, **attributes_dict
                 )
                 logging.getLogger().debug("Created")
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     "%s: cannot add SARDANA channel %s (hint: check PV name)",
                     self.name(),
-                    channelName,
+                    channel_name,
                 )
 
-        elif channelType.lower() == "mockup":
-            if "default_value" not in attributesDict:
+        elif channel_type.lower() == "mockup":
+            if "default_value" not in attributes_dict:
                 try:
-                    attributesDict["default_value"] = float(self.default_value)
+                    attributes_dict["default_value"] = float(self.default_value)
                 except AttributeError:
                     pass
 
             try:
                 from HardwareRepository.Command.Mockup import MockupChannel
 
-                newChannel = MockupChannel(channelName, channel, **attributesDict)
-            except BaseException:
+                new_channel = MockupChannel(channel_name, channel, **attributes_dict)
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "%s: cannot add Mockup channel %s (hint: check attributes)",
                     self.name(),
-                    channelName,
+                    channel_name,
                 )
 
-        if newChannel is not None:
-            if channelOnChange is not None:
-                newChannel._onchange = (channelOnChange, weakref.ref(self))
+        if new_channel is not None:
+            if channel_on_change is not None:
+                new_channel._on_change = (channel_on_change, weakref.ref(self))
             else:
-                newChannel._onchange = None
-            if channelValueFrom is not None:
-                newChannel._valuefrom = (channelValueFrom, weakref.ref(self))
+                new_channel._on_change = None
+            if channel_value_from is not None:
+                new_channel._valuefrom = (channel_value_from, weakref.ref(self))
             else:
-                newChannel._valuefrom = None
+                new_channel._valuefrom = None
 
-            self.__channels[channelName] = newChannel
+            self.__channels[channel_name] = new_channel
 
-            return newChannel
+            return new_channel
         else:
             logging.getLogger().exception("Channel is None")
 
     def set_channel_value(self, channel_name, value):
-        self.__channels[channel_name].setValue(value)
+        self.__channels[channel_name].set_value(value)
 
     def get_channel_value(self, channel_name):
-        return self.__channels[channel_name].getValue()
+        return self.__channels[channel_name].get_value()
 
     def get_channels(self):
         for chan in self.__channels.values():
@@ -369,31 +387,31 @@ class CommandContainer:
         for cmd in self.__commands.values():
             yield cmd
 
-    def get_command_namesList(self):
+    def get_command_names_list(self):
         return list(self.__commands.keys())
 
-    def add_command(self, arg1, arg2=None, addNow=True):
-        if not addNow:
-            self.__commandsToAdd.append((arg1, arg2))
+    def add_command(self, arg1, arg2=None, add_now=True):
+        if not add_now:
+            self.__commands_to_add.append((arg1, arg2))
             return
-        newCommand = None
+        new_command = None
 
         if isinstance(arg1, dict):
-            attributesDict = arg1
+            attributes_dict = arg1
             cmd = arg2
 
-            cmdName = attributesDict["name"]
-            cmdType = attributesDict["type"]
-            del attributesDict["name"]
-            del attributesDict["type"]
+            cmd_name = attributes_dict["name"]
+            cmd_type = attributes_dict["type"]
+            del attributes_dict["name"]
+            del attributes_dict["type"]
         else:
-            attributesDict = {}
-            attributesDict.update(arg1.getProperties())
+            attributes_dict = {}
+            attributes_dict.update(arg1.get_properties())
 
             try:
-                cmdName = attributesDict["name"]
-                cmdType = attributesDict["type"]
-                cmd = attributesDict["toexecute"]
+                cmd_name = attributes_dict["name"]
+                cmd_type = attributes_dict["type"]
+                cmd = attributes_dict["toexecute"]
             except KeyError as err:
                 logging.getLogger().error(
                     '%s: cannot add command: missing "%s" property',
@@ -402,146 +420,146 @@ class CommandContainer:
                 )
                 return
             else:
-                del attributesDict["name"]
-                del attributesDict["type"]
-                del attributesDict["toexecute"]
+                del attributes_dict["name"]
+                del attributes_dict["type"]
+                del attributes_dict["toexecute"]
 
-        if cmdType.lower() == "spec":
-            if "version" not in attributesDict:
+        if cmd_type.lower() == "spec":
+            if "version" not in attributes_dict:
                 try:
-                    attributesDict["version"] = self.specversion
+                    attributes_dict["version"] = self.specversion
                 except AttributeError:
                     pass
 
             try:
                 from HardwareRepository.Command.Spec import SpecCommand
 
-                newCommand = SpecCommand(cmdName, cmd, **attributesDict)
-            except BaseException:
+                new_command = SpecCommand(cmd_name, cmd, **attributes_dict)
+            except Exception:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
                     self.name(),
-                    cmdName,
+                    cmd_name,
                 )
-        elif cmdType.lower() == "taco":
-            if "taconame" not in attributesDict:
+        elif cmd_type.lower() == "taco":
+            if "taconame" not in attributes_dict:
                 try:
-                    attributesDict["taconame"] = self.taconame
+                    attributes_dict["taconame"] = self.taconame
                 except AttributeError:
                     pass
 
             try:
                 from HardwareRepository.Command.Taco import TacoCommand
 
-                newCommand = TacoCommand(cmdName, cmd, **attributesDict)
-            except BaseException:
+                new_command = TacoCommand(cmd_name, cmd, **attributes_dict)
+            except Exception:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
                     self.name(),
-                    cmdName,
+                    cmd_name,
                 )
-        elif cmdType.lower() == "tango":
-            if "tangoname" not in attributesDict:
+        elif cmd_type.lower() == "tango":
+            if "tangoname" not in attributes_dict:
                 try:
-                    attributesDict["tangoname"] = self.tangoname
+                    attributes_dict["tangoname"] = self.tangoname
                 except AttributeError:
                     pass
             try:
                 from HardwareRepository.Command.Tango import TangoCommand
 
-                newCommand = TangoCommand(cmdName, cmd, **attributesDict)
+                new_command = TangoCommand(cmd_name, cmd, **attributes_dict)
             except ConnectionError:
                 logging.getLogger().error(
                     "%s: could not connect to device server %s (hint: is it running ?)",
                     self.name(),
-                    attributesDict["tangoname"],
+                    attributes_dict["tangoname"],
                 )
                 raise ConnectionError
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
                     self.name(),
-                    cmdName,
+                    cmd_name,
                 )
 
-        elif cmdType.lower() == "exporter":
-            if "exporter_address" not in attributesDict:
+        elif cmd_type.lower() == "exporter":
+            if "exporter_address" not in attributes_dict:
                 try:
-                    attributesDict["exporter_address"] = self.exporter_address
+                    attributes_dict["exporter_address"] = self.exporter_address
                 except AttributeError:
                     pass
-            host, port = attributesDict["exporter_address"].split(":")
+            host, port = attributes_dict["exporter_address"].split(":")
 
             try:
-                attributesDict["address"] = host
-                attributesDict["port"] = int(port)
-                del attributesDict["exporter_address"]
+                attributes_dict["address"] = host
+                attributes_dict["port"] = int(port)
+                del attributes_dict["exporter_address"]
 
                 from HardwareRepository.Command.Exporter import ExporterCommand
 
-                newCommand = ExporterCommand(cmdName, cmd, **attributesDict)
-            except BaseException:
+                new_command = ExporterCommand(cmd_name, cmd, **attributes_dict)
+            except Exception:
                 logging.getLogger().exception(
                     "%s: cannot add command %s (hint: check attributes)",
                     self.name(),
-                    cmdName,
+                    cmd_name,
                 )
-        elif cmdType.lower() == "epics":
+        elif cmd_type.lower() == "epics":
             try:
                 from HardwareRepository.Command.Epics import EpicsCommand
 
-                newCommand = EpicsCommand(cmdName, cmd, **attributesDict)
-            except BaseException:
+                new_command = EpicsCommand(cmd_name, cmd, **attributes_dict)
+            except Exception:
                 logging.getLogger().exception(
                     "%s: cannot add EPICS channel %s (hint: check PV name)",
                     self.name(),
-                    cmdName,
+                    cmd_name,
                 )
 
-        elif cmdType.lower() == "sardana":
+        elif cmd_type.lower() == "sardana":
 
             doorname = None
             taurusname = None
-            cmdtype = None
+            cmd_type = None
             door_first = False
             tango_first = False
 
-            if "doorname" not in attributesDict:
+            if "doorname" not in attributes_dict:
                 try:
-                    attributesDict["doorname"] = self.doorname
+                    attributes_dict["doorname"] = self.doorname
                     doorname = self.doorname
                 except AttributeError:
                     pass
             else:
                 door_first = True
-                doorname = attributesDict["doorname"]
+                doorname = attributes_dict["doorname"]
 
-            if "taurusname" not in attributesDict:
+            if "taurusname" not in attributes_dict:
                 try:
-                    attributesDict["taurusname"] = self.taurusname
+                    attributes_dict["taurusname"] = self.taurusname
                     taurusname = self.taurusname
                 except AttributeError:
                     pass
             else:
                 tango_first = True
-                taurusname = attributesDict["taurusname"]
+                taurusname = attributes_dict["taurusname"]
 
-            if "cmdtype" in attributesDict:
-                cmdtype = attributesDict["cmdtype"]
+            if "cmd_type" in attributes_dict:
+                cmd_type = attributes_dict["cmd_type"]
 
             # guess what kind of command to create
-            if cmdtype is None:
+            if cmd_type is None:
                 if taurusname is not None and doorname is None:
-                    cmdtype = "command"
+                    cmd_type = "command"
                 elif doorname is not None and taurusname is None:
-                    cmdtype = "macro"
+                    cmd_type = "macro"
                 elif doorname is not None and taurusname is not None:
                     if door_first:
-                        cmdtype = "macro"
+                        cmd_type = "macro"
                     elif tango_first:
-                        cmdtype = "command"
+                        cmd_type = "command"
                     else:
-                        cmdtype = "macro"
+                        cmd_type = "macro"
                 else:
                     logging.getLogger().error(
                         "%s: incomplete sardana command declaration. ignored",
@@ -550,25 +568,25 @@ class CommandContainer:
 
             from HardwareRepository.Command.Sardana import SardanaCommand, SardanaMacro
 
-            if cmdtype == "macro" and doorname is not None:
+            if cmd_type == "macro" and doorname is not None:
                 try:
-                    newCommand = SardanaMacro(cmdName, cmd, **attributesDict)
+                    new_command = SardanaMacro(cmd_name, cmd, **attributes_dict)
                 except ConnectionError:
                     logging.getLogger().error(
                         "%s: could not connect to sardana door %s (hint: is it running ?)",
                         self.name(),
-                        attributesDict["doorname"],
+                        attributes_dict["doorname"],
                     )
                     raise ConnectionError
-                except BaseException:
+                except Exception:
                     logging.getLogger().exception(
                         '%s: could not add command "%s" (hint: check command attributes)',
                         self.name(),
-                        cmdName,
+                        cmd_name,
                     )
-            elif cmdtype == "command" and taurusname is not None:
+            elif cmd_type == "command" and taurusname is not None:
                 try:
-                    newCommand = SardanaCommand(cmdName, cmd, **attributesDict)
+                    new_command = SardanaCommand(cmd_name, cmd, **attributes_dict)
                 except ConnectionError:
                     logging.getLogger().error(
                         "%s: could not connect to sardana device %s (hint: is it running ?)",
@@ -576,148 +594,148 @@ class CommandContainer:
                         taurusname,
                     )
                     raise ConnectionError
-                except BaseException:
+                except Exception:
                     logging.getLogger().exception(
                         '%s: could not add command "%s" (hint: check command attributes)',
                         self.name(),
-                        cmdName,
+                        cmd_name,
                     )
             else:
                 logging.getLogger().error(
                     "%s: incomplete sardana command declaration. ignored", self.name()
                 )
 
-        elif cmdType.lower() == "pool":
-            if "tangoname" not in attributesDict:
+        elif cmd_type.lower() == "pool":
+            if "tangoname" not in attributes_dict:
                 try:
-                    attributesDict["tangoname"] = self.tangoname
+                    attributes_dict["tangoname"] = self.tangoname
                 except AttributeError:
                     pass
             try:
                 from HardwareRepository.Command.Pool import PoolCommand
 
-                newCommand = PoolCommand(cmdName, cmd, **attributesDict)
+                new_command = PoolCommand(cmd_name, cmd, **attributes_dict)
             except ConnectionError:
                 logging.getLogger().error(
                     "%s: could not connect to device server %s (hint: is it running ?)",
                     self.name(),
-                    attributesDict["tangoname"],
+                    attributes_dict["tangoname"],
                 )
                 raise ConnectionError
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
                     self.name(),
-                    cmdName,
+                    cmd_name,
                 )
-        elif cmdType.lower() == "tine":
-            if "tinename" not in attributesDict:
+        elif cmd_type.lower() == "tine":
+            if "tinename" not in attributes_dict:
                 try:
-                    attributesDict["tinename"] = self.tinename
+                    attributes_dict["tinename"] = self.tine_name
                 except AttributeError:
                     pass
 
             try:
                 from HardwareRepository.Command.Tine import TineCommand
 
-                newCommand = TineCommand(cmdName, cmd, **attributesDict)
-            except BaseException:
+                new_command = TineCommand(cmd_name, cmd, **attributes_dict)
+            except Exception:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
                     self.name(),
-                    cmdName,
+                    cmd_name,
                 )
 
-        elif cmdType.lower() == "mockup":
+        elif cmd_type.lower() == "mockup":
             try:
                 from HardwareRepository.Command.Mockup import MockupCommand
 
-                newCommand = MockupCommand(cmdName, cmd, **attributesDict)
-            except BaseException:
+                new_command = MockupCommand(cmd_name, cmd, **attributes_dict)
+            except Exception:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
                     self.name(),
-                    cmdName,
+                    cmd_name,
                 )
 
-        if newCommand is not None:
-            self.__commands[cmdName] = newCommand
+        if new_command is not None:
+            self.__commands[cmd_name] = new_command
 
             if not isinstance(arg1, dict):
                 i = 1
-                for arg in arg1.getObjects("argument"):
-                    onchange = arg.getProperty("onchange")
-                    if onchange is not None:
-                        onchange = (onchange, weakref.ref(self))
-                    valuefrom = arg.getProperty("valuefrom")
-                    if valuefrom is not None:
-                        valuefrom = (valuefrom, weakref.ref(self))
+                for arg in arg1.get_objects("argument"):
+                    on_change = arg.get_property("onchange")
+                    if on_change is not None:
+                        on_change = (on_change, weakref.ref(self))
+                    value_from = arg.get_property("valuefrom")
+                    if value_from is not None:
+                        value_from = (value_from, weakref.ref(self))
 
                     try:
-                        comboitems = arg["type"]["item"]
+                        combo_items = arg["type"]["item"]
                     except IndexError:
                         try:
-                            newCommand.addArgument(
-                                arg.getProperty("name"),
+                            new_command.add_argument(
+                                arg.get_property("name"),
                                 arg.type,
-                                onchange=onchange,
-                                valuefrom=valuefrom,
+                                onchange=on_change,
+                                valuefrom=value_from,
                             )
                         except AttributeError:
                             logging.getLogger().error(
                                 '%s, command "%s": could not add argument %d, missing type or name',
                                 self.name(),
-                                cmdName,
+                                cmd_name,
                                 i,
                             )
                             continue
                     else:
-                        if isinstance(comboitems, list):
+                        if isinstance(combo_items, list):
                             combo_items = []
-                            for item in comboitems:
-                                name = item.getProperty("name")
-                                value = item.getProperty("value")
+                            for item in combo_items:
+                                name = item.get_property("name")
+                                value = item.get_property("value")
                                 if name is None or value is None:
                                     logging.getLogger().error(
                                         "%s, command '%s': could not add argument %d, missing combo item name or value",
                                         self.name(),
-                                        cmdName,
+                                        cmd_name,
                                         i,
                                     )
                                     continue
                                 else:
                                     combo_items.append((name, value))
                         else:
-                            name = comboitems.getProperty("name")
-                            value = comboitems.getProperty("value")
+                            name = combo_items.get_property("name")
+                            value = combo_items.get_property("value")
                             if name is None or value is None:
                                 combo_items = ((name, value),)
                             else:
                                 logging.getLogger().error(
                                     "%s, command '%s': could not add argument %d, missing combo item name or value",
                                     self.name(),
-                                    cmdName,
+                                    cmd_name,
                                     i,
                                 )
                                 continue
 
-                        newCommand.addArgument(
-                            arg.getProperty("name"),
+                        new_command.add_argument(
+                            arg.get_property("name"),
                             "combo",
                             combo_items,
-                            onchange,
-                            valuefrom,
+                            on_change,
+                            value_from,
                         )
 
                     i += 1
 
-            return newCommand
+            return new_command
 
     def _add_channels_and_commands(self):
-        [self.add_channel(*args) for args in self.__channelsToAdd]
-        [self.add_command(*args) for args in self.__commandsToAdd]
-        self.__channelsToAdd = []
-        self.__commandsToAdd = []
+        [self.add_channel(*args) for args in self.__channels_to_add]
+        [self.add_command(*args) for args in self.__commands_to_add]
+        self.__channels_to_add = []
+        self.__commands_to_add = []
 
     def execute_command(self, command_name, *args, **kwargs):
         if command_name in self.__commands:

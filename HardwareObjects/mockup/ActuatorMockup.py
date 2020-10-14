@@ -2,7 +2,7 @@
 # encoding: utf-8
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -17,7 +17,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 Mixin superclass for all mock actuators
@@ -49,14 +49,14 @@ class ActuatorMockup(AbstractActuator.AbstractActuator):
 
     def _move(self, value):
         """ Simulated value change - override as needed
-        
+
         Must set specific_state as needed, take a non-zero amount of time
         call update_value for intermediate positions
         and return the final value (in case it does not match the input value)
-        
+
         Args:
             value : target actuator value
-        
+
         Returns:
             final actuator value (may differ from target value)
         """

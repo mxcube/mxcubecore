@@ -94,13 +94,13 @@ class SOLEILGuillotine(BaseHardwareObjects.Device):
     def init(self):
         self._shutterStateValue = "UNKNOWN"
         self._currentDistance = "None"
-        self._d_security = self.getProperty("security_distance")
-        self._d_home = self.getProperty("safe_distance")
+        self._d_security = self.get_property("security_distance")
+        self._d_home = self.get_property("safe_distance")
         try:
             self.shutChannel = self.get_channel_object("State")
-            self.shutChannel.connectSignal("update", self.shutterStateChanged)
+            self.shutChannel.connect_signal("update", self.shutterStateChanged)
 
-            self.pss = self.getObjectByRole("pss")
+            self.pss = self.get_object_by_role("pss")
 
             self.connect(
                 HWR.beamline.detector.distance,
@@ -120,10 +120,10 @@ class SOLEILGuillotine(BaseHardwareObjects.Device):
             logging.getLogger().warning("%s: cannot report State", self.name())
 
         try:
-            self.pss_door = self.getProperty(
+            self.pss_door = self.get_property(
                 "tangoname_pss"
             )  # PyTango.DeviceProxy('I11-MA-CE/PSS/DB_DATA')
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error(
                 "Guillotine I11-MA-CE/PSS/DB_DATA: tangopssDevice is not defined "
             )

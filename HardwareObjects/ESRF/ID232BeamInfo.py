@@ -12,10 +12,10 @@ class ID232BeamInfo(BeamInfo.BeamInfo):
         BeamInfo.BeamInfo.init(self)
 
         self.beam_size_slits = tuple(
-            map(float, self.getProperty("beam_size_slits").split())
+            map(float, self.get_property("beam_size_slits").split())
         )  # [0.1, 0.05]
 
-        self.flux = self.getObjectByRole("flux")
+        self.flux = self.get_object_by_role("flux")
 
     def get_beam_position(self):
         return 696, 523

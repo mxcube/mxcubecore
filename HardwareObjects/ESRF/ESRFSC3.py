@@ -25,15 +25,15 @@ class ESRFSC3(SC3.SC3):
 
         try:
             operationalChan = self.get_channel_object("OperationalFlags")
-            chan = operationalChan.getValue()
-            operationalChan.connectSignal("update", self.operationalFlagsChanged)
-        except BaseException:
-            operationalChan = self.getProperty("OperationalFlags")
+            chan = operationalChan.get_value()
+            operationalChan.connect_signal("update", self.operationalFlagsChanged)
+        except Exception:
+            operationalChan = self.get_property("OperationalFlags")
             chan = operationalChan
 
         try:
             self.operationalFlagsChanged(chan)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "%s: error getting SC vs MD operational flags" % self.name()
             )
@@ -211,12 +211,12 @@ class ESRFSC3(SC3.SC3):
         return not self.has_loaded_sample()
 
     def moveCryoIn(self):
-        cryoDevice = self.getDeviceByRole("Cryo")
+        cryoDevice = self.get_deviceby_role("Cryo")
         if cryoDevice is not None:
             cryoDevice.wagoIn()
 
     def moveLightIn(self):
-        lightDevice = self.getDeviceByRole("Light")
+        lightDevice = self.get_deviceby_role("Light")
         if lightDevice is not None:
             lightDevice.wagoIn()
 
@@ -229,7 +229,7 @@ class ESRFSC3(SC3.SC3):
     def operationalFlagsChanged(self, val):
         try:
             val = int(val)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "%s: error reading operational flags" % self.name()
             )
@@ -267,7 +267,7 @@ class ESRFSC3(SC3.SC3):
     def minidiffGetControl(self):
         try:
             self.unlockMinidiffMotors()
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "%s: error unlocking minidiff motors" % self.name()
             )

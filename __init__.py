@@ -29,7 +29,7 @@ hwobj_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "HardwareOb
 hwobj_dir_list = [hwobj_dir]
 for subdir in ("sample_changer", "mockup"):
     hwobj_dir_list.append(os.path.join(hwobj_dir, subdir))
-HWR.addHardwareObjectsDirs(hwobj_dir_list)
+HWR.add_hardware_objects_dirs(hwobj_dir_list)
 
 #
 # create the HardwareRepository logger
