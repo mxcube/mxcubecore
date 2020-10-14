@@ -47,7 +47,7 @@ class SampleView(AbstractSampleView):
         self._backlight = self.get_object_by_role("backlight")
         self._ui_snapshot_cb = None
 
-        self.hide_grid_threshold = self.getProperty("hide_grid_threshold", 5)
+        self.hide_grid_threshold = self.get_property("hide_grid_threshold", 5)
 
     @property
     def shapes(self):
