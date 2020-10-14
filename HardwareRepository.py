@@ -40,14 +40,6 @@ from warnings import warn
 import gevent
 from ruamel.yaml import YAML
 
-try:
-    from SpecClient_gevent import SpecEventsDispatcher
-    from SpecClient_gevent import SpecConnectionsManager
-    from SpecClient_gevent import SpecWaitObject
-    from SpecClient_gevent import SpecClientError
-except ImportError:
-    pass
-
 from HardwareRepository.ConvertUtils import string_types, make_table
 from HardwareRepository.dispatcher import dispatcher
 from . import BaseHardwareObjects
@@ -135,7 +127,6 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
         try:
             cls = getattr(importlib.import_module(module_name), class_name)
         except Exception as ex:
-            print(str(ex))
             if _container:
                 msg0 = "Error importing class"
                 class_name = class_import
@@ -345,23 +336,7 @@ class __HardwareRepositoryClient:
             self.invalid_hardware_objects = set()
             self.hardware_objects = weakref.WeakValueDictionary()
 
-            if isinstance(self.server_address, string_types):
-                mngr = SpecConnectionsManager.SpecConnectionsManager()
-                self.server = mngr.get_connection(self.server_address)
-
-                with gevent.Timeout(3):
-                    while not self.server.isSpecConnected():
-                        time.sleep(0.5)
-
-                # in case of update of a Hardware Object, we discard it => bricks will
-                # receive a signal and can reload it
-                self.server.registerChannel(
-                    "update",
-                    self.discard_hardware_object,
-                    dispatchMode=SpecEventsDispatcher.FIREEVENT,
-                )
-            else:
-                self.server = None
+            self.server = None
         finally:
             self.__connected = True
 
@@ -398,19 +373,6 @@ class __HardwareRepositoryClient:
         try:
             t0 = time.time()
             mnemonics = ",".join([repr(mne) for mne in mnemonics_list])
-            if len(mnemonics) > 0:
-                self.required_hardware_objects = SpecWaitObject.waitReply(
-                    self.server,
-                    "send_msg_cmd_with_return",
-                    ("xml_getall(%s)" % mnemonics,),
-                    timeout=3,
-                )
-                logging.getLogger("HWR").debug(
-                    "Getting %s hardware objects took %s ms."
-                    % (len(self.required_hardware_objects), (time.time() - t0) * 1000)
-                )
-        except SpecClientError.SpecClientTimeoutError:
-            logging.getLogger("HWR").error("Timeout loading Hardware Objects")
         except Exception:
             logging.getLogger("HWR").exception(
                 "Could not execute 'require' on Hardware Repository server"
@@ -430,7 +392,7 @@ class __HardwareRepositoryClient:
         hwobj_instance = None
 
         if self.server:
-            if self.server.isSpecConnected():
+            if True:
                 try:
                     if hwobj_name in self.required_hardware_objects:
                         reply_dict = self.required_hardware_objects[hwobj_name]
