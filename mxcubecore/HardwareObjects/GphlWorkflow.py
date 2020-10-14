@@ -455,13 +455,11 @@ class GphlWorkflow(HardwareObject, object):
             dose_budget = char_budget_fraction * full_dose_budget
 
         # For calculating dose-budget transmission
-        std_dose_rate = HWR.beamline.flux.get_dose_rate()
+        std_dose_rate = self.get_nominal_dose_rate()
         if std_dose_rate:
             std_dose_rate = (
                 std_dose_rate * 100.0 / HWR.beamline.transmission.get_value()
             )
-            # Convert from KGy/s to MGy/s
-            std_dose_rate /= 1000
 
         for rotation_id, sweeps in orientations.items():
             goniostatRotation = sweeps[0].goniostatSweepSetting
@@ -1654,3 +1652,32 @@ class GphlWorkflow(HardwareObject, object):
         )
         #
         return priorInformation
+
+    def get_nominal_dose_rate(self, energy=None):
+        """
+        Get nominal dose rate in MGy/s for a standard crystal at current settings.
+        Assumes square, top-hat beam so that the flux is evenly spread
+        over the rectangulat area of the beam.
+        Where this assumption fails
+        1) the dose rate will vary across the crystal
+        2) the nominal dose rate may difer from the actual dose rate by
+        maybe a factor of two or more.
+
+        :param energy: float Energy for calculation of dose rate, in keV.
+        :return: float
+        """
+
+        energy = energy or HWR.beamline.energy.get_value()()
+
+        # NB   Calculation assumes beam sizes in mm
+        beam_size = HWR.beamline.beam_info.get_beam_size()
+
+        # Result in kGy/s
+        result = (
+            HWR.beamline.flux.get_dose_rate_per_photon_per_mmsq(energy)
+            * HWR.beamline.flux.get_flux()
+            / beam_size[0]
+            / beam_size[1]
+            / 1000000.  # Converts to MGy/s
+        )
+        return result
