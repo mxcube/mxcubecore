@@ -14,7 +14,7 @@ class BlissVolpi(HardwareObject):
         self.volpi = cfg.get(self.volpi_name)
         self.connect(self.volpi, "intensity", self.intensity_changed)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "intensityChanged":
             self.emit("intensityChanged", (self.get_value(),))
 

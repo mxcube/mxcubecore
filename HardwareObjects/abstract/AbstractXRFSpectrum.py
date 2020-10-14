@@ -206,7 +206,7 @@ class AbstractXRFSpectrum(object):
             if self.write_in_raw_data:
                 try:
                     spectrum_file_raw = open(self.spectrum_info["scanFilePath"], "w")
-                except BaseException:
+                except Exception:
                     logging.getLogger("HWR").exception(
                         "XRFSpectrum: could not create spectrum result raw file %s"
                         % self.spectrum_info["scanFilePath"]
@@ -214,7 +214,7 @@ class AbstractXRFSpectrum(object):
 
             try:
                 archive_file_raw = open(self.spectrum_info["scanFileFullPath"], "w")
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "XRFSpectrum: could not create spectrum result raw file %s"
                     % self.spectrum_info["scanFileFullPath"]
@@ -298,7 +298,7 @@ class AbstractXRFSpectrum(object):
         if HWR.beamline.lims:
             try:
                 session_id = int(self.spectrum_info["sessionId"])
-            except BaseException:
+            except Exception:
                 return
             blsampleid = self.spectrum_info["blSampleId"]
             HWR.beamline.lims.storeXfeSpectrum(self.spectrum_info)
@@ -310,5 +310,5 @@ class AbstractXRFSpectrum(object):
         if HWR.beamline.energy is not None:
             try:
                 return HWR.beamline.energy.get_value()
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception("XRFSpectrum: couldn't read energy")

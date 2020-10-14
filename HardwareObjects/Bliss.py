@@ -90,13 +90,13 @@ class Bliss(HardwareObject):
     def init(self, *args):
         """Initialis the bliss session"""
         cfg = static.get_config()
-        session = cfg.get(self.getProperty("session"))
+        session = cfg.get(self.get_property("session"))
 
         session.setup(self.__dict__, verbose=True)
 
         self.__session_watcher = gevent.spawn(
             watch_session,
-            self.getProperty("session"),
+            self.get_property("session"),
             self.__on_scan_new,
             self.__on_scan_data,
             self.__on_scan_end,

@@ -22,8 +22,8 @@ class ID30BEnergyScan(ESRFEnergyScan):
 
     @task
     def set_mca_roi(self, eroi_min, eroi_max):
-        self.mca = self.getObjectByRole("MCA")
-        self.energy_scan_parameters["fluorescenceDetector"] = self.mca.getProperty(
+        self.mca = self.get_object_by_role("MCA")
+        self.energy_scan_parameters["fluorescenceDetector"] = self.mca.get_property(
             "username"
         )
         # check if roi in eV or keV
@@ -40,7 +40,7 @@ class ID30BEnergyScan(ESRFEnergyScan):
 
     @task
     def choose_attenuation(self):
-        self.ctrl = self.getObjectByRole("controller")
+        self.ctrl = self.get_object_by_role("controller")
         eroi_min = self.energy_scan_parameters["eroi_min"]
         eroi_max = self.energy_scan_parameters["eroi_max"]
         self.ctrl.detcover.set_in()
@@ -66,7 +66,7 @@ class ID30BEnergyScan(ESRFEnergyScan):
         self.energy_scan_parameters["exposureTime"] = exp_time
 
     def escan_prepare(self):
-        self.ctrl = self.getObjectByRole("controller")
+        self.ctrl = self.get_object_by_role("controller")
 
         self.ctrl.detcover.set_in()
         self.ctrl.diffractometer.fldetin()

@@ -17,9 +17,9 @@ class ALBASupervisor(Device):
         self.phase_chan = self.get_channel_object("phase")
         self.detector_cover_chan = self.get_channel_object("detector_cover_open")
 
-        self.state_chan.connectSignal("update", self.state_changed)
-        self.phase_chan.connectSignal("update", self.phase_changed)
-        self.detector_cover_chan.connectSignal("update", self.detector_cover_changed)
+        self.state_chan.connect_signal("update", self.state_changed)
+        self.phase_chan.connect_signal("update", self.phase_changed)
+        self.detector_cover_chan.connect_signal("update", self.detector_cover_changed)
 
     def is_ready(self):
         return True
@@ -38,7 +38,7 @@ class ALBASupervisor(Device):
         self.emit("phaseChanged", self.current_phase)
 
     def get_current_phase(self):
-        return self.phase_chan.getValue()
+        return self.phase_chan.get_value()
 
     def go_collect(self):
         return self.go_collect_cmd()
@@ -53,20 +53,20 @@ class ALBASupervisor(Device):
         return self.go_beam_view_cmd()
 
     def get_state(self):
-        return self.state_chan.getValue()
+        return self.state_chan.get_value()
 
     def detector_cover_changed(self, value):
         self.detector_cover_opened = value
         # self.emit('levelChanged', self.current_level)
 
     def open_detector_cover(self):
-        self.detector_cover_chan.setValue(True)
+        self.detector_cover_chan.set_value(True)
 
     def close_detector_cover(self, value):
-        self.detector_cover_chan.setValue(False)
+        self.detector_cover_chan.set_value(False)
 
     def is_detector_cover_opened(self):
-        return self.detector_cover_chan.getValue()
+        return self.detector_cover_chan.get_value()
 
 
 def test_hwo(hwo):

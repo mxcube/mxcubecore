@@ -17,14 +17,14 @@ class ControllerCommand(CommandObject):
         self._cmd_execution = None
         self.type = "CONTROLLER"
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
-    def getArguments(self):
+    def get_arguments(self):
         if self.name() == "Anneal":
-            self.addArgument("Time [s]", "float")
+            self.add_argument("Time [s]", "float")
 
-        return CommandObject.getArguments(self)
+        return CommandObject.get_arguments(self)
 
     @task
     def __call__(self, *args, **kwargs):
@@ -36,7 +36,7 @@ class ControllerCommand(CommandObject):
         try:
             try:
                 res = cmd_execution.get()
-            except BaseException:
+            except Exception:
                 self.emit("commandFailed", (str(self.name()),))
             else:
                 if isinstance(res, gevent.GreenletExit):
@@ -86,7 +86,7 @@ class BIOMAXBeamlineActions(HardwareObject):
                 logging.getLogger("HWR").info("Unloading mounted sample.")
                 HWR.beamline.sample_changer.unload(None, wait=True)
                 HWR.beamline.sample_changer._wait_device_ready(30)
-            if HWR.beamline.sample_changer._chnInSoak.getValue():
+            if HWR.beamline.sample_changer._chnInSoak.get_value():
                 logging.getLogger("HWR").info(
                     "Sample Changer was in SOAK, going to DRY"
                 )
@@ -138,10 +138,10 @@ class BIOMAXBeamlineActions(HardwareObject):
             HWR.beamline.detector.distance.set_value(800, timeout=50)
 
     def init(self):
-        self.sample_changer_maint_hwobj = self.getObjectByRole(
+        self.sample_changer_maint_hwobj = self.get_object_by_role(
             "sample_changer_maintenance"
         )
-        self.detector_cover_hwobj = self.getObjectByRole("detector_cover")
+        self.detector_cover_hwobj = self.get_object_by_role("detector_cover")
 
         self.prepare_open_hutch = ControllerCommand(
             "prepare_open_hutch", self._prepare_open_hutch_task

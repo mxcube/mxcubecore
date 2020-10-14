@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 [Name]
@@ -52,7 +52,7 @@ from Qt4_LimaVideo import Qt4_LimaVideo
 
 try:
     from Lima import Core
-except BaseException:
+except Exception:
     pass
 
 try:
@@ -70,7 +70,7 @@ class PX2Qt4_LimaVideo(Qt4_LimaVideo):
     default_exposure_time = 0.5
 
     def init(self):
-        exposure_time = self.getProperty("exposure_time")
+        exposure_time = self.get_property("exposure_time")
 
         if exposure_time is not None:
             self.exposure_time = float(exposure_time)
@@ -118,7 +118,7 @@ def test_hwo():
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    hwo = hwr.getHardwareObject("/singleton_objects/limavideo")
+    hwo = hwr.get_hardware_object("/singleton_objects/limavideo")
 
     print("Image dimensions: ", hwo.get_image_dimensions())
     print("Live Mode: ", hwo.get_video_live())

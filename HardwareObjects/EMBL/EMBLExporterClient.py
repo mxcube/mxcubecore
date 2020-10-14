@@ -57,7 +57,7 @@ class EMBLExporterClient(HardwareObject):
         method_list = []
         for exporter_client in Exporter.exporter_clients:
             client = Exporter.exporter_clients[exporter_client]
-            method_list.extend(client.getMethodList())
+            method_list.extend(client.get_method_list())
         return method_list
 
     def get_property_list(self):
@@ -68,7 +68,7 @@ class EMBLExporterClient(HardwareObject):
         property_list = []
         for exporter_client in Exporter.exporter_clients:
             client = Exporter.exporter_clients[exporter_client]
-            property_list.extend(client.getPropertyList())
+            property_list.extend(client.get_propertyList())
         return property_list
 
     def read_property(self, property_name):

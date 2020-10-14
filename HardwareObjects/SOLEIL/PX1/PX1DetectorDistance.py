@@ -33,16 +33,16 @@ class PX1DetectorDistance(Device, AbstractMotor):
         )
 
         self.old_value = 0.0
-        self.tangoname = self.getProperty("tangoname")
+        self.tangoname = self.get_property("tangoname")
 
-        threshold = self.getProperty("threshold")
+        threshold = self.get_property("threshold")
         if threshold is not None:
             try:
                 self.threshold = float(threshold)
-            except BaseException:
+            except Exception:
                 pass
 
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
         self.position_chan = self.get_channel_object("position")
         self.state_chan = self.get_channel_object("state")
@@ -53,30 +53,30 @@ class PX1DetectorDistance(Device, AbstractMotor):
         self.light_state_chan = self.get_channel_object("light_state")
         self.light_extract_cmd = self.get_command_object("extract_light")
 
-        self.position_chan.connectSignal("update", self.motor_position_changed)
-        self.state_chan.connectSignal("update", self.motor_state_changed)
-        self.distance_min_chan.connectSignal("update", self.distance_min_changed)
+        self.position_chan.connect_signal("update", self.motor_position_changed)
+        self.state_chan.connect_signal("update", self.motor_state_changed)
+        self.distance_min_chan.connect_signal("update", self.distance_min_changed)
 
     def is_ready(self):
         return self.state_value == "STANDBY"
 
-    def connectNotify(self, signal):
-        if signal == "hardwareObjectName,stateChanged":
+    def connect_notify(self, signal):
+        if signal == "hardware_object_name,stateChanged":
             self.motor_state_changed()
         elif signal == "position_changed":
             self.motor_position_changed()
         elif signal == "limitsChanged":
             self.distance_min_changed()
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def motor_state_changed(self, state=None):
         state_code = self.get_state(state)
 
         if self.state_value not in ["RUNNING", "MOVING"]:
-            position = self.position_chan.getValue()
+            position = self.position_chan.get_value()
             self.motor_position_changed(position)
 
-        self.setIsReady(True)
+        self.set_is_ready(True)
         self.emit("stateChanged", (state_code,))
 
     def motor_position_changed(self, position=None):
@@ -89,7 +89,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
             try:
                 self.emit("valueChanged", (position,))
                 self.old_value = position
-            except BaseException:
+            except Exception:
                 self.old_value = position
 
     def distance_min_changed(self, value=None):
@@ -97,7 +97,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
 
     def get_state(self, state=None):
         if state is None:
-            state = str(self.state_chan.getValue())
+            state = str(self.state_chan.get_value())
         else:
             state = str(state)
 
@@ -106,15 +106,15 @@ class PX1DetectorDistance(Device, AbstractMotor):
         return self.stateDict[state]
 
     def get_value(self):
-        return self.position_chan.getValue()
+        return self.position_chan.get_value()
 
     def get_limits(self):
         try:
             info = self.position_chan.getInfo()
             max = float(info.max_value)
-            min = float(self.distance_min_chan.getValue())
+            min = float(self.distance_min_chan.get_value())
             return [min, max]
-        except BaseException:
+        except Exception:
             return [-1, 1]
 
     def is_moving(self):
@@ -125,9 +125,9 @@ class PX1DetectorDistance(Device, AbstractMotor):
         if not self.check_light(value):
             return (False, "Error while trying to extract the light arm!")
 
-        self.position_chan.setValue(value)
+        self.position_chan.set_value(value)
 
-    def getMotorMnemonic(self):
+    def get_motor_mnemonic(self):
         return self.name()
 
     def check_light(self, position):
@@ -162,7 +162,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
         return self.read_light_state() == "EXTRACT"
 
     def read_light_state(self):
-        return str(self.light_state_chan.getValue())
+        return str(self.light_state_chan.get_value())
 
     def stop(self):
         self.stop_command()

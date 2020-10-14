@@ -1,7 +1,7 @@
 # encoding: utf-8
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -16,7 +16,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU General Lesser Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 """Transmission with bliss """
 
 from HardwareRepository.HardwareObjects.abstract.AbstractTransmission import (
@@ -39,8 +39,8 @@ class Transmission(AbstractTransmission):
     def init(self):
         """Initialise from the config"""
         super(Transmission, self).init()
-        module_name = self.getProperty("module_name")
-        ctrl = self.getObjectByRole("controller")
+        module_name = self.get_property("module_name")
+        ctrl = self.get_object_by_role("controller")
         self._transmission = getattr(ctrl, module_name)
 
     def _set_value(self, value):

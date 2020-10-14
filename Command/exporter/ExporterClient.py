@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -16,7 +16,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU General Lesser Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """Exporter Client implementation"""
 
@@ -54,7 +54,7 @@ class ExporterClient(StandardClient):
             try:
                 tokens = msg[4:].split(PARAMETER_SEPARATOR)
                 self.on_event(tokens[0], tokens[1], int(tokens[2]))
-            except BaseException:
+            except Exception:
                 pass
         else:
             StandardClient.on_message_received(self, msg)
@@ -172,7 +172,7 @@ class ExporterClient(StandardClient):
         process_return = None
         try:
             process_return = self.__process_return(ret)
-        except BaseException:
+        except Exception:
             pass
         return process_return
 

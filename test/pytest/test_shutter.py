@@ -1,7 +1,7 @@
 # encoding: utf-8
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -16,7 +16,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU General Lesser Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 __copyright__ = """ Copyright © 2019-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -61,12 +61,12 @@ class TestShutter(TestAbstractNStateBase.TestAbstractNStateBase):
     def test_shutter_is_valid(self, test_object):
         test_object.close()
         assert test_object.is_valid()
-    
+
         try:
             test_object.current_state = None
         except Exception:
             assert True
-    
+
         test_object.open()
         assert test_object.is_valid()
     """

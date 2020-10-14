@@ -162,7 +162,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor constructor argument 'image' is not XSDataFile but %s"
                 % self._image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if number is None:
             self._number = None
         elif number.__class__.__name__ == "XSDataInteger":
@@ -172,7 +172,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor constructor argument 'number' is not XSDataInteger but %s"
                 % self._number.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if spots_num_of is None:
             self._spots_num_of = None
         elif spots_num_of.__class__.__name__ == "XSDataInteger":
@@ -182,7 +182,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor constructor argument 'spots_num_of' is not XSDataInteger but %s"
                 % self._spots_num_of.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if spots_int_aver is None:
             self._spots_int_aver = None
         elif spots_int_aver.__class__.__name__ == "XSDataDouble":
@@ -192,7 +192,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor constructor argument 'spots_int_aver' is not XSDataDouble but %s"
                 % self._spots_int_aver.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if spots_resolution is None:
             self._spots_resolution = None
         elif spots_resolution.__class__.__name__ == "XSDataDouble":
@@ -202,7 +202,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor constructor argument 'spots_resolution' is not XSDataDouble but %s"
                 % self._spots_resolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if powder_wilson_scale is None:
             self._powder_wilson_scale = None
         elif powder_wilson_scale.__class__.__name__ == "XSDataDouble":
@@ -212,7 +212,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor constructor argument 'powder_wilson_scale' is not XSDataDouble but %s"
                 % self._powder_wilson_scale.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if powder_wilson_bfactor is None:
             self._powder_wilson_bfactor = None
         elif powder_wilson_bfactor.__class__.__name__ == "XSDataDouble":
@@ -222,7 +222,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor constructor argument 'powder_wilson_bfactor' is not XSDataDouble but %s"
                 % self._powder_wilson_bfactor.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if powder_wilson_resolution is None:
             self._powder_wilson_resolution = None
         elif powder_wilson_resolution.__class__.__name__ == "XSDataDouble":
@@ -232,7 +232,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor constructor argument 'powder_wilson_resolution' is not XSDataDouble but %s"
                 % self._powder_wilson_resolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if powder_wilson_correlation is None:
             self._powder_wilson_correlation = None
         elif powder_wilson_correlation.__class__.__name__ == "XSDataDouble":
@@ -242,7 +242,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor constructor argument 'powder_wilson_correlation' is not XSDataDouble but %s"
                 % self._powder_wilson_correlation.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if powder_wilson_rfactor is None:
             self._powder_wilson_rfactor = None
         elif powder_wilson_rfactor.__class__.__name__ == "XSDataDouble":
@@ -252,7 +252,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor constructor argument 'powder_wilson_rfactor' is not XSDataDouble but %s"
                 % self._powder_wilson_rfactor.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if score is None:
             self._score = None
         elif score.__class__.__name__ == "XSDataDouble":
@@ -262,7 +262,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor constructor argument 'score' is not XSDataDouble but %s"
                 % self._score.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'image' attribute
     def getImage(self):
@@ -278,7 +278,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor.setImage argument is not XSDataFile but %s"
                 % image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delImage(self):
         self._image = None
@@ -299,7 +299,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor.setNumber argument is not XSDataInteger but %s"
                 % number.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNumber(self):
         self._number = None
@@ -320,7 +320,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor.setSpots_num_of argument is not XSDataInteger but %s"
                 % spots_num_of.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSpots_num_of(self):
         self._spots_num_of = None
@@ -343,7 +343,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor.setSpots_int_aver argument is not XSDataDouble but %s"
                 % spots_int_aver.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSpots_int_aver(self):
         self._spots_int_aver = None
@@ -369,7 +369,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor.setSpots_resolution argument is not XSDataDouble but %s"
                 % spots_resolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSpots_resolution(self):
         self._spots_resolution = None
@@ -395,7 +395,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor.setPowder_wilson_scale argument is not XSDataDouble but %s"
                 % powder_wilson_scale.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPowder_wilson_scale(self):
         self._powder_wilson_scale = None
@@ -421,7 +421,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor.setPowder_wilson_bfactor argument is not XSDataDouble but %s"
                 % powder_wilson_bfactor.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPowder_wilson_bfactor(self):
         self._powder_wilson_bfactor = None
@@ -447,7 +447,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor.setPowder_wilson_resolution argument is not XSDataDouble but %s"
                 % powder_wilson_resolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPowder_wilson_resolution(self):
         self._powder_wilson_resolution = None
@@ -473,7 +473,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor.setPowder_wilson_correlation argument is not XSDataDouble but %s"
                 % powder_wilson_correlation.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPowder_wilson_correlation(self):
         self._powder_wilson_correlation = None
@@ -499,7 +499,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor.setPowder_wilson_rfactor argument is not XSDataDouble but %s"
                 % powder_wilson_rfactor.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPowder_wilson_rfactor(self):
         self._powder_wilson_rfactor = None
@@ -525,7 +525,7 @@ class XSDataControlImageDozor(object):
                 "ERROR! XSDataControlImageDozor.setScore argument is not XSDataDouble but %s"
                 % score.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delScore(self):
         self._score = None
@@ -647,7 +647,7 @@ class XSDataControlImageDozor(object):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataControlImageDozor")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -724,7 +724,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor constructor argument 'template' is not XSDataString but %s"
                 % self._template.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if first_image_number is None:
             self._first_image_number = None
         elif first_image_number.__class__.__name__ == "XSDataInteger":
@@ -734,7 +734,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor constructor argument 'first_image_number' is not XSDataInteger but %s"
                 % self._first_image_number.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if last_image_number is None:
             self._last_image_number = None
         elif last_image_number.__class__.__name__ == "XSDataInteger":
@@ -744,7 +744,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor constructor argument 'last_image_number' is not XSDataInteger but %s"
                 % self._last_image_number.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if first_run_number is None:
             self._first_run_number = None
         elif first_run_number.__class__.__name__ == "XSDataInteger":
@@ -754,7 +754,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor constructor argument 'first_run_number' is not XSDataInteger but %s"
                 % self._first_run_number.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if last_run_number is None:
             self._last_run_number = None
         elif last_run_number.__class__.__name__ == "XSDataInteger":
@@ -764,7 +764,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor constructor argument 'last_run_number' is not XSDataInteger but %s"
                 % self._last_run_number.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if line_number_of is None:
             self._line_number_of = None
         elif line_number_of.__class__.__name__ == "XSDataInteger":
@@ -774,7 +774,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor constructor argument 'line_number_of' is not XSDataInteger but %s"
                 % self._line_number_of.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if reversing_rotation is None:
             self._reversing_rotation = None
         elif reversing_rotation.__class__.__name__ == "XSDataBoolean":
@@ -784,7 +784,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor constructor argument 'reversing_rotation' is not XSDataBoolean but %s"
                 % self._reversing_rotation.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if pixelMin is None:
             self._pixelMin = None
         elif pixelMin.__class__.__name__ == "XSDataInteger":
@@ -794,7 +794,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor constructor argument 'pixelMin' is not XSDataInteger but %s"
                 % self._pixelMin.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if pixelMax is None:
             self._pixelMax = None
         elif pixelMax.__class__.__name__ == "XSDataInteger":
@@ -804,7 +804,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor constructor argument 'pixelMax' is not XSDataInteger but %s"
                 % self._pixelMax.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if beamstopDirection is None:
             self._beamstopDirection = None
         elif beamstopDirection.__class__.__name__ == "XSDataString":
@@ -814,7 +814,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor constructor argument 'beamstopDirection' is not XSDataString but %s"
                 % self._beamstopDirection.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if beamstopSize is None:
             self._beamstopSize = None
         elif beamstopSize.__class__.__name__ == "XSDataDouble":
@@ -824,7 +824,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor constructor argument 'beamstopSize' is not XSDataDouble but %s"
                 % self._beamstopSize.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if beamstopDistance is None:
             self._beamstopDistance = None
         elif beamstopDistance.__class__.__name__ == "XSDataDouble":
@@ -834,7 +834,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor constructor argument 'beamstopDistance' is not XSDataDouble but %s"
                 % self._beamstopDistance.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'template' attribute
     def getTemplate(self):
@@ -850,7 +850,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor.setTemplate argument is not XSDataString but %s"
                 % template.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delTemplate(self):
         self._template = None
@@ -871,7 +871,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor.setFirst_image_number argument is not XSDataInteger but %s"
                 % first_image_number.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delFirst_image_number(self):
         self._first_image_number = None
@@ -897,7 +897,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor.setLast_image_number argument is not XSDataInteger but %s"
                 % last_image_number.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delLast_image_number(self):
         self._last_image_number = None
@@ -923,7 +923,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor.setFirst_run_number argument is not XSDataInteger but %s"
                 % first_run_number.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delFirst_run_number(self):
         self._first_run_number = None
@@ -949,7 +949,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor.setLast_run_number argument is not XSDataInteger but %s"
                 % last_run_number.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delLast_run_number(self):
         self._last_run_number = None
@@ -975,7 +975,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor.setLine_number_of argument is not XSDataInteger but %s"
                 % line_number_of.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delLine_number_of(self):
         self._line_number_of = None
@@ -1001,7 +1001,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor.setReversing_rotation argument is not XSDataBoolean but %s"
                 % reversing_rotation.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delReversing_rotation(self):
         self._reversing_rotation = None
@@ -1027,7 +1027,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor.setPixelMin argument is not XSDataInteger but %s"
                 % pixelMin.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPixelMin(self):
         self._pixelMin = None
@@ -1048,7 +1048,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor.setPixelMax argument is not XSDataInteger but %s"
                 % pixelMax.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPixelMax(self):
         self._pixelMax = None
@@ -1069,7 +1069,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor.setBeamstopDirection argument is not XSDataString but %s"
                 % beamstopDirection.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBeamstopDirection(self):
         self._beamstopDirection = None
@@ -1095,7 +1095,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor.setBeamstopSize argument is not XSDataDouble but %s"
                 % beamstopSize.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBeamstopSize(self):
         self._beamstopSize = None
@@ -1118,7 +1118,7 @@ class XSDataInputControlDozor(XSDataInput):
                 "ERROR! XSDataInputControlDozor.setBeamstopDistance argument is not XSDataDouble but %s"
                 % beamstopDistance.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBeamstopDistance(self):
         self._beamstopDistance = None
@@ -1239,7 +1239,7 @@ class XSDataInputControlDozor(XSDataInput):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataInputControlDozor")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -1301,7 +1301,7 @@ class XSDataResultControlDozor(XSDataResult):
                 "ERROR! XSDataResultControlDozor constructor argument 'imageDozor' is not list but %s"
                 % self._imageDozor.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'imageDozor' attribute
     def getImageDozor(self):
@@ -1317,7 +1317,7 @@ class XSDataResultControlDozor(XSDataResult):
                 "ERROR! XSDataResultControlDozor.setImageDozor argument is not list but %s"
                 % imageDozor.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delImageDozor(self):
         self._imageDozor = None
@@ -1331,7 +1331,7 @@ class XSDataResultControlDozor(XSDataResult):
             strMessage = (
                 "ERROR! XSDataResultControlDozor.addImageDozor argument is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataControlImageDozor":
             self._imageDozor.append(value)
         else:
@@ -1339,15 +1339,15 @@ class XSDataResultControlDozor(XSDataResult):
                 "ERROR! XSDataResultControlDozor.addImageDozor argument is not XSDataControlImageDozor but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertImageDozor(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataResultControlDozor.insertImageDozor argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataResultControlDozor.insertImageDozor argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataControlImageDozor":
             self._imageDozor[index] = value
         else:
@@ -1355,7 +1355,7 @@ class XSDataResultControlDozor(XSDataResult):
                 "ERROR! XSDataResultControlDozor.addImageDozor argument is not XSDataControlImageDozor but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def export(self, outfile, level, name_="XSDataResultControlDozor"):
         showIndent(outfile, level)
@@ -1386,7 +1386,7 @@ class XSDataResultControlDozor(XSDataResult):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataResultControlDozor")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 

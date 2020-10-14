@@ -55,7 +55,7 @@ class EMBLTransfocator(HardwareObject):
 
         # self.chan_crl_value = self.get_channel_object("chanCrlValue")
         # if self.chan_crl_value:
-        #    self.chan_crl_value.connectSignal("update", self.crl_value_changed)
+        #    self.chan_crl_value.connect_signal("update", self.crl_value_changed)
         # self.cmd_set_crl_value = self.get_command_object("cmdSetLenses")
 
         self.current_mode = "Manual"

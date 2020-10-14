@@ -41,13 +41,13 @@ class SOLEILCatsMaint(Equipment):
     def init(self):
         logging.info("CatsMaint: init")
 
-        tool = self.getProperty("tool")
+        tool = self.get_property("tool")
         if tool in TOOLS:
             self.tool = TOOLS[tool]
         else:
             self.tool = self.default_tool
 
-        soaklid = self.getProperty("soak_lid")
+        soaklid = self.get_property("soak_lid")
         if soaklid is not None:
             self.soaklid = soaklid
         else:
@@ -56,13 +56,13 @@ class SOLEILCatsMaint(Equipment):
         self.running_safe = False
 
         self._chnPathRunning = self.get_channel_object("_chnPathRunning")
-        self._chnPathRunning.connectSignal("update", self._update_running_state)
+        self._chnPathRunning.connect_signal("update", self._update_running_state)
         self._chnPowered = self.get_channel_object("_chnPowered")
-        self._chnPowered.connectSignal("update", self._update_powered_state)
+        self._chnPowered.connect_signal("update", self._update_powered_state)
         self._chnMessage = self.get_channel_object("_chnMessage")
-        self._chnMessage.connectSignal("update", self._update_message)
+        self._chnMessage.connect_signal("update", self._update_message)
         self._chnLN2Regulation = self.get_channel_object("_chnLN2RegulationDewar1")
-        self._chnLN2Regulation.connectSignal("update", self._update_regulation_state)
+        self._chnLN2Regulation.connect_signal("update", self._update_regulation_state)
 
         for command_name in (
             "_cmdResetError",
@@ -92,7 +92,7 @@ class SOLEILCatsMaint(Equipment):
             channel_name = "_chnLid%dState" % (lid_index + 1)
             setattr(self, channel_name, self.get_channel_object(channel_name))
             if getattr(self, channel_name) is not None:
-                getattr(self, channel_name).connectSignal(
+                getattr(self, channel_name).connect_signal(
                     "update", getattr(self, "_updateLid%dState" % (lid_index + 1))
                 )
 
@@ -481,7 +481,7 @@ class SOLEILCatsMaint(Equipment):
         if waitstart:
             timeout = 10.0
             t0 = time.time()
-            while str(self._chnPathRunning.getValue()).lower() != "true":
+            while str(self._chnPathRunning.get_value()).lower() != "true":
                 if time.time() - t0 > timeout:
                     logging.getLogger("HWR").info(
                         "Could not detect the start of the task. Continuing"
@@ -490,9 +490,9 @@ class SOLEILCatsMaint(Equipment):
                 gevent.sleep(0.1)
 
         logging.getLogger("HWR").info(
-            "server task started. path running %s" % self._chnPathRunning.getValue()
+            "server task started. path running %s" % self._chnPathRunning.get_value()
         )
-        while str(self._chnPathRunning.getValue()).lower() == "true":
+        while str(self._chnPathRunning.get_value()).lower() == "true":
             gevent.sleep(0.1)
         ret = True
         return ret

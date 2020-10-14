@@ -47,18 +47,18 @@ Example capillary xml file:
 
 class MicrodiffBeamstop(Equipment):
     def init(self):
-        self.beamstop = self.getObjectByRole("beamstop")
-        self.beamstop.state_attr.connectSignal("update", self.checkPosition)
+        self.beamstop = self.get_object_by_role("beamstop")
+        self.beamstop.state_attr.connect_signal("update", self.checkPosition)
 
         self.motors = self["motors"]
-        self.roles = self.motors.getRoles()
+        self.roles = self.motors.get_roles()
 
-        save_cmd_name = self.getProperty("save_cmd_name")
+        save_cmd_name = self.get_property("save_cmd_name")
         self.beamstopSetInPosition = self.beamstop.add_command(
             {
                 "type": "exporter",
                 "name": "bs_set_in",
-                "address": self.beamstop.getProperty("exporter_address"),
+                "address": self.beamstop.get_property("exporter_address"),
             },
             save_cmd_name,
         )
@@ -74,7 +74,7 @@ class MicrodiffBeamstop(Equipment):
             self.beamstop.actuatorOut(wait=True)
         self.checkPosition()
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         self.checkPosition()
 
     def is_ready(self):
@@ -91,7 +91,7 @@ class MicrodiffBeamstop(Equipment):
             pos = self.beamstop.get_actuator_state()
         try:
             pos = self.beamstop.states[pos]
-        except BaseException:
+        except Exception:
             pass
 
         if not noEmit:
