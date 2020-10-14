@@ -2,7 +2,6 @@
   <object href="/diff-omega-mockup" role="phi"/>
   <object href="/diff-kappa-mockup" role="kappa"/>
   <object href="/diff-kappaphi-mockup" role="kappa_phi"/>
-  <object href="/beam-info" role="beam_info"/>
 
   <!-- Next block added by rhfogh for better representation of move_motor behaviour -->
   <object href="/diff-phiz-mockup" role="phiz"/>
