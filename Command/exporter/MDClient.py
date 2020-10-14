@@ -705,14 +705,14 @@ if __name__ == "__main__":
 
     md = Microdiff(SERVER_ADDRESS, SERVER_PORT, PROTOCOL.STREAM, TIMEOUT, RETRIES)
 
-    methods = md.getMethodList()
+    methods = md.get_method_list()
     print("--------------   Listing methods  ------------------")
     print("Methods:")
     for method in methods:
         print(method)
 
     print("--------------   Listing properties  ------------------")
-    properties = md.getPropertyList()
+    properties = md.get_property_list()
     print("Properties:")
     for property in properties:
         print(property)

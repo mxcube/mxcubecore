@@ -187,7 +187,7 @@ class MD2MultiCollect(ESRFMultiCollect):
                         continue
                     shutil.copyfile(
                         os.path.join(
-                            self.getProperty(template_file_directory), filename
+                            self.get_property(template_file_directory), filename
                         ),
                         dest,
                     )

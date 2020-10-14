@@ -79,7 +79,7 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
         self.device = None
 
         try:
-            self._video_mode = self.getProperty("video_mode", "RGB24")
+            self._video_mode = self.get_property("video_mode", "RGB24")
             self.device = DeviceProxy(self.tangoname)
             # try a first call to get an exception if the device
             # is not exported
