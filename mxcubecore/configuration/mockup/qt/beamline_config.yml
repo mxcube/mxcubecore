@@ -43,7 +43,7 @@ _objects:
     - queue_manager: queue.xml
     - queue_model: queue-model.xml
     # Procedures:
-    - collect: mxcollect.xml
+    - collect: collect-mockup.xml
     - xrf_spectrum: xrf-spectrum-mockup.xml
     - energy_scan: energyscan-mockup.xml
 #    - imaging: xray-imaging.xml # Only in EMBL as of 201907
