@@ -206,4 +206,4 @@ class EpicsChannel(ChannelObject):
         self.command(value)
 
     def is_connected(self):
-        return self.command.isConnected()
+        return self.command.is_connected()

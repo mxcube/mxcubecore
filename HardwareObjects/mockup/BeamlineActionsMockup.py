@@ -37,7 +37,7 @@ class ControllerCommand(CommandObject):
         if self.name() == "Test":
             self.add_argument("combo test", "combo", [{"value1": 0, "value2": 1}])
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     @task

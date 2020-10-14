@@ -11,7 +11,7 @@ class ControllerCommand(CommandObject):
         self._cmd = cmd
         self._cmd_execution = None
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def get_arguments(self):

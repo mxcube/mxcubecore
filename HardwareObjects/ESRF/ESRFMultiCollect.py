@@ -909,7 +909,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         # TODO: change this to stop using a dictionary at the other end
         return self.bl_config._asdict()
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def is_ready(self):

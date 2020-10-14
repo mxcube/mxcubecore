@@ -1,6 +1,0 @@
-<object class="BeamlineTestMockup">
-
-    <available_tests>["example_one", "example_two"]</available_tests>
-    <startup_tests>["example_one"]</startup_tests>
-
-</object>

@@ -144,7 +144,7 @@ class TacoCommand(CommandObject):
     def abort(self):
         pass
 
-    def isConnected(self):
+    def is_connected(self):
         return self.device is not None and self.device.imported
 
 
@@ -181,4 +181,4 @@ class TacoChannel(ChannelObject):
         return self.command()
 
     def is_connected(self):
-        return self.command.isConnected()
+        return self.command.is_connected()
