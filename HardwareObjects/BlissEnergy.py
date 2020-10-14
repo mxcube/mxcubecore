@@ -139,27 +139,3 @@ class BlissEnergy(AbstractEnergy):
         """Abort the procedure"""
         if self._cmd_execution and not self._cmd_execution.ready():
             self._cmd_execution.kill()
-
-    def set_wavelength(self, value, timeout=None):
-        """Move motor to absolute value. Wait the move to finish.
-        Args:
-            value (float): target position [Å]
-            timeout (float): optional - timeout [s].
-                             if timeout = 0: return at once and do not wait
-                             if timeout is None: wait forever
-        """
-
-        value = self._calculate_energy(value)
-        self.set_value(value, timeout)
-
-    def validate_value(self, value):
-        """Check if the value is within the limits
-        Args:
-            value(float): value
-        Returns:
-            (bool): True if within the limits
-        """
-        limits = self._nominal_limits
-        if None in limits:
-            return True
-        return limits[0] <= value <= limits[1]
