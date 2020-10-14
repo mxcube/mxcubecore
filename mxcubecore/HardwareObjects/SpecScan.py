@@ -19,7 +19,7 @@ class SpecScan(Procedure):
         scanCmd.setSpecVersion(specVersion)
 
         if specVersion is not None:
-            self.specConnection = SpecConnectionsManager.SpecConnectionsManager().getConnection(
+            self.specConnection = SpecConnectionsManager.SpecConnectionsManager().get_connection(
                 specVersion
             )
 
@@ -37,14 +37,14 @@ class SpecScan(Procedure):
     def connected(self):
         pass
 
-    def isConnected(self):
+    def is_connected(self):
         return self.specConnection is not None and self.specConnection.isSpecConnected()
 
     def disconnected(self):
         pass
 
     def scanDimension(self):
-        return self.getProperty("dimension")
+        return self.get_property("dimension")
 
     def isAbsolute(self):
         raise NotImplementedError
@@ -61,10 +61,10 @@ class SpecScan(Procedure):
 
     def startScan(self, *args):
         scanCmd = self.get_command_object("start")
-        scanCmd.connectSignal("commandReplyArrived", self.scanDone)
-        scanCmd.connectSignal("commandFailed", self.scanDone)
-        scanCmd.connectSignal("commandBeginWaitReply", self.scanStarted)
-        scanCmd.connectSignal("commandAborted", self.scanAborted)
+        scanCmd.connect_signal("commandReplyArrived", self.scanDone)
+        scanCmd.connect_signal("commandFailed", self.scanDone)
+        scanCmd.connect_signal("commandBeginWaitReply", self.scanStarted)
+        scanCmd.connect_signal("commandAborted", self.scanAborted)
 
         scanCmd(*args)
 

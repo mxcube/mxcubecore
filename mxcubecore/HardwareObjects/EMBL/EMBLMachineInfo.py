@@ -118,24 +118,24 @@ class EMBLMachineInfo(HardwareObject):
 
     def init(self):
 
-        self.update_interval = int(self.getProperty("updateIntervalS"))
-        self.limits_dict = eval(self.getProperty("limits"))
-        self.hutch_temp_addr = self.getProperty("hutchTempAddress")
-        self.hutch_hum_addr = self.getProperty("hutchHumAddress")
+        self.update_interval = int(self.get_property("updateIntervalS"))
+        self.limits_dict = eval(self.get_property("limits"))
+        self.hutch_temp_addr = self.get_property("hutchTempAddress")
+        self.hutch_hum_addr = self.get_property("hutchHumAddress")
 
         self.chan_mach_curr = self.get_channel_object("machCurrent")
-        self.chan_mach_curr.connectSignal("update", self.mach_current_changed)
+        self.chan_mach_curr.connect_signal("update", self.mach_current_changed)
         self.chan_state_text = self.get_channel_object("machStateText")
-        self.chan_state_text.connectSignal("update", self.state_text_changed)
-        # self.state_text_changed(self.chan_state_text.getValue())
+        self.chan_state_text.connect_signal("update", self.state_text_changed)
+        # self.state_text_changed(self.chan_state_text.get_value())
 
         self.chan_mach_energy = self.get_channel_object("machEnergy")
-        self.chan_mach_energy.connectSignal("update", self.mach_energy_changed)
+        self.chan_mach_energy.connect_signal("update", self.mach_energy_changed)
         self.chan_bunch_count = self.get_channel_object("machBunchCount")
-        self.chan_bunch_count.connectSignal("update", self.bunch_count_changed)
+        self.chan_bunch_count.connect_signal("update", self.bunch_count_changed)
         self.chan_frontend_status = self.get_channel_object("frontEndStatus")
-        self.chan_frontend_status.connectSignal("update", self.frontend_status_changed)
-        # self.frontend_status_changed(self.chan_frontend_status.getValue())
+        self.chan_frontend_status.connect_signal("update", self.frontend_status_changed)
+        # self.frontend_status_changed(self.chan_frontend_status.get_value())
 
         if HWR.beamline.flux is not None:
             self.connect(HWR.beamline.flux, "fluxInfoChanged", self.flux_info_changed)
@@ -148,8 +148,8 @@ class EMBLMachineInfo(HardwareObject):
 
         self.chan_undulator_gap = self.get_channel_object("chanUndulatorGap")
         if self.chan_undulator_gap is not None:
-            self.chan_undulator_gap.connectSignal("update", self.undulator_gap_changed)
-        self.undulator_gap_changed(self.chan_undulator_gap.getValue())
+            self.chan_undulator_gap.connect_signal("update", self.undulator_gap_changed)
+        self.undulator_gap_changed(self.chan_undulator_gap.get_value())
 
         self.chan_cryojet_in = self.get_channel_object("cryojetIn", optional=True)
         if self.chan_cryojet_in is not None:
@@ -158,8 +158,8 @@ class EMBLMachineInfo(HardwareObject):
                 "in_range": None,
                 "title": "Cryoject in place",
             }
-            self.cryojet_in_changed(self.chan_cryojet_in.getValue())
-            self.chan_cryojet_in.connectSignal("update", self.cryojet_in_changed)
+            self.cryojet_in_changed(self.chan_cryojet_in.get_value())
+            self.chan_cryojet_in.connect_signal("update", self.cryojet_in_changed)
         else:
             logging.getLogger("HWR").debug("MachineInfo: Cryojet channel not defined")
 
@@ -173,16 +173,16 @@ class EMBLMachineInfo(HardwareObject):
                 "title": "Sample changer",
             }
 
-            self.chan_sc_dewar_low_level_alarm.connectSignal(
+            self.chan_sc_dewar_low_level_alarm.connect_signal(
                 "update", self.low_level_alarm_changed
             )
-            self.low_level_alarm_changed(self.chan_sc_dewar_low_level_alarm.getValue())
+            self.low_level_alarm_changed(self.chan_sc_dewar_low_level_alarm.get_value())
 
         self.chan_sc_dewar_overflow_alarm = self.get_channel_object(
             "scOverflowAlarm", optional=True
         )
         if self.chan_sc_dewar_overflow_alarm is not None:
-            self.chan_sc_dewar_overflow_alarm.connectSignal(
+            self.chan_sc_dewar_overflow_alarm.connect_signal(
                 "update", self.overflow_alarm_changed
             )
 
@@ -208,10 +208,10 @@ class EMBLMachineInfo(HardwareObject):
                 "in_range": True,
                 "title": "Frames dropped",
             }
-            self.chan_count_dropped.connectSignal("update", self.count_dropped_changed)
+            self.chan_count_dropped.connect_signal("update", self.count_dropped_changed)
 
         self.temp_hum_polling = spawn(
-            self.get_temp_hum_values, self.getProperty("updateIntervalS")
+            self.get_temp_hum_values, self.get_property("updateIntervalS")
         )
 
         self.re_emit_values()
@@ -524,7 +524,7 @@ class EMBLMachineInfo(HardwareObject):
                     if line_el[-1].isdigit:
                         last_value = line_el[-1]
             last_value = float(last_value)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").debug("MachineInfo: Unable to read epics values")
         finally:
             if url_file:
@@ -558,5 +558,5 @@ class EMBLMachineInfo(HardwareObject):
                     return "%3.1f%s" % (num, x)
                 num /= 1024.0
             return "%3.1f%s" % (num, "TB")
-        except BaseException:
+        except Exception:
             return "???"

@@ -42,7 +42,7 @@ class ALBASession(Session.Session):
         # remove RAW_DATA from da
         try:
             more = parts[8:]
-        except BaseException:
+        except Exception:
             more = []
 
         archive_dir = os.path.join(

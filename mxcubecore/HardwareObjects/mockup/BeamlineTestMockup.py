@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 BeamlineTestMockup
@@ -75,7 +75,7 @@ class BeamlineTestMockup(HardwareObject):
 
         self.beamline_name = HWR.beamline.session.beamline_name
 
-        self.test_directory = self.getProperty("results_directory")
+        self.test_directory = self.get_property("results_directory")
         if self.test_directory is None:
             self.test_directory = os.path.join(
                 tempfile.gettempdir(), "mxcube", "beamline_test"
@@ -91,9 +91,9 @@ class BeamlineTestMockup(HardwareObject):
         self.test_filename = "mxcube_test_report"
 
         try:
-            for test in eval(self.getProperty("available_tests")):
+            for test in eval(self.get_property("available_tests")):
                 self.available_tests_dict[test] = TEST_DICT[test]
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").debug(
                 "BeamlineTest: Available tests are "
                 + "not defined in xml. Setting all tests as available."
@@ -102,11 +102,11 @@ class BeamlineTestMockup(HardwareObject):
             self.available_tests_dict = TEST_DICT
 
         try:
-            self.startup_test_list = eval(self.getProperty("startup_tests"))
-        except BaseException:
+            self.startup_test_list = eval(self.get_property("startup_tests"))
+        except Exception:
             logging.getLogger("HWR").debug("BeamlineTest: Test list not defined.")
 
-        if self.getProperty("run_tests_at_startup") is True:
+        if self.get_property("run_tests_at_startup") is True:
             self.start_test_queue(self.startup_test_list)
 
     def start_test_queue(self, test_list, create_report=True):
@@ -127,7 +127,7 @@ class BeamlineTestMockup(HardwareObject):
                 )
                 if not os.path.exists(self.test_source_directory):
                     os.makedirs(self.test_source_directory)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").warning(
                     "BeamlineTest: Unable to create test directories"
                 )
@@ -292,7 +292,7 @@ class BeamlineTestMockup(HardwareObject):
             logging.getLogger("HWR").info(
                 "BeamlineTest: Test result written in file %s" % html_filename
             )
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error(
                 "BeamlineTest: Unable to generate html report file %s" % html_filename
             )
@@ -300,7 +300,7 @@ class BeamlineTestMockup(HardwareObject):
         # try:
         #    pdfkit.from_url(html_filename, pdf_filename)
         #    logging.getLogger("GUI").info("PDF report %s generated" % pdf_filename)
-        # except BaseException:
+        # except Exception:
         #    logging.getLogger("GUI").info(
         #        "Unable to generate PDF report %s" % pdf_filename
         #    )

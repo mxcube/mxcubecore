@@ -12,7 +12,7 @@ CObject class of the HardwareRepository.CommandContainer module.
 They should emit the following Qt signals :
 - connected, when connected to the control software
 - disconnected, when disconnected from control software
-and implement the isConnected() method.
+and implement the is_connected() method.
 
 Every command launcher class in the module should emit
 the following Qt signals :
@@ -35,6 +35,6 @@ be executed.
 A Channel object should emit the following signals :
 - 'update', when the value of the channel changes
 
-A channel object should have a 'getValue' method at least,
-and an optional 'setValue'
+A channel object should have a 'get_value' method at least,
+and an optional 'set_value'
 """

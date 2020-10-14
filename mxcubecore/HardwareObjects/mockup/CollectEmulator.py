@@ -19,7 +19,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
-along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
+along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 """
 
 import os
@@ -58,8 +58,8 @@ class CollectEmulator(CollectMockup):
         CollectMockup.init(self)
         # NBNB you get an error if you use 'HWR.beamline.session'
         session = HWR.beamline.session
-        if session and self.hasObject("override_data_directories"):
-            dirs = self["override_data_directories"].getProperties()
+        if session and self.has_object("override_data_directories"):
+            dirs = self["override_data_directories"].get_properties()
             session.set_base_data_directories(**dirs)
 
     def _get_simcal_input(self, data_collect_parameters, crystal_data):
@@ -142,7 +142,7 @@ class CollectEmulator(CollectMockup):
 
         # Add/overwrite parameters from emulator configuration
         conv = ConvertUtils.convert_string_value
-        for key, val in self["simcal_parameters"].getProperties().items():
+        for key, val in self["simcal_parameters"].get_properties().items():
             setup_data[key] = conv(val)
 
         setup_data["n_vertices"] = 0
@@ -256,11 +256,11 @@ class CollectEmulator(CollectMockup):
             "GPHL_INSTALLATION": gphl_connection.software_paths["GPHL_INSTALLATION"],
         }
         text_type = ConvertUtils.text_type
-        for tag, val in self["environment_variables"].getProperties().items():
+        for tag, val in self["environment_variables"].get_properties().items():
             envs[text_type(tag)] = text_type(val)
 
         # get crystal data
-        sample_name = self.getProperty("default_sample_name")
+        sample_name = self.get_property("default_sample_name")
         sample = HWR.beamline.sample_changer.get_loaded_sample()
         if sample:
             ss0 = sample.get_name()
@@ -317,7 +317,7 @@ class CollectEmulator(CollectMockup):
             hklfile,
         ]
 
-        for tag, val in self["simcal_options"].getProperties().items():
+        for tag, val in self["simcal_options"].get_properties().items():
             command_list.extend(ConvertUtils.command_option(tag, val, prefix="--"))
         logging.getLogger("HWR").info("Executing command: %s", command_list)
         logging.getLogger("HWR").info(
@@ -333,7 +333,7 @@ class CollectEmulator(CollectMockup):
                 command_list, stdout=fp1, stderr=fp2, env=envs
             )
             gphl_connection.collect_emulator_process = running_process
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error("Error in spawning workflow application")
             raise
         finally:

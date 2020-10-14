@@ -1,20 +1,20 @@
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 ALBACollect
@@ -65,11 +65,11 @@ class ALBACollect(AbstractCollect):
 
         self.ready_event = gevent.event.Event()
 
-        self.supervisor_hwobj = self.getObjectByRole("supervisor")
+        self.supervisor_hwobj = self.get_object_by_role("supervisor")
 
-        self.slowshut_hwobj = self.getObjectByRole("slow_shutter")
-        self.photonshut_hwobj = self.getObjectByRole("photon_shutter")
-        self.frontend_hwobj = self.getObjectByRole("frontend")
+        self.slowshut_hwobj = self.get_object_by_role("slow_shutter")
+        self.photonshut_hwobj = self.get_object_by_role("photon_shutter")
+        self.frontend_hwobj = self.get_object_by_role("frontend")
 
         self.ni_conf_cmd = self.get_command_object("ni_configure")
         self.ni_unconf_cmd = self.get_command_object("ni_unconfigure")
@@ -82,7 +82,7 @@ class ALBACollect(AbstractCollect):
         try:
             for undulator in self["undulators"]:
                 undulators.append(undulator)
-        except BaseException:
+        except Exception:
             pass
 
         self.exp_type_dict = {"Mesh": "raster", "Helical": "Helical"}
@@ -92,7 +92,7 @@ class ALBACollect(AbstractCollect):
 
         self.set_beamline_configuration(
             synchrotron_name="ALBA",
-            directory_prefix=self.getProperty("directory_prefix"),
+            directory_prefix=self.get_property("directory_prefix"),
             default_exposure_time=HWR.beamline.detector.get_default_exposure_time(),
             minimum_exposure_time=HWR.beamline.detector.get_minimum_exposure_time(),
             detector_fileext=HWR.beamline.detector.get_file_suffix(),
@@ -102,12 +102,12 @@ class ALBACollect(AbstractCollect):
             detector_px=det_px,
             detector_py=det_py,
             undulators=undulators,
-            focusing_optic=self.getProperty("focusing_optic"),
-            monochromator_type=self.getProperty("monochromator"),
+            focusing_optic=self.get_property("focusing_optic"),
+            monochromator_type=self.get_property("monochromator"),
             beam_divergence_vertical=beam_div_ver,
             beam_divergence_horizontal=beam_div_hor,
-            polarisation=self.getProperty("polarisation"),
-            input_files_server=self.getProperty("input_files_server"),
+            polarisation=self.get_property("polarisation"),
+            input_files_server=self.get_property("input_files_server"),
         )
 
         self.emit("collectConnected", (True,))
@@ -401,8 +401,8 @@ class ALBACollect(AbstractCollect):
         self.image_headers["Polarization"] = "0.99"
         self.image_headers["Alpha"] = "0 deg."
 
-        self.image_headers["Kappa"] = "%.4f deg." % self.kappapos_chan.getValue()
-        self.image_headers["Phi"] = "%.4f deg." % self.phipos_chan.getValue()
+        self.image_headers["Kappa"] = "%.4f deg." % self.kappapos_chan.get_value()
+        self.image_headers["Phi"] = "%.4f deg." % self.phipos_chan.get_value()
 
         self.image_headers["Chi"] = "0 deg."
         self.image_headers["Oscillation_axis"] = "X, CW"
@@ -730,7 +730,7 @@ class ALBACollect(AbstractCollect):
                     raise
             """
             # os.symlink(files_directory, os.path.join(process_directory, "img"))
-        except BaseException:
+        except Exception:
             logging.exception("Could not create processing file directory")
             return
 
@@ -810,12 +810,12 @@ class ALBACollect(AbstractCollect):
         # TODO
         try:
             if self.chan_undulator_gap:
-                und_gaps = self.chan_undulator_gap.getValue()
+                und_gaps = self.chan_undulator_gap.get_value()
                 if type(und_gaps) in (list, tuple):
                     return und_gaps
                 else:
                     return und_gaps
-        except BaseException:
+        except Exception:
             pass
         return {}
 
@@ -873,5 +873,5 @@ def test_hwo(hwo):
     print("Shutters (ready for collect): ", hwo.check_shutters())
     print("Supervisor(collect phase): ", hwo.is_collect_phase())
 
-    print("Kappa ", hwo.kappapos_chan.getValue())
-    print("Phi ", hwo.phipos_chan.getValue())
+    print("Kappa ", hwo.kappapos_chan.get_value())
+    print("Phi ", hwo.phipos_chan.get_value())

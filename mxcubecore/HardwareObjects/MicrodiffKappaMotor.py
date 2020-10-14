@@ -29,9 +29,9 @@ class MicrodiffKappaMotor(ExporterMotor):
         elif self.actuator_name == "Phi":
             MicrodiffKappaMotor.conf["PhiTrans"] = self.stringToList(self.phiTrans)
             MicrodiffKappaMotor.conf["PhiTransD"] = self.stringToList(self.phiTransD)
-        self.sampx = self.getObjectByRole("sampx")
-        self.sampy = self.getObjectByRole("sampy")
-        self.phiy = self.getObjectByRole("phiy")
+        self.sampx = self.get_object_by_role("sampx")
+        self.sampy = self.get_object_by_role("sampy")
+        self.phiy = self.get_object_by_role("phiy")
 
     def stringToList(self, commaSeparatedString):
         return [float(x) for x in commaSeparatedString.split(",")]
@@ -51,7 +51,7 @@ class MicrodiffKappaMotor(ExporterMotor):
         """
         with MicrodiffKappaMotor.lock:
             if self.get_state() != MotorStates.UNKNOWN:
-                self.position_attr.setValue(
+                self.position_attr.set_value(
                     absolutePosition
                 )  # absolutePosition-self.offset)
                 self.update_state(MotorStates.MOVING)

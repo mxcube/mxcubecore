@@ -14,7 +14,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 [Name] PlateManipulatorMockup
@@ -219,10 +219,10 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         """
         Descript. :
         """
-        self.num_cols = self.getProperty("numCols")
-        self.num_rows = self.getProperty("numRows")
-        self.num_drops = self.getProperty("numDrops")
-        self.reference_pos_x = self.getProperty("referencePosX")
+        self.num_cols = self.get_property("numCols")
+        self.num_rows = self.get_property("numRows")
+        self.num_drops = self.get_property("numDrops")
+        self.reference_pos_x = self.get_property("referencePosX")
         if not self.reference_pos_x:
             self.reference_pos_x = 0.5
 
@@ -463,7 +463,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         old_sample = self.get_loaded_sample()
         # plate_location = None
         # if self.chan_plate_location is not None:
-        #    plate_location = self.chan_plate_location.getValue()
+        #    plate_location = self.chan_plate_location.get_value()
 
         if self.plate_location is not None:
             new_sample = self.get_sample(self.plate_location)
@@ -530,7 +530,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
 
     def get_plate_location(self):
         # if self.chan_plate_location is not None:
-        #    self.plate_location = self.chan_plate_location.getValue()
+        #    self.plate_location = self.chan_plate_location.get_value()
         return self.plate_location
 
     def sync_with_crims(self, barcode):

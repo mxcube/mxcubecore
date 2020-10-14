@@ -24,14 +24,14 @@ class PX1MiniDiff(GenericDiffractometer):
     ]
 
     def init(self):
-        self.smargon = self.getObjectByRole("smargon")
+        self.smargon = self.get_object_by_role("smargon")
         self.connect(self.smargon, "stateChanged", self.smargon_state_changed)
 
-        self.lightarm_hwobj = self.getObjectByRole("lightarm")
-        # self.centring_hwobj = self.getObjectByRole('centring')
+        self.lightarm_hwobj = self.get_object_by_role("lightarm")
+        # self.centring_hwobj = self.get_object_by_role('centring')
 
-        self.px1conf_ho = self.getObjectByRole("px1configuration")
-        self.px1env_ho = self.getObjectByRole("px1environment")
+        self.px1conf_ho = self.get_object_by_role("px1configuration")
+        self.px1env_ho = self.get_object_by_role("px1environment")
 
         self.pixels_per_mm_x = 0
         self.pixels_per_mm_y = 0
@@ -72,7 +72,7 @@ class PX1MiniDiff(GenericDiffractometer):
     def is_ready(self):
         return self.smargon.get_state() == "STANDBY"
 
-        # self.smargon_state = str(self.smargon_state_ch.getValue())
+        # self.smargon_state = str(self.smargon_state_ch.get_value())
         # return self.smargon_state == "STANDBY"
 
     def get_pixels_per_mm(self):
@@ -146,7 +146,7 @@ class PX1MiniDiff(GenericDiffractometer):
             motor_pos = centring_procedure.get()
             if isinstance(motor_pos, gevent.GreenletExit):
                 raise motor_pos
-        except BaseException:
+        except Exception:
             logging.exception("Could not complete centring")
             self.emit_centring_failed()
         else:
@@ -164,7 +164,7 @@ class PX1MiniDiff(GenericDiffractometer):
             self.emit_centring_moving()
             try:
                 self.move_to_motors_positions(motor_pos, wait=True)
-            except BaseException:
+            except Exception:
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()
             else:
@@ -242,7 +242,7 @@ class PX1MiniDiff(GenericDiffractometer):
             self.wait_device_ready(timeout)
             try:
                 motor.set_value(position, timeout=None)
-            except BaseException:
+            except Exception:
                 import traceback
 
                 logging.getLogger("HWR").debug(

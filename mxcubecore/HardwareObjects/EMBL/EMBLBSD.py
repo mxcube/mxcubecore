@@ -73,11 +73,11 @@ class EMBLBSD(GenericDiffractometer):
         GenericDiffractometer.init(self)
 
         self.chan_state = self.get_channel_object("State")
-        self.current_state = self.chan_state.getValue()
-        self.chan_state.connectSignal("update", self.state_changed)
+        self.current_state = self.chan_state.get_value()
+        self.chan_state.connect_signal("update", self.state_changed)
 
         self.chan_status = self.get_channel_object("Status")
-        self.chan_status.connectSignal("update", self.status_changed)
+        self.chan_status.connect_signal("update", self.status_changed)
 
         self.chan_calib_x = self.get_channel_object("CoaxCamScaleX")
         self.chan_calib_y = self.get_channel_object("CoaxCamScaleY")
@@ -87,7 +87,7 @@ class EMBLBSD(GenericDiffractometer):
         self.connect(self.chan_current_phase, "update", self.current_phase_changed)
 
         self.chan_fast_shutter_is_open = self.get_channel_object("FastShutterIsOpen")
-        self.chan_fast_shutter_is_open.connectSignal(
+        self.chan_fast_shutter_is_open.connect_signal(
             "update", self.fast_shutter_state_changed
         )
 
@@ -99,7 +99,7 @@ class EMBLBSD(GenericDiffractometer):
         self.cmd_start_set_phase = self.get_command_object("startSetPhase")
         self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")
 
-        self.zoom_motor_hwobj = self.getObjectByRole("zoom")
+        self.zoom_motor_hwobj = self.get_object_by_role("zoom")
         self.connect(self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed)
         self.connect(
             self.zoom_motor_hwobj,
@@ -160,8 +160,8 @@ class EMBLBSD(GenericDiffractometer):
     def update_pixels_per_mm(self, *args):
         """Updates pixels per mm"""
         if self.chan_calib_x:
-            self.pixels_per_mm_x = 1.0 / self.chan_calib_x.getValue()
-            self.pixels_per_mm_y = 1.0 / self.chan_calib_y.getValue()
+            self.pixels_per_mm_x = 1.0 / self.chan_calib_x.get_value()
+            self.pixels_per_mm_y = 1.0 / self.chan_calib_y.get_value()
             self.emit(
                 "pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),)
             )
@@ -184,7 +184,7 @@ class EMBLBSD(GenericDiffractometer):
             with gevent.Timeout(
                 timeout, Exception("Timeout waiting for phase %s" % phase)
             ):
-                while phase != self.chan_current_phase.getValue():
+                while phase != self.chan_current_phase.get_value():
                     gevent.sleep(0.1)
             self.wait_device_ready(30)
             self.wait_device_ready(30)
@@ -230,22 +230,22 @@ class EMBLBSD(GenericDiffractometer):
 
     def get_scintillator_position(self):
         """Returns scintillator position"""
-        return self.chan_scintillator_position.getValue()
+        return self.chan_scintillator_position.get_value()
 
     def set_scintillator_position(self, position):
         """Sets scintillator position"""
-        self.chan_scintillator_position.setValue(position)
+        self.chan_scintillator_position.set_value(position)
         with gevent.Timeout(5, Exception("Timeout waiting for scintillator position")):
             while position != self.get_scintillator_position():
                 gevent.sleep(0.01)
 
     def get_capillary_position(self):
         """Returns capillary position"""
-        return self.chan_capillary_position.getValue()
+        return self.chan_capillary_position.get_value()
 
     def set_capillary_position(self, position):
         """Moves capillary to requested position"""
-        self.chan_capillary_position.setValue(position)
+        self.chan_capillary_position.set_value(position)
         with gevent.Timeout(5, Exception("Timeout waiting for capillary position")):
             while position != self.get_capillary_position():
                 gevent.sleep(0.01)
@@ -260,8 +260,8 @@ class EMBLBSD(GenericDiffractometer):
 
     def set_beamstop_park(self):
         """Sets beamstop to the parking position"""
-        self.chan_beamstop_position.setValue("PARK")
+        self.chan_beamstop_position.set_value("PARK")
 
     def set_beamstop_beam(self):
         """Sets beamstop in the beam position"""
-        self.chan_beamstop_position.setValue("BEAM")
+        self.chan_beamstop_position.set_value("BEAM")

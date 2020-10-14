@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,7 +15,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 The BeamSlitBox Hardware Object is used to operate slits.
@@ -109,9 +109,9 @@ class EMBLSlitBox(AbstractSlits):
         self.gaps_dict = {}
         # WARNING modifying self.gaps_dict["Hor"] and ["Ver"}
         # modifies the GLOBAL properties, not just the local copy
-        # Maybe do self["gapH"].getProperties().copy()?
-        self.gaps_dict["Hor"] = self["gapH"].getProperties()
-        self.gaps_dict["Ver"] = self["gapV"].getProperties()
+        # Maybe do self["gapH"].get_properties().copy()?
+        self.gaps_dict["Hor"] = self["gapH"].get_properties()
+        self.gaps_dict["Ver"] = self["gapV"].get_properties()
         self.gaps_dict["Hor"]["value"] = 0.10
         self.gaps_dict["Ver"]["value"] = 0.10
         self.gaps_dict["Hor"]["status"] = ""
@@ -137,7 +137,7 @@ class EMBLSlitBox(AbstractSlits):
             self.motors_dict[motor.motorName]["status"] = None
             self.motors_dict[motor.motorName]["focMode"] = []
 
-        self.motors_groups = [self.getObjectByRole("slitsMotors")]
+        self.motors_groups = [self.get_object_by_role("slitsMotors")]
         if self.motors_groups is not None:
             for motor_group in self.motors_groups:
                 self.connect(
@@ -148,7 +148,7 @@ class EMBLSlitBox(AbstractSlits):
                 )
                 motor_group.re_emit_values()
 
-        self.beam_focus_hwobj = self.getObjectByRole("focusing")
+        self.beam_focus_hwobj = self.get_object_by_role("focusing")
         if self.beam_focus_hwobj:
             self.connect(
                 self.beam_focus_hwobj, "focusingModeChanged", self.focus_mode_changed

@@ -71,12 +71,12 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         self.ready_event = gevent.event.Event()
-        self.sample_changer_maint_hwobj = self.getObjectByRole(
+        self.sample_changer_maint_hwobj = self.get_object_by_role(
             "sample_changer_maintenance"
         )
-        self.detector_cover_hwobj = self.getObjectByRole("detector_cover")
-        self.datacatalog_url = self.getProperty("datacatalog_url", None)
-        self.datacatalog_enabled = self.getProperty("datacatalog_enabled", True)
+        self.detector_cover_hwobj = self.get_object_by_role("detector_cover")
+        self.datacatalog_url = self.get_property("datacatalog_url", None)
+        self.datacatalog_enabled = self.get_property("datacatalog_enabled", True)
 
         if self.datacatalog_enabled:
             logging.getLogger("HWR").info(
@@ -86,34 +86,34 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             logging.getLogger("HWR").warning("[COLLECT] Datacatalog not enabled")
 
         # todo
-        # self.cryo_stream_hwobj = self.getObjectByRole("cryo_stream")
+        # self.cryo_stream_hwobj = self.get_object_by_role("cryo_stream")
 
         undulators = []
         # todo
         try:
             for undulator in self["undulators"]:
                 undulators.append(undulator)
-        except BaseException:
+        except Exception:
             pass
 
         self.exp_type_dict = {"Mesh": "Mesh", "Helical": "Helical"}
         try:
             min_exp = HWR.beamline.detector.get_minimum_exposure_time()
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error(
                 "[HWR] *** Detector min exposure not available, set to 0.1"
             )
             min_exp = 0.1
         try:
             pix_x = HWR.beamline.detector.get_pixel_size_x()
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error(
                 "[HWR] *** Detector X pixel size not available, set to 7-5e5"
             )
             pix_x = 7.5e-5
         try:
             pix_y = HWR.beamline.detector.get_pixel_size_y()
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error(
                 "[HWR] *** Detector Y pixel size not available, set to 7-5e5"
             )
@@ -123,22 +123,24 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
             self.set_beamline_configuration(
                 synchrotron_name="MAXIV",
-                directory_prefix=self.getProperty("directory_prefix"),
-                default_exposure_time=self.getProperty("default_exposure_time"),
+                directory_prefix=self.get_property("directory_prefix"),
+                default_exposure_time=self.get_property("default_exposure_time"),
                 minimum_exposure_time=min_exp,
-                detector_fileext=HWR.beamline.detector.getProperty("file_suffix"),
-                detector_type=HWR.beamline.detector.getProperty("type"),
-                detector_manufacturer=HWR.beamline.detector.getProperty("manufacturer"),
-                detector_model=HWR.beamline.detector.getProperty("model"),
+                detector_fileext=HWR.beamline.detector.get_property("file_suffix"),
+                detector_type=HWR.beamline.detector.get_property("type"),
+                detector_manufacturer=HWR.beamline.detector.get_property(
+                    "manufacturer"
+                ),
+                detector_model=HWR.beamline.detector.get_property("model"),
                 detector_px=pix_x,
                 detector_py=pix_y,
                 undulators=undulators,
-                focusing_optic=self.getProperty("focusing_optic"),
-                monochromator_type=self.getProperty("monochromator"),
+                focusing_optic=self.get_property("focusing_optic"),
+                monochromator_type=self.get_property("monochromator"),
                 beam_divergence_vertical=beam_div_ver,
                 beam_divergence_horizontal=beam_div_hor,
-                polarisation=self.getProperty("polarisation"),
-                input_files_server=self.getProperty("input_files_server"),
+                polarisation=self.get_property("polarisation"),
+                input_files_server=self.get_property("input_files_server"),
             )
 
         """ to add """
@@ -515,7 +517,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             self.data_collection_cleanup()
             logging.getLogger("HWR").error("[COLLECT] Runtime Error: %s" % ex)
             raise Exception("data collection hook failed... ", str(ex))
-        except BaseException:
+        except Exception:
             self.data_collection_cleanup()
             logging.getLogger("HWR").error("Unexpected error:", sys.exc_info()[0])
             raise Exception("data collection hook failed... ", sys.exc_info()[0])
@@ -905,7 +907,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             if not os.path.exists(snapshot_directory):
                 try:
                     self.create_directories(snapshot_directory)
-                except BaseException:
+                except Exception:
                     logging.getLogger("HWR").exception(
                         "Collection: Error creating snapshot directory"
                     )
@@ -1012,7 +1014,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             logging.getLogger("HWR").info("Openning the detector cover.")
             self.detector_cover_hwobj.openShutter()
             time.sleep(1)  # make sure the cover is up before the data collection stars
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("Could not open the detector cover")
             pass
 
@@ -1023,7 +1025,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         try:
             logging.getLogger("HWR").info("Closing the detector cover")
             self.detector_cover_hwobj.closeShutter()
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("Could not close the detector cover")
             pass
 
@@ -1136,7 +1138,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                     raise
             """
             # os.symlink(files_directory, os.path.join(process_directory, "img"))
-        except BaseException:
+        except Exception:
             logging.exception("Could not create processing file directory")
             return
         if xds_directory:
@@ -1197,7 +1199,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
     #                 if HWR.beamline.detector.distance is not None:
     #                     HWR.beamline.detector.distance.set_value(value, timeout=50)
     #                     # 30s is not enough for the whole range
-    #             except BaseException:
+    #             except Exception:
     #                 logging.getLogger("HWR").exception(
     #                     "Problems when moving detector!!"
     #                 )
@@ -1250,7 +1252,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
         try:
             config["ImagesPerFile"] = oscillation_parameters["images_per_file"]
-        except BaseException:
+        except Exception:
             config["ImagesPerFile"] = 100
 
         if nframes_per_trigger * ntrigger < config["ImagesPerFile"]:
@@ -1360,7 +1362,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         try:
             return HWR.beamline.beam.get_beam_size()
-        except BaseException:
+        except Exception:
             return None
 
     def get_machine_current(self):
@@ -1369,7 +1371,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         try:
             return HWR.beamline.machine_info.getCurrent()
-        except BaseException:
+        except Exception:
             return None
 
     def get_machine_message(self):
@@ -1385,7 +1387,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         try:
             return HWR.beamline.machine_info.getFillingMode()
-        except BaseException:
+        except Exception:
             return ""
 
     def prepare_for_new_sample(self, manual_mode=True):
@@ -1492,7 +1494,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             collection["proposalInfo"]["Session"]["timeStamp"] = collection[
                 "proposalInfo"
             ]["Session"]["timeStamp"].isoformat()
-        except BaseException:
+        except Exception:
             if "Session" in collection["proposalInfo"].keys():
                 collection["proposalInfo"]["Session"]["lastUpdate"] = ""
                 collection["proposalInfo"]["Session"]["timeStamp"] = ""

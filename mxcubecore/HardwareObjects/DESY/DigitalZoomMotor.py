@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -14,8 +14,8 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
-#   You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 
 __author__ = "Jan Meyer"
@@ -49,7 +49,7 @@ class DigitalZoomMotor(AbstractMotor, Device):
     def init(self):
         self.set_limits((1.0, 1.0))
         try:
-            self.camera = self.getObjectByRole("camera")
+            self.camera = self.get_object_by_role("camera")
         except KeyError:
             logging.getLogger("HWR").warning("DigitalZoomMotor: camera not defined")
             return
@@ -72,7 +72,7 @@ class DigitalZoomMotor(AbstractMotor, Device):
                 "DigitalZoomMotor: digital zoom is not supported " "by camera object"
             )
 
-        self.setIsReady(self.get_state() == MotorStates.READY)
+        self.set_is_ready(self.get_state() == MotorStates.READY)
 
     def update_state(self):
         """

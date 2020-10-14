@@ -30,14 +30,14 @@ class Oxford700Mockup(HardwareObject):
         while True:
             try:
                 self.value_changed()
-            except BaseException:
+            except Exception:
                 sys.excepthook(*sys.exc_info())
             gevent.sleep(self.interval)
 
     def init(self):
-        controller = self.getProperty("controller")
-        self.interval = self.getProperty("interval") or 10
-        cryostat = self.getProperty("cryostat")
+        controller = self.get_property("controller")
+        self.interval = self.get_property("interval") or 10
+        cryostat = self.get_property("cryostat")
         self.ctrl = OxfordDummy()
         if self.ctrl is not None:
             gevent.spawn(self._do_polling)

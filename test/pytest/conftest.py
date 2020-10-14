@@ -1,3 +1,4 @@
+from HardwareRepository import HardwareRepository as HWR
 import pytest
 import sys
 import os
@@ -12,7 +13,6 @@ HWR_DIR = os.path.join(MXCUBE_DIR, "HardwareRepository")
 
 sys.path.insert(0, MXCUBE_DIR)
 
-from HardwareRepository import HardwareRepository as HWR
 
 # hwr_path = os.path.join(HWR_DIR, "configuration/test")
 # HWR.init_hardware_repository(hwr_path)
@@ -29,6 +29,6 @@ def beamline():
     hwr_path = os.path.join(HWR_DIR, "configuration/test")
     HWR._instance = HWR.beamline = None
     HWR.init_hardware_repository(hwr_path)
-    hwr = HWR.getHardwareRepository()
+    hwr = HWR.get_hardware_repository()
     hwr.connect()
     return HWR.beamline

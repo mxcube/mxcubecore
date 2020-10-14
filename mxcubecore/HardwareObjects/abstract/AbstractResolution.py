@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -16,7 +16,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU General Lesser Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """Resolution abstract implementation.
 Overloaded methods: get_state, get_value, get_limits.
@@ -50,7 +50,9 @@ class AbstractResolution(AbstractMotor):
     def init(self):
         """Initialisation"""
         super(AbstractResolution, self).init()
-        self._hwr_detector = self.getObjectByRole("detector") or HWR.beamline.detector
+        self._hwr_detector = (
+            self.get_object_by_role("detector") or HWR.beamline.detector
+        )
 
         self.connect(self._hwr_detector.distance, "stateChanged", self.update_state)
         self.connect(self._hwr_detector.distance, "valueChanged", self.update_distance)

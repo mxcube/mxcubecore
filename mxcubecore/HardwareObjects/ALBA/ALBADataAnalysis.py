@@ -59,7 +59,7 @@ class ALBADataAnalysis(EDNACharacterisation):
 
         output_dir = XSDataFile()
         path = XSDataString()
-        path.setValue(edna_directory)
+        path.set_value(edna_directory)
         output_dir.setPath(path)
         edna_input.setOutputFileDirectory(output_dir)
 
@@ -123,7 +123,7 @@ class ALBADataAnalysis(EDNACharacterisation):
         try:
             state = self.job.state
             logging.getLogger("HWR").debug("Job / is %s" % str(state))
-        except BaseException:
+        except Exception:
             import traceback
 
             logging.getLogger("HWR").debug(

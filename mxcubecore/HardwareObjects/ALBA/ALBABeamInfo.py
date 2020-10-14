@@ -60,10 +60,10 @@ class ALBABeamInfo(Equipment):
         self.beam_posx_chan = self.get_channel_object("BeamPositionHorizontal")
         self.beam_posy_chan = self.get_channel_object("BeamPositionVertical")
 
-        self.beam_height_chan.connectSignal("update", self.beam_height_changed)
-        self.beam_width_chan.connectSignal("update", self.beam_width_changed)
-        self.beam_posx_chan.connectSignal("update", self.beam_posx_changed)
-        self.beam_posy_chan.connectSignal("update", self.beam_posy_changed)
+        self.beam_height_chan.connect_signal("update", self.beam_height_changed)
+        self.beam_width_chan.connect_signal("update", self.beam_width_changed)
+        self.beam_posx_chan.connect_signal("update", self.beam_posx_changed)
+        self.beam_posy_chan.connect_signal("update", self.beam_posy_changed)
 
         # divergence can be added as fixed properties in xml
         default_beam_divergence_vertical = None
@@ -71,12 +71,12 @@ class ALBABeamInfo(Equipment):
 
         try:
             default_beam_divergence_vertical = int(
-                self.getProperty("beam_divergence_vertical")
+                self.get_property("beam_divergence_vertical")
             )
             default_beam_divergence_horizontal = int(
-                self.getProperty("beam_divergence_horizontal")
+                self.get_property("beam_divergence_horizontal")
             )
-        except BaseException:
+        except Exception:
             pass
 
         self.default_beam_divergence = [
@@ -84,7 +84,7 @@ class ALBABeamInfo(Equipment):
             default_beam_divergence_vertical,
         ]
 
-    def connectNotify(self, *args):
+    def connect_notify(self, *args):
         self.evaluate_beam_info()
         self.re_emit_values()
 
@@ -107,8 +107,8 @@ class ALBABeamInfo(Equipment):
         Return    :
         """
         self.beam_position = (
-            self.beam_posx_chan.getValue(),
-            self.beam_posy_chan.getValue(),
+            self.beam_posx_chan.get_value(),
+            self.beam_posy_chan.get_value(),
         )
         return self.beam_position
 
@@ -169,8 +169,8 @@ class ALBABeamInfo(Equipment):
         Return    : dictionary,{size_x:0.1, size_y:0.1, shape:"rectangular"}
         """
 
-        self.beam_info_dict["size_x"] = self.beam_width_chan.getValue() / 1000.0
-        self.beam_info_dict["size_y"] = self.beam_height_chan.getValue() / 1000.0
+        self.beam_info_dict["size_x"] = self.beam_width_chan.get_value() / 1000.0
+        self.beam_info_dict["size_y"] = self.beam_height_chan.get_value() / 1000.0
         self.beam_info_dict["shape"] = "rectangular"
 
         return self.beam_info_dict

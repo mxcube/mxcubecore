@@ -39,11 +39,11 @@ class EDNACharacterisation(AbstractCharacterisation):
         self.start_edna_command = None
 
     def init(self):
-        self.collect_obj = self.getObjectByRole("collect")
-        self.start_edna_command = self.getProperty("edna_command")
-        self.edna_default_file = self.getProperty("edna_default_file")
+        self.collect_obj = self.get_object_by_role("collect")
+        self.start_edna_command = self.get_property("edna_command")
+        self.edna_default_file = self.get_property("edna_default_file")
 
-        fp = HWR.getHardwareRepository().findInRepository(self.edna_default_file)
+        fp = HWR.get_hardware_repository().find_in_repository(self.edna_default_file)
 
         if fp is None:
             fp = self.edna_default_file
@@ -227,7 +227,7 @@ class EDNACharacterisation(AbstractCharacterisation):
         for img_num in range(int(acquisition_parameters.num_images)):
             image_file = XSDataFile()
             path = XSDataString()
-            path.setValue(path_str % (img_num + 1))
+            path.set_value(path_str % (img_num + 1))
             image_file.setPath(path)
             data_set.addImageFile(image_file)
 
@@ -254,7 +254,7 @@ class EDNACharacterisation(AbstractCharacterisation):
         # name, if there is no dc id.
         try:
             dc_id = edna_input.getDataCollectionId().getValue()
-        except BaseException:
+        except Exception:
             dc_id = id(edna_input)
 
         if hasattr(edna_input, "process_directory"):
@@ -284,7 +284,7 @@ class EDNACharacterisation(AbstractCharacterisation):
             edna_strategy = char_results.getStrategyResult()
             collection_plan = edna_strategy.getCollectionPlan()[0]
             wedges = collection_plan.getCollectionStrategy().getSubWedge()
-        except BaseException:
+        except Exception:
             pass
         else:
             try:
@@ -407,8 +407,8 @@ class EDNACharacterisation(AbstractCharacterisation):
 
     def get_default_characterisation_parameters(self):
         """
-        Returns: 
-            (queue_model_objects.CharacterisationsParameters) object with default 
+        Returns:
+            (queue_model_objects.CharacterisationsParameters) object with default
             parameters.
         """
         edna_input = XSDataInputMXCuBE.parseString(self.edna_default_input)
@@ -422,7 +422,7 @@ class EDNACharacterisation(AbstractCharacterisation):
         char_params.use_aimed_resolution = False
         try:
             char_params.aimed_resolution = diff_plan.getAimedResolution().getValue()
-        except BaseException:
+        except Exception:
             char_params.aimed_resolution = None
 
         char_params.use_aimed_multiplicity = False
@@ -431,7 +431,7 @@ class EDNACharacterisation(AbstractCharacterisation):
                 diff_plan.getAimedIOverSigmaAtHighestResolution().getValue()
             )
             char_params.aimed_completness = diff_plan.getAimedCompleteness().getValue()
-        except BaseException:
+        except Exception:
             char_params.aimed_i_sigma = None
             char_params.aimed_completness = None
 

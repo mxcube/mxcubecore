@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,7 +15,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import gevent
 import random
@@ -52,9 +52,9 @@ class ScanMockup(HardwareObject):
         """
         super(ScanMockup, self).init()
 
-        self._npoints = self.getProperty("number_of_points", 100)
-        self._min, self._max = ast.literal_eval(self.getProperty("min_max", (0, 10)))
-        self._sample_rate = self.getProperty("sample_rate", 0.5)
+        self._npoints = self.get_property("number_of_points", 100)
+        self._min, self._max = ast.literal_eval(self.get_property("min_max", (0, 10)))
+        self._sample_rate = self.get_property("sample_rate", 0.5)
 
         HWR.beamline.data_publisher.register(
             "mockupscan",
