@@ -55,8 +55,6 @@ __copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
-States = queue_model_enumerables.States
-
 # Used to pass to priorInformation when no wavelengths are set (DiffractCal)
 DUMMY_WAVELENGTH = 999.999
 
@@ -65,17 +63,8 @@ class GphlWorkflow(HardwareObject, object):
     """Global Phasing workflow runner.
     """
 
-    # object states
-    valid_states = [
-        States.OFF,  # Not active
-        States.ON,  # Active, awaiting execution order
-        States.OPEN,  # Active, awaiting input
-        States.RUNNING,  # Active, executing workflow
-    ]
-
     def __init__(self, name):
         super(GphlWorkflow, self).__init__(name)
-        self._state = States.OFF
 
         # HO that handles connection to GPhL workflow runner
         self._workflow_connection = None
@@ -144,6 +133,7 @@ class GphlWorkflow(HardwareObject, object):
             "WorkflowCompleted": self.workflow_completed,
             "WorkflowFailed": self.workflow_failed,
         }
+        self.update_state(self.STATES.OFF)
 
     def setup_workflow_object(self):
         """Necessary as this set-up cannot be done at init,
@@ -167,9 +157,9 @@ class GphlWorkflow(HardwareObject, object):
 
         self._queue_entry = queue_entry
 
-        if self.get_state() == States.OFF:
+        if self.get_state() == self.STATES.OFF:
             HWR.beamline.gphl_connection.open_connection()
-            self.set_state(States.ON)
+            self.update_state(self.STATES.READY)
 
     def shutdown(self):
         """Shut down workflow and connection. Triggered on program quit."""
@@ -274,16 +264,6 @@ class GphlWorkflow(HardwareObject, object):
         #
         return result
 
-    def get_state(self):
-        return self._state
-
-    def set_state(self, value):
-        if value in self.valid_states:
-            self._state = value
-            self.emit("stateChanged", (value,))
-        else:
-            raise RuntimeError("GphlWorlflow set to invalid state: s" % value)
-
     def workflow_end(self):
         """
         The workflow has finished, sets the state to 'ON'
@@ -293,7 +273,7 @@ class GphlWorkflow(HardwareObject, object):
         self._data_collection_group = None
         # if not self._gevent_event.is_set():
         #     self._gevent_event.set()
-        self.set_state(States.ON)
+        self.update_state(self.STATES.READY)
         self._server_subprocess_names.clear()
         if HWR.beamline.gphl_connection is not None:
             HWR.beamline.gphl_connection.workflow_ended()
@@ -306,7 +286,7 @@ class GphlWorkflow(HardwareObject, object):
     def execute(self):
 
         try:
-            self.set_state(States.RUNNING)
+            self.update_state(self.STATES.BUSY)
 
             workflow_queue = gevent._threading.Queue()
             # Fork off workflow server process
@@ -943,9 +923,9 @@ class GphlWorkflow(HardwareObject, object):
             # TODO Clarify if set_position does not have a built-in wait
             # TODO whether you need towait for somethign else too, ...
 
-            HWR.beamline.resolution.set_position(new_resolution)
+            # HWR.beamline.resolution.set_position(new_resolution)
             # TODO it should be set_position, fix TineMotor (resolution at EMBL)
-            # HWR.beamline.resolution.set_value(new_resolution)
+            HWR.beamline.resolution.set_value(new_resolution)
             HWR.beamline.detector.wait_ready()
             # NBNB Wait till value has settled
             id_ = None
@@ -1667,15 +1647,15 @@ class GphlWorkflow(HardwareObject, object):
         :return: float
         """
 
-        energy = energy or HWR.beamline.energy.get_value()()
+        energy = energy or HWR.beamline.energy.get_value()
 
         # NB   Calculation assumes beam sizes in mm
-        beam_size = HWR.beamline.beam_info.get_beam_size()
+        beam_size = HWR.beamline.beam.get_beam_size()
 
         # Result in kGy/s
         result = (
             HWR.beamline.flux.get_dose_rate_per_photon_per_mmsq(energy)
-            * HWR.beamline.flux.get_flux()
+            * HWR.beamline.flux.get_value()
             / beam_size[0]
             / beam_size[1]
             / 1000000.  # Converts to MGy/s
