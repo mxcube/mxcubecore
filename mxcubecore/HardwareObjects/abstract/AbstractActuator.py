@@ -167,3 +167,13 @@ class AbstractActuator(HardwareObject):
         self.update_value(self.get_value())
         self.update_limits(self.get_limits())
         super(AbstractActuator, self).re_emit_values()
+
+    def force_emit_signals(self):
+        """Forces to emit all signals.
+
+        Method is called from gui
+        Do not call it within HWR
+        """
+        self.emit("valueChanged", (self.get_value(), ))
+        self.emit("limitsChanged", (self.get_limits(), ))
+        self.emit("stateChanged", (self.get_state(), ))

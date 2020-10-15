@@ -66,15 +66,15 @@ class ESRFBeam(AbstractBeam):
             self._beam_position_on_screen = tuple(map(float, beam_position.split()))
 
         if self._aperture:
-            self._aperture.connect("valueChanged", self._emit_beam_info_change)
-            self._aperture.connect("stateChanged", self._emit_beam_info_change)
+            self._aperture.connect("valueChanged", self._re_emit_values)
+            self._aperture.connect("stateChanged", self._re_emit_values)
 
         if self._complex:
-            self._complex.connect("valueChanged", self._emit_beam_info_change)
-            self._complex.connect("stateChanged", self._emit_beam_info_change)
+            self._complex.connect("valueChanged", self._re_emit_values)
+            self._complex.connect("stateChanged", self._re_emit_values)
 
-    def _emit_beam_info_change(self, *args, **kwargs):
-        self.emit_beam_info_change()
+    def _re_emit_values(self, *args, **kwargs):
+        self.re_emit_values()
 
     def _get_aperture_size(self):
         """ Get the size and the label of the aperture in place.
