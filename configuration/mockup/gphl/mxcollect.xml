@@ -23,12 +23,12 @@
   <override_data_directories>
     <!-- If override_data_directories is set, it must contain the three base directories -->
     <!-- and may contain raw_folder, process_folder, and archive_folder -->
-    <base_directory>/scratch_fs1/rhfogh/mxcube_base_dir</base_directory>
-    <base_process_directory>/scratch_fs1/rhfogh/mxcube_base_dir</base_process_directory>
-    <base_archive_directory>/scratch_fs1/rhfogh/mxcube_base_dir</base_archive_directory>
-<!--    <base_directory>/mnt/scratch/rhfogh/mxcube_data</base_directory>-->
-<!--    <base_process_directory>/mnt/scratch/rhfogh/mxcube_data</base_process_directory>-->
-<!--    <base_archive_directory>/mnt/scratch/rhfogh/mxcube_data</base_archive_directory>-->
+<!--    <base_directory>/scratch_fs1/rhfogh/mxcube_base_dir</base_directory>-->
+<!--    <base_process_directory>/scratch_fs1/rhfogh/mxcube_base_dir</base_process_directory>-->
+<!--    <base_archive_directory>/scratch_fs1/rhfogh/mxcube_base_dir</base_archive_directory>-->
+    <base_directory>/mnt/scratch/rhfogh/mxcube_data</base_directory>
+    <base_process_directory>/mnt/scratch/rhfogh/mxcube_data</base_process_directory>
+    <base_archive_directory>/mnt/scratch/rhfogh/mxcube_data</base_archive_directory>
   </override_data_directories>
 
   <directory_prefix>emulator</directory_prefix>
