@@ -110,12 +110,20 @@ Imports that are incompatable between Python 2x and 3x should be handled with:
 #### Naming convention
 
 ##### Functions
-  * functions names should generally contain a verb
+  * functions names should be recognisable as actions and should generally contain a verb
 
 ##### Variables and parameters:
  * names of objects and values are singular
- * names of collections and maps are plural or contain 'map', 'dict','data', or an internel '2', like 'name2state'
+ * names of collections are plural or contain an internal 'list' (or 'tuple', 'tpl')
+ * names of maps are plural or contain 'map', 'dict', 'data', or an internel '2', like 'name2state'
+ * variables should distinguish between objects (e.g. 'motor') and their names or string representations (e.g. 'motor_name'))
+ * Booleans can be indcated by participles (e.g. 'enabled', 'tunable') or an 'is_' prefix. We should use positive rather than negative expressions (e.g. 'enabled' rather than 'disabled')
  
+#### Properties v. functions
+  * You should prefer functions ('get_', 'set_', 'update_') when attributes are mutable and changing the value requires moving hardware or is slow or has side effects, or where you (might) need additional parameters like swithces or timeout values.
+    * For Boolean states prefer e.g. set_enabled (True/False) rather than separate enable()/disable() functions.
+  * You should prefer properties for simple properties or states of objects (e.g. 'name', 'user_name', 'tolerance'). Contained HardwareObjects also use properties
+  
  
 #### Style guidlines
 
