@@ -694,3 +694,20 @@ class Beamline(ConfiguredObject):
             pass
 
         return path_template
+
+    def get_default_characterisation_parameters(self):
+        return self.characterisation.get_default_characterisation_parameters()
+
+    def force_emit_signals(self):
+        for role in self.all_roles:
+            hwobj =  getattr(self, role)
+            if hwobj is not None:
+                try:
+                    hwobj.force_emit_signals()
+                    for attr in dir(hwobj):
+                        if not attr.startswith("_"):
+                            if hasattr(getattr(hwobj, attr), 'force_emit_signals'):
+                                child_hwobj = getattr(hwobj, attr)
+                                child_hwobj.force_emit_signals()
+                except BaseException as ex:
+                    logging.getLogger("HWR").error("Unable to call force_emit_signals (%s)" % str(ex))

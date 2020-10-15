@@ -203,7 +203,7 @@ class EMBLBeamInfo(Equipment):
         self.beam_size_aperture = [size, size]
         self.aperture_pos_name = name
         self.update_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def get_aperture_pos_name(self):
         """Returns current aperture position
@@ -221,7 +221,7 @@ class EMBLBeamInfo(Equipment):
         """
         self.beam_size_slits = size
         self.update_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def focusing_mode_changed(self, name, size):
         """Updates beam mark size when beam focusing changes
@@ -235,7 +235,7 @@ class EMBLBeamInfo(Equipment):
         self.focus_mode = name
         self.beam_size_focusing = size
         self.update_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def get_beam_size(self):
         """Returns beam size in microns
@@ -330,7 +330,7 @@ class EMBLBeamInfo(Equipment):
                     self.beam_info_dict["shape"] == "ellipse"
                 )
 
-    def emit_beam_info_change(self):
+    def re_emit_values(self):
         """Emits signals
 
         :return: None

@@ -86,7 +86,7 @@ class ALBABeamInfo(Equipment):
 
     def connect_notify(self, *args):
         self.evaluate_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def get_beam_divergence_hor(self):
         """
@@ -149,19 +149,19 @@ class ALBABeamInfo(Equipment):
 
     def beam_width_changed(self, value):
         self.beam_info_dict["size_x"] = value
-        self.emit_beam_info_changed()
+        self.re_emit_values()
 
     def beam_height_changed(self, value):
         self.beam_info_dict["size_y"] = value
-        self.emit_beam_info_changed()
+        self.re_emit_values()
 
     def beam_posx_changed(self, value):
         self.beam_position["x"] = value
-        self.emit_beam_info_changed()
+        self.re_emit_values()
 
     def beam_posy_changed(self, value):
         self.beam_position["y"] = value
-        self.emit_beam_info_changed()
+        self.re_emit_values()
 
     def evaluate_beam_info(self):
         """
@@ -175,7 +175,7 @@ class ALBABeamInfo(Equipment):
 
         return self.beam_info_dict
 
-    def emit_beam_info_change(self):
+    def re_emit_values(self):
         """
         Descript. :
         Arguments :

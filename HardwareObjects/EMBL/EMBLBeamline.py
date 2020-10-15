@@ -63,15 +63,15 @@ class EMBLBeamline(Beamline):
     # Additional properties
 
     @property
-    def beam_definer(self):
+    def beam_focusing(self):
         """Beam-definer Hardware object
 
         Returns:
             Optional[AbstractMotor]:
         """
-        return self._objects.get("beam_definer")
+        return self._objects.get("beam_focusing")
 
-    __content_roles.append("beam_definer")
+    __content_roles.append("beam_focusing")
 
     @property
     def ppu_control(self):
