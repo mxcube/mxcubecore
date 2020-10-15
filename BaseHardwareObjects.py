@@ -173,6 +173,7 @@ class HardwareObjectNode(object):
         self._path = ""
         self.__name = node_name
         self.__references = []
+        self._xml_path = None
 
     @staticmethod
     def set_user_file_directory(user_file_directory):
@@ -194,6 +195,9 @@ class HardwareObjectNode(object):
         Parameters :
           path -- string representing the path of the Hardware Object in its file"""
         self._path = path
+
+    def get_xml_path(self):
+        return self._xml_path
 
     def __iter__(self):
         for i in range(len(self.__objects_names)):

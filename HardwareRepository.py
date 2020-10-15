@@ -390,54 +390,21 @@ class __HardwareRepositoryClient:
         comment = ""
         class_name = ""
         hwobj_instance = None
-
-        if self.server:
-            if True:
+        xml_data = ""
+        
+        for xml_files_path in self.server_address:
+            file_name = (
+                hwobj_name[1:] if hwobj_name.startswith(os.path.sep) else hwobj_name
+            )
+            file_path = (
+                os.path.join(xml_files_path, file_name) + os.path.extsep + "xml"
+            )
+            if os.path.exists(file_path):
                 try:
-                    if hwobj_name in self.required_hardware_objects:
-                        reply_dict = self.required_hardware_objects[hwobj_name]
-                    else:
-                        reply_dict = SpecWaitObject.waitReply(
-                            self.server,
-                            "send_msg_chan_read",
-                            ('xml_get("%s")' % hwobj_name,),
-                            timeout=3,
-                        )
+                    xml_data = open(file_path, "r").read()
                 except Exception:
-                    logging.getLogger("HWR").exception(
-                        'Could not load Hardware Object "%s"', hwobj_name
-                    )
-                else:
-                    try:
-                        # TODO Both variables not used: remove?
-                        xml_data = reply_dict["xmldata"]
-                        mtime = int(reply_dict["mtime"])
-                    except KeyError:
-                        logging.getLogger("HWR").error(
-                            "Cannot load Hardware Object %s: file does not exist.",
-                            hwobj_name,
-                        )
-                        return
-            else:
-                logging.getLogger("HWR").error(
-                    'Cannot load Hardware Object "%s" : not connected to server.',
-                    hwobj_name,
-                )
-        else:
-            xml_data = ""
-            for xml_files_path in self.server_address:
-                file_name = (
-                    hwobj_name[1:] if hwobj_name.startswith(os.path.sep) else hwobj_name
-                )
-                file_path = (
-                    os.path.join(xml_files_path, file_name) + os.path.extsep + "xml"
-                )
-                if os.path.exists(file_path):
-                    try:
-                        xml_data = open(file_path, "r").read()
-                    except Exception:
-                        pass
-                    break
+                    pass
+                break
 
         start_time = datetime.now()
 
@@ -479,10 +446,11 @@ class __HardwareRepositoryClient:
                             hwobj_name,
                         )
                         comment = "Failed to add all commands and/or channels"
-
+                    hwobj_instance._xml_path = file_path
                     try:
                         hwobj_instance._init()
                         hwobj_instance.init()
+                        
                         class_name = str(hwobj_instance.__module__)
                     except Exception:
                         logging.getLogger("HWR").exception(
