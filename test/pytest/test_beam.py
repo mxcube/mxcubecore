@@ -33,35 +33,34 @@ __license__ = "LGPLv3+"
 
 
 @pytest.fixture
-def obj_to_test(beamline):
+def test_object(beamline):
     result = beamline.beam
     yield result
     # Cleanup code here - restores starting state for next call:
     # NBNB TODO
 
-def test_beam_atributes(obj_to_test):
-    assert obj_to_test is not None, "Beam hardware object is None (not initialized)"
 
-    
+class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
+    def test_beam_atributes(self, test_object):
+        assert test_object is not None, "Beam hardware object is None (not initialized)"
 
-def test_get(obj_to_test):
-    """
-    Test get methods
-    """
-    if True:
-        beam_div_hor, beam_div_ver = obj_to_test.get_beam_divergence()
+    def test_get(self, test_object):
+        """
+        Test get methods
+        """
+        beam_div_hor, beam_div_ver = test_object.get_beam_divergence()
         assert isinstance(
             beam_div_hor, (int, float)
         ), "Horizontal beam divergence has to be int or float"
         assert isinstance(
             beam_div_ver, (int, float)
         ), "Vertical beam divergence has to be int or float"
-        beam_shape = obj_to_test.get_beam_shape()
+        beam_shape = test_object.get_beam_shape()
         assert isinstance(
             beam_shape, BeamShape
         ), "Beam shape should be defined in BeamShape Enum"
 
-        beam_width, beam_height = obj_to_test.get_beam_size()
+        beam_width, beam_height = test_object.get_beam_size()
         assert isinstance(
             beam_width, (int, float)
         ), "Horizontal beam size has to be int or float"
@@ -69,59 +68,59 @@ def test_get(obj_to_test):
             beam_height, (int, float)
         ), "Vertical beam size has to be int or float"
 
-def test_set(obj_to_test):
-    if True:
-        max_diameter = max(obj_to_test.aperture.get_diameter_size_list())
-        obj_to_test.aperture.set_diameter_size(max_diameter)
+    def test_set(self, test_object):
+        """
+        Test set methods
+        """
+        max_diameter = max(test_object.aperture.get_diameter_size_list())
+        test_object.aperture.set_diameter_size(max_diameter)
 
         target_width = 0.01
         target_height = 0.01
-        obj_to_test.set_beam_size_shape(
+        test_object.set_beam_size_shape(
             target_width, target_height, BeamShape.RECTANGULAR
         )
 
-        beam_width, beam_height = obj_to_test.get_beam_size()
+        beam_width, beam_height = test_object.get_beam_size()
         assert target_width == beam_width
         assert target_height == beam_height
 
-        beam_shape = obj_to_test.get_beam_shape()
+        beam_shape = test_object.get_beam_shape()
         assert beam_shape == BeamShape.RECTANGULAR
 
-def test_set_aperture_diameters(obj_to_test):
-    """
-    Set large slit gaps and in the sequence select all aperture diameters.
-    Beam shape is eliptical and size defined by the selected aperture
-    """
-    if True:
-        obj_to_test.slits.set_horizontal_gap(1)
-        obj_to_test.slits.set_vertical_gap(1)
-        for aperture_diameter in obj_to_test.aperture.get_diameter_size_list():
-            obj_to_test.aperture.set_diameter_size(aperture_diameter)
-            beam_width, beam_height = obj_to_test.get_beam_size()
+    def test_set_aperture_diameters(self, test_object):
+        """
+        Set large slit gaps and in the sequence select all aperture diameters.
+        Beam shape is eliptical and size defined by the selected aperture
+        """
+        test_object.slits.set_horizontal_gap(1)
+        test_object.slits.set_vertical_gap(1)
+        for aperture_diameter in test_object.aperture.get_diameter_size_list():
+            test_object.aperture.set_diameter_size(aperture_diameter)
+            beam_width, beam_height = test_object.get_beam_size()
             # TODO get_beam_size returns size in mm, but aperture diameters are in microns
             # Use microns in all beam related hwobj
             assert beam_width == beam_height == aperture_diameter / 1000.0
 
-            beam_shape = obj_to_test.get_beam_shape()
+            beam_shape = test_object.get_beam_shape()
             assert beam_shape == BeamShape.ELIPTICAL
 
-def test_set_slit_gaps(obj_to_test):
-    """
-    Set slits smaller as the largest aperture diameter.
+    def test_set_slit_gaps(self, test_object):
+        """
+        Set slits smaller as the largest aperture diameter.
         In this case beam size and shape is defined by slits
-    """
-    if True:
-        max_diameter = max(obj_to_test.aperture.get_diameter_size_list())
-        obj_to_test.aperture.set_diameter_size(max_diameter)
+        """
+        max_diameter = max(test_object.aperture.get_diameter_size_list())
+        test_object.aperture.set_diameter_size(max_diameter)
 
         target_width = 0.01
         target_height = 0.01
-        obj_to_test.slits.set_horizontal_gap(target_width)
-        obj_to_test.slits.set_vertical_gap(target_height)
+        test_object.slits.set_horizontal_gap(target_width)
+        test_object.slits.set_vertical_gap(target_height)
 
-        beam_width, beam_height = obj_to_test.get_beam_size()
+        beam_width, beam_height = test_object.get_beam_size()
         assert target_width == beam_width
         assert target_height == beam_height
 
-        beam_shape = obj_to_test.get_beam_shape()
+        beam_shape = test_object.get_beam_shape()
         assert beam_shape == BeamShape.RECTANGULAR
