@@ -40,7 +40,7 @@ def obj_to_test(beamline):
     # NBNB TODO
 
 def test_beam_atributes(obj_to_test):
-    assert test_object is not None, "Beam hardware object is None (not initialized)"
+    assert obj_to_test is not None, "Beam hardware object is None (not initialized)"
 
     
 
