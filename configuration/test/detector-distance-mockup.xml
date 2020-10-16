@@ -1,5 +1,0 @@
-<device class="MotorMockup">
-  <default_value>500</default_value>
-  <velocity>100</velocity>
-  <default_limits>[100, 1000]</default_limits>
-</device>
