@@ -80,6 +80,7 @@ class AbstractBeam(HardwareObject):
         """
         Initialise default values and objects
         """
+        HardwareObject.init(self)
         _divergence_vertical = self.get_property("beam_divergence_vertical")
         _divergence_horizontal = self.get_property("beam_divergence_horizontal")
         self._beam_divergence = (_divergence_horizontal, _divergence_vertical)
@@ -213,6 +214,7 @@ class AbstractBeam(HardwareObject):
         """
         Reemits beamSizeChanged and beamInfoChanged signals
         """
+        HardwareObject.re_emit_values(self)
         if self._beam_width != 9999 and self._beam_height != 9999:
             self.emit("beamSizeChanged", (self._beam_width, self._beam_height))
             self.emit("beamInfoChanged", (self._beam_info_dict))
