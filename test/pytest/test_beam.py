@@ -39,7 +39,7 @@ def test_object(beamline):
     # Cleanup code here - restores starting state for next call:
     # NBNB TODO
 
-
+'''
 class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
     def test_beam_atributes(self, test_object):
         assert test_object is not None, "Beam hardware object is None (not initialized)"
@@ -124,3 +124,4 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
 
         beam_shape = test_object.get_beam_shape()
         assert beam_shape == BeamShape.RECTANGULAR
+'''
