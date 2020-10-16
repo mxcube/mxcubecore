@@ -31,7 +31,7 @@ from HardwareRepository.test.pytest import TestHardwareObjectBase
 __copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
-
+'''
 @pytest.fixture
 def test_object(beamline):
     result = beamline.beam
@@ -48,7 +48,6 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         Test get methods
         """
 
-        """
         beam_div_hor, beam_div_ver = test_object.get_beam_divergence()
         assert isinstance(
             beam_div_hor, (int, float)
@@ -68,7 +67,6 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         assert isinstance(
             beam_height, (int, float)
         ), "Vertical beam size has to be int or float"
-        """
 
     def test_set(self, test_object):
         """
@@ -79,7 +77,6 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
 
         target_width = 0.01
         target_height = 0.01
-        """
         test_object.set_beam_size_shape(
             target_width, target_height, BeamShape.RECTANGULAR
         )
@@ -90,7 +87,6 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
 
         beam_shape = test_object.get_beam_shape()
         assert beam_shape == BeamShape.RECTANGULAR
-        """
 
     def test_set_aperture_diameters(self, test_object):
         """
@@ -127,4 +123,5 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         assert target_height == beam_height
 
         beam_shape = test_object.get_beam_shape()
-        #assert beam_shape == BeamShape.RECTANGULAR
+        assert beam_shape == BeamShape.RECTANGULAR
+'''
