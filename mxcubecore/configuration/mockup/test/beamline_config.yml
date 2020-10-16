@@ -55,7 +55,7 @@ _objects:
     #- online_processing: parallel-processing.xml
     #- characterisation: data-analysis.xml
     # - beam_realign: # Skipped - optional
-    - mock_procedure: mock_procedure.yml
+    - mock_procedure: procedure-mockup.yml
 # Non-object attributes:
 advanced_methods:
   - MeshScan
