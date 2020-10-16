@@ -31,14 +31,14 @@ from HardwareRepository.test.pytest import TestHardwareObjectBase
 __copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
-'''
+
 @pytest.fixture
 def test_object(beamline):
     result = beamline.beam
     yield result
     # Cleanup code here - restores starting state for next call:
     # NBNB TODO
-
+'''
 class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
     #def test_beam_atributes(self, test_object):
     #    assert test_object is not None, "Beam hardware object is None (not initialized)"
