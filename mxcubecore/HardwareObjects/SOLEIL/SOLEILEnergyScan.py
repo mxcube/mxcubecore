@@ -865,7 +865,7 @@ class SOLEILEnergyScan(Equipment):
             return (False, "Resolution motor not defined")
 
     # Elements commands
-    def getElements(self):
+    def get_elements(self):
         elements = []
         try:
             for el in self["elements"]:
@@ -874,15 +874,15 @@ class SOLEILEnergyScan(Equipment):
             pass
         return elements
 
-    # Mad energies commands
-    def getDefaultMadEnergies(self):
-        energies = []
-        try:
-            for el in self["mad"]:
-                energies.append([float(el.energy), el.directory])
-        except IndexError:
-            pass
-        return energies
+    # # Mad energies commands
+    # def getDefaultMadEnergies(self):
+    #     energies = []
+    #     try:
+    #         for el in self["mad"]:
+    #             energies.append([float(el.energy), el.directory])
+    #     except IndexError:
+    #         pass
+    #     return energies
 
 
 def StoreEnergyScanThread(db_conn, scan_info):

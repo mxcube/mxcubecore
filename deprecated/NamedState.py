@@ -179,7 +179,7 @@ class NamedState(Device):
 
 
 def test():
-    hwr = HWR.getHardwareRepository()
+    hwr = HWR.get_hardware_repository()
     hwr.connect()
 
     ap_pos = hwr.get_hardware_object("/aperture_position")
