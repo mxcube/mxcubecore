@@ -28,7 +28,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
         self.pollInterval = 500
         self.connected = False
         self.image_name = self.get_property("image_name")
-        xml_path = HWR.getHardwareRepository().server_address[0]
+        xml_path = HWR.get_hardware_repository().server_address[0]
         self.image = os.path.join(xml_path, self.image_name)
         self.set_is_ready(True)
 
@@ -78,15 +78,15 @@ class MDCameraMockup(BaseHardwareObjects.Device):
     def gainExists(self):
         return False
 
-    def getWidth(self):
+    def get_width(self):
         # return 768 #JN ,20140807,adapt the MD2 screen to mxCuBE2
         return 659
 
-    def getHeight(self):
+    def get_height(self):
         # return 576 # JN ,20140807,adapt the MD2 screen to mxCuBE2
         return 493
 
-    def setLive(self, state):
+    def set_live(self, state):
         self.liveState = state
         return True
 
@@ -97,7 +97,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
         return True
 
     def get_available_stream_sizes(self):
-        return [(self.getWidth(), self.getHeight())]
+        return [(self.get_width(), self.get_height())]
 
     def get_stream_size(self):
-        return self.getWidth(), self.getHeight(), 1
+        return self.get_width(), self.get_height(), 1

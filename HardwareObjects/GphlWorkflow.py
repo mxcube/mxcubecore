@@ -1420,7 +1420,7 @@ class GphlWorkflow(HardwareObject, object):
             if zoom_motor:
                 # Zoom to the last predefined position
                 # - that should be the largest magnification
-                ll0 = zoom_motor.getPredefinedPositionsList()
+                ll0 = zoom_motor.get_predefined_positions_list()
                 if ll0:
                     logging.getLogger("user_level_log").info(
                         "Sample re-centering now active - Zooming in."

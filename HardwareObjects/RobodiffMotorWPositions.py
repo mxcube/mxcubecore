@@ -76,7 +76,7 @@ class RobodiffMotorWPositions(RobodiffMotor):
 
             self.emit("predefinedPositionChanged", ("", None))
 
-    def getPredefinedPositionsList(self):
+    def get_predefined_positions_list(self):
         return self.predefinedPositionsNamesList
 
     def moveToPosition(self, positionName):

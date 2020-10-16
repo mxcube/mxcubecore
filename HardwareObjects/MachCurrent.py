@@ -48,7 +48,7 @@ class MachCurrent(BaseHardwareObjects.Device):
 
         self.emit("valueChanged", (mach, opmsg, fillmode, refill))
 
-    def getCurrent(self):
+    def get_current(self):
         try:
             value = self.get_channel_object("Current").get_value()
         except Exception as e:

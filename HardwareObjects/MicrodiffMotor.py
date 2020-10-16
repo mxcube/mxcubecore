@@ -85,7 +85,7 @@ class MicrodiffMotor(AbstractMotor):
                     self.actuator_name + self.motor_state_attr_suffix,
                 )
 
-            self.position_attr.connect_signal("update", self.motorPositionChanged)
+            self.position_attr.connect_signal("update", self.motor_positions_changed)
             self.state_attr.connect_signal("update", self.motorStateChanged)
 
             self.motors_state_attr = self.get_channel_object("motor_states")
@@ -131,7 +131,7 @@ class MicrodiffMotor(AbstractMotor):
                     {"type": "exporter", "name": "homing"}, "startHomingMotor"
                 )
 
-        self.motorPositionChanged(self.position_attr.get_value())
+        self.motor_positions_changed(self.position_attr.get_value())
 
     def connect_notify(self, signal):
         if signal == "valueChanged":
@@ -187,7 +187,7 @@ class MicrodiffMotor(AbstractMotor):
         self.emit("limitsChanged", (self.get_limits(),))
 
     def get_limits(self):
-        dynamic_limits = self.getDynamicLimits()
+        dynamic_limits = self.get_dynamic_limits()
         if dynamic_limits != (-1e4, 1e4):
             return dynamic_limits
         else:
@@ -199,7 +199,7 @@ class MicrodiffMotor(AbstractMotor):
             except Exception:
                 return (-1e4, 1e4)
 
-    def getDynamicLimits(self):
+    def get_dynamic_limits(self):
         try:
             low_lim, hi_lim = map(
                 float, self.get_dynamic_limits_cmd(self.actuator_name)
@@ -210,10 +210,10 @@ class MicrodiffMotor(AbstractMotor):
         except Exception:
             return (-1e4, 1e4)
 
-    def getMaxSpeed(self):
+    def get_max_speed(self):
         return self.get_max_speed_cmd(self.actuator_name)
 
-    def motorPositionChanged(self, absolute_position, private={}):
+    def motor_positions_changed(self, absolute_position, private={}):
         if None not in (absolute_position, self.position):
             if abs(absolute_position - self.position) <= self.motor_resolution:
                 return
