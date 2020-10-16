@@ -39,12 +39,12 @@ def obj_to_test(beamline):
     # Cleanup code here - restores starting state for next call:
     # NBNB TODO
 
-def test_beam_atributes(self, obj_to_test):
+def test_beam_atributes(obj_to_test):
     assert test_object is not None, "Beam hardware object is None (not initialized)"
 
     
 
-def test_get(self, obj_to_test):
+def test_get(obj_to_test):
     """
     Test get methods
     """
@@ -69,7 +69,7 @@ def test_get(self, obj_to_test):
             beam_height, (int, float)
         ), "Vertical beam size has to be int or float"
 
-def test_set(self, obj_to_test):
+def test_set(obj_to_test):
     if True:
         max_diameter = max(obj_to_test.aperture.get_diameter_size_list())
         obj_to_test.aperture.set_diameter_size(max_diameter)
@@ -87,7 +87,7 @@ def test_set(self, obj_to_test):
         beam_shape = obj_to_test.get_beam_shape()
         assert beam_shape == BeamShape.RECTANGULAR
 
-def test_set_aperture_diameters(self, obj_to_test):
+def test_set_aperture_diameters(obj_to_test):
     """
     Set large slit gaps and in the sequence select all aperture diameters.
     Beam shape is eliptical and size defined by the selected aperture
@@ -105,7 +105,7 @@ def test_set_aperture_diameters(self, obj_to_test):
             beam_shape = obj_to_test.get_beam_shape()
             assert beam_shape == BeamShape.ELIPTICAL
 
-def test_set_slit_gaps(self, obj_to_test):
+def test_set_slit_gaps(obj_to_test):
     """
     Set slits smaller as the largest aperture diameter.
         In this case beam size and shape is defined by slits
