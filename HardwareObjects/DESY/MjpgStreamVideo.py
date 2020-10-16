@@ -819,19 +819,19 @@ class MjpgStreamVideo(AbstractVideoDevice):
         """
         return (self.image_dimensions[0] / float(self.sensor_dimensions[0]), 2)
 
-    def setLive(self, mode):
+    def set_live(self, mode):
         """
         Descript. :
         """
         return
 
-    def getWidth(self):
+    def get_width(self):
         """
         Descript. :
         """
         return self.image_dimensions[0]
 
-    def getHeight(self):
+    def get_height(self):
         """
         Descript. :
         """

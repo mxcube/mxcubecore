@@ -150,7 +150,7 @@ class XalocMiniDiff(GenericDiffractometer):
             )
 
             if self.in_plate_mode():
-                dynamic_limits = self.phi_motor_hwobj.getDynamicLimits()
+                dynamic_limits = self.phi_motor_hwobj.get_dynamic_limits()
                 if click == 0:
                     self.phi_motor_hwobj.set_value(dynamic_limits[0])
                 elif click == 1:

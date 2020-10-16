@@ -466,7 +466,7 @@ class XMLRPCServer(HardwareObject):
         return HWR.beamline.beam.aperture_hwobj.getCurrentPositionName()
 
     def get_aperture_list(self):
-        return HWR.beamline.beam.aperture_hwobj.getPredefinedPositionsList()
+        return HWR.beamline.beam.aperture_hwobj.get_predefined_positions_list()
 
     def open_dialog(self, dict_dialog):
         """
@@ -538,7 +538,7 @@ class XMLRPCServer(HardwareObject):
         """
         Returns the avaliable pre-defined zoom levels.
         """
-        return HWR.beamline.diffractometer.zoomMotor.getPredefinedPositionsList()
+        return HWR.beamline.diffractometer.zoomMotor.get_predefined_positions_list()
 
     def set_front_light_level(self, level):
         """

@@ -140,13 +140,13 @@ class QtTangoLimaVideo(AbstractVideoDevice):
 
     """ END Overloading of AbstractVideoDevice methods """
 
-    def getWidth(self):
+    def get_width(self):
         if self.width:
             return self.width
         else:
             return self.device.width
 
-    def getHeight(self):
+    def get_height(self):
         if self.height:
             return self.height
         else:

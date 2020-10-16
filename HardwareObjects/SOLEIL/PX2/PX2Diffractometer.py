@@ -1182,10 +1182,10 @@ class PX2Diffractometer(GenericDiffractometer):
         return new_point
 
     def get_osc_limits(self):
-        return self.motor_hwobj_dict["phi"].getDynamicLimits()
+        return self.motor_hwobj_dict["phi"].get_dynamic_limits()
 
     def get_osc_max_speed(self):
-        return self.motor_hwobj_dict["phi"].getMaxSpeed()
+        return self.motor_hwobj_dict["phi"].get_max_speed()
 
     def get_scan_limits(self, speed=None, num_images=None, exp_time=None):
         """optical_alignment
