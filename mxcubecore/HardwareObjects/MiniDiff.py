@@ -199,7 +199,7 @@ class MiniDiff(Equipment):
         for role in roles_to_add:
             self.if_role_set_attr(role)
 
-        hwr = HWR.getHardwareRepository()
+        hwr = HWR.get_hardware_repository()
         wl_prop = self.get_property("wagolight")
         if wl_prop is not None:
             try:
@@ -282,8 +282,8 @@ class MiniDiff(Equipment):
         #     )
         # else:
         #     self.imgWidth, self.imgHeight = (
-        #         HWR.beamline.sample_view.camera.getWidth(),
-        #         HWR.beamline.sample_view.camera.getHeight(),
+        #         HWR.beamline.sample_view.camera.get_width(),
+        #         HWR.beamline.sample_view.camera.get_height(),
         #     )
         if HWR.beamline.sample_changer is None:
             logging.getLogger("HWR").warning(

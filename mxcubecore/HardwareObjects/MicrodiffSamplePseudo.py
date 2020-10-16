@@ -30,7 +30,7 @@ class MicrodiffSamplePseudo(MD2Motor):
 
     def real_motor_moved(self, _):
 
-        self.motorPositionChanged(self.get_value())
+        self.motor_positions_changed(self.get_value())
 
     def updateMotorState(self):
         states = [m.get_state() for m in (self.sampx, self.sampy, self.phi)]
@@ -78,7 +78,7 @@ class MicrodiffSamplePseudo(MD2Motor):
     def real_motor_changed(self, _):
         self.updateMotorState()
 
-    def motorPositionChanged(self, absolutePosition):
+    def motor_positions_changed(self, absolutePosition):
         self.emit("valueChanged", (absolutePosition,))
 
     def _set_value(self, value):

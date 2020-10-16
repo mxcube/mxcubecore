@@ -57,7 +57,7 @@ class Centring(Device):
         # for axis in self['gonioAxes']:
         #  self.gonioAxes.append({'type':axis.type,'direction':eval(axis.direction),\
         #                   'motor_name':axis.motorname,'motor_HO':
-        # HardwareRepository.getHardwareRepository().get_hardware_object(axis.motorHO)
+        # HardwareRepository.get_hardware_repository().get_hardware_object(axis.motorHO)
         # })
 
         print("Centring Init")

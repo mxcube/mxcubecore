@@ -18,7 +18,7 @@ class SOLEILFlux(Device):
 
 
 def test():
-    hwr = HWR.getHardwareRepository()
+    hwr = HWR.get_hardware_repository()
     hwr.connect()
 
     flux = hwr.get_hardware_object("/flux")

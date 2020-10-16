@@ -311,7 +311,7 @@ class __HardwareRepositoryClient:
     """Hardware Repository class
 
     Warning -- should not be instanciated directly ;
-    call the module's level getHardwareRepository() function instead
+    call the module's level get_hardware_repository() function instead
     """
 
     def __init__(self, server_address):
@@ -396,13 +396,13 @@ class __HardwareRepositoryClient:
                 try:
                     if hwobj_name in self.required_hardware_objects:
                         reply_dict = self.required_hardware_objects[hwobj_name]
-                    else:
-                        reply_dict = SpecWaitObject.waitReply(
-                            self.server,
-                            "send_msg_chan_read",
-                            ('xml_get("%s")' % hwobj_name,),
-                            timeout=3,
-                        )
+                    # else:
+                    #     reply_dict = SpecWaitObject.waitReply(
+                    #         self.server,
+                    #         "send_msg_chan_read",
+                    #         ('xml_get("%s")' % hwobj_name,),
+                    #         timeout=3,
+                    #     )
                 except Exception:
                     logging.getLogger("HWR").exception(
                         'Could not load Hardware Object "%s"', hwobj_name
@@ -696,18 +696,18 @@ class __HardwareRepositoryClient:
         """Return a Procedure given its name (see get_hardware_object())"""
         return self.get_hardware_object(procedure_name)
 
-    def get_connection(self, connection_name):
-        """Return the Connection object for a Spec connection, given its name
-
-        Parameters :
-          connectionName -- a Spec version name ('host:port' string)
-
-        Return :
-          the corresponding SpecConnection object
-        """
-        connections_manager = SpecConnectionsManager.SpecConnectionsManager()
-
-        return connections_manager.get_connection(connection_name)
+    # def get_connection(self, connection_name):
+    #     """Return the Connection object for a Spec connection, given its name
+    #
+    #     Parameters :
+    #       connectionName -- a Spec version name ('host:port' string)
+    #
+    #     Return :
+    #       the corresponding SpecConnection object
+    #     """
+    #     connections_manager = SpecConnectionsManager.SpecConnectionsManager()
+    #
+    #     return connections_manager.get_connection(connection_name)
 
     def is_device(self, name):
         """Check if a Hardware Object is a Device

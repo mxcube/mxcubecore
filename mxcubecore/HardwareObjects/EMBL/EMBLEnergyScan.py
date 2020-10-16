@@ -507,7 +507,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
     def updateEnergyScan(self, scan_id, jpeg_scan_filename):
         pass
 
-    def getElements(self):
+    def get_elements(self):
         elements = []
         try:
             for el in self["elements"]:

@@ -179,15 +179,15 @@ class BIOMAXMD3Camera(Device):
     def gainExists(self):
         return False
 
-    def getWidth(self):
+    def get_width(self):
         # return self.roi_width.get_value()
         return self.width
 
-    def getHeight(self):
+    def get_height(self):
         # return self.roi_height.get_value()
         return self.height
 
-    def setLive(self, state):
+    def set_live(self, state):
         self.liveState = state
         return True
 
