@@ -21,12 +21,12 @@
 """
 """
 
-#from __future__ import division, absolute_import
-#from __future__ import print_function, unicode_literals
+from __future__ import division, absolute_import
+from __future__ import print_function, unicode_literals
 
 import pytest
 from HardwareRepository.test.pytest import TestHardwareObjectBase
-#from HardwareRepository.HardwareObjects.abstract.AbstractBeam import BeamShape
+from HardwareRepository.HardwareObjects.abstract.AbstractBeam import BeamShape
 
 __copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
@@ -38,16 +38,17 @@ def test_object(beamline):
     yield result
     # Cleanup code here - restores starting state for next call:
     # NBNB TODO
+
+def test_beam_atributes(self, test_object):
+        assert test_object is not None, "Beam hardware object is None (not initialized)"
 '''
 class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
-    #def test_beam_atributes(self, test_object):
-    #    assert test_object is not None, "Beam hardware object is None (not initialized)"
+    
 
     def test_get(self, test_object):
         """
         Test get methods
         """
-
         beam_div_hor, beam_div_ver = test_object.get_beam_divergence()
         assert isinstance(
             beam_div_hor, (int, float)
@@ -103,7 +104,7 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
             assert beam_width == beam_height == aperture_diameter / 1000.0
 
             beam_shape = test_object.get_beam_shape()
-            #assert beam_shape == BeamShape.ELIPTICAL
+            assert beam_shape == BeamShape.ELIPTICAL
 
     def test_set_slit_gaps(self, test_object):
         """
