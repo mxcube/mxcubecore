@@ -30,18 +30,10 @@ __author__ = "rhfogh"
 __date__ = "08/04/2020"
 
 
-@pytest.fixture
-def test_object(beamline):
-    result = beamline.detector
-    yield result
-    # Cleanup code here - restores starting state for next call:
-    # NBNB TODO
-
-
 class TestDetector(TestHardwareObjectBase.TestHardwareObjectBase):
-    def test_detector_atributes(self, test_object):
+    def test_detector_atributes(self, beamline):
         assert (
-            test_object is not None
+            beamline.detector is not None
         ), "Detector hardware object is None (not initialized)"
-        exp_time_limits = test_object.get_exposure_time_limits()
-        has_shutterless = test_object.has_shutterless()
+        exp_time_limits = beamline.detector.get_exposure_time_limits()
+        has_shutterless = beamline.detector.has_shutterless()
