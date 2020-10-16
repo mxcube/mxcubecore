@@ -44,7 +44,7 @@ class BeamMockup(AbstractBeam):
         AbstractBeam.init(self)
         
         self._beam_position_on_screen = [318, 238]
-        self._beam_divergence = (10, 10)
+
 
         self._aperture = self.get_object_by_role("aperture")
         if self._aperture is not None:
