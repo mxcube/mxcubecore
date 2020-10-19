@@ -73,7 +73,6 @@ class AbstractMachineInfo(HardwareObject):
         """
         return None
 
-    @abc.abstractmethod
     def get_mach_info_dict(self):
         """Read machine info dictionary.
         Returns:
