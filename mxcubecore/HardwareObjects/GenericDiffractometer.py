@@ -132,7 +132,7 @@ class GenericDiffractometer(HardwareObject):
 
     STATE_CHANGED_EVENT = "stateChanged"
     STATUS_CHANGED_EVENT = "statusChanged"
-    MOTOR_POSITION_CHANGED_EVENT = "motor_positions_changed"
+    MOTOR_POSITION_CHANGED_EVENT = "motorPositionsChanged"
     MOTOR_STATUS_CHANGED_EVENT = "motorStatusChanged"
 
     HEAD_TYPE_MINIKAPPA = "MiniKappa"
