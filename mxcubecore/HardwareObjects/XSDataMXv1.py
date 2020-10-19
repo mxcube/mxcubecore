@@ -1753,26 +1753,26 @@ class XSDataChemicalCompositionMM(XSData):
     solvent = property(getSolvent, setSolvent, delSolvent, "Property for solvent")
     # Methods and properties for the 'structure' attribute
 
-    def get_structure(self):
+    def getStructure(self):
         return self._structure
 
-    def set_structure(self, structure):
+    def setStructure(self, structure):
         if structure is None:
             self._structure = None
         elif structure.__class__.__name__ == "XSDataStructure":
             self._structure = structure
         else:
             strMessage = (
-                "ERROR! XSDataChemicalCompositionMM.set_structure argument is not XSDataStructure but %s"
+                "ERROR! XSDataChemicalCompositionMM.setStructure argument is not XSDataStructure but %s"
                 % structure.__class__.__name__
             )
             raise Exception(strMessage)
 
-    def del_structure(self):
+    def delStructure(self):
         self._structure = None
 
     structure = property(
-        get_structure, set_structure, del_structure, "Property for structure"
+        getStructure, setStructure, delStructure, "Property for structure"
     )
 
     def export(self, outfile, level, name_="XSDataChemicalCompositionMM"):
@@ -1806,7 +1806,7 @@ class XSDataChemicalCompositionMM(XSData):
         elif child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "structure":
             obj_ = XSDataStructure()
             obj_.build(child_)
-            self.set_structure(obj_)
+            self.setStructure(obj_)
         XSData.buildChildren(self, child_, nodeName_)
 
     # Method for marshalling an object
