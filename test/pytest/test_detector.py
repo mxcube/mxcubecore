@@ -21,8 +21,8 @@
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
-import pytest
-from HardwareRepository.test.pytest import TestHardwareObjectBase
+#import pytest
+#from HardwareRepository.test.pytest import TestHardwareObjectBase
 
 __copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
@@ -30,10 +30,10 @@ __author__ = "rhfogh"
 __date__ = "08/04/2020"
 
 
-class TestDetector(TestHardwareObjectBase.TestHardwareObjectBase):
-    def test_detector_atributes(self, beamline):
-        assert (
-            beamline.detector is not None
-        ), "Detector hardware object is None (not initialized)"
-        exp_time_limits = beamline.detector.get_exposure_time_limits()
-        has_shutterless = beamline.detector.has_shutterless()
+
+def test_detector_atributes(self, beamline):
+    assert (
+        beamline.detector is not None
+    ), "Detector hardware object is None (not initialized)"
+    exp_time_limits = beamline.detector.get_exposure_time_limits()
+    has_shutterless = beamline.detector.has_shutterless()
