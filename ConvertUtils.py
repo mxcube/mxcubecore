@@ -24,7 +24,6 @@
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
-__author__ = "rhfogh"
 __date__ = "19/06/17"
 __credits__ = ["MXCuBE collaboration"]
 
