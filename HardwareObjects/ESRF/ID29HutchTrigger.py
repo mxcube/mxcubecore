@@ -15,13 +15,13 @@ class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
         while True:
             try:
                 self.poll()
-            except BaseException:
+            except Exception:
                 sys.excepthook(*sys.exc_info())
-            time.sleep(self.getProperty("interval") / 1000.0 or 1)
+            time.sleep(self.get_property("interval") / 1000.0 or 1)
 
     def init(self):
         try:
-            self.device = PyTango.gevent.DeviceProxy(self.getProperty("tangoname"))
+            self.device = PyTango.gevent.DeviceProxy(self.get_property("tangoname"))
         except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger("HWR").error(
@@ -35,10 +35,10 @@ class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
         self.card = None
         self.channel = None
 
-        PSSinfo = self.getProperty("pss")
+        PSSinfo = self.get_property("pss")
         try:
             self.card, self.channel = map(int, PSSinfo.split("/"))
-        except BaseException:
+        except Exception:
             logging.getLogger().error("%s: cannot find PSS number", self.name())
             return
 
@@ -49,7 +49,7 @@ class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
     def hutchIsOpened(self):
         return self.hutch_opened
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def connected(self):
@@ -68,12 +68,12 @@ class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
         dtox = HWR.beamline.detector.distance
         if not entering_hutch:
             if old["dtox"] is not None:
-                dtox.move(old["dtox"])
-            self.getCommandObject("macro")(0)
+                dtox.set_value(old["dtox"])
+            self.get_command_object("macro")(0)
         else:
-            old["dtox"] = dtox.getPosition()
-            self.getCommandObject("macro")(1)
-            dtox.move(700)
+            old["dtox"] = dtox.get_value()
+            self.get_command_object("macro")(1)
+            dtox.set_value(700)
         dtox.waitEndOfMove()
 
     def poll(self):
@@ -88,9 +88,9 @@ class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
         else:
             self.__oldValue = value
 
-        self.valueChanged(value)
+        self.value_changed(value)
 
-    def valueChanged(self, value, *args):
+    def value_changed(self, value, *args):
         if value == 0:
             if self.initialized:
                 self.emit("hutchTrigger", (1,))

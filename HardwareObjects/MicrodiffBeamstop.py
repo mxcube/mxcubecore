@@ -26,7 +26,7 @@ Example bstopy.xml (for bstopz only the motor name changes)
 <device class="MD2Motor">
   <username>bstopy</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
-  <motor_name>BeamstopY</motor_name>
+  <actuator_name>BeamstopY</actuator_name>
   <GUIstep>0.01</GUIstep>
    <unit>1e-3</unit>
 </device>
@@ -47,18 +47,18 @@ Example capillary xml file:
 
 class MicrodiffBeamstop(Equipment):
     def init(self):
-        self.beamstop = self.getObjectByRole("beamstop")
-        self.beamstop.state_attr.connectSignal("update", self.checkPosition)
+        self.beamstop = self.get_object_by_role("beamstop")
+        self.beamstop.state_attr.connect_signal("update", self.checkPosition)
 
         self.motors = self["motors"]
-        self.roles = self.motors.getRoles()
+        self.roles = self.motors.get_roles()
 
-        save_cmd_name = self.getProperty("save_cmd_name")
+        save_cmd_name = self.get_property("save_cmd_name")
         self.beamstopSetInPosition = self.beamstop.add_command(
             {
                 "type": "exporter",
                 "name": "bs_set_in",
-                "address": self.beamstop.getProperty("exporter_address"),
+                "address": self.beamstop.get_property("exporter_address"),
             },
             save_cmd_name,
         )
@@ -74,24 +74,24 @@ class MicrodiffBeamstop(Equipment):
             self.beamstop.actuatorOut(wait=True)
         self.checkPosition()
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         self.checkPosition()
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
-    def getState(self):
+    def get_state(self):
         return "READY"
 
-    def getPosition(self):
+    def get_value(self):
         return self.checkPosition(noEmit=True)
 
     def checkPosition(self, pos=None, noEmit=False):
         if pos is None:
-            pos = self.beamstop.getActuatorState()
+            pos = self.beamstop.get_actuator_state()
         try:
             pos = self.beamstop.states[pos]
-        except BaseException:
+        except Exception:
             pass
 
         if not noEmit:

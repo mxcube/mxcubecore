@@ -1,6 +1,0 @@
-<device class="MotorMockup">
-  <username>sampy</username>
-  <motor_name>CentringY</motor_name>
-  <GUIstep>0.01</GUIstep>
-  <unit>1e-5</unit>
-</device>

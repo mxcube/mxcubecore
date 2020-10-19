@@ -6,12 +6,12 @@ from HardwareRepository.BaseHardwareObjects import Device
 
 class PX1Configuration(Device):
     def init(self):
-        self.use_edna_value = self.getProperty("use_edna")
-        self.pin_length = self.getProperty("pin_length")
+        self.use_edna_value = self.get_property("use_edna")
+        self.pin_length = self.get_property("pin_length")
 
-        self.centring_points = self.getProperty("centring_points")
-        self.centring_phi_incr = self.getProperty("centring_phi_increment")
-        self.centring_sample_type = self.getProperty("centring_sample_type")
+        self.centring_points = self.get_property("centring_points")
+        self.centring_phi_incr = self.get_property("centring_phi_increment")
+        self.centring_sample_type = self.get_property("centring_sample_type")
 
         print("LocalConfiguration has value sample_type=%s" % self.centring_sample_type)
 
@@ -55,14 +55,14 @@ class PX1Configuration(Device):
         self.setProperty("centring_sample_type", value)
 
     def save(self):
-        self.commitChanges()
+        self.commit_changes()
 
 
 if __name__ == "__main__":
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    env = hwr.getHardwareObject("/px1configuration")
+    env = hwr.get_hardware_object("/px1configuration")
 
     print("PX1 Configuration ")
     use_edna = env.getUseEDNA()

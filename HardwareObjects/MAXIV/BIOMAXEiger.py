@@ -55,14 +55,14 @@ class BIOMAXEiger(Equipment):
         self.energy_change_threshold_default = 20
 
     def init(self):
-        tango_device = self.getProperty("detector_device")
-        filewriter_device = self.getProperty("filewriter_device")
+        tango_device = self.get_property("detector_device")
+        filewriter_device = self.get_property("filewriter_device")
 
-        self.file_suffix = self.getProperty("file_suffix")
-        self.default_exposure_time = self.getProperty("default_exposure_time")
-        self.default_compression = self.getProperty("default_compression")
-        self.buffer_limit = self.getProperty("buffer_limit")
-        self.dcu = self.getProperty("dcu")
+        self.file_suffix = self.get_property("file_suffix")
+        self.default_exposure_time = self.get_property("default_exposure_time")
+        self.default_compression = self.get_property("default_compression")
+        self.buffer_limit = self.get_property("buffer_limit")
+        self.dcu = self.get_property("dcu")
 
         # not all of the following attr are needed, for now all of them here for
         # convenience
@@ -164,7 +164,7 @@ class BIOMAXEiger(Equipment):
         )
 
         for channel_name in attr_list:
-            self.addChannel(
+            self.add_channel(
                 {
                     "type": "tango",
                     "name": channel_name,
@@ -178,7 +178,7 @@ class BIOMAXEiger(Equipment):
         # get any of the channels for that.
 
         for channel_name in fw_list:
-            self.addChannel(
+            self.add_channel(
                 {"type": "tango", "name": channel_name, "tangoname": filewriter_device},
                 channel_name,
             )
@@ -202,28 +202,28 @@ class BIOMAXEiger(Equipment):
 
         try:
             self.energy_change_threshold = float(
-                self.getProperty("min_trigger_energy_change")
+                self.get_property("min_trigger_energy_change")
             )
-        except BaseException:
+        except Exception:
             self.energy_change_threshold = self.energy_change_threshold_default
 
-        self.getChannelObject("Compression").init_device()
-        self.getChannelObject("Compression").setValue("bslz4")
+        self.get_channel_object("Compression").init_device()
+        self.get_channel_object("Compression").set_value("bslz4")
 
-        # self.getChannelObject('TriggerMode').init_device()
-        # self.getChannelObject('TriggerMode').setValue("exts")
+        # self.get_channel_object('TriggerMode').init_device()
+        # self.get_channel_object('TriggerMode').set_value("exts")
 
     #  STATUS , status can be "idle", "ready", "UNKNOWN"
     def get_status(self):
         if self.status_chan is None:
-            self.status_chan = self.getChannelObject("Status")
+            self.status_chan = self.get_channel_object("Status")
 
             if self.status_chan is not None:
                 self.initialized = True
             else:
                 return "not_init"
 
-        return self.status_chan.getValue().split("\n")[0]
+        return self.status_chan.get_value().split("\n")[0]
 
     def is_idle(self):
         return self.get_status()[:4] == "idle"
@@ -243,8 +243,8 @@ class BIOMAXEiger(Equipment):
         else:
             return False
 
-    def wait_ready(self):
-        with gevent.Timeout(20, RuntimeError("Detector not ready")):
+    def wait_ready(self, timeout=20):
+        with gevent.Timeout(timeout, RuntimeError("Detector not ready")):
             while not self.is_ready():
                 gevent.sleep(0.1)
 
@@ -302,10 +302,14 @@ class BIOMAXEiger(Equipment):
                 while self.get_channel_value(att) != new_val:
                     gevent.sleep(0.1)
             elif "BeamCenter" in att:
-                while format(self.get_channel_value(att), ".2f") != format(new_val, ".2f"):
+                while format(self.get_channel_value(att), ".2f") != format(
+                    new_val, ".2f"
+                ):
                     gevent.sleep(0.1)
             else:
-                while format(self.get_channel_value(att), ".4f") != format(new_val, ".4f"):
+                while format(self.get_channel_value(att), ".4f") != format(
+                    new_val, ".4f"
+                ):
                     gevent.sleep(0.1)
 
     #  STATUS END
@@ -317,7 +321,7 @@ class BIOMAXEiger(Equipment):
             logging.getLogger("HWR").debug(
                 "[DETECTOR] Setting value: %s for attribute %s" % (value, name)
             )
-            self.getChannelObject(name).setValue(value)
+            self.get_channel_object(name).set_value(value)
             self.wait_attribute_applied(name, value)
         except Exception as ex:
             logging.getLogger("HWR").error(ex)
@@ -363,7 +367,7 @@ class BIOMAXEiger(Equipment):
         return sizes of a single pixel along x-axis respectively
         unit, mm
         """
-        # x_pixel_size = self.getChannelObject("XPixelSize")  # unit, m
+        # x_pixel_size = self.get_channel_object("XPixelSize")  # unit, m
         x_pixel_size = 0.000075
         return x_pixel_size * 1000
 
@@ -372,7 +376,7 @@ class BIOMAXEiger(Equipment):
         return sizes of a single pixel along y-axis respectively
         unit, mm
         """
-        # y_pixel_size = self.getChannelObject("YPixelSize")  # unit, m
+        # y_pixel_size = self.get_channel_object("YPixelSize")  # unit, m
         y_pixel_size = 0.000075
         return y_pixel_size * 1000
 
@@ -394,7 +398,7 @@ class BIOMAXEiger(Equipment):
         return self.get_channel_value("FrameTimeMin") - self.get_readout_time()
 
     def get_sensor_thickness(self):
-        return  # not available, self.getChannelObject("").getValue()
+        return  # not available, self.get_channel_object("").get_value()
 
     def has_shutterless(self):
         return True
@@ -448,7 +452,7 @@ class BIOMAXEiger(Equipment):
     def _validate_energy_value(self, energy):
         try:
             target_energy = float(energy)
-        except BaseException:
+        except Exception:
             # not a valid value
             logging.getLogger("user_level_log").info("Wrong Energy value: %s" % energy)
             return -1
@@ -647,7 +651,7 @@ class BIOMAXEiger(Equipment):
             logging.getLogger("HWR").info(
                 "[DETECTOR] Stop acquisition, detector canceled and disarmed."
             )
-        except BaseException:
+        except Exception:
             pass
 
     def cancel_acquisition(self):
@@ -655,7 +659,7 @@ class BIOMAXEiger(Equipment):
         logging.getLogger("HWR").info("[DETECTOR] Cancelling acquisition")
         try:
             self.cancel()
-        except BaseException:
+        except Exception:
             pass
 
         time.sleep(1)
@@ -663,8 +667,8 @@ class BIOMAXEiger(Equipment):
 
     def arm(self):
         logging.getLogger("HWR").info("[DETECTOR] Arm command requested")
-        cmd = self.getCommandObject("Arm")
-        cmd.setDeviceTimeout(10000)
+        cmd = self.get_command_object("Arm")
+        cmd.set_device_timeout(10000)
         cmd()
         self.wait_ready()
         logging.getLogger("HWR").info(
@@ -674,24 +678,24 @@ class BIOMAXEiger(Equipment):
         logging.getLogger("user_level_log").info("Detector armed")
 
     def trigger(self):
-        self.getCommandObject("Trigger")()
+        self.get_command_object("Trigger")()
 
     def disarm(self):
-        self.getCommandObject("Disarm")()
+        self.get_command_object("Disarm")()
 
     def enable_stream(self):
-        self.getCommandObject("EnableStream")()
+        self.get_command_object("EnableStream")()
 
     def disable_stream(self):
-        self.getCommandObject("DisableStream")()
+        self.get_command_object("DisableStream")()
 
     def cancel(self):
-        self.getCommandObject("Cancel")()
+        self.get_command_object("Cancel")()
 
     def abort(self):
         try:
-            self.getCommandObject("Abort")()
-        except BaseException:
+            self.get_command_object("Abort")()
+        except Exception:
             pass
 
 

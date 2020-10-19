@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 Redis hardware object acts as a client to Redis DB and saves
@@ -25,6 +25,7 @@ Start server on local pc: redis-server &
 It is recommended to start redis with mxcube
 
 example xml:
+NBNB OBSOLETE there is no longer a beamline_setup
 
 <object class="RedisClient">
    <object href="/beamline-setup" role="beamline_setup"/>
@@ -57,11 +58,11 @@ class RedisClient(HardwareObject):
         self.redis_client = None
 
     def init(self):
-        self.host = self.getProperty("host")
+        self.host = self.get_property("host")
         if self.host is None:
             self.host = "localhost"
 
-        self.port = self.getProperty("port")
+        self.port = self.get_property("port")
         if self.port is None:
             self.port = 6379
 
@@ -70,7 +71,7 @@ class RedisClient(HardwareObject):
         try:
             if self.redis_client.ping():
                 self.active = True
-        except BaseException:
+        except Exception:
             self.active = False
 
         if self.active:
@@ -85,10 +86,8 @@ class RedisClient(HardwareObject):
             )
 
         try:
-            self.connect(
-                HWR.beamline.flux, "fluxChanged", self.flux_changed
-            )
-        except BaseException:
+            self.connect(HWR.beamline.flux, "fluxChanged", self.flux_changed)
+        except Exception:
             pass
 
         self.proposal_id = HWR.beamline.session.get_proposal()
@@ -104,9 +103,7 @@ class RedisClient(HardwareObject):
 
     def save_queue_task(self):
         """Queue saving tasks"""
-        selected_model, queue_list = (
-            HWR.beamline.queue_model.get_queue_as_json_list()
-        )
+        selected_model, queue_list = HWR.beamline.queue_model.get_queue_as_json_list()
         self.redis_client.set(
             "mxcube:%s:%s:queue_model" % (self.proposal_id, self.beamline_name),
             selected_model,
@@ -133,7 +130,7 @@ class RedisClient(HardwareObject):
                 HWR.beamline.queue_model.select_model(selected_model)
                 HWR.beamline.queue_model.load_queue_from_json_list(
                     eval(serialized_queue),
-                    snapshot=HWR.beamline.microscope.get_scene_snapshot(),
+                    snapshot=HWR.beamline.sample_view.get_scene_snapshot(),
                 )
 
             self.active = True
@@ -147,7 +144,7 @@ class RedisClient(HardwareObject):
                 "RedisClient: Graphics saved at "
                 + "mxcube:%s:%s:graphics" % (self.proposal_id, self.beamline_name)
             )
-            graphic_objects = HWR.beamline.microscope.dump_shapes()
+            graphic_objects = HWR.beamline.sample_view.dump_shapes()
             self.redis_client.set(
                 "mxcube:%s:%s:graphics" % (self.proposal_id, self.beamline_name),
                 jsonpickle.encode(graphic_objects),
@@ -160,11 +157,11 @@ class RedisClient(HardwareObject):
                 graphics_objects = self.redis_client.get(
                     "mxcube:%s:%s:graphics" % (self.proposal_id, self.beamline_name)
                 )
-                HWR.beamline.microscope.load_shapes(
+                HWR.beamline.sample_view.load_shapes(
                     jsonpickle.decode(graphics_objects)
                 )
                 logging.getLogger("HWR").debug("RedisClient: Graphics loaded")
-            except BaseException:
+            except Exception:
                 pass
 
     def save_queue_history_item(self, item):
@@ -189,7 +186,7 @@ class RedisClient(HardwareObject):
                 )
                 for item in items:
                     result.append(eval(item))
-            except BaseException:
+            except Exception:
                 pass
         return result
 

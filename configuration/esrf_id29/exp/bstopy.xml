@@ -1,5 +1,5 @@
 <device class="MicrodiffMotor">
   <username>bstopy</username>
   <exporter_address>microdiff29new:9001</exporter_address>
-  <motor_name>CapillaryHorizontal</motor_name>
+  <actuator_name>CapillaryHorizontal</actuator_name>
 </device>

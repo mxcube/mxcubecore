@@ -1,16 +1,47 @@
-def test_detector_atributes(beamline):
-    assert not beamline.detector is None, "Detector hardware objects is None (not initialized)"
-    current_distance = beamline.detector.get_distance()
-    distance_limits = beamline.detector.get_distance_limits()
-    exp_time_limits = beamline.detector.get_exposure_time_limits()
-    has_shutterless = beamline.detector.has_shutterless()
+#! /usr/bin/env python
+# encoding: utf-8
+#
+# This file is part of MXCuBE.
+#
+# MXCuBE is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# MXCuBE is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
+"""
+"""
 
-    assert isinstance(current_distance, float), "Distance value has to be int or float. Now %s" % str(current_distance)
-    assert isinstance(distance_limits, (list, tuple)), "Distance limits has to be defined as a tuple or list"
-    assert not None in distance_limits, "One or several distance limits is None"
-    assert distance_limits[0] < distance_limits[1], "First value of distance limits has to be the low limit"
+from __future__ import division, absolute_import
+from __future__ import print_function, unicode_literals
 
-def test_detector_methods(beamline):
-    target = 600
-    beamline.detector.set_distance(target)
-    assert beamline.detector.get_distance() == target
+import pytest
+from HardwareRepository.test.pytest import TestHardwareObjectBase
+
+__copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
+__license__ = "LGPLv3+"
+__author__ = "rhfogh"
+__date__ = "08/04/2020"
+
+
+@pytest.fixture
+def test_object(beamline):
+    result = beamline.detector
+    yield result
+    # Cleanup code here - restores starting state for next call:
+    # NBNB TODO
+
+
+class TestDetector(TestHardwareObjectBase.TestHardwareObjectBase):
+    def test_detector_atributes(self, test_object):
+        assert (
+            test_object is not None
+        ), "Detector hardware object is None (not initialized)"
+        exp_time_limits = test_object.get_exposure_time_limits()
+        has_shutterless = test_object.has_shutterless()

@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#   You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#   You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import time
 import logging
@@ -23,7 +23,7 @@ import random
 import warnings
 
 from HardwareRepository.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer
+    GenericDiffractometer,
 )
 from HardwareRepository import HardwareRepository as HWR
 from gevent.event import AsyncResult
@@ -79,38 +79,32 @@ class DiffractometerMockup(GenericDiffractometer):
         # self.image_width = 400
         # self.image_height = 400
 
-        self.mount_mode = self.getProperty("sample_mount_mode")
+        self.mount_mode = self.get_property("sample_mount_mode")
         if self.mount_mode is None:
             self.mount_mode = "manual"
 
         self.equipment_ready()
 
-        # TODO FFS get this cleared up - one function, one name
-        self.getPositions = self.get_positions
-        self.moveMotors = self.move_motors
-
+        self.connect(self.motor_hwobj_dict["phi"], "valueChanged", self.phi_motor_moved)
         self.connect(
-            self.motor_hwobj_dict["phi"], "positionChanged", self.phi_motor_moved
+            self.motor_hwobj_dict["phiy"], "valueChanged", self.phiy_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["phiy"], "positionChanged", self.phiy_motor_moved
+            self.motor_hwobj_dict["phiz"], "valueChanged", self.phiz_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["phiz"], "positionChanged", self.phiz_motor_moved
-        )
-        self.connect(
-            self.motor_hwobj_dict["kappa"], "positionChanged", self.kappa_motor_moved
+            self.motor_hwobj_dict["kappa"], "valueChanged", self.kappa_motor_moved
         )
         self.connect(
             self.motor_hwobj_dict["kappa_phi"],
-            "positionChanged",
+            "valueChanged",
             self.kappa_phi_motor_moved,
         )
         self.connect(
-            self.motor_hwobj_dict["sampx"], "positionChanged", self.sampx_motor_moved
+            self.motor_hwobj_dict["sampx"], "valueChanged", self.sampx_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["sampy"], "positionChanged", self.sampy_motor_moved
+            self.motor_hwobj_dict["sampy"], "valueChanged", self.sampy_motor_moved
         )
 
     def getStatus(self):
@@ -145,7 +139,7 @@ class DiffractometerMockup(GenericDiffractometer):
             self.user_clicked_event = AsyncResult()
             x, y = self.user_clicked_event.get()
             if click < 2:
-                self.motor_hwobj_dict["phi"].move_relative(90)
+                self.motor_hwobj_dict["phi"].set_value_relative(90)
         self.last_centred_position[0] = x
         self.last_centred_position[1] = y
         centred_pos_dir = self._get_random_centring_position()
@@ -161,7 +155,7 @@ class DiffractometerMockup(GenericDiffractometer):
         """Get random centring result for current positions"""
 
         # Names of motors to vary during centring
-        vary_motor_names = ("sampx", "sampy", "phiy")
+        vary_actuator_names = ("sampx", "sampy", "phiy")
 
         # Range of random variation
         var_range = 0.08
@@ -170,7 +164,7 @@ class DiffractometerMockup(GenericDiffractometer):
         var_limit = 2.0
 
         result = self.current_motor_positions.copy()
-        for tag in vary_motor_names:
+        for tag in vary_actuator_names:
             val = result.get(tag)
             if val is not None:
                 random_num = random.random()
@@ -188,7 +182,7 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         return True
 
-    def isValid(self):
+    def is_valid(self):
         """
         Descript. :
         """
@@ -253,7 +247,7 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         try:
             return self.move_to_centred_position(centred_position)
-        except BaseException:
+        except Exception:
             logging.exception("Could not move to centred position")
 
     def phi_motor_moved(self, pos):
@@ -316,10 +310,12 @@ class DiffractometerMockup(GenericDiffractometer):
                     positions.
         """
 
-        print(("moving to beam position: %d %d" % (
-            self.beam_position[0],
-            self.beam_position[1],
-        )))
+        print(
+            (
+                "moving to beam position: %d %d"
+                % (self.beam_position[0], self.beam_position[1])
+            )
+        )
 
     def move_to_coord(self, x, y, omega=None):
         """
@@ -357,7 +353,7 @@ class DiffractometerMockup(GenericDiffractometer):
         self.current_centring_method = None
         self.current_centring_procedure = None
 
-    def update_values(self):
+    def re_emit_values(self):
         self.emit("zoomMotorPredefinedPositionChanged", None, None)
         omega_ref = [0, 238]
         self.emit("omegaReferenceChanged", omega_ref)
@@ -388,7 +384,7 @@ class DiffractometerMockup(GenericDiffractometer):
         return (-360, 360)
 
     def move_omega_relative(self, relative_angle):
-        self.motor_hwobj_dict["phi"].syncMoveRelative(relative_angle, 5)
+        self.motor_hwobj_dict["phi"].set_value_relative(relative_angle, 5)
 
     def set_phase(self, phase, timeout=None):
         self.current_phase = str(phase)

@@ -1,7 +1,7 @@
 # from qt import *
 
-from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
 
 from HardwareRepository.Command.Tango import DeviceProxy
 
@@ -10,7 +10,7 @@ import os
 import time
 
 
-class PX1Energy(Device):
+class PX1Energy(Device, AbstractEnergy):
 
     energy_state = {
         "ALARM": "error",
@@ -33,40 +33,40 @@ class PX1Energy(Device):
         self.current_state = None
 
         try:
-            self.monodevice = DeviceProxy(self.getProperty("mono_device"))
-        except BaseException:
-            self.errorDeviceInstance(self.getProperty("mono_device"))
+            self.monodevice = DeviceProxy(self.get_property("mono_device"))
+        except Exception:
+            self.errorDeviceInstance(self.get_property("mono_device"))
 
         # Nom du device bivu (Energy to gap) : necessaire pour amelioration du
         # positionnement de l'onduleur (Backlash)
-        self.und_device = DeviceProxy(self.getProperty("undulator_device"))
-        self.doBacklashCompensation = self.getProperty("backlash")
+        self.und_device = DeviceProxy(self.get_property("undulator_device"))
+        self.doBacklashCompensation = self.get_property("backlash")
 
         # parameters for polling
-        self.isConnected()
+        self.is_connected()
 
-        self.energy_chan = self.getChannelObject("energy")
-        self.energy_chan.connectSignal("update", self.energyChanged)
+        self.energy_chan = self.get_channel_object("energy")
+        self.energy_chan.connect_signal("update", self.energyChanged)
 
-        self.stop_cmd = self.getCommandObject("stop")
+        self.stop_cmd = self.get_command_object("stop")
 
-        self.state_chan = self.getChannelObject("state")
-        self.state_chan.connectSignal("update", self.stateChanged)
+        self.state_chan = self.get_channel_object("state")
+        self.state_chan.connect_signal("update", self.stateChanged)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "energyChanged":
             logging.getLogger("HWR").debug(
-                "PX1Energy. connectNotify. sending energy value %s" % self.get_energy()
+                "PX1Energy. connect_notify. sending energy value %s" % self.get_value()
             )
             self.energyChanged(self.get_energy())
 
         if signal == "stateChanged":
             logging.getLogger("HWR").debug(
-                "PX1Energy. connectNotify. sending state value %s" % self.get_state()
+                "PX1Energy. connect_notify. sending state value %s" % self.get_state()
             )
             self.stateChanged(self.get_state())
 
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def stateChanged(self, value):
         str_state = str(value)
@@ -91,14 +91,14 @@ class PX1Energy(Device):
 
         self.current_energy = value
 
-        wav = self.get_current_wavelength()
+        wav = self.get_wavelength()
         if wav is not None:
             self.emit("energyChanged", (value, wav))
 
     def isSpecConnected(self):
         return True
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def sConnected(self):
@@ -110,24 +110,11 @@ class PX1Energy(Device):
     def isDisconnected(self):
         return True
 
-    # Definit si la beamline est a energie fixe ou variable
-    def can_move_energy(self):
-        return True
-
-    def getPosition(self):
-        return self.get_current_energy()
-
-    def get_current_energy(self):
-        return self.get_energy()
-
-    def get_energy(self):
-        return self.energy_chan.getValue()
-
-    def getState(self):
-        return self.get_state()
+    def get_value(self):
+        return self.energy_chan.get_value()
 
     def get_state(self):
-        return str(self.state_chan.getValue())
+        return str(self.state_chan.get_value())
 
     def getEnergyComputedFromCurrentGap(self):
         return self.und_device.energy
@@ -138,18 +125,15 @@ class PX1Energy(Device):
     def get_wavelength(self):
         return self.monodevice.read_attribute("lambda").value
 
-    def get_current_wavelength(self):
+    def get_wavelength(self):
         return self.get_wavelength()
 
-    def getLimits(self):
-        return self.getEnergyLimits()
-
-    def get_energy_limits(self):
+    def get_limits(self):
         chan_info = self.energy_chan.getInfo()
         return (float(chan_info.min_value), float(chan_info.max_value))
 
     def get_wavelength_limits(self):
-        energy_min, energy_max = self.getEnergyLimits()
+        energy_min, energy_max = self.get_limits()
 
         # max is min and min is max
         max_lambda = self.energy_to_lambda(energy_min)
@@ -167,7 +151,7 @@ class PX1Energy(Device):
         self.monodevice.simLambda = value
         return self.monodevice.simEnergy
 
-    def move_energy(self, value, wait=False):
+    def set_value(self, value, wait=False):
         value = float(value)
 
         backlash = 0.1  # en mm
@@ -195,12 +179,12 @@ class PX1Energy(Device):
                             while str(self.und_device.State()) == "MOVING":
                                 time.sleep(0.2)
 
-                            self.energy_chan.setValue(value)
+                            self.energy_chan.set_value(value)
                         else:
                             self.und_device.gap = gaplimite
                             self.und_device.gap = newgap + backlash
                         time.sleep(1)
-                except BaseException:
+                except Exception:
                     logging.getLogger("HWR").error(
                         "%s: Cannot move undulator U20 : State device = %s",
                         self.name(),
@@ -208,9 +192,9 @@ class PX1Energy(Device):
                     )
 
             try:
-                self.energy_chan.setValue(value)
+                self.energy_chan.set_value(value)
                 return value
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").error(
                     "%s: Cannot move Energy : State device = %s",
                     self.name(),
@@ -224,12 +208,12 @@ class PX1Energy(Device):
                 self.get_state(),
             )
 
-    def move_wavelength(self, value, wait=False):
+    def set_wavelength(self, value, wait=False):
         egy_value = self.lambda_to_energy(float(value))
         logging.getLogger("HWR").debug(
             "%s: Moving wavelength to : %s (egy to %s" % (self.name(), value, egy_value)
         )
-        self.move_energy(egy_value)
+        self.set_valuey(egy_value)
         return value
 
     def cancelMoveEnergy(self):
@@ -280,15 +264,9 @@ class PX1Energy(Device):
     def restoreResolution(self):
         return (False, "Resolution motor not defined")
 
-    getEnergyLimits = get_energy_limits
-    getWavelengthLimits = get_wavelength_limits
-    canMoveEnergy = can_move_energy
-    startMoveEnergy = move_energy
-    startMoveWavelength = move_wavelength
-
 
 def test_hwo(hwo):
-    print(hwo.getPosition())
-    print(hwo.get_current_wavelength())
-    print(hwo.get_energy_limits())
+    print(hwo.get_value())
+    print(hwo.get_wavelength())
+    print(hwo.get_limits())
     print(hwo.getCurrentUndulatorGap())

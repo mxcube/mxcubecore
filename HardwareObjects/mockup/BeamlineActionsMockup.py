@@ -33,11 +33,11 @@ class ControllerCommand(CommandObject):
         self.type = "CONTROLLER"
 
         if self.name() == "Anneal":
-            self.addArgument("Time [s]", "float")
+            self.add_argument("Time [s]", "float")
         if self.name() == "Test":
-            self.addArgument("combo test", "combo", [{"value1": 0, "value2": 1}])
+            self.add_argument("combo test", "combo", [{"value1": 0, "value2": 1}])
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     @task
@@ -52,7 +52,7 @@ class ControllerCommand(CommandObject):
                 res = cmd_execution.get()
             except Exception:
                 logging.getLogger("HWR").exception(
-                    "%s: execution failed", str(self.userName())
+                    "%s: execution failed", str(self.username)
                 )
                 self.emit("commandFailed", (str(self.name()),))
             else:
@@ -84,5 +84,5 @@ class BeamlineActionsMockup(HardwareObject):
         self.anneal = ControllerCommand("Anneal", None, klass=SimulatedActionError)
         self.combotest = ControllerCommand("Test", None, "Test with combo box")
 
-    def getCommands(self):
+    def get_commands(self):
         return [self.centrebeam, self.quick_realign, self.anneal, self.combotest]

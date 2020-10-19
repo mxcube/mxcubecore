@@ -7,11 +7,11 @@ class ExporterZoom(ExporterMotor):
         ExporterMotor.__init__(self, name)
 
     def init(self):
-        self.motor_name = "Zoom"
+        self.actuator_name = "Zoom"
         self.motor_pos_attr_suffix = "Position"
         self._last_position_name = None
 
-        self.chan_predefined_position = self.addChannel(
+        self.chan_predefined_position = self.add_channel(
             {"type": "exporter", "name": "predefined_position"},
             "CoaxialCameraZoomValue",
         )
@@ -30,7 +30,7 @@ class ExporterZoom(ExporterMotor):
         }
         self.sort_predefined_positions_list()
         self.set_limits((0, 10))
-        self.set_state(self.motor_states.READY)
+        self.update_state(self.motor_states.READY)
 
         ExporterMotor.init(self)
 
@@ -42,7 +42,7 @@ class ExporterZoom(ExporterMotor):
             )
         )
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "predefinedPositionChanged":
             position_name = self.get_current_position_name()
 
@@ -53,7 +53,7 @@ class ExporterZoom(ExporterMotor):
             else:
                 self.emit(signal, (position_name, pos))
         else:
-            return ExporterMotor.connectNotify.im_func(self, signal)
+            return ExporterMotor.connect_notify.im_func(self, signal)
 
     def get_predefined_positions_list(self):
         return self.predefined_positions_names_list
@@ -70,7 +70,7 @@ class ExporterZoom(ExporterMotor):
             )
 
     def get_current_position_name(self, position=None):
-        position = self.chan_predefined_position.getValue()
+        position = self.chan_predefined_position.get_value()
 
         for position_name in self.predefined_positions:
             if math.fabs(self.predefined_positions[position_name] - position) <= 1e-3:
@@ -78,7 +78,9 @@ class ExporterZoom(ExporterMotor):
         return ""
 
     def move_to_position(self, position_name):
-        self.chan_predefined_position.setValue(self.predefined_positions[position_name])
+        self.chan_predefined_position.set_value(
+            self.predefined_positions[position_name]
+        )
 
     def zoom_in(self):
         position_name = self.get_current_position_name()

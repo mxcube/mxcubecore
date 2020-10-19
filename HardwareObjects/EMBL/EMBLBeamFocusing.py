@@ -52,7 +52,7 @@ class EMBLBeamFocusing(HardwareObject):
            attaches corresponding motors
         """
 
-        self.cmd_set_calibration_name = self.getCommandObject("cmdSetCalibrationName")
+        self.cmd_set_calibration_name = self.get_command_object("cmdSetCalibrationName")
         self.focus_modes = []
         for focus_mode in self["focusModes"]:
             self.focus_modes.append(
@@ -68,17 +68,17 @@ class EMBLBeamFocusing(HardwareObject):
             )
         self.focus_motors_dict = {}
 
-        focus_motors = eval(self.getProperty("focusMotors", "[]"))
+        focus_motors = eval(self.get_property("focusMotors", "[]"))
 
         for focus_motor in focus_motors:
             self.focus_motors_dict[focus_motor] = []
 
         self.motors_groups = [
-            self.getObjectByRole("P14ExpTbl"),
-            self.getObjectByRole("P14KB"),
-            self.getObjectByRole("P14DetTrans"),
-            self.getObjectByRole("P14BCU"),
-            self.getObjectByRole("slitsMotors"),
+            self.get_object_by_role("P14ExpTbl"),
+            self.get_object_by_role("P14KB"),
+            self.get_object_by_role("P14DetTrans"),
+            self.get_object_by_role("P14BCU"),
+            self.get_object_by_role("slitsMotors"),
         ]
 
         if len(self.motors_groups) > 0:
@@ -88,19 +88,19 @@ class EMBLBeamFocusing(HardwareObject):
                     "mGroupFocModeChanged",
                     self.motor_group_focus_mode_changed,
                 )
-                motors_group.update_values()
+                motors_group.re_emit_values()
         else:
             logging.getLogger("HWR").debug("BeamFocusing: No motors defined")
             self.active_focus_mode = self.focus_modes[0]["modeName"]
             self.size = self.focus_modes[0]["size"]
-        self.update_values()
+        self.re_emit_values()
 
         try:
-            self.cmd_set_phase = eval(self.getProperty("setPhaseCmd"))
-        except BaseException:
+            self.cmd_set_phase = eval(self.get_property("setPhaseCmd"))
+        except Exception:
             pass
 
-        self.aperture_hwobj = self.getObjectByRole("aperture")
+        self.aperture_hwobj = self.get_object_by_role("aperture")
 
     def get_focus_motors(self):
         """Returns a list with all focusing motors
@@ -296,6 +296,6 @@ class EMBLBeamFocusing(HardwareObject):
             if focus_mode["modeName"] == self.active_focus_mode:
                 return focus_mode["diverg"][1]
 
-    def update_values(self):
+    def re_emit_values(self):
         """Reemits available signals"""
         self.emit("focusingModeChanged", self.active_focus_mode, self.size)

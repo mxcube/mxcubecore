@@ -5,17 +5,17 @@
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#   You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#   You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import time
@@ -29,12 +29,11 @@ except ImportError:
     from PyQt4.QtCore import Qt
 
 from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
-    AbstractVideoDevice
+    AbstractVideoDevice,
 )
 
 
 class QtVideoMockup(AbstractVideoDevice):
-
     def __init__(self, name):
         AbstractVideoDevice.__init__(self, name)
         self.force_update = None
@@ -46,7 +45,7 @@ class QtVideoMockup(AbstractVideoDevice):
         current_path = os.path.join(*current_path[1:-2])
 
         default_image_path = "/" + current_path + "/test/fakeimg.jpg"
-        image_path = self.getProperty("file_name", default_image_path)
+        image_path = self.get_property("file_name", default_image_path)
 
         self.image = QPixmap(image_path)
         self.image_dimensions = (self.image.width(), self.image.height())
@@ -61,7 +60,7 @@ class QtVideoMockup(AbstractVideoDevice):
         custom_brush.setColor(Qt.lightGray)
         self.painter.setBrush(custom_brush)
 
-        self.setIsReady(True)
+        self.set_is_ready(True)
         AbstractVideoDevice.init(self)
 
     def get_new_image(self):

@@ -1,6 +1,6 @@
 <device class="MicrodiffMotor">
     <tangoname>i11-ma-cx1/ex/md2</tangoname>
-    <motor_name>BeamstopY</motor_name>
+    <actuator_name>BeamstopY</actuator_name>
     <username>BeamstopY</username>
     <direction>1</direction>
     <GUIstep>0.1</GUIstep>

@@ -1,7 +1,7 @@
 from xaloc import XalocJob
 from XSDataCommon import XSDataFile, XSDataString
 from XSDataMXCuBEv1_3 import XSDataResultMXCuBE
-from HardwareRepository.HardwareObjects.DataAnalysis import DataAnalysis
+from HardwareRepository.HardwareObjects.EDNACharacterisation import EDNACharacterisation
 from PyTango import DeviceProxy
 import os
 import time
@@ -17,11 +17,11 @@ root = os.environ["POST_PROCESSING_SCRIPTS_ROOT"]
 sls_script = os.path.join(root, "edna-mx/strategy/edna-mx.strategy.sl")
 
 
-class ALBADataAnalysis(DataAnalysis):
+class ALBADataAnalysis(EDNACharacterisation):
     def init(self):
-        DataAnalysis.init(self)
+        EDNACharacterisation.init(self)
 
-    def prepare_edna_input(self, edna_input):
+    def prepare_input(self, edna_input):
 
         # used for strategy calculation (characterization) using data analysis cluster
         # ALBA specific
@@ -59,7 +59,7 @@ class ALBADataAnalysis(DataAnalysis):
 
         output_dir = XSDataFile()
         path = XSDataString()
-        path.setValue(edna_directory)
+        path.set_value(edna_directory)
         output_dir.setPath(path)
         edna_input.setOutputFileDirectory(output_dir)
 
@@ -123,7 +123,7 @@ class ALBADataAnalysis(DataAnalysis):
         try:
             state = self.job.state
             logging.getLogger("HWR").debug("Job / is %s" % str(state))
-        except BaseException:
+        except Exception:
             import traceback
 
             logging.getLogger("HWR").debug(

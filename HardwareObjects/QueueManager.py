@@ -10,8 +10,9 @@ documentation for the queue_entry module for more information.
 import logging
 import gevent
 from HardwareRepository.HardwareObjects import base_queue_entry, queue_entry
-
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.HardwareObjects.base_queue_entry import QUEUE_ENTRY_STATUS
+
 QueueEntryContainer = base_queue_entry.QueueEntryContainer
 
 
@@ -150,7 +151,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
 
         status = "Successful"
         # self.emit('centringAllowed', (False, ))
-        self.emit("queue_entry_execute_started", (entry,))
+        self.emit("queue_entry_execute_started", (entry, status))
         self.set_current_entry(entry)
         self._current_queue_entries.append(entry)
 
@@ -167,6 +168,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         try:
             # Procedure to be done before main implmentation
             # of task.
+            entry.status = QUEUE_ENTRY_STATUS.RUNNING
             entry.pre_execute()
             entry.execute()
 
@@ -175,17 +177,21 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             # This part should not be here
             # But somehow exception from collect_failed is not catched here
             if entry.is_failed():
+                entry.status = QUEUE_ENTRY_STATUS.FAILED
                 self.emit("queue_entry_execute_finished", (entry, "Failed"))
                 self.emit(
                     "statusMessage", ("status", "Queue execution failed", "error")
                 )
             else:
+                entry.status = QUEUE_ENTRY_STATUS.SUCCESS
                 self.emit("queue_entry_execute_finished", (entry, "Successful"))
                 self.emit("statusMessage", ("status", "", "ready"))
         except base_queue_entry.QueueSkippEntryException:
             # Queue entry, failed, skipp.
+            entry.status = QUEUE_ENTRY_STATUS.SKIPPED
             self.emit("queue_entry_execute_finished", (entry, "Skipped"))
         except base_queue_entry.QueueExecutionException as ex:
+            entry.status = QUEUE_ENTRY_STATUS.FAILED
             self.emit("queue_entry_execute_finished", (entry, "Failed"))
             self.emit("statusMessage", ("status", "Queue execution failed", "error"))
         except (base_queue_entry.QueueAbortedException, Exception) as ex:
@@ -194,6 +200,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             # Definetly not good state, but call post_execute
             # in anyways, there might be code that cleans up things
             # done in _pre_execute or before the exception in _execute.
+            entry.status = QUEUE_ENTRY_STATUS.FAILED
             self.emit("queue_entry_execute_finished", (entry, "Aborted"))
             entry.post_execute()
             entry.handle_exception(ex)
@@ -215,12 +222,13 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         if self._queue_entry_list:
             for qe in self._current_queue_entries:
                 try:
+                    qe.QUEUE_ENTRY_STATUS.FAILED
                     self.emit("queue_entry_execute_finished", (qe, "Aborted"))
                     qe.stop()
                     qe.post_execute()
                 except base_queue_entry.QueueAbortedException:
                     pass
-                except BaseException:
+                except Exception:
                     pass
 
         self._root_task.kill(block=False)

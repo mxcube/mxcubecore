@@ -40,7 +40,7 @@ This object manages the movement of several motors to predefined positions.
 
 
 METHOD
-    name:           getState
+    name:           get_state
     input par.:     None
     output par.:    state
     description:    return an and on the state of all the  motor used in the
@@ -51,7 +51,7 @@ METHOD
     output par.:    None
     description:    move all motors to the predefined position "position"
 
-    name:           getPosition
+    name:           get_value
     input par.:     None
     output par.:    position
     description:    return the name of the current predefined position.
@@ -156,31 +156,31 @@ class MultiplePositions(Equipment):
             self.mode = "absolute"
 
         motors = self["motors"]
-        self.roles = motors.getRoles()
+        self.roles = motors.get_roles()
 
         self.deltas = {}
         try:
             # WARNING self.deltas is a LINK to the INTERNAL properties dictionary
             # modifying it modifies the GLOBAL properties, not just the local copy
-            # Maybe do self["deltas"].getProperties().copy()?
-            self.deltas = self["deltas"].getProperties()
-        except BaseException:
+            # Maybe do self["deltas"].get_properties().copy()?
+            self.deltas = self["deltas"].get_properties()
+        except Exception:
             logging.getLogger().error("No deltas.")
 
         self.positions = {}
         self.positionsIndex = []
         try:
             positions = self["positions"]
-        except BaseException:
+        except Exception:
             logging.getLogger().error("No positions.")
         else:
             for position in positions:
-                name = position.getProperty("name")
+                name = position.get_property("name")
                 if name is not None:
                     self.positionsIndex.append(name)
                     self.positions[name] = {}
 
-                    motpos = position.getProperties()
+                    motpos = position.get_properties()
                     motroles = list(motpos.keys())
 
                     for role in self.roles:
@@ -190,48 +190,48 @@ class MultiplePositions(Equipment):
 
         self.motors = {}
         for mot in self["motors"]:
-            self.motors[mot.getMotorMnemonic()] = mot
+            self.motors[mot.get_motor_mnemonic()] = mot
             self.connect(mot, "moveDone", self.checkPosition)
-            self.connect(mot, "positionChanged", self.checkPosition)
+            self.connect(mot, "valueChanged", self.checkPosition)
             self.connect(mot, "stateChanged", self.stateChanged)
 
-    def getState(self):
-        if not self.isReady():
+    def get_state(self):
+        if not self.is_ready():
             return ""
 
         state = "READY"
         for mot in self.motors.values():
-            if mot.getState() == mot.MOVING:
+            if mot.get_state() == mot.MOVING:
                 state = "MOVING"
-            elif mot.getState() == mot.UNUSABLE:
+            elif mot.get_state() == mot.UNUSABLE:
                 return "UNUSABLE"
 
         return state
 
     def stateChanged(self, state):
-        self.emit("stateChanged", (self.getState(),))
+        self.emit("stateChanged", (self.get_state(),))
         self.checkPosition()
 
     def moveToPosition(self, name, wait=False):
         move_list = []
         for role in self.roles:
-            device = self.getDeviceByRole(role)
+            device = self.get_deviceby_role(role)
             pos = self.positions[name][role]
             move_list.append((device, pos))
 
         for mot, pos in move_list:
             if mot is not None:
-                mot.move(pos)
+                mot.set_value(pos)
 
         if wait:
             [mot.waitEndOfMove() for mot, pos in move_list if mot is not None]
         """
         for mne,pos in self.positions[name].items():
-        self.motors[mne].move(pos)
+        self.motors[mne].set_value(pos)
         """
 
-    def getPosition(self):
-        if not self.isReady():
+    def get_value(self):
+        if not self.is_ready():
             return None
 
         for posName, position in self.positions.items():
@@ -239,17 +239,17 @@ class MultiplePositions(Equipment):
 
             for role in self.roles:
                 pos = position[role]
-                mot = self.getDeviceByRole(role)
+                mot = self.get_deviceby_role(role)
 
                 if mot is not None:
-                    motpos = mot.getPosition()
+                    motpos = mot.get_value()
                     try:
                         if (
                             motpos < pos + self.deltas[role]
                             and motpos > pos - self.deltas[role]
                         ):
                             findPosition += 1
-                    except BaseException:
+                    except Exception:
                         continue
 
             if findPosition == len(self.roles):
@@ -258,10 +258,10 @@ class MultiplePositions(Equipment):
         return None
 
     def checkPosition(self, *args):
-        if not self.isReady():
+        if not self.is_ready():
             return None
 
-        posName = self.getPosition()
+        posName = self.get_value()
 
         if posName is None:
             self.emit("noPosition", ())
@@ -282,7 +282,7 @@ class MultiplePositions(Equipment):
             position.setProperty(role, pos)
 
         self.checkPosition()
-        self.commitChanges()
+        self.commit_changes()
 
     def getPositionKeyValue(self, name, key):
         position = self.__getPositionObject(name)
@@ -290,7 +290,7 @@ class MultiplePositions(Equipment):
         if position is None:
             return None
 
-        return position.getProperty(key)
+        return position.get_property(key)
 
     def setPositionKeyValue(self, name, key, value):
         xml_tree = cElementTree.fromstring(self.xml_source())
@@ -302,7 +302,7 @@ class MultiplePositions(Equipment):
                 if pos.find(key) is not None:
                     position = self.__getPositionObject(name)
                     position.setProperty(key, str(value))
-                    self.commitChanges()
+                    self.commit_changes()
                     return True
                 else:
                     key_el = cElementTree.SubElement(pos, key)
@@ -315,7 +315,7 @@ class MultiplePositions(Equipment):
 
     def __getPositionObject(self, name):
         for position in self["positions"]:
-            if position.getProperty("name") == name:
+            if position.get_property("name") == name:
                 return position
 
         return None

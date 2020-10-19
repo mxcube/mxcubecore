@@ -1,6 +1,6 @@
 <!--<device class="MicrodiffMotor">
   <exporter_address>p13md201.embl-hamburg.de:9001</exporter_address>
-  <motor_name>CentringTableVertical</motor_name>
+  <actuator_name>CentringTableVertical</actuator_name>
 </device> -->
 <device class="TINEMotor">
   <command type="tine" name="setPosition" tinename="/P13/MD/MD_0">CentringTableVerticalPosition</command>

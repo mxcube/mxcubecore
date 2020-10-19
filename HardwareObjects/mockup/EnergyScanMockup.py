@@ -9,7 +9,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 from HardwareRepository.TaskUtils import cleanup
 from HardwareRepository.HardwareObjects.abstract.AbstractEnergyScan import (
-    AbstractEnergyScan
+    AbstractEnergyScan,
 )
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository import HardwareRepository as HWR
@@ -217,9 +217,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         self.scan_info["exposureTime"] = exptime
 
         if HWR.beamline.transmission is not None:
-            self.scan_info["transmissionFactor"] = (
-                HWR.beamline.transmission.get_value()
-            )
+            self.scan_info["transmissionFactor"] = HWR.beamline.transmission.get_value()
         else:
             self.scan_info["transmissionFactor"] = None
         size_hor = None
@@ -266,7 +264,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
                 os.makedirs(scan_directory)
             if not os.path.exists(archive_directory):
                 os.makedirs(archive_directory)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "EnergyScan: could not create energy scan result directory."
             )
@@ -277,7 +275,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         try:
             scan_file_raw = open(scan_file_raw_filename, "w")
             archive_file_raw = open(archive_file_raw_filename, "w")
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "EnergyScan: could not create energy scan result raw file"
             )
@@ -363,7 +361,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
                 scan_file_png_filename,
             )
             canvas.print_figure(scan_file_png_filename, dpi=80)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("could not print figure")
         try:
             logging.getLogger("HWR").info(
@@ -371,7 +369,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
                 archive_file_png_filename,
             )
             canvas.print_figure(archive_file_png_filename, dpi=80)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("could not save figure")
 
         self.store_energy_scan()
@@ -425,10 +423,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
             pass
         return energies
 
-    def canMoveEnergy(self):
-        return False
-
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def scanCommandStarted(self, *args):

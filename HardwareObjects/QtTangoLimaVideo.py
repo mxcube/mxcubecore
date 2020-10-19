@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 [Name]
@@ -46,7 +46,7 @@ import numpy as np
 import PyTango
 
 from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
-    AbstractVideoDevice
+    AbstractVideoDevice,
 )
 
 
@@ -67,10 +67,10 @@ class QtTangoLimaVideo(AbstractVideoDevice):
         Descript. :
         """
 
-        tangoname = self.getProperty("tangoname")
+        tangoname = self.get_property("tangoname")
 
-        width = self.getProperty("width")
-        height = self.getProperty("height")
+        width = self.get_property("width")
+        height = self.get_property("height")
 
         if None not in [width, height]:
             self.width = width
@@ -89,7 +89,8 @@ class QtTangoLimaVideo(AbstractVideoDevice):
             self.device.video_mode = "YUV422"
         elif cam_encoding == "y8":
             self.device.video_mode = "Y8"
-
+        elif cam_encoding.lower() == "bayer_rg16":
+            self.device.video_mode = "BAYER_RG16"
         AbstractVideoDevice.set_cam_encoding(self, cam_encoding)
 
     """ Overloading of AbstractVideoDevice methods """

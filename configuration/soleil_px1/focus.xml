@@ -1,7 +1,7 @@
 <device class="TangoDCMotor">
   <username>FocusOVA</username>
   <tangoname>i10-c-cx1/ex/oav.1-mt_ts</tangoname>
-  <motor_name>FocusMotor</motor_name>
+  <actuator_name>FocusMotor</actuator_name>
   <channel type="tango" polling="1000" name="position">position</channel>
   <channel type="tango" polling="1000" name="state">State</channel>
 </device>

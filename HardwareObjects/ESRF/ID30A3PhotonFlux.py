@@ -9,14 +9,14 @@ class ID30A3PhotonFlux(Equipment):
         Equipment.__init__(self, *args, **kwargs)
 
     def init(self):
-        controller = self.getObjectByRole("controller")
+        controller = self.get_object_by_role("controller")
         self.musst = controller.musst
-        self.shutter = self.getDeviceByRole("shutter")
-        self.factor = self.getProperty("current_photons_factor")
+        self.shutter = self.get_deviceby_role("shutter")
+        self.factor = self.get_property("current_photons_factor")
 
         self.shutter.connect("shutterStateChanged", self.shutterStateChanged)
 
-        self.tg_device = DeviceProxy(self.getProperty("tango_device"))
+        self.tg_device = DeviceProxy(self.get_property("tango_device"))
         self.counts_reading_task = self._read_counts_task(wait=False)
 
     @task
@@ -41,7 +41,7 @@ class ID30A3PhotonFlux(Equipment):
         counts = abs(self.tg_device.ReadData) * 1e6
         return counts
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "valueChanged":
             self.emitValueChanged()
 
@@ -67,12 +67,12 @@ class ID30A3PhotonFlux(Equipment):
         flux = None
 
         try:
-          egy = HWR.beamline.energy.getPosition()*1000.0
+          egy = HWR.beamline.energy.get_value()*1000.0
         except:
           logging.getLogger("HWR").exception("%s: could not get energy", self.name())
         else:
           try:
-            calib_dict = self.calibration_chan.getValue()
+            calib_dict = self.calibration_chan.get_value()
             if calib_dict is None:
               logging.getLogger("HWR").error("%s: calibration is None", self.name())
             else:
@@ -95,7 +95,7 @@ class ID30A3PhotonFlux(Equipment):
             self.emitValueChanged("%1.3g" % flux)
         """
 
-    def getCurrentFlux(self):
+    def get_value(self):
         return self.current_flux
 
     def emitValueChanged(self, flux=None):

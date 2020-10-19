@@ -8,21 +8,26 @@ Example xml file:
 </device>
 """
 import logging
+from warnings import warn
 
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator
+    AbstractActuator,
 )
 from HardwareRepository.TaskUtils import task
 
 
 class BlissActuator(AbstractActuator):
     def __init__(self, name):
+        warn(
+            "BlissActuator class is deprecated. Use BlissNState instead",
+            DeprecationWarning,
+        )
         AbstractActuator.__init__(self, name)
 
     def init(self):
-        self.username = self.getProperty("username")
-        name = self.getProperty("name")
-        self._actuator = getattr(self.getObjectByRole("controller"), name)
+        self.username = self.get_property("username")
+        name = self.get_property("name")
+        self._actuator = getattr(self.get_object_by_role("controller"), name)
         self.states = {"IN": "IN", "OUT": "OUT"}
         self.value_changed(self._actuator.state())
 
@@ -32,7 +37,7 @@ class BlissActuator(AbstractActuator):
             self.actuator_state = self.states.get(value, AbstractActuator.UNKNOWN)
         else:
             if self.actuator_state == AbstractActuator.UNKNOWN:
-                self.connectNotify("actuatorStateChanged")
+                self.connect_notify("actuatorStateChanged")
 
         logging.getLogger().debug("%s state: %s" % (self.username, self.actuator_state))
         return self.actuator_state
@@ -47,6 +52,5 @@ class BlissActuator(AbstractActuator):
         self.value_changed(self._actuator.state())
 
     # Compatability with camelcase API
-    getActuatorState = get_actuator_state
     actuatorIn = actuator_in
     actuatorOut = actuator_out

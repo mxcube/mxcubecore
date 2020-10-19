@@ -1,5 +1,5 @@
 <device class="SardanaMotor">
   <username>Center Y</username>
   <taurusname>centy</taurusname>
-  <motor_name>CentY</motor_name>
+  <actuator_name>CentY</actuator_name>
 </device>

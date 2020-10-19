@@ -1,6 +1,6 @@
 <device class="MicrodiffMotor">
     <exporter_address>172.19.10.119:9001</exporter_address>
-    <motor_name>ScintillatorHorizontal</motor_name>
+    <actuator_name>ScintillatorHorizontal</actuator_name>
     <username>ScintillatorHorizontal</username>
     <direction>1</direction>
     <GUIstep>0.1</GUIstep>

@@ -1,4 +1,4 @@
 <device class="ExporterMotor">
   <exporter_address>p13md201.embl-hamburg.de:9001</exporter_address>
-  <motor_name>CentringY</motor_name>
+  <actuator_name>CentringY</actuator_name>
 </device>

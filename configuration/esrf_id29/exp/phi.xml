@@ -3,6 +3,6 @@
   <!--<specname>phi</specname>
   <specversion>lid292:exp</specversion>-->
   <tangoname>id29/microdiff/1</tangoname>
-  <motor_name>Omega</motor_name>
+  <actuator_name>Omega</actuator_name>
   <GUIstep>90</GUIstep>
 </device>

@@ -1,7 +1,7 @@
 import logging
 import time
 from HardwareRepository.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer
+    GenericDiffractometer,
 )
 from gevent.event import AsyncResult
 import gevent
@@ -13,26 +13,26 @@ class XalocMiniDiff(GenericDiffractometer):
         self.centring_hwobj = None
 
     def init(self):
-        self.calibration = self.getObjectByRole("calibration")
-        self.centring_hwobj = self.getObjectByRole("centring")
+        self.calibration = self.get_object_by_role("calibration")
+        self.centring_hwobj = self.get_object_by_role("centring")
         if self.centring_hwobj is None:
             logging.getLogger("HWR").debug("EMBLMinidiff: Centring math is not defined")
 
-        self.cmd_start_auto_focus = self.getCommandObject("startAutoFocus")
+        self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")
 
-        self.phi_motor_hwobj = self.getObjectByRole("phi")
-        self.phiz_motor_hwobj = self.getObjectByRole("phiz")
-        self.phiy_motor_hwobj = self.getObjectByRole("phiy")
-        self.zoom_motor_hwobj = self.getObjectByRole("zoom")
-        self.focus_motor_hwobj = self.getObjectByRole("focus")
-        self.sample_x_motor_hwobj = self.getObjectByRole("sampx")
-        self.sample_y_motor_hwobj = self.getObjectByRole("sampy")
+        self.phi_motor_hwobj = self.get_object_by_role("phi")
+        self.phiz_motor_hwobj = self.get_object_by_role("phiz")
+        self.phiy_motor_hwobj = self.get_object_by_role("phiy")
+        self.zoom_motor_hwobj = self.get_object_by_role("zoom")
+        self.focus_motor_hwobj = self.get_object_by_role("focus")
+        self.sample_x_motor_hwobj = self.get_object_by_role("sampx")
+        self.sample_y_motor_hwobj = self.get_object_by_role("sampy")
 
         if self.phi_motor_hwobj is not None:
             self.connect(
                 self.phi_motor_hwobj, "stateChanged", self.phi_motor_state_changed
             )
-            self.connect(self.phi_motor_hwobj, "positionChanged", self.phi_motor_moved)
+            self.connect(self.phi_motor_hwobj, "valueChanged", self.phi_motor_moved)
         else:
             logging.getLogger("HWR").error("EMBLMiniDiff: Phi motor is not defined")
 
@@ -40,9 +40,7 @@ class XalocMiniDiff(GenericDiffractometer):
             self.connect(
                 self.phiz_motor_hwobj, "stateChanged", self.phiz_motor_state_changed
             )
-            self.connect(
-                self.phiz_motor_hwobj, "positionChanged", self.phiz_motor_moved
-            )
+            self.connect(self.phiz_motor_hwobj, "valueChanged", self.phiz_motor_moved)
         else:
             logging.getLogger("HWR").error("EMBLMiniDiff: Phiz motor is not defined")
 
@@ -50,15 +48,13 @@ class XalocMiniDiff(GenericDiffractometer):
             self.connect(
                 self.phiy_motor_hwobj, "stateChanged", self.phiy_motor_state_changed
             )
-            self.connect(
-                self.phiy_motor_hwobj, "positionChanged", self.phiy_motor_moved
-            )
+            self.connect(self.phiy_motor_hwobj, "valueChanged", self.phiy_motor_moved)
         else:
             logging.getLogger("HWR").error("EMBLMiniDiff: Phiy motor is not defined")
 
         if self.zoom_motor_hwobj is not None:
             self.connect(
-                self.zoom_motor_hwobj, "positionChanged", self.zoom_position_changed
+                self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed
             )
             self.connect(
                 self.zoom_motor_hwobj,
@@ -78,7 +74,7 @@ class XalocMiniDiff(GenericDiffractometer):
                 self.sampleX_motor_state_changed,
             )
             self.connect(
-                self.sample_x_motor_hwobj, "positionChanged", self.sampleX_motor_moved
+                self.sample_x_motor_hwobj, "valueChanged", self.sampleX_motor_moved
             )
         else:
             logging.getLogger("HWR").error("EMBLMiniDiff: Sampx motor is not defined")
@@ -90,15 +86,13 @@ class XalocMiniDiff(GenericDiffractometer):
                 self.sampleY_motor_state_changed,
             )
             self.connect(
-                self.sample_y_motor_hwobj, "positionChanged", self.sampleY_motor_moved
+                self.sample_y_motor_hwobj, "valueChanged", self.sampleY_motor_moved
             )
         else:
             logging.getLogger("HWR").error("EMBLMiniDiff: Sampx motor is not defined")
 
         if self.focus_motor_hwobj is not None:
-            self.connect(
-                self.focus_motor_hwobj, "positionChanged", self.focus_motor_moved
-            )
+            self.connect(self.focus_motor_hwobj, "valueChanged", self.focus_motor_moved)
 
         GenericDiffractometer.init(self)
 
@@ -127,8 +121,8 @@ class XalocMiniDiff(GenericDiffractometer):
     def getBeamInfo(self, update_beam_callback):
         calibx, caliby = self.calibration.getCalibration()
 
-        size_x = self.getChannelObject("beamInfoX").getValue() / 1000.0
-        size_y = self.getChannelObject("beamInfoY").getValue() / 1000.0
+        size_x = self.get_channel_object("beamInfoX").get_value() / 1000.0
+        size_y = self.get_channel_object("beamInfoY").get_value() / 1000.0
 
         data = {"size_x": size_x, "size_y": size_y, "shape": "ellipse"}
 
@@ -143,7 +137,7 @@ class XalocMiniDiff(GenericDiffractometer):
         """
         self.centring_hwobj.initCentringProcedure()
 
-        # self.head_type = self.chan_head_type.getValue()
+        # self.head_type = self.chan_head_type.get_value()
 
         for click in range(3):
             self.user_clicked_event = gevent.event.AsyncResult()
@@ -158,12 +152,12 @@ class XalocMiniDiff(GenericDiffractometer):
             if self.in_plate_mode():
                 dynamic_limits = self.phi_motor_hwobj.getDynamicLimits()
                 if click == 0:
-                    self.phi_motor_hwobj.move(dynamic_limits[0])
+                    self.phi_motor_hwobj.set_value(dynamic_limits[0])
                 elif click == 1:
-                    self.phi_motor_hwobj.move(dynamic_limits[1])
+                    self.phi_motor_hwobj.set_value(dynamic_limits[1])
             else:
                 if click < 2:
-                    self.phi_motor_hwobj.moveRelative(-90)
+                    self.phi_motor_hwobj.set_value_relative(-90)
         # self.omega_reference_add_constraint()
         return self.centring_hwobj.centeredPosition(return_by_name=False)
 

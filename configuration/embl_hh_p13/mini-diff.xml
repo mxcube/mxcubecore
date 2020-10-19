@@ -34,7 +34,7 @@
 
   <!-- Alignment Z -->
   <!-- old value -0.101 -->
-  <omega_reference>{"motor_name": "phiz", "position": -0.152, "camera_axis":"y","direction": -1}</omega_reference>
+  <omega_reference>{"actuator_name": "phiz", "position": -0.152, "camera_axis":"y","direction": -1}</omega_reference>
   <grid_direction>{"fast": (1, 0), "slow": (0, -1), "omega_ref" : 0.0}</grid_direction>
   <reversing_rotation>True</reversing_rotation>
 </object>

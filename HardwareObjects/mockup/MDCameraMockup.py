@@ -11,6 +11,8 @@ from threading import Event, Thread
 import base64
 import gevent
 
+from HardwareRepository import HardwareRepository as HWR
+
 MAX_TRIES = 3
 SLOW_INTERVAL = 1000
 
@@ -20,59 +22,44 @@ class MDCameraMockup(BaseHardwareObjects.Device):
         BaseHardwareObjects.Device.__init__(self, name)
 
     def _init(self):
+        self.stream_hash = "#"
         self.udiffVER_Ok = False
         self.badimg = 0
         self.pollInterval = 500
         self.connected = False
-        self.image_name = self.getProperty("image_name")
-        cwd = os.getcwd()
-        path = os.path.join(cwd, "./test/HardwareObjectsMockup.xml/")
-        self.image = os.path.join(path, self.image_name)
-        self.setIsReady(True)
+        self.image_name = self.get_property("image_name")
+        xml_path = HWR.getHardwareRepository().server_address[0]
+        self.image = os.path.join(xml_path, self.image_name)
+        self.set_is_ready(True)
 
     def init(self):
         logging.getLogger("HWR").info("initializing camera object")
-        # self.pollingTimer = qt.QTimer()
-        # self.pollingTimer.connect(self.pollingTimer, qt.SIGNAL("timeout()"), self.poll)
-        if self.getProperty("interval"):
-            self.pollInterval = self.getProperty("interval")
-        self.stopper = False  # self.pollingTimer(self.pollInterval, self.poll)
-        thread = Thread(target=self.poll)
-        thread.daemon = True
-        thread.start()
+        if self.get_property("interval"):
+            self.pollInterval = self.get_property("interval")
+        self.stopper = False  # self.polling_timer(self.pollInterval, self.poll)
+        gevent.spawn(self.poll)
 
     def udiffVersionChanged(self, value):
         if value == "MD2_2":
             print(("start polling MD camera with poll interval=", self.pollInterval))
-            # self.pollingTimer.start(self.pollInterval)
-            # self.startPolling()
         else:
-            print("stop polling the camera. This microdiff version does not support a camera")
-            # self.pollingTimer.stop()
+            print(
+                "stop polling the camera. This microdiff version does not support a camera"
+            )
             self.stopper = True
 
     def connectToDevice(self):
         self.connected = True
         return self.connected
 
-    # @timer.setInterval(self.pollInterval)
     def poll(self):
         logging.getLogger("HWR").info("going to poll images")
         while not self.stopper:
-            # time.sleep(float(self.pollInterval)/1000)
             time.sleep(1)
-            # print "polling", datetime.datetime.now().strftime("%H:%M:%S.%f")
             try:
                 img = open(self.image, "rb").read()
-                # img = base64.b64encode(img)
                 self.emit("imageReceived", img, 659, 493)
-                # logging.getLogger("HWR").info( "polling images")
-            except KeyboardInterrupt:
-                self.connected = False
-                self.stopper = True
-                logging.getLogger("HWR").info("poll images stopped")
-                return
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception("Could not read image")
 
     def imageUpdated(self, value):
@@ -108,3 +95,9 @@ class MDCameraMockup(BaseHardwareObjects.Device):
 
     def takeSnapshot(self, snapshot_filename, bw=True):
         return True
+
+    def get_available_stream_sizes(self):
+        return [(self.getWidth(), self.getHeight())]
+
+    def get_stream_size(self):
+        return self.getWidth(), self.getHeight(), 1

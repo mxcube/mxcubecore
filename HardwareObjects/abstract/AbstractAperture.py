@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,7 +15,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 
 import logging
@@ -39,13 +39,13 @@ class AbstractAperture(HardwareObject):
 
     def init(self):
         try:
-            self._diameter_size_list = eval(self.getProperty("diameter_size_list"))
-        except BaseException:
+            self._diameter_size_list = eval(self.get_property("diameter_size_list"))
+        except Exception:
             logging.getLogger("HWR").error("Aperture: no diameter size list defined")
 
         try:
-            self._position_list = eval(self.getProperty("position_list"))
-        except BaseException:
+            self._position_list = eval(self.get_property("position_list"))
+        except Exception:
             logging.getLogger("HWR").error("Aperture: no position list defined")
 
     def get_diameter_size_list(self):
@@ -133,7 +133,7 @@ class AbstractAperture(HardwareObject):
         """
         if position_name in self._position_list:
             self._current_position_name = position_name
-            self.emit("positionChanged", self._current_position_name)
+            self.emit("valueChanged", self._current_position_name)
         else:
             logging.getLogger("HWR").warning(
                 "Aperture: Position %s is not in the position list" % position_name
@@ -148,7 +148,7 @@ class AbstractAperture(HardwareObject):
         """
         if position_index < len(self._position_list):
             self._current_position_name = self._position_list[position_index]
-            self.emit("positionChanged", self._current_position_name)
+            self.emit("valueChanged", self._current_position_name)
         else:
             logging.getLogger("HWR").warning(
                 "Aperture: Selected position is not in the position list"
@@ -173,11 +173,11 @@ class AbstractAperture(HardwareObject):
         """
         pass
 
-    def update_values(self):
+    def force_emit_signals(self):
         """
         Reemits all signals
         """
-        self.emit("positionChanged", self._current_position_name)
+        self.emit("valueChanged", self._current_position_name)
         self.emit(
             "diameterIndexChanged",
             self._current_diameter_index,

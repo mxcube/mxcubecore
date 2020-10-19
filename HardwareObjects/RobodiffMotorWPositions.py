@@ -11,21 +11,21 @@ class RobodiffMotorWPositions(RobodiffMotor):
 
         self.predefinedPositions = {}
         self.predefinedPositionsNamesList = []
-        self.delta = self.getProperty("delta") or 0
+        self.delta = self.get_property("delta") or 0
 
         try:
             positions = self["positions"]
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error(
                 "%s does not define positions.", str(self.name())
             )
         else:
             for definedPosition in positions:
-                positionUsername = definedPosition.getProperty("username")
+                positionUsername = definedPosition.get_property("username")
 
                 try:
-                    offset = float(definedPosition.getProperty("offset"))
-                except BaseException:
+                    offset = float(definedPosition.get_property("offset"))
+                except Exception:
                     logging.getLogger("HWR").warning(
                         "%s, ignoring position %s: invalid offset.",
                         str(self.name()),
@@ -39,11 +39,11 @@ class RobodiffMotorWPositions(RobodiffMotor):
     def getPositionsData(self):
         return self["positions"]
 
-    def connectNotify(self, signal):
-        RobodiffMotor.connectNotify(self, signal)
+    def connect_notify(self, signal):
+        RobodiffMotor.connect_notify(self, signal)
 
         if signal == "predefinedPositionChanged":
-            positionName = self.getCurrentPositionName()
+            positionName = self.get_current_position_name()
 
             try:
                 pos = self.predefinedPositions[positionName]
@@ -64,7 +64,7 @@ class RobodiffMotorWPositions(RobodiffMotor):
         RobodiffMotor.updateState(self, state)
 
         if self.motorState == RobodiffMotor.READY:
-            pos = self.getPosition()
+            pos = self.get_value()
 
             for positionName in self.predefinedPositions:
                 if (
@@ -81,22 +81,22 @@ class RobodiffMotorWPositions(RobodiffMotor):
 
     def moveToPosition(self, positionName):
         try:
-            self.move(self.predefinedPositions[positionName])
-        except BaseException:
+            self.set_value(self.predefinedPositions[positionName])
+        except Exception:
             logging.getLogger("HWR").exception(
-                "Cannot move motor %s: invalid position name.", str(self.userName())
+                "Cannot move motor %s: invalid position name.", str(self.username)
             )
 
-    def getCurrentPositionName(self):
+    def get_current_position_name(self):
         if (
             not self.motorIsMoving()
-        ):  # self.isReady() and self.getState() == self.READY:
+        ):  # self.is_ready() and self.get_state() == self.READY:
             for positionName in self.predefinedPositions:
                 if (
                     self.predefinedPositions[positionName]
-                    >= self.getPosition() - self.delta
+                    >= self.get_value() - self.delta
                     and self.predefinedPositions[positionName]
-                    <= self.getPosition() + self.delta
+                    <= self.get_value() + self.delta
                 ):
                     return positionName
         return ""
@@ -105,5 +105,5 @@ class RobodiffMotorWPositions(RobodiffMotor):
         try:
             self.predefinedPositions[str(positionName)] = float(positionOffset)
             self.sortPredefinedPositionsList()
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("Cannot set new predefined position")

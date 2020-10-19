@@ -11,7 +11,7 @@ Example XML::
 
 Public Interface:
    Commands:
-       int getState()
+       int get_state()
            Description:
                returns current state
            Output:
@@ -81,37 +81,37 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
         self.motor_state = None
 
         try:
-            self.nistart_cmd = self.getCommandObject("nistart")
-            self.nistop_cmd = self.getCommandObject("nistop")
+            self.nistart_cmd = self.get_command_object("nistart")
+            self.nistop_cmd = self.get_command_object("nistop")
 
-            self.actuator_channel = self.getChannelObject("actuator")
-            self.motorpos_channel = self.getChannelObject("motorposition")
-            self.motorstate_channel = self.getChannelObject("motorstate")
+            self.actuator_channel = self.get_channel_object("actuator")
+            self.motorpos_channel = self.get_channel_object("motorposition")
+            self.motorstate_channel = self.get_channel_object("motorstate")
 
-            self.actuator_channel.connectSignal("update", self.stateChanged)
-            self.motorpos_channel.connectSignal("update", self.motorPositionChanged)
-            self.motorstate_channel.connectSignal("update", self.motorStateChanged)
+            self.actuator_channel.connect_signal("update", self.stateChanged)
+            self.motorpos_channel.connect_signal("update", self.motorPositionChanged)
+            self.motorstate_channel.connect_signal("update", self.motorStateChanged)
         except KeyError:
             logging.getLogger().warning("%s: cannot report FrontEnd State", self.name())
 
         try:
-            state_string = self.getProperty("states")
+            state_string = self.get_property("states")
             if state_string is None:
                 self.state_strings = self.default_state_strings
             else:
                 states = state_string.split(",")
                 self.state_strings = states[1].strip(), states[0].strip()
-        except BaseException:
+        except Exception:
             import traceback
 
             logging.getLogger("HWR").warning(traceback.format_exc())
             self.state_strings = self.default_state_strings
 
-    def getState(self):
+    def get_state(self):
         if self.actuator_state == STATE_UNKNOWN:
-            self.actuator_value = self.actuator_channel.getValue()
-            self.motor_position = self.motorpos_channel.getValue()
-            self.motor_state = self.motorstate_channel.getValue()
+            self.actuator_value = self.actuator_channel.get_value()
+            self.motor_position = self.motorpos_channel.get_value()
+            self.motor_state = self.motorstate_channel.get_value()
             self.update_state()
         return self.actuator_state
 
@@ -155,12 +155,12 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
 
     def getMotorPosition(self):
         if self.motor_position is None:
-            self.motor_position = self.motorpos_channel.getValue()
+            self.motor_position = self.motorpos_channel.get_value()
         return self.motor_position
 
     def getMotorState(self):
         if self.motor_state is None:
-            self.motor_state = self.motorstate_channel.getValue()
+            self.motor_state = self.motorstate_channel.get_value()
         return self.motor_state
 
     def getUserName(self):
@@ -169,7 +169,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
     def getStatus(self):
         """
         """
-        state = self.getState()
+        state = self.get_state()
 
         if state in [STATE_OUT, STATE_IN]:
             return self.state_strings[state]
@@ -185,16 +185,16 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
         self.close()
 
     def close(self):
-        self.motorpos_channel.setValue(0)
+        self.motorpos_channel.set_value(0)
         self.set_ttl("High")
 
     def open(self):
-        self.motorpos_channel.setValue(0)
+        self.motorpos_channel.set_value(0)
         self.set_ttl("Low")
 
     def set_ttl(self, value):
         self.nistop_cmd()
-        self.actuator_channel.setValue(value)
+        self.actuator_channel.set_value(value)
         self.nistart_cmd()
 
     def is_open(self):
@@ -213,7 +213,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
 def test_hwo(hwo):
     print("Name is: ", hwo.getUserName())
 
-    print("Shutter state is: ", hwo.getState())
+    print("Shutter state is: ", hwo.get_state())
     print("Shutter status is: ", hwo.getStatus())
     print("Motor position is: ", hwo.getMotorPosition())
     print("Motor state is: ", hwo.getMotorState())

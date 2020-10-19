@@ -1,4 +1,4 @@
-<object class="DataAnalysis">
+<object class="EDNACharacterisation">
   <object href="/mxcollect" role="collect"/>
   <object href="/eh1/diff-beamstop" role="beamstop"/> 
   <edna_command>ssh bcrunch srun /mx-beta/edna-cluster-scripts/edna_characterisation.csh</edna_command>

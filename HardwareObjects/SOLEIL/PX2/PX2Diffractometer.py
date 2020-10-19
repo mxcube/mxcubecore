@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import time
@@ -62,7 +62,9 @@ except ImportError:
             "Could not find autocentring library, automatic centring is disabled"
         )
 
-from HardwareRepository.HardwareObjects.GenericDiffractometer import GenericDiffractometer
+from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+    GenericDiffractometer,
+)
 
 from HardwareRepository.TaskUtils import task
 from HardwareRepository import HardwareRepository as HWR
@@ -149,93 +151,93 @@ class PX2Diffractometer(GenericDiffractometer):
         GenericDiffractometer.init(self)
         self.centring_status = {"valid": False}
 
-        self.chan_state = self.getChannelObject("State")
-        self.chan_status = self.getChannelObject("Status")
+        self.chan_state = self.get_channel_object("State")
+        self.chan_status = self.get_channel_object("Status")
 
-        self.current_state = self.chan_state.getValue()
-        self.current_status = self.chan_status.getValue()
+        self.current_state = self.chan_state.get_value()
+        self.current_status = self.chan_status.get_value()
 
-        self.chan_state.connectSignal("update", self.state_changed)
-        self.chan_status.connectSignal("update", self.status_changed)
+        self.chan_state.connect_signal("update", self.state_changed)
+        self.chan_status.connect_signal("update", self.status_changed)
 
-        self.chan_calib_x = self.getChannelObject("CoaxCamScaleX")
-        self.chan_calib_y = self.getChannelObject("CoaxCamScaleY")
+        self.chan_calib_x = self.get_channel_object("CoaxCamScaleX")
+        self.chan_calib_y = self.get_channel_object("CoaxCamScaleY")
         self.update_pixels_per_mm()
 
-        self.chan_head_type = self.getChannelObject("HeadType")
-        self.head_type = self.chan_head_type.getValue()
+        self.chan_head_type = self.get_channel_object("HeadType")
+        self.head_type = self.chan_head_type.get_value()
 
-        self.chan_current_phase = self.getChannelObject("CurrentPhase")
+        self.chan_current_phase = self.get_channel_object("CurrentPhase")
         self.connect(self.chan_current_phase, "update", self.current_phase_changed)
 
-        self.chan_fast_shutter_is_open = self.getChannelObject("FastShutterIsOpen")
-        self.chan_fast_shutter_is_open.connectSignal(
+        self.chan_fast_shutter_is_open = self.get_channel_object("FastShutterIsOpen")
+        self.chan_fast_shutter_is_open.connect_signal(
             "update", self.fast_shutter_state_changed
         )
 
-        self.chan_scintillator_position = self.getChannelObject("ScintillatorPosition")
-        self.chan_capillary_position = self.getChannelObject("CapillaryPosition")
+        self.chan_scintillator_position = self.get_channel_object(
+            "ScintillatorPosition"
+        )
+        self.chan_capillary_position = self.get_channel_object("CapillaryPosition")
 
-        self.cmd_start_set_phase = self.getCommandObject("startSetPhase")
-        self.cmd_start_auto_focus = self.getCommandObject("startAutoFocus")
-        self.cmd_get_omega_scan_limits = self.getCommandObject(
+        self.cmd_start_set_phase = self.get_command_object("startSetPhase")
+        self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")
+        self.cmd_get_omega_scan_limits = self.get_command_object(
             "getOmegaMotorDynamicScanLimits"
         )
-        self.cmd_save_centring_positions = self.getCommandObject(
+        self.cmd_save_centring_positions = self.get_command_object(
             "saveCentringPositions"
         )
 
-        self.centring_hwobj = self.getObjectByRole("centring")
-        self.minikappa_correction_hwobj = self.getObjectByRole("minikappa_correction")
-
-        self.zoom_motor_hwobj = self.getObjectByRole("zoom")
-        self.connect(
-            self.zoom_motor_hwobj, "positionChanged", self.zoom_position_changed
+        self.centring_hwobj = self.get_object_by_role("centring")
+        self.minikappa_correction_hwobj = self.get_object_by_role(
+            "minikappa_correction"
         )
+
+        self.zoom_motor_hwobj = self.get_object_by_role("zoom")
+        self.connect(self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed)
         self.connect(
             self.zoom_motor_hwobj,
             "predefinedPositionChanged",
             self.zoom_motor_predefined_position_changed,
         )
 
+        self.connect(self.motor_hwobj_dict["phi"], "valueChanged", self.phi_motor_moved)
         self.connect(
-            self.motor_hwobj_dict["phi"], "positionChanged", self.phi_motor_moved
+            self.motor_hwobj_dict["phiy"], "valueChanged", self.phiy_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["phiy"], "positionChanged", self.phiy_motor_moved
+            self.motor_hwobj_dict["phiz"], "valueChanged", self.phiz_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["phiz"], "positionChanged", self.phiz_motor_moved
-        )
-        self.connect(
-            self.motor_hwobj_dict["kappa"], "positionChanged", self.kappa_motor_moved
+            self.motor_hwobj_dict["kappa"], "valueChanged", self.kappa_motor_moved
         )
         self.connect(
             self.motor_hwobj_dict["kappa_phi"],
-            "positionChanged",
+            "valueChanged",
             self.kappa_phi_motor_moved,
         )
         self.connect(
-            self.motor_hwobj_dict["sampx"], "positionChanged", self.sampx_motor_moved
+            self.motor_hwobj_dict["sampx"], "valueChanged", self.sampx_motor_moved
         )
         self.connect(
-            self.motor_hwobj_dict["sampy"], "positionChanged", self.sampy_motor_moved
+            self.motor_hwobj_dict["sampy"], "valueChanged", self.sampy_motor_moved
         )
 
-        self.omega_reference_par = eval(self.getProperty("omega_reference"))
-        self.omega_reference_motor = self.getObjectByRole(
+        self.omega_reference_par = eval(self.get_property("omega_reference"))
+        self.omega_reference_motor = self.get_object_by_role(
             self.omega_reference_par["motor_name"]
         )
 
         self.connect(
             self.omega_reference_motor,
-            "positionChanged",
+            "valueChanged",
             self.omega_reference_motor_moved,
         )
 
-        self.omega_reference_motor_moved(self.omega_reference_motor.get_position())
+        self.omega_reference_motor_moved(self.omega_reference_motor.get_value())
 
-        # self.use_sc = self.getProperty("use_sample_changer")
+        # self.use_sc = self.get_property("use_sample_changer")
 
     def use_sample_changer(self):
         """
@@ -378,7 +380,7 @@ class PX2Diffractometer(GenericDiffractometer):
         Descript. :
         """
         if self.omega_reference_motor is not None:
-            reference_pos = self.omega_reference_motor.getPosition()
+            reference_pos = self.omega_reference_motor.get_value()
             self.omega_reference_motor_moved(reference_pos)
 
     def update_pixels_per_mm(self, *args):
@@ -386,8 +388,8 @@ class PX2Diffractometer(GenericDiffractometer):
         Descript. :
         """
         if self.chan_calib_x:
-            self.pixels_per_mm_x = 1.0 / self.chan_calib_x.getValue()
-            self.pixels_per_mm_y = 1.0 / self.chan_calib_y.getValue()
+            self.pixels_per_mm_x = 1.0 / self.chan_calib_x.get_value()
+            self.pixels_per_mm_y = 1.0 / self.chan_calib_y.get_value()
             self.emit(
                 "pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),)
             )
@@ -410,7 +412,7 @@ class PX2Diffractometer(GenericDiffractometer):
             GenericDiffractometer.PHASE_TRANSFER,
             GenericDiffractometer.PHASE_BEAM,
         ):
-            detector_distance = HWR.beamline.detector.distance.getPosition()
+            detector_distance = HWR.beamline.detector.distance.get_value()
             logging.getLogger("HWR").debug(
                 "Diffractometer current phase: %s " % self.current_phase
                 + "selected phase: %s " % phase
@@ -418,7 +420,7 @@ class PX2Diffractometer(GenericDiffractometer):
             )
             if detector_distance < 350:
                 logging.getLogger("GUI").info("Moving detector to safe distance")
-                HWR.beamline.detector.distance.move(350)
+                HWR.beamline.detector.distance.set_value(350)
                 self.detector.insert_protective_cover()
 
         if timeout is not None:
@@ -427,7 +429,7 @@ class PX2Diffractometer(GenericDiffractometer):
             with gevent.Timeout(
                 timeout, Exception("Timeout waiting for phase %s" % phase)
             ):
-                while phase != self.chan_current_phase.getValue():
+                while phase != self.chan_current_phase.get_value():
                     gevent.sleep(0.01)
         else:
             self.cmd_start_set_phase(phase)
@@ -455,7 +457,7 @@ class PX2Diffractometer(GenericDiffractometer):
             # if isinstance(motor_pos, gevent.GreenletExit):
             # raise motor_pos
             # self.log.info('motor_pos from centring_procedure %s' % motor_pos)
-        except BaseException:
+        except Exception:
             logging.exception("Could not complete centring")
             self.emit_centring_failed()
         else:
@@ -463,7 +465,7 @@ class PX2Diffractometer(GenericDiffractometer):
             self.emit_centring_moving()
             try:
                 self.move_to_motors_positions(motor_pos)
-            except BaseException:
+            except Exception:
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()
 
@@ -489,7 +491,6 @@ class PX2Diffractometer(GenericDiffractometer):
         position = self.translate_from_mxcube_to_md2(motor_positions)
 
         self.goniometer.set_position(position, timeout=timeout)
-
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
         """
@@ -637,7 +638,7 @@ class PX2Diffractometer(GenericDiffractometer):
         for k in range(n_clicks):
             self.user_clicked_event = gevent.event.AsyncResult()
             x, y = self.user_clicked_event.get()
-            image = HWR.beamline.microscope.camera.get_last_image()
+            image = HWR.beamline.sample_view.camera.get_last_image()
             calibration = self.camera.get_calibration()
             omega = self.goniometer.get_omega_position()
 
@@ -816,14 +817,14 @@ class PX2Diffractometer(GenericDiffractometer):
         # motors = {}
         # for motor_role in self.centring_motors_list:
         # self.log.info('motor_role %s' % motor_role)
-        # motor_obj = self.getObjectByRole(motor_role)
+        # motor_obj = self.get_object_by_role(motor_role)
         # try:
         # motors[motor_role] = motor_pos[motor_obj]
         # except KeyError:
 
         # self.log.exception('convert_from_obj_to_name %s' % traceback.format_exc())
         # if motor_obj:
-        # motors[motor_role] = motor_obj.getPosition()
+        # motors[motor_role] = motor_obj.get_value()
 
         motors["beam_x"] = (
             self.beam_position[0] - self.zoom_centre["x"]
@@ -918,19 +919,19 @@ class PX2Diffractometer(GenericDiffractometer):
             for key in c:
                 if c[key] is None:
                     try:
-                        c[key] = self.motor_hwobj_dict[key].getPosition()
-                    except BaseException:
+                        c[key] = self.motor_hwobj_dict[key].get_value()
+                    except Exception:
                         # self.log.info('motor_positions_to_screen exception key %s' % key)
                         self.log.info(traceback.format_exc())
 
             if "kappa" in c and c["kappa"] is None:
-                kappa = self.motor_hwobj_dict["kappa"].getPosition()
+                kappa = self.motor_hwobj_dict["kappa"].get_value()
                 c["kappa"] = kappa
             else:
                 c["kappa"] = self.goniometer.get_kappa_position()
 
             if "kappa_phi" in c and c["kappa_phi"] is None:
-                phi = self.motor_hwobj_dict["kappa_phi"].getPosition()
+                phi = self.motor_hwobj_dict["kappa_phi"].get_value()
                 c["kappa_phi"] = phi
             else:
                 c["kappa_phi"] = self.goniometer.get_phi_position()
@@ -952,9 +953,11 @@ class PX2Diffractometer(GenericDiffractometer):
                 self.goniometer.get_phi_position(),
             ) and self.minikappa_correction_hwobj is not None:
                 self.log.info("calculating minikappa correction")
-                c["sampx"], c["sampy"], c[
-                    "phiy"
-                ] = self.minikappa_correction_hwobj.shift(
+                (
+                    c["sampx"],
+                    c["sampy"],
+                    c["phiy"],
+                ) = self.minikappa_correction_hwobj.shift(
                     c["kappa"],
                     c["kappa_phi"],
                     [c["sampx"], c["sampy"], c["phiy"]],
@@ -973,7 +976,7 @@ class PX2Diffractometer(GenericDiffractometer):
                     "y"
                 ]
                 return x, y
-        except BaseException:
+        except Exception:
             return 0, 0
 
     def move_to_centred_position(self, centred_position):
@@ -1014,7 +1017,7 @@ class PX2Diffractometer(GenericDiffractometer):
                     self.motor_hwobj_dict["kappa_phi"]: centred_position.kappa_phi,
                 }
                 self.move_to_motors_positions(motor_pos)
-            except BaseException:
+            except Exception:
                 logging.exception("Could not move to centred position")
         else:
             logging.getLogger("HWR").debug(
@@ -1036,7 +1039,7 @@ class PX2Diffractometer(GenericDiffractometer):
         """
         try:
             return self.move_kappa_and_phi_procedure(kappa, kappa_phi, wait=wait)
-        except BaseException:
+        except Exception:
             logging.exception("Could not move kappa and kappa_phi")
 
     @task
@@ -1044,8 +1047,8 @@ class PX2Diffractometer(GenericDiffractometer):
         """
         Descript. :
         """
-        kappa = self.motor_hwobj_dict["kappa"].getPosition()
-        kappa_phi = self.motor_hwobj_dict["kappa_phi"].getPosition()
+        kappa = self.motor_hwobj_dict["kappa"].get_value()
+        kappa_phi = self.motor_hwobj_dict["kappa_phi"].get_value()
 
         if new_kappa is None:
             new_kappa = kappa
@@ -1058,9 +1061,9 @@ class PX2Diffractometer(GenericDiffractometer):
             new_kappa,
             new_kappa_phi,
         ) and self.minikappa_correction_hwobj is not None:
-            sampx = self.motor_hwobj_dict["sampx"].getPosition()
-            sampy = self.motor_hwobj_dict["sampy"].getPosition()
-            phiy = self.motor_hwobj_dict["phiy"].getPosition()
+            sampx = self.motor_hwobj_dict["sampx"].get_value()
+            sampy = self.motor_hwobj_dict["sampy"].get_value()
+            phiy = self.motor_hwobj_dict["phiy"].get_value()
             new_sampx, new_sampy, new_phiy = self.minikappa_correction_hwobj.shift(
                 kappa, kappa_phi, [sampx, sampy, phiy], new_kappa, new_kappa_phi
             )
@@ -1084,12 +1087,12 @@ class PX2Diffractometer(GenericDiffractometer):
         else:
             t1 = [point_1.sampx, point_1.sampy, point_1.phiy]
             t2 = [point_2.sampx, point_2.sampy, point_2.phiy]
-            kappa = self.motor_hwobj_dict["kappa"].getPosition()
-            phi = self.motor_hwobj_dict["kappa_phi"].getPosition()
-            new_kappa, new_phi, (
-                new_sampx,
-                new_sampy,
-                new_phiy,
+            kappa = self.motor_hwobj_dict["kappa"].get_value()
+            phi = self.motor_hwobj_dict["kappa_phi"].get_value()
+            (
+                new_kappa,
+                new_phi,
+                (new_sampx, new_sampy, new_phiy,),
             ) = self.goniometer.get_align_vector(t1, t2, kappa, phi)
             # self.minikappa_correction_hwobj.alignVector(t1,t2,kappa,phi)
             self.move_to_motors_positions(
@@ -1102,7 +1105,7 @@ class PX2Diffractometer(GenericDiffractometer):
                 }
             )
 
-    def update_values(self):
+    def re_emit_values(self):
         """
         Description:
         """
@@ -1115,13 +1118,13 @@ class PX2Diffractometer(GenericDiffractometer):
         Description:
         """
         if self.chan_fast_shutter_is_open is not None:
-            self.chan_fast_shutter_is_open.setValue(not self.fast_shutter_is_open)
+            self.chan_fast_shutter_is_open.set_value(not self.fast_shutter_is_open)
 
     def find_loop(self):
         """
         Description:
         """
-        image_array = HWR.beamline.microscope.get_snapshot(return_as_array=True)
+        image_array = HWR.beamline.sample_view.get_snapshot(return_as_array=True)
         (info, x, y) = lucid.find_loop(image_array)
         surface_score = 10
         return x, y, surface_score
@@ -1130,7 +1133,7 @@ class PX2Diffractometer(GenericDiffractometer):
         """
         Description:
         """
-        self.motor_hwobj_dict["phi"].syncMoveRelative(relative_angle, 5)
+        self.motor_hwobj_dict["phi"].set_value_relative(relative_angle, 5)
 
     def close_kappa(self):
         """
@@ -1157,7 +1160,7 @@ class PX2Diffractometer(GenericDiffractometer):
         self.zoom_motor_hwobj.moveToPosition(position)
 
     def get_status(self):
-        self.current_status = self.chan_status.getValue()
+        self.current_status = self.chan_status.get_value()
         return self.current_status
 
     def get_point_from_line(self, point_one, point_two, frame_num, frame_total):
@@ -1243,19 +1246,19 @@ class PX2Diffractometer(GenericDiffractometer):
         """
 
     def get_scintillator_position(self):
-        return self.chan_scintillator_position.getValue()
+        return self.chan_scintillator_position.get_value()
 
     def set_scintillator_position(self, position):
-        self.chan_scintillator_position.setValue(position)
+        self.chan_scintillator_position.set_value(position)
         with gevent.Timeout(5, Exception("Timeout waiting for scintillator position")):
             while position != self.get_scintillator_position():
                 gevent.sleep(0.01)
 
     def get_capillary_position(self):
-        return self.chan_capillary_position.getValue()
+        return self.chan_capillary_position.get_value()
 
     def set_capillary_position(self, position):
-        self.chan_capillary_position.setValue(position)
+        self.chan_capillary_position.set_value(position)
         with gevent.Timeout(5, Exception("Timeout waiting for capillary position")):
             while position != self.get_capillary_position():
                 gevent.sleep(0.01)
@@ -1409,14 +1412,14 @@ class PX2Diffractometer(GenericDiffractometer):
         )
         try:
             self.nclicks = int(nclicks)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(traceback.format_exc())
 
     def set_step(self, step):
         self.log.info("PX2Diffractometer: centring step changed: %s" % step)
         try:
             self.step = float(step)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(traceback.format_exc())
 
     def set_centring_method(self, centring_method):
@@ -1425,7 +1428,7 @@ class PX2Diffractometer(GenericDiffractometer):
         )
         try:
             self.centring_method = centring_method
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(traceback.format_exc())
 
     def is_ready(self):

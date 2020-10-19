@@ -18,7 +18,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
-along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
+along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 """
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
@@ -117,31 +117,31 @@ class GphlWorkflowConnection(HardwareObject, object):
 
     def init(self):
         super(GphlWorkflowConnection, self).init()
-        if self.hasObject("connection_parameters"):
+        if self.has_object("connection_parameters"):
             self._connection_parameters.update(
-                self["connection_parameters"].getProperties()
+                self["connection_parameters"].get_properties()
             )
-        if self.hasObject("ssh_options"):
+        if self.has_object("ssh_options"):
             # We are running through ssh - so we need python_address
             # If not, we stick to default, which is localhost (127.0.0.1)
             self._connection_parameters["python_address"] = socket.gethostname()
 
-        locations = next(self.getObjects("directory_locations")).getProperties()
+        locations = next(self.get_objects("directory_locations")).get_properties()
         paths = self.software_paths
         props = self.java_properties
-        dd0 = next(self.getObjects("software_paths")).getProperties()
+        dd0 = next(self.get_objects("software_paths")).get_properties()
         for tag, val in dd0.items():
             val2 = val.format(**locations)
             if not os.path.isabs(val2):
-                val2 = HWR.getHardwareRepository().findInRepository(val)
+                val2 = HWR.getHardwareRepository().find_in_repository(val)
                 if val2 is None:
                     raise ValueError("File path %s not recognised" % val)
             paths[tag] = val2
-        dd0 = next(self.getObjects("software_properties")).getProperties()
+        dd0 = next(self.get_objects("software_properties")).get_properties()
         for tag, val in dd0.items():
             val2 = val.format(**locations)
             if not os.path.isabs(val2):
-                val2 = HWR.getHardwareRepository().findInRepository(val)
+                val2 = HWR.getHardwareRepository().find_in_repository(val)
                 if val2 is None:
                     raise ValueError("File path %s not recognised" % val)
             paths[tag] = props[tag] = val2
@@ -239,9 +239,9 @@ class GphlWorkflowConnection(HardwareObject, object):
         self._workflow_name = workflow_model_obj.get_type()
         params = workflow_model_obj.get_workflow_parameters()
 
-        in_shell = self.hasObject("ssh_options")
+        in_shell = self.has_object("ssh_options")
         if in_shell:
-            dd0 = self["ssh_options"].getProperties().copy()
+            dd0 = self["ssh_options"].get_properties().copy()
             #
             host = dd0.pop("Host")
             command_list = ["ssh"]
@@ -277,14 +277,14 @@ class GphlWorkflowConnection(HardwareObject, object):
                 workflow_model_obj.get_name(),
             )
         elif not workflow_options.get("strategy"):
-            workflow_options["strategy"] = (
-                workflow_model_obj.get_characterisation_strategy()
-            )
+            workflow_options[
+                "strategy"
+            ] = workflow_model_obj.get_characterisation_strategy()
         path_template = workflow_model_obj.get_path_template()
         if "prefix" in workflow_options:
             workflow_options["prefix"] = path_template.base_prefix
         workflow_options["wdir"] = os.path.join(
-            path_template.process_directory, self.getProperty("gphl_subdir")
+            path_template.process_directory, self.get_property("gphl_subdir")
         )
         # Hardcoded - location for log output
         command_list.extend(
@@ -319,7 +319,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         if not os.path.isdir(wdir):
             try:
                 os.makedirs(wdir)
-            except BaseException:
+            except Exception:
                 # No need to raise error - program will fail downstream
                 logging.getLogger("HWR").error(
                     "Could not create GPhL working directory: %s", wdir
@@ -353,7 +353,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         )
         try:
             self._running_process = subprocess.Popen(command_list, env=envs)
-        except BaseException:
+        except Exception:
             logging.getLogger().error("Error in spawning workflow application")
             raise
 
@@ -399,7 +399,7 @@ class GphlWorkflowConnection(HardwareObject, object):
                         time.sleep(9)
                         if xx0.poll() is None:
                             xx0.kill()
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").info(
                     "Exception while terminating external workflow process %s", xx0
                 )
@@ -417,7 +417,7 @@ class GphlWorkflowConnection(HardwareObject, object):
                 # downstream, but it seems to keep the program open (??)
                 # xx0.shutdown(raise_exception=True)
                 xx0.shutdown()
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").debug(
                     "Exception during py4j gateway shutdown. Ignored"
                 )
@@ -990,7 +990,7 @@ class GphlWorkflowConnection(HardwareObject, object):
             response = self._gateway.jvm.co.gphl.sdcp.py4j.Py4jMessage(
                 py4j_payload, enactment_id, correlation_id
             )
-        except BaseException:
+        except Exception:
             self.abort_workflow(
                 message="Error sending reply (%s) to server"
                 % py4j_payload.getClass().getSimpleName()

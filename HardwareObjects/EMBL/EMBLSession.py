@@ -1,5 +1,5 @@
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -14,7 +14,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 Session hardware object.
@@ -52,20 +52,22 @@ class EMBLSession(Session):
         :returns: The base data path.
         :rtype: str
         """
-        data_directory = os.path.join(
-            self.base_directory, os.getenv("USER").strip(), self.start_time
-        )
-        return data_directory.replace(" ", "")
+        user = os.getenv("USER").strip().lower()
+
+        return os.path.join(self.base_directory, user, self.start_time)
 
     def get_base_process_directory(self):
         """
         Returns base process directory
         :return: str
         """
+        user = os.getenv("USER").strip().lower()
+
         process_directory = os.path.join(
-            self.base_process_directory,
-            os.getenv("USER"),
-            self.start_time,
-            "PROCESSED_DATA",
+            self.base_process_directory, user, self.start_time, "PROCESSED_DATA"
         )
         return process_directory.replace(" ", "")
+
+    def get_secondary_image_directory(self):
+        data_directory = self.get_base_image_directory()
+        return data_directory

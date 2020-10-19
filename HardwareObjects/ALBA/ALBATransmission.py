@@ -8,13 +8,13 @@ class ALBATransmission(Device):
         self.transmission = None
 
     def init(self):
-        self.transmissionChannel = self.getChannelObject("transmission")
-        self.stateChannel = self.getChannelObject("state")
+        self.transmissionChannel = self.get_channel_object("transmission")
+        self.stateChannel = self.get_channel_object("state")
 
-        self.transmissionChannel.connectSignal("update", self.transmissionChanged)
-        self.stateChannel.connectSignal("update", self.stateChanged)
+        self.transmissionChannel.connect_signal("update", self.transmissionChanged)
+        self.stateChannel.connect_signal("update", self.stateChanged)
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
     def transmissionChanged(self, value):
@@ -26,24 +26,16 @@ class ALBATransmission(Device):
         self.emit("attStateChanged", self.state)
 
     def getAttState(self):
-        self.state = self.stateChannel.getValue()
+        self.state = self.stateChannel.get_value()
         return self.state
 
-    def getAttFactor(self):
-        return self.get_value()
-
     def get_value(self):
-        self.transmission = self.transmissionChannel.getValue()
-        return self.transmission
+        return self.transmissionChannel.get_value()
 
-    def set_value(self, value):
-        self.transmission = value
-        self.transmissionChannel.setValue(value)
+    def _set_value(self, value):
+        self.transmissionChannel.set_value(value)
 
-    def setTransmission(self, value):
-        self.set_value(value)
-
-    def update_values(self):
+    def re_emit_values(self):
         value = self.get_value()
         self.emit("attFactorChanged", value)
 

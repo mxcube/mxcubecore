@@ -1,4 +1,0 @@
-<object class="UnitTest">
-  <object href="/energy-mockup" role="energy"/>
-  <object href="/attenuators-mockup" role="transmission"/>
-</object>

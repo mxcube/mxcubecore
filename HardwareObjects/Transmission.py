@@ -11,25 +11,25 @@ class Transmission(HardwareObject):
         self.indexes = []
         self.attno = 0
         # TO DO: clean this!!!
-        self.getValue = self.get_value
-        self.getAttFactor = self.get_value
-        self.setTransmission = self.set_value
+        # self.get_value = self.get_value
+        # self.getAttFactor = self.get_value
+        # self.setTransmission = self.set_value
 
     def init(self):
 
         self.__matt = matt_control.MattControl(
-            self.getProperty("wago_ip"),
+            self.get_property("wago_ip"),
             len(self["filter"]),
             0,
-            self.getProperty("type"),
-            self.getProperty("alternate"),
-            self.getProperty("status_module"),
-            self.getProperty("control_module"),
-            self.getProperty("datafile"),
+            self.get_property("type"),
+            self.get_property("alternate"),
+            self.get_property("status_module"),
+            self.get_property("control_module"),
+            self.get_property("datafile"),
         )
         self.__matt.connect()
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
     def getAtteConfig(self):
@@ -43,14 +43,14 @@ class Transmission(HardwareObject):
     def getAttState(self):
         return self.__matt.pos_read()
 
-    def set_value(self, trans):
-        self.__matt.set_energy(self.energy.get_current_energy())
-        self.__matt.transmission_set(trans)
+    def _set_value(self, value):
+        self.__matt.set_energy(HWR.beamline.energy.get_value())
+        self.__matt.transmission_set(value)
         self._update()
 
     def _update(self):
         self.emit("attStateChanged", self.getAttState())
-        self.emit("attFactorChanged", self.getAttFactor())
+        self.emit("attFactorChanged", self.get_value())
 
     def toggle(self, attenuator_index):
         idx = self.indexes[attenuator_index]
@@ -61,7 +61,7 @@ class Transmission(HardwareObject):
         self._update()
 
     def get_value(self):
-        self.__matt.set_energy(HWR.beamline.energy.get_current_energy())
+        self.__matt.set_energy(HWR.beamline.energy.get_value())
         return self.__matt.transmission_get()
 
     def is_in(self, attenuator_index):

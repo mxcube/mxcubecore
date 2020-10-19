@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 
@@ -165,73 +165,75 @@ class SOLEILMachineInfo(HardwareObject):
 
     def init(self):
         """init"""
-        self.update_interval = int(self.getProperty("updateIntervalS"))
-        self.limits_dict = eval(self.getProperty("limits"))
+        self.update_interval = int(self.get_property("updateIntervalS"))
+        self.limits_dict = eval(self.get_property("limits"))
 
-        self.chan_mach_curr = self.getChannelObject("machCurrent")
+        self.chan_mach_curr = self.get_channel_object("machCurrent")
         if self.chan_mach_curr is not None:
-            self.chan_mach_curr.connectSignal("update", self.mach_current_changed)
+            self.chan_mach_curr.connect_signal("update", self.mach_current_changed)
 
-        self.chan_filling_mode = self.getChannelObject("fillingMode")
+        self.chan_filling_mode = self.get_channel_object("fillingMode")
         if self.chan_filling_mode is not None:
-            self.chan_filling_mode.connectSignal("update", self.state_text_changed)
+            self.chan_filling_mode.connect_signal("update", self.state_text_changed)
 
-        self.chan_state_text0 = self.getChannelObject("operatorMessage0")
+        self.chan_state_text0 = self.get_channel_object("operatorMessage0")
         if self.chan_state_text0 is not None:
-            self.chan_state_text0.connectSignal("update", self.state_text_changed)
+            self.chan_state_text0.connect_signal("update", self.state_text_changed)
 
-        self.chan_state_text1 = self.getChannelObject("operatorMessage1")
+        self.chan_state_text1 = self.get_channel_object("operatorMessage1")
         if self.chan_state_text1 is not None:
-            self.chan_state_text1.connectSignal("update", self.state_text_changed)
+            self.chan_state_text1.connect_signal("update", self.state_text_changed)
 
-        self.chan_state_text2 = self.getChannelObject("operatorMessage2")
+        self.chan_state_text2 = self.get_channel_object("operatorMessage2")
         if self.chan_state_text2 is not None:
-            self.chan_state_text2.connectSignal("update", self.state_text_changed)
+            self.chan_state_text2.connect_signal("update", self.state_text_changed)
 
-        self.chan_is_beam_usable = self.getChannelObject("isBeamUsable")
+        self.chan_is_beam_usable = self.get_channel_object("isBeamUsable")
         if self.chan_is_beam_usable is not None:
-            self.chan_is_beam_usable.connectSignal("update", self.state_text_changed)
+            self.chan_is_beam_usable.connect_signal("update", self.state_text_changed)
 
-        self.chan_cryojet_in = self.getChannelObject("cryojetIn")
+        self.chan_cryojet_in = self.get_channel_object("cryojetIn")
         if self.chan_cryojet_in is not None:
-            self.cryojet_in_changed(self.chan_cryojet_in.getValue())
-            self.chan_cryojet_in.connectSignal("update", self.cryojet_in_changed)
+            self.cryojet_in_changed(self.chan_cryojet_in.get_value())
+            self.chan_cryojet_in.connect_signal("update", self.cryojet_in_changed)
         else:
             logging.getLogger("HWR").debug("MachineInfo: Cryojet channel not defined")
 
-        self.chan_sample_temperature = self.getChannelObject("sampleTemp")
+        self.chan_sample_temperature = self.get_channel_object("sampleTemp")
         if self.chan_sample_temperature is not None:
-            # self.chan_sample_temperature.connectSignal('update', self.cryojet_in_changed)
-            self.cryojet_in_changed(self.chan_cryojet_in.getValue())
+            # self.chan_sample_temperature.connect_signal('update', self.cryojet_in_changed)
+            self.cryojet_in_changed(self.chan_cryojet_in.get_value())
 
-        self.chan_sc_auto_refill = self.getChannelObject("scAutoRefill")
+        self.chan_sc_auto_refill = self.get_channel_object("scAutoRefill")
         if self.chan_sc_auto_refill is not None:
-            self.chan_sc_auto_refill.connectSignal("update", self.sc_autorefill_changed)
-            self.sc_autorefill_changed(self.chan_sc_auto_refill.getValue())
+            self.chan_sc_auto_refill.connect_signal(
+                "update", self.sc_autorefill_changed
+            )
+            self.sc_autorefill_changed(self.chan_sc_auto_refill.get_value())
 
-        self.chan_sc_dewar_low_level_alarm = self.getChannelObject("scLowLevelAlarm")
+        self.chan_sc_dewar_low_level_alarm = self.get_channel_object("scLowLevelAlarm")
         if self.chan_sc_dewar_low_level_alarm is not None:
-            self.chan_sc_dewar_low_level_alarm.connectSignal(
+            self.chan_sc_dewar_low_level_alarm.connect_signal(
                 "update", self.low_level_alarm_changed
             )
-            self.low_level_alarm_changed(self.chan_sc_dewar_low_level_alarm.getValue())
+            self.low_level_alarm_changed(self.chan_sc_dewar_low_level_alarm.get_value())
 
-        self.chan_sc_dewar_overflow_alarm = self.getChannelObject("scOverflowAlarm")
+        self.chan_sc_dewar_overflow_alarm = self.get_channel_object("scOverflowAlarm")
         if self.chan_sc_dewar_overflow_alarm is not None:
-            self.chan_sc_dewar_overflow_alarm.connectSignal(
+            self.chan_sc_dewar_overflow_alarm.connect_signal(
                 "update", self.overflow_alarm_changed
             )
 
-        # self.chan_flux = self.getChannelObject('flux')
+        # self.chan_flux = self.get_channel_object('flux')
         # if self.chan_flux is not None:
-        # self.chan_flux.connectSignal('update', self.flux_changed)
+        # self.chan_flux.connect_signal('update', self.flux_changed)
 
-        self.chan_temperature_exp = self.getChannelObject("temperatureExp")
+        self.chan_temperature_exp = self.get_channel_object("temperatureExp")
         if self.chan_temperature_exp is not None:
-            self.chan_temperature_exp.connectSignal("update", self.temperature_changed)
-            self.temperature_changed(self.chan_temperature_exp.getValue())
+            self.chan_temperature_exp.connect_signal("update", self.temperature_changed)
+            self.temperature_changed(self.chan_temperature_exp.get_value())
 
-        self.update_values()
+        self.re_emit_values()
 
     def clear_gevent(self):
         self.temp_hum_polling.kill()
@@ -256,13 +258,13 @@ class SOLEILMachineInfo(HardwareObject):
         if self.chan_sample_temperature is not None:
             self.values_list[4]["value"] += (
                 "\n sample temperature: %.1f K"
-                % self.chan_sample_temperature.getValue()
+                % self.chan_sample_temperature.get_value()
             )
         else:
             logging.getLogger("HWR").debug(
                 "chan_sample_temperature: %s" % self.chan_sample_temperature
             )
-        self.update_values()
+        self.re_emit_values()
 
     def mach_current_changed(self, value):
         """Method called if the machine current is changed
@@ -277,7 +279,7 @@ class SOLEILMachineInfo(HardwareObject):
             self.values_list[0]["value"] = value
             self.values_list[0]["value_str"] = "%.1f mA" % value
             self.values_list[0]["in_range"] = value > 60.0
-            self.update_values()
+            self.re_emit_values()
 
     def state_text_changed(self, text):
         """Function called if machine state text is changed
@@ -291,11 +293,11 @@ class SOLEILMachineInfo(HardwareObject):
 
     def update_machine_state(self):
         """Machine state assembly"""
-        filling_mode = self.chan_filling_mode.getValue()
-        state_text0 = self.chan_state_text0.getValue()
-        state_text1 = self.chan_state_text1.getValue()
-        state_text2 = self.chan_state_text2.getValue()
-        is_beam_usable = self.chan_is_beam_usable.getValue()
+        filling_mode = self.chan_filling_mode.get_value()
+        state_text0 = self.chan_state_text0.get_value()
+        state_text1 = self.chan_state_text1.get_value()
+        state_text2 = self.chan_state_text2.get_value()
+        is_beam_usable = self.chan_is_beam_usable.get_value()
 
         date_boundary_string = " :"
         date_boundary = state_text1.find(date_boundary_string)
@@ -318,7 +320,7 @@ class SOLEILMachineInfo(HardwareObject):
             state_text += "Beam unusable"
         self.values_list[1]["value"] = state_text
         self.state_text = state_text
-        self.update_values()
+        self.re_emit_values()
 
     def low_level_alarm_changed(self, value):
         """Low level alarm"""
@@ -364,13 +366,13 @@ class SOLEILMachineInfo(HardwareObject):
             self.values_list[5]["in_range"] = True
 
         logging.getLogger("HWR").error(
-            "chan_sc_auto_refill %s" % self.chan_sc_auto_refill.getValue()
+            "chan_sc_auto_refill %s" % self.chan_sc_auto_refill.get_value()
         )
-        if self.chan_sc_auto_refill.getValue() == 0:
+        if self.chan_sc_auto_refill.get_value() == 0:
             self.values_list[5]["value"] += ", refill OFF"
         else:
             self.values_list[5]["value"] += ", refill ON"
-        self.update_values()
+        self.re_emit_values()
 
     def flux_changed(self, value, beam_info=None, transmission=None):
         """Sets flux value"""
@@ -382,13 +384,9 @@ class SOLEILMachineInfo(HardwareObject):
         # transmission, beam_info['size_x'] * 1000, beam_info['size_y'] * 1000)
         self.values_list[3]["value_str"] = msg_str
         self.values_list[3]["in_range"] = value > 1e6
-        self.update_values()
+        self.re_emit_values()
 
-    def get_flux(self, beam_info=None, transmission=None):
-        """Returns flux value"""
-        return self.values_list[3]["value"]
-
-    def update_values(self):
+    def re_emit_values(self):
         """Emits list of values"""
         self.emit("valuesChanged", self.values_list)
 
@@ -401,7 +399,7 @@ class SOLEILMachineInfo(HardwareObject):
         """"Update hutch temperature"""
         self.values_list[2]["value"] = "%.1f C" % value
         self.values_list[2]["in_range"] = value < 25  # self.limits_dict['temp']
-        self.update_values()
+        self.re_emit_values()
 
     def get_temp_hum_values(self, sleep_time):
         """Updates temperatur and humidity values"""
@@ -416,7 +414,7 @@ class SOLEILMachineInfo(HardwareObject):
                     self.hutch_hum = hum
                     self.values_list[2]["value"] = "%.1f C, %.1f %%" % (temp, hum)
                     self.values_list[2]["in_range"] = temp < 25 and hum < 60
-                    self.update_values()
+                    self.re_emit_values()
             time.sleep(sleep_time)
 
     def get_current(self):
@@ -445,7 +443,7 @@ class SOLEILMachineInfo(HardwareObject):
                 )
                 self.values_list[-1]["in_range"] = free / 2 ** 30 > 10
             self.values_list[-1]["value"] = txt
-            self.update_values()
+            self.re_emit_values()
             time.sleep(sleep_time)
 
     def get_ramdisk_size(self):
@@ -469,5 +467,5 @@ class SOLEILMachineInfo(HardwareObject):
                     return "%3.1f%s" % (num, x)
                 num /= 1024.0
             return "%3.1f%s" % (num, "TB")
-        except BaseException:
+        except Exception:
             return "???"

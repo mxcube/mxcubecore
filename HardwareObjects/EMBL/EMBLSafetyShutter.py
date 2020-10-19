@@ -74,59 +74,61 @@ class EMBLSafetyShutter(Device):
         self.getWagoState = self.getShutterState
 
     def init(self):
-        self.chan_collection_state = self.getChannelObject("chanCollectStatus")
+        self.chan_collection_state = self.get_channel_object("chanCollectStatus")
         if self.chan_collection_state:
-            self.chan_collection_state.connectSignal(
+            self.chan_collection_state.connect_signal(
                 "update", self.data_collection_state_changed
             )
 
-        self.chan_state_closed = self.getChannelObject("chanStateClosed")
-        self.chan_state_closed.connectSignal("update", self.state_closed_changed)
-        self.chan_state_open = self.getChannelObject("chanStateOpen")
-        self.chan_state_open.connectSignal("update", self.state_open_changed)
+        self.chan_state_closed = self.get_channel_object("chanStateClosed")
+        self.chan_state_closed.connect_signal("update", self.state_closed_changed)
+        self.chan_state_open = self.get_channel_object("chanStateOpen")
+        self.chan_state_open.connect_signal("update", self.state_open_changed)
 
-        self.chan_state_open_permission = self.getChannelObject(
+        self.chan_state_open_permission = self.get_channel_object(
             "chanStateOpenPermission"
         )
-        self.chan_state_open_permission.connectSignal(
+        self.chan_state_open_permission.connect_signal(
             "update", self.state_open_permission_changed
         )
-        self.state_open_permission_changed(self.chan_state_open_permission.getValue())
+        self.state_open_permission_changed(self.chan_state_open_permission.get_value())
 
-        self.chan_ics_error = self.getChannelObject("chanIcsError")
-        self.chan_ics_error.connectSignal("update", self.ics_error_msg_changed)
-        self.ics_error_msg_changed(self.chan_ics_error.getValue())
+        self.chan_ics_error = self.get_channel_object("chanIcsError")
+        self.chan_ics_error.connect_signal("update", self.ics_error_msg_changed)
+        self.ics_error_msg_changed(self.chan_ics_error.get_value())
 
-        self.chan_cmd_close_error = self.getChannelObject("chanCmdCloseError")
+        self.chan_cmd_close_error = self.get_channel_object("chanCmdCloseError")
         if self.chan_cmd_close_error is not None:
-            self.chan_cmd_close_error.connectSignal(
+            self.chan_cmd_close_error.connect_signal(
                 "update", self.cmd_error_msg_changed
             )
 
-        self.chan_cmd_open_error = self.getChannelObject("chanCmdOpenError")
+        self.chan_cmd_open_error = self.get_channel_object("chanCmdOpenError")
         if self.chan_cmd_open_error is not None:
-            self.chan_cmd_open_error.connectSignal("update", self.cmd_error_msg_changed)
+            self.chan_cmd_open_error.connect_signal(
+                "update", self.cmd_error_msg_changed
+            )
 
-        self.cmd_open = self.getCommandObject("cmdOpen")
-        self.cmd_close = self.getCommandObject("cmdClose")
+        self.cmd_open = self.get_command_object("cmdOpen")
+        self.cmd_close = self.get_command_object("cmdClose")
 
-        self.use_shutter = self.getProperty("useShutter", True)
+        self.use_shutter = self.get_property("useShutter", True)
 
-        self.state_open_changed(self.chan_state_open.getValue())
+        self.state_open_changed(self.chan_state_open.get_value())
 
     def connected(self):
         """
         Sets is ready
         :return:
         """
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def disconnected(self):
         """
         Sets not ready
         :return:
         """
-        self.setIsReady(False)
+        self.set_is_ready(False)
 
     def data_collection_state_changed(self, state):
         """Updates shutter state when data collection state changes
@@ -200,11 +202,13 @@ class EMBLSafetyShutter(Device):
         """
         msg = ""
 
-        if self.shutter_state_open:
+        if self.data_collection_state == "collecting":
+            self.shutter_state = "disabled"
+        elif self.shutter_state_open:
             self.shutter_state = "opened"
         elif self.shutter_state_closed:
             self.shutter_state = "closed"
-        elif self.data_collection_state == "collecting" or not self.shutter_can_open:
+        elif not self.shutter_can_open:
             self.shutter_state = "disabled"
         else:
             self.shutter_state = "unknown"
@@ -272,7 +276,7 @@ class EMBLSafetyShutter(Device):
         logging.getLogger("HWR").info("Safety shutter: Closing beam shutter...")
         try:
             self.cmd_close()
-        except BaseException:
+        except Exception:
             logging.getLogger("GUI").error("Safety shutter: unable to close shutter")
 
     def open_shutter(self):
@@ -283,10 +287,10 @@ class EMBLSafetyShutter(Device):
         logging.getLogger("HWR").info("Safety shutter: Openning beam shutter...")
         try:
             self.cmd_open()
-        except BaseException:
+        except Exception:
             logging.getLogger("GUI").error("Safety shutter: unable to open shutter")
 
-    def update_values(self):
+    def re_emit_values(self):
         """Reemits all signals
 
         :return: None

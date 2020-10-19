@@ -20,7 +20,7 @@ class LdapLoginMockup(Procedure):
 
     # Initializes the hardware object
     def init(self):
-        ldaphost = self.getProperty("ldaphost")
+        ldaphost = self.get_property("ldaphost")
 
     # Check password in LDAP
     def login(self, username, password, retry=True):

@@ -1,6 +1,6 @@
 <device class="MicrodiffZoom">
     <exporter_address>172.19.10.119:9001</exporter_address>
-    <motor_name>Zoom</motor_name>
+    <actuator_name>Zoom</actuator_name>
     <channel type="exporter" name="predefined_position">CoaxialCameraZoomValue</channel>
     <channel type="exporter" name="ZoomPosition">ZoomPosition</channel>
     <channel type="exporter" name="ZoomState">ZoomState</channel>

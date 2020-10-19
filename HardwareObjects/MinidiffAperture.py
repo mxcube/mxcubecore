@@ -6,18 +6,18 @@ class MinidiffAperture(MultiplePositions.MultiplePositions):
         MultiplePositions.MultiplePositions.__init__(self, *args, **kwargs)
 
     def getApertureCoef(self):
-        current_pos = self.getPosition()
+        current_pos = self.get_value()
         for position in self["positions"]:
-            if position.getProperty("name") == current_pos:
-                aperture_coef = position.getProperty("aperture_coef")
+            if position.get_property("name") == current_pos:
+                aperture_coef = position.get_property("aperture_coef")
                 return aperture_coef
         return 1
 
     def getApertureSize(self):
-        current_pos = self.getPosition()
+        current_pos = self.get_value()
         for position in self["positions"]:
-            if position.getProperty("name") == current_pos:
-                aperture_size = float(position.getProperty("aperture_size"))
+            if position.get_property("name") == current_pos:
+                aperture_size = float(position.get_property("aperture_size"))
 
                 if aperture_size > 1:
                     # aperture size in microns
@@ -27,7 +27,7 @@ class MinidiffAperture(MultiplePositions.MultiplePositions):
                     return (aperture_size, aperture_size)
         return (9999, 9999)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "apertureChanged":
             self.checkPosition()
 

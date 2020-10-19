@@ -12,8 +12,8 @@ class LimaDetectorMockup:
         self.config = config
         self.header = dict()
 
-        lima_device = config.getProperty("lima_device")
-        pilatus_device = config.getProperty("pilatus_device")
+        lima_device = config.get_property("lima_device")
+        pilatus_device = config.get_property("pilatus_device")
         if None in (lima_device, pilatus_device):
             return
 
@@ -33,20 +33,20 @@ class LimaDetectorMockup:
             "saving_header_delimiter",
             "last_image_saved",
         ):
-            self.addChannel(
+            self.add_channel(
                 {"type": "tango", "name": channel_name, "tangoname": lima_device},
                 channel_name,
             )
 
         for channel_name in ("fill_mode", "threshold"):
-            self.addChannel(
+            self.add_channel(
                 {"type": "tango", "name": channel_name, "tangoname": pilatus_device},
                 channel_name,
             )
 
         pilatus_tg_device = DeviceProxy(pilatus_device)
         if hasattr(pilatus_tg_device, "working_energy"):
-            self.addChannel(
+            self.add_channel(
                 {
                     "type": "tango",
                     "name": "energy_threshold",
@@ -55,7 +55,7 @@ class LimaDetectorMockup:
                 "working_energy",
             )
         else:
-            self.addChannel(
+            self.add_channel(
                 {
                     "type": "tango",
                     "name": "energy_threshold",
@@ -82,9 +82,6 @@ class LimaDetectorMockup:
             "SetImageHeader",
         )
 
-    def wait_ready(self):
-        return
-
     def last_image_saved(self):
         return 2
 
@@ -104,9 +101,7 @@ class LimaDetectorMockup:
         energy,
         still,
     ):
-        diffractometer_positions = (
-            HWR.beamline.diffractometer.get_positions()
-        )
+        diffractometer_positions = HWR.beamline.diffractometer.get_positions()
         self.start_angles = list()
         for i in range(number_of_images):
             self.start_angles.append("%0.4f deg." % (start + osc_range * i))

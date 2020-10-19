@@ -17,7 +17,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """Beamline class serving as singleton container for links to top-level HardwareObjects
 
@@ -60,18 +60,18 @@ class EMBLBeamline(Beamline):
         """
         return super(EMBLBeamline, self).all_roles + tuple(self.__content_roles)
 
-
     # Additional properties
 
     @property
-    def beam_definer(self):
+    def beam_focusing(self):
         """Beam-definer Hardware object
 
         Returns:
             Optional[AbstractMotor]:
         """
-        return self._objects.get("beam_definer")
-    __content_roles.append("beam_definer")
+        return self._objects.get("beam_focusing")
+
+    __content_roles.append("beam_focusing")
 
     @property
     def ppu_control(self):
@@ -81,6 +81,7 @@ class EMBLBeamline(Beamline):
             Optional[HardwareObject]:
         """
         return self._objects.get("ppu_control")
+
     __content_roles.append("ppu_control")
 
     # Additional procedures
@@ -96,6 +97,7 @@ class EMBLBeamline(Beamline):
             Optional[EMBLXrayCentring]
         """
         return self._objects.get("xray_centring")
+
     __content_roles.append("xray_centring")
     # Registers this object as a procedure:
     Beamline._procedure_names.add("xray_centring")

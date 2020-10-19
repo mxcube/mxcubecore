@@ -18,7 +18,9 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Hardware object used to control image tracking. By default ADXV is used
+EMBLImageTracking
+Hardware object used to control image tracking
+By default ADXV is used
 """
 
 from HardwareRepository.BaseHardwareObjects import Device
@@ -48,28 +50,31 @@ class EMBLImageTracking(Device):
 
     def init(self):
 
-        self.chan_enable_image_tracking = self.getChannelObject(
+        self.chan_enable_image_tracking = self.get_channel_object(
             "chanImageTrackingEnabled", optional=True
         )
-        self.chan_enable_image_tracking.connectSignal(
+        self.chan_enable_image_tracking.connect_signal(
             "update", self.image_tracking_state_changed
         )
-        self.chan_filter_frames = self.getChannelObject(
+        self.chan_filter_frames = self.get_channel_object(
             "chanFilterFramesEnabled", optional=True
         )
         if self.chan_filter_frames is not None:
-            self.chan_filter_frames.connectSignal(
+            self.chan_filter_frames.connect_signal(
                 "update", self.filter_frames_enabled_changed
             )
 
-        self.chan_spot_list = self.getChannelObject(
+        self.chan_spot_list = self.get_channel_object(
             "chanSpotListEnabled", optional=True
         )
-        self.chan_spot_list.setValue(False)
-        self.chan_state = self.getChannelObject("chanState")
-        self.chan_state.connectSignal("update", self.state_changed)
+        if self.chan_spot_list is not None:
+            self.chan_spot_list.connect_signal("update", self.spot_list_enabled_changed)
 
-        self.cmd_load_image = self.getCommandObject("cmdLoadImage")
+        self.chan_spot_list.set_value(True)
+        self.chan_state = self.get_channel_object("chanState")
+        self.chan_state.connect_signal("update", self.state_changed)
+
+        self.cmd_load_image = self.get_command_object("cmdLoadImage")
 
     def image_tracking_state_changed(self, state):
         """
@@ -104,7 +109,7 @@ class EMBLImageTracking(Device):
         Returns True if image tracking is enabled
         :return:
         """
-        return self.chan_enable_image_tracking.getValue()
+        return self.chan_enable_image_tracking.get_value()
 
     def set_image_tracking_state(self, state):
         """
@@ -112,7 +117,7 @@ class EMBLImageTracking(Device):
         :param state:
         :return:
         """
-        self.chan_enable_image_tracking.setValue(state)
+        self.chan_enable_image_tracking.set_value(state)
 
     def set_filter_frames_state(self, state):
         """
@@ -120,7 +125,7 @@ class EMBLImageTracking(Device):
         :param state:
         :return:
         """
-        self.chan_filter_frames.setValue(state)
+        self.chan_filter_frames.set_value(state)
 
     def set_spot_list_enabled(self, state):
         """
@@ -128,7 +133,11 @@ class EMBLImageTracking(Device):
         :param state:
         :return:
         """
-        self.chan_spot_list.setValue(state)
+        self.chan_spot_list.set_value(state)
+
+    def spot_list_enabled_changed(self, state):
+        self.state_dict["spot_list"] = state
+        self.emit("imageTrackingStateChanged", (self.state_dict,))
 
     def load_image(self, image_name):
         """
@@ -140,7 +149,7 @@ class EMBLImageTracking(Device):
             self.set_image_tracking_state(False)
         self.cmd_load_image(str(image_name))
 
-    def update_values(self):
+    def re_emit_values(self):
         """
         Reemits values
         :return:

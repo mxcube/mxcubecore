@@ -1,6 +1,6 @@
 <device class="MicrodiffMotor">
     <tangoname>i11-ma-cx1/ex/md2</tangoname>
-    <motor_name>CapillaryHorizontal</motor_name>
+    <actuator_name>CapillaryHorizontal</actuator_name>
     <username>CapillaryHorizontal</username>
     <direction>1</direction>
     <GUIstep>0.05</GUIstep>

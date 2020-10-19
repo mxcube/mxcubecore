@@ -97,21 +97,23 @@ def checkType(_strClassName, _strMethodName, _value, _strExpectedType):
                     _value.__class__.__name__,
                 )
                 print(strMessage)
-                # raise BaseException(strMessage)
+                # raise Exception(strMessage)
 
 
 # 	elif _value is None:
 # 		strMessage = "ERROR! %s.%s argument which should be %s is None" % (_strClassName, _strMethodName, _strExpectedType)
 # 		print(strMessage)
-# 		#raise BaseException(strMessage)
+# 		#raise Exception(strMessage)
 
 
 def warnEmptyAttribute(_strName, _strTypeName):
     if _strTypeName not in ["float", "double", "string", "boolean", "integer"]:
-        print((
-            "Warning! Non-optional attribute %s of type %s is None!"
-            % (_strName, _strTypeName)
-        ))
+        print(
+            (
+                "Warning! Non-optional attribute %s of type %s is None!"
+                % (_strName, _strTypeName)
+            )
+        )
 
 
 class MixedContainer(object):
@@ -245,7 +247,7 @@ class XSDataMXCuBEDataSet(object):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataMXCuBEDataSet")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -1911,7 +1913,7 @@ class XSDataMXCuBEParameters(XSData):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataMXCuBEParameters")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -2256,7 +2258,7 @@ class XSDataInputMXCuBE(XSDataInput):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataInputMXCuBE")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -2607,7 +2609,7 @@ class XSDataResultMXCuBE(XSDataResult):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataResultMXCuBE")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 

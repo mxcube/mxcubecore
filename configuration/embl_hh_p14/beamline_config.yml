@@ -58,7 +58,7 @@ _objects:
     # Analysis:
     - offline_processing: auto-processing.xml
     - online_processing: parallel-processing.xml
-    - data_analysis: data-analysis.xml
+    - characterisation: data-analysis.xml
     # - beam_realign: # Skipped - optional
     # EMBL-specific:
     - ppu_control: ppu_control.xml
@@ -82,7 +82,7 @@ default_acquisition_parameters:
         first_image: 1
         overlap: 0
         num_images: 1
-        # detector_mode: 1 # Removed as not in practice used.
+        # detector_binning_mode: 1 # Removed as not in practice used.
         inverse_beam: false
         take_dark_current: true
         skip_existing_images: true
@@ -107,7 +107,7 @@ default_acquisition_parameters:
     imaging:
         osc_range: 1.0
         num_images: 360
-        # detector_mode: "0"
+        # detector_binning_mode: "0"
 
 acquisition_limit_values:
     number_of_images:

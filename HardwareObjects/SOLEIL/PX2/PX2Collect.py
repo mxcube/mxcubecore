@@ -1,20 +1,20 @@
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import logging
@@ -96,31 +96,33 @@ class PX2Collect(AbstractCollect, HardwareObject):
         try:
             for undulator in self["undulators"]:
                 undulators.append(undulator)
-        except BaseException:
+        except Exception:
             pass
+
+        beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
 
         self.set_beamline_configuration(
             synchrotron_name="SOLEIL",
-            directory_prefix=self.getProperty("directory_prefix"),
-            default_exposure_time=HWR.beamline.detector.getProperty(
+            directory_prefix=self.get_property("directory_prefix"),
+            default_exposure_time=HWR.beamline.detector.get_property(
                 "default_exposure_time"
             ),
-            minimum_exposure_time=HWR.beamline.detector.getProperty(
+            minimum_exposure_time=HWR.beamline.detector.get_property(
                 "minimum_exposure_time"
             ),
-            detector_fileext=HWR.beamline.detector.getProperty("fileSuffix"),
-            detector_type=HWR.beamline.detector.getProperty("type"),
-            detector_manufacturer=HWR.beamline.detector.getProperty("manufacturer"),
-            detector_model=HWR.beamline.detector.getProperty("model"),
-            detector_px=HWR.beamline.detector.getProperty("px"),
-            detector_py=HWR.beamline.detector.getProperty("py"),
+            detector_fileext=HWR.beamline.detector.get_property("fileSuffix"),
+            detector_type=HWR.beamline.detector.get_property("type"),
+            detector_manufacturer=HWR.beamline.detector.get_property("manufacturer"),
+            detector_model=HWR.beamline.detector.get_property("model"),
+            detector_px=HWR.beamline.detector.get_property("px"),
+            detector_py=HWR.beamline.detector.get_property("py"),
             undulators=undulators,
-            focusing_optic=self.getProperty("focusing_optic"),
-            monochromator_type=self.getProperty("monochromator"),
-            beam_divergence_vertical=HWR.beamline.beam.get_beam_divergence_hor(),
-            beam_divergence_horizontal=HWR.beamline.beam.get_beam_divergence_ver(),
-            polarisation=self.getProperty("polarisation"),
-            input_files_server=self.getProperty("input_files_server"),
+            focusing_optic=self.get_property("focusing_optic"),
+            monochromator_type=self.get_property("monochromator"),
+            beam_divergence_vertical=beam_div_ver,
+            beam_divergence_horizontal=beam_div_hor,
+            polarisation=self.get_property("polarisation"),
+            input_files_server=self.get_property("input_files_server"),
         )
 
         self.emit("collectConnected", (True,))
@@ -322,16 +324,14 @@ class PX2Collect(AbstractCollect, HardwareObject):
 
     @task
     def _take_crystal_snapshot(self, filename):
-        HWR.beamline.microscope.save_scene_snapshot(filename)
+        HWR.beamline.sample_view.save_snapshot(filename)
 
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec):
         """Rotates sample by 360 and composes a gif file
            Animation is saved as the fourth snapshot
         """
-        HWR.beamline.microscope.save_scene_animation(
-            animation_filename, duration_sec
-        )
+        HWR.beamline.sample_view.save_scene_animation(animation_filename, duration_sec)
 
     @task
     def move_motors(self, motor_position_dict):

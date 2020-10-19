@@ -14,15 +14,15 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 import traceback
 from collections import namedtuple
 
-status_list = ["SUCCESS", "WARNING", "FAILED", "SKIPPED"]
+status_list = ["SUCCESS", "WARNING", "FAILED", "SKIPPED", "RUNNING", "NOT_EXECUTED"]
 QueueEntryStatusType = namedtuple("QueueEntryStatusType", status_list)
-QUEUE_ENTRY_STATUS = QueueEntryStatusType(0, 1, 2, 3)
+QUEUE_ENTRY_STATUS = QueueEntryStatusType(0, 1, 2, 3, 4, 5)
 
 
 __credits__ = ["MXCuBE collaboration"]
@@ -201,8 +201,7 @@ class BaseQueueEntry(QueueEntryContainer):
         self.set_data_model(data_model)
         self.set_view(view, view_set_queue_entry)
         self._checked_for_exec = False
-        self.beamline_setup = None
-        self.status = QUEUE_ENTRY_STATUS.SUCCESS
+        self.status = QUEUE_ENTRY_STATUS.NOT_EXECUTED
         self.type_str = ""
 
     def is_failed(self):
@@ -295,9 +294,6 @@ class BaseQueueEntry(QueueEntryContainer):
         """
         msg = "Calling pre_execute on: " + str(self)
         logging.getLogger("queue_exec").info(msg)
-        self.beamline_setup = self.get_queue_controller().getObjectByRole(
-            "beamline_setup"
-        )
         self.get_data_model().set_running(True)
 
     def post_execute(self):

@@ -12,22 +12,19 @@ class BIOMAXTransmission(Equipment):
 
         if HWR.beamline.transmission is not None:
             HWR.beamline.transmission.connect(
-                "positionChanged", self.transmissionPositionChanged
+                "valueChanged", self.transmissionPositionChanged
             )
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
     def get_value(self):
-        return "%.3f" % HWR.beamline.transmission.getPosition()
-
-    def getAttFactor(self):
-        return "%.3f" % HWR.beamline.transmission.getPosition()
+        return "%.3f" % HWR.beamline.transmission.get_value()
 
     def getAttState(self):
         return 1
 
-    def getLimits(self):
+    def get_limits(self):
         return (0, 100)
 
     def setpoint_reached(self, setpoint):
@@ -37,7 +34,7 @@ class BIOMAXTransmission(Equipment):
     def set_value(self, value, wait=False):
         if value < self.limits[0] or value > self.limits[1]:
             raise Exception("Transmssion out of limits.")
-        HWR.beamline.transmission.move(value)
+        HWR.beamline.transmission.set_value(value)
         if wait:
             with gevent.Timeout(30, Exception("Timeout waiting for device ready")):
                 while not self.setpoint_reached(value):

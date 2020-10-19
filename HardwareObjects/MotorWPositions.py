@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#   You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#   You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 from HardwareRepository.BaseHardwareObjects import Device
@@ -62,41 +62,41 @@ class MotorWPositions(AbstractMotor, Device):
     def init(self):
         self._last_position_name = None
         try:
-            roles = self["motors"].getRoles()
+            roles = self["motors"].get_roles()
             role = roles[0]
-            self.motor = self.getObjectByRole(role)
+            self.motor = self.get_object_by_role(role)
         except KeyError:
             logging.getLogger("HWR").error("MotorWPositions: motor not defined")
             return
         try:
-            self.delta = self["deltas"].getProperty(role)
-        except BaseException:
+            self.delta = self["deltas"].get_property(role)
+        except Exception:
             logging.getLogger().info(
                 "MotorWPositions: no delta defined, setting to %f", self.delta
             )
         try:
             positions = self["positions"]
-        except BaseException:
+        except Exception:
             logging.getLogger().error("MotorWPositions: no positions defined")
         else:
             for position in positions:
-                name = position.getProperty("name")
-                pos = position.getProperty(role)
+                name = position.get_property("name")
+                pos = position.get_property(role)
                 self.predefined_positions[name] = pos
         self.connect(self.motor, "stateChanged", self.motor_state_changed)
-        self.connect(self.motor, "positionChanged", self.motor_position_changed)
-        self.setIsReady(self.motor.isReady())
+        self.connect(self.motor, "valueChanged", self.motor_position_changed)
+        self.set_is_ready(self.motor.is_ready())
 
-    def getLimits(self):
+    def get_limits(self):
         return (1, len(self.predefined_positions))
 
     def getPredefinedPositionsList(self):
         return sorted(self.predefined_positions.keys())
         # return self.predefined_positions
 
-    def getCurrentPositionName(self, pos=None):
+    def get_current_position_name(self, pos=None):
         if pos is None:
-            pos = self.motor.getPosition()
+            pos = self.motor.get_value()
         for (position_name, position) in self.predefined_positions.items():
             if self.delta >= abs(pos - position):
                 return position_name
@@ -104,18 +104,18 @@ class MotorWPositions(AbstractMotor, Device):
 
     def moveToPosition(self, position_name):
         try:
-            self.motor.move(self.predefined_positions[position_name])
-        except BaseException:
+            self.motor.set_value(self.predefined_positions[position_name])
+        except Exception:
             logging.getLogger("HWR").exception("MotorWPositions: invalid position name")
 
     def setNewPredefinedPosition(self, positionName, positionOffset):
         raise NotImplementedError
 
-    def getMotorMnemonic(self):
+    def get_motor_mnemonic(self):
         """
         Descript. :
         """
-        return self.motor_name
+        return self.actuator_name
 
     def motor_state_changed(self, state):
         self.updateState(state)
@@ -123,65 +123,47 @@ class MotorWPositions(AbstractMotor, Device):
 
     def motor_position_changed(self, absolute_position=None):
         if absolute_position is None:
-            absolute_position = self.motor.getPosition()
-        position_name = self.getCurrentPositionName(absolute_position)
+            absolute_position = self.motor.get_value()
+        position_name = self.get_current_position_name(absolute_position)
         if self._last_position_name != position_name:
             self._last_position_name = position_name
             self.emit(
                 "predefinedPositionChanged",
                 (position_name, position_name and absolute_position or None),
             )
-        self.emit("positionChanged", (absolute_position,))
+        self.emit("valueChanged", (absolute_position,))
 
     def updateState(self, state=None):
         """
         Descript. :
         """
         if state is None:
-            state = self.getState()
-        self.setIsReady(state > AbstractMotor.UNUSABLE)
+            state = self.get_state()
+        self.set_is_ready(state > AbstractMotor.UNUSABLE)
 
-    def getState(self):
+    def get_state(self):
         """
         Descript. : return motor state
         """
-        return self.motor.getState()
+        return self.motor.get_state()
 
-    def getPosition(self):
+    def get_value(self):
         """
         Descript. :
         """
-        return self.motor.getPosition()
+        return self.motor.get_value()
 
-    def getDialPosition(self):
+    def set_value(self, absolute_position, timeout=0):
         """
         Descript. :
         """
-        return self.motor.getDialPosition()
+        self.motor.set_value(absolute_position, timeout)
 
-    def move(self, absolute_position):
+    def set_value_relative(self, relative_position, timeout=0):
         """
         Descript. :
         """
-        self.motor.move(absolute_position)
-
-    def moveRelative(self, relative_position):
-        """
-        Descript. :
-        """
-        self.motor.moveRelative(relative_position)
-
-    def syncMove(self, absolute_position, timeout=None):
-        """
-        Descript. :
-        """
-        self.motor.syncMove(absolute_position, timeout)
-
-    def syncMoveRelative(self, relative_position, timeout=None):
-        """
-        Descript. :
-        """
-        self.motor.syncMoveRelative(relative_position, timeout)
+        self.motor.set_value_relative(relative_position, timeout)
 
     def stop(self):
         """

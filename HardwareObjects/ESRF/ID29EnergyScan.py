@@ -21,8 +21,8 @@ class ID29EnergyScan(ESRFEnergyScan):
 
     @task
     def set_mca_roi(self, eroi_min, eroi_max):
-        self.mca = self.getObjectByRole("MCA")
-        self.energy_scan_parameters["fluorescenceDetector"] = self.mca.getProperty(
+        self.mca = self.get_object_by_role("MCA")
+        self.energy_scan_parameters["fluorescenceDetector"] = self.mca.get_property(
             "username"
         )
         # check if roi in eV or keV
@@ -43,7 +43,9 @@ class ID29EnergyScan(ESRFEnergyScan):
         eroi_min = self.energy_scan_parameters["eroi_min"]
         eroi_max = self.energy_scan_parameters["eroi_max"]
         self.ctrl.detcover.set_in()
-        self.ctrl.find_max_attenuation(ctime=2, roi=[eroi_min, eroi_max])
+        self.ctrl.find_max_attenuation(
+            ctime=2, roi=[eroi_min, eroi_max], datafile="/tmp/abb"
+        )
         self.energy_scan_parameters[
             "transmissionFactor"
         ] = self.transmission.get_value()
@@ -60,33 +62,25 @@ class ID29EnergyScan(ESRFEnergyScan):
             datetime.strftime(dd, "%B"),
             datetime.strftime(dd, "%Y"),
         )
-
         self.ctrl.do_energy_scan(startE, endE, datafile=fname)
-
-        self.energy_scan_parameters["exposureTime"] = self.ctrl.MONOSCAN_INITSTATE[
-            "exposure_time"
-        ]
-
-    def canScanEnergy(self):
-        return True
-
-    def canMoveEnergy(self):
-        return self.canScanEnergy()
+        # self.energy_scan_parameters["exposureTime"] = exposure_time
+        self.energy_scan_parameters["exposureTime"] = 10.11
 
     def escan_prepare(self):
-        self.ctrl = self.getObjectByRole("controller")
+        self.ctrl = self.get_object_by_role("controller")
 
         self.ctrl.detcover.set_in()
-        self.ctrl.diffractometer.fldetin()
+        self.ctrl.diffractometer.fldet_in()
         self.ctrl.diffractometer.set_phase("DataCollection", wait=True)
 
         if self.beamsize:
-            bsX = self.beamsize.getCurrentPositionName()
+            # get the aperture size
+            bsX = self.beamsize.get_size(self.beamsize.get_value().name)
             self.energy_scan_parameters["beamSizeHorizontal"] = bsX
             self.energy_scan_parameters["beamSizeVertical"] = bsX
 
     def escan_postscan(self):
-        self.ctrl.diffractometer.fldetout()
+        self.ctrl.diffractometer.fldet_out()
 
     def close_fast_shutter(self):
         self.ctrl.diffractometer.msclose()

@@ -35,7 +35,7 @@
   <object href="/imaging-centring-math" role="imaging-centring"/>
 
   <zoom_centre>{"x":681,"y":494}</zoom_centre>
-  <omega_reference>{"motor_name": "phiz", "position":-0.0760, "camera_axis":"x", "direction": 1}</omega_reference>
+  <omega_reference>{"actuator_name": "phiz", "position":-0.0760, "camera_axis":"x", "direction": 1}</omega_reference>
 
   <grid_direction>{"fast": (0,1), "slow": (1,0), "omega_ref" : 163.675}</grid_direction>
   <phase_list>("Transfer", "Centring", "DataCollection", "BeamLocation")</phase_list>

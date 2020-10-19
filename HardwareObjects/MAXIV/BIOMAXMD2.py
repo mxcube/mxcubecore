@@ -6,7 +6,8 @@ import logging
 import math
 
 from HardwareRepository.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer, DiffractometerState
+    GenericDiffractometer,
+    DiffractometerState,
 )
 from HardwareRepository import HardwareRepository as HWR
 
@@ -35,10 +36,10 @@ class BIOMAXMD2(GenericDiffractometer):
 
         GenericDiffractometer.init(self)
 
-        self.front_light = self.getObjectByRole("frontlight")
-        self.back_light = self.getObjectByRole("backlight")
-        self.back_light_switch = self.getObjectByRole("backlightswitch")
-        self.front_light_switch = self.getObjectByRole("frontlightswitch")
+        self.front_light = self.get_object_by_role("frontlight")
+        self.back_light = self.get_object_by_role("backlight")
+        self.back_light_switch = self.get_object_by_role("backlightswitch")
+        self.front_light_switch = self.get_object_by_role("frontlightswitch")
 
     def start3ClickCentring(self):
         self.start_centring_method(self.CENTRING_METHOD_MANUAL)
@@ -53,8 +54,8 @@ class BIOMAXMD2(GenericDiffractometer):
         :returns: list with two floats
         """
         return (
-            1 / self.channel_dict["CoaxCamScaleX"].getValue(),
-            1 / self.channel_dict["CoaxCamScaleY"].getValue(),
+            1 / self.channel_dict["CoaxCamScaleX"].get_value(),
+            1 / self.channel_dict["CoaxCamScaleY"].get_value(),
         )
 
     def osc_scan(self, start, end, exptime, wait=False):
@@ -92,8 +93,7 @@ class BIOMAXMD2(GenericDiffractometer):
     def move_sync_motors(self, motors_dict, wait=False, timeout=None):
         argin = ""
         # print "start moving motors =============", time.time()
-        for motor in motors_dict.keys():
-            position = motors_dict[motor]
+        for motor, position in motors_dict.items():
             if position is None:
                 continue
             name = self.MOTOR_TO_EXPORTER_NAME[motor]
@@ -111,20 +111,22 @@ class BIOMAXMD2(GenericDiffractometer):
         """
         Detects if device is ready
         """
-        return self.channel_dict["State"].getValue() == DiffractometerState.tostring(
+        return self.channel_dict["State"].get_value() == DiffractometerState.tostring(
             DiffractometerState.Ready
         )
 
     def moveToBeam(self, x, y):
         try:
-            self.beam_position = HWR.beamline.beam.get_beam_position()
+            self.beam_position = HWR.beamline.beam.get_beam_position_on_screen()
             beam_xc = self.beam_position[0]
             beam_yc = self.beam_position[1]
-            self.centring_phiz.moveRelative((y - beam_yc) / float(self.pixelsPerMmZ))
-            self.centring_phiy.moveRelative(
+            self.centring_phiz.set_value_relative(
+                (y - beam_yc) / float(self.pixelsPerMmZ)
+            )
+            self.centring_phiy.set_value_relative(
                 -1 * (x - beam_xc) / float(self.pixelsPerMmY)
             )
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "MiniDiff: could not center to beam, aborting"
             )

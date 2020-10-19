@@ -4,57 +4,57 @@ import gevent
 import numpy as np
 import logging
 
-from HardwareRepository.HardwareObjects.MD2Motor import MD2Motor
+from HardwareRepository.HardwareObjects.ExporterMotor import ExporterMotor
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
 
-class MicrodiffKappaMotor(MD2Motor):
+
+class MicrodiffKappaMotor(ExporterMotor):
     lock = gevent.lock.Semaphore()
     motors = dict()
     conf = dict()
 
     def __init__(self, name):
-        MD2Motor.__init__(self, name)
+        ExporterMotor.__init__(self, name)
 
     def init(self):
-        self.motor_name = self.getProperty("motor_name")
-        if not self.getMotorMnemonic() in ("Kappa", "Phi"):
+        ExporterMotor.init(self)
+        if not self.actuator_name in ("Kappa", "Phi"):
             raise RuntimeError("MicrodiffKappaMotor class is only for kappa motors")
-        MicrodiffKappaMotor.motors[self.getMotorMnemonic()] = self
-        if self.getMotorMnemonic() == "Kappa":
+        MicrodiffKappaMotor.motors[self.actuator_name] = self
+        if self.actuator_name == "Kappa":
             MicrodiffKappaMotor.conf["KappaTrans"] = self.stringToList(self.kappaTrans)
             MicrodiffKappaMotor.conf["KappaTransD"] = self.stringToList(
                 self.kappaTransD
             )
-        elif self.getMotorMnemonic() == "Phi":
+        elif self.actuator_name == "Phi":
             MicrodiffKappaMotor.conf["PhiTrans"] = self.stringToList(self.phiTrans)
             MicrodiffKappaMotor.conf["PhiTransD"] = self.stringToList(self.phiTransD)
-        MD2Motor.init(self)
-        self.sampx = self.getObjectByRole("sampx")
-        self.sampy = self.getObjectByRole("sampy")
-        self.phiy = self.getObjectByRole("phiy")
+        self.sampx = self.get_object_by_role("sampx")
+        self.sampy = self.get_object_by_role("sampy")
+        self.phiy = self.get_object_by_role("phiy")
 
     def stringToList(self, commaSeparatedString):
         return [float(x) for x in commaSeparatedString.split(",")]
 
     def move(self, absolutePosition):
-        kappa_start_pos = MicrodiffKappaMotor.motors["Kappa"].getPosition()
-        kappa_phi_start_pos = MicrodiffKappaMotor.motors["Phi"].getPosition()
-        if self.getMotorMnemonic() == "Kappa":
+        kappa_start_pos = MicrodiffKappaMotor.motors["Kappa"].get_value()
+        kappa_phi_start_pos = MicrodiffKappaMotor.motors["Phi"].get_value()
+        if self.actuator_name == "Kappa":
             kappa_end_pos = absolutePosition
             kappa_phi_end_pos = kappa_phi_start_pos
         else:
             kappa_end_pos = kappa_start_pos
             kappa_phi_end_pos = absolutePosition
-        sampx_start_pos = self.sampx.getPosition()
-        sampy_start_pos = self.sampy.getPosition()
-        phiy_start_pos = self.phiy.getPosition()
-
+        sampx_start_pos = self.sampx.get_value()
+        sampy_start_pos = self.sampy.get_value()
+        phiy_start_pos = self.phiy.get_value()
+        """
         with MicrodiffKappaMotor.lock:
-            if self.getState() != MotorStates.NOTINITIALIZED:
-                self.position_attr.setValue(
+            if self.get_state() != MotorStates.UNKNOWN:
+                self.position_attr.set_value(
                     absolutePosition
                 )  # absolutePosition-self.offset)
-                self.motorStateChanged(MotorStates.MOVING)
+                self.update_state(MotorStates.MOVING)
 
             # calculations
             newSamplePositions = self.getNewSamplePosition(
@@ -66,9 +66,10 @@ class MicrodiffKappaMotor(MD2Motor):
                 kappa_end_pos,
                 kappa_phi_end_pos,
             )
-            self.sampx.move(newSamplePositions["sampx"])
-            self.sampy.move(newSamplePositions["sampy"])
-            self.phiy.move(newSamplePositions["phiy"])
+            self.sampx.set_value(newSamplePositions["sampx"])
+            self.sampy.set_value(newSamplePositions["sampy"])
+            self.phiy.set_value(newSamplePositions["phiy"])
+        """
 
     def waitEndOfMove(self, timeout=None):
         with gevent.Timeout(timeout):
@@ -80,7 +81,7 @@ class MicrodiffKappaMotor(MD2Motor):
             self.phiy.waitEndOfMove()
 
     def stop(self):
-        if self.getState() != MotorStates.NOTINITIALIZED:
+        if self.get_state() != MotorStates.NOTINITIALIZED:
             self._motor_abort()
         for m in (self.sampx, self.sampy, self.phiy):
             m.stop()

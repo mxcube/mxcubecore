@@ -14,7 +14,7 @@ Example xml file:
 import logging
 import time
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator
+    AbstractActuator,
 )
 from HardwareRepository.TaskUtils import task
 
@@ -25,44 +25,44 @@ class MicrodiffActuator(AbstractActuator):
         self._hwstate_attr = None
 
     def init(self):
-        self.cmdname = self.getProperty("cmd_name")
-        self.username = self.getProperty("username")
-        self.cmd_attr = self.addChannel(
-            {"type": "exporter", "name": "move"}, self.cmdname
+        self.cmd_name = self.get_property("cmd_name")
+        self.username = self.get_property("username")
+        self.cmd_attr = self.add_channel(
+            {"type": "exporter", "name": "move"}, self.cmd_name
         )
-        self.cmd_attr.connectSignal("update", self.value_changed)
+        self.cmd_attr.connect_signal("update", self.value_changed)
 
-        self.statecmdname = self.getProperty("statecmd_name")
-        if self.statecmdname is None:
-            self.statecmdname = self.cmdname
+        self.statecmd_name = self.get_property("statecmd_name")
+        if self.statecmd_name is None:
+            self.statecmd_name = self.cmd_name
 
-        self.state_attr = self.addChannel(
-            {"type": "exporter", "name": "state"}, self.statecmdname
+        self.state_attr = self.add_channel(
+            {"type": "exporter", "name": "state"}, self.statecmd_name
         )
-        self.value_changed(self.state_attr.getValue())
-        self.state_attr.connectSignal("update", self.value_changed)
+        self.value_changed(self.state_attr.get_value())
+        self.state_attr.connect_signal("update", self.value_changed)
 
-        self.offset = self.getProperty("offset")
+        self.offset = self.get_property("offset")
         if self.offset > 0:
             self.states = {self.offset: "out", self.offset - 1: "in"}
 
-        states = self.getProperty("private_state")
+        states = self.get_property("private_state")
         if states:
             import ast
 
             self.states = ast.literal_eval(states)
         try:
-            tt = float(self.getProperty("timeout"))
+            tt = float(self.get_property("timeout"))
             self.timeout = tt
         except TypeError:
             pass
 
-        if self.getProperty("use_hwstate"):
-            self.hwstate_attr = self.addChannel(
+        if self.get_property("use_hwstate"):
+            self.hwstate_attr = self.add_channel(
                 {"type": "exporter", "name": "hwstate"}, "HardwareState"
             )
 
-        self.swstate_attr = self.addChannel(
+        self.swstate_attr = self.add_channel(
             {"type": "exporter", "name": "swstate"}, "State"
         )
 
@@ -71,12 +71,12 @@ class MicrodiffActuator(AbstractActuator):
     def _ready(self):
         if self.hwstate_attr:
             if (
-                self.hwstate_attr.getValue() == "Ready"
-                and self.swstate_attr.getValue() == "Ready"
+                self.hwstate_attr.get_value() == "Ready"
+                and self.swstate_attr.get_value() == "Ready"
             ):
                 return True
         else:
-            if self.swstate_attr.getValue() == "Ready":
+            if self.swstate_attr.get_value() == "Ready":
                 return True
         return False
 
@@ -91,25 +91,21 @@ class MicrodiffActuator(AbstractActuator):
 
     def get_actuator_state(self, read=False):
         if read is True:
-            value = self.state_attr.getValue()
+            value = self.state_attr.get_value()
             self.actuator_state = self.states.get(value, AbstractActuator.UNKNOWN)
-            # self.connectNotify("actuatorStateChanged")
-        else:
-            if self.actuator_state == AbstractActuator.UNKNOWN:
-                self.connectNotify("actuatorStateChanged")
+
         return self.actuator_state
 
     @task
     def actuator_in(self, wait=True, timeout=None):
         if self._ready():
             try:
-                self.cmd_attr.setValue(self._moves["IN"])
+                self.cmd_attr.set_value(self._moves["IN"])
                 if wait:
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
-                self.value_changed(self.state_attr.getValue())
+                self.value_changed(self.state_attr.get_value())
             except Exception as e:
-                print (e)
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s in", self.username
                 )
@@ -122,13 +118,12 @@ class MicrodiffActuator(AbstractActuator):
     def actuator_out(self, wait=True, timeout=None):
         if self._ready():
             try:
-                self.cmd_attr.setValue(self._moves["OUT"])
+                self.cmd_attr.set_value(self._moves["OUT"])
                 if wait:
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
-                self.value_changed(self.state_attr.getValue())
+                self.value_changed(self.state_attr.get_value())
             except Exception as e:
-                print (e)
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s out", self.username
                 )

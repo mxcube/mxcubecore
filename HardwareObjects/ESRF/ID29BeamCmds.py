@@ -7,12 +7,12 @@ class ID29BeamCmds(HardwareObject):
         HardwareObject.__init__(self, *args)
 
     def init(self):
-        controller = self.getObjectByRole("controller")
-        detcover = self.getObjectByRole("detcover")
-        scintilator = self.getObjectByRole("scintilator")
-        aperture = self.getObjectByRole("aperture")
-        hutchtrigger = self.getObjectByRole("hutchtrigger")
-        cryo = self.getObjectByRole("cryo")
+        controller = self.get_object_by_role("controller")
+        detcover = self.get_object_by_role("detcover")
+        scintilator = self.get_object_by_role("scintilator")
+        aperture = self.get_object_by_role("aperture")
+        hutchtrigger = self.get_object_by_role("hutchtrigger")
+        cryo = self.get_object_by_role("cryo")
 
         controller.detcover.set_in()
         self.centrebeam = ControllerCommand("Centre beam", controller.centrebeam)
@@ -27,7 +27,7 @@ class ID29BeamCmds(HardwareObject):
         self.hutchtrigger = HWObjActuatorCommand("Hutchtrigger", hutchtrigger)
         self.cryo = HWObjActuatorCommand("Cryo", cryo)
 
-    def getCommands(self):
+    def get_commands(self):
         return [
             self.centrebeam,
             self.quick_realign,

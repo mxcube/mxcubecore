@@ -11,7 +11,7 @@ Example XML::
 
 Public Interface:
    Commands:
-       int getState()
+       int get_state()
            Description:
                returns current state
            Output:
@@ -76,28 +76,28 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
         self.actuator_state = STATE_UNKNOWN
 
         try:
-            self.actuator_channel = self.getChannelObject("actuator")
-            self.actuator_channel.connectSignal("update", self.stateChanged)
+            self.actuator_channel = self.get_channel_object("actuator")
+            self.actuator_channel.connect_signal("update", self.stateChanged)
         except KeyError:
             logging.getLogger().warning(
                 "%s: cannot report EPS Actuator State", self.name()
             )
 
         try:
-            state_string = self.getProperty("states")
+            state_string = self.get_property("states")
             if state_string is None:
                 self.state_strings = self.default_state_strings
             else:
                 states = state_string.split(",")
                 self.state_strings = states[1].strip(), states[0].strip()
-        except BaseException:
+        except Exception:
             import traceback
 
             logging.getLogger("HWR").warning(traceback.format_exc())
             self.state_strings = self.default_state_strings
 
-    def getState(self):
-        state = self.actuator_channel.getValue()
+    def get_state(self):
+        state = self.actuator_channel.get_value()
         self.actuator_state = self.convert_state(state)
         return self.actuator_state
 
@@ -123,7 +123,7 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
     def getStatus(self):
         """
         """
-        state = self.getState()
+        state = self.get_state()
 
         if state in [STATE_OUT, STATE_IN]:
             return self.state_strings[state]
@@ -139,15 +139,15 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
         self.cmdOut()
 
     def cmdIn(self):
-        self.actuator_channel.setValue(1)
+        self.actuator_channel.set_value(1)
 
     def cmdOut(self):
-        self.actuator_channel.setValue(0)
+        self.actuator_channel.set_value(0)
 
 
 def test_hwo(hwo):
     print("Name is: ", hwo.getUserName())
-    print("Shutter state is: ", hwo.getState())
+    print("Shutter state is: ", hwo.get_state())
     print("Shutter status is: ", hwo.getStatus())
 
     # print "Opening it"

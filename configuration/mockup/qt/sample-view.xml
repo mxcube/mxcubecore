@@ -1,0 +1,21 @@
+<object class="QtGraphicsManager">
+   <object href="/diffractometer-mockup" role="diffractometer"/>-->
+   <object href="/camera-mockup" role="camera"/>
+
+   <!-- Enable move sample buttons 
+        TODO: implement this feature
+   <enable_move_buttons>False</enable_move_buttons> -->
+
+   <!-- Use magnification tool -->
+   <magnification_tool>{"scale": 4, "area_size": 50}</magnification_tool>
+
+   <!-- Scale incomming video frame -->
+   <!-- <default_image_scale>1</default_image_scale> -->
+   <image_scale_list>(1, 1.5, 2, 2.5, 3, 4, 5)</image_scale_list> 
+
+   <!-- Scale all graphics view -->
+   <!-- <view_scale>1.3</view_scale> -->
+
+   <!-- If True disable vertical and horizontal scrollbars -->
+   <scrollbars_always_off>True</scrollbars_always_off>
+</object>

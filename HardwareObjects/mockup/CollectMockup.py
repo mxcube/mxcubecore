@@ -1,20 +1,20 @@
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
@@ -62,6 +62,7 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         number_of_images = self.current_dc_parameters["oscillation_sequence"][0][
             "number_of_images"
         ]
+
         for image in range(
             self.current_dc_parameters["oscillation_sequence"][0]["number_of_images"]
         ):
@@ -154,16 +155,14 @@ class CollectMockup(AbstractCollect.AbstractCollect):
 
     @task
     def _take_crystal_snapshot(self, filename):
-        HWR.beamline.microscope.save_scene_snapshot(filename)
+        HWR.beamline.sample_view.save_scene_snapshot(filename)
 
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec=1):
         """Rotates sample by 360 and composes a gif file
            Animation is saved as the fourth snapshot
         """
-        HWR.beamline.microscope.save_scene_animation(
-            animation_filename, duration_sec
-        )
+        HWR.beamline.sample_view.save_scene_animation(animation_filename, duration_sec)
 
     # @task
     # def move_motors(self, motor_position_dict):
@@ -174,9 +173,7 @@ class CollectMockup(AbstractCollect.AbstractCollect):
 
     @task
     def move_motors(self, motor_position_dict):
-        # TODO We copy, as dictionary is reset in move_motors. CLEAR UP!!
-        # TODO clear up this confusion between move_motors and moveMotors
-        HWR.beamline.diffractometer.move_motors(motor_position_dict.copy())
+        HWR.beamline.diffractometer.move_motors(motor_position_dict)
 
     def prepare_input_files(self):
         """
@@ -208,19 +205,3 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         )
 
         return xds_directory, mosflm_directory, ""
-
-    # rhfogh Added to improve interaction with UI and persistence of values
-    def set_wavelength(self, wavelength):
-        HWR.beamline.energy.move_wavelength(wavelength)
-
-    def set_energy(self, energy):
-        HWR.beamline.energy.move_energy(energy)
-
-    def set_resolution(self, new_resolution):
-        HWR.beamline.resolution.move(new_resolution)
-
-    def set_transmission(self, transmission):
-        HWR.beamline.transmission.set_value(transmission)
-
-    def move_detector(self, detector_distance):
-        HWR.beamline.detector.set_distance(detector_distance)

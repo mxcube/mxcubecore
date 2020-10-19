@@ -17,7 +17,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """Beamline class serving as singleton container for links to top-level HardwareObjects
 
@@ -32,7 +32,7 @@ __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
 import logging
-import warnings
+
 from HardwareRepository.BaseHardwareObjects import ConfiguredObject
 
 # NBNB The acq parameter names match the attributes of AcquisitionParameters
@@ -50,7 +50,7 @@ class Beamline(ConfiguredObject):
 
     # Names of procedures under Beamline - set of sttrings.
     # NB subclasses must add additional parocedures to this set,
-    # and may NOT override _procdeure_names
+    # and may NOT override _procedure_names
     _procedure_names = set()
 
     # NBNB these should be accessed ONLY as beamline.SUPPORTED_..._PARAMETERS
@@ -112,6 +112,9 @@ class Beamline(ConfiguredObject):
         # int Starting run number for path_template
         self.run_number = 1
 
+        # List of undulators
+        self.undulators = []
+
     def init(self):
         """Object initialisation - executed *after* loading contents"""
 
@@ -119,7 +122,7 @@ class Beamline(ConfiguredObject):
         for acquisition_type, params in self.default_acquisition_parameters.items():
             unrecognised = [x for x in params if x not in self.SUPPORTED_ACQ_PARAMETERS]
             if unrecognised:
-                warnings.warn(
+                logging.getLogger("HWR").warning(
                     "Unrecognised acquisition parameters for %s: %s"
                     % (acquisition_type, unrecognised)
                 )
@@ -130,7 +133,9 @@ class Beamline(ConfiguredObject):
             if x not in self.SUPPORTED_LIMIT_PARAMETERS
         ]
         if unrecognised:
-            warnings.warn("Unrecognised parameter limits for: %s" % unrecognised)
+            logging.getLogger("HWR").warning(
+                "Unrecognised parameter limits for: %s" % unrecognised
+            )
 
     # NB this function must be re-implemented in nested subclasses
     @property
@@ -294,7 +299,7 @@ class Beamline(ConfiguredObject):
         Returns:
             Optional[AbstractSampleChanger]:
         """
-        warnings.warn(
+        logging.getLogger("HWR").warning(
             DeprecationWarning(
                 "plate_manipulator role should be replaced by sample_changer"
             )
@@ -326,15 +331,15 @@ class Beamline(ConfiguredObject):
     __content_roles.append("lims")
 
     @property
-    def microscope(self):
-        """Microscope object. Includes defined shapes.
+    def sample_view(self):
+        """Sample view object. Includes defined shapes.
 
         Returns:
-            Optional[AbstractMicroscope]:
+            Optional[AbstractSampleView]:
         """
-        return self._objects.get("microscope")
+        return self._objects.get("sample_view")
 
-    __content_roles.append("microscope")
+    __content_roles.append("sample_view")
 
     @property
     def queue_manager(self):
@@ -489,8 +494,8 @@ class Beamline(ConfiguredObject):
     __content_roles.append("offline_processing")
 
     @property
-    def data_analysis(self):
-        """EDNA charadterisation and analysis procedure.
+    def characterisation(self):
+        """EDNA characterisation and analysis procedure.
 
         NB the current code looks rather EDNA-specific
         to be called 'AbsatractCharacterisation'.
@@ -499,9 +504,9 @@ class Beamline(ConfiguredObject):
         Returns:
             Optional[EdnaCharacterisation]:
         """
-        return self._objects.get("data_analysis")
+        return self._objects.get("characterisation")
 
-    __content_roles.append("data_analysis")
+    __content_roles.append("characterisation")
 
     @property
     def beam_realign(self):
@@ -527,6 +532,22 @@ class Beamline(ConfiguredObject):
 
     # Procedures
 
+    @property
+    def mock_procedure(self):
+        """
+        """
+        return self._objects.get("mock_procedure")
+
+    __content_roles.append("mock_procedure")
+
+    @property
+    def data_publisher(self):
+        """
+        """
+        return self._objects.get("data_publisher")
+
+    __content_roles.append("data_publisher")
+
     # NB this is just an example of a globally shared procedure description
     @property
     def manual_centring(self):
@@ -540,13 +561,12 @@ class Beamline(ConfiguredObject):
             Optional[AbstractManualCentring]
         """
         return self._objects.get("manual_centring")
+
     __content_roles.append("manual_centring")
     # Registers this object as a procedure:
     _procedure_names.add("manual_centring")
 
-
     # Additional functions
-
 
     # NB Objects need not be HardwareObjects
     # We still categorise them as'hardware' if they are not procedures, though
@@ -565,11 +585,12 @@ class Beamline(ConfiguredObject):
         if acquisition_type != "default":
             dd0 = self.default_acquisition_parameters.get(acquisition_type)
             if dd0 is None:
-                warnings.warn(
+                logging.getLogger("HWR").warning(
                     "No separate parameters for acquisition type: %s - using default."
                     % acquisition_type
                 )
             else:
+
                 params.update(dd0)
 
         for tag, val in params.items():
@@ -586,8 +607,8 @@ class Beamline(ConfiguredObject):
         acq_parameters.kappa_phi = round(float(kappa_phi), 2)
 
         try:
-            acq_parameters.resolution = self.resolution.getPosition()
-        except:
+            acq_parameters.resolution = self.resolution.get_value()
+        except Exception:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
                 "No current resolution, setting to 0.0"
@@ -595,8 +616,8 @@ class Beamline(ConfiguredObject):
             acq_parameters.resolution = 0.0
 
         try:
-            acq_parameters.energy = self.energy.get_current_energy()
-        except:
+            acq_parameters.energy = self.energy.get_value()
+        except Exception:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
                 "No current energy, setting to 0.0"
@@ -605,7 +626,7 @@ class Beamline(ConfiguredObject):
 
         try:
             acq_parameters.transmission = self.transmission.get_value()
-        except:
+        except Exception:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
                 "No current transmission, setting to 0.0"
@@ -614,7 +635,7 @@ class Beamline(ConfiguredObject):
 
         try:
             acq_parameters.shutterless = self.detector.has_shutterless()
-        except:
+        except Exception:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
                 "Could not get has_shutterless, setting to False"
@@ -622,13 +643,22 @@ class Beamline(ConfiguredObject):
             acq_parameters.shutterless = False
 
         try:
-            acq_parameters.detector_mode = self.detector.get_detector_mode()
-        except:
+            acq_parameters.detector_binning_mode = self.detector.get_binning_mode()
+        except Exception:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
-                "Could not get detector_mode, setting to ''"
+                "Could not get detector mode, setting to ''"
             )
-            acq_parameters.detector_mode = ""
+            acq_parameters.detector_binning_mode = ""
+
+        try:
+            acq_parameters.detector_roi_mode = self.detector.get_roi_mode()
+        except Exception:
+            logging.getLogger("HWR").warning(
+                "get_default_acquisition_parameters: "
+                "Could not get roi mode, setting to ''"
+            )
+            acq_parameters.detector_roi_mode = ""
 
         return acq_parameters
 
@@ -655,12 +685,29 @@ class Beamline(ConfiguredObject):
         path_template.run_number = self.run_number
 
         file_info = self.session["file_info"]
-        path_template.suffix = file_info.getProperty("file_suffix")
+        path_template.suffix = file_info.get_property("file_suffix")
         path_template.precision = "04"
         try:
-            if file_info.getProperty("precision"):
-                path_template.precision = eval(file_info.getProperty("precision"))
-        except BaseException:
+            if file_info.get_property("precision"):
+                path_template.precision = eval(file_info.get_property("precision"))
+        except Exception:
             pass
 
         return path_template
+
+    def get_default_characterisation_parameters(self):
+        return self.characterisation.get_default_characterisation_parameters()
+
+    def force_emit_signals(self):
+        for role in self.all_roles:
+            hwobj =  getattr(self, role)
+            if hwobj is not None:
+                try:
+                    hwobj.force_emit_signals()
+                    for attr in dir(hwobj):
+                        if not attr.startswith("_"):
+                            if hasattr(getattr(hwobj, attr), 'force_emit_signals'):
+                                child_hwobj = getattr(hwobj, attr)
+                                child_hwobj.force_emit_signals()
+                except BaseException as ex:
+                    logging.getLogger("HWR").error("Unable to call force_emit_signals (%s)" % str(ex))

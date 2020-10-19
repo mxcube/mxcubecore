@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """BeamstopMockup"""
 
@@ -44,9 +44,9 @@ class BeamstopMockup(HardwareObject):
         """
         Descrip. :
         """
-        self.default_size = self.getProperty("defaultBeamstopSize")
-        self.default_distance = self.getProperty("defaultBeamstopDistance")
-        self.default_direction = self.getProperty("defaultBeamstopDirection")
+        self.default_size = self.get_property("defaultBeamstopSize")
+        self.default_distance = self.get_property("defaultBeamstopDistance")
+        self.default_direction = self.get_property("defaultBeamstopDirection")
 
     def get_size(self):
         """
@@ -69,5 +69,5 @@ class BeamstopMockup(HardwareObject):
         """
         return self.default_direction
 
-    def update_values(self):
+    def re_emit_values(self):
         self.emit("beamstopDistanceChanged", (self.default_distance))

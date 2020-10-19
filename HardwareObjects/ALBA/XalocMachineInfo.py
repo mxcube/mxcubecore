@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 [Name]
@@ -98,19 +98,19 @@ class XalocMachineInfo(Equipment):
         Descript. : Inits channels from xml configuration.
         """
         try:
-            self.chan_mach_current = self.getChannelObject("MachCurrent")
+            self.chan_mach_current = self.get_channel_object("MachCurrent")
             if self.chan_mach_current is not None:
-                self.chan_mach_current.connectSignal(
+                self.chan_mach_current.connect_signal(
                     "update", self.mach_current_changed
                 )
 
-            self.chan_mach_status = self.getChannelObject("MachStatus")
+            self.chan_mach_status = self.get_channel_object("MachStatus")
             if self.chan_mach_status is not None:
-                self.chan_mach_status.connectSignal("update", self.mach_status_changed)
+                self.chan_mach_status.connect_signal("update", self.mach_status_changed)
 
-            self.chan_topup_remaining = self.getChannelObject("TopUpRemaining")
+            self.chan_topup_remaining = self.get_channel_object("TopUpRemaining")
             if self.chan_topup_remaining is not None:
-                self.chan_topup_remaining.connectSignal(
+                self.chan_topup_remaining.connect_signal(
                     "update", self.topup_remaining_changed
                 )
         except KeyError:
@@ -127,7 +127,7 @@ class XalocMachineInfo(Equipment):
             or abs(self.values_dict["mach_current"] - value) > 0.10
         ):
             self.values_dict["mach_current"] = value
-            self.update_values()
+            self.re_emit_values()
 
     def mach_status_changed(self, status):
         """
@@ -136,7 +136,7 @@ class XalocMachineInfo(Equipment):
         Return    : -
         """
         self.values_dict["mach_status"] = str(status)
-        self.update_values()
+        self.re_emit_values()
 
     def topup_remaining_changed(self, value):
         """
@@ -145,9 +145,9 @@ class XalocMachineInfo(Equipment):
         Return    : -
         """
         self.values_dict["topup_remaining"] = value
-        self.update_values()
+        self.re_emit_values()
 
-    def update_values(self):
+    def re_emit_values(self):
         """
         Descript. : Updates storage disc information, detects if intensity
                     and storage space is in limits, forms a value list
@@ -164,7 +164,7 @@ class XalocMachineInfo(Equipment):
         self.emit("valuesChanged", values_to_send)
 
     def get_mach_current(self):
-        return self.chan_mach_current.getValue()
+        return self.chan_mach_current.get_value()
         # return self.values_dict['mach_current']
 
     #    def get_current_value(self):
@@ -174,12 +174,12 @@ class XalocMachineInfo(Equipment):
     #        return self.values_dict['current']
 
     def get_mach_status(self):
-        return self.chan_mach_status.getValue()
+        return self.chan_mach_status.get_value()
 
     #        return self.values_dict['mach_status']
 
     def get_topup_remaining(self):
-        return self.chan_topup_remaining.getValue()
+        return self.chan_topup_remaining.get_value()
 
 
 #        return self.values_dict['remaining']

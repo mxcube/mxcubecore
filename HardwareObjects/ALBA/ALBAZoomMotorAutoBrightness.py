@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 [Name]
@@ -49,10 +49,9 @@ Example Hardware Object XML file :
 </device>
 """
 
-from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository import BaseHardwareObjects
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 import logging
-import PyTango
 
 __author__ = "Jordi Andreu"
 __credits__ = ["MXCuBE collaboration"]
@@ -63,7 +62,7 @@ __email__ = "jandreu[at]cells.es"
 __status__ = "Draft"
 
 
-class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device):
+class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device, AbstractMotor):
 
     INIT, FAULT, READY, MOVING, ONLIMIT = range(5)
 
@@ -73,11 +72,11 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device):
     def init(self):
         logging.getLogger("HWR").debug("Initializing zoom motor autobrightness IOR")
 
-        self.zoom = self.getObjectByRole("zoom")
-        self.blight = self.getObjectByRole("blight")
+        self.zoom = self.get_object_by_role("zoom")
+        self.blight = self.get_object_by_role("blight")
 
-        self.zoom.positionChannel.connectSignal("update", self.positionChanged)
-        self.zoom.stateChannel.connectSignal("update", self.stateChanged)
+        self.zoom.positionChannel.connect_signal("update", self.positionChanged)
+        self.zoom.stateChannel.connect_signal("update", self.stateChanged)
 
     def getPredefinedPositionsList(self):
         retlist = self.zoom.getPredefinedPositionsList()
@@ -90,52 +89,51 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device):
 
         # self.blight.moveToPosition(posno)
         self.zoom.moveToPosition(posno)
-        state = self.zoom.getState()
-        # state = self.positionChannel.setValue(int(no))
+        state = self.zoom.get_state()
+        # state = self.positionChannel.set_value(int(no))
 
     def motorIsMoving(self):
         return self.zoom.motorIsMoving()
 
-    #        if str(self.getState()) == "MOVING":
+    #        if str(self.get_state()) == "MOVING":
     #             return True
     #        else:
     #             return False
 
-    def getLimits(self):
+    def get_limits(self):
         # return (1,12)
-        return self.zoom.getLimits()
+        return self.zoom.get_limits()
 
-    def getState(self):
-        #        state = self.stateChannel.getValue()
-        #        curr_pos = self.getPosition()
+    def get_state(self):
+        #        state = self.stateChannel.get_value()
+        #        curr_pos = self.get_value()
         #        if state == PyTango.DevState.ON:
         #             return ALBAZoomMotor.READY
         #        elif state == PyTango.DevState.MOVING or state == PyTango.DevState.RUNNING:
         #             return ALBAZoomMotor.MOVING
-        #        elif curr_pos in self.getLimits():
+        #        elif curr_pos in self.get_limits():
         #             return ALBAZoomMotor.ONLIMIT
         #        else:
         #             return ALBAZoomMotor.FAULT
         #        return state
-        return self.zoom.getState()
+        return self.zoom.get_state()
 
-    def getPosition(self):
-        #        return self.positionChannel.getValue()
-        return self.zoom.getPosition()
+    def get_value(self):
+        return self.zoom.get_value()
 
-    def getCurrentPositionName(self):
-        #        n = int(self.positionChannel.getValue())
+    def get_current_position_name(self):
+        #        n = int(self.positionChannel.get_value())
         #        value = "%s z%s" % (n, n)
-        #        logging.getLogger("HWR").debug("getCurrentPositionName: %s" % repr(value))
+        #        logging.getLogger("HWR").debug("get_current_position_name: %s" % repr(value))
         #        return value
-        return self.zoom.getCurrentPositionName()
+        return self.zoom.get_current_position_name()
 
     def stateChanged(self, state):
         logging.getLogger("HWR").debug("stateChanged emitted: %s" % state)
-        self.emit("stateChanged", (self.getState(),))
+        self.emit("stateChanged", (self.get_state(),))
 
     def positionChanged(self, currentposition):
-        currentposition = self.getCurrentPositionName()
+        currentposition = self.get_current_position_name()
         logging.getLogger("HWR").debug(
             "predefinedPositionChanged emitted: %s" % currentposition
         )
@@ -147,23 +145,25 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device):
 
         self.emit("predefinedPositionChanged", (currentposition, 0))
 
-    def isReady(self):
-        state = self.getState()
+    def is_ready(self):
+        state = self.get_state()
         return state == ALBAZoomMotorAutoBrightness.READY
 
 
 def test():
+    from HardwareRepository import HardwareRepository as HWR
+
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    zoom = hwr.getHardwareObject("/zoom-auto-brightness")
+    zoom = hwr.get_hardware_object("/zoom-auto-brightness")
 
-    print(type(zoom.getState()))
+    print(type(zoom.get_state()))
 
-    print("     Zoom position is : ", zoom.getPosition())
-    print("Zoom position name is : ", zoom.getCurrentPositionName())
+    print("     Zoom position is : ", zoom.get_value())
+    print("Zoom position name is : ", zoom.get_current_position_name())
     print("               Moving : ", zoom.motorIsMoving())
-    print("                State : ", zoom.getState())
+    print("                State : ", zoom.get_state())
     print("            Positions : ", zoom.getPredefinedPositionsList())
 
 

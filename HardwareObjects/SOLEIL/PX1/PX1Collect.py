@@ -65,29 +65,30 @@ class PX1Collect(AbstractCollect, HardwareObject):
         Init method
         """
 
-        self.collect_devname = self.getProperty("tangoname")
+        self.collect_devname = self.get_property("tangoname")
         self.collect_device = DeviceProxy(self.collect_devname)
 
-        self.collect_state_chan = self.getChannelObject("state")
+        self.collect_state_chan = self.get_channel_object("state")
 
-        self.px1env_hwobj = self.getObjectByRole("environment")
+        self.px1env_hwobj = self.get_object_by_role("environment")
 
-        self.frontend_hwobj = self.getObjectByRole("frontend")
+        self.frontend_hwobj = self.get_object_by_role("frontend")
 
-        self.lightarm_hwobj = self.getObjectByRole("lightarm")
+        self.lightarm_hwobj = self.get_object_by_role("lightarm")
 
-        self.mxlocal_object = self.getObjectByRole("beamline_configuration")
+        self.mxlocal_object = self.get_object_by_role("beamline_configuration")
 
-        self.img2jpeg = self.getProperty("imgtojpeg")
+        self.img2jpeg = self.get_property("imgtojpeg")
         undulators = self.get_undulators()
 
         self.exp_type_dict = {"Mesh": "raster", "Helical": "Helical"}
 
         det_px, det_py = HWR.beamline.detector.get_pixel_size()
+        beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
 
         self.set_beamline_configuration(
             synchrotron_name="SOLEIL",
-            directory_prefix=self.getProperty("directory_prefix"),
+            directory_prefix=self.get_property("directory_prefix"),
             default_exposure_time=HWR.beamline.detector.get_default_exposure_time(),
             minimum_exposure_time=HWR.beamline.detector.get_minimum_exposure_time(),
             detector_fileext=HWR.beamline.detector.get_file_suffix(),
@@ -97,12 +98,12 @@ class PX1Collect(AbstractCollect, HardwareObject):
             detector_px=det_px,
             detector_py=det_py,
             undulators=undulators,
-            focusing_optic=self.getProperty("focusing_optic"),
-            monochromator_type=self.getProperty("monochromator"),
-            beam_divergence_vertical=HWR.beamline.beam.get_beam_divergence_hor(),
-            beam_divergence_horizontal=HWR.beamline.beam.get_beam_divergence_ver(),
-            polarisation=self.getProperty("polarisation"),
-            input_files_server=self.getProperty("input_files_server"),
+            focusing_optic=self.get_property("focusing_optic"),
+            monochromator_type=self.get_property("monochromator"),
+            beam_divergence_vertical=beam_div_ver,
+            beam_divergence_horizontal=beam_div_hor,
+            polarisation=self.get_property("polarisation"),
+            input_files_server=self.get_property("input_files_server"),
         )
 
         self.emit("collectConnected", (True,))
@@ -432,7 +433,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         self.lightarm_hwobj.adjustLightLevel()
         time.sleep(0.3)  # allow time to refresh display after
 
-        HWR.beamline.microscope.save_scene_snapshot(filename)
+        HWR.beamline.sample_view.save_snapshot(filename)
         logging.getLogger("HWR").debug("PX1Collect:  - snapshot saved to %s" % filename)
 
     def generate_thumbnails(self, filename, jpeg_filename, thumbnail_filename):
@@ -454,7 +455,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
                     "PX1Collect: Oopps.  Trying to generate thumbs but  image is not on disk"
                 )
                 return False
-        except BaseException:
+        except Exception:
             import traceback
 
             logging.error("PX1Collect: Cannot generate thumbnails for %s" % filename)
@@ -491,7 +492,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
         try:
             os.chmod(process_dir, 0o777)
-        except BaseException:
+        except Exception:
             import traceback
 
             logging.getLogger("HWR").error(
@@ -535,7 +536,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
             """
             pass
             # os.symlink(files_directory, os.path.join(process_directory, "img"))
-        except BaseException:
+        except Exception:
             logging.exception("PX1Collect: Could not create processing file directory")
             return
 
@@ -632,7 +633,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
         ax, ay, bx, by = self.get_beam_configuration()
 
-        dist = HWR.beamline.detector.get_distance()
+        dist = HWR.beamline.detector.distance.get_value()
         wavlen = HWR.beamline.energy.get_wavelength()
 
         start_angle = osc_seq["start"]
@@ -640,7 +641,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         img_range = osc_seq["range"]
         exp_time = osc_seq["exposure_time"]
 
-        kappa_angle = HWR.beamline.diffractometer.kappa.getPosition()
+        kappa_angle = HWR.beamline.diffractometer.kappa.get_value()
 
         _settings = [
             ["Wavelength %.5f", wavlen],
@@ -657,11 +658,11 @@ class PX1Collect(AbstractCollect, HardwareObject):
         ]
 
         # if self.oscaxis == "Phi":
-        # _settings.append(["Chi %.4f", self.omega_hwo.getPosition()])
+        # _settings.append(["Chi %.4f", self.omega_hwo.get_value()])
         # _settings.append(["Phi %.4f", start])
         # elif self.oscaxis == "Omega":
         _settings.append(
-            ["Phi %.4f", HWR.beamline.diffractometer.kappa_phi.getPosition()]
+            ["Phi %.4f", HWR.beamline.diffractometer.kappa_phi.get_value()]
         )
         _settings.append(["Chi %.4f", start_angle])
         HWR.beamline.detector.set_image_headers(_settings)
@@ -679,12 +680,12 @@ class PX1Collect(AbstractCollect, HardwareObject):
         if shut_hwo.isShutterOpened():
             return True
 
-        if shut_hwo.getState() == "disabled":
+        if shut_hwo.get_state() == "disabled":
             logging.getLogger("user_level_log").warning(
                 "%s disabled. Collect cancelled" % shutter_name
             )
             return False
-        elif shut_hwo.getState() in ["fault", "alarm", "error"]:
+        elif shut_hwo.get_state() in ["fault", "alarm", "error"]:
             logging.getLogger("user_level_log").warning(
                 "%s is in fault state. Collect cancelled" % shutter_name
             )
@@ -730,10 +731,10 @@ class PX1Collect(AbstractCollect, HardwareObject):
             time.sleep(0.1)
 
     def is_standby(self):
-        return str(self.collect_state_chan.getValue()) == "STANDBY"
+        return str(self.collect_state_chan.get_value()) == "STANDBY"
 
     def is_moving(self):
-        return str(self.collect_state_chan.getValue()) in ["MOVING", "RUNNING"]
+        return str(self.collect_state_chan.get_value()) in ["MOVING", "RUNNING"]
 
     ## COLLECT SERVER STATE (END) ##
 
@@ -747,7 +748,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
         t0 = time.time()
         while True:
-            env_state = self.px1env_hwobj.getState()
+            env_state = self.px1env_hwobj.get_state()
             if env_state != "RUNNING" and self.is_collect_phase():
                 break
             if time.time() - t0 > timeout:
@@ -769,7 +770,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
         t0 = time.time()
         while True:
-            env_state = self.px1env_hwobj.getState()
+            env_state = self.px1env_hwobj.get_state()
             if env_state != "RUNNING" and self.is_sampleview_phase():
                 break
             if time.time() - t0 > timeout:
@@ -784,76 +785,12 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
     ## PX1 ENVIRONMENT PHASE HANDLING (END) ##
 
-    ## OTHER HARDWARE OBJECTS ##
-    def set_energy(self, value):
-        """
-        Descript. :
-        """
-        HWR.beamline.energy.move_energy(value)
-
-    def set_wavelength(self, value):
-        """
-        Descript. :
-        """
-        HWR.beamline.energy.move_wavelength(value)
-
-    def get_energy(self):
-        return HWR.beamline.energy.get_energy()
-
-    def set_transmission(self, value):
-        """
-        Descript. :
-        """
-        HWR.beamline.transmission.set_value(value)
-
-    def set_resolution(self, value):
-        """
-        Descript. : resolution is a motor in out system
-        """
-        return
-        HWR.beamline.resolution.move(value)
-
-    def move_detector(self, value):
-        HWR.beamline.detector.move_distance(value)
-
     @task
     def move_motors(self, motor_position_dict):
         """
         Descript. :
         """
         HWR.beamline.diffractometer.move_motors(motor_position_dict)
-
-    def get_wavelength(self):
-        """
-        Descript. :
-            Called to save wavelength in lims
-        """
-        if HWR.beamline.energy is not None:
-            return HWR.beamline.energy.get_wavelength()
-
-    def get_detector_distance(self):
-        """
-        Descript. :
-            Called to save detector_distance in lims
-        """
-        if HWR.beamline.detector is not None:
-            return HWR.beamline.detector.get_distance()
-
-    def get_resolution(self):
-        """
-        Descript. :
-            Called to save resolution in lims
-        """
-        if HWR.beamline.resolution is not None:
-            return HWR.beamline.resolution.getPosition()
-
-    def get_transmission(self):
-        """
-        Descript. :
-            Called to save transmission in lims
-        """
-        if HWR.beamline.transmission is not None:
-            return HWR.beamline.transmission.getAttFactor()
 
     def get_undulators_gaps(self):
         """
@@ -864,17 +801,10 @@ class PX1Collect(AbstractCollect, HardwareObject):
             try:
                 u20_gap = HWR.beamline.energy.getCurrentUndulatorGap()
                 return {"u20": u20_gap}
-            except BaseException:
+            except Exception:
                 return {}
         else:
             return {}
-
-    def get_beam_size(self):
-        """
-        Descript. :
-        """
-        if HWR.beamline.beam is not None:
-            return HWR.beamline.beam.get_beam_size()
 
     def get_slit_gaps(self):
         """
@@ -890,16 +820,6 @@ class PX1Collect(AbstractCollect, HardwareObject):
         """
         if HWR.beamline.beam is not None:
             return HWR.beamline.beam.get_beam_shape()
-
-    def get_measured_intensity(self):
-        """
-        Descript. :
-        """
-        if HWR.beamline.flux is not None:
-            flux = HWR.beamline.flux.getValue()
-        else:
-            flux = 0.0
-        return float("%.3e" % flux)
 
     def get_machine_current(self):
         """
@@ -930,20 +850,14 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
     def get_beam_configuration(self):
         pars_beam = self.mxlocal_object["SPEC_PARS"]["beam"]
-        ax = pars_beam.getProperty("ax")
-        ay = pars_beam.getProperty("ay")
-        bx = pars_beam.getProperty("bx")
-        by = pars_beam.getProperty("by")
+        ax = pars_beam.get_property("ax")
+        ay = pars_beam.get_property("ay")
+        bx = pars_beam.get_property("bx")
+        by = pars_beam.get_property("by")
         return [ax, ay, bx, by]
 
     def get_undulators(self):
         return [U20()]
-
-    def get_flux(self):
-        """
-        Descript. :
-        """
-        return self.get_measured_intensity()
 
     ## OTHER HARDWARE OBJECTS (END) ##
 
@@ -959,7 +873,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
             self.adxv_socket = socket.socket(af, socktype, proto)
             self.adxv_socket.connect((self.adxv_host, self.adxv_port))
             logging.getLogger().info("PX1Collect: ADXV Visualization connected.")
-        except BaseException:
+        except Exception:
             self.adxv_socket = None
             logging.getLogger().info("PX1Collect: WARNING: Can't connect to ADXV.")
 
@@ -1002,7 +916,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
             else:
                 logging.info(("PX1Collect: ADXV: " + adxv_send_cmd[1:-2]) % imgname)
                 self.adxv_socket.send(adxv_send_cmd % imgname)
-        except BaseException:
+        except Exception:
             try:
                 del self.adxv_socket
                 self.adxv_connect()
@@ -1019,12 +933,8 @@ class U20(object):
 
 
 def test_hwo(hwo):
-    print("Energy: ", hwo.get_energy())
-    print("Transm: ", hwo.get_transmission())
-    print("Resol: ", hwo.get_resolution())
     print("PX1Environemnt (collect phase): ", hwo.is_collect_phase())
     print("Shutters (ready for collect): ", hwo.check_shutters())
-    print("Flux: ", hwo.get_measured_intensity())
     print("is collect? ", hwo.is_collect_phase())
     print("is samplevisu? ", hwo.is_sampleview_phase())
     print("goint to sample visu")

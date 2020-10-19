@@ -30,7 +30,7 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
             try:
                 if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:
                     acq_1, acq_2 = (dc.acquisitions[0], dc.acquisitions[1])
-                    # HWR.beamline.collect.getChannelObject("helical").setValue(1)
+                    # HWR.beamline.collect.get_channel_object("helical").set_value(1)
 
                     start_cpos = acq_1.acquisition_parameters.centred_position
                     end_cpos = acq_2.acquisition_parameters.centred_position
@@ -39,7 +39,7 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
                         "1": start_cpos.as_dict(),
                         "2": end_cpos.as_dict(),
                     }
-                    # HWR.beamline.collect.getChannelObject('helical_pos').setValue(helical_oscil_pos)
+                    # HWR.beamline.collect.get_channel_object('helical_pos').set_value(helical_oscil_pos)
                     HWR.beamline.collect.set_helical(True, helical_oscil_pos)
 
                     msg = "Helical data collection, moving to start position"
@@ -47,7 +47,7 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
                     log.info("Moving sample to given position ...")
                     list_item.setText(1, "Moving sample")
                 else:
-                    # HWR.beamline.collect.getChannelObject("helical").setValue(0)
+                    # HWR.beamline.collect.get_channel_object("helical").set_value(0)
                     HWR.beamline.collect.set_helical(False)
 
                 empty_cpos = queue_model_objects.CentredPosition()
@@ -55,7 +55,7 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
                 if cpos != empty_cpos:
                     log.info("Moving sample to given position ...")
                     list_item.setText(1, "Moving sample")
-                    HWR.beamline.microscope.shapes.select_shape_with_cpos(cpos)
+                    HWR.beamline.sample_view.select_shape_with_cpos(cpos)
                     self.centring_task = HWR.beamline.diffractometer.moveToCentredPosition(
                         cpos, wait=False
                     )
@@ -63,7 +63,7 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
                 else:
                     pos_dict = HWR.beamline.diffractometer.get_positions()
                     cpos = queue_model_objects.CentredPosition(pos_dict)
-                    snapshot = HWR.beamline.microscope.get_snapshot([])
+                    snapshot = HWR.beamline.sample_view.get_snapshot([])
                     acq_1.acquisition_parameters.centred_position = cpos
                     acq_1.acquisition_parameters.centred_position.snapshot_image = (
                         snapshot

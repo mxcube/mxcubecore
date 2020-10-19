@@ -1,6 +1,6 @@
 <device class="MicrodiffMotor">
     <tangoname>i11-ma-cx1/ex/md2</tangoname>
-    <motor_name>AlignmentZ</motor_name>
+    <actuator_name>AlignmentZ</actuator_name>
     <username>AlignmentZ</username>
     <direction>1</direction>
     <GUIstep>0.1</GUIstep>

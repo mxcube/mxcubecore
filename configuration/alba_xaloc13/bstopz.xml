@@ -1,7 +1,7 @@
 <device class="SardanaMotor">
   <username>Beam Stop Z</username>
   <taurusname>bstopz</taurusname>
-  <motor_name>bstopz</motor_name>
+  <actuator_name>bstopz</actuator_name>
   <guistep>45</guistep>
   <!-- interval>500</interval -->
 </device>

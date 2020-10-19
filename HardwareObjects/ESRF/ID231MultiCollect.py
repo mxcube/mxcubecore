@@ -1,5 +1,4 @@
-from .ESRFMultiCollect import ESRFMultiCollect, PixelDetector, TunableEnergy, task, time
-from HardwareRepository.HardwareObjects.LimaPilatusDetector import LimaPilatusDetector
+from .ESRFMultiCollect import ESRFMultiCollect, task, time
 import shutil
 import logging
 import os
@@ -7,7 +6,7 @@ import os
 
 class ID231MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
-        ESRFMultiCollect.__init__(self, name, TunableEnergy())
+        ESRFMultiCollect.__init__(self, name)
 
     @task
     def data_collection_hook(self, data_collect_parameters):
@@ -27,26 +26,11 @@ class ID231MultiCollect(ESRFMultiCollect):
         shutterless = data_collect_parameters.get("shutterless")
         self._detector.shutterless = True if shutterless else False
 
-        self.getChannelObject("parameters").setValue(data_collect_parameters)
+        self.get_channel_object("parameters").set_value(data_collect_parameters)
         self.execute_command("build_collect_seq")
         # self.execute_command("local_set_experiment_type")
         self.execute_command("prepare_beamline")
-        self.getCommandObject("prepare_beamline").executeCommand("musstPX_loadprog")
-
-    @task
-    def move_detector(self, detector_distance):
-        self.bl_control.detector_distance.move(detector_distance)
-        while self.bl_control.detector_distance.motorIsMoving():
-            time.sleep(0.5)
-
-    def get_detector_distance(self):
-        return self.bl_control.detector_distance.getPosition()
-
-    @task
-    def set_resolution(self, new_resolution):
-        self.bl_control.resolution.move(new_resolution, wait=False)
-        while self.bl_control.resolution.motorIsMoving():
-            time.sleep(0.5)
+        self.execute_command("musstPX_loadprog")
 
     def get_beam_size(self):
         # should be moved to ESRFMultiCollect
@@ -88,7 +72,7 @@ class ID231MultiCollect(ESRFMultiCollect):
                     shutil.copyfile(
                         os.path.join("/data/id23eh1/inhouse/opid231", filename), dest
                     )
-        except BaseException:
+        except Exception:
             logging.exception("Exception happened while copying geo_corr files")
 
         return ESRFMultiCollect.write_input_files(self, datacollection_id)

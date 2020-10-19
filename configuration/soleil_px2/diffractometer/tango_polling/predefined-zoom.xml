@@ -1,6 +1,6 @@
 <device class="MicrodiffZoom">
     <tangoname>i11-ma-cx1/ex/md2</tangoname>
-    <motor_name>Zoom</motor_name>
+    <actuator_name>Zoom</actuator_name>
     <channel type="tango" polling="1000" name="predefined_position">CoaxialCameraZoomValue</channel>
     <channel type="tango" polling="1000" name="ZoomPosition">ZoomPosition</channel>
     <channel type="tango" polling="1000" name="ZoomState">ZoomState</channel>

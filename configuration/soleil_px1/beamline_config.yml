@@ -55,7 +55,7 @@ _objects:
     # Analysis:
 #    - offline_processing: auto-processing.xml
 #    - online_processing: parallel-processing.xml
-    - data_analysis: data-analysis.xml
+    - characterisation: data-analysis.xml
     # - beam_realign: # Skipped - optional
 # Non-object attributes:
 #advanced_methods:
@@ -76,7 +76,7 @@ default_acquisition_parameters:
         first_image: 1              # (int)
         overlap: 0
         num_images: 1               # (int)
-        # detector_mode: 1          # Removed as not in practice used.
+        # detector_binning_mode: 1          # Removed as not in practice used.
         inverse_beam: false         # (bool)
         take_dark_current: true     # (bool)
         skip_existing_images: true  # (bool)

@@ -1,5 +1,5 @@
 <device class="DigitalZoomMotor">
     <username>Zoom</username>
-    <motor_name>Zoom</motor_name>
+    <actuator_name>Zoom</actuator_name>
     <object href="/mjpg-stream-video" role="camera"/>
 </device>

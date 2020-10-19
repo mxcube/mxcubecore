@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 
 import unittest
@@ -40,16 +40,16 @@ class TestMethods(unittest.TestCase):
     def test_get_value(self):
         logging.getLogger("HWR").debug("UnitTest: Testing return values...")
         self.assertIn(
-            type(BEAMLINE.energy.get_current_energy()),
+            type(BEAMLINE.energy.get_value()),
             (float, int),
             "Energy hwobj | get_current_energy() returns float",
         )
 
         logging.getLogger("HWR").debug("UnitTest: Testing transmission hwobj")
         self.assertIn(
-            type(BEAMLINE.transmission.getAttFactor()),
+            type(BEAMLINE.transmission.get_value()),
             (float, int),
-            "Transmission hwobj | getAttFactor() returns float",
+            "Transmission hwobj | get_value() returns float",
         )
 
         logging.getLogger("HWR").debug("UnitTest: Testing aperture hwobj")
@@ -72,7 +72,7 @@ class TestMethods(unittest.TestCase):
     def test_get_limits(self):
         logging.getLogger("HWR").debug("UnitTest: Testing limits...")
         self.assertIsInstance(
-            BEAMLINE.energy.get_energy_limits(),
+            BEAMLINE.energy.get_limits(),
             list,
             "Energy hwobj | get_energy_limits() returns list with two floats",
         )
@@ -93,6 +93,7 @@ class UnitTest(HardwareObject):
     def init(self):
         global BEAMLINE
         from HardwareRepository import HardwareRepository as HWR
+
         BEAMLINE = HWR.beamline
 
         suite = unittest.TestLoader().loadTestsFromTestCase(TestMethods)

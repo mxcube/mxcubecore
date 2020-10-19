@@ -1,5 +1,6 @@
 import logging
 from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
 import time
 
 """
@@ -26,66 +27,67 @@ class MicrodiffInOut(Device):
         self.hwstate_attr = None
 
     def init(self):
-        self.cmdname = self.getProperty("cmd_name")
-        self.username = self.getProperty("username")
+        self.cmd_name = self.get_property("cmd_name")
+        self.username = self.get_property("username")
         self.cmd_attr = self.add_channel(
-            {"type": "exporter", "name": "move"}, self.cmdname
+            {"type": "exporter", "name": "move"}, self.cmd_name
         )
-        self.cmd_attr.connectSignal("update", self.valueChanged)
+        self.cmd_attr.connect_signal("update", self.value_changed)
 
-        self.statecmdname = self.getProperty("statecmd_name")
-        if self.statecmdname is None:
-            self.statecmdname = self.cmdname
+        self.statecmd_name = self.get_property("statecmd_name")
+        if self.statecmd_name is None:
+            self.statecmd_name = self.cmd_name
 
         self.state_attr = self.add_channel(
-            {"type": "exporter", "name": "state"}, self.statecmdname
+            {"type": "exporter", "name": "state"}, self.statecmd_name
         )
-        self.state_attr.connectSignal("update", self.valueChanged)
+        self.state_attr.connect_signal("update", self.value_changed)
 
         self.states = {True: "in", False: "out"}
-        self.offset = self.getProperty("offset", 0)
+        self.offset = self.get_property("offset", 0)
         if self.offset > 0:
             self.states = {self.offset: "out", self.offset - 1: "in"}
 
-        states = self.getProperty("private_state")
+        states = self.get_property("private_state")
         if states:
             import ast
 
             self.states = ast.literal_eval(states)
         try:
-            tt = float(self.getProperty("timeout"))
+            tt = float(self.get_property("timeout"))
             self.timeout = tt
-        except BaseException:
+        except Exception:
             pass
 
-        if self.getProperty("use_hwstate"):
-            self.hwstate_attr = self.addChannel(
+        if self.get_property("use_hwstate"):
+            self.hwstate_attr = self.add_channel(
                 {"type": "exporter", "name": "hwstate"}, "HardwareState"
             )
 
-        self.swstate_attr = self.addChannel(
+        self.swstate_attr = self.add_channel(
             {"type": "exporter", "name": "swstate"}, "State"
         )
 
         self.moves = dict((self.states[k], k) for k in self.states)
+        self.get_actuator_state(read=True)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "actuatorStateChanged":
-            self.valueChanged(self.state_attr.getValue())
+            self.value_changed(self.state_attr.get_value())
 
-    def valueChanged(self, value):
+    def value_changed(self, value):
         self.actuatorState = self.states.get(value, "unknown")
         self.emit("actuatorStateChanged", (self.actuatorState,))
 
     def _ready(self):
         if self.hwstate_attr:
             if (
-                self.hwstate_attr.getValue() == "Ready"
-                and self.swstate_attr.getValue() == "Ready"
+                self.hwstate_attr.get_value() == "Ready"
+                and self.swstate_attr.get_value() == "Ready"
             ):
                 return True
         else:
-            if self.swstate_attr.getValue() == "Ready":
+            if self.swstate_attr.get_value() == "Ready":
                 return True
         return False
 
@@ -98,25 +100,22 @@ class MicrodiffInOut(Device):
             else:
                 time.sleep(0.5)
 
-    def getActuatorState(self, read=False):
+    def get_actuator_state(self, read=False):
         if read is True:
-            value = self.state_attr.getValue()
+            value = self.state_attr.get_value()
             self.actuatorState = self.states.get(value, "unknown")
-            self.connectNotify("actuatorStateChanged")
-        else:
-            if self.actuatorState == "unknown":
-                self.connectNotify("actuatorStateChanged")
+
         return self.actuatorState
 
     def actuatorIn(self, wait=True, timeout=None):
         if self._ready():
             try:
-                self.cmd_attr.setValue(self.moves["in"])
+                self.cmd_attr.set_value(self.moves["in"])
                 if wait:
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
-                self.valueChanged(self.state_attr.getValue())
-            except BaseException:
+                self.value_changed(self.state_attr.get_value())
+            except Exception:
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s in", self.username
                 )
@@ -128,12 +127,12 @@ class MicrodiffInOut(Device):
     def actuatorOut(self, wait=True, timeout=None):
         if self._ready():
             try:
-                self.cmd_attr.setValue(self.moves["out"])
+                self.cmd_attr.set_value(self.moves["out"])
                 if wait:
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
-                self.valueChanged(self.state_attr.getValue())
-            except BaseException:
+                self.value_changed(self.state_attr.get_value())
+            except Exception:
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s out", self.username
                 )

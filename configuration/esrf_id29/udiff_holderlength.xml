@@ -1,6 +1,6 @@
 <device class="MicrodiffHolderlength">
   <username>Holder length</username>
   <exporter_address>microdiff29new:9001</exporter_address>
-  <motor_name>AlignmentY</motor_name>
+  <actuator_name>AlignmentY</actuator_name>
   <GUIstep>0.1</GUIstep>
 </device>

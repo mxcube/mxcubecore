@@ -7,18 +7,18 @@ from xml.sax.handler import ContentHandler
 class Pin(Sample):
     def __init__(self, basket, basket_no, sample_no):
         super(Pin, self).__init__(
-            basket, Pin.getSampleAddress(basket_no, sample_no), True
+            basket, Pin.get_sample_address(basket_no, sample_no), True
         )
-        self._setHolderLength(22.0)
+        self._set_holder_length(22.0)
 
-    def getBasketNo(self):
-        return self.getContainer().getIndex() + 1
+    def get_basket_no(self):
+        return self.get_container().get_index() + 1
 
-    def getVialNo(self):
-        return self.getIndex() + 1
+    def get_vial_no(self):
+        return self.get_index() + 1
 
     @staticmethod
-    def getSampleAddress(basket_number, sample_number):
+    def get_sample_address(basket_number, sample_number):
         return str(basket_number) + ":" + "%02d" % (sample_number)
 
 
@@ -27,19 +27,19 @@ class Basket(Container):
 
     def __init__(self, container, number):
         super(Basket, self).__init__(
-            self.__TYPE__, container, Basket.getBasketAddress(number), True
+            self.__TYPE__, container, Basket.get_basket_address(number), True
         )
         for i in range(10):
             slot = Pin(self, number, i + 1)
-            self._addComponent(slot)
+            self._add_component(slot)
 
     @staticmethod
-    def getBasketAddress(basket_number):
+    def get_basket_address(basket_number):
         return str(basket_number)
 
-    def clearInfo(self):
-        self.getContainer()._reset_basket_info(self.getIndex() + 1)
-        self.getContainer()._triggerInfoChangedEvent()
+    def clear_info(self):
+        self.get_container()._reset_basket_info(self.get_index() + 1)
+        self.get_container()._trigger_info_changed_event()
 
 
 class XMLDataMatrixReadingHandler(ContentHandler):
@@ -121,11 +121,11 @@ class SC3(SampleChanger):
         super(SC3, self).__init__(self.__TYPE__, True, *args, **kwargs)
         for i in range(5):
             basket = Basket(self, i + 1)
-            self._addComponent(basket)
+            self._add_component(basket)
 
     def init(self):
         for channel_name in ("_state", "_selected_basket", "_selected_sample"):
-            setattr(self, channel_name, self.getChannelObject(channel_name))
+            setattr(self, channel_name, self.get_channel_object(channel_name))
 
         for command_name in (
             "_abort",
@@ -143,25 +143,25 @@ class SC3(SampleChanger):
             "_reset",
             "_reset_basket_info",
         ):
-            setattr(self, command_name, self.getCommandObject(command_name))
+            setattr(self, command_name, self.get_command_object(command_name))
 
         SampleChanger.init(self)
 
-    def getSampleProperties(self):
+    def get_sample_properties(self):
         return (Pin.__HOLDER_LENGTH_PROPERTY__,)
 
-    def getBasketList(self):
+    def get_basket_list(self):
         basket_list = []
-        for basket in self.getComponents():
+        for basket in self.get_components():
             if isinstance(basket, Basket):
                 basket_list.append(basket)
         return basket_list
 
     # ########    TASKS    ########
-    def _doAbort(self):
+    def _do_abort(self):
         self._abort()
 
-    def _doUpdateInfo(self):
+    def _do_update_info(self):
         try:
             sxml = self._getInfo()
             handler = XMLDataMatrixReadingHandler()
@@ -184,8 +184,8 @@ class SC3(SampleChanger):
 
             present = (flags & 3) != 0
             scanned = (flags & 8) != 0
-            basket = self.getComponents()[b]
-            basket._setInfo(present, datamatrix, scanned)
+            basket = self.get_components()[b]
+            basket._set_info(present, datamatrix, scanned)
         for s in sample_list:
             datamatrix = s[0]
             if len(datamatrix) == 0:
@@ -195,66 +195,76 @@ class SC3(SampleChanger):
             scanned = present
             loaded = (flags & 8) != 0
             has_been_loaded = (flags & 16) != 0
-            sample = self.getComponentByAddress(Pin.getSampleAddress(s[1], s[2]))
-            sample._setInfo(present, datamatrix, scanned)
-            sample._setLoaded(loaded, has_been_loaded)
-            sample._setHolderLength(s[4])
-        self._updateSelection()
-        self._updateState()
+            sample = self.get_component_by_address(Pin.get_sample_address(s[1], s[2]))
+            sample._set_info(present, datamatrix, scanned)
+            sample._set_loaded(loaded, has_been_loaded)
+            sample._set_holder_length(s[4])
+        self._update_selection()
+        self._update_state()
 
-    def _doChangeMode(self, mode):
+    def _do_change_mode(self, mode):
         if mode == SampleChangerMode.Charging:
-            self._executeServerTask(self._set_sample_charge, True)
+            self._execute_server_task(self._set_sample_charge, True)
         elif mode == SampleChangerMode.Normal:
-            self._executeServerTask(self._set_sample_charge, False)
+            self._execute_server_task(self._set_sample_charge, False)
 
-    def _doScan(self, component, recursive):
-        selected_basket = self.getSelectedComponent()
+    def _do_scan(self, component, recursive):
+        selected_basket = self.get_selected_component()
         if isinstance(component, Sample):
             if (selected_basket is None) or (
-                selected_basket != component.getContainer()
+                selected_basket != component.get_container()
             ):
-                self._doSelect(component)
-            self._executeServerTask(self._scan_samples, [component.getIndex() + 1])
+                self._do_select(component)
+            self._execute_server_task(self._scan_samples, [component.get_index() + 1])
 
         elif isinstance(component, Container) and (
-            component.getType() == Basket.__TYPE__
+            component.get_type() == Basket.__TYPE__
         ):
             if recursive:
-                self._executeServerTask(self._scan_basket, (component.getIndex() + 1))
+                self._execute_server_task(
+                    self._scan_basket, (component.get_index() + 1)
+                )
             else:
                 if (selected_basket is None) or (selected_basket != component):
-                    self._doSelect(component)
-                self._executeServerTask(self._scan_samples, (0,))
-        elif isinstance(component, Container) and (component.getType() == SC3.__TYPE__):
-            for basket in self.getComponents():
-                self._doScan(basket, True)
-
-    def _doSelect(self, component):
-        if isinstance(component, Sample):
-            selected_basket = self.getSelectedComponent()
-            if (selected_basket is None) or (
-                selected_basket != component.getContainer()
-            ):
-                self._executeServerTask(self._select_basket, component.getBasketNo())
-            self._executeServerTask(self._select_sample, component.getIndex() + 1)
+                    self._do_select(component)
+                self._execute_server_task(self._scan_samples, (0,))
         elif isinstance(component, Container) and (
-            component.getType() == Basket.__TYPE__
+            component.get_type() == SC3.__TYPE__
         ):
-            self._executeServerTask(self._select_basket, component.getIndex() + 1)
+            for basket in self.get_components():
+                self._do_scan(basket, True)
 
-    def _doLoad(self, sample=None):
-        selected = self.getSelectedSample()
-        if self.hasLoadedSample():
-            if (sample is None) or (sample == self.getLoadedSample()):
+    def _do_select(self, component):
+        if isinstance(component, Sample):
+            selected_basket = self.get_selected_component()
+            if (selected_basket is None) or (
+                selected_basket != component.get_container()
+            ):
+                self._execute_server_task(
+                    self._select_basket, component.get_basket_no()
+                )
+            self._execute_server_task(self._select_sample, component.get_index() + 1)
+        elif isinstance(component, Container) and (
+            component.get_type() == Basket.__TYPE__
+        ):
+            self._execute_server_task(self._select_basket, component.get_index() + 1)
+
+    def _do_load(self, sample=None):
+        selected = self.get_selected_sample()
+        if self.has_loaded_sample():
+            if (sample is None) or (sample == self.get_loaded_sample()):
                 raise Exception(
                     "The sample "
-                    + str(self.getLoadedSample().getAddress())
+                    + str(self.get_loaded_sample().get_address())
                     + " is already loaded"
                 )
-            self._executeServerTask(
+            self._execute_server_task(
                 self._chained_load,
-                [sample.getBasketNo(), sample.getVialNo(), sample.getHolderLength()],
+                [
+                    sample.get_basket_no(),
+                    sample.get_vial_no(),
+                    sample.get_holder_length(),
+                ],
             )
         else:
             if sample is None:
@@ -263,28 +273,28 @@ class SC3(SampleChanger):
                 else:
                     sample = selected
             elif (sample is not None) and (sample != selected):
-                self._doSelect(sample)
-            self._executeServerTask(self._load, sample.getHolderLength())
+                self._do_select(sample)
+            self._execute_server_task(self._load, sample.get_holder_length())
 
-    def _doUnload(self, sample_slot=None):
+    def _do_unload(self, sample_slot=None):
         if sample_slot is not None:
-            self._doSelect(sample_slot)
-        self._executeServerTask(self._unload)
+            self._do_select(sample_slot)
+        self._execute_server_task(self._unload)
 
-    def _doReset(self):
-        self._executeServerTask(self._reset)
+    def _do_reset(self):
+        self._execute_server_task(self._reset)
 
-    def clearBasketInfo(self, basket):
+    def clear_basket_info(self, basket):
         self._reset_basket_info(basket)
 
     # ########     PRIVATE   ########
 
-    def _executeServerTask(self, method, *args):
-        self._waitDeviceReady(3.0)
+    def _execute_server_task(self, method, *args):
+        self._wait_device_ready(3.0)
         task_id = method(*args)
         ret = None
         if task_id is None:  # Reset
-            while self._isDeviceBusy():
+            while self._is_device_busy():
                 gevent.sleep(0.1)
         else:
             while str(self._is_task_running(task_id)).lower() == "true":
@@ -295,17 +305,19 @@ class SC3(SampleChanger):
                 raise
         return ret
 
-    def _updateState(self):
+    def _update_state(self):
         try:
-            state = self._readState()
-        except BaseException:
+            state = self._read_state()
+        except Exception:
             state = SampleChangerState.Unknown
-        if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
+        if state == SampleChangerState.Moving and self._is_device_busy(
+            self.get_state()
+        ):
             return
-        self._setState(state)
+        self._set_state(state)
 
-    def _readState(self):
-        state = str(self._state.getValue() or "").upper()
+    def _read_state(self):
+        state = str(self._state.get_value() or "").upper()
         state_converter = {
             "ALARM": SampleChangerState.Alarm,
             "FAULT": SampleChangerState.Fault,
@@ -318,9 +330,9 @@ class SC3(SampleChanger):
         }
         return state_converter.get(state, SampleChangerState.Unknown)
 
-    def _isDeviceBusy(self, state=None):
+    def _is_device_busy(self, state=None):
         if state is None:
-            state = self._readState()
+            state = self._read_state()
         return state not in (
             SampleChangerState.Ready,
             SampleChangerState.Loaded,
@@ -330,31 +342,33 @@ class SC3(SampleChanger):
             SampleChangerState.StandBy,
         )
 
-    def _isDeviceReady(self):
-        state = self._readState()
+    def _is_device_ready(self):
+        state = self._read_state()
         return state in (SampleChangerState.Ready, SampleChangerState.Charging)
 
-    def _waitDeviceReady(self, timeout=None):
+    def _wait_device_ready(self, timeout=None):
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
-            while not self._isDeviceReady():
+            while not self._is_device_ready():
                 gevent.sleep(0.01)
 
-    def _updateSelection(self):
+    def _update_selection(self):
         basket = None
         sample = None
         try:
-            basket_no = self._selected_basket.getValue()
+            basket_no = self._selected_basket.get_value()
             if basket_no is not None and basket_no > 0 and basket_no <= 5:
-                basket = self.getComponentByAddress(Basket.getBasketAddress(basket_no))
-                sample_no = self._selected_sample.getValue()
+                basket = self.get_component_by_address(
+                    Basket.get_basket_address(basket_no)
+                )
+                sample_no = self._selected_sample.get_value()
                 if sample_no is not None and sample_no > 0 and sample_no <= 10:
-                    sample = self.getComponentByAddress(
-                        Pin.getSampleAddress(basket_no, sample_no)
+                    sample = self.get_component_by_address(
+                        Pin.get_sample_address(basket_no, sample_no)
                     )
-        except BaseException:
+        except Exception:
             pass
-        self._setSelectedComponent(basket)
-        self._setSelectedSample(sample)
+        self._set_selected_component(basket)
+        self._set_selected_sample(sample)
 
 
 if __name__ == "__main__":
@@ -393,8 +407,8 @@ if __name__ == "__main__":
         try:
             sc.abort()
             sc.reset()
-            sc.changeMode(SampleChangerMode.Normal)
-            # or else sc.select(sc.getComponentByAddress('1'), wait=True)
+            sc.change_mode(SampleChangerMode.Normal)
+            # or else sc.select(sc.get_component_by_address('1'), wait=True)
             sc.select("1", wait=True)
             sc.unload(wait=True)
             sc.load(None, wait=True)
@@ -406,5 +420,5 @@ if __name__ == "__main__":
             sc.scan("2:02", wait=True)
             sc.scan("3", wait=True)
             sc.scan("4", recursive=True, wait=True)
-        except BaseException:
+        except Exception:
             print((sys.exc_info()[1]))

@@ -1,6 +1,6 @@
 <device class="MicrodiffMotor">
     <exporter_address>172.19.10.119:9001</exporter_address>
-    <motor_name>BeamstopY</motor_name>
+    <actuator_name>BeamstopY</actuator_name>
     <username>BeamstopY</username>
     <direction>1</direction>
     <GUIstep>0.1</GUIstep>

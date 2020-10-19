@@ -11,11 +11,11 @@ class ID232BeamInfo(BeamInfo.BeamInfo):
         self.chan_beam_shape_ellipse = None
         BeamInfo.BeamInfo.init(self)
 
-        self.beam_size_slits = tuple(map(
-            float, self.getProperty("beam_size_slits").split()
-        ))  # [0.1, 0.05]
+        self.beam_size_slits = tuple(
+            map(float, self.get_property("beam_size_slits").split())
+        )  # [0.1, 0.05]
 
-        self.flux = self.getObjectByRole("flux")
+        self.flux = self.get_object_by_role("flux")
 
     def get_beam_position(self):
         return 696, 523
@@ -27,6 +27,3 @@ class ID232BeamInfo(BeamInfo.BeamInfo):
         BeamInfo.BeamInfo.evaluate_beam_info(self, *args)
         self.beam_info_dict["shape"] = "ellipse"
         return self.beam_info_dict
-
-    def get_flux(self):
-        return HWR.beamline.flux.getCurrentFlux()

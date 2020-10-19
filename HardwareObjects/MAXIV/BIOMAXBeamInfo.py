@@ -11,13 +11,13 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
         self.chan_beam_shape_ellipse = None
         BeamInfo.BeamInfo.init(self)
 
-        self.chan_beam_pos_x = self.getChannelObject("BeamPositionHorizontal")
-        self.chan_beam_pos_y = self.getChannelObject("BeamPositionVertical")
-        self.chan_beam_size_x = self.getChannelObject("BeamSizeHorizontal")
-        self.chan_beam_size_y = self.getChannelObject("BeamSizeVertical")
-        self.chan_beam_shape_ellipse = self.getChannelObject("BeamShapeEllipse")
-        self.chan_ImageZoom = self.getChannelObject("ImageZoom")
-        self.chan_CoaxialCameraZoomValue = self.getChannelObject(
+        self.chan_beam_pos_x = self.get_channel_object("BeamPositionHorizontal")
+        self.chan_beam_pos_y = self.get_channel_object("BeamPositionVertical")
+        self.chan_beam_size_x = self.get_channel_object("BeamSizeHorizontal")
+        self.chan_beam_size_y = self.get_channel_object("BeamSizeVertical")
+        self.chan_beam_shape_ellipse = self.get_channel_object("BeamShapeEllipse")
+        self.chan_ImageZoom = self.get_channel_object("ImageZoom")
+        self.chan_CoaxialCameraZoomValue = self.get_channel_object(
             "CoaxialCameraZoomValue"
         )
 
@@ -31,9 +31,9 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
 
         self.aperture_pos_changed(self.aperture_hwobj.getApertureSize())
 
-    def connectNotify(self, *args):
+    def connect_notify(self, *args):
         self.evaluate_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def beam_position_changed(self, value):
         self.get_beam_position()
@@ -51,13 +51,13 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
         """
 
         return self.beam_position
-        if self.chan_ImageZoom.getValue() is not None:
-            zoom = self.chan_ImageZoom.getValue()
-            self.beam_position[0] = self.chan_beam_pos_x.getValue() * zoom
-            self.beam_position[1] = self.chan_beam_pos_y.getValue() * zoom
+        if self.chan_ImageZoom.get_value() is not None:
+            zoom = self.chan_ImageZoom.get_value()
+            self.beam_position[0] = self.chan_beam_pos_x.get_value() * zoom
+            self.beam_position[1] = self.chan_beam_pos_y.get_value() * zoom
         else:
-            self.beam_position[0] = HWR.beamline.microscope.camera.getWidth() / 2
-            self.beam_position[1] = HWR.beamline.microscope.camera.getHeight() / 2
+            self.beam_position[0] = HWR.beamline.sample_view.camera.getWidth() / 2
+            self.beam_position[1] = HWR.beamline.sample_view.camera.getHeight() / 2
 
         return self.beam_position
 
@@ -67,13 +67,13 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
     def evaluate_beam_info(self, *args):
         BeamInfo.BeamInfo.evaluate_beam_info(self, *args)
         try:
-            if self.chan_beam_shape_ellipse.getValue():
+            if self.chan_beam_shape_ellipse.get_value():
                 self.beam_info_dict["shape"] = "ellipse"
             else:
                 self.beam_info_dict["shape"] = "rectangle"
-        except BaseException:
+        except Exception:
             self.beam_info_dict["shape"] = "ellipse"
-        curpos = self.aperture_hwobj.getCurrentPositionName()
+        curpos = self.aperture_hwobj.get_current_position_name()
         size_x = size_y = eval(str(curpos)) / 1000.0
         self.beam_info_dict["size_x"] = size_x
         self.beam_info_dict["size_y"] = size_y

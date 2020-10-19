@@ -1,20 +1,20 @@
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 ALBACollect
@@ -65,33 +65,34 @@ class ALBACollect(AbstractCollect):
 
         self.ready_event = gevent.event.Event()
 
-        self.supervisor_hwobj = self.getObjectByRole("supervisor")
+        self.supervisor_hwobj = self.get_object_by_role("supervisor")
 
-        self.slowshut_hwobj = self.getObjectByRole("slow_shutter")
-        self.photonshut_hwobj = self.getObjectByRole("photon_shutter")
-        self.frontend_hwobj = self.getObjectByRole("frontend")
+        self.slowshut_hwobj = self.get_object_by_role("slow_shutter")
+        self.photonshut_hwobj = self.get_object_by_role("photon_shutter")
+        self.frontend_hwobj = self.get_object_by_role("frontend")
 
-        self.ni_conf_cmd = self.getCommandObject("ni_configure")
-        self.ni_unconf_cmd = self.getCommandObject("ni_unconfigure")
+        self.ni_conf_cmd = self.get_command_object("ni_configure")
+        self.ni_unconf_cmd = self.get_command_object("ni_unconfigure")
 
         # some extra reading channels to be saved in image header
-        self.kappapos_chan = self.getChannelObject("kappapos")
-        self.phipos_chan = self.getChannelObject("phipos")
+        self.kappapos_chan = self.get_channel_object("kappapos")
+        self.phipos_chan = self.get_channel_object("phipos")
 
         undulators = []
         try:
             for undulator in self["undulators"]:
                 undulators.append(undulator)
-        except BaseException:
+        except Exception:
             pass
 
         self.exp_type_dict = {"Mesh": "raster", "Helical": "Helical"}
 
         det_px, det_py = HWR.beamline.detector.get_pixel_size()
+        beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
 
         self.set_beamline_configuration(
             synchrotron_name="ALBA",
-            directory_prefix=self.getProperty("directory_prefix"),
+            directory_prefix=self.get_property("directory_prefix"),
             default_exposure_time=HWR.beamline.detector.get_default_exposure_time(),
             minimum_exposure_time=HWR.beamline.detector.get_minimum_exposure_time(),
             detector_fileext=HWR.beamline.detector.get_file_suffix(),
@@ -101,12 +102,12 @@ class ALBACollect(AbstractCollect):
             detector_px=det_px,
             detector_py=det_py,
             undulators=undulators,
-            focusing_optic=self.getProperty("focusing_optic"),
-            monochromator_type=self.getProperty("monochromator"),
-            beam_divergence_vertical=HWR.beamline.beam.get_beam_divergence_hor(),
-            beam_divergence_horizontal=HWR.beamline.beam.get_beam_divergence_ver(),
-            polarisation=self.getProperty("polarisation"),
-            input_files_server=self.getProperty("input_files_server"),
+            focusing_optic=self.get_property("focusing_optic"),
+            monochromator_type=self.get_property("monochromator"),
+            beam_divergence_vertical=beam_div_ver,
+            beam_divergence_horizontal=beam_div_hor,
+            polarisation=self.get_property("polarisation"),
+            input_files_server=self.get_property("input_files_server"),
         )
 
         self.emit("collectConnected", (True,))
@@ -222,7 +223,7 @@ class ALBACollect(AbstractCollect):
         logging.getLogger("HWR").info(
             "collecting images, by moving omega to %s" % final_pos
         )
-        HWR.beamline.diffractometer.omega.move(final_pos)
+        HWR.beamline.diffractometer.omega.set_value(final_pos)
         self.wait_collection_done(nb_images, first_image_no)
         self.data_collection_end()
         self.collection_finished()
@@ -329,7 +330,7 @@ class ALBACollect(AbstractCollect):
         final_pos = start_angle + total_dist + safe_delta
 
         logging.getLogger("HWR").info("Moving omega to initial position %s" % init_pos)
-        HWR.beamline.diffractometer.omega.move(init_pos)
+        HWR.beamline.diffractometer.omega.set_value(init_pos)
 
         HWR.beamline.detector.prepare_collection(nb_images, first_image_no)
 
@@ -337,7 +338,7 @@ class ALBACollect(AbstractCollect):
 
         logging.getLogger("HWR").info(
             "Moving omega finished at %s"
-            % HWR.beamline.diffractometer.omega.getPosition()
+            % HWR.beamline.diffractometer.omega.get_value()
         )
 
         # program omega speed depending on exposure time
@@ -385,7 +386,7 @@ class ALBACollect(AbstractCollect):
         self.image_headers["Wavelength"] = HWR.beamline.energy.get_wavelength()
 
         self.image_headers["Detector_distance"] = "%.5f m" % (
-            HWR.beamline.detector.get_distance() / 1000.0
+            HWR.beamline.detector.distance.get_value() / 1000.0
         )
         self.image_headers["Detector_Voffset"] = "0 m"
 
@@ -393,15 +394,15 @@ class ALBACollect(AbstractCollect):
         self.image_headers["Beam_xy"] = "(%.2f, %.2f) pixels" % (beamx, beamy)
 
         self.image_headers["Filter_transmission"] = "%.4f" % (
-            HWR.beamline.transmission.getAttFactor() / 100.0
+            HWR.beamline.transmission.get_value() / 100.0
         )
-        self.image_headers["Flux"] = "%.4g" % HWR.beamline.flux.get_flux()
+        self.image_headers["Flux"] = "%.4g" % HWR.beamline.flux.get_value()
         self.image_headers["Detector_2theta"] = "0.0000"
         self.image_headers["Polarization"] = "0.99"
         self.image_headers["Alpha"] = "0 deg."
 
-        self.image_headers["Kappa"] = "%.4f deg." % self.kappapos_chan.getValue()
-        self.image_headers["Phi"] = "%.4f deg." % self.phipos_chan.getValue()
+        self.image_headers["Kappa"] = "%.4f deg." % self.kappapos_chan.get_value()
+        self.image_headers["Phi"] = "%.4f deg." % self.phipos_chan.get_value()
 
         self.image_headers["Chi"] = "0 deg."
         self.image_headers["Oscillation_axis"] = "X, CW"
@@ -489,19 +490,19 @@ class ALBACollect(AbstractCollect):
     def check_shutters(self):
 
         # Check fast shutter
-        if HWR.beamline.fast_shutter.getState() != 0:
+        if HWR.beamline.fast_shutter.get_state() != 0:
             return False
 
         # Check slow shutter
-        if self.slowshut_hwobj.getState() != 1:
+        if self.slowshut_hwobj.get_state() != 1:
             return False
 
         # Check photon shutter
-        if self.photonshut_hwobj.getState() != 1:
+        if self.photonshut_hwobj.get_state() != 1:
             return False
 
         # Check front end
-        if self.frontend_hwobj.getState() != 1:
+        if self.frontend_hwobj.get_state() != 1:
             return False
 
         return True
@@ -624,19 +625,19 @@ class ALBACollect(AbstractCollect):
         # prepare ALL shutters
 
         # close fast shutter
-        if HWR.beamline.fast_shutter.getState() != 0:
+        if HWR.beamline.fast_shutter.get_state() != 0:
             HWR.beamline.fast_shutter.close()
 
         # open slow shutter
-        if self.slowshut_hwobj.getState() != 1:
+        if self.slowshut_hwobj.get_state() != 1:
             self.slowshut_hwobj.open()
 
         # open photon shutter
-        if self.photonshut_hwobj.getState() != 1:
+        if self.photonshut_hwobj.get_state() != 1:
             self.photonshut_hwobj.open()
 
         # open front end
-        if self.frontend_hwobj.getState() != 0:
+        if self.frontend_hwobj.get_state() != 0:
             self.frontend_hwobj.open()
 
     def open_detector_cover(self):
@@ -692,42 +693,8 @@ class ALBACollect(AbstractCollect):
         if not self.is_sampleview_phase():
             self.go_to_sampleview()
 
-        HWR.beamline.microscope.save_scene_snapshot(filename)
+        HWR.beamline.sample_view.save_snapshot(filename)
         logging.getLogger("HWR").debug(" - snapshot saved to %s" % filename)
-
-    def set_energy(self, value):
-        """
-        Descript. :
-        """
-        #   program energy
-        #   prepare detector for diffraction
-        HWR.beamline.energy.move_energy(value)
-
-    def set_wavelength(self, value):
-        """
-        Descript. :
-        """
-        #   program energy
-        #   prepare detector for diffraction
-        HWR.beamline.energy.move_wavelength(value)
-
-    def get_energy(self):
-        return HWR.beamline.energy.get_energy()
-
-    def set_transmission(self, value):
-        """
-        Descript. :
-        """
-        HWR.beamline.transmission.set_value(value)
-
-    def set_resolution(self, value):
-        """
-        Descript. : resolution is a motor in out system
-        """
-        HWR.beamline.resolution.move(value)
-
-    def move_detector(self, value):
-        HWR.beamline.detector.move_distance(value)
 
     @task
     def move_motors(self, motor_position_dict):
@@ -763,7 +730,7 @@ class ALBACollect(AbstractCollect):
                     raise
             """
             # os.symlink(files_directory, os.path.join(process_directory, "img"))
-        except BaseException:
+        except Exception:
             logging.exception("Could not create processing file directory")
             return
 
@@ -776,7 +743,7 @@ class ALBACollect(AbstractCollect):
         # pass wavelength needed in auto processing input files
 
         osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
-        osc_pars["wavelength"] = self.get_wavelength()
+        osc_pars["wavelength"] = HWR.beamline.energy.get_wavelength()
 
         HWR.beamline.offline_processing.create_input_files(
             xds_directory, auto_directory, self.current_dc_parameters
@@ -835,38 +802,6 @@ class ALBACollect(AbstractCollect):
 
         return xds_directory, mosflm_directory, ednaproc_directory
 
-    def get_wavelength(self):
-        """
-        Descript. :
-            Called to save wavelength in lims
-        """
-        if HWR.beamline.energy is not None:
-            return HWR.beamline.energy.get_wavelength()
-
-    def get_detector_distance(self):
-        """
-        Descript. :
-            Called to save detector_distance in lims
-        """
-        if HWR.beamline.detector is not None:
-            return HWR.beamline.detector.get_distance()
-
-    def get_resolution(self):
-        """
-        Descript. :
-            Called to save resolution in lims
-        """
-        if HWR.beamline.resolution is not None:
-            return HWR.beamline.resolution.getPosition()
-
-    def get_transmission(self):
-        """
-        Descript. :
-            Called to save transmission in lims
-        """
-        if HWR.beamline.transmission is not None:
-            return HWR.beamline.transmission.getAttFactor()
-
     def get_undulators_gaps(self):
         """
         Descript. : return triplet with gaps. In our case we have one gap,
@@ -875,21 +810,14 @@ class ALBACollect(AbstractCollect):
         # TODO
         try:
             if self.chan_undulator_gap:
-                und_gaps = self.chan_undulator_gap.getValue()
+                und_gaps = self.chan_undulator_gap.get_value()
                 if type(und_gaps) in (list, tuple):
                     return und_gaps
                 else:
                     return und_gaps
-        except BaseException:
+        except Exception:
             pass
         return {}
-
-    def get_beam_size(self):
-        """
-        Descript. :
-        """
-        if HWR.beamline.beam is not None:
-            return HWR.beamline.beam.get_beam_size()
 
     def get_slit_gaps(self):
         """
@@ -905,13 +833,6 @@ class ALBACollect(AbstractCollect):
         """
         if HWR.beamline.beam is not None:
             return HWR.beamline.beam.get_beam_shape()
-
-    def get_measured_intensity(self):
-        """
-        Descript. :
-        """
-        if HWR.beamline.flux is not None:
-            return HWR.beamline.flux.get_flux()
 
     def get_machine_current(self):
         """
@@ -942,12 +863,6 @@ class ALBACollect(AbstractCollect):
         else:
             return ""
 
-    def get_flux(self):
-        """
-        Descript. :
-        """
-        return self.get_measured_intensity()
-
     def trigger_auto_processing(self, event, frame):
         if event == "after":
             dc_pars = self.current_dc_parameters
@@ -955,12 +870,8 @@ class ALBACollect(AbstractCollect):
 
 
 def test_hwo(hwo):
-    print("Energy: ", hwo.get_energy())
-    print("Transm: ", hwo.get_transmission())
-    print("Resol: ", hwo.get_resolution())
     print("Shutters (ready for collect): ", hwo.check_shutters())
     print("Supervisor(collect phase): ", hwo.is_collect_phase())
 
-    print("Flux ", hwo.get_flux())
-    print("Kappa ", hwo.kappapos_chan.getValue())
-    print("Phi ", hwo.phipos_chan.getValue())
+    print("Kappa ", hwo.kappapos_chan.get_value())
+    print("Phi ", hwo.phipos_chan.get_value())

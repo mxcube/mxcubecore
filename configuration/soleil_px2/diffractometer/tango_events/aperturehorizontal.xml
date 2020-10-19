@@ -1,6 +1,6 @@
 <device class="MicrodiffMotor">
     <tangoname>i11-ma-cx1/ex/md2</tangoname>
-    <motor_name>ApertureHorizontal</motor_name>
+    <actuator_name>ApertureHorizontal</actuator_name>
     <username>ApertureHorizontal</username>
     <direction>1</direction>
     <GUIstep>0.025</GUIstep>

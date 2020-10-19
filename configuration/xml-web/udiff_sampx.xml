@@ -1,6 +1,0 @@
-<device class="MotorMockup">
-  <username>sampx</username>
-  <motor_name>CentringX</motor_name>
-  <GUIstep>0.01</GUIstep>
-  <unit>1e-5</unit>
-</device>

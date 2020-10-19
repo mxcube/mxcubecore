@@ -1,6 +1,6 @@
 <device class="MicrodiffMotor">
     <tangoname>i11-ma-cx1/ex/md2</tangoname>
-    <motor_name>ApertureVertical</motor_name>
+    <actuator_name>ApertureVertical</actuator_name>
     <username>ApertureVertical</username>
     <direction>1</direction>
     <GUIstep>0.025</GUIstep>

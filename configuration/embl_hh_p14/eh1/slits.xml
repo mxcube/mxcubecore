@@ -1,0 +1,44 @@
+<object class="EMBLSlitBox">
+    <shape>rectangle</shape>
+    <focModes>['Collimated', 'Horizontal', 'Vertical', 'Double']</focModes>	
+    <gapH>
+       <modesAllowed>['Collimated', 'Vertical']</modesAllowed>
+       <stepSize>0.0050</stepSize>
+       <minGap>0.005</minGap>
+       <maxGap>0.300</maxGap>
+       <updateTolerance>0.0005</updateTolerance>
+       <motors>
+	  <motor>
+ 	    <motorName>Out</motorName>
+            <motorsGroup>slitsMotors</motorsGroup>
+	    <reference>17000</reference>
+	  </motor>
+          <motor>
+ 	    <motorName>In</motorName>
+            <motorsGroup>slitsMotors</motorsGroup>
+	    <reference>303000</reference>	          
+	  </motor>
+       </motors>
+    </gapH>
+    <gapV>
+       <modesAllowed>['Collimated', 'Horizontal']</modesAllowed>
+       <stepSize>0.0050</stepSize>
+       <minGap>0.005</minGap>
+       <maxGap>0.300</maxGap>
+       <updateTolerance>0.0005</updateTolerance>
+       <motors>
+	  <motor>
+	    <motorName>Top</motorName>
+            <motorsGroup>slitsMotors</motorsGroup>
+            <reference>266000</reference>
+	  </motor>
+	  <motor>
+ 	    <motorName>But</motorName>
+            <motorsGroup>slitsMotors</motorsGroup>	          
+            <reference>-259000</reference>
+	  </motor>
+       </motors>
+    </gapV>  
+    <object hwrid="/eh1/slitsMotors/slitsGroup" role="slitsMotors"/> 
+    <object hwrid="/eh1/beamFocusing" role="focusing"/>
+</object>

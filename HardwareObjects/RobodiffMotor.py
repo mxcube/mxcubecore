@@ -12,27 +12,27 @@ class RobodiffMotor(Device):
 
     def init(self):
         self.motorState = RobodiffMotor.NOTINITIALIZED
-        self.username = self.motor_name
+        self.username = self.actuator_name
         # gevent.spawn_later(1, self.end_init)
 
     def end_init(self):
         if self.__initialized:
             return
-        controller = HWR.getHardwareRepository().getHardwareObject(
-            self.getProperty("controller")
-        )  # self.getObjectByRole("controller")
+        controller = HWR.getHardwareRepository().get_hardware_object(
+            self.get_property("controller")
+        )  # self.get_object_by_role("controller")
 
         # this is ugly : I added it to make the centring procedure happy
-        self.specName = self.motor_name
+        self.specName = self.actuator_name
 
-        self.motor = getattr(controller, self.motor_name)
+        self.motor = getattr(controller, self.actuator_name)
         self.connect(self.motor, "position", self.positionChanged)
         self.connect(self.motor, "state", self.updateState)
         self.__initialized = True
 
-    def connectNotify(self, signal):
-        if signal == "positionChanged":
-            self.emit("positionChanged", (self.getPosition(),))
+    def connect_notify(self, signal):
+        if signal == "valueChanged":
+            self.emit("valueChanged", (self.get_value(),))
         elif signal == "stateChanged":
             self.updateState(emit=True)
         elif signal == "limitsChanged":
@@ -52,7 +52,7 @@ class RobodiffMotor(Device):
         else:
             state = RobodiffMotor.UNUSABLE
 
-        self.setIsReady(state > RobodiffMotor.UNUSABLE)
+        self.set_is_ready(state > RobodiffMotor.UNUSABLE)
 
         if self.motorState != state:
             self.motorState = state
@@ -60,57 +60,43 @@ class RobodiffMotor(Device):
         if emit:
             self.emit("stateChanged", (self.motorState,))
 
-    def getState(self):
+    def get_state(self):
         self.end_init()
         self.updateState()
         return self.motorState
 
     def motorLimitsChanged(self):
         self.end_init()
-        self.emit("limitsChanged", (self.getLimits(),))
+        self.emit("limitsChanged", (self.get_limits(),))
 
-    def getLimits(self):
+    def get_limits(self):
         self.end_init()
         return self.motor.limits()
 
     def positionChanged(self, absolutePosition):
         # print self.name(), absolutePosition
-        self.emit("positionChanged", (absolutePosition,))
+        self.emit("valueChanged", (absolutePosition,))
 
-    def getPosition(self):
+    def get_value(self):
         self.end_init()
         return self.motor.position()
 
-    def getDialPosition(self):
-        self.end_init()
-        return self.getPosition()
-
-    def move(self, position):
+    def _set_value(self, value):
         self.end_init()
         self.updateState("MOVING")
-        self.motor.move(position, wait=False)
-
-    def moveRelative(self, relativePosition):
-        self.move(self.getPosition() + relativePosition)
-
-    def syncMoveRelative(self, relative_position, timeout=None):
-        return self.syncMove(self.getPosition() + relative_position)
+        self.motor.move(value, wait=False)
 
     def waitEndOfMove(self, timeout=None):
         with gevent.Timeout(timeout):
             self.motor.wait_move()
 
-    def syncMove(self, position, timeout=None):
-        self.move(position)
-        self.waitEndOfMove(timeout)
-
     def motorIsMoving(self):
         self.end_init()
         return self.motorState == RobodiffMotor.MOVING
 
-    def getMotorMnemonic(self):
+    def get_motor_mnemonic(self):
         self.end_init()
-        return self.motor_name
+        return self.actuator_name
 
     def stop(self):
         self.end_init()

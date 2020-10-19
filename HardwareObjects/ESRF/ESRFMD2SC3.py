@@ -22,7 +22,7 @@ class ESRFMD2SC3(ESRFSC3.ESRFSC3):
         ESRFSC3.ESRFSC3.__init__(self, *args, **kwargs)
 
     def init(self):
-        self.controller = self.getObjectByRole("controller")
+        self.controller = self.get_object_by_role("controller")
         SC3.SC3.init(self)
         self.prepareCentringAfterLoad = True
         # self.prepareCentring = Command(controller.moveToPhase("Centring"))
@@ -34,7 +34,7 @@ class ESRFMD2SC3(ESRFSC3.ESRFSC3):
         pass
 
     @task
-    def prepareCentring(self, *args, **kwargs):
+    def prepare_centring(self, *args, **kwargs):
         # self.controller.moveToPhase("Centring", wait=True, timeout=1000)
         pass
 

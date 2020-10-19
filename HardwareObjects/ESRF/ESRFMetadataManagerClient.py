@@ -6,6 +6,7 @@ from __future__ import print_function
 import os
 import sys
 import math
+import time
 import logging
 import PyTango.client
 import traceback
@@ -51,7 +52,7 @@ class MetadataManagerClient(object):
             MetadataManagerClient.metaExperiment = PyTango.client.Device(
                 self.metaExperimentName
             )
-        except BaseException:
+        except Exception:
             print("Unexpexted error: ", sys.exc_info()[0])
             raise
 
@@ -61,11 +62,41 @@ class MetadataManagerClient(object):
         print("Sample: %s" % MetadataManagerClient.metaExperiment.sample)
         print("Dataset: %s" % MetadataManagerClient.metadataManager.scanName)
 
+    def __setAttribute(self, proxy, attributeName, newValue):
+        """
+        This method sets an attribute on either the MetadataManager or MetaExperiment server.
+        The method checks that the attribute has been set, and repeats up to five times
+        setting the attribute if not. If the attribute is not set after five trials the method
+        raises an 'RuntimeError' exception.
+        """
+        currentValue = "unknown"
+        if newValue == currentValue:
+            currentValue = "Current value not known"
+        counter = 0
+        while counter < 5:
+            counter += 1
+            try:
+                setattr(proxy, attributeName, newValue)
+                time.sleep(0.1)
+                currentValue = getattr(proxy, attributeName)
+                if currentValue == newValue:
+                    break
+            except Exception as e:
+                print("Unexpected error in MetadataManagerClient._setAttribute: {0}".format(e))
+                print("proxy = '{0}', attributeName = '{1}', newValue = '{2}'".format(
+                    proxy, attributeName, newValue))
+                print("Trying again, trial #{0}".format(counter))
+                time.sleep(1)
+        if currentValue == newValue:
+            setattr(self, attributeName, newValue)
+        else:
+            raise RuntimeError("Cannot set '{0}' attribute '{1}' to '{2}'!".format(proxy, attributeName, newValue))
+
     def __setDataRoot(self, dataRoot):
         try:
             MetadataManagerClient.metaExperiment.dataRoot = dataRoot
             self.dataRoot = dataRoot
-        except BaseException:
+        except Exception:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
@@ -74,14 +105,14 @@ class MetadataManagerClient(object):
         try:
             MetadataManagerClient.metaExperiment.proposal = proposal
             self.proposal = proposal
-        except BaseException:
+        except Exception:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
     def appendFile(self, filePath):
         try:
             MetadataManagerClient.metadataManager.lastDataFile = filePath
-        except BaseException:
+        except Exception:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
@@ -89,7 +120,7 @@ class MetadataManagerClient(object):
         try:
             MetadataManagerClient.metaExperiment.sample = sample
             self.sample = sample
-        except BaseException:
+        except Exception:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
@@ -97,7 +128,7 @@ class MetadataManagerClient(object):
         try:
             MetadataManagerClient.metadataManager.scanName = datasetName
             self.datasetName = datasetName
-        except BaseException:
+        except Exception:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
@@ -106,34 +137,39 @@ class MetadataManagerClient(object):
         if MetadataManagerClient.metaExperiment:
             try:
                 # setting proposal
-                self.__setProposal(proposal)
+                # self.__setProposal(proposal)
+                self.__setAttribute(MetadataManagerClient.metaExperiment, "proposal", proposal)
 
                 # setting dataRoot
-                self.__setDataRoot(dataRoot)
+                # self.__setDataRoot(dataRoot)
+                self.__setAttribute(MetadataManagerClient.metaExperiment, "dataRoot", dataRoot)
 
                 # setting sample
-                self.__setSample(sampleName)
+                # self.__setSample(sampleName)
+                self.__setAttribute(MetadataManagerClient.metaExperiment, "sample", sampleName)
 
                 # setting dataset
-                self.__setDataset(datasetName)
+                # self.__setDataset(datasetName)
+                self.__setAttribute(MetadataManagerClient.metadataManager, "scanName", datasetName)
+                self.datasetName = datasetName
 
                 # setting datasetName
                 if str(MetadataManagerClient.metaExperiment.state()) == "ON":
                     if str(MetadataManagerClient.metadataManager.state()) == "ON":
                         MetadataManagerClient.metadataManager.StartScan()
 
-            except BaseException:
+            except Exception:
                 print("Unexpected error:", sys.exc_info()[0])
                 raise
 
     def end(self):
         try:
             MetadataManagerClient.metadataManager.endScan()
-        except BaseException:
+        except Exception:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
-    def getState(self):
+    def get_state(self):
         return str(MetadataManagerClient.metadataManager.state())
 
 
@@ -198,7 +234,7 @@ class MXCuBEMetadataClient(object):
                     replyTo, listTo + listCC + listBCC, mime_text_message.as_string()
                 )
                 smtp.quit()
-            except BaseException:
+            except Exception:
                 pass
         return errorMessage
 
@@ -216,7 +252,7 @@ class MXCuBEMetadataClient(object):
                 )
 
                 # First check the state of the device server
-                serverState = self._metadataManagerClient.getState()
+                serverState = self._metadataManagerClient.get_state()
                 if serverState == "RUNNING":
                     # Force end of scan
                     self._metadataManagerClient.end()
@@ -242,7 +278,7 @@ class MXCuBEMetadataClient(object):
                     directory, self._proposal, sampleName, datasetName
                 )
                 self._metadataManagerClient.printStatus()
-            except BaseException:
+            except Exception:
                 logging.getLogger("user_level_log").warning(
                     "Cannot connect to metadata server"
                 )
@@ -362,7 +398,7 @@ class MXCuBEMetadataClient(object):
                     )
                 self._metadataManagerClient.printStatus()
                 self._metadataManagerClient.end()
-        except BaseException:
+        except Exception:
             logging.getLogger("user_level_log").warning("Cannot upload metadata")
             errorMessage = self.reportStackTrace()
             logging.getLogger("user_level_log").warning(errorMessage)
@@ -435,22 +471,19 @@ class MXCuBEMetadataClient(object):
                 motorPositions = str(round(position, 3))
             else:
                 motorNames += " " + motorName
-                motorPositions += " " + str(round(position, 3))
+                if position is not None:
+                    motorPositions += " " + str(round(position, 3))
+                else:
+                    motorPositions += " None"
         dictMetadata["MX_motors_name"] = motorNames
         dictMetadata["MX_motors_value"] = motorPositions
         # Detector distance
-        distance = self.esrf_multi_collect.get_detector_distance()
+        distance = HWR.beamline.detector.distance.get_value()
         if distance is not None:
             dictMetadata["MX_detectorDistance"] = distance
         # Aperture
-        if (
-            self.esrf_multi_collect.bl_control.beam_info is not None
-            and self.esrf_multi_collect.bl_control.beam_info.aperture_hwobj is not None
-        ):
-            aperture = (
-                self.esrf_multi_collect.bl_control.beam_info.aperture_hwobj.getPosition()
-            )
-            dictMetadata["MX_aperture"] = aperture
+        if HWR.beamline.beam is not None and HWR.beamline.beam.aperture is not None:
+            dictMetadata["MX_aperture"] = HWR.beamline.beam.aperture.get_value()
         return dictMetadata
 
 

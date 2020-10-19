@@ -1,20 +1,20 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
+#  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 #
 #  Please user PEP 0008 -- "Style Guide for Python Code" to format code
@@ -100,9 +100,9 @@ class QueueModel(HardwareObject):
         """
         return self._selected_model
 
-    def clear_model(self, name):
+    def clear_model(self, name=None):
         """
-        Clears the model with name <name>
+        Clears the model with name <name>, clears all if name is None
 
         :param name: The name of the model to clear.
         :type name: str
@@ -111,6 +111,11 @@ class QueueModel(HardwareObject):
         :rtype: NoneType
         """
         self._models[name] = queue_model_objects.RootNode()
+
+        if not name:
+            for name in self._models.keys():
+                self._models[name] = queue_model_objects.RootNode()
+
         HWR.beamline.queue_manager.clear()
 
     def register_model(self, name, root_node):
@@ -153,7 +158,7 @@ class QueueModel(HardwareObject):
         :rtype: None
         """
         if True:
-        #if isinstance(child, queue_model_objects.TaskNode):
+            # if isinstance(child, queue_model_objects.TaskNode):
             self._selected_model._total_node_count += 1
             child._parent = parent
             child._node_id = self._selected_model._total_node_count
@@ -445,7 +450,7 @@ class QueueModel(HardwareObject):
         try:
             save_file = open(filename, "w")
             save_file.write(repr((selected_model, items_to_save)))
-        except BaseException:
+        except Exception:
             logging.getLogger().exception(
                 "Unable to save queue " + "in file %s", filename
             )
@@ -497,7 +502,7 @@ class QueueModel(HardwareObject):
                     for child in task_group_entry.get_children():
                         child.set_snapshot(snapshot)
                 logging.getLogger("HWR").info("Queue loading done")
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception("Unable to load queue")
 
     def load_queue_from_file(self, filename, snapshot=None):
@@ -542,7 +547,7 @@ class QueueModel(HardwareObject):
             else:
                 logging.getLogger("HWR").info("No queue content available in file")
             return decoded_file[0]
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "Unable to load queue " + "from file %s", filename
             )

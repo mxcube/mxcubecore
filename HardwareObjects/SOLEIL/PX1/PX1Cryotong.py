@@ -40,9 +40,9 @@ class PX1Cryotong(Cats90):
 
         super(PX1Cryotong, self).init()
 
-        self.cats_device = DeviceProxy(self.getProperty("cats_device"))
+        self.cats_device = DeviceProxy(self.get_property("cats_device"))
 
-        self.environment = self.getObjectByRole("environment")
+        self.environment = self.get_object_by_role("environment")
 
         if self.environment is None:
             logging.error(
@@ -60,16 +60,18 @@ class PX1Cryotong(Cats90):
             "_chnSampleIsDetected",
             "_chnCountDown",
         ):
-            setattr(self, channel_name, self.getChannelObject(channel_name))
+            setattr(self, channel_name, self.get_channel_object(channel_name))
 
-        self._chnSoftAuth.connectSignal("update", self._softwareAuthorization)
-        self._chnHomeOpened.connectSignal("update", self._updateHomeOpened)
-        self._chnIncoherentGonioSampleState.connectSignal(
-            "update", self._updateAckSampleMemory
+        self._chnSoftAuth.connect_signal("update", self._software_authorization)
+        self._chnHomeOpened.connect_signal("update", self._update_home_opened)
+        self._chnIncoherentGonioSampleState.connect_signal(
+            "update", self._update_ack_sample_memory
         )
-        self._chnDryAndSoakNeeded.connectSignal("update", self._dryAndSoakNeeded)
-        self._chnSampleIsDetected.connectSignal("update", self._updateSampleIsDetected)
-        self._chnCountDown.connectSignal("update", self._updateCountDown)
+        self._chnDryAndSoakNeeded.connect_signal("update", self._dry_and_soak_needed)
+        self._chnSampleIsDetected.connect_signal(
+            "update", self._update_sample_is_detected
+        )
+        self._chnCountDown.connect_signal("update", self._update_count_down)
 
         self._cmdDrySoak = self.add_command(
             {"type": "tango", "name": "_cmdDrySoak", "tangoname": self.tangoname},
@@ -78,22 +80,22 @@ class PX1Cryotong(Cats90):
 
     # ## CRYOTONG SPECIFIC METHODS ###
 
-    def _softwareAuthorization(self, value):
+    def _software_authorization(self, value):
         if value != self.soft_auth:
             self.soft_auth = value
             self.emit("softwareAuthorizationChanged", (value,))
 
-    def _updateHomeOpened(self, value=None):
+    def _update_home_opened(self, value=None):
         if self._homeOpened != value:
             self._homeOpened = value
             self.emit("homeOpened", (value,))
 
-    def _updateSampleIsDetected(self, value):
+    def _update_sample_is_detected(self, value):
         self.emit("sampleIsDetected", (value,))
 
-    def _updateAckSampleMemory(self, value=None):
+    def _update_ack_sample_memory(self, value=None):
         if value is None:
-            value = self._chnIncoherentGonioSampleState.getValue()
+            value = self._chnIncoherentGonioSampleState.get_value()
 
         if value != self.incoherent_state:
             # automatically acknowledge the error. send a warning to the GUI
@@ -104,27 +106,27 @@ class PX1Cryotong(Cats90):
                 self.emit("loadError", value)
                 try:
                     self._cmdAckSampleMemory()
-                except BaseException:
+                except Exception:
                     """ do nothing if cmd not to acknowledge not in xml """
                     pass
             self.incoherent_state = value
 
-    def _dryAndSoakNeeded(self, value=None):
+    def _dry_and_soak_needed(self, value=None):
         self.dry_and_soak_needed = value
 
-    def do_dryAndSoak(self):
-        homeOpened = self._chnHomeOpened.getValue()
+    def do_dry_and_soak(self):
+        homeOpened = self._chnHomeOpened.get_value()
 
         if not homeOpened:
-            self._doDrySoak()
+            self._do_dry_soak()
         else:
             logging.getLogger("user_level_log").warning(
                 "CATS: You must Dry_and_Soak the gripper."
             )
 
-    def _updateCountDown(self, value=None):
+    def _update_count_down(self, value=None):
         if value is None:
-            value = self._chnCountDown.getValue()
+            value = self._chnCountDown.get_value()
 
         if value != self.count_down:
             logging.getLogger("HWR").info(
@@ -133,7 +135,7 @@ class PX1Cryotong(Cats90):
             self.count_down = value
             self.emit("countdownSignal", value)
 
-    def _doDrySoak(self):
+    def _do_dry_soak(self):
         """
         Launch the "DrySoak" command on the CATS Tango DS
 
@@ -146,7 +148,7 @@ class PX1Cryotong(Cats90):
 
         self._cmdDrySoak()
 
-    def _doSafe(self):
+    def _do_safe(self):
         """
         Launch the "safe" trajectory on the CATS Tango DS
 
@@ -169,7 +171,7 @@ class PX1Cryotong(Cats90):
                 "Cryotong cannot get to transfer phase. Aborting sample changer operation"
             )
 
-        self._executeServerTask(
+        self._execute_server_task(
             self._cmdSafe,
             "Safe",
             states=[SampleChangerState.Ready, SampleChangerState.Alarm],
@@ -181,9 +183,9 @@ class PX1Cryotong(Cats90):
     def cats_pathrunning_changed(self, value):
         Cats90.cats_pathrunning_changed(self, value)
         if self.cats_running is False and self.dry_and_soak_needed:
-            self.do_dryAndSoak()
+            self.do_dry_and_soak()
 
-    def _doLoad(self, sample=None, wash=None):
+    def _do_load(self, sample=None, wash=None):
 
         ret = self.check_power_on()
         if ret is False:
@@ -208,24 +210,24 @@ class PX1Cryotong(Cats90):
                 "Cryotong cannot get to transfer phase. Aborting sample changer operation"
             )
 
-        self._doLoadOperation(sample)
+        self._do_loadOperation(sample)
 
         # Check the value of the CATSCRYOTONG attribute dryAndSoakNeeded to warn
         # user if it is True
-        dryAndSoak = self._chnDryAndSoakNeeded.getValue()
+        dryAndSoak = self._chnDryAndSoakNeeded.get_value()
         if dryAndSoak:
             logging.getLogger("user_level_log").warning(
                 "CATS: It is recommended to Dry_and_Soak the gripper."
             )
 
-        incoherentSample = self._chnIncoherentGonioSampleState.getValue()
+        incoherentSample = self._chnIncoherentGonioSampleState.get_value()
         if incoherentSample:
             logging.getLogger("user_level_log").info(
                 "CATS: Load/Unload Error. Please try again."
             )
             self.emit("loadError", incoherentSample)
 
-    def _doUnload(self, sample=None, wash=None):
+    def _do_unload(self, sample=None, wash=None):
 
         ret = self.check_power_on()
         if ret is False:
@@ -244,10 +246,10 @@ class PX1Cryotong(Cats90):
                 "Cryotong cannot get to transfer phase. Aborting sample changer operation"
             )
 
-        self._doUnloadOperation(sample)
+        self._do_unloadOperation(sample)
 
     def check_power_on(self):
-        if self._chnPowered.getValue():
+        if self._chnPowered.get_value():
             return True
 
         self._cmdPowerOn()
@@ -255,7 +257,7 @@ class PX1Cryotong(Cats90):
         timeout = 3
         t0 = time.time()
 
-        while not self._chnPowered.getValue():
+        while not self._chnPowered.get_value():
             gevent.sleep(0.3)
             if time.time() - t0 > timeout:
                 logging.getLogger("HWR").warning(
@@ -263,13 +265,13 @@ class PX1Cryotong(Cats90):
                 )
                 break
 
-        if self._chnPowered.getValue():
+        if self._chnPowered.get_value():
             return False
 
         return True
 
     def check_drysoak(self):
-        if self._chnHomeOpened.getValue() is False:
+        if self._chnHomeOpened.get_value() is False:
             return True
 
         #
@@ -278,7 +280,7 @@ class PX1Cryotong(Cats90):
         time.sleep(3)
         t0 = time.time()
         wait_n = 0
-        while self._isDeviceBusy():
+        while self._is_device_busy():
             if wait_n % 10 == 3:
                 logging.getLogger("HWR").warning(
                     "CRYOTONG: waiting for dry and soak to complete"
@@ -286,7 +288,7 @@ class PX1Cryotong(Cats90):
             gevent.sleep(0.3)
             wait_n += 1
 
-        if self._isDeviceReady() and self._chnHomeOpened.getValue() is False:
+        if self._is_device_ready() and self._chnHomeOpened.get_value() is False:
             return True
         else:
             return False
@@ -325,30 +327,30 @@ class PX1Cryotong(Cats90):
 def test_hwo(hwo):
     import gevent
 
-    basket_list = hwo.getBasketList()
-    sample_list = hwo.getSampleList()
+    basket_list = hwo.get_basket_list()
+    sample_list = hwo.get_sample_list()
     print("Baskets/Samples in CATS: %s/%s" % (len(basket_list), len(sample_list)))
     gevent.sleep(2)
-    sample_list = hwo.getSampleList()
+    sample_list = hwo.get_sample_list()
     print("No of samples is ", len(sample_list))
 
     for s in sample_list:
-        if s.isLoaded():
-            print("Sample %s loaded" % s.getAddress())
+        if s.is_loaded():
+            print("Sample %s loaded" % s.get_address())
             break
 
-    if hwo.hasLoadedSample():
+    if hwo.has_loaded_sample():
         print(
             "Currently loaded (%s): %s"
-            % (hwo.hasLoadedSample(), hwo.getLoadedSample().getAddress())
+            % (hwo.has_loaded_sample(), hwo.get_loaded_sample().get_address())
         )
 
     print("\nCATS model is: ", hwo.cats_model)
     print("CATS state is: ", hwo.state)
     print("Sample on Magnet : ", hwo.cats_sample_on_diffr())
-    print("All lids closed: ", hwo._chnAllLidsClosed.getValue())
+    print("All lids closed: ", hwo._chnAllLidsClosed.get_value())
 
-    print("Sample Changer State is: ", hwo.getStatus())
+    print("Sample Changer State is: ", hwo.get_status())
     for basketno in range(hwo.number_of_baskets):
         no = basketno + 1
         print("Tool for basket %d is: %d" % (no, hwo.tool_for_basket(no)))

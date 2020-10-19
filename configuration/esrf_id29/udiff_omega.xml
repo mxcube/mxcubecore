@@ -1,6 +1,6 @@
 <device class="MicrodiffMotor">
   <username>Omega</username>
   <exporter_address>microdiff29new:9001</exporter_address>
-  <motor_name>Omega</motor_name>
+  <actuator_name>Omega</actuator_name>
   <unit>1e-3</unit>
 </device>

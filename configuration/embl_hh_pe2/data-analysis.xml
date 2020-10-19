@@ -1,4 +1,4 @@
-<object class="DataAnalysis">
+<object class="EDNACharacterisation">
   <object href="/mxcollect" role="collect"/>
   <object href="/eh2/diff-beamstop" role="beamstop"/> 
   <edna_command>/opt/embl-hh/bin/edna_characterisation.sh</edna_command>

@@ -37,7 +37,7 @@ class VideoMockup(BaseHardwareObjects.Device):
         self.force_update = False
         self.image_dimensions = [600, 400]
         self.image_type = JpegType()
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def imageType(self):
         """
@@ -174,7 +174,7 @@ class VideoMockup(BaseHardwareObjects.Device):
             )
             time.sleep(sleep_time)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         """
         Descript. :
         """

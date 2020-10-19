@@ -41,9 +41,9 @@ class AbstractXRFSpectrum(object):
         self.mca_calib = (10, 20, 0)
         self.spectrum_running = None
         self.config_filename = ""
+        self.write_in_raw_data = True
 
         self.ready_event = gevent.event.Event()
-
         self.startXrfSpectrum = self.start_spectrum
 
     def start_spectrum(
@@ -63,15 +63,27 @@ class AbstractXRFSpectrum(object):
             self.spectrum_command_aborted()
             return False
         self.spectrum_info = {"sessionId": session_id, "blSampleId": blsample_id}
-        if not os.path.isdir(archive_directory):
-            logging.getLogger().debug(
-                "XRFSpectrum: creating directory %s" % archive_directory
+
+        if self.write_in_raw_data and not os.path.isdir(spectrum_directory):
+            logging.getLogger("HWR").debug(
+                "XRFSpectrum: creating directory %s" % spectrum_directory
             )
+            try:
+                if not os.path.exists(spectrum_directory):
+                    os.makedirs(spectrum_directory)
+            except OSError as diag:
+                logging.getLogger().error(
+                    "XRFSpectrum: error creating directory %s (%s)"
+                    % (spectrum_directory, str(diag))
+                )
+                self.emit("xrfSpectrumStatusChanged", ("Error creating directory",))
+                self.spectrum_command_aborted()
+                return False
+
+        if not os.path.isdir(archive_directory):
             try:
                 if not os.path.exists(archive_directory):
                     os.makedirs(archive_directory)
-                if not os.path.exists(spectrum_directory):
-                    os.makedirs(spectrum_directory)
             except OSError as diag:
                 logging.getLogger().error(
                     "XRFSpectrum: error creating directory %s (%s)"
@@ -80,6 +92,7 @@ class AbstractXRFSpectrum(object):
                 self.emit("xrfSpectrumStatusChanged", ("Error creating directory",))
                 self.spectrum_command_aborted()
                 return False
+
         archive_file_template = os.path.join(archive_directory, prefix)
         spectrum_file_template = os.path.join(spectrum_directory, prefix)
         if os.path.exists(archive_file_template + ".dat"):
@@ -108,10 +121,10 @@ class AbstractXRFSpectrum(object):
         self.spectrum_info["annotatedPymcaXfeSpectrum"] = archive_file_html_filename
         self.spectrum_info["htmldir"] = archive_directory
         self.spectrum_command_started()
-        logging.getLogger().debug(
+        logging.getLogger("HWR").debug(
             "XRFSpectrum: spectrum dat file is %s", spectrum_file_dat_filename
         )
-        logging.getLogger().debug(
+        logging.getLogger("HWR").debug(
             "XRFSpectrum: archive file is %s", archive_file_dat_filename
         )
 
@@ -183,21 +196,25 @@ class AbstractXRFSpectrum(object):
             self.spectrum_running = False
 
             xmin = 0
-            xmax = 0
+            xmax = 20
             mca_data = []
             calibrated_data = []
 
-            try:
-                spectrum_file_raw = open(self.spectrum_info["scanFilePath"], "w")
-            except BaseException:
-                logging.getLogger("HWR").exception(
-                    "XRFSpectrum: could not create spectrum result raw file %s"
-                    % self.spectrum_info["scanFilePath"]
-                )
+            spectrum_file_raw = None
+            archive_file_raw = None
+
+            if self.write_in_raw_data:
+                try:
+                    spectrum_file_raw = open(self.spectrum_info["scanFilePath"], "w")
+                except Exception:
+                    logging.getLogger("HWR").exception(
+                        "XRFSpectrum: could not create spectrum result raw file %s"
+                        % self.spectrum_info["scanFilePath"]
+                    )
 
             try:
                 archive_file_raw = open(self.spectrum_info["scanFileFullPath"], "w")
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "XRFSpectrum: could not create spectrum result raw file %s"
                     % self.spectrum_info["scanFileFullPath"]
@@ -210,10 +227,10 @@ class AbstractXRFSpectrum(object):
                     + self.mca_calib[0] * n * n
                 ) / 1000
                 if energy < 20:
-                    if energy > xmax:
-                        xmax = value
-                    if energy < xmin:
-                        xmin = value
+                    # if energy > xmax:
+                    #    xmax = value
+                    # if energy < xmin:
+                    #    xmin = value
                     calibrated_data.append([energy, value])
                     mca_data.append((n / 1000.0, value))
                     if spectrum_file_raw:
@@ -229,12 +246,12 @@ class AbstractXRFSpectrum(object):
             if HWR.beamline.transmission is not None:
                 self.spectrum_info[
                     "beamTransmission"
-                ] = HWR.beamline.transmission.getAttFactor()
+                ] = HWR.beamline.transmission.get_value()
             self.spectrum_info["energy"] = self.get_current_energy()
             if HWR.beamline.beam is not None:
-                beam_size = HWR.beamline.beam.get_beam_size()
-                self.spectrum_info["beamSizeHorizontal"] = int(beam_size[0] * 1000)
-                self.spectrum_info["beamSizeVertical"] = int(beam_size[1] * 1000)
+                beam_size_hor, beam_size_ver = HWR.beamline.beam.get_beam_size()
+                self.spectrum_info["beamSizeHorizontal"] = int(beam_size_hor * 1000)
+                self.spectrum_info["beamSizeVertical"] = int(beam_size_ver * 1000)
 
             mca_config = {}
             mca_config["legend"] = self.spectrum_info["filename"]
@@ -244,6 +261,8 @@ class AbstractXRFSpectrum(object):
             mca_config["htmldir"] = self.spectrum_info["htmldir"]
             self.spectrum_info.pop("htmldir")
             self.spectrum_info.pop("scanFilePath")
+
+            self.emit("xrfSpectrumFinished", (mca_data, self.mca_calib, mca_config))
 
             fig = Figure(figsize=(15, 11))
             ax = fig.add_subplot(111)
@@ -263,7 +282,7 @@ class AbstractXRFSpectrum(object):
             # tmpname=filename.split(".")
             # logging.getLogger().debug("finished %r", self.spectrum_info)
             self.store_xrf_spectrum()
-            self.emit("xrfSpectrumFinished", (mca_data, self.mca_calib, mca_config))
+            # self.emit("xrfSpectrumFinished", (mca_data, self.mca_calib, mca_config))
 
     def spectrum_status_changed(self, status):
         """
@@ -279,7 +298,7 @@ class AbstractXRFSpectrum(object):
         if HWR.beamline.lims:
             try:
                 session_id = int(self.spectrum_info["sessionId"])
-            except BaseException:
+            except Exception:
                 return
             blsampleid = self.spectrum_info["blSampleId"]
             HWR.beamline.lims.storeXfeSpectrum(self.spectrum_info)
@@ -290,6 +309,6 @@ class AbstractXRFSpectrum(object):
         """
         if HWR.beamline.energy is not None:
             try:
-                return HWR.beamline.energy.get_current_energy()
-            except BaseException:
+                return HWR.beamline.energy.get_value()
+            except Exception:
                 logging.getLogger("HWR").exception("XRFSpectrum: couldn't read energy")

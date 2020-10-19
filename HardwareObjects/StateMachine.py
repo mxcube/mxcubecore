@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import time
 import yaml
@@ -57,7 +57,7 @@ class StateMachine(HardwareObject):
         self.history_state_list = []
 
     def init(self):
-        with open(self.getProperty("structure_file"), "r") as stream:
+        with open(self.get_property("structure_file"), "r") as stream:
             data_loaded = yaml.load(stream)
 
         self.state_list = data_loaded["states"]
@@ -111,7 +111,7 @@ class StateMachine(HardwareObject):
 
         self.update_fsm_state()
 
-        self.bl_setup_hwobj = self.getObjectByRole("beamline_setup")
+        self.bl_setup_hwobj = self.get_object_by_role("beamline_setup")
         for hwobj_name in dir(self.bl_setup_hwobj):
             if hwobj_name.endswith("hwobj"):
                 # logging.getLogger("HWR").debug(\
@@ -121,7 +121,7 @@ class StateMachine(HardwareObject):
                     "fsmConditionChanged",
                     self.condition_changed,
                 )
-                getattr(self.bl_setup_hwobj, hwobj_name).update_values()
+                getattr(self.bl_setup_hwobj, hwobj_name).re_emit_values()
 
     def get_state_by_name(self, state_name):
         for state in self.state_list:
@@ -220,7 +220,7 @@ class StateMachine(HardwareObject):
         """Returns list of available transitions"""
         return self.transition_list
 
-    def update_values(self):
+    def re_emit_values(self):
         """Reemits signals"""
 
         if len(self.history_state_list):

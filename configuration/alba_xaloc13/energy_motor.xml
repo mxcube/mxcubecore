@@ -1,7 +1,7 @@
 <device class="SardanaMotor">
   <username>Energy</username>
   <taurusname>ealign</taurusname>
-  <motor_name>energy</motor_name>
+  <actuator_name>energy</actuator_name>
   <move_threshold>0.0005</move_threshold>
   <guistep>45</guistep>
   <!-- interval>500</interval -->

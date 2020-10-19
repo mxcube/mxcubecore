@@ -155,17 +155,16 @@ class TangoShutter(BaseHardwareObjects.Device):
 
     def init(self):
         self.state_value_str = "unknown"
-
         try:
-            self.shutter_channel = self.getChannelObject("State")
-            self.shutter_channel.connectSignal("update", self.shutterStateChanged)
+            self.shutter_channel = self.get_channel_object("State")
+            self.shutter_channel.connect_signal("update", self.shutterStateChanged)
         except KeyError:
             logging.getLogger().warning(
                 "%s: cannot connect to shutter channel", self.name()
             )
 
-        self.open_cmd = self.getCommandObject("Open")
-        self.close_cmd = self.getCommandObject("Close")
+        self.open_cmd = self.get_command_object("Open")
+        self.close_cmd = self.get_command_object("Close")
 
     def shutterStateChanged(self, value):
         self.state_value_str = self._convert_state_to_str(value)
@@ -177,7 +176,7 @@ class TangoShutter(BaseHardwareObjects.Device):
         return state_str
 
     def readShutterState(self):
-        state = self.shutter_channel.getValue()
+        state = self.shutter_channel.get_value()
         return self._convert_state_to_str(state)
 
     def getShutterState(self):
@@ -189,7 +188,7 @@ class TangoShutter(BaseHardwareObjects.Device):
         if self.open_cmd is not None:
             self.open_cmd()
         else:
-            self.shutter_channel.setValue(True)
+            self.shutter_channel.set_value(True)
 
     def closeShutter(self):
         # Try getting close command configured in xml
@@ -197,14 +196,14 @@ class TangoShutter(BaseHardwareObjects.Device):
         if self.close_cmd is not None:
             self.close_cmd()
         else:
-            self.shutter_channel.setValue(False)
+            self.shutter_channel.set_value(False)
 
 
 def test():
     hwr = HWR.getHardwareRepository()
     hwr.connect()
 
-    shut = hwr.getHardwareObject("/fastshutter")
+    shut = hwr.get_hardware_object("/fastshutter")
 
     print(("Shutter State is: ", shut.readShutterState()))
 

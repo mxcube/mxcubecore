@@ -13,10 +13,10 @@ class ID29PhotonFlux(Equipment):
         Equipment.__init__(self, *args, **kwargs)
 
     def init(self):
-        self.counter = self.getObjectByRole("counter")
-        self.shutter = self.getDeviceByRole("shutter")
-        self.aperture = self.getObjectByRole("aperture")
-        fname = self.getProperty("calibrated_diodes_file")
+        self.counter = self.get_object_by_role("counter")
+        self.shutter = self.get_deviceby_role("shutter")
+        self.aperture = self.get_object_by_role("aperture")
+        fname = self.get_property("calibrated_diodes_file")
 
         self.flux_calc = CalculateFlux()
         self.flux_calc.init(fname)
@@ -39,13 +39,13 @@ class ID29PhotonFlux(Equipment):
             counts = self.counter.getCorrectedPhysValue()
             if counts == -9999:
                 counts = 0
-        except BaseException:
+        except Exception:
             counts = 0
             logging.getLogger("HWR").exception("%s: could not get counts", self.name())
         try:
-            egy = HWR.beamline.energy.get_current_energy() * 1000.0
+            egy = HWR.beamline.energy.get_value() * 1000.0
             calib = self.flux_calc.calc_flux_coef(egy)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("%s: could not get energy", self.name())
         else:
             if self.aperture is None:
@@ -53,13 +53,13 @@ class ID29PhotonFlux(Equipment):
             else:
                 try:
                     aperture_coef = self.aperture.getApertureCoef()
-                except BaseException:
+                except Exception:
                     sys.excepthook(*sys.exc_info())
                     aperture_coef = 1
             counts = math.fabs(counts * calib[0] * aperture_coef)
         return counts
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "valueChanged":
             self.emitValueChanged()
 
@@ -72,7 +72,7 @@ class ID29PhotonFlux(Equipment):
     def countsUpdated(self, counts, ignore_shutter_state=False):
         self.emitValueChanged("%1.3g" % counts)
 
-    def getCurrentFlux(self):
+    def get_value(self):
         self.updateFlux("dummy")
         return self.current_flux
 

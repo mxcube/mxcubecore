@@ -1,15 +1,38 @@
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
 from __future__ import absolute_import
 
 import logging
 import os
 import time
 import types
-from .. import saferef
+from HardwareRepository.dispatcher import saferef
 
 import gevent
 from gevent.event import Event
 from gevent import monkey
 import Queue
+
+gevent_version = list(map(int,gevent.__version__.split('.')))
+
 
 from HardwareRepository.CommandContainer import (
     CommandObject,
@@ -26,10 +49,14 @@ try:
     from sardana.taurus.core.tango.sardana import registerExtensions
     from taurus import Device, Attribute
     import taurus
-except BaseException:
+except Exception:
     logging.getLogger("HWR").warning("Sardana is not available in this computer.")
 
 monkey.patch_all(thread=False, subprocess=False)
+
+
+__copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
+__license__ = "LGPLv3+"
 
 
 def processSardanaEvents():
@@ -42,18 +69,18 @@ def processSardanaEvents():
             break
         else:
             try:
-                receiverCbRef = SardanaObject._eventReceivers[id(ev)]
-                receiverCb = receiverCbRef()
-                if receiverCb is not None:
+                receiver_cb_ref = SardanaObject._eventReceivers[id(ev)]
+                receiver_cb = receiver_cb_ref()
+                if receiver_cb is not None:
                     try:
-                        gevent.spawn(receiverCb, ev)
+                        gevent.spawn(receiver_cb, ev)
                     except AttributeError:
                         pass
             except KeyError:
                 pass
 
 
-def waitEndOfCommand(cmdobj):
+def wait_end_of_command(cmdobj):
     while (
         cmdobj.macrostate == SardanaMacro.RUNNING
         or cmdobj.macrostate == SardanaMacro.STARTED
@@ -62,7 +89,7 @@ def waitEndOfCommand(cmdobj):
     return cmdobj.door.result
 
 
-def endOfMacro(macobj):
+def end_of_macro(macobj):
     macobj._reply_arrived_event.wait()
 
 
@@ -74,12 +101,17 @@ class AttributeEvent:
 class SardanaObject(object):
     _eventsQueue = Queue.Queue()
     _eventReceivers = {}
-    _eventsProcessingTimer = gevent.get_hub().loop.async()
+
+    if gevent_version < [1,3,0]:
+        _eventsProcessingTimer = gevent.get_hub().loop.async()
+    else:
+        _eventsProcessingTimer = gevent.get_hub().loop.async_()
+
 
     # start Sardana events processing timer
     _eventsProcessingTimer.start(processSardanaEvents)
 
-    def objectListener(self, *args):
+    def object_listener(self, *args):
         ev = AttributeEvent(args)
         SardanaObject._eventReceivers[id(ev)] = saferef.safe_ref(self.update)
         SardanaObject._eventsQueue.put(ev)
@@ -120,7 +152,7 @@ class SardanaMacro(CommandObject, SardanaObject):
 
         if self.macroStatusAttr is None:
             self.macroStatusAttr = self.door.getAttribute("State")
-            self.macroStatusAttr.addListener(self.objectListener)
+            self.macroStatusAttr.addListener(self.object_listener)
 
     def __call__(self, *args, **kwargs):
 
@@ -141,7 +173,7 @@ class SardanaMacro(CommandObject, SardanaObject):
 
         try:
             fullcmd = self.macro_format + " " + " ".join([str(a) for a in args])
-        except BaseException:
+        except Exception:
             import traceback
 
             logging.getLogger("HWR").info(traceback.format_exc())
@@ -182,7 +214,7 @@ class SardanaMacro(CommandObject, SardanaObject):
                 "%s: MacroServer not running?, %s", str(self.name()), error_dict
             )
             self.emit("commandFailed", (-1, self.name()))
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "%s: an error occured when calling Tango command %s",
                 str(self.name()),
@@ -192,7 +224,7 @@ class SardanaMacro(CommandObject, SardanaObject):
 
         if wait:
             logging.getLogger("HWR").debug("... start waiting...")
-            t = gevent.spawn(endOfMacro, self)
+            t = gevent.spawn(end_of_macro, self)
             t.get()
             logging.getLogger("HWR").debug("... end waiting...")
 
@@ -218,7 +250,7 @@ class SardanaMacro(CommandObject, SardanaObject):
                 self.doorstate = doorstate
 
                 # logging.getLogger('HWR').debug("self.doorstate is %s" % self.canExecute())
-                self.emit("commandCanExecute", (self.canExecute(),))
+                self.emit("commandCanExecute", (self.can_execute(),))
 
                 if doorstate in ["ON", "ALARM"]:
                     # logging.getLogger('HWR').debug("Macroserver ready for commands")
@@ -252,7 +284,7 @@ class SardanaMacro(CommandObject, SardanaObject):
         except ConnectionFailed:
             logging.getLogger("HWR").debug("Cannot connect to door %s" % self.doorname)
             self.emit("commandFailed", (-1, str(self.name())))
-        except BaseException:
+        except Exception:
             import traceback
 
             logging.getLogger("HWR").debug(
@@ -267,10 +299,10 @@ class SardanaMacro(CommandObject, SardanaObject):
             self.door.abortMacro()
             # self.emit('commandReady', ())
 
-    def isConnected(self):
+    def is_connected(self):
         return self.door is not None
 
-    def canExecute(self):
+    def can_execute(self):
         return self.door is not None and (self.doorstate in ["ON", "ALARM"])
 
 
@@ -313,7 +345,7 @@ class SardanaCommand(CommandObject):
             logging.getLogger("HWR").error(
                 "%s: Tango, %s", str(self.name()), error_dict
             )
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "%s: an error occured when calling Tango command %s",
                 str(self.name()),
@@ -327,7 +359,7 @@ class SardanaCommand(CommandObject):
     def abort(self):
         pass
 
-    def isConnected(self):
+    def is_connected(self):
         return self.device is not None
 
 
@@ -342,7 +374,7 @@ class SardanaChannel(ChannelObject, SardanaObject):
             def __init__(self):
                 super(ChannelInfo, self).__init__()
 
-        self.attributeName = attribute_name
+        self.attribute_name = attribute_name
         self.model = os.path.join(uribase, attribute_name)
         self.attribute = None
 
@@ -387,7 +419,7 @@ class SardanaChannel(ChannelObject, SardanaObject):
                 minval, maxval = self.attribute.ranges()
                 self.info.minval = minval.magnitude
                 self.info.maxval = maxval.magnitude
-        except BaseException:
+        except Exception:
             import traceback
 
             logging.getLogger("HWR").info("info initialized. Cannot get limits")
@@ -397,31 +429,32 @@ class SardanaChannel(ChannelObject, SardanaObject):
         # if the polling value is a number set it as the taurus polling period
 
         if self.polling:
-            if isinstance(self.polling, types.IntType):
+            if isinstance(self.polling, int):
                 self.attribute.changePollingPeriod(self.polling)
 
-            self.attribute.addListener(self.objectListener)
+            self.attribute.addListener(self.object_listener)
 
-    def getValue(self):
-        return self._readValue()
+    def get_value(self):
+        return self._read_value()
 
-    def setValue(self, newValue):
-        self._writeValue(newValue)
+    def set_value(self, new_value):
+        self._write_value(new_value)
 
-    def _writeValue(self, newValue):
-        self.attribute.write(newValue)
+    def _write_value(self, new_value):
+        self.attribute.write(new_value)
 
-    def _readValue(self):
+    def _read_value(self):
         value = self.attribute.read().value
         return value
 
-    def getInfo(self):
+    def get_info(self):
         try:
             b = dir(self.attribute)
-            self.info.minval, self.info.maxval = (
-                self.attribute._TangoAttribute__attr_config.getLimits()
-            )
-        except BaseException:
+            (
+                self.info.minval,
+                self.info.maxval,
+            ) = self.attribute._TangoAttribute__attr_config.get_limits()
+        except Exception:
             import traceback
 
             logging.getLogger("HWR").info("%s" % traceback.format_exc())
@@ -432,24 +465,24 @@ class SardanaChannel(ChannelObject, SardanaObject):
         data = event.event[2]
 
         try:
-            newvalue = data.value
+            new_value = data.value
 
-            if newvalue is None:
-                newvalue = self.getValue()
+            if new_value is None:
+                new_value = self.get_value()
 
-            if isinstance(newvalue, types.TupleType):
-                newvalue = list(newvalue)
+            if isinstance(new_value, types.TupleType):
+                new_value = list(new_value)
 
-            self.value = newvalue
+            self.value = new_value
             self.emit("update", self.value)
         except AttributeError:
             # No value in data... this is probably a connection error
             pass
 
-    def isConnected(self):
+    def is_connected(self):
         return self.attribute is not None
 
-    def channelListener(self, *args):
+    def channel_listener(self, *args):
         ev = AttributeEvent(args)
         SardanaChannel._eventReceivers[id(ev)] = saferef.safe_ref(self.update)
         SardanaChannel._eventsQueue.put(ev)

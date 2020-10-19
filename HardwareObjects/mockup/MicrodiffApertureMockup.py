@@ -5,7 +5,7 @@ import math
 
 class MicrodiffApertureMockup(Device):
     def init(self):
-        self.motor_name = "CurrentApertureDiameter"
+        self.actuator_name = "CurrentApertureDiameter"
         self.motor_pos_attr_suffix = "Index"
         self._last_position_name = None
 
@@ -22,9 +22,9 @@ class MicrodiffApertureMockup(Device):
             )
         )
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "predefinedPositionChanged":
-            positionName = self.getCurrentPositionName()
+            positionName = self.get_current_position_name()
 
             try:
                 pos = self.predefinedPositions[positionName]
@@ -35,10 +35,10 @@ class MicrodiffApertureMockup(Device):
         else:
             return True
 
-    def getState(self):
+    def get_state(self):
         return 2
 
-    def getLimits(self):
+    def get_limits(self):
         return (1, 5)
 
     def getPredefinedPositionsList(self):
@@ -46,7 +46,7 @@ class MicrodiffApertureMockup(Device):
 
     def motorPositionChanged(self, absolutePosition, private={}):
         # MD2Motor.motorPositionChanged.im_func(self, absolutePosition, private)
-        positionName = self.getCurrentPositionName(absolutePosition)
+        positionName = self.get_current_position_name(absolutePosition)
         if self._last_position_name != positionName:
             self._last_position_name = positionName
             self.emit(
@@ -54,7 +54,7 @@ class MicrodiffApertureMockup(Device):
                 (positionName, positionName and absolutePosition or None),
             )
 
-    def getCurrentPositionName(self, pos=None):
+    def get_current_position_name(self, pos=None):
         pos = self.predefined_position_attr
 
         for positionName in self.predefinedPositions:
@@ -66,5 +66,5 @@ class MicrodiffApertureMockup(Device):
         try:
             self.predefined_position_attr = self.predefinedPositions[positionName]
             return True
-        except BaseException:
+        except Exception:
             return False

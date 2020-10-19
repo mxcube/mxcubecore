@@ -17,14 +17,14 @@ class ControllerCommand(CommandObject):
         self._cmd_execution = None
         self.type = "CONTROLLER"
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
-    def getArguments(self):
+    def get_arguments(self):
         if self.name() == "Anneal":
-            self.addArgument("Time [s]", "float")
+            self.add_argument("Time [s]", "float")
 
-        return CommandObject.getArguments(self)
+        return CommandObject.get_arguments(self)
 
     @task
     def __call__(self, *args, **kwargs):
@@ -36,7 +36,7 @@ class ControllerCommand(CommandObject):
         try:
             try:
                 res = cmd_execution.get()
-            except BaseException:
+            except Exception:
                 self.emit("commandFailed", (str(self.name()),))
             else:
                 if isinstance(res, gevent.GreenletExit):
@@ -79,30 +79,30 @@ class BIOMAXBeamlineActions(HardwareObject):
 
         if HWR.beamline.detector.distance is not None:
             logging.getLogger("HWR").info("Moving detector to safe area...")
-            HWR.beamline.detector.distance.syncMove(800, timeout=50)
+            HWR.beamline.detector.distance.set_value(800, timeout=50)
 
-        if HWR.beamline.sample_changer.isPowered():
-            if HWR.beamline.sample_changer.getLoadedSample() is not None:
+        if HWR.beamline.sample_changer.is_powered():
+            if HWR.beamline.sample_changer.get_loaded_sample() is not None:
                 logging.getLogger("HWR").info("Unloading mounted sample.")
                 HWR.beamline.sample_changer.unload(None, wait=True)
-                HWR.beamline.sample_changer._waitDeviceReady(30)
-            if HWR.beamline.sample_changer._chnInSoak.getValue():
+                HWR.beamline.sample_changer._wait_device_ready(30)
+            if HWR.beamline.sample_changer._chnInSoak.get_value():
                 logging.getLogger("HWR").info(
                     "Sample Changer was in SOAK, going to DRY"
                 )
                 self.sample_changer_maint_hwobj.send_command("dry")
                 gevent.sleep(1)
-                HWR.beamline.sample_changer._waitDeviceReady(300)
-            if HWR.beamline.sample_changer.isPowered():
+                HWR.beamline.sample_changer._wait_device_ready(300)
+            if HWR.beamline.sample_changer.is_powered():
                 logging.getLogger("HWR").info("Sample Changer to HOME")
                 self.sample_changer_maint_hwobj.send_command("home")
                 gevent.sleep(1)
-                HWR.beamline.sample_changer._waitDeviceReady(30)
+                HWR.beamline.sample_changer._wait_device_ready(30)
 
                 logging.getLogger("HWR").info("Sample Changer CLOSING LID")
                 self.sample_changer_maint_hwobj.send_command("closelid1")
                 gevent.sleep(1)
-                HWR.beamline.sample_changer._waitDeviceReady(10)
+                HWR.beamline.sample_changer._wait_device_ready(10)
 
                 logging.getLogger("HWR").info("Sample Changer POWER OFF")
                 self.sample_changer_maint_hwobj.send_command("powerOff")
@@ -135,13 +135,13 @@ class BIOMAXBeamlineActions(HardwareObject):
 
         if HWR.beamline.detector.distance is not None:
             logging.getLogger("HWR").info("Moving detector to safe area...")
-            HWR.beamline.detector.distance.syncMove(800, timeout=50)
+            HWR.beamline.detector.distance.set_value(800, timeout=50)
 
     def init(self):
-        self.sample_changer_maint_hwobj = self.getObjectByRole(
+        self.sample_changer_maint_hwobj = self.get_object_by_role(
             "sample_changer_maintenance"
         )
-        self.detector_cover_hwobj = self.getObjectByRole("detector_cover")
+        self.detector_cover_hwobj = self.get_object_by_role("detector_cover")
 
         self.prepare_open_hutch = ControllerCommand(
             "prepare_open_hutch", self._prepare_open_hutch_task
@@ -150,5 +150,5 @@ class BIOMAXBeamlineActions(HardwareObject):
             "prepare_new_sample", self._prepare_for_new_sample_task
         )
 
-    def getCommands(self):
+    def get_commands(self):
         return [self.prepare_open_hutch, self.prepare_new_sample]

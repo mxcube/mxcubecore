@@ -16,11 +16,11 @@ class XRFSpectrum(Equipment):
         self.scanning = None
         self.ready_event = gevent.event.Event()
 
-        self.config_data = self.getChannelObject("config_data")
-        self.calib_data = self.getChannelObject("calib_data")
+        self.config_data = self.get_channel_object("config_data")
+        self.calib_data = self.get_channel_object("calib_data")
 
         try:
-            self.energySpectrumArgs = self.getChannelObject("spectrum_args")
+            self.energySpectrumArgs = self.get_channel_object("spectrum_args")
         except KeyError:
             logging.getLogger().warning(
                 "XRFSpectrum: error initializing energy spectrum arguments (missing channel)"
@@ -28,13 +28,15 @@ class XRFSpectrum(Equipment):
             self.energySpectrumArgs = None
 
         try:
-            self.doSpectrum.connectSignal(
+            self.doSpectrum.connect_signal(
                 "commandBeginWaitReply", self.spectrumCommandStarted
             )
-            self.doSpectrum.connectSignal("commandFailed", self.spectrumCommandFailed)
-            self.doSpectrum.connectSignal("commandAborted", self.spectrumCommandAborted)
-            self.doSpectrum.connectSignal("commandReady", self.spectrumCommandReady)
-            self.doSpectrum.connectSignal(
+            self.doSpectrum.connect_signal("commandFailed", self.spectrumCommandFailed)
+            self.doSpectrum.connect_signal(
+                "commandAborted", self.spectrumCommandAborted
+            )
+            self.doSpectrum.connect_signal("commandReady", self.spectrumCommandReady)
+            self.doSpectrum.connect_signal(
                 "commandNotReady", self.spectrumCommandNotReady
             )
         except AttributeError as diag:
@@ -44,8 +46,8 @@ class XRFSpectrum(Equipment):
             )
             self.doSpectrum = None
         else:
-            self.doSpectrum.connectSignal("connected", self.sConnected)
-            self.doSpectrum.connectSignal("disconnected", self.sDisconnected)
+            self.doSpectrum.connect_signal("connected", self.sConnected)
+            self.doSpectrum.connect_signal("disconnected", self.sDisconnected)
 
         if HWR.beamline.lims is None:
             logging.getLogger().warning(
@@ -53,26 +55,26 @@ class XRFSpectrum(Equipment):
             )
         self.spectrumInfo = None
 
-        self.ctrl_hwobj = self.getObjectByRole("controller")
-        self.mca_hwobj = self.getObjectByRole("mca")
-        if self.mca_hwobj:
-            self.mca_hwobj.set_calibration(calib_cf=self.mca_hwobj.calib_cf)
+        self.ctrl_hwobj = self.get_object_by_role("controller")
+        self.mca_hwobj = self.get_object_by_role("mca")
+        # if self.mca_hwobj:
+        #    self.mca_hwobj.set_calibration(calib_cf=self.mca_hwobj.calib_cf)
 
-        self.archive_path = self.getProperty("archive_path")
+        self.archive_path = self.get_property("archive_path")
         if not self.archive_path:
             self.archive_path = "/data/pyarch/"
 
-        self.cfg_path = self.getProperty("cfg_path")
+        self.cfg_path = self.get_property("cfg_path")
         if not self.cfg_path:
             self.cfg_path = "/users/blissadm/local/beamline_configuration/misc"
 
-        if self.isConnected():
+        if self.is_connected():
             self.sConnected()
 
-    def isConnected(self):
+    def is_connected(self):
         try:
-            return self.doSpectrum.isConnected()
-        except BaseException:
+            return self.doSpectrum.is_connected()
+        except Exception:
             return False
 
     # Handler for spec connection
@@ -86,7 +88,7 @@ class XRFSpectrum(Equipment):
 
     # Energy spectrum commands
     def canSpectrum(self):
-        if not self.isConnected():
+        if not self.is_connected():
             return False
         return self.doSpectrum is not None
 
@@ -142,7 +144,7 @@ class XRFSpectrum(Equipment):
             except OSError as diag:
                 logging.getLogger().error(
                     "XRFSpectrum: error creating directory %s (%s)",
-                    (archive_directory, str(diag))
+                    (archive_directory, str(diag)),
                 )
                 self.spectrumStatusChanged("Error creating directory")
                 return False
@@ -182,24 +184,15 @@ class XRFSpectrum(Equipment):
         return True
 
     def reallyStartXrfSpectrum(self, ct, filename):
-        if self.doSpectrum:
-            try:
-                res = self.doSpectrum(ct, filename, wait=True)
-            except BaseException:
-                logging.getLogger().exception("XRFSpectrum: problem calling SPEC macro")
-                self.spectrumStatusChanged("Error problem SPEC macro")
-            else:
-                self.spectrumCommandFinished(res)
+        try:
+            res = self._doSpectrum(ct, filename, wait=True)
+        except Exception:
+            logging.getLogger("user_level_log").exception(
+                "XRFSpectrum: problem calling procedure"
+            )
+            self.spectrumStatusChanged("Error problem with spectrum procedure")
         else:
-            try:
-                res = self._doSpectrum(ct, filename, wait=True)
-            except BaseException:
-                logging.getLogger("user_level_log").exception(
-                    "XRFSpectrum: problem calling procedure"
-                )
-                self.spectrumStatusChanged("Error problem with spectrum procedure")
-            else:
-                self.spectrumCommandFinished(res)
+            self.spectrumCommandFinished(res)
 
     def cancelXrfSpectrum(self, *args):
         if self.scanning:
@@ -236,43 +229,33 @@ class XRFSpectrum(Equipment):
         logging.getLogger().debug("XRFSpectrum: XRF spectrum result is %s" % result)
         self.scanning = False
         if result is not False:
-            try:
-                mcaData = self.getChannelObject("mca_data").getValue()
-                mcaCalib = self.getChannelObject("calib_data").getValue()
-            except BaseException:
-                fname = self.spectrumInfo["filename"].replace(".dat", ".raw")
-                self.mca_hwobj.set_presets(fname=str(fname))
-                mcaData = self.mca_hwobj.read_data(save_data=True)
-                mcaCalib = self.mca_hwobj.get_calibration()
-            try:
-                mcaConfig = self.getChannelObject("config_data").getValue()
-                self.spectrumInfo["beamTransmission"] = mcaConfig["att"]
-                self.spectrumInfo["energy"] = mcaConfig["energy"]
-                self.spectrumInfo["beamSizeHorizontal"] = float(mcaConfig["bsX"])
-                self.spectrumInfo["beamSizeVertical"] = float(mcaConfig["bsY"])
-            except BaseException:
-                mcaConfig = {}
-                self.spectrumInfo[
-                    "beamTransmission"
-                ] = HWR.beamline.transmission.get_value()
-                self.spectrumInfo["energy"] = HWR.beamline.energy.get_current_energy()
-                if HWR.beamline.flux:
-                    self.spectrumInfo["flux"] = HWR.beamline.flux.getCurrentFlux()
+            fname = self.spectrumInfo["filename"].replace(".dat", ".raw")
+            self.mca_hwobj.set_presets(fname=str(fname))
+            mcaData = self.mca_hwobj.read_data(save_data=True)
+            mcaCalib = self.mca_hwobj.get_calibration()
 
-                beam_info = HWR.beamline.beam.get_beam_info()
-                self.spectrumInfo["beamSizeHorizontal"] = beam_info["size_x"] * 1000.0
-                self.spectrumInfo["beamSizeVertical"] = beam_info["size_y"] * 1000.0
-                mcaConfig["att"] = self.spectrumInfo["beamTransmission"]
-                mcaConfig["energy"] = self.spectrumInfo["energy"]
+            mcaConfig = {}
+            self.spectrumInfo[
+                "beamTransmission"
+            ] = HWR.beamline.transmission.get_value()
+            self.spectrumInfo["energy"] = HWR.beamline.energy.get_value()
+            if HWR.beamline.flux:
+                self.spectrumInfo["flux"] = HWR.beamline.flux.get_value()
+            self.beamsize = self.get_object_by_role("beamsize")
+            if self.beamsize:
+                bsX = self.beamsize.get_size(self.beamsize.get_value().name)
+                self.spectrumInfo["beamSizeHorizontal"] = bsX
+                self.spectrumInfo["beamSizeVertical"] = bsX
                 mcaConfig["bsX"] = self.spectrumInfo["beamSizeHorizontal"]
                 mcaConfig["bsY"] = self.spectrumInfo["beamSizeVertical"]
-                roi = self.mca_hwobj.get_roi()
-                mcaConfig["min"] = roi["chmin"]
-                mcaConfig["max"] = roi["chmax"]
+            mcaConfig["att"] = self.spectrumInfo["beamTransmission"]
+            mcaConfig["energy"] = self.spectrumInfo["energy"]
+            roi = self.mca_hwobj.get_roi()
+            mcaConfig["min"] = roi["chmin"]
+            mcaConfig["max"] = roi["chmax"]
             mcaConfig["legend"] = self.spectrumInfo["annotatedPymcaXfeSpectrum"]
             mcaConfig["htmldir"], _ = os.path.split(mcaConfig["legend"])
             mcaConfig["file"] = self._get_cfgfile(self.spectrumInfo["energy"])
-
             try:
                 self.set_data(mcaData, mcaCalib, mcaConfig)
             except Exception:
@@ -284,14 +267,12 @@ class XRFSpectrum(Equipment):
             if os.path.isfile(pngfile) is True:
                 try:
                     shutil.copyfile(pngfile, self.spectrumInfo["jpegScanFileFullPath"])
-                except BaseException:
+                except Exception:
                     logging.getLogger().error("XRFSpectrum: cannot copy %s", pngfile)
 
             # copy raw data file to the archive directory
             try:
-                shutil.copyfile(
-                    self.spectrumInfo["filename"], self.spectrumInfo["scanFileFullPath"]
-                )
+                shutil.copyfile(fname, self.spectrumInfo["scanFileFullPath"])
             except Exception:
                 logging.getLogger().error(
                     "XRFSpectrum: cannot copy %s", self.spectrumInfo["filename"]
@@ -321,7 +302,7 @@ class XRFSpectrum(Equipment):
             return
         try:
             session_id = int(self.spectrumInfo["sessionId"])
-        except BaseException:
+        except Exception:
             return
         blsampleid = self.spectrumInfo["blSampleId"]
 
@@ -333,9 +314,9 @@ class XRFSpectrum(Equipment):
     def getSpectrumParams(self):
         if self.energySpectrumArgs:
             try:
-                self.curr = self.energySpectrumArgs.getValue()
+                self.curr = self.energySpectrumArgs.get_value()
                 return self.curr
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     "XRFSpectrum: error getting xrfspectrum parameters"
                 )
@@ -345,7 +326,7 @@ class XRFSpectrum(Equipment):
             return True
 
     def setSpectrumParams(self, pars):
-        self.energySpectrumArgs.setValue(pars)
+        self.energySpectrumArgs.set_value(pars)
 
     def _get_cfgfile(self, energy):
         if energy > 12.0:
@@ -359,10 +340,9 @@ class XRFSpectrum(Equipment):
         return os.path.join(self.cfg_path, "%skeV.cfg" % cfgname)
 
     def _doSpectrum(self, ct, filename, wait=True):
-        en = HWR.beamline.energy.get_current_energy()
         if not ct:
             ct = 5
-        safshut = self.getObjectByRole("safety_shutter")
+        safshut = self.get_object_by_role("safety_shutter")
 
         # stop the procedure if hutch not searched
         stat = safshut.getShutterState()
@@ -372,9 +352,8 @@ class XRFSpectrum(Equipment):
             )
             return False
 
-        fluodet_ctrl = self.getObjectByRole("fluodet_ctrl")
+        fluodet_ctrl = self.get_object_by_role("fluodet_ctrl")
         fluodet_ctrl.actuatorIn()
-
         # put the beamstop in
         try:
             self.ctrl_hwobj.diffractometer.set_phase("DataCollection", wait=True)
@@ -383,18 +362,18 @@ class XRFSpectrum(Equipment):
 
         # open the safety and the fast shutter
         safshut.openShutter()
-        init_transm = HWR.beamline.transmission.getValue()
+        init_transm = HWR.beamline.transmission.get_value()
         logging.getLogger("user_level_log").info(
             "Looking for maximum attenuation, please wait"
         )
         ret = self._findAttenuation(ct)
         self.ctrl_hwobj.diffractometer.msclose()
         fluodet_ctrl.actuatorOut()
-        HWR.beamline.transmission.setTransmission(init_transm)
+        HWR.beamline.transmission.set_value(init_transm)
         return ret
 
     def _findAttenuation(self, ct):
-        table = self.getProperty("transmission_table")
+        table = self.get_property("transmission_table")
         if table:
             tf = []
             for i in table.split(","):
@@ -402,14 +381,14 @@ class XRFSpectrum(Equipment):
         else:
             tf = [0.1, 0.2, 0.3, 0.9, 1.3, 1.9, 2.6, 4.3, 6, 8, 12, 24, 36, 50]
 
-        min_cnt = self.getProperty("min_cnt")
-        max_cnt = self.getProperty("max_cnt")
+        min_cnt = self.get_property("min_cnt")
+        max_cnt = self.get_property("max_cnt")
         self.mca_hwobj.set_roi(2, 15, channel=1)
         fname = self.spectrumInfo["filename"].replace(".dat", ".raw")
         self.mca_hwobj.set_presets(erange=1, ctime=ct, fname=fname)
 
         # put in max attenuation
-        HWR.beamline.transmission.setTransmission(0)
+        HWR.beamline.transmission.set_value(0)
 
         self.ctrl_hwobj.diffractometer.msopen()
         self.mca_hwobj.start_acq()
@@ -426,7 +405,7 @@ class XRFSpectrum(Equipment):
         for i in tf:
             self.mca_hwobj.clear_spectrum()
             logging.getLogger("user_level_log").info("Setting transmission to %g" % i)
-            HWR.beamline.transmission.setTransmission(i)
+            HWR.beamline.transmission.set_value(i)
             self.mca_hwobj.start_acq()
             time.sleep(ct)
             ic = sum(self.mca_hwobj.read_roi_data()) / ct

@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 from random import random
 from HardwareRepository.HardwareObjects.abstract.AbstractFlux import AbstractFlux
@@ -42,7 +42,7 @@ class FluxMockup(AbstractFlux):
 
         self.measure_flux()
 
-    def get_flux(self):
+    def get_value(self):
         """Get flux at current transmission in units of photons/s"""
         return self.current_flux_dict["flux"]
 
@@ -52,10 +52,14 @@ class FluxMockup(AbstractFlux):
         transmission = HWR.beamline.transmission.get_value()
         flux = self.default_flux * (1 + random())
 
-        self.measured_flux_list = [{"size_x": beam_size[0],
-                                    "size_y": beam_size[1],
-                                    "transmission": transmission,
-                                    "flux": flux}]
+        self.measured_flux_list = [
+            {
+                "size_x": beam_size[0],
+                "size_y": beam_size[1],
+                "transmission": transmission,
+                "flux": flux,
+            }
+        ]
 
         self.measured_flux_dict = self.measured_flux_list[0]
         self.current_flux_dict = self.measured_flux_list[0]

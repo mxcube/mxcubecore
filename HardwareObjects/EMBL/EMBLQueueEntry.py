@@ -38,9 +38,6 @@ __category__ = "queue"
 
 
 class XrayImagingQueueEntry(BaseQueueEntry):
-    """
-    """
-
     def __init__(self, view=None, data_model=None, view_set_queue_entry=True):
         BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
 
@@ -53,14 +50,10 @@ class XrayImagingQueueEntry(BaseQueueEntry):
 
         queue_controller = self.get_queue_controller()
         queue_controller.connect(
-            HWR.beamline.imaging,
-            "collectImageTaken",
-            self.image_taken,
+            HWR.beamline.imaging, "collectImageTaken", self.image_taken
         )
         queue_controller.connect(
-            HWR.beamline.imaging,
-            "collectFailed",
-            self.collect_failed
+            HWR.beamline.imaging, "collectFailed", self.collect_failed
         )
 
         data_model = self.get_data_model()
@@ -77,14 +70,10 @@ class XrayImagingQueueEntry(BaseQueueEntry):
 
         queue_controller = self.get_queue_controller()
         queue_controller.disconnect(
-            HWR.beamline.imaging,
-            "collectImageTaken",
-            self.image_taken,
+            HWR.beamline.imaging, "collectImageTaken", self.image_taken
         )
         queue_controller.disconnect(
-            HWR.beamline.imaging,
-            "collectFailed",
-            self.collect_failed
+            HWR.beamline.imaging, "collectFailed", self.collect_failed
         )
 
     def stop(self):

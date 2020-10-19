@@ -10,7 +10,7 @@ except ImportError:
 
 from gui.utils.QtImport import QImage, QPixmap
 from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
-    AbstractVideoDevice
+    AbstractVideoDevice,
 )
 
 from abstract.AbstractVideoDevice import AbstractVideoDevice
@@ -29,9 +29,9 @@ class VimbaVideo(AbstractVideoDevice):
 
     def init(self):
         # start Vimba
-        self.camera_index = self.getProperty("camera_index", 0)
-        self.use_qt = self.getProperty('use_qt', True)
-             
+        self.camera_index = self.get_property("camera_index", 0)
+        self.use_qt = self.get_property("use_qt", True)
+
         atexit.register(self.close_camera)
         AbstractVideoDevice.init(self)
 
@@ -78,17 +78,23 @@ class VimbaVideo(AbstractVideoDevice):
                         self.qpixmap.convertFromImage(self.qimage)
                     self.emit("imageReceived", self.qpixmap)
                 else:
-                    image_data = np.ndarray(buffer=self.frame0.getBufferByteData(),
-                                            dtype=np.uint8,
-                                            shape=(self.frame0.height,
-                                                   self.frame0.width,
-                                                   self.frame0.pixel_bytes))
+                    image_data = np.ndarray(
+                        buffer=self.frame0.getBufferByteData(),
+                        dtype=np.uint8,
+                        shape=(
+                            self.frame0.height,
+                            self.frame0.width,
+                            self.frame0.pixel_bytes,
+                        ),
+                    )
                     image_data = cv2.cvtColor(image_data, cv2.COLOR_BGR2RGBA)
-                    ret, im = cv2.imencode('.jpg', image_data)
-                    self.emit("imageReceived",
-                              im.tostring(),
-                              self.frame0.width,
-                              self.frame0.height)
+                    ret, im = cv2.imencode(".jpg", image_data)
+                    self.emit(
+                        "imageReceived",
+                        im.tostring(),
+                        self.frame0.width,
+                        self.frame0.height,
+                    )
 
                 time.sleep(sleep_time)
 

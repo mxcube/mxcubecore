@@ -20,33 +20,33 @@ class ALBABackLight(Device):
 
     def init(self):
 
-        self.backlightin_channel = self.getChannelObject("backlightin")
-        self.level_channel = self.getChannelObject("light_level")
+        self.backlightin_channel = self.get_channel_object("backlightin")
+        self.level_channel = self.get_channel_object("light_level")
 
-        limits = self.getProperty("limits")
+        limits = self.get_property("limits")
 
         if limits is not None:
             lims = limits.split(",")
             if len(lims) == 2:
                 self.limits = map(float, lims)
 
-        rest_level = self.getProperty("rest_level")
+        rest_level = self.get_property("rest_level")
 
         if rest_level is not None:
             self.rest_level = rest_level
         else:
             self.rest_level = self.default_rest_level
 
-        minimum_level = self.getProperty("minimum_level")
+        minimum_level = self.get_property("minimum_level")
         if minimum_level is not None:
             self.minimum_level = float(minimum_level)
         else:
             self.minimum_level = self.default_minimum_level
 
-        self.level_channel.connectSignal("update", self.level_changed)
-        self.backlightin_channel.connectSignal("update", self.state_changed)
+        self.level_channel.connect_signal("update", self.level_changed)
+        self.backlightin_channel.connect_signal("update", self.state_changed)
 
-    def isReady(self):
+    def is_ready(self):
         return True
 
     def level_changed(self, value):
@@ -73,11 +73,11 @@ class ALBABackLight(Device):
 
         return state
 
-    def getLimits(self):
+    def get_limits(self):
         return self.limits
 
-    def getState(self):
-        _state = self.backlightin_channel.getValue()
+    def get_state(self):
+        _state = self.backlightin_channel.get_value()
         if _state:
             return "on"
         else:
@@ -87,11 +87,11 @@ class ALBABackLight(Device):
         return self.username
 
     def getLevel(self):
-        self.current_level = self.level_channel.getValue()
+        self.current_level = self.level_channel.get_value()
         return self.current_level
 
     def setLevel(self, level):
-        self.level_channel.setValue(float(level))
+        self.level_channel.set_value(float(level))
 
     def setOn(self):
         self.on_task = gevent.spawn(self._setOn)
@@ -99,7 +99,7 @@ class ALBABackLight(Device):
         self.on_task.link_exception(self._task_failed)
 
     def _setOn(self):
-        if self.backlightin_channel.getValue() is False:
+        if self.backlightin_channel.get_value() is False:
             self.set_backlight_in()
             wait_ok = self.wait_backlight_in()
             if not wait_ok:
@@ -117,13 +117,13 @@ class ALBABackLight(Device):
         self.setLevel(level)
 
     def set_backlight_in(self):
-        self.backlightin_channel.setValue(True)
+        self.backlightin_channel.set_value(True)
 
     def wait_backlight_in(self, state=True, timeout=10):
         t0 = time.time()
         elapsed = 0
         while elapsed < timeout:
-            isin = self.backlightin_channel.getValue()
+            isin = self.backlightin_channel.get_value()
             if isin == state:
                 logging.getLogger("HWR").debug(
                     "waiting for backlight took %s . In is: %s" % (elapsed, isin)
@@ -147,16 +147,16 @@ class ALBABackLight(Device):
         if self.current_level:
             self.memorized_level = self.current_level
             self.setLevel(self.rest_level)
-        self.backlightin_channel.setValue(False)
+        self.backlightin_channel.set_value(False)
 
 
 def test_hwo(hwo):
     import sys
 
     print('\nLight control for "%s"\n' % hwo.getUserName())
-    print("   Level limits are:", hwo.getLimits())
+    print("   Level limits are:", hwo.get_limits())
     print("   Current level is:", hwo.getLevel())
-    print("   Current state is:", hwo.getState())
+    print("   Current state is:", hwo.get_state())
     print("   Setting backlight in")
 
     print(sys.argv)
@@ -174,4 +174,4 @@ def test_hwo(hwo):
     #    print "Waiting"
     #    gevent.sleep(0.1)
 
-    print("   Current state is:", hwo.getState())
+    print("   Current state is:", hwo.get_state())

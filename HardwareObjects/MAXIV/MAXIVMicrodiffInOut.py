@@ -13,11 +13,11 @@ class MAXIVMicrodiffInOut(MicrodiffInOut.MicrodiffInOut):
 
         self.polling = gevent.spawn(self._polling)
 
-    def getActuatorState(self, read=False):
+    def get_actuator_state(self, read=False):
         """
         to avoid infinite loooooop
         """
-        value = self.state_attr.getValue()
+        value = self.state_attr.get_value()
         self.actuatorState = self.states.get(value, "unknown")
         return self.actuatorState
 
@@ -26,11 +26,11 @@ class MAXIVMicrodiffInOut(MicrodiffInOut.MicrodiffInOut):
 
         while self.keep_polling:
             try:
-                state = self.getActuatorState()
-            except BaseException:
+                state = self.get_actuator_state()
+            except Exception:
                 time.sleep(1)
                 continue
             if state != old_state:
                 old_state = state
-                self.valueChanged(self.state_attr.getValue())
+                self.value_changed(self.state_attr.get_value())
             time.sleep(1)

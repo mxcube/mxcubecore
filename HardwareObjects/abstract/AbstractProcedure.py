@@ -5,71 +5,96 @@
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
+#  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 import logging
-import gevent
+from enum import IntEnum, unique
+
+import gevent.event
 
 from HardwareRepository.BaseHardwareObjects import ConfiguredObject
 from HardwareRepository.dispatcher import dispatcher
+
+# import HardwareRepository.HardwareObjects.datamodel
 
 # Using jsonschma for validating the JSCONSchemas
 # https://json-schema.org/
 # https://github.com/Julian/jsonschema
 
-from jsonschema import (validate, ValidationError)
+from jsonschema import validate, ValidationError
 
 
 __credits__ = ["MXCuBE collaboration"]
 
 
+# Temporary definition should use common denfinition from
+# HardwareObject
 @unique
 class ProcedureState(IntEnum):
     """
     Defines the valid Procedure states
     """
-    FAILED = 0
-    RUNNING = 1
-    SUCCESFUL = 2
-    IDLE = 3
+
+    ERROR = 0
+    BUSY = 1
+    READY = 3
 
 
 class AbstractProcedure(ConfiguredObject):
-
     __content_roles = []
 
-    _ALLOW_PARALLEL = False
+    _ARGS_CLASS = ()
+    _KWARGS_CLASS = {}
+    _RESULT_CLASS = ()
 
-    # JSONSchema used for input and output validation and possibly
-    # form generation.
-    # https://json-schema.org/
-    # Needs to be defined by each subclass
-    _ARG_SCHEMA = None
-    _RESULT_SCHEMA = None
+    @staticmethod
+    def set_args_class(args_class, kwargs_class):
+        """
+        Sets the types of the data models used as arguments, cane be used to
+        set the argument classes runtime if the models are built dynamically,
+        i.e based on configuration not known before
+
+        Args:
+            args_class (tuple[BaseModel]) tuple of classes for args
+            kwargs_class (dict[[str]: [BaseModel]]) dictionary containing BaseModels
+        """
+        AbstractProcedure._ARGS_CLASS = args_class
+        AbstractProcedure._KWARGS_CLASS = kwargs_class
+
+    @staticmethod
+    def set_result_class(_result_class):
+        """
+        Sets the types of the data models returned by the Procedure, can
+        be used to set the result model runtime of the data model is built
+        dynamically, i.e based on configuration not known before
+
+        Returns:
+            (tuple[BaseModel]) tuple of classes for args
+        """
+        AbstractProcedure._RESULT_CLASS = _result_class
 
     def __init__(self, name):
         super(AbstractProcedure, self).__init__(name)
-
-        self._msg=None
-        self._results=None
+        self._msg = None
+        self._results = None
         self._ready_event = gevent.event.Event()
-        self._task=None
-        self._state = ProcedureState.IDLE
+        self._task = None
+        self._state = ProcedureState.READY
 
         # YML configuration options
         # Category that the Procedure belongs to, configurable through
         # YAML file and used by for listing and displaying the procedure
         # in the right context.
-        self.category=""
+        self.category = ""
 
     def _init(self):
         pass
@@ -82,9 +107,9 @@ class AbstractProcedure(ConfiguredObject):
         Override to implement main task logic
 
         Args:
-            data_model: Immutable data model, frozen dict in
-            Python 2.7 and Data class in Python 3.7. Input validated
-            by schema defined in _ARG_SCHEMA
+            data_model: sub class of HardwareRepository.HardwareObjects.datamodel
+            dict in Python 2.7 and Data class in Python 3.7. Data is validated
+            by the data_model object
 
         Returns:
         """
@@ -95,9 +120,9 @@ class AbstractProcedure(ConfiguredObject):
         Override to implement pre execute task logic
 
         Args:
-            data_model: Immutable data model, frozen dict in
-            Python 2.7 and Data class in Python 3.7. Input validated
-            by schema defined in _ARG_SCHEMA
+            data_model: sub class of HardwareRepository.HardwareObjects.datamodel
+            dict in Python 2.7 and Data class in Python 3.7. Data is validated
+            by the data_model object
 
         Returns:
         """
@@ -108,9 +133,9 @@ class AbstractProcedure(ConfiguredObject):
         Override to implement post execute task logic
 
         Args:
-            data_model: Immutable data model, frozen dict in
-            Python 2.7 and Data class in Python 3.7. Input validated
-            by schema defined in _ARG_SCHEMA
+            data_model: sub class of HardwareRepository.HardwareObjects.datamodel
+            dict in Python 2.7 and Data class in Python 3.7. Data is validated
+            by the data_model object
 
         Returns:
         """
@@ -122,7 +147,7 @@ class AbstractProcedure(ConfiguredObject):
         Returns:
 
         """
-        self._state = ProcedureState.RUNNING
+        self._state = ProcedureState.BUSY
         dispatcher.send(self, "procedureStarted")
 
     def _set_successful(self):
@@ -131,17 +156,17 @@ class AbstractProcedure(ConfiguredObject):
         Returns:
 
         """
-        self._state = ProcedureState.SUCCESFUL
+        self._state = ProcedureState.READY
         dispatcher.send(self, "procedureSuccessful", self.results)
 
-    def _set_failed(self):
+    def _set_error(self):
         """
-        Emits procedureFailed signal
+        Emits procedure error signal
         Returns:
 
         """
-        self._state = ProcedureState.FAILED
-        dispatcher.send(self, "procedureFailed", self.msg)
+        self._state = ProcedureState.ERROR
+        dispatcher.send(self, "procedureError", self.msg)
 
     def _set_stopped(self):
         """
@@ -149,7 +174,7 @@ class AbstractProcedure(ConfiguredObject):
         Returns:
 
         """
-        self._state = ProcedureState.FAILED
+        self._state = ProcedureState.READY
         dispatcher.send(self, "procedureStopped", self.results)
 
     def _start(self, data_model):
@@ -157,46 +182,50 @@ class AbstractProcedure(ConfiguredObject):
         Internal start, for the moment executed in greenlet
         """
         try:
-            # The _pre_execute have been removed and can be done within
-            # execute if needed
+            self._set_started()
             self._pre_execute(data_model)
             self._execute(data_model)
         except Exception as ex:
-            self._state = ProcedureState.FAILED
-            self._msg = "Procedure execution failed (%s)" % str(ex)
-            logging.getLogger("HWR").error(self._msg)
+            self._state = ProcedureState.ERROR
+            self._msg = "Procedure execution error (%s)" % str(ex)
+            logging.getLogger("HWR").exception(self._msg)
         finally:
             try:
                 self._post_execute(data_model)
             except Exception as ex:
-                self._state = ProcedureState.FAILED
-                self._msg = "Procedure post_execute failed (%s)" % str(ex)
-                logging.getLogger("HWR").error(self._msg)
+                self._state = ProcedureState.ERROR
+                self._msg = "Procedure post_execute error (%s)" % str(ex)
+                logging.getLogger("HWR").exception(self._msg)
 
-            self.ready_event.set()
+            self._ready_event.set()
 
-            if self._state ==  ProcedureState.FAILED:
-                self._set_failed()
+            if self._state == ProcedureState.ERROR:
+                self._set_error()
             else:
                 self._set_successful()
 
     @property
     def argument_schema(self):
         """
-        Schema for argument passed to start
+        Schema for arguments passed to start
         Returns:
-            str (JSONSchema)
+            dict{"args": tuple[JSONSchema], "kwargs": key: [JSONSchema]}
         """
-        return self._ARG_SCHEMA
+        return {
+            "args": tuple([s.schema_json() for s in self._ARGS_CLASS]),
+            "kwargs": {
+                key: value.schema_json() for (key, value) in self._KWARGS_CLASS.items()
+            },
+        }
 
     @property
     def result_schema(self):
         """
         Schema for result
         Returns:
-            str (JSONSchema)
+            tuple[JSONSchema]
         """
-        return self._RESULT_SCHEMA
+        return (s.schema_json() for s in self._RESULT_CLASS)
 
     @property
     def msg(self):
@@ -225,8 +254,6 @@ class AbstractProcedure(ConfiguredObject):
         Returns:
             DataClass or frozendict
         """
-        if self._RESULT_SCHEMA:
-            validate(self._results, schema=self._RESULT_SCHEMA)
 
         return self._results
 
@@ -234,22 +261,20 @@ class AbstractProcedure(ConfiguredObject):
         """
         Starts procedure
         Args:
-            data_model: Immutable data model, frozen dict in
-            Python 2.7 and Data class in Python 3.7. Input validated
-            by schema defined in _ARG_SCHEMA
+            data_model: sub class of HardwareRepository.HardwareObjects.datamodel
+            dict in Python 2.7 and Data class in Python 3.7. Data is validated
+            by the data_model object
 
         Returns:
-            None
+            (Greenlet) The gevent task
         """
-        # This raises a ValidationException if validation fails
-        if self._ARG_SCHEMA:
-            validate(instance=data_model, schema=self._ARG_SCHEMA)
-
-        if not self._ALLOW_PARALLEL and self.is_running:
+        if self._state != ProcedureState.READY:
             self._msg = "Procedure (%s) is already running" % str(self)
             logging.getLogger("HWR").error(self._msg)
         else:
             self._task = gevent.spawn(self._start, data_model)
+
+        return self._task
 
     def stop(self):
         """
@@ -258,4 +283,13 @@ class AbstractProcedure(ConfiguredObject):
             None
         """
         gevent.kill(self._task)
-        self._set_procedure_stopped()
+        self._set_stopped()
+
+    def wait(self):
+        """
+        Waits for procedure to finish execution
+
+        Returns:
+            None
+        """
+        self._ready_event.wait()
