@@ -31,7 +31,7 @@ __date__ = "08/04/2020"
 
 
 
-def test_detector_atributes(self, beamline):
+def test_detector_atributes(beamline):
     assert (
         beamline.detector is not None
     ), "Detector hardware object is None (not initialized)"
