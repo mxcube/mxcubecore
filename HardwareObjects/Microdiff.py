@@ -489,6 +489,8 @@ class Microdiff(MiniDiff.MiniDiff):
                 )
 
     def start_manual_centring(self, sample_info=None):
+        self._wait_ready()
+
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         if self.in_plate_mode():
             plateTranslation = self.getObjectByRole("plateTranslation")

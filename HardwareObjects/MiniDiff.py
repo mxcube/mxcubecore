@@ -669,6 +669,9 @@ class MiniDiff(Equipment):
 
     def start_manual_centring(self, sample_info=None):
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+
+        self.wait_ready()
+
         self.current_centring_procedure = sample_centring.start(
             {
                 "phi": self.centringPhi,
@@ -836,6 +839,8 @@ class MiniDiff(Equipment):
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
 
         self.set_phase("centring", wait=True)
+
+        self.wait_ready()
 
         self.current_centring_procedure = sample_centring.start_auto(
             HWR.beamline.sample_view.camera,
