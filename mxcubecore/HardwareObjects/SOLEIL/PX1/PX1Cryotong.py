@@ -106,7 +106,7 @@ class PX1Cryotong(Cats90):
                 self.emit("loadError", value)
                 try:
                     self._cmdAckSampleMemory()
-                except BaseException:
+                except Exception:
                     """ do nothing if cmd not to acknowledge not in xml """
                     pass
             self.incoherent_state = value

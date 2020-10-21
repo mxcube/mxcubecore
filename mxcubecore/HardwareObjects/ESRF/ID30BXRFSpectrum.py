@@ -17,12 +17,12 @@ class XrfSpectrum(Equipment):
 
         try:
             self.config_data = self.get_channel_object("config_data")
-        except BaseException:
+        except Exception:
             self.config_data = None
 
         try:
             self.calib_data = self.get_channel_object(" calib_data")
-        except BaseException:
+        except Exception:
             self.calib_data = None
 
         try:
@@ -72,24 +72,24 @@ class XrfSpectrum(Equipment):
 
         try:
             self.ctrl_hwobj = self.getObjectByRole("controller")
-        except BaseException:
+        except Exception:
             self.ctrl_hwobj = None
 
         try:
             self.mca_hwobj = self.getObjectByRole("mca")
             # self.mca_hwobj.set_calibration(calib_cf=[0,0.008324,2.223e-06])
             self.mca_hwobj.set_calibration(calib_cf=self.mca_hwobj.calib_cf)
-        except BaseException:
+        except Exception:
             self.mca_hwobj = None
 
         try:
             self.datapath = self.getProperty("datapath")
-        except BaseException:
+        except Exception:
             self.datapath = "/data/pyarch/"
 
         try:
             self.cfgpath = self.getProperty("cfgpath")
-        except BaseException:
+        except Exception:
             self.cfgpath = "/users/blissadm/local/userconf"
 
         if self.isConnected():
@@ -98,7 +98,7 @@ class XrfSpectrum(Equipment):
     def isConnected(self):
         try:
             return self.doSpectrum.isConnected()
-        except BaseException:
+        except Exception:
             return False
 
     # Handler for spec connection
@@ -199,7 +199,7 @@ class XrfSpectrum(Equipment):
         if self.doSpectrum:
             try:
                 res = self.doSpectrum(ct, filename, wait=True)
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception("XRFSpectrum: problem calling spec macro")
                 self.spectrumStatusChanged("Error problem spec macro")
             else:
@@ -207,7 +207,7 @@ class XrfSpectrum(Equipment):
         else:
             try:
                 res = self._doSpectrum(ct, filename, wait=True)
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception("XRFSpectrum: problem calling procedure")
                 self.spectrumStatusChanged("Error problem with spectrum procedure")
             else:
@@ -256,7 +256,7 @@ class XrfSpectrum(Equipment):
             try:
                 mcaData = self.get_channel_object("mca_data").getValue()
                 mcaCalib = self.get_channel_object("calib_data").getValue()
-            except BaseException:
+            except Exception:
                 mcaData = self.mca_hwobj.read_data(save_data=True)
                 mcaCalib = self.mca_hwobj.get_calibration()
             try:
@@ -265,7 +265,7 @@ class XrfSpectrum(Equipment):
                 self.spectrumInfo["energy"] = mcaConfig["energy"]
                 self.spectrumInfo["beamSizeHorizontal"] = float(mcaConfig["bsX"])
                 self.spectrumInfo["beamSizeVertical"] = float(mcaConfig["bsY"])
-            except BaseException:
+            except Exception:
                 mcaConfig = {}
                 # self.spectrumInfo["beamTransmission"] =  self.transmission_hwobj.get_value()
                 self.spectrumInfo["energy"] = HWR.beamline.energy.get_value()
@@ -289,7 +289,7 @@ class XrfSpectrum(Equipment):
             if os.path.isfile(pngfile) is True:
                 try:
                     copy(pngfile, self.spectrumInfo["jpegScanFileFullPath"])
-                except BaseException:
+                except Exception:
                     logging.getLogger().error("XRFSpectrum: cannot copy %s", pngfile)
 
             logging.getLogger().debug("finished %r", self.spectrumInfo)
@@ -311,7 +311,7 @@ class XrfSpectrum(Equipment):
             return
         try:
             int(self.spectrumInfo["sessionId"])
-        except BaseException:
+        except Exception:
             return
         self.spectrumInfo["blSampleId"]
         self.spectrumInfo.pop("blSampleId")
@@ -326,7 +326,7 @@ class XrfSpectrum(Equipment):
             try:
                 self.curr = self.energySpectrumArgs.getValue()
                 return self.curr
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     "XRFSpectrum: error getting xrfspectrum parameters"
                 )

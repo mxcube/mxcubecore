@@ -690,7 +690,7 @@ class Beamline(ConfiguredObject):
         try:
             if file_info.getProperty("precision"):
                 path_template.precision = eval(file_info.getProperty("precision"))
-        except BaseException:
+        except Exception:
             pass
 
         return path_template

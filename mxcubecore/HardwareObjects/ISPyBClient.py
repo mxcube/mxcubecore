@@ -73,7 +73,7 @@ def trace(fun):
         for arg in args[1:]:
             try:
                 log_msg += pformat(arg, indent=4, width=80) + ", "
-            except BaseException:
+            except Exception:
                 pass
 
         logging.getLogger("ispyb_client").debug(log_msg)
@@ -86,7 +86,7 @@ def trace(fun):
                 + " returned  with: "
                 + pformat(result, indent=4, width=80)
             )
-        except BaseException:
+        except Exception:
             pass
 
         logging.getLogger("ispyb_client").debug(result_msg)
@@ -102,7 +102,7 @@ def in_greenlet(fun):
         for arg in args[1:]:
             try:
                 log_msg += pformat(arg, indent=4, width=80) + ", "
-            except BaseException:
+            except Exception:
                 pass
 
         logging.getLogger("ispyb_client").debug(log_msg)
@@ -122,15 +122,15 @@ def utf_encode(res_d):
             # Decode bytes object or encode str object depending
             # on Python version
             res_d[key] = suds_encode("utf8", "ignore")
-        except BaseException:
+        except Exception:
             # If not primitive or Text data, complext type, try to convert to
             # dict or str if the first fails
             try:
                 res_d[key] = utf_encode(asdict(value))
-            except BaseException:
+            except Exception:
                 try:
                     res_d[key] = str(value)
-                except BaseException:
+                except Exception:
                     res_d[key] = "ISPyBClient: could not encode value"
 
     return res_d
@@ -142,7 +142,7 @@ def utf_decode(res_d):
             utf_decode(value)
         try:
             res_d[key] = value.decode("utf8", "ignore")
-        except BaseException:
+        except Exception:
             pass
 
     return res_d
@@ -296,7 +296,7 @@ class ISPyBClient(HardwareObject):
                 except URLError:
                     logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
                     return
-        except BaseException:
+        except Exception:
             logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
             return
 
@@ -441,7 +441,7 @@ class ISPyBClient(HardwareObject):
                             session.endDate = datetime.strftime(
                                 session.endDate, "%Y-%m-%d %H:%M:%S"
                             )
-                        except BaseException:
+                        except Exception:
                             pass
 
                         sessions.append(utf_encode(asdict(session)))
@@ -547,7 +547,7 @@ class ISPyBClient(HardwareObject):
                                 session.endDate = datetime.strftime(
                                     session.endDate, "%Y-%m-%d %H:%M:%S"
                                 )
-                            except BaseException:
+                            except Exception:
                                 pass
 
                             sessions.append(utf_encode(asdict(session)))
@@ -658,7 +658,7 @@ class ISPyBClient(HardwareObject):
                             session.endDate = datetime.strftime(
                                 session.endDate, "%Y-%m-%d %H:%M:%S"
                             )
-                        except BaseException:
+                        except Exception:
                             pass
 
                         sessions.append(utf_encode(asdict(session)))
@@ -895,7 +895,7 @@ class ISPyBClient(HardwareObject):
         except gevent.GreenletExit:
             # aborted by user ('kill')
             raise
-        except BaseException:
+        except Exception:
             # if anything else happens, let upper level process continue
             # (not a fatal error), but display exception still
             logging.exception("Could not store data collection")
@@ -999,7 +999,7 @@ class ISPyBClient(HardwareObject):
 
             try:
                 session = self.get_session(session_id)
-            except BaseException:
+            except Exception:
                 logging.getLogger("ispyb_client").exception(
                     "ISPyBClient: exception in store_beam_line_setup"
                 )
@@ -1246,11 +1246,11 @@ class ISPyBClient(HardwareObject):
                     loc = [None, None]
                     try:
                         loc[0] = int(sample.containerSampleChangerLocation)
-                    except BaseException:
+                    except Exception:
                         pass
                     try:
                         loc[1] = int(sample.sampleLocation)
-                    except BaseException:
+                    except Exception:
                         pass
 
                     # Unmatched sample, just catch and do nothing
@@ -1312,7 +1312,7 @@ class ISPyBClient(HardwareObject):
                 #                          'DiffractionPlan_BLSample': \
                 #                              utf_encode(asdict(sample.diffractionPlan)),
                 #                          'Protein': utf_encode(asdict(sample.protein))})
-                except BaseException:
+                except Exception:
                     pass
 
             # Add the unmatched samples to the result from ISPyB
@@ -1399,7 +1399,7 @@ class ISPyBClient(HardwareObject):
                     session_dict["timeStamp"] = datetime.strptime(
                         session_dict["timeStamp"].split("+")[0], "%Y-%m-%d %H:%M:%S"
                     )
-                except BaseException:
+                except Exception:
                     pass
 
                 # return data to original codification
@@ -1810,7 +1810,7 @@ class ISPyBClient(HardwareObject):
                                     session.endDate = datetime.strftime(
                                         session.endDate, "%Y-%m-%d %H:%M:%S"
                                     )
-                                except BaseException:
+                                except Exception:
                                     pass
                                 sessions.append(utf_encode(asdict(session)))
 
@@ -1863,7 +1863,7 @@ class ISPyBClient(HardwareObject):
             return self._store_workflow(*args, **kwargs)
         except gevent.GreenletExit:
             raise
-        except BaseException:
+        except Exception:
             logging.exception("Could not store workflow")
             return None, None, None
 
@@ -1872,7 +1872,7 @@ class ISPyBClient(HardwareObject):
             return self._store_workflow_step(*args, **kwargs)
         except gevent.GreenletExit:
             raise
-        except BaseException:
+        except Exception:
             logging.exception("Could not store workflow step")
             return None
 
@@ -1988,7 +1988,7 @@ class ISPyBClient(HardwareObject):
             self._collection.service.setImageQualityIndicatorsPlot(
                 collection_id, plot_path, csv_path
             )
-        except BaseException:
+        except Exception:
             msg = "Could not set image quality indicators in lims:"
             logging.getLogger("ispyb_client").exception(msg)
 
@@ -2065,17 +2065,17 @@ class ISPyBValueFactory:
 
             if isinstance(detector_manufacturer, string_types):
                 detector_manufacturer = detector_manufacturer.upper()
-        except BaseException:
+        except Exception:
             detector_manufacturer = ""
 
         try:
             detector_type = bl_config.detector_type
-        except BaseException:
+        except Exception:
             detector_type = ""
 
         try:
             detector_model = bl_config.detector_model
-        except BaseException:
+        except Exception:
             detector_model = ""
 
         try:
@@ -2094,7 +2094,7 @@ class ISPyBValueFactory:
         beamline_setup = None
         try:
             beamline_setup = ws_client.factory.create("ns0:beamLineSetup3VO")
-        except BaseException:
+        except Exception:
             raise
         try:
             synchrotron_name = bl_config.synchrotron_name
@@ -2129,7 +2129,7 @@ class ISPyBValueFactory:
                 bl_config.minimum_phi_oscillation
             )
 
-        except BaseException:
+        except Exception:
             pass
 
         beamline_setup.setupDate = datetime.now()
@@ -2146,12 +2146,12 @@ class ISPyBValueFactory:
 
         try:
             group = ws_client.factory.create("ns0:dataCollectionGroupWS3VO")
-        except BaseException:
+        except Exception:
             raise
         else:
             try:
                 group.actualContainerBarcode = mx_collect_dict["actualContainerBarcode"]
-            except BaseException:
+            except Exception:
                 pass
 
             try:
@@ -2207,7 +2207,7 @@ class ISPyBValueFactory:
             try:
                 try:
                     helical_used = mx_collect_dict["helical"]
-                except BaseException:
+                except Exception:
                     helical_used = False
                 else:
                     if helical_used:
@@ -2216,7 +2216,7 @@ class ISPyBValueFactory:
 
                 try:
                     directory = mx_collect_dict["fileinfo"]["directory"]
-                except BaseException:
+                except Exception:
                     directory = ""
                 experiment_type = mx_collect_dict["experiment_type"]
                 if experiment_type.lower() == "mesh":
@@ -2227,19 +2227,19 @@ class ISPyBValueFactory:
 
             try:
                 group.sessionId = mx_collect_dict["sessionId"]
-            except BaseException:
+            except Exception:
                 pass
 
             try:
                 start_time = mx_collect_dict["collection_start_time"]
                 start_time = datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
                 group.startTime = start_time
-            except BaseException:
+            except Exception:
                 pass
 
             try:
                 group.dataCollectionGroupId = mx_collect_dict["group_id"]
-            except BaseException:
+            except Exception:
                 pass
 
             return group
@@ -2260,7 +2260,7 @@ class ISPyBValueFactory:
         try:
 
             data_collection = ws_client.factory.create("ns0:dataCollectionWS3VO")
-        except BaseException:
+        except Exception:
             raise
 
         osc_seq = mx_collect_dict["oscillation_sequence"][0]
@@ -2315,12 +2315,12 @@ class ISPyBValueFactory:
         try:
             try:
                 res_at_edge = float(mx_collect_dict["resolution"])
-            except BaseException:
+            except Exception:
                 res_at_edge = float(mx_collect_dict["resolution"]["lower"])
         except KeyError:
             try:
                 res_at_edge = float(mx_collect_dict["resolution"]["upper"])
-            except BaseException:
+            except Exception:
                 pass
         if res_at_edge is not None:
             data_collection.resolution = res_at_edge
@@ -2456,14 +2456,14 @@ class ISPyBValueFactory:
             data_collection.strategySubWedgeOrigId = mx_collect_dict[
                 "screening_sub_wedge_id"
             ]
-        except BaseException:
+        except Exception:
             pass
 
         try:
             start_time = mx_collect_dict["collection_start_time"]
             start_time = datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
             data_collection.startTime = start_time
-        except BaseException:
+        except Exception:
             pass
 
         data_collection.endTime = datetime.now()
@@ -2481,7 +2481,7 @@ class ISPyBValueFactory:
         try:
             ws_client = Client(_WS_COLLECTION_URL, cache=None)
             workflow_vo = ws_client.factory.create("workflow3VO")
-        except BaseException:
+        except Exception:
             raise
 
         try:
@@ -2512,7 +2512,7 @@ class ISPyBValueFactory:
         try:
             ws_client = Client(_WS_COLLECTION_URL, cache=None)
             workflow_mesh_vo = ws_client.factory.create("workflowMeshWS3VO")
-        except BaseException:
+        except Exception:
             raise
 
         try:
@@ -2546,7 +2546,7 @@ class ISPyBValueFactory:
         try:
             ws_client = Client(_WS_COLLECTION_URL, cache=None)
             grid_info_vo = ws_client.factory.create("gridInfoWS3VO")
-        except BaseException:
+        except Exception:
             raise
 
         try:
@@ -2576,7 +2576,7 @@ class ISPyBValueFactory:
         try:
             ws_client = Client(_WS_COLLECTION_URL, cache=None)
             workflow_step_vo = ws_client.factory.create("workflowStep3VO")
-        except BaseException:
+        except Exception:
             raise
 
         try:
@@ -2614,7 +2614,7 @@ class ISPyBValueFactory:
         try:
             ws_client = Client(_WS_COLLECTION_URL, cache=None)
             grid_info_vo = ws_client.factory.create("gridInfoWS3VO")
-        except BaseException:
+        except Exception:
             raise
 
         try:

@@ -61,7 +61,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
 
         try:
             self.latency_time = float(self.getProperty("latency_time"))
-        except BaseException:
+        except Exception:
             self.latency_time = None
 
         if self.latency_time is None:
@@ -109,7 +109,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         try:
             beam_x = self.beamx_chan.getValue()
             beam_y = self.beamy_chan.getValue()
-        except BaseException:
+        except Exception:
             pass
         return beam_x, beam_y
 
@@ -145,7 +145,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
 
         try:
             currentenergy = eugap_ch.getValue()
-        except BaseException:
+        except Exception:
             currentenergy = 12.6
 
         det_energy = self.get_threshold()
