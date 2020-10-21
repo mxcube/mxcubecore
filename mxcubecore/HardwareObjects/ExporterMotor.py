@@ -29,6 +29,7 @@ Example xml file:
 
 import sys
 import math
+import logging
 
 from gevent import Timeout, sleep
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
