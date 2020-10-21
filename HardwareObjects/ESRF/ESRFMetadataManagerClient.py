@@ -52,7 +52,7 @@ class MetadataManagerClient(object):
             MetadataManagerClient.metaExperiment = PyTango.client.Device(
                 self.metaExperimentName
             )
-        except BaseException:
+        except Exception:
             print("Unexpexted error: ", sys.exc_info()[0])
             raise
 
@@ -82,7 +82,7 @@ class MetadataManagerClient(object):
                 currentValue = getattr(proxy, attributeName)
                 if currentValue == newValue:
                     break
-            except BaseException as e:
+            except Exception as e:
                 caughtException = e
                 print("Unexpected error in MetadataManagerClient._setAttribute: {0}".format(e))
                 print("proxy = '{0}', attributeName = '{1}', newValue = '{2}'".format(
@@ -96,7 +96,7 @@ class MetadataManagerClient(object):
         try:
             MetadataManagerClient.metaExperiment.dataRoot = dataRoot
             self.dataRoot = dataRoot
-        except BaseException:
+        except Exception:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
@@ -105,14 +105,14 @@ class MetadataManagerClient(object):
         try:
             MetadataManagerClient.metaExperiment.proposal = proposal
             self.proposal = proposal
-        except BaseException:
+        except Exception:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
     def appendFile(self, filePath):
         try:
             MetadataManagerClient.metadataManager.lastDataFile = filePath
-        except BaseException:
+        except Exception:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
@@ -120,7 +120,7 @@ class MetadataManagerClient(object):
         try:
             MetadataManagerClient.metaExperiment.sample = sample
             self.sample = sample
-        except BaseException:
+        except Exception:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
@@ -128,7 +128,7 @@ class MetadataManagerClient(object):
         try:
             MetadataManagerClient.metadataManager.scanName = datasetName
             self.datasetName = datasetName
-        except BaseException:
+        except Exception:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
@@ -158,14 +158,14 @@ class MetadataManagerClient(object):
                     if str(MetadataManagerClient.metadataManager.state()) == "ON":
                         MetadataManagerClient.metadataManager.StartScan()
 
-            except BaseException:
+            except Exception:
                 print("Unexpected error:", sys.exc_info()[0])
                 raise
 
     def end(self):
         try:
             MetadataManagerClient.metadataManager.endScan()
-        except BaseException:
+        except Exception:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
@@ -234,7 +234,7 @@ class MXCuBEMetadataClient(object):
                     replyTo, listTo + listCC + listBCC, mime_text_message.as_string()
                 )
                 smtp.quit()
-            except BaseException:
+            except Exception:
                 pass
         return errorMessage
 
@@ -278,7 +278,7 @@ class MXCuBEMetadataClient(object):
                     directory, self._proposal, sampleName, datasetName
                 )
                 self._metadataManagerClient.printStatus()
-            except BaseException:
+            except Exception:
                 logging.getLogger("user_level_log").warning(
                     "Cannot connect to metadata server"
                 )
@@ -398,7 +398,7 @@ class MXCuBEMetadataClient(object):
                     )
                 self._metadataManagerClient.printStatus()
                 self._metadataManagerClient.end()
-        except BaseException:
+        except Exception:
             logging.getLogger("user_level_log").warning("Cannot upload metadata")
             errorMessage = self.reportStackTrace()
             logging.getLogger("user_level_log").warning(errorMessage)

@@ -94,7 +94,7 @@ class BIOMAXEigerMockup(Equipment):
             self.energy_change_threshold = float(
                 self.getProperty("min_trigger_energy_change")
             )
-        except BaseException:
+        except Exception:
             self.energy_change_threshold = self.energy_change_threshold_default
 
     def get_readout_time(self):
@@ -212,14 +212,14 @@ class BIOMAXEigerMockup(Equipment):
             # when called from Tango it does not. Once bug is solved in tango server, the
             # call to "cancel()" is not necessary here
             self.disarm()
-        except BaseException:
+        except Exception:
             pass
 
     def cancel_acquisition(self):
         """Cancel acquisition"""
         try:
             self.cancel()
-        except BaseException:
+        except Exception:
             pass
 
         time.sleep(1)

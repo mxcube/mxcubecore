@@ -436,7 +436,7 @@ class Microdiff(MiniDiff.MiniDiff):
     def in_plate_mode(self):
         try:
             return self.head_type.get_value() == "Plate"
-        except BaseException:
+        except Exception:
             return False
 
     def in_kappa_mode(self):
@@ -483,7 +483,7 @@ class Microdiff(MiniDiff.MiniDiff):
                     / float(self.pixelsPerMmY)
                 )
 
-            except BaseException:
+            except Exception:
                 logging.getLogger("user_level_log").exception(
                     "Microdiff: could not move to beam, aborting"
                 )
@@ -579,5 +579,5 @@ def to_float(d):
     for k, v in d.items():
         try:
             d[k] = float(v)
-        except BaseException:
+        except Exception:
             pass

@@ -41,7 +41,7 @@ class CrimsXtal:
                     self.image_url = "https://" + self.image_url[7]
                 image_string = urlopen(self.image_url).read()
                 return image_string
-            except BaseException:
+            except Exception:
                 return
 
     def get_summary_url(self):
@@ -101,5 +101,5 @@ def get_processing_plan(barcode, crims_url):
             xtal.summary_url = x.find("SUMMARY_URL").text
             processing_plan.plate.xtal_list.append(xtal)
         return processing_plan
-    except BaseException:
+    except Exception:
         return

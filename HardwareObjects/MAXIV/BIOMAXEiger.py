@@ -204,7 +204,7 @@ class BIOMAXEiger(Equipment):
             self.energy_change_threshold = float(
                 self.getProperty("min_trigger_energy_change")
             )
-        except BaseException:
+        except Exception:
             self.energy_change_threshold = self.energy_change_threshold_default
 
         self.get_channel_object("Compression").init_device()
@@ -452,7 +452,7 @@ class BIOMAXEiger(Equipment):
     def _validate_energy_value(self, energy):
         try:
             target_energy = float(energy)
-        except BaseException:
+        except Exception:
             # not a valid value
             logging.getLogger("user_level_log").info("Wrong Energy value: %s" % energy)
             return -1
@@ -651,7 +651,7 @@ class BIOMAXEiger(Equipment):
             logging.getLogger("HWR").info(
                 "[DETECTOR] Stop acquisition, detector canceled and disarmed."
             )
-        except BaseException:
+        except Exception:
             pass
 
     def cancel_acquisition(self):
@@ -659,7 +659,7 @@ class BIOMAXEiger(Equipment):
         logging.getLogger("HWR").info("[DETECTOR] Cancelling acquisition")
         try:
             self.cancel()
-        except BaseException:
+        except Exception:
             pass
 
         time.sleep(1)
@@ -695,7 +695,7 @@ class BIOMAXEiger(Equipment):
     def abort(self):
         try:
             self.get_command_object("Abort")()
-        except BaseException:
+        except Exception:
             pass
 
 

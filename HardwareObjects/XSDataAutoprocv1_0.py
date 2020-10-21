@@ -152,7 +152,7 @@ class XSData2DCoordinates(object):
                 "ERROR! XSData2DCoordinates constructor argument 'x' is not XSDataDouble but %s"
                 % self._x.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if y is None:
             self._y = None
         elif y.__class__.__name__ == "XSDataDouble":
@@ -162,7 +162,7 @@ class XSData2DCoordinates(object):
                 "ERROR! XSData2DCoordinates constructor argument 'y' is not XSDataDouble but %s"
                 % self._y.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'x' attribute
     def getX(self):
@@ -178,7 +178,7 @@ class XSData2DCoordinates(object):
                 "ERROR! XSData2DCoordinates.setX argument is not XSDataDouble but %s"
                 % x.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delX(self):
         self._x = None
@@ -199,7 +199,7 @@ class XSData2DCoordinates(object):
                 "ERROR! XSData2DCoordinates.setY argument is not XSDataDouble but %s"
                 % y.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delY(self):
         self._y = None
@@ -452,7 +452,7 @@ class XSDataXdsCompletenessEntry(object):
                 "ERROR! XSDataXdsCompletenessEntry constructor argument 'res' is not XSDataDouble but %s"
                 % self._res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if observed is None:
             self._observed = None
         elif observed.__class__.__name__ == "XSDataDouble":
@@ -462,7 +462,7 @@ class XSDataXdsCompletenessEntry(object):
                 "ERROR! XSDataXdsCompletenessEntry constructor argument 'observed' is not XSDataDouble but %s"
                 % self._observed.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if unique is None:
             self._unique = None
         elif unique.__class__.__name__ == "XSDataDouble":
@@ -472,7 +472,7 @@ class XSDataXdsCompletenessEntry(object):
                 "ERROR! XSDataXdsCompletenessEntry constructor argument 'unique' is not XSDataDouble but %s"
                 % self._unique.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if possible is None:
             self._possible = None
         elif possible.__class__.__name__ == "XSDataDouble":
@@ -482,7 +482,7 @@ class XSDataXdsCompletenessEntry(object):
                 "ERROR! XSDataXdsCompletenessEntry constructor argument 'possible' is not XSDataDouble but %s"
                 % self._possible.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if complete is None:
             self._complete = None
         elif complete.__class__.__name__ == "XSDataDouble":
@@ -492,7 +492,7 @@ class XSDataXdsCompletenessEntry(object):
                 "ERROR! XSDataXdsCompletenessEntry constructor argument 'complete' is not XSDataDouble but %s"
                 % self._complete.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if rfactor is None:
             self._rfactor = None
         elif rfactor.__class__.__name__ == "XSDataDouble":
@@ -502,7 +502,7 @@ class XSDataXdsCompletenessEntry(object):
                 "ERROR! XSDataXdsCompletenessEntry constructor argument 'rfactor' is not XSDataDouble but %s"
                 % self._rfactor.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if isig is None:
             self._isig = None
         elif isig.__class__.__name__ == "XSDataDouble":
@@ -512,7 +512,7 @@ class XSDataXdsCompletenessEntry(object):
                 "ERROR! XSDataXdsCompletenessEntry constructor argument 'isig' is not XSDataDouble but %s"
                 % self._isig.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if half_dataset_correlation is None:
             self._half_dataset_correlation = None
         elif half_dataset_correlation.__class__.__name__ == "XSDataDouble":
@@ -522,7 +522,7 @@ class XSDataXdsCompletenessEntry(object):
                 "ERROR! XSDataXdsCompletenessEntry constructor argument 'half_dataset_correlation' is not XSDataDouble but %s"
                 % self._half_dataset_correlation.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'res' attribute
     def getRes(self):
@@ -538,7 +538,7 @@ class XSDataXdsCompletenessEntry(object):
                 "ERROR! XSDataXdsCompletenessEntry.setRes argument is not XSDataDouble but %s"
                 % res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRes(self):
         self._res = None
@@ -559,7 +559,7 @@ class XSDataXdsCompletenessEntry(object):
                 "ERROR! XSDataXdsCompletenessEntry.setObserved argument is not XSDataDouble but %s"
                 % observed.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delObserved(self):
         self._observed = None
@@ -580,7 +580,7 @@ class XSDataXdsCompletenessEntry(object):
                 "ERROR! XSDataXdsCompletenessEntry.setUnique argument is not XSDataDouble but %s"
                 % unique.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delUnique(self):
         self._unique = None
@@ -601,7 +601,7 @@ class XSDataXdsCompletenessEntry(object):
                 "ERROR! XSDataXdsCompletenessEntry.setPossible argument is not XSDataDouble but %s"
                 % possible.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPossible(self):
         self._possible = None
@@ -622,7 +622,7 @@ class XSDataXdsCompletenessEntry(object):
                 "ERROR! XSDataXdsCompletenessEntry.setComplete argument is not XSDataDouble but %s"
                 % complete.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delComplete(self):
         self._complete = None
@@ -643,7 +643,7 @@ class XSDataXdsCompletenessEntry(object):
                 "ERROR! XSDataXdsCompletenessEntry.setRfactor argument is not XSDataDouble but %s"
                 % rfactor.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRfactor(self):
         self._rfactor = None
@@ -664,7 +664,7 @@ class XSDataXdsCompletenessEntry(object):
                 "ERROR! XSDataXdsCompletenessEntry.setIsig argument is not XSDataDouble but %s"
                 % isig.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delIsig(self):
         self._isig = None
@@ -685,7 +685,7 @@ class XSDataXdsCompletenessEntry(object):
                 "ERROR! XSDataXdsCompletenessEntry.setHalf_dataset_correlation argument is not XSDataDouble but %s"
                 % half_dataset_correlation.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delHalf_dataset_correlation(self):
         self._half_dataset_correlation = None
@@ -870,7 +870,7 @@ class XSDataXscaleCompletenessEntry(XSDataXdsCompletenessEntry):
                 "ERROR! XSDataXscaleCompletenessEntry constructor argument 'multiplicity' is not XSDataDouble but %s"
                 % self._multiplicity.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'multiplicity' attribute
     def getMultiplicity(self):
@@ -886,7 +886,7 @@ class XSDataXscaleCompletenessEntry(XSDataXdsCompletenessEntry):
                 "ERROR! XSDataXscaleCompletenessEntry.setMultiplicity argument is not XSDataDouble but %s"
                 % multiplicity.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMultiplicity(self):
         self._multiplicity = None
@@ -1000,7 +1000,7 @@ class XSDataAutoprocImport(XSDataInput):
                 "ERROR! XSDataAutoprocImport constructor argument 'input_anom' is not XSDataString but %s"
                 % self._input_anom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if input_noanom is None:
             self._input_noanom = None
         elif input_noanom.__class__.__name__ == "XSDataString":
@@ -1010,7 +1010,7 @@ class XSDataAutoprocImport(XSDataInput):
                 "ERROR! XSDataAutoprocImport constructor argument 'input_noanom' is not XSDataString but %s"
                 % self._input_noanom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if output_directory is None:
             self._output_directory = None
         elif output_directory.__class__.__name__ == "XSDataString":
@@ -1020,7 +1020,7 @@ class XSDataAutoprocImport(XSDataInput):
                 "ERROR! XSDataAutoprocImport constructor argument 'output_directory' is not XSDataString but %s"
                 % self._output_directory.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if dataCollectionID is None:
             self._dataCollectionID = None
         elif dataCollectionID.__class__.__name__ == "XSDataInteger":
@@ -1030,7 +1030,7 @@ class XSDataAutoprocImport(XSDataInput):
                 "ERROR! XSDataAutoprocImport constructor argument 'dataCollectionID' is not XSDataInteger but %s"
                 % self._dataCollectionID.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if start_image is None:
             self._start_image = None
         elif start_image.__class__.__name__ == "XSDataInteger":
@@ -1040,7 +1040,7 @@ class XSDataAutoprocImport(XSDataInput):
                 "ERROR! XSDataAutoprocImport constructor argument 'start_image' is not XSDataInteger but %s"
                 % self._start_image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if end_image is None:
             self._end_image = None
         elif end_image.__class__.__name__ == "XSDataInteger":
@@ -1050,7 +1050,7 @@ class XSDataAutoprocImport(XSDataInput):
                 "ERROR! XSDataAutoprocImport constructor argument 'end_image' is not XSDataInteger but %s"
                 % self._end_image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if res is None:
             self._res = None
         elif res.__class__.__name__ == "XSDataDouble":
@@ -1060,7 +1060,7 @@ class XSDataAutoprocImport(XSDataInput):
                 "ERROR! XSDataAutoprocImport constructor argument 'res' is not XSDataDouble but %s"
                 % self._res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if nres is None:
             self._nres = None
         elif nres.__class__.__name__ == "XSDataDouble":
@@ -1070,7 +1070,7 @@ class XSDataAutoprocImport(XSDataInput):
                 "ERROR! XSDataAutoprocImport constructor argument 'nres' is not XSDataDouble but %s"
                 % self._nres.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if image_prefix is None:
             self._image_prefix = None
         elif image_prefix.__class__.__name__ == "XSDataString":
@@ -1080,7 +1080,7 @@ class XSDataAutoprocImport(XSDataInput):
                 "ERROR! XSDataAutoprocImport constructor argument 'image_prefix' is not XSDataString but %s"
                 % self._image_prefix.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'input_anom' attribute
     def getInput_anom(self):
@@ -1096,7 +1096,7 @@ class XSDataAutoprocImport(XSDataInput):
                 "ERROR! XSDataAutoprocImport.setInput_anom argument is not XSDataString but %s"
                 % input_anom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delInput_anom(self):
         self._input_anom = None
@@ -1119,7 +1119,7 @@ class XSDataAutoprocImport(XSDataInput):
                 "ERROR! XSDataAutoprocImport.setInput_noanom argument is not XSDataString but %s"
                 % input_noanom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delInput_noanom(self):
         self._input_noanom = None
@@ -1142,7 +1142,7 @@ class XSDataAutoprocImport(XSDataInput):
                 "ERROR! XSDataAutoprocImport.setOutput_directory argument is not XSDataString but %s"
                 % output_directory.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delOutput_directory(self):
         self._output_directory = None
@@ -1168,7 +1168,7 @@ class XSDataAutoprocImport(XSDataInput):
                 "ERROR! XSDataAutoprocImport.setDataCollectionID argument is not XSDataInteger but %s"
                 % dataCollectionID.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDataCollectionID(self):
         self._dataCollectionID = None
@@ -1194,7 +1194,7 @@ class XSDataAutoprocImport(XSDataInput):
                 "ERROR! XSDataAutoprocImport.setStart_image argument is not XSDataInteger but %s"
                 % start_image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delStart_image(self):
         self._start_image = None
@@ -1217,7 +1217,7 @@ class XSDataAutoprocImport(XSDataInput):
                 "ERROR! XSDataAutoprocImport.setEnd_image argument is not XSDataInteger but %s"
                 % end_image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delEnd_image(self):
         self._end_image = None
@@ -1240,7 +1240,7 @@ class XSDataAutoprocImport(XSDataInput):
                 "ERROR! XSDataAutoprocImport.setRes argument is not XSDataDouble but %s"
                 % res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRes(self):
         self._res = None
@@ -1261,7 +1261,7 @@ class XSDataAutoprocImport(XSDataInput):
                 "ERROR! XSDataAutoprocImport.setNres argument is not XSDataDouble but %s"
                 % nres.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNres(self):
         self._nres = None
@@ -1282,7 +1282,7 @@ class XSDataAutoprocImport(XSDataInput):
                 "ERROR! XSDataAutoprocImport.setImage_prefix argument is not XSDataString but %s"
                 % image_prefix.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delImage_prefix(self):
         self._image_prefix = None
@@ -1454,7 +1454,7 @@ class XSDataAutoprocImportOut(XSDataResult):
                 "ERROR! XSDataAutoprocImportOut constructor argument 'files' is not list but %s"
                 % self._files.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if pointless_sgnumber is None:
             self._pointless_sgnumber = None
         elif pointless_sgnumber.__class__.__name__ == "XSDataInteger":
@@ -1464,7 +1464,7 @@ class XSDataAutoprocImportOut(XSDataResult):
                 "ERROR! XSDataAutoprocImportOut constructor argument 'pointless_sgnumber' is not XSDataInteger but %s"
                 % self._pointless_sgnumber.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if pointless_sgstring is None:
             self._pointless_sgstring = None
         elif pointless_sgstring.__class__.__name__ == "XSDataString":
@@ -1474,7 +1474,7 @@ class XSDataAutoprocImportOut(XSDataResult):
                 "ERROR! XSDataAutoprocImportOut constructor argument 'pointless_sgstring' is not XSDataString but %s"
                 % self._pointless_sgstring.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if aimless_log_anom is None:
             self._aimless_log_anom = None
         elif aimless_log_anom.__class__.__name__ == "XSDataString":
@@ -1484,7 +1484,7 @@ class XSDataAutoprocImportOut(XSDataResult):
                 "ERROR! XSDataAutoprocImportOut constructor argument 'aimless_log_anom' is not XSDataString but %s"
                 % self._aimless_log_anom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if aimless_log_noanom is None:
             self._aimless_log_noanom = None
         elif aimless_log_noanom.__class__.__name__ == "XSDataString":
@@ -1494,7 +1494,7 @@ class XSDataAutoprocImportOut(XSDataResult):
                 "ERROR! XSDataAutoprocImportOut constructor argument 'aimless_log_noanom' is not XSDataString but %s"
                 % self._aimless_log_noanom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'files' attribute
     def getFiles(self):
@@ -1510,7 +1510,7 @@ class XSDataAutoprocImportOut(XSDataResult):
                 "ERROR! XSDataAutoprocImportOut.setFiles argument is not list but %s"
                 % files.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delFiles(self):
         self._files = None
@@ -1520,7 +1520,7 @@ class XSDataAutoprocImportOut(XSDataResult):
     def addFiles(self, value):
         if value is None:
             strMessage = "ERROR! XSDataAutoprocImportOut.addFiles argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataString":
             self._files.append(value)
         else:
@@ -1528,19 +1528,19 @@ class XSDataAutoprocImportOut(XSDataResult):
                 "ERROR! XSDataAutoprocImportOut.addFiles argument is not XSDataString but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertFiles(self, index, value):
         if index is None:
             strMessage = (
                 "ERROR! XSDataAutoprocImportOut.insertFiles argument 'index' is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = (
                 "ERROR! XSDataAutoprocImportOut.insertFiles argument 'value' is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataString":
             self._files[index] = value
         else:
@@ -1548,7 +1548,7 @@ class XSDataAutoprocImportOut(XSDataResult):
                 "ERROR! XSDataAutoprocImportOut.addFiles argument is not XSDataString but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'pointless_sgnumber' attribute
     def getPointless_sgnumber(self):
@@ -1564,7 +1564,7 @@ class XSDataAutoprocImportOut(XSDataResult):
                 "ERROR! XSDataAutoprocImportOut.setPointless_sgnumber argument is not XSDataInteger but %s"
                 % pointless_sgnumber.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPointless_sgnumber(self):
         self._pointless_sgnumber = None
@@ -1590,7 +1590,7 @@ class XSDataAutoprocImportOut(XSDataResult):
                 "ERROR! XSDataAutoprocImportOut.setPointless_sgstring argument is not XSDataString but %s"
                 % pointless_sgstring.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPointless_sgstring(self):
         self._pointless_sgstring = None
@@ -1616,7 +1616,7 @@ class XSDataAutoprocImportOut(XSDataResult):
                 "ERROR! XSDataAutoprocImportOut.setAimless_log_anom argument is not XSDataString but %s"
                 % aimless_log_anom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAimless_log_anom(self):
         self._aimless_log_anom = None
@@ -1642,7 +1642,7 @@ class XSDataAutoprocImportOut(XSDataResult):
                 "ERROR! XSDataAutoprocImportOut.setAimless_log_noanom argument is not XSDataString but %s"
                 % aimless_log_noanom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAimless_log_noanom(self):
         self._aimless_log_noanom = None
@@ -1795,7 +1795,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput constructor argument 'input_file' is not XSDataFile but %s"
                 % self._input_file.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if res_override is None:
             self._res_override = None
         elif res_override.__class__.__name__ == "XSDataDouble":
@@ -1805,7 +1805,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput constructor argument 'res_override' is not XSDataDouble but %s"
                 % self._res_override.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if completeness_cutoff is None:
             self._completeness_cutoff = None
         elif completeness_cutoff.__class__.__name__ == "XSDataDouble":
@@ -1815,7 +1815,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput constructor argument 'completeness_cutoff' is not XSDataDouble but %s"
                 % self._completeness_cutoff.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if isig_cutoff is None:
             self._isig_cutoff = None
         elif isig_cutoff.__class__.__name__ == "XSDataDouble":
@@ -1825,7 +1825,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput constructor argument 'isig_cutoff' is not XSDataDouble but %s"
                 % self._isig_cutoff.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if r_value_cutoff is None:
             self._r_value_cutoff = None
         elif r_value_cutoff.__class__.__name__ == "XSDataDouble":
@@ -1835,7 +1835,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput constructor argument 'r_value_cutoff' is not XSDataDouble but %s"
                 % self._r_value_cutoff.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if cc_half_cutoff is None:
             self._cc_half_cutoff = None
         elif cc_half_cutoff.__class__.__name__ == "XSDataDouble":
@@ -1845,7 +1845,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput constructor argument 'cc_half_cutoff' is not XSDataDouble but %s"
                 % self._cc_half_cutoff.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if data_collection_id is None:
             self._data_collection_id = None
         elif data_collection_id.__class__.__name__ == "XSDataInteger":
@@ -1855,7 +1855,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput constructor argument 'data_collection_id' is not XSDataInteger but %s"
                 % self._data_collection_id.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if detector_max_res is None:
             self._detector_max_res = None
         elif detector_max_res.__class__.__name__ == "XSDataDouble":
@@ -1865,7 +1865,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput constructor argument 'detector_max_res' is not XSDataDouble but %s"
                 % self._detector_max_res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if low_resolution_limit is None:
             self._low_resolution_limit = None
         elif low_resolution_limit.__class__.__name__ == "XSDataDouble":
@@ -1875,7 +1875,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput constructor argument 'low_resolution_limit' is not XSDataDouble but %s"
                 % self._low_resolution_limit.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if nres is None:
             self._nres = None
         elif nres.__class__.__name__ == "XSDataDouble":
@@ -1885,7 +1885,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput constructor argument 'nres' is not XSDataDouble but %s"
                 % self._nres.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if spacegroup is None:
             self._spacegroup = None
         elif spacegroup.__class__.__name__ == "XSDataString":
@@ -1895,7 +1895,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput constructor argument 'spacegroup' is not XSDataString but %s"
                 % self._spacegroup.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if unit_cell is None:
             self._unit_cell = None
         elif unit_cell.__class__.__name__ == "XSDataString":
@@ -1905,7 +1905,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput constructor argument 'unit_cell' is not XSDataString but %s"
                 % self._unit_cell.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if output_file is None:
             self._output_file = None
         elif output_file.__class__.__name__ == "XSDataFile":
@@ -1915,7 +1915,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput constructor argument 'output_file' is not XSDataFile but %s"
                 % self._output_file.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'input_file' attribute
     def getInput_file(self):
@@ -1931,7 +1931,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput.setInput_file argument is not XSDataFile but %s"
                 % input_file.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delInput_file(self):
         self._input_file = None
@@ -1954,7 +1954,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput.setRes_override argument is not XSDataDouble but %s"
                 % res_override.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRes_override(self):
         self._res_override = None
@@ -1977,7 +1977,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput.setCompleteness_cutoff argument is not XSDataDouble but %s"
                 % completeness_cutoff.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCompleteness_cutoff(self):
         self._completeness_cutoff = None
@@ -2003,7 +2003,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput.setIsig_cutoff argument is not XSDataDouble but %s"
                 % isig_cutoff.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delIsig_cutoff(self):
         self._isig_cutoff = None
@@ -2026,7 +2026,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput.setR_value_cutoff argument is not XSDataDouble but %s"
                 % r_value_cutoff.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delR_value_cutoff(self):
         self._r_value_cutoff = None
@@ -2052,7 +2052,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput.setCc_half_cutoff argument is not XSDataDouble but %s"
                 % cc_half_cutoff.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCc_half_cutoff(self):
         self._cc_half_cutoff = None
@@ -2078,7 +2078,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput.setData_collection_id argument is not XSDataInteger but %s"
                 % data_collection_id.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delData_collection_id(self):
         self._data_collection_id = None
@@ -2104,7 +2104,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput.setDetector_max_res argument is not XSDataDouble but %s"
                 % detector_max_res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDetector_max_res(self):
         self._detector_max_res = None
@@ -2130,7 +2130,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput.setLow_resolution_limit argument is not XSDataDouble but %s"
                 % low_resolution_limit.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delLow_resolution_limit(self):
         self._low_resolution_limit = None
@@ -2156,7 +2156,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput.setNres argument is not XSDataDouble but %s"
                 % nres.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNres(self):
         self._nres = None
@@ -2177,7 +2177,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput.setSpacegroup argument is not XSDataString but %s"
                 % spacegroup.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSpacegroup(self):
         self._spacegroup = None
@@ -2200,7 +2200,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput.setUnit_cell argument is not XSDataString but %s"
                 % unit_cell.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delUnit_cell(self):
         self._unit_cell = None
@@ -2223,7 +2223,7 @@ class XSDataAutoprocInput(XSDataInput):
                 "ERROR! XSDataAutoprocInput.setOutput_file argument is not XSDataFile but %s"
                 % output_file.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delOutput_file(self):
         self._output_file = None
@@ -2417,7 +2417,7 @@ class XSDataFileConversion(XSDataInput):
                 "ERROR! XSDataFileConversion constructor argument 'input_file' is not XSDataString but %s"
                 % self._input_file.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if output_file is None:
             self._output_file = None
         elif output_file.__class__.__name__ == "XSDataString":
@@ -2427,7 +2427,7 @@ class XSDataFileConversion(XSDataInput):
                 "ERROR! XSDataFileConversion constructor argument 'output_file' is not XSDataString but %s"
                 % self._output_file.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if dataCollectionID is None:
             self._dataCollectionID = None
         elif dataCollectionID.__class__.__name__ == "XSDataInteger":
@@ -2437,7 +2437,7 @@ class XSDataFileConversion(XSDataInput):
                 "ERROR! XSDataFileConversion constructor argument 'dataCollectionID' is not XSDataInteger but %s"
                 % self._dataCollectionID.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if start_image is None:
             self._start_image = None
         elif start_image.__class__.__name__ == "XSDataInteger":
@@ -2447,7 +2447,7 @@ class XSDataFileConversion(XSDataInput):
                 "ERROR! XSDataFileConversion constructor argument 'start_image' is not XSDataInteger but %s"
                 % self._start_image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if end_image is None:
             self._end_image = None
         elif end_image.__class__.__name__ == "XSDataInteger":
@@ -2457,7 +2457,7 @@ class XSDataFileConversion(XSDataInput):
                 "ERROR! XSDataFileConversion constructor argument 'end_image' is not XSDataInteger but %s"
                 % self._end_image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if res is None:
             self._res = None
         elif res.__class__.__name__ == "XSDataDouble":
@@ -2467,7 +2467,7 @@ class XSDataFileConversion(XSDataInput):
                 "ERROR! XSDataFileConversion constructor argument 'res' is not XSDataDouble but %s"
                 % self._res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if nres is None:
             self._nres = None
         elif nres.__class__.__name__ == "XSDataDouble":
@@ -2477,7 +2477,7 @@ class XSDataFileConversion(XSDataInput):
                 "ERROR! XSDataFileConversion constructor argument 'nres' is not XSDataDouble but %s"
                 % self._nres.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if anom is None:
             self._anom = None
         elif anom.__class__.__name__ == "XSDataBoolean":
@@ -2487,7 +2487,7 @@ class XSDataFileConversion(XSDataInput):
                 "ERROR! XSDataFileConversion constructor argument 'anom' is not XSDataBoolean but %s"
                 % self._anom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if image_prefix is None:
             self._image_prefix = None
         elif image_prefix.__class__.__name__ == "XSDataString":
@@ -2497,7 +2497,7 @@ class XSDataFileConversion(XSDataInput):
                 "ERROR! XSDataFileConversion constructor argument 'image_prefix' is not XSDataString but %s"
                 % self._image_prefix.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'input_file' attribute
     def getInput_file(self):
@@ -2513,7 +2513,7 @@ class XSDataFileConversion(XSDataInput):
                 "ERROR! XSDataFileConversion.setInput_file argument is not XSDataString but %s"
                 % input_file.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delInput_file(self):
         self._input_file = None
@@ -2536,7 +2536,7 @@ class XSDataFileConversion(XSDataInput):
                 "ERROR! XSDataFileConversion.setOutput_file argument is not XSDataString but %s"
                 % output_file.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delOutput_file(self):
         self._output_file = None
@@ -2559,7 +2559,7 @@ class XSDataFileConversion(XSDataInput):
                 "ERROR! XSDataFileConversion.setDataCollectionID argument is not XSDataInteger but %s"
                 % dataCollectionID.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDataCollectionID(self):
         self._dataCollectionID = None
@@ -2585,7 +2585,7 @@ class XSDataFileConversion(XSDataInput):
                 "ERROR! XSDataFileConversion.setStart_image argument is not XSDataInteger but %s"
                 % start_image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delStart_image(self):
         self._start_image = None
@@ -2608,7 +2608,7 @@ class XSDataFileConversion(XSDataInput):
                 "ERROR! XSDataFileConversion.setEnd_image argument is not XSDataInteger but %s"
                 % end_image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delEnd_image(self):
         self._end_image = None
@@ -2631,7 +2631,7 @@ class XSDataFileConversion(XSDataInput):
                 "ERROR! XSDataFileConversion.setRes argument is not XSDataDouble but %s"
                 % res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRes(self):
         self._res = None
@@ -2652,7 +2652,7 @@ class XSDataFileConversion(XSDataInput):
                 "ERROR! XSDataFileConversion.setNres argument is not XSDataDouble but %s"
                 % nres.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNres(self):
         self._nres = None
@@ -2673,7 +2673,7 @@ class XSDataFileConversion(XSDataInput):
                 "ERROR! XSDataFileConversion.setAnom argument is not XSDataBoolean but %s"
                 % anom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAnom(self):
         self._anom = None
@@ -2694,7 +2694,7 @@ class XSDataFileConversion(XSDataInput):
                 "ERROR! XSDataFileConversion.setImage_prefix argument is not XSDataString but %s"
                 % image_prefix.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delImage_prefix(self):
         self._image_prefix = None
@@ -2864,7 +2864,7 @@ class XSDataFileConversionOut(XSDataResult):
                 "ERROR! XSDataFileConversionOut constructor argument 'pointless_sgnumber' is not XSDataInteger but %s"
                 % self._pointless_sgnumber.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if pointless_sgstring is None:
             self._pointless_sgstring = None
         elif pointless_sgstring.__class__.__name__ == "XSDataString":
@@ -2874,7 +2874,7 @@ class XSDataFileConversionOut(XSDataResult):
                 "ERROR! XSDataFileConversionOut constructor argument 'pointless_sgstring' is not XSDataString but %s"
                 % self._pointless_sgstring.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if aimless_log is None:
             self._aimless_log = None
         elif aimless_log.__class__.__name__ == "XSDataString":
@@ -2884,7 +2884,7 @@ class XSDataFileConversionOut(XSDataResult):
                 "ERROR! XSDataFileConversionOut constructor argument 'aimless_log' is not XSDataString but %s"
                 % self._aimless_log.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'pointless_sgnumber' attribute
     def getPointless_sgnumber(self):
@@ -2900,7 +2900,7 @@ class XSDataFileConversionOut(XSDataResult):
                 "ERROR! XSDataFileConversionOut.setPointless_sgnumber argument is not XSDataInteger but %s"
                 % pointless_sgnumber.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPointless_sgnumber(self):
         self._pointless_sgnumber = None
@@ -2926,7 +2926,7 @@ class XSDataFileConversionOut(XSDataResult):
                 "ERROR! XSDataFileConversionOut.setPointless_sgstring argument is not XSDataString but %s"
                 % pointless_sgstring.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPointless_sgstring(self):
         self._pointless_sgstring = None
@@ -2952,7 +2952,7 @@ class XSDataFileConversionOut(XSDataResult):
                 "ERROR! XSDataFileConversionOut.setAimless_log argument is not XSDataString but %s"
                 % aimless_log.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAimless_log(self):
         self._aimless_log = None
@@ -3077,7 +3077,7 @@ class XSDataInputControlDimple(XSDataInput):
                 "ERROR! XSDataInputControlDimple constructor argument 'dataCollectionId' is not XSDataInteger but %s"
                 % self._dataCollectionId.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if mtzFile is None:
             self._mtzFile = None
         elif mtzFile.__class__.__name__ == "XSDataFile":
@@ -3087,7 +3087,7 @@ class XSDataInputControlDimple(XSDataInput):
                 "ERROR! XSDataInputControlDimple constructor argument 'mtzFile' is not XSDataFile but %s"
                 % self._mtzFile.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if pyarchPath is None:
             self._pyarchPath = None
         elif pyarchPath.__class__.__name__ == "XSDataFile":
@@ -3097,7 +3097,7 @@ class XSDataInputControlDimple(XSDataInput):
                 "ERROR! XSDataInputControlDimple constructor argument 'pyarchPath' is not XSDataFile but %s"
                 % self._pyarchPath.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if pdbDirectory is None:
             self._pdbDirectory = None
         elif pdbDirectory.__class__.__name__ == "XSDataFile":
@@ -3107,7 +3107,7 @@ class XSDataInputControlDimple(XSDataInput):
                 "ERROR! XSDataInputControlDimple constructor argument 'pdbDirectory' is not XSDataFile but %s"
                 % self._pdbDirectory.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'dataCollectionId' attribute
     def getDataCollectionId(self):
@@ -3123,7 +3123,7 @@ class XSDataInputControlDimple(XSDataInput):
                 "ERROR! XSDataInputControlDimple.setDataCollectionId argument is not XSDataInteger but %s"
                 % dataCollectionId.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDataCollectionId(self):
         self._dataCollectionId = None
@@ -3149,7 +3149,7 @@ class XSDataInputControlDimple(XSDataInput):
                 "ERROR! XSDataInputControlDimple.setMtzFile argument is not XSDataFile but %s"
                 % mtzFile.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMtzFile(self):
         self._mtzFile = None
@@ -3170,7 +3170,7 @@ class XSDataInputControlDimple(XSDataInput):
                 "ERROR! XSDataInputControlDimple.setPyarchPath argument is not XSDataFile but %s"
                 % pyarchPath.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPyarchPath(self):
         self._pyarchPath = None
@@ -3193,7 +3193,7 @@ class XSDataInputControlDimple(XSDataInput):
                 "ERROR! XSDataInputControlDimple.setPdbDirectory argument is not XSDataFile but %s"
                 % pdbDirectory.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPdbDirectory(self):
         self._pdbDirectory = None
@@ -3329,7 +3329,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn constructor argument 'input_file' is not XSDataString but %s"
                 % self._input_file.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if job is None:
             self._job = None
         elif job.__class__.__name__ == "XSDataString":
@@ -3339,7 +3339,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn constructor argument 'job' is not XSDataString but %s"
                 % self._job.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if maxproc is None:
             self._maxproc = None
         elif maxproc.__class__.__name__ == "XSDataInteger":
@@ -3349,7 +3349,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn constructor argument 'maxproc' is not XSDataInteger but %s"
                 % self._maxproc.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if maxjobs is None:
             self._maxjobs = None
         elif maxjobs.__class__.__name__ == "XSDataInteger":
@@ -3359,7 +3359,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn constructor argument 'maxjobs' is not XSDataInteger but %s"
                 % self._maxjobs.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if friedels_law is None:
             self._friedels_law = None
         elif friedels_law.__class__.__name__ == "XSDataBoolean":
@@ -3369,7 +3369,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn constructor argument 'friedels_law' is not XSDataBoolean but %s"
                 % self._friedels_law.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if resolution_range is None:
             self._resolution_range = []
         elif resolution_range.__class__.__name__ == "list":
@@ -3379,7 +3379,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn constructor argument 'resolution_range' is not list but %s"
                 % self._resolution_range.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if spot_range is None:
             self._spot_range = []
         elif spot_range.__class__.__name__ == "list":
@@ -3389,7 +3389,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn constructor argument 'spot_range' is not list but %s"
                 % self._spot_range.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if spacegroup is None:
             self._spacegroup = None
         elif spacegroup.__class__.__name__ == "XSDataInteger":
@@ -3399,7 +3399,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn constructor argument 'spacegroup' is not XSDataInteger but %s"
                 % self._spacegroup.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if unit_cell is None:
             self._unit_cell = None
         elif unit_cell.__class__.__name__ == "XSDataString":
@@ -3409,7 +3409,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn constructor argument 'unit_cell' is not XSDataString but %s"
                 % self._unit_cell.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'input_file' attribute
     def getInput_file(self):
@@ -3425,7 +3425,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn.setInput_file argument is not XSDataString but %s"
                 % input_file.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delInput_file(self):
         self._input_file = None
@@ -3448,7 +3448,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn.setJob argument is not XSDataString but %s"
                 % job.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delJob(self):
         self._job = None
@@ -3469,7 +3469,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn.setMaxproc argument is not XSDataInteger but %s"
                 % maxproc.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMaxproc(self):
         self._maxproc = None
@@ -3490,7 +3490,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn.setMaxjobs argument is not XSDataInteger but %s"
                 % maxjobs.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMaxjobs(self):
         self._maxjobs = None
@@ -3511,7 +3511,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn.setFriedels_law argument is not XSDataBoolean but %s"
                 % friedels_law.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delFriedels_law(self):
         self._friedels_law = None
@@ -3534,7 +3534,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn.setResolution_range argument is not list but %s"
                 % resolution_range.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delResolution_range(self):
         self._resolution_range = None
@@ -3551,7 +3551,7 @@ class XSDataMinimalXdsIn(XSDataInput):
             strMessage = (
                 "ERROR! XSDataMinimalXdsIn.addResolution_range argument is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataDouble":
             self._resolution_range.append(value)
         else:
@@ -3559,15 +3559,15 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn.addResolution_range argument is not XSDataDouble but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertResolution_range(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataMinimalXdsIn.insertResolution_range argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataMinimalXdsIn.insertResolution_range argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataDouble":
             self._resolution_range[index] = value
         else:
@@ -3575,7 +3575,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn.addResolution_range argument is not XSDataDouble but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'spot_range' attribute
     def getSpot_range(self):
@@ -3591,7 +3591,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn.setSpot_range argument is not list but %s"
                 % spot_range.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSpot_range(self):
         self._spot_range = None
@@ -3603,7 +3603,7 @@ class XSDataMinimalXdsIn(XSDataInput):
     def addSpot_range(self, value):
         if value is None:
             strMessage = "ERROR! XSDataMinimalXdsIn.addSpot_range argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataRange":
             self._spot_range.append(value)
         else:
@@ -3611,19 +3611,19 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn.addSpot_range argument is not XSDataRange but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertSpot_range(self, index, value):
         if index is None:
             strMessage = (
                 "ERROR! XSDataMinimalXdsIn.insertSpot_range argument 'index' is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = (
                 "ERROR! XSDataMinimalXdsIn.insertSpot_range argument 'value' is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataRange":
             self._spot_range[index] = value
         else:
@@ -3631,7 +3631,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn.addSpot_range argument is not XSDataRange but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'spacegroup' attribute
     def getSpacegroup(self):
@@ -3647,7 +3647,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn.setSpacegroup argument is not XSDataInteger but %s"
                 % spacegroup.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSpacegroup(self):
         self._spacegroup = None
@@ -3670,7 +3670,7 @@ class XSDataMinimalXdsIn(XSDataInput):
                 "ERROR! XSDataMinimalXdsIn.setUnit_cell argument is not XSDataString but %s"
                 % unit_cell.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delUnit_cell(self):
         self._unit_cell = None
@@ -3820,7 +3820,7 @@ class XSDataMinimalXdsOut(XSDataResult):
                 "ERROR! XSDataMinimalXdsOut constructor argument 'succeeded' is not XSDataBoolean but %s"
                 % self._succeeded.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'succeeded' attribute
     def getSucceeded(self):
@@ -3836,7 +3836,7 @@ class XSDataMinimalXdsOut(XSDataResult):
                 "ERROR! XSDataMinimalXdsOut.setSucceeded argument is not XSDataBoolean but %s"
                 % succeeded.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSucceeded(self):
         self._succeeded = None
@@ -3960,7 +3960,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput constructor argument 'completeness_entries' is not list but %s"
                 % self._completeness_entries.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if total_completeness is None:
             self._total_completeness = None
         elif total_completeness.__class__.__name__ == "XSDataXdsCompletenessEntry":
@@ -3970,7 +3970,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput constructor argument 'total_completeness' is not XSDataXdsCompletenessEntry but %s"
                 % self._total_completeness.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if crystal_mosaicity is None:
             self._crystal_mosaicity = None
         elif crystal_mosaicity.__class__.__name__ == "XSDataDouble":
@@ -3980,7 +3980,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput constructor argument 'crystal_mosaicity' is not XSDataDouble but %s"
                 % self._crystal_mosaicity.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if direct_beam_coordinates is None:
             self._direct_beam_coordinates = None
         elif direct_beam_coordinates.__class__.__name__ == "XSDataVectorDouble":
@@ -3990,7 +3990,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput constructor argument 'direct_beam_coordinates' is not XSDataVectorDouble but %s"
                 % self._direct_beam_coordinates.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if direct_beam_detector_coordinates is None:
             self._direct_beam_detector_coordinates = None
         elif (
@@ -4002,7 +4002,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput constructor argument 'direct_beam_detector_coordinates' is not XSData2DCoordinates but %s"
                 % self._direct_beam_detector_coordinates.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if detector_origin is None:
             self._detector_origin = None
         elif detector_origin.__class__.__name__ == "XSData2DCoordinates":
@@ -4012,7 +4012,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput constructor argument 'detector_origin' is not XSData2DCoordinates but %s"
                 % self._detector_origin.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if crystal_to_detector_distance is None:
             self._crystal_to_detector_distance = None
         elif crystal_to_detector_distance.__class__.__name__ == "XSDataDouble":
@@ -4022,7 +4022,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput constructor argument 'crystal_to_detector_distance' is not XSDataDouble but %s"
                 % self._crystal_to_detector_distance.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if coordinates_of_unit_cell_a_axis is None:
             self._coordinates_of_unit_cell_a_axis = None
         elif coordinates_of_unit_cell_a_axis.__class__.__name__ == "XSDataVectorDouble":
@@ -4032,7 +4032,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput constructor argument 'coordinates_of_unit_cell_a_axis' is not XSDataVectorDouble but %s"
                 % self._coordinates_of_unit_cell_a_axis.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if coordinates_of_unit_cell_b_axis is None:
             self._coordinates_of_unit_cell_b_axis = None
         elif coordinates_of_unit_cell_b_axis.__class__.__name__ == "XSDataVectorDouble":
@@ -4042,7 +4042,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput constructor argument 'coordinates_of_unit_cell_b_axis' is not XSDataVectorDouble but %s"
                 % self._coordinates_of_unit_cell_b_axis.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if coordinates_of_unit_cell_c_axis is None:
             self._coordinates_of_unit_cell_c_axis = None
         elif coordinates_of_unit_cell_c_axis.__class__.__name__ == "XSDataVectorDouble":
@@ -4052,7 +4052,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput constructor argument 'coordinates_of_unit_cell_c_axis' is not XSDataVectorDouble but %s"
                 % self._coordinates_of_unit_cell_c_axis.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if cell_a is None:
             self._cell_a = None
         elif cell_a.__class__.__name__ == "XSDataDouble":
@@ -4062,7 +4062,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput constructor argument 'cell_a' is not XSDataDouble but %s"
                 % self._cell_a.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if cell_b is None:
             self._cell_b = None
         elif cell_b.__class__.__name__ == "XSDataDouble":
@@ -4072,7 +4072,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput constructor argument 'cell_b' is not XSDataDouble but %s"
                 % self._cell_b.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if cell_c is None:
             self._cell_c = None
         elif cell_c.__class__.__name__ == "XSDataDouble":
@@ -4082,7 +4082,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput constructor argument 'cell_c' is not XSDataDouble but %s"
                 % self._cell_c.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if cell_alpha is None:
             self._cell_alpha = None
         elif cell_alpha.__class__.__name__ == "XSDataDouble":
@@ -4092,7 +4092,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput constructor argument 'cell_alpha' is not XSDataDouble but %s"
                 % self._cell_alpha.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if cell_beta is None:
             self._cell_beta = None
         elif cell_beta.__class__.__name__ == "XSDataDouble":
@@ -4102,7 +4102,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput constructor argument 'cell_beta' is not XSDataDouble but %s"
                 % self._cell_beta.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if cell_gamma is None:
             self._cell_gamma = None
         elif cell_gamma.__class__.__name__ == "XSDataDouble":
@@ -4112,7 +4112,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput constructor argument 'cell_gamma' is not XSDataDouble but %s"
                 % self._cell_gamma.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if unit_cell_constants is None:
             self._unit_cell_constants = []
         elif unit_cell_constants.__class__.__name__ == "list":
@@ -4122,7 +4122,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput constructor argument 'unit_cell_constants' is not list but %s"
                 % self._unit_cell_constants.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if sg_number is None:
             self._sg_number = None
         elif sg_number.__class__.__name__ == "XSDataInteger":
@@ -4132,7 +4132,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput constructor argument 'sg_number' is not XSDataInteger but %s"
                 % self._sg_number.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if xds_run_directory is None:
             self._xds_run_directory = None
         elif xds_run_directory.__class__.__name__ == "XSDataString":
@@ -4142,7 +4142,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput constructor argument 'xds_run_directory' is not XSDataString but %s"
                 % self._xds_run_directory.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'completeness_entries' attribute
     def getCompleteness_entries(self):
@@ -4158,7 +4158,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.setCompleteness_entries argument is not list but %s"
                 % completeness_entries.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCompleteness_entries(self):
         self._completeness_entries = None
@@ -4175,7 +4175,7 @@ class XSDataXdsOutput(XSDataResult):
             strMessage = (
                 "ERROR! XSDataXdsOutput.addCompleteness_entries argument is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataXdsCompletenessEntry":
             self._completeness_entries.append(value)
         else:
@@ -4183,15 +4183,15 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.addCompleteness_entries argument is not XSDataXdsCompletenessEntry but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertCompleteness_entries(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataXdsOutput.insertCompleteness_entries argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataXdsOutput.insertCompleteness_entries argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataXdsCompletenessEntry":
             self._completeness_entries[index] = value
         else:
@@ -4199,7 +4199,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.addCompleteness_entries argument is not XSDataXdsCompletenessEntry but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'total_completeness' attribute
     def getTotal_completeness(self):
@@ -4215,7 +4215,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.setTotal_completeness argument is not XSDataXdsCompletenessEntry but %s"
                 % total_completeness.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delTotal_completeness(self):
         self._total_completeness = None
@@ -4241,7 +4241,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.setCrystal_mosaicity argument is not XSDataDouble but %s"
                 % crystal_mosaicity.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCrystal_mosaicity(self):
         self._crystal_mosaicity = None
@@ -4267,7 +4267,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.setDirect_beam_coordinates argument is not XSDataVectorDouble but %s"
                 % direct_beam_coordinates.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDirect_beam_coordinates(self):
         self._direct_beam_coordinates = None
@@ -4295,7 +4295,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.setDirect_beam_detector_coordinates argument is not XSData2DCoordinates but %s"
                 % direct_beam_detector_coordinates.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDirect_beam_detector_coordinates(self):
         self._direct_beam_detector_coordinates = None
@@ -4321,7 +4321,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.setDetector_origin argument is not XSData2DCoordinates but %s"
                 % detector_origin.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDetector_origin(self):
         self._detector_origin = None
@@ -4347,7 +4347,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.setCrystal_to_detector_distance argument is not XSDataDouble but %s"
                 % crystal_to_detector_distance.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCrystal_to_detector_distance(self):
         self._crystal_to_detector_distance = None
@@ -4373,7 +4373,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.setCoordinates_of_unit_cell_a_axis argument is not XSDataVectorDouble but %s"
                 % coordinates_of_unit_cell_a_axis.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCoordinates_of_unit_cell_a_axis(self):
         self._coordinates_of_unit_cell_a_axis = None
@@ -4399,7 +4399,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.setCoordinates_of_unit_cell_b_axis argument is not XSDataVectorDouble but %s"
                 % coordinates_of_unit_cell_b_axis.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCoordinates_of_unit_cell_b_axis(self):
         self._coordinates_of_unit_cell_b_axis = None
@@ -4425,7 +4425,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.setCoordinates_of_unit_cell_c_axis argument is not XSDataVectorDouble but %s"
                 % coordinates_of_unit_cell_c_axis.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCoordinates_of_unit_cell_c_axis(self):
         self._coordinates_of_unit_cell_c_axis = None
@@ -4451,7 +4451,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.setCell_a argument is not XSDataDouble but %s"
                 % cell_a.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCell_a(self):
         self._cell_a = None
@@ -4472,7 +4472,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.setCell_b argument is not XSDataDouble but %s"
                 % cell_b.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCell_b(self):
         self._cell_b = None
@@ -4493,7 +4493,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.setCell_c argument is not XSDataDouble but %s"
                 % cell_c.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCell_c(self):
         self._cell_c = None
@@ -4514,7 +4514,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.setCell_alpha argument is not XSDataDouble but %s"
                 % cell_alpha.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCell_alpha(self):
         self._cell_alpha = None
@@ -4537,7 +4537,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.setCell_beta argument is not XSDataDouble but %s"
                 % cell_beta.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCell_beta(self):
         self._cell_beta = None
@@ -4560,7 +4560,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.setCell_gamma argument is not XSDataDouble but %s"
                 % cell_gamma.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCell_gamma(self):
         self._cell_gamma = None
@@ -4583,7 +4583,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.setUnit_cell_constants argument is not list but %s"
                 % unit_cell_constants.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delUnit_cell_constants(self):
         self._unit_cell_constants = None
@@ -4600,7 +4600,7 @@ class XSDataXdsOutput(XSDataResult):
             strMessage = (
                 "ERROR! XSDataXdsOutput.addUnit_cell_constants argument is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataDouble":
             self._unit_cell_constants.append(value)
         else:
@@ -4608,15 +4608,15 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.addUnit_cell_constants argument is not XSDataDouble but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertUnit_cell_constants(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataXdsOutput.insertUnit_cell_constants argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataXdsOutput.insertUnit_cell_constants argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataDouble":
             self._unit_cell_constants[index] = value
         else:
@@ -4624,7 +4624,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.addUnit_cell_constants argument is not XSDataDouble but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'sg_number' attribute
     def getSg_number(self):
@@ -4640,7 +4640,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.setSg_number argument is not XSDataInteger but %s"
                 % sg_number.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSg_number(self):
         self._sg_number = None
@@ -4663,7 +4663,7 @@ class XSDataXdsOutput(XSDataResult):
                 "ERROR! XSDataXdsOutput.setXds_run_directory argument is not XSDataString but %s"
                 % xds_run_directory.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delXds_run_directory(self):
         self._xds_run_directory = None
@@ -4954,7 +4954,7 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff constructor argument 'xds_res' is not XSDataXdsOutput but %s"
                 % self._xds_res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if completeness_entries is None:
             self._completeness_entries = []
         elif completeness_entries.__class__.__name__ == "list":
@@ -4964,7 +4964,7 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff constructor argument 'completeness_entries' is not list but %s"
                 % self._completeness_entries.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if detector_max_res is None:
             self._detector_max_res = None
         elif detector_max_res.__class__.__name__ == "XSDataDouble":
@@ -4974,7 +4974,7 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff constructor argument 'detector_max_res' is not XSDataDouble but %s"
                 % self._detector_max_res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if total_completeness is None:
             self._total_completeness = None
         elif total_completeness.__class__.__name__ == "XSDataXdsCompletenessEntry":
@@ -4984,7 +4984,7 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff constructor argument 'total_completeness' is not XSDataXdsCompletenessEntry but %s"
                 % self._total_completeness.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if res_override is None:
             self._res_override = None
         elif res_override.__class__.__name__ == "XSDataDouble":
@@ -4994,7 +4994,7 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff constructor argument 'res_override' is not XSDataDouble but %s"
                 % self._res_override.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if completeness_cutoff is None:
             self._completeness_cutoff = None
         elif completeness_cutoff.__class__.__name__ == "XSDataDouble":
@@ -5004,7 +5004,7 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff constructor argument 'completeness_cutoff' is not XSDataDouble but %s"
                 % self._completeness_cutoff.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if isig_cutoff is None:
             self._isig_cutoff = None
         elif isig_cutoff.__class__.__name__ == "XSDataDouble":
@@ -5014,7 +5014,7 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff constructor argument 'isig_cutoff' is not XSDataDouble but %s"
                 % self._isig_cutoff.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if r_value_cutoff is None:
             self._r_value_cutoff = None
         elif r_value_cutoff.__class__.__name__ == "XSDataDouble":
@@ -5024,7 +5024,7 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff constructor argument 'r_value_cutoff' is not XSDataDouble but %s"
                 % self._r_value_cutoff.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if cc_half_cutoff is None:
             self._cc_half_cutoff = None
         elif cc_half_cutoff.__class__.__name__ == "XSDataDouble":
@@ -5034,7 +5034,7 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff constructor argument 'cc_half_cutoff' is not XSDataDouble but %s"
                 % self._cc_half_cutoff.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'xds_res' attribute
     def getXds_res(self):
@@ -5050,7 +5050,7 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff.setXds_res argument is not XSDataXdsOutput but %s"
                 % xds_res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delXds_res(self):
         self._xds_res = None
@@ -5071,7 +5071,7 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff.setCompleteness_entries argument is not list but %s"
                 % completeness_entries.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCompleteness_entries(self):
         self._completeness_entries = None
@@ -5088,7 +5088,7 @@ class XSDataResCutoff(XSDataInput):
             strMessage = (
                 "ERROR! XSDataResCutoff.addCompleteness_entries argument is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataXdsCompletenessEntry":
             self._completeness_entries.append(value)
         else:
@@ -5096,15 +5096,15 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff.addCompleteness_entries argument is not XSDataXdsCompletenessEntry but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertCompleteness_entries(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataResCutoff.insertCompleteness_entries argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataResCutoff.insertCompleteness_entries argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataXdsCompletenessEntry":
             self._completeness_entries[index] = value
         else:
@@ -5112,7 +5112,7 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff.addCompleteness_entries argument is not XSDataXdsCompletenessEntry but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'detector_max_res' attribute
     def getDetector_max_res(self):
@@ -5128,7 +5128,7 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff.setDetector_max_res argument is not XSDataDouble but %s"
                 % detector_max_res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDetector_max_res(self):
         self._detector_max_res = None
@@ -5154,7 +5154,7 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff.setTotal_completeness argument is not XSDataXdsCompletenessEntry but %s"
                 % total_completeness.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delTotal_completeness(self):
         self._total_completeness = None
@@ -5180,7 +5180,7 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff.setRes_override argument is not XSDataDouble but %s"
                 % res_override.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRes_override(self):
         self._res_override = None
@@ -5203,7 +5203,7 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff.setCompleteness_cutoff argument is not XSDataDouble but %s"
                 % completeness_cutoff.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCompleteness_cutoff(self):
         self._completeness_cutoff = None
@@ -5229,7 +5229,7 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff.setIsig_cutoff argument is not XSDataDouble but %s"
                 % isig_cutoff.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delIsig_cutoff(self):
         self._isig_cutoff = None
@@ -5252,7 +5252,7 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff.setR_value_cutoff argument is not XSDataDouble but %s"
                 % r_value_cutoff.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delR_value_cutoff(self):
         self._r_value_cutoff = None
@@ -5278,7 +5278,7 @@ class XSDataResCutoff(XSDataInput):
                 "ERROR! XSDataResCutoff.setCc_half_cutoff argument is not XSDataDouble but %s"
                 % cc_half_cutoff.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCc_half_cutoff(self):
         self._cc_half_cutoff = None
@@ -5447,7 +5447,7 @@ class XSDataResCutoffResult(XSDataResult):
                 "ERROR! XSDataResCutoffResult constructor argument 'res' is not XSDataDouble but %s"
                 % self._res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if bins is None:
             self._bins = []
         elif bins.__class__.__name__ == "list":
@@ -5457,7 +5457,7 @@ class XSDataResCutoffResult(XSDataResult):
                 "ERROR! XSDataResCutoffResult constructor argument 'bins' is not list but %s"
                 % self._bins.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if total_complete is None:
             self._total_complete = None
         elif total_complete.__class__.__name__ == "XSDataDouble":
@@ -5467,7 +5467,7 @@ class XSDataResCutoffResult(XSDataResult):
                 "ERROR! XSDataResCutoffResult constructor argument 'total_complete' is not XSDataDouble but %s"
                 % self._total_complete.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if total_rfactor is None:
             self._total_rfactor = None
         elif total_rfactor.__class__.__name__ == "XSDataDouble":
@@ -5477,7 +5477,7 @@ class XSDataResCutoffResult(XSDataResult):
                 "ERROR! XSDataResCutoffResult constructor argument 'total_rfactor' is not XSDataDouble but %s"
                 % self._total_rfactor.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if total_isig is None:
             self._total_isig = None
         elif total_isig.__class__.__name__ == "XSDataDouble":
@@ -5487,7 +5487,7 @@ class XSDataResCutoffResult(XSDataResult):
                 "ERROR! XSDataResCutoffResult constructor argument 'total_isig' is not XSDataDouble but %s"
                 % self._total_isig.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'res' attribute
     def getRes(self):
@@ -5503,7 +5503,7 @@ class XSDataResCutoffResult(XSDataResult):
                 "ERROR! XSDataResCutoffResult.setRes argument is not XSDataDouble but %s"
                 % res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRes(self):
         self._res = None
@@ -5524,7 +5524,7 @@ class XSDataResCutoffResult(XSDataResult):
                 "ERROR! XSDataResCutoffResult.setBins argument is not list but %s"
                 % bins.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBins(self):
         self._bins = None
@@ -5534,7 +5534,7 @@ class XSDataResCutoffResult(XSDataResult):
     def addBins(self, value):
         if value is None:
             strMessage = "ERROR! XSDataResCutoffResult.addBins argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataDouble":
             self._bins.append(value)
         else:
@@ -5542,19 +5542,19 @@ class XSDataResCutoffResult(XSDataResult):
                 "ERROR! XSDataResCutoffResult.addBins argument is not XSDataDouble but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertBins(self, index, value):
         if index is None:
             strMessage = (
                 "ERROR! XSDataResCutoffResult.insertBins argument 'index' is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = (
                 "ERROR! XSDataResCutoffResult.insertBins argument 'value' is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataDouble":
             self._bins[index] = value
         else:
@@ -5562,7 +5562,7 @@ class XSDataResCutoffResult(XSDataResult):
                 "ERROR! XSDataResCutoffResult.addBins argument is not XSDataDouble but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'total_complete' attribute
     def getTotal_complete(self):
@@ -5578,7 +5578,7 @@ class XSDataResCutoffResult(XSDataResult):
                 "ERROR! XSDataResCutoffResult.setTotal_complete argument is not XSDataDouble but %s"
                 % total_complete.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delTotal_complete(self):
         self._total_complete = None
@@ -5604,7 +5604,7 @@ class XSDataResCutoffResult(XSDataResult):
                 "ERROR! XSDataResCutoffResult.setTotal_rfactor argument is not XSDataDouble but %s"
                 % total_rfactor.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delTotal_rfactor(self):
         self._total_rfactor = None
@@ -5630,7 +5630,7 @@ class XSDataResCutoffResult(XSDataResult):
                 "ERROR! XSDataResCutoffResult.setTotal_isig argument is not XSDataDouble but %s"
                 % total_isig.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delTotal_isig(self):
         self._total_isig = None
@@ -5764,7 +5764,7 @@ class XSDataResultControlDimple(XSDataResult):
                 "ERROR! XSDataResultControlDimple constructor argument 'dimpleExecutedSuccessfully' is not XSDataBoolean but %s"
                 % self._dimpleExecutedSuccessfully.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'dimpleExecutedSuccessfully' attribute
     def getDimpleExecutedSuccessfully(self):
@@ -5780,7 +5780,7 @@ class XSDataResultControlDimple(XSDataResult):
                 "ERROR! XSDataResultControlDimple.setDimpleExecutedSuccessfully argument is not XSDataBoolean but %s"
                 % dimpleExecutedSuccessfully.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDimpleExecutedSuccessfully(self):
         self._dimpleExecutedSuccessfully = None
@@ -5890,7 +5890,7 @@ class XSDataXdsGenerateInput(XSDataInput):
                 "ERROR! XSDataXdsGenerateInput constructor argument 'previous_run_dir' is not XSDataString but %s"
                 % self._previous_run_dir.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if resolution is None:
             self._resolution = None
         elif resolution.__class__.__name__ == "XSDataDouble":
@@ -5900,7 +5900,7 @@ class XSDataXdsGenerateInput(XSDataInput):
                 "ERROR! XSDataXdsGenerateInput constructor argument 'resolution' is not XSDataDouble but %s"
                 % self._resolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'previous_run_dir' attribute
     def getPrevious_run_dir(self):
@@ -5916,7 +5916,7 @@ class XSDataXdsGenerateInput(XSDataInput):
                 "ERROR! XSDataXdsGenerateInput.setPrevious_run_dir argument is not XSDataString but %s"
                 % previous_run_dir.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPrevious_run_dir(self):
         self._previous_run_dir = None
@@ -5942,7 +5942,7 @@ class XSDataXdsGenerateInput(XSDataInput):
                 "ERROR! XSDataXdsGenerateInput.setResolution argument is not XSDataDouble but %s"
                 % resolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delResolution(self):
         self._resolution = None
@@ -6062,7 +6062,7 @@ class XSDataXdsGenerateOutput(XSDataResult):
                 "ERROR! XSDataXdsGenerateOutput constructor argument 'hkl_anom' is not XSDataString but %s"
                 % self._hkl_anom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if hkl_no_anom is None:
             self._hkl_no_anom = None
         elif hkl_no_anom.__class__.__name__ == "XSDataString":
@@ -6072,7 +6072,7 @@ class XSDataXdsGenerateOutput(XSDataResult):
                 "ERROR! XSDataXdsGenerateOutput constructor argument 'hkl_no_anom' is not XSDataString but %s"
                 % self._hkl_no_anom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if correct_lp_anom is None:
             self._correct_lp_anom = None
         elif correct_lp_anom.__class__.__name__ == "XSDataString":
@@ -6082,7 +6082,7 @@ class XSDataXdsGenerateOutput(XSDataResult):
                 "ERROR! XSDataXdsGenerateOutput constructor argument 'correct_lp_anom' is not XSDataString but %s"
                 % self._correct_lp_anom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if correct_lp_no_anom is None:
             self._correct_lp_no_anom = None
         elif correct_lp_no_anom.__class__.__name__ == "XSDataString":
@@ -6092,7 +6092,7 @@ class XSDataXdsGenerateOutput(XSDataResult):
                 "ERROR! XSDataXdsGenerateOutput constructor argument 'correct_lp_no_anom' is not XSDataString but %s"
                 % self._correct_lp_no_anom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if integrate_anom is None:
             self._integrate_anom = None
         elif integrate_anom.__class__.__name__ == "XSDataString":
@@ -6102,7 +6102,7 @@ class XSDataXdsGenerateOutput(XSDataResult):
                 "ERROR! XSDataXdsGenerateOutput constructor argument 'integrate_anom' is not XSDataString but %s"
                 % self._integrate_anom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if integrate_noanom is None:
             self._integrate_noanom = None
         elif integrate_noanom.__class__.__name__ == "XSDataString":
@@ -6112,7 +6112,7 @@ class XSDataXdsGenerateOutput(XSDataResult):
                 "ERROR! XSDataXdsGenerateOutput constructor argument 'integrate_noanom' is not XSDataString but %s"
                 % self._integrate_noanom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if gxparm is None:
             self._gxparm = None
         elif gxparm.__class__.__name__ == "XSDataString":
@@ -6122,7 +6122,7 @@ class XSDataXdsGenerateOutput(XSDataResult):
                 "ERROR! XSDataXdsGenerateOutput constructor argument 'gxparm' is not XSDataString but %s"
                 % self._gxparm.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'hkl_anom' attribute
     def getHkl_anom(self):
@@ -6138,7 +6138,7 @@ class XSDataXdsGenerateOutput(XSDataResult):
                 "ERROR! XSDataXdsGenerateOutput.setHkl_anom argument is not XSDataString but %s"
                 % hkl_anom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delHkl_anom(self):
         self._hkl_anom = None
@@ -6159,7 +6159,7 @@ class XSDataXdsGenerateOutput(XSDataResult):
                 "ERROR! XSDataXdsGenerateOutput.setHkl_no_anom argument is not XSDataString but %s"
                 % hkl_no_anom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delHkl_no_anom(self):
         self._hkl_no_anom = None
@@ -6182,7 +6182,7 @@ class XSDataXdsGenerateOutput(XSDataResult):
                 "ERROR! XSDataXdsGenerateOutput.setCorrect_lp_anom argument is not XSDataString but %s"
                 % correct_lp_anom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCorrect_lp_anom(self):
         self._correct_lp_anom = None
@@ -6208,7 +6208,7 @@ class XSDataXdsGenerateOutput(XSDataResult):
                 "ERROR! XSDataXdsGenerateOutput.setCorrect_lp_no_anom argument is not XSDataString but %s"
                 % correct_lp_no_anom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCorrect_lp_no_anom(self):
         self._correct_lp_no_anom = None
@@ -6234,7 +6234,7 @@ class XSDataXdsGenerateOutput(XSDataResult):
                 "ERROR! XSDataXdsGenerateOutput.setIntegrate_anom argument is not XSDataString but %s"
                 % integrate_anom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delIntegrate_anom(self):
         self._integrate_anom = None
@@ -6260,7 +6260,7 @@ class XSDataXdsGenerateOutput(XSDataResult):
                 "ERROR! XSDataXdsGenerateOutput.setIntegrate_noanom argument is not XSDataString but %s"
                 % integrate_noanom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delIntegrate_noanom(self):
         self._integrate_noanom = None
@@ -6286,7 +6286,7 @@ class XSDataXdsGenerateOutput(XSDataResult):
                 "ERROR! XSDataXdsGenerateOutput.setGxparm argument is not XSDataString but %s"
                 % gxparm.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delGxparm(self):
         self._gxparm = None
@@ -6434,7 +6434,7 @@ class XSDataXdsOutputFile(XSDataInput):
                 "ERROR! XSDataXdsOutputFile constructor argument 'correct_lp' is not XSDataFile but %s"
                 % self._correct_lp.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if gxparm is None:
             self._gxparm = None
         elif gxparm.__class__.__name__ == "XSDataFile":
@@ -6444,7 +6444,7 @@ class XSDataXdsOutputFile(XSDataInput):
                 "ERROR! XSDataXdsOutputFile constructor argument 'gxparm' is not XSDataFile but %s"
                 % self._gxparm.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'correct_lp' attribute
     def getCorrect_lp(self):
@@ -6460,7 +6460,7 @@ class XSDataXdsOutputFile(XSDataInput):
                 "ERROR! XSDataXdsOutputFile.setCorrect_lp argument is not XSDataFile but %s"
                 % correct_lp.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCorrect_lp(self):
         self._correct_lp = None
@@ -6483,7 +6483,7 @@ class XSDataXdsOutputFile(XSDataInput):
                 "ERROR! XSDataXdsOutputFile.setGxparm argument is not XSDataFile but %s"
                 % gxparm.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delGxparm(self):
         self._gxparm = None
@@ -6589,7 +6589,7 @@ class XSDataXscaleOutput(XSDataResult):
                 "ERROR! XSDataXscaleOutput constructor argument 'succeeded' is not XSDataBoolean but %s"
                 % self._succeeded.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if hkl_file is None:
             self._hkl_file = None
         elif hkl_file.__class__.__name__ == "XSDataString":
@@ -6599,7 +6599,7 @@ class XSDataXscaleOutput(XSDataResult):
                 "ERROR! XSDataXscaleOutput constructor argument 'hkl_file' is not XSDataString but %s"
                 % self._hkl_file.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if lp_file is None:
             self._lp_file = None
         elif lp_file.__class__.__name__ == "XSDataString":
@@ -6609,7 +6609,7 @@ class XSDataXscaleOutput(XSDataResult):
                 "ERROR! XSDataXscaleOutput constructor argument 'lp_file' is not XSDataString but %s"
                 % self._lp_file.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'succeeded' attribute
     def getSucceeded(self):
@@ -6625,7 +6625,7 @@ class XSDataXscaleOutput(XSDataResult):
                 "ERROR! XSDataXscaleOutput.setSucceeded argument is not XSDataBoolean but %s"
                 % succeeded.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSucceeded(self):
         self._succeeded = None
@@ -6648,7 +6648,7 @@ class XSDataXscaleOutput(XSDataResult):
                 "ERROR! XSDataXscaleOutput.setHkl_file argument is not XSDataString but %s"
                 % hkl_file.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delHkl_file(self):
         self._hkl_file = None
@@ -6669,7 +6669,7 @@ class XSDataXscaleOutput(XSDataResult):
                 "ERROR! XSDataXscaleOutput.setLp_file argument is not XSDataString but %s"
                 % lp_file.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delLp_file(self):
         self._lp_file = None
@@ -6781,7 +6781,7 @@ class XSDataXscaleParsedOutput(XSDataResult):
                 "ERROR! XSDataXscaleParsedOutput constructor argument 'total_completeness' is not XSDataXscaleCompletenessEntry but %s"
                 % self._total_completeness.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if completeness_entries is None:
             self._completeness_entries = []
         elif completeness_entries.__class__.__name__ == "list":
@@ -6791,7 +6791,7 @@ class XSDataXscaleParsedOutput(XSDataResult):
                 "ERROR! XSDataXscaleParsedOutput constructor argument 'completeness_entries' is not list but %s"
                 % self._completeness_entries.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'total_completeness' attribute
     def getTotal_completeness(self):
@@ -6807,7 +6807,7 @@ class XSDataXscaleParsedOutput(XSDataResult):
                 "ERROR! XSDataXscaleParsedOutput.setTotal_completeness argument is not XSDataXscaleCompletenessEntry but %s"
                 % total_completeness.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delTotal_completeness(self):
         self._total_completeness = None
@@ -6833,7 +6833,7 @@ class XSDataXscaleParsedOutput(XSDataResult):
                 "ERROR! XSDataXscaleParsedOutput.setCompleteness_entries argument is not list but %s"
                 % completeness_entries.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCompleteness_entries(self):
         self._completeness_entries = None
@@ -6848,7 +6848,7 @@ class XSDataXscaleParsedOutput(XSDataResult):
     def addCompleteness_entries(self, value):
         if value is None:
             strMessage = "ERROR! XSDataXscaleParsedOutput.addCompleteness_entries argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataXscaleCompletenessEntry":
             self._completeness_entries.append(value)
         else:
@@ -6856,15 +6856,15 @@ class XSDataXscaleParsedOutput(XSDataResult):
                 "ERROR! XSDataXscaleParsedOutput.addCompleteness_entries argument is not XSDataXscaleCompletenessEntry but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertCompleteness_entries(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataXscaleParsedOutput.insertCompleteness_entries argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataXscaleParsedOutput.insertCompleteness_entries argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataXscaleCompletenessEntry":
             self._completeness_entries[index] = value
         else:
@@ -6872,7 +6872,7 @@ class XSDataXscaleParsedOutput(XSDataResult):
                 "ERROR! XSDataXscaleParsedOutput.addCompleteness_entries argument is not XSDataXscaleCompletenessEntry but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def export(self, outfile, level, name_="XSDataXscaleParsedOutput"):
         showIndent(outfile, level)
@@ -6992,7 +6992,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles constructor argument 'hkl_anom_merged' is not XSDataString but %s"
                 % self._hkl_anom_merged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if lp_anom_merged is None:
             self._lp_anom_merged = None
         elif lp_anom_merged.__class__.__name__ == "XSDataString":
@@ -7002,7 +7002,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles constructor argument 'lp_anom_merged' is not XSDataString but %s"
                 % self._lp_anom_merged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if stats_anom_merged is None:
             self._stats_anom_merged = None
         elif stats_anom_merged.__class__.__name__ == "XSDataXscaleParsedOutput":
@@ -7012,7 +7012,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles constructor argument 'stats_anom_merged' is not XSDataXscaleParsedOutput but %s"
                 % self._stats_anom_merged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if hkl_noanom_merged is None:
             self._hkl_noanom_merged = None
         elif hkl_noanom_merged.__class__.__name__ == "XSDataString":
@@ -7022,7 +7022,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles constructor argument 'hkl_noanom_merged' is not XSDataString but %s"
                 % self._hkl_noanom_merged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if lp_noanom_merged is None:
             self._lp_noanom_merged = None
         elif lp_noanom_merged.__class__.__name__ == "XSDataString":
@@ -7032,7 +7032,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles constructor argument 'lp_noanom_merged' is not XSDataString but %s"
                 % self._lp_noanom_merged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if stats_noanom_merged is None:
             self._stats_noanom_merged = None
         elif stats_noanom_merged.__class__.__name__ == "XSDataXscaleParsedOutput":
@@ -7042,7 +7042,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles constructor argument 'stats_noanom_merged' is not XSDataXscaleParsedOutput but %s"
                 % self._stats_noanom_merged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if hkl_anom_unmerged is None:
             self._hkl_anom_unmerged = None
         elif hkl_anom_unmerged.__class__.__name__ == "XSDataString":
@@ -7052,7 +7052,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles constructor argument 'hkl_anom_unmerged' is not XSDataString but %s"
                 % self._hkl_anom_unmerged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if lp_anom_unmerged is None:
             self._lp_anom_unmerged = None
         elif lp_anom_unmerged.__class__.__name__ == "XSDataString":
@@ -7062,7 +7062,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles constructor argument 'lp_anom_unmerged' is not XSDataString but %s"
                 % self._lp_anom_unmerged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if stats_anom_unmerged is None:
             self._stats_anom_unmerged = None
         elif stats_anom_unmerged.__class__.__name__ == "XSDataXscaleParsedOutput":
@@ -7072,7 +7072,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles constructor argument 'stats_anom_unmerged' is not XSDataXscaleParsedOutput but %s"
                 % self._stats_anom_unmerged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if hkl_noanom_unmerged is None:
             self._hkl_noanom_unmerged = None
         elif hkl_noanom_unmerged.__class__.__name__ == "XSDataString":
@@ -7082,7 +7082,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles constructor argument 'hkl_noanom_unmerged' is not XSDataString but %s"
                 % self._hkl_noanom_unmerged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if lp_noanom_unmerged is None:
             self._lp_noanom_unmerged = None
         elif lp_noanom_unmerged.__class__.__name__ == "XSDataString":
@@ -7092,7 +7092,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles constructor argument 'lp_noanom_unmerged' is not XSDataString but %s"
                 % self._lp_noanom_unmerged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if stats_noanom_unmerged is None:
             self._stats_noanom_unmerged = None
         elif stats_noanom_unmerged.__class__.__name__ == "XSDataXscaleParsedOutput":
@@ -7102,7 +7102,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles constructor argument 'stats_noanom_unmerged' is not XSDataXscaleParsedOutput but %s"
                 % self._stats_noanom_unmerged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'hkl_anom_merged' attribute
     def getHkl_anom_merged(self):
@@ -7118,7 +7118,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles.setHkl_anom_merged argument is not XSDataString but %s"
                 % hkl_anom_merged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delHkl_anom_merged(self):
         self._hkl_anom_merged = None
@@ -7144,7 +7144,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles.setLp_anom_merged argument is not XSDataString but %s"
                 % lp_anom_merged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delLp_anom_merged(self):
         self._lp_anom_merged = None
@@ -7170,7 +7170,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles.setStats_anom_merged argument is not XSDataXscaleParsedOutput but %s"
                 % stats_anom_merged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delStats_anom_merged(self):
         self._stats_anom_merged = None
@@ -7196,7 +7196,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles.setHkl_noanom_merged argument is not XSDataString but %s"
                 % hkl_noanom_merged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delHkl_noanom_merged(self):
         self._hkl_noanom_merged = None
@@ -7222,7 +7222,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles.setLp_noanom_merged argument is not XSDataString but %s"
                 % lp_noanom_merged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delLp_noanom_merged(self):
         self._lp_noanom_merged = None
@@ -7248,7 +7248,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles.setStats_noanom_merged argument is not XSDataXscaleParsedOutput but %s"
                 % stats_noanom_merged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delStats_noanom_merged(self):
         self._stats_noanom_merged = None
@@ -7274,7 +7274,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles.setHkl_anom_unmerged argument is not XSDataString but %s"
                 % hkl_anom_unmerged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delHkl_anom_unmerged(self):
         self._hkl_anom_unmerged = None
@@ -7300,7 +7300,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles.setLp_anom_unmerged argument is not XSDataString but %s"
                 % lp_anom_unmerged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delLp_anom_unmerged(self):
         self._lp_anom_unmerged = None
@@ -7326,7 +7326,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles.setStats_anom_unmerged argument is not XSDataXscaleParsedOutput but %s"
                 % stats_anom_unmerged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delStats_anom_unmerged(self):
         self._stats_anom_unmerged = None
@@ -7352,7 +7352,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles.setHkl_noanom_unmerged argument is not XSDataString but %s"
                 % hkl_noanom_unmerged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delHkl_noanom_unmerged(self):
         self._hkl_noanom_unmerged = None
@@ -7378,7 +7378,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles.setLp_noanom_unmerged argument is not XSDataString but %s"
                 % lp_noanom_unmerged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delLp_noanom_unmerged(self):
         self._lp_noanom_unmerged = None
@@ -7404,7 +7404,7 @@ class XSDataXscaleGeneratedFiles(XSDataResult):
                 "ERROR! XSDataXscaleGeneratedFiles.setStats_noanom_unmerged argument is not XSDataXscaleParsedOutput but %s"
                 % stats_noanom_unmerged.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delStats_noanom_unmerged(self):
         self._stats_noanom_unmerged = None
@@ -7608,7 +7608,7 @@ class XSDataXscaleInputFile(XSDataInput):
                 "ERROR! XSDataXscaleInputFile constructor argument 'path_anom' is not XSDataString but %s"
                 % self._path_anom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if path_noanom is None:
             self._path_noanom = None
         elif path_noanom.__class__.__name__ == "XSDataString":
@@ -7618,7 +7618,7 @@ class XSDataXscaleInputFile(XSDataInput):
                 "ERROR! XSDataXscaleInputFile constructor argument 'path_noanom' is not XSDataString but %s"
                 % self._path_noanom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if res is None:
             self._res = None
         elif res.__class__.__name__ == "XSDataDouble":
@@ -7628,7 +7628,7 @@ class XSDataXscaleInputFile(XSDataInput):
                 "ERROR! XSDataXscaleInputFile constructor argument 'res' is not XSDataDouble but %s"
                 % self._res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'path_anom' attribute
     def getPath_anom(self):
@@ -7644,7 +7644,7 @@ class XSDataXscaleInputFile(XSDataInput):
                 "ERROR! XSDataXscaleInputFile.setPath_anom argument is not XSDataString but %s"
                 % path_anom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPath_anom(self):
         self._path_anom = None
@@ -7667,7 +7667,7 @@ class XSDataXscaleInputFile(XSDataInput):
                 "ERROR! XSDataXscaleInputFile.setPath_noanom argument is not XSDataString but %s"
                 % path_noanom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPath_noanom(self):
         self._path_noanom = None
@@ -7690,7 +7690,7 @@ class XSDataXscaleInputFile(XSDataInput):
                 "ERROR! XSDataXscaleInputFile.setRes argument is not XSDataDouble but %s"
                 % res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRes(self):
         self._res = None
@@ -7811,7 +7811,7 @@ class XSDataXscaleInput(XSDataInput):
                 "ERROR! XSDataXscaleInput constructor argument 'merge' is not XSDataBoolean but %s"
                 % self._merge.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if friedels_law is None:
             self._friedels_law = None
         elif friedels_law.__class__.__name__ == "XSDataBoolean":
@@ -7821,7 +7821,7 @@ class XSDataXscaleInput(XSDataInput):
                 "ERROR! XSDataXscaleInput constructor argument 'friedels_law' is not XSDataBoolean but %s"
                 % self._friedels_law.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if xds_files is None:
             self._xds_files = []
         elif xds_files.__class__.__name__ == "list":
@@ -7831,7 +7831,7 @@ class XSDataXscaleInput(XSDataInput):
                 "ERROR! XSDataXscaleInput constructor argument 'xds_files' is not list but %s"
                 % self._xds_files.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if unit_cell_constants is None:
             self._unit_cell_constants = []
         elif unit_cell_constants.__class__.__name__ == "list":
@@ -7841,7 +7841,7 @@ class XSDataXscaleInput(XSDataInput):
                 "ERROR! XSDataXscaleInput constructor argument 'unit_cell_constants' is not list but %s"
                 % self._unit_cell_constants.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if sg_number is None:
             self._sg_number = None
         elif sg_number.__class__.__name__ == "XSDataInteger":
@@ -7851,7 +7851,7 @@ class XSDataXscaleInput(XSDataInput):
                 "ERROR! XSDataXscaleInput constructor argument 'sg_number' is not XSDataInteger but %s"
                 % self._sg_number.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if bins is None:
             self._bins = []
         elif bins.__class__.__name__ == "list":
@@ -7861,7 +7861,7 @@ class XSDataXscaleInput(XSDataInput):
                 "ERROR! XSDataXscaleInput constructor argument 'bins' is not list but %s"
                 % self._bins.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'merge' attribute
     def getMerge(self):
@@ -7877,7 +7877,7 @@ class XSDataXscaleInput(XSDataInput):
                 "ERROR! XSDataXscaleInput.setMerge argument is not XSDataBoolean but %s"
                 % merge.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMerge(self):
         self._merge = None
@@ -7898,7 +7898,7 @@ class XSDataXscaleInput(XSDataInput):
                 "ERROR! XSDataXscaleInput.setFriedels_law argument is not XSDataBoolean but %s"
                 % friedels_law.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delFriedels_law(self):
         self._friedels_law = None
@@ -7921,7 +7921,7 @@ class XSDataXscaleInput(XSDataInput):
                 "ERROR! XSDataXscaleInput.setXds_files argument is not list but %s"
                 % xds_files.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delXds_files(self):
         self._xds_files = None
@@ -7933,7 +7933,7 @@ class XSDataXscaleInput(XSDataInput):
     def addXds_files(self, value):
         if value is None:
             strMessage = "ERROR! XSDataXscaleInput.addXds_files argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataXscaleInputFile":
             self._xds_files.append(value)
         else:
@@ -7941,19 +7941,19 @@ class XSDataXscaleInput(XSDataInput):
                 "ERROR! XSDataXscaleInput.addXds_files argument is not XSDataXscaleInputFile but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertXds_files(self, index, value):
         if index is None:
             strMessage = (
                 "ERROR! XSDataXscaleInput.insertXds_files argument 'index' is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = (
                 "ERROR! XSDataXscaleInput.insertXds_files argument 'value' is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataXscaleInputFile":
             self._xds_files[index] = value
         else:
@@ -7961,7 +7961,7 @@ class XSDataXscaleInput(XSDataInput):
                 "ERROR! XSDataXscaleInput.addXds_files argument is not XSDataXscaleInputFile but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'unit_cell_constants' attribute
     def getUnit_cell_constants(self):
@@ -7977,7 +7977,7 @@ class XSDataXscaleInput(XSDataInput):
                 "ERROR! XSDataXscaleInput.setUnit_cell_constants argument is not list but %s"
                 % unit_cell_constants.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delUnit_cell_constants(self):
         self._unit_cell_constants = None
@@ -7994,7 +7994,7 @@ class XSDataXscaleInput(XSDataInput):
             strMessage = (
                 "ERROR! XSDataXscaleInput.addUnit_cell_constants argument is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataDouble":
             self._unit_cell_constants.append(value)
         else:
@@ -8002,15 +8002,15 @@ class XSDataXscaleInput(XSDataInput):
                 "ERROR! XSDataXscaleInput.addUnit_cell_constants argument is not XSDataDouble but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertUnit_cell_constants(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataXscaleInput.insertUnit_cell_constants argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataXscaleInput.insertUnit_cell_constants argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataDouble":
             self._unit_cell_constants[index] = value
         else:
@@ -8018,7 +8018,7 @@ class XSDataXscaleInput(XSDataInput):
                 "ERROR! XSDataXscaleInput.addUnit_cell_constants argument is not XSDataDouble but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'sg_number' attribute
     def getSg_number(self):
@@ -8034,7 +8034,7 @@ class XSDataXscaleInput(XSDataInput):
                 "ERROR! XSDataXscaleInput.setSg_number argument is not XSDataInteger but %s"
                 % sg_number.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSg_number(self):
         self._sg_number = None
@@ -8057,7 +8057,7 @@ class XSDataXscaleInput(XSDataInput):
                 "ERROR! XSDataXscaleInput.setBins argument is not list but %s"
                 % bins.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBins(self):
         self._bins = None
@@ -8067,7 +8067,7 @@ class XSDataXscaleInput(XSDataInput):
     def addBins(self, value):
         if value is None:
             strMessage = "ERROR! XSDataXscaleInput.addBins argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataDouble":
             self._bins.append(value)
         else:
@@ -8075,15 +8075,15 @@ class XSDataXscaleInput(XSDataInput):
                 "ERROR! XSDataXscaleInput.addBins argument is not XSDataDouble but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertBins(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataXscaleInput.insertBins argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataXscaleInput.insertBins argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataDouble":
             self._bins[index] = value
         else:
@@ -8091,7 +8091,7 @@ class XSDataXscaleInput(XSDataInput):
                 "ERROR! XSDataXscaleInput.addBins argument is not XSDataDouble but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def export(self, outfile, level, name_="XSDataXscaleInput"):
         showIndent(outfile, level)
@@ -8226,7 +8226,7 @@ class XSDataXscaleParsingInput(XSDataInput):
                 "ERROR! XSDataXscaleParsingInput constructor argument 'lp_file' is not XSDataString but %s"
                 % self._lp_file.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'lp_file' attribute
     def getLp_file(self):
@@ -8242,7 +8242,7 @@ class XSDataXscaleParsingInput(XSDataInput):
                 "ERROR! XSDataXscaleParsingInput.setLp_file argument is not XSDataString but %s"
                 % lp_file.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delLp_file(self):
         self._lp_file = None

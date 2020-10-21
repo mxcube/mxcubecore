@@ -316,7 +316,7 @@ class LimaPilatusDetector(AbstractDetector):
     def stop_acquisition(self):
         try:
             self.execute_command("stop_acq")
-        except BaseException:
+        except Exception:
             pass
 
         time.sleep(1)

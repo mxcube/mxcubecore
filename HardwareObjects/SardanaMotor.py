@@ -217,7 +217,7 @@ class SardanaMotor(AbstractMotor):
         """
         try:
             return (self.limit_lower, self.limit_upper)
-        except BaseException:
+        except Exception:
             return (None, None)
 
     def get_value(self):
@@ -260,7 +260,7 @@ class SardanaMotor(AbstractMotor):
     def get_velocity(self):
         try:
             return self.velocity_channel.getValue()
-        except BaseException:
+        except Exception:
             return None
 
     def set_velocity(self, value):
@@ -269,7 +269,7 @@ class SardanaMotor(AbstractMotor):
     def get_acceleration(self):
         try:
             return self.acceleration_channel.getValue()
-        except BaseException:
+        except Exception:
             return None
 
 

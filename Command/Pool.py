@@ -78,7 +78,7 @@ class PoolCommand(CommandObject):
                 logging.getLogger("HWR").error(
                     "%s: Tango, %s", str(self.name()), error_dict
                 )
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "%s: an error occured when calling Tango command %s",
                     str(self.name()),
@@ -198,7 +198,7 @@ class PoolChannel(ChannelObject):
     def poll(self):
         try:
             value = self.device.read_attribute(self.attributeName).value
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "%s: could not poll attribute %s", str(self.name()), self.attributeName
             )
@@ -221,7 +221,7 @@ class PoolChannel(ChannelObject):
         """Called when polling has failed"""
         try:
             s = self.device.State()
-        except BaseException:
+        except Exception:
             pass
             # logging.getLogger("HWR").exception("Could not read State attribute")
         else:

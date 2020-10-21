@@ -24,7 +24,7 @@ class ID30Light(Device, AbstractMotor):
 
         try:
             self._state = self.wago_controller.get(self.command_key)
-        except BaseException:
+        except Exception:
             self._state = None
         # self.wago_polling = gevent.spawn(self._wago_polling, self.command_key)
         self.setIsReady(True)
@@ -33,7 +33,7 @@ class ID30Light(Device, AbstractMotor):
         while True:
             try:
                 reading = int(self.wago_controller.get(key))
-            except BaseException:
+            except Exception:
                 time.sleep(1)
                 continue
             if self._state != reading:

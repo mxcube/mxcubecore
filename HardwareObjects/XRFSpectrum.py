@@ -69,7 +69,7 @@ class XRFSpectrum(Equipment):
     def isConnected(self):
         try:
             return self.doSpectrum.isConnected()
-        except BaseException:
+        except Exception:
             return False
 
     # Handler for spec connection
@@ -181,7 +181,7 @@ class XRFSpectrum(Equipment):
     def reallyStartXrfSpectrum(self, ct, filename):
         try:
             res = self._doSpectrum(ct, filename, wait=True)
-        except BaseException:
+        except Exception:
             logging.getLogger("user_level_log").exception(
                 "XRFSpectrum: problem calling procedure"
             )
@@ -262,7 +262,7 @@ class XRFSpectrum(Equipment):
             if os.path.isfile(pngfile) is True:
                 try:
                     shutil.copyfile(pngfile, self.spectrumInfo["jpegScanFileFullPath"])
-                except BaseException:
+                except Exception:
                     logging.getLogger().error("XRFSpectrum: cannot copy %s", pngfile)
 
             # copy raw data file to the archive directory
@@ -297,7 +297,7 @@ class XRFSpectrum(Equipment):
             return
         try:
             session_id = int(self.spectrumInfo["sessionId"])
-        except BaseException:
+        except Exception:
             return
         blsampleid = self.spectrumInfo["blSampleId"]
 
@@ -311,7 +311,7 @@ class XRFSpectrum(Equipment):
             try:
                 self.curr = self.energySpectrumArgs.getValue()
                 return self.curr
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     "XRFSpectrum: error getting xrfspectrum parameters"
                 )

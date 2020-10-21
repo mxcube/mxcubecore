@@ -202,7 +202,7 @@ class MD2MultiCollect(ESRFMultiCollect):
                         ),
                         dest,
                     )
-        except BaseException:
+        except Exception:
             logging.exception("Exception happened while copying geo_corr files")
 
         return ESRFMultiCollect.write_input_files(self, datacollection_id)

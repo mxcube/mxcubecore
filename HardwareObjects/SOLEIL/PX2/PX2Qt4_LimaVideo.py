@@ -52,7 +52,7 @@ from Qt4_LimaVideo import Qt4_LimaVideo
 
 try:
     from Lima import Core
-except BaseException:
+except Exception:
     pass
 
 try:
