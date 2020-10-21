@@ -559,11 +559,12 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def data_collection_cleanup(self):
         try:
+            self.close_fast_shutter()
             self.stop_oscillation()
             HWR.beamline.detector.stop_acquisition()
             HWR.beamline.diffractometer.set_phase("Centring", wait=True, timeout=200)
-        finally:
-            self.close_fast_shutter()
+        except Exception:
+            logging.getLogger("HWR").exception("")
 
     @task
     def close_fast_shutter(self):
