@@ -104,11 +104,6 @@ class MD2MultiCollect(ESRFMultiCollect):
         # diffr.getObjectByRole("FrontLight").set_value(2)
 
     @task
-    def data_collection_cleanup(self):
-        self.getObjectByRole("diffractometer")._wait_ready(10)
-        self.close_fast_shutter()
-
-    @task
     def oscil(self, start, end, exptime, npass, wait=True):
         diffr = self.getObjectByRole("diffractometer")
         if self.helical:
