@@ -224,3 +224,6 @@ class LimaEigerDetector(AbstractDetector):
 
     def reset(self):
         self.stop_acquisition()
+        
+    def recover_from_failure(self):
+        pass
