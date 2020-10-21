@@ -730,7 +730,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             self.ruche_hwo.trigger_sync(self.escan_archivepng)
 
     # Elements commands
-    def getElements(self):
+    def get_elements(self):
         elements = []
         try:
             for el in self["elements"]:
@@ -739,15 +739,15 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             pass
         return elements
 
-    def getDefaultMadEnergies(self):
-        # this does not seem to be used anywhere
-        energies = []
-        try:
-            for el in self["mad"]:
-                energies.append([float(el.energy), el.directory])
-        except IndexError:
-            pass
-        return energies
+    # def getDefaultMadEnergies(self):
+    #     # this does not seem to be used anywhere
+    #     energies = []
+    #     try:
+    #         for el in self["mad"]:
+    #             energies.append([float(el.energy), el.directory])
+    #     except IndexError:
+    #         pass
+    #     return energies
 
     def get_scan_data(self):
         if self.test_data_mode:
@@ -781,5 +781,5 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
 def test_hwo(scan):
     print("ELEMENTS:")
     print("---------")
-    print(scan.getElements())
+    print(scan.get_elements())
     print(scan.get_scan_data())

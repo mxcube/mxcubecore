@@ -18,7 +18,7 @@ class BIOMAXAperture(MicrodiffAperture):
         if self.aperture_position is not None:
             self.connect(self.aperture_position, "update", self.position_changed)
 
-        self.get_diameter_size_list = self.getPredefinedPositionsList
+        self.get_diameter_size_list = self.get_predefined_positions_list
         self.set_position = self.moveToPosition
 
     def moveToPosition(self, positionName):

@@ -212,7 +212,7 @@ def test_hwo(hwo):
 
 
 def test():
-    hwr = HWR.getHardwareRepository()
+    hwr = HWR.get_hardware_repository()
     hwr.connect()
 
     db = HWR.beamline.lims

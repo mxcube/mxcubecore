@@ -91,15 +91,15 @@ class MAXIVMD2Camera(Device):
     def gainExists(self):
         return False
 
-    def getWidth(self):
+    def get_width(self):
         return 768  # JN ,20140807,adapt the MD2 screen to mxCuBE2
         return 659
 
-    def getHeight(self):
+    def get_height(self):
         return 576  # JN ,20140807,adapt the MD2 screen to mxCuBE2
         return 493
 
-    def setLive(self, state):
+    def set_live(self, state):
         self.liveState = state
         return True
 

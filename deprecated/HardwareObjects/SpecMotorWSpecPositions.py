@@ -50,8 +50,8 @@ class SpecMotorWSpecPositions(SpecMotor.SpecMotor):
             )
         )
 
-    def motorPositionChanged(self, channelValue):
-        SpecMotor.SpecMotor.motorPositionChanged.__func__(self, channelValue)
+    def motor_positions_changed(self, channelValue):
+        SpecMotor.SpecMotor.motor_positions_changed.__func__(self, channelValue)
 
         pos = float(channelValue)
 
@@ -63,7 +63,7 @@ class SpecMotorWSpecPositions(SpecMotor.SpecMotor):
                 self.emit("predefinedPositionChanged", (positionName, pos))
                 break
 
-    def getPredefinedPositionsList(self):
+    def get_predefined_positions_list(self):
         return self.predefinedPositionsNamesList
 
     def moveToPosition(self, positionName):

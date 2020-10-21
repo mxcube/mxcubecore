@@ -86,14 +86,14 @@ class MachInfoMockup(Equipment):
 
             self.emit("machInfoChanged", values)
 
-    def getCurrent(self):
+    def get_current(self):
         return self.current
 
     def getLifeTime(self):
         return self.lifetime
 
-    def getTopUpRemaining(self):
-        return self.topup_remaining
+    # def getTopUpRemaining(self):
+    #     return self.topup_remaining
 
     def getMessage(self):
         return self.message
@@ -102,12 +102,12 @@ class MachInfoMockup(Equipment):
 def test():
     import sys
 
-    hwr = HWR.getHardwareRepository()
+    hwr = HWR.get_hardware_repository()
     hwr.connect()
 
     conn = hwr.get_hardware_object(sys.argv[1])
 
-    print(("Machine current: ", conn.getCurrent()))
+    print(("Machine current: ", conn.get_current()))
     print(("Life time: ", conn.getLifeTime()))
     print(("TopUp remaining: ", conn.getTopUpRemaining()))
     print(("Message: ", conn.getMessage()))

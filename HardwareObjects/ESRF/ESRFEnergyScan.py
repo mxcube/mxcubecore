@@ -167,7 +167,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
             raise RuntimeError("Cannot move energy")
 
     # Elements commands
-    def getElements(self):
+    def get_elements(self):
         elements = []
         try:
             for el in self["elements"]:
