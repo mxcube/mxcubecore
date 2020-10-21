@@ -118,8 +118,8 @@ class QtLimaVideo(AbstractVideoDevice):
         if self.cam_type == "prosilica":
             return list(self.camera.getMaxWidthHeight())
         elif self.cam_type == "basler":
-            width = self.camera.getRoi().getSize().getWidth()
-            height = self.camera.getRoi().getSize().getHeight()
+            width = self.camera.getRoi().getSize().get_width()
+            height = self.camera.getRoi().getSize().get_height()
             return [width, height]
         else:
             return [None, None]

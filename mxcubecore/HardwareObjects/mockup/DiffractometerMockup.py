@@ -107,12 +107,6 @@ class DiffractometerMockup(GenericDiffractometer):
             self.motor_hwobj_dict["sampy"], "valueChanged", self.sampy_motor_moved
         )
 
-    def getStatus(self):
-        """
-        Descript. :
-        """
-        return "ready"
-
     def execute_server_task(self, method, timeout=30, *args):
         return
 

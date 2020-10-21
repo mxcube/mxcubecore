@@ -58,7 +58,7 @@ class SOLEILRuche(HardwareObject):
 def test():
     import sys
 
-    hwr = HWR.getHardwareRepository()
+    hwr = HWR.get_hardware_repository()
     hwr.connect()
 
     ruche = hwr.get_hardware_object("/ruche")

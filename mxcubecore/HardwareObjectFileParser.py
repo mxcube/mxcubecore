@@ -122,10 +122,10 @@ def instanciate_class(module_name, class_name, object_name):
 
                     xml_structure_retriever = XmlStructureRetriever()
                     xml.sax.parseString(CURRENT_XML, xml_structure_retriever)
-                    current_structure = xml_structure_retriever.getStructure()
+                    current_structure = xml_structure_retriever.get_structure()
                     xml_structure_retriever = XmlStructureRetriever()
                     xml.sax.parseString(xml_template, xml_structure_retriever)
-                    template_structure = xml_structure_retriever.getStructure()
+                    template_structure = xml_structure_retriever.get_structure()
 
                     if not template_structure == current_structure:
                         logging.getLogger("HWR").error(
@@ -449,7 +449,7 @@ class XmlStructureRetriever(ContentHandler):
         self.current_attributes = set()
         self.structure = XMLStructure()
 
-    def getStructure(self):
+    def get_structure(self):
         """[summary]
 
         Returns:

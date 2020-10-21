@@ -163,7 +163,7 @@ class BIOMAXMD3(GenericDiffractometer):
                 }
             )
             if self.in_plate_mode():
-                dynamic_limits = self.phi_motor_hwobj.getDynamicLimits()
+                dynamic_limits = self.phi_motor_hwobj.get_dynamic_limits()
                 if click == 0:
                     self.phi_motor_hwobj.set_value(dynamic_limits[0])
                 elif click == 1:
@@ -229,7 +229,7 @@ class BIOMAXMD3(GenericDiffractometer):
                         if -1 in (x, y):
                             continue
                         if y >= 0:
-                            if x < HWR.beamline.sample_view.camera.getWidth() / 2:
+                            if x < HWR.beamline.sample_view.camera.get_width() / 2:
                                 x = 0
                                 self.centring_hwobj.appendCentringDataPoint(
                                     {
@@ -241,7 +241,7 @@ class BIOMAXMD3(GenericDiffractometer):
                                 )
                                 break
                             else:
-                                x = HWR.beamline.sample_view.camera.getWidth()
+                                x = HWR.beamline.sample_view.camera.get_width()
                                 self.centring_hwobj.appendCentringDataPoint(
                                     {
                                         "X": (x - self.beam_position[0])
@@ -283,7 +283,7 @@ class BIOMAXMD3(GenericDiffractometer):
             info, y, x = lucid.find_loop(
                 np.array(img_rot, order="C"), IterationClosing=6
             )
-            x = HWR.beamline.sample_view.camera.getWidth() - x
+            x = HWR.beamline.sample_view.camera.get_width() - x
         except Exception:
             return -1, -1, 0
         if info == "Coord":

@@ -90,7 +90,7 @@ class MotorWPositions(AbstractMotor, Device):
     def get_limits(self):
         return (1, len(self.predefined_positions))
 
-    def getPredefinedPositionsList(self):
+    def get_predefined_positions_list(self):
         return sorted(self.predefined_positions.keys())
         # return self.predefined_positions
 

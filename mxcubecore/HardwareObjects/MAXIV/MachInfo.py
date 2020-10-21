@@ -119,7 +119,7 @@ class MachInfo(Equipment):
             self.emit("machInfoChanged", values)
             self.emit("valueChanged", values)
 
-    def getCurrent(self):
+    def get_current(self):
         return self.current
 
     def getLifeTime(self):
@@ -135,12 +135,12 @@ class MachInfo(Equipment):
 def test():
     import sys
 
-    hwr = HWR.getHardwareRepository()
+    hwr = HWR.get_hardware_repository()
     hwr.connect()
 
     conn = hwr.get_hardware_object(sys.argv[1])
 
-    print("Machine current: ", conn.getCurrent())
+    print("Machine current: ", conn.get_current())
     print("Life time: ", conn.getLifeTime())
     print("TopUp remaining: ", conn.getTopUpRemaining())
     print("Message: ", conn.getMessage())
