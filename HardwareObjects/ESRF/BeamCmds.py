@@ -105,7 +105,7 @@ class ControllerCommand(BaseBeamlineAction):
             try:
                 res = cmd_execution.get()
                 res = res if res else ""
-            except BaseException:
+            except Exception:
                 self.emit("commandFailed", (str(self.name()),))
             else:
                 if isinstance(res, gevent.GreenletExit):
@@ -186,7 +186,7 @@ class HWObjActuatorCommand(CommandObject):
         """
         try:
             res = self._hwobj.get_value().name
-        except BaseException:
+        except Exception:
             self.emit("commandFailed", (str(self.name()),))
         else:
             if isinstance(res, gevent.GreenletExit):

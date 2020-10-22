@@ -1,6 +1,6 @@
 import logging
-import os.path
 import numpy
+import os.path
 
 from HardwareRepository.HardwareObjects.XRFSpectrum import XRFSpectrum
 
@@ -12,6 +12,12 @@ except ImportError:
     from PyMca5.PyMca import ConfigDict
     from PyMca5.PyMca import ClassMcaTheory
     from PyMca5.PyMca import QtMcaAdvancedFitReport
+
+"""
+Next two lines is a trick to avoid core dump in QtMcaAdvancedFitReport
+"""
+from unittest.mock import MagicMock
+QtMcaAdvancedFitReport.qt = MagicMock()
 
 
 class ID29XRFSpectrum(XRFSpectrum):
@@ -27,19 +33,14 @@ class ID29XRFSpectrum(XRFSpectrum):
     def preset_mca(self, ctime=5, fname=None):
         self.mca_hwobj.set_roi(2, 15, channel=1)
         self.mca_hwobj.set_presets(erange=1, ctime=ctime, fname=str(fname))
+        self.ctrl_hwobj.mca.set_roi(2, 15, channel=1)
+        self.ctrl_hwobj.mca.set_presets(erange=1, ctime=ctime, fname=str(fname))
+                            
 
-    def _doSpectrum(self, ctime, filename, wait=True):
-        self.choose_attenuation(ctime, filename)
+    def _doSpectrum(self, ct, filename, wait=True):
+        self.choose_attenuation(ct, filename)
 
     def choose_attenuation(self, ctime=5, fname=None):
-        """Choose appropriate maximum attenuation.
-        Args:
-            ctime (float): count time [s]
-        Kwargs:
-            fname (str): Filename to save the MCA data (full path)
-        Returns:
-            (bool): Procedure executed correcly (True) or error (False)
-        """
         res = True
         if not fname:
             fname = self.spectrumInfo["filename"]
@@ -48,38 +49,34 @@ class ID29XRFSpectrum(XRFSpectrum):
         self.preset_mca(ctime, fname)
 
         # put the detector name
-        self.spectrumInfo["fluorescenceDetector"] = self.mca_hwobj.getProperty(
-            "username"
-        )
+        # self.spectrumInfo['fluorescenceDetector'] = self.mca_hwobj.getProperty('username')
 
-        self.ctrl_hwobj.detcover.set_in(20)
+        self.ctrl_hwobj.detcover.set_in()
         try:
-            _transm = self.ctrl_hwobj.find_max_attenuation(
+            tt = self.ctrl_hwobj.find_max_attenuation(
                 ctime=ctime, fname=fname, roi=[2.0, 15.0]
             )
-            self.spectrumInfo["beamTransmission"] = _transm
-        except BaseException as exp:
-            logging.getLogger("user_level_log").exception(str(exp))
+            self.spectrumInfo["beamTransmission"] = tt
+        except Exception as e:
+            logging.getLogger("user_level_log").exception(str(e))
             res = False
 
         return res
 
-    def _findAttenuation(self, ctime=5):
-        return self.choose_attenuation(ctime)
+    def _findAttenuation(self, ct=5):
+        return self.choose_attenuation(ct)
 
     """
     Next methods are for fitting the data with pymca
     """
+    """
+    The configuration is time consuming. It is only executed if the last
+    configuration file is not the same.
+    """
 
-    def mcafit_configuration(self, config=None):
-        """Configure the fitting parameters. The procedure is time consuming.
-           It is only executed if the last configuration file is not the same.
-        Args:
-            config(dict): Configuration dictionary, containing among others the
-                          configuration file name.
-        """
+    def mcafit_configuration(self, config={}):
         change = False
-        if not config or "file" not in config:
+        if "file" not in config:
             fname = XRFSpectrum._get_cfgfile(self, self.spectrumInfo["energy"])
         else:
             fname = config["file"]
@@ -104,29 +101,21 @@ class ID29XRFSpectrum(XRFSpectrum):
         if change:
             self.mcafit.configure(self.config)
 
-    def set_data(self, data, calib=None, config=None):
-        """Execute the fitting. Write the fitted data files to pyarch.
-        Args:
-            data (list): The raw data.
-            calib (list): The mca calibration.
-            config (dict): The configuration dictionary.
-        """
+    def set_data(self, data, calib=None, config={}):
         if config:
             self.mcafit_configuration(config)
         try:
             if data[0].size == 2:
-                xdata = numpy.array(data[:, 0]) * 1.0
-                ydata = numpy.array(data[:, 1])
+                x = numpy.array(data[:, 0]) * 1.0
+                y = numpy.array(data[:, 1])
             else:
-                xdata = data[0] * 1.0
-                ydata = data[1]
-            # xmin and xmax hard coded while waiting for configuration file
-            # to be corrected.
-            # xmin = int(config["min"])
-            # xmax = int(config["max"])
-            xmin = 292
+                x = data[0] * 1.0
+                y = data[1]
+            #xmin = float(config["min"])
+            #xmax = float(config["max"])
+            xmin = 292 
             xmax = 4000
-            self.mcafit.setData(xdata, ydata, xmin=xmin, xmax=xmax, calibration=calib)
+            self.mcafit.setData(x, y, xmin=xmin, xmax=xmax, calibration=calib)
 
             self.mcafit.estimate()
             # fitresult  = self._fit()
@@ -138,33 +127,26 @@ class ID29XRFSpectrum(XRFSpectrum):
                 # write the csv file to pyarch
                 csvname = self.spectrumInfo["fittedDataFileFullPath"]
                 self._write_csv_file(fitresult, csvname)
-
                 # write html report to pyarch
-                fname = os.path.basename(self.spectrumInfo["filename"])
-                outfile = fname.split(".")[0]
+                fn = os.path.basename(self.spectrumInfo["filename"])
+                outfile = fn.split(".")[0]
                 outdir = os.path.dirname(self.spectrumInfo["annotatedPymcaXfeSpectrum"])
 
-                _kw = {
+                kw = {
                     "outdir": outdir,
                     "outfile": outfile,
                     "fitresult": fitresult,
                     "plotdict": {"logy": False},
                 }
 
-                report = QtMcaAdvancedFitReport.QtMcaAdvancedFitReport(**_kw)
+                report = QtMcaAdvancedFitReport.QtMcaAdvancedFitReport(**kw)
                 text = report.getText()
                 report.writeReport(text=text)
-        except Exception as exp:
-            logging.getLogger().exception("XRFSpectrum: problem fitting %s" % str(exp))
+        except Exception as e:
+            logging.getLogger().exception("XRFSpectrum: problem fitting %s" % str(e))
             raise
 
     def _write_csv_file(self, fitresult, fname=None):
-        """Write data to a csv file.
-        Args:
-            fitresult(dict): Data as dictionary.
-        Kwargs:
-            fname (str): Filename to write to (full path).
-        """
         if not fname:
             fname = self.spectrumInfo["fittedDataFileFullPath"]
         if os.path.exists(fname):
@@ -190,7 +172,6 @@ class ID29XRFSpectrum(XRFSpectrum):
                 peaks_dict[label] = ymatrix
             peaks_dict[label].shape = (len(peaks_dict[label]),)
             parameters[idx] = 0.0
-
         delimiter = ","
         header = '"channel"%s"Energy"%s"counts"%s"fit"%s"continuum"%s"pileup"' % (
             delimiter,
@@ -199,7 +180,6 @@ class ID29XRFSpectrum(XRFSpectrum):
             delimiter,
             delimiter,
         )
-
         # add the peaks labels
         for key in peaks_dict:
             header += delimiter + ('"%s"' % key)

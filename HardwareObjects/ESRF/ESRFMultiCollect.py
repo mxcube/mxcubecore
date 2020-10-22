@@ -559,11 +559,12 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def data_collection_cleanup(self):
         try:
+            self.close_fast_shutter()
             self.stop_oscillation()
             HWR.beamline.detector.stop_acquisition()
             HWR.beamline.diffractometer.set_phase("Centring", wait=True, timeout=200)
-        finally:
-            self.close_fast_shutter()
+        except Exception:
+            logging.getLogger("HWR").exception("")
 
     @task
     def close_fast_shutter(self):
@@ -658,8 +659,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         )
 
     @task
-    def set_detector_filenames(self, frame_number, start, filename, shutterless):
-        if frame_number == 1 or not shutterless:
+    def set_detector_filenames(self, is_first_frame, frame_number, start, filename, shutterless):
+        if is_first_frame or not shutterless:
             return self._detector.set_detector_filenames(frame_number, start, filename)
 
     def stop_oscillation(self):
@@ -735,7 +736,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             except os.error as e:
                 if e.errno != errno.EEXIST:
                     raise
-        except BaseException:
+        except Exception:
             logging.exception("Could not create processing file directory")
 
         return autoprocessing_directory, "", ""
@@ -829,7 +830,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
         try:
             _gaps = HWR.beamline.undulators
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("Could not get undulator gaps")
         all_gaps.clear()
         for key in _gaps:
@@ -862,14 +863,14 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     #     try:
     #         val = self.get_channel_object("image_intensity").getValue()
     #         return float(val)
-    #     except BaseException:
+    #     except Exception:
     #         return 0
 
     def get_machine_current(self):
         if HWR.beamline.machine_info:
             try:
                 return HWR.beamline.machine_info.getCurrent()
-            except BaseException:
+            except Exception:
                 return -1
         else:
             return 0
@@ -959,7 +960,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             else:
                 beamline = directories[2]
                 proposal = directories[4]
-        except BaseException:
+        except Exception:
             beamline = "unknown"
             proposal = "unknown"
         host, port = self.getProperty("bes_jpeg_hostport").split(":")

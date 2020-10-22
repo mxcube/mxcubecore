@@ -36,7 +36,7 @@ class CommandObject:
     def connect(self, signalName, callableFunc):
         try:
             dispatcher.disconnect(callableFunc, signalName, self)
-        except BaseException:
+        except Exception:
             pass
         dispatcher.connect(callableFunc, signalName, self)
 
@@ -85,14 +85,14 @@ class ChannelObject:
     def connectSignal(self, signalName, callableFunc):
         try:
             dispatcher.disconnect(callableFunc, signalName, self)
-        except BaseException:
+        except Exception:
             pass
         dispatcher.connect(callableFunc, signalName, self)
 
     def disconnectSignal(self, signalName, callableFunc):
         try:
             dispatcher.disconnect(callableFunc, signalName, self)
-        except BaseException:
+        except Exception:
             pass
 
     def connectNotify(self, signal):
@@ -188,7 +188,7 @@ class CommandContainer:
                 from HardwareRepository.Command.Spec import SpecChannel
 
                 newChannel = SpecChannel(channelName, channel, **attributesDict)
-            except BaseException:
+            except Exception:
                 logging.getLogger().error(
                     "%s: cannot add channel %s (hint: check attributes)",
                     self.name(),
@@ -205,7 +205,7 @@ class CommandContainer:
                 from HardwareRepository.Command.Taco import TacoChannel
 
                 newChannel = TacoChannel(channelName, channel, **attributesDict)
-            except BaseException:
+            except Exception:
                 logging.getLogger().error(
                     "%s: cannot add channel %s (hint: check attributes)",
                     self.name(),
@@ -229,7 +229,7 @@ class CommandContainer:
                     attributesDict["tangoname"],
                 )
                 raise ConnectionError
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     "%s: cannot add channel %s (hint: check attributes)",
                     self.name(),
@@ -251,7 +251,7 @@ class CommandContainer:
                 from HardwareRepository.Command.Exporter import ExporterChannel
 
                 newChannel = ExporterChannel(channelName, channel, **attributesDict)
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     "%s: cannot add exporter channel %s (hint: check attributes)",
                     self.name(),
@@ -262,7 +262,7 @@ class CommandContainer:
                 from HardwareRepository.Command.Epics import EpicsChannel
 
                 newChannel = EpicsChannel(channelName, channel, **attributesDict)
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     "%s: cannot add EPICS channel %s (hint: check PV name)",
                     self.name(),
@@ -279,7 +279,7 @@ class CommandContainer:
                 from HardwareRepository.Command.Tine import TineChannel
 
                 newChannel = TineChannel(channelName, channel, **attributesDict)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "%s: cannot add TINE channel %s (hint: check attributes)",
                     self.name(),
@@ -308,7 +308,7 @@ class CommandContainer:
                     channelName, channel, uribase=uribase, **attributesDict
                 )
                 logging.getLogger().debug("Created")
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     "%s: cannot add SARDANA channel %s (hint: check PV name)",
                     self.name(),
@@ -326,7 +326,7 @@ class CommandContainer:
                 from HardwareRepository.Command.Mockup import MockupChannel
 
                 newChannel = MockupChannel(channelName, channel, **attributesDict)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "%s: cannot add Mockup channel %s (hint: check attributes)",
                     self.name(),
@@ -417,7 +417,7 @@ class CommandContainer:
                 from HardwareRepository.Command.Spec import SpecCommand
 
                 newCommand = SpecCommand(cmdName, cmd, **attributesDict)
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
                     self.name(),
@@ -434,7 +434,7 @@ class CommandContainer:
                 from HardwareRepository.Command.Taco import TacoCommand
 
                 newCommand = TacoCommand(cmdName, cmd, **attributesDict)
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
                     self.name(),
@@ -457,7 +457,7 @@ class CommandContainer:
                     attributesDict["tangoname"],
                 )
                 raise ConnectionError
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
                     self.name(),
@@ -480,7 +480,7 @@ class CommandContainer:
                 from HardwareRepository.Command.Exporter import ExporterCommand
 
                 newCommand = ExporterCommand(cmdName, cmd, **attributesDict)
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     "%s: cannot add command %s (hint: check attributes)",
                     self.name(),
@@ -491,7 +491,7 @@ class CommandContainer:
                 from HardwareRepository.Command.Epics import EpicsCommand
 
                 newCommand = EpicsCommand(cmdName, cmd, **attributesDict)
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     "%s: cannot add EPICS channel %s (hint: check PV name)",
                     self.name(),
@@ -560,7 +560,7 @@ class CommandContainer:
                         attributesDict["doorname"],
                     )
                     raise ConnectionError
-                except BaseException:
+                except Exception:
                     logging.getLogger().exception(
                         '%s: could not add command "%s" (hint: check command attributes)',
                         self.name(),
@@ -576,7 +576,7 @@ class CommandContainer:
                         taurusname,
                     )
                     raise ConnectionError
-                except BaseException:
+                except Exception:
                     logging.getLogger().exception(
                         '%s: could not add command "%s" (hint: check command attributes)',
                         self.name(),
@@ -604,7 +604,7 @@ class CommandContainer:
                     attributesDict["tangoname"],
                 )
                 raise ConnectionError
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
                     self.name(),
@@ -621,7 +621,7 @@ class CommandContainer:
                 from HardwareRepository.Command.Tine import TineCommand
 
                 newCommand = TineCommand(cmdName, cmd, **attributesDict)
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
                     self.name(),
@@ -633,7 +633,7 @@ class CommandContainer:
                 from HardwareRepository.Command.Mockup import MockupCommand
 
                 newCommand = MockupCommand(cmdName, cmd, **attributesDict)
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
                     self.name(),

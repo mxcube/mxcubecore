@@ -57,7 +57,7 @@ class TINEMotor(AbstractMotor):
             try:
                 if self.getProperty("default_limits"):
                     self.update_limits(eval(self.getProperty("default_limits")))
-            except BaseException:
+            except Exception:
                 pass
 
         self.chan_position = self.get_channel_object("axisPosition")
@@ -86,7 +86,7 @@ class TINEMotor(AbstractMotor):
 
         try:
             self.step_limits = eval(self.getProperty("stepLimits"))
-        except BaseException:
+        except Exception:
             pass
 
     def connected(self):

@@ -118,7 +118,7 @@ class LimaEigerDetector(AbstractDetector):
             self.header["Kappa"] = "%0.4f deg." % diffractometer_positions.get(
                 "kappa", -9999
             )
-        except BaseException:
+        except Exception:
             self.header["Phi"] = "0.0000 deg."
             self.header["Kappa"] = "0.0000 deg."
         self.header["Alpha"] = "0.0000 deg."
@@ -217,10 +217,13 @@ class LimaEigerDetector(AbstractDetector):
     def stop_acquisition(self):
         try:
             self.get_command_object("stop_acq")()
-        except BaseException:
+        except Exception:
             pass
         time.sleep(1)
         self.get_command_object("reset")()
 
     def reset(self):
         self.stop_acquisition()
+        
+    def recover_from_failure(self):
+        pass

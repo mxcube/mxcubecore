@@ -144,7 +144,7 @@ class EMBLMotorsGroup(Device):
             )
             self.chan_positions.connectSignal("update", self.positions_changed)
             self.positions_changed(self.chan_positions.getValue())
-        except BaseException:
+        except Exception:
             msg = "EMBLMotorsGroup: unable to add channel %s/%s %s" % (
                 self.server_address,
                 self.group_address,
@@ -163,7 +163,7 @@ class EMBLMotorsGroup(Device):
             )
             self.chan_status.connectSignal("update", self.status_changed)
             self.status_changed(self.chan_status.getValue())
-        except BaseException:
+        except Exception:
             msg = "EMBLMotorsGroup: unable to add channel %s/%s %s" % (
                 self.server_address,
                 self.group_address,
