@@ -16,7 +16,7 @@ sys.path.insert(0, MXCUBE_DIR)
 
 # hwr_path = os.path.join(HWR_DIR, "configuration/test")
 # HWR.init_hardware_repository(hwr_path)
-# hwr = HWR.getHardwareRepository()
+# hwr = HWR.get_hardware_repository()
 # hwr.connect()
 
 

@@ -115,7 +115,7 @@ def test_hwo():
 
     from HardwareRepository import HardwareRepository as HWR
 
-    hwr = HWR.getHardwareRepository()
+    hwr = HWR.get_hardware_repository()
     hwr.connect()
 
     hwo = hwr.get_hardware_object("/singleton_objects/limavideo")

@@ -34,6 +34,8 @@ except ImportError:
 
 from HardwareRepository.HardwareObjects import queue_model_enumerables
 
+from HardwareRepository import HardwareRepository as HWR
+
 
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
@@ -2004,15 +2006,14 @@ class GphlWorkflow(TaskNode):
         return self.path_template
 
     def get_workflow_parameters(self):
-        pass
-        # result = HWR.beamline.gphl_workflow.get_available_workflows().get(
-        #    self.get_type()
-        # )
-        # if result is None:
-        #    raise RuntimeError(
-        #        "No parameters for unknown workflow %s" % repr(self.get_type())
-        #    )
-        # return result
+        result = HWR.beamline.gphl_workflow.get_available_workflows().get(
+           self.get_type()
+        )
+        if result is None:
+           raise RuntimeError(
+               "No parameters for unknown workflow %s" % repr(self.get_type())
+           )
+        return result
 
 
 class XrayImaging(TaskNode):

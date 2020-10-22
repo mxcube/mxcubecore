@@ -23,7 +23,6 @@ from __future__ import print_function, unicode_literals
 
 __copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
-__author__ = "rhfogh"
 __date__ = "09/04/2020"
 
 import abc

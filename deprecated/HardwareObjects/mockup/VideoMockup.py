@@ -1,34 +1,15 @@
 """
-[Name] VaporyVideo
-
-[Description]
-Hardware object to simulate video with loop object. Hardware object is based
-on a LimaVideo hardware object. It contains SimulatedLoop class that could
-be used to display and navigate loop.
-At this version vapory generates image each second and stores in /tmp.
-At first look there is no direct conversion from vapory scene to qimage.
-
-[Channels]
-
-[Commands]
-
-[Emited signals]
-
- - imageReceived : emits qimage to bricks
-
-[Included Hardware Objects]
+Descript. :
 """
-
-
+import os
 import time
 import gevent
-import vapory
 from gui.utils.QtImport import QImage
 from HardwareRepository import BaseHardwareObjects
 from HardwareRepository.HardwareObjects.Camera import JpegType
 
 
-class VaporyVideo(BaseHardwareObjects.Device):
+class VideoMockup(BaseHardwareObjects.Device):
     """
     Descript. :
     """
@@ -48,45 +29,15 @@ class VaporyVideo(BaseHardwareObjects.Device):
         """
         Descript. :
         """
-        self.vapory_camera = vapory.Camera("location", [0, 2, -3], "look_at", [0, 1, 2])
-        self.vapory_light = vapory.LightSource([2, 4, -3], "color", [1, 1, 1])
-
-        self.simulated_loop = SimulatedLoop()
-        self.simulated_loop.set_position(0, 0, 0)
-
+        self.qimage = QImage()
+        current_path = os.path.dirname(os.path.abspath(__file__)).split(os.sep)
+        current_path = os.path.join(*current_path[1:-1])
+        image_path = os.path.join("/", current_path, "ExampleFiles/fakeimg.jpg")
+        self.qimage.load(image_path)
         self.force_update = False
         self.image_dimensions = [600, 400]
         self.image_type = JpegType()
         self.set_is_ready(True)
-        self.generate_image()
-
-        self.image_polling = gevent.spawn(self._do_imagePolling, 1)
-
-    def rotate_scene_absolute(self, angle):
-        self.simulated_loop.set_position(angle, 0, 0)
-        self.generate_image()
-
-    def rotate_scene_relative(self, angle):
-        return
-
-    def generate_image(self):
-        self.vapory_sene = vapory.Scene(
-            self.vapory_camera,
-            objects=[self.vapory_light, self.simulated_loop.loop_object],
-        )
-        image_array = self.vapory_sene.render(
-            "/tmp/vapory_tmp_image.png",
-            width=self.image_dimensions[0],
-            height=self.image_dimensions[1],
-        )
-        self.qimage = QImage("/tmp/vapory_tmp_image.png")
-        self.emit(
-            "imageReceived",
-            self.qimage,
-            self.qimage.width(),
-            self.qimage.height(),
-            self.force_update,
-        )
 
     def imageType(self):
         """
@@ -212,13 +163,8 @@ class VaporyVideo(BaseHardwareObjects.Device):
         """
         Descript. :
         """
+        self.image_dimensions = (self.qimage.width(), self.qimage.height())
         while True:
-            image_array = self.vapory_sene.render(
-                "/tmp/vapory_tmp_image.png",
-                width=self.image_dimensions[0],
-                height=self.image_dimensions[1],
-            )
-            self.qimage = QImage("/tmp/vapory_tmp_image.png")
             self.emit(
                 "imageReceived",
                 self.qimage,
@@ -228,11 +174,9 @@ class VaporyVideo(BaseHardwareObjects.Device):
             )
             time.sleep(sleep_time)
 
-
-class SimulatedLoop:
-    def __init__(self):
-        self.texture = vapory.Texture(vapory.Pigment("color", [1, 0, 1]))
-        self.loop_object = vapory.Box([0, 0, 0], 2, self.texture)
-
-    def set_position(self, x, y, z):
-        self.loop_object.args = [[x, y, z], 2, self.texture]
+    def connect_notify(self, signal):
+        """
+        Descript. :
+        """
+        if signal == "imageReceived":
+            self.image_polling = gevent.spawn(self._do_imagePolling, 1)

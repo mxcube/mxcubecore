@@ -89,7 +89,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
             self.motorstate_channel = self.get_channel_object("motorstate")
 
             self.actuator_channel.connect_signal("update", self.stateChanged)
-            self.motorpos_channel.connect_signal("update", self.motorPositionChanged)
+            self.motorpos_channel.connect_signal("update", self.motor_positions_changed)
             self.motorstate_channel.connect_signal("update", self.motorStateChanged)
         except KeyError:
             logging.getLogger().warning("%s: cannot report FrontEnd State", self.name())
@@ -139,7 +139,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
         self.actuator_value = value
         self.update_state()
 
-    def motorPositionChanged(self, value):
+    def motor_positions_changed(self, value):
         self.motor_position = value
         self.update_state()
 

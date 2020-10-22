@@ -19,7 +19,7 @@ class SpecMotor(Device, SpecMotorA):
             elif signal == "limitsChanged":
                 self.motorLimitsChanged()
             elif signal == "valueChanged":
-                self.motorPositionChanged(self.get_value())
+                self.motor_positions_changed(self.get_value())
 
     def motorStateChanged(self, state):
         self.set_is_ready(state > SpecMotor.UNUSABLE)
@@ -41,7 +41,7 @@ class SpecMotor(Device, SpecMotorA):
         if self.get_state() == SpecMotor.READY:
             self.emit("moveDone", (self.specversion, self.specname))
 
-    def motorPositionChanged(self, absolutePosition):
+    def motor_positions_changed(self, absolutePosition):
         self.emit("valueChanged", (absolutePosition,))
 
     def syncQuestionAnswer(self, specSteps, controllerSteps):
