@@ -233,9 +233,9 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                 sample,
                 cpos if cpos != empty_cpos else None,
             )
-            HWR.beamline.collect.prepare_interleave(
-                interleave_item["data_model"], param_list
-            )
+            #HWR.beamline.collect.prepare_interleave(
+            #    interleave_item["data_model"], param_list
+            #)
 
         self.interleave_sw_list = queue_model_objects.create_interleave_sw(
             self.interleave_items, ref_num_images, interleave_num_images
@@ -249,11 +249,19 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                     "Subwedge %d:%d)"
                     % ((item_index + 1), len(self.interleave_sw_list)),
                 )
+
                 acq_par = (
                     self.interleave_items[item["collect_index"]]["data_model"]
                     .acquisitions[0]
                     .acquisition_parameters
                 )
+
+                acq_path_template = (
+                    self.interleave_items[item["collect_index"]]["data_model"]
+                    .acquisitions[0]
+                    .path_template
+                )
+
                 acq_first_image = acq_par.first_image
 
                 acq_par.first_image = item["sw_first_image"]
@@ -289,7 +297,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                     self.interleave_items[item["collect_index"]][
                         "queue_entry"
                     ].execute()
-                except BaseException:
+                except Exception:
                     pass
                 self.interleave_items[item["collect_index"]][
                     "queue_entry"
@@ -526,6 +534,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         pos = None
 
         shapes = list(HWR.beamline.sample_view.get_selected_shapes())
+
         if shapes:
             pos = shapes[0]
             if hasattr(pos, "get_centred_position"):
@@ -1008,7 +1017,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                 strategy_result = (
                     self.edna_result.getCharacterisationResult().getStrategyResult()
                 )
-            except BaseException:
+            except Exception:
                 strategy_result = None
 
             if strategy_result:
@@ -1258,7 +1267,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         energy_scan.result.title = title
         try:
             energy_scan.result.data = HWR.beamline.energy_scan.get_scan_data()
-        except BaseException:
+        except Exception:
             pass
 
         if (

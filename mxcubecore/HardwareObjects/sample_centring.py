@@ -226,7 +226,7 @@ def centre_plate1Click(
             USER_CLICKED_EVENT = gevent.event.AsyncResult()
             try:
                 x, y = USER_CLICKED_EVENT.get()
-            except BaseException:
+            except Exception:
                 raise RuntimeError("Aborted while waiting for point selection")
 
             # Move to beam
@@ -254,7 +254,7 @@ def centre_plate1Click(
 
             READY_FOR_NEXT_POINT.set()
             i += 1
-    except BaseException:
+    except Exception:
         logging.exception("Exception while centring")
         move_motors(SAVED_INITIAL_POSITIONS)
         raise
@@ -296,7 +296,7 @@ def centre_plate(
         while i < n_points:
             try:
                 x, y = USER_CLICKED_EVENT.get()
-            except BaseException:
+            except Exception:
                 raise RuntimeError("Aborted while waiting for point selection")
             USER_CLICKED_EVENT = gevent.event.AsyncResult()
             X.append(x / float(pixelsPerMm_Hor))
@@ -306,7 +306,7 @@ def centre_plate(
                 phi.set_value_relative(phi.direction * phi_angle, timeout=None)
             READY_FOR_NEXT_POINT.set()
             i += 1
-    except BaseException:
+    except Exception:
         logging.exception("Exception while centring")
         move_motors(SAVED_INITIAL_POSITIONS)
         raise
@@ -421,7 +421,7 @@ def center(
         while i < n_points:
             try:
                 x, y = USER_CLICKED_EVENT.get()
-            except BaseException:
+            except Exception:
                 raise RuntimeError("Aborted while waiting for point selection")
             USER_CLICKED_EVENT = gevent.event.AsyncResult()
             X.append(x / float(pixelsPerMm_Hor))
@@ -431,7 +431,7 @@ def center(
                 phi.set_value_relative(phi.direction * phi_angle, timeout=10)
             READY_FOR_NEXT_POINT.set()
             i += 1
-    except BaseException:
+    except Exception:
         logging.exception("Exception while centring")
         move_motors(SAVED_INITIAL_POSITIONS)
         raise
@@ -487,7 +487,7 @@ def end(centred_pos=None):
         centred_pos = CURRENT_CENTRING.get()
     try:
         move_motors(centred_pos)
-    except BaseException:
+    except Exception:
         logging.exception("Exception in centring 'end`, centred pos is %s", centred_pos)
         move_motors(SAVED_INITIAL_POSITIONS)
         raise
@@ -572,8 +572,6 @@ def auto_center(
     imgWidth = camera.get_width()
     imgHeight = camera.get_height()
 
-    logging.getLogger("user_level_log").info("Auto loop centering")
-
     # check if loop is there at the beginning
     i = 0
     while -1 in find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
@@ -605,7 +603,6 @@ def auto_center(
 
         for a in range(n_points):
             x, y = find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb)
-            logging.getLogger("user_level_log").info("Auto loop centering, found position (%f,%f)" %(x,y))
             # logging.info("in autocentre, x=%f, y=%f",x,y)
             if x < 0 or y < 0:
                 for i in range(1, 18):
@@ -632,13 +629,11 @@ def auto_center(
                 if -1 in (x, y):
                     centring_greenlet.kill()
                     raise RuntimeError("Could not centre sample automatically.")
-                    logging.getLogger("user_level_log").info("Could not centre sample automatically.")
                 phi.set_value_relative(-i * 5)
             else:
                 user_click(x, y, wait=True)
 
         centred_pos = centring_greenlet.get()
         end(centred_pos)
-        logging.getLogger("user_level_log").info("Auto loop centering, moving sample to %s" % str(centered_pos))
 
     return centred_pos

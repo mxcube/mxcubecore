@@ -27,13 +27,13 @@ class ESRFSC3(SC3.SC3):
             operationalChan = self.get_channel_object("OperationalFlags")
             chan = operationalChan.getValue()
             operationalChan.connectSignal("update", self.operationalFlagsChanged)
-        except BaseException:
+        except Exception:
             operationalChan = self.getProperty("OperationalFlags")
             chan = operationalChan
 
         try:
             self.operationalFlagsChanged(chan)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "%s: error getting SC vs MD operational flags" % self.name()
             )
@@ -229,7 +229,7 @@ class ESRFSC3(SC3.SC3):
     def operationalFlagsChanged(self, val):
         try:
             val = int(val)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "%s: error reading operational flags" % self.name()
             )
@@ -267,7 +267,7 @@ class ESRFSC3(SC3.SC3):
     def minidiffGetControl(self):
         try:
             self.unlockMinidiffMotors()
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "%s: error unlocking minidiff motors" % self.name()
             )

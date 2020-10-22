@@ -30,7 +30,7 @@ class ControllerCommand(CommandObject):
         try:
             try:
                 res = cmd_execution.get()
-            except BaseException:
+            except Exception:
                 logging.getLogger("user_level_log").exception(
                     str(self.name()) + " failed!"
                 )

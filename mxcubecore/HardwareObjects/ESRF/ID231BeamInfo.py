@@ -42,14 +42,14 @@ class BeamInfo(Equipment):
                 self.getProperty("aperture")
             )
             self.connect(self.aperture_HO, "apertureChanged", self.aperture_pos_changed)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").debug("BeamInfo: aperture not defined correctly")
         try:
             self.slits_HO = HWR.getHardwareRepository().getHardwareObject(
                 self.getProperty("slits")
             )
             self.connect(self.slits_HO, "gapSizeChanged", self.slits_gap_changed)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").debug("BeamInfo: slits not defined correctly")
         try:
             self.connect(
@@ -57,7 +57,7 @@ class BeamInfo(Equipment):
                 "definerPosChanged",
                 self.definer_pos_changed,
             )
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").debug(
                 "BeamInfo: beam definer not defined correctly"
             )

@@ -72,7 +72,7 @@ class NamedState(Device):
             # This is the case where state names are listed in xml
             try:
                 states = self["states"]
-            except BaseException:
+            except Exception:
                 logging.getLogger().error(
                     "%s does not define named states.", str(self.name())
                 )
@@ -87,7 +87,7 @@ class NamedState(Device):
     def getUserName(self):
         try:
             name = self.getProperty("username")
-        except BaseException:
+        except Exception:
             name = None
 
         if name is None:
@@ -104,7 +104,7 @@ class NamedState(Device):
                 return listvalue
             else:
                 return stateValue
-        except BaseException:
+        except Exception:
             import traceback
 
             logging.debug(traceback.format_exc())
@@ -126,7 +126,7 @@ class NamedState(Device):
                     "   this is index mode. setting actual value s to ws: %s."
                     % (statevalue)
                 )
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     "changing state for %s to ws: %s.failed. not such state"
                     % (self.getUserName(), statename)
@@ -149,11 +149,11 @@ class NamedState(Device):
                 try:
                     # probleme de unicode tester en mettant un unicode
                     self.stateChan.setValue(statevalue)
-                except BaseException:
+                except Exception:
                     logging.getLogger().exception("cannot write attribute")
                     self.emit("stateChanged", (self.get_state(),))
                     self.emit("hardwareStateChanged", ("ERROR",))
-        except BaseException:
+        except Exception:
             logging.getLogger().exception(
                 "Cannot change state for %s to %s: " % (self.getUserName(), statevalue)
             )

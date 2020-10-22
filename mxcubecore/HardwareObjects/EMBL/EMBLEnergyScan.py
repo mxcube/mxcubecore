@@ -333,7 +333,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         try:
             if not os.path.exists(archive_directory):
                 os.makedirs(archive_directory)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "EMBLEnergyScan: could not create results directory."
             )
@@ -343,7 +343,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
 
         try:
             archive_file_raw = open(archive_file_raw_filename, "w")
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "EMBLEnergyScan: could not create results raw file"
             )
@@ -377,7 +377,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                 float, chooch_results_list[-2].split(" ")
             )
             chooch_graph_data = eval(chooch_results_list[-1])
-        except BaseException:
+        except Exception:
             self.store_energy_scan()
 
             logging.getLogger("GUI").error("Energy scan: Chooch failed")
@@ -466,7 +466,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                 archive_file_png_filename,
             )
             canvas.print_figure(archive_file_png_filename, dpi=80)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("could not save figure")
 
         self.store_energy_scan()

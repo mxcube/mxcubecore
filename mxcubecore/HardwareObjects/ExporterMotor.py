@@ -29,6 +29,7 @@ Example xml file:
 
 import sys
 import math
+import logging
 
 from gevent import Timeout, sleep
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
@@ -116,7 +117,7 @@ class ExporterMotor(AbstractMotor):
         """
         try:
             return self._exporter.read_property("HardwareState")
-        except BaseException:
+        except Exception:
             return "Ready"
 
     def _get_swstate(self):
@@ -175,8 +176,9 @@ class ExporterMotor(AbstractMotor):
         """
         _v = self.motor_position.get_value()
 
-        if math.isnan(_v):
-            _v = 0
+        if math.isnan(_v) or None:
+            logging.getLogger("HWR").debug("Value of %s is NaN" % self.actuator_name)
+            _v = self._nominal_value
 
         self._nominal_value = _v
 

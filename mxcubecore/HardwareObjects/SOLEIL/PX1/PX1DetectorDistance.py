@@ -39,7 +39,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
         if threshold is not None:
             try:
                 self.threshold = float(threshold)
-            except BaseException:
+            except Exception:
                 pass
 
         self.setIsReady(True)
@@ -89,7 +89,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
             try:
                 self.emit("valueChanged", (position,))
                 self.old_value = position
-            except BaseException:
+            except Exception:
                 self.old_value = position
 
     def distance_min_changed(self, value=None):
@@ -114,7 +114,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
             max = float(info.max_value)
             min = float(self.distance_min_chan.getValue())
             return [min, max]
-        except BaseException:
+        except Exception:
             return [-1, 1]
 
     def is_moving(self):

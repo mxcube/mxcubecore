@@ -149,7 +149,7 @@ class PX1Resolution(Equipment):
     def stop(self):
         try:
             self.stop_command()
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").err(
                 "%s: PX1Resolution.stop: error while trying to stop!", self.name()
             )

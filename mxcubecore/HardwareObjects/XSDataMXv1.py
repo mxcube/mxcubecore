@@ -194,7 +194,7 @@ class XSDataStatisticsIntegrationAverageAndNumberOfReflections(object):
                 "ERROR! XSDataStatisticsIntegrationAverageAndNumberOfReflections constructor argument 'averageIOverSigma' is not XSDataDouble but %s"
                 % self._averageIOverSigma.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if averageIntensity is None:
             self._averageIntensity = None
         elif averageIntensity.__class__.__name__ == "XSDataDouble":
@@ -204,7 +204,7 @@ class XSDataStatisticsIntegrationAverageAndNumberOfReflections(object):
                 "ERROR! XSDataStatisticsIntegrationAverageAndNumberOfReflections constructor argument 'averageIntensity' is not XSDataDouble but %s"
                 % self._averageIntensity.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if averageSigma is None:
             self._averageSigma = None
         elif averageSigma.__class__.__name__ == "XSDataDouble":
@@ -214,7 +214,7 @@ class XSDataStatisticsIntegrationAverageAndNumberOfReflections(object):
                 "ERROR! XSDataStatisticsIntegrationAverageAndNumberOfReflections constructor argument 'averageSigma' is not XSDataDouble but %s"
                 % self._averageSigma.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if numberOfReflections is None:
             self._numberOfReflections = None
         elif numberOfReflections.__class__.__name__ == "XSDataInteger":
@@ -224,7 +224,7 @@ class XSDataStatisticsIntegrationAverageAndNumberOfReflections(object):
                 "ERROR! XSDataStatisticsIntegrationAverageAndNumberOfReflections constructor argument 'numberOfReflections' is not XSDataInteger but %s"
                 % self._numberOfReflections.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'averageIOverSigma' attribute
     def getAverageIOverSigma(self):
@@ -240,7 +240,7 @@ class XSDataStatisticsIntegrationAverageAndNumberOfReflections(object):
                 "ERROR! XSDataStatisticsIntegrationAverageAndNumberOfReflections.setAverageIOverSigma argument is not XSDataDouble but %s"
                 % averageIOverSigma.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAverageIOverSigma(self):
         self._averageIOverSigma = None
@@ -266,7 +266,7 @@ class XSDataStatisticsIntegrationAverageAndNumberOfReflections(object):
                 "ERROR! XSDataStatisticsIntegrationAverageAndNumberOfReflections.setAverageIntensity argument is not XSDataDouble but %s"
                 % averageIntensity.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAverageIntensity(self):
         self._averageIntensity = None
@@ -292,7 +292,7 @@ class XSDataStatisticsIntegrationAverageAndNumberOfReflections(object):
                 "ERROR! XSDataStatisticsIntegrationAverageAndNumberOfReflections.setAverageSigma argument is not XSDataDouble but %s"
                 % averageSigma.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAverageSigma(self):
         self._averageSigma = None
@@ -315,7 +315,7 @@ class XSDataStatisticsIntegrationAverageAndNumberOfReflections(object):
                 "ERROR! XSDataStatisticsIntegrationAverageAndNumberOfReflections.setNumberOfReflections argument is not XSDataInteger but %s"
                 % numberOfReflections.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNumberOfReflections(self):
         self._numberOfReflections = None
@@ -468,7 +468,7 @@ class XSDataAtom(XSData):
                 "ERROR! XSDataAtom constructor argument 'concentration' is not XSDataDouble but %s"
                 % self._concentration.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if numberOf is None:
             self._numberOf = None
         elif numberOf.__class__.__name__ == "XSDataDouble":
@@ -478,7 +478,7 @@ class XSDataAtom(XSData):
                 "ERROR! XSDataAtom constructor argument 'numberOf' is not XSDataDouble but %s"
                 % self._numberOf.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if symbol is None:
             self._symbol = None
         elif symbol.__class__.__name__ == "XSDataString":
@@ -488,7 +488,7 @@ class XSDataAtom(XSData):
                 "ERROR! XSDataAtom constructor argument 'symbol' is not XSDataString but %s"
                 % self._symbol.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'concentration' attribute
     def getConcentration(self):
@@ -504,7 +504,7 @@ class XSDataAtom(XSData):
                 "ERROR! XSDataAtom.setConcentration argument is not XSDataDouble but %s"
                 % concentration.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delConcentration(self):
         self._concentration = None
@@ -530,7 +530,7 @@ class XSDataAtom(XSData):
                 "ERROR! XSDataAtom.setNumberOf argument is not XSDataDouble but %s"
                 % numberOf.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNumberOf(self):
         self._numberOf = None
@@ -551,7 +551,7 @@ class XSDataAtom(XSData):
                 "ERROR! XSDataAtom.setSymbol argument is not XSDataString but %s"
                 % symbol.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSymbol(self):
         self._symbol = None
@@ -663,7 +663,7 @@ class XSDataAtomicComposition(XSData):
                 "ERROR! XSDataAtomicComposition constructor argument 'atom' is not list but %s"
                 % self._atom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'atom' attribute
     def getAtom(self):
@@ -679,7 +679,7 @@ class XSDataAtomicComposition(XSData):
                 "ERROR! XSDataAtomicComposition.setAtom argument is not list but %s"
                 % atom.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAtom(self):
         self._atom = None
@@ -689,7 +689,7 @@ class XSDataAtomicComposition(XSData):
     def addAtom(self, value):
         if value is None:
             strMessage = "ERROR! XSDataAtomicComposition.addAtom argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataAtom":
             self._atom.append(value)
         else:
@@ -697,19 +697,19 @@ class XSDataAtomicComposition(XSData):
                 "ERROR! XSDataAtomicComposition.addAtom argument is not XSDataAtom but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertAtom(self, index, value):
         if index is None:
             strMessage = (
                 "ERROR! XSDataAtomicComposition.insertAtom argument 'index' is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = (
                 "ERROR! XSDataAtomicComposition.insertAtom argument 'value' is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataAtom":
             self._atom[index] = value
         else:
@@ -717,7 +717,7 @@ class XSDataAtomicComposition(XSData):
                 "ERROR! XSDataAtomicComposition.addAtom argument is not XSDataAtom but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def export(self, outfile, level, name_="XSDataAtomicComposition"):
         showIndent(outfile, level)
@@ -826,7 +826,7 @@ class XSDataBeam(XSData):
                 "ERROR! XSDataBeam constructor argument 'exposureTime' is not XSDataTime but %s"
                 % self._exposureTime.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if flux is None:
             self._flux = None
         elif flux.__class__.__name__ == "XSDataFlux":
@@ -836,7 +836,7 @@ class XSDataBeam(XSData):
                 "ERROR! XSDataBeam constructor argument 'flux' is not XSDataFlux but %s"
                 % self._flux.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if minExposureTimePerImage is None:
             self._minExposureTimePerImage = None
         elif minExposureTimePerImage.__class__.__name__ == "XSDataTime":
@@ -846,7 +846,7 @@ class XSDataBeam(XSData):
                 "ERROR! XSDataBeam constructor argument 'minExposureTimePerImage' is not XSDataTime but %s"
                 % self._minExposureTimePerImage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if size is None:
             self._size = None
         elif size.__class__.__name__ == "XSDataSize":
@@ -856,7 +856,7 @@ class XSDataBeam(XSData):
                 "ERROR! XSDataBeam constructor argument 'size' is not XSDataSize but %s"
                 % self._size.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if transmission is None:
             self._transmission = None
         elif transmission.__class__.__name__ == "XSDataDouble":
@@ -866,7 +866,7 @@ class XSDataBeam(XSData):
                 "ERROR! XSDataBeam constructor argument 'transmission' is not XSDataDouble but %s"
                 % self._transmission.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if wavelength is None:
             self._wavelength = None
         elif wavelength.__class__.__name__ == "XSDataWavelength":
@@ -876,7 +876,7 @@ class XSDataBeam(XSData):
                 "ERROR! XSDataBeam constructor argument 'wavelength' is not XSDataWavelength but %s"
                 % self._wavelength.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'exposureTime' attribute
     def getExposureTime(self):
@@ -892,7 +892,7 @@ class XSDataBeam(XSData):
                 "ERROR! XSDataBeam.setExposureTime argument is not XSDataTime but %s"
                 % exposureTime.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delExposureTime(self):
         self._exposureTime = None
@@ -915,7 +915,7 @@ class XSDataBeam(XSData):
                 "ERROR! XSDataBeam.setFlux argument is not XSDataFlux but %s"
                 % flux.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delFlux(self):
         self._flux = None
@@ -936,7 +936,7 @@ class XSDataBeam(XSData):
                 "ERROR! XSDataBeam.setMinExposureTimePerImage argument is not XSDataTime but %s"
                 % minExposureTimePerImage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMinExposureTimePerImage(self):
         self._minExposureTimePerImage = None
@@ -962,7 +962,7 @@ class XSDataBeam(XSData):
                 "ERROR! XSDataBeam.setSize argument is not XSDataSize but %s"
                 % size.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSize(self):
         self._size = None
@@ -983,7 +983,7 @@ class XSDataBeam(XSData):
                 "ERROR! XSDataBeam.setTransmission argument is not XSDataDouble but %s"
                 % transmission.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delTransmission(self):
         self._transmission = None
@@ -1006,7 +1006,7 @@ class XSDataBeam(XSData):
                 "ERROR! XSDataBeam.setWavelength argument is not XSDataWavelength but %s"
                 % wavelength.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delWavelength(self):
         self._wavelength = None
@@ -1151,7 +1151,7 @@ class XSDataCell(XSData):
                 "ERROR! XSDataCell constructor argument 'angle_alpha' is not XSDataAngle but %s"
                 % self._angle_alpha.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if angle_beta is None:
             self._angle_beta = None
         elif angle_beta.__class__.__name__ == "XSDataAngle":
@@ -1161,7 +1161,7 @@ class XSDataCell(XSData):
                 "ERROR! XSDataCell constructor argument 'angle_beta' is not XSDataAngle but %s"
                 % self._angle_beta.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if angle_gamma is None:
             self._angle_gamma = None
         elif angle_gamma.__class__.__name__ == "XSDataAngle":
@@ -1171,7 +1171,7 @@ class XSDataCell(XSData):
                 "ERROR! XSDataCell constructor argument 'angle_gamma' is not XSDataAngle but %s"
                 % self._angle_gamma.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if length_a is None:
             self._length_a = None
         elif length_a.__class__.__name__ == "XSDataLength":
@@ -1181,7 +1181,7 @@ class XSDataCell(XSData):
                 "ERROR! XSDataCell constructor argument 'length_a' is not XSDataLength but %s"
                 % self._length_a.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if length_b is None:
             self._length_b = None
         elif length_b.__class__.__name__ == "XSDataLength":
@@ -1191,7 +1191,7 @@ class XSDataCell(XSData):
                 "ERROR! XSDataCell constructor argument 'length_b' is not XSDataLength but %s"
                 % self._length_b.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if length_c is None:
             self._length_c = None
         elif length_c.__class__.__name__ == "XSDataLength":
@@ -1201,7 +1201,7 @@ class XSDataCell(XSData):
                 "ERROR! XSDataCell constructor argument 'length_c' is not XSDataLength but %s"
                 % self._length_c.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'angle_alpha' attribute
     def getAngle_alpha(self):
@@ -1217,7 +1217,7 @@ class XSDataCell(XSData):
                 "ERROR! XSDataCell.setAngle_alpha argument is not XSDataAngle but %s"
                 % angle_alpha.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAngle_alpha(self):
         self._angle_alpha = None
@@ -1240,7 +1240,7 @@ class XSDataCell(XSData):
                 "ERROR! XSDataCell.setAngle_beta argument is not XSDataAngle but %s"
                 % angle_beta.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAngle_beta(self):
         self._angle_beta = None
@@ -1263,7 +1263,7 @@ class XSDataCell(XSData):
                 "ERROR! XSDataCell.setAngle_gamma argument is not XSDataAngle but %s"
                 % angle_gamma.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAngle_gamma(self):
         self._angle_gamma = None
@@ -1286,7 +1286,7 @@ class XSDataCell(XSData):
                 "ERROR! XSDataCell.setLength_a argument is not XSDataLength but %s"
                 % length_a.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delLength_a(self):
         self._length_a = None
@@ -1307,7 +1307,7 @@ class XSDataCell(XSData):
                 "ERROR! XSDataCell.setLength_b argument is not XSDataLength but %s"
                 % length_b.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delLength_b(self):
         self._length_b = None
@@ -1328,7 +1328,7 @@ class XSDataCell(XSData):
                 "ERROR! XSDataCell.setLength_c argument is not XSDataLength but %s"
                 % length_c.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delLength_c(self):
         self._length_c = None
@@ -1472,7 +1472,7 @@ class XSDataChain(XSData):
                 "ERROR! XSDataChain constructor argument 'heavyAtoms' is not XSDataAtomicComposition but %s"
                 % self._heavyAtoms.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if numberOfCopies is None:
             self._numberOfCopies = None
         elif numberOfCopies.__class__.__name__ == "XSDataDouble":
@@ -1482,7 +1482,7 @@ class XSDataChain(XSData):
                 "ERROR! XSDataChain constructor argument 'numberOfCopies' is not XSDataDouble but %s"
                 % self._numberOfCopies.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if numberOfMonomers is None:
             self._numberOfMonomers = None
         elif numberOfMonomers.__class__.__name__ == "XSDataDouble":
@@ -1492,7 +1492,7 @@ class XSDataChain(XSData):
                 "ERROR! XSDataChain constructor argument 'numberOfMonomers' is not XSDataDouble but %s"
                 % self._numberOfMonomers.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if type is None:
             self._type = None
         elif type.__class__.__name__ == "XSDataString":
@@ -1502,7 +1502,7 @@ class XSDataChain(XSData):
                 "ERROR! XSDataChain constructor argument 'type' is not XSDataString but %s"
                 % self._type.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'heavyAtoms' attribute
     def getHeavyAtoms(self):
@@ -1518,7 +1518,7 @@ class XSDataChain(XSData):
                 "ERROR! XSDataChain.setHeavyAtoms argument is not XSDataAtomicComposition but %s"
                 % heavyAtoms.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delHeavyAtoms(self):
         self._heavyAtoms = None
@@ -1541,7 +1541,7 @@ class XSDataChain(XSData):
                 "ERROR! XSDataChain.setNumberOfCopies argument is not XSDataDouble but %s"
                 % numberOfCopies.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNumberOfCopies(self):
         self._numberOfCopies = None
@@ -1567,7 +1567,7 @@ class XSDataChain(XSData):
                 "ERROR! XSDataChain.setNumberOfMonomers argument is not XSDataDouble but %s"
                 % numberOfMonomers.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNumberOfMonomers(self):
         self._numberOfMonomers = None
@@ -1593,7 +1593,7 @@ class XSDataChain(XSData):
                 "ERROR! XSDataChain.setType argument is not XSDataString but %s"
                 % type.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delType(self):
         self._type = None
@@ -1719,7 +1719,7 @@ class XSDataChemicalCompositionMM(XSData):
                 "ERROR! XSDataChemicalCompositionMM constructor argument 'solvent' is not XSDataSolvent but %s"
                 % self._solvent.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if structure is None:
             self._structure = None
         elif structure.__class__.__name__ == "XSDataStructure":
@@ -1729,7 +1729,7 @@ class XSDataChemicalCompositionMM(XSData):
                 "ERROR! XSDataChemicalCompositionMM constructor argument 'structure' is not XSDataStructure but %s"
                 % self._structure.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'solvent' attribute
     def getSolvent(self):
@@ -1745,7 +1745,7 @@ class XSDataChemicalCompositionMM(XSData):
                 "ERROR! XSDataChemicalCompositionMM.setSolvent argument is not XSDataSolvent but %s"
                 % solvent.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSolvent(self):
         self._solvent = None
@@ -1766,7 +1766,7 @@ class XSDataChemicalCompositionMM(XSData):
                 "ERROR! XSDataChemicalCompositionMM.setStructure argument is not XSDataStructure but %s"
                 % structure.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delStructure(self):
         self._structure = None
@@ -1878,7 +1878,7 @@ class XSDataCollection(XSData):
                 "ERROR! XSDataCollection constructor argument 'diffractionPlan' is not XSDataDiffractionPlan but %s"
                 % self._diffractionPlan.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if sample is None:
             self._sample = None
         elif sample.__class__.__name__ == "XSDataSampleCrystalMM":
@@ -1888,7 +1888,7 @@ class XSDataCollection(XSData):
                 "ERROR! XSDataCollection constructor argument 'sample' is not XSDataSampleCrystalMM but %s"
                 % self._sample.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if subWedge is None:
             self._subWedge = []
         elif subWedge.__class__.__name__ == "list":
@@ -1898,7 +1898,7 @@ class XSDataCollection(XSData):
                 "ERROR! XSDataCollection constructor argument 'subWedge' is not list but %s"
                 % self._subWedge.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'diffractionPlan' attribute
     def getDiffractionPlan(self):
@@ -1914,7 +1914,7 @@ class XSDataCollection(XSData):
                 "ERROR! XSDataCollection.setDiffractionPlan argument is not XSDataDiffractionPlan but %s"
                 % diffractionPlan.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDiffractionPlan(self):
         self._diffractionPlan = None
@@ -1940,7 +1940,7 @@ class XSDataCollection(XSData):
                 "ERROR! XSDataCollection.setSample argument is not XSDataSampleCrystalMM but %s"
                 % sample.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSample(self):
         self._sample = None
@@ -1961,7 +1961,7 @@ class XSDataCollection(XSData):
                 "ERROR! XSDataCollection.setSubWedge argument is not list but %s"
                 % subWedge.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSubWedge(self):
         self._subWedge = None
@@ -1971,7 +1971,7 @@ class XSDataCollection(XSData):
     def addSubWedge(self, value):
         if value is None:
             strMessage = "ERROR! XSDataCollection.addSubWedge argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataSubWedge":
             self._subWedge.append(value)
         else:
@@ -1979,19 +1979,19 @@ class XSDataCollection(XSData):
                 "ERROR! XSDataCollection.addSubWedge argument is not XSDataSubWedge but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertSubWedge(self, index, value):
         if index is None:
             strMessage = (
                 "ERROR! XSDataCollection.insertSubWedge argument 'index' is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = (
                 "ERROR! XSDataCollection.insertSubWedge argument 'value' is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataSubWedge":
             self._subWedge[index] = value
         else:
@@ -1999,7 +1999,7 @@ class XSDataCollection(XSData):
                 "ERROR! XSDataCollection.addSubWedge argument is not XSDataSubWedge but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def export(self, outfile, level, name_="XSDataCollection"):
         showIndent(outfile, level)
@@ -2127,7 +2127,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector constructor argument 'beamPositionX' is not XSDataLength but %s"
                 % self._beamPositionX.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if beamPositionY is None:
             self._beamPositionY = None
         elif beamPositionY.__class__.__name__ == "XSDataLength":
@@ -2137,7 +2137,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector constructor argument 'beamPositionY' is not XSDataLength but %s"
                 % self._beamPositionY.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if bin is None:
             self._bin = None
         elif bin.__class__.__name__ == "XSDataString":
@@ -2147,7 +2147,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector constructor argument 'bin' is not XSDataString but %s"
                 % self._bin.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if byteOrder is None:
             self._byteOrder = None
         elif byteOrder.__class__.__name__ == "XSDataString":
@@ -2157,7 +2157,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector constructor argument 'byteOrder' is not XSDataString but %s"
                 % self._byteOrder.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if dataType is None:
             self._dataType = None
         elif dataType.__class__.__name__ == "XSDataString":
@@ -2167,7 +2167,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector constructor argument 'dataType' is not XSDataString but %s"
                 % self._dataType.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if distance is None:
             self._distance = None
         elif distance.__class__.__name__ == "XSDataLength":
@@ -2177,7 +2177,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector constructor argument 'distance' is not XSDataLength but %s"
                 % self._distance.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if gain is None:
             self._gain = None
         elif gain.__class__.__name__ == "XSDataFloat":
@@ -2187,7 +2187,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector constructor argument 'gain' is not XSDataFloat but %s"
                 % self._gain.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if imageSaturation is None:
             self._imageSaturation = None
         elif imageSaturation.__class__.__name__ == "XSDataInteger":
@@ -2197,7 +2197,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector constructor argument 'imageSaturation' is not XSDataInteger but %s"
                 % self._imageSaturation.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if name is None:
             self._name = None
         elif name.__class__.__name__ == "XSDataString":
@@ -2207,7 +2207,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector constructor argument 'name' is not XSDataString but %s"
                 % self._name.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if numberBytesInHeader is None:
             self._numberBytesInHeader = None
         elif numberBytesInHeader.__class__.__name__ == "XSDataInteger":
@@ -2217,7 +2217,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector constructor argument 'numberBytesInHeader' is not XSDataInteger but %s"
                 % self._numberBytesInHeader.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if numberPixelX is None:
             self._numberPixelX = None
         elif numberPixelX.__class__.__name__ == "XSDataInteger":
@@ -2227,7 +2227,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector constructor argument 'numberPixelX' is not XSDataInteger but %s"
                 % self._numberPixelX.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if numberPixelY is None:
             self._numberPixelY = None
         elif numberPixelY.__class__.__name__ == "XSDataInteger":
@@ -2237,7 +2237,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector constructor argument 'numberPixelY' is not XSDataInteger but %s"
                 % self._numberPixelY.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if pixelSizeX is None:
             self._pixelSizeX = None
         elif pixelSizeX.__class__.__name__ == "XSDataLength":
@@ -2247,7 +2247,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector constructor argument 'pixelSizeX' is not XSDataLength but %s"
                 % self._pixelSizeX.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if pixelSizeY is None:
             self._pixelSizeY = None
         elif pixelSizeY.__class__.__name__ == "XSDataLength":
@@ -2257,7 +2257,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector constructor argument 'pixelSizeY' is not XSDataLength but %s"
                 % self._pixelSizeY.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if serialNumber is None:
             self._serialNumber = None
         elif serialNumber.__class__.__name__ == "XSDataString":
@@ -2267,7 +2267,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector constructor argument 'serialNumber' is not XSDataString but %s"
                 % self._serialNumber.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if twoTheta is None:
             self._twoTheta = None
         elif twoTheta.__class__.__name__ == "XSDataAngle":
@@ -2277,7 +2277,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector constructor argument 'twoTheta' is not XSDataAngle but %s"
                 % self._twoTheta.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if type is None:
             self._type = None
         elif type.__class__.__name__ == "XSDataString":
@@ -2287,7 +2287,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector constructor argument 'type' is not XSDataString but %s"
                 % self._type.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'beamPositionX' attribute
     def getBeamPositionX(self):
@@ -2303,7 +2303,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector.setBeamPositionX argument is not XSDataLength but %s"
                 % beamPositionX.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBeamPositionX(self):
         self._beamPositionX = None
@@ -2329,7 +2329,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector.setBeamPositionY argument is not XSDataLength but %s"
                 % beamPositionY.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBeamPositionY(self):
         self._beamPositionY = None
@@ -2355,7 +2355,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector.setBin argument is not XSDataString but %s"
                 % bin.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBin(self):
         self._bin = None
@@ -2376,7 +2376,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector.setByteOrder argument is not XSDataString but %s"
                 % byteOrder.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delByteOrder(self):
         self._byteOrder = None
@@ -2399,7 +2399,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector.setDataType argument is not XSDataString but %s"
                 % dataType.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDataType(self):
         self._dataType = None
@@ -2420,7 +2420,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector.setDistance argument is not XSDataLength but %s"
                 % distance.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDistance(self):
         self._distance = None
@@ -2441,7 +2441,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector.setGain argument is not XSDataFloat but %s"
                 % gain.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delGain(self):
         self._gain = None
@@ -2462,7 +2462,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector.setImageSaturation argument is not XSDataInteger but %s"
                 % imageSaturation.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delImageSaturation(self):
         self._imageSaturation = None
@@ -2488,7 +2488,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector.setName argument is not XSDataString but %s"
                 % name.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delName(self):
         self._name = None
@@ -2509,7 +2509,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector.setNumberBytesInHeader argument is not XSDataInteger but %s"
                 % numberBytesInHeader.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNumberBytesInHeader(self):
         self._numberBytesInHeader = None
@@ -2535,7 +2535,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector.setNumberPixelX argument is not XSDataInteger but %s"
                 % numberPixelX.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNumberPixelX(self):
         self._numberPixelX = None
@@ -2558,7 +2558,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector.setNumberPixelY argument is not XSDataInteger but %s"
                 % numberPixelY.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNumberPixelY(self):
         self._numberPixelY = None
@@ -2581,7 +2581,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector.setPixelSizeX argument is not XSDataLength but %s"
                 % pixelSizeX.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPixelSizeX(self):
         self._pixelSizeX = None
@@ -2604,7 +2604,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector.setPixelSizeY argument is not XSDataLength but %s"
                 % pixelSizeY.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPixelSizeY(self):
         self._pixelSizeY = None
@@ -2627,7 +2627,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector.setSerialNumber argument is not XSDataString but %s"
                 % serialNumber.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSerialNumber(self):
         self._serialNumber = None
@@ -2650,7 +2650,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector.setTwoTheta argument is not XSDataAngle but %s"
                 % twoTheta.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delTwoTheta(self):
         self._twoTheta = None
@@ -2671,7 +2671,7 @@ class XSDataDetector(XSData):
                 "ERROR! XSDataDetector.setType argument is not XSDataString but %s"
                 % type.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delType(self):
         self._type = None
@@ -2939,7 +2939,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'aimedCompleteness' is not XSDataDouble but %s"
                 % self._aimedCompleteness.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if aimedIOverSigmaAtHighestResolution is None:
             self._aimedIOverSigmaAtHighestResolution = None
         elif aimedIOverSigmaAtHighestResolution.__class__.__name__ == "XSDataDouble":
@@ -2951,7 +2951,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'aimedIOverSigmaAtHighestResolution' is not XSDataDouble but %s"
                 % self._aimedIOverSigmaAtHighestResolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if aimedMultiplicity is None:
             self._aimedMultiplicity = None
         elif aimedMultiplicity.__class__.__name__ == "XSDataDouble":
@@ -2961,7 +2961,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'aimedMultiplicity' is not XSDataDouble but %s"
                 % self._aimedMultiplicity.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if aimedResolution is None:
             self._aimedResolution = None
         elif aimedResolution.__class__.__name__ == "XSDataDouble":
@@ -2971,7 +2971,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'aimedResolution' is not XSDataDouble but %s"
                 % self._aimedResolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if anomalousData is None:
             self._anomalousData = None
         elif anomalousData.__class__.__name__ == "XSDataBoolean":
@@ -2981,7 +2981,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'anomalousData' is not XSDataBoolean but %s"
                 % self._anomalousData.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if complexity is None:
             self._complexity = None
         elif complexity.__class__.__name__ == "XSDataString":
@@ -2991,7 +2991,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'complexity' is not XSDataString but %s"
                 % self._complexity.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if detectorDistanceMax is None:
             self._detectorDistanceMax = None
         elif detectorDistanceMax.__class__.__name__ == "XSDataLength":
@@ -3001,7 +3001,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'detectorDistanceMax' is not XSDataLength but %s"
                 % self._detectorDistanceMax.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if detectorDistanceMin is None:
             self._detectorDistanceMin = None
         elif detectorDistanceMin.__class__.__name__ == "XSDataLength":
@@ -3011,7 +3011,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'detectorDistanceMin' is not XSDataLength but %s"
                 % self._detectorDistanceMin.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if estimateRadiationDamage is None:
             self._estimateRadiationDamage = None
         elif estimateRadiationDamage.__class__.__name__ == "XSDataBoolean":
@@ -3021,7 +3021,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'estimateRadiationDamage' is not XSDataBoolean but %s"
                 % self._estimateRadiationDamage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if forcedSpaceGroup is None:
             self._forcedSpaceGroup = None
         elif forcedSpaceGroup.__class__.__name__ == "XSDataString":
@@ -3031,7 +3031,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'forcedSpaceGroup' is not XSDataString but %s"
                 % self._forcedSpaceGroup.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if goniostatMaxOscillationSpeed is None:
             self._goniostatMaxOscillationSpeed = None
         elif goniostatMaxOscillationSpeed.__class__.__name__ == "XSDataAngularSpeed":
@@ -3041,7 +3041,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'goniostatMaxOscillationSpeed' is not XSDataAngularSpeed but %s"
                 % self._goniostatMaxOscillationSpeed.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if goniostatMinOscillationWidth is None:
             self._goniostatMinOscillationWidth = None
         elif goniostatMinOscillationWidth.__class__.__name__ == "XSDataAngle":
@@ -3051,7 +3051,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'goniostatMinOscillationWidth' is not XSDataAngle but %s"
                 % self._goniostatMinOscillationWidth.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if kappaStrategyOption is None:
             self._kappaStrategyOption = []
         elif kappaStrategyOption.__class__.__name__ == "list":
@@ -3061,7 +3061,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'kappaStrategyOption' is not list but %s"
                 % self._kappaStrategyOption.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if maxExposureTimePerDataCollection is None:
             self._maxExposureTimePerDataCollection = None
         elif maxExposureTimePerDataCollection.__class__.__name__ == "XSDataTime":
@@ -3071,7 +3071,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'maxExposureTimePerDataCollection' is not XSDataTime but %s"
                 % self._maxExposureTimePerDataCollection.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if minExposureTimePerImage is None:
             self._minExposureTimePerImage = None
         elif minExposureTimePerImage.__class__.__name__ == "XSDataTime":
@@ -3081,7 +3081,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'minExposureTimePerImage' is not XSDataTime but %s"
                 % self._minExposureTimePerImage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if minTransmission is None:
             self._minTransmission = None
         elif minTransmission.__class__.__name__ == "XSDataDouble":
@@ -3091,7 +3091,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'minTransmission' is not XSDataDouble but %s"
                 % self._minTransmission.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if numberOfPositions is None:
             self._numberOfPositions = None
         elif numberOfPositions.__class__.__name__ == "XSDataInteger":
@@ -3101,7 +3101,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'numberOfPositions' is not XSDataInteger but %s"
                 % self._numberOfPositions.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if requiredCompleteness is None:
             self._requiredCompleteness = None
         elif requiredCompleteness.__class__.__name__ == "XSDataDouble":
@@ -3111,7 +3111,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'requiredCompleteness' is not XSDataDouble but %s"
                 % self._requiredCompleteness.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if requiredMultiplicity is None:
             self._requiredMultiplicity = None
         elif requiredMultiplicity.__class__.__name__ == "XSDataDouble":
@@ -3121,7 +3121,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'requiredMultiplicity' is not XSDataDouble but %s"
                 % self._requiredMultiplicity.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if requiredResolution is None:
             self._requiredResolution = None
         elif requiredResolution.__class__.__name__ == "XSDataDouble":
@@ -3131,7 +3131,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'requiredResolution' is not XSDataDouble but %s"
                 % self._requiredResolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if strategyOption is None:
             self._strategyOption = None
         elif strategyOption.__class__.__name__ == "XSDataString":
@@ -3141,7 +3141,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'strategyOption' is not XSDataString but %s"
                 % self._strategyOption.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if userDefinedRotationRange is None:
             self._userDefinedRotationRange = None
         elif userDefinedRotationRange.__class__.__name__ == "XSDataAngle":
@@ -3151,7 +3151,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'userDefinedRotationRange' is not XSDataAngle but %s"
                 % self._userDefinedRotationRange.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if userDefinedRotationStart is None:
             self._userDefinedRotationStart = None
         elif userDefinedRotationStart.__class__.__name__ == "XSDataAngle":
@@ -3161,7 +3161,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan constructor argument 'userDefinedRotationStart' is not XSDataAngle but %s"
                 % self._userDefinedRotationStart.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'aimedCompleteness' attribute
     def getAimedCompleteness(self):
@@ -3177,7 +3177,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setAimedCompleteness argument is not XSDataDouble but %s"
                 % aimedCompleteness.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAimedCompleteness(self):
         self._aimedCompleteness = None
@@ -3205,7 +3205,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setAimedIOverSigmaAtHighestResolution argument is not XSDataDouble but %s"
                 % aimedIOverSigmaAtHighestResolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAimedIOverSigmaAtHighestResolution(self):
         self._aimedIOverSigmaAtHighestResolution = None
@@ -3231,7 +3231,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setAimedMultiplicity argument is not XSDataDouble but %s"
                 % aimedMultiplicity.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAimedMultiplicity(self):
         self._aimedMultiplicity = None
@@ -3257,7 +3257,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setAimedResolution argument is not XSDataDouble but %s"
                 % aimedResolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAimedResolution(self):
         self._aimedResolution = None
@@ -3283,7 +3283,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setAnomalousData argument is not XSDataBoolean but %s"
                 % anomalousData.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAnomalousData(self):
         self._anomalousData = None
@@ -3309,7 +3309,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setComplexity argument is not XSDataString but %s"
                 % complexity.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delComplexity(self):
         self._complexity = None
@@ -3332,7 +3332,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setDetectorDistanceMax argument is not XSDataLength but %s"
                 % detectorDistanceMax.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDetectorDistanceMax(self):
         self._detectorDistanceMax = None
@@ -3358,7 +3358,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setDetectorDistanceMin argument is not XSDataLength but %s"
                 % detectorDistanceMin.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDetectorDistanceMin(self):
         self._detectorDistanceMin = None
@@ -3384,7 +3384,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setEstimateRadiationDamage argument is not XSDataBoolean but %s"
                 % estimateRadiationDamage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delEstimateRadiationDamage(self):
         self._estimateRadiationDamage = None
@@ -3410,7 +3410,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setForcedSpaceGroup argument is not XSDataString but %s"
                 % forcedSpaceGroup.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delForcedSpaceGroup(self):
         self._forcedSpaceGroup = None
@@ -3436,7 +3436,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setGoniostatMaxOscillationSpeed argument is not XSDataAngularSpeed but %s"
                 % goniostatMaxOscillationSpeed.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delGoniostatMaxOscillationSpeed(self):
         self._goniostatMaxOscillationSpeed = None
@@ -3462,7 +3462,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setGoniostatMinOscillationWidth argument is not XSDataAngle but %s"
                 % goniostatMinOscillationWidth.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delGoniostatMinOscillationWidth(self):
         self._goniostatMinOscillationWidth = None
@@ -3488,7 +3488,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setKappaStrategyOption argument is not list but %s"
                 % kappaStrategyOption.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delKappaStrategyOption(self):
         self._kappaStrategyOption = None
@@ -3505,7 +3505,7 @@ class XSDataDiffractionPlan(XSData):
             strMessage = (
                 "ERROR! XSDataDiffractionPlan.addKappaStrategyOption argument is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataString":
             self._kappaStrategyOption.append(value)
         else:
@@ -3513,15 +3513,15 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.addKappaStrategyOption argument is not XSDataString but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertKappaStrategyOption(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataDiffractionPlan.insertKappaStrategyOption argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataDiffractionPlan.insertKappaStrategyOption argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataString":
             self._kappaStrategyOption[index] = value
         else:
@@ -3529,7 +3529,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.addKappaStrategyOption argument is not XSDataString but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'maxExposureTimePerDataCollection' attribute
     def getMaxExposureTimePerDataCollection(self):
@@ -3545,7 +3545,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setMaxExposureTimePerDataCollection argument is not XSDataTime but %s"
                 % maxExposureTimePerDataCollection.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMaxExposureTimePerDataCollection(self):
         self._maxExposureTimePerDataCollection = None
@@ -3571,7 +3571,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setMinExposureTimePerImage argument is not XSDataTime but %s"
                 % minExposureTimePerImage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMinExposureTimePerImage(self):
         self._minExposureTimePerImage = None
@@ -3597,7 +3597,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setMinTransmission argument is not XSDataDouble but %s"
                 % minTransmission.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMinTransmission(self):
         self._minTransmission = None
@@ -3623,7 +3623,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setNumberOfPositions argument is not XSDataInteger but %s"
                 % numberOfPositions.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNumberOfPositions(self):
         self._numberOfPositions = None
@@ -3649,7 +3649,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setRequiredCompleteness argument is not XSDataDouble but %s"
                 % requiredCompleteness.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRequiredCompleteness(self):
         self._requiredCompleteness = None
@@ -3675,7 +3675,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setRequiredMultiplicity argument is not XSDataDouble but %s"
                 % requiredMultiplicity.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRequiredMultiplicity(self):
         self._requiredMultiplicity = None
@@ -3701,7 +3701,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setRequiredResolution argument is not XSDataDouble but %s"
                 % requiredResolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRequiredResolution(self):
         self._requiredResolution = None
@@ -3727,7 +3727,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setStrategyOption argument is not XSDataString but %s"
                 % strategyOption.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delStrategyOption(self):
         self._strategyOption = None
@@ -3753,7 +3753,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setUserDefinedRotationRange argument is not XSDataAngle but %s"
                 % userDefinedRotationRange.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delUserDefinedRotationRange(self):
         self._userDefinedRotationRange = None
@@ -3779,7 +3779,7 @@ class XSDataDiffractionPlan(XSData):
                 "ERROR! XSDataDiffractionPlan.setUserDefinedRotationStart argument is not XSDataAngle but %s"
                 % userDefinedRotationStart.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delUserDefinedRotationStart(self):
         self._userDefinedRotationStart = None
@@ -4085,7 +4085,7 @@ class XSDataGoniostat(XSData):
                 "ERROR! XSDataGoniostat constructor argument 'maxOscillationSpeed' is not XSDataAngularSpeed but %s"
                 % self._maxOscillationSpeed.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if minOscillationWidth is None:
             self._minOscillationWidth = None
         elif minOscillationWidth.__class__.__name__ == "XSDataAngle":
@@ -4095,7 +4095,7 @@ class XSDataGoniostat(XSData):
                 "ERROR! XSDataGoniostat constructor argument 'minOscillationWidth' is not XSDataAngle but %s"
                 % self._minOscillationWidth.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if oscillationWidth is None:
             self._oscillationWidth = None
         elif oscillationWidth.__class__.__name__ == "XSDataAngle":
@@ -4105,7 +4105,7 @@ class XSDataGoniostat(XSData):
                 "ERROR! XSDataGoniostat constructor argument 'oscillationWidth' is not XSDataAngle but %s"
                 % self._oscillationWidth.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if overlap is None:
             self._overlap = None
         elif overlap.__class__.__name__ == "XSDataAngle":
@@ -4115,7 +4115,7 @@ class XSDataGoniostat(XSData):
                 "ERROR! XSDataGoniostat constructor argument 'overlap' is not XSDataAngle but %s"
                 % self._overlap.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if rotationAxis is None:
             self._rotationAxis = None
         elif rotationAxis.__class__.__name__ == "XSDataString":
@@ -4125,7 +4125,7 @@ class XSDataGoniostat(XSData):
                 "ERROR! XSDataGoniostat constructor argument 'rotationAxis' is not XSDataString but %s"
                 % self._rotationAxis.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if rotationAxisEnd is None:
             self._rotationAxisEnd = None
         elif rotationAxisEnd.__class__.__name__ == "XSDataAngle":
@@ -4135,7 +4135,7 @@ class XSDataGoniostat(XSData):
                 "ERROR! XSDataGoniostat constructor argument 'rotationAxisEnd' is not XSDataAngle but %s"
                 % self._rotationAxisEnd.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if rotationAxisStart is None:
             self._rotationAxisStart = None
         elif rotationAxisStart.__class__.__name__ == "XSDataAngle":
@@ -4145,7 +4145,7 @@ class XSDataGoniostat(XSData):
                 "ERROR! XSDataGoniostat constructor argument 'rotationAxisStart' is not XSDataAngle but %s"
                 % self._rotationAxisStart.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if samplePosition is None:
             self._samplePosition = None
         elif samplePosition.__class__.__name__ == "XSDataVectorDouble":
@@ -4155,7 +4155,7 @@ class XSDataGoniostat(XSData):
                 "ERROR! XSDataGoniostat constructor argument 'samplePosition' is not XSDataVectorDouble but %s"
                 % self._samplePosition.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'maxOscillationSpeed' attribute
     def getMaxOscillationSpeed(self):
@@ -4171,7 +4171,7 @@ class XSDataGoniostat(XSData):
                 "ERROR! XSDataGoniostat.setMaxOscillationSpeed argument is not XSDataAngularSpeed but %s"
                 % maxOscillationSpeed.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMaxOscillationSpeed(self):
         self._maxOscillationSpeed = None
@@ -4197,7 +4197,7 @@ class XSDataGoniostat(XSData):
                 "ERROR! XSDataGoniostat.setMinOscillationWidth argument is not XSDataAngle but %s"
                 % minOscillationWidth.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMinOscillationWidth(self):
         self._minOscillationWidth = None
@@ -4223,7 +4223,7 @@ class XSDataGoniostat(XSData):
                 "ERROR! XSDataGoniostat.setOscillationWidth argument is not XSDataAngle but %s"
                 % oscillationWidth.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delOscillationWidth(self):
         self._oscillationWidth = None
@@ -4249,7 +4249,7 @@ class XSDataGoniostat(XSData):
                 "ERROR! XSDataGoniostat.setOverlap argument is not XSDataAngle but %s"
                 % overlap.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delOverlap(self):
         self._overlap = None
@@ -4270,7 +4270,7 @@ class XSDataGoniostat(XSData):
                 "ERROR! XSDataGoniostat.setRotationAxis argument is not XSDataString but %s"
                 % rotationAxis.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRotationAxis(self):
         self._rotationAxis = None
@@ -4293,7 +4293,7 @@ class XSDataGoniostat(XSData):
                 "ERROR! XSDataGoniostat.setRotationAxisEnd argument is not XSDataAngle but %s"
                 % rotationAxisEnd.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRotationAxisEnd(self):
         self._rotationAxisEnd = None
@@ -4319,7 +4319,7 @@ class XSDataGoniostat(XSData):
                 "ERROR! XSDataGoniostat.setRotationAxisStart argument is not XSDataAngle but %s"
                 % rotationAxisStart.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRotationAxisStart(self):
         self._rotationAxisStart = None
@@ -4345,7 +4345,7 @@ class XSDataGoniostat(XSData):
                 "ERROR! XSDataGoniostat.setSamplePosition argument is not XSDataVectorDouble but %s"
                 % samplePosition.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSamplePosition(self):
         self._samplePosition = None
@@ -4502,7 +4502,7 @@ class XSDataExperimentalCondition(XSData):
                 "ERROR! XSDataExperimentalCondition constructor argument 'beam' is not XSDataBeam but %s"
                 % self._beam.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if detector is None:
             self._detector = None
         elif detector.__class__.__name__ == "XSDataDetector":
@@ -4512,7 +4512,7 @@ class XSDataExperimentalCondition(XSData):
                 "ERROR! XSDataExperimentalCondition constructor argument 'detector' is not XSDataDetector but %s"
                 % self._detector.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if goniostat is None:
             self._goniostat = None
         elif goniostat.__class__.__name__ == "XSDataGoniostat":
@@ -4522,7 +4522,7 @@ class XSDataExperimentalCondition(XSData):
                 "ERROR! XSDataExperimentalCondition constructor argument 'goniostat' is not XSDataGoniostat but %s"
                 % self._goniostat.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'beam' attribute
     def getBeam(self):
@@ -4538,7 +4538,7 @@ class XSDataExperimentalCondition(XSData):
                 "ERROR! XSDataExperimentalCondition.setBeam argument is not XSDataBeam but %s"
                 % beam.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBeam(self):
         self._beam = None
@@ -4559,7 +4559,7 @@ class XSDataExperimentalCondition(XSData):
                 "ERROR! XSDataExperimentalCondition.setDetector argument is not XSDataDetector but %s"
                 % detector.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDetector(self):
         self._detector = None
@@ -4580,7 +4580,7 @@ class XSDataExperimentalCondition(XSData):
                 "ERROR! XSDataExperimentalCondition.setGoniostat argument is not XSDataGoniostat but %s"
                 % goniostat.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delGoniostat(self):
         self._goniostat = None
@@ -4712,7 +4712,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators constructor argument 'binPopCutOffMethod2Res' is not XSDataDouble but %s"
                 % self._binPopCutOffMethod2Res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if goodBraggCandidates is None:
             self._goodBraggCandidates = None
         elif goodBraggCandidates.__class__.__name__ == "XSDataInteger":
@@ -4722,7 +4722,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators constructor argument 'goodBraggCandidates' is not XSDataInteger but %s"
                 % self._goodBraggCandidates.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if iceRings is None:
             self._iceRings = None
         elif iceRings.__class__.__name__ == "XSDataInteger":
@@ -4732,7 +4732,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators constructor argument 'iceRings' is not XSDataInteger but %s"
                 % self._iceRings.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if image is None:
             self._image = None
         elif image.__class__.__name__ == "XSDataImage":
@@ -4742,7 +4742,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators constructor argument 'image' is not XSDataImage but %s"
                 % self._image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if inResTotal is None:
             self._inResTotal = None
         elif inResTotal.__class__.__name__ == "XSDataInteger":
@@ -4752,7 +4752,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators constructor argument 'inResTotal' is not XSDataInteger but %s"
                 % self._inResTotal.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if inResolutionOvrlSpots is None:
             self._inResolutionOvrlSpots = None
         elif inResolutionOvrlSpots.__class__.__name__ == "XSDataInteger":
@@ -4762,7 +4762,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators constructor argument 'inResolutionOvrlSpots' is not XSDataInteger but %s"
                 % self._inResolutionOvrlSpots.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if maxUnitCell is None:
             self._maxUnitCell = None
         elif maxUnitCell.__class__.__name__ == "XSDataDouble":
@@ -4772,7 +4772,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators constructor argument 'maxUnitCell' is not XSDataDouble but %s"
                 % self._maxUnitCell.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if method1Res is None:
             self._method1Res = None
         elif method1Res.__class__.__name__ == "XSDataDouble":
@@ -4782,7 +4782,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators constructor argument 'method1Res' is not XSDataDouble but %s"
                 % self._method1Res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if method2Res is None:
             self._method2Res = None
         elif method2Res.__class__.__name__ == "XSDataDouble":
@@ -4792,7 +4792,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators constructor argument 'method2Res' is not XSDataDouble but %s"
                 % self._method2Res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if pctSaturationTop50Peaks is None:
             self._pctSaturationTop50Peaks = None
         elif pctSaturationTop50Peaks.__class__.__name__ == "XSDataDouble":
@@ -4802,7 +4802,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators constructor argument 'pctSaturationTop50Peaks' is not XSDataDouble but %s"
                 % self._pctSaturationTop50Peaks.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if saturationRangeAverage is None:
             self._saturationRangeAverage = None
         elif saturationRangeAverage.__class__.__name__ == "XSDataDouble":
@@ -4812,7 +4812,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators constructor argument 'saturationRangeAverage' is not XSDataDouble but %s"
                 % self._saturationRangeAverage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if saturationRangeMax is None:
             self._saturationRangeMax = None
         elif saturationRangeMax.__class__.__name__ == "XSDataDouble":
@@ -4822,7 +4822,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators constructor argument 'saturationRangeMax' is not XSDataDouble but %s"
                 % self._saturationRangeMax.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if saturationRangeMin is None:
             self._saturationRangeMin = None
         elif saturationRangeMin.__class__.__name__ == "XSDataDouble":
@@ -4832,7 +4832,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators constructor argument 'saturationRangeMin' is not XSDataDouble but %s"
                 % self._saturationRangeMin.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if signalRangeAverage is None:
             self._signalRangeAverage = None
         elif signalRangeAverage.__class__.__name__ == "XSDataDouble":
@@ -4842,7 +4842,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators constructor argument 'signalRangeAverage' is not XSDataDouble but %s"
                 % self._signalRangeAverage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if signalRangeMax is None:
             self._signalRangeMax = None
         elif signalRangeMax.__class__.__name__ == "XSDataDouble":
@@ -4852,7 +4852,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators constructor argument 'signalRangeMax' is not XSDataDouble but %s"
                 % self._signalRangeMax.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if signalRangeMin is None:
             self._signalRangeMin = None
         elif signalRangeMin.__class__.__name__ == "XSDataDouble":
@@ -4862,7 +4862,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators constructor argument 'signalRangeMin' is not XSDataDouble but %s"
                 % self._signalRangeMin.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if spotTotal is None:
             self._spotTotal = None
         elif spotTotal.__class__.__name__ == "XSDataInteger":
@@ -4872,7 +4872,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators constructor argument 'spotTotal' is not XSDataInteger but %s"
                 % self._spotTotal.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if totalIntegratedSignal is None:
             self._totalIntegratedSignal = None
         elif totalIntegratedSignal.__class__.__name__ == "XSDataDouble":
@@ -4882,7 +4882,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators constructor argument 'totalIntegratedSignal' is not XSDataDouble but %s"
                 % self._totalIntegratedSignal.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'binPopCutOffMethod2Res' attribute
     def getBinPopCutOffMethod2Res(self):
@@ -4898,7 +4898,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators.setBinPopCutOffMethod2Res argument is not XSDataDouble but %s"
                 % binPopCutOffMethod2Res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBinPopCutOffMethod2Res(self):
         self._binPopCutOffMethod2Res = None
@@ -4924,7 +4924,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators.setGoodBraggCandidates argument is not XSDataInteger but %s"
                 % goodBraggCandidates.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delGoodBraggCandidates(self):
         self._goodBraggCandidates = None
@@ -4950,7 +4950,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators.setIceRings argument is not XSDataInteger but %s"
                 % iceRings.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delIceRings(self):
         self._iceRings = None
@@ -4971,7 +4971,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators.setImage argument is not XSDataImage but %s"
                 % image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delImage(self):
         self._image = None
@@ -4992,7 +4992,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators.setInResTotal argument is not XSDataInteger but %s"
                 % inResTotal.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delInResTotal(self):
         self._inResTotal = None
@@ -5015,7 +5015,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators.setInResolutionOvrlSpots argument is not XSDataInteger but %s"
                 % inResolutionOvrlSpots.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delInResolutionOvrlSpots(self):
         self._inResolutionOvrlSpots = None
@@ -5041,7 +5041,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators.setMaxUnitCell argument is not XSDataDouble but %s"
                 % maxUnitCell.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMaxUnitCell(self):
         self._maxUnitCell = None
@@ -5064,7 +5064,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators.setMethod1Res argument is not XSDataDouble but %s"
                 % method1Res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMethod1Res(self):
         self._method1Res = None
@@ -5087,7 +5087,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators.setMethod2Res argument is not XSDataDouble but %s"
                 % method2Res.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMethod2Res(self):
         self._method2Res = None
@@ -5110,7 +5110,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators.setPctSaturationTop50Peaks argument is not XSDataDouble but %s"
                 % pctSaturationTop50Peaks.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPctSaturationTop50Peaks(self):
         self._pctSaturationTop50Peaks = None
@@ -5136,7 +5136,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators.setSaturationRangeAverage argument is not XSDataDouble but %s"
                 % saturationRangeAverage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSaturationRangeAverage(self):
         self._saturationRangeAverage = None
@@ -5162,7 +5162,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators.setSaturationRangeMax argument is not XSDataDouble but %s"
                 % saturationRangeMax.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSaturationRangeMax(self):
         self._saturationRangeMax = None
@@ -5188,7 +5188,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators.setSaturationRangeMin argument is not XSDataDouble but %s"
                 % saturationRangeMin.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSaturationRangeMin(self):
         self._saturationRangeMin = None
@@ -5214,7 +5214,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators.setSignalRangeAverage argument is not XSDataDouble but %s"
                 % signalRangeAverage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSignalRangeAverage(self):
         self._signalRangeAverage = None
@@ -5240,7 +5240,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators.setSignalRangeMax argument is not XSDataDouble but %s"
                 % signalRangeMax.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSignalRangeMax(self):
         self._signalRangeMax = None
@@ -5266,7 +5266,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators.setSignalRangeMin argument is not XSDataDouble but %s"
                 % signalRangeMin.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSignalRangeMin(self):
         self._signalRangeMin = None
@@ -5292,7 +5292,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators.setSpotTotal argument is not XSDataInteger but %s"
                 % spotTotal.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSpotTotal(self):
         self._spotTotal = None
@@ -5315,7 +5315,7 @@ class XSDataImageQualityIndicators(XSData):
                 "ERROR! XSDataImageQualityIndicators.setTotalIntegratedSignal argument is not XSDataDouble but %s"
                 % totalIntegratedSignal.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delTotalIntegratedSignal(self):
         self._totalIntegratedSignal = None
@@ -5563,7 +5563,7 @@ class XSDataIndexingSolution(XSData):
                 "ERROR! XSDataIndexingSolution constructor argument 'crystal' is not XSDataCrystal but %s"
                 % self._crystal.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if number is None:
             self._number = None
         elif number.__class__.__name__ == "XSDataInteger":
@@ -5573,7 +5573,7 @@ class XSDataIndexingSolution(XSData):
                 "ERROR! XSDataIndexingSolution constructor argument 'number' is not XSDataInteger but %s"
                 % self._number.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if penalty is None:
             self._penalty = None
         elif penalty.__class__.__name__ == "XSDataFloat":
@@ -5583,7 +5583,7 @@ class XSDataIndexingSolution(XSData):
                 "ERROR! XSDataIndexingSolution constructor argument 'penalty' is not XSDataFloat but %s"
                 % self._penalty.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'crystal' attribute
     def getCrystal(self):
@@ -5599,7 +5599,7 @@ class XSDataIndexingSolution(XSData):
                 "ERROR! XSDataIndexingSolution.setCrystal argument is not XSDataCrystal but %s"
                 % crystal.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCrystal(self):
         self._crystal = None
@@ -5620,7 +5620,7 @@ class XSDataIndexingSolution(XSData):
                 "ERROR! XSDataIndexingSolution.setNumber argument is not XSDataInteger but %s"
                 % number.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNumber(self):
         self._number = None
@@ -5641,7 +5641,7 @@ class XSDataIndexingSolution(XSData):
                 "ERROR! XSDataIndexingSolution.setPenalty argument is not XSDataFloat but %s"
                 % penalty.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPenalty(self):
         self._penalty = None
@@ -5768,7 +5768,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult constructor argument 'bestfileDat' is not XSDataString but %s"
                 % self._bestfileDat.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if bestfileHKL is None:
             self._bestfileHKL = None
         elif bestfileHKL.__class__.__name__ == "XSDataString":
@@ -5778,7 +5778,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult constructor argument 'bestfileHKL' is not XSDataString but %s"
                 % self._bestfileHKL.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if bestfilePar is None:
             self._bestfilePar = None
         elif bestfilePar.__class__.__name__ == "XSDataString":
@@ -5788,7 +5788,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult constructor argument 'bestfilePar' is not XSDataString but %s"
                 % self._bestfilePar.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if experimentalConditionRefined is None:
             self._experimentalConditionRefined = None
         elif (
@@ -5801,7 +5801,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult constructor argument 'experimentalConditionRefined' is not XSDataExperimentalCondition but %s"
                 % self._experimentalConditionRefined.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if generatedMTZFile is None:
             self._generatedMTZFile = None
         elif generatedMTZFile.__class__.__name__ == "XSDataFile":
@@ -5811,7 +5811,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult constructor argument 'generatedMTZFile' is not XSDataFile but %s"
                 % self._generatedMTZFile.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if integrationLogFile is None:
             self._integrationLogFile = None
         elif integrationLogFile.__class__.__name__ == "XSDataFile":
@@ -5821,7 +5821,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult constructor argument 'integrationLogFile' is not XSDataFile but %s"
                 % self._integrationLogFile.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if statistics is None:
             self._statistics = None
         elif statistics.__class__.__name__ == "XSDataStatisticsIntegration":
@@ -5831,7 +5831,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult constructor argument 'statistics' is not XSDataStatisticsIntegration but %s"
                 % self._statistics.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if statisticsPerResolutionBin is None:
             self._statisticsPerResolutionBin = []
         elif statisticsPerResolutionBin.__class__.__name__ == "list":
@@ -5841,7 +5841,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult constructor argument 'statisticsPerResolutionBin' is not list but %s"
                 % self._statisticsPerResolutionBin.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if subWedgeNumber is None:
             self._subWedgeNumber = None
         elif subWedgeNumber.__class__.__name__ == "XSDataInteger":
@@ -5851,7 +5851,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult constructor argument 'subWedgeNumber' is not XSDataInteger but %s"
                 % self._subWedgeNumber.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'bestfileDat' attribute
     def getBestfileDat(self):
@@ -5867,7 +5867,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult.setBestfileDat argument is not XSDataString but %s"
                 % bestfileDat.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBestfileDat(self):
         self._bestfileDat = None
@@ -5890,7 +5890,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult.setBestfileHKL argument is not XSDataString but %s"
                 % bestfileHKL.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBestfileHKL(self):
         self._bestfileHKL = None
@@ -5913,7 +5913,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult.setBestfilePar argument is not XSDataString but %s"
                 % bestfilePar.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBestfilePar(self):
         self._bestfilePar = None
@@ -5939,7 +5939,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult.setExperimentalConditionRefined argument is not XSDataExperimentalCondition but %s"
                 % experimentalConditionRefined.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delExperimentalConditionRefined(self):
         self._experimentalConditionRefined = None
@@ -5965,7 +5965,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult.setGeneratedMTZFile argument is not XSDataFile but %s"
                 % generatedMTZFile.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delGeneratedMTZFile(self):
         self._generatedMTZFile = None
@@ -5991,7 +5991,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult.setIntegrationLogFile argument is not XSDataFile but %s"
                 % integrationLogFile.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delIntegrationLogFile(self):
         self._integrationLogFile = None
@@ -6017,7 +6017,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult.setStatistics argument is not XSDataStatisticsIntegration but %s"
                 % statistics.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delStatistics(self):
         self._statistics = None
@@ -6040,7 +6040,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult.setStatisticsPerResolutionBin argument is not list but %s"
                 % statisticsPerResolutionBin.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delStatisticsPerResolutionBin(self):
         self._statisticsPerResolutionBin = None
@@ -6055,7 +6055,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
     def addStatisticsPerResolutionBin(self, value):
         if value is None:
             strMessage = "ERROR! XSDataIntegrationSubWedgeResult.addStatisticsPerResolutionBin argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataStatisticsIntegrationPerResolutionBin":
             self._statisticsPerResolutionBin.append(value)
         else:
@@ -6063,15 +6063,15 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult.addStatisticsPerResolutionBin argument is not XSDataStatisticsIntegrationPerResolutionBin but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertStatisticsPerResolutionBin(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataIntegrationSubWedgeResult.insertStatisticsPerResolutionBin argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataIntegrationSubWedgeResult.insertStatisticsPerResolutionBin argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataStatisticsIntegrationPerResolutionBin":
             self._statisticsPerResolutionBin[index] = value
         else:
@@ -6079,7 +6079,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult.addStatisticsPerResolutionBin argument is not XSDataStatisticsIntegrationPerResolutionBin but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'subWedgeNumber' attribute
     def getSubWedgeNumber(self):
@@ -6095,7 +6095,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 "ERROR! XSDataIntegrationSubWedgeResult.setSubWedgeNumber argument is not XSDataInteger but %s"
                 % subWedgeNumber.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSubWedgeNumber(self):
         self._subWedgeNumber = None
@@ -6281,7 +6281,7 @@ class XSDataLigand(XSData):
                 "ERROR! XSDataLigand constructor argument 'heavyAtoms' is not XSDataAtomicComposition but %s"
                 % self._heavyAtoms.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if numberOfCopies is None:
             self._numberOfCopies = None
         elif numberOfCopies.__class__.__name__ == "XSDataDouble":
@@ -6291,7 +6291,7 @@ class XSDataLigand(XSData):
                 "ERROR! XSDataLigand constructor argument 'numberOfCopies' is not XSDataDouble but %s"
                 % self._numberOfCopies.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if numberOfLightAtoms is None:
             self._numberOfLightAtoms = None
         elif numberOfLightAtoms.__class__.__name__ == "XSDataDouble":
@@ -6301,7 +6301,7 @@ class XSDataLigand(XSData):
                 "ERROR! XSDataLigand constructor argument 'numberOfLightAtoms' is not XSDataDouble but %s"
                 % self._numberOfLightAtoms.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'heavyAtoms' attribute
     def getHeavyAtoms(self):
@@ -6317,7 +6317,7 @@ class XSDataLigand(XSData):
                 "ERROR! XSDataLigand.setHeavyAtoms argument is not XSDataAtomicComposition but %s"
                 % heavyAtoms.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delHeavyAtoms(self):
         self._heavyAtoms = None
@@ -6340,7 +6340,7 @@ class XSDataLigand(XSData):
                 "ERROR! XSDataLigand.setNumberOfCopies argument is not XSDataDouble but %s"
                 % numberOfCopies.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNumberOfCopies(self):
         self._numberOfCopies = None
@@ -6366,7 +6366,7 @@ class XSDataLigand(XSData):
                 "ERROR! XSDataLigand.setNumberOfLightAtoms argument is not XSDataDouble but %s"
                 % numberOfLightAtoms.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNumberOfLightAtoms(self):
         self._numberOfLightAtoms = None
@@ -6487,7 +6487,7 @@ class XSDataOrientation(XSData):
                 "ERROR! XSDataOrientation constructor argument 'matrixA' is not XSDataMatrixDouble but %s"
                 % self._matrixA.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if matrixU is None:
             self._matrixU = None
         elif matrixU.__class__.__name__ == "XSDataMatrixDouble":
@@ -6497,7 +6497,7 @@ class XSDataOrientation(XSData):
                 "ERROR! XSDataOrientation constructor argument 'matrixU' is not XSDataMatrixDouble but %s"
                 % self._matrixU.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'matrixA' attribute
     def getMatrixA(self):
@@ -6513,7 +6513,7 @@ class XSDataOrientation(XSData):
                 "ERROR! XSDataOrientation.setMatrixA argument is not XSDataMatrixDouble but %s"
                 % matrixA.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMatrixA(self):
         self._matrixA = None
@@ -6534,7 +6534,7 @@ class XSDataOrientation(XSData):
                 "ERROR! XSDataOrientation.setMatrixU argument is not XSDataMatrixDouble but %s"
                 % matrixU.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMatrixU(self):
         self._matrixU = None
@@ -6657,7 +6657,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin constructor argument 'IOverSigma' is not XSDataDouble but %s"
                 % self._IOverSigma.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if IOverSigmaChi is None:
             self._IOverSigmaChi = None
         elif IOverSigmaChi.__class__.__name__ == "XSDataDouble":
@@ -6667,7 +6667,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin constructor argument 'IOverSigmaChi' is not XSDataDouble but %s"
                 % self._IOverSigmaChi.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if averageIntensity is None:
             self._averageIntensity = None
         elif averageIntensity.__class__.__name__ == "XSDataDouble":
@@ -6677,7 +6677,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin constructor argument 'averageIntensity' is not XSDataDouble but %s"
                 % self._averageIntensity.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if averageIntensityOverAverageSigma is None:
             self._averageIntensityOverAverageSigma = None
         elif averageIntensityOverAverageSigma.__class__.__name__ == "XSDataDouble":
@@ -6687,7 +6687,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin constructor argument 'averageIntensityOverAverageSigma' is not XSDataDouble but %s"
                 % self._averageIntensityOverAverageSigma.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if averageSigma is None:
             self._averageSigma = None
         elif averageSigma.__class__.__name__ == "XSDataDouble":
@@ -6697,7 +6697,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin constructor argument 'averageSigma' is not XSDataDouble but %s"
                 % self._averageSigma.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if chi2 is None:
             self._chi2 = None
         elif chi2.__class__.__name__ == "XSDataDouble":
@@ -6707,7 +6707,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin constructor argument 'chi2' is not XSDataDouble but %s"
                 % self._chi2.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if completeness is None:
             self._completeness = None
         elif completeness.__class__.__name__ == "XSDataDouble":
@@ -6717,7 +6717,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin constructor argument 'completeness' is not XSDataDouble but %s"
                 % self._completeness.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if maxResolution is None:
             self._maxResolution = None
         elif maxResolution.__class__.__name__ == "XSDataDouble":
@@ -6727,7 +6727,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin constructor argument 'maxResolution' is not XSDataDouble but %s"
                 % self._maxResolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if minResolution is None:
             self._minResolution = None
         elif minResolution.__class__.__name__ == "XSDataDouble":
@@ -6737,7 +6737,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin constructor argument 'minResolution' is not XSDataDouble but %s"
                 % self._minResolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if percentageOverload is None:
             self._percentageOverload = None
         elif percentageOverload.__class__.__name__ == "XSDataDouble":
@@ -6747,7 +6747,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin constructor argument 'percentageOverload' is not XSDataDouble but %s"
                 % self._percentageOverload.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if rFactor is None:
             self._rFactor = None
         elif rFactor.__class__.__name__ == "XSDataDouble":
@@ -6757,7 +6757,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin constructor argument 'rFactor' is not XSDataDouble but %s"
                 % self._rFactor.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if rFriedel is None:
             self._rFriedel = None
         elif rFriedel.__class__.__name__ == "XSDataDouble":
@@ -6767,7 +6767,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin constructor argument 'rFriedel' is not XSDataDouble but %s"
                 % self._rFriedel.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if redundancy is None:
             self._redundancy = None
         elif redundancy.__class__.__name__ == "XSDataDouble":
@@ -6777,7 +6777,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin constructor argument 'redundancy' is not XSDataDouble but %s"
                 % self._redundancy.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'IOverSigma' attribute
     def getIOverSigma(self):
@@ -6793,7 +6793,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin.setIOverSigma argument is not XSDataDouble but %s"
                 % IOverSigma.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delIOverSigma(self):
         self._IOverSigma = None
@@ -6816,7 +6816,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin.setIOverSigmaChi argument is not XSDataDouble but %s"
                 % IOverSigmaChi.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delIOverSigmaChi(self):
         self._IOverSigmaChi = None
@@ -6842,7 +6842,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin.setAverageIntensity argument is not XSDataDouble but %s"
                 % averageIntensity.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAverageIntensity(self):
         self._averageIntensity = None
@@ -6868,7 +6868,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin.setAverageIntensityOverAverageSigma argument is not XSDataDouble but %s"
                 % averageIntensityOverAverageSigma.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAverageIntensityOverAverageSigma(self):
         self._averageIntensityOverAverageSigma = None
@@ -6894,7 +6894,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin.setAverageSigma argument is not XSDataDouble but %s"
                 % averageSigma.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAverageSigma(self):
         self._averageSigma = None
@@ -6917,7 +6917,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin.setChi2 argument is not XSDataDouble but %s"
                 % chi2.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delChi2(self):
         self._chi2 = None
@@ -6938,7 +6938,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin.setCompleteness argument is not XSDataDouble but %s"
                 % completeness.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCompleteness(self):
         self._completeness = None
@@ -6961,7 +6961,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin.setMaxResolution argument is not XSDataDouble but %s"
                 % maxResolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMaxResolution(self):
         self._maxResolution = None
@@ -6987,7 +6987,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin.setMinResolution argument is not XSDataDouble but %s"
                 % minResolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMinResolution(self):
         self._minResolution = None
@@ -7013,7 +7013,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin.setPercentageOverload argument is not XSDataDouble but %s"
                 % percentageOverload.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPercentageOverload(self):
         self._percentageOverload = None
@@ -7039,7 +7039,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin.setRFactor argument is not XSDataDouble but %s"
                 % rFactor.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRFactor(self):
         self._rFactor = None
@@ -7060,7 +7060,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin.setRFriedel argument is not XSDataDouble but %s"
                 % rFriedel.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRFriedel(self):
         self._rFriedel = None
@@ -7081,7 +7081,7 @@ class XSDataResolutionBin(XSData):
                 "ERROR! XSDataResolutionBin.setRedundancy argument is not XSDataDouble but %s"
                 % redundancy.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRedundancy(self):
         self._redundancy = None
@@ -7290,7 +7290,7 @@ class XSDataSample(XSData):
                 "ERROR! XSDataSample constructor argument 'absorbedDoseRate' is not XSDataAbsorbedDoseRate but %s"
                 % self._absorbedDoseRate.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if radiationDamageModelBeta is None:
             self._radiationDamageModelBeta = None
         elif radiationDamageModelBeta.__class__.__name__ == "XSDataDouble":
@@ -7300,7 +7300,7 @@ class XSDataSample(XSData):
                 "ERROR! XSDataSample constructor argument 'radiationDamageModelBeta' is not XSDataDouble but %s"
                 % self._radiationDamageModelBeta.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if radiationDamageModelGamma is None:
             self._radiationDamageModelGamma = None
         elif radiationDamageModelGamma.__class__.__name__ == "XSDataDouble":
@@ -7310,7 +7310,7 @@ class XSDataSample(XSData):
                 "ERROR! XSDataSample constructor argument 'radiationDamageModelGamma' is not XSDataDouble but %s"
                 % self._radiationDamageModelGamma.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if shape is None:
             self._shape = None
         elif shape.__class__.__name__ == "XSDataDouble":
@@ -7320,7 +7320,7 @@ class XSDataSample(XSData):
                 "ERROR! XSDataSample constructor argument 'shape' is not XSDataDouble but %s"
                 % self._shape.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if size is None:
             self._size = None
         elif size.__class__.__name__ == "XSDataSize":
@@ -7330,7 +7330,7 @@ class XSDataSample(XSData):
                 "ERROR! XSDataSample constructor argument 'size' is not XSDataSize but %s"
                 % self._size.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if susceptibility is None:
             self._susceptibility = None
         elif susceptibility.__class__.__name__ == "XSDataDouble":
@@ -7340,7 +7340,7 @@ class XSDataSample(XSData):
                 "ERROR! XSDataSample constructor argument 'susceptibility' is not XSDataDouble but %s"
                 % self._susceptibility.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'absorbedDoseRate' attribute
     def getAbsorbedDoseRate(self):
@@ -7356,7 +7356,7 @@ class XSDataSample(XSData):
                 "ERROR! XSDataSample.setAbsorbedDoseRate argument is not XSDataAbsorbedDoseRate but %s"
                 % absorbedDoseRate.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAbsorbedDoseRate(self):
         self._absorbedDoseRate = None
@@ -7382,7 +7382,7 @@ class XSDataSample(XSData):
                 "ERROR! XSDataSample.setRadiationDamageModelBeta argument is not XSDataDouble but %s"
                 % radiationDamageModelBeta.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRadiationDamageModelBeta(self):
         self._radiationDamageModelBeta = None
@@ -7408,7 +7408,7 @@ class XSDataSample(XSData):
                 "ERROR! XSDataSample.setRadiationDamageModelGamma argument is not XSDataDouble but %s"
                 % radiationDamageModelGamma.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRadiationDamageModelGamma(self):
         self._radiationDamageModelGamma = None
@@ -7434,7 +7434,7 @@ class XSDataSample(XSData):
                 "ERROR! XSDataSample.setShape argument is not XSDataDouble but %s"
                 % shape.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delShape(self):
         self._shape = None
@@ -7455,7 +7455,7 @@ class XSDataSample(XSData):
                 "ERROR! XSDataSample.setSize argument is not XSDataSize but %s"
                 % size.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSize(self):
         self._size = None
@@ -7476,7 +7476,7 @@ class XSDataSample(XSData):
                 "ERROR! XSDataSample.setSusceptibility argument is not XSDataDouble but %s"
                 % susceptibility.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSusceptibility(self):
         self._susceptibility = None
@@ -7621,7 +7621,7 @@ class XSDataSolvent(XSData):
                 "ERROR! XSDataSolvent constructor argument 'atoms' is not XSDataAtomicComposition but %s"
                 % self._atoms.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'atoms' attribute
     def getAtoms(self):
@@ -7637,7 +7637,7 @@ class XSDataSolvent(XSData):
                 "ERROR! XSDataSolvent.setAtoms argument is not XSDataAtomicComposition but %s"
                 % atoms.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAtoms(self):
         self._atoms = None
@@ -7739,7 +7739,7 @@ class XSDataSpaceGroup(XSData):
                 "ERROR! XSDataSpaceGroup constructor argument 'ITNumber' is not XSDataInteger but %s"
                 % self._ITNumber.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if name is None:
             self._name = None
         elif name.__class__.__name__ == "XSDataString":
@@ -7749,7 +7749,7 @@ class XSDataSpaceGroup(XSData):
                 "ERROR! XSDataSpaceGroup constructor argument 'name' is not XSDataString but %s"
                 % self._name.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'ITNumber' attribute
     def getITNumber(self):
@@ -7765,7 +7765,7 @@ class XSDataSpaceGroup(XSData):
                 "ERROR! XSDataSpaceGroup.setITNumber argument is not XSDataInteger but %s"
                 % ITNumber.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delITNumber(self):
         self._ITNumber = None
@@ -7786,7 +7786,7 @@ class XSDataSpaceGroup(XSData):
                 "ERROR! XSDataSpaceGroup.setName argument is not XSDataString but %s"
                 % name.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delName(self):
         self._name = None
@@ -7900,7 +7900,7 @@ class XSDataStatisticsIndexing(XSData):
                 "ERROR! XSDataStatisticsIndexing constructor argument 'beamPositionShiftX' is not XSDataLength but %s"
                 % self._beamPositionShiftX.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if beamPositionShiftY is None:
             self._beamPositionShiftY = None
         elif beamPositionShiftY.__class__.__name__ == "XSDataLength":
@@ -7910,7 +7910,7 @@ class XSDataStatisticsIndexing(XSData):
                 "ERROR! XSDataStatisticsIndexing constructor argument 'beamPositionShiftY' is not XSDataLength but %s"
                 % self._beamPositionShiftY.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if spotDeviationAngular is None:
             self._spotDeviationAngular = None
         elif spotDeviationAngular.__class__.__name__ == "XSDataAngle":
@@ -7920,7 +7920,7 @@ class XSDataStatisticsIndexing(XSData):
                 "ERROR! XSDataStatisticsIndexing constructor argument 'spotDeviationAngular' is not XSDataAngle but %s"
                 % self._spotDeviationAngular.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if spotDeviationPositional is None:
             self._spotDeviationPositional = None
         elif spotDeviationPositional.__class__.__name__ == "XSDataLength":
@@ -7930,7 +7930,7 @@ class XSDataStatisticsIndexing(XSData):
                 "ERROR! XSDataStatisticsIndexing constructor argument 'spotDeviationPositional' is not XSDataLength but %s"
                 % self._spotDeviationPositional.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if spotsTotal is None:
             self._spotsTotal = None
         elif spotsTotal.__class__.__name__ == "XSDataInteger":
@@ -7940,7 +7940,7 @@ class XSDataStatisticsIndexing(XSData):
                 "ERROR! XSDataStatisticsIndexing constructor argument 'spotsTotal' is not XSDataInteger but %s"
                 % self._spotsTotal.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if spotsUsed is None:
             self._spotsUsed = None
         elif spotsUsed.__class__.__name__ == "XSDataInteger":
@@ -7950,7 +7950,7 @@ class XSDataStatisticsIndexing(XSData):
                 "ERROR! XSDataStatisticsIndexing constructor argument 'spotsUsed' is not XSDataInteger but %s"
                 % self._spotsUsed.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'beamPositionShiftX' attribute
     def getBeamPositionShiftX(self):
@@ -7966,7 +7966,7 @@ class XSDataStatisticsIndexing(XSData):
                 "ERROR! XSDataStatisticsIndexing.setBeamPositionShiftX argument is not XSDataLength but %s"
                 % beamPositionShiftX.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBeamPositionShiftX(self):
         self._beamPositionShiftX = None
@@ -7992,7 +7992,7 @@ class XSDataStatisticsIndexing(XSData):
                 "ERROR! XSDataStatisticsIndexing.setBeamPositionShiftY argument is not XSDataLength but %s"
                 % beamPositionShiftY.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBeamPositionShiftY(self):
         self._beamPositionShiftY = None
@@ -8018,7 +8018,7 @@ class XSDataStatisticsIndexing(XSData):
                 "ERROR! XSDataStatisticsIndexing.setSpotDeviationAngular argument is not XSDataAngle but %s"
                 % spotDeviationAngular.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSpotDeviationAngular(self):
         self._spotDeviationAngular = None
@@ -8044,7 +8044,7 @@ class XSDataStatisticsIndexing(XSData):
                 "ERROR! XSDataStatisticsIndexing.setSpotDeviationPositional argument is not XSDataLength but %s"
                 % spotDeviationPositional.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSpotDeviationPositional(self):
         self._spotDeviationPositional = None
@@ -8070,7 +8070,7 @@ class XSDataStatisticsIndexing(XSData):
                 "ERROR! XSDataStatisticsIndexing.setSpotsTotal argument is not XSDataInteger but %s"
                 % spotsTotal.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSpotsTotal(self):
         self._spotsTotal = None
@@ -8093,7 +8093,7 @@ class XSDataStatisticsIndexing(XSData):
                 "ERROR! XSDataStatisticsIndexing.setSpotsUsed argument is not XSDataInteger but %s"
                 % spotsUsed.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSpotsUsed(self):
         self._spotsUsed = None
@@ -8255,7 +8255,7 @@ class XSDataStatisticsIntegration(XSData):
                 "ERROR! XSDataStatisticsIntegration constructor argument 'RMSSpotDeviation' is not XSDataLength but %s"
                 % self._RMSSpotDeviation.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if iOverSigmaAtHighestResolution is None:
             self._iOverSigmaAtHighestResolution = None
         elif iOverSigmaAtHighestResolution.__class__.__name__ == "XSDataDouble":
@@ -8265,7 +8265,7 @@ class XSDataStatisticsIntegration(XSData):
                 "ERROR! XSDataStatisticsIntegration constructor argument 'iOverSigmaAtHighestResolution' is not XSDataDouble but %s"
                 % self._iOverSigmaAtHighestResolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if iOverSigmaOverall is None:
             self._iOverSigmaOverall = None
         elif iOverSigmaOverall.__class__.__name__ == "XSDataDouble":
@@ -8275,7 +8275,7 @@ class XSDataStatisticsIntegration(XSData):
                 "ERROR! XSDataStatisticsIntegration constructor argument 'iOverSigmaOverall' is not XSDataDouble but %s"
                 % self._iOverSigmaOverall.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if numberOfBadReflections is None:
             self._numberOfBadReflections = None
         elif numberOfBadReflections.__class__.__name__ == "XSDataInteger":
@@ -8285,7 +8285,7 @@ class XSDataStatisticsIntegration(XSData):
                 "ERROR! XSDataStatisticsIntegration constructor argument 'numberOfBadReflections' is not XSDataInteger but %s"
                 % self._numberOfBadReflections.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if numberOfFullyRecordedReflections is None:
             self._numberOfFullyRecordedReflections = None
         elif numberOfFullyRecordedReflections.__class__.__name__ == "XSDataInteger":
@@ -8295,7 +8295,7 @@ class XSDataStatisticsIntegration(XSData):
                 "ERROR! XSDataStatisticsIntegration constructor argument 'numberOfFullyRecordedReflections' is not XSDataInteger but %s"
                 % self._numberOfFullyRecordedReflections.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if numberOfNegativeReflections is None:
             self._numberOfNegativeReflections = None
         elif numberOfNegativeReflections.__class__.__name__ == "XSDataInteger":
@@ -8305,7 +8305,7 @@ class XSDataStatisticsIntegration(XSData):
                 "ERROR! XSDataStatisticsIntegration constructor argument 'numberOfNegativeReflections' is not XSDataInteger but %s"
                 % self._numberOfNegativeReflections.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if numberOfOverlappedReflections is None:
             self._numberOfOverlappedReflections = None
         elif numberOfOverlappedReflections.__class__.__name__ == "XSDataInteger":
@@ -8315,7 +8315,7 @@ class XSDataStatisticsIntegration(XSData):
                 "ERROR! XSDataStatisticsIntegration constructor argument 'numberOfOverlappedReflections' is not XSDataInteger but %s"
                 % self._numberOfOverlappedReflections.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if numberOfPartialReflections is None:
             self._numberOfPartialReflections = None
         elif numberOfPartialReflections.__class__.__name__ == "XSDataInteger":
@@ -8325,7 +8325,7 @@ class XSDataStatisticsIntegration(XSData):
                 "ERROR! XSDataStatisticsIntegration constructor argument 'numberOfPartialReflections' is not XSDataInteger but %s"
                 % self._numberOfPartialReflections.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if numberOfReflectionsGenerated is None:
             self._numberOfReflectionsGenerated = None
         elif numberOfReflectionsGenerated.__class__.__name__ == "XSDataInteger":
@@ -8335,7 +8335,7 @@ class XSDataStatisticsIntegration(XSData):
                 "ERROR! XSDataStatisticsIntegration constructor argument 'numberOfReflectionsGenerated' is not XSDataInteger but %s"
                 % self._numberOfReflectionsGenerated.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'RMSSpotDeviation' attribute
     def getRMSSpotDeviation(self):
@@ -8351,7 +8351,7 @@ class XSDataStatisticsIntegration(XSData):
                 "ERROR! XSDataStatisticsIntegration.setRMSSpotDeviation argument is not XSDataLength but %s"
                 % RMSSpotDeviation.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRMSSpotDeviation(self):
         self._RMSSpotDeviation = None
@@ -8377,7 +8377,7 @@ class XSDataStatisticsIntegration(XSData):
                 "ERROR! XSDataStatisticsIntegration.setIOverSigmaAtHighestResolution argument is not XSDataDouble but %s"
                 % iOverSigmaAtHighestResolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delIOverSigmaAtHighestResolution(self):
         self._iOverSigmaAtHighestResolution = None
@@ -8403,7 +8403,7 @@ class XSDataStatisticsIntegration(XSData):
                 "ERROR! XSDataStatisticsIntegration.setIOverSigmaOverall argument is not XSDataDouble but %s"
                 % iOverSigmaOverall.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delIOverSigmaOverall(self):
         self._iOverSigmaOverall = None
@@ -8429,7 +8429,7 @@ class XSDataStatisticsIntegration(XSData):
                 "ERROR! XSDataStatisticsIntegration.setNumberOfBadReflections argument is not XSDataInteger but %s"
                 % numberOfBadReflections.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNumberOfBadReflections(self):
         self._numberOfBadReflections = None
@@ -8455,7 +8455,7 @@ class XSDataStatisticsIntegration(XSData):
                 "ERROR! XSDataStatisticsIntegration.setNumberOfFullyRecordedReflections argument is not XSDataInteger but %s"
                 % numberOfFullyRecordedReflections.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNumberOfFullyRecordedReflections(self):
         self._numberOfFullyRecordedReflections = None
@@ -8481,7 +8481,7 @@ class XSDataStatisticsIntegration(XSData):
                 "ERROR! XSDataStatisticsIntegration.setNumberOfNegativeReflections argument is not XSDataInteger but %s"
                 % numberOfNegativeReflections.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNumberOfNegativeReflections(self):
         self._numberOfNegativeReflections = None
@@ -8507,7 +8507,7 @@ class XSDataStatisticsIntegration(XSData):
                 "ERROR! XSDataStatisticsIntegration.setNumberOfOverlappedReflections argument is not XSDataInteger but %s"
                 % numberOfOverlappedReflections.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNumberOfOverlappedReflections(self):
         self._numberOfOverlappedReflections = None
@@ -8533,7 +8533,7 @@ class XSDataStatisticsIntegration(XSData):
                 "ERROR! XSDataStatisticsIntegration.setNumberOfPartialReflections argument is not XSDataInteger but %s"
                 % numberOfPartialReflections.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNumberOfPartialReflections(self):
         self._numberOfPartialReflections = None
@@ -8559,7 +8559,7 @@ class XSDataStatisticsIntegration(XSData):
                 "ERROR! XSDataStatisticsIntegration.setNumberOfReflectionsGenerated argument is not XSDataInteger but %s"
                 % numberOfReflectionsGenerated.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNumberOfReflectionsGenerated(self):
         self._numberOfReflectionsGenerated = None
@@ -8766,7 +8766,7 @@ class XSDataStatisticsIntegrationPerReflectionType(XSData):
                 "ERROR! XSDataStatisticsIntegrationPerReflectionType constructor argument 'fullyRecorded' is not XSDataStatisticsIntegrationAverageAndNumberOfReflections but %s"
                 % self._fullyRecorded.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if partials is None:
             self._partials = None
         elif (
@@ -8779,7 +8779,7 @@ class XSDataStatisticsIntegrationPerReflectionType(XSData):
                 "ERROR! XSDataStatisticsIntegrationPerReflectionType constructor argument 'partials' is not XSDataStatisticsIntegrationAverageAndNumberOfReflections but %s"
                 % self._partials.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'fullyRecorded' attribute
     def getFullyRecorded(self):
@@ -8798,7 +8798,7 @@ class XSDataStatisticsIntegrationPerReflectionType(XSData):
                 "ERROR! XSDataStatisticsIntegrationPerReflectionType.setFullyRecorded argument is not XSDataStatisticsIntegrationAverageAndNumberOfReflections but %s"
                 % fullyRecorded.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delFullyRecorded(self):
         self._fullyRecorded = None
@@ -8827,7 +8827,7 @@ class XSDataStatisticsIntegrationPerReflectionType(XSData):
                 "ERROR! XSDataStatisticsIntegrationPerReflectionType.setPartials argument is not XSDataStatisticsIntegrationAverageAndNumberOfReflections but %s"
                 % partials.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPartials(self):
         self._partials = None
@@ -8950,7 +8950,7 @@ class XSDataStatisticsIntegrationPerResolutionBin(XSData):
                 "ERROR! XSDataStatisticsIntegrationPerResolutionBin constructor argument 'maxResolution' is not XSDataDouble but %s"
                 % self._maxResolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if minResolution is None:
             self._minResolution = None
         elif minResolution.__class__.__name__ == "XSDataDouble":
@@ -8960,7 +8960,7 @@ class XSDataStatisticsIntegrationPerResolutionBin(XSData):
                 "ERROR! XSDataStatisticsIntegrationPerResolutionBin constructor argument 'minResolution' is not XSDataDouble but %s"
                 % self._minResolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if profileFitted is None:
             self._profileFitted = None
         elif (
@@ -8973,7 +8973,7 @@ class XSDataStatisticsIntegrationPerResolutionBin(XSData):
                 "ERROR! XSDataStatisticsIntegrationPerResolutionBin constructor argument 'profileFitted' is not XSDataStatisticsIntegrationPerReflectionType but %s"
                 % self._profileFitted.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if summation is None:
             self._summation = None
         elif (
@@ -8986,7 +8986,7 @@ class XSDataStatisticsIntegrationPerResolutionBin(XSData):
                 "ERROR! XSDataStatisticsIntegrationPerResolutionBin constructor argument 'summation' is not XSDataStatisticsIntegrationPerReflectionType but %s"
                 % self._summation.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'maxResolution' attribute
     def getMaxResolution(self):
@@ -9002,7 +9002,7 @@ class XSDataStatisticsIntegrationPerResolutionBin(XSData):
                 "ERROR! XSDataStatisticsIntegrationPerResolutionBin.setMaxResolution argument is not XSDataDouble but %s"
                 % maxResolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMaxResolution(self):
         self._maxResolution = None
@@ -9028,7 +9028,7 @@ class XSDataStatisticsIntegrationPerResolutionBin(XSData):
                 "ERROR! XSDataStatisticsIntegrationPerResolutionBin.setMinResolution argument is not XSDataDouble but %s"
                 % minResolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMinResolution(self):
         self._minResolution = None
@@ -9057,7 +9057,7 @@ class XSDataStatisticsIntegrationPerResolutionBin(XSData):
                 "ERROR! XSDataStatisticsIntegrationPerResolutionBin.setProfileFitted argument is not XSDataStatisticsIntegrationPerReflectionType but %s"
                 % profileFitted.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delProfileFitted(self):
         self._profileFitted = None
@@ -9086,7 +9086,7 @@ class XSDataStatisticsIntegrationPerResolutionBin(XSData):
                 "ERROR! XSDataStatisticsIntegrationPerResolutionBin.setSummation argument is not XSDataStatisticsIntegrationPerReflectionType but %s"
                 % summation.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSummation(self):
         self._summation = None
@@ -9224,7 +9224,7 @@ class XSDataStatisticsStrategy(XSData):
                 "ERROR! XSDataStatisticsStrategy constructor argument 'resolutionBin' is not list but %s"
                 % self._resolutionBin.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'resolutionBin' attribute
     def getResolutionBin(self):
@@ -9240,7 +9240,7 @@ class XSDataStatisticsStrategy(XSData):
                 "ERROR! XSDataStatisticsStrategy.setResolutionBin argument is not list but %s"
                 % resolutionBin.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delResolutionBin(self):
         self._resolutionBin = None
@@ -9257,7 +9257,7 @@ class XSDataStatisticsStrategy(XSData):
             strMessage = (
                 "ERROR! XSDataStatisticsStrategy.addResolutionBin argument is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataResolutionBin":
             self._resolutionBin.append(value)
         else:
@@ -9265,15 +9265,15 @@ class XSDataStatisticsStrategy(XSData):
                 "ERROR! XSDataStatisticsStrategy.addResolutionBin argument is not XSDataResolutionBin but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertResolutionBin(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataStatisticsStrategy.insertResolutionBin argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataStatisticsStrategy.insertResolutionBin argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataResolutionBin":
             self._resolutionBin[index] = value
         else:
@@ -9281,7 +9281,7 @@ class XSDataStatisticsStrategy(XSData):
                 "ERROR! XSDataStatisticsStrategy.addResolutionBin argument is not XSDataResolutionBin but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def export(self, outfile, level, name_="XSDataStatisticsStrategy"):
         showIndent(outfile, level)
@@ -9387,7 +9387,7 @@ class XSDataStrategySummary(XSData):
                 "ERROR! XSDataStrategySummary constructor argument 'attenuation' is not XSDataDouble but %s"
                 % self._attenuation.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if completeness is None:
             self._completeness = None
         elif completeness.__class__.__name__ == "XSDataDouble":
@@ -9397,7 +9397,7 @@ class XSDataStrategySummary(XSData):
                 "ERROR! XSDataStrategySummary constructor argument 'completeness' is not XSDataDouble but %s"
                 % self._completeness.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if iSigma is None:
             self._iSigma = None
         elif iSigma.__class__.__name__ == "XSDataDouble":
@@ -9407,7 +9407,7 @@ class XSDataStrategySummary(XSData):
                 "ERROR! XSDataStrategySummary constructor argument 'iSigma' is not XSDataDouble but %s"
                 % self._iSigma.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if rankingResolution is None:
             self._rankingResolution = None
         elif rankingResolution.__class__.__name__ == "XSDataDouble":
@@ -9417,7 +9417,7 @@ class XSDataStrategySummary(XSData):
                 "ERROR! XSDataStrategySummary constructor argument 'rankingResolution' is not XSDataDouble but %s"
                 % self._rankingResolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if redundancy is None:
             self._redundancy = None
         elif redundancy.__class__.__name__ == "XSDataDouble":
@@ -9427,7 +9427,7 @@ class XSDataStrategySummary(XSData):
                 "ERROR! XSDataStrategySummary constructor argument 'redundancy' is not XSDataDouble but %s"
                 % self._redundancy.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if resolution is None:
             self._resolution = None
         elif resolution.__class__.__name__ == "XSDataDouble":
@@ -9437,7 +9437,7 @@ class XSDataStrategySummary(XSData):
                 "ERROR! XSDataStrategySummary constructor argument 'resolution' is not XSDataDouble but %s"
                 % self._resolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if resolutionReasoning is None:
             self._resolutionReasoning = None
         elif resolutionReasoning.__class__.__name__ == "XSDataString":
@@ -9447,7 +9447,7 @@ class XSDataStrategySummary(XSData):
                 "ERROR! XSDataStrategySummary constructor argument 'resolutionReasoning' is not XSDataString but %s"
                 % self._resolutionReasoning.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if totalDataCollectionTime is None:
             self._totalDataCollectionTime = None
         elif totalDataCollectionTime.__class__.__name__ == "XSDataTime":
@@ -9457,7 +9457,7 @@ class XSDataStrategySummary(XSData):
                 "ERROR! XSDataStrategySummary constructor argument 'totalDataCollectionTime' is not XSDataTime but %s"
                 % self._totalDataCollectionTime.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if totalExposureTime is None:
             self._totalExposureTime = None
         elif totalExposureTime.__class__.__name__ == "XSDataTime":
@@ -9467,7 +9467,7 @@ class XSDataStrategySummary(XSData):
                 "ERROR! XSDataStrategySummary constructor argument 'totalExposureTime' is not XSDataTime but %s"
                 % self._totalExposureTime.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'attenuation' attribute
     def getAttenuation(self):
@@ -9483,7 +9483,7 @@ class XSDataStrategySummary(XSData):
                 "ERROR! XSDataStrategySummary.setAttenuation argument is not XSDataDouble but %s"
                 % attenuation.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAttenuation(self):
         self._attenuation = None
@@ -9506,7 +9506,7 @@ class XSDataStrategySummary(XSData):
                 "ERROR! XSDataStrategySummary.setCompleteness argument is not XSDataDouble but %s"
                 % completeness.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCompleteness(self):
         self._completeness = None
@@ -9529,7 +9529,7 @@ class XSDataStrategySummary(XSData):
                 "ERROR! XSDataStrategySummary.setISigma argument is not XSDataDouble but %s"
                 % iSigma.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delISigma(self):
         self._iSigma = None
@@ -9550,7 +9550,7 @@ class XSDataStrategySummary(XSData):
                 "ERROR! XSDataStrategySummary.setRankingResolution argument is not XSDataDouble but %s"
                 % rankingResolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRankingResolution(self):
         self._rankingResolution = None
@@ -9576,7 +9576,7 @@ class XSDataStrategySummary(XSData):
                 "ERROR! XSDataStrategySummary.setRedundancy argument is not XSDataDouble but %s"
                 % redundancy.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRedundancy(self):
         self._redundancy = None
@@ -9599,7 +9599,7 @@ class XSDataStrategySummary(XSData):
                 "ERROR! XSDataStrategySummary.setResolution argument is not XSDataDouble but %s"
                 % resolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delResolution(self):
         self._resolution = None
@@ -9622,7 +9622,7 @@ class XSDataStrategySummary(XSData):
                 "ERROR! XSDataStrategySummary.setResolutionReasoning argument is not XSDataString but %s"
                 % resolutionReasoning.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delResolutionReasoning(self):
         self._resolutionReasoning = None
@@ -9648,7 +9648,7 @@ class XSDataStrategySummary(XSData):
                 "ERROR! XSDataStrategySummary.setTotalDataCollectionTime argument is not XSDataTime but %s"
                 % totalDataCollectionTime.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delTotalDataCollectionTime(self):
         self._totalDataCollectionTime = None
@@ -9674,7 +9674,7 @@ class XSDataStrategySummary(XSData):
                 "ERROR! XSDataStrategySummary.setTotalExposureTime argument is not XSDataTime but %s"
                 % totalExposureTime.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delTotalExposureTime(self):
         self._totalExposureTime = None
@@ -9857,7 +9857,7 @@ class XSDataCollectionPlan(XSData):
                 "ERROR! XSDataCollectionPlan constructor argument 'collectionPlanNumber' is not XSDataInteger but %s"
                 % self._collectionPlanNumber.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if collectionStrategy is None:
             self._collectionStrategy = None
         elif collectionStrategy.__class__.__name__ == "XSDataCollection":
@@ -9867,7 +9867,7 @@ class XSDataCollectionPlan(XSData):
                 "ERROR! XSDataCollectionPlan constructor argument 'collectionStrategy' is not XSDataCollection but %s"
                 % self._collectionStrategy.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if comment is None:
             self._comment = None
         elif comment.__class__.__name__ == "XSDataString":
@@ -9877,7 +9877,7 @@ class XSDataCollectionPlan(XSData):
                 "ERROR! XSDataCollectionPlan constructor argument 'comment' is not XSDataString but %s"
                 % self._comment.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if statistics is None:
             self._statistics = None
         elif statistics.__class__.__name__ == "XSDataStatisticsStrategy":
@@ -9887,7 +9887,7 @@ class XSDataCollectionPlan(XSData):
                 "ERROR! XSDataCollectionPlan constructor argument 'statistics' is not XSDataStatisticsStrategy but %s"
                 % self._statistics.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if strategySummary is None:
             self._strategySummary = None
         elif strategySummary.__class__.__name__ == "XSDataStrategySummary":
@@ -9897,7 +9897,7 @@ class XSDataCollectionPlan(XSData):
                 "ERROR! XSDataCollectionPlan constructor argument 'strategySummary' is not XSDataStrategySummary but %s"
                 % self._strategySummary.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'collectionPlanNumber' attribute
     def getCollectionPlanNumber(self):
@@ -9913,7 +9913,7 @@ class XSDataCollectionPlan(XSData):
                 "ERROR! XSDataCollectionPlan.setCollectionPlanNumber argument is not XSDataInteger but %s"
                 % collectionPlanNumber.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCollectionPlanNumber(self):
         self._collectionPlanNumber = None
@@ -9939,7 +9939,7 @@ class XSDataCollectionPlan(XSData):
                 "ERROR! XSDataCollectionPlan.setCollectionStrategy argument is not XSDataCollection but %s"
                 % collectionStrategy.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCollectionStrategy(self):
         self._collectionStrategy = None
@@ -9965,7 +9965,7 @@ class XSDataCollectionPlan(XSData):
                 "ERROR! XSDataCollectionPlan.setComment argument is not XSDataString but %s"
                 % comment.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delComment(self):
         self._comment = None
@@ -9986,7 +9986,7 @@ class XSDataCollectionPlan(XSData):
                 "ERROR! XSDataCollectionPlan.setStatistics argument is not XSDataStatisticsStrategy but %s"
                 % statistics.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delStatistics(self):
         self._statistics = None
@@ -10009,7 +10009,7 @@ class XSDataCollectionPlan(XSData):
                 "ERROR! XSDataCollectionPlan.setStrategySummary argument is not XSDataStrategySummary but %s"
                 % strategySummary.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delStrategySummary(self):
         self._strategySummary = None
@@ -10148,7 +10148,7 @@ class XSDataCrystal(XSData):
                 "ERROR! XSDataCrystal constructor argument 'cell' is not XSDataCell but %s"
                 % self._cell.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if mosaicity is None:
             self._mosaicity = None
         elif mosaicity.__class__.__name__ == "XSDataDouble":
@@ -10158,7 +10158,7 @@ class XSDataCrystal(XSData):
                 "ERROR! XSDataCrystal constructor argument 'mosaicity' is not XSDataDouble but %s"
                 % self._mosaicity.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if spaceGroup is None:
             self._spaceGroup = None
         elif spaceGroup.__class__.__name__ == "XSDataSpaceGroup":
@@ -10168,7 +10168,7 @@ class XSDataCrystal(XSData):
                 "ERROR! XSDataCrystal constructor argument 'spaceGroup' is not XSDataSpaceGroup but %s"
                 % self._spaceGroup.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'cell' attribute
     def getCell(self):
@@ -10184,7 +10184,7 @@ class XSDataCrystal(XSData):
                 "ERROR! XSDataCrystal.setCell argument is not XSDataCell but %s"
                 % cell.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCell(self):
         self._cell = None
@@ -10205,7 +10205,7 @@ class XSDataCrystal(XSData):
                 "ERROR! XSDataCrystal.setMosaicity argument is not XSDataDouble but %s"
                 % mosaicity.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMosaicity(self):
         self._mosaicity = None
@@ -10228,7 +10228,7 @@ class XSDataCrystal(XSData):
                 "ERROR! XSDataCrystal.setSpaceGroup argument is not XSDataSpaceGroup but %s"
                 % spaceGroup.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSpaceGroup(self):
         self._spaceGroup = None
@@ -10347,7 +10347,7 @@ This structure is also defined by its number in the asymmetric unit."""
                 "ERROR! XSDataStructure constructor argument 'chain' is not list but %s"
                 % self._chain.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if ligand is None:
             self._ligand = []
         elif ligand.__class__.__name__ == "list":
@@ -10357,7 +10357,7 @@ This structure is also defined by its number in the asymmetric unit."""
                 "ERROR! XSDataStructure constructor argument 'ligand' is not list but %s"
                 % self._ligand.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if numberOfCopiesInAsymmetricUnit is None:
             self._numberOfCopiesInAsymmetricUnit = None
         elif numberOfCopiesInAsymmetricUnit.__class__.__name__ == "XSDataDouble":
@@ -10367,7 +10367,7 @@ This structure is also defined by its number in the asymmetric unit."""
                 "ERROR! XSDataStructure constructor argument 'numberOfCopiesInAsymmetricUnit' is not XSDataDouble but %s"
                 % self._numberOfCopiesInAsymmetricUnit.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'chain' attribute
     def getChain(self):
@@ -10383,7 +10383,7 @@ This structure is also defined by its number in the asymmetric unit."""
                 "ERROR! XSDataStructure.setChain argument is not list but %s"
                 % chain.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delChain(self):
         self._chain = None
@@ -10393,7 +10393,7 @@ This structure is also defined by its number in the asymmetric unit."""
     def addChain(self, value):
         if value is None:
             strMessage = "ERROR! XSDataStructure.addChain argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataChain":
             self._chain.append(value)
         else:
@@ -10401,15 +10401,15 @@ This structure is also defined by its number in the asymmetric unit."""
                 "ERROR! XSDataStructure.addChain argument is not XSDataChain but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertChain(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataStructure.insertChain argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataStructure.insertChain argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataChain":
             self._chain[index] = value
         else:
@@ -10417,7 +10417,7 @@ This structure is also defined by its number in the asymmetric unit."""
                 "ERROR! XSDataStructure.addChain argument is not XSDataChain but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'ligand' attribute
     def getLigand(self):
@@ -10433,7 +10433,7 @@ This structure is also defined by its number in the asymmetric unit."""
                 "ERROR! XSDataStructure.setLigand argument is not list but %s"
                 % ligand.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delLigand(self):
         self._ligand = None
@@ -10443,7 +10443,7 @@ This structure is also defined by its number in the asymmetric unit."""
     def addLigand(self, value):
         if value is None:
             strMessage = "ERROR! XSDataStructure.addLigand argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataLigand":
             self._ligand.append(value)
         else:
@@ -10451,15 +10451,15 @@ This structure is also defined by its number in the asymmetric unit."""
                 "ERROR! XSDataStructure.addLigand argument is not XSDataLigand but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertLigand(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataStructure.insertLigand argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataStructure.insertLigand argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataLigand":
             self._ligand[index] = value
         else:
@@ -10467,7 +10467,7 @@ This structure is also defined by its number in the asymmetric unit."""
                 "ERROR! XSDataStructure.addLigand argument is not XSDataLigand but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'numberOfCopiesInAsymmetricUnit' attribute
     def getNumberOfCopiesInAsymmetricUnit(self):
@@ -10483,7 +10483,7 @@ This structure is also defined by its number in the asymmetric unit."""
                 "ERROR! XSDataStructure.setNumberOfCopiesInAsymmetricUnit argument is not XSDataDouble but %s"
                 % numberOfCopiesInAsymmetricUnit.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delNumberOfCopiesInAsymmetricUnit(self):
         self._numberOfCopiesInAsymmetricUnit = None
@@ -10610,7 +10610,7 @@ The subWedgeNumber is an optional number for relating different subwedges, espec
                 "ERROR! XSDataSubWedge constructor argument 'action' is not XSDataString but %s"
                 % self._action.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if experimentalCondition is None:
             self._experimentalCondition = None
         elif experimentalCondition.__class__.__name__ == "XSDataExperimentalCondition":
@@ -10620,7 +10620,7 @@ The subWedgeNumber is an optional number for relating different subwedges, espec
                 "ERROR! XSDataSubWedge constructor argument 'experimentalCondition' is not XSDataExperimentalCondition but %s"
                 % self._experimentalCondition.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if image is None:
             self._image = []
         elif image.__class__.__name__ == "list":
@@ -10630,7 +10630,7 @@ The subWedgeNumber is an optional number for relating different subwedges, espec
                 "ERROR! XSDataSubWedge constructor argument 'image' is not list but %s"
                 % self._image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if subWedgeNumber is None:
             self._subWedgeNumber = None
         elif subWedgeNumber.__class__.__name__ == "XSDataInteger":
@@ -10640,7 +10640,7 @@ The subWedgeNumber is an optional number for relating different subwedges, espec
                 "ERROR! XSDataSubWedge constructor argument 'subWedgeNumber' is not XSDataInteger but %s"
                 % self._subWedgeNumber.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'action' attribute
     def getAction(self):
@@ -10656,7 +10656,7 @@ The subWedgeNumber is an optional number for relating different subwedges, espec
                 "ERROR! XSDataSubWedge.setAction argument is not XSDataString but %s"
                 % action.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delAction(self):
         self._action = None
@@ -10677,7 +10677,7 @@ The subWedgeNumber is an optional number for relating different subwedges, espec
                 "ERROR! XSDataSubWedge.setExperimentalCondition argument is not XSDataExperimentalCondition but %s"
                 % experimentalCondition.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delExperimentalCondition(self):
         self._experimentalCondition = None
@@ -10703,7 +10703,7 @@ The subWedgeNumber is an optional number for relating different subwedges, espec
                 "ERROR! XSDataSubWedge.setImage argument is not list but %s"
                 % image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delImage(self):
         self._image = None
@@ -10713,7 +10713,7 @@ The subWedgeNumber is an optional number for relating different subwedges, espec
     def addImage(self, value):
         if value is None:
             strMessage = "ERROR! XSDataSubWedge.addImage argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataImage":
             self._image.append(value)
         else:
@@ -10721,15 +10721,15 @@ The subWedgeNumber is an optional number for relating different subwedges, espec
                 "ERROR! XSDataSubWedge.addImage argument is not XSDataImage but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertImage(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataSubWedge.insertImage argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataSubWedge.insertImage argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataImage":
             self._image[index] = value
         else:
@@ -10737,7 +10737,7 @@ The subWedgeNumber is an optional number for relating different subwedges, espec
                 "ERROR! XSDataSubWedge.addImage argument is not XSDataImage but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'subWedgeNumber' attribute
     def getSubWedgeNumber(self):
@@ -10753,7 +10753,7 @@ The subWedgeNumber is an optional number for relating different subwedges, espec
                 "ERROR! XSDataSubWedge.setSubWedgeNumber argument is not XSDataInteger but %s"
                 % subWedgeNumber.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSubWedgeNumber(self):
         self._subWedgeNumber = None
@@ -10885,7 +10885,7 @@ class XSDataGeneratePredictionInput(XSDataInput):
                 "ERROR! XSDataGeneratePredictionInput constructor argument 'dataCollection' is not XSDataCollection but %s"
                 % self._dataCollection.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if selectedIndexingSolution is None:
             self._selectedIndexingSolution = None
         elif (
@@ -10898,7 +10898,7 @@ class XSDataGeneratePredictionInput(XSDataInput):
                 "ERROR! XSDataGeneratePredictionInput constructor argument 'selectedIndexingSolution' is not XSDataIndexingSolutionSelected but %s"
                 % self._selectedIndexingSolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'dataCollection' attribute
     def getDataCollection(self):
@@ -10914,7 +10914,7 @@ class XSDataGeneratePredictionInput(XSDataInput):
                 "ERROR! XSDataGeneratePredictionInput.setDataCollection argument is not XSDataCollection but %s"
                 % dataCollection.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDataCollection(self):
         self._dataCollection = None
@@ -10943,7 +10943,7 @@ class XSDataGeneratePredictionInput(XSDataInput):
                 "ERROR! XSDataGeneratePredictionInput.setSelectedIndexingSolution argument is not XSDataIndexingSolutionSelected but %s"
                 % selectedIndexingSolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSelectedIndexingSolution(self):
         self._selectedIndexingSolution = None
@@ -11063,7 +11063,7 @@ class XSDataGeneratePredictionResult(XSDataResult):
                 "ERROR! XSDataGeneratePredictionResult constructor argument 'predictionImage' is not list but %s"
                 % self._predictionImage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'predictionImage' attribute
     def getPredictionImage(self):
@@ -11079,7 +11079,7 @@ class XSDataGeneratePredictionResult(XSDataResult):
                 "ERROR! XSDataGeneratePredictionResult.setPredictionImage argument is not list but %s"
                 % predictionImage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPredictionImage(self):
         self._predictionImage = None
@@ -11094,7 +11094,7 @@ class XSDataGeneratePredictionResult(XSDataResult):
     def addPredictionImage(self, value):
         if value is None:
             strMessage = "ERROR! XSDataGeneratePredictionResult.addPredictionImage argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataImage":
             self._predictionImage.append(value)
         else:
@@ -11102,15 +11102,15 @@ class XSDataGeneratePredictionResult(XSDataResult):
                 "ERROR! XSDataGeneratePredictionResult.addPredictionImage argument is not XSDataImage but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertPredictionImage(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataGeneratePredictionResult.insertPredictionImage argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataGeneratePredictionResult.insertPredictionImage argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataImage":
             self._predictionImage[index] = value
         else:
@@ -11118,7 +11118,7 @@ class XSDataGeneratePredictionResult(XSDataResult):
                 "ERROR! XSDataGeneratePredictionResult.addPredictionImage argument is not XSDataImage but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def export(self, outfile, level, name_="XSDataGeneratePredictionResult"):
         showIndent(outfile, level)
@@ -11219,7 +11219,7 @@ class XSDataIndexingInput(XSDataInput):
                 "ERROR! XSDataIndexingInput constructor argument 'crystal' is not XSDataCrystal but %s"
                 % self._crystal.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if dataCollection is None:
             self._dataCollection = None
         elif dataCollection.__class__.__name__ == "XSDataCollection":
@@ -11229,7 +11229,7 @@ class XSDataIndexingInput(XSDataInput):
                 "ERROR! XSDataIndexingInput constructor argument 'dataCollection' is not XSDataCollection but %s"
                 % self._dataCollection.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if experimentalCondition is None:
             self._experimentalCondition = None
         elif experimentalCondition.__class__.__name__ == "XSDataExperimentalCondition":
@@ -11239,7 +11239,7 @@ class XSDataIndexingInput(XSDataInput):
                 "ERROR! XSDataIndexingInput constructor argument 'experimentalCondition' is not XSDataExperimentalCondition but %s"
                 % self._experimentalCondition.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'crystal' attribute
     def getCrystal(self):
@@ -11255,7 +11255,7 @@ class XSDataIndexingInput(XSDataInput):
                 "ERROR! XSDataIndexingInput.setCrystal argument is not XSDataCrystal but %s"
                 % crystal.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCrystal(self):
         self._crystal = None
@@ -11276,7 +11276,7 @@ class XSDataIndexingInput(XSDataInput):
                 "ERROR! XSDataIndexingInput.setDataCollection argument is not XSDataCollection but %s"
                 % dataCollection.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDataCollection(self):
         self._dataCollection = None
@@ -11302,7 +11302,7 @@ class XSDataIndexingInput(XSDataInput):
                 "ERROR! XSDataIndexingInput.setExperimentalCondition argument is not XSDataExperimentalCondition but %s"
                 % experimentalCondition.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delExperimentalCondition(self):
         self._experimentalCondition = None
@@ -11436,7 +11436,7 @@ class XSDataIndexingSolutionSelected(XSDataIndexingSolution):
                 "ERROR! XSDataIndexingSolutionSelected constructor argument 'experimentalConditionRefined' is not XSDataExperimentalCondition but %s"
                 % self._experimentalConditionRefined.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if mosaicityEstimation is None:
             self._mosaicityEstimation = None
         elif mosaicityEstimation.__class__.__name__ == "XSDataFloat":
@@ -11446,7 +11446,7 @@ class XSDataIndexingSolutionSelected(XSDataIndexingSolution):
                 "ERROR! XSDataIndexingSolutionSelected constructor argument 'mosaicityEstimation' is not XSDataFloat but %s"
                 % self._mosaicityEstimation.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if orientation is None:
             self._orientation = None
         elif orientation.__class__.__name__ == "XSDataOrientation":
@@ -11456,7 +11456,7 @@ class XSDataIndexingSolutionSelected(XSDataIndexingSolution):
                 "ERROR! XSDataIndexingSolutionSelected constructor argument 'orientation' is not XSDataOrientation but %s"
                 % self._orientation.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if statistics is None:
             self._statistics = None
         elif statistics.__class__.__name__ == "XSDataStatisticsIndexing":
@@ -11466,7 +11466,7 @@ class XSDataIndexingSolutionSelected(XSDataIndexingSolution):
                 "ERROR! XSDataIndexingSolutionSelected constructor argument 'statistics' is not XSDataStatisticsIndexing but %s"
                 % self._statistics.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'experimentalConditionRefined' attribute
     def getExperimentalConditionRefined(self):
@@ -11485,7 +11485,7 @@ class XSDataIndexingSolutionSelected(XSDataIndexingSolution):
                 "ERROR! XSDataIndexingSolutionSelected.setExperimentalConditionRefined argument is not XSDataExperimentalCondition but %s"
                 % experimentalConditionRefined.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delExperimentalConditionRefined(self):
         self._experimentalConditionRefined = None
@@ -11511,7 +11511,7 @@ class XSDataIndexingSolutionSelected(XSDataIndexingSolution):
                 "ERROR! XSDataIndexingSolutionSelected.setMosaicityEstimation argument is not XSDataFloat but %s"
                 % mosaicityEstimation.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delMosaicityEstimation(self):
         self._mosaicityEstimation = None
@@ -11537,7 +11537,7 @@ class XSDataIndexingSolutionSelected(XSDataIndexingSolution):
                 "ERROR! XSDataIndexingSolutionSelected.setOrientation argument is not XSDataOrientation but %s"
                 % orientation.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delOrientation(self):
         self._orientation = None
@@ -11560,7 +11560,7 @@ class XSDataIndexingSolutionSelected(XSDataIndexingSolution):
                 "ERROR! XSDataIndexingSolutionSelected.setStatistics argument is not XSDataStatisticsIndexing but %s"
                 % statistics.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delStatistics(self):
         self._statistics = None
@@ -11702,7 +11702,7 @@ class XSDataIndexingResult(XSDataResult):
                 "ERROR! XSDataIndexingResult constructor argument 'image' is not list but %s"
                 % self._image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if indexingLogFile is None:
             self._indexingLogFile = None
         elif indexingLogFile.__class__.__name__ == "XSDataFile":
@@ -11712,7 +11712,7 @@ class XSDataIndexingResult(XSDataResult):
                 "ERROR! XSDataIndexingResult constructor argument 'indexingLogFile' is not XSDataFile but %s"
                 % self._indexingLogFile.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if labelitIndexing is None:
             self._labelitIndexing = None
         elif labelitIndexing.__class__.__name__ == "XSDataBoolean":
@@ -11722,7 +11722,7 @@ class XSDataIndexingResult(XSDataResult):
                 "ERROR! XSDataIndexingResult constructor argument 'labelitIndexing' is not XSDataBoolean but %s"
                 % self._labelitIndexing.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if predictionResult is None:
             self._predictionResult = None
         elif predictionResult.__class__.__name__ == "XSDataGeneratePredictionResult":
@@ -11732,7 +11732,7 @@ class XSDataIndexingResult(XSDataResult):
                 "ERROR! XSDataIndexingResult constructor argument 'predictionResult' is not XSDataGeneratePredictionResult but %s"
                 % self._predictionResult.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if selectedSolution is None:
             self._selectedSolution = None
         elif selectedSolution.__class__.__name__ == "XSDataIndexingSolutionSelected":
@@ -11742,7 +11742,7 @@ class XSDataIndexingResult(XSDataResult):
                 "ERROR! XSDataIndexingResult constructor argument 'selectedSolution' is not XSDataIndexingSolutionSelected but %s"
                 % self._selectedSolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if solution is None:
             self._solution = []
         elif solution.__class__.__name__ == "list":
@@ -11752,7 +11752,7 @@ class XSDataIndexingResult(XSDataResult):
                 "ERROR! XSDataIndexingResult constructor argument 'solution' is not list but %s"
                 % self._solution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'image' attribute
     def getImage(self):
@@ -11768,7 +11768,7 @@ class XSDataIndexingResult(XSDataResult):
                 "ERROR! XSDataIndexingResult.setImage argument is not list but %s"
                 % image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delImage(self):
         self._image = None
@@ -11778,7 +11778,7 @@ class XSDataIndexingResult(XSDataResult):
     def addImage(self, value):
         if value is None:
             strMessage = "ERROR! XSDataIndexingResult.addImage argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataImage":
             self._image.append(value)
         else:
@@ -11786,19 +11786,19 @@ class XSDataIndexingResult(XSDataResult):
                 "ERROR! XSDataIndexingResult.addImage argument is not XSDataImage but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertImage(self, index, value):
         if index is None:
             strMessage = (
                 "ERROR! XSDataIndexingResult.insertImage argument 'index' is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = (
                 "ERROR! XSDataIndexingResult.insertImage argument 'value' is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataImage":
             self._image[index] = value
         else:
@@ -11806,7 +11806,7 @@ class XSDataIndexingResult(XSDataResult):
                 "ERROR! XSDataIndexingResult.addImage argument is not XSDataImage but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'indexingLogFile' attribute
     def getIndexingLogFile(self):
@@ -11822,7 +11822,7 @@ class XSDataIndexingResult(XSDataResult):
                 "ERROR! XSDataIndexingResult.setIndexingLogFile argument is not XSDataFile but %s"
                 % indexingLogFile.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delIndexingLogFile(self):
         self._indexingLogFile = None
@@ -11848,7 +11848,7 @@ class XSDataIndexingResult(XSDataResult):
                 "ERROR! XSDataIndexingResult.setLabelitIndexing argument is not XSDataBoolean but %s"
                 % labelitIndexing.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delLabelitIndexing(self):
         self._labelitIndexing = None
@@ -11874,7 +11874,7 @@ class XSDataIndexingResult(XSDataResult):
                 "ERROR! XSDataIndexingResult.setPredictionResult argument is not XSDataGeneratePredictionResult but %s"
                 % predictionResult.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPredictionResult(self):
         self._predictionResult = None
@@ -11900,7 +11900,7 @@ class XSDataIndexingResult(XSDataResult):
                 "ERROR! XSDataIndexingResult.setSelectedSolution argument is not XSDataIndexingSolutionSelected but %s"
                 % selectedSolution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSelectedSolution(self):
         self._selectedSolution = None
@@ -11926,7 +11926,7 @@ class XSDataIndexingResult(XSDataResult):
                 "ERROR! XSDataIndexingResult.setSolution argument is not list but %s"
                 % solution.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSolution(self):
         self._solution = None
@@ -11936,7 +11936,7 @@ class XSDataIndexingResult(XSDataResult):
     def addSolution(self, value):
         if value is None:
             strMessage = "ERROR! XSDataIndexingResult.addSolution argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataIndexingSolution":
             self._solution.append(value)
         else:
@@ -11944,19 +11944,19 @@ class XSDataIndexingResult(XSDataResult):
                 "ERROR! XSDataIndexingResult.addSolution argument is not XSDataIndexingSolution but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertSolution(self, index, value):
         if index is None:
             strMessage = (
                 "ERROR! XSDataIndexingResult.insertSolution argument 'index' is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = (
                 "ERROR! XSDataIndexingResult.insertSolution argument 'value' is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataIndexingSolution":
             self._solution[index] = value
         else:
@@ -11964,7 +11964,7 @@ class XSDataIndexingResult(XSDataResult):
                 "ERROR! XSDataIndexingResult.addSolution argument is not XSDataIndexingSolution but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def export(self, outfile, level, name_="XSDataIndexingResult"):
         showIndent(outfile, level)
@@ -12091,7 +12091,7 @@ class XSDataInputCharacterisation(XSDataInput):
                 "ERROR! XSDataInputCharacterisation constructor argument 'dataCollection' is not XSDataCollection but %s"
                 % self._dataCollection.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'dataCollection' attribute
     def getDataCollection(self):
@@ -12107,7 +12107,7 @@ class XSDataInputCharacterisation(XSDataInput):
                 "ERROR! XSDataInputCharacterisation.setDataCollection argument is not XSDataCollection but %s"
                 % dataCollection.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDataCollection(self):
         self._dataCollection = None
@@ -12221,7 +12221,7 @@ class XSDataInputControlISPyB(XSDataInput):
                 "ERROR! XSDataInputControlISPyB constructor argument 'characterisationResult' is not XSDataResultCharacterisation but %s"
                 % self._characterisationResult.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if dataCollectionId is None:
             self._dataCollectionId = None
         elif dataCollectionId.__class__.__name__ == "XSDataInteger":
@@ -12231,7 +12231,7 @@ class XSDataInputControlISPyB(XSDataInput):
                 "ERROR! XSDataInputControlISPyB constructor argument 'dataCollectionId' is not XSDataInteger but %s"
                 % self._dataCollectionId.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if kappa is None:
             self._kappa = None
         elif kappa.__class__.__name__ == "XSDataAngle":
@@ -12241,7 +12241,7 @@ class XSDataInputControlISPyB(XSDataInput):
                 "ERROR! XSDataInputControlISPyB constructor argument 'kappa' is not XSDataAngle but %s"
                 % self._kappa.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if phi is None:
             self._phi = None
         elif phi.__class__.__name__ == "XSDataAngle":
@@ -12251,7 +12251,7 @@ class XSDataInputControlISPyB(XSDataInput):
                 "ERROR! XSDataInputControlISPyB constructor argument 'phi' is not XSDataAngle but %s"
                 % self._phi.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'characterisationResult' attribute
     def getCharacterisationResult(self):
@@ -12269,7 +12269,7 @@ class XSDataInputControlISPyB(XSDataInput):
                 "ERROR! XSDataInputControlISPyB.setCharacterisationResult argument is not XSDataResultCharacterisation but %s"
                 % characterisationResult.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCharacterisationResult(self):
         self._characterisationResult = None
@@ -12295,7 +12295,7 @@ class XSDataInputControlISPyB(XSDataInput):
                 "ERROR! XSDataInputControlISPyB.setDataCollectionId argument is not XSDataInteger but %s"
                 % dataCollectionId.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDataCollectionId(self):
         self._dataCollectionId = None
@@ -12321,7 +12321,7 @@ class XSDataInputControlISPyB(XSDataInput):
                 "ERROR! XSDataInputControlISPyB.setKappa argument is not XSDataAngle but %s"
                 % kappa.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delKappa(self):
         self._kappa = None
@@ -12342,7 +12342,7 @@ class XSDataInputControlISPyB(XSDataInput):
                 "ERROR! XSDataInputControlISPyB.setPhi argument is not XSDataAngle but %s"
                 % phi.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delPhi(self):
         self._phi = None
@@ -12465,7 +12465,7 @@ class XSDataInputControlImageQualityIndicators(XSDataInput):
                 "ERROR! XSDataInputControlImageQualityIndicators constructor argument 'image' is not list but %s"
                 % self._image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'image' attribute
     def getImage(self):
@@ -12481,7 +12481,7 @@ class XSDataInputControlImageQualityIndicators(XSDataInput):
                 "ERROR! XSDataInputControlImageQualityIndicators.setImage argument is not list but %s"
                 % image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delImage(self):
         self._image = None
@@ -12491,7 +12491,7 @@ class XSDataInputControlImageQualityIndicators(XSDataInput):
     def addImage(self, value):
         if value is None:
             strMessage = "ERROR! XSDataInputControlImageQualityIndicators.addImage argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataImage":
             self._image.append(value)
         else:
@@ -12499,15 +12499,15 @@ class XSDataInputControlImageQualityIndicators(XSDataInput):
                 "ERROR! XSDataInputControlImageQualityIndicators.addImage argument is not XSDataImage but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertImage(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataInputControlImageQualityIndicators.insertImage argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataInputControlImageQualityIndicators.insertImage argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataImage":
             self._image[index] = value
         else:
@@ -12515,7 +12515,7 @@ class XSDataInputControlImageQualityIndicators(XSDataInput):
                 "ERROR! XSDataInputControlImageQualityIndicators.addImage argument is not XSDataImage but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def export(self, outfile, level, name_="XSDataInputControlImageQualityIndicators"):
         showIndent(outfile, level)
@@ -12614,7 +12614,7 @@ class XSDataInputControlXDSGenerateBackgroundImage(XSDataInput):
                 "ERROR! XSDataInputControlXDSGenerateBackgroundImage constructor argument 'dataCollection' is not XSDataCollection but %s"
                 % self._dataCollection.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'dataCollection' attribute
     def getDataCollection(self):
@@ -12630,7 +12630,7 @@ class XSDataInputControlXDSGenerateBackgroundImage(XSDataInput):
                 "ERROR! XSDataInputControlXDSGenerateBackgroundImage.setDataCollection argument is not XSDataCollection but %s"
                 % dataCollection.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDataCollection(self):
         self._dataCollection = None
@@ -12745,7 +12745,7 @@ class XSDataInputInducedRadiationProcess(XSDataInput):
                 "ERROR! XSDataInputInducedRadiationProcess constructor argument 'characterisationResult' is not XSDataResultCharacterisation but %s"
                 % self._characterisationResult.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'characterisationResult' attribute
     def getCharacterisationResult(self):
@@ -12763,7 +12763,7 @@ class XSDataInputInducedRadiationProcess(XSDataInput):
                 "ERROR! XSDataInputInducedRadiationProcess.setCharacterisationResult argument is not XSDataResultCharacterisation but %s"
                 % characterisationResult.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCharacterisationResult(self):
         self._characterisationResult = None
@@ -12877,7 +12877,7 @@ class XSDataInputReadImageHeader(XSDataInput):
                 "ERROR! XSDataInputReadImageHeader constructor argument 'image' is not XSDataFile but %s"
                 % self._image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'image' attribute
     def getImage(self):
@@ -12893,7 +12893,7 @@ class XSDataInputReadImageHeader(XSDataInput):
                 "ERROR! XSDataInputReadImageHeader.setImage argument is not XSDataFile but %s"
                 % image.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delImage(self):
         self._image = None
@@ -13004,7 +13004,7 @@ class XSDataInputStrategy(XSDataInput):
                 "ERROR! XSDataInputStrategy constructor argument 'bestFileContentDat' is not XSDataString but %s"
                 % self._bestFileContentDat.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if bestFileContentHKL is None:
             self._bestFileContentHKL = []
         elif bestFileContentHKL.__class__.__name__ == "list":
@@ -13014,7 +13014,7 @@ class XSDataInputStrategy(XSDataInput):
                 "ERROR! XSDataInputStrategy constructor argument 'bestFileContentHKL' is not list but %s"
                 % self._bestFileContentHKL.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if bestFileContentPar is None:
             self._bestFileContentPar = None
         elif bestFileContentPar.__class__.__name__ == "XSDataString":
@@ -13024,7 +13024,7 @@ class XSDataInputStrategy(XSDataInput):
                 "ERROR! XSDataInputStrategy constructor argument 'bestFileContentPar' is not XSDataString but %s"
                 % self._bestFileContentPar.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if crystalRefined is None:
             self._crystalRefined = None
         elif crystalRefined.__class__.__name__ == "XSDataCrystal":
@@ -13034,7 +13034,7 @@ class XSDataInputStrategy(XSDataInput):
                 "ERROR! XSDataInputStrategy constructor argument 'crystalRefined' is not XSDataCrystal but %s"
                 % self._crystalRefined.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if diffractionPlan is None:
             self._diffractionPlan = None
         elif diffractionPlan.__class__.__name__ == "XSDataDiffractionPlan":
@@ -13044,7 +13044,7 @@ class XSDataInputStrategy(XSDataInput):
                 "ERROR! XSDataInputStrategy constructor argument 'diffractionPlan' is not XSDataDiffractionPlan but %s"
                 % self._diffractionPlan.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if experimentalCondition is None:
             self._experimentalCondition = None
         elif experimentalCondition.__class__.__name__ == "XSDataExperimentalCondition":
@@ -13054,7 +13054,7 @@ class XSDataInputStrategy(XSDataInput):
                 "ERROR! XSDataInputStrategy constructor argument 'experimentalCondition' is not XSDataExperimentalCondition but %s"
                 % self._experimentalCondition.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if sample is None:
             self._sample = None
         elif sample.__class__.__name__ == "XSDataSampleCrystalMM":
@@ -13064,7 +13064,7 @@ class XSDataInputStrategy(XSDataInput):
                 "ERROR! XSDataInputStrategy constructor argument 'sample' is not XSDataSampleCrystalMM but %s"
                 % self._sample.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if xdsBackgroundImage is None:
             self._xdsBackgroundImage = None
         elif xdsBackgroundImage.__class__.__name__ == "XSDataFile":
@@ -13074,7 +13074,7 @@ class XSDataInputStrategy(XSDataInput):
                 "ERROR! XSDataInputStrategy constructor argument 'xdsBackgroundImage' is not XSDataFile but %s"
                 % self._xdsBackgroundImage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'bestFileContentDat' attribute
     def getBestFileContentDat(self):
@@ -13090,7 +13090,7 @@ class XSDataInputStrategy(XSDataInput):
                 "ERROR! XSDataInputStrategy.setBestFileContentDat argument is not XSDataString but %s"
                 % bestFileContentDat.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBestFileContentDat(self):
         self._bestFileContentDat = None
@@ -13116,7 +13116,7 @@ class XSDataInputStrategy(XSDataInput):
                 "ERROR! XSDataInputStrategy.setBestFileContentHKL argument is not list but %s"
                 % bestFileContentHKL.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBestFileContentHKL(self):
         self._bestFileContentHKL = None
@@ -13133,7 +13133,7 @@ class XSDataInputStrategy(XSDataInput):
             strMessage = (
                 "ERROR! XSDataInputStrategy.addBestFileContentHKL argument is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataString":
             self._bestFileContentHKL.append(value)
         else:
@@ -13141,15 +13141,15 @@ class XSDataInputStrategy(XSDataInput):
                 "ERROR! XSDataInputStrategy.addBestFileContentHKL argument is not XSDataString but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertBestFileContentHKL(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataInputStrategy.insertBestFileContentHKL argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataInputStrategy.insertBestFileContentHKL argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataString":
             self._bestFileContentHKL[index] = value
         else:
@@ -13157,7 +13157,7 @@ class XSDataInputStrategy(XSDataInput):
                 "ERROR! XSDataInputStrategy.addBestFileContentHKL argument is not XSDataString but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'bestFileContentPar' attribute
     def getBestFileContentPar(self):
@@ -13173,7 +13173,7 @@ class XSDataInputStrategy(XSDataInput):
                 "ERROR! XSDataInputStrategy.setBestFileContentPar argument is not XSDataString but %s"
                 % bestFileContentPar.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBestFileContentPar(self):
         self._bestFileContentPar = None
@@ -13199,7 +13199,7 @@ class XSDataInputStrategy(XSDataInput):
                 "ERROR! XSDataInputStrategy.setCrystalRefined argument is not XSDataCrystal but %s"
                 % crystalRefined.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCrystalRefined(self):
         self._crystalRefined = None
@@ -13225,7 +13225,7 @@ class XSDataInputStrategy(XSDataInput):
                 "ERROR! XSDataInputStrategy.setDiffractionPlan argument is not XSDataDiffractionPlan but %s"
                 % diffractionPlan.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDiffractionPlan(self):
         self._diffractionPlan = None
@@ -13251,7 +13251,7 @@ class XSDataInputStrategy(XSDataInput):
                 "ERROR! XSDataInputStrategy.setExperimentalCondition argument is not XSDataExperimentalCondition but %s"
                 % experimentalCondition.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delExperimentalCondition(self):
         self._experimentalCondition = None
@@ -13277,7 +13277,7 @@ class XSDataInputStrategy(XSDataInput):
                 "ERROR! XSDataInputStrategy.setSample argument is not XSDataSampleCrystalMM but %s"
                 % sample.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSample(self):
         self._sample = None
@@ -13298,7 +13298,7 @@ class XSDataInputStrategy(XSDataInput):
                 "ERROR! XSDataInputStrategy.setXdsBackgroundImage argument is not XSDataFile but %s"
                 % xdsBackgroundImage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delXdsBackgroundImage(self):
         self._xdsBackgroundImage = None
@@ -13464,7 +13464,7 @@ class XSDataInputSubWedgeAssemble(XSDataInput):
                 "ERROR! XSDataInputSubWedgeAssemble constructor argument 'file' is not list but %s"
                 % self._file.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'file' attribute
     def getFile(self):
@@ -13480,7 +13480,7 @@ class XSDataInputSubWedgeAssemble(XSDataInput):
                 "ERROR! XSDataInputSubWedgeAssemble.setFile argument is not list but %s"
                 % file.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delFile(self):
         self._file = None
@@ -13490,7 +13490,7 @@ class XSDataInputSubWedgeAssemble(XSDataInput):
     def addFile(self, value):
         if value is None:
             strMessage = "ERROR! XSDataInputSubWedgeAssemble.addFile argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataFile":
             self._file.append(value)
         else:
@@ -13498,19 +13498,19 @@ class XSDataInputSubWedgeAssemble(XSDataInput):
                 "ERROR! XSDataInputSubWedgeAssemble.addFile argument is not XSDataFile but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertFile(self, index, value):
         if index is None:
             strMessage = (
                 "ERROR! XSDataInputSubWedgeAssemble.insertFile argument 'index' is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = (
                 "ERROR! XSDataInputSubWedgeAssemble.insertFile argument 'value' is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataFile":
             self._file[index] = value
         else:
@@ -13518,7 +13518,7 @@ class XSDataInputSubWedgeAssemble(XSDataInput):
                 "ERROR! XSDataInputSubWedgeAssemble.addFile argument is not XSDataFile but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def export(self, outfile, level, name_="XSDataInputSubWedgeAssemble"):
         showIndent(outfile, level)
@@ -13615,7 +13615,7 @@ class XSDataInputSubWedgeMerge(XSDataInput):
                 "ERROR! XSDataInputSubWedgeMerge constructor argument 'subWedge' is not list but %s"
                 % self._subWedge.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'subWedge' attribute
     def getSubWedge(self):
@@ -13631,7 +13631,7 @@ class XSDataInputSubWedgeMerge(XSDataInput):
                 "ERROR! XSDataInputSubWedgeMerge.setSubWedge argument is not list but %s"
                 % subWedge.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSubWedge(self):
         self._subWedge = None
@@ -13641,7 +13641,7 @@ class XSDataInputSubWedgeMerge(XSDataInput):
     def addSubWedge(self, value):
         if value is None:
             strMessage = "ERROR! XSDataInputSubWedgeMerge.addSubWedge argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataSubWedge":
             self._subWedge.append(value)
         else:
@@ -13649,15 +13649,15 @@ class XSDataInputSubWedgeMerge(XSDataInput):
                 "ERROR! XSDataInputSubWedgeMerge.addSubWedge argument is not XSDataSubWedge but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertSubWedge(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataInputSubWedgeMerge.insertSubWedge argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataInputSubWedgeMerge.insertSubWedge argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataSubWedge":
             self._subWedge[index] = value
         else:
@@ -13665,7 +13665,7 @@ class XSDataInputSubWedgeMerge(XSDataInput):
                 "ERROR! XSDataInputSubWedgeMerge.addSubWedge argument is not XSDataSubWedge but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def export(self, outfile, level, name_="XSDataInputSubWedgeMerge"):
         showIndent(outfile, level)
@@ -13760,7 +13760,7 @@ class XSDataIntegrationResult(XSDataResult):
                 "ERROR! XSDataIntegrationResult constructor argument 'integrationSubWedgeResult' is not list but %s"
                 % self._integrationSubWedgeResult.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'integrationSubWedgeResult' attribute
     def getIntegrationSubWedgeResult(self):
@@ -13776,7 +13776,7 @@ class XSDataIntegrationResult(XSDataResult):
                 "ERROR! XSDataIntegrationResult.setIntegrationSubWedgeResult argument is not list but %s"
                 % integrationSubWedgeResult.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delIntegrationSubWedgeResult(self):
         self._integrationSubWedgeResult = None
@@ -13791,7 +13791,7 @@ class XSDataIntegrationResult(XSDataResult):
     def addIntegrationSubWedgeResult(self, value):
         if value is None:
             strMessage = "ERROR! XSDataIntegrationResult.addIntegrationSubWedgeResult argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataIntegrationSubWedgeResult":
             self._integrationSubWedgeResult.append(value)
         else:
@@ -13799,15 +13799,15 @@ class XSDataIntegrationResult(XSDataResult):
                 "ERROR! XSDataIntegrationResult.addIntegrationSubWedgeResult argument is not XSDataIntegrationSubWedgeResult but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertIntegrationSubWedgeResult(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataIntegrationResult.insertIntegrationSubWedgeResult argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataIntegrationResult.insertIntegrationSubWedgeResult argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataIntegrationSubWedgeResult":
             self._integrationSubWedgeResult[index] = value
         else:
@@ -13815,7 +13815,7 @@ class XSDataIntegrationResult(XSDataResult):
                 "ERROR! XSDataIntegrationResult.addIntegrationSubWedgeResult argument is not XSDataIntegrationSubWedgeResult but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def export(self, outfile, level, name_="XSDataIntegrationResult"):
         showIndent(outfile, level)
@@ -13925,7 +13925,7 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation constructor argument 'dataCollection' is not XSDataCollection but %s"
                 % self._dataCollection.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if executiveSummary is None:
             self._executiveSummary = None
         elif executiveSummary.__class__.__name__ == "XSDataString":
@@ -13935,7 +13935,7 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation constructor argument 'executiveSummary' is not XSDataString but %s"
                 % self._executiveSummary.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if imageQualityIndicators is None:
             self._imageQualityIndicators = []
         elif imageQualityIndicators.__class__.__name__ == "list":
@@ -13945,7 +13945,7 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation constructor argument 'imageQualityIndicators' is not list but %s"
                 % self._imageQualityIndicators.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if indexingResult is None:
             self._indexingResult = None
         elif indexingResult.__class__.__name__ == "XSDataIndexingResult":
@@ -13955,7 +13955,7 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation constructor argument 'indexingResult' is not XSDataIndexingResult but %s"
                 % self._indexingResult.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if integrationResult is None:
             self._integrationResult = None
         elif integrationResult.__class__.__name__ == "XSDataIntegrationResult":
@@ -13965,7 +13965,7 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation constructor argument 'integrationResult' is not XSDataIntegrationResult but %s"
                 % self._integrationResult.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if shortSummary is None:
             self._shortSummary = None
         elif shortSummary.__class__.__name__ == "XSDataString":
@@ -13975,7 +13975,7 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation constructor argument 'shortSummary' is not XSDataString but %s"
                 % self._shortSummary.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if statusMessage is None:
             self._statusMessage = None
         elif statusMessage.__class__.__name__ == "XSDataString":
@@ -13985,7 +13985,7 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation constructor argument 'statusMessage' is not XSDataString but %s"
                 % self._statusMessage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if strategyResult is None:
             self._strategyResult = None
         elif strategyResult.__class__.__name__ == "XSDataResultStrategy":
@@ -13995,7 +13995,7 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation constructor argument 'strategyResult' is not XSDataResultStrategy but %s"
                 % self._strategyResult.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if xdsBackgroundImage is None:
             self._xdsBackgroundImage = None
         elif xdsBackgroundImage.__class__.__name__ == "XSDataFile":
@@ -14005,7 +14005,7 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation constructor argument 'xdsBackgroundImage' is not XSDataFile but %s"
                 % self._xdsBackgroundImage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'dataCollection' attribute
     def getDataCollection(self):
@@ -14021,7 +14021,7 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation.setDataCollection argument is not XSDataCollection but %s"
                 % dataCollection.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delDataCollection(self):
         self._dataCollection = None
@@ -14047,7 +14047,7 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation.setExecutiveSummary argument is not XSDataString but %s"
                 % executiveSummary.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delExecutiveSummary(self):
         self._executiveSummary = None
@@ -14073,7 +14073,7 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation.setImageQualityIndicators argument is not list but %s"
                 % imageQualityIndicators.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delImageQualityIndicators(self):
         self._imageQualityIndicators = None
@@ -14088,7 +14088,7 @@ class XSDataResultCharacterisation(XSDataResult):
     def addImageQualityIndicators(self, value):
         if value is None:
             strMessage = "ERROR! XSDataResultCharacterisation.addImageQualityIndicators argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataImageQualityIndicators":
             self._imageQualityIndicators.append(value)
         else:
@@ -14096,15 +14096,15 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation.addImageQualityIndicators argument is not XSDataImageQualityIndicators but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertImageQualityIndicators(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataResultCharacterisation.insertImageQualityIndicators argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataResultCharacterisation.insertImageQualityIndicators argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataImageQualityIndicators":
             self._imageQualityIndicators[index] = value
         else:
@@ -14112,7 +14112,7 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation.addImageQualityIndicators argument is not XSDataImageQualityIndicators but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'indexingResult' attribute
     def getIndexingResult(self):
@@ -14128,7 +14128,7 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation.setIndexingResult argument is not XSDataIndexingResult but %s"
                 % indexingResult.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delIndexingResult(self):
         self._indexingResult = None
@@ -14154,7 +14154,7 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation.setIntegrationResult argument is not XSDataIntegrationResult but %s"
                 % integrationResult.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delIntegrationResult(self):
         self._integrationResult = None
@@ -14180,7 +14180,7 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation.setShortSummary argument is not XSDataString but %s"
                 % shortSummary.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delShortSummary(self):
         self._shortSummary = None
@@ -14203,7 +14203,7 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation.setStatusMessage argument is not XSDataString but %s"
                 % statusMessage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delStatusMessage(self):
         self._statusMessage = None
@@ -14229,7 +14229,7 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation.setStrategyResult argument is not XSDataResultStrategy but %s"
                 % strategyResult.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delStrategyResult(self):
         self._strategyResult = None
@@ -14255,7 +14255,7 @@ class XSDataResultCharacterisation(XSDataResult):
                 "ERROR! XSDataResultCharacterisation.setXdsBackgroundImage argument is not XSDataFile but %s"
                 % xdsBackgroundImage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delXdsBackgroundImage(self):
         self._xdsBackgroundImage = None
@@ -14421,7 +14421,7 @@ class XSDataResultControlISPyB(XSDataResult):
                 "ERROR! XSDataResultControlISPyB constructor argument 'screeningId' is not XSDataInteger but %s"
                 % self._screeningId.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'screeningId' attribute
     def getScreeningId(self):
@@ -14437,7 +14437,7 @@ class XSDataResultControlISPyB(XSDataResult):
                 "ERROR! XSDataResultControlISPyB.setScreeningId argument is not XSDataInteger but %s"
                 % screeningId.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delScreeningId(self):
         self._screeningId = None
@@ -14537,7 +14537,7 @@ class XSDataResultControlImageQualityIndicators(XSDataResult):
                 "ERROR! XSDataResultControlImageQualityIndicators constructor argument 'imageQualityIndicators' is not list but %s"
                 % self._imageQualityIndicators.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'imageQualityIndicators' attribute
     def getImageQualityIndicators(self):
@@ -14553,7 +14553,7 @@ class XSDataResultControlImageQualityIndicators(XSDataResult):
                 "ERROR! XSDataResultControlImageQualityIndicators.setImageQualityIndicators argument is not list but %s"
                 % imageQualityIndicators.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delImageQualityIndicators(self):
         self._imageQualityIndicators = None
@@ -14568,7 +14568,7 @@ class XSDataResultControlImageQualityIndicators(XSDataResult):
     def addImageQualityIndicators(self, value):
         if value is None:
             strMessage = "ERROR! XSDataResultControlImageQualityIndicators.addImageQualityIndicators argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataImageQualityIndicators":
             self._imageQualityIndicators.append(value)
         else:
@@ -14576,15 +14576,15 @@ class XSDataResultControlImageQualityIndicators(XSDataResult):
                 "ERROR! XSDataResultControlImageQualityIndicators.addImageQualityIndicators argument is not XSDataImageQualityIndicators but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertImageQualityIndicators(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataResultControlImageQualityIndicators.insertImageQualityIndicators argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataResultControlImageQualityIndicators.insertImageQualityIndicators argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataImageQualityIndicators":
             self._imageQualityIndicators[index] = value
         else:
@@ -14592,7 +14592,7 @@ class XSDataResultControlImageQualityIndicators(XSDataResult):
                 "ERROR! XSDataResultControlImageQualityIndicators.addImageQualityIndicators argument is not XSDataImageQualityIndicators but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def export(self, outfile, level, name_="XSDataResultControlImageQualityIndicators"):
         showIndent(outfile, level)
@@ -14694,7 +14694,7 @@ class XSDataResultControlXDSGenerateBackgroundImage(XSDataResult):
                 "ERROR! XSDataResultControlXDSGenerateBackgroundImage constructor argument 'xdsBackgroundImage' is not XSDataFile but %s"
                 % self._xdsBackgroundImage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'xdsBackgroundImage' attribute
     def getXdsBackgroundImage(self):
@@ -14710,7 +14710,7 @@ class XSDataResultControlXDSGenerateBackgroundImage(XSDataResult):
                 "ERROR! XSDataResultControlXDSGenerateBackgroundImage.setXdsBackgroundImage argument is not XSDataFile but %s"
                 % xdsBackgroundImage.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delXdsBackgroundImage(self):
         self._xdsBackgroundImage = None
@@ -14823,7 +14823,7 @@ class XSDataResultInducedRadiationProcess(XSDataResult):
                 "ERROR! XSDataResultInducedRadiationProcess constructor argument 'bFactor' is not XSDataDouble but %s"
                 % self._bFactor.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if crystal is None:
             self._crystal = None
         elif crystal.__class__.__name__ == "XSDataCrystal":
@@ -14833,7 +14833,7 @@ class XSDataResultInducedRadiationProcess(XSDataResult):
                 "ERROR! XSDataResultInducedRadiationProcess constructor argument 'crystal' is not XSDataCrystal but %s"
                 % self._crystal.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if scale is None:
             self._scale = None
         elif scale.__class__.__name__ == "XSDataDouble":
@@ -14843,7 +14843,7 @@ class XSDataResultInducedRadiationProcess(XSDataResult):
                 "ERROR! XSDataResultInducedRadiationProcess constructor argument 'scale' is not XSDataDouble but %s"
                 % self._scale.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'bFactor' attribute
     def getBFactor(self):
@@ -14859,7 +14859,7 @@ class XSDataResultInducedRadiationProcess(XSDataResult):
                 "ERROR! XSDataResultInducedRadiationProcess.setBFactor argument is not XSDataDouble but %s"
                 % bFactor.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBFactor(self):
         self._bFactor = None
@@ -14880,7 +14880,7 @@ class XSDataResultInducedRadiationProcess(XSDataResult):
                 "ERROR! XSDataResultInducedRadiationProcess.setCrystal argument is not XSDataCrystal but %s"
                 % crystal.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCrystal(self):
         self._crystal = None
@@ -14901,7 +14901,7 @@ class XSDataResultInducedRadiationProcess(XSDataResult):
                 "ERROR! XSDataResultInducedRadiationProcess.setScale argument is not XSDataDouble but %s"
                 % scale.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delScale(self):
         self._scale = None
@@ -15021,7 +15021,7 @@ class XSDataResultReadImageHeader(XSDataResult):
                 "ERROR! XSDataResultReadImageHeader constructor argument 'subWedge' is not XSDataSubWedge but %s"
                 % self._subWedge.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'subWedge' attribute
     def getSubWedge(self):
@@ -15037,7 +15037,7 @@ class XSDataResultReadImageHeader(XSDataResult):
                 "ERROR! XSDataResultReadImageHeader.setSubWedge argument is not XSDataSubWedge but %s"
                 % subWedge.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSubWedge(self):
         self._subWedge = None
@@ -15147,7 +15147,7 @@ class XSDataResultStrategy(XSDataResult):
                 "ERROR! XSDataResultStrategy constructor argument 'bestGraphFile' is not list but %s"
                 % self._bestGraphFile.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if bestLogFile is None:
             self._bestLogFile = None
         elif bestLogFile.__class__.__name__ == "XSDataFile":
@@ -15157,7 +15157,7 @@ class XSDataResultStrategy(XSDataResult):
                 "ERROR! XSDataResultStrategy constructor argument 'bestLogFile' is not XSDataFile but %s"
                 % self._bestLogFile.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if collectionPlan is None:
             self._collectionPlan = []
         elif collectionPlan.__class__.__name__ == "list":
@@ -15167,7 +15167,7 @@ class XSDataResultStrategy(XSDataResult):
                 "ERROR! XSDataResultStrategy constructor argument 'collectionPlan' is not list but %s"
                 % self._collectionPlan.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if raddoseLogFile is None:
             self._raddoseLogFile = None
         elif raddoseLogFile.__class__.__name__ == "XSDataFile":
@@ -15177,7 +15177,7 @@ class XSDataResultStrategy(XSDataResult):
                 "ERROR! XSDataResultStrategy constructor argument 'raddoseLogFile' is not XSDataFile but %s"
                 % self._raddoseLogFile.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if sample is None:
             self._sample = None
         elif sample.__class__.__name__ == "XSDataSampleCrystalMM":
@@ -15187,7 +15187,7 @@ class XSDataResultStrategy(XSDataResult):
                 "ERROR! XSDataResultStrategy constructor argument 'sample' is not XSDataSampleCrystalMM but %s"
                 % self._sample.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'bestGraphFile' attribute
     def getBestGraphFile(self):
@@ -15203,7 +15203,7 @@ class XSDataResultStrategy(XSDataResult):
                 "ERROR! XSDataResultStrategy.setBestGraphFile argument is not list but %s"
                 % bestGraphFile.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBestGraphFile(self):
         self._bestGraphFile = None
@@ -15218,7 +15218,7 @@ class XSDataResultStrategy(XSDataResult):
     def addBestGraphFile(self, value):
         if value is None:
             strMessage = "ERROR! XSDataResultStrategy.addBestGraphFile argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataFile":
             self._bestGraphFile.append(value)
         else:
@@ -15226,15 +15226,15 @@ class XSDataResultStrategy(XSDataResult):
                 "ERROR! XSDataResultStrategy.addBestGraphFile argument is not XSDataFile but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertBestGraphFile(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataResultStrategy.insertBestGraphFile argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataResultStrategy.insertBestGraphFile argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataFile":
             self._bestGraphFile[index] = value
         else:
@@ -15242,7 +15242,7 @@ class XSDataResultStrategy(XSDataResult):
                 "ERROR! XSDataResultStrategy.addBestGraphFile argument is not XSDataFile but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'bestLogFile' attribute
     def getBestLogFile(self):
@@ -15258,7 +15258,7 @@ class XSDataResultStrategy(XSDataResult):
                 "ERROR! XSDataResultStrategy.setBestLogFile argument is not XSDataFile but %s"
                 % bestLogFile.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delBestLogFile(self):
         self._bestLogFile = None
@@ -15281,7 +15281,7 @@ class XSDataResultStrategy(XSDataResult):
                 "ERROR! XSDataResultStrategy.setCollectionPlan argument is not list but %s"
                 % collectionPlan.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCollectionPlan(self):
         self._collectionPlan = None
@@ -15298,7 +15298,7 @@ class XSDataResultStrategy(XSDataResult):
             strMessage = (
                 "ERROR! XSDataResultStrategy.addCollectionPlan argument is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataCollectionPlan":
             self._collectionPlan.append(value)
         else:
@@ -15306,15 +15306,15 @@ class XSDataResultStrategy(XSDataResult):
                 "ERROR! XSDataResultStrategy.addCollectionPlan argument is not XSDataCollectionPlan but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertCollectionPlan(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataResultStrategy.insertCollectionPlan argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataResultStrategy.insertCollectionPlan argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataCollectionPlan":
             self._collectionPlan[index] = value
         else:
@@ -15322,7 +15322,7 @@ class XSDataResultStrategy(XSDataResult):
                 "ERROR! XSDataResultStrategy.addCollectionPlan argument is not XSDataCollectionPlan but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'raddoseLogFile' attribute
     def getRaddoseLogFile(self):
@@ -15338,7 +15338,7 @@ class XSDataResultStrategy(XSDataResult):
                 "ERROR! XSDataResultStrategy.setRaddoseLogFile argument is not XSDataFile but %s"
                 % raddoseLogFile.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delRaddoseLogFile(self):
         self._raddoseLogFile = None
@@ -15364,7 +15364,7 @@ class XSDataResultStrategy(XSDataResult):
                 "ERROR! XSDataResultStrategy.setSample argument is not XSDataSampleCrystalMM but %s"
                 % sample.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSample(self):
         self._sample = None
@@ -15488,7 +15488,7 @@ class XSDataResultSubWedgeAssemble(XSDataResult):
                 "ERROR! XSDataResultSubWedgeAssemble constructor argument 'subWedge' is not list but %s"
                 % self._subWedge.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'subWedge' attribute
     def getSubWedge(self):
@@ -15504,7 +15504,7 @@ class XSDataResultSubWedgeAssemble(XSDataResult):
                 "ERROR! XSDataResultSubWedgeAssemble.setSubWedge argument is not list but %s"
                 % subWedge.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSubWedge(self):
         self._subWedge = None
@@ -15516,7 +15516,7 @@ class XSDataResultSubWedgeAssemble(XSDataResult):
             strMessage = (
                 "ERROR! XSDataResultSubWedgeAssemble.addSubWedge argument is None"
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataSubWedge":
             self._subWedge.append(value)
         else:
@@ -15524,15 +15524,15 @@ class XSDataResultSubWedgeAssemble(XSDataResult):
                 "ERROR! XSDataResultSubWedgeAssemble.addSubWedge argument is not XSDataSubWedge but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertSubWedge(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataResultSubWedgeAssemble.insertSubWedge argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataResultSubWedgeAssemble.insertSubWedge argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataSubWedge":
             self._subWedge[index] = value
         else:
@@ -15540,7 +15540,7 @@ class XSDataResultSubWedgeAssemble(XSDataResult):
                 "ERROR! XSDataResultSubWedgeAssemble.addSubWedge argument is not XSDataSubWedge but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def export(self, outfile, level, name_="XSDataResultSubWedgeAssemble"):
         showIndent(outfile, level)
@@ -15637,7 +15637,7 @@ class XSDataResultSubWedgeMerge(XSDataResult):
                 "ERROR! XSDataResultSubWedgeMerge constructor argument 'subWedge' is not list but %s"
                 % self._subWedge.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'subWedge' attribute
     def getSubWedge(self):
@@ -15653,7 +15653,7 @@ class XSDataResultSubWedgeMerge(XSDataResult):
                 "ERROR! XSDataResultSubWedgeMerge.setSubWedge argument is not list but %s"
                 % subWedge.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delSubWedge(self):
         self._subWedge = None
@@ -15663,7 +15663,7 @@ class XSDataResultSubWedgeMerge(XSDataResult):
     def addSubWedge(self, value):
         if value is None:
             strMessage = "ERROR! XSDataResultSubWedgeMerge.addSubWedge argument is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataSubWedge":
             self._subWedge.append(value)
         else:
@@ -15671,15 +15671,15 @@ class XSDataResultSubWedgeMerge(XSDataResult):
                 "ERROR! XSDataResultSubWedgeMerge.addSubWedge argument is not XSDataSubWedge but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def insertSubWedge(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataResultSubWedgeMerge.insertSubWedge argument 'index' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataResultSubWedgeMerge.insertSubWedge argument 'value' is None"
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         elif value.__class__.__name__ == "XSDataSubWedge":
             self._subWedge[index] = value
         else:
@@ -15687,7 +15687,7 @@ class XSDataResultSubWedgeMerge(XSDataResult):
                 "ERROR! XSDataResultSubWedgeMerge.addSubWedge argument is not XSDataSubWedge but %s"
                 % value.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def export(self, outfile, level, name_="XSDataResultSubWedgeMerge"):
         showIndent(outfile, level)
@@ -15801,7 +15801,7 @@ class XSDataSampleCrystal(XSDataSample):
                 "ERROR! XSDataSampleCrystal constructor argument 'crystal' is not XSDataCrystal but %s"
                 % self._crystal.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'crystal' attribute
     def getCrystal(self):
@@ -15817,7 +15817,7 @@ class XSDataSampleCrystal(XSDataSample):
                 "ERROR! XSDataSampleCrystal.setCrystal argument is not XSDataCrystal but %s"
                 % crystal.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCrystal(self):
         self._crystal = None
@@ -15928,7 +15928,7 @@ class XSDataIntegrationInput(XSDataGeneratePredictionInput):
                 "ERROR! XSDataIntegrationInput constructor argument 'crystalRefined' is not XSDataCrystal but %s"
                 % self._crystalRefined.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if experimentalConditionRefined is None:
             self._experimentalConditionRefined = None
         elif (
@@ -15941,7 +15941,7 @@ class XSDataIntegrationInput(XSDataGeneratePredictionInput):
                 "ERROR! XSDataIntegrationInput constructor argument 'experimentalConditionRefined' is not XSDataExperimentalCondition but %s"
                 % self._experimentalConditionRefined.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'crystalRefined' attribute
     def getCrystalRefined(self):
@@ -15957,7 +15957,7 @@ class XSDataIntegrationInput(XSDataGeneratePredictionInput):
                 "ERROR! XSDataIntegrationInput.setCrystalRefined argument is not XSDataCrystal but %s"
                 % crystalRefined.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delCrystalRefined(self):
         self._crystalRefined = None
@@ -15986,7 +15986,7 @@ class XSDataIntegrationInput(XSDataGeneratePredictionInput):
                 "ERROR! XSDataIntegrationInput.setExperimentalConditionRefined argument is not XSDataExperimentalCondition but %s"
                 % experimentalConditionRefined.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delExperimentalConditionRefined(self):
         self._experimentalConditionRefined = None
@@ -16121,7 +16121,7 @@ class XSDataSampleCrystalMM(XSDataSampleCrystal):
                 "ERROR! XSDataSampleCrystalMM constructor argument 'chemicalComposition' is not XSDataChemicalCompositionMM but %s"
                 % self._chemicalComposition.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     # Methods and properties for the 'chemicalComposition' attribute
     def getChemicalComposition(self):
@@ -16137,7 +16137,7 @@ class XSDataSampleCrystalMM(XSDataSampleCrystal):
                 "ERROR! XSDataSampleCrystalMM.setChemicalComposition argument is not XSDataChemicalCompositionMM but %s"
                 % chemicalComposition.__class__.__name__
             )
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
 
     def delChemicalComposition(self):
         self._chemicalComposition = None

@@ -626,7 +626,7 @@ class ALBACats(Cats90):
                 return int(sample)
             else:
                 return False
-        except BaseException:
+        except Exception:
             return False
 
     def tool_for_basket(self, basketno):

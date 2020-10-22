@@ -52,7 +52,7 @@ class MetadataManagerClient(object):
             MetadataManagerClient.metaExperiment = PyTango.client.Device(
                 self.metaExperimentName
             )
-        except BaseException:
+        except Exception:
             print("Unexpexted error: ", sys.exc_info()[0])
             raise
 
@@ -69,11 +69,12 @@ class MetadataManagerClient(object):
         setting the attribute if not. If the attribute is not set after five trials the method
         raises an 'RuntimeError' exception.
         """
+        caughtException = "unknown exception"
         currentValue = "unknown"
         if newValue == currentValue:
             currentValue = "Current value not known"
         counter = 0
-        while counter < 5:
+        while counter < 10:
             counter += 1
             try:
                 setattr(proxy, attributeName, newValue)
@@ -81,22 +82,21 @@ class MetadataManagerClient(object):
                 currentValue = getattr(proxy, attributeName)
                 if currentValue == newValue:
                     break
-            except BaseException as e:
+            except Exception as e:
+                caughtException = e
                 print("Unexpected error in MetadataManagerClient._setAttribute: {0}".format(e))
                 print("proxy = '{0}', attributeName = '{1}', newValue = '{2}'".format(
                     proxy, attributeName, newValue))
                 print("Trying again, trial #{0}".format(counter))
                 time.sleep(1)
-        if currentValue == newValue:
-            setattr(self, attributeName, newValue)
-        else:
-            raise RuntimeError("Cannot set '{0}' attribute '{1}' to '{2}'!".format(proxy, attributeName, newValue))
+        if currentValue != newValue:
+            raise RuntimeError("Cannot set '{0}' attribute '{1}' to '{2}' due to {3}!".format(proxy, attributeName, newValue, caughtException))
 
     def __setDataRoot(self, dataRoot):
         try:
             MetadataManagerClient.metaExperiment.dataRoot = dataRoot
             self.dataRoot = dataRoot
-        except BaseException:
+        except Exception:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
@@ -105,14 +105,14 @@ class MetadataManagerClient(object):
         try:
             MetadataManagerClient.metaExperiment.proposal = proposal
             self.proposal = proposal
-        except BaseException:
+        except Exception:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
     def appendFile(self, filePath):
         try:
             MetadataManagerClient.metadataManager.lastDataFile = filePath
-        except BaseException:
+        except Exception:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
@@ -120,7 +120,7 @@ class MetadataManagerClient(object):
         try:
             MetadataManagerClient.metaExperiment.sample = sample
             self.sample = sample
-        except BaseException:
+        except Exception:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
@@ -128,7 +128,7 @@ class MetadataManagerClient(object):
         try:
             MetadataManagerClient.metadataManager.scanName = datasetName
             self.datasetName = datasetName
-        except BaseException:
+        except Exception:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
@@ -158,14 +158,14 @@ class MetadataManagerClient(object):
                     if str(MetadataManagerClient.metadataManager.state()) == "ON":
                         MetadataManagerClient.metadataManager.StartScan()
 
-            except BaseException:
+            except Exception:
                 print("Unexpected error:", sys.exc_info()[0])
                 raise
 
     def end(self):
         try:
             MetadataManagerClient.metadataManager.endScan()
-        except BaseException:
+        except Exception:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
@@ -234,7 +234,7 @@ class MXCuBEMetadataClient(object):
                     replyTo, listTo + listCC + listBCC, mime_text_message.as_string()
                 )
                 smtp.quit()
-            except BaseException:
+            except Exception:
                 pass
         return errorMessage
 
@@ -278,7 +278,7 @@ class MXCuBEMetadataClient(object):
                     directory, self._proposal, sampleName, datasetName
                 )
                 self._metadataManagerClient.printStatus()
-            except BaseException:
+            except Exception:
                 logging.getLogger("user_level_log").warning(
                     "Cannot connect to metadata server"
                 )
@@ -398,7 +398,7 @@ class MXCuBEMetadataClient(object):
                     )
                 self._metadataManagerClient.printStatus()
                 self._metadataManagerClient.end()
-        except BaseException:
+        except Exception:
             logging.getLogger("user_level_log").warning("Cannot upload metadata")
             errorMessage = self.reportStackTrace()
             logging.getLogger("user_level_log").warning(errorMessage)

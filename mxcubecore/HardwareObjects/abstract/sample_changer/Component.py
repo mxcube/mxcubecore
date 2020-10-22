@@ -59,7 +59,7 @@ class Component(object):
                 for i in range(len(components)):
                     if components[i] is self:
                         return i
-        except BaseException:
+        except Exception:
             return -1
 
     def is_leaf(self):

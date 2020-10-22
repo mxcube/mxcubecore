@@ -112,7 +112,7 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
                 value = self.chan_beam_xy.getValue()
                 beam_x = value[0]
                 beam_y = value[1]
-        except BaseException:
+        except Exception:
             pass
         return beam_x, beam_y
 
@@ -189,7 +189,7 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         for _header in image_headers:
             try:
                 _str_header = _header[0] % _header[1]
-            except BaseException:
+            except Exception:
                 _str_header = _header[0]
 
             self.set_header_cmd(_str_header)

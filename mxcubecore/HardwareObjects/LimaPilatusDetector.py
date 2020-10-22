@@ -316,7 +316,7 @@ class LimaPilatusDetector(AbstractDetector):
     def stop_acquisition(self):
         try:
             self.execute_command("stop_acq")
-        except BaseException:
+        except Exception:
             pass
 
         time.sleep(1)
@@ -345,3 +345,18 @@ class LimaPilatusDetector(AbstractDetector):
     def _emit_status(self):
         self.emit("statusChanged", self.status)
 
+    def recover_from_failure(self):
+        self.prepare_acquisition(
+            False,
+            0,
+            0,
+            0.5,
+            None,
+            1,
+            "",
+            HWR.beamline.energy.get_value(),
+            "INTERNAL_TRIGGER"
+        )
+        self.start_acquisition()
+        self.wait_ready()
+        self.stop_acquisition()

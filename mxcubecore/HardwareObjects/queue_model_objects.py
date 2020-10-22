@@ -410,7 +410,7 @@ class Sample(TaskNode):
                 self.lims_container_location = int(
                     lims_sample.get("containerSampleChangerLocation")
                 )
-            except BaseException:
+            except Exception:
                 pass
 
         _lims = (self.lims_container_location, self.lims_sample_location)
@@ -1474,7 +1474,7 @@ class PathTemplate(object):
             session_date = folders[6]
             try:
                 more = folders[8:]
-            except BaseException:
+            except Exception:
                 more = []
             archive_directory = os.path.join(
                 PathTemplate.archive_base_directory, user_dir, session_date, *more
@@ -2235,7 +2235,7 @@ def create_interleave_sw(interleave_list, num_images, sw_size):
     """
     subwedges = []
     sw_first_image = None
-    for sw_index in range(num_images / sw_size):
+    for sw_index in range(int(num_images / sw_size)):
         for collection_index in range(len(interleave_list)):
             collection_osc_start = (
                 interleave_list[collection_index]["data_model"]
