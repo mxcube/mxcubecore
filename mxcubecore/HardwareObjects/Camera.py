@@ -240,8 +240,8 @@ class Camera(BaseHardwareObjects.Device):
                     self.emit(
                         "imageReceived",
                         streamChan.get_value(),
-                        self.getWidth(),
-                        self.getHeight(),
+                        self.get_width(),
+                        self.get_height(),
                         self.forceUpdate,
                     )
 
@@ -430,12 +430,12 @@ class Camera(BaseHardwareObjects.Device):
 
                 # ############   WIDTH   #################
 
-                def getWidth(self):
+                def get_width(self):
                     """tango"""
                     width = self.get_channel_object("width")
                     return width.get_value()
 
-                def getHeight(self):
+                def get_height(self):
                     """tango"""
                     height = self.get_channel_object("height")
 
@@ -454,8 +454,8 @@ class Camera(BaseHardwareObjects.Device):
                     if canTakeSnapshots:
                         imgChan = self.get_channel_object("image")
                         rawimg = imgChan.get_value()
-                        w = self.getWidth()
-                        h = self.getHeight()
+                        w = self.get_width()
+                        h = self.get_height()
                         if len(rawimg) == w * h * 3:
                             img_type = "RGB"
                         else:
@@ -464,13 +464,13 @@ class Camera(BaseHardwareObjects.Device):
                             if kwargs.get("bw", False) and img_type == "RGB":
                                 img = Image.frombuffer(
                                     img_type,
-                                    (self.getWidth(), self.getHeight()),
+                                    (self.get_width(), self.get_height()),
                                     rawimg,
                                 ).convert("L")
                             else:
                                 img = Image.frombuffer(
                                     img_type,
-                                    (self.getWidth(), self.getHeight()),
+                                    (self.get_width(), self.get_height()),
                                     rawimg,
                                 )
                             img = img.transpose(Image.FLIP_TOP_BOTTOM)
@@ -697,7 +697,7 @@ class Camera(BaseHardwareObjects.Device):
 
                     return self.res
 
-                def setLive(self, mode):
+                def set_live(self, mode):
                     """tango"""
                     if mode:
                         self.device.Live()
@@ -761,7 +761,7 @@ class Camera(BaseHardwareObjects.Device):
                 def value_changed(self, deviceName, value):
                     self.emit(
                         "imageReceived",
-                        (value, self.getWidth(), self.getHeight(), self.forceUpdate),
+                        (value, self.get_width(), self.get_height(), self.forceUpdate),
                     )
 
                 def setContrast(self, contrast):
@@ -800,12 +800,12 @@ class Camera(BaseHardwareObjects.Device):
                     else:
                         return -1
 
-                def getWidth(self):
+                def get_width(self):
                     """taco"""
                     if self.is_ready():
                         return self.device.DevCcdXSize()
 
-                def getHeight(self):
+                def get_height(self):
                     """taco"""
                     if self.is_ready():
                         return self.device.DevCcdYSize()
@@ -821,7 +821,7 @@ class Camera(BaseHardwareObjects.Device):
                         rawimg = self.device.DevCcdRead(1)
                         try:
                             img = Image.frombuffer(
-                                "RGB", (self.getWidth(), self.getHeight()), rawimg
+                                "RGB", (self.get_width(), self.get_height()), rawimg
                             )
                             pixmap = img.tostring("raw", "BGR")
                             img = Image.frombuffer("RGB", img.size, pixmap)
@@ -900,7 +900,7 @@ class Camera(BaseHardwareObjects.Device):
                         self.res["bpmon"] = False
                         return self.res
 
-                def setLive(self, mode):
+                def set_live(self, mode):
                     """taco"""
                     if mode:
                         self.device.DevCcdLive(1)
@@ -920,14 +920,14 @@ class Camera(BaseHardwareObjects.Device):
 
                         self.getBpmValues()
                         if self.res["live"]:
-                            self.setLive(False)
+                            self.set_live(False)
                             time.sleep(0.1)
 
                         self.device.DevCcdSetRoI(startx, starty, endx, endy)
 
                         if self.res["live"]:
                             time.sleep(0.1)
-                            self.setLive(True)
+                            self.set_live(True)
 
                 def setExposure(self, exposure):
                     """taco"""
@@ -935,14 +935,14 @@ class Camera(BaseHardwareObjects.Device):
 
                         self.getBpmValues()
                         if self.res["live"]:
-                            self.setLive(False)
+                            self.set_live(False)
                             time.sleep(0.1)
 
                         self.device.DevCcdSetExposure(exposure)
 
                         if self.res["live"]:
                             time.sleep(0.1)
-                            self.setLive(True)
+                            self.set_live(True)
 
                 def setGain(self, gain):
                     """taco"""
@@ -950,14 +950,14 @@ class Camera(BaseHardwareObjects.Device):
 
                         self.getBpmValues()
                         if self.res["live"]:
-                            self.setLive(False)
+                            self.set_live(False)
                             time.sleep(0.1)
 
                         self.device.DevCcdSetGain(gain)
 
                         if self.res["live"]:
                             time.sleep(0.1)
-                            self.setLive(True)
+                            self.set_live(True)
 
                 def setThreshold(self, threshold):
                     """taco"""
@@ -965,14 +965,14 @@ class Camera(BaseHardwareObjects.Device):
 
                         self.getBpmValues()
                         if self.res["live"]:
-                            self.setLive(False)
+                            self.set_live(False)
                             time.sleep(0.1)
 
                         self.device.DevCcdSetThreshold(threshold)
 
                         if self.res["live"]:
                             time.sleep(0.1)
-                            self.setLive(True)
+                            self.set_live(True)
 
             self.__class__ = TacoCamera
             self._TacoDevice__dc = False

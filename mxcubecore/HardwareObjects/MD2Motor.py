@@ -94,10 +94,10 @@ class MD2Motor(AbstractMotor):
     #
     # NB - was already broken (__position not set)
     #
-    # def motorPositionChanged(self, position, private={}):
+    # def motor_positions_changed(self, position, private={}):
     #     """
     #     logging.getLogger().debug(
-    #         "{}: in motorPositionChanged: motor position changed to {}".format(self.name(), position))
+    #         "{}: in motor_positions_changed: motor position changed to {}".format(self.name(), position))
     #     """
     #     if abs(position - self.__position) <= self.motor_resolution:
     #         return
@@ -166,12 +166,3 @@ class MD2Motor(AbstractMotor):
             self.waitEndOfMove(timeout)
         except Exception:
             raise MD2TimeoutError
-
-    """ obsolete, keep for backward compatibility """
-
-    def getDynamicLimits(self):
-        warn(
-            "getDynamicLimits is deprecated. Use get_dynamic_limits instead",
-            DeprecationWarning,
-        )
-        return self.get_dynamic_limits()

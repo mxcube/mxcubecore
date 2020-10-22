@@ -270,8 +270,8 @@ class NanoDiff(HardwareObject):
         # if HWR.beamline.sample_view.camera is None:
         #     logging.getLogger("HWR").error("NanoDiff: Camera is not defined")
         # else:
-        #     self.image_height = HWR.beamline.sample_view.camera.getHeight()
-        #     self.image_width = HWR.beamline.sample_view.camera.getWidth()
+        #     self.image_height = HWR.beamline.sample_view.camera.get_height()
+        #     self.image_width = HWR.beamline.sample_view.camera.get_width()
 
         try:
             self.zoom_centre = eval(self.get_property("zoom_centre"))
@@ -837,7 +837,7 @@ class NanoDiff(HardwareObject):
             self.centringPhiValues.append(phiValue)
 
             if self.in_plate_mode():
-                dynamic_limits = self.phi_motor_hwobj.getDynamicLimits()
+                dynamic_limits = self.phi_motor_hwobj.get_dynamic_limits()
                 if click == 0:
                     self.phi_motor_hwobj.set_value(dynamic_limits[0])
                 elif click == 1:

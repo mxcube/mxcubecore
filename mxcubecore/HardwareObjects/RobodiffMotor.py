@@ -18,7 +18,7 @@ class RobodiffMotor(Device):
     def end_init(self):
         if self.__initialized:
             return
-        controller = HWR.getHardwareRepository().get_hardware_object(
+        controller = HWR.get_hardware_repository().get_hardware_object(
             self.get_property("controller")
         )  # self.get_object_by_role("controller")
 

@@ -38,14 +38,14 @@ class BeamInfo(Equipment):
 
     def init(self):
         try:
-            self.aperture_HO = HWR.getHardwareRepository().get_hardware_object(
+            self.aperture_HO = HWR.get_hardware_repository().get_hardware_object(
                 self.get_property("aperture")
             )
             self.connect(self.aperture_HO, "apertureChanged", self.aperture_pos_changed)
         except Exception:
             logging.getLogger("HWR").debug("BeamInfo: aperture not defined correctly")
         try:
-            self.slits_HO = HWR.getHardwareRepository().get_hardware_object(
+            self.slits_HO = HWR.get_hardware_repository().get_hardware_object(
                 self.get_property("slits")
             )
             self.connect(self.slits_HO, "gapSizeChanged", self.slits_gap_changed)

@@ -1370,7 +1370,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         try:
-            return HWR.beamline.machine_info.getCurrent()
+            return HWR.beamline.machine_info.get_current()
         except Exception:
             return None
 
