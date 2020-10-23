@@ -642,10 +642,10 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         exptime,
         npass,
         number_of_images,
+        mesh,
+        mesh_num_lines,
         comment="",
-        trigger_mode=None,
     ):
-        energy = HWR.beamline.energy.get_value()
         self._detector.prepare_acquisition(
             take_dark,
             start,
@@ -654,8 +654,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             npass,
             number_of_images,
             comment,
-            energy,
-            trigger_mode,
+            mesh,
+            mesh_num_lines
         )
 
     @task

@@ -7,7 +7,7 @@ import logging
 from HardwareRepository import HardwareRepository as HWR
 
 from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
-    AbstractDetector,
+    AbstractDetector
 )
 
 
@@ -27,6 +27,7 @@ class LimaEigerDetector(AbstractDetector):
         for channel_name in (
             "acq_status",
             "acq_trigger_mode",
+            "acq_nb_sequences",
             "saving_mode",
             "acq_nb_frames",
             "acq_expo_time",
@@ -73,6 +74,7 @@ class LimaEigerDetector(AbstractDetector):
         self.get_command_object("prepare_acq").init_device()
         self.get_command_object("prepare_acq").device.set_timeout_millis(5 * 60 * 1000)
         self.get_channel_object("photon_energy").init_device()
+        self._emit_status()
 
     def has_shutterless(self):
         return True
@@ -99,10 +101,9 @@ class LimaEigerDetector(AbstractDetector):
         npass,
         number_of_images,
         comment,
-        energy,
-        still,
-        gate=False,
-    ):
+        mesh,
+        mesh_num_lines
+    ):        
         diffractometer_positions = HWR.beamline.diffractometer.get_positions()
         self.start_angles = list()
         for i in range(number_of_images):
@@ -156,15 +157,15 @@ class LimaEigerDetector(AbstractDetector):
         self.stop()
         self.wait_ready()
 
-        self.set_energy_threshold(energy)
+        self.set_energy_threshold(HWR.beamline.energy.get_value())
 
-        if gate:
-            self.get_channel_object("acq_trigger_mode").setValue("EXTERNAL_GATE")
+        if osc_range < 1e-4:
+            self.set_channel_value("acq_trigger_mode", "INTERNAL_TRIGGER")
+        elif mesh:
+            self.get_channel_object("acq_trigger_mode").setValue("EXTERNAL_TRIGGER_SEQUENCES")
+            self.get_channel_object("acq_nb_sequences").setValue(mesh_num_lines)
         else:
-            if still:
-                self.get_channel_object("acq_trigger_mode").setValue("INTERNAL_TRIGGER")
-            else:
-                self.get_channel_object("acq_trigger_mode").setValue("EXTERNAL_TRIGGER")
+            self.set_channel_value("acq_trigger_mode", "EXTERNAL_TRIGGER")
 
         self.get_channel_object("saving_frame_per_file").setValue(
             min(100, number_of_images)
@@ -212,15 +213,33 @@ class LimaEigerDetector(AbstractDetector):
         logging.getLogger("user_level_log").info("Preparing acquisition")
         self.get_command_object("prepare_acq")()
         logging.getLogger("user_level_log").info("Detector ready, continuing")
-        return self.get_command_object("start_acq")()
+        self.get_command_object("start_acq")()
+        self._emit_status()
 
     def stop_acquisition(self):
         try:
             self.get_command_object("stop_acq")()
         except BaseException:
             pass
+
         time.sleep(1)
         self.get_command_object("reset")()
+        self.wait_ready()
+        self._emit_status()
 
     def reset(self):
         self.stop_acquisition()
+
+    @property
+    def status(self):
+        try:
+            acq_status = self.get_channel_value("acq_status")
+        except Exception:
+            acq_status = "OFFLINE"
+
+        status = {"acq_satus": acq_status.upper()}
+
+        return status
+
+    def _emit_status(self):
+        self.emit("statusChanged", self.status)
