@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -14,8 +14,8 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
-#   You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 __author__ = "Jan Meyer"
 __email__ = "jan.meyer@desy.de"
@@ -274,14 +274,14 @@ class MjpgStreamVideo(AbstractVideoDevice):
         """
         Descript. :
         """
-        self.sleep_time = self.getProperty("interval")
-        width = self.getProperty("width")
-        height = self.getProperty("height")
+        self.sleep_time = self.get_property("interval")
+        width = self.get_property("width")
+        height = self.get_property("height")
         self.image_dimensions = (width, height)
-        self.flip["h"] = bool(self.getProperty("fliph"))
-        self.flip["v"] = bool(self.getProperty("flipv"))
-        self.host = self.getProperty("host")
-        self.port = int(self.getProperty("port"))
+        self.flip["h"] = bool(self.get_property("fliph"))
+        self.flip["v"] = bool(self.get_property("flipv"))
+        self.host = self.get_property("host")
+        self.port = int(self.get_property("port"))
         self.path = "/"
         self.plugin = 0
         self.update_controls = self.has_update_controls()
@@ -297,7 +297,8 @@ class MjpgStreamVideo(AbstractVideoDevice):
                 sensor_height = int(sensor_info["value"])
             self.sensor_dimensions = (sensor_width, sensor_height)
 
-        self.setIsReady(True)
+        self.set_is_ready(True)
+
 
     def http_get(self, query, host=None, port=None, path=None):
         """Sends HTTP GET requests and returns the answer.
@@ -323,7 +324,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
         try:
             http.request("GET", path + query)
             response = http.getresponse()
-        except BaseException:
+        except Exception:
             self.log.error(
                 "MjpgStreamVideo: Connection to http://{0}:{1}{2}{3} refused".format(
                     host, port, path, query
@@ -363,7 +364,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
         group = str(int(group))
         try:
             value = str(int(value))
-        except BaseException:
+        except Exception:
             option = value
             value = None
             if isinstance(option, string_types):
@@ -818,19 +819,19 @@ class MjpgStreamVideo(AbstractVideoDevice):
         """
         return (self.image_dimensions[0] / float(self.sensor_dimensions[0]), 2)
 
-    def setLive(self, mode):
+    def set_live(self, mode):
         """
         Descript. :
         """
         return
 
-    def getWidth(self):
+    def get_width(self):
         """
         Descript. :
         """
         return self.image_dimensions[0]
 
-    def getHeight(self):
+    def get_height(self):
         """
         Descript. :
         """
@@ -866,7 +867,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
             # if bw:
             #    qimage.setNumColors(0)
             qimage.save(filename, "PNG")
-        except BaseException:
+        except Exception:
             self.log.error(
                 "MjpgStreamVideo: unable to save snapshot: %s" % filename
             )

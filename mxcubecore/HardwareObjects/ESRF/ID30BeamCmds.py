@@ -11,10 +11,10 @@ class ControllerCommand(CommandObject):
         self._cmd = cmd
         self._cmd_execution = None
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
-    def getArguments(self):
+    def get_arguments(self):
         if self.name() == "Anneal":
             self._arguments.append(("Time [s]", "float"))
         return self._arguments
@@ -30,7 +30,7 @@ class ControllerCommand(CommandObject):
         try:
             try:
                 res = cmd_execution.get()
-            except BaseException:
+            except Exception:
                 logging.getLogger("user_level_log").exception(
                     str(self.name()) + " failed!"
                 )
@@ -56,7 +56,7 @@ class ID30BeamCmds(HardwareObject):
         HardwareObject.__init__(self, *args)
 
     def init(self):
-        controller = self.getObjectByRole("controller")
+        controller = self.get_object_by_role("controller")
         self.centrebeam = ControllerCommand("Centre beam", controller.centrebeam)
         self.quick_realign = ControllerCommand(
             "Quick realign", controller.quick_realign

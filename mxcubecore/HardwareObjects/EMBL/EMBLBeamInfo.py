@@ -68,7 +68,7 @@ class EMBLBeamInfo(Equipment):
         self.beam_position = [0, 0]
         self.beam_info_dict = {"size_x": 0, "size_y": 0}
 
-        self.aperture_hwobj = self.getObjectByRole("aperture")
+        self.aperture_hwobj = self.get_object_by_role("aperture")
         if self.aperture_hwobj is not None:
             self.connect(
                 self.aperture_hwobj,
@@ -78,13 +78,13 @@ class EMBLBeamInfo(Equipment):
         else:
             logging.getLogger("HWR").debug("BeamInfo: Aperture hwobj not defined")
 
-        self.slits_hwobj = self.getObjectByRole("slits")
+        self.slits_hwobj = self.get_object_by_role("slits")
         if self.slits_hwobj is not None:
             self.connect(self.slits_hwobj, "valueChanged", self.slits_gap_changed)
         else:
             logging.getLogger("HWR").debug("BeamInfo: Slits hwobj not defined")
 
-        self.beam_focusing_hwobj = self.getObjectByRole("beam_focusing")
+        self.beam_focusing_hwobj = self.get_object_by_role("beam_focusing")
         if self.beam_focusing_hwobj is not None:
             (
                 focus_mode_name,
@@ -100,18 +100,18 @@ class EMBLBeamInfo(Equipment):
 
         self.chan_beam_position_hor = self.get_channel_object("BeamPositionHorizontal")
         if self.chan_beam_position_hor:
-            self.chan_beam_position_hor.connectSignal(
+            self.chan_beam_position_hor.connect_signal(
                 "update", self.beam_pos_hor_changed
             )
         self.chan_beam_position_ver = self.get_channel_object("BeamPositionVertical")
         if self.chan_beam_position_ver:
-            self.chan_beam_position_ver.connectSignal(
+            self.chan_beam_position_ver.connect_signal(
                 "update", self.beam_pos_ver_changed
             )
         self.chan_beam_size_microns = self.get_channel_object("BeamSizeMicrons")
         self.chan_beam_shape_ellipse = self.get_channel_object("BeamShapeEllipse")
         self.default_beam_divergence = ast.literal_eval(
-            self.getProperty("defaultBeamDivergence")
+            self.get_property("defaultBeamDivergence")
         )
 
     def get_beam_divergence_hor(self):
@@ -169,8 +169,8 @@ class EMBLBeamInfo(Equipment):
         """
         if self.chan_beam_position_hor and self.chan_beam_position_ver:
             self.beam_position = [
-                self.chan_beam_position_hor.getValue(),
-                self.chan_beam_position_ver.getValue(),
+                self.chan_beam_position_hor.get_value(),
+                self.chan_beam_position_ver.get_value(),
             ]
         return self.beam_position
 
@@ -186,8 +186,8 @@ class EMBLBeamInfo(Equipment):
         self.beam_position = [beam_x, beam_y]
 
         if self.chan_beam_position_hor and self.chan_beam_position_ver:
-            self.chan_beam_position_hor.setValue(int(beam_x))
-            self.chan_beam_position_ver.setValue(int(beam_y))
+            self.chan_beam_position_hor.set_value(int(beam_x))
+            self.chan_beam_position_ver.set_value(int(beam_y))
         else:
             self.emit("beamPosChanged", (self.beam_position,))
 
@@ -203,7 +203,7 @@ class EMBLBeamInfo(Equipment):
         self.beam_size_aperture = [size, size]
         self.aperture_pos_name = name
         self.update_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def get_aperture_pos_name(self):
         """Returns current aperture position
@@ -221,7 +221,7 @@ class EMBLBeamInfo(Equipment):
         """
         self.beam_size_slits = size
         self.update_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def focusing_mode_changed(self, name, size):
         """Updates beam mark size when beam focusing changes
@@ -235,7 +235,7 @@ class EMBLBeamInfo(Equipment):
         self.focus_mode = name
         self.beam_size_focusing = size
         self.update_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def get_beam_size(self):
         """Returns beam size in microns
@@ -319,18 +319,18 @@ class EMBLBeamInfo(Equipment):
                 and self.beam_info_dict["size_x"] < 1.3
                 and self.beam_info_dict["size_y"] < 1.3
             ):
-                self.chan_beam_size_microns.setValue(
+                self.chan_beam_size_microns.set_value(
                     (
                         self.beam_info_dict["size_x"] * 1000,
                         self.beam_info_dict["size_y"] * 1000,
                     )
                 )
             if self.chan_beam_shape_ellipse:
-                self.chan_beam_shape_ellipse.setValue(
+                self.chan_beam_shape_ellipse.set_value(
                     self.beam_info_dict["shape"] == "ellipse"
                 )
 
-    def emit_beam_info_change(self):
+    def re_emit_values(self):
         """Emits signals
 
         :return: None
@@ -376,13 +376,13 @@ class EMBLBeamInfo(Equipment):
         :return: None
         """
         if direction == "left":
-            self.chan_beam_position_hor.setValue(self.beam_position[0] - step)
+            self.chan_beam_position_hor.set_value(self.beam_position[0] - step)
         elif direction == "right":
-            self.chan_beam_position_hor.setValue(self.beam_position[0] + step)
+            self.chan_beam_position_hor.set_value(self.beam_position[0] + step)
         elif direction == "up":
-            self.chan_beam_position_ver.setValue(self.beam_position[1] - step)
+            self.chan_beam_position_ver.set_value(self.beam_position[1] - step)
         elif direction == "down":
-            self.chan_beam_position_ver.setValue(self.beam_position[1] + step)
+            self.chan_beam_position_ver.set_value(self.beam_position[1] + step)
 
     def get_focus_mode(self):
         """Returns current focusing mode

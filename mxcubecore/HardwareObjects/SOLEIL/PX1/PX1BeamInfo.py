@@ -52,21 +52,21 @@ class PX1BeamInfo(Equipment):
 
         try:
             self.beamy_chan = self.get_channel_object("beamsizey")
-            self.beamy_chan.connectSignal("update", self.beamsize_x_changed)
+            self.beamy_chan.connect_signal("update", self.beamsize_x_changed)
         except KeyError:
             logging.getLogger().warning(
                 "%s: cannot connect to beamsize y channel ", self.name()
             )
 
-        self.zoomMotor = self.getDeviceByRole("zoom")
+        self.zoomMotor = self.get_deviceby_role("zoom")
 
         if self.beamx_chan is not None:
-            self.beamx_chan.connectSignal("update", self.beamsize_x_changed)
+            self.beamx_chan.connect_signal("update", self.beamsize_x_changed)
         else:
             logging.getLogger().info("BeamSize X channel not defined")
 
         if self.beamy_chan is not None:
-            self.beamy_chan.connectSignal("update", self.beamsize_y_changed)
+            self.beamy_chan.connect_signal("update", self.beamsize_y_changed)
         else:
             logging.getLogger().info("BeamSize Y channel not defined")
 
@@ -80,15 +80,15 @@ class PX1BeamInfo(Equipment):
 
         if None in [self.beamy_chan, self.beamx_chan]:
             try:
-                beam_size = self.getProperty("beam_size")
+                beam_size = self.get_property("beam_size")
                 if beam_size is not None:
                     beamx, beamy = beam_size.split(",")
                     self.beam_info_dict["size_x"] = self.beam_size[0] = float(beamx)
                     self.beam_info_dict["size_y"] = self.beam_size[1] = float(beamy)
-            except BaseException:
+            except Exception:
                 pass
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "beamInfoChanged":
             self.sizeUpdated()
         elif signal == "position_changed":
@@ -109,8 +109,8 @@ class PX1BeamInfo(Equipment):
 
     def sizeUpdated(self):
         if None not in [self.beamx_chan, self.beamy_chan]:
-            x_beam = self.beamx_chan.getValue()
-            y_beam = self.beamy_chan.getValue()
+            x_beam = self.beamx_chan.get_value()
+            y_beam = self.beamy_chan.get_value()
             self.beam_info_dict["size_x"] = x_beam
             self.beam_info_dict["size_y"] = y_beam
         self.emit("beamInfoChanged", (self.beam_info_dict,))

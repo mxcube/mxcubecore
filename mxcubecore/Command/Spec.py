@@ -1,3 +1,23 @@
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
 try:
     from SpecClient_gevent.SpecCommand import SpecCommandA
     from SpecClient_gevent.SpecVariable import SpecVariableA
@@ -8,6 +28,10 @@ except ImportError:
     from SpecClient import SpecVariable
 
 from HardwareRepository.CommandContainer import CommandObject, ChannelObject
+
+
+__copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
+__license__ = "LGPLv3+"
 
 
 class SpecCommand(CommandObject, SpecCommandA):
@@ -27,7 +51,7 @@ class SpecCommand(CommandObject, SpecCommandA):
         if reply.error:
             self.emit("commandFailed", (reply.error_code, str(self.name())))
         else:
-            self.emit("commandReplyArrived", (reply.getValue(), str(self.name())))
+            self.emit("commandReplyArrived", (reply.get_value(), str(self.name())))
 
     def beginWait(self):
         self.__cmdExecution = True
@@ -39,7 +63,7 @@ class SpecCommand(CommandObject, SpecCommandA):
         self.__cmdExecution = False
         self.emit("commandAborted", (str(self.name()),))
 
-    def isConnected(self):
+    def is_connected(self):
         return SpecCommandA.isSpecConnected(self)
 
     def connected(self):
@@ -87,8 +111,8 @@ class SpecChannel(ChannelObject, SpecVariableA):
     def disconnected(self):
         self.emit("disconnected", ())
 
-    def isConnected(self):
+    def is_connected(self):
         return SpecVariableA.isSpecConnected(self)
 
-    def getValue(self):
-        return SpecVariableA.getValue(self)
+    def get_value(self):
+        return SpecVariableA.get_value(self)

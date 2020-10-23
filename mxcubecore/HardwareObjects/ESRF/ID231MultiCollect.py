@@ -26,7 +26,7 @@ class ID231MultiCollect(ESRFMultiCollect):
         shutterless = data_collect_parameters.get("shutterless")
         self._detector.shutterless = True if shutterless else False
 
-        self.get_channel_object("parameters").setValue(data_collect_parameters)
+        self.get_channel_object("parameters").set_value(data_collect_parameters)
         self.execute_command("build_collect_seq")
         # self.execute_command("local_set_experiment_type")
         self.execute_command("prepare_beamline")
@@ -72,7 +72,7 @@ class ID231MultiCollect(ESRFMultiCollect):
                     shutil.copyfile(
                         os.path.join("/data/id23eh1/inhouse/opid231", filename), dest
                     )
-        except BaseException:
+        except Exception:
             logging.exception("Exception happened while copying geo_corr files")
 
         return ESRFMultiCollect.write_input_files(self, datacollection_id)

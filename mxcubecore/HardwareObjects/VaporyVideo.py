@@ -57,7 +57,7 @@ class VaporyVideo(BaseHardwareObjects.Device):
         self.force_update = False
         self.image_dimensions = [600, 400]
         self.image_type = JpegType()
-        self.setIsReady(True)
+        self.set_is_ready(True)
         self.generate_image()
 
         self.image_polling = gevent.spawn(self._do_imagePolling, 1)
@@ -190,19 +190,19 @@ class VaporyVideo(BaseHardwareObjects.Device):
         """
         return (0, 1)
 
-    def setLive(self, mode):
+    def set_live(self, mode):
         """
         Descript. :
         """
         return
 
-    def getWidth(self):
+    def get_width(self):
         """
         Descript. :
         """
         return self.image_dimensions[0]
 
-    def getHeight(self):
+    def get_height(self):
         """
         Descript. :
         """

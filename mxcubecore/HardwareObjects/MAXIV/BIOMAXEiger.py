@@ -55,14 +55,14 @@ class BIOMAXEiger(Equipment):
         self.energy_change_threshold_default = 20
 
     def init(self):
-        tango_device = self.getProperty("detector_device")
-        filewriter_device = self.getProperty("filewriter_device")
+        tango_device = self.get_property("detector_device")
+        filewriter_device = self.get_property("filewriter_device")
 
-        self.file_suffix = self.getProperty("file_suffix")
-        self.default_exposure_time = self.getProperty("default_exposure_time")
-        self.default_compression = self.getProperty("default_compression")
-        self.buffer_limit = self.getProperty("buffer_limit")
-        self.dcu = self.getProperty("dcu")
+        self.file_suffix = self.get_property("file_suffix")
+        self.default_exposure_time = self.get_property("default_exposure_time")
+        self.default_compression = self.get_property("default_compression")
+        self.buffer_limit = self.get_property("buffer_limit")
+        self.dcu = self.get_property("dcu")
 
         # not all of the following attr are needed, for now all of them here for
         # convenience
@@ -202,16 +202,16 @@ class BIOMAXEiger(Equipment):
 
         try:
             self.energy_change_threshold = float(
-                self.getProperty("min_trigger_energy_change")
+                self.get_property("min_trigger_energy_change")
             )
-        except BaseException:
+        except Exception:
             self.energy_change_threshold = self.energy_change_threshold_default
 
         self.get_channel_object("Compression").init_device()
-        self.get_channel_object("Compression").setValue("bslz4")
+        self.get_channel_object("Compression").set_value("bslz4")
 
         # self.get_channel_object('TriggerMode').init_device()
-        # self.get_channel_object('TriggerMode').setValue("exts")
+        # self.get_channel_object('TriggerMode').set_value("exts")
 
     #  STATUS , status can be "idle", "ready", "UNKNOWN"
     def get_status(self):
@@ -223,7 +223,7 @@ class BIOMAXEiger(Equipment):
             else:
                 return "not_init"
 
-        return self.status_chan.getValue().split("\n")[0]
+        return self.status_chan.get_value().split("\n")[0]
 
     def is_idle(self):
         return self.get_status()[:4] == "idle"
@@ -321,7 +321,7 @@ class BIOMAXEiger(Equipment):
             logging.getLogger("HWR").debug(
                 "[DETECTOR] Setting value: %s for attribute %s" % (value, name)
             )
-            self.get_channel_object(name).setValue(value)
+            self.get_channel_object(name).set_value(value)
             self.wait_attribute_applied(name, value)
         except Exception as ex:
             logging.getLogger("HWR").error(ex)
@@ -398,7 +398,7 @@ class BIOMAXEiger(Equipment):
         return self.get_channel_value("FrameTimeMin") - self.get_readout_time()
 
     def get_sensor_thickness(self):
-        return  # not available, self.get_channel_object("").getValue()
+        return  # not available, self.get_channel_object("").get_value()
 
     def has_shutterless(self):
         return True
@@ -452,7 +452,7 @@ class BIOMAXEiger(Equipment):
     def _validate_energy_value(self, energy):
         try:
             target_energy = float(energy)
-        except BaseException:
+        except Exception:
             # not a valid value
             logging.getLogger("user_level_log").info("Wrong Energy value: %s" % energy)
             return -1
@@ -651,7 +651,7 @@ class BIOMAXEiger(Equipment):
             logging.getLogger("HWR").info(
                 "[DETECTOR] Stop acquisition, detector canceled and disarmed."
             )
-        except BaseException:
+        except Exception:
             pass
 
     def cancel_acquisition(self):
@@ -659,7 +659,7 @@ class BIOMAXEiger(Equipment):
         logging.getLogger("HWR").info("[DETECTOR] Cancelling acquisition")
         try:
             self.cancel()
-        except BaseException:
+        except Exception:
             pass
 
         time.sleep(1)
@@ -668,7 +668,7 @@ class BIOMAXEiger(Equipment):
     def arm(self):
         logging.getLogger("HWR").info("[DETECTOR] Arm command requested")
         cmd = self.get_command_object("Arm")
-        cmd.setDeviceTimeout(10000)
+        cmd.set_device_timeout(10000)
         cmd()
         self.wait_ready()
         logging.getLogger("HWR").info(
@@ -695,7 +695,7 @@ class BIOMAXEiger(Equipment):
     def abort(self):
         try:
             self.get_command_object("Abort")()
-        except BaseException:
+        except Exception:
             pass
 
 
@@ -722,7 +722,7 @@ def test():
         print('Bad trigger mode. It should be "exts" or "ints"')
         sys.exit(0)
 
-    hwr = HWR.getHardwareRepository()
+    hwr = HWR.get_hardware_repository()
     hwr.connect()
     detector = HWR.beamline.detector
 

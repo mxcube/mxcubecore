@@ -1,4 +1,4 @@
-import saferef
+from dispatcher import saferef
 import gevent
 import gevent.monkey
 from gevent import _threading
@@ -6,8 +6,13 @@ from gevent.queue import Queue, Empty
 from gevent.event import Event
 import numpy
 
+import logging
+
+log = logging.getLogger("HWR")
+
 POLLERS = {}
 
+gevent_version = list(map(int,gevent.__version__.split('.')))
 
 class _NotInitializedValue:
     pass
@@ -79,7 +84,11 @@ class _Poller:
         self.queue = _threading.Queue()  # Queue.Queue()
         self.delay = 0
         self.stop_event = Event()
-        self.async_watcher = gevent.get_hub().loop.async_()
+
+        if gevent_version < [1,3,0]:
+            self.async_watcher = gevent.get_hub().loop.async()
+        else:
+            self.async_watcher = gevent.get_hub().loop.async_()
 
     def start_delayed(self, delay):
         self.delay = delay
@@ -125,7 +134,8 @@ class _Poller:
             try:
                 #res = Queue().get_nowait()
                 res = self.queue.get_nowait()
-            except _threading.Empty:
+
+            except Empty:
                 break
 
             if isinstance(res, PollingException):

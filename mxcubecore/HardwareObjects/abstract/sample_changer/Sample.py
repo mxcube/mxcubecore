@@ -72,12 +72,14 @@ class Sample(Component):
                 img_url = self.get_property(self.__IMAGE_URL_PROPERTY__)
                 if len(img_url) == 0:
                     return None
-                import urllib.request, urllib.parse, urllib.error
+                import urllib.request
+                import urllib.parse
+                import urllib.error
 
                 f = urlopen(img_url)
                 img = f.read()
                 return img
-        except BaseException:
+        except Exception:
             print((sys.exc_info()[1]))
 
     def clear_info(self):
@@ -122,7 +124,7 @@ class Sample(Component):
     def _set_info_url(self, value):
         self._set_property(self.__INFO_URL_PROPERTY__, value)
 
-    def getInfoURL(self):
+    def get_info_url(self):
         return self.get_property(self.__INFO_URL_PROPERTY__)
 
     #########################           PROTECTED           #########################

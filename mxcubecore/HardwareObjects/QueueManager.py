@@ -151,7 +151,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
 
         status = "Successful"
         # self.emit('centringAllowed', (False, ))
-        self.emit("queue_entry_execute_started", (entry, status))
+        self.emit("queue_entry_execute_started", (entry))
         self.set_current_entry(entry)
         self._current_queue_entries.append(entry)
 
@@ -228,7 +228,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                     qe.post_execute()
                 except base_queue_entry.QueueAbortedException:
                     pass
-                except BaseException:
+                except Exception:
                     pass
 
         self._root_task.kill(block=False)
@@ -236,7 +236,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         # Reset the pause event, incase we were waiting.
         self.set_pause(False)
         self.emit("queue_stopped", (None,))
-        self.emit("statusMessage", ("status", "", "Queue stoped"))
+        self.emit("statusMessage", ("status", "", "Queue stopped"))
         # self.emit('centringAllowed', (True, ))
         self._is_stopped = True
 

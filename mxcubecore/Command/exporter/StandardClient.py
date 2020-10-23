@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -16,7 +16,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU General Lesser Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """ ProtocolError and StandardClient implementation"""
 import sys
@@ -106,7 +106,7 @@ class StandardClient:
         """Close socket"""
         try:
             self.__sock.close()
-        except BaseException:
+        except Exception:
             pass
         self._is_connected = False
         self.__sock = None
@@ -157,7 +157,7 @@ class StandardClient:
             msg = msg_number + cmd
             try:
                 self.__sock.sendto(encode(msg), (self.server_ip, self.server_port))
-            except:
+            except Exception:
                 raise SocketError("Socket error:" + str(sys.exc_info()[1]))
             received = False
             while received is False:
@@ -165,7 +165,7 @@ class StandardClient:
                     ret = self.__sock.recv(4096).decode()
                 except socket.timeout:
                     raise TimeoutError("Timeout error:" + str(sys.exc_info()[1]))
-                except BaseException:
+                except Exception:
                     raise SocketError("Socket error:" + str(sys.exc_info()[1]))
                 if ret[0:5] == msg_number:
                     received = True
@@ -173,7 +173,7 @@ class StandardClient:
         except SocketError:
             self.__close_socket()
             raise
-        except BaseException:
+        except Exception:
             if self.__constant_local_port is False:
                 self.__close_socket()
             raise
@@ -206,7 +206,7 @@ class StandardClient:
             except SocketError:
                 if i >= self.retries - 1:
                     raise
-            except BaseException:
+            except Exception:
                 raise
 
     def set_timeout(self, timeout):
@@ -245,7 +245,7 @@ class StandardClient:
         """Receive thread"""
         try:
             self.on_connected()
-        except BaseException:
+        except Exception:
             pass
         buffer = empty_buffer()
         mReceivedSTX = False
@@ -284,7 +284,7 @@ class StandardClient:
                 buffer = empty_buffer()
         try:
             self.on_disconnected()
-        except BaseException:
+        except Exception:
             pass
 
     def __send_stream(self, cmd):

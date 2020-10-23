@@ -16,7 +16,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 BeamMockup class
@@ -42,7 +42,7 @@ class BeamMockup(AbstractBeam):
         self._beam_divergence = (0, 0)
 
     def init(self):
-        self._aperture = self.getObjectByRole("aperture")
+        self._aperture = self.get_object_by_role("aperture")
         if self._aperture is not None:
             self.connect(
                 self._aperture, "diameterIndexChanged", self.aperture_diameter_changed,
@@ -51,7 +51,7 @@ class BeamMockup(AbstractBeam):
             ad = self._aperture.get_diameter_size() / 1000.0
             self._beam_size_dict["aperture"] = [ad, ad]
 
-        self._slits = self.getObjectByRole("slits")
+        self._slits = self.get_object_by_role("slits")
         if self._slits is not None:
             self.connect(self._slits, "valueChanged", self.slits_gap_changed)
 
@@ -59,7 +59,7 @@ class BeamMockup(AbstractBeam):
             self._beam_size_dict["slits"] = [sx, sy]
 
         self.evaluate_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
         self.emit("beamPosChanged", (self._beam_position_on_screen,))
 
     def aperture_diameter_changed(self, name, size):
@@ -71,7 +71,7 @@ class BeamMockup(AbstractBeam):
         """
         self._beam_size_dict["aperture"] = [size, size]
         self.evaluate_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def slits_gap_changed(self, size):
         """
@@ -81,7 +81,7 @@ class BeamMockup(AbstractBeam):
         """
         self._beam_size_dict["slits"] = size
         self.evaluate_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def set_beam_position_on_screen(self, beam_x, beam_y):
         """

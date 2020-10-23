@@ -1,3 +1,23 @@
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
 import time
 import logging
 import Queue
@@ -10,6 +30,10 @@ import tine
 from HardwareRepository.CommandContainer import CommandObject, ChannelObject
 
 
+__copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
+__license__ = "LGPLv3+"
+
+
 class TineCommand(CommandObject):
     def __init__(
         self,
@@ -17,24 +41,31 @@ class TineCommand(CommandObject):
         command_name,
         tinename=None,
         username=None,
-        ListArgs=None,
+        list_args=None,
         timeout=1000,
         **kwargs
     ):
         CommandObject.__init__(self, name, username, **kwargs)
-        self.commandName = command_name
-        self.tineName = tinename
+        self.command_name = command_name
+        self.tine_name = tinename
         self.timeout = int(timeout)
 
     def __call__(self, *args, **kwargs):
+        """executes Tine cmd
+
+        Raises:
+            strerror: [description]
+            ex: [description]
+        """
+
         self.emit("commandBeginWaitReply", (str(self.name()),))
         if len(args) == 0:
-            commandArgument = []
+            command_argument = []
         else:
-            commandArgument = args[0]
+            command_argument = args[0]
         try:
             ret = tine.set(
-                self.tineName, self.commandName, commandArgument, self.timeout
+                self.tine_name, self.command_name, command_argument, self.timeout
             )
             self.emit("commandReplyArrived", (ret, str(self.name())))
         except IOError as strerror:
@@ -47,23 +78,28 @@ class TineCommand(CommandObject):
             raise ex
 
     def get(self):
+        """Returns result of cmd execution
+
+        Returns:
+            [type]: [description]
+        """
         result = None
         try:
-            result = tine.get(self.tineName, self.commandName, self.timeout)
+            result = tine.get(self.tine_name, self.command_name, self.timeout)
         except IOError as strerror:
             logging.getLogger("HWR").error("%s" % strerror)
-        except BaseException:
+        except Exception:
             pass
         return result
 
     def abort(self):
         pass
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
 
-def emitTineChannelUpdates():
+def emit_tine_channel_updates():
     while not TineChannel.updates.empty():
         try:
             channel_obj_ref, value = TineChannel.updates.get()
@@ -74,7 +110,7 @@ def emitTineChannelUpdates():
             if channel_object is not None:
                 try:
                     channel_object.emit("update", (value,))
-                except BaseException:
+                except Exception:
                     logging.getLogger("HWR").exception(
                         "Exception while emitting new value for channel %s",
                         channel_object.name(),
@@ -83,7 +119,7 @@ def emitTineChannelUpdates():
 
 def do_tine_channel_update(sleep_time):
     while True:
-        emitTineChannelUpdates()
+        emit_tine_channel_updates()
         time.sleep(sleep_time)
 
 
@@ -92,7 +128,7 @@ class TineChannel(ChannelObject):
 
     updates = Queue.Queue()
     # updates_emitter = QtCore.QTimer()
-    # QtCore.QObject.connect(updates_emitter, QtCore.SIGNAL('timeout()'), emitTineChannelUpdates)
+    # QtCore.QObject.connect(updates_emitter, QtCore.SIGNAL('timeout()'), emit_tine_channel_updates)
     # updates_emitter.start(20)
     updates_emitter = gevent.spawn(do_tine_channel_update, 0.1)
 
@@ -101,28 +137,31 @@ class TineChannel(ChannelObject):
     ):
         ChannelObject.__init__(self, name, username, **kwargs)
 
-        self.attributeName = attribute_name
-        self.tineName = tinename
+        self.attribute_name = attribute_name
+        self.tine_name = tinename
         self.timeout = int(timeout)
         self.value = None
-        self.oldvalue = None
+        self.old_value = None
 
         self.callback_fail_counter = 0
 
         logging.getLogger("HWR").debug(
-            "Attaching TINE channel: %s %s" % (self.tineName, self.attributeName)
+            "Attaching TINE channel: %s %s" % (self.tine_name, self.attribute_name)
         )
         if kwargs.get("size"):
             self.linkid = TineChannel.attach[kwargs.get("attach", "timer")](
-                self.tineName,
-                self.attributeName,
-                self.tineEventCallback,
+                self.tine_name,
+                self.attribute_name,
+                self.tine_event_callback,
                 self.timeout,
                 int(kwargs["size"]),
             )
         else:
             self.linkid = TineChannel.attach[kwargs.get("attach", "timer")](
-                self.tineName, self.attributeName, self.tineEventCallback, self.timeout
+                self.tine_name,
+                self.attribute_name,
+                self.tine_event_callback,
+                self.timeout,
             )
         # except IOError as strerror:
         #   logging.getLogger("HWR").error("%s" %strerror)
@@ -146,60 +185,60 @@ class TineChannel(ChannelObject):
         try:
             tine.detach(self.linkid)
             logging.getLogger("HWR").debug(
-                "TINE channel %s %s detached" % (self.tineName, self.attributeName)
+                "TINE channel %s %s detached" % (self.tine_name, self.attribute_name)
             )
             self.linkid = -1
         except IOError as strerror:
             logging.getLogger("HWR").error(
-                "%s detaching %s %s" % (strerror, self.tineName, self.attributeName)
+                "%s detaching %s %s" % (strerror, self.tine_name, self.attribute_name)
             )
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error(
-                "Exception on detaching %s %s" % (self.tineName, self.attributeName)
+                "Exception on detaching %s %s" % (self.tine_name, self.attribute_name)
             )
 
-    def tineEventCallback(self, id, cc, data_list):
+    def tine_event_callback(self, id, cc, data_list):
         if cc == 0:
             self.callback_fail_counter = 0
             self.update(data_list)
-        elif str(cc) != 103 and self.attributeName not in ("dozor-pass", "ff-ssim"):
+        elif str(cc) != 103 and self.attribute_name not in ("dozor-pass", "ff-ssim"):
             self.callback_fail_counter = self.callback_fail_counter + 1
             logging.getLogger("HWR").error(
                 "Tine event callback error %s, Channel: %s, Server: %s/%s"
-                % (str(cc), self.name(), self.tineName, self.attributeName)
+                % (str(cc), self.name(), self.tine_name, self.attribute_name)
             )
             if self.callback_fail_counter >= 3:
                 logging.getLogger("HWR").error(
                     "Repeated tine event callback errors %s, Channel: %s, Server: %s/%s"
-                    % (str(cc), self.name(), self.tineName, self.attributeName)
+                    % (str(cc), self.name(), self.tine_name, self.attribute_name)
                 )
 
     def update(self, value=None):
         if value is None:
             msg = "Update with value None on: %s %s" % (
-                self.tineName,
-                self.attributeName,
+                self.tine_name,
+                self.attribute_name,
             )
             logging.getLogger("HWR").warning(msg)
-            value = self.getValue()
+            value = self.get_value()
         self.value = value
 
         if value != self.oldvalue:
             TineChannel.updates.put((weakref.ref(self), value))
             self.oldvalue = value
 
-    def getValue(self, force=False):
+    def get_value(self, force=False):
         if force:
             if self.value is not None:
                 logging.getLogger("HWR").warning(
                     "Executing synch get on: %s %s"
-                    % (self.tineName, self.attributeName)
+                    % (self.tine_name, self.attribute_name)
                 )
                 return self._synchronous_get()
             else:
                 logging.getLogger("HWR").warning(
                     "Attempting to force unconnected channel: %s %s"
-                    % (self.tineName, self.attributeName)
+                    % (self.tine_name, self.attribute_name)
                 )
                 return None
 
@@ -208,7 +247,7 @@ class TineChannel(ChannelObject):
         while self.value is None and _counter <= 10:
             logging.getLogger("HWR").warning(
                 "Waiting for a first update on: %s %s"
-                % (self.tineName, self.attributeName)
+                % (self.tine_name, self.attribute_name)
             )
             # but now tine lib should be standing the get, so we try....
             # self.value = self._synchronous_get()
@@ -217,26 +256,26 @@ class TineChannel(ChannelObject):
         if self.value is None:
             logging.getLogger("HWR").warning(
                 "Gave up waiting for a first update on: %s %s"
-                % (self.tineName, self.attributeName)
+                % (self.tine_name, self.attribute_name)
             )
         return self.value
 
     def _synchronous_get(self):
         try:
-            value = tine.get(self.tineName, self.attributeName, self.timeout)
+            value = tine.get(self.tine_name, self.attribute_name, self.timeout)
             return value
         except IOError as strerror:
             logging.getLogger("HWR").error("%s" % strerror)
 
-    def setValue(self, newValue):
+    def set_value(self, new_value):
         listData = newValue
         try:
-            ret = tine.set(self.tineName, self.attributeName, listData, self.timeout)
+            ret = tine.set(self.tine_name, self.attribute_name, listData, self.timeout)
         except IOError as strerror:
             logging.getLogger("HWR").error("%s" % strerror)
 
-    def isConnected(self):
+    def is_connected(self):
         return self.linkid > 0
 
-    def setOldValue(self, oldValue):
-        self.oldvalue = oldValue
+    def set_old_value(self, old_value):
+        self.oldvalue = old_value

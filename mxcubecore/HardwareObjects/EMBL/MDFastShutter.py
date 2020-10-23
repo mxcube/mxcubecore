@@ -14,7 +14,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import gevent
 
@@ -57,12 +57,12 @@ class MDFastShutter(Device):
 
         self.chan_current_phase = self.get_channel_object("chanCurrentPhase")
         if self.chan_current_phase is not None:
-            self.current_phase = self.chan_current_phase.getValue()
+            self.current_phase = self.chan_current_phase.get_value()
             self.connect(self.chan_current_phase, "update", self.current_phase_changed)
 
         self.chan_shutter_state = self.get_channel_object("chanShutterState")
         if self.chan_shutter_state:
-            self.chan_shutter_state.connectSignal("update", self.shutter_state_changed)
+            self.chan_shutter_state.connect_signal("update", self.shutter_state_changed)
 
     def shutter_state_changed(self, value):
         """
@@ -85,14 +85,14 @@ class MDFastShutter(Device):
         """
         self.current_phase = value
         if self.chan_shutter_state:
-            self.shutter_state_changed(self.chan_shutter_state.getValue())
+            self.shutter_state_changed(self.chan_shutter_state.get_value())
 
     def getShutterState(self):
         """
         Returns shutter state
         :return:
         """
-        self.shutter_state_changed(self.chan_shutter_state.getValue())
+        self.shutter_state_changed(self.chan_shutter_state.get_value())
         return self.state
 
     def openShutter(self, wait=True):
@@ -101,7 +101,7 @@ class MDFastShutter(Device):
         :param wait:
         :return:
         """
-        self.chan_shutter_state.setValue(True)
+        self.chan_shutter_state.set_value(True)
         with gevent.Timeout(10, Exception("Timeout waiting for fast shutter open")):
             while not self.state_bit:
                 gevent.sleep(0.1)
@@ -111,7 +111,7 @@ class MDFastShutter(Device):
         Returns True if the shutter is opened
         :return:
         """
-        return self.chan_shutter_state.getValue()
+        return self.chan_shutter_state.get_value()
 
     def closeShutter(self, wait=True):
         """
@@ -119,10 +119,10 @@ class MDFastShutter(Device):
         :param wait: boolean
         :return:
         """
-        self.shutter_state_changed(self.chan_shutter_state.getValue())
+        self.shutter_state_changed(self.chan_shutter_state.get_value())
 
         if self.is_opened():
-            self.chan_shutter_state.setValue(False)
+            self.chan_shutter_state.set_value(False)
             with gevent.Timeout(
                 10, Exception("Timeout waiting for fast shutter close")
             ):

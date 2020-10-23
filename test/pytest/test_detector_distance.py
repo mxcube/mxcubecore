@@ -14,7 +14,7 @@
 # GNU Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
-# along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
+# along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 """
 """
 
@@ -26,7 +26,6 @@ from HardwareRepository.test.pytest import TestAbstractMotorBase
 
 __copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
-__author__ = "rhfogh"
 __date__ = "08/04/2020"
 
 

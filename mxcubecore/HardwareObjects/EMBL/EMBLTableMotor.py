@@ -50,7 +50,7 @@ class EMBLTableMotor(AbstractMotor):
         Creates socket interface
         :return:
         """
-        self.direction = self.getProperty("direction")
+        self.direction = self.get_property("direction")
         self.set_position(0)
         self.update_state(self.motor_states.READY)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -113,5 +113,5 @@ class EMBLTableMotor(AbstractMotor):
         try:
             self.socket.close()
             logging.getLogger("HWR").info("EMBLTableMotor: Socket closed")
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error("EMBLTableMotor: Failed to close the socket")

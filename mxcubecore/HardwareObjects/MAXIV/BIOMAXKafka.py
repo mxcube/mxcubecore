@@ -31,8 +31,8 @@ class BIOMAXKafka(HardwareObject):
         """
         Init method declared by HardwareObject.
         """
-        self.kafka_server = self.getProperty("kafka_server")
-        self.topic = self.getProperty("topic")
+        self.kafka_server = self.get_property("kafka_server")
+        self.topic = self.get_property("topic")
         self.beamline_name = HWR.beamline.session.beamline_name
         self.file = open("/tmp/kafka_errors.txt", "a")
         self.url = self.kafka_server + "/kafka"

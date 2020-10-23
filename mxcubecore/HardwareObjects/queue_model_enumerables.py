@@ -1,11 +1,28 @@
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
 """
 Enumerables and other constants used by the queue model.
 """
 
 from collections import namedtuple
 from collections import OrderedDict
-
-import enum
 
 StrategyComplexity = namedtuple("StrategyComplexity", ["SINGLE", "FEW", "MANY"])
 STRATEGY_COMPLEXITY = StrategyComplexity("none", "min", "full")
@@ -309,31 +326,3 @@ SPACEGROUP_MAP = OrderedDict((info.name, info) for info in SPACEGROUP_DATA)
 XTAL_SPACEGROUPS = [""] + [
     info.name for info in SPACEGROUP_DATA if info.point_group.isdigit()
 ]
-
-# @enum.unique
-
-
-class States(enum.Enum):
-    """Standard device states, based on TangoShutter states.
-    SardanaMotor.state_map, and DiffractometerState,
-    for general use across HardwareObjects.
-
-    Limited to a common set of states.
-
-    Grammar of tags corrected ('CLOSE->CLOSED, DISABLE->DISABLED) relative
-    to Tango states, so you can echo them to the UI without misunderstanding"""
-
-    CLOSED = 0
-    OPEN = 1  # Also used for workflow 'Expecting input'
-    ON = 2  # Could be used to mean 'Connected'.
-    OFF = 3  # Could be used to mean 'Disconnected'
-    INSERT = 4
-    EXTRACT = 5
-    MOVING = 6
-    STANDBY = 7  # Could be used to mean 'Ready'
-    FAULT = 8
-    INIT = 9
-    RUNNING = 10
-    ALARM = 11
-    DISABLED = 12
-    UNKNOWN = 13

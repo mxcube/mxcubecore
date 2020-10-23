@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <object class="SampleView">
-  <object hwrid="/md-camera-mockup" role="camera"/>
+  <object hwrid="/camera-mockup" role="camera"/>
   <object hwrid="/motor-mockup" role="focus"/>
   <object hwrid="/zoom-mockup" role="zoom"/>
   <object hwrid="/motor-mockup" role="frontlight"/>

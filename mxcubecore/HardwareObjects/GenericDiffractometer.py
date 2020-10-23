@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 GenericDiffractometer
@@ -34,7 +34,7 @@ from HardwareRepository import HardwareRepository as HWR
 
 try:
     unicode
-except:
+except Exception:
     # A quick fix for python3
     unicode = str
 
@@ -132,7 +132,7 @@ class GenericDiffractometer(HardwareObject):
 
     STATE_CHANGED_EVENT = "stateChanged"
     STATUS_CHANGED_EVENT = "statusChanged"
-    MOTOR_POSITION_CHANGED_EVENT = "motorPositionChanged"
+    MOTOR_POSITION_CHANGED_EVENT = "motorPositionsChanged"
     MOTOR_STATUS_CHANGED_EVENT = "motorStatusChanged"
 
     HEAD_TYPE_MINIKAPPA = "MiniKappa"
@@ -231,15 +231,15 @@ class GenericDiffractometer(HardwareObject):
         self.user_clicked_event = gevent.event.AsyncResult()
         self.user_confirms_centring = True
 
-        self.beamstop = self.getObjectByRole("beamstop")
-        self.aperture = self.getObjectByRole("aperture")
-        self.capillary = self.getObjectByRole("capillary")
-        self.cryo = self.getObjectByRole("cryo")
+        self.beamstop = self.get_object_by_role("beamstop")
+        self.aperture = self.get_object_by_role("aperture")
+        self.capillary = self.get_object_by_role("capillary")
+        self.cryo = self.get_object_by_role("cryo")
 
         # Hardware objects ----------------------------------------------------
         # if HWR.beamline.sample_view.camera is not None:
-        #     self.image_height = HWR.beamline.sample_view.camera.getHeight()
-        #     self.image_width = HWR.beamline.sample_view.camera.getWidth()
+        #     self.image_height = HWR.beamline.sample_view.camera.get_height()
+        #     self.image_width = HWR.beamline.sample_view.camera.get_width()
         # else:
         #     logging.getLogger("HWR").debug(
         #         "Diffractometer: " + "Camera hwobj is not defined"
@@ -256,15 +256,15 @@ class GenericDiffractometer(HardwareObject):
                 "Diffractometer: " + "BeamInfo hwobj is not defined"
             )
 
-        self.front_light_swtich = self.getObjectByRole("frontlightswtich")
-        self.back_light_swtich = self.getObjectByRole("backlightswtich")
+        self.front_light_swtich = self.get_object_by_role("frontlightswtich")
+        self.back_light_swtich = self.get_object_by_role("backlightswtich")
 
         # Channels -----------------------------------------------------------
-        ss0 = self.getProperty("used_channels")
+        ss0 = self.get_property("used_channels")
         if ss0:
             try:
                 self.used_channels_list = eval(ss0)
-            except BaseException:
+            except Exception:
                 pass  # used the default value
 
         for channel_name in self.used_channels_list:
@@ -292,16 +292,16 @@ class GenericDiffractometer(HardwareObject):
 
         # Commands -----------------------------------------------------------
         try:
-            self.used_commands_list = eval(self.getProperty("used_commands", "[]"))
-        except BaseException:
+            self.used_commands_list = eval(self.get_property("used_commands", "[]"))
+        except Exception:
             pass  # used the default value
         for command_name in self.used_commands_list:
             self.command_dict[command_name] = self.get_command_object(command_name)
 
         # Centring motors ----------------------------------------------------
         try:
-            self.centring_motors_list = eval(self.getProperty("centring_motors"))
-        except BaseException:
+            self.centring_motors_list = eval(self.get_property("centring_motors"))
+        except Exception:
             self.centring_motors_list = GenericDiffractometer.CENTRING_MOTORS_NAME
 
         queue_model_objects.CentredPosition.set_diffractometer_motor_names(
@@ -310,7 +310,7 @@ class GenericDiffractometer(HardwareObject):
 
         for motor_name in self.centring_motors_list:
             # NBNB TODO refactor configuration, and set properties directly (see below)
-            temp_motor_hwobj = self.getObjectByRole(motor_name)
+            temp_motor_hwobj = self.get_object_by_role(motor_name)
             if temp_motor_hwobj is not None:
                 logging.getLogger("HWR").debug(
                     "Diffractometer: Adding "
@@ -358,7 +358,7 @@ class GenericDiffractometer(HardwareObject):
                 self.use_sc = True
 
         try:
-            self.use_sample_centring = self.getProperty("sample_centring")
+            self.use_sample_centring = self.get_property("sample_centring")
             if self.use_sample_centring:
                 self.centring_phi = sample_centring.CentringMotor(
                     self.motor_hwobj_dict["phi"], direction=-1
@@ -375,38 +375,38 @@ class GenericDiffractometer(HardwareObject):
                 self.centring_sampy = sample_centring.CentringMotor(
                     self.motor_hwobj_dict["sampy"]
                 )
-        except BaseException:
+        except Exception:
             pass  # used the default value
 
         try:
-            self.delay_state_polling = self.getProperty("delay_state_polling")
-        except BaseException:
+            self.delay_state_polling = self.get_property("delay_state_polling")
+        except Exception:
             pass
 
         # Other parameters ---------------------------------------------------
         try:
-            self.zoom_centre = eval(self.getProperty("zoom_centre"))
-        except BaseException:
+            self.zoom_centre = eval(self.get_property("zoom_centre"))
+        except Exception:
             self.zoom_centre = {"x": 0, "y": 0}
             logging.getLogger("HWR").warning(
                 "Diffractometer: " + "zoom centre not configured"
             )
 
-        self.reversing_rotation = self.getProperty("reversing_rotation")
+        self.reversing_rotation = self.get_property("reversing_rotation")
         try:
             # grid_direction describes how a grid is collected
             # 'fast' is collection direction and 'slow' describes
             # move to the next collection line
-            self.grid_direction = eval(self.getProperty("grid_direction"))
-        except BaseException:
+            self.grid_direction = eval(self.get_property("grid_direction"))
+        except Exception:
             self.grid_direction = {"fast": (0, 1), "slow": (1, 0), "omega_ref": 0}
             logging.getLogger("HWR").warning(
                 "Diffractometer: Grid " + "direction is not defined. Using default."
             )
 
         try:
-            self.phase_list = eval(self.getProperty("phase_list"))
-        except BaseException:
+            self.phase_list = eval(self.get_property("phase_list"))
+        except Exception:
             self.phase_list = [
                 GenericDiffractometer.PHASE_TRANSFER,
                 GenericDiffractometer.PHASE_CENTRING,
@@ -596,7 +596,7 @@ class GenericDiffractometer(HardwareObject):
 
             if (
                 self.transfer_mode is None
-                or self.channel_dict["TransferMode"].getValue() == "SAMPLE_CHANGER"
+                or self.channel_dict["TransferMode"].get_value() == "SAMPLE_CHANGER"
             ):
                 # if transferMode is not defined, ignore the checkup
                 self.use_sc = True
@@ -740,7 +740,7 @@ class GenericDiffractometer(HardwareObject):
         else:
             try:
                 centring_method(sample_info, wait_result=wait)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "Diffractometer: problem while centring"
                 )
@@ -753,7 +753,7 @@ class GenericDiffractometer(HardwareObject):
         if self.current_centring_procedure is not None:
             try:
                 self.current_centring_procedure.kill()
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "Diffractometer: problem aborting the centring method"
                 )
@@ -766,7 +766,7 @@ class GenericDiffractometer(HardwareObject):
             else:
                 try:
                     fun()
-                except BaseException:
+                except Exception:
                     self.emit_centring_failed()
         else:
             self.emit_centring_failed()
@@ -866,7 +866,7 @@ class GenericDiffractometer(HardwareObject):
             self.accept_centring()
             self.current_centring_method = None
             self.current_centring_procedure = None
-        except BaseException:
+        except Exception:
             logging.exception("Diffractometer: Could not complete 2D centring")
 
     def centring_done(self, centring_procedure):
@@ -877,7 +877,7 @@ class GenericDiffractometer(HardwareObject):
             motor_pos = centring_procedure.get()
             if isinstance(motor_pos, gevent.GreenletExit):
                 raise motor_pos
-        except BaseException:
+        except Exception:
             logging.exception("Could not complete centring")
             self.emit_centring_failed()
         else:
@@ -889,7 +889,7 @@ class GenericDiffractometer(HardwareObject):
                     "Centring finished. Moving motoros to position %s" % str(motor_pos)
                 )
                 self.move_to_motors_positions(motor_pos, wait=True)
-            except BaseException:
+            except Exception:
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()
             else:
@@ -1058,7 +1058,7 @@ class GenericDiffractometer(HardwareObject):
             if omega is not None:
                 pos["phiMotor"] = omega
             self.move_to_motors_positions(pos)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "Diffractometer: could not center to beam, aborting"
             )
@@ -1187,7 +1187,7 @@ class GenericDiffractometer(HardwareObject):
         """
         motors = {}
         for motor_role in self.centring_motors_list:
-            motor_obj = self.getObjectByRole(motor_role)
+            motor_obj = self.get_object_by_role(motor_role)
             try:
                 motors[motor_role] = motor_pos[motor_obj]
             except KeyError:
@@ -1253,8 +1253,8 @@ class GenericDiffractometer(HardwareObject):
     def update_zoom_calibration(self):
         """
         """
-        self.pixels_per_mm_x = 1.0 / self.channel_dict["CoaxCamScaleX"].getValue()
-        self.pixels_per_mm_y = 1.0 / self.channel_dict["CoaxCamScaleY"].getValue()
+        self.pixels_per_mm_x = 1.0 / self.channel_dict["CoaxCamScaleX"].get_value()
+        self.pixels_per_mm_y = 1.0 / self.channel_dict["CoaxCamScaleY"].get_value()
         self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y)))
 
     def zoom_motor_state_changed(self, state):
@@ -1327,7 +1327,7 @@ class GenericDiffractometer(HardwareObject):
                 "update",
                 self.sample_is_loaded_changed,
             )
-        except BaseException:
+        except Exception:
             pass
 
         if (

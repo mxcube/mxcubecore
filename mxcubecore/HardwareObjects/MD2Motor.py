@@ -19,9 +19,9 @@ class MD2Motor(AbstractMotor):
     def init(self):
         self.motor_state = MotorStates.UNKNOWN
         if self.actuator_name in [None, ""]:
-            self.actuator_name = self.getProperty("actuator_name")
+            self.actuator_name = self.get_property("actuator_name")
 
-        self.motor_resolution = self.getProperty("resolution")
+        self.motor_resolution = self.get_property("resolution")
         if self.motor_resolution is None:
             self.motor_resolution = 1e-3
 
@@ -31,7 +31,7 @@ class MD2Motor(AbstractMotor):
         )
 
         if self.position_attr is not None:
-            self.position_attr.connectSignal("update", self.update_value)
+            self.position_attr.connect_signal("update", self.update_value)
 
             self.state_attr = self.add_channel(
                 {"type": "exporter", "name": "%sState" % self.actuator_name}, "State"
@@ -41,7 +41,7 @@ class MD2Motor(AbstractMotor):
                 {"type": "exporter", "name": "MotorStates"}, "MotorStates"
             )
             if self.motors_state_attr is not None:
-                self.motors_state_attr.connectSignal("update", self.updateMotorState)
+                self.motors_state_attr.connect_signal("update", self.updateMotorState)
 
             self._motor_abort = self.add_command(
                 {"type": "exporter", "name": "abort"}, "abort"
@@ -61,7 +61,7 @@ class MD2Motor(AbstractMotor):
                 "startHomingMotor",
             )
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "valueChanged":
             self.emit("valueChanged", (self.get_value(),))
         elif signal == "stateChanged":
@@ -94,10 +94,10 @@ class MD2Motor(AbstractMotor):
     #
     # NB - was already broken (__position not set)
     #
-    # def motorPositionChanged(self, position, private={}):
+    # def motor_positions_changed(self, position, private={}):
     #     """
     #     logging.getLogger().debug(
-    #         "{}: in motorPositionChanged: motor position changed to {}".format(self.name(), position))
+    #         "{}: in motor_positions_changed: motor position changed to {}".format(self.name(), position))
     #     """
     #     if abs(position - self.__position) <= self.motor_resolution:
     #         return
@@ -119,7 +119,7 @@ class MD2Motor(AbstractMotor):
             if low_lim == float(1e999) or hi_lim == float(1e999):
                 raise ValueError
             return low_lim, hi_lim
-        except BaseException:
+        except Exception:
             return (-1e4, 1e4)
 
     def get_limits(self):
@@ -128,7 +128,7 @@ class MD2Motor(AbstractMotor):
             if low_lim == float(1e999) or hi_lim == float(1e999):
                 raise ValueError
             return low_lim, hi_lim
-        except BaseException:
+        except Exception:
             return (-1e4, 1e4)
 
     def get_value(self):
@@ -153,7 +153,7 @@ class MD2Motor(AbstractMotor):
         warn("motorIsMoving is deprecated. Use is_ready instead", DeprecationWarning)
         return self.is_ready() and self.motor_state == MotorStates.MOVING
 
-    def getMotorMnemonic(self):
+    def get_motor_mnemonic(self):
         return self.actuator_name
 
     def stop(self):
@@ -164,14 +164,5 @@ class MD2Motor(AbstractMotor):
         self.home_cmd(self.actuator_name)
         try:
             self.waitEndOfMove(timeout)
-        except BaseException:
+        except Exception:
             raise MD2TimeoutError
-
-    """ obsolete, keep for backward compatibility """
-
-    def getDynamicLimits(self):
-        warn(
-            "getDynamicLimits is deprecated. Use get_dynamic_limits instead",
-            DeprecationWarning,
-        )
-        return self.get_dynamic_limits()

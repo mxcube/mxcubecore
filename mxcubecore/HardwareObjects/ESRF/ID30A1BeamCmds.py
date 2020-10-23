@@ -6,7 +6,7 @@ class ID30A1BeamCmds(ID30BeamCmds.ID30BeamCmds):
         ID30BeamCmds.ID30BeamCmds.__init__(self, *args)
 
     def init(self):
-        controller = self.getObjectByRole("controller")
+        controller = self.get_object_by_role("controller")
         self.centrebeam = ID30BeamCmds.ControllerCommand(
             "Centre beam", controller.centrebeam
         )

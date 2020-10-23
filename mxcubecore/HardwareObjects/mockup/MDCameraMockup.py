@@ -27,16 +27,16 @@ class MDCameraMockup(BaseHardwareObjects.Device):
         self.badimg = 0
         self.pollInterval = 500
         self.connected = False
-        self.image_name = self.getProperty("image_name")
-        xml_path = HWR.getHardwareRepository().serverAddress[0]
+        self.image_name = self.get_property("image_name")
+        xml_path = HWR.get_hardware_repository().server_address[0]
         self.image = os.path.join(xml_path, self.image_name)
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def init(self):
         logging.getLogger("HWR").info("initializing camera object")
-        if self.getProperty("interval"):
-            self.pollInterval = self.getProperty("interval")
-        self.stopper = False  # self.pollingTimer(self.pollInterval, self.poll)
+        if self.get_property("interval"):
+            self.pollInterval = self.get_property("interval")
+        self.stopper = False  # self.polling_timer(self.pollInterval, self.poll)
         gevent.spawn(self.poll)
 
     def udiffVersionChanged(self, value):
@@ -59,7 +59,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
             try:
                 img = open(self.image, "rb").read()
                 self.emit("imageReceived", img, 659, 493)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception("Could not read image")
 
     def imageUpdated(self, value):
@@ -78,15 +78,15 @@ class MDCameraMockup(BaseHardwareObjects.Device):
     def gainExists(self):
         return False
 
-    def getWidth(self):
+    def get_width(self):
         # return 768 #JN ,20140807,adapt the MD2 screen to mxCuBE2
         return 659
 
-    def getHeight(self):
+    def get_height(self):
         # return 576 # JN ,20140807,adapt the MD2 screen to mxCuBE2
         return 493
 
-    def setLive(self, state):
+    def set_live(self, state):
         self.liveState = state
         return True
 
@@ -97,7 +97,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
         return True
 
     def get_available_stream_sizes(self):
-        return [(self.getWidth(), self.getHeight())]
+        return [(self.get_width(), self.get_height())]
 
     def get_stream_size(self):
-        return self.getWidth(), self.getHeight(), 1
+        return self.get_width(), self.get_height(), 1

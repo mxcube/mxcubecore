@@ -62,7 +62,7 @@ class MachInfo(Equipment):
     def init(self):
         try:
             # self.mach_info_channel =  self.get_channel_object("mach_info")
-            channel = self.getProperty("mach_info")
+            channel = self.get_property("mach_info")
             self.mach_info_channel = PyTango.DeviceProxy(channel)
             self.message = self.mach_info_channel.OperatorMessage
             self.message += "\n" + self.mach_info_channel.R3NextInjection
@@ -71,7 +71,7 @@ class MachInfo(Equipment):
 
         try:
             # self.curr_info_channel =  self.get_channel_object("curr_info")
-            channel_current = self.getProperty("current")
+            channel_current = self.get_property("current")
             self.curr_info_channel = PyTango.DeviceProxy(channel_current)
             # why twice??
             # why hwr channel does not work?? why??
@@ -119,7 +119,7 @@ class MachInfo(Equipment):
             self.emit("machInfoChanged", values)
             self.emit("valueChanged", values)
 
-    def getCurrent(self):
+    def get_current(self):
         return self.current
 
     def getLifeTime(self):
@@ -135,12 +135,12 @@ class MachInfo(Equipment):
 def test():
     import sys
 
-    hwr = HWR.getHardwareRepository()
+    hwr = HWR.get_hardware_repository()
     hwr.connect()
 
-    conn = hwr.getHardwareObject(sys.argv[1])
+    conn = hwr.get_hardware_object(sys.argv[1])
 
-    print("Machine current: ", conn.getCurrent())
+    print("Machine current: ", conn.get_current())
     print("Life time: ", conn.getLifeTime())
     print("TopUp remaining: ", conn.getTopUpRemaining())
     print("Message: ", conn.getMessage())

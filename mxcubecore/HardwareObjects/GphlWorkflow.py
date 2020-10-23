@@ -19,7 +19,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
-along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
+along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 """
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
@@ -55,8 +55,6 @@ __copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
-States = queue_model_enumerables.States
-
 # Used to pass to priorInformation when no wavelengths are set (DiffractCal)
 DUMMY_WAVELENGTH = 999.999
 
@@ -65,17 +63,8 @@ class GphlWorkflow(HardwareObject, object):
     """Global Phasing workflow runner.
     """
 
-    # object states
-    valid_states = [
-        States.OFF,  # Not active
-        States.ON,  # Active, awaiting execution order
-        States.OPEN,  # Active, awaiting input
-        States.RUNNING,  # Active, executing workflow
-    ]
-
     def __init__(self, name):
         super(GphlWorkflow, self).__init__(name)
-        self._state = States.OFF
 
         # HO that handles connection to GPhL workflow runner
         self._workflow_connection = None
@@ -120,9 +109,9 @@ class GphlWorkflow(HardwareObject, object):
 
         # Get dose budget data
         default_dose_budget_label = None
-        xx0 = next(self.getObjects("dose_budgets"))
-        for pulldown_item in xx0.getObjects("pulldown_item"):
-            dd0 = pulldown_item.getProperties()
+        xx0 = next(self.get_objects("dose_budgets"))
+        for pulldown_item in xx0.get_objects("pulldown_item"):
+            dd0 = pulldown_item.get_properties()
             self.dose_budgets[dd0["label"]] = float(dd0["value"])
             if default_dose_budget_label is None or dd0.get("is_default"):
                 default_dose_budget_label = dd0["label"]
@@ -144,6 +133,7 @@ class GphlWorkflow(HardwareObject, object):
             "WorkflowCompleted": self.workflow_completed,
             "WorkflowFailed": self.workflow_failed,
         }
+        self.update_state(self.STATES.OFF)
 
     def setup_workflow_object(self):
         """Necessary as this set-up cannot be done at init,
@@ -167,9 +157,9 @@ class GphlWorkflow(HardwareObject, object):
 
         self._queue_entry = queue_entry
 
-        if self.get_state() == States.OFF:
+        if self.get_state() == self.STATES.OFF:
             HWR.beamline.gphl_connection.open_connection()
-            self.set_state(States.ON)
+            self.update_state(self.STATES.READY)
 
     def shutdown(self):
         """Shut down workflow and connection. Triggered on program quit."""
@@ -184,20 +174,22 @@ class GphlWorkflow(HardwareObject, object):
         # TODO this could be cached for speed
 
         result = OrderedDict()
-        if self.hasObject("workflow_properties"):
-            properties = self["workflow_properties"].getProperties().copy()
+        if self.has_object("workflow_properties"):
+            properties = self["workflow_properties"].get_properties().copy()
         else:
             properties = {}
-        if self.hasObject("invocation_properties"):
-            invocation_properties = self["invocation_properties"].getProperties().copy()
+        if self.has_object("invocation_properties"):
+            invocation_properties = (
+                self["invocation_properties"].get_properties().copy()
+            )
         else:
             invocation_properties = {}
 
-        if self.hasObject("all_workflow_options"):
-            all_workflow_options = self["all_workflow_options"].getProperties().copy()
+        if self.has_object("all_workflow_options"):
+            all_workflow_options = self["all_workflow_options"].get_properties().copy()
             if "beamline" in all_workflow_options:
                 pass
-            elif HWR.beamline.gphl_connection.hasObject("ssh_options"):
+            elif HWR.beamline.gphl_connection.has_object("ssh_options"):
                 # We are running workflow through ssh - set beamline url
                 all_workflow_options["beamline"] = "py4j:%s:" % socket.gethostname()
             else:
@@ -206,23 +198,25 @@ class GphlWorkflow(HardwareObject, object):
             all_workflow_options = {}
 
         acq_workflow_options = all_workflow_options.copy()
-        acq_workflow_options.update(self["acq_workflow_options"].getProperties())
+        acq_workflow_options.update(self["acq_workflow_options"].get_properties())
         # Add options for target directories:
         process_root = HWR.beamline.session.get_base_process_directory()
         acq_workflow_options["appdir"] = process_root
 
         mx_workflow_options = acq_workflow_options.copy()
-        mx_workflow_options.update(self["mx_workflow_options"].getProperties())
+        mx_workflow_options.update(self["mx_workflow_options"].get_properties())
 
         for wf_node in self["workflows"]:
             name = wf_node.name()
-            strategy_type = wf_node.getProperty("strategy_type")
+            strategy_type = wf_node.get_property("strategy_type")
             wf_dict = {
                 "name": name,
                 "strategy_type": strategy_type,
-                "application": wf_node.getProperty("application"),
-                "documentation": wf_node.getProperty("documentation", default_value=""),
-                "interleaveOrder": wf_node.getProperty(
+                "application": wf_node.get_property("application"),
+                "documentation": wf_node.get_property(
+                    "documentation", default_value=""
+                ),
+                "interleaveOrder": wf_node.get_property(
                     "interleave_order", default_value=""
                 ),
             }
@@ -230,8 +224,8 @@ class GphlWorkflow(HardwareObject, object):
 
             if strategy_type.startswith("transcal"):
                 wf_dict["options"] = dd0 = all_workflow_options.copy()
-                if wf_node.hasObject("options"):
-                    dd0.update(wf_node["options"].getProperties())
+                if wf_node.has_object("options"):
+                    dd0.update(wf_node["options"].get_properties())
                     relative_file_path = dd0.get("file")
                     if relative_file_path is not None:
                         # Special case - this option must be modified before use
@@ -241,23 +235,23 @@ class GphlWorkflow(HardwareObject, object):
 
             elif strategy_type.startswith("diffractcal"):
                 wf_dict["options"] = dd0 = acq_workflow_options.copy()
-                if wf_node.hasObject("options"):
-                    dd0.update(wf_node["options"].getProperties())
+                if wf_node.has_object("options"):
+                    dd0.update(wf_node["options"].get_properties())
 
             else:
                 wf_dict["options"] = dd0 = mx_workflow_options.copy()
-                if wf_node.hasObject("options"):
-                    dd0.update(wf_node["options"].getProperties())
-                if wf_node.hasObject("beam_energies"):
+                if wf_node.has_object("options"):
+                    dd0.update(wf_node["options"].get_properties())
+                if wf_node.has_object("beam_energies"):
                     wf_dict["beam_energies"] = dd0 = OrderedDict()
                     for wavelength in wf_node["beam_energies"]:
-                        dd0[wavelength.getProperty("role")] = wavelength.getProperty(
+                        dd0[wavelength.get_property("role")] = wavelength.get_property(
                             "value"
                         )
 
             wf_dict["properties"] = dd0 = properties.copy()
-            if wf_node.hasObject("properties"):
-                dd0.update(wf_node["properties"].getProperties())
+            if wf_node.has_object("properties"):
+                dd0.update(wf_node["properties"].get_properties())
             # Program-specific properties
             devmode = dd0.get("co.gphl.wf.devMode")
             if devmode and devmode[0] not in "fFnN":
@@ -265,20 +259,10 @@ class GphlWorkflow(HardwareObject, object):
                 dd0["co.gphl.wf.stratcal.opt.--strategy_type"] = strategy_type
 
             wf_dict["invocation_properties"] = dd0 = invocation_properties.copy()
-            if wf_node.hasObject("invocation_properties"):
-                dd0.update(wf_node["invocation_properties"].getProperties())
+            if wf_node.has_object("invocation_properties"):
+                dd0.update(wf_node["invocation_properties"].get_properties())
         #
         return result
-
-    def get_state(self):
-        return self._state
-
-    def set_state(self, value):
-        if value in self.valid_states:
-            self._state = value
-            self.emit("stateChanged", (value,))
-        else:
-            raise RuntimeError("GphlWorlflow set to invalid state: s" % value)
 
     def workflow_end(self):
         """
@@ -289,7 +273,7 @@ class GphlWorkflow(HardwareObject, object):
         self._data_collection_group = None
         # if not self._gevent_event.is_set():
         #     self._gevent_event.set()
-        self.set_state(States.ON)
+        self.update_state(self.STATES.READY)
         self._server_subprocess_names.clear()
         if HWR.beamline.gphl_connection is not None:
             HWR.beamline.gphl_connection.workflow_ended()
@@ -302,7 +286,7 @@ class GphlWorkflow(HardwareObject, object):
     def execute(self):
 
         try:
-            self.set_state(States.RUNNING)
+            self.update_state(self.STATES.BUSY)
 
             workflow_queue = gevent._threading.Queue()
             # Fork off workflow server process
@@ -335,7 +319,7 @@ class GphlWorkflow(HardwareObject, object):
                     if result_list is not None:
                         result_list.append((response, correlation_id))
 
-        except BaseException:
+        except Exception:
             self.workflow_end()
             logging.getLogger("HWR").error(
                 "Uncaught error during GPhL workflow execution", exc_info=True
@@ -393,7 +377,7 @@ class GphlWorkflow(HardwareObject, object):
             default_width_index = geometric_strategy.defaultWidthIdx or 0
         else:
             allowed_widths = [
-                float(x) for x in self.getProperty("default_image_widths").split()
+                float(x) for x in self.get_property("default_image_widths").split()
             ]
             val = allowed_widths[0]
             allowed_widths.sort()
@@ -451,13 +435,11 @@ class GphlWorkflow(HardwareObject, object):
             dose_budget = char_budget_fraction * full_dose_budget
 
         # For calculating dose-budget transmission
-        std_dose_rate = HWR.beamline.flux.get_dose_rate()
+        std_dose_rate = self.get_nominal_dose_rate()
         if std_dose_rate:
             std_dose_rate = (
                 std_dose_rate * 100.0 / HWR.beamline.transmission.get_value()
             )
-            # Convert from KGy/s to MGy/s
-            std_dose_rate /= 1000
 
         for rotation_id, sweeps in orientations.items():
             goniostatRotation = sweeps[0].goniostatSweepSetting
@@ -624,7 +606,7 @@ class GphlWorkflow(HardwareObject, object):
                     "decimals": 4,
                 }
             )
-        if self.getProperty("disable_energy_change", False):
+        if self.get_property("disable_energy_change", False):
             # Use current energy and disallow changes
             ll0[0]["defaultValue"] = HWR.beamline.energy.get_value()
             ll0[0]["readOnly"] = True
@@ -642,7 +624,7 @@ class GphlWorkflow(HardwareObject, object):
                         "uiLabel": "Wedge width (deg)",
                         "type": "text",
                         "defaultValue": (
-                            "%s" % self.getProperty("default_wedge_width", 15)
+                            "%s" % self.get_property("default_wedge_width", 15)
                         ),
                         "lowerBound": 0,
                         "upperBound": 7200,
@@ -655,7 +637,7 @@ class GphlWorkflow(HardwareObject, object):
                     "variableName": "centre_at_start",
                     "uiLabel": "(Re)centre crystal before acquisition start?",
                     "type": "boolean",
-                    "defaultValue": bool(self.getProperty("centre_at_start")),
+                    "defaultValue": bool(self.get_property("centre_at_start")),
                 }
             )
 
@@ -665,7 +647,7 @@ class GphlWorkflow(HardwareObject, object):
                         "variableName": "centre_before_sweep",
                         "uiLabel": "(Re)centre crystal when orientation changes?",
                         "type": "boolean",
-                        "defaultValue": bool(self.getProperty("centre_before_sweep")),
+                        "defaultValue": bool(self.get_property("centre_before_sweep")),
                     }
                 )
             if isInterleaved:
@@ -674,7 +656,7 @@ class GphlWorkflow(HardwareObject, object):
                         "variableName": "centre_before_scan",
                         "uiLabel": "(Re)centre crystal at the start of each scan?",
                         "type": "boolean",
-                        "defaultValue": bool(self.getProperty("centre_before_scan")),
+                        "defaultValue": bool(self.get_property("centre_before_scan")),
                     }
                 )
             if data_model.get_snapshot_count():
@@ -704,7 +686,7 @@ class GphlWorkflow(HardwareObject, object):
         if value:
             image_width = result[tag] = float(value)
         else:
-            image_width = self.getProperty("default_image_width", 15)
+            image_width = self.get_property("default_image_width", 15)
         tag = "exposure"
         value = params.get(tag)
         if value:
@@ -770,7 +752,7 @@ class GphlWorkflow(HardwareObject, object):
 
         # Preset energy
         beamSetting = geometric_strategy.defaultBeamSetting
-        if beamSetting and not self.getProperty("disable_energy_change"):
+        if beamSetting and not self.get_property("disable_energy_change"):
             # First set beam_energy and give it time to settle,
             # so detector distance will trigger correct resolution later
             default_energy = ConvertUtils.H_OVER_E / beamSetting.wavelength
@@ -941,9 +923,9 @@ class GphlWorkflow(HardwareObject, object):
             # TODO Clarify if set_position does not have a built-in wait
             # TODO whether you need towait for somethign else too, ...
 
-            HWR.beamline.resolution.set_position(new_resolution)
+            # HWR.beamline.resolution.set_position(new_resolution)
             # TODO it should be set_position, fix TineMotor (resolution at EMBL)
-            # HWR.beamline.resolution.set_value(new_resolution)
+            HWR.beamline.resolution.set_value(new_resolution)
             HWR.beamline.detector.wait_ready()
             # NBNB Wait till value has settled
             id_ = None
@@ -970,7 +952,7 @@ class GphlWorkflow(HardwareObject, object):
         if os.path.isfile(fp0):
             try:
                 transcal_data = f90nml.read(fp0)["sdcp_instrument_list"]
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").error(
                     "Error reading transcal.nml file: %s", fp0
                 )
@@ -1012,7 +994,7 @@ class GphlWorkflow(HardwareObject, object):
         fp0 = self.file_paths.get("diffractcal_file")
         try:
             diffractcal_data = f90nml.read(fp0)["sdcp_instrument_list"]
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").debug(
                 "diffractcal file not present - using instrumentation.nml %s", fp0
             )
@@ -1438,7 +1420,7 @@ class GphlWorkflow(HardwareObject, object):
             if zoom_motor:
                 # Zoom to the last predefined position
                 # - that should be the largest magnification
-                ll0 = zoom_motor.getPredefinedPositionsList()
+                ll0 = zoom_motor.get_predefined_positions_list()
                 if ll0:
                     logging.getLogger("user_level_log").info(
                         "Sample re-centering now active - Zooming in."
@@ -1614,7 +1596,7 @@ class GphlWorkflow(HardwareObject, object):
             if text:
                 try:
                     sampleId = uuid.UUID(text)
-                except BaseException:
+                except Exception:
                     # The error expected if this goes wrong is ValueError.
                     # But whatever the error we want to continue
                     pass
@@ -1630,7 +1612,7 @@ class GphlWorkflow(HardwareObject, object):
             # This direstory must exist by the time the WF software checks for it
             try:
                 os.makedirs(image_root)
-            except BaseException:
+            except Exception:
                 # No need to raise error - program will fail downstream
                 logging.getLogger("HWR").error(
                     "Could not create image root directory: %s", image_root
@@ -1650,3 +1632,32 @@ class GphlWorkflow(HardwareObject, object):
         )
         #
         return priorInformation
+
+    def get_nominal_dose_rate(self, energy=None):
+        """
+        Get nominal dose rate in MGy/s for a standard crystal at current settings.
+        Assumes square, top-hat beam so that the flux is evenly spread
+        over the rectangulat area of the beam.
+        Where this assumption fails
+        1) the dose rate will vary across the crystal
+        2) the nominal dose rate may difer from the actual dose rate by
+        maybe a factor of two or more.
+
+        :param energy: float Energy for calculation of dose rate, in keV.
+        :return: float
+        """
+
+        energy = energy or HWR.beamline.energy.get_value()
+
+        # NB   Calculation assumes beam sizes in mm
+        beam_size = HWR.beamline.beam.get_beam_size()
+
+        # Result in kGy/s
+        result = (
+            HWR.beamline.flux.get_dose_rate_per_photon_per_mmsq(energy)
+            * HWR.beamline.flux.get_value()
+            / beam_size[0]
+            / beam_size[1]
+            / 1000000.  # Converts to MGy/s
+        )
+        return result
