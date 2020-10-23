@@ -37,7 +37,7 @@ def poll(
     start_value=NotInitializedValue,
 ):
     # logging.info(">>>> %s", POLLERS)
-    for _, poller in POLLERS.items():
+    for poller in POLLERS.values():
         poller_polled_call = poller.polled_call_ref()
         # logging.info(">>>>> poller.poll_cmd=%s, poll_cmd=%s, poller.args=%s, args=%s", poller_polled_call, polled_call, poller.args, polled_call_args)
         if poller_polled_call == polled_call and poller.args == polled_call_args:
@@ -69,6 +69,7 @@ class _Poller:
         error_callback=None,
         compare=True,
     ):
+        self.polled_call = polled_call
         self.polled_call_ref = saferef.safe_ref(polled_call)
         self.args = polled_call_args
         self.polling_period = polling_period
@@ -76,14 +77,14 @@ class _Poller:
         self.error_callback_ref = saferef.safe_ref(error_callback)
         self.compare = compare
         self.old_res = NotInitializedValue
-        self.queue = _threading.Queue()  # Queue.Queue()
+        self.queue = Queue()
         self.delay = 0
         self.stop_event = Event()
         self.async_watcher = gevent.get_hub().loop.async_()
 
     def start_delayed(self, delay):
         self.delay = delay
-        _threading.start_new_thread(self.run, ())  # self.start()
+        _threading.start_new_thread(self.run, ())
 
     def stop(self):
         self.stop_event.set()
@@ -99,7 +100,6 @@ class _Poller:
         return self.polling_period
 
     def set_polling_period(self, polling_period):
-        # logging.info(">>>>> CHANGIG POLLING PERIOD TO %d", polling_period)
         self.polling_period = polling_period
 
     def restart(self, delay=0):
@@ -125,7 +125,8 @@ class _Poller:
             try:
                 #res = Queue().get_nowait()
                 res = self.queue.get_nowait()
-            except _threading.Empty:
+                #except _threading.Queue.empty:
+            except Empty:
                 break
 
             if isinstance(res, PollingException):
@@ -152,7 +153,6 @@ class _Poller:
 
             if self.stop_event.is_set():
                 break
-
             polled_call = self.polled_call_ref()
             if polled_call is None:
                 break
@@ -168,7 +168,6 @@ class _Poller:
                 break
 
             del polled_call
-
             if self.stop_event.is_set():
                 break
 
@@ -193,7 +192,6 @@ class _Poller:
                     self.old_res = res
                     self.queue.put(res)
                     self.async_watcher.send()
-
             sleep(self.polling_period / 1000.0)
 
         if error_cb is not None:
