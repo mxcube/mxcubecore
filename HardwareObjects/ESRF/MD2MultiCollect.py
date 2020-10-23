@@ -133,7 +133,6 @@ class MD2MultiCollect(ESRFMultiCollect):
     def prepare_acquisition(
         self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""
     ):
-        trigger_mode = "EXTERNAL_GATE" if self.mesh else None
         return ESRFMultiCollect.prepare_acquisition(
             self,
             take_dark,
@@ -142,8 +141,9 @@ class MD2MultiCollect(ESRFMultiCollect):
             exptime,
             npass,
             number_of_images,
+            self.mesh,
+            self.mesh_num_lines,
             comment,
-            trigger_mode,
         )
 
     def open_fast_shutter(self):
