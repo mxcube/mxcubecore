@@ -105,7 +105,7 @@ class ControllerCommand(BaseBeamlineAction):
             try:
                 res = cmd_execution.get()
                 res = res if res else ""
-            except BaseException:
+            except Exception:
                 self.emit("commandFailed", (str(self.name()),))
             else:
                 if isinstance(res, gevent.GreenletExit):
@@ -166,7 +166,6 @@ class HWObjActuatorCommand(CommandObject):
         values = [v.name for v in self._hwobj.VALUES]
         values.remove("UNKNOWN")
         values.remove(self._hwobj.get_value().name)
-
         return self._hwobj.VALUES[values[0]]
 
     @task
@@ -177,7 +176,7 @@ class HWObjActuatorCommand(CommandObject):
         """
         self.emit("commandBeginWaitReply", (str(self.name()),))
         value = self._get_action()
-        self._hwobj.set_value(value)
+        self._hwobj.set_value(value, timeout=60)
 
     def _cmd_done(self, state):
         """Handle the command execution.
@@ -187,7 +186,7 @@ class HWObjActuatorCommand(CommandObject):
         gevent.sleep(1)
         try:
             res = self._hwobj.get_value().name
-        except BaseException:
+        except Exception:
             self.emit("commandFailed", (str(self.name()),))
         else:
             if isinstance(res, gevent.GreenletExit):

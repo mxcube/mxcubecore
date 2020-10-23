@@ -26,7 +26,7 @@ try:
     from sardana.taurus.core.tango.sardana import registerExtensions
     from taurus import Device, Attribute
     import taurus
-except BaseException:
+except Exception:
     logging.getLogger("HWR").warning("Sardana is not available in this computer.")
 
 monkey.patch_all(thread=False, subprocess=False)
@@ -141,7 +141,7 @@ class SardanaMacro(CommandObject, SardanaObject):
 
         try:
             fullcmd = self.macro_format + " " + " ".join([str(a) for a in args])
-        except BaseException:
+        except Exception:
             import traceback
 
             logging.getLogger("HWR").info(traceback.format_exc())
@@ -182,7 +182,7 @@ class SardanaMacro(CommandObject, SardanaObject):
                 "%s: MacroServer not running?, %s", str(self.name()), error_dict
             )
             self.emit("commandFailed", (-1, self.name()))
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "%s: an error occured when calling Tango command %s",
                 str(self.name()),
@@ -252,7 +252,7 @@ class SardanaMacro(CommandObject, SardanaObject):
         except ConnectionFailed:
             logging.getLogger("HWR").debug("Cannot connect to door %s" % self.doorname)
             self.emit("commandFailed", (-1, str(self.name())))
-        except BaseException:
+        except Exception:
             import traceback
 
             logging.getLogger("HWR").debug(
@@ -313,7 +313,7 @@ class SardanaCommand(CommandObject):
             logging.getLogger("HWR").error(
                 "%s: Tango, %s", str(self.name()), error_dict
             )
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "%s: an error occured when calling Tango command %s",
                 str(self.name()),
@@ -387,7 +387,7 @@ class SardanaChannel(ChannelObject, SardanaObject):
                 minval, maxval = self.attribute.ranges()
                 self.info.minval = minval.magnitude
                 self.info.maxval = maxval.magnitude
-        except BaseException:
+        except Exception:
             import traceback
 
             logging.getLogger("HWR").info("info initialized. Cannot get limits")
@@ -422,7 +422,7 @@ class SardanaChannel(ChannelObject, SardanaObject):
                 self.info.minval,
                 self.info.maxval,
             ) = self.attribute._TangoAttribute__attr_config.get_limits()
-        except BaseException:
+        except Exception:
             import traceback
 
             logging.getLogger("HWR").info("%s" % traceback.format_exc())

@@ -436,7 +436,7 @@ class Microdiff(MiniDiff.MiniDiff):
     def in_plate_mode(self):
         try:
             return self.head_type.get_value() == "Plate"
-        except BaseException:
+        except Exception:
             return False
 
     def in_kappa_mode(self):
@@ -483,12 +483,14 @@ class Microdiff(MiniDiff.MiniDiff):
                     / float(self.pixelsPerMmY)
                 )
 
-            except BaseException:
+            except Exception:
                 logging.getLogger("user_level_log").exception(
                     "Microdiff: could not move to beam, aborting"
                 )
 
     def start_manual_centring(self, sample_info=None):
+        self._wait_ready()
+
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         if self.in_plate_mode():
             plateTranslation = self.getObjectByRole("plateTranslation")
@@ -577,5 +579,5 @@ def to_float(d):
     for k, v in d.items():
         try:
             d[k] = float(v)
-        except BaseException:
+        except Exception:
             pass

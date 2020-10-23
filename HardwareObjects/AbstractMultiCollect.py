@@ -136,7 +136,7 @@ class AbstractMultiCollect(object):
 
     @abc.abstractmethod
     @task
-    def set_detector_filenames(self, is_first_frame, frame_number, start, filename, shutterless):
+    def set_detector_filenames(self, frame_number, start, filename, shutterless):
         pass
 
     @abc.abstractmethod
@@ -276,7 +276,7 @@ class AbstractMultiCollect(object):
                     return
             if number_of_snapshots:
                 return self.take_crystal_snapshots(number_of_snapshots)
-        except Exception:
+        except:
             logging.getLogger("HWR").exception("Could not take crystal snapshots")
 
     @abc.abstractmethod
@@ -803,10 +803,7 @@ class AbstractMultiCollect(object):
 
                     i = 0
                     j = wedge_size
-
-                    _total_time_spent = 0
                     while j > 0:
-                        _time_start = time.time()
                         frame_start = start + i * osc_range
                         i += 1
 
@@ -821,9 +818,8 @@ class AbstractMultiCollect(object):
                             jpeg_thumbnail_full_path = None
                         file_location = file_parameters["directory"]
                         file_path = os.path.join(file_location, filename)
-                        
+
                         self.set_detector_filenames(
-                            i == 1,
                             frame,
                             frame_start,
                             str(file_path),
@@ -930,22 +926,13 @@ class AbstractMultiCollect(object):
                                 start_image_number + last_image_saved - 1,
                             )
                             self.emit("collectImageTaken", frame)
-                            j = wedge_size - last_image_saved                            
+                            j = wedge_size - last_image_saved
                         else:
                             j -= 1
                             self.emit("collectImageTaken", frame)
                             frame += 1
                             if j == 0:
                                 break
-
-                        _total_time_spent += (time.time() - _time_start)
-
-                        #if _total_time_spent > (wedge_size * (exptime + 0.005)) * 4:
-                        #    msg = "Data collection failure, detector not responding"
-                        #    logging.getLogger("user_level_log").info(msg)
-                        #    HWR.beamline.detector.recover_from_failure()
-                        #    raise RuntimeError(msg)
-
 
             # Bug fix for MD2/3(UP): diffractometer still has things to do even after the last frame is taken (decelerate motors and
             # possibly download diagnostics) so we cannot trigger the cleanup (that will send an abort on the diffractometer) as soon as
@@ -1146,8 +1133,6 @@ class AbstractMultiCollect(object):
     def stop_collect(self, owner=None):
         if self.data_collect_task is not None:
             self.data_collect_task.kill(block=False)
-        
-        self.data_collection_cleanup()
 
     """
     processDataScripts

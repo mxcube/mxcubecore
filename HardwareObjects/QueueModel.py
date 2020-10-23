@@ -450,7 +450,7 @@ class QueueModel(HardwareObject):
         try:
             save_file = open(filename, "w")
             save_file.write(repr((selected_model, items_to_save)))
-        except BaseException:
+        except Exception:
             logging.getLogger().exception(
                 "Unable to save queue " + "in file %s", filename
             )
@@ -502,7 +502,7 @@ class QueueModel(HardwareObject):
                     for child in task_group_entry.get_children():
                         child.set_snapshot(snapshot)
                 logging.getLogger("HWR").info("Queue loading done")
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception("Unable to load queue")
 
     def load_queue_from_file(self, filename, snapshot=None):
@@ -547,7 +547,7 @@ class QueueModel(HardwareObject):
             else:
                 logging.getLogger("HWR").info("No queue content available in file")
             return decoded_file[0]
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "Unable to load queue " + "from file %s", filename
             )

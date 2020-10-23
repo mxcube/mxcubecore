@@ -51,7 +51,7 @@ class ID23PhotonFlux(Equipment):
         try:
             egy = HWR.beamline.energy.get_value() * 1000.0
             calib = self.flux_calc.calc_flux_coef(egy)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("%s: could not get energy", self.name())
         else:
             if self.aperture is None:
@@ -59,7 +59,7 @@ class ID23PhotonFlux(Equipment):
             else:
                 try:
                     aperture_coef = self.aperture.getApertureCoef()
-                except BaseException:
+                except Exception:
                     aperture_coef = 1.0
             counts = math.fabs(counts * calib[0] * aperture_coef) * 10e6
         return counts

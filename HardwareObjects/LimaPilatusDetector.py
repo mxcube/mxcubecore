@@ -19,7 +19,6 @@ from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 class LimaPilatusDetector(AbstractDetector):
     def __init__(self, name):
         AbstractDetector.__init__(self, name)
-        self._mesh_steps = 1
         self.header = dict()
         self.start_angles = list()
 
@@ -161,19 +160,15 @@ class LimaPilatusDetector(AbstractDetector):
         npass,
         number_of_images,
         comment,
-        energy,
-        trigger_mode,
+        mesh,
+        mesh_num_lines,
     ):
-        if trigger_mode is None:
-            if osc_range < 1e-4:
-                trigger_mode = "INTERNAL_TRIGGER"
-            else:
-                trigger_mode = "EXTERNAL_TRIGGER"
-
-            if self._mesh_steps > 1:
-                trigger_mode = "EXTERNAL_TRIGGER_MULTI"
-                # reset mesh steps
-                self._mesh_steps = 1
+        if osc_range < 1e-4:
+            trigger_mode = "INTERNAL_TRIGGER"
+        elif mesh:
+            trigger_mode = "EXTERNAL_GATE"
+        else:
+            trigger_mode = "EXTERNAL_TRIGGER"
 
         diffractometer_positions = HWR.beamline.diffractometer.get_positions()
         self.start_angles = list()
@@ -218,7 +213,7 @@ class LimaPilatusDetector(AbstractDetector):
         self.reset()
         self.wait_ready()
 
-        self.set_energy_threshold(energy)
+        self.set_energy_threshold(HWR.beamline.energy.get_value())
 
         self.set_channel_value("acq_trigger_mode", trigger_mode)
 
@@ -316,7 +311,7 @@ class LimaPilatusDetector(AbstractDetector):
     def stop_acquisition(self):
         try:
             self.execute_command("stop_acq")
-        except BaseException:
+        except Exception:
             pass
 
         time.sleep(1)
@@ -345,3 +340,18 @@ class LimaPilatusDetector(AbstractDetector):
     def _emit_status(self):
         self.emit("statusChanged", self.status)
 
+    def recover_from_failure(self):
+        self.prepare_acquisition(
+            False,
+            0,
+            0,
+            0.5,
+            None,
+            1,
+            "",
+            HWR.beamline.energy.get_value(),
+            "INTERNAL_TRIGGER"
+        )
+        self.start_acquisition()
+        self.wait_ready()
+        self.stop_acquisition()

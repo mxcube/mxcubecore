@@ -305,7 +305,7 @@ class QtGraphicsManager(AbstractSampleView):
             if len(self.image_scale_list) > 0:
                 self.image_scale = self.getProperty("default_image_scale")
                 self.set_image_scale(self.image_scale, self.image_scale is not None)
-        except BaseException:
+        except Exception:
             pass
 
         """
@@ -321,7 +321,7 @@ class QtGraphicsManager(AbstractSampleView):
 
         try:
             self.auto_grid_size_mm = eval(self.getProperty("auto_grid_size_mm"))
-        except BaseException:
+        except Exception:
             self.auto_grid_size_mm = (0.1, 0.1)
 
         """
@@ -346,7 +346,7 @@ class QtGraphicsManager(AbstractSampleView):
             self.graphics_magnification_item.set_properties(
                 eval(self.getProperty("magnification_tool"))
             )
-        except BaseException:
+        except Exception:
             pass
 
         # try:
@@ -472,7 +472,7 @@ class QtGraphicsManager(AbstractSampleView):
                         self.create_line(start_point, end_point)
                 self.de_select_all()
                 graphics_config_file.close()
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").error(
                     "GraphicsManager: Unable to load "
                     + "graphics from configuration file %s"
@@ -1365,7 +1365,7 @@ class QtGraphicsManager(AbstractSampleView):
 
             if not os.path.exists(filename):
                 raise Exception("Unable to save snapshot to %s" % filename)
-        except BaseException:
+        except Exception:
             logging.getLogger("user_level_log").error(
                 "Unable to save snapshot: %s" % filename
             )
@@ -1426,7 +1426,7 @@ class QtGraphicsManager(AbstractSampleView):
                 self.save_scene_snapshot(filename)
             else:
                 self.camera_hwobj.save_snapshot(filename, "PNG")
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "Unable to save snapshot in %s" % filename
             )
@@ -1443,7 +1443,7 @@ class QtGraphicsManager(AbstractSampleView):
             axarr[1].plot(ver_sum[::-1], np.arange(0, ver_sum.size, 1))
 
             fig.savefig(profile_filename, dpi=300, bbox_inches="tight")
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "Unable to save beam profile image: %s" % profile_filename
             )
@@ -2067,7 +2067,7 @@ class QtGraphicsManager(AbstractSampleView):
 
             # beam_spl_x = (hor_roots[0] + hor_roots[1]) / 2.0
             # beam_spl_y = (ver_roots[0] + ver_roots[1]) / 2.0
-        except BaseException:
+        except Exception:
             logging.getLogger("user_level_log").debug(
                 "QtGraphicsManager: " + "Unable to detect object shape"
             )
