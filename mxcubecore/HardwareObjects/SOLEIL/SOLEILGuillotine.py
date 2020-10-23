@@ -123,7 +123,7 @@ class SOLEILGuillotine(BaseHardwareObjects.Device):
             self.pss_door = self.getProperty(
                 "tangoname_pss"
             )  # PyTango.DeviceProxy('I11-MA-CE/PSS/DB_DATA')
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error(
                 "Guillotine I11-MA-CE/PSS/DB_DATA: tangopssDevice is not defined "
             )

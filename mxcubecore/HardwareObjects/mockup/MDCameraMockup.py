@@ -59,7 +59,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
             try:
                 img = open(self.image, "rb").read()
                 self.emit("imageReceived", img, 659, 493)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception("Could not read image")
 
     def imageUpdated(self, value):

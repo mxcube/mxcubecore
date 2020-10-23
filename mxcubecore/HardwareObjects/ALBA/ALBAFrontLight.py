@@ -27,7 +27,7 @@ class ALBAFrontLight(Device):
         if threshold is not None:
             try:
                 self.off_threshold = float(threshold)
-            except BaseException:
+            except Exception:
                 self.off_threshold = self.default_threshold
                 logging.getLogger("HWR").info(
                     "OFF Threshold for front light is not valid. Using %s"

@@ -35,7 +35,7 @@ class TacoCommand(CommandObject):
     def connectDevice(self):
         try:
             self.device = TacoDevice.TacoDevice(self.deviceName, dc=self.dataCollector)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "Problem with Taco ; could not open Device %s", self.deviceName
             )
@@ -57,7 +57,7 @@ class TacoCommand(CommandObject):
         if self.device is not None and self.device.imported:
             try:
                 ret = eval("self.device.%s(*%s)" % (self.command, args))
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").error(
                     "%s: an error occured when calling Taco command %s",
                     str(self.name()),
@@ -75,7 +75,7 @@ class TacoCommand(CommandObject):
     def valueChanged(self, deviceName, value):
         try:
             callback = self.__valueChangedCallbackRef()
-        except BaseException:
+        except Exception:
             pass
         else:
             if callback is not None:
@@ -87,7 +87,7 @@ class TacoCommand(CommandObject):
         if poller is not None:
             try:
                 poller.restart(1000)
-            except BaseException:
+            except Exception:
                 pass
 
     def poll(
@@ -143,7 +143,7 @@ class TacoChannel(ChannelObject):
 
         try:
             self.polling = int(polling)
-        except BaseException:
+        except Exception:
             self.polling = None
         else:
             self.command.poll(self.polling, self.command.arglist, self.valueChanged)

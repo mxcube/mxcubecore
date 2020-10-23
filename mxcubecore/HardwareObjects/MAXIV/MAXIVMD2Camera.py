@@ -69,7 +69,7 @@ class MAXIVMD2Camera(Device):
                 self.stopper = True
                 logging.getLogger("HWR").info("poll images stopped")
                 return
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception("Could not read image")
                 self.image_attr = self.add_channel(
                     {"type": "exporter", "name": "image"}, "ImageJPG"

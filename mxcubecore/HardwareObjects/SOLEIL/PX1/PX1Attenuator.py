@@ -42,7 +42,7 @@ class PX1Attenuator(Device):
         try:
             state_str = str(value)
             retval = self.stateAttenuator[state_str]
-        except BaseException:
+        except Exception:
             value = None
 
         return retval
@@ -50,7 +50,7 @@ class PX1Attenuator(Device):
     def get_value(self):
         try:
             value = round(float(self.factor_chan.getValue()), 1)
-        except BaseException:
+        except Exception:
             value = None
 
         return value
@@ -62,7 +62,7 @@ class PX1Attenuator(Device):
     def factor_changed(self, channelValue):
         try:
             value = self.get_value()
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error(
                 "%s attFactorChanged : received value on channel is not a float value",
                 str(self.name()),

@@ -146,7 +146,7 @@ class ExporterNState(AbstractNState):
         self.update_state(self.STATES.BUSY)
 
         if isinstance(value, Enum):
-            if isinstance(value.value, tuple) or isinstance(value.value, list):
+            if isinstance(value.value, (tuple, list)):
                 value = value.value[0]
             else:
                 value = value.value

@@ -10,7 +10,7 @@ import logging
 
 try:
     from sdm import storage, Visitor
-except BaseException:
+except Exception:
     raise Exception("Cannot import SDM library.")
 
 from HardwareRepository.HardwareObjects.Session import Session
@@ -45,7 +45,7 @@ class MaxIVSession(Session):
 
         try:
             self.in_house_users = self.getProperty("inhouse_users").split(",")
-        except BaseException:
+        except Exception:
             self.in_house_users = []
 
         try:

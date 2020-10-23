@@ -164,14 +164,14 @@ class MultiplePositions(Equipment):
             # modifying it modifies the GLOBAL properties, not just the local copy
             # Maybe do self["deltas"].getProperties().copy()?
             self.deltas = self["deltas"].getProperties()
-        except BaseException:
+        except Exception:
             logging.getLogger().error("No deltas.")
 
         self.positions = {}
         self.positionsIndex = []
         try:
             positions = self["positions"]
-        except BaseException:
+        except Exception:
             logging.getLogger().error("No positions.")
         else:
             for position in positions:
@@ -249,7 +249,7 @@ class MultiplePositions(Equipment):
                             and motpos > pos - self.deltas[role]
                         ):
                             findPosition += 1
-                    except BaseException:
+                    except Exception:
                         continue
 
             if findPosition == len(self.roles):

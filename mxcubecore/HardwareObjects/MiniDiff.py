@@ -202,7 +202,7 @@ class MiniDiff(Equipment):
         if wl_prop is not None:
             try:
                 self.lightWago = hwr.getHardwareObject(wl_prop)
-            except BaseException:
+            except Exception:
                 pass
 
         if self.phiMotor is not None:
@@ -295,7 +295,7 @@ class MiniDiff(Equipment):
                     "sampleIsLoaded",
                     self.sampleChangerSampleIsLoaded,
                 )
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "MiniDiff: could not connect to sample changer smart magnet"
                 )
@@ -590,7 +590,7 @@ class MiniDiff(Equipment):
             self.centringSamplex.set_value(-sampx)
             self.centringSampley.set_value(sampy)
             self.centringPhiy.set_value(-phiy)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "MiniDiff: could not center to beam, aborting"
             )
@@ -631,7 +631,7 @@ class MiniDiff(Equipment):
         else:
             try:
                 fun(sample_info)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception("MiniDiff: problem while centring")
                 self.emitCentringFailed()
 
@@ -639,7 +639,7 @@ class MiniDiff(Equipment):
         if self.current_centring_procedure is not None:
             try:
                 self.current_centring_procedure.kill()
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "MiniDiff: problem aborting the centring method"
                 )
@@ -650,7 +650,7 @@ class MiniDiff(Equipment):
             else:
                 try:
                     fun()
-                except BaseException:
+                except Exception:
                     self.emitCentringFailed()
         else:
             self.emitCentringFailed()
@@ -669,6 +669,9 @@ class MiniDiff(Equipment):
 
     def start_manual_centring(self, sample_info=None):
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+
+        self.wait_ready()
+
         self.current_centring_procedure = sample_centring.start(
             {
                 "phi": self.centringPhi,
@@ -792,7 +795,7 @@ class MiniDiff(Equipment):
             motor_pos = manual_centring_procedure.get()
             if isinstance(motor_pos, gevent.GreenletExit):
                 raise motor_pos
-        except BaseException:
+        except Exception:
             logging.exception("Could not complete manual centring")
             self.emitCentringFailed()
         else:
@@ -800,7 +803,7 @@ class MiniDiff(Equipment):
             self.emitCentringMoving()
             try:
                 sample_centring.end()
-            except BaseException:
+            except Exception:
                 logging.exception("Could not move to centred position")
                 self.emitCentringFailed()
 
@@ -817,22 +820,27 @@ class MiniDiff(Equipment):
             res = auto_centring_procedure.get()
         except Exception:
             logging.error("Could not complete automatic centring")
+            logging.getLogger("user_level_log").info("Automatic loop centring failed")
             self.emitCentringFailed()
             self.rejectCentring()
         else:
             if res is None:
                 logging.error("Could not complete automatic centring")
+                logging.getLogger("user_level_log").info("Automatic loop centring failed")
                 self.emitCentringFailed()
                 self.rejectCentring()
             else:
                 self.emitCentringSuccessful()
                 if not self.user_confirms_centring:
                     self.accept_centring()
+                logging.getLogger("user_level_log").info("Automatic loop centring successful")
 
     def start_auto_centring(self, sample_info=None, loop_only=False):
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
 
         self.set_phase("centring", wait=True)
+
+        self.wait_ready()
 
         self.current_centring_procedure = sample_centring.start_auto(
             HWR.beamline.sample_view.camera,
@@ -861,16 +869,19 @@ class MiniDiff(Equipment):
         return self.move_motors(centred_position.as_dict())
 
     def imageClicked(self, x, y, xi, yi):
-        sample_centring.user_click(x, y)
+        logging.getLogger("user_level_log").info("Centring click at, x: %s, y: %s" % (int(x), int(y)))
+        sample_centring.user_click(x, y, True)
 
     def emitCentringStarted(self, method):
         self.currentCentringMethod = method
         self.emit("centringStarted", (method, False))
+        logging.getLogger("user_level_log").info("Starting centring")
 
     def accept_centring(self):
         self.centringStatus["valid"] = True
         self.centringStatus["accepted"] = True
         self.emit("centringAccepted", (True, self.get_centring_status()))
+        logging.getLogger("user_level_log").info("Centring successful")
 
     def rejectCentring(self):
         if self.current_centring_procedure:
@@ -878,6 +889,7 @@ class MiniDiff(Equipment):
         self.centringStatus = {"valid": False}
         self.emitProgressMessage("")
         self.emit("centringAccepted", (False, self.get_centring_status()))
+        logging.getLogger("user_level_log").info("Centring cancelled")
 
     def emitCentringMoving(self):
         self.emit("centringMoving", ())
@@ -888,6 +900,7 @@ class MiniDiff(Equipment):
         self.currentCentringMethod = None
         self.current_centring_procedure = None
         self.emit("centringFailed", (method, self.get_centring_status()))
+        logging.getLogger("user_level_log").info("Centring Failed")
 
     def emitCentringSuccessful(self):
         if self.current_centring_procedure is not None:
@@ -989,7 +1002,7 @@ class MiniDiff(Equipment):
 
         try:
             self.centringStatus["images"] = snapshotsProcedure.get()
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "MiniDiff: could not take crystal snapshots"
             )

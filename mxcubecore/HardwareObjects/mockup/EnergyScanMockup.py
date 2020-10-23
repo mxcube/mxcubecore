@@ -264,7 +264,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
                 os.makedirs(scan_directory)
             if not os.path.exists(archive_directory):
                 os.makedirs(archive_directory)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "EnergyScan: could not create energy scan result directory."
             )
@@ -275,7 +275,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         try:
             scan_file_raw = open(scan_file_raw_filename, "w")
             archive_file_raw = open(archive_file_raw_filename, "w")
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "EnergyScan: could not create energy scan result raw file"
             )
@@ -361,7 +361,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
                 scan_file_png_filename,
             )
             canvas.print_figure(scan_file_png_filename, dpi=80)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("could not print figure")
         try:
             logging.getLogger("HWR").info(
@@ -369,7 +369,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
                 archive_file_png_filename,
             )
             canvas.print_figure(archive_file_png_filename, dpi=80)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("could not save figure")
 
         self.store_energy_scan()

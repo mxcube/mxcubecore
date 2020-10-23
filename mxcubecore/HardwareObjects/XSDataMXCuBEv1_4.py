@@ -151,7 +151,7 @@ class XSDataMXCuBEDataSet(object):
             self._imageFile = imageFile
         else:
             strMessage = "ERROR! XSDataMXCuBEDataSet constructor argument 'imageFile' is not list but %s" % self._imageFile.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     # Methods and properties for the 'imageFile' attribute
     def getImageFile(self): return self._imageFile
     def setImageFile(self, imageFile):
@@ -161,30 +161,30 @@ class XSDataMXCuBEDataSet(object):
             self._imageFile = imageFile
         else:
             strMessage = "ERROR! XSDataMXCuBEDataSet.setImageFile argument is not list but %s" % imageFile.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def delImageFile(self): self._imageFile = None
     imageFile = property(getImageFile, setImageFile, delImageFile, "Property for imageFile")
     def addImageFile(self, value):
         if value is None:
             strMessage = "ERROR! XSDataMXCuBEDataSet.addImageFile argument is None"
-            raise BaseException(strMessage)            
+            raise Exception(strMessage)            
         elif value.__class__.__name__ == "XSDataFile":
             self._imageFile.append(value)
         else:
             strMessage = "ERROR! XSDataMXCuBEDataSet.addImageFile argument is not XSDataFile but %s" % value.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def insertImageFile(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataMXCuBEDataSet.insertImageFile argument 'index' is None"
-            raise BaseException(strMessage)            
+            raise Exception(strMessage)            
         if value is None:
             strMessage = "ERROR! XSDataMXCuBEDataSet.insertImageFile argument 'value' is None"
-            raise BaseException(strMessage)            
+            raise Exception(strMessage)            
         elif value.__class__.__name__ == "XSDataFile":
             self._imageFile[index] = value
         else:
             strMessage = "ERROR! XSDataMXCuBEDataSet.addImageFile argument is not XSDataFile but %s" % value.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def export(self, outfile, level, name_='XSDataMXCuBEDataSet'):
         showIndent(outfile, level)
         outfile.write(unicode('<%s>\n' % name_))
@@ -1327,63 +1327,63 @@ class XSDataInputMXCuBE(XSDataInput):
             self._characterisationInput = characterisationInput
         else:
             strMessage = "ERROR! XSDataInputMXCuBE constructor argument 'characterisationInput' is not XSDataInputCharacterisation but %s" % self._characterisationInput.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if dataCollectionId is None:
             self._dataCollectionId = None
         elif dataCollectionId.__class__.__name__ == "XSDataInteger":
             self._dataCollectionId = dataCollectionId
         else:
             strMessage = "ERROR! XSDataInputMXCuBE constructor argument 'dataCollectionId' is not XSDataInteger but %s" % self._dataCollectionId.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if diffractionPlan is None:
             self._diffractionPlan = None
         elif diffractionPlan.__class__.__name__ == "XSDataDiffractionPlan":
             self._diffractionPlan = diffractionPlan
         else:
             strMessage = "ERROR! XSDataInputMXCuBE constructor argument 'diffractionPlan' is not XSDataDiffractionPlan but %s" % self._diffractionPlan.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if experimentalCondition is None:
             self._experimentalCondition = None
         elif experimentalCondition.__class__.__name__ == "XSDataExperimentalCondition":
             self._experimentalCondition = experimentalCondition
         else:
             strMessage = "ERROR! XSDataInputMXCuBE constructor argument 'experimentalCondition' is not XSDataExperimentalCondition but %s" % self._experimentalCondition.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if outputFileDirectory is None:
             self._outputFileDirectory = None
         elif outputFileDirectory.__class__.__name__ == "XSDataFile":
             self._outputFileDirectory = outputFileDirectory
         else:
             strMessage = "ERROR! XSDataInputMXCuBE constructor argument 'outputFileDirectory' is not XSDataFile but %s" % self._outputFileDirectory.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if sample is None:
             self._sample = None
         elif sample.__class__.__name__ == "XSDataSampleCrystalMM":
             self._sample = sample
         else:
             strMessage = "ERROR! XSDataInputMXCuBE constructor argument 'sample' is not XSDataSampleCrystalMM but %s" % self._sample.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if dataSet is None:
             self._dataSet = []
         elif dataSet.__class__.__name__ == "list":
             self._dataSet = dataSet
         else:
             strMessage = "ERROR! XSDataInputMXCuBE constructor argument 'dataSet' is not list but %s" % self._dataSet.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if htmlDir is None:
             self._htmlDir = None
         elif htmlDir.__class__.__name__ == "XSDataFile":
             self._htmlDir = htmlDir
         else:
             strMessage = "ERROR! XSDataInputMXCuBE constructor argument 'htmlDir' is not XSDataFile but %s" % self._htmlDir.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if token is None:
             self._token = None
         elif token.__class__.__name__ == "XSDataString":
             self._token = token
         else:
             strMessage = "ERROR! XSDataInputMXCuBE constructor argument 'token' is not XSDataString but %s" % self._token.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     # Methods and properties for the 'characterisationInput' attribute
     def getCharacterisationInput(self): return self._characterisationInput
     def setCharacterisationInput(self, characterisationInput):
@@ -1393,7 +1393,7 @@ class XSDataInputMXCuBE(XSDataInput):
             self._characterisationInput = characterisationInput
         else:
             strMessage = "ERROR! XSDataInputMXCuBE.setCharacterisationInput argument is not XSDataInputCharacterisation but %s" % characterisationInput.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def delCharacterisationInput(self): self._characterisationInput = None
     characterisationInput = property(getCharacterisationInput, setCharacterisationInput, delCharacterisationInput, "Property for characterisationInput")
     # Methods and properties for the 'dataCollectionId' attribute
@@ -1405,7 +1405,7 @@ class XSDataInputMXCuBE(XSDataInput):
             self._dataCollectionId = dataCollectionId
         else:
             strMessage = "ERROR! XSDataInputMXCuBE.setDataCollectionId argument is not XSDataInteger but %s" % dataCollectionId.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def delDataCollectionId(self): self._dataCollectionId = None
     dataCollectionId = property(getDataCollectionId, setDataCollectionId, delDataCollectionId, "Property for dataCollectionId")
     # Methods and properties for the 'diffractionPlan' attribute
@@ -1417,7 +1417,7 @@ class XSDataInputMXCuBE(XSDataInput):
             self._diffractionPlan = diffractionPlan
         else:
             strMessage = "ERROR! XSDataInputMXCuBE.setDiffractionPlan argument is not XSDataDiffractionPlan but %s" % diffractionPlan.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def delDiffractionPlan(self): self._diffractionPlan = None
     diffractionPlan = property(getDiffractionPlan, setDiffractionPlan, delDiffractionPlan, "Property for diffractionPlan")
     # Methods and properties for the 'experimentalCondition' attribute
@@ -1429,7 +1429,7 @@ class XSDataInputMXCuBE(XSDataInput):
             self._experimentalCondition = experimentalCondition
         else:
             strMessage = "ERROR! XSDataInputMXCuBE.setExperimentalCondition argument is not XSDataExperimentalCondition but %s" % experimentalCondition.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def delExperimentalCondition(self): self._experimentalCondition = None
     experimentalCondition = property(getExperimentalCondition, setExperimentalCondition, delExperimentalCondition, "Property for experimentalCondition")
     # Methods and properties for the 'outputFileDirectory' attribute
@@ -1441,7 +1441,7 @@ class XSDataInputMXCuBE(XSDataInput):
             self._outputFileDirectory = outputFileDirectory
         else:
             strMessage = "ERROR! XSDataInputMXCuBE.setOutputFileDirectory argument is not XSDataFile but %s" % outputFileDirectory.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def delOutputFileDirectory(self): self._outputFileDirectory = None
     outputFileDirectory = property(getOutputFileDirectory, setOutputFileDirectory, delOutputFileDirectory, "Property for outputFileDirectory")
     # Methods and properties for the 'sample' attribute
@@ -1453,7 +1453,7 @@ class XSDataInputMXCuBE(XSDataInput):
             self._sample = sample
         else:
             strMessage = "ERROR! XSDataInputMXCuBE.setSample argument is not XSDataSampleCrystalMM but %s" % sample.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def delSample(self): self._sample = None
     sample = property(getSample, setSample, delSample, "Property for sample")
     # Methods and properties for the 'dataSet' attribute
@@ -1465,30 +1465,30 @@ class XSDataInputMXCuBE(XSDataInput):
             self._dataSet = dataSet
         else:
             strMessage = "ERROR! XSDataInputMXCuBE.setDataSet argument is not list but %s" % dataSet.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def delDataSet(self): self._dataSet = None
     dataSet = property(getDataSet, setDataSet, delDataSet, "Property for dataSet")
     def addDataSet(self, value):
         if value is None:
             strMessage = "ERROR! XSDataInputMXCuBE.addDataSet argument is None"
-            raise BaseException(strMessage)            
+            raise Exception(strMessage)            
         elif value.__class__.__name__ == "XSDataMXCuBEDataSet":
             self._dataSet.append(value)
         else:
             strMessage = "ERROR! XSDataInputMXCuBE.addDataSet argument is not XSDataMXCuBEDataSet but %s" % value.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def insertDataSet(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataInputMXCuBE.insertDataSet argument 'index' is None"
-            raise BaseException(strMessage)            
+            raise Exception(strMessage)            
         if value is None:
             strMessage = "ERROR! XSDataInputMXCuBE.insertDataSet argument 'value' is None"
-            raise BaseException(strMessage)            
+            raise Exception(strMessage)            
         elif value.__class__.__name__ == "XSDataMXCuBEDataSet":
             self._dataSet[index] = value
         else:
             strMessage = "ERROR! XSDataInputMXCuBE.addDataSet argument is not XSDataMXCuBEDataSet but %s" % value.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     # Methods and properties for the 'htmlDir' attribute
     def getHtmlDir(self): return self._htmlDir
     def setHtmlDir(self, htmlDir):
@@ -1498,7 +1498,7 @@ class XSDataInputMXCuBE(XSDataInput):
             self._htmlDir = htmlDir
         else:
             strMessage = "ERROR! XSDataInputMXCuBE.setHtmlDir argument is not XSDataFile but %s" % htmlDir.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def delHtmlDir(self): self._htmlDir = None
     htmlDir = property(getHtmlDir, setHtmlDir, delHtmlDir, "Property for htmlDir")
     # Methods and properties for the 'token' attribute
@@ -1510,7 +1510,7 @@ class XSDataInputMXCuBE(XSDataInput):
             self._token = token
         else:
             strMessage = "ERROR! XSDataInputMXCuBE.setToken argument is not XSDataString but %s" % token.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def delToken(self): self._token = None
     token = property(getToken, setToken, delToken, "Property for token")
     def export(self, outfile, level, name_='XSDataInputMXCuBE'):
@@ -1643,49 +1643,49 @@ class XSDataResultMXCuBE(XSDataResult):
             self._characterisationExecutiveSummary = characterisationExecutiveSummary
         else:
             strMessage = "ERROR! XSDataResultMXCuBE constructor argument 'characterisationExecutiveSummary' is not XSDataString but %s" % self._characterisationExecutiveSummary.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if characterisationResult is None:
             self._characterisationResult = None
         elif characterisationResult.__class__.__name__ == "XSDataResultCharacterisation":
             self._characterisationResult = characterisationResult
         else:
             strMessage = "ERROR! XSDataResultMXCuBE constructor argument 'characterisationResult' is not XSDataResultCharacterisation but %s" % self._characterisationResult.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if collectionPlan is None:
             self._collectionPlan = []
         elif collectionPlan.__class__.__name__ == "list":
             self._collectionPlan = collectionPlan
         else:
             strMessage = "ERROR! XSDataResultMXCuBE constructor argument 'collectionPlan' is not list but %s" % self._collectionPlan.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if listOfOutputFiles is None:
             self._listOfOutputFiles = None
         elif listOfOutputFiles.__class__.__name__ == "XSDataString":
             self._listOfOutputFiles = listOfOutputFiles
         else:
             strMessage = "ERROR! XSDataResultMXCuBE constructor argument 'listOfOutputFiles' is not XSDataString but %s" % self._listOfOutputFiles.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if outputFileDictionary is None:
             self._outputFileDictionary = None
         elif outputFileDictionary.__class__.__name__ == "XSDataDictionary":
             self._outputFileDictionary = outputFileDictionary
         else:
             strMessage = "ERROR! XSDataResultMXCuBE constructor argument 'outputFileDictionary' is not XSDataDictionary but %s" % self._outputFileDictionary.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if htmlPage is None:
             self._htmlPage = None
         elif htmlPage.__class__.__name__ == "XSDataFile":
             self._htmlPage = htmlPage
         else:
             strMessage = "ERROR! XSDataResultMXCuBE constructor argument 'htmlPage' is not XSDataFile but %s" % self._htmlPage.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
         if screeningId is None:
             self._screeningId = None
         elif screeningId.__class__.__name__ == "XSDataInteger":
             self._screeningId = screeningId
         else:
             strMessage = "ERROR! XSDataResultMXCuBE constructor argument 'screeningId' is not XSDataInteger but %s" % self._screeningId.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     # Methods and properties for the 'characterisationExecutiveSummary' attribute
     def getCharacterisationExecutiveSummary(self): return self._characterisationExecutiveSummary
     def setCharacterisationExecutiveSummary(self, characterisationExecutiveSummary):
@@ -1695,7 +1695,7 @@ class XSDataResultMXCuBE(XSDataResult):
             self._characterisationExecutiveSummary = characterisationExecutiveSummary
         else:
             strMessage = "ERROR! XSDataResultMXCuBE.setCharacterisationExecutiveSummary argument is not XSDataString but %s" % characterisationExecutiveSummary.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def delCharacterisationExecutiveSummary(self): self._characterisationExecutiveSummary = None
     characterisationExecutiveSummary = property(getCharacterisationExecutiveSummary, setCharacterisationExecutiveSummary, delCharacterisationExecutiveSummary, "Property for characterisationExecutiveSummary")
     # Methods and properties for the 'characterisationResult' attribute
@@ -1707,7 +1707,7 @@ class XSDataResultMXCuBE(XSDataResult):
             self._characterisationResult = characterisationResult
         else:
             strMessage = "ERROR! XSDataResultMXCuBE.setCharacterisationResult argument is not XSDataResultCharacterisation but %s" % characterisationResult.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def delCharacterisationResult(self): self._characterisationResult = None
     characterisationResult = property(getCharacterisationResult, setCharacterisationResult, delCharacterisationResult, "Property for characterisationResult")
     # Methods and properties for the 'collectionPlan' attribute
@@ -1719,30 +1719,30 @@ class XSDataResultMXCuBE(XSDataResult):
             self._collectionPlan = collectionPlan
         else:
             strMessage = "ERROR! XSDataResultMXCuBE.setCollectionPlan argument is not list but %s" % collectionPlan.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def delCollectionPlan(self): self._collectionPlan = None
     collectionPlan = property(getCollectionPlan, setCollectionPlan, delCollectionPlan, "Property for collectionPlan")
     def addCollectionPlan(self, value):
         if value is None:
             strMessage = "ERROR! XSDataResultMXCuBE.addCollectionPlan argument is None"
-            raise BaseException(strMessage)            
+            raise Exception(strMessage)            
         elif value.__class__.__name__ == "XSDataCollectionPlan":
             self._collectionPlan.append(value)
         else:
             strMessage = "ERROR! XSDataResultMXCuBE.addCollectionPlan argument is not XSDataCollectionPlan but %s" % value.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def insertCollectionPlan(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataResultMXCuBE.insertCollectionPlan argument 'index' is None"
-            raise BaseException(strMessage)            
+            raise Exception(strMessage)            
         if value is None:
             strMessage = "ERROR! XSDataResultMXCuBE.insertCollectionPlan argument 'value' is None"
-            raise BaseException(strMessage)            
+            raise Exception(strMessage)            
         elif value.__class__.__name__ == "XSDataCollectionPlan":
             self._collectionPlan[index] = value
         else:
             strMessage = "ERROR! XSDataResultMXCuBE.addCollectionPlan argument is not XSDataCollectionPlan but %s" % value.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     # Methods and properties for the 'listOfOutputFiles' attribute
     def getListOfOutputFiles(self): return self._listOfOutputFiles
     def setListOfOutputFiles(self, listOfOutputFiles):
@@ -1752,7 +1752,7 @@ class XSDataResultMXCuBE(XSDataResult):
             self._listOfOutputFiles = listOfOutputFiles
         else:
             strMessage = "ERROR! XSDataResultMXCuBE.setListOfOutputFiles argument is not XSDataString but %s" % listOfOutputFiles.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def delListOfOutputFiles(self): self._listOfOutputFiles = None
     listOfOutputFiles = property(getListOfOutputFiles, setListOfOutputFiles, delListOfOutputFiles, "Property for listOfOutputFiles")
     # Methods and properties for the 'outputFileDictionary' attribute
@@ -1764,7 +1764,7 @@ class XSDataResultMXCuBE(XSDataResult):
             self._outputFileDictionary = outputFileDictionary
         else:
             strMessage = "ERROR! XSDataResultMXCuBE.setOutputFileDictionary argument is not XSDataDictionary but %s" % outputFileDictionary.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def delOutputFileDictionary(self): self._outputFileDictionary = None
     outputFileDictionary = property(getOutputFileDictionary, setOutputFileDictionary, delOutputFileDictionary, "Property for outputFileDictionary")
     # Methods and properties for the 'htmlPage' attribute
@@ -1776,7 +1776,7 @@ class XSDataResultMXCuBE(XSDataResult):
             self._htmlPage = htmlPage
         else:
             strMessage = "ERROR! XSDataResultMXCuBE.setHtmlPage argument is not XSDataFile but %s" % htmlPage.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def delHtmlPage(self): self._htmlPage = None
     htmlPage = property(getHtmlPage, setHtmlPage, delHtmlPage, "Property for htmlPage")
     # Methods and properties for the 'screeningId' attribute
@@ -1788,7 +1788,7 @@ class XSDataResultMXCuBE(XSDataResult):
             self._screeningId = screeningId
         else:
             strMessage = "ERROR! XSDataResultMXCuBE.setScreeningId argument is not XSDataInteger but %s" % screeningId.__class__.__name__
-            raise BaseException(strMessage)
+            raise Exception(strMessage)
     def delScreeningId(self): self._screeningId = None
     screeningId = property(getScreeningId, setScreeningId, delScreeningId, "Property for screeningId")
     def export(self, outfile, level, name_='XSDataResultMXCuBE'):
