@@ -25,14 +25,14 @@ class SOLEILLdapLogin(Procedure):
 
     # Initializes the hardware object
     def init(self):
-        ldaphost = self.getProperty("ldaphost")
-        ldapdc = self.getProperty("ldapdc")
+        ldaphost = self.get_property("ldaphost")
+        ldapdc = self.get_property("ldapdc")
         if ldaphost is None:
             logging.getLogger("HWR").error(
                 "LdapLogin: you must specify the LDAP hostname"
             )
         else:
-            ldapport = self.getProperty("ldapport")
+            ldapport = self.get_property("ldapport")
 
             if ldapport is None:
                 logging.getLogger("HWR").debug(
@@ -62,8 +62,8 @@ class SOLEILLdapLogin(Procedure):
             try:
                 self.ldapConnection.result(timeout=0)
             except ldap.LDAPError as err:
-                ldaphost = self.getProperty("ldaphost")
-                ldapport = self.getProperty("ldapport")
+                ldaphost = self.get_property("ldaphost")
+                ldapport = self.get_property("ldapport")
                 if ldapport is None:
                     logging.getLogger("HWR").debug(
                         "LdapLogin: reconnecting to LDAP server %s", ldaphost
@@ -195,7 +195,7 @@ class SOLEILLdapLogin(Procedure):
         found = self.ldapConnection.search_s(dcparts, ldap.SCOPE_SUBTREE, filter)
         try:
             return found[0][1]["description"][0]
-        except BaseException:
+        except Exception:
             return None
 
     def find_sessions_for_user(self, username):
@@ -238,7 +238,7 @@ class SOLEILLdapLogin(Procedure):
                         projuser, usertype, beamline, int(sessbeg), int(sessend)
                     )
                     retlist.append(sessinfo)
-        except BaseException:
+        except Exception:
             print("Cannot parse session info in ldap", session_info)
 
         return retlist
@@ -300,10 +300,10 @@ class SessionList(list):
 
 
 def test():
-    hwr = HWR.getHardwareRepository()
+    hwr = HWR.get_hardware_repository()
     hwr.connect()
 
-    conn = hwr.getHardwareObject("/ldapconnection")
+    conn = hwr.get_hardware_object("/ldapconnection")
     # conn.login("20141015", "4dBM0lx3pw")
 
     # ok,name = conn.login("99140198", "5u4Twf70K5")

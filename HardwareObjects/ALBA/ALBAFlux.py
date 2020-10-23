@@ -17,7 +17,7 @@ class ALBAFlux(Device, AbstractFlux.AbstractFlux):
         try:
             if fluxlast > 1e7:
                 return self.last_current_trans()
-        except BaseException:
+        except Exception:
             pass
 
         logging.getLogger("HWR").debug(
@@ -37,19 +37,6 @@ class ALBAFlux(Device, AbstractFlux.AbstractFlux):
         last_current = (fluxlastnorm / 250.0) * current
 
         return last_current * self.get_transmission()
-
-    def get_dose_rate(self, energy=None):
-        """
-        Get dose rate in kGy/s for a standard crystal at current settings.
-        Assumes Gaussian beam with beamsize giving teh FWHH in both dimensions.
-
-        :param energy: float Energy for calculation of dose rate, in keV.
-        :return: float
-        """
-
-        # The factor 1.25 converts from the average value over the beamsize
-        # to an estimated flux density at the peak.
-        return 1.25 * super(ALBAFlux, self).get_dose_rate(energy=energy)
 
 
 def test_hwo(hwo):

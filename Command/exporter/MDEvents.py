@@ -200,7 +200,7 @@ class MDEvents(ExporterClient):
             try:
                 self.disconnect()
                 self.connect()
-            except BaseException:
+            except Exception:
                 # print sys.exc_info()
                 t = threading.Timer(1.0, self.onDisconnected)
                 t.start()
@@ -243,7 +243,7 @@ if __name__ == "__main__":
 
     while True:
         time.sleep(1.0)
-        if not md.isConnected():
+        if not md.is_connected():
             print "Not Connected"
 
     md.stop()

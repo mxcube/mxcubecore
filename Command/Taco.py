@@ -1,11 +1,35 @@
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
 import logging
 import weakref
 import copy
 
-from .. import saferef
+from HardwareRepository.dispatcher import saferef
 from .. import Poller
 from HardwareRepository.CommandContainer import CommandObject, ChannelObject
 from .. import TacoDevice_MTSafe as TacoDevice
+
+
+__copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
+__license__ = "LGPLv3+"
 
 
 class TacoCommand(CommandObject):
@@ -15,49 +39,51 @@ class TacoCommand(CommandObject):
         CommandObject.__init__(self, name, username, **kwargs)
 
         self.command = command
-        self.deviceName = taconame
-        self.dataCollector = dc
+        self.device_name = taconame
+        self.data_collector = dc
         self.pollers = {}
-        self.__valueChangedCallbackRef = None
-        self.__timeoutCallbackRef = None
+        self.__value_changed_callback_ref = None
+        self.__timeout_callback_ref = None
 
         if args is None:
-            self.arglist = ()
+            self.arg_list = ()
         else:
             # not very nice...
             args = str(args)
             if not args.endswith(","):
                 args += ","
-            self.arglist = eval("(" + args + ")")
+            self.arg_list = eval("(" + args + ")")
 
-        self.connectDevice()
+        self.connect_device()
 
-    def connectDevice(self):
+    def connect_device(self):
         try:
-            self.device = TacoDevice.TacoDevice(self.deviceName, dc=self.dataCollector)
-        except BaseException:
+            self.device = TacoDevice.TacoDevice(
+                self.device_name, dc=self.data_collector
+            )
+        except Exception:
             logging.getLogger("HWR").exception(
-                "Problem with Taco ; could not open Device %s", self.deviceName
+                "Problem with Taco ; could not open Device %s", self.device_name
             )
             self.device = None
 
     def __call__(self, *args, **kwargs):
         self.emit("commandBeginWaitReply", (str(self.name()),))
 
-        if len(args) > 0 and len(self.arglist) > 0:
+        if len(args) > 0 and len(self.arg_list) > 0:
             logging.getLogger("HWR").error(
                 "%s: cannot execute command with arguments when 'args' is defined from XML",
                 str(self.name()),
             )
             self.emit("commandFailed", (-1, str(self.name())))
             return
-        elif len(args) == 0 and len(self.arglist) > 0:
-            args = self.arglist
+        elif len(args) == 0 and len(self.arg_list) > 0:
+            args = self.arg_list
 
         if self.device is not None and self.device.imported:
             try:
                 ret = eval("self.device.%s(*%s)" % (self.command, args))
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").error(
                     "%s: an error occured when calling Taco command %s",
                     str(self.name()),
@@ -69,46 +95,46 @@ class TacoCommand(CommandObject):
 
         self.emit("commandFailed", (-1, str(self.name())))
 
-    def _valueChanged(self, value):
-        self.valueChanged(self.deviceName, value)
+    def _value_changed(self, value):
+        self.value_changed(self.device_name, value)
 
-    def valueChanged(self, deviceName, value):
+    def value_changed(self, device_name, value):
         try:
-            callback = self.__valueChangedCallbackRef()
-        except BaseException:
+            callback = self.__value_changed_callback_ref()
+        except Exception:
             pass
         else:
             if callback is not None:
-                callback(deviceName, value)
+                callback(device_name, value)
 
-    def onPollingError(self, exception, poller_id):
-        self.connectDevice()
+    def on_polling_error(self, exception, poller_id):
+        self.connect_device()
         poller = Poller.get_poller(poller_id)
         if poller is not None:
             try:
                 poller.restart(1000)
-            except BaseException:
+            except Exception:
                 pass
 
     def poll(
         self,
-        pollingTime=500,
-        argumentsList=(),
-        valueChangedCallback=None,
-        timeoutCallback=None,
+        polling_time=500,
+        arguments_list=(),
+        value_changed_callback=None,
+        timeout_callback=None,
         direct=True,
         compare=True,
     ):
-        self.__valueChangedCallbackRef = saferef.safe_ref(valueChangedCallback)
+        self.__value_changed_callback_ref = saferef.safe_ref(value_changed_callback)
 
         poll_cmd = getattr(self.device, self.command)
 
         Poller.poll(
             poll_cmd,
-            copy.deepcopy(argumentsList),
-            pollingTime,
-            self._valueChanged,
-            self.onPollingError,
+            copy.deepcopy(arguments_list),
+            polling_time,
+            self._value_changed,
+            self.on_polling_error,
             compare,
         )
 
@@ -118,7 +144,7 @@ class TacoCommand(CommandObject):
     def abort(self):
         pass
 
-    def isConnected(self):
+    def is_connected(self):
         return self.device is not None and self.device.imported
 
 
@@ -143,16 +169,16 @@ class TacoChannel(ChannelObject):
 
         try:
             self.polling = int(polling)
-        except BaseException:
+        except Exception:
             self.polling = None
         else:
-            self.command.poll(self.polling, self.command.arglist, self.valueChanged)
+            self.command.poll(self.polling, self.command.arg_list, self.value_changed)
 
-    def valueChanged(self, deviceName, value):
+    def value_changed(self, deviceName, value):
         self.emit("update", value)
 
-    def getValue(self):
+    def get_value(self):
         return self.command()
 
-    def isConnected(self):
-        return self.command.isConnected()
+    def is_connected(self):
+        return self.command.is_connected()

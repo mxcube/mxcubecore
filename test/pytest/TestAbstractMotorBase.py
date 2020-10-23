@@ -14,7 +14,7 @@
 # GNU Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
-# along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
+# along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 """
 """
 
@@ -23,7 +23,6 @@ from __future__ import print_function, unicode_literals
 
 __copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
-__author__ = "rhfogh"
 __date__ = "09/04/2020"
 
 import abc
@@ -152,7 +151,7 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
 
         # Must be set first so the next command causes a change
         test_object.set_value(low, timeout=90)
-        with pytest.raises(BaseException):
+        with pytest.raises(Exception):
             test_object.set_value(high, timeout=1.0e-6)
 
     def test_setting_timeouts_2(self, test_object):
@@ -168,7 +167,7 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
 
         # Must be set first so the next command causes a change
         test_object.set_value(high, timeout=None)
-        with pytest.raises(BaseException):
+        with pytest.raises(Exception):
             test_object.set_value(low, timeout=0)
             test_object.wait_ready(timeout=1.0e-6)
 

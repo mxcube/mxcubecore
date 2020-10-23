@@ -57,7 +57,7 @@ class ALBAISPyBClient(ISPyBClient):
                 ispyb_path = HWR.beamline.session.path_to_ispyb(path)
                 logging.debug("ALBA ISPyBClient - %s is %s " % (prop, ispyb_path))
                 mx_collect_dict[prop] = ispyb_path
-            except BaseException:
+            except Exception:
                 pass
 
     def prepare_image_for_lims(self, image_dict):
@@ -66,7 +66,7 @@ class ALBAISPyBClient(ISPyBClient):
                 path = image_dict[prop]
                 ispyb_path = HWR.beamline.session.path_to_ispyb(path)
                 image_dict[prop] = ispyb_path
-            except BaseException:
+            except Exception:
                 pass
 
 

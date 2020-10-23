@@ -8,11 +8,11 @@ class ObjectsController(HardwareObject):
         HardwareObject.__init__(self, *args)
 
     def init(self, *args):
-        sys.path.insert(0, self.getProperty("source"))
+        sys.path.insert(0, self.get_property("source"))
         config = __import__("config", globals(), locals(), [])
 
         cfg_file = os.path.join(
-            self.getProperty("source"), self.getProperty("config_file")
+            self.get_property("source"), self.get_property("config_file")
         )
         config.load(cfg_file)
         objects = config.get_context_objects("default")

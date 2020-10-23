@@ -1,3 +1,23 @@
+# encoding: utf-8
+# 
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
 """
 This module contain objects that combined make up the data model.
 Any object that inherhits from TaskNode can be added to and handled by
@@ -13,6 +33,12 @@ except ImportError:
     from ordereddict import OrderedDict
 
 from HardwareRepository.HardwareObjects import queue_model_enumerables
+
+from HardwareRepository import HardwareRepository as HWR
+
+
+__copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
+__license__ = "LGPLv3+"
 
 
 class TaskNode(object):
@@ -410,7 +436,7 @@ class Sample(TaskNode):
                 self.lims_container_location = int(
                     lims_sample.get("containerSampleChangerLocation")
                 )
-            except BaseException:
+            except Exception:
                 pass
 
         _lims = (self.lims_container_location, self.lims_sample_location)
@@ -1474,7 +1500,7 @@ class PathTemplate(object):
             session_date = folders[6]
             try:
                 more = folders[8:]
-            except BaseException:
+            except Exception:
                 more = []
             archive_directory = os.path.join(
                 PathTemplate.archive_base_directory, user_dir, session_date, *more
@@ -1768,7 +1794,7 @@ class CentredPosition(object):
             else:
                 cpos_pos = getattr(cpos, motor_name)
 
-            if self_pos == cpos_pos == None:
+            if self_pos == cpos_pos is None:
                 eq[i] = True
             elif None in (self_pos, cpos_pos):
                 continue
@@ -1980,15 +2006,14 @@ class GphlWorkflow(TaskNode):
         return self.path_template
 
     def get_workflow_parameters(self):
-        pass
-        # result = HWR.beamline.gphl_workflow.get_available_workflows().get(
-        #    self.get_type()
-        # )
-        # if result is None:
-        #    raise RuntimeError(
-        #        "No parameters for unknown workflow %s" % repr(self.get_type())
-        #    )
-        # return result
+        result = HWR.beamline.gphl_workflow.get_available_workflows().get(
+           self.get_type()
+        )
+        if result is None:
+           raise RuntimeError(
+               "No parameters for unknown workflow %s" % repr(self.get_type())
+           )
+        return result
 
 
 class XrayImaging(TaskNode):

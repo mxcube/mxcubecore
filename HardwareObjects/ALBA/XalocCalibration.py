@@ -18,14 +18,14 @@ class XalocCalibration(BaseHardwareObjects.Device):
             print("Connected to calibration channels")
 
     def getCalibration(self):
-        return [self.calibx.getValue(), self.caliby.getValue()]
+        return [self.calibx.get_value(), self.caliby.get_value()]
 
 
 def test():
-    hwr = HWR.getHardwareRepository()
+    hwr = HWR.get_hardware_repository()
     hwr.connect()
 
-    calib = hwr.getHardwareObject("/calibration")
+    calib = hwr.get_hardware_object("/calibration")
     print("Calibration is: ", calib.getCalibration())
 
 

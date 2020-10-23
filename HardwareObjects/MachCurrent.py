@@ -23,20 +23,20 @@ class MachCurrent(BaseHardwareObjects.Device):
     def init(self):
         try:
             chanCurrent = self.get_channel_object("Current")
-            chanCurrent.connectSignal("update", self.valueChanged)
-            self.setIsReady(True)
+            chanCurrent.connect_signal("update", self.value_changed)
+            self.set_is_ready(True)
         except Exception as e:
             logging.getLogger("HWR").exception(e)
 
-    def valueChanged(self, value):
+    def value_changed(self, value):
         mach = value
 
         try:
-            opmsg = self.get_channel_object("OperatorMsg").getValue()
-            fillmode = self.get_channel_object("FillingMode").getValue()
+            opmsg = self.get_channel_object("OperatorMsg").get_value()
+            fillmode = self.get_channel_object("FillingMode").get_value()
             fillmode = fillmode.strip()
 
-            refill = self.get_channel_object("RefillCountdown").getValue()
+            refill = self.get_channel_object("RefillCountdown").get_value()
         except Exception as e:
             logging.getLogger("HWR").exception(e)
             opmsg, fillmode, value, refill = ("", "", -1, -1)
@@ -48,9 +48,9 @@ class MachCurrent(BaseHardwareObjects.Device):
 
         self.emit("valueChanged", (mach, opmsg, fillmode, refill))
 
-    def getCurrent(self):
+    def get_current(self):
         try:
-            value = self.get_channel_object("Current").getValue()
+            value = self.get_channel_object("Current").get_value()
         except Exception as e:
             logging.getLogger("HWR").exception(e)
             value = -1
@@ -59,7 +59,7 @@ class MachCurrent(BaseHardwareObjects.Device):
 
     def getMessage(self):
         try:
-            msg = self.get_channel_object("OperatorMsg").getValue()
+            msg = self.get_channel_object("OperatorMsg").get_value()
         except Exception as e:
             logging.getLogger("HWR").exception(e)
             msg = ""
@@ -68,7 +68,7 @@ class MachCurrent(BaseHardwareObjects.Device):
 
     def getFillMode(self):
         try:
-            fmode = self.get_channel_object("FillingMode").getValue()
+            fmode = self.get_channel_object("FillingMode").get_value()
         except Exception as e:
             logging.getLogger("HWR").exception(e)
             fmode = ""

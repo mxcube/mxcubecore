@@ -9,16 +9,16 @@ class PX2Energy(EnergyMockup):
         self.energy = energy()
 
         self.energy_channel = self.get_channel_object("energy")
-        self.energy_channel.connectSignal("update", self.energy_changed)
+        self.energy_channel.connect_signal("update", self.energy_changed)
 
         self.state_channel = self.get_channel_object("state")
-        self.state_channel.connectSignal("update", self.energy_state_changed)
+        self.state_channel.connect_signal("update", self.energy_state_changed)
 
-        self.tunable = self.getProperty("tunable")
-        self.default_en = self.getProperty("default_energy")
+        self.tunable = self.get_property("tunable")
+        self.default_en = self.get_property("default_energy")
 
-        self.minimum_energy = self.getProperty("min_energy")
-        self.maximum_energy = self.getProperty("max_energy")
+        self.minimum_energy = self.get_property("min_energy")
+        self.maximum_energy = self.get_property("max_energy")
 
         self.current_energy = self.energy.get_value() / kilo
         self.current_wavelength = self.get_wavelegth_from_energy(self.current_energy)
@@ -88,7 +88,7 @@ class PX2Energy(EnergyMockup):
                 self.current_wavelength = 12.3984 / energy
                 if self.current_wavelength is not None:
                     self.re_emit_values()
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").info(
                 "energy_changed: error occured during an energy update"
             )

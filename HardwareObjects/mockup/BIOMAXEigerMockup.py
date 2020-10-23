@@ -59,14 +59,14 @@ class BIOMAXEigerMockup(Equipment):
 
     def init(self):
 
-        tango_device = self.getProperty("detector_device")
-        filewriter_device = self.getProperty("filewriter_device")
+        tango_device = self.get_property("detector_device")
+        filewriter_device = self.get_property("filewriter_device")
 
-        self.file_suffix = self.getProperty("file_suffix")
-        self.default_exposure_time = self.getProperty("default_exposure_time")
-        self.default_compression = self.getProperty("default_compression")
-        self.buffer_limit = self.getProperty("buffer_limit")
-        self.dcu = self.getProperty("dcu")
+        self.file_suffix = self.get_property("file_suffix")
+        self.default_exposure_time = self.get_property("default_exposure_time")
+        self.default_compression = self.get_property("default_compression")
+        self.buffer_limit = self.get_property("buffer_limit")
+        self.dcu = self.get_property("dcu")
 
         # config needed to be set up for data collection
         # if values are None, use the one from the system
@@ -92,9 +92,9 @@ class BIOMAXEigerMockup(Equipment):
 
         try:
             self.energy_change_threshold = float(
-                self.getProperty("min_trigger_energy_change")
+                self.get_property("min_trigger_energy_change")
             )
-        except BaseException:
+        except Exception:
             self.energy_change_threshold = self.energy_change_threshold_default
 
     def get_readout_time(self):
@@ -212,14 +212,14 @@ class BIOMAXEigerMockup(Equipment):
             # when called from Tango it does not. Once bug is solved in tango server, the
             # call to "cancel()" is not necessary here
             self.disarm()
-        except BaseException:
+        except Exception:
             pass
 
     def cancel_acquisition(self):
         """Cancel acquisition"""
         try:
             self.cancel()
-        except BaseException:
+        except Exception:
             pass
 
         time.sleep(1)

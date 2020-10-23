@@ -1,7 +1,7 @@
 # encoding: utf-8
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -16,7 +16,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU General Lesser Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """Abstract Motor class.
 Defines the MotorStates enum, get/set velocity, home and set_value_relative
@@ -27,6 +27,7 @@ Emits signals valueChanged and limitsChanged.
 import abc
 import math
 from enum import Enum, unique
+
 from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
@@ -62,7 +63,7 @@ class AbstractMotor(AbstractActuator):
     def init(self):
         """Initialise tolerance property"""
         AbstractActuator.init(self)
-        self._tolerance = self.getProperty("tolerance") or 1e-3
+        self._tolerance = self.get_property("tolerance") or 1e-3
 
     def get_velocity(self):
         """Read motor velocity.

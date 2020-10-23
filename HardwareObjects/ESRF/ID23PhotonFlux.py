@@ -14,14 +14,14 @@ class ID23PhotonFlux(Equipment):
         self.threshold = []
 
     def init(self):
-        self.counter = DeviceProxy(self.getProperty("url"))
+        self.counter = DeviceProxy(self.get_property("url"))
         try:
-            self.threshold = map(float, self.getProperty("threshold").split())
+            self.threshold = map(float, self.get_property("threshold").split())
         except AttributeError:
             self.threshold = [0, 9999]
-        self.shutter = self.getDeviceByRole("shutter")
-        self.aperture = self.getObjectByRole("aperture")
-        fname = self.getProperty("calibrated_diodes_file")
+        self.shutter = self.get_deviceby_role("shutter")
+        self.aperture = self.get_object_by_role("aperture")
+        fname = self.get_property("calibrated_diodes_file")
 
         self.flux_calc = CalculateFlux()
         self.flux_calc.init(fname)
@@ -51,7 +51,7 @@ class ID23PhotonFlux(Equipment):
         try:
             egy = HWR.beamline.energy.get_value() * 1000.0
             calib = self.flux_calc.calc_flux_coef(egy)
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception("%s: could not get energy", self.name())
         else:
             if self.aperture is None:
@@ -59,12 +59,12 @@ class ID23PhotonFlux(Equipment):
             else:
                 try:
                     aperture_coef = self.aperture.getApertureCoef()
-                except BaseException:
+                except Exception:
                     aperture_coef = 1.0
             counts = math.fabs(counts * calib[0] * aperture_coef) * 10e6
         return counts
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "valueChanged":
             self.emitValueChanged()
 

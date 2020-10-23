@@ -93,11 +93,11 @@ class Robodiff(SampleChanger):
             self._add_component(cell)
 
     def init(self):
-        controller = self.getObjectByRole("controller")
+        controller = self.get_object_by_role("controller")
         self.dm_reader = getattr(controller, "dm_reader")
-        self.dw = self.getObjectByRole("dewar")
+        self.dw = self.get_object_by_role("dewar")
         self.robot = controller
-        self.detector_translation = self.getObjectByRole("detector_translation")
+        self.detector_translation = self.get_object_by_role("detector_translation")
 
         return SampleChanger.init(self)
 
@@ -124,7 +124,7 @@ class Robodiff(SampleChanger):
             try:
                 logging.info("Datamatrix reader: Scanning barcodes")
                 barcodes = self.dm_reader.get_barcode()
-            except BaseException:
+            except Exception:
                 saved["barcodes"] = [[None] * 11] * 3
             else:
                 saved["barcodes"] = barcodes
@@ -284,7 +284,7 @@ class Robodiff(SampleChanger):
     def _update_state(self):
         try:
             state = self._read_state()
-        except BaseException:
+        except Exception:
             state = SampleChangerState.Unknown
         if state == SampleChangerState.Moving and self._is_device_busy(
             self.get_state()

@@ -41,7 +41,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
     @task
     def get_slit_gaps(self):
-        ctrl = self.getObjectByRole("controller")
+        ctrl = self.get_object_by_role("controller")
         return (ctrl.s1h.position(), ctrl.s1v.position())
 
     @task
@@ -65,9 +65,9 @@ class ID30A3MultiCollect(ESRFMultiCollect):
         motion = ESRFMultiCollect.move_motors(self,motors_to_move_dict,wait=False)
 
         # DvS:
-        cover_task = gevent.spawn(self.getObjectByRole("eh_controller").detcover.set_out, timeout=15)
-        self.getObjectByRole("beamstop").moveToPosition("in", wait=True)
-        self.getObjectByRole("light").wagoOut()
+        cover_task = gevent.spawn(self.get_object_by_role("eh_controller").detcover.set_out, timeout=15)
+        self.get_object_by_role("beamstop").moveToPosition("in", wait=True)
+        self.get_object_by_role("light").wagoOut()
         motion.get()
         # DvS:
         cover_task.get()
@@ -91,8 +91,8 @@ class ID30A3MultiCollect(ESRFMultiCollect):
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
         # set the detector cover out
-        self.getObjectByRole("controller").detcover.set_out()
-        diffr = self.getObjectByRole("diffractometer")
+        self.get_object_by_role("controller").detcover.set_out()
+        diffr = self.get_object_by_role("diffractometer")
         # send again the command as MD2 software only handles one
         # centered position!!
         # has to be where the motors are and before changing the phase
@@ -102,13 +102,13 @@ class ID30A3MultiCollect(ESRFMultiCollect):
             logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
         diffr.moveToPhase("DataCollection", wait=True, timeout=200)
         # switch on the front light
-        diffr.getObjectByRole("FrontLight").set_value(0.8)
+        diffr.get_object_by_role("FrontLight").set_value(0.8)
         # take the back light out
-        diffr.getObjectByRole("BackLightSwitch").actuatorOut()
+        diffr.get_object_by_role("BackLightSwitch").actuatorOut()
 
     @task
     def oscil(self, start, end, exptime, npass, wait=True):
-        diffr = self.getObjectByRole("diffractometer")
+        diffr = self.get_object_by_role("diffractometer")
         if self.helical:
             diffr.oscilScan4d(start, end, exptime, self.helical_pos, wait=True)
         elif self.mesh:
@@ -143,18 +143,18 @@ class ID30A3MultiCollect(ESRFMultiCollect):
         )
 
     def open_fast_shutter(self):
-        self.getObjectByRole("fastshut").actuatorIn()
+        self.get_object_by_role("fastshut").actuatorIn()
 
     def close_fast_shutter(self):
-        self.getObjectByRole("fastshut").actuatorOut()
+        self.get_object_by_role("fastshut").actuatorOut()
 
     def stop_oscillation(self):
         pass
 
     @task
     def data_collection_cleanup(self):
-        self.getObjectByRole("diffractometer")._wait_ready(10)
-        state = self.getObjectByRole("fastshut").get_actuator_state(read=True)
+        self.get_object_by_role("diffractometer")._wait_ready(10)
+        state = self.get_object_by_role("fastshut").get_actuator_state(read=True)
         if state != "out":
             self.close_fast_shutter()
 
@@ -188,7 +188,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
             adxv_notify_socket.connect(("aelita.esrf.fr", 8100))
             adxv_notify_socket.sendall("load_image %s\n" % image_filename)
             adxv_notify_socket.close()
-        except BaseException:
+        except Exception:
             pass
         else:
             gevent.sleep(3)
@@ -197,7 +197,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
         try:
             albula_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             albula_socket.connect(("localhost", 31337))
-        except BaseException:
+        except Exception:
             pass
         else:
             albula_socket.sendall(

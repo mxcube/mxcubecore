@@ -6,7 +6,7 @@ class RobodiffController(HardwareObject):
         HardwareObject.__init__(self, *args)
 
     def init(self, *args):
-        self.__controller = self.getObjectByRole("controller").robot
+        self.__controller = self.get_object_by_role("controller").robot
 
     def set_diagfile(self, diagfile):
         self.__controller.diagfile = diagfile

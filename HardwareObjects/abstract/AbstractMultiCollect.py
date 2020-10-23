@@ -234,24 +234,24 @@ class AbstractMultiCollect(object):
         sample_info = parameters.get("sample_reference")
         try:
             sample_id = int(sample_info["blSampleId"])
-        except BaseException:
+        except Exception:
             sample_id = None
 
         try:
             sample_code = sample_info["code"]
-        except BaseException:
+        except Exception:
             sample_code = None
 
         sample_location = None
 
         try:
             sample_container_number = int(sample_info["container_reference"])
-        except BaseException:
+        except Exception:
             pass
         else:
             try:
                 vial_number = int(sample_info["sample_location"])
-            except BaseException:
+            except Exception:
                 pass
             else:
                 sample_location = (sample_container_number, vial_number)
@@ -276,7 +276,7 @@ class AbstractMultiCollect(object):
                     return
             if number_of_snapshots:
                 return self.take_crystal_snapshots(number_of_snapshots)
-        except:
+        except Exception:
             logging.getLogger("HWR").exception("Could not take crystal snapshots")
 
     @abc.abstractmethod
@@ -443,7 +443,7 @@ class AbstractMultiCollect(object):
 
                 data_collect_parameters["actualSampleSlotInContainer"] = vial
                 data_collect_parameters["actualContainerSlotInSC"] = basket
-            except BaseException:
+            except Exception:
                 data_collect_parameters["actualSampleBarcode"] = None
                 data_collect_parameters["actualContainerBarcode"] = None
         else:
@@ -454,7 +454,7 @@ class AbstractMultiCollect(object):
         try:
             logging.getLogger("user_level_log").info("Getting centring status")
             centring_status = self.diffractometer().get_centring_status()
-        except BaseException:
+        except Exception:
             pass
         else:
             centring_info = dict(centring_status)
@@ -481,7 +481,7 @@ class AbstractMultiCollect(object):
                             motor,
                             current_diffractometer_position[motor],
                         )
-                except BaseException:
+                except Exception:
                     logging.getLogger("HWR").exception("")
 
         positions_str = ""
@@ -518,7 +518,7 @@ class AbstractMultiCollect(object):
                         "Updating sample information in LIMS"
                     )
                     HWR.beamline.lims.update_bl_sample(self.current_lims_sample)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "Could not update sample information in LIMS"
                 )
@@ -534,7 +534,7 @@ class AbstractMultiCollect(object):
                     "Creating snapshosts directory: %r", snapshot_directory
                 )
                 self.create_directories(snapshot_directory)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception("Error creating snapshot directory")
             else:
                 snapshot_i = 1
@@ -555,11 +555,11 @@ class AbstractMultiCollect(object):
                             "Saving snapshot %d", snapshot_i
                         )
                         f.write(img_data)
-                    except BaseException:
+                    except Exception:
                         logging.getLogger("HWR").exception("Could not save snapshot!")
                         try:
                             f.close()
-                        except BaseException:
+                        except Exception:
                             pass
 
                     data_collect_parameters[
@@ -571,7 +571,7 @@ class AbstractMultiCollect(object):
 
             try:
                 data_collect_parameters["centeringMethod"] = centring_info["method"]
-            except BaseException:
+            except Exception:
                 data_collect_parameters["centeringMethod"] = None
 
         if HWR.beamline.lims:
@@ -587,7 +587,7 @@ class AbstractMultiCollect(object):
                         "phiStart"
                     ] = current_diffractometer_position["kappa_phi"]
                 HWR.beamline.lims.update_data_collection(data_collect_parameters)
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").exception(
                     "Could not update data collection in LIMS"
                 )
@@ -741,7 +741,7 @@ class AbstractMultiCollect(object):
                     logging.getLogger("user_level_log").info(
                         "Done updating data collection in LIMS"
                     )
-                except BaseException:
+                except Exception:
                     logging.getLogger("HWR").exception(
                         "Could not store data collection into LIMS"
                     )
@@ -800,7 +800,7 @@ class AbstractMultiCollect(object):
                             jpeg_thumbnail_full_path = (
                                 jpeg_thumbnail_file_template % frame
                             )
-                        except BaseException:
+                        except Exception:
                             jpeg_full_path = None
                             jpeg_thumbnail_full_path = None
                         file_location = file_parameters["directory"]
@@ -865,7 +865,7 @@ class AbstractMultiCollect(object):
 
                                 try:
                                     HWR.beamline.lims.store_image(lims_image)
-                                except BaseException:
+                                except Exception:
                                     logging.getLogger("HWR").exception(
                                         "Could not store store image in LIMS"
                                     )
@@ -964,7 +964,7 @@ class AbstractMultiCollect(object):
 
                     # now really start collect sequence
                     self.do_collect(owner, data_collect_parameters)
-                except BaseException as ex:
+                except Exception as ex:
                     failed = True
                     exc_type, exc_value, exc_tb = sys.exc_info()
                     logging.exception("Data collection failed")
@@ -995,7 +995,7 @@ class AbstractMultiCollect(object):
                                 "cell", ""
                             ),
                         )
-                except BaseException:
+                except Exception:
                     pass
                 else:
                     collections_analyse_params.append(
@@ -1017,7 +1017,7 @@ class AbstractMultiCollect(object):
                         HWR.beamline.lims.update_data_collection(
                             data_collect_parameters
                         )
-                    except BaseException:
+                    except Exception:
                         logging.getLogger("HWR").exception(
                             "Could not store data collection into LIMS"
                         )
@@ -1042,7 +1042,7 @@ class AbstractMultiCollect(object):
                 self.__safety_shutter_close_task = gevent.spawn_later(
                     10 * 60, self.close_safety_shutter, timeout=10
                 )
-            except BaseException:
+            except Exception:
                 logging.exception("Could not close safety shutter")
         finally:
             self.emit(
@@ -1147,7 +1147,7 @@ class AbstractMultiCollect(object):
         if isinstance(residues, str):
             try:
                 residues = int(residues)
-            except BaseException:
+            except Exception:
                 residues = 200
 
         # residues = zero should be interpreted as if no value was provided
@@ -1177,13 +1177,13 @@ class AbstractMultiCollect(object):
                 autoprocessing.start(
                     self["auto_processing"], process_event, processAnalyseParams
                 )
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception("Error starting processing")
 
             if process_event == "after" and do_inducedraddam:
                 try:
                     autoprocessing.startInducedRadDam(processAnalyseParams)
-                except BaseException:
+                except Exception:
                     logging.exception("Error starting induced rad.dam")
 
     def set_run_autoprocessing(self, status):

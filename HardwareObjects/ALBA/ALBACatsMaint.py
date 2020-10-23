@@ -27,7 +27,7 @@ class ALBACatsMaint(CatsMaint):
         Reset CATS memory.
         """
         # Check do_PRO6_RAH first
-        if self._chnAtHome.getValue() is True:
+        if self._chnAtHome.get_value() is True:
             CatsMaint._do_reset_memory(self)
 
     def _do_reset(self):
@@ -54,7 +54,7 @@ class ALBACatsMaint(CatsMaint):
         @return: 3-tuple
         """
         if self.shifts_channel is not None:
-            shifts = self.shifts_channel.getValue()
+            shifts = self.shifts_channel.get_value()
         else:
             shifts = None
         return shifts

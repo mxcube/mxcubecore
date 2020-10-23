@@ -33,40 +33,40 @@ class PX1Energy(Device, AbstractEnergy):
         self.current_state = None
 
         try:
-            self.monodevice = DeviceProxy(self.getProperty("mono_device"))
-        except BaseException:
-            self.errorDeviceInstance(self.getProperty("mono_device"))
+            self.monodevice = DeviceProxy(self.get_property("mono_device"))
+        except Exception:
+            self.errorDeviceInstance(self.get_property("mono_device"))
 
         # Nom du device bivu (Energy to gap) : necessaire pour amelioration du
         # positionnement de l'onduleur (Backlash)
-        self.und_device = DeviceProxy(self.getProperty("undulator_device"))
-        self.doBacklashCompensation = self.getProperty("backlash")
+        self.und_device = DeviceProxy(self.get_property("undulator_device"))
+        self.doBacklashCompensation = self.get_property("backlash")
 
         # parameters for polling
-        self.isConnected()
+        self.is_connected()
 
         self.energy_chan = self.get_channel_object("energy")
-        self.energy_chan.connectSignal("update", self.energyChanged)
+        self.energy_chan.connect_signal("update", self.energyChanged)
 
         self.stop_cmd = self.get_command_object("stop")
 
         self.state_chan = self.get_channel_object("state")
-        self.state_chan.connectSignal("update", self.stateChanged)
+        self.state_chan.connect_signal("update", self.stateChanged)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "energyChanged":
             logging.getLogger("HWR").debug(
-                "PX1Energy. connectNotify. sending energy value %s" % self.get_value()
+                "PX1Energy. connect_notify. sending energy value %s" % self.get_value()
             )
             self.energyChanged(self.get_energy())
 
         if signal == "stateChanged":
             logging.getLogger("HWR").debug(
-                "PX1Energy. connectNotify. sending state value %s" % self.get_state()
+                "PX1Energy. connect_notify. sending state value %s" % self.get_state()
             )
             self.stateChanged(self.get_state())
 
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def stateChanged(self, value):
         str_state = str(value)
@@ -98,7 +98,7 @@ class PX1Energy(Device, AbstractEnergy):
     def isSpecConnected(self):
         return True
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def sConnected(self):
@@ -111,10 +111,10 @@ class PX1Energy(Device, AbstractEnergy):
         return True
 
     def get_value(self):
-        return self.energy_chan.getValue()
+        return self.energy_chan.get_value()
 
     def get_state(self):
-        return str(self.state_chan.getValue())
+        return str(self.state_chan.get_value())
 
     def getEnergyComputedFromCurrentGap(self):
         return self.und_device.energy
@@ -179,12 +179,12 @@ class PX1Energy(Device, AbstractEnergy):
                             while str(self.und_device.State()) == "MOVING":
                                 time.sleep(0.2)
 
-                            self.energy_chan.setValue(value)
+                            self.energy_chan.set_value(value)
                         else:
                             self.und_device.gap = gaplimite
                             self.und_device.gap = newgap + backlash
                         time.sleep(1)
-                except BaseException:
+                except Exception:
                     logging.getLogger("HWR").error(
                         "%s: Cannot move undulator U20 : State device = %s",
                         self.name(),
@@ -192,9 +192,9 @@ class PX1Energy(Device, AbstractEnergy):
                     )
 
             try:
-                self.energy_chan.setValue(value)
+                self.energy_chan.set_value(value)
                 return value
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").error(
                     "%s: Cannot move Energy : State device = %s",
                     self.name(),

@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 [Name]
@@ -85,11 +85,11 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
         self.currentposition = 0
         self.currentstate = None
 
-        self.positionChannel.connectSignal("update", self.positionChanged)
-        self.stateChannel.connectSignal("update", self.stateChanged)
+        self.positionChannel.connect_signal("update", self.positionChanged)
+        self.stateChannel.connect_signal("update", self.stateChanged)
 
-    def getPredefinedPositionsList(self):
-        labels = self.labelsChannel.getValue()
+    def get_predefined_positions_list(self):
+        labels = self.labelsChannel.get_value()
         labels = labels.split()
         retlist = []
         for label in labels:
@@ -113,7 +113,7 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
         logging.getLogger("HWR").debug("type %s" % type(no))
         #        no = posno
         logging.getLogger("HWR").debug("Moving to position %s" % no)
-        state = self.positionChannel.setValue(int(no))
+        state = self.positionChannel.set_value(int(no))
 
     def motorIsMoving(self):
         if str(self.get_state()) == "MOVING":
@@ -125,7 +125,7 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
         return (1, 12)
 
     def get_state(self):
-        state = self.stateChannel.getValue()
+        state = self.stateChannel.get_value()
         curr_pos = self.get_value()
         if state == PyTango.DevState.ON:
             return ALBAZoomMotor.READY
@@ -139,19 +139,19 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
 
     def get_value(self):
         try:
-            return self.positionChannel.getValue()
-        except BaseException:
+            return self.positionChannel.get_value()
+        except Exception:
             return self.currentposition
 
     def get_current_position_name(self):
         try:
-            n = int(self.positionChannel.getValue())
+            n = int(self.positionChannel.get_value())
             value = "%s z%s" % (n, n)
             logging.getLogger("HWR").debug(
                 "get_current_position_name: %s" % repr(value)
             )
             return value
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").debug("cannot get name zoom value")
             return None
 
@@ -184,7 +184,7 @@ def test_hwo(zoom):
     print("Zoom position name is : ", zoom.get_current_position_name())
     print("               Moving : ", zoom.motorIsMoving())
     print("                State : ", zoom.get_state())
-    print("            Positions : ", zoom.getPredefinedPositionsList())
+    print("            Positions : ", zoom.get_predefined_positions_list())
 
 
 if __name__ == "__main__":

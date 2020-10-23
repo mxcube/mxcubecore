@@ -1,20 +1,20 @@
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 Qt4/5/PySide Graphics manager for MxCuBE.
@@ -43,7 +43,7 @@ import logging
 
 try:
     import cPickle as pickle
-except:
+except Exception:
     import _pickle as pickle
 
 from datetime import datetime
@@ -215,7 +215,8 @@ class QtGraphicsManager(AbstractSampleView):
         self.graphics_view.keyPressedSignal.connect(self.key_pressed)
         self.graphics_view.wheelSignal.connect(self.mouse_wheel_scrolled)
 
-        self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
+        self.diffractometer_hwobj = self.get_object_by_role("diffractometer")
+        self.graphics_view.resizeEvent = self.resizeEvent
 
         if self.diffractometer_hwobj is not None:
             pixels_per_mm = self.diffractometer_hwobj.get_pixels_per_mm()
@@ -289,8 +290,8 @@ class QtGraphicsManager(AbstractSampleView):
                 "GraphicsManager: BeamInfo hwobj not defined"
             )
 
-        self.camera_hwobj = self.getObjectByRole(
-            self.getProperty("camera_name", "camera")
+        self.camera_hwobj = self.get_object_by_role(
+            self.get_property("camera_name", "camera")
         )
         if self.camera_hwobj is not None:
             graphics_scene_size = self.camera_hwobj.get_image_dimensions()
@@ -301,17 +302,17 @@ class QtGraphicsManager(AbstractSampleView):
             logging.getLogger("HWR").error("GraphicsManager: Camera hwobj not defined")
 
         try:
-            self.image_scale_list = eval(self.getProperty("image_scale_list", "[]"))
+            self.image_scale_list = eval(self.get_property("image_scale_list", "[]"))
             if len(self.image_scale_list) > 0:
-                self.image_scale = self.getProperty("default_image_scale")
+                self.image_scale = self.get_property("default_image_scale")
                 self.set_image_scale(self.image_scale, self.image_scale is not None)
-        except BaseException:
+        except Exception:
             pass
 
         """
-        if self.getProperty("store_graphics_config") == True:
+        if self.get_property("store_graphics_config") == True:
             #atexit.register(self.save_graphics_config)
-            self.graphics_config_filename = self.getProperty("graphics_config_filename")
+            self.graphics_config_filename = self.get_property("graphics_config_filename")
             if self.graphics_config_filename is None:
                 self.graphics_config_filename = os.path.join(
                     self.user_file_directory,
@@ -320,45 +321,45 @@ class QtGraphicsManager(AbstractSampleView):
         """
 
         try:
-            self.auto_grid_size_mm = eval(self.getProperty("auto_grid_size_mm"))
-        except BaseException:
+            self.auto_grid_size_mm = eval(self.get_property("auto_grid_size_mm"))
+        except Exception:
             self.auto_grid_size_mm = (0.1, 0.1)
 
         """
         self.graphics_move_up_item.setVisible(
-            self.getProperty("enable_move_buttons") is True
+            self.get_property("enable_move_buttons") is True
         )
         self.graphics_move_right_item.setVisible(
-            self.getProperty("enable_move_buttons") is True
+            self.get_property("enable_move_buttons") is True
         )
         self.graphics_move_down_item.setVisible(
-            self.getProperty("enable_move_buttons") is True
+            self.get_property("enable_move_buttons") is True
         )
         self.graphics_move_left_item.setVisible(
-            self.getProperty("enable_move_buttons") is True
-        ) 
+            self.get_property("enable_move_buttons") is True
+        )
         """
 
         # self.set_scrollbars_off(\
-        #     self.getProperty("scrollbars_always_off") is True)
+        #     self.get_property("scrollbars_always_off") is True)
 
         try:
             self.graphics_magnification_item.set_properties(
-                eval(self.getProperty("magnification_tool"))
+                eval(self.get_property("magnification_tool"))
             )
-        except BaseException:
+        except Exception:
             pass
 
         # try:
-        #    self.set_view_scale(self.getProperty("view_scale"))
+        #    self.set_view_scale(self.get_property("view_scale"))
         # except:
         #    pass
 
         # self.temp_animation_dir = os.path.join(self.user_file_directory, "animation")
 
-        self.omega_move_delta = self.getProperty("omega_move_delta", 10)
+        self.omega_move_delta = self.get_property("omega_move_delta", 10)
 
-        custom_cursor_filename = self.getProperty("custom_cursor", "")
+        custom_cursor_filename = self.get_property("custom_cursor", "")
         if os.path.exists(custom_cursor_filename):
             self.cursor = QtImport.QCursor(
                 QtImport.QPixmap(custom_cursor_filename), 0, 0
@@ -401,6 +402,89 @@ class QtGraphicsManager(AbstractSampleView):
             AbstractActuator
         """
         return self.camera_hwobj
+
+    def add_shape_from_mpos(self, mpos_list, screen_cord, _type):
+        """
+        Adds a shape of type <t>, with motor positions from mpos_list and
+        screen position screen_coord.
+
+        Args:
+            mpos_list (list[mpos_list]): List of motor positions
+            screen_coord (tuple(x, y): Screen cordinate for shape
+            t (str): Type str for shape, P (Point), L (Line), G (Grid)
+
+        Returns:
+            (Shape) Shape of type <t>
+        """
+        return
+
+    def de_select_shape(self, sid):
+        """
+        De-select the shape with id <sid>.
+
+        Args:
+            sid (str): The id of the shape to de-select.
+        """
+        return
+
+    def clear_all(self):
+        """
+        Clear the shapes, remove all contents.
+        """
+        return
+
+    def de_select_all(self):
+        """De select all shapes."""
+        return
+
+    def get_shape(self, sid):
+        """
+        Get Shape with id <sid>.
+
+        Args:
+            sid (str): id of Shape to retrieve
+
+        Returns:
+            (Shape) All the shapes
+        """
+        return
+
+    def get_grid(self):
+        """
+        Get the first of the selected grids, (the one that was selected first in
+        a sequence of select operations)
+
+        Returns:
+            (dict): The first selected grid as a dictionary
+        """
+        return
+
+    def get_lines(self):
+        """
+        Get all Lines currently handled.
+
+        Returns:
+            (list[Line]): All lines currently handled
+        """
+        return
+
+    def get_grids(self):
+        """
+        Get all Grids currently handled.
+
+        Returns:
+            (list[Grid]): All grids currently handled
+        """
+        return
+
+    def is_selected(self, sid):
+        """
+        Check if Shape with <sid> is selected.
+
+        Returns:
+            (Boolean) True if Shape with <sid> is selected False otherwise
+        """
+        return
 
     def save_graphics_config(self):
         """Saves graphical objects in the file
@@ -472,7 +556,7 @@ class QtGraphicsManager(AbstractSampleView):
                         self.create_line(start_point, end_point)
                 self.de_select_all()
                 graphics_config_file.close()
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").error(
                     "GraphicsManager: Unable to load "
                     + "graphics from configuration file %s"
@@ -627,6 +711,14 @@ class QtGraphicsManager(AbstractSampleView):
             self.hide_all_items()
             self.emit("diffractometerReady", False)
 
+    def resizeEvent(self, event):
+        GraphicsLib.GraphicsView.resizeEvent(self.graphics_view, event)
+        if self.graphics_view.verticalScrollBar().isVisible():
+            self.graphics_scale_item.set_anchor(GraphicsLib.GraphicsItemScale.UPPER_LEFT)
+        else:
+            self.graphics_scale_item.set_anchor(GraphicsLib.GraphicsItemScale.LOWER_LEFT)
+        self.graphics_view.update()
+ 
     def diffractometer_phase_changed(self, phase):
         """Phase changed event.
            If PHASE_BEAM then displays a grid on the screen
@@ -714,7 +806,7 @@ class QtGraphicsManager(AbstractSampleView):
             )
             date_time_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
             result_image.save("/opt/embl-hh/var/crystal_images/%s.png" % date_time_str)
-        except:
+        except Exception:
             pass
 
     def diffractometer_centring_failed(self, method, centring_status):
@@ -1365,7 +1457,7 @@ class QtGraphicsManager(AbstractSampleView):
 
             if not os.path.exists(filename):
                 raise Exception("Unable to save snapshot to %s" % filename)
-        except BaseException:
+        except Exception:
             logging.getLogger("user_level_log").error(
                 "Unable to save snapshot: %s" % filename
             )
@@ -1426,7 +1518,7 @@ class QtGraphicsManager(AbstractSampleView):
                 self.save_scene_snapshot(filename)
             else:
                 self.camera_hwobj.save_snapshot(filename, "PNG")
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "Unable to save snapshot in %s" % filename
             )
@@ -1443,7 +1535,7 @@ class QtGraphicsManager(AbstractSampleView):
             axarr[1].plot(ver_sum[::-1], np.arange(0, ver_sum.size, 1))
 
             fig.savefig(profile_filename, dpi=300, bbox_inches="tight")
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").exception(
                 "Unable to save beam profile image: %s" % profile_filename
             )
@@ -2067,7 +2159,7 @@ class QtGraphicsManager(AbstractSampleView):
 
             # beam_spl_x = (hor_roots[0] + hor_roots[1]) / 2.0
             # beam_spl_y = (ver_roots[0] + ver_roots[1]) / 2.0
-        except BaseException:
+        except Exception:
             logging.getLogger("user_level_log").debug(
                 "QtGraphicsManager: " + "Unable to detect object shape"
             )

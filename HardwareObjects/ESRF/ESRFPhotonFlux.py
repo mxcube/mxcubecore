@@ -1,7 +1,7 @@
 # encoding: utf-8
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -16,7 +16,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU General Lesser Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """ Photon fluc calculations
 Example xml file:
@@ -47,10 +47,10 @@ class ESRFPhotonFlux(AbstractFlux):
     def init(self):
         """Initialisation"""
         super(ESRFPhotonFlux, self).init()
-        controller = self.getObjectByRole("controller")
+        controller = self.get_object_by_role("controller")
 
-        self._aperture = self.getObjectByRole("aperture")
-        self.threshold = self.getProperty("threshold") or 0.0
+        self._aperture = self.get_object_by_role("aperture")
+        self.threshold = self.get_property("threshold") or 0.0
 
         try:
             self._flux_calc = controller.CalculateFlux()
@@ -60,11 +60,11 @@ class ESRFPhotonFlux(AbstractFlux):
                 "Could not get flux calculation from BLISS"
             )
 
-        counter = self.getProperty("counter_name")
+        counter = self.get_property("counter_name")
         if counter:
             self._counter = getattr(controller, counter)
         else:
-            self._counter = self.getObjectByRole("counter")
+            self._counter = self.get_object_by_role("counter")
 
         HWR.beamline.safety_shutter.connect("stateChanged", self.update_value)
         self._poll_task = gevent.spawn(self._poll_flux)

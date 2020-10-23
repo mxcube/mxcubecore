@@ -11,7 +11,7 @@ class ALBAEnergy(Device):
         self.wavelength_position = None
 
     def init(self):
-        self.wavelength_hwobj = self.getObjectByRole("wavelength")
+        self.wavelength_hwobj = self.get_object_by_role("wavelength")
 
         HWR.beamline.energy.connect("valueChanged", self.energy_position_changed)
         self.wavelength_hwobj.connect("valueChanged", self.wavelength_position_changed)

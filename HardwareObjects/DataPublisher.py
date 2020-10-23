@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,7 +15,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 import redis
 import json
 import gevent
@@ -31,6 +31,7 @@ class PlotType(Enum):
     """
     Defines default plot
     """
+
     SCATTER = "scatter"
 
 
@@ -38,6 +39,7 @@ class PlotDim(Enum):
     """
     Defines data dimension
     """
+
     ONE_D = 1
     TWO_D = 2
 
@@ -46,6 +48,7 @@ class DataType(Enum):
     """
     Defines avialable data types
     """
+
     FLOAT = "float"
 
 
@@ -53,6 +56,7 @@ class FrameType(Enum):
     """
     Enum defining the message frame types
     """
+
     DATA = "data"
     START = "start"
     STOP = "stop"
@@ -63,6 +67,7 @@ def one_d_data(x, y):
     Convenience function for creating x, y data
     """
     return {"x": x, "y": y}
+
 
 def two_d_data(x, y):
     """
@@ -87,9 +92,9 @@ class DataPublisher(HardwareObject):
         """
         super(DataPublisher, self).init()
 
-        rhost = self.getProperty("host", "localhost")
-        rport = self.getProperty("port", 6379)
-        rdb = self.getProperty("db", 11)
+        rhost = self.get_property("host", "localhost")
+        rport = self.get_property("port", 6379)
+        rdb = self.get_property("db", 11)
 
         self._r = redis.Redis(
             host=rhost, port=rport, db=rdb, charset="utf-8", decode_responses=True
@@ -100,7 +105,7 @@ class DataPublisher(HardwareObject):
 
     def _handle_messages(self):
         """
-        Listens for published data and handles the data. 
+        Listens for published data and handles the data.
         """
         pubsub = self._r.pubsub(ignore_subscribe_messages=True)
         pubsub.psubscribe("HWR_DP_NEW_DATA_POINT_*")
@@ -123,7 +128,7 @@ class DataPublisher(HardwareObject):
                         _data[redis_channel] = {"x": [], "y": []}
 
                         self._update_description(_id, {"running": True})
-                        
+
                         # Clear previous data so that we are not acumelating
                         # with previously published data
                         self._clear_data(_id)
@@ -132,9 +137,7 @@ class DataPublisher(HardwareObject):
                             "start", self.get_description(_id, include_data=True)[0]
                         )
 
-                        active_source_desc[redis_channel] = self._get_description(
-                            _id
-                        )
+                        active_source_desc[redis_channel] = self._get_description(_id)
 
                     elif data["type"] == FrameType.STOP.value:
                         self._update_description(_id, {"running": False})
@@ -158,14 +161,14 @@ class DataPublisher(HardwareObject):
                     else:
                         msg = "Unknown frame type %s" % message
                         logging.getLogger("HWR").error(msg)
-                except:
+                except Exception:
                     msg = "Could not parse data in %s" % message
                     logging.getLogger("HWR").exception(msg)
 
     def _remove_available(self, _id):
         """
         Remove source with _id from list of avialable sources
-        
+
         Args:
             _id (str): The id of the source to remove
         """
@@ -202,7 +205,7 @@ class DataPublisher(HardwareObject):
     def _set_description(self, _id, desc):
         """
         Sets the description of source with _id to desc
-        
+
         Args:
             _id (str): The id of the source to remove
             desc (dict): "id": str,
