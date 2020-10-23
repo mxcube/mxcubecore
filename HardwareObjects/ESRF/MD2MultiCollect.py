@@ -86,7 +86,14 @@ class MD2MultiCollect(ESRFMultiCollect):
 
     def do_prepare_oscillation(self, *args, **kwargs):
         # set the detector cover out
-        self.getObjectByRole("controller").detcover.set_out(20)
+        try:
+            detcover = self.getObjectByRole("controller").detcover
+
+            if detcover.state == "IN":
+                detcover.set_out(10)
+        except:
+            logging.getLogger("HWR").exception("Got the tricky one !")
+
         diffr = HWR.beamline.diffractometer
 
         # send again the command as MD2 software only handles one
@@ -102,11 +109,6 @@ class MD2MultiCollect(ESRFMultiCollect):
         front_light_switch = diffr.getObjectByRole("FrontLightSwitch")
         front_light_switch.set_value(front_light_switch.VALUES.IN)
         # diffr.getObjectByRole("FrontLight").set_value(2)
-
-    @task
-    def data_collection_cleanup(self):
-        self.getObjectByRole("diffractometer")._wait_ready(10)
-        self.close_fast_shutter()
 
     @task
     def oscil(self, start, end, exptime, npass, wait=True):
@@ -207,7 +209,7 @@ class MD2MultiCollect(ESRFMultiCollect):
                         ),
                         dest,
                     )
-        except BaseException:
+        except Exception:
             logging.exception("Exception happened while copying geo_corr files")
 
         return ESRFMultiCollect.write_input_files(self, datacollection_id)

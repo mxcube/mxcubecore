@@ -41,7 +41,7 @@ import numpy as np
 
 try:
     import cv2
-except BaseException:
+except Exception:
     pass
 
 from HardwareRepository.BaseHardwareObjects import Device
@@ -93,12 +93,12 @@ class AbstractVideoDevice(Device):
 
         try:
             self.cam_mirror = eval(self.getProperty("mirror"))
-        except BaseException:
+        except Exception:
             self.cam_mirror = [False, False]
 
         try:
             self.cam_encoding = self.getProperty("encoding").lower()
-        except BaseException:
+        except Exception:
             pass
 
         scale = self.getProperty("scale")
@@ -107,7 +107,7 @@ class AbstractVideoDevice(Device):
         else:
             try:
                 self.cam_scale_factor = eval(scale)
-            except BaseException:
+            except Exception:
                 logging.getLogger().warning(
                     "%s: failed to interpret scale factor for camera." "Using default.",
                     self.name(),
@@ -116,24 +116,24 @@ class AbstractVideoDevice(Device):
 
         try:
             self.poll_interval = self.getProperty("interval")
-        except BaseException:
+        except Exception:
             self.poll_interval = 1
 
         try:
             self.cam_gain = float(self.getProperty("gain"))
-        except BaseException:
+        except Exception:
             pass
 
         try:
             self.cam_exposure = float(self.getProperty("exposure"))
-        except BaseException:
+        except Exception:
             pass
 
         self.scale = self.getProperty("scale", 1.0)
 
         try:
             self.cam_type = self.getProperty("type").lower()
-        except BaseException:
+        except Exception:
             pass
 
         # Apply defaults if necessary
@@ -331,7 +331,7 @@ class AbstractVideoDevice(Device):
             try:
                 os.setgid(int(os.getenv("SUDO_GID")))
                 os.setuid(int(os.getenv("SUDO_UID")))
-            except BaseException:
+            except Exception:
                 logging.getLogger().warning(
                     "%s: failed to change the process" "ownership.", self.name()
                 )

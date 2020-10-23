@@ -19,7 +19,7 @@ class SOLEILSafetyShutter(HardwareObject):
             logging.debug("pss is " + str(self.pss))
             self.connect(self.shutter, "shutterStateChanged", self.shutterStateChanged)
             self.connect(self.pss, "wagoStateChanged", self.shutterStateChanged)
-        except BaseException:
+        except Exception:
             import traceback
 
             print(traceback.print_exc())

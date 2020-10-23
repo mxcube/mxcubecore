@@ -41,7 +41,7 @@ class P11Transmission(AbstractTransmission):
 
         try:
             limits = list(map(float,limits.split(',')))
-        except BaseException as e:
+        except Exception as e:
             log.error("P11Transmission - cannot parse limits: {}".format(str(e)))
             limits = None
 

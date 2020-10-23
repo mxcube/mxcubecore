@@ -319,7 +319,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         if not os.path.isdir(wdir):
             try:
                 os.makedirs(wdir)
-            except BaseException:
+            except Exception:
                 # No need to raise error - program will fail downstream
                 logging.getLogger("HWR").error(
                     "Could not create GPhL working directory: %s", wdir
@@ -353,7 +353,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         )
         try:
             self._running_process = subprocess.Popen(command_list, env=envs)
-        except BaseException:
+        except Exception:
             logging.getLogger().error("Error in spawning workflow application")
             raise
 
@@ -399,7 +399,7 @@ class GphlWorkflowConnection(HardwareObject, object):
                         time.sleep(9)
                         if xx0.poll() is None:
                             xx0.kill()
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").info(
                     "Exception while terminating external workflow process %s", xx0
                 )
@@ -417,7 +417,7 @@ class GphlWorkflowConnection(HardwareObject, object):
                 # downstream, but it seems to keep the program open (??)
                 # xx0.shutdown(raise_exception=True)
                 xx0.shutdown()
-            except BaseException:
+            except Exception:
                 logging.getLogger("HWR").debug(
                     "Exception during py4j gateway shutdown. Ignored"
                 )
@@ -990,7 +990,7 @@ class GphlWorkflowConnection(HardwareObject, object):
             response = self._gateway.jvm.co.gphl.sdcp.py4j.Py4jMessage(
                 py4j_payload, enactment_id, correlation_id
             )
-        except BaseException:
+        except Exception:
             self.abort_workflow(
                 message="Error sending reply (%s) to server"
                 % py4j_payload.getClass().getSimpleName()

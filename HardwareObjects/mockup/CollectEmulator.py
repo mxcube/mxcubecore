@@ -333,7 +333,7 @@ class CollectEmulator(CollectMockup):
                 command_list, stdout=fp1, stderr=fp2, env=envs
             )
             gphl_connection.collect_emulator_process = running_process
-        except BaseException:
+        except Exception:
             logging.getLogger("HWR").error("Error in spawning workflow application")
             raise
         finally:

@@ -200,7 +200,7 @@ class MDEvents(ExporterClient):
             try:
                 self.disconnect()
                 self.connect()
-            except BaseException:
+            except Exception:
                 # print sys.exc_info()
                 t = threading.Timer(1.0, self.onDisconnected)
                 t.start()

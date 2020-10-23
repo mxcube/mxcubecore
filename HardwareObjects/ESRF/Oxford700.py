@@ -25,7 +25,7 @@ class Oxford700(HardwareObject):
         while True:
             try:
                 self.value_changed()
-            except BaseException:
+            except Exception:
                 sys.excepthook(*sys.exc_info())
             gevent.sleep(self.interval)
 

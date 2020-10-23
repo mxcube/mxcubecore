@@ -192,7 +192,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                         "__error__": "Could not parse hardware object file %s : %s"
                         % (hardwareObjectName, msg)
                     }
-                except BaseException:
+                except Exception:
                     return {
                         "__error__": "Could not read hardware object %s"
                         % hardwareObjectName
@@ -297,7 +297,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                     f = open(filename, "w")
                     f.write(xml)
                     f.close()
-                except BaseException:
+                except Exception:
                     return {"__error__": "%s update failed" % hardwareObjectName}
                 else:
                     self.server.broadcast_update_event(hardwareObjectName)
@@ -322,7 +322,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                         "__error__": "Could not parse hardware object file %s : %s"
                         % (hardwareObjectName, msg)
                     }
-                except BaseException:
+                except Exception:
                     return {
                         "__error__": "Could not update hardware object %s"
                         % hardwareObjectName
@@ -343,7 +343,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
             if os.path.exists(filename):
                 try:
                     pathvalueList = eval(str_updateList)
-                except BaseException:
+                except Exception:
                     return {"__error__": "Bad update list format."}
 
                 if type(pathvalueList) in (list, tuple):
@@ -362,7 +362,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                             "__error__": "Could not parse hardware object file %s : %s"
                             % (hardwareObjectName, msg)
                         }
-                    except BaseException:
+                    except Exception:
                         return {
                             "__error__": "Could not update hardware object %s"
                             % hardwareObjectName
@@ -389,7 +389,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
             try:
                 f = open(filename)
                 return f.read()
-            except BaseException:
+            except Exception:
                 return ""
         else:
             return ""  # { '__error__': 'No server.' }

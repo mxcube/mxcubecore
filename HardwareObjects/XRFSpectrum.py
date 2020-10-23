@@ -11,21 +11,18 @@ from HardwareRepository import HardwareRepository as HWR
 class XRFSpectrum(Equipment):
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
+        self.config_data = None
+        self.calib_data = None
+        self.energySpectrumArgs = None
 
     def init(self):
         self.scanning = None
         self.ready_event = gevent.event.Event()
 
-        self.config_data = self.get_channel_object("config_data")
-        self.calib_data = self.get_channel_object("calib_data")
-
-        try:
-            self.energySpectrumArgs = self.get_channel_object("spectrum_args")
-        except KeyError:
-            logging.getLogger().warning(
-                "XRFSpectrum: error initializing energy spectrum arguments (missing channel)"
-            )
-            self.energySpectrumArgs = None
+        #self.config_data = self.get_channel_object("config_data")
+        #self.calib_data = self.get_channel_object("calib_data")
+        
+        #self.energySpectrumArgs = self.get_channel_object("spectrum_args")
 
         try:
             self.doSpectrum.connectSignal(
@@ -72,7 +69,7 @@ class XRFSpectrum(Equipment):
     def isConnected(self):
         try:
             return self.doSpectrum.isConnected()
-        except BaseException:
+        except Exception:
             return False
 
     # Handler for spec connection
@@ -184,7 +181,7 @@ class XRFSpectrum(Equipment):
     def reallyStartXrfSpectrum(self, ct, filename):
         try:
             res = self._doSpectrum(ct, filename, wait=True)
-        except BaseException:
+        except Exception:
             logging.getLogger("user_level_log").exception(
                 "XRFSpectrum: problem calling procedure"
             )
@@ -231,7 +228,6 @@ class XRFSpectrum(Equipment):
             self.mca_hwobj.set_presets(fname=str(fname))
             mcaData = self.mca_hwobj.read_data(save_data=True)
             mcaCalib = self.mca_hwobj.get_calibration()
-
             mcaConfig = {}
             self.spectrumInfo[
                 "beamTransmission"
@@ -244,11 +240,12 @@ class XRFSpectrum(Equipment):
                 bsX = self.beamsize.get_size(self.beamsize.get_value().name)
                 self.spectrumInfo["beamSizeHorizontal"] = bsX
                 self.spectrumInfo["beamSizeVertical"] = bsX
-                mcaConfig["bsX"] = self.spectrumInfo["beamSizeHorizontal"]
-                mcaConfig["bsY"] = self.spectrumInfo["beamSizeVertical"]
             mcaConfig["att"] = self.spectrumInfo["beamTransmission"]
             mcaConfig["energy"] = self.spectrumInfo["energy"]
-            roi = self.mca_hwobj.get_roi()
+            mcaConfig["bsX"] = self.spectrumInfo["beamSizeHorizontal"]
+            mcaConfig["bsY"] = self.spectrumInfo["beamSizeVertical"]
+            roi = self.ctrl_hwobj.mca.get_roi()
+            #roi = self.mca_hwobj.get_roi()
             mcaConfig["min"] = roi["chmin"]
             mcaConfig["max"] = roi["chmax"]
             mcaConfig["legend"] = self.spectrumInfo["annotatedPymcaXfeSpectrum"]
@@ -265,7 +262,7 @@ class XRFSpectrum(Equipment):
             if os.path.isfile(pngfile) is True:
                 try:
                     shutil.copyfile(pngfile, self.spectrumInfo["jpegScanFileFullPath"])
-                except BaseException:
+                except Exception:
                     logging.getLogger().error("XRFSpectrum: cannot copy %s", pngfile)
 
             # copy raw data file to the archive directory
@@ -300,7 +297,7 @@ class XRFSpectrum(Equipment):
             return
         try:
             session_id = int(self.spectrumInfo["sessionId"])
-        except BaseException:
+        except Exception:
             return
         blsampleid = self.spectrumInfo["blSampleId"]
 
@@ -314,7 +311,7 @@ class XRFSpectrum(Equipment):
             try:
                 self.curr = self.energySpectrumArgs.getValue()
                 return self.curr
-            except BaseException:
+            except Exception:
                 logging.getLogger().exception(
                     "XRFSpectrum: error getting xrfspectrum parameters"
                 )
