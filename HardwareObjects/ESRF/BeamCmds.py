@@ -156,7 +156,7 @@ class HWObjActuatorCommand(CommandObject):
         self._hwobj = hwobj
         self.type = TWO_STATE_COMMAND_T
         self.argument_type = ARGUMENT_TYPE_LIST
-        self._hwobj.connect("stateChanged", self._cmd_done)
+        self._hwobj.connect("valueChanged", self._cmd_done)
 
     def _get_action(self):
         """Return which action has to be executed.
@@ -184,6 +184,7 @@ class HWObjActuatorCommand(CommandObject):
         Args:
             (obj): Command execution greenlet.
         """
+        gevent.sleep(1)
         try:
             res = self._hwobj.get_value().name
         except BaseException:
