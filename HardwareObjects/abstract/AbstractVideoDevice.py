@@ -312,7 +312,7 @@ class AbstractVideoDevice(Device):
     def start_camera(self):
         return
 
-    def setLive(self, mode):
+    def set_live(self, mode):
         """
         Descript. :
         """
@@ -336,13 +336,13 @@ class AbstractVideoDevice(Device):
                     "%s: failed to change the process" "ownership.", self.name()
                 )
 
-    def getWidth(self):
+    def get_width(self):
         """
         Descript. :
         """
         return int(self.image_dimensions[0])
 
-    def getHeight(self):
+    def get_height(self):
         """
         Descript. :
         """

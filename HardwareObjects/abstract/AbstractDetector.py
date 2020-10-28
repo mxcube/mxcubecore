@@ -86,7 +86,7 @@ class AbstractDetector(HardwareObject):
         self._width = self.get_property("width")
         self._height = self.get_property("height")
 
-    def re_emit_values(self):
+    def force_emit_signals(self):
         self.emit("detectorRoiModeChanged", (self._roi_mode,))
         self.emit("temperatureChanged", (self._temperature, True))
         self.emit("humidityChanged", (self._humidity, True))
@@ -231,11 +231,11 @@ class AbstractDetector(HardwareObject):
         """
         distance = distance or self._distance_motor_hwobj.get_value()
         beam_x, beam_y = self.get_beam_position(distance)
-
-        radius = min(
-            self.get_width() - beam_x, self.get_height() - beam_y, beam_x, beam_y
-        )
-
+        pixel_x, pixel_y = self.get_pixel_size()
+        rrx = min(self.get_width() - beam_x, beam_x) * pixel_x
+        rry = min(self.get_height() - beam_y, beam_y) * pixel_y
+        radius = min(rrx, rry)
+        #
         return radius
 
     def get_outer_radius(self, distance=None):
@@ -247,8 +247,9 @@ class AbstractDetector(HardwareObject):
         """
         distance = distance or self._distance_motor_hwobj.get_value()
         beam_x, beam_y = self.get_beam_position(distance)
-        max_delta_x = max(beam_x, self.width - beam_x)
-        max_delta_y = max(beam_y, self.height - beam_y)
+        pixel_x, pixel_y = self.get_pixel_size()
+        max_delta_x = max(beam_x, self.width - beam_x) * pixel_x
+        max_delta_y = max(beam_y, self.height - beam_y) * pixel_y
         return math.sqrt(max_delta_x * max_delta_x + max_delta_y * max_delta_y)
 
     def get_metadata(self):

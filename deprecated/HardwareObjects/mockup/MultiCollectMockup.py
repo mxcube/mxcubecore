@@ -233,7 +233,7 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
 
     def get_machine_current(self):
         if self.bl_control.machine_current is not None:
-            return self.bl_control.machine_current.getCurrent()
+            return self.bl_control.machine_current.get_current()
         else:
             return 0
 

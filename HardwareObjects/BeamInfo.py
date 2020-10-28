@@ -98,7 +98,7 @@ class BeamInfo(Equipment):
 
     def connect_notify(self, *args):
         self.evaluate_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def get_beam_divergence_hor(self):
         """
@@ -143,7 +143,7 @@ class BeamInfo(Equipment):
         """
         self.beam_size_aperture = size
         self.evaluate_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def slits_gap_changed(self, size):
         """
@@ -153,7 +153,7 @@ class BeamInfo(Equipment):
         """
         self.beam_size_slits = size
         self.evaluate_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def definer_pos_changed(self, name, size):
         """
@@ -163,7 +163,7 @@ class BeamInfo(Equipment):
         """
         self.beam_size_definer = size
         self.evaluate_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def get_beam_info(self):
         """
@@ -226,7 +226,7 @@ class BeamInfo(Equipment):
 
         return self.beam_info_dict
 
-    def emit_beam_info_change(self):
+    def re_emit_values(self):
         """
         Descript. :
         Arguments :

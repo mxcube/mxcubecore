@@ -38,14 +38,14 @@ class BeamInfo(Equipment):
 
     def init(self):
         try:
-            self.aperture_HO = HWR.getHardwareRepository().get_hardware_object(
+            self.aperture_HO = HWR.get_hardware_repository().get_hardware_object(
                 self.get_property("aperture")
             )
             self.connect(self.aperture_HO, "apertureChanged", self.aperture_pos_changed)
         except Exception:
             logging.getLogger("HWR").debug("BeamInfo: aperture not defined correctly")
         try:
-            self.slits_HO = HWR.getHardwareRepository().get_hardware_object(
+            self.slits_HO = HWR.get_hardware_repository().get_hardware_object(
                 self.get_property("slits")
             )
             self.connect(self.slits_HO, "gapSizeChanged", self.slits_gap_changed)
@@ -88,17 +88,17 @@ class BeamInfo(Equipment):
     def aperture_pos_changed(self, nameList, name, size):
         self.beam_size_aperture = size
         self.evaluate_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def slits_gap_changed(self, size):
         self.beam_size_slits = size
         self.evaluate_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def definer_pos_changed(self, name, size):
         self.beam_size_definer = size
         self.evaluate_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def get_beam_info(self):
         return self.evaluate_beam_info()
@@ -148,7 +148,7 @@ class BeamInfo(Equipment):
 
         return self.beam_info_dict
 
-    def emit_beam_info_change(self):
+    def re_emit_values(self):
         if (
             self.beam_info_dict["size_x"] != 9999
             and self.beam_info_dict["size_y"] != 9999

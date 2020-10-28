@@ -173,6 +173,7 @@ class HardwareObjectNode(object):
         self._path = ""
         self.__name = node_name
         self.__references = []
+        self._xml_path = None
 
     @staticmethod
     def set_user_file_directory(user_file_directory):
@@ -194,6 +195,9 @@ class HardwareObjectNode(object):
         Parameters :
           path -- string representing the path of the Hardware Object in its file"""
         self._path = path
+
+    def get_xml_path(self):
+        return self._xml_path
 
     def __iter__(self):
         for i in range(len(self.__objects_names)):
@@ -545,20 +549,25 @@ class HardwareObjectMixin(CommandContainer):
     def re_emit_values(self):
         """Update values for all internal attributes
 
-        The method is called from Qt bricks to ensure that bricks have values
-        after the initialization.
-        Problem arrise when a hardware object is used by several bricks.
-        If first brick connects to some signal emited by a brick then
-        other bricks connecting to the same signal will not receive the
-        values on the startup.
-        The easiest solution is to call re_emit_values method directly
-        after get_hardware_object and connect.
-
         Should be expanded in subclasse with more updatable attributes
         (e.g. value, limits)
         """
         self.update_state()
         self.update_specific_state()
+
+    def force_emit_signals(self):
+        """Emits all hardware object signals
+
+        The method is called from the gui via beamline object to ensure that bricks have values
+        after the initialization.
+        Problem arrise when a hardware object is used by several bricks.
+        If first brick connects to some signal emited by a brick then
+        other bricks connecting to the same signal will not receive the
+        values on the startup.
+        The easiest solution is to call force_emit_signals method directly
+        after the initialization of the beamline object
+        """
+        pass
 
     # Moved from HardwareObjectNode
     def clear_gevent(self):

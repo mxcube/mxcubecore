@@ -867,7 +867,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def get_machine_current(self):
         if HWR.beamline.machine_info:
             try:
-                return HWR.beamline.machine_info.getCurrent()
+                return HWR.beamline.machine_info.get_current()
             except Exception:
                 return -1
         else:

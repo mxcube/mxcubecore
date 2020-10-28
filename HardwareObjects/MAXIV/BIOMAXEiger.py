@@ -722,7 +722,7 @@ def test():
         print('Bad trigger mode. It should be "exts" or "ints"')
         sys.exit(0)
 
-    hwr = HWR.getHardwareRepository()
+    hwr = HWR.get_hardware_repository()
     hwr.connect()
     detector = HWR.beamline.detector
 

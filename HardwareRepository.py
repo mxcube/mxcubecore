@@ -311,7 +311,7 @@ class __HardwareRepositoryClient:
     """Hardware Repository class
 
     Warning -- should not be instanciated directly ;
-    call the module's level getHardwareRepository() function instead
+    call the module's level get_hardware_repository() function instead
     """
 
     def __init__(self, server_address):
@@ -390,54 +390,21 @@ class __HardwareRepositoryClient:
         comment = ""
         class_name = ""
         hwobj_instance = None
+        xml_data = ""
 
-        if self.server:
-            if True:
+        for xml_files_path in self.server_address:
+            file_name = (
+                hwobj_name[1:] if hwobj_name.startswith(os.path.sep) else hwobj_name
+            )
+            file_path = (
+                os.path.join(xml_files_path, file_name) + os.path.extsep + "xml"
+            )
+            if os.path.exists(file_path):
                 try:
-                    if hwobj_name in self.required_hardware_objects:
-                        reply_dict = self.required_hardware_objects[hwobj_name]
-                    else:
-                        reply_dict = SpecWaitObject.waitReply(
-                            self.server,
-                            "send_msg_chan_read",
-                            ('xml_get("%s")' % hwobj_name,),
-                            timeout=3,
-                        )
+                    xml_data = open(file_path, "r").read()
                 except Exception:
-                    logging.getLogger("HWR").exception(
-                        'Could not load Hardware Object "%s"', hwobj_name
-                    )
-                else:
-                    try:
-                        # TODO Both variables not used: remove?
-                        xml_data = reply_dict["xmldata"]
-                        mtime = int(reply_dict["mtime"])
-                    except KeyError:
-                        logging.getLogger("HWR").error(
-                            "Cannot load Hardware Object %s: file does not exist.",
-                            hwobj_name,
-                        )
-                        return
-            else:
-                logging.getLogger("HWR").error(
-                    'Cannot load Hardware Object "%s" : not connected to server.',
-                    hwobj_name,
-                )
-        else:
-            xml_data = ""
-            for xml_files_path in self.server_address:
-                file_name = (
-                    hwobj_name[1:] if hwobj_name.startswith(os.path.sep) else hwobj_name
-                )
-                file_path = (
-                    os.path.join(xml_files_path, file_name) + os.path.extsep + "xml"
-                )
-                if os.path.exists(file_path):
-                    try:
-                        xml_data = open(file_path, "r").read()
-                    except Exception:
-                        pass
-                    break
+                    pass
+                break
 
         start_time = datetime.now()
 
@@ -696,18 +663,18 @@ class __HardwareRepositoryClient:
         """Return a Procedure given its name (see get_hardware_object())"""
         return self.get_hardware_object(procedure_name)
 
-    def get_connection(self, connection_name):
-        """Return the Connection object for a Spec connection, given its name
-
-        Parameters :
-          connectionName -- a Spec version name ('host:port' string)
-
-        Return :
-          the corresponding SpecConnection object
-        """
-        connections_manager = SpecConnectionsManager.SpecConnectionsManager()
-
-        return connections_manager.get_connection(connection_name)
+    # def get_connection(self, connection_name):
+    #     """Return the Connection object for a Spec connection, given its name
+    #
+    #     Parameters :
+    #       connectionName -- a Spec version name ('host:port' string)
+    #
+    #     Return :
+    #       the corresponding SpecConnection object
+    #     """
+    #     connections_manager = SpecConnectionsManager.SpecConnectionsManager()
+    #
+    #     return connections_manager.get_connection(connection_name)
 
     def is_device(self, name):
         """Check if a Hardware Object is a Device

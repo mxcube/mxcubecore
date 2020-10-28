@@ -124,7 +124,7 @@ class Sample(Component):
     def _set_info_url(self, value):
         self._set_property(self.__INFO_URL_PROPERTY__, value)
 
-    def getInfoURL(self):
+    def get_info_url(self):
         return self.get_property(self.__INFO_URL_PROPERTY__)
 
     #########################           PROTECTED           #########################

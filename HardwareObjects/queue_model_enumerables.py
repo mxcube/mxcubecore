@@ -24,8 +24,6 @@ Enumerables and other constants used by the queue model.
 from collections import namedtuple
 from collections import OrderedDict
 
-import enum
-
 StrategyComplexity = namedtuple("StrategyComplexity", ["SINGLE", "FEW", "MANY"])
 STRATEGY_COMPLEXITY = StrategyComplexity("none", "min", "full")
 
@@ -328,31 +326,3 @@ SPACEGROUP_MAP = OrderedDict((info.name, info) for info in SPACEGROUP_DATA)
 XTAL_SPACEGROUPS = [""] + [
     info.name for info in SPACEGROUP_DATA if info.point_group.isdigit()
 ]
-
-# @enum.unique
-
-
-class States(enum.Enum):
-    """Standard device states, based on TangoShutter states.
-    SardanaMotor.state_map, and DiffractometerState,
-    for general use across HardwareObjects.
-
-    Limited to a common set of states.
-
-    Grammar of tags corrected ('CLOSE->CLOSED, DISABLE->DISABLED) relative
-    to Tango states, so you can echo them to the UI without misunderstanding"""
-
-    CLOSED = 0
-    OPEN = 1  # Also used for workflow 'Expecting input'
-    ON = 2  # Could be used to mean 'Connected'.
-    OFF = 3  # Could be used to mean 'Disconnected'
-    INSERT = 4
-    EXTRACT = 5
-    MOVING = 6
-    STANDBY = 7  # Could be used to mean 'Ready'
-    FAULT = 8
-    INIT = 9
-    RUNNING = 10
-    ALARM = 11
-    DISABLED = 12
-    UNKNOWN = 13

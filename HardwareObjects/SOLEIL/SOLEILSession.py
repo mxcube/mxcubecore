@@ -147,7 +147,7 @@ class SOLEILSession(Session.Session):
 
 
 def test():
-    hwr = HWR.getHardwareRepository()
+    hwr = HWR.get_hardware_repository()
     hwr.connect()
 
     sess = HWR.beamline.session

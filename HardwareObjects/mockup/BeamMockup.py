@@ -38,10 +38,14 @@ class BeamMockup(AbstractBeam):
 
         self._beam_size_dict["slits"] = [9999, 9999]
         self._beam_size_dict["aperture"] = [9999, 9999]
-        self._beam_position_on_screen = [318, 238]
-        self._beam_divergence = (0, 0)
+        
 
     def init(self):
+        AbstractBeam.init(self)
+        
+        self._beam_position_on_screen = [318, 238]
+
+
         self._aperture = self.get_object_by_role("aperture")
         if self._aperture is not None:
             self.connect(
@@ -59,7 +63,7 @@ class BeamMockup(AbstractBeam):
             self._beam_size_dict["slits"] = [sx, sy]
 
         self.evaluate_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
         self.emit("beamPosChanged", (self._beam_position_on_screen,))
 
     def aperture_diameter_changed(self, name, size):
@@ -71,7 +75,7 @@ class BeamMockup(AbstractBeam):
         """
         self._beam_size_dict["aperture"] = [size, size]
         self.evaluate_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def slits_gap_changed(self, size):
         """
@@ -81,7 +85,7 @@ class BeamMockup(AbstractBeam):
         """
         self._beam_size_dict["slits"] = size
         self.evaluate_beam_info()
-        self.emit_beam_info_change()
+        self.re_emit_values()
 
     def set_beam_position_on_screen(self, beam_x, beam_y):
         """

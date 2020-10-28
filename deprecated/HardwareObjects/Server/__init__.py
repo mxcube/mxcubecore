@@ -1,10 +1,7 @@
-import types
-import socket
 import os
 import stat
 import xml.sax
 from xml.sax import SAXParseException
-from xml.sax.xmlreader import AttributesImpl
 from xml.sax.handler import ContentHandler
 
 from SpecClient_gevent import SpecServer

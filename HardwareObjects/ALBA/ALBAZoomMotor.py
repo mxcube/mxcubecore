@@ -88,7 +88,7 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
         self.positionChannel.connect_signal("update", self.positionChanged)
         self.stateChannel.connect_signal("update", self.stateChanged)
 
-    def getPredefinedPositionsList(self):
+    def get_predefined_positions_list(self):
         labels = self.labelsChannel.get_value()
         labels = labels.split()
         retlist = []
@@ -184,7 +184,7 @@ def test_hwo(zoom):
     print("Zoom position name is : ", zoom.get_current_position_name())
     print("               Moving : ", zoom.motorIsMoving())
     print("                State : ", zoom.get_state())
-    print("            Positions : ", zoom.getPredefinedPositionsList())
+    print("            Positions : ", zoom.get_predefined_positions_list())
 
 
 if __name__ == "__main__":

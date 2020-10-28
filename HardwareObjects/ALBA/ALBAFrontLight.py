@@ -118,7 +118,7 @@ class ALBAFrontLight(Device):
 
 
 def test():
-    hwr = HWR.getHardwareRepository()
+    hwr = HWR.get_hardware_repository()
     hwr.connect()
 
     light = hwr.get_hardware_object("/frontlight")

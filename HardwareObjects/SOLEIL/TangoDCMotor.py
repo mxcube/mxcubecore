@@ -106,7 +106,7 @@ class TangoDCMotor(Device):
         elif signal == "limitsChanged":
             self.motorLimitsChanged()
         elif signal == "valueChanged":
-            self.motorPositionChanged(self.positionValue)
+            self.motor_positions_changed(self.positionValue)
         self.set_is_ready(True)
 
     def motorState(self):
@@ -175,7 +175,7 @@ class TangoDCMotor(Device):
         if self.stateValue == "STANDBY":
             self.emit("moveDone", (self.tangoname, "tango"))
 
-    def motorPositionChanged(self, absolutePosition):
+    def motor_positions_changed(self, absolutePosition):
         self.emit("valueChanged", (absolutePosition,))
 
     def syncQuestionAnswer(self, specSteps, controllerSteps):
@@ -249,7 +249,7 @@ class TangoDCMotor(Device):
 
 
 def test():
-    hwr = HWR.getHardwareRepository()
+    hwr = HWR.get_hardware_repository()
     hwr.connect()
 
     motor = hwr.get_hardware_object("/phi")
