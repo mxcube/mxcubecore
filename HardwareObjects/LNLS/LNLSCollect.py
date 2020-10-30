@@ -216,7 +216,7 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
         wl_ok = self.bl_control.detector.set_wavelength(wl)
         dd_ok = self.bl_control.detector.set_detector_distance(dd)
         bx_ok = self.bl_control.detector.set_beam_x(from_user=True)
-        by_ok = self.bl_control.detector.set_beam_y()
+        by_ok = self.bl_control.detector.set_beam_y(from_user=True)
         te_ok = self.bl_control.detector.set_threshold_energy(e)
 
         return wl_ok and dd_ok and bx_ok and by_ok and te_ok
