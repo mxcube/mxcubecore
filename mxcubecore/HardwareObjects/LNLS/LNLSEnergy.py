@@ -46,9 +46,9 @@ class LNLSEnergy(EPICSActuator, AbstractEnergy):
         """
         value = super().get_value()
         # Nominal value stores last energy value with valid threshold energy
-        if abs(self._nominal_value - value) < 0.001:
-            logging.getLogger("HWR").info("Pilatus threshold is still okay.")
-            return value
+        #if abs(self._nominal_value - value) < 0.001:
+        #    logging.getLogger("HWR").info("Pilatus threshold is still okay.")
+        #    return value
         
         threshold_ok = self.check_threshold_energy(value)
         if threshold_ok:
@@ -61,24 +61,24 @@ class LNLSEnergy(EPICSActuator, AbstractEnergy):
     def check_threshold_energy(self, energy):
         """ Returns whether detector threshold energy is valid or not."""
 
-        logging.getLogger("HWR").info(
-        "Checking Pilatus threshold. Please wait..."
-        )
-        for i in range(3):
-            logging.getLogger("user_level_log").info(
-                "Checking Pilatus threshold. Please wait..."
-            )
+        #logging.getLogger("HWR").info(
+        #"Checking Pilatus threshold. Please wait..."
+        #)
+        #for i in range(3):
+        #    logging.getLogger("user_level_log").info(
+        #        "Checking Pilatus threshold. Please wait..."
+        #    )
         threshold_ok = self.detector.set_threshold_energy(energy)
 
         if threshold_ok:
             logging.getLogger("HWR").info("Pilatus threshold is okay.")
-            logging.getLogger("user_level_log").info(
-                "Pilatus threshold is okay."
-            )
+            #logging.getLogger("user_level_log").info(
+            #    "Pilatus threshold is okay."
+            #)
             return True
 
         logging.getLogger("HWR").error("Pilatus threshold is not okay.")
-        logging.getLogger("user_level_log").error(
-            "Pilatus threshold is not okay."
-        )
+        #logging.getLogger("user_level_log").error(
+        #    "Pilatus threshold is not okay."
+        #)
         return False
