@@ -215,7 +215,7 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
         # Write to det (values will be on the cbf header)
         wl_ok = self.bl_control.detector.set_wavelength(wl)
         dd_ok = self.bl_control.detector.set_detector_distance(dd)
-        bx_ok = self.bl_control.detector.set_beam_x()
+        bx_ok = self.bl_control.detector.set_beam_x(from_user=True)
         by_ok = self.bl_control.detector.set_beam_y()
         te_ok = self.bl_control.detector.set_threshold_energy(e)
 
