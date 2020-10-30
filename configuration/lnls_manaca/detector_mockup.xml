@@ -5,6 +5,8 @@
   <channel type="epics" name="det_detdist">MX2:cam1:DetDist</channel>
   <channel type="epics" name="det_beam_x">MX2:cam1:BeamX</channel>
   <channel type="epics" name="det_beam_y">MX2:cam1:BeamY</channel>
+  <channel type="epics" name="user_beam_x">MNC:S:SOFT:ao:BeamX</channel>
+  <channel type="epics" name="user_beam_y">MNC:S:SOFT:ao:BeamY</channel>
   <!-- Status needs to be directly accessed. See details in LNLSPilatusDet. -->
   <channel_status>MX2:cam1:StatusMessage_RBV</channel_status>
   <!-- Properties -->
