@@ -15,6 +15,8 @@ class LNLSPilatusDet(AbstractDetector):
     DET_DETDIST = 'det_detdist'
     DET_BEAM_X = 'det_beam_x'
     DET_BEAM_Y = 'det_beam_y'
+    USER_BEAM_X = 'user_beam_x'
+    USER_BEAM_Y = 'user_beam_y'
 
     def __init__(self, name):
         """
@@ -251,6 +253,14 @@ class LNLSPilatusDet(AbstractDetector):
         )
         return False
 
+    def get_user_beam_x(self):
+        """
+        Returns:
+            float: user beam x
+        """
+        value = float(self.get_channel_value(self.USER_BEAM_X))
+        return value
+
     def get_beam_x(self):
         """
         Returns:
@@ -259,11 +269,27 @@ class LNLSPilatusDet(AbstractDetector):
         value = float(self.get_channel_value(self.DET_BEAM_X))
         return value
 
-    def set_beam_x(self, beam_x=None):
+    def set_beam_x(self, from_user=False, beam_x=None):
         """
         Set detector beam_x and returns whether it was successful or not.
+
+        Beam X value can come from different sources. The priority (from 
+        high to low) is:
+        * from_user
+        * beam_x argument
+        * default_beam_x (value set on xml file)
         """
+        if from_user:
+            logging.getLogger("HWR").info(
+                "Getting beam X from user..."
+            )
+            beam_x = self.get_user_beam_x()
+
         if beam_x is None:
+            if from_user:
+                logging.getLogger("HWR").error(
+                    "Could not get user beam X. Setting default value (from xml)."
+                )
             beam_x = self.default_beam_x
 
         #if abs(self.beam_x - beam_x) == 0:
@@ -272,7 +298,7 @@ class LNLSPilatusDet(AbstractDetector):
         #    )
         #    return True
 
-        logging.getLogger("HWR").info("Setting Pilatus beam X...")
+        logging.getLogger("HWR").info("Setting Pilatus beam X to {}...".format(beam_x))
         self.set_channel_value(self.DET_BEAM_X, beam_x)
         time.sleep(1)
 
