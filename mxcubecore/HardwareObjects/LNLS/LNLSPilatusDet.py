@@ -315,6 +315,14 @@ class LNLSPilatusDet(AbstractDetector):
         )
         return False
 
+    def get_user_beam_y(self):
+        """
+        Returns:
+            float: user beam y
+        """
+        value = float(self.get_channel_value(self.USER_BEAM_Y))
+        return value
+
     def get_beam_y(self):
         """
         Returns:
@@ -323,11 +331,27 @@ class LNLSPilatusDet(AbstractDetector):
         value = float(self.get_channel_value(self.DET_BEAM_Y))
         return value
 
-    def set_beam_y(self, beam_y=None):
+    def set_beam_y(self, from_user=False, beam_y=None):
         """
         Set detector beam_y and returns whether it was successful or not.
+
+        Beam Y value can come from different sources. The priority (from 
+        high to low) is:
+        * from_user
+        * beam_y argument
+        * default_beam_y (value set on xml file)
         """
+        if from_user:
+            logging.getLogger("HWR").info(
+                "Getting beam Y from user..."
+            )
+            beam_y = self.get_user_beam_y()
+
         if beam_y is None:
+            if from_user:
+                logging.getLogger("HWR").error(
+                    "Could not get user beam Y. Setting default value (from xml)."
+                )
             beam_y = self.default_beam_y
 
         #if abs(self.beam_y - beam_y) == 0:
@@ -336,7 +360,7 @@ class LNLSPilatusDet(AbstractDetector):
         #    )
         #    return True
 
-        logging.getLogger("HWR").info("Setting Pilatus beam X...")
+        logging.getLogger("HWR").info("Setting Pilatus beam Y to {}...".format(beam_y))
         self.set_channel_value(self.DET_BEAM_Y, beam_y)
         time.sleep(1)
 
