@@ -326,13 +326,19 @@ class SampleView(AbstractSampleView):
             msg = "Cant set result for %s, no shape with id %s" % (sid, sid)
             raise AttributeError(msg)
 
+
     def get_grid_data(self, key):
+        result = {}
         shape = self.get_shape(key)
-        return shape.get_result()
+
+        if shape:
+            result = shape.get_result()
+
+        return result
 
     def inc_used_for_collection(self, cpos):
         """
-        Increase counter that keepts on collect made on this shape, 
+        Increase counter that keepts on collect made on this shape,
         shape with associated CenteredPosition cpos
 
         Args:
@@ -404,8 +410,9 @@ class Shape(object):
             self.screen_coord = screen_coord
 
     def update_from_dict(self, shape_dict):
-        # We dont allow id updates
+        # We dont allow id or result updates
         shape_dict.pop("id", None)
+        shape_dict.pop("result", None)
 
         for key, value in shape_dict.items():
             if hasattr(self, key):
@@ -543,6 +550,7 @@ class Grid(Shape):
 
     def set_result(self, result_data):
         self.result = result_data
+        self._result = result_data
 
     def get_result(self):
         return self.result
