@@ -798,7 +798,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             raise QueueExecutionException(msg, self)
 
     def collect_started(self, owner, num_oscillations):
-        logging.getLogger("user_level_log").info("Collection: Started")
+        logging.getLogger("user_level_log").info("Collection started")
         self.get_view().setText(1, "Collecting...")
 
     def collect_number_of_frames(self, number_of_images=0, exposure_time=0):
@@ -835,7 +835,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         # this is to work around the remote access problem
         dispatcher.send("collect_finished")
         self.get_view().setText(1, "Collection done")
-        logging.getLogger("user_level_log").info("Collection: Finished")
+        logging.getLogger("user_level_log").info("Collection finished")
 
         if self.online_processing_task is not None:
             self.get_view().setText(1, "Processing...")
@@ -854,7 +854,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
         self.get_view().setText(1, "Stopped")
         logging.getLogger("queue_exec").info("Calling stop on: " + str(self))
-        logging.getLogger("user_level_log").error("Collection: Stopped")
+        logging.getLogger("user_level_log").error("Collection stopped")
         # this is to work around the remote access problem
         dispatcher.send("collect_finished")
         raise QueueAbortedException("Queue stopped", self)
