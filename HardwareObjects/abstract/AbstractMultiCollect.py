@@ -418,7 +418,7 @@ class AbstractMultiCollect(object):
         )
         data_collect_parameters["xds_dir"] = self.xds_directory
 
-        logging.getLogger("user_level_log").info("Getting sample info from parameters")
+        logging.getLogger("user_level_log").info("Getting sample information")
         sample_id, sample_location, sample_code = self.get_sample_info_from_parameters(
             data_collect_parameters
         )
@@ -504,7 +504,7 @@ class AbstractMultiCollect(object):
         centring_info = HWR.beamline.diffractometer.get_centring_status()
         # move *again* motors, since taking snapshots may change positions
         logging.getLogger("user_level_log").info(
-            "Moving motors: %r", motors_to_move_before_collect
+            "Moving motors to centered position: %r", motors_to_move_before_collect
         )
         self.move_motors(motors_to_move_before_collect)
 
@@ -645,32 +645,62 @@ class AbstractMultiCollect(object):
             logging.getLogger("user_level_log").info(
                 "Setting transmission to %f", data_collect_parameters["transmission"]
             )
-            HWR.beamline.transmission.set_value(data_collect_parameters["transmission"], timeout=30)
+            try:
+                HWR.beamline.transmission.set_value(data_collect_parameters["transmission"], timeout=30)
+            except RuntimeError:
+                logging.getLogger("user_level_log").info(
+                "Failed to set transmission to %f", data_collect_parameters["transmission"]
+                )
+                raise
 
         if "wavelength" in data_collect_parameters:
             logging.getLogger("user_level_log").info(
                 "Setting wavelength to %f", data_collect_parameters["wavelength"]
             )
-            HWR.beamline.energy.set_wavelength(data_collect_parameters["wavelength"], timeout=None)
+            try:
+                HWR.beamline.energy.set_wavelength(data_collect_parameters["wavelength"], timeout=600)
+            except RuntimeError:
+                logging.getLogger("user_level_log").info(
+                "Failed to set wavelength to %f", data_collect_parameters["wavelength"]
+                )
+                raise
         elif "energy" in data_collect_parameters:
             logging.getLogger("user_level_log").info(
                 "Setting energy to %f", data_collect_parameters["energy"]
             )
-            HWR.beamline.energy.set_value(data_collect_parameters["energy"], timeout=None)
+            try:
+                HWR.beamline.energy.set_value(data_collect_parameters["energy"], timeout=60*10)
+            except RuntimeError:
+                logging.getLogger("user_level_log").info(
+                    "Failed to set energy to %f", data_collect_parameters["energy"]
+                )
+                raise
 
         if "resolution" in data_collect_parameters:
             resolution = data_collect_parameters["resolution"]["upper"]
             logging.getLogger("user_level_log").info(
                 "Setting resolution to %f", resolution
             )
-            HWR.beamline.resolution.set_value(resolution, timeout=3500)
+            try:
+                HWR.beamline.resolution.set_value(resolution, timeout=3500)
+            except RuntimeError:
+                logging.getLogger("user_level_log").info(
+                    "Failed to set resolution to %f", resolution
+                )
+                raise
         elif "detector_distance" in oscillation_parameters:
             logging.getLogger("user_level_log").info(
                 "Moving detector to %f", data_collect_parameters["detector_distance"]
             )
-            HWR.beamline.detector.distance.set_value(
-                oscillation_parameters["detector_distance"], timeout=3500
-            )
+            try:
+                HWR.beamline.detector.distance.set_value(
+                    oscillation_parameters["detector_distance"], timeout=3500
+                )
+            except RuntimeError:
+                logging.getLogger("user_level_log").info(
+                    "Failed to set detector distance to %f", data_collect_parameters["detector_distance"]
+                )
+                raise
 
         # 0: software binned, 1: unbinned, 2:hw binned
         # self.set_detector_mode(data_collect_parameters["detector_mode"])
@@ -821,7 +851,7 @@ class AbstractMultiCollect(object):
                             jpeg_thumbnail_full_path = None
                         file_location = file_parameters["directory"]
                         file_path = os.path.join(file_location, filename)
-                        
+
                         self.set_detector_filenames(
                             i == 1,
                             frame,
@@ -994,6 +1024,7 @@ class AbstractMultiCollect(object):
                     failed = True
                     exc_type, exc_value, exc_tb = sys.exc_info()
                     logging.exception("Data collection failed")
+                    logging.getLogger("user_level_log").info("Data collection failed %s" % exc_value)
                     data_collect_parameters[
                         "status"
                     ] = "Data collection failed!"  # Message to be stored in LIMS
@@ -1146,7 +1177,7 @@ class AbstractMultiCollect(object):
     def stop_collect(self, owner=None):
         if self.data_collect_task is not None:
             self.data_collect_task.kill(block=False)
-        
+
         self.data_collection_cleanup()
 
     """
