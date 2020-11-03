@@ -257,7 +257,7 @@ def centre_plate1Click(
     except Exception:
         logging.exception("Exception while centring")
         move_motors(SAVED_INITIAL_POSITIONS)
-        raise
+        raise RuntimeError("Exception while centring")
 
     plate_vertical()
 
@@ -369,25 +369,23 @@ def centre_plate(
     return centred_pos
 
 
-def ready(*motors):
-    return all([m.is_ready() for m in motors])
+def ready(motor_list):
+    return all([m.is_ready() for m in motor_list])
+
+
+def wait_ready(motor_positions_dict, timeout=None):
+    with gevent.Timeout(timeout):
+        while not ready(motor_positions_dict.keys()):
+            time.sleep(0.1)
 
 
 def move_motors(motor_positions_dict):
-    def wait_ready(timeout=None):
-        with gevent.Timeout(timeout):
-            while not ready(*motor_positions_dict.keys()):
-                time.sleep(0.1)
-
-    wait_ready(timeout=30)
-
-    if not ready(*motor_positions_dict.keys()):
-        raise RuntimeError("Motors not ready")
+    wait_ready(motor_positions_dict, timeout=30)
 
     for motor, position in motor_positions_dict.items():
         motor.set_value(position)
 
-    wait_ready()
+    wait_ready(motor_positions_dict, timeout=60)
 
 
 def user_click(x, y, wait=False):
@@ -434,7 +432,7 @@ def center(
     except Exception:
         logging.exception("Exception while centring")
         move_motors(SAVED_INITIAL_POSITIONS)
-        raise
+        raise RuntimeError("Exception while centring")
 
     # logging.info("X=%s,Y=%s", X, Y)
     chi_angle = math.radians(chi_angle)
@@ -488,9 +486,9 @@ def end(centred_pos=None):
     try:
         move_motors(centred_pos)
     except Exception:
-        logging.exception("Exception in centring 'end`, centred pos is %s", centred_pos)
+        logging.exception("Exception in centring end, centred pos is %s", centred_pos)
         move_motors(SAVED_INITIAL_POSITIONS)
-        raise
+        raise RuntimeError("Exception in centring end, centred pos is %s", centred_pos)
 
 
 def start_auto(
