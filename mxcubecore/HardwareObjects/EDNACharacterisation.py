@@ -4,8 +4,8 @@ import logging
 import binascii
 import subprocess
 
-import queue_model_enumerables as qme
-import queue_model_objects as qmo
+from HardwareRepository.HardwareObjects import queue_model_objects as qmo
+from HardwareRepository.HardwareObjects import queue_model_enumerables as qme
 
 from HardwareRepository.HardwareObjects.SecureXMLRpcRequestHandler import SecureXMLRpcRequestHandler
 from HardwareRepository import HardwareRepository as HWR
