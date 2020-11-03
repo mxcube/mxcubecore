@@ -1,7 +1,7 @@
 import logging
 import types
 import gevent
-import gevent.event
+from gevent.event import Event
 from gevent.queue import Queue
 from HardwareRepository.CommandContainer import (
     CommandObject,
@@ -136,7 +136,7 @@ class TangoChannel(ChannelObject):
         self.pollingEvents = False
         self.timeout = int(timeout)
         self.read_as_str = kwargs.get("read_as_str", False)
-        self._device_initialized = gevent.event.Event()
+        self._device_initialized = Event()
         logging.getLogger("HWR").debug(
             "creating Tango attribute %s/%s, polling=%s, timeout=%d",
             self.deviceName,
@@ -249,7 +249,7 @@ class TangoChannel(ChannelObject):
             # value = self.device.read_attribute_as_str(self.attributeName).value
         else:
             value = self.raw_device.read_attribute(self.attributeName).value
-
+        self.emit("update", value)
         return value
 
     def pollFailed(self, e, poller_id):

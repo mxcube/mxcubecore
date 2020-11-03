@@ -29,6 +29,7 @@ Example xml file:
 </device>
 """
 from enum import Enum
+from gevent import Timeout, sleep
 from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractNState
 from HardwareRepository.Command.Exporter import Exporter
 from HardwareRepository.Command.exporter.ExporterStates import ExporterStates
@@ -80,6 +81,15 @@ class ExporterNState(AbstractNState):
         self.state_channel.connectSignal("update", self._update_state)
         self.update_state()
 
+    def _wait_ready(self, timeout=None):
+        """Wait timeout seconds till status is ready.
+        Args:
+            timeout(float): Timeout [s]. None means infinite timeout.
+        """
+        with Timeout(timeout, RuntimeError("Timeout waiting for status ready")):
+            while not self.get_state() == self.STATES.READY:
+                sleep(0.5)
+
     def _update_state(self, state=None):
         """To be used to update the state when emiting the "update" signal.
         Args:
@@ -113,6 +123,14 @@ class ExporterNState(AbstractNState):
         state = self.state_channel.get_value()
         return self._value2state(state)
 
+    def get_hwstate(self):
+        """Get the device hardware state.
+        Returns:
+            (enum 'HardwareObjectState'): Device state.
+        """
+        state = self.hwstate_channel.get_value()
+        return self._value2state(state)
+
     def abort(self):
         """Stop the action."""
         if self.get_state() != self.STATES.UNKNOWN:
@@ -133,6 +151,7 @@ class ExporterNState(AbstractNState):
             else:
                 value = value.value
         self.value_channel.set_value(value)
+        self._wait_ready(120)
         self.update_state(self.STATES.READY)
 
     def get_value(self):
