@@ -486,9 +486,8 @@ def end(centred_pos=None):
     try:
         move_motors(centred_pos)
     except Exception:
-        logging.exception("Exception in centring end, centred pos is %s", centred_pos)
         move_motors(SAVED_INITIAL_POSITIONS)
-        raise RuntimeError("Exception in centring end, centred pos is %s", centred_pos)
+        raise RuntimeError("Centring aborted")
 
 
 def start_auto(
