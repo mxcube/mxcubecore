@@ -338,7 +338,7 @@ class XMLRPCServer(HardwareObject):
 
     def shape_history_get_grid(self, sid):
         """
-        :param sid: Shape id 
+        :param sid: Shape id
         :returns: Grid with id <sid>
         :rtype: dict
 
@@ -353,17 +353,21 @@ class XMLRPCServer(HardwareObject):
          'y1': float,
          'angle': float}
 
-        """       
+        """
         grid_dict = HWR.beamline.sample_view.get_shape(sid).as_dict()
 
         return grid_dict
 
     def shape_history_set_grid_data(self, key, result_data):
-        int_based_result = {}
-        for result in result_data.items():
-            int_based_result[int(result[0])] = result[1]
+        if isinstance(result_data, list):
+            result = {}
 
-        HWR.beamline.sample_view.set_grid_data(key, int_based_result)
+            for result in result_data.items():
+                int_based_result[int(result[0])] = result[1]
+        else:
+            result = result_data
+
+        HWR.beamline.sample_view.set_grid_data(key, result)
         return True
 
     def get_cp(self):
