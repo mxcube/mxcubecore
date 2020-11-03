@@ -322,6 +322,7 @@ class SampleView(AbstractSampleView):
 
         if shape:
             shape.set_result(result_data)
+            self.emit("newGridResult", shape)
         else:
             msg = "Cant set result for %s, no shape with id %s" % (sid, sid)
             raise AttributeError(msg)
