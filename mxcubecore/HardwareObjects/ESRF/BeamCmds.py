@@ -156,7 +156,7 @@ class HWObjActuatorCommand(CommandObject):
         self._hwobj = hwobj
         self.type = TWO_STATE_COMMAND_T
         self.argument_type = ARGUMENT_TYPE_LIST
-        self._hwobj.connect("stateChanged", self._cmd_done)
+        self._hwobj.connect("valueChanged", self._cmd_done)
 
     def _get_action(self):
         """Return which action has to be executed.
@@ -166,7 +166,6 @@ class HWObjActuatorCommand(CommandObject):
         values = [v.name for v in self._hwobj.VALUES]
         values.remove("UNKNOWN")
         values.remove(self._hwobj.get_value().name)
-
         return self._hwobj.VALUES[values[0]]
 
     @task
@@ -177,13 +176,14 @@ class HWObjActuatorCommand(CommandObject):
         """
         self.emit("commandBeginWaitReply", (str(self.name()),))
         value = self._get_action()
-        self._hwobj.set_value(value)
+        self._hwobj.set_value(value, timeout=60)
 
     def _cmd_done(self, state):
         """Handle the command execution.
         Args:
             (obj): Command execution greenlet.
         """
+        gevent.sleep(1)
         try:
             res = self._hwobj.get_value().name
         except Exception:
