@@ -4,6 +4,7 @@
   <object href="/sc_mockup" role="sample_changer"/>
   <object href="/energy_mockup" role="energy"/>
   <object href="/attenuators_mockup" role="transmission"/>
+  <object href="/transmission_mockup" role="filter_transmission"/>
   <object href="/detector_mockup" role="detector"/>
   <object href="/resolution_mockup" role="resolution"/>
   <object href="/lims" role="dbserver"/>

@@ -17,6 +17,7 @@ class LNLSPilatusDet(AbstractDetector):
     DET_BEAM_Y = 'det_beam_y'
     USER_BEAM_X = 'user_beam_x'
     USER_BEAM_Y = 'user_beam_y'
+    DET_TRANSMISSION = 'det_transmission'
 
     def __init__(self, name):
         """
@@ -374,5 +375,42 @@ class LNLSPilatusDet(AbstractDetector):
 
         logging.getLogger("HWR").error(
             "Error while setting Pilatus beam Y. Please, check the detector."
+        )
+        return False
+    
+    def get_transmission(self):
+        """
+        Returns:
+            float: detector filter transmission value
+        """
+        value = float(self.get_channel_value(self.DET_TRANSMISSION))
+        return value
+
+    def set_transmission(self, transmission):
+        """
+        Set filter transmission and returns whether it was successful or not.
+        """
+        try:
+            float(transmission)
+        except Exception as e:
+            logging.getLogger("HWR").error(
+                    "Error while setting Pilatus transmission. Value must be float."
+            )
+            return False
+
+        logging.getLogger("HWR").info("Setting Pilatus transmission to {}...".format(transmission))
+        self.set_channel_value(self.DET_TRANSMISSION, transmission)
+        time.sleep(0.3)
+
+        self.transmission = self.get_transmission()
+
+        if self.transmission == transmission:
+            logging.getLogger("HWR").info(
+                "Pilatus transmission successfully set."
+            )
+            return True
+
+        logging.getLogger("HWR").error(
+            "Error while setting Pilatus transmission. Please, check the detector."
         )
         return False
