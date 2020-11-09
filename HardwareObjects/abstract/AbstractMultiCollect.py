@@ -280,11 +280,6 @@ class AbstractMultiCollect(object):
             logging.getLogger("HWR").exception("Could not take crystal snapshots")
 
     @abc.abstractmethod
-    @task
-    def take_crystal_snapshots(self, number_of_snapshots):
-        pass
-
-    @abc.abstractmethod
     def set_helical(self, helical_on):
         pass
 
@@ -498,6 +493,7 @@ class AbstractMultiCollect(object):
         # take snapshots, then assign centring status (which contains images) to
         # centring_info variable
         take_snapshots = data_collect_parameters.get("take_snapshots", False)
+
         if take_snapshots:
             logging.getLogger("user_level_log").info("Taking sample snapshosts")
             self._take_crystal_snapshots(take_snapshots)
@@ -980,7 +976,7 @@ class AbstractMultiCollect(object):
             # Bug fix for MD2/3(UP): diffractometer still has things to do even after the last frame is taken (decelerate motors and
             # possibly download diagnostics) so we cannot trigger the cleanup (that will send an abort on the diffractometer) as soon as
             # the last frame is counted
-            self.diffractometer().wait_ready(10)
+            self.diffractometer().wait_ready(60)
 
         # data collection done
         self.data_collection_end_hook(data_collect_parameters)
