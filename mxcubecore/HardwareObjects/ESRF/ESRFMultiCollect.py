@@ -647,8 +647,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         exptime,
         npass,
         number_of_images,
-        mesh,
-        mesh_num_lines,
         comment="",
     ):
         self._detector.prepare_acquisition(
@@ -659,8 +657,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             npass,
             number_of_images,
             comment,
-            mesh,
-            mesh_num_lines
+            self.mesh,
+            self.mesh_num_lines
         )
 
     @task

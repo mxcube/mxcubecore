@@ -132,20 +132,20 @@ class MD2MultiCollect(ESRFMultiCollect):
         else:
             diffr.oscilScan(start, end, exptime, wait=True)
 
+    @task
     def prepare_acquisition(
         self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""
     ):
-        return ESRFMultiCollect.prepare_acquisition(
-            self,
+        self._detector.prepare_acquisition(
             take_dark,
             start,
             osc_range,
             exptime,
             npass,
             number_of_images,
-            self.mesh,
-            self.mesh_num_lines,
             comment,
+            self.mesh,
+            self.mesh_num_lines
         )
 
     def open_fast_shutter(self):
