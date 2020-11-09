@@ -25,6 +25,21 @@ class MD2MultiCollect(ESRFMultiCollect):
         except Exception:
             pass
 
+        check_flux_and_cryo = self.getProperty("check_flux_and_cryo", False)
+        flux_threshold = self.getProperty("flux_threshold")
+        cryo_threshold = self.getProperty("cryo_threshold")
+
+        if check_flux_and_cryo:
+            # Wait for flux
+            while HWR.beamline.flux.get_value() < flux_threshold:
+                logging.getLogger("user_level_log").info("Waiting for beam ...")
+                gevent.sleep(0.5)
+
+            # Wait for cryo
+            while HWR.beamline.diffractometer.cryostream.get_value() > cryo_threshold:
+                logging.getLogger("user_level_log").info("Cryo temperature too high ...")
+                gevent.sleep(0.5)
+
     @task
     def get_beam_size(self):
         return HWR.beamline.beam.beam_width, HWR.beamline.beam.beam_height
@@ -126,6 +141,7 @@ class MD2MultiCollect(ESRFMultiCollect):
         else:
             diffr.oscilScan(start, end, exptime, wait=True)
 
+    @task
     def prepare_acquisition(
         self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""
     ):
