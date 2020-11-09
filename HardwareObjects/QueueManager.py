@@ -28,6 +28,10 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self._running = False
         self._disable_collect = False
         self._is_stopped = False
+        self._collect_hwobj = None
+
+    def init(self):
+        self._collect_hwobj = self.getObjectByRole("collect")
 
     def __getstate__(self):
         d = dict(self.__dict__)
@@ -143,6 +147,10 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         finally:
             self._running = False
             self.emit("queue_execution_finished", (None,))
+
+            if self._collect_hwobj:
+                self._collect_hwobj.queue_finished_cleanup()
+
             # self.emit('centringAllowed', (True, ))
 
     def __execute_entry(self, entry):
