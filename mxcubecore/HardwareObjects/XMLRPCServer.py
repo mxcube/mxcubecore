@@ -525,15 +525,15 @@ class XMLRPCServer(HardwareObject):
         """
         Sets the zoom to a pre-defined level.
         """
-        zoom_motor = HWR.beamline.diffractometer.zoomMotor
-        zoom_motor.set_value(zoom_motor.value_to_enum(pos))
+        zoom = HWR.beamline.sample_view.zoom
+        zoom.set_value(zoom_motor.value_to_enum(pos))
         
     def get_zoom_level(self):
         """
         Returns the zoom level.
         """
-        zoom_motor = HWR.beamline.diffractometer.zoomMotor
-        pos = zoom_motor.get_value().value
+        zoom = HWR.beamline.sample_view.zoom
+        pos = zoom.get_value().value
         return pos
 
     def get_available_zoom_levels(self):
