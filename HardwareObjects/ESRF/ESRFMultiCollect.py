@@ -563,7 +563,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             self.close_fast_shutter()
             self.stop_oscillation()
             HWR.beamline.detector.stop_acquisition()
-            HWR.beamline.diffractometer.set_phase("Centring", wait=True, timeout=200)
         except Exception:
             logging.getLogger("HWR").exception("")
 
