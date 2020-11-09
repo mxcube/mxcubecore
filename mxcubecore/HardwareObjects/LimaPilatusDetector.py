@@ -163,10 +163,10 @@ class LimaPilatusDetector(AbstractDetector):
         mesh,
         mesh_num_lines,
     ):
-        if osc_range < 1e-4:
-            trigger_mode = "INTERNAL_TRIGGER"
-        elif mesh:
+        if mesh:
             trigger_mode = "EXTERNAL_GATE"
+        elif osc_range < 1e-4:
+            trigger_mode = "INTERNAL_TRIGGER"
         else:
             trigger_mode = "EXTERNAL_TRIGGER"
 
