@@ -567,6 +567,10 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         except Exception:
             logging.getLogger("HWR").exception("")
 
+    def queue_finished_cleanup(self):
+        logging.getLogger("user_level_log").info("Queue execution finished")
+        HWR.beamline.diffractometer.set_phase("Centring", wait=True, timeout=200)
+
     @task
     def close_fast_shutter(self):
         self.execute_command("close_fast_shutter")
