@@ -257,9 +257,31 @@ class Microdiff(MiniDiff.MiniDiff):
             while not self._ready():
                 time.sleep(0.5)
 
+    def open_detector_cover(self):
+        try:
+            detcover = self.getObjectByRole("controller").detcover
+
+            if detcover.state == "IN":
+                detcover.set_out(10)
+        except:
+            logging.getLogger("HWR").exception("")
+
+    def close_detector_cover(self):
+        try:
+            detcover = self.getObjectByRole("controller").detcover
+
+            if detcover.state == "OUT":
+                detcover.set_in(10)
+        except:
+            logging.getLogger("HWR").exception("")
+
     def set_phase(self, phase, wait=False, timeout=None):
         if self._ready():
             if phase in self.phases:
+
+                if phase in ["BeamLocation", "Transfer", "Centring"]:
+                    self.close_detector_cover()
+
                 self.movePhase(phase)
                 if wait:
                     if not timeout:
