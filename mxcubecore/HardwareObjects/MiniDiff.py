@@ -149,6 +149,8 @@ class MiniDiff(Equipment):
             MiniDiff.C3D_MODE: self.start_auto_centring,
         }
 
+        sample_centring.NUM_CENTRING_ROUNDS  = self.getProperty("num_centering_rounds", 1)
+
         self.cancel_centring_methods = {}
 
         self.current_centring_procedure = None

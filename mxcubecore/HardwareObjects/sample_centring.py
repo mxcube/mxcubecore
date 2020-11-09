@@ -32,8 +32,8 @@ def multiPointCentre(z, phis):
 USER_CLICKED_EVENT = None
 CURRENT_CENTRING = None
 SAVED_INITIAL_POSITIONS = {}
-READY_FOR_NEXT_POINT = None
-
+READY_FOR_NEXT_POINT = gevent.event.Event()
+NUM_CENTRING_ROUNDS = 1
 
 class CentringMotor:
     def __init__(self, motor, reference_position=None, direction=1):
@@ -384,12 +384,12 @@ def wait_ready(motor_positions_dict, timeout=None):
 
 
 def move_motors(motor_positions_dict):
-    wait_ready(motor_positions_dict, timeout=10)
+    wait_ready(motor_positions_dict, timeout=30)
 
     for motor, position in motor_positions_dict.items():
         motor.set_value(position)
 
-    wait_ready(motor_positions_dict, timeout=10)
+    wait_ready(motor_positions_dict, timeout=60)
 
 
 def user_click(x, y, wait=False):
@@ -584,7 +584,7 @@ def auto_center(
                 msg_cb("No loop detected, aborting")
             return
 
-    for k in range(1):
+    for k in range(NUM_CENTRING_ROUNDS):
         if callable(msg_cb):
             msg_cb("Doing automatic centring")
 
