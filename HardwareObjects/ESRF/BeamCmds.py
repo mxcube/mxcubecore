@@ -45,42 +45,17 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
-PROCEDURE_COMMAND_T = "CONTROLLER"
-TWO_STATE_COMMAND_T = "INOUT"
-
-ARGUMENT_TYPE_LIST = "List"
-ARGUMENT_TYPE_JSON_SCHEMA = "JSONSchema"
-
-
-class BaseBeamlineAction(CommandObject):
-    """Base command class"""
-
-    def __init__(self, name):
-        super(BaseBeamlineAction, self).__init__(name)
-
-        # From CommandObject consider removing
-        self._arguments = []
-        self._combo_arguments_items = {}
-
-
-class ControllerCommand(BaseBeamlineAction):
+class ControllerCommand(CommandObject):
     """Execute commands class"""
 
     def __init__(self, name, cmd):
         super().__init__(name)
         self._cmd = cmd
         self._cmd_execution = None
-        self.type = PROCEDURE_COMMAND_T
-        self.argument_type = ARGUMENT_TYPE_LIST
 
     def is_connected(self):
         """Dummy method"""
         return True
-
-    def set_argument_json_schema(self, json_schema_str):
-        """Set the JSON Schema"""
-        self.argument_type = ARGUMENT_TYPE_JSON_SCHEMA
-        self._arguments = json_schema_str
 
     def getArguments(self):
         """Get the command object arguments"""
