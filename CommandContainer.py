@@ -19,6 +19,13 @@ __author__ = "Matias Guijarro"
 __version__ = 1.0
 
 
+PROCEDURE_COMMAND_T = "CONTROLLER"
+TWO_STATE_COMMAND_T = "INOUT"
+
+ARGUMENT_TYPE_LIST = "List"
+ARGUMENT_TYPE_JSON_SCHEMA = "JSONSchema"
+
+
 class ConnectionError(Exception):
     pass
 
@@ -29,6 +36,14 @@ class CommandObject:
         self._username = username
         self._arguments = []
         self._combo_arguments_items = {}
+
+        self.type = PROCEDURE_COMMAND_T
+        self.argument_type = ARGUMENT_TYPE_LIST
+
+    def set_argument_json_schema(self, json_schema_str):
+        """Set the JSON Schema"""
+        self.argument_type = ARGUMENT_TYPE_JSON_SCHEMA
+        self._arguments = json_schema_str
 
     def name(self):
         return self._name
