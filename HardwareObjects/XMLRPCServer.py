@@ -84,9 +84,9 @@ class XMLRPCServer(HardwareObject):
             self.xmlrpc_server_task.kill()
             self._server.server_close()
             del self._server
-        except AttributeError:
+            #logging.getLogger("HWR").info("XML-RPC server closed")
+        except:
             pass
-        logging.getLogger("HWR").info("XML-RPC server closed")
 
     def open(self):
         # The value of the member self.port is set in the xml configuration
