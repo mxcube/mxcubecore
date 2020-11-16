@@ -32,7 +32,7 @@ def multiPointCentre(z, phis):
 USER_CLICKED_EVENT = None
 CURRENT_CENTRING = None
 SAVED_INITIAL_POSITIONS = {}
-READY_FOR_NEXT_POINT = gevent.event.Event()
+READY_FOR_NEXT_POINT = None
 
 
 class CentringMotor:
@@ -50,13 +50,17 @@ class CentringMotor:
 
 
 def prepare(centring_motors_dict):
+    logging.debug("Preparing for centring")
+    
     global SAVED_INITIAL_POSITIONS
 
     if CURRENT_CENTRING and not CURRENT_CENTRING.ready():
         end()
 
     global USER_CLICKED_EVENT
+    global READY_FOR_NEXT_POINT
     USER_CLICKED_EVENT = gevent.event.AsyncResult()
+    READY_FOR_NEXT_POINT = gevent.event.Event()
 
     motors_to_move = dict()
     for m in centring_motors_dict.values():
@@ -380,12 +384,12 @@ def wait_ready(motor_positions_dict, timeout=None):
 
 
 def move_motors(motor_positions_dict):
-    wait_ready(motor_positions_dict, timeout=30)
+    wait_ready(motor_positions_dict, timeout=10)
 
     for motor, position in motor_positions_dict.items():
         motor.set_value(position)
 
-    wait_ready(motor_positions_dict, timeout=60)
+    wait_ready(motor_positions_dict, timeout=10)
 
 
 def user_click(x, y, wait=False):
@@ -486,6 +490,7 @@ def end(centred_pos=None):
     try:
         move_motors(centred_pos)
     except Exception:
+        READY_FOR_NEXT_POINT.set()
         move_motors(SAVED_INITIAL_POSITIONS)
         raise RuntimeError("Centring aborted")
 
