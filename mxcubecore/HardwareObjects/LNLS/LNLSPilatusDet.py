@@ -18,6 +18,7 @@ class LNLSPilatusDet(AbstractDetector):
     USER_BEAM_X = 'user_beam_x'
     USER_BEAM_Y = 'user_beam_y'
     DET_TRANSMISSION = 'det_transmission'
+    DET_START_ANGLE = 'det_start_angle'
 
     def __init__(self, name):
         """
@@ -414,5 +415,42 @@ class LNLSPilatusDet(AbstractDetector):
 
         logging.getLogger("HWR").error(
             "Error while setting Pilatus transmission. Please, check the detector."
+        )
+        return False
+    
+    def get_start_angle(self):
+        """
+        Returns:
+            float: detector start angle value
+        """
+        value = float(self.get_channel_value(self.DET_START_ANGLE))
+        return value
+
+    def set_start_angle(self, start_angle):
+        """
+        Set start angle and returns whether it was successful or not.
+        """
+        try:
+            float(start_angle)
+        except Exception as e:
+            logging.getLogger("HWR").error(
+                    "Error while setting Pilatus start angle. Value must be float."
+            )
+            return False
+
+        logging.getLogger("HWR").info("Setting Pilatus start angle to {}...".format(start_angle))
+        self.set_channel_value(self.DET_START_ANGLE, start_angle)
+        time.sleep(3)
+
+        self.start_angle = self.get_start_angle()
+
+        if abs(self.start_angle - start_angle) < 0.0001:
+            logging.getLogger("HWR").info(
+                "Pilatus start angle successfully set."
+            )
+            return True
+
+        logging.getLogger("HWR").error(
+            "Error while setting Pilatus start angle. Please, check the detector."
         )
         return False
