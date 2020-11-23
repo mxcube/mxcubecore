@@ -673,7 +673,9 @@ class MiniDiff(Equipment):
         logging.getLogger("HWR").info("Starting centring procedure ...")
 
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
-        self.wait_ready(30)
+
+        self.wait_ready(5)
+
         self.current_centring_procedure = sample_centring.start(
             {
                 "phi": self.centringPhi,
