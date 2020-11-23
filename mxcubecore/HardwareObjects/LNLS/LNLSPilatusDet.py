@@ -196,11 +196,13 @@ class LNLSPilatusDet(AbstractDetector):
         # there is no need to compare the target value with the current one.
         logging.getLogger("HWR").info("Setting Pilatus wavelength...")
         self.set_channel_value(self.DET_WAVELENGTH, wavelength)
-        time.sleep(0.3)
-
+        time.sleep(0.6)
+        
+        print('WAVELENGHT WAS SET: ' + str(wavelength))
         self.wavelength = self.get_wavelength()
+        print('WAVELENGHT GOT: ' + str(self.wavelength))
 
-        if self.wavelength == wavelength:
+        if abs(self.wavelength - wavelength) < 0.0001:
             logging.getLogger("HWR").info(
                 "Pilatus wavelength successfully set."
             )
@@ -243,7 +245,7 @@ class LNLSPilatusDet(AbstractDetector):
 
         self.det_distance = self.get_detector_distance()
 
-        if self.det_distance == det_distance:
+        if abs(self.det_distance - det_distance) < 0.001:
             logging.getLogger("HWR").info(
                 "Pilatus det distance successfully set."
             )
@@ -404,7 +406,7 @@ class LNLSPilatusDet(AbstractDetector):
 
         self.transmission = self.get_transmission()
 
-        if self.transmission == transmission:
+        if abs(self.transmission - transmission) < 0.0001:
             logging.getLogger("HWR").info(
                 "Pilatus transmission successfully set."
             )
