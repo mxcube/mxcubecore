@@ -226,7 +226,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def emitCentringSuccessful(self):
         # check first if all the motors have stopped
-        self._wait_ready(10)
+        self._wait_ready(30)
 
         # save position in MD2 software
         self.save_centring_positions()
@@ -513,7 +513,7 @@ class Microdiff(MiniDiff.MiniDiff):
     def start_manual_centring(self, sample_info=None):
         logging.getLogger("HWR").info("Starting centring procedure ...")
 
-        self._wait_ready(5)
+        self._wait_ready(30)
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         if self.in_plate_mode():
             plateTranslation = self.getObjectByRole("plateTranslation")
