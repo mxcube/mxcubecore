@@ -30,6 +30,7 @@ class PyISPyBClient(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self.__connected = False
+        self.__disabled = False
         self.__translations = {}
         self.__root_url = None
         self.__username = None
@@ -46,39 +47,42 @@ class PyISPyBClient(HardwareObject):
         self.__password = self.get_property("password").strip()
         self.base_result_url = self.get_property("base_result_url", "").strip()
 
-        if self.get_roperty("master_token"):
+        if self.get_property("master_token"):
             self.__token = self.get_property("master_token")
             self.__token_timestamp = datetime.now()
             self.update_state(self.STATES.READY)
         else:
             self.__update_rest_token()
+
+    
+    def disable(self):
+        self.__disabled = True
+
+    def enable(self):
+        self.__disabled = False
     
     def call_get(self, relative_url, host="ispyb_core", params=None):
-        url = "{root_url}/{relative_url}".format(
-            root_url=self.__root_url,
-            relative_url=relative_url
-            )
+        url = urljoin(self.__root_url, relative_url)
         headers = {
             "Authorization": "Bearer " + self.__token,
             "Content-type": "application/json",
             "Host": host
         }
+        print(url, headers, params)
         response = get(url, headers=headers, params=params)
 
         return response.status_code, response.json()
 
     def call_post(self, relative_url, json_data, host="ispyb_core"):
-        url = "{root_url}/{relative_url}".format(
-            root_url=self.__root_url,
-            relative_url=relative_url
-            )
+        url = urljoin(self.__root_url, relative_url)
         headers = {
             "Authorization": "Bearer " + self.__token,
             "Content-type": "application/json",
             "Host": host
         }
+        print(url)
         response = post(url, headers=headers, json=json_data)
-
+        print(response.status_code)
         return response.status_code, response.json()
 
     def get_login_type(self):
@@ -114,7 +118,6 @@ class PyISPyBClient(HardwareObject):
 
         try:
             response = get(urljoin(self.root_url, "/auth/login"), auth=(self.__username, self.__password))
-
             self.__token = response.json().get("token")
             self.__token_timestamp = datetime.now()
         except Exception as ex:
@@ -135,11 +138,9 @@ class PyISPyBClient(HardwareObject):
         result = []
         if self.__token:
             try:
-                user_name = "Boaty"
-                url = "proposals"
                 params = {"login_name" : user_name}
 
-                status_code, data_json = self.call_get(url, params=params)
+                status_code, data_json = self.call_get("proposals", params=params)
                 proposal_list = data_json["data"]["rows"]
 
                 if not proposal_list:
@@ -175,7 +176,6 @@ class PyISPyBClient(HardwareObject):
                 ispyb_log.exception(_CONNECTION_ERROR_MSG)
         else:
             ispyb_log.exception(_NO_TOKEN_MSG)
-        print(result)
         return result
 
     def get_proposal_sessions(self, proposal_id):
@@ -184,7 +184,7 @@ class PyISPyBClient(HardwareObject):
         try:
             params = {"proposalId" : proposal_id}
 
-            status_code, data_json = self.call_get("/sessions", params=params)
+            status_code, data_json = self.call_get("sessions", params=params)
             session_list = data_json["data"]["rows"]
         except BaseException:
             logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
@@ -207,18 +207,18 @@ class PyISPyBClient(HardwareObject):
         if True:
             #try:
             if True:
-                session_dict.pop("beamlineName")
+                #session_dict.pop("beamlineName")
                 session_dict["sessionTitle"] = session_dict["comments"]
-                session_dict.pop("comments")
+                #session_dict.pop("comments")
 
-                status_code, result = self.call_post("/sessions", session_dict)
+                status_code, result = self.call_post("sessions", session_dict)
             #except WebFault as e:
             #    session = {}
             #    ispyb_log.exception(str(e))
             #except URLError:
             #    ispyb_log.exception(_CONNECTION_ERROR_MSG)
             ispyb_log.info(
-                "[ISPYB] Session created: %s" % result
+                "[ISPYB] Session created: %s" % str(result)
             )
         else:
             logging.getLogger("ispyb_client").exception(
@@ -260,16 +260,46 @@ class PyISPyBClient(HardwareObject):
         :returns: None
 
         """
-        print(("store_data_collection...", mx_collection))
-        return None, None
+        beamline_setup_id = None
+        collection_id = None
+        detector_id = None
 
-    def store_beamline_setup(self, session_id, bl_config):
+        logging.getLogger("HWR").debug(
+            "Storing data collection in lims. Data to store: %s, %s"
+            % (str(mx_collection), str(bl_config))
+        )
+
+        if bl_config:
+            beamline_setup_id = self.store_beamline_setup(
+                mx_collection,
+                bl_config
+            )
+
+        detector_id  = self.find_detector(bl_config)
+
+        data_collection = {}
+
+        if detector:
+            detector_id = detector.detectorId
+            data_collection["detectorId"] = detector["detectorId"]
+
+        #collection_id = self._collection.service.storeOrUpdateDataCollection(
+        #        data_collection
+        #    )
+            
+        #else:
+        #    logging.getLogger("ispyb_client").exception(
+        #        "Error in store_data_collection: could not connect to server"
+        #    )
+
+        return collection_id, detector_id
+
+    def store_beamline_setup(self, session, bl_config):
         """
         Stores the beamline setup dict <bl_config>.
 
-        :param session_id: The session id that the bl_config
-                           should be associated with.
-        :type session_id: int
+        :param session: The session dict
+        :type session: dict
 
         :param bl_config: The dictonary with beamline settings.
         :type bl_config: dict
@@ -277,7 +307,29 @@ class PyISPyBClient(HardwareObject):
         :returns beamline_setup_id: The database id of the beamline setup.
         :rtype: str
         """
-        print(("store_bl_config...", bl_config))
+
+        energy_limits = HWR.beamline.energy.get_limits()
+
+        beamlines_setup_dict = {
+            "detectorId":  None,
+            "synchrotronMode" : bl_config.synchrotron_name,
+            "monochromatorType": bl_config.monochromator_type,
+            "focusingOptic": bl_config.focusing_optic,
+            "beamDivergenceVertical": bl_config.beam_divergence_vertical,
+            "beamDivergenceHorizontal": bl_config.beam_divergence_horizontal,
+            "polarisation": bl_config.polarisation,
+            "minExposureTimePerImage": bl_config.minimum_exposure_time,
+            "setupDate": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "energyMin": energy_limits[0],
+            "energyMax": energy_limits[1],
+        }
+
+        if bl_config.undulators:
+            for index, undulator in enumerate(bl_config.undulators):
+                beamlines_setup_dict["undulatorType%d" % index] = undulator.type
+
+        status_code, result = self.call_post("sessions/beamline_setup", beamlines_setup_dict)
+        return result["beamLineSetupId"]
 
     def update_data_collection(self, mx_collection, wait=False):
         """
@@ -307,7 +359,3 @@ class PyISPyBClient(HardwareObject):
 
     def store_robot_action(self, robot_action_dict):
         return
-
-
-
-
