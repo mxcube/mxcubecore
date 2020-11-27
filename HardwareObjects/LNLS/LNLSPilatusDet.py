@@ -19,6 +19,7 @@ class LNLSPilatusDet(AbstractDetector):
     USER_BEAM_Y = 'user_beam_y'
     DET_TRANSMISSION = 'det_transmission'
     DET_START_ANGLE = 'det_start_angle'
+    DET_ANGLE_INCR = 'det_angle_incr'
 
     def __init__(self, name):
         """
@@ -452,5 +453,42 @@ class LNLSPilatusDet(AbstractDetector):
 
         logging.getLogger("HWR").error(
             "Error while setting Pilatus start angle. Please, check the detector."
+        )
+        return False
+    
+    def get_angle_incr(self):
+        """
+        Returns:
+            float: detector angle increment value
+        """
+        value = float(self.get_channel_value(self.DET_ANGLE_INCR))
+        return value
+
+    def set_angle_incr(self, angle_incr):
+        """
+        Set angle increment and returns whether it was successful or not.
+        """
+        try:
+            float(angle_incr)
+        except Exception as e:
+            logging.getLogger("HWR").error(
+                    "Error while setting Pilatus angle increment. Value must be float."
+            )
+            return False
+
+        logging.getLogger("HWR").info("Setting Pilatus angle increment to {}...".format(angle_incr))
+        self.set_channel_value(self.DET_ANGLE_INCR, angle_incr)
+        time.sleep(3)
+
+        self.angle_incr = self.get_angle_incr()
+
+        if abs(self.angle_incr - angle_incr) < 0.0001:
+            logging.getLogger("HWR").info(
+                "Pilatus angle increment successfully set."
+            )
+            return True
+
+        logging.getLogger("HWR").error(
+            "Error while setting Pilatus angle increment. Please, check the detector."
         )
         return False
