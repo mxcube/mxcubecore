@@ -9,6 +9,7 @@
   <channel type="epics" name="user_beam_y">MNC:S:SOFT:ao:BeamY</channel>
   <channel type="epics" name="det_transmission">MX2:cam1:FilterTransm</channel>
   <channel type="epics" name="det_start_angle">MX2:cam1:StartAngle</channel>
+  <channel type="epics" name="det_angle_incr">MX2:cam1:AngleIncr</channel>
   <!-- Status needs to be directly accessed. See details in LNLSPilatusDet. -->
   <channel_status>MX2:cam1:StatusMessage_RBV</channel_status>
   <!-- Properties -->

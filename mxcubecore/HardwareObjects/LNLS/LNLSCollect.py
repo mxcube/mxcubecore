@@ -142,7 +142,7 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
             logging.getLogger("HWR").info("[Clean up] Configured.")
 
             # Set detector cbf header
-            header_ok = self.set_pilatus_det_header(start_float)
+            header_ok = self.set_pilatus_det_header(start_float, step_size)
             if not header_ok:
                 logging.getLogger("HWR").error(
                         "[Collect] Pilatus header params could not be set! Collection aborted."
@@ -207,7 +207,7 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
         logging.getLogger("HWR").info("data collection successful in loop")
         self.emit("collectReady", (True,))
 
-    def set_pilatus_det_header(self, start_angle):
+    def set_pilatus_det_header(self, start_angle, step_size):
         # Read current params
         logging.getLogger("HWR").info("Setting Pilatus CBF header...")
         wl = self.bl_control.energy.get_wavelength()
@@ -228,8 +228,9 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
         te_ok = self.bl_control.detector.set_threshold_energy(te)
         ft_ok = self.bl_control.detector.set_transmission(ft)
         sa_ok = self.bl_control.detector.set_start_angle(start_angle)
+        ss_ok = self.bl_control.detector.set_angle_incr(step_size)
 
-        return wl_ok and dd_ok and bx_ok and by_ok and te_ok and ft_ok and sa_ok
+        return wl_ok and dd_ok and bx_ok and by_ok and te_ok and ft_ok and sa_ok and ss_ok
 
     @task
     def take_crystal_snapshots(self, number_of_snapshots):
