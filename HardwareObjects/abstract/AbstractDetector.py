@@ -20,8 +20,24 @@
 
 """
 Detector API
-
-emits signals:
+Abstract methods:
+    prepare_acquisition
+    start_acquisition
+    has_shutterless
+Overloaded methods:
+    force_emit_signals
+Implemented methods:
+    stop_acquisition
+    get_pixel_size, get_width, get_heigth, get_metadata
+    get_radius, get_outer_radius
+    get_beam_position
+    get_roi_mode, set_roi_mode, get_roi_mode_name, get_roi_modes
+    get_exposure_time_limits
+    get_threshold_energy, set_threshold_energy
+    get_binning_mode, set_binning_mode
+Implemented propertries:
+    distance
+Emited signals:
     detectorRoiModeChanged
     temperatureChanged
     humidityChanged
@@ -29,6 +45,7 @@ emits signals:
     frameRateChanged
     stateChanged
     specificStateChanged
+Hardware objects used: energy
 """
 
 import abc
@@ -75,10 +92,7 @@ class AbstractDetector(HardwareObject):
         except KeyError:
             pass
 
-        try:
-            self._distance_motor_hwobj = self.get_object_by_role("detector_distance")
-        except KeyError:
-            pass
+        self._distance_motor_hwobj = self.get_object_by_role("detector_distance")
 
         self._roi_modes_list = ast.literal_eval(self.get_property("roiModes", "()"))
 
@@ -87,13 +101,13 @@ class AbstractDetector(HardwareObject):
         self._height = self.get_property("height")
 
     def force_emit_signals(self):
+        """Emit all hardware object signals.
+        """
         self.emit("detectorRoiModeChanged", (self._roi_mode,))
         self.emit("temperatureChanged", (self._temperature, True))
         self.emit("humidityChanged", (self._humidity, True))
         self.emit("expTimeLimitsChanged", (self._exposure_time_limits,))
-        self.emit(
-            "frameRateChanged", self._actual_frame_rate,
-        )
+        self.emit("frameRateChanged", (self._actual_frame_rate,))
         self.emit("stateChanged", (self._state,))
         self.emit("specificStateChanged", (self._specific_state,))
 
@@ -120,25 +134,23 @@ class AbstractDetector(HardwareObject):
         """
 
     def last_image_saved(self):
-        """
+        """Get the path to the last saved image
         Returns:
-            str: path to last image
+            (str): full path.
         """
         return None
 
     @abc.abstractmethod
     def start_acquisition(self):
-        """
-        Starts acquisition
+        """Start the acquisition.
         """
 
     def stop_acquisition(self):
-        """
-        Stops acquisition
+        """Stop the acquisition.
         """
 
     def get_roi_mode(self):
-        """
+        """Read the current ROI mode.
         Returns:
             (str): current ROI mode
         """
@@ -153,44 +165,44 @@ class AbstractDetector(HardwareObject):
         self.emit("detectorRoiModeChanged", (self._roi_mode,))
 
     def get_roi_mode_name(self):
-        """
+        """Get the current ROI mode name.
         Returns:
-            (str): current ROI mode name
+            (str): name
         """
         return self._roi_modes_list[self._roi_mode]
 
     def get_roi_modes(self):
-        """
+        """Get the available ROI modes
         Returns:
-            tuple(str): Tuple with valid ROI modes.
+            (tuple): Tuple of strings.
         """
         return tuple(self._roi_modes_list)
 
     def get_exposure_time_limits(self):
-        """
+        """Get the Exposure time lower and upper limits.
         Returns:
-            tuple(float, float): Exposure time lower and upper limit [s]
+            (tuple): Two floats (lower and upper limit) [s]
         """
         return self._exposure_time_limits
 
     def get_pixel_size(self):
-        """
+        """Get the pixel size.
         Returns:
-            tuple(float, float): Pixel size for dimension 1 and 2 (x, y) [mm].
+            (tuple): Two floats (x, y) [mm].
         """
         return self._pixel_size
 
     def get_binning_mode(self):
-        """
+        """Get the current binning mode.
         Returns:
-            (int): current binning mode
+            (int): Binning mode
         """
         return self._binning_mode
 
     def set_binning_mode(self, value):
-        """
+        """Set the current binning mode.
         Args:
-            value (int): binning mode
+            value (int): binning mode.
         """
         self._binning_mode = value
 
@@ -208,16 +220,16 @@ class AbstractDetector(HardwareObject):
         # is required, e.g. using other detector positioning motors and
         # wavelength
 
-        distance = distance or self._distance_motor_hwobj.get_value()
-        wavelength = wavelength or HWR.beamline.energy.get_wavelength()
-        metadata = self.get_metadata()
-
         try:
+            distance = distance or self._distance_motor_hwobj.get_value()
+            wavelength = wavelength or HWR.beamline.energy.get_wavelength()
+            metadata = self.get_metadata()
+
             beam_position = (
                 float(distance * metadata["ax"] + metadata["bx"]),
                 float(distance * metadata["ay"] + metadata["by"]),
             )
-        except KeyError:
+        except (AttributeError, KeyError):
             beam_position = (None, None)
 
         return beam_position
@@ -229,13 +241,15 @@ class AbstractDetector(HardwareObject):
         Returns:
             (float): Detector radius [mm]
         """
-        distance = distance or self._distance_motor_hwobj.get_value()
+        if distance is None:
+            return min(self.get_width() / 2.0, self.get_height() / 2.0)
+
         beam_x, beam_y = self.get_beam_position(distance)
         pixel_x, pixel_y = self.get_pixel_size()
         rrx = min(self.get_width() - beam_x, beam_x) * pixel_x
         rry = min(self.get_height() - beam_y, beam_y) * pixel_y
         radius = min(rrx, rry)
-        #
+
         return radius
 
     def get_outer_radius(self, distance=None):
@@ -243,9 +257,12 @@ class AbstractDetector(HardwareObject):
         Args:
             distance (float): Distance [mm]
         Returns:
-            (float): Detector router adius [mm]
+            (float): Detector outer adius [mm]
         """
-        distance = distance or self._distance_motor_hwobj.get_value()
+        try:
+            distance = distance or self._distance_motor_hwobj.get_value()
+        except AttributeError:
+            raise RuntimeError("Cannot calculate outer radius, distance unknown")
         beam_x, beam_y = self.get_beam_position(distance)
         pixel_x, pixel_y = self.get_pixel_size()
         max_delta_x = max(beam_x, self.width - beam_x) * pixel_x
