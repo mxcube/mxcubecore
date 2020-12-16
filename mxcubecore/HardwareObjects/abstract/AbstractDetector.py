@@ -150,14 +150,14 @@ class AbstractDetector(HardwareObject):
         """
 
     def get_roi_mode(self):
-        """Read the current ROI mode.
+        """Get the current ROI mode.
         Returns:
             (str): current ROI mode
         """
         return self._roi_mode
 
     def set_roi_mode(self, roi_mode):
-        """
+        """Set the current ROI mode.
         Args:
             roi_mode (int): ROI mode to set.
         """
@@ -179,7 +179,7 @@ class AbstractDetector(HardwareObject):
         return tuple(self._roi_modes_list)
 
     def get_exposure_time_limits(self):
-        """Get the Exposure time lower and upper limits.
+        """Get the exposure time lower and upper limits.
         Returns:
             (tuple): Two floats (lower and upper limit) [s]
         """
