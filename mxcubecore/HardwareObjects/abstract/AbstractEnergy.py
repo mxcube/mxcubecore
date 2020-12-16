@@ -130,7 +130,6 @@ class AbstractEnergy(AbstractActuator):
             value = self.get_value()
         self._nominal_value = value
 
-        if not self._wavelength_value:
-            self._wavelength_value = self._calculate_wavelength(value)
-        self.emit("energyChanged", (value, self._wavelength_value))
+        _wavelength_value = self._calculate_wavelength(value)
+        self.emit("energyChanged", (value, _wavelength_value))
         self.emit("valueChanged", (value,))
