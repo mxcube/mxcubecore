@@ -3,7 +3,7 @@ This module serves to connect to and Ldap server.
 
 It works in principle for ESRF, Soleil Proxima and MAXIV beamlines
 """
-from HardwareRepository.BaseHardwareObjects import Procedure
+from mx3core.BaseHardwareObjects import Procedure
 import logging
 import ldap
 

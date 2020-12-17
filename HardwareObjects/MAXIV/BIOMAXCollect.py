@@ -22,11 +22,11 @@ import json
 import sys
 
 from EigerDataSet import EigerDataSet
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
+from mx3core.TaskUtils import task
+from mx3core.BaseHardwareObjects import HardwareObject
+from mx3core.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import HardwareRepository as HWR
 
 
 class BIOMAXCollect(AbstractCollect, HardwareObject):

@@ -40,12 +40,12 @@ from PIL.ImageQt import ImageQt
 
 from gui.utils import QtImport, Colors
 
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
-from HardwareRepository.HardwareObjects.QtGraphicsManager import QtGraphicsManager
-from HardwareRepository.HardwareObjects import queue_model_objects as qmo
+from mx3core.TaskUtils import task
+from mx3core.HardwareObjects.abstract.AbstractCollect import AbstractCollect
+from mx3core.HardwareObjects.QtGraphicsManager import QtGraphicsManager
+from mx3core.HardwareObjects import queue_model_objects as qmo
 
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import HardwareRepository as HWR
 
 
 __credits__ = ["EMBL Hamburg"]

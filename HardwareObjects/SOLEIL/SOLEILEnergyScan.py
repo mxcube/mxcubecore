@@ -9,9 +9,9 @@ import Xane
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
-from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import cleanup
-from HardwareRepository import HardwareRepository as HWR
+from mx3core.BaseHardwareObjects import Equipment
+from mx3core.TaskUtils import cleanup
+from mx3core import HardwareRepository as HWR
 
 
 class SOLEILEnergyScan(Equipment):

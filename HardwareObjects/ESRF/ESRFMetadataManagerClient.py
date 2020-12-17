@@ -13,8 +13,8 @@ import traceback
 from email.mime.text import MIMEText
 import smtplib
 
-from HardwareRepository.ConvertUtils import string_types
-from HardwareRepository import HardwareRepository as HWR
+from mx3core.ConvertUtils import string_types
+from mx3core import HardwareRepository as HWR
 
 
 class MetadataManagerClient(object):

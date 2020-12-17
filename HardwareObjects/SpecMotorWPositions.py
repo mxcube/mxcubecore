@@ -1,4 +1,4 @@
-from HardwareRepository.HardwareObjects import SpecMotor
+from mx3core.HardwareObjects import SpecMotor
 import logging
 
 

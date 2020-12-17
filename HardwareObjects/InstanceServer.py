@@ -1,4 +1,4 @@
-from HardwareRepository.BaseHardwareObjects import Procedure
+from mx3core.BaseHardwareObjects import Procedure
 import logging
 import time
 import pickle

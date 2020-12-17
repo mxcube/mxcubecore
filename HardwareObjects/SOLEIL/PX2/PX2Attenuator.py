@@ -4,7 +4,7 @@ from PyTango.gevent import DeviceProxy
 import logging
 import math
 
-from HardwareRepository.BaseHardwareObjects import Device
+from mx3core.BaseHardwareObjects import Device
 
 # from Command.Tango import TangoChannel
 

@@ -22,10 +22,10 @@ import logging
 import random
 import warnings
 
-from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+from mx3core.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
 )
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import HardwareRepository as HWR
 from gevent.event import AsyncResult
 
 

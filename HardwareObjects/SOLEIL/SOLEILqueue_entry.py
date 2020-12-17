@@ -1,4 +1,4 @@
-from HardwareRepository.HardwareObjects.queue_entry import *
+from mx3core.HardwareObjects.queue_entry import *
 
 
 class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):

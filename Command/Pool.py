@@ -24,7 +24,7 @@ import weakref
 import qt
 import types
 
-from HardwareRepository.CommandContainer import (
+from mx3core.CommandContainer import (
     CommandObject,
     ChannelObject,
     ConnectionError,

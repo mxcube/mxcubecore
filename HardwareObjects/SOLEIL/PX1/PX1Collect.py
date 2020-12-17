@@ -11,15 +11,15 @@ import gevent
 import subprocess
 import socket
 
-from HardwareRepository.Command.Tango import DeviceProxy
+from mx3core.Command.Tango import DeviceProxy
 
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
+from mx3core.TaskUtils import task
+from mx3core.BaseHardwareObjects import HardwareObject
+from mx3core.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 
 from SOLEILMergeImage import merge as merge_images
 
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import HardwareRepository as HWR
 
 __author__ = "Vicente Rey Bakaikoa"
 __credits__ = ["MXCuBE collaboration"]

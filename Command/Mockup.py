@@ -23,7 +23,7 @@ import logging
 import Queue
 import weakref
 
-from HardwareRepository.CommandContainer import CommandObject, ChannelObject
+from mx3core.CommandContainer import CommandObject, ChannelObject
 
 
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """

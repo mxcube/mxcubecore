@@ -1,4 +1,4 @@
-from HardwareRepository.HardwareObjects.ExporterMotor import ExporterMotor
+from mx3core.HardwareObjects.ExporterMotor import ExporterMotor
 import math
 
 

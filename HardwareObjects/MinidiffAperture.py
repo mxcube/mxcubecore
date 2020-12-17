@@ -1,4 +1,4 @@
-from HardwareRepository.HardwareObjects import MultiplePositions
+from mx3core.HardwareObjects import MultiplePositions
 
 
 class MinidiffAperture(MultiplePositions.MultiplePositions):

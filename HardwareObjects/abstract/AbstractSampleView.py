@@ -22,7 +22,7 @@ __license__ = "LGPLv3+"
 
 import abc
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mx3core.BaseHardwareObjects import HardwareObject
 
 
 class AbstractSampleView(HardwareObject):

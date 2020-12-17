@@ -1,7 +1,7 @@
 import logging
 from gevent import Timeout, sleep
 from warnings import warn
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import (
+from mx3core.HardwareObjects.abstract.AbstractMotor import (
     AbstractMotor,
     MotorStates,
 )

@@ -2,7 +2,7 @@
 """
 import functools
 import logging
-from HardwareRepository.TaskUtils import task, cleanup, error_cleanup
+from mx3core.TaskUtils import task, cleanup, error_cleanup
 import SC3
 
 

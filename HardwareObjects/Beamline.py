@@ -33,7 +33,7 @@ __author__ = "Rasmus H Fogh"
 
 import logging
 
-from HardwareRepository.BaseHardwareObjects import ConfiguredObject
+from mx3core.BaseHardwareObjects import ConfiguredObject
 
 # NBNB The acq parameter names match the attributes of AcquisitionParameters
 # Whereas the limit parmeter values use more udnerstandable names
@@ -577,7 +577,7 @@ class Beamline(ConfiguredObject):
                   specified acquisition type. "default" is a standard acqquisition
         """
         # Imported here to avoid circular imports
-        from HardwareRepository.HardwareObjects import queue_model_objects
+        from mx3core.HardwareObjects import queue_model_objects
 
         acq_parameters = queue_model_objects.AcquisitionParameters()
 
@@ -667,7 +667,7 @@ class Beamline(ConfiguredObject):
         :returns: A PathTemplate object with default parameters.
         """
         # Imported here to avoid circular imports
-        from HardwareRepository.HardwareObjects import queue_model_objects
+        from mx3core.HardwareObjects import queue_model_objects
 
         path_template = queue_model_objects.PathTemplate()
 

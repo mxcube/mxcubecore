@@ -27,11 +27,11 @@ __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
-from HardwareRepository.HardwareObjects.abstract.AbstractBeam import (
+from mx3core.HardwareObjects.abstract.AbstractBeam import (
     AbstractBeam,
     BeamShape,
 )
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import HardwareRepository as HWR
 
 
 class ESRFBeam(AbstractBeam):

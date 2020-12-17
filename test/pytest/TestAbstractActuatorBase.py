@@ -29,7 +29,7 @@ import abc
 import gevent
 import pytest
 
-from HardwareRepository.test.pytest import TestHardwareObjectBase
+from mx3core.test.pytest import TestHardwareObjectBase
 
 test_object = TestHardwareObjectBase.test_object
 

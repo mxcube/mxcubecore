@@ -1,6 +1,6 @@
 """Class for cameras connected to framegrabbers run by Taco Device Servers
 """
-from HardwareRepository import BaseHardwareObjects
+from mx3core import BaseHardwareObjects
 import logging
 import os
 import time
@@ -11,7 +11,7 @@ from threading import Event, Thread
 import base64
 import gevent
 
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import HardwareRepository as HWR
 
 MAX_TRIES = 3
 SLOW_INTERVAL = 1000

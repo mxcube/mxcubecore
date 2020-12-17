@@ -38,9 +38,9 @@ import ast
 import logging
 import gevent
 
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.CommandContainer import CommandObject
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mx3core.TaskUtils import task
+from mx3core.CommandContainer import CommandObject
+from mx3core.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

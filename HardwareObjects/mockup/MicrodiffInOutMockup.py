@@ -1,5 +1,5 @@
 import logging
-from HardwareRepository.BaseHardwareObjects import Device
+from mx3core.BaseHardwareObjects import Device
 import time
 
 """

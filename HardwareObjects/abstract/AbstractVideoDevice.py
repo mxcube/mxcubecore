@@ -44,7 +44,7 @@ try:
 except Exception:
     pass
 
-from HardwareRepository.BaseHardwareObjects import Device
+from mx3core.BaseHardwareObjects import Device
 
 
 module_names = ["qt", "PyQt5", "PyQt4"]

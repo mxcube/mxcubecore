@@ -1,7 +1,7 @@
 import logging
 
-from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository import HardwareRepository as HWR
+from mx3core.BaseHardwareObjects import Device
+from mx3core import HardwareRepository as HWR
 
 
 class ALBAEnergy(Device):

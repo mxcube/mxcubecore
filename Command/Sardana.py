@@ -24,7 +24,7 @@ import logging
 import os
 import time
 import types
-from HardwareRepository.dispatcher import saferef
+from mx3core.dispatcher import saferef
 
 import gevent
 from gevent.event import Event
@@ -34,7 +34,7 @@ import Queue
 gevent_version = list(map(int,gevent.__version__.split('.')))
 
 
-from HardwareRepository.CommandContainer import (
+from mx3core.CommandContainer import (
     CommandObject,
     ChannelObject,
     ConnectionError,
@@ -43,7 +43,7 @@ from HardwareRepository.CommandContainer import (
 from PyTango import DevFailed, ConnectionFailed
 import PyTango
 
-# from HardwareRepository.TaskUtils import task
+# from mx3core.TaskUtils import task
 
 try:
     from sardana.taurus.core.tango.sardana import registerExtensions

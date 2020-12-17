@@ -21,10 +21,10 @@ from enum import IntEnum, unique
 
 import gevent.event
 
-from HardwareRepository.BaseHardwareObjects import ConfiguredObject
-from HardwareRepository.dispatcher import dispatcher
+from mx3core.BaseHardwareObjects import ConfiguredObject
+from mx3core.dispatcher import dispatcher
 
-# import HardwareRepository.HardwareObjects.datamodel
+# import mx3core.HardwareObjects.datamodel
 
 # Using jsonschma for validating the JSCONSchemas
 # https://json-schema.org/
@@ -107,7 +107,7 @@ class AbstractProcedure(ConfiguredObject):
         Override to implement main task logic
 
         Args:
-            data_model: sub class of HardwareRepository.HardwareObjects.datamodel
+            data_model: sub class of mx3core.HardwareObjects.datamodel
             dict in Python 2.7 and Data class in Python 3.7. Data is validated
             by the data_model object
 
@@ -120,7 +120,7 @@ class AbstractProcedure(ConfiguredObject):
         Override to implement pre execute task logic
 
         Args:
-            data_model: sub class of HardwareRepository.HardwareObjects.datamodel
+            data_model: sub class of mx3core.HardwareObjects.datamodel
             dict in Python 2.7 and Data class in Python 3.7. Data is validated
             by the data_model object
 
@@ -133,7 +133,7 @@ class AbstractProcedure(ConfiguredObject):
         Override to implement post execute task logic
 
         Args:
-            data_model: sub class of HardwareRepository.HardwareObjects.datamodel
+            data_model: sub class of mx3core.HardwareObjects.datamodel
             dict in Python 2.7 and Data class in Python 3.7. Data is validated
             by the data_model object
 
@@ -261,7 +261,7 @@ class AbstractProcedure(ConfiguredObject):
         """
         Starts procedure
         Args:
-            data_model: sub class of HardwareRepository.HardwareObjects.datamodel
+            data_model: sub class of mx3core.HardwareObjects.datamodel
             dict in Python 2.7 and Data class in Python 3.7. Data is validated
             by the data_model object
 

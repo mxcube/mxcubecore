@@ -1,4 +1,4 @@
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import HardwareRepository as HWR
 import pytest
 import sys
 import os
@@ -9,7 +9,7 @@ monkey.patch_all(thread=False)
 
 TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
 MXCUBE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
-HWR_DIR = os.path.join(MXCUBE_DIR, "HardwareRepository")
+HWR_DIR = os.path.join(MXCUBE_DIR, "mx3core")
 
 sys.path.insert(0, MXCUBE_DIR)
 

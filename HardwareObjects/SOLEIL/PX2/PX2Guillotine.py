@@ -12,8 +12,8 @@ Example XML:
 
 import logging
 import time
-from HardwareRepository import BaseHardwareObjects
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import BaseHardwareObjects
+from mx3core import HardwareRepository as HWR
 
 
 class PX2Guillotine(BaseHardwareObjects.Device):

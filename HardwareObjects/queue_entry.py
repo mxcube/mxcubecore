@@ -46,24 +46,24 @@ from copy import copy
 
 import gevent
 
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.dispatcher import dispatcher
-from HardwareRepository.HardwareObjects import queue_model_objects
-from HardwareRepository.HardwareObjects.queue_model_enumerables import (
+from mx3core import HardwareRepository as HWR
+from mx3core.dispatcher import dispatcher
+from mx3core.HardwareObjects import queue_model_objects
+from mx3core.HardwareObjects.queue_model_enumerables import (
     EXPERIMENT_TYPE,
     COLLECTION_ORIGIN_STR,
     CENTRING_METHOD,
 )
-from HardwareRepository.HardwareObjects.base_queue_entry import (
+from mx3core.HardwareObjects.base_queue_entry import (
     BaseQueueEntry,
     QUEUE_ENTRY_STATUS,
     QueueSkippEntryException,
     QueueExecutionException,
     QueueAbortedException,
 )
-from HardwareRepository.HardwareObjects.Gphl import GphlQueueEntry
-from HardwareRepository.HardwareObjects.EMBL import EMBLQueueEntry
-from HardwareRepository.HardwareObjects import autoprocessing
+from mx3core.HardwareObjects.Gphl import GphlQueueEntry
+from mx3core.HardwareObjects.EMBL import EMBLQueueEntry
+from mx3core.HardwareObjects import autoprocessing
 
 
 __credits__ = ["MXCuBE collaboration"]

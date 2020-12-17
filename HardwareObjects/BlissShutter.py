@@ -32,9 +32,9 @@ Example xml file:
 """
 from enum import Enum, unique
 import gevent
-from HardwareRepository.HardwareObjects.abstract.AbstractShutter import AbstractShutter
+from mx3core.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 
-from HardwareRepository.BaseHardwareObjects import HardwareObjectState
+from mx3core.BaseHardwareObjects import HardwareObjectState
 
 __copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

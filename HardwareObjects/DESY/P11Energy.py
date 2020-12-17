@@ -18,8 +18,8 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-from HardwareRepository.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
-from HardwareRepository.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
+from mx3core.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
+from mx3core.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
 
 import logging
 

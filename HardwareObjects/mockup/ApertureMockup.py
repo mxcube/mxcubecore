@@ -18,7 +18,7 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-from HardwareRepository.HardwareObjects.abstract.AbstractAperture import (
+from mx3core.HardwareObjects.abstract.AbstractAperture import (
     AbstractAperture,
 )
 

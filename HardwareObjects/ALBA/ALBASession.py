@@ -2,8 +2,8 @@ import os
 import time
 import logging
 
-from HardwareRepository.HardwareObjects import Session
-from HardwareRepository.HardwareObjects import queue_model_objects
+from mx3core.HardwareObjects import Session
+from mx3core.HardwareObjects import queue_model_objects
 
 
 class ALBASession(Session.Session):

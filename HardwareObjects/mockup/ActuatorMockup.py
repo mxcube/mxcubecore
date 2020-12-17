@@ -29,7 +29,7 @@ e.g. class MotorMockup(ActuatorMockup, AbstractMotor):
 import time
 import random
 import gevent
-from HardwareRepository.HardwareObjects.abstract import AbstractActuator
+from mx3core.HardwareObjects.abstract import AbstractActuator
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

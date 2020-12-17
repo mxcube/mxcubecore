@@ -24,7 +24,7 @@
 import logging
 import gevent
 from gevent.queue import Queue
-from HardwareRepository.CommandContainer import CommandObject, ChannelObject
+from mx3core.CommandContainer import CommandObject, ChannelObject
 from .exporter import ExporterClient
 from .exporter.StandardClient import PROTOCOL
 

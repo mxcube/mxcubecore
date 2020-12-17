@@ -42,8 +42,8 @@ Public Interface:
 
 """
 
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository import BaseHardwareObjects
+from mx3core import HardwareRepository as HWR
+from mx3core import BaseHardwareObjects
 import logging
 import time
 

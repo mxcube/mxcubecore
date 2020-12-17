@@ -21,7 +21,7 @@
 """Abstract Transmission"""
 
 import abc
-from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
+from mx3core.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
 )
 

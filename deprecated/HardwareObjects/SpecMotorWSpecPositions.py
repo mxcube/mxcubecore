@@ -13,7 +13,7 @@ template:
 """
 import logging
 
-from HardwareRepository.HardwareObjects import SpecMotor
+from mx3core.HardwareObjects import SpecMotor
 
 
 class SpecMotorWSpecPositions(SpecMotor.SpecMotor):

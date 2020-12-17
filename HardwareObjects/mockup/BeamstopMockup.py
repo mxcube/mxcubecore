@@ -19,7 +19,7 @@
 
 """BeamstopMockup"""
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mx3core.BaseHardwareObjects import HardwareObject
 
 
 __credits__ = ["MXCuBE collaboration"]

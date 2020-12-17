@@ -29,8 +29,8 @@ Example xml file:
 </device>
 """
 from enum import Enum
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
-from HardwareRepository.HardwareObjects.abstract.AbstractNState import (
+from mx3core.HardwareObjects.abstract.AbstractMotor import MotorStates
+from mx3core.HardwareObjects.abstract.AbstractNState import (
     AbstractNState,
     BaseValueEnum,
 )

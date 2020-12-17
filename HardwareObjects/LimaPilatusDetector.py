@@ -5,15 +5,15 @@ import os
 import logging
 
 from PyTango import DeviceProxy
-from HardwareRepository.TaskUtils import task
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.CommandContainer import ConnectionError
+from mx3core.TaskUtils import task
+from mx3core import HardwareRepository as HWR
+from mx3core.CommandContainer import ConnectionError
 
-from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
+from mx3core.HardwareObjects.abstract.AbstractDetector import (
     AbstractDetector
 )
 
-from HardwareRepository.BaseHardwareObjects import HardwareObjectState
+from mx3core.BaseHardwareObjects import HardwareObjectState
 
 
 class LimaPilatusDetector(AbstractDetector):

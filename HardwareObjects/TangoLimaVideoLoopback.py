@@ -22,7 +22,7 @@ import time
 import uuid
 import gevent
 
-from HardwareRepository.HardwareObjects.TangoLimaVideo import TangoLimaVideo, poll_image
+from mx3core.HardwareObjects.TangoLimaVideo import TangoLimaVideo, poll_image
 
 
 def _poll_image(sleep_time, video_device, device_uri, video_mode, formats):

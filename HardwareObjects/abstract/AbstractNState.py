@@ -25,7 +25,7 @@ Implements validate_value, set/update limits.
 import abc
 import ast
 from enum import Enum, unique
-from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
+from mx3core.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
 )
 

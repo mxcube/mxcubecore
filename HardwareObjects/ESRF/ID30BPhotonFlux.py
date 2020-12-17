@@ -28,8 +28,8 @@ Example xml file:
 </object>
 """
 import logging
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.HardwareObjects.abstract.AbstractFlux import AbstractFlux
+from mx3core import HardwareRepository as HWR
+from mx3core.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 
 
 class ID30BPhotonFlux(AbstractFlux):

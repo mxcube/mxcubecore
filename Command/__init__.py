@@ -8,7 +8,7 @@ in the 'Spec' module you will find the SpecCommand and
 SpecChannel classes.
 
 Command launchers and channels should derive from the
-CObject class of the HardwareRepository.CommandContainer module.
+CObject class of the mx3core.CommandContainer module.
 They should emit the following Qt signals :
 - connected, when connected to the control software
 - disconnected, when disconnected from control software

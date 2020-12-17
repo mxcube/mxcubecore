@@ -34,7 +34,7 @@ import abc
 import sys
 from enum import Enum, unique
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mx3core.BaseHardwareObjects import HardwareObject
 
 
 @unique

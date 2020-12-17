@@ -33,7 +33,7 @@ import weakref
 import logging
 from warnings import warn
 
-from HardwareRepository.dispatcher import dispatcher
+from mx3core.dispatcher import dispatcher
 
 
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
@@ -203,7 +203,7 @@ class CommandContainer:
                     pass
 
             try:
-                from HardwareRepository.Command.Spec import SpecChannel
+                from mx3core.Command.Spec import SpecChannel
 
                 new_channel = SpecChannel(channel_name, channel, **attributes_dict)
             except Exception:
@@ -220,7 +220,7 @@ class CommandContainer:
                     pass
 
             try:
-                from HardwareRepository.Command.Taco import TacoChannel
+                from mx3core.Command.Taco import TacoChannel
 
                 new_channel = TacoChannel(channel_name, channel, **attributes_dict)
             except Exception:
@@ -237,7 +237,7 @@ class CommandContainer:
                     pass
 
             try:
-                from HardwareRepository.Command.Tango import TangoChannel
+                from mx3core.Command.Tango import TangoChannel
 
                 new_channel = TangoChannel(channel_name, channel, **attributes_dict)
             except ConnectionError:
@@ -266,7 +266,7 @@ class CommandContainer:
                 attributes_dict["port"] = int(port)
                 del attributes_dict["exporter_address"]
 
-                from HardwareRepository.Command.Exporter import ExporterChannel
+                from mx3core.Command.Exporter import ExporterChannel
 
                 new_channel = ExporterChannel(channel_name, channel, **attributes_dict)
             except Exception:
@@ -277,7 +277,7 @@ class CommandContainer:
                 )
         elif channel_type.lower() == "epics":
             try:
-                from HardwareRepository.Command.Epics import EpicsChannel
+                from mx3core.Command.Epics import EpicsChannel
 
                 new_channel = EpicsChannel(channel_name, channel, **attributes_dict)
             except Exception:
@@ -294,7 +294,7 @@ class CommandContainer:
                     pass
 
             try:
-                from HardwareRepository.Command.Tine import TineChannel
+                from mx3core.Command.Tine import TineChannel
 
                 new_channel = TineChannel(channel_name, channel, **attributes_dict)
             except Exception:
@@ -314,7 +314,7 @@ class CommandContainer:
             uribase = attributes_dict["taurusname"]
 
             try:
-                from HardwareRepository.Command.Sardana import SardanaChannel
+                from mx3core.Command.Sardana import SardanaChannel
 
                 logging.getLogger().debug(
                     "Creating a sardanachannel - %s / %s / %s",
@@ -341,7 +341,7 @@ class CommandContainer:
                     pass
 
             try:
-                from HardwareRepository.Command.Mockup import MockupChannel
+                from mx3core.Command.Mockup import MockupChannel
 
                 new_channel = MockupChannel(channel_name, channel, **attributes_dict)
             except Exception:
@@ -432,7 +432,7 @@ class CommandContainer:
                     pass
 
             try:
-                from HardwareRepository.Command.Spec import SpecCommand
+                from mx3core.Command.Spec import SpecCommand
 
                 new_command = SpecCommand(cmd_name, cmd, **attributes_dict)
             except Exception:
@@ -449,7 +449,7 @@ class CommandContainer:
                     pass
 
             try:
-                from HardwareRepository.Command.Taco import TacoCommand
+                from mx3core.Command.Taco import TacoCommand
 
                 new_command = TacoCommand(cmd_name, cmd, **attributes_dict)
             except Exception:
@@ -465,7 +465,7 @@ class CommandContainer:
                 except AttributeError:
                     pass
             try:
-                from HardwareRepository.Command.Tango import TangoCommand
+                from mx3core.Command.Tango import TangoCommand
 
                 new_command = TangoCommand(cmd_name, cmd, **attributes_dict)
             except ConnectionError:
@@ -495,7 +495,7 @@ class CommandContainer:
                 attributes_dict["port"] = int(port)
                 del attributes_dict["exporter_address"]
 
-                from HardwareRepository.Command.Exporter import ExporterCommand
+                from mx3core.Command.Exporter import ExporterCommand
 
                 new_command = ExporterCommand(cmd_name, cmd, **attributes_dict)
             except Exception:
@@ -506,7 +506,7 @@ class CommandContainer:
                 )
         elif cmd_type.lower() == "epics":
             try:
-                from HardwareRepository.Command.Epics import EpicsCommand
+                from mx3core.Command.Epics import EpicsCommand
 
                 new_command = EpicsCommand(cmd_name, cmd, **attributes_dict)
             except Exception:
@@ -566,7 +566,7 @@ class CommandContainer:
                         self.name(),
                     )
 
-            from HardwareRepository.Command.Sardana import SardanaCommand, SardanaMacro
+            from mx3core.Command.Sardana import SardanaCommand, SardanaMacro
 
             if cmd_type == "macro" and doorname is not None:
                 try:
@@ -612,7 +612,7 @@ class CommandContainer:
                 except AttributeError:
                     pass
             try:
-                from HardwareRepository.Command.Pool import PoolCommand
+                from mx3core.Command.Pool import PoolCommand
 
                 new_command = PoolCommand(cmd_name, cmd, **attributes_dict)
             except ConnectionError:
@@ -636,7 +636,7 @@ class CommandContainer:
                     pass
 
             try:
-                from HardwareRepository.Command.Tine import TineCommand
+                from mx3core.Command.Tine import TineCommand
 
                 new_command = TineCommand(cmd_name, cmd, **attributes_dict)
             except Exception:
@@ -648,7 +648,7 @@ class CommandContainer:
 
         elif cmd_type.lower() == "mockup":
             try:
-                from HardwareRepository.Command.Mockup import MockupCommand
+                from mx3core.Command.Mockup import MockupCommand
 
                 new_command = MockupCommand(cmd_name, cmd, **attributes_dict)
             except Exception:

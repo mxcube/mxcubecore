@@ -1,0 +1,17 @@
+
+_symmetry.space_group_name_H-M   "P 32 1 2" 
+_symmetry.Int_Tables_number      153 
+# 
+_cell.entry_id      5ovp 
+_cell.length_a      32.090 
+_cell.length_b      32.090 
+_cell.length_c      150.220 
+_cell.angle_alpha   90.000 
+_cell.angle_beta    90.000 
+_cell.angle_gamma   120.000 
+# 
+_diffrn_radiation_wavelength.id           1 
+_diffrn_radiation_wavelength.wavelength   1.000 
+
+DECTRIS PILATUS3 6M
+PETRA III, EMBL c/o DESY BEAMLINE P13 (MX1)

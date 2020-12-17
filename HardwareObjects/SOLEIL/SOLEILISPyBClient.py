@@ -9,7 +9,7 @@ from suds.client import Client
 from ISPyBClient import ISPyBClient, _CONNECTION_ERROR_MSG
 import traceback
 from collections import namedtuple
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import HardwareRepository as HWR
 
 # The WSDL root is configured in the hardware object XML file.
 # _WS_USERNAME, _WS_PASSWORD have to be configured in the HardwareObject XML file.

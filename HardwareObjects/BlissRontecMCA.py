@@ -1,6 +1,6 @@
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects.abstract.AbstractMCA import AbstractMCA
-from HardwareRepository.TaskUtils import task
+from mx3core.BaseHardwareObjects import HardwareObject
+from mx3core.HardwareObjects.abstract.AbstractMCA import AbstractMCA
+from mx3core.TaskUtils import task
 
 
 class BlissRontecMCA(AbstractMCA, HardwareObject):

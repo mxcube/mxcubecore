@@ -15,8 +15,8 @@ template:
     </calibration> -->
   </device>
 """
-from HardwareRepository import BaseHardwareObjects
-from HardwareRepository import CommandContainer
+from mx3core import BaseHardwareObjects
+from mx3core import CommandContainer
 import gevent
 import logging
 import os

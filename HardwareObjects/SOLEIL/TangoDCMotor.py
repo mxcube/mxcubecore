@@ -1,17 +1,17 @@
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import HardwareRepository as HWR
 
 import logging
 import gevent
 
-from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository.Command.Tango import TangoCommand
+from mx3core.BaseHardwareObjects import Device
+from mx3core.Command.Tango import TangoCommand
 
 from PyTango import DeviceProxy
 
 from PyQt4.QtGui import QApplication
 
 import numpy
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
+from mx3core.HardwareObjects.abstract.AbstractMotor import MotorStates
 
 
 class TangoDCMotor(Device):

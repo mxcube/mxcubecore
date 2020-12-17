@@ -1,4 +1,4 @@
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mx3core.BaseHardwareObjects import HardwareObject
 from .BeamCmds import ControllerCommand, HWObjActuatorCommand
 
 

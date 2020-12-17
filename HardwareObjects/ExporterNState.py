@@ -29,10 +29,10 @@ Example xml file:
 </device>
 """
 from enum import Enum
-from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractNState
-from HardwareRepository.BaseHardwareObjects import HardwareObjectState
-from HardwareRepository.Command.Exporter import Exporter
-from HardwareRepository.Command.exporter.ExporterStates import ExporterStates
+from mx3core.HardwareObjects.abstract.AbstractNState import AbstractNState
+from mx3core.BaseHardwareObjects import HardwareObjectState
+from mx3core.Command.Exporter import Exporter
+from mx3core.Command.exporter.ExporterStates import ExporterStates
 
 __copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

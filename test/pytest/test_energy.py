@@ -23,7 +23,7 @@ __license__ = "LGPLv3+"
 
 import pytest
 
-from HardwareRepository.test.pytest import TestAbstractActuatorBase
+from mx3core.test.pytest import TestAbstractActuatorBase
 
 
 @pytest.fixture

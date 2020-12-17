@@ -1,4 +1,4 @@
-from HardwareRepository.HardwareObjects.mockup.EnergyMockup import EnergyMockup
+from mx3core.HardwareObjects.mockup.EnergyMockup import EnergyMockup
 from energy import energy
 from scipy.constants import kilo, h, c, eV, angstrom
 import logging

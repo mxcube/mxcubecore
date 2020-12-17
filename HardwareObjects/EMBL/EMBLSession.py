@@ -26,7 +26,7 @@ access and manipulate this information.
 import os
 import time
 
-from HardwareRepository.HardwareObjects.Session import Session
+from mx3core.HardwareObjects.Session import Session
 
 
 __credits__ = ["EMBL Hamburg"]

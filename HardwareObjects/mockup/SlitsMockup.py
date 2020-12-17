@@ -18,7 +18,7 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 
-from HardwareRepository.HardwareObjects.abstract.AbstractSlits import AbstractSlits
+from mx3core.HardwareObjects.abstract.AbstractSlits import AbstractSlits
 
 
 __credits__ = ["MXCuBE collaboration"]

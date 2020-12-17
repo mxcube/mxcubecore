@@ -29,7 +29,7 @@ import abc
 import math
 from ast import literal_eval
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mx3core.BaseHardwareObjects import HardwareObject
 
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """

@@ -1,5 +1,5 @@
-from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository.TaskUtils import task
+from mx3core.BaseHardwareObjects import Device
+from mx3core.TaskUtils import task
 import time
 import gevent
 

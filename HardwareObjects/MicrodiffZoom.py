@@ -33,8 +33,8 @@ EL6": 6}</values>
 """
 
 from enum import Enum
-from HardwareRepository.HardwareObjects.abstract.AbstractNState import BaseValueEnum
-from HardwareRepository.HardwareObjects.ExporterNState import ExporterNState
+from mx3core.HardwareObjects.abstract.AbstractNState import BaseValueEnum
+from mx3core.HardwareObjects.ExporterNState import ExporterNState
 
 __copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

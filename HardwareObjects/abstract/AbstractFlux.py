@@ -19,11 +19,11 @@
 
 from scipy.interpolate import interp1d
 
-from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
+from mx3core.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
 )
 
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import HardwareRepository as HWR
 
 
 __credits__ = ["MXCuBE collaboration"]

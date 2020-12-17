@@ -28,11 +28,11 @@ import logging
 import re
 from collections import OrderedDict
 import f90nml
-from HardwareRepository import ConvertUtils
-from HardwareRepository.HardwareObjects.mockup.CollectMockup import CollectMockup
-from HardwareRepository.TaskUtils import task
+from mx3core import ConvertUtils
+from mx3core.HardwareObjects.mockup.CollectMockup import CollectMockup
+from mx3core.TaskUtils import task
 
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import HardwareRepository as HWR
 
 __copyright__ = """ Copyright © 2017 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"

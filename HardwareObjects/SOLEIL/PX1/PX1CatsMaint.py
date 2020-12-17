@@ -1,6 +1,6 @@
 #
-from HardwareRepository.HardwareObjects.CatsMaint import CatsMaint
-from HardwareRepository import HardwareRepository as HWR
+from mx3core.HardwareObjects.CatsMaint import CatsMaint
+from mx3core import HardwareRepository as HWR
 
 import logging
 import time

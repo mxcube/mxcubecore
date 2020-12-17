@@ -49,8 +49,8 @@ from datetime import datetime
 
 from gui.utils import QtImport
 
-from HardwareRepository.HardwareObjects import queue_model_objects
-from HardwareRepository.ConvertUtils import string_types
+from mx3core.HardwareObjects import queue_model_objects
+from mx3core.ConvertUtils import string_types
 
 
 SELECTED_COLOR = QtImport.Qt.green
