@@ -15,9 +15,9 @@ install:
   - if [[ $TRAVIS_PYTHON_VERSION == '3'* ]]; then travis_retry pip3 install -r requirements_python3.txt; fi
 script:
   - python -m pytest
-#  - pylint -E HardwareObjects/EMBL
+#  - pylint -E hardware_objects/EMBL
 #  - pylint -E *py
-#  - pylint -E HardwareObjects/*py
-#  - pylint -E HardwareObjects/abstract/*py
-#  - pylint -E HardwareObjects/mockup/*py
+#  - pylint -E hardware_objects/*py
+#  - pylint -E hardware_objects/abstract/*py
+#  - pylint -E hardware_objects/mockup/*py
 

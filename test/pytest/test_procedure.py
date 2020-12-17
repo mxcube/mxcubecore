@@ -1,6 +1,6 @@
 import gevent
-from mx3core.HardwareObjects import datamodel
-from mx3core.HardwareObjects.abstract.AbstractProcedure import ProcedureState
+from mx3core.hardware_objects import datamodel
+from mx3core.hardware_objects.abstract.AbstractProcedure import ProcedureState
 
 
 def test_procedure_init(beamline):

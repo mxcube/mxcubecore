@@ -18,14 +18,14 @@ sys.path.insert(0, hwrpath)
 
 
 def getStdHardwareObjectsPath():
-    import HardwareObjects  # first looks in containing package
+    import hardware_objects  # first looks in containing package
 
-    return os.path.dirname(HardwareObjects.__file__)
+    return os.path.dirname(hardware_objects.__file__)
 
 
 sys.path.insert(0, getStdHardwareObjectsPath())
 
-hwobj_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "HardwareObjects")
+hwobj_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hardware_objects")
 hwobj_dir_list = [hwobj_dir]
 for subdir in ("sample_changer", "mockup"):
     hwobj_dir_list.append(os.path.join(hwobj_dir, subdir))

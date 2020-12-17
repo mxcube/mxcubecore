@@ -26,7 +26,7 @@ from __future__ import print_function, unicode_literals
 
 import pytest
 from mx3core.test.pytest import TestHardwareObjectBase
-from mx3core.HardwareObjects.abstract.AbstractBeam import BeamShape
+from mx3core.hardware_objects.abstract.AbstractBeam import BeamShape
 
 __copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
