@@ -1,5 +1,5 @@
 from mx3core.BaseHardwareObjects import HardwareObject
-from mx3core.HardwareObjects.abstract.AbstractMultiCollect import (
+from mx3core.hardware_objects.abstract.AbstractMultiCollect import (
     AbstractMultiCollect,
 )
 from mx3core.TaskUtils import task

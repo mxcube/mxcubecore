@@ -6,7 +6,7 @@ import time
 import gevent
 from gui.utils.QtImport import QImage
 from mx3core import BaseHardwareObjects
-from mx3core.HardwareObjects.Camera import JpegType
+from mx3core.hardware_objects.Camera import JpegType
 
 
 class VideoMockup(BaseHardwareObjects.Device):
