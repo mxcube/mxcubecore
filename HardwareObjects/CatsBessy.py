@@ -1,4 +1,4 @@
-from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import *
+from mx3core.HardwareObjects.abstract.AbstractSampleChanger import *
 import time
 
 

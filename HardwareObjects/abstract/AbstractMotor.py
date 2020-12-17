@@ -28,8 +28,8 @@ import abc
 import math
 from enum import Enum, unique
 
-from HardwareRepository.BaseHardwareObjects import HardwareObjectState
-from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
+from mx3core.BaseHardwareObjects import HardwareObjectState
+from mx3core.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
 )
 

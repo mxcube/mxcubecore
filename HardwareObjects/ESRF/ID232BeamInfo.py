@@ -1,5 +1,5 @@
-from HardwareRepository.HardwareObjects import BeamInfo
-from HardwareRepository import HardwareRepository as HWR
+from mx3core.HardwareObjects import BeamInfo
+from mx3core import HardwareRepository as HWR
 
 
 class ID232BeamInfo(BeamInfo.BeamInfo):

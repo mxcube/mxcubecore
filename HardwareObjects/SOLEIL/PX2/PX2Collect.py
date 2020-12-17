@@ -19,9 +19,9 @@
 import os
 import logging
 import gevent
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
+from mx3core.TaskUtils import task
+from mx3core.BaseHardwareObjects import HardwareObject
+from mx3core.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 
 from omega_scan import omega_scan
 from inverse_scan import inverse_scan
@@ -35,7 +35,7 @@ from raster_scan import raster_scan
 from nested_helical_acquisition import nested_helical_acquisition
 from tomography import tomography
 from film import film
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import HardwareRepository as HWR
 
 from slits import slits1
 

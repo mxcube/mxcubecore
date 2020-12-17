@@ -21,7 +21,7 @@
 import time
 import numpy
 
-from HardwareRepository.HardwareObjects.abstract.AbstractOnlineProcessing import (
+from mx3core.HardwareObjects.abstract.AbstractOnlineProcessing import (
     AbstractOnlineProcessing,
 )
 

@@ -1,5 +1,5 @@
-from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import task
+from mx3core.BaseHardwareObjects import Equipment
+from mx3core.TaskUtils import task
 import time
 from PyTango.gevent import DeviceProxy
 

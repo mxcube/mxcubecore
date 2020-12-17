@@ -3,10 +3,10 @@ import socket
 import logging
 import pickle as pickle
 
-from HardwareRepository.TaskUtils import task
+from mx3core.TaskUtils import task
 
 from .ESRFMultiCollect import ESRFMultiCollect, FixedEnergy, PixelDetector
-from HardwareRepository.HardwareObjects.LimaEigerDetector import Eiger
+from mx3core.HardwareObjects.LimaEigerDetector import Eiger
 from PyTango.gevent import DeviceProxy
 
 

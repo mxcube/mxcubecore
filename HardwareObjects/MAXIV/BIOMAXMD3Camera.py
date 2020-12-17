@@ -1,4 +1,4 @@
-from HardwareRepository.BaseHardwareObjects import Device
+from mx3core.BaseHardwareObjects import Device
 import math
 import logging
 import time

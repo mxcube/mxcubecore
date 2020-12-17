@@ -19,10 +19,10 @@
 
 import time
 
-from HardwareRepository.HardwareObjects.abstract.AbstractXRFSpectrum import (
+from mx3core.HardwareObjects.abstract.AbstractXRFSpectrum import (
     AbstractXRFSpectrum,
 )
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mx3core.BaseHardwareObjects import HardwareObject
 
 
 spectrum_test_data = [

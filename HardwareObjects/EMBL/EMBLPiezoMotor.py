@@ -23,7 +23,7 @@ EMBLPiezoMotor
 
 import logging
 
-from HardwareRepository.HardwareObjects.EMBL.TINEMotor import TINEMotor
+from mx3core.HardwareObjects.EMBL.TINEMotor import TINEMotor
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"

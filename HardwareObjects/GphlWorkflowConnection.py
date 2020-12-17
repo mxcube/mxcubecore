@@ -35,11 +35,11 @@ import gevent.monkey
 import gevent.event
 from py4j import clientserver
 
-from HardwareRepository import ConvertUtils
-from HardwareRepository.HardwareObjects import GphlMessages
+from mx3core import ConvertUtils
+from mx3core.HardwareObjects import GphlMessages
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository import HardwareRepository as HWR
+from mx3core.BaseHardwareObjects import HardwareObject
+from mx3core import HardwareRepository as HWR
 
 try:
     # Needed for 3.6(?) onwards
@@ -52,7 +52,7 @@ try:
     # This file already does the alternative imports plus some tweaking
     # TODO It ought to be moved out as an accessible Util file, but meanwhile
     # Here we take care of the case where it is missing.
-    from HardwareRepository.dispatcher import dispatcher
+    from mx3core.dispatcher import dispatcher
 except ImportError:
     try:
         from louie import dispatcher

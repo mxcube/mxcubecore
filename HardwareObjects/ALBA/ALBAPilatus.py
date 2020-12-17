@@ -21,10 +21,10 @@ from __future__ import print_function
 import logging
 import time
 
-from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
+from mx3core.HardwareObjects.abstract.AbstractDetector import (
     AbstractDetector,
 )
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mx3core.BaseHardwareObjects import HardwareObject
 
 from PyTango.gevent import DeviceProxy
 

@@ -1,5 +1,5 @@
-from HardwareRepository.HardwareObjects.MD2Motor import MD2Motor
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
+from mx3core.HardwareObjects.MD2Motor import MD2Motor
+from mx3core.HardwareObjects.abstract.AbstractMotor import MotorStates
 import logging
 import math
 

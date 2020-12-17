@@ -3,9 +3,9 @@ import shutil
 import logging
 import os
 
-from HardwareRepository.TaskUtils import task
+from mx3core.TaskUtils import task
 from .ESRFMultiCollect import ESRFMultiCollect, PixelDetector, TunableEnergy
-from HardwareRepository.HardwareObjects.LimaPilatusDetector import LimaPilatusDetector
+from mx3core.HardwareObjects.LimaPilatusDetector import LimaPilatusDetector
 
 
 class ID232MultiCollect(ESRFMultiCollect):

@@ -56,8 +56,8 @@ Example Hardware Object XML file :
 </device>
 """
 
-from HardwareRepository import BaseHardwareObjects
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+from mx3core import BaseHardwareObjects
+from mx3core.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 import logging
 import PyTango
 

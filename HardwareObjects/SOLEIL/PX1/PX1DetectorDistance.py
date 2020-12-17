@@ -1,8 +1,8 @@
 import time
 import gevent
 
-from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+from mx3core.BaseHardwareObjects import Device
+from mx3core.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 
 class PX1DetectorDistance(Device, AbstractMotor):

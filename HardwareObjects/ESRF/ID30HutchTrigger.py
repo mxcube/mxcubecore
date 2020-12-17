@@ -1,4 +1,4 @@
-from HardwareRepository import BaseHardwareObjects
+from mx3core import BaseHardwareObjects
 import logging
 import PyTango.gevent
 import gevent

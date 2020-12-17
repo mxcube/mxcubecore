@@ -29,7 +29,7 @@ __date__ = "09/04/2020"
 import abc
 import pytest
 import gevent.event
-from HardwareRepository.BaseHardwareObjects import HardwareObjectState
+from mx3core.BaseHardwareObjects import HardwareObjectState
 
 
 @pytest.fixture

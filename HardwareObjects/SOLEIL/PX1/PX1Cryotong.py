@@ -3,10 +3,10 @@ import logging
 import gevent
 import time
 
-from HardwareRepository.Command.Tango import DeviceProxy
+from mx3core.Command.Tango import DeviceProxy
 
 
-from HardwareRepository.HardwareObjects.Cats90 import (
+from mx3core.HardwareObjects.Cats90 import (
     Cats90,
     SampleChangerState,
     BASKET_UNIPUCK,

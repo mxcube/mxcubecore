@@ -1,4 +1,4 @@
-from HardwareRepository.HardwareObjects.RobodiffMotor import RobodiffMotor
+from mx3core.HardwareObjects.RobodiffMotor import RobodiffMotor
 import logging
 
 

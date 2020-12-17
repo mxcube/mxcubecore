@@ -1,4 +1,4 @@
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mx3core.BaseHardwareObjects import HardwareObject
 
 import os
 import time
@@ -8,8 +8,8 @@ import logging
 import binascii
 
 # import threading
-from HardwareRepository.HardwareObjects.SecureXMLRpcRequestHandler import SecureXMLRpcRequestHandler
-from HardwareRepository import HardwareRepository as HWR
+from mx3core.HardwareObjects.SecureXMLRpcRequestHandler import SecureXMLRpcRequestHandler
+from mx3core import HardwareRepository as HWR
 
 try:
     from httplib import HTTPConnection

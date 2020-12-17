@@ -21,8 +21,8 @@
 
 import time
 
-from HardwareRepository.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
-from HardwareRepository.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
+from mx3core.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
+from mx3core.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
 
 # Default energy value (keV)
 DEFAULT_VALUE = 12.4

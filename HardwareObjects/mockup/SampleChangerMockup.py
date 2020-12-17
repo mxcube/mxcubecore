@@ -3,8 +3,8 @@ from datetime import datetime
 import time
 import logging
 
-from HardwareRepository.HardwareObjects.abstract import AbstractSampleChanger
-from HardwareRepository.HardwareObjects.abstract.sample_changer import Container
+from mx3core.HardwareObjects.abstract import AbstractSampleChanger
+from mx3core.HardwareObjects.abstract.sample_changer import Container
 
 
 class SampleChangerMockup(AbstractSampleChanger.SampleChanger):

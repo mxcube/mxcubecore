@@ -66,13 +66,13 @@ except ImportError:
 
 from gui.utils import QtImport
 
-from HardwareRepository.HardwareObjects import queue_model_objects
-from HardwareRepository.HardwareObjects import QtGraphicsLib as GraphicsLib
-from HardwareRepository.HardwareObjects.abstract.AbstractSampleView import (
+from mx3core.HardwareObjects import queue_model_objects
+from mx3core.HardwareObjects import QtGraphicsLib as GraphicsLib
+from mx3core.HardwareObjects.abstract.AbstractSampleView import (
     AbstractSampleView,
 )
 
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import HardwareRepository as HWR
 
 __credits__ = ["MXCuBE collaboration"]
 __category__ = "Graphics"

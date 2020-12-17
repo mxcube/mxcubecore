@@ -1,8 +1,8 @@
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects.abstract.AbstractMultiCollect import (
+from mx3core.BaseHardwareObjects import HardwareObject
+from mx3core.HardwareObjects.abstract.AbstractMultiCollect import (
     AbstractMultiCollect,
 )
-from HardwareRepository.TaskUtils import task
+from mx3core.TaskUtils import task
 import logging
 import time
 import os

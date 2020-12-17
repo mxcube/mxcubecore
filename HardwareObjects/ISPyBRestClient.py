@@ -8,8 +8,8 @@ import cgi
 from datetime import datetime
 from requests import post, get
 from urllib.parse import urljoin
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository import HardwareRepository as HWR
+from mx3core.BaseHardwareObjects import HardwareObject
+from mx3core import HardwareRepository as HWR
 
 _CONNECTION_ERROR_MSG = (
     "Could not connect to ISPyB, please verify that "

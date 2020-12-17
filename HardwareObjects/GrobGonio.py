@@ -1,4 +1,4 @@
-from HardwareRepository.HardwareObjects import GrobMotor
+from mx3core.HardwareObjects import GrobMotor
 
 
 class GrobGonio(GrobMotor.GrobMotor):

@@ -23,14 +23,14 @@ import subprocess
 
 import gevent
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects.XSDataCommon import (
+from mx3core.BaseHardwareObjects import HardwareObject
+from mx3core.HardwareObjects.XSDataCommon import (
     XSDataDouble,
     XSDataFile,
     XSDataInteger,
     XSDataString,
 )
-from HardwareRepository.HardwareObjects.XSDataAutoprocv1_0 import XSDataAutoprocInput
+from mx3core.HardwareObjects.XSDataAutoprocv1_0 import XSDataAutoprocInput
 
 
 __credits__ = ["EMBL Hamburg"]

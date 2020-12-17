@@ -62,12 +62,12 @@ except ImportError:
             "Could not find autocentring library, automatic centring is disabled"
         )
 
-from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+from mx3core.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
 )
 
-from HardwareRepository.TaskUtils import task
-from HardwareRepository import HardwareRepository as HWR
+from mx3core.TaskUtils import task
+from mx3core import HardwareRepository as HWR
 
 __credits__ = ["SOLEIL"]
 __version__ = "2.3."

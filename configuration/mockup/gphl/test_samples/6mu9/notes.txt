@@ -1,0 +1,15 @@
+
+_cell.entry_id      6mu9 
+_cell.length_a      35.307 
+_cell.length_b      42.094 
+_cell.length_c      48.542 
+_cell.angle_alpha   97.734 
+_cell.angle_beta    105.516 
+_cell.angle_gamma   113.343 
+# 
+_diffrn_radiation_wavelength.id           1 
+_diffrn_radiation_wavelength.wavelength   0.9792 
+# 
+
+DECTRIS PILATUS3 X 6M
+APS BEAMLINE 19-ID

@@ -21,9 +21,9 @@ from __future__ import print_function, unicode_literals
 
 import os
 import time
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.HardwareObjects.abstract import AbstractCollect
-from HardwareRepository import HardwareRepository as HWR
+from mx3core.TaskUtils import task
+from mx3core.HardwareObjects.abstract import AbstractCollect
+from mx3core import HardwareRepository as HWR
 
 
 __credits__ = ["MXCuBE collaboration"]

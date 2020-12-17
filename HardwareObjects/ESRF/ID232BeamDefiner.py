@@ -1,8 +1,8 @@
 import ast
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractNState
-from HardwareRepository.BaseHardwareObjects import HardwareObjectState
+from mx3core.BaseHardwareObjects import HardwareObject
+from mx3core.HardwareObjects.abstract.AbstractNState import AbstractNState
+from mx3core.BaseHardwareObjects import HardwareObjectState
 from bliss.common import event
 
 

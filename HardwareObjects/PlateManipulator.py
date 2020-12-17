@@ -34,12 +34,12 @@ each drop could have several crystals.
 import time
 import gevent
 
-from HardwareRepository.HardwareObjects.abstract.sample_changer import Crims
-from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import (
+from mx3core.HardwareObjects.abstract.sample_changer import Crims
+from mx3core.HardwareObjects.abstract.AbstractSampleChanger import (
     SampleChanger,
     SampleChangerState,
 )
-from HardwareRepository.HardwareObjects.abstract.sample_changer.Container import (
+from mx3core.HardwareObjects.abstract.sample_changer.Container import (
     Container,
     Sample,
     Basket,

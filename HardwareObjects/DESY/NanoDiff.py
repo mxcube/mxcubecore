@@ -29,15 +29,15 @@ import math
 import lucid
 
 
-from HardwareRepository.HardwareObjects import queue_model_objects as qmo
+from mx3core.HardwareObjects import queue_model_objects as qmo
 
 from gevent.event import AsyncResult
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.ConvertUtils import string_types
-from HardwareRepository import HardwareRepository as HWR
+from mx3core.TaskUtils import task
+from mx3core.BaseHardwareObjects import HardwareObject
+from mx3core.ConvertUtils import string_types
+from mx3core import HardwareRepository as HWR
 
-# from HardwareRepository.HardwareObjects.GenericDiffractometer import GenericDiffractometer
+# from mx3core.HardwareObjects.GenericDiffractometer import GenericDiffractometer
 
 
 last_centred_position = [200, 200]

@@ -22,7 +22,7 @@ import logging
 import gevent
 
 from tine import query as tinequery
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mx3core.BaseHardwareObjects import HardwareObject
 
 
 __credits__ = ["EMBL Hamburg"]

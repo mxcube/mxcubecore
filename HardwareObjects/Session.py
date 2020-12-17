@@ -8,8 +8,8 @@ import os
 import time
 import socket
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects.queue_model_objects import PathTemplate
+from mx3core.BaseHardwareObjects import HardwareObject
+from mx3core.HardwareObjects.queue_model_objects import PathTemplate
 
 default_raw_data_folder = "RAW_DATA"
 default_processed_data_folder = "PROCESSED_DATA"

@@ -2,11 +2,11 @@ import gevent
 import time
 import os
 import math
-from HardwareRepository.TaskUtils import task
+from mx3core.TaskUtils import task
 import logging
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import HardwareRepository as HWR
 
-from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
+from mx3core.HardwareObjects.abstract.AbstractDetector import (
     AbstractDetector,
 )
 

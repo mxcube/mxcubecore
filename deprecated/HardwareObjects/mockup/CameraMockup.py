@@ -1,6 +1,6 @@
 """Class for cameras connected to framegrabbers run by Taco Device Servers
 """
-from HardwareRepository import BaseHardwareObjects
+from mx3core import BaseHardwareObjects
 import logging
 import os
 import gevent

@@ -22,13 +22,13 @@ import logging
 import gevent
 import gevent.event
 from gevent.queue import Queue
-from HardwareRepository.CommandContainer import (
+from mx3core.CommandContainer import (
     CommandObject,
     ChannelObject,
     ConnectionError,
 )
-from HardwareRepository import Poller
-from HardwareRepository.dispatcher import saferef
+from mx3core import Poller
+from mx3core.dispatcher import saferef
 
 gevent_version = list(map(int,gevent.__version__.split('.')))
 

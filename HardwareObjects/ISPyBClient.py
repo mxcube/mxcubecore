@@ -20,9 +20,9 @@ except Exception:
 from suds.sudsobject import asdict
 from suds import WebFault
 from suds.client import Client
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.ConvertUtils import string_types
-from HardwareRepository import HardwareRepository as HWR
+from mx3core.BaseHardwareObjects import HardwareObject
+from mx3core.ConvertUtils import string_types
+from mx3core import HardwareRepository as HWR
 
 """
 A client for ISPyB Webservices.

@@ -113,7 +113,7 @@ def test_hwo():
     from gui.utils.QtImport import *
     import time
 
-    from HardwareRepository import HardwareRepository as HWR
+    from mx3core import HardwareRepository as HWR
 
     hwr = HWR.get_hardware_repository()
     hwr.connect()

@@ -23,13 +23,13 @@ Module contains EMBL specific queue entries
 
 import logging
 
-from HardwareRepository.dispatcher import dispatcher
-from HardwareRepository.HardwareObjects.base_queue_entry import (
+from mx3core.dispatcher import dispatcher
+from mx3core.HardwareObjects.base_queue_entry import (
     BaseQueueEntry,
     QueueExecutionException,
     QUEUE_ENTRY_STATUS,
 )
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import HardwareRepository as HWR
 
 
 __credits__ = ["MXCuBE collaboration"]

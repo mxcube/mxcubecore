@@ -1,4 +1,4 @@
-## How to contribute to HardwareRepository of MXCuBE
+## How to contribute to Hardware Repository of MXCuBE
 
 Before submiting the code to the repository please read these contributing guidlines.
 The aim of these guidlines is to help the developers community to maintain the code stable and reusable.

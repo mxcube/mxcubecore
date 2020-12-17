@@ -1,4 +1,4 @@
-from HardwareRepository.HardwareObjects.abstract.sample_changer.CatsMaint import (
+from mx3core.HardwareObjects.abstract.sample_changer.CatsMaint import (
     CatsMaint,
 )
 

@@ -19,7 +19,7 @@
 
 
 import gevent
-from HardwareRepository.HardwareObjects.abstract.AbstractTransmission import (
+from mx3core.HardwareObjects.abstract.AbstractTransmission import (
     AbstractTransmission,
 )
 

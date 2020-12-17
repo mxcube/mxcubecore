@@ -25,7 +25,7 @@ It can include aperture, slits and/or beam focusing hwobj
 import ast
 import logging
 
-from HardwareRepository.BaseHardwareObjects import Equipment
+from mx3core.BaseHardwareObjects import Equipment
 
 
 __credits__ = ["EMBL Hamburg"]

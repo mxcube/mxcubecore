@@ -3,9 +3,9 @@ import logging
 import math
 from calc_flux import CalculateFlux
 from PyTango.gevent import DeviceProxy
-from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import task
-from HardwareRepository import HardwareRepository as HWR
+from mx3core.BaseHardwareObjects import Equipment
+from mx3core.TaskUtils import task
+from mx3core import HardwareRepository as HWR
 
 
 class ID23PhotonFlux(Equipment):

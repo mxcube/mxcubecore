@@ -19,8 +19,8 @@ beamInfoChanged
 """
 
 import logging
-from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository import HardwareRepository as HWR
+from mx3core.BaseHardwareObjects import Equipment
+from mx3core import HardwareRepository as HWR
 
 
 class BeamInfo(Equipment):

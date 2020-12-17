@@ -5,7 +5,7 @@ from logging.handlers import RotatingFileHandler
 import os
 import sys
 
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import HardwareRepository as HWR
 
 
 hwrpath = os.path.dirname(__file__)
@@ -32,7 +32,7 @@ for subdir in ("sample_changer", "mockup"):
 HWR.add_hardware_objects_dirs(hwobj_dir_list)
 
 #
-# create the HardwareRepository logger
+# create the mx3core logger
 #
 _hwr_logger = logging.getLogger("HWR")
 _hwr_logger.setLevel(logging.DEBUG)

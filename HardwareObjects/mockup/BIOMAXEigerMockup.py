@@ -25,9 +25,9 @@ import time
 import copy
 import logging
 
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.TaskUtils import task, cleanup, error_cleanup
-from HardwareRepository.BaseHardwareObjects import Equipment
+from mx3core import HardwareRepository as HWR
+from mx3core.TaskUtils import task, cleanup, error_cleanup
+from mx3core.BaseHardwareObjects import Equipment
 
 
 class BIOMAXEigerMockup(Equipment):
@@ -87,7 +87,7 @@ class BIOMAXEigerMockup(Equipment):
         }
 
         # we need to call the init device before accessing the channels here
-        #   otherwise the initialization is triggered by the HardwareRepository Poller
+        #   otherwise the initialization is triggered by the mx3core Poller
         #   that is delayed after the application starts
 
         try:

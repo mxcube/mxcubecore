@@ -1,5 +1,5 @@
 import logging
-from HardwareRepository.TaskUtils import task
+from mx3core.TaskUtils import task
 from ESRFEnergyScan import ESRFEnergyScan, TunableEnergy
 
 

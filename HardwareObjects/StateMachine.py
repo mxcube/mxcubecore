@@ -23,7 +23,7 @@ import logging
 
 from datetime import datetime
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mx3core.BaseHardwareObjects import HardwareObject
 
 
 __author__ = "EMBL Hamburg"

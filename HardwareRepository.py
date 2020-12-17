@@ -40,8 +40,8 @@ from warnings import warn
 import gevent
 from ruamel.yaml import YAML
 
-from HardwareRepository.ConvertUtils import string_types, make_table
-from HardwareRepository.dispatcher import dispatcher
+from mx3core.ConvertUtils import string_types, make_table
+from mx3core.dispatcher import dispatcher
 from . import BaseHardwareObjects
 from . import HardwareObjectFileParser
 

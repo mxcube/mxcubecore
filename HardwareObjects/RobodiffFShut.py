@@ -1,4 +1,4 @@
-from HardwareRepository.BaseHardwareObjects import Equipment
+from mx3core.BaseHardwareObjects import Equipment
 
 
 class RobodiffFShut(Equipment):

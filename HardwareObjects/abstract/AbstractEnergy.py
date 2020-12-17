@@ -23,7 +23,7 @@
 import abc
 import math
 from scipy.constants import h, c, e
-from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
+from mx3core.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
 )
 

@@ -19,9 +19,9 @@ between two Point objects.
 
 import logging
 import os
-from HardwareRepository.HardwareObjects import queue_model_objects
+from mx3core.HardwareObjects import queue_model_objects
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mx3core.BaseHardwareObjects import HardwareObject
 
 SELECTED_COLOR = "green"
 NORMAL_COLOR = "yellow"

@@ -27,7 +27,7 @@ __date__ = "09/04/2020"
 
 import abc
 import pytest
-from HardwareRepository.test.pytest import TestAbstractActuatorBase
+from mx3core.test.pytest import TestAbstractActuatorBase
 
 test_object = TestAbstractActuatorBase.test_object
 

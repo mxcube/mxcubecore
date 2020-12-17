@@ -1,7 +1,7 @@
 import os
 
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.BaseHardwareObjects import Device
+from mx3core import HardwareRepository as HWR
+from mx3core.BaseHardwareObjects import Device
 
 
 class PX1Configuration(Device):

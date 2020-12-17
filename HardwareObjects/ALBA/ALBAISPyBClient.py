@@ -1,5 +1,5 @@
 import logging
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import HardwareRepository as HWR
 
 from ISPyBClient import ISPyBClient
 

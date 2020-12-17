@@ -2,7 +2,7 @@ import sys
 import logging
 import math
 import gevent
-from HardwareRepository.BaseHardwareObjects import Equipment
+from mx3core.BaseHardwareObjects import Equipment
 
 """
 Example xml file:

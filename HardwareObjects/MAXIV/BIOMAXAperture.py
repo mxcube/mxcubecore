@@ -1,5 +1,5 @@
 import logging
-from HardwareRepository.HardwareObjects.MicrodiffAperture import MicrodiffAperture
+from mx3core.HardwareObjects.MicrodiffAperture import MicrodiffAperture
 
 
 class BIOMAXAperture(MicrodiffAperture):

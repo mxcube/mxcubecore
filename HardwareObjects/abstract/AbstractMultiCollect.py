@@ -8,9 +8,9 @@ import abc
 import collections
 import autoprocessing
 import gevent
-from HardwareRepository.TaskUtils import task, cleanup, error_cleanup
+from mx3core.TaskUtils import task, cleanup, error_cleanup
 
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import HardwareRepository as HWR
 
 BeamlineControl = collections.namedtuple(
     "BeamlineControl",

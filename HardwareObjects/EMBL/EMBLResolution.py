@@ -17,7 +17,7 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-from HardwareRepository.HardwareObjects.EMBL.TINEMotor import TINEMotor
+from mx3core.HardwareObjects.EMBL.TINEMotor import TINEMotor
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"

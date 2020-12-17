@@ -4,8 +4,8 @@ import gevent
 import numpy as np
 import logging
 
-from HardwareRepository.HardwareObjects.ExporterMotor import ExporterMotor
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
+from mx3core.HardwareObjects.ExporterMotor import ExporterMotor
+from mx3core.HardwareObjects.abstract.AbstractMotor import MotorStates
 
 
 class MicrodiffKappaMotor(ExporterMotor):

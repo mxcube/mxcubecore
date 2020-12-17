@@ -1,12 +1,12 @@
 import logging
 import gevent.event
 
-from HardwareRepository.HardwareObjects import edna_test_data
-from HardwareRepository.HardwareObjects.abstract.AbstractCharacterisation import (
+from mx3core.HardwareObjects import edna_test_data
+from mx3core.HardwareObjects.abstract.AbstractCharacterisation import (
     AbstractCharacterisation,
 )
 
-from HardwareRepository.HardwareObjects.XSDataMXCuBEv1_3 import XSDataResultMXCuBE
+from mx3core.HardwareObjects.XSDataMXCuBEv1_3 import XSDataResultMXCuBE
 
 
 class SOLEILEDNACharacterisationMockup(AbstractCharacterisation):

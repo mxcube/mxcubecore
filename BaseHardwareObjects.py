@@ -26,9 +26,9 @@ from collections import OrderedDict
 import logging
 from gevent import event, Timeout
 
-from HardwareRepository.dispatcher import dispatcher
-from HardwareRepository.CommandContainer import CommandContainer
-from HardwareRepository.ConvertUtils import string_types
+from mx3core.dispatcher import dispatcher
+from mx3core.CommandContainer import CommandContainer
+from mx3core.ConvertUtils import string_types
 
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """

@@ -3,12 +3,12 @@ import pickle
 import gevent
 import logging
 
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import (
+from mx3core.TaskUtils import task
+from mx3core.HardwareObjects.abstract.AbstractSampleChanger import (
     SampleChanger,
     SampleChangerState,
 )
-from HardwareRepository.HardwareObjects.abstract.sample_changer.Container import (
+from mx3core.HardwareObjects.abstract.sample_changer.Container import (
     Container,
     Sample,
 )

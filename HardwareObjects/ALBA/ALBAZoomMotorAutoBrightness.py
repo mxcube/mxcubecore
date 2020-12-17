@@ -49,8 +49,8 @@ Example Hardware Object XML file :
 </device>
 """
 
-from HardwareRepository import BaseHardwareObjects
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+from mx3core import BaseHardwareObjects
+from mx3core.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 import logging
 
 __author__ = "Jordi Andreu"
@@ -151,7 +151,7 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device, AbstractMotor):
 
 
 def test():
-    from HardwareRepository import HardwareRepository as HWR
+    from mx3core import HardwareRepository as HWR
 
     hwr = HWR.get_hardware_repository()
     hwr.connect()

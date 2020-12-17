@@ -28,8 +28,8 @@ Example xml file:
 
 import enum
 from bliss.config import static
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
-from HardwareRepository.BaseHardwareObjects import HardwareObjectState
+from mx3core.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+from mx3core.BaseHardwareObjects import HardwareObjectState
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

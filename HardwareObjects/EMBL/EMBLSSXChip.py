@@ -21,8 +21,8 @@ import logging
 
 from gui.utils import QtImport, Colors
 
-from HardwareRepository.HardwareObjects import QtGraphicsLib as GraphicsLib
-from HardwareRepository.HardwareObjects.QtGraphicsManager import QtGraphicsManager
+from mx3core.HardwareObjects import QtGraphicsLib as GraphicsLib
+from mx3core.HardwareObjects.QtGraphicsManager import QtGraphicsManager
 
 SEQ_ITEM_COLORS = (
     Colors.LIGHT_GREEN,

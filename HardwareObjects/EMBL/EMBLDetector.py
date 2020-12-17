@@ -24,10 +24,10 @@ import logging
 
 import gevent
 
-from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
+from mx3core.HardwareObjects.abstract.AbstractDetector import (
     AbstractDetector,
 )
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mx3core.BaseHardwareObjects import HardwareObject
 
 
 __credits__ = ["EMBL Hamburg"]

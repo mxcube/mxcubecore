@@ -34,9 +34,9 @@ import json
 
 # from PyQt4.QtGui import QImage, QPixmap
 from gui.utils.QtImport import QImage, QPixmap
-from HardwareRepository.ConvertUtils import string_types
+from mx3core.ConvertUtils import string_types
 
-from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
+from mx3core.HardwareObjects.abstract.AbstractVideoDevice import (
     AbstractVideoDevice,
 )
 

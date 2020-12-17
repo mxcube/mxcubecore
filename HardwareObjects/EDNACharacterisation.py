@@ -6,7 +6,7 @@ import subprocess
 import queue_model_enumerables as qme
 import queue_model_objects as qmo
 
-from HardwareRepository import HardwareRepository as HWR
+from mx3core import HardwareRepository as HWR
 from abstract.AbstractCharacterisation import AbstractCharacterisation
 
 from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
