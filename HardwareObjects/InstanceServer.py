@@ -8,7 +8,7 @@ import gevent.server
 import socket
 import pwd
 
-from gui.utils import QtImport
+from mxcubeqt.utils import QtImport
 
 """
 <procedure class="InstanceServer">

@@ -64,7 +64,7 @@ except ImportError:
     except ImportError:
         pass
 
-from gui.utils import QtImport
+from mxcubeqt.utils import QtImport
 
 from HardwareRepository.HardwareObjects import queue_model_objects
 from HardwareRepository.HardwareObjects import QtGraphicsLib as GraphicsLib
