@@ -241,8 +241,10 @@ class AbstractDetector(HardwareObject):
         Returns:
             (float): Detector radius [mm]
         """
-        if distance is None:
-            return min(self.get_width() / 2.0, self.get_height() / 2.0)
+        try:
+            distance = distance or self._distance_motor_hwobj.get_value()
+        except AttributeError:
+            raise RuntimeError("Cannot calculate radius, distance unknown")
 
         beam_x, beam_y = self.get_beam_position(distance)
         pixel_x, pixel_y = self.get_pixel_size()
