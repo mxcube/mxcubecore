@@ -7,6 +7,8 @@ import sys
 
 from mx3core import HardwareRepository as HWR
 
+# Updated by bumpversion
+__version__  = "0.0.0"
 
 hwrpath = os.path.dirname(__file__)
 sys.path.insert(0, hwrpath)
