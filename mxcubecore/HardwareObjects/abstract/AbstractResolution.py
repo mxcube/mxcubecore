@@ -150,8 +150,11 @@ class AbstractResolution(AbstractMotor):
         _wavelength = HWR.beamline.energy.get_wavelength()
 
         try:
+            distance = self._hwr_detector.get_radius() / (
+                tan(2 * asin(_wavelength / (2 * resolution)))
+            )
             return round(
-                self._hwr_detector.get_radius()
+                self._hwr_detector.get_radius(distance)
                 / (tan(2 * asin(_wavelength / (2 * resolution)))),
                 2,
             )
