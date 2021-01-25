@@ -526,7 +526,7 @@ class XMLRPCServer(HardwareObject):
         Sets the zoom to a pre-defined level.
         """
         zoom = HWR.beamline.sample_view.zoom
-        zoom.set_value(zoom_motor.value_to_enum(pos))
+        zoom.set_value(zoom.value_to_enum(pos))
         
     def get_zoom_level(self):
         """
