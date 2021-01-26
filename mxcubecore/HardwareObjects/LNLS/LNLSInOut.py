@@ -1,124 +1,90 @@
 import logging
-import time
 
-from HardwareRepository.BaseHardwareObjects import Device
+from enum import Enum
+from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractNState
 from HardwareRepository.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
 
 """
 Use the exporter to set different MD2 actuators in/out.
-If private_state not specified, True will be send to set in and False for out.
 Example xml file:
-<device class="MicrodiffInOut">
-  <username>Scintilator</username>
-  <exporter_address>wid30bmd2s:9001</exporter_address>
-  <cmd_name>ScintillatorPosition</cmd_name>
-  <private_state>{"PARK":"out", "SCINTILLATOR":"in"}</private_state>
-  <use_hwstate>True</use_hwstate>
+<device class="LNLS.LNLSInOut">
+  <channel type="epics" name="epicsActuator_val">SOL:S:m4.VAL</channel>
+  <channel type="epics" name="epicsActuator_rbv" polling="500">SOL:S:m4.RBV</channel>
+  <username>Microdiff backlight</username>
+  <motor_name>BackLightIsOn</motor_name>
+  <values>{"in": True, "out": False}</values>
 </device>
 """
 
 
-class LNLSInOut(EPICSActuator, Device):
+class LNLSInOut(AbstractNState, EPICSActuator):
+
     def __init__(self, name):
-        EPICSActuator.__init__(self, name)
-        Device.__init__(self, name)
-        self.actuatorState = "unknown"
+        AbstractNState.__init__(self, name)
         self.username = "unknown"
-        # default timeout - 3 sec
-        self.timeout = 3
-        self.hwstate_attr = None
+        self.actuatorState = "unknown"
+        self.state_attr = None
 
     def init(self):
-        self.cmdname = self.getProperty("cmd_name")
+        AbstractNState.initialise_values(self)
         self.username = self.getProperty("username")
-
-        self.states = {True: "in", False: "out"}
-
-        # Initialize widget state
-        current_value = self.get_value()
-        value = bool(current_value)
-        self.state_attr = value
-        self.actuatorState = self.states.get(value, "unknown")
-        self.emit("actuatorStateChanged", (self.actuatorState,))
-
-        self.offset = self.getProperty("offset", 0)
-        if self.offset > 0:
-            self.states = {self.offset: "out", self.offset - 1: "in"}
-
-        states = self.getProperty("private_state")
-        if states:
-            import ast
-
-            self.states = ast.literal_eval(states)
-        try:
-            tt = float(self.getProperty("timeout"))
-            self.timeout = tt
-        except BaseException:
-            pass
-
-        self.moves = dict((self.states[k], k) for k in self.states)
+        self.states = dict((item.value, item.name) for item in self.VALUES)
+        self.moves = dict((item.name, item.value) for item in self.VALUES)
+        self.get_actuator_state()
 
     def connectNotify(self, signal):
         if signal == "actuatorStateChanged":
             self.valueChanged(self.state_attr)
 
-    def valueChanged(self, value):
-        super(LNLSInOut, self).set_value(value)
-        self.actuatorState = self.states.get(value, "unknown")
-        self.emit("actuatorStateChanged", (self.actuatorState,))
+    def _set_value(self, value):
+        """Set device to value
+        Args:
+            value (str, int, float or enum): Value to be set.
+        """
+        if isinstance(value, Enum):
+            try:
+                value = value.value[0]
+            except TypeError:
+                value = value.value
+        EPICSActuator._set_value(self, value)
+        #self.set_channel_value(self.ACTUATOR_VAL, value)
+        self.update_state()
 
-    def _ready(self):
-        return True
-
-    def _wait_ready(self, timeout=None):
-        timeout = timeout or self.timeout
-        tt1 = time.time()
-        while time.time() - tt1 < timeout:
-            if self._ready():
-                break
-            else:
-                time.sleep(0.5)
+    def get_value(self):
+        """Get the device value
+        Returns:
+            (Enum): Enum member, corresponding to the value or UNKNOWN.
+        """
+        value = EPICSActuator.get_value(self)
+        #value = self.get_channel_value(self.ACTUATOR_RBV)
+        return self.value_to_enum(value)
 
     def get_actuator_state(self, read=False):
-        if read is True:
-            value = self.state_attr
-            self.actuatorState = self.states.get(value, "unknown")
-            self.connectNotify("actuatorStateChanged")
-        else:
-            if self.actuatorState == "unknown":
-                self.connectNotify("actuatorStateChanged")
+        current_value = self.get_value()
+        self.state_attr = current_value.value # Bool
+        self.actuatorState = self.states.get(self.state_attr, "unknown") # Name
         return self.actuatorState
 
-    def actuatorIn(self, wait=True, timeout=None):
-        if self._ready():
-            try:
-                self.state_attr = self.moves["in"]
-                if wait:
-                    timeout = timeout or self.timeout
-                    self._wait_ready(timeout)
-                self.valueChanged(self.state_attr)
-            except BaseException:
-                logging.getLogger("user_level_log").error(
-                    "Cannot put %s in", self.username
-                )
-        else:
+    def valueChanged(self, value):
+        enum_val = self.value_to_enum(value)
+        self.set_value(enum_val)
+        self.actuatorState = self.states.get(value, "unknown")
+        self.emit("actuatorStateChanged", (self.actuatorState,))
+    
+    def actuatorIn(self):
+        try:
+            self.state_attr = self.moves["in"]
+            self.valueChanged(self.state_attr)
+        except BaseException:
             logging.getLogger("user_level_log").error(
-                "Microdiff is not ready, will not put %s in", self.username
+                "Cannot put %s in", self.username
             )
 
-    def actuatorOut(self, wait=True, timeout=None):
-        if self._ready():
-            try:
-                self.state_attr = self.moves["out"]
-                if wait:
-                    timeout = timeout or self.timeout
-                    self._wait_ready(timeout)
-                self.valueChanged(self.state_attr)
-            except BaseException:
-                logging.getLogger("user_level_log").error(
-                    "Cannot put %s out", self.username
-                )
-        else:
+    def actuatorOut(self):
+        try:
+            self.state_attr = self.moves["out"]
+            self.valueChanged(self.state_attr)
+        except BaseException as e:
             logging.getLogger("user_level_log").error(
-                "Microdiff is not ready, will not put %s out", self.username
+                "Cannot put %s out: %s", (self.username, e)
             )
