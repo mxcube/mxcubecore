@@ -21,7 +21,7 @@ entry_points = { 'console_scripts': console_scripts }
 
 
 setup(
-    name='mx3core',
+    name='mxcubecore',
     # The version is updated with bumpversion
     version='0.0.0',
     #author='',

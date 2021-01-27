@@ -22,7 +22,7 @@
     <!--</ssh_options>-->
 
     <!-- NB Non-absolute file names are interpreted relative to one of the  -->
-    <!-- mx3core directories on the lookup path -->
+    <!-- mxcubecore directories on the lookup path -->
 
     <software_paths>
         <!-- Location of Java binary to execute for workflow application -->
