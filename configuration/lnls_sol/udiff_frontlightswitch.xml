@@ -1,11 +1,6 @@
- <device class="LNLS.LNLSInOut">
-     <!-- Channels -->
-     <channel type="epics" name="epicsActuator_val">SOL:S:m4.VAL</channel>
-     <channel type="epics" name="epicsActuator_rbv" polling="500">SOL:S:m4.RBV</channel>
-     <!-- Properties -->
+ <device class="LNLS.EPICSNState">
+     <channel type="epics" name="epicsActuator_val">SOL:S:m5.SET</channel>
+     <channel type="epics" name="epicsActuator_rbv" polling="500">SOL:S:m5.SET</channel>
      <username>Microdiff frontlight</username>
-     <motor_name>FrontLightIsOn</motor_name>
-     <cmd_name>FrontLightIsOn</cmd_name>
-     <offset>0</offset>
-     <!-- <GUIstep>1</GUIstep> This have to be defined on the GUI at the moment.-->
+     <values>{"in": True, "out": False}</values>
  </device>
