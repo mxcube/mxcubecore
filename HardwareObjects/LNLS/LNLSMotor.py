@@ -1,13 +1,30 @@
-import time
-import gevent
-import math
+"""
+EPICS implementation of AbstratMotor.
+Example xml file:
+<device class="LNLS.LNLSMotor">
+    <channel type="epics" name="epicsActuator_val">SOL:S:m1.VAL</channel>
+    <channel type="epics" name="epicsActuator_rbv" polling="500">SOL:S:m1.RBV</channel>
+    <channel type="epics" name="epicsMotor_rlv">SOL:S:m1.RLV</channel>
+    <channel type="epics" name="epicsMotor_dmov" polling="500">SOL:S:m1.DMOV</channel>
+    <channel type="epics" name="epicsMotor_stop">SOL:S:m1.STOP</channel>
+    <channel type="epics" name="epicsMotor_velo">SOL:S:m1.VELO</channel>
+    <channel type="epics" name="epicsMotor_dllm">SOL:S:m1.DLLM</channel>
+    <channel type="epics" name="epicsMotor_dhlm">SOL:S:m1.DHLM</channel>
+    <channel type="epics" name="epicsMotor_egu">SOL:S:m1.EGU</channel>
+    <username>Omega</username>
+    <motor_name>Omega</motor_name>
+    <unit>1e-3</unit>
+    <GUIstep>90</GUIstep>
+</device>
+"""
 import logging
+import time
 
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 from HardwareRepository.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
 
 
-class LNLSMotor(EPICSActuator, AbstractMotor):
+class LNLSMotor(AbstractMotor, EPICSActuator):
 
     MOTOR_DMOV = 'epicsMotor_dmov'
     MOTOR_STOP = 'epicsMotor_stop'
@@ -19,17 +36,19 @@ class LNLSMotor(EPICSActuator, AbstractMotor):
 
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
+        EPICSActuator.__init__(self, name)
         self._wrap_range = None
 
     def init(self):
-        """ Initialisation method """
-        super(LNLSMotor, self).init()
+        """ Initialization method """
+        AbstractMotor.init(self)
+        EPICSActuator.init(self)
         self.get_limits()
         self.get_velocity()
         self.update_state(self.STATES.READY)
 
     def _move(self, value):
-        """Override super class method."""
+        """Override method."""
         self.update_specific_state(self.SPECIFIC_STATES.MOVING)
 
         while (self.get_channel_value(self.MOTOR_DMOV) == 0):
@@ -41,49 +60,34 @@ class LNLSMotor(EPICSActuator, AbstractMotor):
         return value
 
     def abort(self):
-        """Override super class method."""
+        """Override method."""
         self.set_channel_value(self.MOTOR_STOP, 1)
         if self.__move_task is not None:
             self.__move_task.kill()
 
     def get_limits(self):
-        """Override super class method."""
+        """Override method."""
         try:
             low_limit = float(self.get_channel_value(self.MOTOR_DLLM))
             high_limit = float(self.get_channel_value(self.MOTOR_DHLM))
             self._nominal_limits = (low_limit, high_limit)
-        except:
-            logging.getLogger("HWR").error('Error getting motor limits for: %s' % self.motor_name)
-            # Set a default limit
-            self._nominal_limits = (-1E4, 1E4)
+        except BaseException:
+            self._nominal_limits = (None, None)
 
-        if self._nominal_limits == (0, 0) or self._nominal_limits == (float('-inf'), float('inf')):
-            # Treat infinite limit values
-            self._nominal_limits = (-1E4, 1E4)
-            logging.getLogger("HWR").info('Motor %s: limits are %s. Considering them as %s.' % (self.motor_name, str(self._nominal_limits), str((-1E4, 1E4))))
+        if self._nominal_limits in [(0, 0), (float('-inf'), float('inf'))]:
+            # Treat infinite limit
+            self._nominal_limits = (None, None)
+        
+        logging.getLogger("HWR").info('Motor %s limits: %s' % (self.motor_name, self._nominal_limits))
 
         return self._nominal_limits
 
     def get_velocity(self):
-        """Override super class method."""
+        """Override method."""
         self._velocity = self.get_channel_value(self.MOTOR_VELO)
         return self._velocity
 
     def set_velocity(self, value):
-        """Override super class method."""
+        """Override method."""
         self.__velocity = self.set_channel_value(self.MOTOR_VELO, value)
 
-    def validate_value(self, value):
-        """Override super class method."""
-        try:
-            value = float(value)
-        except Exception as e:
-            pass
-        if value is None:
-            return True
-        if math.isnan(value) or math.isinf(value):
-            return False
-        limits = self._nominal_limits
-        if None in limits:
-            return True
-        return limits[0] <= value <= limits[1]
