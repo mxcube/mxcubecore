@@ -1,23 +1,22 @@
+"""
+EPICS implementation of AbstractNState.
+Example xml file:
+<device class="LNLS.LNLSInOut">
+  <channel type="epics" name="epicsActuator_val">SOL:S:m4.SET</channel>
+  <channel type="epics" name="epicsActuator_rbv" polling="500">SOL:S:m4.SET</channel>
+  <username>Microdiff backlight</username>
+  <motor_name>BackLightIsOn</motor_name>
+  <values>{"in": True, "out": False}</values>
+</device>
+"""
 import logging
 
 from enum import Enum
 from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractNState
 from HardwareRepository.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
 
-"""
-Use the exporter to set different MD2 actuators in/out.
-Example xml file:
-<device class="LNLS.LNLSInOut">
-  <channel type="epics" name="epicsActuator_val">SOL:S:m4.VAL</channel>
-  <channel type="epics" name="epicsActuator_rbv" polling="500">SOL:S:m4.RBV</channel>
-  <username>Microdiff backlight</username>
-  <motor_name>BackLightIsOn</motor_name>
-  <values>{"in": True, "out": False}</values>
-</device>
-"""
 
-
-class LNLSInOut(AbstractNState, EPICSActuator):
+class EPICSNState(AbstractNState, EPICSActuator):
 
     def __init__(self, name):
         AbstractNState.__init__(self, name)
@@ -71,7 +70,7 @@ class LNLSInOut(AbstractNState, EPICSActuator):
         self.actuatorState = self.states.get(value, "unknown")
         self.emit("actuatorStateChanged", (self.actuatorState,))
     
-    def actuatorIn(self):
+    def actuatorIn(self, wait=True, timeout=None):
         try:
             self.state_attr = self.moves["in"]
             self.valueChanged(self.state_attr)
@@ -80,7 +79,7 @@ class LNLSInOut(AbstractNState, EPICSActuator):
                 "Cannot put %s in", self.username
             )
 
-    def actuatorOut(self):
+    def actuatorOut(self, wait=True, timeout=None):
         try:
             self.state_attr = self.moves["out"]
             self.valueChanged(self.state_attr)
