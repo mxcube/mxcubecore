@@ -1,7 +1,7 @@
 """
 EPICS implementation of AbstratMotor.
 Example xml file:
-<device class="LNLS.LNLSMotor">
+<device class="LNLS.EPICSMotor">
     <channel type="epics" name="epicsActuator_val">SOL:S:m1.VAL</channel>
     <channel type="epics" name="epicsActuator_rbv" polling="500">SOL:S:m1.RBV</channel>
     <channel type="epics" name="epicsMotor_rlv">SOL:S:m1.RLV</channel>
@@ -24,7 +24,7 @@ from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMo
 from HardwareRepository.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
 
 
-class LNLSMotor(AbstractMotor, EPICSActuator):
+class EPICSMotor(AbstractMotor, EPICSActuator):
 
     MOTOR_DMOV = 'epicsMotor_dmov'
     MOTOR_STOP = 'epicsMotor_stop'
