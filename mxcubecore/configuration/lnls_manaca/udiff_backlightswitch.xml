@@ -1,11 +1,6 @@
- <device class="LNLS.LNLSInOut">
-     <!-- Channels -->
+<device class="LNLS.EPICSNState">
      <channel type="epics" name="epicsActuator_val">MNC:B:RIO01:9474E:bo0</channel>
      <channel type="epics" name="epicsActuator_rbv" polling="500">MNC:B:RIO01:9474E:bo0</channel>
-     <!-- Properties -->
-     <username>Microdiff frontlight</username>
-     <motor_name>BackLightIsOn</motor_name>
-     <cmd_name>BackLightIsOn</cmd_name>
-     <offset>0</offset>
-     <!-- <GUIstep>1</GUIstep> This have to be defined on the GUI at the moment.-->
+     <username>Microdiff backlight</username>
+     <values>{"in": True, "out": False}</values>
  </device>
