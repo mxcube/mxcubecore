@@ -1,5 +1,4 @@
-<device class="LNLS.LNLSMotor">
-    <!-- Channels -->
+<device class="LNLS.EPICSMotor">
     <channel type="epics" name="epicsActuator_val">MNC:B:PB05:m6.VAL</channel>
     <channel type="epics" name="epicsActuator_rbv" polling="500">MNC:B:PB05:m6.RBV</channel>
     <channel type="epics" name="epicsMotor_rlv">MNC:B:PB05:m6.RLV</channel>
@@ -9,7 +8,6 @@
     <channel type="epics" name="epicsMotor_dllm">MNC:B:PB05:m6.DLLM</channel>
     <channel type="epics" name="epicsMotor_dhlm">MNC:B:PB05:m6.DHLM</channel>
     <channel type="epics" name="epicsMotor_egu">MNC:B:PB05:m6.EGU</channel>
-    <!-- Properties -->
     <username>Kappa Phi</username>
     <motor_name>Phi</motor_name>
 </device>

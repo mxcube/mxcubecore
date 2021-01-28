@@ -1,5 +1,4 @@
-<device class="LNLS.LNLSMotor">
-    <!-- Channels -->
+<device class="LNLS.EPICSMotor">
     <channel type="epics" name="epicsActuator_val">MNC:B:PB05:m2.VAL</channel>
     <channel type="epics" name="epicsActuator_rbv" polling="500">MNC:B:PB05:m2.RBV</channel>
     <channel type="epics" name="epicsMotor_rlv">MNC:B:PB05:m2.RLV</channel>
@@ -9,7 +8,6 @@
     <channel type="epics" name="epicsMotor_dllm">MNC:B:PB05:m2.DLLM</channel>
     <channel type="epics" name="epicsMotor_dhlm">MNC:B:PB05:m2.DHLM</channel>
     <channel type="epics" name="epicsMotor_egu">MNC:B:PB05:m2.EGU</channel>
-    <!-- Properties -->
     <username>PhiY</username>
     <motor_name>AlignmentY</motor_name>
     <unit>1e-5</unit>

@@ -1,5 +1,4 @@
-<device class="LNLS.LNLSMotor">
-    <!-- Channels -->
+<device class="LNLS.EPICSMotor">
     <channel type="epics" name="epicsActuator_val">MNC:B:PB05:m5.VAL</channel>
     <channel type="epics" name="epicsActuator_rbv" polling="500">MNC:B:PB05:m5.RBV</channel>
     <channel type="epics" name="epicsMotor_rlv">MNC:B:PB05:m5.RLV</channel>
@@ -9,7 +8,6 @@
     <channel type="epics" name="epicsMotor_dllm">MNC:B:PB05:m5.DLLM</channel>
     <channel type="epics" name="epicsMotor_dhlm">MNC:B:PB05:m5.DHLM</channel>
     <channel type="epics" name="epicsMotor_egu">MNC:B:PB05:m5.EGU</channel>
-    <!-- Properties -->
     <username>sampy</username>
     <motor_name>CentringY</motor_name>
     <GUIstep>0.01</GUIstep>
