@@ -150,6 +150,21 @@ class EMBLFlexHCD(SampleChanger):
         self._update_selection()
         self.state = self._read_state()
 
+    def get_sample_list(self):
+        sample_list = super().get_sample_list()
+        sc_present_sample_list = self._execute_cmd_exporter("getPresentSamples", attribute=True).split(":")
+        present_sample_list = []
+
+        for sample in sample_list:
+            for present_sample_str in sc_present_sample_list:
+                present_sample = present_sample_str.split(",")
+                if sample.get_address() == (str(present_sample[0]) + ":"
+                                            + str(present_sample[1]) + ":"
+                                            + "%02d" % int(present_sample[4])):
+                    present_sample_list.append(sample)
+
+        return present_sample_list
+
     @task
     def prepare_load(self):
         if self.controller:
@@ -321,7 +336,7 @@ class EMBLFlexHCD(SampleChanger):
         self._prepare_centring_task()
         return True
 
-    def hw_get_mounted_sample(self):
+    def _hw_get_mounted_sample(self):        
         loaded_sample = tuple(
             self._execute_cmd_exporter("getMountedSamplePosition", attribute=True)
         )
@@ -336,9 +351,12 @@ class EMBLFlexHCD(SampleChanger):
 
     def get_loaded_sample(self):
         sample = None
-        for samp in self.get_sample_list():
-            if samp.get_address() == self.hw_get_mounted_sample():
-                sample = samp
+
+        loaded_sample_addr = self._hw_get_mounted_sample()
+
+        for s in self.get_sample_list():
+            if s.get_address() == loaded_sample_addr:
+                sample = s
 
         return sample
 
@@ -357,9 +375,8 @@ class EMBLFlexHCD(SampleChanger):
         self._reset_loaded_sample()
 
     def get_robot_exceptions(self):
-        # return self._execute_cmd_exporter('getRobotExceptions',
-        # attribute=True)
-        return ""
+        return self._execute_cmd_exporter('getLastTaskException', attribute=True) or ""
+
 
     @task
     def load(self, sample):
@@ -399,7 +416,7 @@ class EMBLFlexHCD(SampleChanger):
         self.enable_power()
 
         if not sample:
-            sample = self.hw_get_mounted_sample()
+            sample = self._hw_get_mounted_sample()
 
         try:
             SampleChanger.unload(self, sample)
@@ -474,7 +491,7 @@ class EMBLFlexHCD(SampleChanger):
 
         # Wait for the sample to be loaded, (put on the goniometer)
         err_msg = "Timeout while waiting to sample to be loaded"
-        with gevent.Timeout(200, RuntimeError(err_msg)):
+        with gevent.Timeout(600, RuntimeError(err_msg)):
             while not load_task.ready():
                 loaded_sample = tuple(
                     self._execute_cmd_exporter(
@@ -491,10 +508,10 @@ class EMBLFlexHCD(SampleChanger):
 
                 gevent.sleep(2)
 
-        with gevent.Timeout(200, RuntimeError(err_msg)):
+        with gevent.Timeout(600, RuntimeError(err_msg)):
             while True:
                 is_safe = self._execute_cmd_exporter(
-                    "getRobotIsSafe", attribute=True
+                        "getRobotIsSafe", attribute=True
                 )
 
                 if is_safe:
@@ -551,10 +568,12 @@ class EMBLFlexHCD(SampleChanger):
     def _update_state(self):
         try:
             state = self._read_state()
+            status = self._execute_cmd_exporter("getStatus", attribute=True)
         except Exception:
             state = SampleChangerState.Unknown
+            status = "Unknown"
 
-        self._set_state(state)
+        self._set_state(state, status)
 
     def is_sequencer_ready(self):
         if self.prepareLoad:
@@ -574,6 +593,7 @@ class EMBLFlexHCD(SampleChanger):
             "READY": SampleChangerState.Ready,
             "STANDBY": SampleChangerState.Ready,
         }
+
         return state_converter.get(state, SampleChangerState.Unknown)
 
     def _is_device_busy(self, state=None):
