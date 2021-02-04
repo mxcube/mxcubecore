@@ -27,7 +27,7 @@ _objects:
     - machine_info: machine_info.xml
     - detector: detector_mockup.xml
     - beam: beam_info.xml
-    - energy: energy_mockup.xml
+    - energy: energy.xml
     - transmission: transmission.xml
     - flux: flux_mockup.xml
     - resolution: resolution_mockup.xml
