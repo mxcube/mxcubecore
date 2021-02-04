@@ -1,6 +1,6 @@
 <device class = "ResolutionMockup">
   <username>Resolution</username>
   <object hwrid="/dtox" role="dtox"/>
-  <object href="/energy_mockup" role="energy"/>
+  <object href="/energy" role="energy"/>
   <object href="/detector_mockup" role="detector"/>
 </device>
