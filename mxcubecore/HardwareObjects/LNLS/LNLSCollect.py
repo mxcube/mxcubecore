@@ -29,7 +29,7 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
             safety_shutter=self.getObjectByRole("safety_shutter"),
             machine_current=self.getObjectByRole("machine_current"),
             cryo_stream=self.getObjectByRole("cryo_stream"),
-            energy=self.getObjectByRole("energy"),
+            energy=HWR.beamline.energy,
             resolution=self.getObjectByRole("resolution"),
             detector_distance=self.getObjectByRole("detector_distance"),
             transmission=self.getObjectByRole("transmission"), # Returns attenuators.

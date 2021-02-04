@@ -20,6 +20,7 @@
 
 import logging
 
+from HardwareRepository import HardwareRepository as HWR
 from HardwareRepository.HardwareObjects.abstract.AbstractTransmission import (
     AbstractTransmission,
 )
@@ -42,7 +43,7 @@ class LNLSTransmission(EPICSActuator, AbstractTransmission):
     def init(self):
         """Override method."""
         AbstractTransmission.init(self)
-        self.energy = self.getObjectByRole("energy")
+        self.energy = HWR.beamline.energy
 
     def get_value(self):
         """Override method."""

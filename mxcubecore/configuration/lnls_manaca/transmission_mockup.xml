@@ -1,4 +1,3 @@
 <device class = "LNLS.LNLSTransmission">
   <username>Transmission</username>
-  <object href="/energy_mockup" role="energy"/>
 </device>
