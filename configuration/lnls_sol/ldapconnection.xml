@@ -1,4 +1,4 @@
 <procedure class="LdapLoginMockup">
-  <ldaphost>ldap.esrf.fr</ldaphost>
+  <ldaphost>ldap.sol.br</ldaphost>
   <ldapport>389</ldapport>
 </procedure>
