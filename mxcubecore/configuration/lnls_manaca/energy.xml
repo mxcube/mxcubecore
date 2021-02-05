@@ -2,7 +2,7 @@
   <username>energy</username>
   <motor_name>energy</motor_name>
   <default_value>-1</default_value>
-  <object href="/detector_mockup" role="detector"/>
+  <object href="/detector" role="detector"/>
   <!-- Energy setting not allowed for now.-->
   <channel type="epics" name="epicsActuator_val">nope</channel>
   <channel type="epics" name="epicsActuator_rbv" polling="500">MNC:A:DCM01:GonRxEnergy_RBV</channel>

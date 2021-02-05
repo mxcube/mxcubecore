@@ -37,7 +37,7 @@
   <grid_direction>{"fast": (0, 1), "slow": (1, 0), "omega_ref": 0}</grid_direction>
 
   <object role="camera" hwrid="./md_camera"></object>
-  <object role="samplechanger" hwrid="./sc_mockup"></object>
+  <object role="samplechanger" hwrid="./sc"></object>
 
   <phaseList>["Transfer","Centring","BeamLocation", "DataCollection"]</phaseList>
   <headType>MiniKappa</headType>
