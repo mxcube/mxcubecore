@@ -73,6 +73,9 @@ class ControllerCommand(BaseBeamlineAction):
         self.type = PROCEDURE_COMMAND_T
         self.argument_type = ARGUMENT_TYPE_LIST
 
+        if name == "Anneal":
+            self._arguments.append(("Time [s]", "float"))
+
     def is_connected(self):
         """Dummy method"""
         return True
@@ -84,9 +87,6 @@ class ControllerCommand(BaseBeamlineAction):
 
     def getArguments(self):
         """Get the command object arguments"""
-        if self.name() == "Anneal":
-            self._arguments.append(("Time [s]", "float"))
-
         return CommandObject.getArguments(self)
 
     @task
