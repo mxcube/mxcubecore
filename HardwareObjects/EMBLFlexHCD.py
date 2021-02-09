@@ -105,11 +105,11 @@ class Cell(Container):
         return self
 
 
-class FlexHCD(SampleChanger):
+class EMBLFlexHCD(SampleChanger):
     __TYPE__ = "HCD"
 
     def __init__(self, *args, **kwargs):
-        super(FlexHCD, self).__init__(self.__TYPE__, True, *args, **kwargs)
+        super(EMBLFlexHCD, self).__init__(self.__TYPE__, True, *args, **kwargs)
 
     def init(self):
         sc3_pucks = self.getProperty("sc3_pucks", True)
@@ -124,15 +124,14 @@ class FlexHCD(SampleChanger):
 
         self.exporter_addr = self.getProperty("exporter_address")
 
-        if self.exporter_addr:
-            self.swstate_attr = self.add_channel(
-                {
-                    "type": "exporter",
-                    "exporter_address": self.exporter_addr,
-                    "name": "swstate",
-                },
-                "State",
-            )
+        self.swstate_attr = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "swstate",
+            },
+            "State",
+        )
 
         self.controller = self.getObjectByRole("controller")
         self.prepareLoad = self.get_command_object("moveToLoadingPosition")
@@ -151,6 +150,21 @@ class FlexHCD(SampleChanger):
         self._update_selection()
         self.state = self._read_state()
 
+    def get_sample_list(self):
+        sample_list = super().get_sample_list()
+        sc_present_sample_list = self._execute_cmd_exporter("getPresentSamples", attribute=True).split(":")
+        present_sample_list = []
+        
+        for sample in sample_list:
+            for present_sample_str in sc_present_sample_list:
+                present_sample = present_sample_str.split(",")
+                if sample.get_address() == (str(present_sample[0]) + ":"
+                                            + str(present_sample[1]) + ":"
+                                            + "%02d" % int(present_sample[4])):
+                    present_sample_list.append(sample)
+
+        return present_sample_list
+
     @task
     def prepare_load(self):
         if self.controller:
@@ -161,6 +175,7 @@ class FlexHCD(SampleChanger):
     @task
     def _prepare_centring_task(self):
         if self.controller:
+            #gevent.sleep(2)
             self.controller.hutch_actions(enter=False, sc_loading=True)
         else:
             gevent.sleep(2)
@@ -176,8 +191,6 @@ class FlexHCD(SampleChanger):
     def get_basket_list(self):
         basket_list = []
         # put here only the baskets that exist, not all the possible ones
-        # if self.exporter_addr:
-        #    basket_list =
         for cell in self.get_components():
             for basket in cell.get_components():
                 if isinstance(basket, Basket):
@@ -257,20 +270,35 @@ class FlexHCD(SampleChanger):
         return ret
 
     def _assert_ready(self):
-        if self.exporter_addr:
-            if not self._ready():
-                raise RuntimeError("Sample changer is busy cant mount/unmount")
+        if not self._ready():
+            raise RuntimeError("Sample changer is busy cant mount/unmount")
 
     def _ready(self):
-        return self.swstate_attr.get_value() == "Ready"
+        return self._execute_cmd_exporter("getState", attribute=True) == "Ready"
+
+    def _busy(self):
+        return self._execute_cmd_exporter("getState", attribute=True) != "Ready"
 
     def _wait_ready(self, timeout=None):
-        err_msg = "Timeout waiting for sample changer to be ready"
-        # None means infinite timeout <=0 means default timeout
+        # None means wait forever timeout <=0 use default timeout
         if timeout is not None and timeout <= 0:
             timeout = self.timeout
+
+        err_msg = "Timeout waiting for sample changer to be ready"
+
         with gevent.Timeout(timeout, RuntimeError(err_msg)):
             while not self._ready():
+                gevent.sleep(0.5)
+
+    def _wait_busy(self, timeout=None):
+        # None means wait forever timeout <=0 use default timeout
+        if timeout is not None and timeout <= 0:
+            timeout = self.timeout
+
+        err_msg = "Timeout waiting for sample changer action to start"
+
+        with gevent.Timeout(timeout, RuntimeError(err_msg)):
+            while not self._busy():
                 gevent.sleep(0.5)
 
     def _do_select(self, component):
@@ -279,10 +307,7 @@ class FlexHCD(SampleChanger):
         elif isinstance(component, Basket) or isinstance(component, Pin):
             cell_pos = component.get_cell_no()
 
-        if self.exporter_addr:
-            self._execute_cmd_exporter("moveDewar", cell_pos, command=True)
-        else:
-            self._execute_cmd("moveDewar", cell_pos)
+        self._execute_cmd_exporter("moveDewar", cell_pos, command=True)
 
         self._update_selection()
 
@@ -296,7 +321,7 @@ class FlexHCD(SampleChanger):
         failureCallback=None,
         prepareCentring=True,
     ):
-        self._assert_ready()
+        # self._assert_ready()
         cell, basket, sample = sample_location
         sample = self.get_component_by_address(
             Pin.get_sample_address(cell, basket, sample)
@@ -304,94 +329,40 @@ class FlexHCD(SampleChanger):
         return self.load(sample)
 
     def chained_load(self, old_sample, sample):
-        self._assert_ready()
+        return self._do_load(sample)
+
+    def _set_loaded_sample_and_prepare(self, sample):
         res = False
-        
-        if self.exporter_addr:
-            unload_load_task = gevent.spawn(
-                self._execute_cmd_exporter,
-                "loadSample",
-                sample.get_cell_no(),
-                sample.get_basket_no(),
-                sample.get_vial_no(),
-                command=True,
-            )
-        else:
-            unload_load_task = gevent.spawn(
-                self._execute_cmd,
-                "chainedUnldLd",
-                [
-                    old_sample.get_cell_no(),
-                    old_sample.get_basket_no(),
-                    old_sample.get_vial_no(),
-                ],
-                [sample.get_cell_no(), sample.get_basket_no(), sample.get_vial_no()],
-            )
 
-        gevent.sleep(10)
-
-        while not unload_load_task.ready():
-            gevent.sleep(2)
-
-        # err_msg = "Timeout waiting for sample changer to be in safe position"
-        # with gevent.Timeout(200, RuntimeError(err_msg)):
-        #     logging.getLogger("user_level_log").info(err_msg)
-        #     while not self._execute_cmd_exporter(
-        #             "getRobotIsSafe", attribute=True
-        #     ):
-        #         gevent.sleep(0.5)
-
-        if self.exporter_addr:
-            loaded_sample = tuple(self._execute_cmd_exporter(
-                "getMountedSamplePosition", attribute=True
-            ))
-        else:
-            loaded_sample = self._execute_cmd("get_loaded_sample")
-
-        for msg in self.get_robot_exceptions():
-            logging.getLogger("HWR").error(msg)
-
-        res =  self._check_loaded_sample(loaded_sample, sample)
-
-        logging.getLogger("HWR").info("Unload load task done")        
+        if not -1 in sample:
+            self._set_loaded_sample(self.get_sample_with_address(sample))
+            self._prepare_centring_task()
+            res = True
 
         return res
-        
-    def _check_loaded_sample(self, loaded_sample, sample):
-        if loaded_sample == (
-            sample.get_cell_no(),
-            sample.get_basket_no(),
-            sample.get_vial_no(),
-        ):
-            self._set_loaded_sample(self.get_sample_with_address(loaded_sample))
-            time.sleep(2)
-            self._prepare_centring_task()
-            return True
-        else:
-            self._set_loaded_sample(self.get_sample_with_address(loaded_sample))
-            # if self.controller:
-            #    self.controller.hutch_actions(release_interlock=True)
-            return False
 
-    def hw_get_mounted_sample(self):
-        if self.exporter_addr:
-            loaded_sample = tuple(self._execute_cmd_exporter(
-                "getMountedSamplePosition", attribute=True
-            ))
-        else:
-            loaded_sample = self._execute_cmd("get_loaded_sample")
+    def _hw_get_mounted_sample(self):        
+        loaded_sample = tuple(
+            self._execute_cmd_exporter("getMountedSamplePosition", attribute=True)
+        )
 
         return (
-            str(loaded_sample[0]) + ":" + str(loaded_sample[1]) + ":" + "%02d" % loaded_sample[2]
+            str(loaded_sample[0])
+            + ":"
+            + str(loaded_sample[1])
+            + ":"
+            + "%02d" % loaded_sample[2]
         )
 
     def get_loaded_sample(self):
         sample = None
-        
+
+        loaded_sample_addr = self._hw_get_mounted_sample()
+
         for s in self.get_sample_list():
-            if s.get_address() == self.hw_get_mounted_sample():
+            if s.get_address() == loaded_sample_addr:
                 sample = s
-        
+
         return sample
 
     def get_sample_with_address(self, address):
@@ -401,25 +372,16 @@ class FlexHCD(SampleChanger):
         for s in self.get_sample_list():
             if s.get_address() == address:
                 sample = s
-        
+
         return sample
 
     def reset_loaded_sample(self):
-        if self.exporter_addr:
-            self._execute_cmd_exporter("resetLoadedPosition", command=True)
-        else:
-            self._execute_cmd("reset_loaded_position")
+        self._execute_cmd_exporter("resetLoadedPosition", command=True)
         self._reset_loaded_sample()
 
     def get_robot_exceptions(self):
-        if self.exporter_addr:
-            """
-            return self._execute_cmd_exporter('getRobotExceptions',
-                                              attribute=True)
-            """
-            return ""
-        else:
-            return self._execute_cmd("getRobotExceptions")
+        return [self._execute_cmd_exporter('getLastTaskException', attribute=True)] or [""]
+
 
     @task
     def load(self, sample):
@@ -459,8 +421,8 @@ class FlexHCD(SampleChanger):
         self.enable_power()
 
         if not sample:
-            sample = self.hw_get_mounted_sample()
-        
+            sample = self._hw_get_mounted_sample()
+
         try:
             SampleChanger.unload(self, sample)
         finally:
@@ -468,31 +430,18 @@ class FlexHCD(SampleChanger):
                 logging.getLogger("HWR").error(msg)
 
     def get_gripper(self):
-        if self.exporter_addr:
-            gripper_type = self._execute_cmd_exporter(
-                "get_gripper_type", attribute=True
-            )
-        else:
-            gripper_type = self._execute_cmd("get_gripper_type")
+        gripper_type = self._execute_cmd_exporter("get_gripper_type", attribute=True)
 
         return self.gripper_types.get(gripper_type, "?")
 
     def get_available_grippers(self):
         grippers = []
-
         try:
-        
-            if self.exporter_addr:
-                ret = sorted(
-                    self._execute_cmd_exporter("getSupportedGrippers", attribute=True)
-                )
-                for gripper in ret:
-                    grippers.append(self.gripper_types[gripper])
-            else:
-                ret = [1, 3] #self._execute_cmd("get_supported_grippers")
-
-                for gripper in ret:
-                    grippers.append(self.gripper_types[gripper])
+            ret = sorted(
+                self._execute_cmd_exporter("getSupportedGrippers", attribute=True)
+            )
+            for gripper in ret:
+                grippers.append(self.gripper_types[gripper])
         except Exception:
             grippers = [-1]
 
@@ -502,22 +451,17 @@ class FlexHCD(SampleChanger):
     def change_gripper(self, gripper=None):
         self.prepare_load(wait=True)
         self.enable_power()
-        if self.exporter_addr:
-            if gripper:
-                self._execute_cmd_exporter("setGripper", gripper, command=True)
-            else:
-                self._execute_cmd_exporter("changeGripper", command=True)
+
+        if gripper:
+            self._execute_cmd_exporter("setGripper", gripper, command=True)
         else:
-            self._execute_cmd("changeGripper")
+            self._execute_cmd_exporter("changeGripper", command=True)
 
     @task
     def home(self):
         self.prepare_load(wait=True)
         self.enable_power()
-        if self.exporter_addr:
-            self._execute_cmd_exporter("homeClear", command=True)
-        else:
-            self._execute_cmd("homeClear")
+        self._execute_cmd_exporter("homeClear", command=True)
 
     @task
     def enable_power(self):
@@ -528,83 +472,75 @@ class FlexHCD(SampleChanger):
     def defreeze(self):
         self.prepare_load(wait=True)
         self.enable_power()
-        if self.exporter_addr:
-            self._execute_cmd_exporter("defreezeGripper", command=True)
-        else:
-            self._execute_cmd("defreezeGripper")
+        self._execute_cmd_exporter("defreezeGripper", command=True)
 
     def _do_load(self, sample=None):
         self._update_state()
 
-        if self.exporter_addr:
-            load_task = gevent.spawn(
-                self._execute_cmd_exporter,
-                "loadSample",
-                sample.get_cell_no(),
-                sample.get_basket_no(),
-                sample.get_vial_no(),
-                command=True,
-            )
-        else:
-            load_task = gevent.spawn(
-                self._execute_cmd,
-                "loadSample",
-                sample.get_cell_no(),
-                sample.get_basket_no(),
-                sample.get_vial_no(),
-            )
+        # We wait for the sample changer if its already doing something, like defreezing
+        # wait for 6 minutes then timeout !
+        self._wait_ready(600)
 
-        gevent.sleep(10)
+        # Start loading
+        load_task = gevent.spawn(
+            self._execute_cmd_exporter,
+            "loadSample",
+            sample.get_cell_no(),
+            sample.get_basket_no(),
+            sample.get_vial_no(),
+            command=True,
+        )
 
-        while not load_task.ready():
-            gevent.sleep(2)
+        # Wait for sample changer to start activity
+        self._wait_busy(30)
 
-        # err_msg = "Timeout waiting for sample changer to be in safe position"
-        # with gevent.Timeout(200, RuntimeError(err_msg)):
-        #     logging.getLogger("user_level_log").info(err_msg)
-        #     while not self._execute_cmd_exporter(
-        #             "getRobotIsSafe", attribute=True
-        #     ):
-        #         gevent.sleep(0.5)            
+        # Wait for the sample to be loaded, (put on the goniometer)
+        err_msg = "Timeout while waiting to sample to be loaded"
+        with gevent.Timeout(600, RuntimeError(err_msg)):
+            while not load_task.ready():
+                loaded_sample = tuple(
+                    self._execute_cmd_exporter(
+                        "getMountedSamplePosition", attribute=True
+                    )
+                )
 
-        if self.exporter_addr:
-            loaded_sample = tuple(self._execute_cmd_exporter(
-                "getMountedSamplePosition", attribute=True
-            ))
-        else:
-            loaded_sample = self._execute_cmd("get_loaded_sample")
+                if loaded_sample == (
+                    sample.get_cell_no(),
+                    sample.get_basket_no(),
+                    sample.get_vial_no(),
+                ):
+                    break
 
-        return self._check_loaded_sample(loaded_sample, sample)
+                gevent.sleep(2)
+
+        with gevent.Timeout(600, RuntimeError(err_msg)):
+            while True:
+                is_safe = self._execute_cmd_exporter(
+                        "getRobotIsSafe", attribute=True
+                )
+
+                if is_safe:
+                    break
+
+                gevent.sleep(2)
+
+        for msg in self.get_robot_exceptions():
+            logging.getLogger("HWR").error(msg)
+
+        return self._set_loaded_sample_and_prepare(loaded_sample)
 
     def _do_unload(self, sample=None):
-        if self.exporter_addr:
-            self._execute_cmd_exporter(
-                "unloadSample",
-                sample.get_cell_no(),
-                sample.get_basket_no(),
-                sample.get_vial_no(),
-                command=True,
-            )
-            loaded_sample = tuple(self._execute_cmd_exporter(
-                "getMountedSamplePosition", attribute=True
-            ))
-        else:
-            self._execute_cmd(
-                "unloadSample",
-                sample.get_cell_no(),
-                sample.get_basket_no(),
-                sample.get_vial_no(),
-            )
-            loaded_sample = self._execute_cmd("get_loaded_sample")
+        self._execute_cmd_exporter(
+            "unloadSample",
+            sample.get_cell_no(),
+            sample.get_basket_no(),
+            sample.get_vial_no(),
+            command=True,
+        )
 
-
-        err_msg = "Timeout waiting for sample changer to be in safe position"
-        # with gevent.Timeout(60, RuntimeError(err_msg)):
-        #     logging.getLogger("user_level_log").info(err_msg)
-        #     while not self._execute_cmd_exporter(
-        #             "getRobotIsSafe", attribute=True
-        #     ):
-        #         gevent.sleep(0.5)
+        loaded_sample = tuple(
+            self._execute_cmd_exporter("getMountedSamplePosition", attribute=True)
+        )
 
         for msg in self.get_robot_exceptions():
             logging.getLogger("HWR").error(msg)
@@ -620,18 +556,10 @@ class FlexHCD(SampleChanger):
         return False
 
     def _do_abort(self):
-        if self.exporter_addr:
-            self._execute_cmd_exporter("abort", command=True)
-        else:
-            self._execute_cmd("abort")
+        self._execute_cmd_exporter("abort", command=True)
 
     def _do_reset(self):
-        if self.controller:
-            self.controller.hutch_actions(enter=True)
-        if self.exporter_addr:
-            self._execute_cmd_exporter("homeClear", command=True)
-        else:
-            self._execute_cmd("homeClear")
+        self._execute_cmd_exporter("homeClear", command=True)
 
     def clear_basket_info(self, basket):
         return self._reset_basket_info(basket)
@@ -646,20 +574,14 @@ class FlexHCD(SampleChanger):
         pass
 
     def _update_state(self):
-        # see if the command exists for exporter
-        if not self.exporter_addr:
-            pass
-            # defreezing = self._execute_cmd("isDefreezing")
-
-            # if defreezing:
-            #    self._set_state(SampleChangerState.Moving)
-
         try:
             state = self._read_state()
+            status = self._execute_cmd_exporter("getStatus", attribute=True)
         except Exception:
             state = SampleChangerState.Unknown
+            status = "Unknown"
 
-        self._set_state(state)
+        self._set_state(state, status)
 
     def is_sequencer_ready(self):
         if self.prepareLoad:
@@ -670,13 +592,7 @@ class FlexHCD(SampleChanger):
         return True
 
     def _read_state(self):
-        # should read state from robot
-        if self.exporter_addr:
-            state = self.swstate_attr.get_value().upper()
-        else:
-            state = "RUNNING" if self._execute_cmd("robot.isBusy") else "STANDBY"
-            if state == "STANDBY" and not self.is_sequencer_ready():
-                state = "RUNNING"
+        state = self._execute_cmd_exporter("getState", attribute=True).upper()
 
         state_converter = {
             "ALARM": SampleChangerState.Alarm,
@@ -710,41 +626,28 @@ class FlexHCD(SampleChanger):
                 gevent.sleep(0.01)
 
     def _update_selection(self):
-        if self.exporter_addr:
-            sample_cell, sample_puck, sample = self._execute_cmd_exporter(
-                "getMountedSamplePosition", attribute=True
-            )
-            cell = sample_cell
-            puck = sample_puck
-        else:
-            cell, puck = self._execute_cmd("get_cell_position")
-            sample_cell, sample_puck, sample = self._execute_cmd("get_loaded_sample")
+        sample_cell, sample_puck, sample = self._execute_cmd_exporter(
+            "getMountedSamplePosition", attribute=True
+        )
+
+        cell = sample_cell
+        puck = sample_puck
 
         for c in self.get_components():
             i = c.get_index()
             if cell == i + 1:
                 self._set_selected_component(c)
                 break
-           
+
         # find sample
         for s in self.get_sample_list():
             if s.get_coords() == (sample_cell, sample_puck, sample):
                 self._set_loaded_sample(s)
                 self._set_selected_sample(s)
-                return
+            else:
+                s._set_loaded(False)
 
-        for s in self.get_sample_list():
-            s._set_loaded(False)
         self._set_selected_sample(None)
 
     def prepare_hutch(self, **kwargs):
-        if self.exporter_addr:
-            return
-
-        user_port = kwargs.get("user_port")
-        robot_port = kwargs.get("robot_port")
-        if user_port is not None:
-            self._execute_cmd("robot.user_port(user_port)")
-
-        if robot_port is not None:
-            self._execute_cmd("robot.robot_port(robot_port)")
+        return
