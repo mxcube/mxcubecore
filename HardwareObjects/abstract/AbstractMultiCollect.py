@@ -854,7 +854,6 @@ class AbstractMultiCollect(object):
                             frame_start,
                             str(file_path),
                             data_collect_parameters.get("shutterless", True),
-                            wait=False,
                         )
 
                         osc_start, osc_end = self.prepare_oscillation(
