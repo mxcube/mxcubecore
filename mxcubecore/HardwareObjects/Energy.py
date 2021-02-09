@@ -33,22 +33,22 @@ class Energy(Equipment):
         self.en_lims = []
 
         try:
-            self.energy_motor = self.getObjectByRole("energy")
+            self.energy_motor = self.get_object_by_role("energy")
         except KeyError:
             logging.getLogger("HWR").warning("Energy: error initializing energy motor")
 
         try:
-            self.default_en = self.getProperty("default_energy")
+            self.default_en = self.get_property("default_energy")
         except KeyError:
             logging.getLogger("HWR").warning("Energy: no default energy")
 
         try:
-            self.tunable = self.getProperty("tunable_energy")
+            self.tunable = self.get_property("tunable_energy")
         except KeyError:
             logging.getLogger("HWR").warning("Energy: will set to fixed energy")
 
         try:
-            self.ctrl = self.getObjectByRole("controller")
+            self.ctrl = self.get_object_by_role("controller")
         except KeyError:
             logging.getLogger("HWR").info("No controller used")
 
@@ -56,7 +56,7 @@ class Energy(Equipment):
             self.energy_motor.connect("valueChanged", self.energyPositionChanged)
             self.energy_motor.connect("stateChanged", self.energyStateChanged)
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def get_value(self):

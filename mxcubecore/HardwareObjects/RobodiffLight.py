@@ -13,17 +13,17 @@ class RobodiffLight(Device, AbstractMotor):
         Device.__init__(self, name)
 
     def init(self):
-        controller = self.getObjectByRole("controller")
+        controller = self.get_object_by_role("controller")
 
         self._state = None
         self.username = self.name()
         self.wago_controller = getattr(controller, self.wago)
-        self.command_key = self.getProperty("cmd")
-        self.in_key = self.getProperty("is_in")
-        self.out_key = self.getProperty("is_out")
-        self.light_level = self.getProperty("level")
+        self.command_key = self.get_property("cmd")
+        self.in_key = self.get_property("is_in")
+        self.out_key = self.get_property("is_out")
+        self.light_level = self.get_property("level")
         self.wago_polling = gevent.spawn(self._wago_polling, self.command_key)
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def _wago_polling(self, key):
         while True:

@@ -96,9 +96,9 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         return cmd_obj(*args, wait=wait)
 
     def init(self):
-        self.energy_obj = self.getObjectByRole("energy")
-        self.beamsize = self.getObjectByRole("beamsize")
-        self.transmission = self.getObjectByRole("transmission")
+        self.energy_obj = self.get_object_by_role("energy")
+        self.beamsize = self.get_object_by_role("beamsize")
+        self.transmission = self.get_object_by_role("transmission")
         self.ready_event = gevent.event.Event()
         if HWR.beamline.lims is None:
             logging.getLogger("HWR").warning(
@@ -107,13 +107,13 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         self.scanInfo = None
         self._tunable_bl.energy_obj = self.energy_obj
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def get_static_parameters(self, config_file, element, edge):
         pars = GetStaticParameters(config_file, element, edge).STATICPARS_DICT
 
-        offset_keV = self.getProperty("offset_keV")
+        offset_keV = self.get_property("offset_keV")
         pars["startEnergy"] += offset_keV
         pars["endEnergy"] += offset_keV
         pars["element"] = element
@@ -171,7 +171,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         self.escan_cleanup()
 
     # Elements commands
-    def getElements(self):
+    def get_elements(self):
         elements = []
         try:
             for el in self["elements"]:

@@ -1,6 +1,26 @@
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU General Lesser Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
+
 from __future__ import absolute_import
 
-import abc
 import enum
 from collections import OrderedDict
 import logging
@@ -9,6 +29,10 @@ from gevent import event, Timeout
 from HardwareRepository.dispatcher import dispatcher
 from HardwareRepository.CommandContainer import CommandContainer
 from HardwareRepository.ConvertUtils import string_types
+
+
+__copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
 
 @enum.unique
@@ -105,7 +129,7 @@ class ConfiguredObject(object):
                 procedure = getattr(self, name)
                 if procedure is not None:
                     result[name] = procedure
-        #
+
         return result
 
 
@@ -113,55 +137,58 @@ class PropertySet(dict):
     def __init__(self):
         dict.__init__(self)
 
-        self.__propertiesChanged = {}
-        self.__propertiesPath = {}
+        self.__properties_changed = {}
+        self.__properties_path = {}
 
-    def setPropertyPath(self, name, path):
+    def set_property_path(self, name, path):
         name = str(name)
-        self.__propertiesPath[name] = path
+        self.__properties_path[name] = path
 
-    def getPropertiesPath(self):
-        return iter(self.__propertiesPath.items())
+    def get_properties_path(self):
+        return iter(self.__properties_path.items())
 
     def __setitem__(self, name, value):
         name = str(name)
 
         if name in self and str(value) != str(self[name]):
-            self.__propertiesChanged[name] = str(value)
+            self.__properties_changed[name] = str(value)
 
         dict.__setitem__(self, str(name), value)
 
-    def getChanges(self):
-        for propertyName, value in self.__propertiesChanged.items():
-            yield (self.__propertiesPath[propertyName], value)
+    def get_changes(self):
+        for property_name, value in self.__properties_changed.items():
+            yield (self.__properties_path[property_name], value)
 
-        self.__propertiesChanged = {}  # reset changes at commit
+        self.__properties_changed = {}  # reset changes at commit
 
 
 class HardwareObjectNode(object):
-    def __init__(self, nodeName):
-        self.__dict__["_propertySet"] = PropertySet()
-        self.__objectsNames = []
+    
+    def __init__(self, node_name):
+        """Constructor"""
+        self.__dict__["_property_set"] = PropertySet()
+        self.__objects_names = []
         self.__objects = []
-        self._objectsByRole = {}
+        self._objects_by_role = {}
         self._path = ""
-        self.__name = nodeName
+        self.__name = node_name
         self.__references = []
+        self._xml_path = None
 
     @staticmethod
-    def setUserFileDirectory(user_file_directory):
+    def set_user_file_directory(user_file_directory):
         HardwareObjectNode.user_file_directory = user_file_directory
 
     def name(self):
         return self.__name
 
-    def setName(self, name):
+    def set_name(self, name):
         self.__name = name
 
-    def getRoles(self):
-        return list(self._objectsByRole.keys())
+    def get_roles(self):
+        return list(self._objects_by_role.keys())
 
-    def setPath(self, path):
+    def set_path(self, path):
         """Set the 'path' of the Hardware Object in the XML file describing it
         (the path follows the XPath syntax)
 
@@ -169,8 +196,11 @@ class HardwareObjectNode(object):
           path -- string representing the path of the Hardware Object in its file"""
         self._path = path
 
+    def get_xml_path(self):
+        return self._xml_path
+
     def __iter__(self):
-        for i in range(len(self.__objectsNames)):
+        for i in range(len(self.__objects_names)):
             for object in self.__objects[i]:
                 yield object
 
@@ -182,14 +212,14 @@ class HardwareObjectNode(object):
             raise AttributeError(attr)
 
         try:
-            return self.__dict__["_propertySet"][attr]
+            return self.__dict__["_property_set"][attr]
         except KeyError:
             raise AttributeError(attr)
 
     def __setattr__(self, attr, value):
         try:
-            if attr not in self.__dict__ and attr in self._propertySet:
-                self.setProperty(attr, value)
+            if attr not in self.__dict__ and attr in self._property_set:
+                self.set_property(attr, value)
             else:
                 self.__dict__[attr] = value
         except AttributeError:
@@ -197,23 +227,23 @@ class HardwareObjectNode(object):
 
     def __getitem__(self, key):
         if isinstance(key, string_types):
-            objectName = key
+            object_name = key
 
             try:
-                i = self.__objectsNames.index(objectName)
+                index = self.__objects_names.index(object_name)
             except Exception:
                 raise KeyError
             else:
-                obj = self.__objects[i]
+                obj = self.__objects[index]
                 if len(obj) == 1:
                     return obj[0]
                 else:
                     return obj
         elif isinstance(key, int):
-            i = key
+            index = key
 
-            if i < len(self.__objectsNames):
-                obj = self.__objects[i]
+            if index < len(self.__objects_names):
+                obj = self.__objects[index]
                 if len(obj) == 1:
                     return obj[0]
                 else:
@@ -223,101 +253,101 @@ class HardwareObjectNode(object):
         else:
             raise TypeError
 
-    def addReference(self, name, reference, role=None):
+    def add_reference(self, name, reference, role=None):
         role = str(role).lower()
 
         try:
-            i = self.__objectsNames.index(name)
+            index = self.__objects_names.index(name)
         except ValueError:
-            objectsNamesIndex = len(self.__objectsNames)
-            self.__objectsNames.append(None)
-            objectsIndex = len(self.__objects)
+            objects_names_index = len(self.__objects_names)
+            self.__objects_names.append(None)
+            objects_index = len(self.__objects)
             self.__objects.append(None)
-            objectsIndex2 = -1
+            objects_index2 = -1
         else:
-            objectsNamesIndex = -1
-            objectsIndex = i
-            objectsIndex2 = len(self.__objects[i])
-            self.__objects[i].append(None)
+            objects_names_index = -1
+            objects_index = index
+            objects_index2 = len(self.__objects[index])
+            self.__objects[index].append(None)
 
         self.__references.append(
-            (reference, name, role, objectsNamesIndex, objectsIndex, objectsIndex2)
+            (reference, name, role, objects_names_index, objects_index, objects_index2)
         )
 
-    def resolveReferences(self):
+    def resolve_references(self):
         # NB Must be here - importing at top level leads to circular imports
-        from .HardwareRepository import getHardwareRepository
+        from .HardwareRepository import get_hardware_repository
 
         while len(self.__references) > 0:
             (
                 reference,
                 name,
                 role,
-                objectsNamesIndex,
-                objectsIndex,
-                objectsIndex2,
+                objects_names_index,
+                objects_index,
+                objects_index2,
             ) = self.__references.pop()
 
-            hw_object = getHardwareRepository().getHardwareObject(reference)
+            hw_object = get_hardware_repository().get_hardware_object(reference)
 
             if hw_object is not None:
-                self._objectsByRole[role] = hw_object
+                self._objects_by_role[role] = hw_object
                 hw_object.__role = role
 
-                if objectsNamesIndex >= 0:
-                    self.__objectsNames[objectsNamesIndex] = role
-                    self.__objects[objectsIndex] = [hw_object]
+                if objects_names_index >= 0:
+                    self.__objects_names[objects_names_index] = role
+                    self.__objects[objects_index] = [hw_object]
                 else:
-                    self.__objects[objectsIndex][objectsIndex2] = hw_object
+                    self.__objects[objects_index][objects_index2] = hw_object
             else:
-                if objectsNamesIndex >= 0:
-                    del self.__objectsNames[objectsNamesIndex]
-                    del self.__objects[objectsIndex]
+                if objects_names_index >= 0:
+                    del self.__objects_names[objects_names_index]
+                    del self.__objects[objects_index]
                 else:
-                    del self.__objects[objectsIndex][objectsIndex2]
-                    if len(self.objects[objectsIndex]) == 0:
-                        del self.objects[objectsIndex]
+                    del self.__objects[objects_index][objects_index2]
+                    if len(self.objects[objects_index]) == 0:
+                        del self.objects[objects_index]
 
         for hw_object in self:
-            hw_object.resolveReferences()
+            hw_object.resolve_references()
 
-    def addObject(self, name, hw_object, role=None):
+    def add_object(self, name, hw_object, role=None):
         if hw_object is None:
             return
         elif role is not None:
             role = str(role).lower()
-            self._objectsByRole[role] = hw_object
+            self._objects_by_role[role] = hw_object
             hw_object.__role = role
 
         try:
-            i = self.__objectsNames.index(name)
+            index = self.__objects_names.index(name)
         except ValueError:
-            self.__objectsNames.append(name)
+            self.__objects_names.append(name)
             self.__objects.append([hw_object])
         else:
-            self.__objects[i].append(hw_object)
+            self.__objects[index].append(hw_object)
 
-    def hasObject(self, objectName):
-        return objectName in self.__objectsNames
+    def has_object(self, object_name):
+        return object_name in self.__objects_names
 
-    def getObjects(self, objectName):
+    def get_objects(self, object_name):
         try:
-            i = self.__objectsNames.index(objectName)
+            index = self.__objects_names.index(object_name)
         except ValueError:
             pass
         else:
-            for obj in self.__objects[i]:
+            for obj in self.__objects[index]:
                 yield obj
 
-    def getObjectByRole(self, role):
+    def get_object_by_role(self, role):
         object = None
         obj = self
         objects = []
         role = str(role).lower()
 
         while True:
-            if role in obj._objectsByRole:
-                return obj._objectsByRole[role]
+            if role in obj._objects_by_role:
+                return obj._objects_by_role[role]
 
             for object in obj:
                 objects.append(object)
@@ -327,7 +357,7 @@ class HardwareObjectNode(object):
             except IndexError:
                 break
             else:
-                object = obj.getObjectByRole(role)
+                object = obj.get_object_by_role(role)
                 if object is not None:
                     return object
 
@@ -336,10 +366,10 @@ class HardwareObjectNode(object):
                 else:
                     break
 
-    def objectsNames(self):
-        return self.__objectsNames[:]
+    def objects_names(self):
+        return self.__objects_names[:]
 
-    def setProperty(self, name, value):
+    def set_property(self, name, value):
         name = str(name)
         value = str(value)
 
@@ -360,14 +390,14 @@ class HardwareObjectNode(object):
                     elif value == "False":
                         value = False
 
-        self._propertySet[name] = value
-        self._propertySet.setPropertyPath(name, self._path + "/" + str(name))
+        self._property_set[name] = value
+        self._property_set.set_property_path(name, self._path + "/" + str(name))
 
-    def getProperty(self, name, default_value=None):
-        return self._propertySet.get(str(name), default_value)
+    def get_property(self, name, default_value=None):
+        return self._property_set.get(str(name), default_value)
 
-    def getProperties(self):
-        return self._propertySet
+    def get_properties(self):
+        return self._property_set
 
     def print_log(self, log_type="HWR", level="debug", msg=""):
         if hasattr(logging.getLogger(log_type), level):
@@ -519,20 +549,25 @@ class HardwareObjectMixin(CommandContainer):
     def re_emit_values(self):
         """Update values for all internal attributes
 
-        The method is called from Qt bricks to ensure that bricks have values
-        after the initialization.
-        Problem arrise when a hardware object is used by several bricks.
-        If first brick connects to some signal emited by a brick then
-        other bricks connecting to the same signal will not receive the
-        values on the startup.
-        The easiest solution is to call re_emit_values method directly
-        after getHardwareObject and connect.
-
         Should be expanded in subclasse with more updatable attributes
         (e.g. value, limits)
         """
         self.update_state()
         self.update_specific_state()
+
+    def force_emit_signals(self):
+        """Emits all hardware object signals
+
+        The method is called from the gui via beamline object to ensure that bricks have values
+        after the initialization.
+        Problem arrise when a hardware object is used by several bricks.
+        If first brick connects to some signal emited by a brick then
+        other bricks connecting to the same signal will not receive the
+        values on the startup.
+        The easiest solution is to call force_emit_signals method directly
+        after the initialization of the beamline object
+        """
+        pass
 
     # Moved from HardwareObjectNode
     def clear_gevent(self):
@@ -594,8 +629,8 @@ class HardwareObjectMixin(CommandContainer):
 
         self.connect_dict[sender] = {"signal": signal, "slot": slot}
 
-        if hasattr(sender, "connectNotify"):
-            sender.connectNotify(signal)
+        if hasattr(sender, "connect_notify"):
+            sender.connect_notify(signal)
 
     def disconnect(self, sender, signal, slot=None):
         """Disconnect a signal sent by self to a slot
@@ -627,8 +662,8 @@ class HardwareObjectMixin(CommandContainer):
 
         dispatcher.disconnect(slot, signal, sender)
 
-        if hasattr(sender, "disconnectNotify"):
-            sender.disconnectNotify(signal)
+        if hasattr(sender, "disconnect_notify"):
+            sender.disconnect_notify(signal)
 
     # def connect_notify(self, signal):
     #     pass
@@ -651,9 +686,9 @@ class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
 
     def __setstate__(self, name):
         # NB Must be here - importing at top level leads to circular imports
-        from .HardwareRepository import getHardwareRepository
+        from .HardwareRepository import get_hardware_repository
 
-        obj = getHardwareRepository().getHardwareObject(name)
+        obj = get_hardware_repository().get_hardware_object(name)
         self.__dict__.update(obj.__dict__)
 
     def __getattr__(self, attr):
@@ -674,17 +709,17 @@ class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
         NB Must be here - importing at top level leads to circular imports
         """
 
-        from .HardwareRepository import getHardwareRepository
+        from .HardwareRepository import get_hardware_repository
 
         def get_changes(node):
-            updates = list(node._propertySet.getChanges())
+            updates = list(node._property_set.get_changes())
             if node:
                 for subnode in node:
                     updates += get_changes(subnode)
 
             if isinstance(node, HardwareObject):
                 if updates:
-                    getHardwareRepository().update(node.name(), updates)
+                    get_hardware_repository().update(node.name(), updates)
                 return []
             else:
                 return updates
@@ -695,17 +730,17 @@ class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
         """Rewrite XML conifguration file
 
         NB Must be here - importing at top level leads to circular imports"""
-        from .HardwareRepository import getHardwareRepository
+        from .HardwareRepository import get_hardware_repository
 
-        getHardwareRepository().rewrite_xml(self.name(), xml)
+        get_hardware_repository().rewrite_xml(self.name(), xml)
 
     def xml_source(self):
         """Get XML configuration source
 
         NB Must be here - importing at top level leads to circular imports"""
-        from .HardwareRepository import getHardwareRepository
+        from .HardwareRepository import get_hardware_repository
 
-        return getHardwareRepository().xml_source[self.name()]
+        return get_hardware_repository().xml_source[self.name()]
 
 
 class HardwareObjectYaml(ConfiguredObject, HardwareObjectMixin):
@@ -724,7 +759,7 @@ class Procedure(HardwareObject):
         HardwareObject.__init__(self, name)
 
     def userName(self):
-        uname = self.getProperty("username")
+        uname = self.get_property("username")
         if uname is None:
             return str(self.name())
         else:
@@ -752,7 +787,7 @@ class Device(HardwareObject):
 
         self.state = Device.NOTREADY
 
-    def setIsReady(self, ready):
+    def set_is_ready(self, ready):
         if ready and self.state == Device.NOTREADY:
             self.state = Device.READY
             self.emit("deviceReady")
@@ -765,7 +800,7 @@ class Device(HardwareObject):
 
     def userName(self):
         # TODO standardise on 'username' or 'user_name' globaly
-        uname = self.getProperty("username")
+        uname = self.get_property("username")
         if uname is None:
             return str(self.name())
         else:
@@ -781,30 +816,30 @@ class DeviceContainer:
     def __init__(self):
         pass
 
-    def getDevices(self):
+    def get_devices(self):
         devices = []
 
         for item in dir(self):
             if isinstance(item, Device):
                 devices.append(item)
             elif isinstance(item, DeviceContainer):
-                devices += item.getDevices()
+                devices += item.get_devices()
 
         return devices
 
-    def getDevice(self, deviceName):
-        devices = self.getDevices()
+    def get_device(self, device_name):
+        devices = self.get_devices()
 
         for device in devices:
-            if str(device.name()) == deviceName:
+            if str(device.name()) == device_name:
                 return device
 
-    def getDeviceByRole(self, role):
-        # TODO This gives a pylint error, since getObjectByRoleis not in a superclass
+    def get_device_by_role(self, role):
+        # TODO This gives a pylint error, since get_object_by_roleis not in a superclass
         # it is available in the subclases that use this, but fixing this
         # would make more sense in connection with a general refactoring of
         # Device / DeciveContainer/Equipment
-        item = self.getObjectByRole(role)
+        item = self.get_object_by_role(role)
 
         if isinstance(item, Device):
             return item
@@ -845,15 +880,15 @@ class Equipment(HardwareObject, DeviceContainer):
         self.__ready = None
 
     def _init(self):
-        for device in self.getDevices():
-            self.connect(device, "deviceReady", self.__deviceReady)
-            self.connect(device, "deviceNotReady", self.__deviceNotReady)
+        for device in self.get_devices():
+            self.connect(device, "deviceReady", self.__device_ready)
+            self.connect(device, "deviceNotReady", self.__device_not_ready)
 
-        self.__deviceReady()
+        self.__device_ready()
 
-    def __deviceReady(self):
+    def __device_ready(self):
         ready = True
-        for device in self.getDevices():
+        for device in self.get_devices():
             ready = ready and device.is_ready()
             if not ready:
                 break
@@ -866,7 +901,7 @@ class Equipment(HardwareObject, DeviceContainer):
             else:
                 self.emit("equipmentNotReady")
 
-    def __deviceNotReady(self):
+    def __device_not_ready(self):
         if self.__ready:
             self.__ready = False
             self.emit("equipmentNotReady")
@@ -878,7 +913,7 @@ class Equipment(HardwareObject, DeviceContainer):
         return True
 
     def userName(self):
-        uname = self.getProperty("username")
+        uname = self.get_property("username")
         if uname is None:
             return str(self.name())
         else:
@@ -894,7 +929,7 @@ class Null:
     The code might benefit from implementing some further special
     Python methods depending on the context in which its instances
     are used. Especially when comparing and coercing Null objects
-    the respective methods' implementation will depend very much
+    the respective methods' iimplementation will depend very much
     on the environment and, hence, these special methods are not
     provided here.
     """

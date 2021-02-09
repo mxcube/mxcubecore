@@ -41,11 +41,11 @@ class EDNACharacterisation(AbstractCharacterisation):
         self.start_edna_command = None
 
     def init(self):
-        self.collect_obj = self.getObjectByRole("collect")
-        self.start_edna_command = self.getProperty("edna_command")
-        self.edna_default_file = self.getProperty("edna_default_file")
+        self.collect_obj = self.get_object_by_role("collect")
+        self.start_edna_command = self.get_property("edna_command")
+        self.edna_default_file = self.get_property("edna_default_file")
 
-        fp = HWR.getHardwareRepository().findInRepository(self.edna_default_file)
+        fp = HWR.get_hardware_repository().find_in_repository(self.edna_default_file)
 
         if fp is None:
             fp = self.edna_default_file
@@ -229,7 +229,7 @@ class EDNACharacterisation(AbstractCharacterisation):
         for img_num in range(int(acquisition_parameters.num_images)):
             image_file = XSDataFile()
             path = XSDataString()
-            path.setValue(path_str % (img_num + 1))
+            path.set_value(path_str % (img_num + 1))
             image_file.setPath(path)
             data_set.addImageFile(image_file)
 
@@ -412,8 +412,8 @@ class EDNACharacterisation(AbstractCharacterisation):
 
     def get_default_characterisation_parameters(self):
         """
-        Returns: 
-            (queue_model_objects.CharacterisationsParameters) object with default 
+        Returns:
+            (queue_model_objects.CharacterisationsParameters) object with default
             parameters.
         """
         edna_input = XSDataInputMXCuBE.parseString(self.edna_default_input)

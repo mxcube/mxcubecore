@@ -88,14 +88,14 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
             self.motorpos_channel = self.get_channel_object("motorposition")
             self.motorstate_channel = self.get_channel_object("motorstate")
 
-            self.actuator_channel.connectSignal("update", self.stateChanged)
-            self.motorpos_channel.connectSignal("update", self.motorPositionChanged)
-            self.motorstate_channel.connectSignal("update", self.motorStateChanged)
+            self.actuator_channel.connect_signal("update", self.stateChanged)
+            self.motorpos_channel.connect_signal("update", self.motor_positions_changed)
+            self.motorstate_channel.connect_signal("update", self.motorStateChanged)
         except KeyError:
             logging.getLogger().warning("%s: cannot report FrontEnd State", self.name())
 
         try:
-            state_string = self.getProperty("states")
+            state_string = self.get_property("states")
             if state_string is None:
                 self.state_strings = self.default_state_strings
             else:
@@ -109,9 +109,9 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
 
     def get_state(self):
         if self.actuator_state == STATE_UNKNOWN:
-            self.actuator_value = self.actuator_channel.getValue()
-            self.motor_position = self.motorpos_channel.getValue()
-            self.motor_state = self.motorstate_channel.getValue()
+            self.actuator_value = self.actuator_channel.get_value()
+            self.motor_position = self.motorpos_channel.get_value()
+            self.motor_state = self.motorstate_channel.get_value()
             self.update_state()
         return self.actuator_state
 
@@ -139,7 +139,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
         self.actuator_value = value
         self.update_state()
 
-    def motorPositionChanged(self, value):
+    def motor_positions_changed(self, value):
         self.motor_position = value
         self.update_state()
 
@@ -155,12 +155,12 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
 
     def getMotorPosition(self):
         if self.motor_position is None:
-            self.motor_position = self.motorpos_channel.getValue()
+            self.motor_position = self.motorpos_channel.get_value()
         return self.motor_position
 
     def getMotorState(self):
         if self.motor_state is None:
-            self.motor_state = self.motorstate_channel.getValue()
+            self.motor_state = self.motorstate_channel.get_value()
         return self.motor_state
 
     def getUserName(self):
@@ -185,16 +185,16 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
         self.close()
 
     def close(self):
-        self.motorpos_channel.setValue(0)
+        self.motorpos_channel.set_value(0)
         self.set_ttl("High")
 
     def open(self):
-        self.motorpos_channel.setValue(0)
+        self.motorpos_channel.set_value(0)
         self.set_ttl("Low")
 
     def set_ttl(self, value):
         self.nistop_cmd()
-        self.actuator_channel.setValue(value)
+        self.actuator_channel.set_value(value)
         self.nistart_cmd()
 
     def is_open(self):

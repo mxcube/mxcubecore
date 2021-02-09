@@ -85,9 +85,9 @@ class ControllerCommand(BaseBeamlineAction):
         self.argument_type = ARGUMENT_TYPE_JSON_SCHEMA
         self._arguments = json_schema_str
 
-    def getArguments(self):
+    def get_arguments(self):
         """Get the command object arguments"""
-        return CommandObject.getArguments(self)
+        return CommandObject.get_arguments(self)
 
     @task
     def __call__(self, *args, **kwargs):
@@ -166,6 +166,7 @@ class HWObjActuatorCommand(CommandObject):
         values = [v.name for v in self._hwobj.VALUES]
         values.remove("UNKNOWN")
         values.remove(self._hwobj.get_value().name)
+        
         return self._hwobj.VALUES[values[0]]
 
     @task
@@ -221,22 +222,22 @@ class BeamCmds(HardwareObject):
         """Initialise the controller commands and the actuator object
            to be used.
         """
-        ctrl_cmds = self["controller_commands"].getProperties().items()
+        ctrl_cmds = self["controller_commands"].get_properties().items()
 
         if ctrl_cmds:
-            controller = self.getObjectByRole("controller")
+            controller = self.get_object_by_role("controller")
             for key, name in ctrl_cmds:
-                # name = self.getProperty(cmd)
+                # name = self.get_property(cmd)
                 action = getattr(controller, key)
                 self.ctrl_list.append(ControllerCommand(name, action))
 
         hwobj_cmd_roles = ast.literal_eval(
-            self.getProperty("hwobj_command_roles").strip()
+            self.get_property("hwobj_command_roles").strip()
         )
 
         if hwobj_cmd_roles:
             for role in hwobj_cmd_roles:
-                hwobj_cmd = self.getObjectByRole(role)
+                hwobj_cmd = self.get_object_by_role(role)
                 self.hwobj_list.append(
                     HWObjActuatorCommand(hwobj_cmd.username, hwobj_cmd)
                 )

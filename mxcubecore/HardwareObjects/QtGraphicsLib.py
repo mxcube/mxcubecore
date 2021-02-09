@@ -5,16 +5,16 @@
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
+#  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
@@ -51,6 +51,7 @@ from gui.utils import QtImport
 
 from HardwareRepository.HardwareObjects import queue_model_objects
 from HardwareRepository.ConvertUtils import string_types
+
 
 SELECTED_COLOR = QtImport.Qt.green
 NORMAL_COLOR = QtImport.Qt.yellow
@@ -1595,10 +1596,12 @@ class GraphicsItemScale(GraphicsItem):
        vertical scale is two times shorter.
     """
 
-    HOR_LINE_LEN_MICRONS = (300, 200, 100, 50)
+    HOR_LINE_LEN_MICRONS = (300, 200, 100, 50, 30, 20, 10)
     HOR_LINE_LEN_MM = (10, 5, 2, 1)
 
-    def __init__(self, parent, position_x=0, position_y=0):
+    LOWER_LEFT, UPPER_LEFT = (0,1)
+
+    def __init__(self, parent, position_x=0, position_y=0, anchor=None):
         """
         Init
         :param parent:
@@ -1611,9 +1614,16 @@ class GraphicsItemScale(GraphicsItem):
         self.__scale_unit = u"\u00B5"
         self.__display_grid = False
 
+        if anchor is None:
+           anchor = GraphicsItemScale.LOWER_LEFT
+        self.set_anchor(anchor)
+
         self.custom_pen_color = SELECTED_COLOR
         self.custom_pen.setWidth(3)
         self.custom_pen.setColor(self.custom_pen_color)
+
+    def set_anchor(self, anchor_position):
+        self.anchor_position = anchor_position
 
     def paint(self, painter, option, widget):
         """
@@ -1630,28 +1640,29 @@ class GraphicsItemScale(GraphicsItem):
         # self.custom_pen.setColor(self.custom_pen_color)
         painter.setPen(self.custom_pen)
 
-        painter.drawLine(
-            7,
-            self.start_coord[1] - 15,
-            7 + self.__scale_len_pix,
-            self.start_coord[1] - 15,
-        )
-        painter.drawText(
-            self.__scale_len_pix - 18,
-            self.start_coord[1] - 20,
-            "%d %s" % (self.__scale_len, self.__scale_unit),
-        )
-        painter.drawLine(
-            7,
-            self.start_coord[1] - 15,
-            7,
-            self.start_coord[1] - 15 - self.__scale_len_pix / 2,
-        )
-        painter.drawText(
-            12,
-            self.start_coord[1] - 7 - self.__scale_len_pix / 2,
-            "%d %s" % (self.__scale_len / 2, self.__scale_unit),
-        )
+        if self.anchor_position == GraphicsItemScale.LOWER_LEFT:
+            line_horiz_coords = (7, self.start_coord[1] - 15, 7 + self.__scale_len_pix, self.start_coord[1] - 15)
+            horiz_text_pos = ( self.__scale_len_pix - 18, self.start_coord[1] - 20)
+    
+            line_vert_coords =  ( 7, self.start_coord[1] - 15, 7, self.start_coord[1] - 15 - self.__scale_len_pix / 2)
+            vert_text_pos = (12, self.start_coord[1] - 7 - self.__scale_len_pix / 2)
+        elif self.anchor_position == GraphicsItemScale.UPPER_LEFT:
+            line_horiz_coords = (7, 15, 7 + self.__scale_len_pix, 15)
+            horiz_text_pos = ( self.__scale_len_pix + 18, 20)
+            line_vert_coords =  ( 7, 15, 7, 15 + self.__scale_len_pix / 2)
+            vert_text_pos = (12, 7 + self.__scale_len_pix / 2)
+
+        x0, y0, x1, y1 = line_horiz_coords
+        painter.drawLine(x0, y0, x1, y1)
+
+        x0, y0 = horiz_text_pos 
+        painter.drawText(x0, y0, "%d %s" % (self.__scale_len, self.__scale_unit))
+
+        x0, y0, x1, y1 = line_vert_coords
+        painter.drawLine(x0, y0, x1, y1)
+
+        x0, y0 = vert_text_pos 
+        painter.drawText(x0, y0, "%d %s" % (self.__scale_len / 2, self.__scale_unit))
 
         if self.__display_grid:
             self.custom_pen.setStyle(QtImport.Qt.DotLine)

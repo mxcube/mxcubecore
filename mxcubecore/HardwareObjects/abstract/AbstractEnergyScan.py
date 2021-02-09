@@ -148,7 +148,7 @@ class AbstractEnergyScan(object):
         STATICPARS_DICT = {}
         # Set the energy from the element and edge parameters
         STATICPARS_DICT = self.get_static_parameters(
-            self.getProperty("config_file"), element, edge
+            self.get_property("config_file"), element, edge
         )
 
         self.energy_scan_parameters = STATICPARS_DICT

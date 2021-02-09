@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 
 import gevent
@@ -34,12 +34,12 @@ class Attenuators(AbstractTransmission):
 
     def init(self):
         self.chan_att_value = self.get_channel_object("chanAttValue")
-        self.chan_att_value.connectSignal("update", self.value_changed)
-        self.value_changed(self.chan_att_value.getValue())
+        self.chan_att_value.connect_signal("update", self.value_changed)
+        self.value_changed(self.chan_att_value.get_value())
         self.chan_att_state = self.get_channel_object("chanAttState")
-        self.chan_att_state.connectSignal("update", self.state_changed)
+        self.chan_att_state.connect_signal("update", self.state_changed)
         self.chan_att_limits = self.get_channel_object("chanAttLimits")
-        self.chan_att_limits.connectSignal("update", self.limits_changed)
+        self.chan_att_limits.connect_signal("update", self.limits_changed)
 
         self.re_emit_values()
 
@@ -56,4 +56,4 @@ class Attenuators(AbstractTransmission):
         self.emit("limitsChanged", (self._limits,))
 
     def _set_value(self, value):
-        self.chan_att_value.setValue(value)
+        self.chan_att_value.set_value(value)

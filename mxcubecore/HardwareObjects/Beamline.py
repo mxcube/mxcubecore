@@ -17,7 +17,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """Beamline class serving as singleton container for links to top-level HardwareObjects
 
@@ -102,7 +102,10 @@ class Beamline(ConfiguredObject):
 
         # bool By default run processing of (certain?)data collections in aprallel?
         self.run_processing_parallel = False
-
+        
+        # bool By default run online processing (characterization/mesh?)
+        self.run_online_processing = True
+        
         # Dictionary-of-dictionaries of default acquisition parameters
         self.default_acquisition_parameters = {}
 
@@ -608,7 +611,7 @@ class Beamline(ConfiguredObject):
 
         try:
             acq_parameters.resolution = self.resolution.get_value()
-        except:
+        except Exception:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
                 "No current resolution, setting to 0.0"
@@ -617,7 +620,7 @@ class Beamline(ConfiguredObject):
 
         try:
             acq_parameters.energy = self.energy.get_value()
-        except:
+        except Exception:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
                 "No current energy, setting to 0.0"
@@ -626,7 +629,7 @@ class Beamline(ConfiguredObject):
 
         try:
             acq_parameters.transmission = self.transmission.get_value()
-        except:
+        except Exception:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
                 "No current transmission, setting to 0.0"
@@ -635,7 +638,7 @@ class Beamline(ConfiguredObject):
 
         try:
             acq_parameters.shutterless = self.detector.has_shutterless()
-        except:
+        except Exception:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
                 "Could not get has_shutterless, setting to False"
@@ -644,7 +647,7 @@ class Beamline(ConfiguredObject):
 
         try:
             acq_parameters.detector_binning_mode = self.detector.get_binning_mode()
-        except:
+        except Exception:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
                 "Could not get detector mode, setting to ''"
@@ -653,7 +656,7 @@ class Beamline(ConfiguredObject):
 
         try:
             acq_parameters.detector_roi_mode = self.detector.get_roi_mode()
-        except:
+        except Exception:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "
                 "Could not get roi mode, setting to ''"
@@ -685,12 +688,29 @@ class Beamline(ConfiguredObject):
         path_template.run_number = self.run_number
 
         file_info = self.session["file_info"]
-        path_template.suffix = file_info.getProperty("file_suffix")
+        path_template.suffix = file_info.get_property("file_suffix")
         path_template.precision = "04"
         try:
-            if file_info.getProperty("precision"):
-                path_template.precision = eval(file_info.getProperty("precision"))
+            if file_info.get_property("precision"):
+                path_template.precision = eval(file_info.get_property("precision"))
         except Exception:
             pass
 
         return path_template
+
+    def get_default_characterisation_parameters(self):
+        return self.characterisation.get_default_characterisation_parameters()
+
+    def force_emit_signals(self):
+        for role in self.all_roles:
+            hwobj =  getattr(self, role)
+            if hwobj is not None:
+                try:
+                    hwobj.force_emit_signals()
+                    for attr in dir(hwobj):
+                        if not attr.startswith("_"):
+                            if hasattr(getattr(hwobj, attr), 'force_emit_signals'):
+                                child_hwobj = getattr(hwobj, attr)
+                                child_hwobj.force_emit_signals()
+                except BaseException as ex:
+                    logging.getLogger("HWR").error("Unable to call force_emit_signals (%s)" % str(ex))

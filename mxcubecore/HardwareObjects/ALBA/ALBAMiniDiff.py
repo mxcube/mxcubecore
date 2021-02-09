@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 [Name]
@@ -76,10 +76,10 @@ class ALBAMiniDiff(GenericDiffractometer):
 
     def init(self):
 
-        self.calibration = self.getObjectByRole("calibration")
+        self.calibration = self.get_object_by_role("calibration")
 
-        self.centring_hwobj = self.getObjectByRole("centring")
-        self.super_hwobj = self.getObjectByRole("beamline-supervisor")
+        self.centring_hwobj = self.get_object_by_role("centring")
+        self.super_hwobj = self.get_object_by_role("beamline-supervisor")
 
         if self.centring_hwobj is None:
             logging.getLogger("HWR").debug("ALBAMinidiff: Centring math is not defined")
@@ -97,13 +97,13 @@ class ALBAMiniDiff(GenericDiffractometer):
         # This is not used
         self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")
 
-        self.phi_motor_hwobj = self.getObjectByRole("phi")
-        self.phiz_motor_hwobj = self.getObjectByRole("phiz")
-        self.phiy_motor_hwobj = self.getObjectByRole("phiy")
-        self.zoom_motor_hwobj = self.getObjectByRole("zoom")
-        self.focus_motor_hwobj = self.getObjectByRole("focus")
-        self.sample_x_motor_hwobj = self.getObjectByRole("sampx")
-        self.sample_y_motor_hwobj = self.getObjectByRole("sampy")
+        self.phi_motor_hwobj = self.get_object_by_role("phi")
+        self.phiz_motor_hwobj = self.get_object_by_role("phiz")
+        self.phiy_motor_hwobj = self.get_object_by_role("phiy")
+        self.zoom_motor_hwobj = self.get_object_by_role("zoom")
+        self.focus_motor_hwobj = self.get_object_by_role("focus")
+        self.sample_x_motor_hwobj = self.get_object_by_role("sampx")
+        self.sample_y_motor_hwobj = self.get_object_by_role("sampy")
 
         if self.phi_motor_hwobj is not None:
             self.connect(
@@ -268,8 +268,8 @@ class ALBAMiniDiff(GenericDiffractometer):
         """
         calibx, caliby = self.calibration.getCalibration()
 
-        size_x = self.get_channel_object("beamInfoX").getValue() / 1000.0
-        size_y = self.get_channel_object("beamInfoY").getValue() / 1000.0
+        size_x = self.get_channel_object("beamInfoX").get_value() / 1000.0
+        size_y = self.get_channel_object("beamInfoY").get_value() / 1000.0
 
         data = {"size_x": size_x, "size_y": size_y, "shape": "ellipse"}
 
@@ -337,7 +337,7 @@ class ALBAMiniDiff(GenericDiffractometer):
     #    """
     #    self.centring_hwobj.initCentringProcedure()
 
-    #    # self.head_type = self.chan_head_type.getValue()
+    #    # self.head_type = self.chan_head_type.get_value()
     #    # Say diffractometer to go to SampleView phase
 
     #    # go to sample_view phase
@@ -358,7 +358,7 @@ class ALBAMiniDiff(GenericDiffractometer):
     #              "Y": (y - self.zoom_centre['y'])/ self.pixels_per_mm_y})
 
     #        if self.in_plate_mode():
-    #            dynamic_limits = self.phi_motor_hwobj.getDynamicLimits()
+    #            dynamic_limits = self.phi_motor_hwobj.get_dynamic_limits()
     #            if click == 0:
     #                self.phi_motor_hwobj.set_value(dynamic_limits[0])
     #            elif click == 1:

@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#   You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#   You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 from HardwareRepository.BaseHardwareObjects import Device
@@ -62,14 +62,14 @@ class MotorWPositions(AbstractMotor, Device):
     def init(self):
         self._last_position_name = None
         try:
-            roles = self["motors"].getRoles()
+            roles = self["motors"].get_roles()
             role = roles[0]
-            self.motor = self.getObjectByRole(role)
+            self.motor = self.get_object_by_role(role)
         except KeyError:
             logging.getLogger("HWR").error("MotorWPositions: motor not defined")
             return
         try:
-            self.delta = self["deltas"].getProperty(role)
+            self.delta = self["deltas"].get_property(role)
         except Exception:
             logging.getLogger().info(
                 "MotorWPositions: no delta defined, setting to %f", self.delta
@@ -80,17 +80,17 @@ class MotorWPositions(AbstractMotor, Device):
             logging.getLogger().error("MotorWPositions: no positions defined")
         else:
             for position in positions:
-                name = position.getProperty("name")
-                pos = position.getProperty(role)
+                name = position.get_property("name")
+                pos = position.get_property(role)
                 self.predefined_positions[name] = pos
         self.connect(self.motor, "stateChanged", self.motor_state_changed)
         self.connect(self.motor, "valueChanged", self.motor_position_changed)
-        self.setIsReady(self.motor.is_ready())
+        self.set_is_ready(self.motor.is_ready())
 
     def get_limits(self):
         return (1, len(self.predefined_positions))
 
-    def getPredefinedPositionsList(self):
+    def get_predefined_positions_list(self):
         return sorted(self.predefined_positions.keys())
         # return self.predefined_positions
 
@@ -111,7 +111,7 @@ class MotorWPositions(AbstractMotor, Device):
     def setNewPredefinedPosition(self, positionName, positionOffset):
         raise NotImplementedError
 
-    def getMotorMnemonic(self):
+    def get_motor_mnemonic(self):
         """
         Descript. :
         """
@@ -139,7 +139,7 @@ class MotorWPositions(AbstractMotor, Device):
         """
         if state is None:
             state = self.get_state()
-        self.setIsReady(state > AbstractMotor.UNUSABLE)
+        self.set_is_ready(state > AbstractMotor.UNUSABLE)
 
     def get_state(self):
         """

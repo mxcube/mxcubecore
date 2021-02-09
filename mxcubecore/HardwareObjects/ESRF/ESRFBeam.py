@@ -16,7 +16,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 BeamDefiner ESRF implementation class - methods to define the size and shape of
@@ -49,34 +49,34 @@ class ESRFBeam(AbstractBeam):
     def init(self):
         """ Initialize hardware """
         AbstractBeam.init(self)
-        self._definer_type = self.getProperty("definer")
+        self._definer_type = self.get_property("definer")
 
-        self._aperture = self.getObjectByRole("aperture")
-        _bliss_obj = self.getObjectByRole("bliss")
+        self._aperture = self.get_object_by_role("aperture")
+        _bliss_obj = self.get_object_by_role("bliss")
 
-        _slits = self.getProperty("slits")
+        _slits = self.get_property("slits")
         if _slits:
             for name in _slits.split():
                 _key, _val = name.split(":")
                 self._slits.update({_key: _bliss_obj.__getattribute__(_val)})
 
-        self._complex = self.getObjectByRole("complex")
+        self._complex = self.get_object_by_role("complex")
 
-        beam_position = self.getProperty("beam_position")
+        beam_position = self.ge_property("beam_position")
 
         if beam_position:
             self._beam_position_on_screen = tuple(map(float, beam_position.split()))
 
         if self._aperture:
-            self._aperture.connect("valueChanged", self._emit_beam_info_change)
-            self._aperture.connect("stateChanged", self._emit_beam_info_change)
+            self._aperture.connect("valueChanged", self._re_emit_values)
+            self._aperture.connect("stateChanged", self._re_emit_values)
 
         if self._complex:
-            self._complex.connect("valueChanged", self._emit_beam_info_change)
-            self._complex.connect("stateChanged", self._emit_beam_info_change)
+            self._complex.connect("valueChanged", self._re_emit_values)
+            self._complex.connect("stateChanged", self._re_emit_values)
 
-    def _emit_beam_info_change(self, *args, **kwargs):
-        self.emit_beam_info_change()
+    def _re_emit_values(self, *args, **kwargs):
+        self.re_emit_values()
 
     def _get_aperture_size(self):
         """ Get the size and the label of the aperture in place.

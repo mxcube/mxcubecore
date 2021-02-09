@@ -33,11 +33,11 @@ class ControllerCommand(CommandObject):
         self.type = "CONTROLLER"
 
         if self.name() == "Anneal":
-            self.addArgument("Time [s]", "float")
+            self.add_argument("Time [s]", "float")
         if self.name() == "Test":
-            self.addArgument("combo test", "combo", [{"value1": 0, "value2": 1}])
+            self.add_argument("combo test", "combo", [{"value1": 0, "value2": 1}])
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     @task

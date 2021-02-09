@@ -16,7 +16,7 @@
 # GNU Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
-# along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
+# along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 
 """General data and functions, that can be shared between different HardwareObjects
 """
@@ -24,7 +24,6 @@
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
-__author__ = "rhfogh"
 __date__ = "19/06/17"
 __credits__ = ["MXCuBE collaboration"]
 
@@ -35,7 +34,7 @@ try:
     string_types = (basestring,)
     text_type = unicode
     binary_type = str
-except:
+except Exception:
     # Python 3+
     string_types = (str,)
     text_type = str

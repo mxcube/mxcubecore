@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,7 +15,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU General Lesser Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """Mockup class for testing purposes"""
 
@@ -44,6 +44,9 @@ class EnergyMockup(ActuatorMockup, AbstractEnergy):
             self.update_value(DEFAULT_VALUE)
         self.update_state(self.STATES.READY)
 
+    def get_limits(self):
+        my_limits = ActuatorMockup.get_limits(self)
+        return my_limits
     def _move(self, value):
         """ Simulated energy change
         Args:

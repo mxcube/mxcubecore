@@ -25,9 +25,9 @@ class MD2MultiCollect(ESRFMultiCollect):
         except Exception:
             pass
 
-        check_flux_and_cryo = self.getProperty("check_flux_and_cryo", False)
-        flux_threshold = self.getProperty("flux_threshold")
-        cryo_threshold = self.getProperty("cryo_threshold")
+        check_flux_and_cryo = self.get_property("check_flux_and_cryo", False)
+        flux_threshold = self.get_property("flux_threshold")
+        cryo_threshold = self.get_property("cryo_threshold")
 
         if check_flux_and_cryo:
             # Wait for flux
@@ -46,7 +46,7 @@ class MD2MultiCollect(ESRFMultiCollect):
 
     @task
     def get_slit_gaps(self):
-        self.getObjectByRole("controller")
+        self.get_object_by_role("controller")
 
         return (None, None)
 
@@ -87,12 +87,12 @@ class MD2MultiCollect(ESRFMultiCollect):
     def do_prepare_oscillation(self, *args, **kwargs):
         # set the detector cover out
         try:
-            detcover = self.getObjectByRole("controller").detcover
+            detcover = self.get_object_by_role("controller").detcover
 
             if detcover.state == "IN":
                 detcover.set_out(10)
         except:
-            logging.getLogger("HWR").exception("Got the tricky one !")
+            logging.getLogger("HWR").exception("Could close detector cover")
 
         diffr = HWR.beamline.diffractometer
 
@@ -106,19 +106,20 @@ class MD2MultiCollect(ESRFMultiCollect):
         diffr.set_phase("DataCollection", wait=True, timeout=200)
 
         # switch on the front light
-        front_light_switch = diffr.getObjectByRole("FrontLightSwitch")
+        front_light_switch = diffr.get_object_by_role("FrontLightSwitch")
         front_light_switch.set_value(front_light_switch.VALUES.IN)
-        # diffr.getObjectByRole("FrontLight").set_value(2)
+        # diffr.get_object_by_role("FrontLight").set_value(2)
+
 
     @task
     def oscil(self, start, end, exptime, npass, wait=True):
-        diffr = self.getObjectByRole("diffractometer")
+        diffr = self.get_object_by_role("diffractometer")
         if self.helical:
             diffr.oscilScan4d(start, end, exptime, self.helical_pos, wait=True)
         elif self.mesh:
             det = HWR.beamline.detector
-            latency_time = det.getProperty("latecy_time_mesh") or det.get_deadtime()
-            sequence_trigger = self.getProperty("lima_sequnce_trigger_mode") or False
+            latency_time = det.get_property("latecy_time_mesh") or det.get_deadtime()
+            sequence_trigger = self.get_property("lima_sequnce_trigger_mode") or False
 
             if sequence_trigger:
                 msg = "Using LIMA sequnce trigger mode for Eiger"
@@ -214,7 +215,7 @@ class MD2MultiCollect(ESRFMultiCollect):
                         continue
                     shutil.copyfile(
                         os.path.join(
-                            self.getProperty(template_file_directory), filename
+                            self.get_property(template_file_directory), filename
                         ),
                         dest,
                     )

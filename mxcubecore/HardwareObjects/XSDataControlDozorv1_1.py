@@ -647,7 +647,7 @@ class XSDataControlImageDozor(object):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataControlImageDozor")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -1239,7 +1239,7 @@ class XSDataInputControlDozor(XSDataInput):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataInputControlDozor")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 
@@ -1386,7 +1386,7 @@ class XSDataResultControlDozor(XSDataResult):
         oStreamString = StringIO()
         oStreamString.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(oStreamString, 0, name_="XSDataResultControlDozor")
-        oStringXML = oStreamString.getvalue()
+        oStringXML = oStreamString.getValue()
         oStreamString.close()
         return oStringXML
 

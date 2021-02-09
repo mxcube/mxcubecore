@@ -45,7 +45,7 @@ class SpecShell(Equipment):
             self.specOutput, PYSIGNAL("outputReceived"), self.outputReceived
         )
         try:
-            self.specConnection = SpecClient.SpecConnectionsManager.SpecConnectionsManager().getConnection(
+            self.specConnection = SpecClient.SpecConnectionsManager.SpecConnectionsManager().get_connection(
                 self.specversion
             )
         except AttributeError:
@@ -65,7 +65,7 @@ class SpecShell(Equipment):
             SpecClient.SpecEventsDispatcher.connect(
                 self.specConnection, "disconnected", self.sDisconnected
             )
-            if self.isConnected():
+            if self.is_connected():
                 self.sConnected()
 
     def sConnected(self):
@@ -80,12 +80,12 @@ class SpecShell(Equipment):
             "sleep",
         )
         cmd = self.get_command_object("SpecShellMacro")
-        cmd.connectSignal("commandReady", self.commandReady)
-        cmd.connectSignal("commandNotReady", self.commandNotReady)
-        cmd.connectSignal("commandReplyArrived", self.commandFinished)
-        cmd.connectSignal("commandBeginWaitReply", self.commandStarted)
-        cmd.connectSignal("commandFailed", self.commandFailed)
-        cmd.connectSignal("commandAborted", self.commandAborted)
+        cmd.connect_signal("commandReady", self.commandReady)
+        cmd.connect_signal("commandNotReady", self.commandNotReady)
+        cmd.connect_signal("commandReplyArrived", self.commandFinished)
+        cmd.connect_signal("commandBeginWaitReply", self.commandStarted)
+        cmd.connect_signal("commandFailed", self.commandFailed)
+        cmd.connect_signal("commandAborted", self.commandAborted)
         self.specShellCommand = cmd
 
         self.add_command(
@@ -93,12 +93,12 @@ class SpecShell(Equipment):
             "lsdef *",
         )
         cmd = self.get_command_object("SpecShellLsdef")
-        # cmd.connectSignal('commandReady',self.commandReady)
-        # cmd.connectSignal('commandNotReady',self.commandNotReady)
-        cmd.connectSignal("commandReplyArrived", self.commandFinished)
-        cmd.connectSignal("commandBeginWaitReply", self.commandStarted)
-        cmd.connectSignal("commandFailed", self.commandFailed)
-        cmd.connectSignal("commandAborted", self.commandAborted)
+        # cmd.connect_signal('commandReady',self.commandReady)
+        # cmd.connect_signal('commandNotReady',self.commandNotReady)
+        cmd.connect_signal("commandReplyArrived", self.commandFinished)
+        cmd.connect_signal("commandBeginWaitReply", self.commandStarted)
+        cmd.connect_signal("commandFailed", self.commandFailed)
+        cmd.connect_signal("commandAborted", self.commandAborted)
         self.specShellLsdef = cmd
 
         """
@@ -108,7 +108,7 @@ class SpecShell(Equipment):
             pass
         """
 
-    def isConnected(self):
+    def is_connected(self):
         return self.specConnection is not None and self.specConnection.isSpecConnected()
 
     def is_ready(self):

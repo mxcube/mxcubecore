@@ -159,7 +159,7 @@ class CatsMaint(Equipment):
             },
             "di_Lid1Open",
         )
-        self._chnLid1State.connectSignal("update", self._update_lid1_state)
+        self._chnLid1State.connect_signal("update", self._update_lid1_state)
 
         if self.nb_of_lids > 1:
             self._chnLid2State = self.add_channel(
@@ -171,7 +171,7 @@ class CatsMaint(Equipment):
                 },
                 "di_Lid2Open",
             )
-            self._chnLid2State.connectSignal("update", self._update_lid2_state)
+            self._chnLid2State.connect_signal("update", self._update_lid2_state)
 
         if self.nb_of_lids > 2:
             self._chnLid3State = self.add_channel(
@@ -183,15 +183,15 @@ class CatsMaint(Equipment):
                 },
                 "di_Lid3Open",
             )
-            self._chnLid3State.connectSignal("update", self._update_lid3_state)
+            self._chnLid3State.connect_signal("update", self._update_lid3_state)
 
-        self._chnState.connectSignal("update", self._update_state)
-        self._chnPathRunning.connectSignal("update", self._update_running_state)
-        self._chnPowered.connectSignal("update", self._update_powered_state)
-        self._chnToolOpenClose.connectSignal("update", self._update_tool_state)
-        self._chnMessage.connectSignal("update", self._update_message)
-        self._chnLN2Regulation.connectSignal("update", self._update_regulation_state)
-        self._chnBarcode.connectSignal("update", self._updateBarcode)
+        self._chnState.connect_signal("update", self._update_state)
+        self._chnPathRunning.connect_signal("update", self._update_running_state)
+        self._chnPowered.connect_signal("update", self._update_powered_state)
+        self._chnToolOpenClose.connect_signal("update", self._update_tool_state)
+        self._chnMessage.connect_signal("update", self._update_message)
+        self._chnLN2Regulation.connect_signal("update", self._update_regulation_state)
+        self._chnBarcode.connect_signal("update", self._updateBarcode)
 
         self._chnCurrentTool = self.add_channel(
             {"type": "tango", "name": "_chnCurrentTool", "tangoname": self.tangoname},
@@ -353,7 +353,7 @@ class CatsMaint(Equipment):
         return self.cats_model != "ISARA"
 
     def get_current_tool(self):
-        current_value = self._chnCurrentTool.getValue()
+        current_value = self._chnCurrentTool.get_value()
 
         tool = TOOL_TO_STR.get(current_value, None)
 
@@ -787,37 +787,37 @@ class CatsMaint(Equipment):
         # after launching a transfer
         # after setting refresh in the Tango DS to 0.1 s a wait of 1s is enough
         time.sleep(1.0)
-        while str(self._chnPathRunning.getValue()).lower() == "true":
+        while str(self._chnPathRunning.get_value()).lower() == "true":
             gevent.sleep(0.1)
         ret = True
         return ret
 
-    def send_command(self, cmdname, args=None):
+    def send_command(self, cmd_name, args=None):
 
         #
         lid = 1
         toolcal = 0
         tool = self.get_current_tool()
 
-        if cmdname in ["dry", "safe", "home"]:
+        if cmd_name in ["dry", "safe", "home"]:
             if tool is not None:
                 args = [tool]
             else:
                 raise Exception("Cannot detect type of TOOL in Cats. Command ignored")
 
-        if cmdname == "soak":
+        if cmd_name == "soak":
             if tool in [TOOL_DOUBLE, TOOL_UNIPUCK]:
                 args = [str(tool), str(lid)]
             else:
                 raise Exception("Can SOAK only when UNIPUCK tool is mounted")
 
-        if cmdname == "back":
+        if cmd_name == "back":
             if tool is not None:
                 args = [tool, toolcal]
             else:
                 raise Exception("Cannot detect type of TOOL in Cats. Command ignored")
 
-        cmd = getattr(self.cats_device, cmdname)
+        cmd = getattr(self.cats_device, cmd_name)
 
         try:
             if args is not None:

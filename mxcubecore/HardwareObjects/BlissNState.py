@@ -1,7 +1,7 @@
 # encoding: utf-8
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -16,7 +16,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU General Lesser Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 bliss implementation of AbstartNState
@@ -55,9 +55,9 @@ class BlissNState(AbstractNState):
         """Initialise the device"""
 
         AbstractNState.init(self)
-        _name = self.getProperty("object_name")
-        self._prefix = self.getProperty("prefix")
-        self._bliss_obj = getattr(self.getObjectByRole("controller"), _name)
+        _name = self.get_property("object_name")
+        self._prefix = self.get_property("prefix")
+        self._bliss_obj = getattr(self.get_object_by_role("controller"), _name)
 
         self.device_type = "actuator"
         if "MultiplePositions" in self._bliss_obj.__class__.__name__:

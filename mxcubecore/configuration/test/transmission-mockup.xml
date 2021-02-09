@@ -1,5 +1,0 @@
-<device class = "TransmissionMockup">
-    <username>Transmission</username>
-    <actuator_name>Transmission</actuator_name>
-    <default_value>45</default_value>
-</device>

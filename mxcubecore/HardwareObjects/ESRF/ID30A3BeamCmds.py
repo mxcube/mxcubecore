@@ -7,7 +7,8 @@ class ID30A3BeamCmds(HardwareObject):
         HardwareObject.__init__(self, *args)
 
     def init(self):
-        controller = self.getObjectByRole("controller")
+        controller = self.get_object_by_role("controller")
+        controller.detcover.set_in()
         self.centrebeam = ControllerCommand("Centre beam", controller.centrebeam)
         self.quick_realign = ControllerCommand(
             "Quick realign", controller.quick_realign

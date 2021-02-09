@@ -37,7 +37,7 @@ class OnlineProcessingMockup(AbstractOnlineProcessing):
 
     def init(self):
         AbstractOnlineProcessing.init(self)
-        self.result_type = self.getProperty("result_type", "random")
+        self.result_type = self.get_property("result_type", "random")
 
     def run_processing(self, data_collection):
         """

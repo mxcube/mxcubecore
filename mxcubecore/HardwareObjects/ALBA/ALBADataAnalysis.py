@@ -59,7 +59,7 @@ class ALBADataAnalysis(EDNACharacterisation):
 
         output_dir = XSDataFile()
         path = XSDataString()
-        path.setValue(edna_directory)
+        path.set_value(edna_directory)
         output_dir.setPath(path)
         edna_input.setOutputFileDirectory(output_dir)
 

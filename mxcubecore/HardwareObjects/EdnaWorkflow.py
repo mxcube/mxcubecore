@@ -14,7 +14,7 @@ from HardwareRepository import HardwareRepository as HWR
 
 try:
     from httplib import HTTPConnection
-except:
+except Exception:
     # Python3
     from http.client import HTTPConnection
 
@@ -28,17 +28,17 @@ class State(object):
         self._value = "ON"
         self._parent = parent
 
-    def getValue(self):
+    def get_value(self):
         return self._value
 
-    def setValue(self, new_value):
+    def set_value(self, new_value):
         self._value = new_value
         self._parent.state_changed(new_value)
 
-    def delValue(self):
+    def del_value(self):
         pass
 
-    value = property(getValue, setValue, delValue, "Property for value")
+    value = property(get_value, set_value, del_value, "Property for value")
 
 
 class EdnaWorkflow(HardwareObject):
@@ -80,8 +80,8 @@ class EdnaWorkflow(HardwareObject):
 
     def init(self):
         self.gevent_event = gevent.event.Event()
-        self.bes_host = self.getProperty("bes_host")
-        self.bes_port = int(self.getProperty("bes_port"))
+        self.bes_host = self.get_property("bes_host")
+        self.bes_port = int(self.get_property("bes_port"))
         self._state.value = "ON"
 
     def getState(self):
@@ -155,7 +155,7 @@ class EdnaWorkflow(HardwareObject):
             dict_workflow["name"] = str(wf.title)
             dict_workflow["path"] = str(wf.path)
             try:
-                req = [r.strip() for r in wf.getProperty("requires").split(",")]
+                req = [r.strip() for r in wf.get_property("requires").split(",")]
                 dict_workflow["requires"] = req
             except (AttributeError, TypeError):
                 dict_workflow["requires"] = []

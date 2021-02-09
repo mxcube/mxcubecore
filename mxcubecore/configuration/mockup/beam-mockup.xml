@@ -1,0 +1,7 @@
+<object class="BeamMockup">
+    <device hwrid="/diff-aperture-mockup" role="aperture"/>
+    <device hwrid="/slits-mockup" role="slits"/>
+    <beam_divergence_horizontal>12.0</beam_divergence_horizontal>
+    <beam_divergence_vertical>12.0</beam_divergence_vertical>
+</object>
+

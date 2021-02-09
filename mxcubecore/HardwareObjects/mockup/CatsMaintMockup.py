@@ -366,48 +366,48 @@ class CatsMaintMockup(Equipment):
         # after launching a transfer
         # after setting refresh in the Tango DS to 0.1 s a wait of 1s is enough
         time.sleep(1.0)
-        while str(self._chnPathRunning.getValue()).lower() == "true":
+        while str(self._chnPathRunning.get_value()).lower() == "true":
             gevent.sleep(0.1)
         ret = True
         return ret
 
-    def send_command(self, cmdname, args=None):
+    def send_command(self, cmd_name, args=None):
 
         #
         lid = 1
         toolcal = 0
         tool = self.get_current_tool()
 
-        if cmdname in ["dry", "safe", "home"]:
+        if cmd_name in ["dry", "safe", "home"]:
             if tool is not None:
                 args = [tool]
             else:
                 raise Exception("Cannot detect type of TOOL in Cats. Command ignored")
 
-        if cmdname == "soak":
+        if cmd_name == "soak":
             if tool in [TOOL_DOUBLE_GRIPPER, TOOL_UNIPUCK]:
                 args = [str(tool), str(lid)]
             else:
                 raise Exception("Can SOAK only when UNIPUCK tool is mounted")
 
-        if cmdname == "back":
+        if cmd_name == "back":
             if tool is not None:
                 args = [tool, toolcal]
             else:
                 raise Exception("Cannot detect type of TOOL in Cats. Command ignored")
 
-        if cmdname == "powerOn":
+        if cmd_name == "powerOn":
             self._do_power_state(True)
-        if cmdname == "powerOff":
+        if cmd_name == "powerOff":
             self._do_power_state(False)
 
-        if cmdname == "regulon":
+        if cmd_name == "regulon":
             self._do_enable_regulation()
-        if cmdname == "reguloff":
+        if cmd_name == "reguloff":
             self._do_disable_regulation()
-        if cmdname == "openlid1":
+        if cmd_name == "openlid1":
             self._do_lid1_state(True)
-        if cmdname == "closelid1":
+        if cmd_name == "closelid1":
             self._do_lid1_state(False)
         return True
 

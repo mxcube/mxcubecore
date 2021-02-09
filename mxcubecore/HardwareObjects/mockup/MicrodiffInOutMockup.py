@@ -26,33 +26,33 @@ class MicrodiffInOutMockup(Device):
         self.hwstate_attr = None
 
     def init(self):
-        self.cmdname = self.getProperty("cmd_name")
-        self.username = self.getProperty("username")
+        self.cmd_name = self.get_property("cmd_name")
+        self.username = self.get_property("username")
 
         self.states = {True: "in", False: "out"}
         self.state_attr = False
-        self.offset = self.getProperty("offset", 0)
+        self.offset = self.get_property("offset", 0)
         if self.offset > 0:
             self.states = {self.offset: "out", self.offset - 1: "in"}
 
-        states = self.getProperty("private_state")
+        states = self.get_property("private_state")
         if states:
             import ast
 
             self.states = ast.literal_eval(states)
         try:
-            tt = float(self.getProperty("timeout"))
+            tt = float(self.get_property("timeout"))
             self.timeout = tt
         except Exception:
             pass
 
         self.moves = dict((self.states[k], k) for k in self.states)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "actuatorStateChanged":
-            self.valueChanged(self.state_attr)
+            self.value_changed(self.state_attr)
 
-    def valueChanged(self, value):
+    def value_changed(self, value):
         self.actuatorState = self.states.get(value, "unknown")
         self.emit("actuatorStateChanged", (self.actuatorState,))
 
@@ -72,10 +72,10 @@ class MicrodiffInOutMockup(Device):
         if read is True:
             value = self.state_attr
             self.actuatorState = self.states.get(value, "unknown")
-            self.connectNotify("actuatorStateChanged")
+            self.connect_notify("actuatorStateChanged")
         else:
             if self.actuatorState == "unknown":
-                self.connectNotify("actuatorStateChanged")
+                self.connect_notify("actuatorStateChanged")
         return self.actuatorState
 
     def actuatorIn(self, wait=True, timeout=None):
@@ -85,7 +85,7 @@ class MicrodiffInOutMockup(Device):
                 if wait:
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
-                self.valueChanged(self.state_attr)
+                self.value_changed(self.state_attr)
             except Exception:
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s in", self.username
@@ -102,7 +102,7 @@ class MicrodiffInOutMockup(Device):
                 if wait:
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
-                self.valueChanged(self.state_attr)
+                self.value_changed(self.state_attr)
             except Exception:
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s out", self.username

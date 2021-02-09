@@ -28,10 +28,6 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self._running = False
         self._disable_collect = False
         self._is_stopped = False
-        self._collect_hwobj = None
-
-    def init(self):
-        self._collect_hwobj = self.getObjectByRole("collect")
 
     def __getstate__(self):
         d = dict(self.__dict__)
@@ -42,10 +38,6 @@ class QueueManager(HardwareObject, QueueEntryContainer):
     def __setstate__(self, d):
         self.__dict__.update(d)
         self._paused_event = gevent.event.Event()
-
-    @property
-    def current_queue_entries(self):
-        return self._current_queue_entries
 
     def enqueue(self, queue_entry):
         """
@@ -65,7 +57,6 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         Starts execution of the queue.
         """
         if not self.is_disabled():
-            self._current_queue_entries = []
             self.emit("statusMessage", ("status", "Queue running", "running"))
             self._is_stopped = False
             self._set_in_queue_flag()
@@ -99,6 +90,11 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         if len(self.entry_list) > 1:
             for index, entry in enumerate(self.entry_list[:-1]):
                 entry.in_queue = index + 1
+
+        # msg = "Starting to execute queue with %d elements: " % len(self.entry_list)
+        # for entry in self.entry_list:
+        #    msg += str(entry) + " (in_queue=%s) " % entry.in_queue
+        # logging.getLogger('queue_exec').info(msg)
 
     def is_executing(self, node_id=None):
         """
@@ -147,10 +143,6 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         finally:
             self._running = False
             self.emit("queue_execution_finished", (None,))
-
-            if self._collect_hwobj:
-                self._collect_hwobj.queue_finished_cleanup()
-
             # self.emit('centringAllowed', (True, ))
 
     def __execute_entry(self, entry):
@@ -159,7 +151,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
 
         status = "Successful"
         # self.emit('centringAllowed', (False, ))
-        self.emit("queue_entry_execute_started", (entry, status))
+        self.emit("queue_entry_execute_started", (entry))
         self.set_current_entry(entry)
         self._current_queue_entries.append(entry)
 
@@ -216,7 +208,9 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         else:
             entry.post_execute()
         finally:
+            # self.emit('queue_entry_execute_finished', (entry, ))
             self.set_current_entry(None)
+            self._current_queue_entries.remove(entry)
 
     def stop(self):
         """
@@ -228,10 +222,12 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         if self._queue_entry_list:
             for qe in self._current_queue_entries:
                 try:
-                    qe.status = QUEUE_ENTRY_STATUS.FAILED
+                    qe.QUEUE_ENTRY_STATUS.FAILED
                     self.emit("queue_entry_execute_finished", (qe, "Aborted"))
                     qe.stop()
                     qe.post_execute()
+                except base_queue_entry.QueueAbortedException:
+                    pass
                 except Exception:
                     pass
 
@@ -240,7 +236,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         # Reset the pause event, incase we were waiting.
         self.set_pause(False)
         self.emit("queue_stopped", (None,))
-        self.emit("statusMessage", ("status", "", "Queue stoped"))
+        self.emit("statusMessage", ("status", "", "Queue stopped"))
         # self.emit('centringAllowed', (True, ))
         self._is_stopped = True
 

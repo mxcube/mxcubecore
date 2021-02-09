@@ -72,18 +72,18 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.scan_info = {}
 
         self.chan_scan_start = self.get_channel_object("energyScanStart")
-        self.chan_scan_start.connectSignal("update", self.scan_start_update)
+        self.chan_scan_start.connect_signal("update", self.scan_start_update)
         self.chan_scan_status = self.get_channel_object("energyScanStatus")
-        self.chan_scan_status.connectSignal("update", self.scan_status_update)
+        self.chan_scan_status.connect_signal("update", self.scan_status_update)
         self.chan_scan_error = self.get_channel_object("energyScanError")
-        self.chan_scan_error.connectSignal("update", self.scan_error_update)
+        self.chan_scan_error.connect_signal("update", self.scan_error_update)
 
         self.cmd_scan_abort = self.get_command_object("energyScanAbort")
         self.cmd_adjust_transmission = self.get_command_object("cmdAdjustTransmission")
         self.cmd_set_max_transmission = self.get_command_object("cmdSetMaxTransmission")
 
-        self.num_points = self.getProperty("numPoints", 60)
-        self.chooch_cmd = self.getProperty("chooch_command")
+        self.num_points = self.get_property("numPoints", 60)
+        self.chooch_cmd = self.get_property("chooch_command")
 
     def scan_start_update(self, values):
         """Emits new scan point
@@ -154,7 +154,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                     self.emit("scanNewPoint", ((x < 1000 and x * 1000.0 or x), y))
                     self.emit("progressStep", (len(self.scan_data)))
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def startEnergyScan(
@@ -212,7 +212,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                 return False
         """
 
-        if self.chan_scan_status.getValue() in ["ready", "unknown", "error"]:
+        if self.chan_scan_status.get_value() in ["ready", "unknown", "error"]:
             if hasattr(HWR.beamline.energy, "release_break_bragg"):
                 HWR.beamline.energy.release_break_bragg()
 
@@ -232,7 +232,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                 size_ver = size_ver * 1000
             self.scan_info["beamSizeHorizontal"] = size_hor
             self.scan_info["beamSizeVertical"] = size_ver
-            self.chan_scan_start.setValue("%s;%s" % (element, edge))
+            self.chan_scan_start.set_value("%s;%s" % (element, edge))
             self.scanCommandStarted()
         else:
             log.error(
@@ -282,7 +282,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
 
     def scanCommandFailed(self, *args):
         with TaskUtils.cleanup(self.ready_event.set):
-            # error_msg = self.chan_scan_error.getValue()
+            # error_msg = self.chan_scan_error.get_value()
             # print error_msg
             # logging.getLogger("GUI").error("Energy scan: %s" % error_msg)
             self.scan_info["endTime"] = str(time.strftime("%Y-%m-%d %H:%M:%S"))
@@ -507,14 +507,14 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
     def updateEnergyScan(self, scan_id, jpeg_scan_filename):
         pass
 
-    def getElements(self):
+    def get_elements(self):
         elements = []
         try:
             for el in self["elements"]:
                 elements.append(
                     {
-                        "symbol": el.getProperty("symbol"),
-                        "energy": el.getProperty("energy"),
+                        "symbol": el.get_property("symbol"),
+                        "energy": el.get_property("energy"),
                     }
                 )
         except IndexError:

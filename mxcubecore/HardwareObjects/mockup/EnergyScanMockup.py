@@ -405,7 +405,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
             title,
         )
 
-    def getElements(self):
+    def get_elements(self):
         elements = []
         try:
             for el in self["elements"]:
@@ -413,17 +413,17 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         except IndexError:
             pass
         return elements
+    #
+    # def getDefaultMadEnergies(self):
+    #     energies = []
+    #     try:
+    #         for el in self["mad"]:
+    #             energies.append([float(el.energy), el.directory])
+    #     except IndexError:
+    #         pass
+    #     return energies
 
-    def getDefaultMadEnergies(self):
-        energies = []
-        try:
-            for el in self["mad"]:
-                energies.append([float(el.energy), el.directory])
-        except IndexError:
-            pass
-        return energies
-
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def scanCommandStarted(self, *args):

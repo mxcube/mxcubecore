@@ -23,8 +23,8 @@ class ALBAAutoProcessing(HardwareObject):
     def init(self):
         HardwareObject.init(self)
 
-        self.template_dir = self.getProperty("template_dir")
-        var_dsname = self.getProperty("variables_ds")
+        self.template_dir = self.get_property("template_dir")
+        var_dsname = self.get_property("variables_ds")
         logging.getLogger("HWR").debug(
             "ALBAAutoProcessing INIT: var_ds=%s, template_dir=%s"
             % (var_dsname, self.template_dir)
@@ -173,7 +173,7 @@ class ALBAAutoProcessing(HardwareObject):
 
         input_file = XSDataFile()
         path = XSDataString()
-        path.setValue(xds_file)
+        path.set_value(xds_file)
         input_file.setPath(path)
 
         ednaproc_input.setInput_file(input_file)
@@ -181,7 +181,7 @@ class ALBAAutoProcessing(HardwareObject):
 
         # output_dir = XSDataFile()
         # outpath = XSDataString()
-        # outpath.setValue(output_dir)
+        # outpath.set_value(output_dir)
         # output_dir.setPath(path)
 
         # ednaproc_input.setOutput_directory( output_dir )

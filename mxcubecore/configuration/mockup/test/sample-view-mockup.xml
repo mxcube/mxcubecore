@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<object class="SampleView">
+  <object hwrid="/camera-mockup" role="camera"/>
+  <object hwrid="/diffractometer-mockup" role="diffractometer"/>
+
+  <!--- Autmoatically hide grid when 5 deg from defined angle -->
+  <hide_grid_threshold>5</hide_grid_threshold>
+</object>

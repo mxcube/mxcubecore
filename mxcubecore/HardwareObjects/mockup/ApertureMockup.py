@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,7 +15,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 from HardwareRepository.HardwareObjects.abstract.AbstractAperture import (
@@ -46,7 +46,7 @@ class ApertureMockup(AbstractAperture):
 
     def init(self):
         try:
-            self._diameter_size_list = eval(self.getProperty("diameter_size_list"))
+            self._diameter_size_list = eval(self.get_property("diameter_size_list"))
         except Exception:
             self._diameter_size_list = DEFAULT_DIAMETER_SIZE_LIST
             logging.getLogger("HWR").error(
@@ -54,7 +54,7 @@ class ApertureMockup(AbstractAperture):
             )
 
         try:
-            self._position_list = eval(self.getProperty("position_list"))
+            self._position_list = eval(self.get_property("position_list"))
         except Exception:
             self._position_list = DEFAULT_POSITION_LIST
             logging.getLogger("HWR").error(

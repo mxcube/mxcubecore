@@ -58,16 +58,16 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         self.cmd_adjust_transmission = self.get_command_object("cmdAdjustTransmission")
 
         self.chan_spectrum_status = self.get_channel_object("chanSpectrumStatus")
-        self.chan_spectrum_status.connectSignal("update", self.spectrum_status_update)
+        self.chan_spectrum_status.connect_signal("update", self.spectrum_status_update)
         self.chan_spectrum_consts = self.get_channel_object("chanSpectrumConsts")
 
         self.chan_scan_error = self.get_channel_object("chanSpectrumError")
-        self.chan_scan_error.connectSignal("update", self.scan_error_update)
+        self.chan_scan_error.connect_signal("update", self.scan_error_update)
 
-        self.config_filename = self.getProperty("configFile")
+        self.config_filename = self.get_property("configFile")
         self.write_in_raw_data = False
         self.mca_calib = [
-            x / 1000.0 for x in self.chan_spectrum_consts.getValue()
+            x / 1000.0 for x in self.chan_spectrum_consts.get_value()
         ]  # converted from eV to keV
 
     def can_spectrum(self):
@@ -96,7 +96,7 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             elif status == "ready":
                 if self.spectrum_running:
                     self.spectrum_data = list(self.cmd_spectrum_start.get())
-                    # self.mca_calib = self.chan_spectrum_consts.getValue()[::-1]
+                    # self.mca_calib = self.chan_spectrum_consts.get_value()[::-1]
                     self.spectrum_command_finished()
                     logging.getLogger("HWR").info("XRF spectrum finished")
             elif status == "aborting":

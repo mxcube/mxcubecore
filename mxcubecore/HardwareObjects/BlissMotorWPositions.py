@@ -16,7 +16,7 @@ class BlissMotorWPositions(BlissMotor):
 
         self.predefinedPositions = {}
         self.predefinedPositionsNamesList = []
-        self.delta = self.getProperty("delta") or 0
+        self.delta = self.get_property("delta") or 0
 
         try:
             positions = self["positions"]
@@ -26,10 +26,10 @@ class BlissMotorWPositions(BlissMotor):
             )
         else:
             for definedPosition in positions:
-                positionUsername = definedPosition.getProperty("username")
+                positionUsername = definedPosition.get_property("username")
 
                 try:
-                    offset = float(definedPosition.getProperty("offset"))
+                    offset = float(definedPosition.get_property("offset"))
                 except Exception:
                     logging.getLogger("HWR").warning(
                         "%s, ignoring position %s: invalid offset.",
@@ -44,8 +44,8 @@ class BlissMotorWPositions(BlissMotor):
     def getPositionsData(self):
         return self["positions"]
 
-    def connectNotify(self, signal):
-        BlissMotor.connectNotify(self, signal)
+    def connect_notify(self, signal):
+        BlissMotor.connect_notify(self, signal)
 
         if signal == "predefinedPositionChanged":
             positionName = self.get_current_position_name()
@@ -85,7 +85,7 @@ class BlissMotorWPositions(BlissMotor):
 
             self.emit("predefinedPositionChanged", ("", None))
 
-    def getPredefinedPositionsList(self):
+    def get_predefined_positions_list(self):
         return self.predefinedPositionsNamesList
 
     def moveToPosition(self, positionName):

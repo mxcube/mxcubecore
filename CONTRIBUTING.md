@@ -71,9 +71,61 @@ Pull request (PR) is the most convinient way of submitting a new code to the rep
   ```
 * All the assigned reviewers of a PR have to approve the PR before it can be merged.
 * The last reviewer to review the PR have the responsibility of merging it.
-* A PR that has no reviewer can be approved and merged by anyone. 
+* A PR that has no reviewer can be approved and merged by anyone.
 
-### Coding style guidlines
+### Coding convention and style guidelines
+
+#### Units
+Functions returning a value representing a physical quantity should in general be assoicated with 
+a unit. It has been agreed that the following units should, where applicable, be used across the 
+code base
+
+ * mm (millimeter) for translative motors and sizes
+ * degrees for rotative motors
+ * perecent (%) for ratios like attenuation
+ * keV for energy
+ * K (Kelvin) for temperature
+ * Å (Ångström) for resolution
+ * Pixels are to be used for beam location (center)
+ * Datetime YYYY-MM-DD HH:MM:SS(.ff) ,possibly with hundreds of seconds (ff), and with 24 hour clock.
+
+#### Value update signals/callbacks
+The "valueChanged" and "stateChanged" signals should be used when a HardwareObjects value or state
+has been changed. Defined in for instance the base class [HardwareObject](https://github.com/mxcube/HardwareRepository/blob/ea8369ab2c08dbe539fd92ffee18fd21bb3a81b8/BaseHardwareObjects.py#L666), [AbstractMotor](https://github.com/mxcube/HardwareRepository/blob/master/HardwareObjects/abstract/AbstractMotor.py) and 
+[AbstractActutor](https://github.com/mxcube/HardwareRepository/blob/master/HardwareObjects/abstract/AbstractActuator.py)
+
+The use of the the signal "attributeChanged" with a key, value pair is encouraged for all other 
+attributes, for instance ```self.emit("attributeChanged", "attr1", 0)``` instead of using a 
+specific signal with for instance a single dictionary as data.
+
+####  Python 2.7 and 3.7 imports
+Imports that are incompatable between Python 2x and 3x should be handled with:
+  ```
+  try:
+      import myfile
+  except ImportError:
+      import myotherfile
+  ```
+
+#### Naming convention
+
+##### Functions
+  * functions names should be recognisable as actions and should generally contain a verb
+
+##### Variables and parameters:
+ * names of objects and values are singular
+ * names of collections are plural or contain an internal 'list' (or 'tuple', 'tpl')
+ * names of maps are plural or contain 'map', 'dict', 'data', or an internel '2', like 'name2state'
+ * variables should distinguish between objects (e.g. 'motor') and their names or string representations (e.g. 'motor_name'))
+ * Booleans can be indcated by participles (e.g. 'enabled', 'tunable') or an 'is_' prefix. We should use positive rather than negative expressions (e.g. 'enabled' rather than 'disabled')
+ 
+#### Properties v. functions
+  * You should prefer functions ('get_', 'set_', 'update_') when attributes are mutable and changing the value requires moving hardware or is slow or has side effects, or where you (might) need additional parameters like swithces or timeout values.
+    * For Boolean states prefer e.g. set_enabled (True/False) rather than separate enable()/disable() functions.
+  * You should prefer properties for simple properties or states of objects (e.g. 'name', 'user_name', 'tolerance'). Contained HardwareObjects also use properties
+  
+ 
+#### Style guidlines
 
 It is very important to write a clean and readable code. Therefore we follow the [PEP8 guidlines](https://www.python.org/dev/peps/pep-0008/). Minimal required guidlines are:
 * Maximum 88 characters per line.

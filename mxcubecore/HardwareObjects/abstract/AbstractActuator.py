@@ -1,7 +1,7 @@
 # encoding: utf-8
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -16,7 +16,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU General Lesser Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """Abstract Actuator class.
 Defines the set/update value, get/set/update limits and validate_value
@@ -28,7 +28,9 @@ Emits signals valueChanged and limitsChanged.
 import abc
 import math
 from ast import literal_eval
+
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -54,18 +56,18 @@ class AbstractActuator(HardwareObject):
         """Initialise actuator_name, username, read_only and default_value
         properties.
         """
-        self.actuator_name = self.getProperty("actuator_name")
-        self.read_only = self.getProperty("read_only") or False
-        self.default_value = self.getProperty("default_value")
+        self.actuator_name = self.get_property("actuator_name")
+        self.read_only = self.get_property("read_only") or False
+        self.default_value = self.get_property("default_value")
         if self.default_value is not None:
             self.update_value(self.default_value)
-        limits = self.getProperty("default_limits")
+        limits = self.get_property("default_limits")
         if limits:
             try:
                 self._nominal_limits = tuple(literal_eval(limits))
             except TypeError:
                 print("Invalid limits")
-        self.username = self.getProperty("username")
+        self.username = self.get_property("username")
 
     @abc.abstractmethod
     def get_value(self):
@@ -165,3 +167,13 @@ class AbstractActuator(HardwareObject):
         self.update_value(self.get_value())
         self.update_limits(self.get_limits())
         super(AbstractActuator, self).re_emit_values()
+
+    def force_emit_signals(self):
+        """Forces to emit all signals.
+
+        Method is called from gui
+        Do not call it within HWR
+        """
+        self.emit("valueChanged", (self.get_value(), ))
+        self.emit("limitsChanged", (self.get_limits(), ))
+        self.emit("stateChanged", (self.get_state(), ))

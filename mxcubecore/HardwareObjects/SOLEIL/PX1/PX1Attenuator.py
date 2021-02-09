@@ -19,25 +19,25 @@ class PX1Attenuator(Device):
         self.factor_chan = self.get_channel_object("parser")
 
         if self.state_chan is not None:
-            self.state_chan.connectSignal("update", self.state_changed)
+            self.state_chan.connect_signal("update", self.state_changed)
 
         if self.factor_chan is not None:
-            self.factor_chan.connectSignal("update", self.factor_changed)
+            self.factor_chan.connect_signal("update", self.factor_changed)
 
         self.connected()
 
     def connected(self):
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def disconnected(self):
-        self.setIsReady(False)
+        self.set_is_ready(False)
 
     def getAttState(self, value=None):
         if not self.state_chan:
             return
 
         if value is None:
-            value = self.state_chan.getValue()
+            value = self.state_chan.get_value()
 
         try:
             state_str = str(value)
@@ -49,7 +49,7 @@ class PX1Attenuator(Device):
 
     def get_value(self):
         try:
-            value = round(float(self.factor_chan.getValue()), 1)
+            value = round(float(self.factor_chan.get_value()), 1)
         except Exception:
             value = None
 
@@ -71,7 +71,7 @@ class PX1Attenuator(Device):
             self.emit("attFactorChanged", (value,))
 
     def _set_value(self, value):
-        self.factor_chan.setValue(value)
+        self.factor_chan.set_value(value)
 
 
 def test_hwo(self):

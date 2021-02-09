@@ -51,41 +51,41 @@ class TINEMotor(AbstractMotor):
 
         self.chan_limits = self.get_channel_object("axisLimits", optional=True)
         if self.chan_limits is not None:
-            self.chan_limits.connectSignal("update", self.update_limits)
-            self.update_limits(self.chan_limits.getValue())
+            self.chan_limits.connect_signal("update", self.update_limits)
+            self.update_limits(self.chan_limits.get_value())
         else:
             try:
-                if self.getProperty("default_limits"):
-                    self.update_limits(eval(self.getProperty("default_limits")))
+                if self.get_property("default_limits"):
+                    self.update_limits(eval(self.get_property("default_limits")))
             except Exception:
                 pass
 
         self.chan_position = self.get_channel_object("axisPosition")
         if self.chan_position is not None:
-            self.chan_position.connectSignal("update", self.update_value())
-        self.update_value(self.chan_position.getValue())
+            self.chan_position.connect_signal("update", self.update_value())
+        self.update_value(self.chan_position.get_value())
 
         self.chan_state = self.get_channel_object("axisState", optional=True)
         if self.chan_state is not None:
-            self.chan_state.connectSignal("update", self.update_state)
+            self.chan_state.connect_signal("update", self.update_state)
 
         self.cmd_set_position = self.get_command_object("setPosition")
         if self.cmd_set_position:
-            self.cmd_set_position.connectSignal("connected", self.connected)
-            self.cmd_set_position.connectSignal("disconnected", self.disconnected)
+            self.cmd_set_position.connect_signal("connected", self.connected)
+            self.cmd_set_position.connect_signal("disconnected", self.disconnected)
 
         self.cmd_stop_axis = self.get_command_object("stopAxis")
         if self.cmd_stop_axis:
-            self.cmd_stop_axis.connectSignal("connected", self.connected)
-            self.cmd_stop_axis.connectSignal("disconnected", self.disconnected)
+            self.cmd_stop_axis.connect_signal("connected", self.connected)
+            self.cmd_stop_axis.connect_signal("disconnected", self.disconnected)
 
         self.cmd_set_online = self.get_command_object("setOnline")
 
         # NBNB TODO change config from 'epsilon' to 'tolerance'?
-        self._tolerance = self.getProperty("epsilon")
+        self._tolerance = self.get_property("epsilon")
 
         try:
-            self.step_limits = eval(self.getProperty("stepLimits"))
+            self.step_limits = eval(self.get_property("stepLimits"))
         except Exception:
             pass
 
@@ -103,7 +103,7 @@ class TINEMotor(AbstractMotor):
         """
         self.update_state(self.STATES.OFF)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         """
         :param signal: signal
         :type signal: signal
@@ -122,16 +122,16 @@ class TINEMotor(AbstractMotor):
         return self.step_limits
 
     # def get_position(self):
-    #    return self.chan_position.getValue()
+    #    return self.chan_position.get_value()
 
     def get_value(self):
-        return self.chan_position.getValue()
+        return self.chan_position.get_value()
 
     def get_state(self):
         """Get HardwareObject state"""
         # NNBNB TODO map channel states to all HardwareObject states
         # TODO add treatment of specific_states
-        state = self.chan_state.getValue()
+        state = self.chan_state.get_value()
         if type(state) in (tuple, list):
             state = state[0]
         if state in ("ready", 0):
@@ -154,7 +154,7 @@ class TINEMotor(AbstractMotor):
         """
         if self.chan_state is not None:
             self.update_state(self.STATES.BUSY)
-            self.chan_state.setOldValue("moving")
+            self.chan_state.set_old_value("moving")
         self.cmd_set_position(value)
 
     def update_value(self, value=None):

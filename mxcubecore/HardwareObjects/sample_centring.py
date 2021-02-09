@@ -36,10 +36,22 @@ READY_FOR_NEXT_POINT = gevent.event.Event()
 NUM_CENTRING_ROUNDS = 1
 
 class CentringMotor:
-    def __init__(self, motor, reference_position=None, direction=1):
+    def __init__(self, motor, reference_position=None, direction=1, units='mm'):
         self.motor = motor
         self.direction = direction
         self.reference_position = reference_position
+        self.units = units.lower()
+
+        self._scale = 1.0 # mm or deg
+
+        if units == 'micron' or units == 'microns':
+            self._scale = 1000.0
+        
+    def mm_to_units(self, mm_dist):
+        return mm_dist * self._scale
+
+    def units_to_mm(self, mm_dist):
+        return mm_dist / self._scale
 
     def __getattr__(self, attr):
         # delegate to motor object

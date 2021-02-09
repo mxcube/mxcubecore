@@ -1,3 +1,23 @@
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
 import logging
 import Queue
 import weakref
@@ -14,6 +34,10 @@ try:
     import PyTango
 except ImportError:
     logging.getLogger("HWR").warning("Tango support is not available.")
+
+
+__copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
+__license__ = "LGPLv3+"
 
 
 class BoundMethodWeakref:
@@ -39,15 +63,15 @@ class BoundMethodWeakref:
 
 
 class PoolCommand(CommandObject):
-    def __init__(self, name, macroName, tangoname=None, username=None, **kwargs):
+    def __init__(self, name, macro_name, tango_name=None, username=None, **kwargs):
         CommandObject.__init__(self, name, username, **kwargs)
 
         self.command = "RunMacro"
-        self.deviceName = tangoname
-        self.macroName = macroName
+        self.device_name = tango_name
+        self.macro_name = macro_name
 
         try:
-            self.device = PyTango.DeviceProxy(self.deviceName)
+            self.device = PyTango.DeviceProxy(self.device_name)
         except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger("HWR").error(
@@ -66,12 +90,12 @@ class PoolCommand(CommandObject):
 
         if self.device is not None:
             try:
-                tangoCmdObject = getattr(self.device, self.command)
-                args = (self.macroName,) + args
+                tango_cmd_object = getattr(self.device, self.command)
+                args = (self.macro_name,) + args
                 logging.getLogger("HWR").debug(
-                    "%s: %s, args=%s", str(self.name()), tangoCmdObject, args
+                    "%s: %s, args=%s", str(self.name()), tango_cmd_object, args
                 )
-                ret = tangoCmdObject(
+                ret = tango_cmd_object(
                     args
                 )  # eval('self.device.%s(*%s)' % (self.command, args))
             except PyTango.DevFailed as error_dict:
@@ -93,13 +117,12 @@ class PoolCommand(CommandObject):
     def abort(self):
         self.device.abort()
         self.emit("commandAborted", (str(self.name()),))
-        pass
 
-    def isConnected(self):
+    def is_connected(self):
         return self.device is not None
 
 
-def processTangoEvents():
+def process_tango_events():
     while not PoolChannel._tangoEventsQueue.empty():
         try:
             event = PoolChannel._tangoEventsQueue.get_nowait()
@@ -107,11 +130,11 @@ def processTangoEvents():
             break
         else:
             try:
-                receiverCbRef = PoolChannel._eventReceivers[id(event)]
-                receiverCb = receiverCbRef()
-                if receiverCb is not None:
+                receiver_cb_ref = PoolChannel._eventReceivers[id(event)]
+                receiver_cb = receiver_cb_ref()
+                if receiver_cb is not None:
                     try:
-                        receiverCb(event.attr_value.value)
+                        receiver_cb(event.attr_value.value)
                     except AttributeError:
                         pass
             except KeyError:
@@ -125,7 +148,7 @@ class PoolChannel(ChannelObject):
 
     # start Tango events processing timer
     qt.QObject.connect(
-        _tangoEventsProcessingTimer, qt.SIGNAL("timeout()"), processTangoEvents
+        _tangoEventsProcessingTimer, qt.SIGNAL("timeout()"), process_tango_events
     )
     _tangoEventsProcessingTimer.start(20)
 
@@ -133,7 +156,7 @@ class PoolChannel(ChannelObject):
         self,
         name,
         attribute_name,
-        tangoname=None,
+        tango_name=None,
         username=None,
         polling=None,
         timeout=10000,
@@ -141,26 +164,26 @@ class PoolChannel(ChannelObject):
     ):
         ChannelObject.__init__(self, name, username, **kwargs)
 
-        self.attributeName = attribute_name
-        self.deviceName = tangoname
+        self.attribute_name = attribute_name
+        self.device_name = tango_name
         self.device = None
         self.value = None
         self.polling = polling
         self.__connections = 0
         self.__value = None
-        self.pollingTimer = None
+        self.polling_timer = None
         self.timeout = int(timeout)
 
         logging.getLogger("HWR").debug(
             "creating Tango attribute %s/%s, polling=%s, timeout=%d",
-            self.deviceName,
-            self.attributeName,
+            self.device_name,
+            self.attribute_name,
             polling,
             self.timeout,
         )
 
         try:
-            self.device = PyTango.DeviceProxy(self.deviceName)
+            self.device = PyTango.DeviceProxy(self.device_name)
         except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger("HWR").error(
@@ -176,17 +199,17 @@ class PoolChannel(ChannelObject):
                 self.device.set_timeout_millis(self.timeout)
 
                 if isinstance(polling, int):
-                    self.pollingTimer = qt.QTimer()
-                    self.pollingTimer.connect(
-                        self.pollingTimer, qt.SIGNAL("timeout()"), self.poll
+                    self.polling_timer = qt.QTimer()
+                    self.polling_timer.connect(
+                        self.polling_timer, qt.SIGNAL("timeout()"), self.poll
                     )
-                    self.pollingTimer.start(polling)
+                    self.polling_timer.start(polling)
                 else:
                     if polling == "events":
                         # try to register event
                         try:
                             self.device.subscribe_event(
-                                self.attributeName, PyTango.EventType.CHANGE, self, []
+                                self.attribute_name, PyTango.EventType.CHANGE, self, []
                             )
                         except PyTango.EventSystemFailed:
                             pass
@@ -197,27 +220,27 @@ class PoolChannel(ChannelObject):
 
     def poll(self):
         try:
-            value = self.device.read_attribute(self.attributeName).value
+            value = self.device.read_attribute(self.attribute_name).value
         except Exception:
             logging.getLogger("HWR").exception(
-                "%s: could not poll attribute %s", str(self.name()), self.attributeName
+                "%s: could not poll attribute %s", str(self.name()), self.attribute_name
             )
 
-            self.pollingTimer.stop()
-            if not hasattr(self, "_statePollingTimer"):
-                self._statePollingTimer = qt.QTimer()
-                self._statePollingTimer.connect(
-                    self._statePollingTimer, qt.SIGNAL("timeout()"), self.statePolling
+            self.polling_timer.stop()
+            if not hasattr(self, "_statepolling_timer"):
+                self._statepolling_timer = qt.QTimer()
+                self._statepolling_timer.connect(
+                    self._statepolling_timer, qt.SIGNAL("timeout()"), self.state_polling
                 )
             self.device.set_timeout_millis(50)
-            self._statePollingTimer.start(5000)
+            self._statepolling_timer.start(5000)
             value = None
             self.emit("update", (None,))
         else:
             if value != self.value:
                 self.update(value)
 
-    def statePolling(self):
+    def state_polling(self):
         """Called when polling has failed"""
         try:
             s = self.device.State()
@@ -228,35 +251,35 @@ class PoolChannel(ChannelObject):
             if s == PyTango.DevState.OFF:
                 return
 
-            self._statePollingTimer.stop()
+            self._statepolling_timer.stop()
             self.device.set_timeout_millis(self.timeout)
             logging.getLogger("HWR").info(
                 "%s: restarting polling on attribute %s",
                 self.name(),
-                self.attributeName,
+                self.attribute_name,
             )
-            self.pollingTimer.start(self.polling)
+            self.polling_timer.start(self.polling)
 
     def update(self, value=None):
         if value is None:
-            value = self.getValue()
+            value = self.get_value()
 
         self.value = value
         self.emit("update", value)
 
-    def getValue(self):
-        self.value = self.device.read_attribute(self.attributeName).value
+    def get_value(self):
+        self.value = self.device.read_attribute(self.attribute_name).value
 
         return self.value
 
-    def setValue(self, newValue):
+    def set_value(self, new_value):
         # newval = PyTango.AttributeValue()
         # newval.value = newValue
-        # self.device.write_attribute(self.attributeName, newval)
-        attr = PyTango.AttributeProxy(self.deviceName + "/" + self.attributeName)
+        # self.device.write_attribute(self.attribute_name, newval)
+        attr = PyTango.AttributeProxy(self.device_name + "/" + self.attribute_name)
         a = attr.read()
-        a.value = newValue
+        a.value = new_value
         attr.write(a)
 
-    def isConnected(self):
+    def is_connected(self):
         return self.device is not None

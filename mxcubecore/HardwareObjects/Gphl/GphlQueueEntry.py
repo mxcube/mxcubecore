@@ -23,8 +23,7 @@ Module contains Gphl specific queue entries
 
 
 import logging
-
-from HardwareRepository.HardwareObjects.queue_model_enumerables import States
+from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 from HardwareRepository.HardwareObjects.base_queue_entry import (
     BaseQueueEntry,
     QueueAbortedException,
@@ -40,7 +39,6 @@ __category__ = "queue"
 class GphlWorkflowQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
-        self.workflow_running = False
 
     def execute(self):
         BaseQueueEntry.execute(self)
@@ -51,7 +49,7 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
         )
 
         # Start execution of a new workflow
-        if state != States.ON:
+        if state != HardwareObjectState.READY:
             # TODO Add handling of potential conflicts.
             # NBNB GPhL workflow cannot have multiple users
             # unless they use separate persistence layers
@@ -69,32 +67,29 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
         # workflow_params.append("%d" % group_node_id)
         HWR.beamline.gphl_workflow.execute()
 
-    def workflow_state_handler(self, state):
-        if isinstance(state, tuple):
-            state = str(state[0])
-        else:
-            state = str(state)
-
-        if state == "ON":
-            self.workflow_running = False
-        elif state == "RUNNING":
-            self.workflow_running = True
-        elif state == "OPEN":
-            msg = "Workflow waiting for input, verify parameters and press continue."
-            logging.getLogger("user_level_log").warning(msg)
-            self.get_queue_controller().show_workflow_tab()
+    def parameter_query(self, field_list, return_parameters):
+        msg = "Workflow waiting for input, verify parameters and press continue."
+        logging.getLogger("user_level_log").warning(msg)
+        self.get_queue_controller().show_workflow_tab()
 
     def pre_execute(self):
-        BaseQueueEntry.pre_execute(self)
-        queue_controller = self.get_queue_controller()
+        state = HWR.beamline.gphl_workflow.get_state()
+        if state in (HardwareObjectState.OFF, HardwareObjectState.READY):
+            BaseQueueEntry.pre_execute(self)
+            queue_controller = self.get_queue_controller()
 
-        queue_controller.connect(
-            HWR.beamline.gphl_workflow, "stateChanged", self.workflow_state_handler
-        )
+            queue_controller.connect(
+                HWR.beamline.gphl_workflow, "gphlParametersNeeded", self.parameter_query
+            )
 
-        HWR.beamline.gphl_workflow.pre_execute(self)
+            HWR.beamline.gphl_workflow.pre_execute(self)
 
-        logging.getLogger("HWR").debug("Done GphlWorkflowQueueEntry.pre_execute")
+            logging.getLogger("HWR").debug("Done GphlWorkflowQueueEntry.pre_execute")
+        else:
+            raise ValueError(
+                "Cannot start GPhL Worlkflow queue, Workflow state was: %s"
+                % state.name
+            )
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
@@ -103,7 +98,7 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
         logging.getLogger("user_level_log").info(msg)
         HWR.beamline.gphl_workflow.workflow_end()
         queue_controller.disconnect(
-            HWR.beamline.gphl_workflow, "stateChanged", self.workflow_state_handler
+            HWR.beamline.gphl_workflow, "gphlParametersNeeded", self.parameter_query
         )
 
     def stop(self):

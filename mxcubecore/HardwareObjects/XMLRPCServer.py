@@ -61,7 +61,7 @@ class XMLRPCServer(HardwareObject):
         """
         Method inherited from HardwareObject, called by framework-2.
         """
-        self.all_interfaces = self.getProperty("all_interfaces", False)
+        self.all_interfaces = self.get_property("all_interfaces", False)
         # Listen on all interfaces if <all_interfaces>True</all_interfaces>
         # otherwise only on the interface corresponding to socket.gethostname()
         if self.all_interfaces:
@@ -70,9 +70,9 @@ class XMLRPCServer(HardwareObject):
             host = socket.gethostname()
 
         self.host = host
-        self.port = self.getProperty("port")
+        self.port = self.get_property("port")
 
-        self.use_token = self.getProperty("use_token", True)
+        self.use_token = self.get_property("use_token", True)
 
         try:
             self.open()
@@ -150,22 +150,22 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.centre_beam)
 
         # Register functions from modules specified in <apis> element
-        if self.hasObject("apis"):
-            apis = next(self.getObjects("apis"))
-            for api in apis.getObjects("api"):
-                recurse = api.getProperty("recurse")
+        if self.has_object("apis"):
+            apis = next(self.get_objects("apis"))
+            for api in apis.get_objects("api"):
+                recurse = api.get_property("recurse")
                 if recurse is None:
                     recurse = True
 
                 self._register_module_functions(
-                    api.getProperty("module"), recurse=recurse
+                    api.get_property("module"), recurse=recurse
                 )
 
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
-        self.beamcmds_hwobj = self.getObjectByRole("beamcmds")
+        self.beamcmds_hwobj = self.get_object_by_role("beamcmds")
 
     def anneal(self, time):
-        cryoshutter_hwobj = self.getObjectByRole("cryoshutter")
+        cryoshutter_hwobj = self.get_object_by_role("cryoshutter")
         try:
             cryoshutter_hwobj.getCommandObject("anneal")(time)
         except Exception as ex:
@@ -432,7 +432,7 @@ class XMLRPCServer(HardwareObject):
             if showScale:
                 HWR.beamline.diffractometer.save_snapshot(imgpath)
             else:
-                HWR.beamline.sample_view.getObjectByRole("camera").take_snapshot(
+                HWR.beamline.sample_view.get_object_by_role("camera").take_snapshot(
                     imgpath
                 )
         except Exception as ex:
