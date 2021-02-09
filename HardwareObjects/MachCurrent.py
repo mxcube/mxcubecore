@@ -43,8 +43,7 @@ class MachCurrent(BaseHardwareObjects.Device):
 
         if opmsg and opmsg != self.opmsg:
             self.opmsg = opmsg
-            logging.getLogger("HWR").info("<b>" + self.opmsg + "</b>")
-            logging.getLogger("user_level_log").info("<b>" + self.opmsg + "</b>")
+            logging.getLogger("user_level_log").info(self.opmsg)
         self.emit("valueChanged", (mach, opmsg, fillmode, refill))
 
     def getCurrent(self):
