@@ -121,7 +121,7 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
                 lima_tango_device, self.video_mode, self._FORMATS
             )
 
-            self._last_image = data, width, heigh
+            self._last_image = data, width, height
             self.emit("imageReceived", data, width, height, False)
             time.sleep(sleep_time)
 
