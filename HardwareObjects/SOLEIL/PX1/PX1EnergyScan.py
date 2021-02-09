@@ -63,16 +63,16 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
     def init(self):
         self.ready_event = gevent.event.Event()
 
-        self.ruche_hwo = self.getObjectByRole("ruche")
+        self.ruche_hwo = self.get_object_by_role("ruche")
 
-        self.fluodet_hwo = self.getObjectByRole("fluodet")
-        self.px1env_hwo = self.getObjectByRole("px1environment")
+        self.fluodet_hwo = self.get_object_by_role("fluodet")
+        self.px1env_hwo = self.get_object_by_role("px1environment")
 
-        self.mono_dp = DeviceProxy(self.getProperty("mono_dev"))
-        self.ble_dp = DeviceProxy(self.getProperty("ble_dev"))
-        self.fp_dp = DeviceProxy(self.getProperty("fp_dev"))
+        self.mono_dp = DeviceProxy(self.get_property("mono_dev"))
+        self.ble_dp = DeviceProxy(self.get_property("ble_dev"))
+        self.fp_dp = DeviceProxy(self.get_property("fp_dev"))
 
-        test_data_file = self.getProperty("test_data")
+        test_data_file = self.get_property("test_data")
 
         self.log.debug(" using test data %s" % test_data_file)
 
@@ -86,14 +86,14 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
         # USING TEST. UNCOMMENT NEXT LINE TO USE REAL DATA IN ALL CASES
         # self.test_data_mode = False
 
-        normdiode = self.getProperty("normalization_diode")
+        normdiode = self.get_property("normalization_diode")
         self.norm_diode_dev = DeviceProxy(normdiode)
 
-        self.number_of_steps = self.getProperty("number_of_steps")
+        self.number_of_steps = self.get_property("number_of_steps")
         if self.number_of_steps is None:
             self.number_of_steps = self.default_steps
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     # SCAN info (for graph)
@@ -730,7 +730,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             self.ruche_hwo.trigger_sync(self.escan_archivepng)
 
     # Elements commands
-    def getElements(self):
+    def get_elements(self):
         elements = []
         try:
             for el in self["elements"]:
@@ -739,15 +739,15 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             pass
         return elements
 
-    def getDefaultMadEnergies(self):
-        # this does not seem to be used anywhere
-        energies = []
-        try:
-            for el in self["mad"]:
-                energies.append([float(el.energy), el.directory])
-        except IndexError:
-            pass
-        return energies
+    # def getDefaultMadEnergies(self):
+    #     # this does not seem to be used anywhere
+    #     energies = []
+    #     try:
+    #         for el in self["mad"]:
+    #             energies.append([float(el.energy), el.directory])
+    #     except IndexError:
+    #         pass
+    #     return energies
 
     def get_scan_data(self):
         if self.test_data_mode:
@@ -781,5 +781,5 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
 def test_hwo(scan):
     print("ELEMENTS:")
     print("---------")
-    print(scan.getElements())
+    print(scan.get_elements())
     print(scan.get_scan_data())

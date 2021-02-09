@@ -22,7 +22,7 @@ class SpecState(Procedure):
         self.lastState = "Unknown"
         self.specDisconnected()
         try:
-            self.specConnection = SpecClient.SpecConnectionsManager.SpecConnectionsManager().getConnection(
+            self.specConnection = SpecClient.SpecConnectionsManager.SpecConnectionsManager().get_connection(
                 self.specversion
             )
         except AttributeError:
@@ -49,8 +49,8 @@ class SpecState(Procedure):
             "sleep",
         )
         cmd = self.get_command_object("SpecStateMacro")
-        cmd.connectSignal("commandReady", self.commandReady)
-        cmd.connectSignal("commandNotReady", self.commandNotReady)
+        cmd.connect_signal("commandReady", self.commandReady)
+        cmd.connect_signal("commandNotReady", self.commandNotReady)
         self.connectionStateMacro = cmd
         # try:
         #    speccommand.executeCommand("sleep(0)")
@@ -65,15 +65,15 @@ class SpecState(Procedure):
             pass
         else:
             if cmd is not None:
-                cmd.disconnectSignal("commandReady", self.commandReady)
-                cmd.disconnectSignal("commandNotReady", self.commandNotReady)
+                cmd.disconnect_signal("commandReady", self.commandReady)
+                cmd.disconnect_signal("commandNotReady", self.commandNotReady)
         self.emitSpecState("Disconnected")
 
-    def isConnected(self):
+    def is_connected(self):
         return self.specConnection is not None and self.specConnection.isSpecConnected()
 
     def is_ready(self):
-        if self.isConnected():
+        if self.is_connected():
             if self.connectionStateMacro is not None:
                 return self.connectionStateMacro.isSpecReady()
         return False

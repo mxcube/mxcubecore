@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -16,7 +16,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU General Lesser Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """ ProtocolError and StandardClient implementation"""
 import sys
@@ -157,7 +157,7 @@ class StandardClient:
             msg = msg_number + cmd
             try:
                 self.__sock.sendto(encode(msg), (self.server_ip, self.server_port))
-            except:
+            except Exception:
                 raise SocketError("Socket error:" + str(sys.exc_info()[1]))
             received = False
             while received is False:

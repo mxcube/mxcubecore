@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 [Name]
@@ -47,9 +47,9 @@ except Exception:
 from HardwareRepository.BaseHardwareObjects import Device
 
 
-modulenames = ["qt", "PyQt5", "PyQt4"]
+module_names = ["qt", "PyQt5", "PyQt4"]
 
-if any(mod in sys.modules for mod in modulenames):
+if any(mod in sys.modules for mod in module_names):
     USEQT = True
     try:
         from PyQt5.QtGui import QImage, QPixmap
@@ -89,19 +89,19 @@ class AbstractVideoDevice(Device):
         self.decoder = None
 
     def init(self):
-        self.cam_name = self.getProperty("name", "camera")
+        self.cam_name = self.get_property("name", "camera")
 
         try:
-            self.cam_mirror = eval(self.getProperty("mirror"))
+            self.cam_mirror = eval(self.get_property("mirror"))
         except Exception:
             self.cam_mirror = [False, False]
 
         try:
-            self.cam_encoding = self.getProperty("encoding").lower()
+            self.cam_encoding = self.get_property("encoding").lower()
         except Exception:
             pass
 
-        scale = self.getProperty("scale")
+        scale = self.get_property("scale")
         if scale is None:
             self.cam_scale_factor = self.default_scale_factor
         else:
@@ -115,24 +115,24 @@ class AbstractVideoDevice(Device):
                 self.cam_scale_factor = self.default_scale_factor
 
         try:
-            self.poll_interval = self.getProperty("interval")
+            self.poll_interval = self.get_property("interval")
         except Exception:
             self.poll_interval = 1
 
         try:
-            self.cam_gain = float(self.getProperty("gain"))
+            self.cam_gain = float(self.get_property("gain"))
         except Exception:
             pass
 
         try:
-            self.cam_exposure = float(self.getProperty("exposure"))
+            self.cam_exposure = float(self.get_property("exposure"))
         except Exception:
             pass
 
-        self.scale = self.getProperty("scale", 1.0)
+        self.scale = self.get_property("scale", 1.0)
 
         try:
-            self.cam_type = self.getProperty("type").lower()
+            self.cam_type = self.get_property("type").lower()
         except Exception:
             pass
 
@@ -173,7 +173,7 @@ class AbstractVideoDevice(Device):
             self.image_polling.link_exception(self.polling_ended_exc)
             self.image_polling.link(self.polling_ended)
 
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def get_camera_name(self):
         return self.cam_name
@@ -198,7 +198,7 @@ class AbstractVideoDevice(Device):
                 qimage = QImage(
                     raw_buffer, width, height, width * 3, QImage.Format_RGB888
                 )
-            
+
             else:
                 qimage = QImage(raw_buffer, width, height, QImage.Format_RGB888)
 
@@ -258,7 +258,7 @@ class AbstractVideoDevice(Device):
         image = np.fromstring(raw_buffer, dtype=np.uint16)
         raw_dims = self.get_raw_image_size()
         image.resize(raw_dims[1], raw_dims[0])
-        out_buffer =  cv2.cvtColor(image, cv2.COLOR_BayerRG2BGR)
+        out_buffer = cv2.cvtColor(image, cv2.COLOR_BayerRG2BGR)
         if out_buffer.ndim == 3 and out_buffer.itemsize > 1:
             # decoding bayer16 gives 12 bit values => scale to 8 bit
             out_buffer = np.right_shift(out_buffer, 4).astype(np.uint8)
@@ -312,7 +312,7 @@ class AbstractVideoDevice(Device):
     def start_camera(self):
         return
 
-    def setLive(self, mode):
+    def set_live(self, mode):
         """
         Descript. :
         """
@@ -336,13 +336,13 @@ class AbstractVideoDevice(Device):
                     "%s: failed to change the process" "ownership.", self.name()
                 )
 
-    def getWidth(self):
+    def get_width(self):
         """
         Descript. :
         """
         return int(self.image_dimensions[0])
 
-    def getHeight(self):
+    def get_height(self):
         """
         Descript. :
         """
@@ -359,7 +359,7 @@ class AbstractVideoDevice(Device):
                 self.get_jpg_image()
             time.sleep(sleep_time)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         """
         Descript. :
         """
@@ -385,7 +385,7 @@ class AbstractVideoDevice(Device):
         elif cam_encoding.lower() == "bayer_rg16":
             self.decoder = self.bayer_rg16_2_rgb
         self.cam_encoding = cam_encoding
-        
+
     def get_image_dimensions(self):
         raw_width, raw_height = self.get_raw_image_size()
         width = raw_width * self.scale

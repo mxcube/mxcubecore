@@ -22,31 +22,31 @@ class SOLEILPss(Device):
 
     def init(self):
         try:
-            self.device = DeviceProxy(self.getProperty("tangoname"))
+            self.device = DeviceProxy(self.get_property("tangoname"))
         except Exception:
             logging.getLogger("HWR").error(
-                "%s: unknown pss device name", self.getProperty("tangoname")
+                "%s: unknown pss device name", self.get_property("tangoname")
             )
 
-        if self.getProperty("hutch") not in ("optical", "experimental"):
+        if self.get_property("hutch") not in ("optical", "experimental"):
             logging.getLogger("HWR").error(
                 "SOLEILPss.init Hutch property %s is not correct",
-                self.getProperty("hutch"),
+                self.get_property("hutch"),
             )
         else:
-            self.hutch = self.getProperty("hutch")
+            self.hutch = self.get_property("hutch")
             self.stateChan = self.get_channel_object("State")
-            self.stateChan.connectSignal("update", self.valueChanged)
+            self.stateChan.connect_signal("update", self.value_changed)
         if self.device:
-            self.setIsReady(True)
+            self.set_is_ready(True)
 
     def get_state(self, value):
         return SOLEILPss.states[value]
 
     def getWagoState(self):
-        return self.get_state(self.stateChan.getValue())
+        return self.get_state(self.stateChan.get_value())
 
-    def valueChanged(self, value):
+    def value_changed(self, value):
         logging.getLogger("HWR").info(
             "%s: SOLEILPss.valueChanged, %s", self.name(), value
         )

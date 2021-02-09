@@ -108,8 +108,8 @@ class OfflineProcessingMockup(HardwareObject):
         :type run_processing: bool
         """
         for program in self.autoproc_programs:
-            if process_event == program.getProperty("event"):
-                executable = program.getProperty("executable")
+            if process_event == program.get_property("event"):
+                executable = program.get_property("executable")
 
                 will_execute = True
                 if process_event == "after":

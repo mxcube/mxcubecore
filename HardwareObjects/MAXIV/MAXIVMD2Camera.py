@@ -28,7 +28,7 @@ class MAXIVMD2Camera(Device):
 
     def __init__(self, name):
         Device.__init__(self, name)
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def init(self):
         logging.getLogger("HWR").info("initializing camera object")
@@ -39,15 +39,15 @@ class MAXIVMD2Camera(Device):
             {"type": "exporter", "name": "image"}, "ImageJPG"
         )
 
-        if self.getProperty("interval"):
-            self.pollInterval = self.getProperty("interval")
-        self.stopper = False  # self.pollingTimer(self.pollInterval, self.poll)
+        if self.get_property("interval"):
+            self.pollInterval = self.get_property("interval")
+        self.stopper = False  # self.polling_timer(self.pollInterval, self.poll)
         thread = Thread(target=self.poll)
         thread.daemon = True
         thread.start()
 
     def getImage(self):
-        return self.image_attr.getValue()
+        return self.image_attr.get_value()
 
     def poll(self):
         logging.getLogger("HWR").info("going to poll images")
@@ -59,7 +59,7 @@ class MAXIVMD2Camera(Device):
             # time.sleep(1)
             # print "polling", datetime.datetime.now().strftime("%H:%M:%S.%f")
             try:
-                img = self.image_attr.getValue()
+                img = self.image_attr.get_value()
                 imgArray = array.array("b", img)
                 imgStr = imgArray.tostring()
                 # self.emit("imageReceived", self.imageaux,1360,1024)
@@ -91,15 +91,15 @@ class MAXIVMD2Camera(Device):
     def gainExists(self):
         return False
 
-    def getWidth(self):
+    def get_width(self):
         return 768  # JN ,20140807,adapt the MD2 screen to mxCuBE2
         return 659
 
-    def getHeight(self):
+    def get_height(self):
         return 576  # JN ,20140807,adapt the MD2 screen to mxCuBE2
         return 493
 
-    def setLive(self, state):
+    def set_live(self, state):
         self.liveState = state
         return True
 
@@ -107,7 +107,7 @@ class MAXIVMD2Camera(Device):
         return None
 
     def takeSnapshot(self, snapshot_filename, bw=True):
-        img = self.image_attr.getValue()
+        img = self.image_attr.get_value()
         imgArray = array.array("b", img)
         imgStr = imgArray.tostring()
         f = open(snapshot_filename, "wb")
@@ -116,6 +116,6 @@ class MAXIVMD2Camera(Device):
         return True
 
     def get_snapshot_img_str(self):
-        img = self.image_attr.getValue()
+        img = self.image_attr.get_value()
         imgArray = array.array("b", img)
         return imgArray.tostring()

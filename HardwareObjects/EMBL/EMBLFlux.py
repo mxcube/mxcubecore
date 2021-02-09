@@ -110,7 +110,7 @@ carbon_window_transmission = interp1d(
     ],
 )
 
-# # Replacec by AbstractFLux.dose_rate_per_photon_per_mmsq (same values0
+# # Replaced by AbstractFLux.get_dose_rate_per_photon_per_mmsq (same values0
 #
 # dose_rate_per_10to14_ph_per_mmsq = interp1d(
 #     [4.0, 6.6, 9.2, 11.8, 14.4, 17.0, 19.6, 22.2, 24.8, 27.4, 30.0],
@@ -185,7 +185,7 @@ class EMBLFlux(AbstractFlux):
             logging.getLogger("HWR").error("BeamlineTest: No intensity ranges defined")
 
         self.chan_intens_mean = self.get_channel_object("intensMean")
-        self.chan_intens_mean.connectSignal("update", self.intens_mean_changed)
+        self.chan_intens_mean.connect_signal("update", self.intens_mean_changed)
 
         self.chan_intens_range = self.get_channel_object("intensRange")
         self.chan_flux_transmission = self.get_channel_object("fluxTransmission")
@@ -195,8 +195,8 @@ class EMBLFlux(AbstractFlux):
         self.cmd_set_intens_range = self.get_command_object("setIntensRange")
         self.cmd_flux_record = self.get_command_object("fluxRecord")
 
-        self.back_light_hwobj = self.getObjectByRole("backlight")
-        self.beamstop_hwobj = self.getObjectByRole("beamstop")
+        self.back_light_hwobj = self.get_object_by_role("backlight")
+        self.beamstop_hwobj = self.get_object_by_role("beamstop")
         self.aperture_hwobj = HWR.beamline.beam.aperture
 
         self.connect(
@@ -206,10 +206,10 @@ class EMBLFlux(AbstractFlux):
         # self.init_flux_values()
 
         self.chan_flux_status = self.get_channel_object("fluxStatus")
-        self.chan_flux_status.connectSignal("update", self.flux_status_changed)
+        self.chan_flux_status.connect_signal("update", self.flux_status_changed)
 
         self.chan_flux_message = self.get_channel_object("fluxMessage")
-        self.chan_flux_message.connectSignal("update", self.flux_message_changed)
+        self.chan_flux_message.connect_signal("update", self.flux_message_changed)
 
         self.connect(HWR.beamline.beam, "beamInfoChanged", self.beam_info_changed)
 
@@ -217,7 +217,7 @@ class EMBLFlux(AbstractFlux):
             self.aperture_hwobj, "diameterIndexChanged", self.aperture_diameter_changed
         )
 
-        self.beam_focusing_hwobj = self.getObjectByRole("beam_focusing")
+        self.beam_focusing_hwobj = self.get_object_by_role("beam_focusing")
         if self.beam_focusing_hwobj is not None:
             self.connect(
                 self.beam_focusing_hwobj,
@@ -228,13 +228,13 @@ class EMBLFlux(AbstractFlux):
         self.init_flux_values()
 
     def init_flux_values(self):
-        if not self.chan_flux_status.getValue():
+        if not self.chan_flux_status.get_value():
             logging.getLogger("GUI").error(
                 "No valid flux value available. Please remeasure flux!"
             )
             return
         flux_values = self.cmd_flux_record.get()
-        flux_transmission = self.chan_flux_transmission.getValue()
+        flux_transmission = self.chan_flux_transmission.get_value()
         aperture_diameter_list = self.aperture_hwobj.get_diameter_list()
 
         self.measured_flux_list = []
@@ -430,7 +430,7 @@ class EMBLFlux(AbstractFlux):
                 HWR.beamline.diffractometer.wait_device_ready(10)
 
                 gevent.sleep(1)
-                intens_value = self.chan_intens_mean.getValue(force=True)
+                intens_value = self.chan_intens_mean.get_value(force=True)
                 logging.getLogger("HWR").info("Measured current: %s" % intens_value)
                 # HWR.beamline.fast_shutter.closeShutter(wait=True)
                 intensity_value = intens_value[0] + 1.860e-5  # 2.780e-6
@@ -441,7 +441,7 @@ class EMBLFlux(AbstractFlux):
             try:
                 self.cmd_flux_record([_x["flux"] for _x in self.measured_flux_list])
                 gevent.sleep(2)
-            except:
+            except Exception:
                 pass
 
             max_frame_rate = 25
@@ -452,9 +452,9 @@ class EMBLFlux(AbstractFlux):
             logging.getLogger("HWR").debug("Measure flux: Fast shutter opened")
 
             gevent.sleep(0.5)
-            intens_value = self.chan_intens_mean.getValue()
+            intens_value = self.chan_intens_mean.get_value()
 
-            intens_range_now = self.chan_intens_range.getValue()
+            intens_range_now = self.chan_intens_range.get_value()
             HWR.beamline.fast_shutter.closeShutter(wait=True)
             logging.getLogger("HWR").debug("Measure flux: Fast shutter closed")
 
@@ -543,7 +543,7 @@ class EMBLFlux(AbstractFlux):
         dose_rate = (
             1e-3
             # * 1e-14
-            * self.dose_rate_per_photon_per_mmsq(energy)
+            * self.get_dose_rate_per_photon_per_mmsq(energy)
             * flux
             / beam_size[0]
             / beam_size[1]

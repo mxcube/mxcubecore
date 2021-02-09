@@ -1,4 +1,0 @@
-<device class="MotorMockup">
-  <actuator_name>BackLight</actuator_name>
-  <exporter_address>192.168.96.43:9001</exporter_address>
-</device>

@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 MAXIVAutoProcessing
@@ -91,8 +91,8 @@ class MAXIVAutoProcessing(HardwareObject):
                         - arg2 : file name
         """
         for program in self.autoproc_programs:
-            if process_event == program.getProperty("event"):
-                module = program.getProperty("module").lower()
+            if process_event == program.get_property("event"):
+                module = program.get_property("module").lower()
                 print(2 * "###########")
                 if process_event == "after":
                     input_filename, will_execute = self.create_autoproc_input(

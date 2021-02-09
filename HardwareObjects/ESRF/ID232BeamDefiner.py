@@ -13,12 +13,12 @@ class ID232BeamDefiner(AbstractNState):
         HardwareObject.__init__(self, *args)
 
     # def userName(self):
-    #     return self.getProperty("username") or self.name()
+    #     return self.get_property("username") or self.name()
 
     def init(self):
         HardwareObject.init(self)
 
-        self.controller = self.getObjectByRole("controller")
+        self.controller = self.get_object_by_role("controller")
         event.connect(self.controller.tf, "state", self._tf_state_updated)
         event.connect(self.controller.tf2, "state", self._tf_state_updated)
         self.tfCfgByName = {}
@@ -31,12 +31,12 @@ class ID232BeamDefiner(AbstractNState):
             cfg = [cfg]
 
         for lens_cfg in cfg:
-            name = lens_cfg.getProperty("name")
-            tf1 = lens_cfg.getProperty("tf1").split()
-            tf2 = lens_cfg.getProperty("tf2").split()
-            size = lens_cfg.getProperty("size")
-            coef = lens_cfg.getProperty("coef")
-            self.posNames.append(lens_cfg.getProperty("name"))
+            name = lens_cfg.get_property("name")
+            tf1 = lens_cfg.get_property("tf1").split()
+            tf2 = lens_cfg.get_property("tf2").split()
+            size = lens_cfg.get_property("size")
+            coef = lens_cfg.get_property("coef")
+            self.posNames.append(lens_cfg.get_property("name"))
             self.tfCfgByName[name] = {
                 "tf1": ["IN" if x else "OUT" for x in map(int, tf1)],
                 "tf2": ["IN" if x else "OUT" for x in map(int, tf2)],
@@ -64,7 +64,7 @@ class ID232BeamDefiner(AbstractNState):
         self.emit("valueChanged", name)
         self.emit("diameterIndexChanged", (name, (1e6, self.sizeByName.get(name, 1e6))))
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         return self._tf_state_updated()
 
     def get_predefined_positions_list(self):

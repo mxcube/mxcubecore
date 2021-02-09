@@ -29,8 +29,8 @@ class VimbaVideo(AbstractVideoDevice):
 
     def init(self):
         # start Vimba
-        self.camera_index = self.getProperty("camera_index", 0)
-        self.use_qt = self.getProperty("use_qt", True)
+        self.camera_index = self.get_property("camera_index", 0)
+        self.use_qt = self.get_property("use_qt", True)
 
         atexit.register(self.close_camera)
         AbstractVideoDevice.init(self)

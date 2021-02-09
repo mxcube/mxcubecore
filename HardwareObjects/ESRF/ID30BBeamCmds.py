@@ -8,14 +8,14 @@ class ID30BBeamCmds(HardwareObject):
         HardwareObject.__init__(self, *args)
 
     def init(self):
-        controller = self.getObjectByRole("controller")
+        controller = self.get_object_by_role("controller")
         controller.detcover.set_in()
         self.centrebeam = ControllerCommand("Centre beam", controller.centrebeam)
-        hutchtrigger = self.getObjectByRole("hutchtrigger")
+        hutchtrigger = self.get_object_by_role("hutchtrigger")
         if hutchtrigger:
             self.hutchtrigger = HWObjActuatorCommand("Hutchtrigger", hutchtrigger)
 
-        detector_cover = self.getObjectByRole("detector_cover")
+        detector_cover = self.get_object_by_role("detector_cover")
         if detector_cover:
             self.detcover = HWObjActuatorCommand("Detector Cover", detector_cover)
         self.test_cmd = TestCommand("Test command")

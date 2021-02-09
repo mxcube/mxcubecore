@@ -35,11 +35,11 @@ class BlissHutchTrigger(BaseHardwareObjects.HardwareObject):
                 self.poll()
             except Exception:
                 sys.excepthook(*sys.exc_info())
-            gevent.sleep(self.getProperty("polling_interval") / 1000.0 or 1)
+            gevent.sleep(self.get_property("polling_interval") / 1000.0 or 1)
 
     def init(self):
         try:
-            self.device = PyTango.gevent.DeviceProxy(self.getProperty("pss_tangoname"))
+            self.device = PyTango.gevent.DeviceProxy(self.get_property("pss_tangoname"))
         except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger("HWR").error(
@@ -53,7 +53,7 @@ class BlissHutchTrigger(BaseHardwareObjects.HardwareObject):
         self.card = None
         self.channel = None
 
-        PSSinfo = self.getProperty("pss_card_ch")
+        PSSinfo = self.get_property("pss_card_ch")
         try:
             self.card, self.channel = map(int, PSSinfo.split("/"))
         except Exception:
@@ -67,7 +67,7 @@ class BlissHutchTrigger(BaseHardwareObjects.HardwareObject):
     def hutchIsOpened(self):
         return self.hutch_opened
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def connected(self):
@@ -83,7 +83,7 @@ class BlissHutchTrigger(BaseHardwareObjects.HardwareObject):
         logging.info(
             "%s: %s hutch", self.name(), "entering" if entering_hutch else "leaving"
         )
-        ctrl_obj = self.getObjectByRole("controller")
+        ctrl_obj = self.get_object_by_role("controller")
         ctrl_obj.hutch_actions(entering_hutch, hutch_trigger=True, **kwargs)
 
         # open the flexHCD ports
@@ -106,9 +106,9 @@ class BlissHutchTrigger(BaseHardwareObjects.HardwareObject):
         else:
             self.__oldValue = value
 
-        self.valueChanged(value)
+        self.value_changed(value)
 
-    def valueChanged(self, value, *args):
+    def value_changed(self, value, *args):
         if value == 0:
             if self.initialized:
                 self.emit("hutchTrigger", (1,))

@@ -17,7 +17,7 @@ class MAXIVMicrodiffInOut(MicrodiffInOut.MicrodiffInOut):
         """
         to avoid infinite loooooop
         """
-        value = self.state_attr.getValue()
+        value = self.state_attr.get_value()
         self.actuatorState = self.states.get(value, "unknown")
         return self.actuatorState
 
@@ -32,5 +32,5 @@ class MAXIVMicrodiffInOut(MicrodiffInOut.MicrodiffInOut):
                 continue
             if state != old_state:
                 old_state = state
-                self.valueChanged(self.state_attr.getValue())
+                self.value_changed(self.state_attr.get_value())
             time.sleep(1)

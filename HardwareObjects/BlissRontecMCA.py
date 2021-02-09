@@ -11,8 +11,8 @@ class BlissRontecMCA(AbstractMCA, HardwareObject):
         self.calib_cf = []
 
     def init(self):
-        session = self.getObjectByRole("bliss_session")
-        obj_name = self.getProperty("object_name")
+        session = self.get_object_by_role("bliss_session")
+        obj_name = self.get_property("object_name")
         self.mca = getattr(session, obj_name)
 
     @task

@@ -1,189 +1,129 @@
-#
-#  Project: MXCuBE
-#  https://github.com/mxcube.
-#
-#  This file is part of MXCuBE software.
-#
-#  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  MXCuBE is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+"""
+[Name] MachineInfoMockup
 
-import os
+[Description]
+MachineInfo hardware objects are used to obtain information from the accelerator
+control system.
+
+This is a mockup hardware object, it simulates the behaviour of an accelerator
+information by :
+
+    - produces a current value that varies with time
+    - simulates a control room message that changes with some condition
+      ()
+    - simulates
+
+[Emited signals]
+machInfoChanged
+   pars:  values (dict)
+
+   mandatory fields:
+     values['current']  type: str; desc: synchrotron radiation current in milli-amps
+     values['message']  type: str; desc: message from control room
+     values['attention'] type: boolean; desc: False (if no special attention is required)
+                                            True (if attention should be raised to the user)
+
+   optional fields:
+      any number of optional fields can be sent over with this signal by adding them in the
+      values dictionary
+
+      for example:
+         values['lifetime']
+         values['topup_remaining']
+"""
+
+import gevent
 import time
-from random import uniform
-from collections import OrderedDict
 
-from gevent import spawn
-
-from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository import HardwareRepository as HWR
+from HardwareRepository.HardwareObjects.abstract.AbstractMachineInfo import (
+    AbstractMachineInfo,
+)
 
 
-__credits__ = ["MXCuBE collaboration"]
-__version__ = "2.2."
+class MachineInfoMockup(AbstractMachineInfo):
+    default_current = 200  # milliamps
+    default_message = "Beam Delivered"
+    default_lifetime = 45  # hours Lifetime
+    default_topup_remaining = 70  # seconds
 
-
-class MachineInfoMockup(HardwareObject):
-    """
-    Descript. : Displays actual information about the beeamline
-    """
-
-    def __init__(self, name):
-        HardwareObject.__init__(self, name)
-        """
-        Descript. :
-        """
-        # Parameters
-        # Intensity current ranges
-        self.values_ordered_dict = OrderedDict()
-        self.values_ordered_dict["current"] = {
-            "value": 90.1,
-            "value_str": "90.1 mA",
-            "in_range": True,
-            "title": "Machine current",
-            "bold": True,
-            "font": 14,
-            "history": True,
-        }
-
-        self.values_ordered_dict["message"] = {
-            "value": "Test message",
-            "in_range": True,
-            "title": "Machine state",
-        }
-
-        self.values_ordered_dict["temp"] = {
-            "value": 24.4,
-            "value_str": "24.4 C",
-            "in_range": True,
-            "title": "Hutch temperature",
-        }
-
-        self.values_ordered_dict["hum"] = {
-            "value": 64.4,
-            "value_str": "64.4 %",
-            "in_range": True,
-            "title": "Hutch humidity",
-        }
-
-        self.values_ordered_dict["flux"] = {
-            "value": None,
-            "value_str": "Remeasure flux!",
-            "in_range": False,
-            "title": "Flux",
-        }
-
-        self.values_ordered_dict["disk"] = {
-            "value": "-",
-            "in_range": True,
-            "title": "Disk space",
-            "align": "left",
-        }
+    def __init__(self, *args):
+        AbstractMachineInfo.__init__(self, *args)
 
     def init(self):
-        """
-        Descript.
-        """
-        self.min_current = self.getProperty("min_current", 80.1)
-        self.min_current = self.getProperty("max_current", 90.1)
+        """Initialise some parameters and update routine."""
+        self._current = self.default_current
+        self._message = self.default_message
+        self._lifetime = self.default_lifetime
+        self._topup_remaining = self.default_topup_remaining
+        self._run()
 
-        self.connect(HWR.beamline.flux, "fluxInfoChanged", self.flux_info_changed)
+    def _run(self):
+        """Spawn update routine."""
+        gevent.spawn(self._update_me)
 
-        self.re_emit_values()
-        spawn(self.change_mach_current)
+    def _update_me(self):
+        self.t0 = time.time()
 
-    def re_emit_values(self):
-        """
-        Updates storage disc information, detects if intensity
-        and storage space is in limits, forms a value list
-        and value in range list, both emited by qt as lists
-        """
-        self.emit("valuesChanged", self.values_ordered_dict)
+        while True:
+            gevent.sleep(5)
+            elapsed = time.time() - self.t0
+            self._topup_remaining = abs((self.default_topup_remaining - elapsed) % 300)
+            if self._topup_remaining < 60:
+                self._message = "ATTENTION: topup in %3d secs" % int(
+                    self._topup_remaining
+                )
+                self.attention = True
+            else:
+                self._message = self.default_message
+                self.attention = False
+            self._current = "%3.2f mA" % (
+                self.default_current - (3 - self._topup_remaining / 100.0) * 5
+            )
+            values = dict()
+            values["current"] = self._current
+            values["message"] = self._message
+            values["lifetime"] = "%3.2f hours" % self._lifetime
+            values["topup_remaining"] = "%3.0f secs" % self._topup_remaining
+            values["attention"] = self.attention
+            self._mach_info_dict = values
+
+            self.emit("machInfoChanged", values)
 
     def get_current(self):
-        return self.values_ordered_dict["current"]["value"]
+        """Override method."""
+        return self._current
 
-    def get_current_value(self):
-        return self.values_ordered_dict["current"]["value"]
+    def get_lifetime(self):
+        """Override method."""
+        return self._lifetime
+
+    def get_topup_remaining(self):
+        """Override method."""
+        return self._topup_remaining
 
     def get_message(self):
-        return self.values_ordered_dict["message"]["value"]
+        """Override method."""
+        return self._message
 
-    def change_mach_current(self):
-        while True:
-            self.values_ordered_dict["current"]["value"] = uniform(
-                self.min_current, self.min_current
-            )
-            self.values_ordered_dict["current"]["value_str"] = (
-                "%.1f mA" % self.values_ordered_dict["current"]["value"]
-            )
 
-            self.update_disk_space()
-            self.re_emit_values()
-            time.sleep(5)
+def test():
+    import sys
 
-    def flux_info_changed(self, flux_info):
-        if flux_info["measured"] is None:
-            self.values_ordered_dict["flux"]["value"] = 0
-            self.values_ordered_dict["flux"]["value_str"] = "Remeasure flux!"
-            self.values_ordered_dict["flux"]["in_range"] = False
-        else:
-            msg_str = "Flux: %.2E ph/s\n" % flux_info["measured"]["flux"]
-            msg_str += "%d%% transmission, %dx%d beam" % (
-                flux_info["measured"]["transmission"],
-                flux_info["measured"]["size_x"] * 1000,
-                flux_info["measured"]["size_y"] * 1000,
-            )
+    hwr = HWR.get_hardware_repository()
+    hwr.connect()
 
-            self.values_ordered_dict["flux"]["value"] = flux_info["measured"]["flux"]
-            self.values_ordered_dict["flux"]["value_str"] = msg_str
-            self.values_ordered_dict["flux"]["in_range"] = (
-                flux_info["measured"]["flux"] > 1e6
-            )
-        self.re_emit_values()
+    conn = hwr.get_hardware_object(sys.argv[1])
 
-    def update_disk_space(self):
-        data_path = HWR.beamline.session.get_base_data_directory()
-        data_path_root = "/%s" % data_path.split("/")[0]
+    print(("Machine current: ", conn.get_current()))
+    print(("Life time: ", conn.get_lifetime()))
+    print(("TopUp remaining: ", conn.get_topup_remaining()))
+    print(("Message: ", conn.get_message()))
+    print(("Values: ", conn.get_mach_info_dict()))
 
-        if os.path.exists(data_path_root):
-            st = os.statvfs(data_path_root)
-            total = st.f_blocks * st.f_frsize
-            free = st.f_bavail * st.f_frsize
-            perc = st.f_bavail / float(st.f_blocks)
-            txt = "Total: %s\nFree:  %s (%s)" % (
-                self.sizeof_fmt(total),
-                self.sizeof_fmt(free),
-                "{0:.0%}".format(perc),
-            )
-        else:
-            txt = "Not available"
-        self.values_ordered_dict["disk"]["value_str"] = txt
+    while True:
+        gevent.wait(timeout=0.1)
 
-    def sizeof_fmt(self, num):
-        """Returns disk space formated in string"""
 
-        for x in ["bytes", "KB", "MB", "GB"]:
-            if num < 1024.0:
-                return "%3.1f%s" % (num, x)
-            num /= 1024.0
-        return "%3.1f%s" % (num, "TB")
-
-    def sizeof_num(self, num):
-        """Returns disk space formated in exp value"""
-
-        for x in ["m", chr(181), "n"]:
-            if num > 0.001:
-                num *= 1000.0
-                return "%0.1f%s" % (num, x)
-            num *= 1000.0
-        return "%3.1f%s" % (num, " n")
+if __name__ == "__main__":
+    test()

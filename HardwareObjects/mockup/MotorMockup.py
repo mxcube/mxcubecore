@@ -2,7 +2,7 @@
 # encoding: utf-8
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -17,7 +17,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 Example of xml config file
@@ -66,7 +66,7 @@ class MotorMockup(ActuatorMockup, AbstractMotor):
         if None in self.get_limits():
             self.update_limits(DEFAULT_LIMITS)
         try:
-            wr = self.getProperty("wrap_range")
+            wr = self.get_property("wrap_range")
             self._wrap_range = DEFAULT_WRAP_RANGE if not wr else ast.literal_eval(wr)
         except (ValueError, SyntaxError):
             self._wrap_range = DEFAULT_WRAP_RANGE

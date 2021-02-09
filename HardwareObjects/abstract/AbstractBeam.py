@@ -16,7 +16,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 AbstracBeam class - methods to define the size and shape of the beam, its presence.
@@ -80,8 +80,9 @@ class AbstractBeam(HardwareObject):
         """
         Initialise default values and objects
         """
-        _divergence_vertical = self.getProperty("beam_divergence_vertical")
-        _divergence_horizontal = self.getProperty("beam_divergence_horizontal")
+        HardwareObject.init(self)
+        _divergence_vertical = self.get_property("beam_divergence_vertical")
+        _divergence_horizontal = self.get_property("beam_divergence_horizontal")
         self._beam_divergence = (_divergence_horizontal, _divergence_vertical)
         self._beam_position_on_screen = (0, 0)
 
@@ -209,10 +210,12 @@ class AbstractBeam(HardwareObject):
 
         return self._beam_info_dict
 
-    def emit_beam_info_change(self):
+    def re_emit_values(self):
         """
         Reemits beamSizeChanged and beamInfoChanged signals
         """
+        HardwareObject.re_emit_values(self)
         if self._beam_width != 9999 and self._beam_height != 9999:
             self.emit("beamSizeChanged", (self._beam_width, self._beam_height))
             self.emit("beamInfoChanged", (self._beam_info_dict))
+            self.emit("beamPosChanged", (self._beam_position_on_screen,))

@@ -19,11 +19,11 @@ class ID29MultiCollect(ESRFMultiCollect):
         self._detector.shutterless = data_collect_parameters["shutterless"]
 
     def stop_oscillation(self):
-        self.getObjectByRole("diffractometer").abort()
-        self.getObjectByRole("diffractometer")._wait_ready(20)
+        self.get_object_by_role("diffractometer").abort()
+        self.get_object_by_role("diffractometer")._wait_ready(20)
 
     def close_fast_shutter(self):
-        state = self.getObjectByRole("fastshut").get_actuator_state(read=True)
+        state = self.get_object_by_role("fastshut").get_actuator_state(read=True)
         if state != "out":
             self.close_fast_shutter()
 
@@ -33,7 +33,7 @@ class ID29MultiCollect(ESRFMultiCollect):
 
     @task
     def get_slit_gaps(self):
-        self.getObjectByRole("controller")
+        self.get_object_by_role("controller")
 
         return (None, None)
 
@@ -59,14 +59,14 @@ class ID29MultiCollect(ESRFMultiCollect):
 
     @task
     def take_crystal_snapshots(self, number_of_snapshots):
-        diffr = self.getObjectByRole("diffractometer")
+        diffr = self.get_object_by_role("diffractometer")
         if self.bl_control.diffractometer.in_plate_mode():
             if number_of_snapshots > 0:
                 number_of_snapshots = 1
         # diffr.moveToPhase("Centring", wait=True, timeout=200)
         if number_of_snapshots:
             # put the back light in
-            diffr.getDeviceByRole("BackLightSwitch").actuatorIn()
+            diffr.get_deviceby_role("BackLightSwitch").actuatorIn()
             self.bl_control.diffractometer.take_snapshots(
                 number_of_snapshots, wait=True
             )
@@ -74,8 +74,8 @@ class ID29MultiCollect(ESRFMultiCollect):
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
-        self.getObjectByRole("controller").detcover.set_out()
-        diffr = self.getObjectByRole("diffractometer")
+        self.get_object_by_role("controller").detcover.set_out()
+        diffr = self.get_object_by_role("diffractometer")
         # send again the command as MD2 software only handles one
         # centered position!!
         # has to be where the motors are and before changing the phase
@@ -85,17 +85,17 @@ class ID29MultiCollect(ESRFMultiCollect):
             logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
         diffr.moveToPhase("DataCollection", wait=True, timeout=200)
         # switch on the front light
-        diffr.getObjectByRole("FrontLight").set_value(2)
+        diffr.get_object_by_role("FrontLight").set_value(2)
 
     @task
     def oscil(self, start, end, exptime, npass):
-        diffr = self.getObjectByRole("diffractometer")
+        diffr = self.get_object_by_role("diffractometer")
         if self.helical:
             diffr.oscilScan4d(start, end, exptime, self.helical_pos, wait=True)
         elif self.mesh:
             det = self._detector._detector
             latency_time = (
-                det.config.getProperty("latecy_time_mesh") or det.get_deadtime()
+                det.config.get_property("latecy_time_mesh") or det.get_deadtime()
             )
             diffr.oscilScanMesh(
                 start,
@@ -131,10 +131,10 @@ class ID29MultiCollect(ESRFMultiCollect):
         )
 
     def open_fast_shutter(self):
-        self.getObjectByRole("fastshut").actuatorIn()
+        self.get_object_by_role("fastshut").actuatorIn()
 
     def close_fast_shutter(self):
-        self.getObjectByRole("fastshut").actuatorOut()
+        self.get_object_by_role("fastshut").actuatorOut()
 
     def set_helical(self, helical_on):
         self.helical = helical_on

@@ -15,7 +15,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 import gevent
@@ -62,29 +62,31 @@ class EMBLDoorInterlock(Device):
 
         self.door_interlock_state = "unknown"
 
-        self.before_unlock_commands_present = self.getProperty(
+        self.before_unlock_commands_present = self.get_property(
             "before_unlock_commands_present"
         )
         try:
-            self.before_unlock_commands = eval(self.getProperty("beforeUnlockCommands"))
+            self.before_unlock_commands = eval(
+                self.get_property("beforeUnlockCommands")
+            )
         except Exception:
             pass
 
-        self.use_door_interlock = self.getProperty("useDoorInterlock")
+        self.use_door_interlock = self.get_property("useDoorInterlock")
         if self.use_door_interlock is None:
             self.use_door_interlock = True
 
         self.chan_state_locked = self.get_channel_object("chanStateLocked")
-        self.chan_state_locked.connectSignal("update", self.state_locked_changed)
+        self.chan_state_locked.connect_signal("update", self.state_locked_changed)
         self.chan_state_breakable = self.get_channel_object("chanStateBreakable")
-        self.chan_state_breakable.connectSignal("update", self.state_breakable_changed)
+        self.chan_state_breakable.connect_signal("update", self.state_breakable_changed)
 
         self.chan_ics_error = self.get_channel_object("chanIcsErrorOne")
-        self.chan_ics_error.connectSignal("update", self.ics_error_msg_changed)
+        self.chan_ics_error.connect_signal("update", self.ics_error_msg_changed)
 
         self.chan_cmd_break_error = self.get_channel_object("chanCmdBreakError")
         if self.chan_cmd_break_error is not None:
-            self.chan_cmd_break_error.connectSignal(
+            self.chan_cmd_break_error.connect_signal(
                 "update", self.cmd_break_error_msg_changed
             )
 
@@ -117,11 +119,11 @@ class EMBLDoorInterlock(Device):
 
     def connected(self):
         """Sets is ready"""
-        self.setIsReady(True)
+        self.set_is_ready(True)
 
     def disconnected(self):
         """Sets not ready"""
-        self.setIsReady(False)
+        self.set_is_ready(False)
 
     def state_breakable_changed(self, state):
         """Updates door interlock state"""

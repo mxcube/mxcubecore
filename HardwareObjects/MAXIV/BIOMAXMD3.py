@@ -51,12 +51,12 @@ class BIOMAXMD3(GenericDiffractometer):
 
         GenericDiffractometer.init(self)
 
-        self.front_light = self.getObjectByRole("frontlight")
-        self.back_light = self.getObjectByRole("backlight")
-        self.back_light_switch = self.getObjectByRole("backlightswitch")
-        self.front_light_switch = self.getObjectByRole("frontlightswitch")
+        self.front_light = self.get_object_by_role("frontlight")
+        self.back_light = self.get_object_by_role("backlight")
+        self.back_light_switch = self.get_object_by_role("backlightswitch")
+        self.front_light_switch = self.get_object_by_role("frontlightswitch")
 
-        self.centring_hwobj = self.getObjectByRole("centring")
+        self.centring_hwobj = self.get_object_by_role("centring")
         if self.centring_hwobj is None:
             logging.getLogger("HWR").debug("EMBLMinidiff: Centring math is not defined")
 
@@ -92,13 +92,13 @@ class BIOMAXMD3(GenericDiffractometer):
             )
 
         try:
-            use_sc = self.getProperty("use_sc")
+            use_sc = self.get_property("use_sc")
             self.set_use_sc(use_sc)
         except Exception:
             logging.getLogger("HWR").debug("Cannot set sc mode, use_sc: ", str(use_sc))
 
         try:
-            self.zoom_centre = eval(self.getProperty("zoom_centre"))
+            self.zoom_centre = eval(self.get_property("zoom_centre"))
             zoom = HWR.beamline.sample_view.camera.get_image_zoom()
             if zoom is not None:
                 self.zoom_centre["x"] = self.zoom_centre["x"] * zoom
@@ -132,21 +132,21 @@ class BIOMAXMD3(GenericDiffractometer):
         :returns: list with two floats
         """
         zoom = HWR.beamline.sample_view.camera.get_image_zoom()
-        # return (0.5/self.channel_dict["CoaxCamScaleX"].getValue(),
-        # 0.5/self.channel_dict["CoaxCamScaleY"].getValue())
+        # return (0.5/self.channel_dict["CoaxCamScaleX"].get_value(),
+        # 0.5/self.channel_dict["CoaxCamScaleY"].get_value())
         return (
-            zoom / self.channel_dict["CoaxCamScaleX"].getValue(),
-            1 / self.channel_dict["CoaxCamScaleY"].getValue(),
+            zoom / self.channel_dict["CoaxCamScaleX"].get_value(),
+            1 / self.channel_dict["CoaxCamScaleY"].get_value(),
         )
 
     def update_zoom_calibration(self):
         """
         """
-        # self.pixels_per_mm_x = 0.5/self.channel_dict["CoaxCamScaleX"].getValue()
-        # self.pixels_per_mm_y = 0.5/self.channel_dict["CoaxCamScaleY"].getValue()
+        # self.pixels_per_mm_x = 0.5/self.channel_dict["CoaxCamScaleX"].get_value()
+        # self.pixels_per_mm_y = 0.5/self.channel_dict["CoaxCamScaleY"].get_value()
         zoom = HWR.beamline.sample_view.camera.get_image_zoom()
-        self.pixels_per_mm_x = zoom / self.channel_dict["CoaxCamScaleX"].getValue()
-        self.pixels_per_mm_y = zoom / self.channel_dict["CoaxCamScaleY"].getValue()
+        self.pixels_per_mm_x = zoom / self.channel_dict["CoaxCamScaleX"].get_value()
+        self.pixels_per_mm_y = zoom / self.channel_dict["CoaxCamScaleY"].get_value()
 
     def manual_centring(self):
         """
@@ -163,7 +163,7 @@ class BIOMAXMD3(GenericDiffractometer):
                 }
             )
             if self.in_plate_mode():
-                dynamic_limits = self.phi_motor_hwobj.getDynamicLimits()
+                dynamic_limits = self.phi_motor_hwobj.get_dynamic_limits()
                 if click == 0:
                     self.phi_motor_hwobj.set_value(dynamic_limits[0])
                 elif click == 1:
@@ -229,7 +229,7 @@ class BIOMAXMD3(GenericDiffractometer):
                         if -1 in (x, y):
                             continue
                         if y >= 0:
-                            if x < HWR.beamline.sample_view.camera.getWidth() / 2:
+                            if x < HWR.beamline.sample_view.camera.get_width() / 2:
                                 x = 0
                                 self.centring_hwobj.appendCentringDataPoint(
                                     {
@@ -241,7 +241,7 @@ class BIOMAXMD3(GenericDiffractometer):
                                 )
                                 break
                             else:
-                                x = HWR.beamline.sample_view.camera.getWidth()
+                                x = HWR.beamline.sample_view.camera.get_width()
                                 self.centring_hwobj.appendCentringDataPoint(
                                     {
                                         "X": (x - self.beam_position[0])
@@ -283,7 +283,7 @@ class BIOMAXMD3(GenericDiffractometer):
             info, y, x = lucid.find_loop(
                 np.array(img_rot, order="C"), IterationClosing=6
             )
-            x = HWR.beamline.sample_view.camera.getWidth() - x
+            x = HWR.beamline.sample_view.camera.get_width() - x
         except Exception:
             return -1, -1, 0
         if info == "Coord":
@@ -463,10 +463,10 @@ class BIOMAXMD3(GenericDiffractometer):
         )
         logging.getLogger("HWR").info(msg)
 
-        self.channel_dict["ScanStartAngle"].setValue(start)
-        self.channel_dict["ScanExposureTime"].setValue(exptime)
-        self.channel_dict["ScanRange"].setValue(end - start)
-        self.channel_dict["ScanNumberOfFrames"].setValue(nframes)
+        self.channel_dict["ScanStartAngle"].set_value(start)
+        self.channel_dict["ScanExposureTime"].set_value(exptime)
+        self.channel_dict["ScanRange"].set_value(end - start)
+        self.channel_dict["ScanNumberOfFrames"].set_value(nframes)
 
         raster_params = "%0.5f\t%0.5f\t%i\t%i\t%i" % (
             vertical_range,
@@ -580,7 +580,7 @@ class BIOMAXMD3(GenericDiffractometer):
             self.beam_position = (pos_x, pos_y)
             beam_xc = self.beam_position[0]
             beam_yc = self.beam_position[1]
-            cent_vertical_to_move = self.cent_vertical_pseudo_motor.getValue() - (
+            cent_vertical_to_move = self.cent_vertical_pseudo_motor.get_value() - (
                 x - beam_xc
             ) / float(self.pixelsPerMmY)
             self.emit_progress_message("")
@@ -628,7 +628,7 @@ class BIOMAXMD3(GenericDiffractometer):
         """
         Detects if device is ready
         """
-        return self.channel_dict["State"].getValue() == DiffractometerState.tostring(
+        return self.channel_dict["State"].get_value() == DiffractometerState.tostring(
             # return self.current_state == DiffractometerState.tostring(\
             DiffractometerState.Ready
         )

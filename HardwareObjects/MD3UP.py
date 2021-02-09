@@ -13,7 +13,7 @@ class MD3UP(Microdiff.Microdiff):
 
     def init(self):
         Microdiff.Microdiff.init(self)
-        phiy_ref = self["centringReferencePosition"].getProperty("phiy")
+        phiy_ref = self["centringReferencePosition"].get_property("phiy")
 
         self.centringPhi = CentringMotor(self.phiMotor, direction=1)
         self.centringPhiz = CentringMotor(self.phizMotor)

@@ -14,7 +14,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import time
@@ -90,15 +90,15 @@ class AbstractOnlineProcessing(HardwareObject):
 
     def init(self):
         self.done_event = gevent.event.Event()
-        self.ssx_setup = self.getObjectByRole("ssx_setup")
-        self.beamstop_hwobj = self.getObjectByRole("beamstop")
+        self.ssx_setup = self.get_object_by_role("ssx_setup")
+        self.beamstop_hwobj = self.get_object_by_role("beamstop")
         if self.beamstop_hwobj is None:
             logging.info("ParallelProcessing: Beamstop hwobj not defined")
 
-        self.result_types = self.getProperty("result_types", DEFAULT_RESULT_TYPES)
-        self.start_command = str(self.getProperty("processing_command"))
-        self.kill_command = str(self.getProperty("kill_command"))
-        self.interpolate_results = self.getProperty("interpolate_results")
+        self.result_types = self.get_property("result_types", DEFAULT_RESULT_TYPES)
+        self.start_command = str(self.get_property("processing_command"))
+        self.kill_command = str(self.get_property("kill_command"))
+        self.interpolate_results = self.get_property("interpolate_results")
 
     def get_result_types(self):
         return self.result_types

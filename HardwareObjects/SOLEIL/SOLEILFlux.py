@@ -12,16 +12,16 @@ class SOLEILFlux(Device):
 
     def get_value(self):
         try:
-            return self.flux_channel.getValue()
+            return self.flux_channel.get_value()
         except PyTango.DevFailed:
             return -1
 
 
 def test():
-    hwr = HWR.getHardwareRepository()
+    hwr = HWR.get_hardware_repository()
     hwr.connect()
 
-    flux = hwr.getHardwareObject("/flux")
+    flux = hwr.get_hardware_object("/flux")
 
     print("PX1 Flux is ", flux.get_value())
 
