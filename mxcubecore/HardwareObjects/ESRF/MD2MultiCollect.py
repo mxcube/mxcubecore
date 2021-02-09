@@ -132,7 +132,6 @@ class MD2MultiCollect(ESRFMultiCollect):
         else:
             diffr.oscilScan(start, end, exptime, wait=True)
 
-    @task
     def prepare_acquisition(
         self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""
     ):

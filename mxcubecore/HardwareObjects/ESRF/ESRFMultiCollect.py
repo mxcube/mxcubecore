@@ -637,7 +637,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         except AttributeError:
             pass
 
-    @task
     def prepare_acquisition(
         self,
         take_dark,
@@ -660,7 +659,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             self.mesh_num_lines
         )
 
-    @task
     def set_detector_filenames(self, is_first_frame, frame_number, start, filename, shutterless):
         if is_first_frame or not shutterless:
             return self._detector.set_detector_filenames(frame_number, start, filename)
@@ -668,7 +666,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def stop_oscillation(self):
         HWR.beamline.diffractometer.abort_cmd()
 
-    @task
     def start_acquisition(self, exptime, npass, first_frame, shutterless):
         if first_frame:
             return self._detector.start_acquisition()
