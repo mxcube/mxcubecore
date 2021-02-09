@@ -142,7 +142,8 @@ class LimaEigerDetector(AbstractDetector):
         self.header["Exposure_period"] = "%f s" % (exptime + self.get_deadtime())
         self.header["Exposure_time"] = "%f s" % exptime
 
-        beam_x, beam_y = HWR.beamline.detector.get_beam_position()
+        beam_x, beam_y = self.get_beam_position()
+
         header_info = [
             "beam_center_x=%s" % (beam_x / 7.5000003562308848e-02),
             "beam_center_y=%s" % (beam_y / 7.5000003562308848e-02),
@@ -154,16 +155,16 @@ class LimaEigerDetector(AbstractDetector):
         ]
         self.get_channel_object("set_image_header").setValue(header_info)
 
-        self.stop()
+        self.reset()
         self.wait_ready()
 
         self.set_energy_threshold(HWR.beamline.energy.get_value())
 
-        if osc_range < 1e-4:
-            self.set_channel_value("acq_trigger_mode", "INTERNAL_TRIGGER")
-        elif mesh:
+        if mesh:
             self.get_channel_object("acq_trigger_mode").setValue("EXTERNAL_TRIGGER_SEQUENCES")
-            self.get_channel_object("acq_nb_sequences").setValue(mesh_num_lines)
+            self.get_channel_object("acq_nb_sequences").setValue(mesh_num_lines)            print("EXTERNAL_TRIGGER_SEQUENCES")
+        elif osc_range < 1e-4:
+            self.set_channel_value("acq_trigger_mode", "INTERNAL_TRIGGER")
         else:
             self.set_channel_value("acq_trigger_mode", "EXTERNAL_TRIGGER")
 
@@ -176,6 +177,8 @@ class LimaEigerDetector(AbstractDetector):
         self.get_channel_object("acq_expo_time").setValue(exptime)
         self.get_channel_object("saving_overwrite_policy").setValue("OVERWRITE")
         self.get_channel_object("saving_managed_mode").setValue("HARDWARE")
+
+        self.wait_ready()
 
     def set_energy_threshold(self, energy):
         minE = self.getProperty("minE")
