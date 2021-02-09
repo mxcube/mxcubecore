@@ -118,13 +118,22 @@ class MD2MultiCollect(ESRFMultiCollect):
         elif self.mesh:
             det = HWR.beamline.detector
             latency_time = det.getProperty("latecy_time_mesh") or det.get_deadtime()
+            sequence_trigger = self.getProperty("lima_sequnce_trigger_mode") or False
+
+            if sequence_trigger:
+                msg = "Using LIMA sequnce trigger mode for Eiger"
+                logging.getLogger("HWR").info(msg)
+                mesh_total_nb_frames = self.mesh_num_lines
+            else:
+                mesh_total_nb_frames = self.mesh_total_nb_frames
+
             diffr.oscilScanMesh(
                 start,
                 end,
                 exptime,
                 latency_time,
                 self.mesh_num_lines,
-                self.mesh_total_nb_frames,
+                mesh_total_nb_frames,
                 self.mesh_center,
                 self.mesh_range,
                 wait=True,
