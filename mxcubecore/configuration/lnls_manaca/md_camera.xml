@@ -1,0 +1,23 @@
+<device class="LNLS.LNLSCamera">
+    <!-- Channels -->
+    <channel type="epics" name="epicsCameraSample_data" auto_monitor="False">MNC:B:BZOOM:image1:ArrayData</channel>
+    <channel type="epics" name="epicsCameraSample_img_pixel_size">MNC:B:BZOOM:image1:ArraySize0_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_img_width">MNC:B:BZOOM:image1:ArraySize1_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_img_height">MNC:B:BZOOM:image1:ArraySize2_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_back">MNC:B:BZOOM:image1:ArrayCallbacks</channel>
+    <channel type="epics" name="epicsCameraSample_en_back">MNC:B:BZOOM:image1:EnableCallbacks</channel>
+    <channel type="epics" name="epicsCameraSample_acq_stop">MNC:B:BZOOM:cam1:Acquire</channel>
+    <channel type="epics" name="epicsCameraSample_acq_start">MNC:B:BZOOM:cam1:Acquire</channel>
+    <channel type="epics" name="epicsCameraSample_acq_time">MNC:B:BZOOM:cam1:AcquireTime</channel>
+    <channel type="epics" name="epicsCameraSample_acq_time_rbv">MNC:B:BZOOM:cam1:AcquireTime_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_gain">MNC:B:BZOOM:cam1:Gain</channel>
+    <channel type="epics" name="epicsCameraSample_gain_rbv">MNC:B:BZOOM:cam1:Gain_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_auto_gain">MXROB:ueye:AutoGain</channel>
+    <channel type="epics" name="epicsCameraSample_auto_gain_rbv">MXROB:ueye:AutoGain_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_frames_per_second">MNC:B:BZOOM:cam1:ArrayRate</channel>
+    <channel type="epics" name="epicsCameraSample_frames_per_second_rbv">MNC:B:BZOOM:cam1:ArrayRate_RBV</channel>
+    <!-- Properties -->
+    <username>Camera</username>
+    <source>/usr/local/src/mxcube/ExampleFiles/fakeimg.jpg</source>
+    <interval>100</interval>
+</device>

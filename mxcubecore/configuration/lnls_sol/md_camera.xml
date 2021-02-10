@@ -1,0 +1,23 @@
+<device class="LNLS.LNLSCamera">
+    <!-- Channels -->
+    <channel type="epics" name="epicsCameraSample_data" auto_monitor="False">SOL:S:image1:ArrayData</channel>
+    <channel type="epics" name="epicsCameraSample_img_pixel_size">SOL:S:image1:ArraySize0_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_img_width">SOL:S:image1:ArraySize1_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_img_height">SOL:S:image1:ArraySize2_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_back">SOL:S:image1:ArrayCallbacks</channel>
+    <channel type="epics" name="epicsCameraSample_en_back">SOL:S:image1:EnableCallbacks</channel>
+    <channel type="epics" name="epicsCameraSample_acq_stop">SOL:S:cam1:Acquire</channel>
+    <channel type="epics" name="epicsCameraSample_acq_start">SOL:S:cam1:Acquire</channel>
+    <channel type="epics" name="epicsCameraSample_acq_time">SOL:S:cam1:AcquireTime</channel>
+    <channel type="epics" name="epicsCameraSample_acq_time_rbv">SOL:S:cam1:AcquireTime_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_gain">SOL:S:cam1:Gain</channel>
+    <channel type="epics" name="epicsCameraSample_gain_rbv">SOL:S:cam1:Gain_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_auto_gain">MXROB:ueye:AutoGain</channel>
+    <channel type="epics" name="epicsCameraSample_auto_gain_rbv">MXROB:ueye:AutoGain_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_frames_per_second">SOL:S:cam1:ArrayRate</channel>
+    <channel type="epics" name="epicsCameraSample_frames_per_second_rbv">SOL:S:cam1:ArrayRate_RBV</channel>
+    <!-- Properties -->
+    <username>Camera</username>
+    <source>/usr/local/src/mxcube/ExampleFiles/fakeimg.jpg</source>
+    <interval>67</interval>
+</device>
