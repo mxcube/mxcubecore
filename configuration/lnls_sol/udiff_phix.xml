@@ -1,0 +1,15 @@
+<device class="LNLS.EPICSMotor">
+    <channel type="epics" name="epicsActuator_val">SOL:S:m1.VAL</channel>
+    <channel type="epics" name="epicsActuator_rbv" polling="500">SOL:S:m1.RBV</channel>
+    <channel type="epics" name="epicsMotor_rlv">SOL:S:m1.RLV</channel>
+    <channel type="epics" name="epicsMotor_dmov" polling="500">SOL:S:m1.DMOV</channel>
+    <channel type="epics" name="epicsMotor_stop">SOL:S:m1.STOP</channel>
+    <channel type="epics" name="epicsMotor_velo">SOL:S:m1.VELO</channel>
+    <channel type="epics" name="epicsMotor_dllm">SOL:S:m1.DLLM</channel>
+    <channel type="epics" name="epicsMotor_dhlm">SOL:S:m1.DHLM</channel>
+    <channel type="epics" name="epicsMotor_egu">SOL:S:m1.EGU</channel>
+    <username>PhiX</username>
+    <motor_name>AlignmentX</motor_name>
+    <GUIstep>0.1</GUIstep>
+    <unit>1e-3</unit>
+</device>
