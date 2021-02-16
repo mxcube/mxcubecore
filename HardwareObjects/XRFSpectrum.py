@@ -13,7 +13,7 @@ class XRFSpectrum(Equipment):
         Equipment.__init__(self, *args, **kwargs)
         self.config_data = None
         self.calib_data = None
-        self.energySpectrumArgs = None
+        self.energy_spectrum_args = None
 
     def init(self):
         self.scanning = None
@@ -304,9 +304,9 @@ class XRFSpectrum(Equipment):
         pass
 
     def getSpectrumParams(self):
-        if self.energySpectrumArgs:
+        if self.energy_spectrum_args:
             try:
-                self.curr = self.energySpectrumArgs.get_value()
+                self.curr = self.energy_spectrum_args.get_value()
                 return self.curr
             except Exception:
                 logging.getLogger().exception(
@@ -318,7 +318,7 @@ class XRFSpectrum(Equipment):
             return True
 
     def setSpectrumParams(self, pars):
-        self.energySpectrumArgs.set_value(pars)
+        self.energy_spectrum_args.set_value(pars)
 
     def _get_cfgfile(self, energy):
         if energy > 12.0:
