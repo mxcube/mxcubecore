@@ -9,7 +9,7 @@ from HardwareRepository.HardwareObjects import queue_model_enumerables as qme
 
 from HardwareRepository.HardwareObjects.SecureXMLRpcRequestHandler import SecureXMLRpcRequestHandler
 from HardwareRepository import HardwareRepository as HWR
-from abstract.AbstractCharacterisation import AbstractCharacterisation
+from HardwareRepository.HardwareObjects.abstract.AbstractCharacterisation import AbstractCharacterisation
 
 from XSDataMXCuBEv1_4 import XSDataInputMXCuBE
 from XSDataMXCuBEv1_4 import XSDataMXCuBEDataSet
