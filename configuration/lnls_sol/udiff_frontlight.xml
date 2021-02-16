@@ -1,0 +1,7 @@
+<device class="LNLS.EPICSActuator">
+    <channel type="epics" name="epicsActuator_val">SOL:S:m4.VELO</channel>
+    <channel type="epics" name="epicsActuator_rbv" polling="500">SOL:S:m4.VELO</channel>
+    <username>FrontLight</username>
+    <motor_name>FrontLight</motor_name>
+    <!-- <GUIstep>1</GUIstep> This have to be defined on the GUI at the moment.-->
+</device>
