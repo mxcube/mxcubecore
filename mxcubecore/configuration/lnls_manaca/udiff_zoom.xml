@@ -1,0 +1,9 @@
+<device class="LNLS.LNLSZoom">
+  <username>zoom</username>
+  <motor_name>zoom</motor_name>
+  <channel type="epics" name="epicsActuator_val">MNC:B:BZOOM:cam1:ZoomLevel</channel>
+  <channel type="epics" name="epicsActuator_rbv" polling="500">MNC:B:BZOOM:cam1:ZoomLevel</channel>
+  <values>{"LEVEL1": 1, "LEVEL2": 2, "LEVEL3": 3, "LEVEL4": 4, "LEVEL5": 5, "LEVEL6": 6, "LEVEL7": 7, "LEVEL8": 8}</values>
+  <mm_per_pixel_x>{"LEVEL0": 0.004650 , "LEVEL1": 0.00196, "LEVEL2": 0.001610 , "LEVEL3": 0.001000, "LEVEL4": 0.000795, "LEVEL5": 0.000330, "LEVEL6": 0.0002790, "LEVEL7": 0.000240, "LEVEL8": 0.000163}</mm_per_pixel_x>
+  <mm_per_pixel_y>{"LEVEL0": 0.004650 , "LEVEL1": 0.00190, "LEVEL2": 0.001560 , "LEVEL3": 0.000969, "LEVEL4": 0.000770, "LEVEL5": 0.000319, "LEVEL6": 0.0002704, "LEVEL7": 0.000234, "LEVEL8": 0.000163}</mm_per_pixel_y>
+</device>
