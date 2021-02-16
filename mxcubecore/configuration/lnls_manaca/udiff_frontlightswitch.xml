@@ -1,0 +1,6 @@
+  <device class="LNLS.EPICSNState">
+     <channel type="epics" name="epicsActuator_val">none</channel>
+     <channel type="epics" name="epicsActuator_rbv" polling="500">none</channel>
+     <username>Microdiff frontlight</username>
+     <values>{"in": True, "out": False}</values>
+ </device>

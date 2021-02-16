@@ -1,0 +1,31 @@
+<equipment class = "LNLS.LNLSPilatusDet">
+  <!-- Channels -->
+  <channel type="epics" name="det_threshols_energy">MX2:cam1:ThresholdEnergy</channel>
+  <channel type="epics" name="det_wavelength">MX2:cam1:Wavelength</channel>
+  <channel type="epics" name="det_detdist">MX2:cam1:DetDist</channel>
+  <channel type="epics" name="det_beam_x">MX2:cam1:BeamX</channel>
+  <channel type="epics" name="det_beam_y">MX2:cam1:BeamY</channel>
+  <channel type="epics" name="user_beam_x">MNC:S:SOFT:ao:BeamX</channel>
+  <channel type="epics" name="user_beam_y">MNC:S:SOFT:ao:BeamY</channel>
+  <channel type="epics" name="det_transmission">MX2:cam1:FilterTransm</channel>
+  <channel type="epics" name="det_start_angle">MX2:cam1:StartAngle</channel>
+  <channel type="epics" name="det_angle_incr">MX2:cam1:AngleIncr</channel>
+  <!-- Status needs to be directly accessed. See details in LNLSPilatusDet. -->
+  <channel_status>MX2:cam1:StatusMessage_RBV</channel_status>
+  <!-- Properties -->
+  <default_beam_x>729</default_beam_x>
+  <default_beam_y>858</default_beam_y>
+  <object hwrid="/dtox" role="detector_distance"/>
+  <tempThreshold>33.5</tempThreshold>
+  <humidityThreshold>20.0</humidityThreshold>
+  <tolerance>0.2</tolerance>
+  <type>pilatus</type>
+  <model>16M</model>
+  <manufacturer>DECTRIS</manufacturer>
+  <px>0.075</px>
+  <py>0.075</py>
+  <width>4150</width>
+  <height>4271</height>
+  <hasShutterless>True</hasShutterless>
+  <fileSuffix>cbf</fileSuffix>
+</equipment>
