@@ -338,7 +338,7 @@ class XMLRPCServer(HardwareObject):
 
     def shape_history_get_grid(self, sid):
         """
-        :param sid: Shape id 
+        :param sid: Shape id
         :returns: Grid with id <sid>
         :rtype: dict
 
@@ -353,17 +353,21 @@ class XMLRPCServer(HardwareObject):
          'y1': float,
          'angle': float}
 
-        """       
+        """
         grid_dict = HWR.beamline.sample_view.get_shape(sid).as_dict()
 
         return grid_dict
 
     def shape_history_set_grid_data(self, key, result_data):
-        int_based_result = {}
-        for result in result_data.items():
-            int_based_result[int(result[0])] = result[1]
+        if isinstance(result_data, list):
+            result = {}
 
-        HWR.beamline.sample_view.set_grid_data(key, int_based_result)
+            for result in result_data.items():
+                int_based_result[int(result[0])] = result[1]
+        else:
+            result = result_data
+
+        HWR.beamline.sample_view.set_grid_data(key, result)
         return True
 
     def get_cp(self):
@@ -445,7 +449,7 @@ class XMLRPCServer(HardwareObject):
         return True
 
     def cryo_temperature(self):
-        return HWR.beamline.collect.get_cryo_temperature()
+        return HWR.beamline.diffractometer.cryostream.get_value()
 
     def flux(self):
         flux = HWR.beamline.flux.get_value()
@@ -453,20 +457,15 @@ class XMLRPCServer(HardwareObject):
             flux = 0
         return float(flux)
 
-    def set_aperture(self, pos_name, timeout=20):
-        HWR.beamline.beam.aperture_hwobj.moveToPosition(pos_name)
-        t0 = time.time()
-        while HWR.beamline.beam.aperture_hwobj.getState() == "MOVING":
-            time.sleep(0.1)
-            if time.time() - t0 > timeout:
-                raise RuntimeError("Timeout waiting for aperture to move")
+    def set_aperture(self, pos_name):
+        HWR.beamline.beam.set_value(pos_name)
         return True
 
     def get_aperture(self):
-        return HWR.beamline.beam.aperture_hwobj.getCurrentPositionName()
+        return HWR.beamline.beam.get_value()[-1]
 
     def get_aperture_list(self):
-        return HWR.beamline.beam.aperture_hwobj.get_predefined_positions_list()
+        return HWR.beamline.beam.get_available_size()["values"]
 
     def open_dialog(self, dict_dialog):
         """
@@ -522,23 +521,29 @@ class XMLRPCServer(HardwareObject):
     def get_image_num(self):
         return self.image_num
 
-    def set_zoom_level(self, zoom_level):
+    def set_zoom_level(self, pos):
         """
         Sets the zoom to a pre-defined level.
         """
-        HWR.beamline.diffractometer.zoomMotor._set_value(int(zoom_level))
-
+        zoom = HWR.beamline.sample_view.zoom
+        zoom.set_value(zoom.value_to_enum(pos))
+        
     def get_zoom_level(self):
         """
         Returns the zoom level.
         """
-        return HWR.beamline.diffractometer.zoomMotor.get_value().value
+        zoom = HWR.beamline.sample_view.zoom
+        pos = zoom.get_value().value
+        return pos
 
     def get_available_zoom_levels(self):
         """
         Returns the avaliable pre-defined zoom levels.
         """
-        return HWR.beamline.diffractometer.zoomMotor.get_predefined_positions_list()
+        _value_enum = HWR.beamline.diffractometer.zoomMotor.VALUES.items()
+        _names = [name for name, value in _value_enum.items()]
+
+        return _names
 
     def set_front_light_level(self, level):
         """

@@ -57,7 +57,7 @@ class FlexHCDMaintenance(Equipment):
         :rtype: None
         """
         self._sc._do_abort()
-        return self._sc._do_reset()
+        return self._sc.home()
 
     def _do_reset(self):
         """

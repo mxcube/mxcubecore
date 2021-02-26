@@ -11,21 +11,13 @@ from HardwareRepository import HardwareRepository as HWR
 class XRFSpectrum(Equipment):
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
+        self.config_data = None
+        self.calib_data = None
+        self.energy_spectrum_args = None
 
     def init(self):
         self.scanning = None
         self.ready_event = gevent.event.Event()
-
-        self.config_data = self.get_channel_object("config_data")
-        self.calib_data = self.get_channel_object("calib_data")
-
-        try:
-            self.energySpectrumArgs = self.get_channel_object("spectrum_args")
-        except KeyError:
-            logging.getLogger().warning(
-                "XRFSpectrum: error initializing energy spectrum arguments (missing channel)"
-            )
-            self.energySpectrumArgs = None
 
         try:
             self.doSpectrum.connect_signal(
@@ -233,7 +225,6 @@ class XRFSpectrum(Equipment):
             self.mca_hwobj.set_presets(fname=str(fname))
             mcaData = self.mca_hwobj.read_data(save_data=True)
             mcaCalib = self.mca_hwobj.get_calibration()
-
             mcaConfig = {}
             self.spectrumInfo[
                 "beamTransmission"
@@ -246,11 +237,12 @@ class XRFSpectrum(Equipment):
                 bsX = self.beamsize.get_size(self.beamsize.get_value().name)
                 self.spectrumInfo["beamSizeHorizontal"] = bsX
                 self.spectrumInfo["beamSizeVertical"] = bsX
-                mcaConfig["bsX"] = self.spectrumInfo["beamSizeHorizontal"]
-                mcaConfig["bsY"] = self.spectrumInfo["beamSizeVertical"]
             mcaConfig["att"] = self.spectrumInfo["beamTransmission"]
             mcaConfig["energy"] = self.spectrumInfo["energy"]
-            roi = self.mca_hwobj.get_roi()
+            mcaConfig["bsX"] = self.spectrumInfo["beamSizeHorizontal"]
+            mcaConfig["bsY"] = self.spectrumInfo["beamSizeVertical"]
+            roi = self.ctrl_hwobj.mca.get_roi()
+            #roi = self.mca_hwobj.get_roi()
             mcaConfig["min"] = roi["chmin"]
             mcaConfig["max"] = roi["chmax"]
             mcaConfig["legend"] = self.spectrumInfo["annotatedPymcaXfeSpectrum"]
@@ -312,9 +304,9 @@ class XRFSpectrum(Equipment):
         pass
 
     def getSpectrumParams(self):
-        if self.energySpectrumArgs:
+        if self.energy_spectrum_args:
             try:
-                self.curr = self.energySpectrumArgs.get_value()
+                self.curr = self.energy_spectrum_args.get_value()
                 return self.curr
             except Exception:
                 logging.getLogger().exception(
@@ -326,7 +318,7 @@ class XRFSpectrum(Equipment):
             return True
 
     def setSpectrumParams(self, pars):
-        self.energySpectrumArgs.set_value(pars)
+        self.energy_spectrum_args.set_value(pars)
 
     def _get_cfgfile(self, energy):
         if energy > 12.0:

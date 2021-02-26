@@ -25,4 +25,4 @@ class ID30BBeamCmds(HardwareObject):
         # self.anneal = ControllerCommand("Anneal", controller.anneal_procedure)
 
     def get_commands(self):
-        return [self.centrebeam, self.hutchtrigger]#, self.detcover]
+        return [self.centrebeam] #self.hutchtrigger]#, self.detcover]

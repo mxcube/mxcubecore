@@ -42,7 +42,7 @@ def poll(
     start_value=NotInitializedValue,
 ):
     # logging.info(">>>> %s", POLLERS)
-    for _, poller in POLLERS.items():
+    for poller in POLLERS.values():
         poller_polled_call = poller.polled_call_ref()
         # logging.info(">>>>> poller.poll_cmd=%s, poll_cmd=%s, poller.args=%s, args=%s", poller_polled_call, polled_call, poller.args, polled_call_args)
         if poller_polled_call == polled_call and poller.args == polled_call_args:
@@ -74,6 +74,7 @@ class _Poller:
         error_callback=None,
         compare=True,
     ):
+        self.polled_call = polled_call
         self.polled_call_ref = saferef.safe_ref(polled_call)
         self.args = polled_call_args
         self.polling_period = polling_period
@@ -81,7 +82,7 @@ class _Poller:
         self.error_callback_ref = saferef.safe_ref(error_callback)
         self.compare = compare
         self.old_res = NotInitializedValue
-        self.queue = _threading.Queue()  # Queue.Queue()
+        self.queue = Queue()
         self.delay = 0
         self.stop_event = Event()
 
@@ -92,7 +93,7 @@ class _Poller:
 
     def start_delayed(self, delay):
         self.delay = delay
-        _threading.start_new_thread(self.run, ())  # self.start()
+        _threading.start_new_thread(self.run, ())
 
     def stop(self):
         self.stop_event.set()
@@ -108,7 +109,6 @@ class _Poller:
         return self.polling_period
 
     def set_polling_period(self, polling_period):
-        # logging.info(">>>>> CHANGIG POLLING PERIOD TO %d", polling_period)
         self.polling_period = polling_period
 
     def restart(self, delay=0):
@@ -132,9 +132,7 @@ class _Poller:
     def new_event(self):
         while True:
             try:
-                #res = Queue().get_nowait()
                 res = self.queue.get_nowait()
-
             except Empty:
                 break
 
