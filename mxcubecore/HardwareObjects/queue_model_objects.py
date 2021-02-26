@@ -2260,7 +2260,7 @@ def create_interleave_sw(interleave_list, num_images, sw_size):
     """
     subwedges = []
     sw_first_image = None
-    for sw_index in range(num_images / sw_size):
+    for sw_index in range(int(num_images / sw_size)):
         for collection_index in range(len(interleave_list)):
             collection_osc_start = (
                 interleave_list[collection_index]["data_model"]

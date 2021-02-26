@@ -27,6 +27,8 @@ __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
+import logging
+
 from HardwareRepository.HardwareObjects.abstract.AbstractBeam import (
     AbstractBeam,
     BeamShape,
@@ -99,6 +101,7 @@ class ESRFBeam(AbstractBeam):
             _size = self._complex.sizeByName[self._complex.get_current_position_name()]
             _name = self._complex.get_current_position_name()
         except KeyError:
+            logging.getLogger("HWR").info("Could not read beam size")
             _size, _name = (-1, -1), "UNKNOWN"
 
         return _size, _name
@@ -156,7 +159,6 @@ class ESRFBeam(AbstractBeam):
             else:
                 self.beam_height = _val[0]
         except ValueError:
-            print("No beam defining device")
             return None, None, _shape, "none"
 
         return self.beam_width, self.beam_height, _shape, _name

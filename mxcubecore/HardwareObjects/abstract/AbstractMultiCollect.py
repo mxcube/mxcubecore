@@ -136,7 +136,7 @@ class AbstractMultiCollect(object):
 
     @abc.abstractmethod
     @task
-    def set_detector_filenames(self, frame_number, start, filename, shutterless):
+    def set_detector_filenames(self, is_first_frame, frame_number, start, filename, shutterless):
         pass
 
     @abc.abstractmethod
@@ -280,11 +280,6 @@ class AbstractMultiCollect(object):
             logging.getLogger("HWR").exception("Could not take crystal snapshots")
 
     @abc.abstractmethod
-    @task
-    def take_crystal_snapshots(self, number_of_snapshots):
-        pass
-
-    @abc.abstractmethod
     def set_helical(self, helical_on):
         pass
 
@@ -418,7 +413,7 @@ class AbstractMultiCollect(object):
         )
         data_collect_parameters["xds_dir"] = self.xds_directory
 
-        logging.getLogger("user_level_log").info("Getting sample info from parameters")
+        logging.getLogger("user_level_log").info("Getting sample information")
         sample_id, sample_location, sample_code = self.get_sample_info_from_parameters(
             data_collect_parameters
         )
@@ -498,13 +493,14 @@ class AbstractMultiCollect(object):
         # take snapshots, then assign centring status (which contains images) to
         # centring_info variable
         take_snapshots = data_collect_parameters.get("take_snapshots", False)
+
         if take_snapshots:
             logging.getLogger("user_level_log").info("Taking sample snapshosts")
             self._take_crystal_snapshots(take_snapshots)
         centring_info = HWR.beamline.diffractometer.get_centring_status()
         # move *again* motors, since taking snapshots may change positions
         logging.getLogger("user_level_log").info(
-            "Moving motors: %r", motors_to_move_before_collect
+            "Moving motors to centered position: %r", motors_to_move_before_collect
         )
         self.move_motors(motors_to_move_before_collect)
 
@@ -645,32 +641,62 @@ class AbstractMultiCollect(object):
             logging.getLogger("user_level_log").info(
                 "Setting transmission to %f", data_collect_parameters["transmission"]
             )
-            HWR.beamline.transmission.set_value(data_collect_parameters["transmission"], timeout=30)
+            try:
+                HWR.beamline.transmission.set_value(data_collect_parameters["transmission"], timeout=30)
+            except RuntimeError:
+                logging.getLogger("user_level_log").info(
+                "Failed to set transmission to %f", data_collect_parameters["transmission"]
+                )
+                raise
 
         if "wavelength" in data_collect_parameters:
             logging.getLogger("user_level_log").info(
                 "Setting wavelength to %f", data_collect_parameters["wavelength"]
             )
-            HWR.beamline.energy.set_wavelength(data_collect_parameters["wavelength"], timeout=None)
+            try:
+                HWR.beamline.energy.set_wavelength(data_collect_parameters["wavelength"], timeout=600)
+            except RuntimeError:
+                logging.getLogger("user_level_log").info(
+                "Failed to set wavelength to %f", data_collect_parameters["wavelength"]
+                )
+                raise
         elif "energy" in data_collect_parameters:
             logging.getLogger("user_level_log").info(
                 "Setting energy to %f", data_collect_parameters["energy"]
             )
-            HWR.beamline.energy.set_value(data_collect_parameters["energy"], timeout=None)
+            try:
+                HWR.beamline.energy.set_value(data_collect_parameters["energy"], timeout=60*10)
+            except RuntimeError:
+                logging.getLogger("user_level_log").info(
+                    "Failed to set energy to %f", data_collect_parameters["energy"]
+                )
+                raise
 
         if "resolution" in data_collect_parameters:
             resolution = data_collect_parameters["resolution"]["upper"]
             logging.getLogger("user_level_log").info(
                 "Setting resolution to %f", resolution
             )
-            HWR.beamline.resolution.set_value(resolution, timeout=3500)
+            try:
+                HWR.beamline.resolution.set_value(resolution, timeout=3500)
+            except RuntimeError:
+                logging.getLogger("user_level_log").info(
+                    "Failed to set resolution to %f", resolution
+                )
+                raise
         elif "detector_distance" in oscillation_parameters:
             logging.getLogger("user_level_log").info(
                 "Moving detector to %f", data_collect_parameters["detector_distance"]
             )
-            HWR.beamline.detector.distance.set_value(
-                oscillation_parameters["detector_distance"], timeout=3500
-            )
+            try:
+                HWR.beamline.detector.distance.set_value(
+                    oscillation_parameters["detector_distance"], timeout=3500
+                )
+            except RuntimeError:
+                logging.getLogger("user_level_log").info(
+                    "Failed to set detector distance to %f", data_collect_parameters["detector_distance"]
+                )
+                raise
 
         # 0: software binned, 1: unbinned, 2:hw binned
         # self.set_detector_mode(data_collect_parameters["detector_mode"])
@@ -679,6 +705,19 @@ class AbstractMultiCollect(object):
             if not self.safety_shutter_opened():
                 logging.getLogger("user_level_log").info("Opening safety shutter")
                 self.open_safety_shutter()
+
+            flux_threshold = self.getProperty("flux_threshold", False)
+            cryo_threshold = self.getProperty("cryo_threshold", False)
+
+            # Wait for flux
+            while flux_threshold and HWR.beamline.flux.get_value() < flux_threshold:
+                logging.getLogger("user_level_log").info("Waiting for beam ...")
+                gevent.sleep(0.5)
+
+            # Wait for cryo
+            while cryo_threshold and HWR.beamline.diffractometer.cryostream.get_value() > cryo_threshold:
+                logging.getLogger("user_level_log").info("Cryo temperature too high ...")
+                gevent.sleep(0.5)
 
             logging.getLogger("user_level_log").info("Preparing intensity monitors")
             self.prepare_intensity_monitors()
@@ -790,7 +829,10 @@ class AbstractMultiCollect(object):
 
                     i = 0
                     j = wedge_size
+
+                    _total_time_spent = 0
                     while j > 0:
+                        _time_start = time.time()
                         frame_start = start + i * osc_range
                         i += 1
 
@@ -807,11 +849,11 @@ class AbstractMultiCollect(object):
                         file_path = os.path.join(file_location, filename)
 
                         self.set_detector_filenames(
+                            i == 1,
                             frame,
                             frame_start,
                             str(file_path),
                             data_collect_parameters.get("shutterless", True),
-                            wait=False,
                         )
 
                         osc_start, osc_end = self.prepare_oscillation(
@@ -913,7 +955,7 @@ class AbstractMultiCollect(object):
                                 start_image_number + last_image_saved - 1,
                             )
                             self.emit("collectImageTaken", frame)
-                            j = wedge_size - last_image_saved
+                            j = wedge_size - last_image_saved                            
                         else:
                             j -= 1
                             self.emit("collectImageTaken", frame)
@@ -921,10 +963,19 @@ class AbstractMultiCollect(object):
                             if j == 0:
                                 break
 
+                        _total_time_spent += (time.time() - _time_start)
+
+                        #if _total_time_spent > (wedge_size * (exptime + 0.005)) * 4:
+                        #    msg = "Data collection failure, detector not responding"
+                        #    logging.getLogger("user_level_log").info(msg)
+                        #    HWR.beamline.detector.recover_from_failure()
+                        #    raise RuntimeError(msg)
+
+
             # Bug fix for MD2/3(UP): diffractometer still has things to do even after the last frame is taken (decelerate motors and
             # possibly download diagnostics) so we cannot trigger the cleanup (that will send an abort on the diffractometer) as soon as
             # the last frame is counted
-            self.diffractometer().wait_ready(10)
+            self.diffractometer().wait_ready(60)
 
         # data collection done
         self.data_collection_end_hook(data_collect_parameters)
@@ -968,6 +1019,7 @@ class AbstractMultiCollect(object):
                     failed = True
                     exc_type, exc_value, exc_tb = sys.exc_info()
                     logging.exception("Data collection failed")
+                    logging.getLogger("user_level_log").info("Data collection failed %s" % exc_value)
                     data_collect_parameters[
                         "status"
                     ] = "Data collection failed!"  # Message to be stored in LIMS
@@ -1120,6 +1172,8 @@ class AbstractMultiCollect(object):
     def stop_collect(self, owner=None):
         if self.data_collect_task is not None:
             self.data_collect_task.kill(block=False)
+
+        self.data_collection_cleanup()
 
     """
     processDataScripts

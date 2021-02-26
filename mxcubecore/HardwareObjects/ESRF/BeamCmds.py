@@ -73,6 +73,13 @@ class ControllerCommand(BaseBeamlineAction):
         self.type = PROCEDURE_COMMAND_T
         self.argument_type = ARGUMENT_TYPE_LIST
 
+        if name == "Anneal":
+            self._arguments.append(("Time [s]", "float"))
+
+    def is_connected(self):
+        """Dummy method"""
+        return True
+
     def set_argument_json_schema(self, json_schema_str):
         """Set the JSON Schema"""
         self.argument_type = ARGUMENT_TYPE_JSON_SCHEMA
@@ -80,8 +87,6 @@ class ControllerCommand(BaseBeamlineAction):
 
     def get_arguments(self):
         """Get the command object arguments"""
-        if self.name() == "Anneal":
-            self.add_argument("Time [s]", "float")
         return CommandObject.get_arguments(self)
 
     @task
@@ -172,7 +177,7 @@ class HWObjActuatorCommand(CommandObject):
         """
         self.emit("commandBeginWaitReply", (str(self.name()),))
         value = self._get_action()
-        self._hwobj.set_value(value)
+        self._hwobj.set_value(value, timeout=60)
 
     def _cmd_done(self, state):
         """Handle the command execution.
