@@ -137,14 +137,6 @@ class ExporterNState(AbstractNState):
         state = self.state_channel.get_value()
         return self._value2state(state)
 
-    def get_hwstate(self):
-        """Get the device hardware state.
-        Returns:
-            (enum 'HardwareObjectState'): Device state.
-        """
-        state = self.hwstate_channel.get_value()
-        return self._value2state(state)
-
     def abort(self):
         """Stop the action."""
         if self.get_state() != self.STATES.UNKNOWN:
