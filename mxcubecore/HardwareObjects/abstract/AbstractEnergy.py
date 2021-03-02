@@ -44,7 +44,6 @@ class AbstractEnergy(AbstractActuator):
 
     def __init__(self, name):
         AbstractActuator.__init__(self, name)
-        self._wavelength_value = None
         self._wavelength_limits = (None, None)
 
     def is_ready(self):
@@ -69,8 +68,7 @@ class AbstractEnergy(AbstractActuator):
         Returns:
             (float): Wavelength [Å].
         """
-        self._wavelength_value = self._calculate_wavelength(self.get_value())
-        return self._wavelength_value
+        return self._calculate_wavelength(self.get_value())
 
     def get_wavelength_limits(self):
         """Return wavelength low and high limits.
@@ -117,7 +115,7 @@ class AbstractEnergy(AbstractActuator):
             (float): Energy [keV]
         """
         hc_over_e = h * c / e * 10e6
-        wavelength = wavelength or self._wavelength_value
+        wavelength = wavelength or self.get_wavelength()
         return hc_over_e / wavelength
 
     def update_value(self, value=None):
