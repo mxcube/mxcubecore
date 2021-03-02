@@ -180,6 +180,6 @@ class AbstractActuator(HardwareObject):
         Method is called from gui
         Do not call it within HWR
         """
-        self.emit("valueChanged", (self.get_value(), ))
-        self.emit("limitsChanged", (self.get_limits(), ))
-        self.emit("stateChanged", (self.get_state(), ))
+        self.emit("valueChanged", (self.get_value(),))
+        self.emit("limitsChanged", (self.get_limits(),))
+        self.emit("stateChanged", (self.get_state(),))
