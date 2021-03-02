@@ -13,6 +13,12 @@ except ImportError:
     from PyMca5.PyMca import ClassMcaTheory
     from PyMca5.PyMca import QtMcaAdvancedFitReport
 
+"""
+Next two lines is a trick to avoid core dump in QtMcaAdvancedFitReport
+"""
+from unittest.mock import MagicMock
+QtMcaAdvancedFitReport.qt = MagicMock()
+
 
 class ID29XRFSpectrum(XRFSpectrum):
     def __init__(self, *args, **kwargs):
@@ -27,6 +33,8 @@ class ID29XRFSpectrum(XRFSpectrum):
     def preset_mca(self, ctime=5, fname=None):
         self.mca_hwobj.set_roi(2, 15, channel=1)
         self.mca_hwobj.set_presets(erange=1, ctime=ctime, fname=str(fname))
+        self.ctrl_hwobj.mca.set_roi(2, 15, channel=1)
+        self.ctrl_hwobj.mca.set_presets(erange=1, ctime=ctime, fname=str(fname))
 
     def _doSpectrum(self, ctime, filename, wait=True):
         self.choose_attenuation(ctime, filename)
@@ -47,11 +55,6 @@ class ID29XRFSpectrum(XRFSpectrum):
 
         self.preset_mca(ctime, fname)
 
-        # put the detector name
-        self.spectrumInfo["fluorescenceDetector"] = self.mca_hwobj.get_property(
-            "username"
-        )
-
         self.ctrl_hwobj.detcover.set_in(20)
         try:
             _transm = self.ctrl_hwobj.find_max_attenuation(
@@ -62,6 +65,7 @@ class ID29XRFSpectrum(XRFSpectrum):
             logging.getLogger("user_level_log").exception(str(exp))
             res = False
 
+        self.ctrl_hwobj.diffractometer.fldet_out()
         return res
 
     def _findAttenuation(self, ctime=5):
@@ -120,12 +124,14 @@ class ID29XRFSpectrum(XRFSpectrum):
             else:
                 xdata = data[0] * 1.0
                 ydata = data[1]
+
             # xmin and xmax hard coded while waiting for configuration file
             # to be corrected.
-            # xmin = int(config["min"])
-            # xmax = int(config["max"])
-            xmin = 292
-            xmax = 4000
+            # xmin = 292
+            # xmax = 4000
+
+            xmin = int(config["min"])
+            xmax = int(config["max"])
             self.mcafit.setData(xdata, ydata, xmin=xmin, xmax=xmax, calibration=calib)
 
             self.mcafit.estimate()

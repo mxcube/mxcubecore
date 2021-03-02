@@ -19,7 +19,6 @@ from HardwareRepository.BaseHardwareObjects import HardwareObjectState
 class LimaPilatusDetector(AbstractDetector):
     def __init__(self, name):
         AbstractDetector.__init__(self, name)
-        self._mesh_steps = 1
         self.header = dict()
         self.start_angles = list()
 
@@ -35,6 +34,7 @@ class LimaPilatusDetector(AbstractDetector):
         try:
             for channel_name in (
                 "latency_time",
+                "State",
                 "acq_status",
                 "acq_trigger_mode",
                 "saving_mode",
@@ -111,12 +111,14 @@ class LimaPilatusDetector(AbstractDetector):
             )
 
             self.get_command_object("prepare_acq").setDeviceTimeout(10000)
+            self._emit_status()
 
         except ConnectionError:
             self.update_state(HardwareObjectState.FAULT)
             logging.getLogger("HWR").error(
                 "Could not connect to detector %s" % lima_device
             )
+            self._emit_status()
 
     def has_shutterless(self):
         return True
@@ -158,19 +160,15 @@ class LimaPilatusDetector(AbstractDetector):
         npass,
         number_of_images,
         comment,
-        energy,
-        trigger_mode,
+        mesh,
+        mesh_num_lines,
     ):
-        if trigger_mode is None:
-            if osc_range < 1e-4:
-                trigger_mode = "INTERNAL_TRIGGER"
-            else:
-                trigger_mode = "EXTERNAL_TRIGGER"
-
-            if self._mesh_steps > 1:
-                trigger_mode = "EXTERNAL_TRIGGER_MULTI"
-                # reset mesh steps
-                self._mesh_steps = 1
+        if mesh:
+            trigger_mode = "EXTERNAL_GATE"
+        elif osc_range < 1e-4:
+            trigger_mode = "INTERNAL_TRIGGER"
+        else:
+            trigger_mode = "EXTERNAL_TRIGGER"
 
         diffractometer_positions = HWR.beamline.diffractometer.get_positions()
         self.start_angles = list()
@@ -215,7 +213,7 @@ class LimaPilatusDetector(AbstractDetector):
         self.reset()
         self.wait_ready()
 
-        self.set_energy_threshold(energy)
+        self.set_energy_threshold(HWR.beamline.energy.get_value())
 
         self.set_channel_value("acq_trigger_mode", trigger_mode)
 
@@ -307,7 +305,8 @@ class LimaPilatusDetector(AbstractDetector):
 
         self.execute_command("stop_acq")
         self.execute_command("prepare_acq")
-        return self.execute_command("start_acq")
+        self.execute_command("start_acq")
+        self._emit_status()
 
     def stop_acquisition(self):
         try:
@@ -318,5 +317,41 @@ class LimaPilatusDetector(AbstractDetector):
         time.sleep(1)
         self.execute_command("reset")
 
+        self.wait_ready()
+
+        self._emit_status()
+
     def reset(self):
+        self.stop_acquisition()
+
+    @property
+    def status(self):
+        try:
+            acq_status = self.get_channel_value("acq_status")
+        except Exception:
+            acq_status = "OFFLINE"
+
+        status = {
+            "acq_satus": acq_status.upper(),
+        }
+
+        return status
+
+    def _emit_status(self):
+        self.emit("statusChanged", self.status)
+
+    def recover_from_failure(self):
+        self.prepare_acquisition(
+            False,
+            0,
+            0,
+            0.5,
+            None,
+            1,
+            "",
+            HWR.beamline.energy.get_value(),
+            "INTERNAL_TRIGGER"
+        )
+        self.start_acquisition()
+        self.wait_ready()
         self.stop_acquisition()
