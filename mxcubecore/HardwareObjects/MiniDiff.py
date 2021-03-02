@@ -151,6 +151,8 @@ class MiniDiff(Equipment):
             MiniDiff.C3D_MODE: self.start_auto_centring,
         }
 
+        sample_centring.NUM_CENTRING_ROUNDS  = self.get_property("num_centering_rounds", 1)
+
         self.cancel_centring_methods = {}
 
         self.current_centring_procedure = None
@@ -623,7 +625,7 @@ class MiniDiff(Equipment):
         self.emitCentringStarted(method)
 
         try:
-            self.wait_ready()
+            self.wait_ready(30)
             fun = self.centringMethods[method]
         except KeyError as diag:
             logging.getLogger("HWR").error(
@@ -670,7 +672,12 @@ class MiniDiff(Equipment):
         self.accept_centring()
 
     def start_manual_centring(self, sample_info=None):
+        logging.getLogger("HWR").info("Starting centring procedure ...")
+
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+
+        self.wait_ready(5)
+
         self.current_centring_procedure = sample_centring.start(
             {
                 "phi": self.centringPhi,
@@ -819,22 +826,27 @@ class MiniDiff(Equipment):
             res = auto_centring_procedure.get()
         except Exception:
             logging.error("Could not complete automatic centring")
+            logging.getLogger("user_level_log").info("Automatic loop centring failed")
             self.emitCentringFailed()
             self.rejectCentring()
         else:
             if res is None:
                 logging.error("Could not complete automatic centring")
+                logging.getLogger("user_level_log").info("Automatic loop centring failed")
                 self.emitCentringFailed()
                 self.rejectCentring()
             else:
                 self.emitCentringSuccessful()
                 if not self.user_confirms_centring:
                     self.accept_centring()
+                logging.getLogger("user_level_log").info("Automatic loop centring successful")
 
     def start_auto_centring(self, sample_info=None, loop_only=False):
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
 
         self.set_phase("centring", wait=True)
+
+        self.wait_ready(30)
 
         self.current_centring_procedure = sample_centring.start_auto(
             HWR.beamline.sample_view.camera,
@@ -863,16 +875,19 @@ class MiniDiff(Equipment):
         return self.move_motors(centred_position.as_dict())
 
     def imageClicked(self, x, y, xi, yi):
-        sample_centring.user_click(x, y)
+        logging.getLogger("user_level_log").info("Centring click at, x: %s, y: %s" % (int(x), int(y)))
+        sample_centring.user_click(x, y, False)
 
     def emitCentringStarted(self, method):
         self.currentCentringMethod = method
         self.emit("centringStarted", (method, False))
+        logging.getLogger("user_level_log").info("Starting centring")
 
     def accept_centring(self):
         self.centringStatus["valid"] = True
         self.centringStatus["accepted"] = True
         self.emit("centringAccepted", (True, self.get_centring_status()))
+        logging.getLogger("user_level_log").info("Centring successful")
 
     def rejectCentring(self):
         if self.current_centring_procedure:
@@ -880,6 +895,7 @@ class MiniDiff(Equipment):
         self.centringStatus = {"valid": False}
         self.emitProgressMessage("")
         self.emit("centringAccepted", (False, self.get_centring_status()))
+        logging.getLogger("user_level_log").info("Centring cancelled")
 
     def emitCentringMoving(self):
         self.emit("centringMoving", ())

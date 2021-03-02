@@ -7,7 +7,7 @@ import logging
 from HardwareRepository import HardwareRepository as HWR
 
 from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
-    AbstractDetector,
+    AbstractDetector
 )
 
 
@@ -27,6 +27,7 @@ class LimaEigerDetector(AbstractDetector):
         for channel_name in (
             "acq_status",
             "acq_trigger_mode",
+            "acq_nb_sequences",
             "saving_mode",
             "acq_nb_frames",
             "acq_expo_time",
@@ -73,6 +74,7 @@ class LimaEigerDetector(AbstractDetector):
         self.get_command_object("prepare_acq").init_device()
         self.get_command_object("prepare_acq").device.set_timeout_millis(5 * 60 * 1000)
         self.get_channel_object("photon_energy").init_device()
+        self._emit_status()
 
     def has_shutterless(self):
         return True
@@ -99,10 +101,9 @@ class LimaEigerDetector(AbstractDetector):
         npass,
         number_of_images,
         comment,
-        energy,
-        still,
-        gate=False,
-    ):
+        mesh,
+        mesh_num_lines
+    ):        
         diffractometer_positions = HWR.beamline.diffractometer.get_positions()
         self.start_angles = list()
         for i in range(number_of_images):
@@ -141,7 +142,8 @@ class LimaEigerDetector(AbstractDetector):
         self.header["Exposure_period"] = "%f s" % (exptime + self.get_deadtime())
         self.header["Exposure_time"] = "%f s" % exptime
 
-        beam_x, beam_y = HWR.beamline.detector.get_beam_position()
+        beam_x, beam_y = self.get_beam_position()
+
         header_info = [
             "beam_center_x=%s" % (beam_x / 7.5000003562308848e-02),
             "beam_center_y=%s" % (beam_y / 7.5000003562308848e-02),
@@ -153,22 +155,18 @@ class LimaEigerDetector(AbstractDetector):
         ]
         self.get_channel_object("set_image_header").set_value(header_info)
 
-        self.stop()
+        self.reset()
         self.wait_ready()
 
-        self.set_energy_threshold(energy)
+        self.set_energy_threshold(HWR.beamline.energy.get_value())
 
-        if gate:
-            self.get_channel_object("acq_trigger_mode").set_value("EXTERNAL_GATE")
+        if mesh:
+            self.get_channel_object("acq_trigger_mode").set_value("EXTERNAL_TRIGGER_SEQUENCES")
+            self.get_channel_object("acq_nb_sequences").set_value(mesh_num_lines)
+        elif osc_range < 1e-4:
+            self.set_channel_value("acq_trigger_mode", "INTERNAL_TRIGGER")
         else:
-            if still:
-                self.get_channel_object("acq_trigger_mode").set_value(
-                    "INTERNAL_TRIGGER"
-                )
-            else:
-                self.get_channel_object("acq_trigger_mode").set_value(
-                    "EXTERNAL_TRIGGER"
-                )
+            self.set_channel_value("acq_trigger_mode", "EXTERNAL_TRIGGER")
 
         self.get_channel_object("saving_frame_per_file").set_value(
             min(100, number_of_images)
@@ -179,6 +177,8 @@ class LimaEigerDetector(AbstractDetector):
         self.get_channel_object("acq_expo_time").set_value(exptime)
         self.get_channel_object("saving_overwrite_policy").set_value("OVERWRITE")
         self.get_channel_object("saving_managed_mode").set_value("HARDWARE")
+
+        self.wait_ready()
 
     def set_energy_threshold(self, energy):
         minE = self.get_property("minE")
@@ -216,15 +216,36 @@ class LimaEigerDetector(AbstractDetector):
         logging.getLogger("user_level_log").info("Preparing acquisition")
         self.get_command_object("prepare_acq")()
         logging.getLogger("user_level_log").info("Detector ready, continuing")
-        return self.get_command_object("start_acq")()
+        self.get_command_object("start_acq")()
+        self._emit_status()
 
     def stop_acquisition(self):
         try:
             self.get_command_object("stop_acq")()
         except Exception:
             pass
+
         time.sleep(1)
         self.get_command_object("reset")()
+        self.wait_ready()
+        self._emit_status()
 
     def reset(self):
         self.stop_acquisition()
+
+    @property
+    def status(self):
+        try:
+            acq_status = self.get_channel_value("acq_status")
+        except Exception:
+            acq_status = "OFFLINE"
+
+        status = {"acq_satus": acq_status.upper()}
+
+        return status
+
+    def _emit_status(self):
+        self.emit("statusChanged", self.status)
+        
+    def recover_from_failure(self):
+        pass

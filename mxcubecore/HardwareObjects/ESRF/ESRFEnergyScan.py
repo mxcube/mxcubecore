@@ -166,6 +166,10 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
             self.emit("energyScanFailed", ())
             raise RuntimeError("Cannot move energy")
 
+    def cancelEnergyScan(self, *args):
+        """ Called by queue_entry.py. To be removed"""
+        self.escan_cleanup()
+
     # Elements commands
     def get_elements(self):
         elements = []

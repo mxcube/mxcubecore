@@ -233,9 +233,9 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                 sample,
                 cpos if cpos != empty_cpos else None,
             )
-            HWR.beamline.collect.prepare_interleave(
-                interleave_item["data_model"], param_list
-            )
+            #HWR.beamline.collect.prepare_interleave(
+            #    interleave_item["data_model"], param_list
+            #)
 
         self.interleave_sw_list = queue_model_objects.create_interleave_sw(
             self.interleave_items, ref_num_images, interleave_num_images
@@ -249,11 +249,19 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                     "Subwedge %d:%d)"
                     % ((item_index + 1), len(self.interleave_sw_list)),
                 )
+
                 acq_par = (
                     self.interleave_items[item["collect_index"]]["data_model"]
                     .acquisitions[0]
                     .acquisition_parameters
                 )
+
+                acq_path_template = (
+                    self.interleave_items[item["collect_index"]]["data_model"]
+                    .acquisitions[0]
+                    .path_template
+                )
+
                 acq_first_image = acq_par.first_image
 
                 acq_par.first_image = item["sw_first_image"]
@@ -526,6 +534,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         pos = None
 
         shapes = list(HWR.beamline.sample_view.get_selected_shapes())
+
         if shapes:
             pos = shapes[0]
             if hasattr(pos, "get_centred_position"):
@@ -789,7 +798,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             raise QueueExecutionException(msg, self)
 
     def collect_started(self, owner, num_oscillations):
-        logging.getLogger("user_level_log").info("Collection: Started")
+        logging.getLogger("user_level_log").info("Collection started")
         self.get_view().setText(1, "Collecting...")
 
     def collect_number_of_frames(self, number_of_images=0, exposure_time=0):
@@ -826,7 +835,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         # this is to work around the remote access problem
         dispatcher.send("collect_finished")
         self.get_view().setText(1, "Collection done")
-        logging.getLogger("user_level_log").info("Collection: Finished")
+        logging.getLogger("user_level_log").info("Collection finished")
 
         if self.online_processing_task is not None:
             self.get_view().setText(1, "Processing...")
@@ -839,13 +848,13 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         HWR.beamline.collect.stop_collect()
         if self.online_processing_task is not None:
             HWR.beamline.online_processing.stop_processing()
-            logging.getLogger("user_level_log").error("Processing: Stoppend")
+            logging.getLogger("user_level_log").error("Processing: Stopped")
         if self.centring_task is not None:
             self.centring_task.kill(block=False)
 
         self.get_view().setText(1, "Stopped")
         logging.getLogger("queue_exec").info("Calling stop on: " + str(self))
-        logging.getLogger("user_level_log").error("Collection: Stoppend")
+        logging.getLogger("user_level_log").error("Collection stopped")
         # this is to work around the remote access problem
         dispatcher.send("collect_finished")
         raise QueueAbortedException("Queue stopped", self)

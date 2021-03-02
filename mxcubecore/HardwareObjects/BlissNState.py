@@ -49,12 +49,14 @@ class BlissNState(AbstractNState):
         self._bliss_obj = None
         self.device_type = None
         self.__saved_state = None
+        self._prefix = None
 
     def init(self):
         """Initialise the device"""
 
         AbstractNState.init(self)
         _name = self.get_property("object_name")
+        self._prefix = self.get_property("prefix")
         self._bliss_obj = getattr(self.get_object_by_role("controller"), _name)
 
         self.device_type = "actuator"
@@ -83,7 +85,12 @@ class BlissNState(AbstractNState):
         if self.device_type == "motor":
             _val = self._bliss_obj.position
         elif self.device_type == "actuator":
-            _val = self._bliss_obj.state
+            if self._prefix:
+                _attr = self._prefix + "_is_in"
+                _cmd = getattr(self._bliss_obj, _attr)
+                _val = _cmd()
+            else:
+                _val = self._bliss_obj.state
 
         return self.value_to_enum(_val)
 
@@ -93,19 +100,21 @@ class BlissNState(AbstractNState):
             value (str or enum): target value
         """
         self.update_state(self.STATES.BUSY)
-
         if isinstance(value, Enum):
             self.__saved_state = value.name
-            if isinstance(value.value, tuple) or isinstance(value.value, list):
-                value = value.value[0]
+            if isinstance(value.value, (tuple, list)):
+                svalue = value.value[0]
             else:
-                value = value.value
+                svalue = value.value
         else:
             self.__saved_state = value.upper()
         if self.device_type == "motor":
             self._bliss_obj.move(value, wait=False)
         elif self.device_type == "actuator":
-            _attr = "set_" + value.lower()
+            if self._prefix:
+                _attr = self._prefix + "_" + value.name.lower()
+            else:
+                _attr = "set_" + svalue.lower()
             _cmd = getattr(self._bliss_obj, _attr)
             _cmd()
 

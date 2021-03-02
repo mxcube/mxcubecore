@@ -59,7 +59,7 @@ class MicrodiffLightBeamstop(ExporterNState):
             # only move if the beamstop is closer than the sefety_position
             if _pos < self.safety_position:
                 self._saved_value = _pos
-                self._beamstop_obj.set_value(self.safety_position, timeout=60)
+                self._beamstop_obj.set_value(self.safety_position, timeout=20)
 
             super(MicrodiffLightBeamstop, self)._set_value(value)
 
@@ -67,4 +67,4 @@ class MicrodiffLightBeamstop(ExporterNState):
             super(MicrodiffLightBeamstop, self)._set_value(value)
 
             if self._saved_value:
-                self._beamstop_obj.set_value(self._saved_value, timeout=60)
+                self._beamstop_obj.set_value(self._saved_value, timeout=20)

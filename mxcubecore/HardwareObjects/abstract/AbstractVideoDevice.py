@@ -226,7 +226,7 @@ class AbstractVideoDevice(Device):
 
             strbuf = StringIO()
             image.save(strbuf, "JPEG")
-            jpgimg_str = strbuf.get_value()
+            jpgimg_str = strbuf.getvalue()
             if jpgimg_str is not None:
                 self.emit("imageReceived", jpgimg_str, width, height)
             return jpgimg_str

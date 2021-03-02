@@ -29,7 +29,7 @@ class MachCurrent(BaseHardwareObjects.Device):
             logging.getLogger("HWR").exception(e)
 
     def value_changed(self, value):
-        mach = value
+        mach = value or self.get_current()
 
         try:
             opmsg = self.get_channel_object("OperatorMsg").get_value()
@@ -43,9 +43,7 @@ class MachCurrent(BaseHardwareObjects.Device):
 
         if opmsg and opmsg != self.opmsg:
             self.opmsg = opmsg
-            logging.getLogger("HWR").info("<b>" + self.opmsg + "</b>")
-            logging.getLogger("user_level_log").info("<b>" + self.opmsg + "</b>")
-
+            logging.getLogger("user_level_log").info(self.opmsg)
         self.emit("valueChanged", (mach, opmsg, fillmode, refill))
 
     def get_current(self):
