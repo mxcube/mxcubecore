@@ -47,7 +47,7 @@ import math
 import logging
 from datetime import datetime
 
-from gui.utils import QtImport
+from mxcubeqt.utils import QtImport
 
 from HardwareRepository.HardwareObjects import queue_model_objects
 from HardwareRepository.ConvertUtils import string_types

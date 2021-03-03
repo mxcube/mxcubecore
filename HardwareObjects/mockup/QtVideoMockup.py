@@ -20,6 +20,8 @@
 import os
 import time
 import numpy as np
+from pkg_resources import resource_string, resource_listdir, resource_filename
+
 
 try:
     from PyQt5.QtGui import QPainter, QPixmap, QPen, QBrush, QImage
@@ -44,8 +46,10 @@ class QtVideoMockup(AbstractVideoDevice):
         current_path = os.path.dirname(os.path.abspath(__file__)).split(os.sep)
         current_path = os.path.join(*current_path[1:-2])
 
-        default_image_path = "/" + current_path + "/test/fakeimg.jpg"
-        image_path = self.get_property("file_name", default_image_path)
+        #default_image_path = "/" + current_path + "/test/fakeimg.jpg"
+        #image_path = self.get_property("file_name", default_image_path)
+        default_image_path = resource_filename('HardwareRepository', 'configuration/mockup/fakeimg.jpg')
+        image_path = default_image_path
 
         self.image = QPixmap(image_path)
         self.image_dimensions = (self.image.width(), self.image.height())
