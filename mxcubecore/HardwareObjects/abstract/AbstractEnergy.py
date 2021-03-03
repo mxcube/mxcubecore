@@ -18,10 +18,13 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""Abstract Energy and Wavelength"""
+"""Abstract Energy and Wavelength class.
+Defines the get/set wavelength, get_wavelength_limits methods and is_tunable
+property. Implements update_value
+Emits signals valueChanged and attributeChanged.
+"""
 
 import abc
-import math
 from scipy.constants import h, c, e
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
@@ -41,7 +44,6 @@ class AbstractEnergy(AbstractActuator):
 
     def __init__(self, name):
         AbstractActuator.__init__(self, name)
-        self._wavelength_value = None
         self._wavelength_limits = (None, None)
 
     def is_ready(self):
@@ -66,8 +68,7 @@ class AbstractEnergy(AbstractActuator):
         Returns:
             (float): Wavelength [Å].
         """
-        self._wavelength_value = self._calculate_wavelength(self.get_value())
-        return self._wavelength_value
+        return self._calculate_wavelength(self.get_value())
 
     def get_wavelength_limits(self):
         """Return wavelength low and high limits.
@@ -114,37 +115,19 @@ class AbstractEnergy(AbstractActuator):
             (float): Energy [keV]
         """
         hc_over_e = h * c / e * 10e6
-        wavelength = wavelength or self._wavelength_value
+        wavelength = wavelength or self.get_wavelength()
         return hc_over_e / wavelength
 
-    def validate_value(self, value):
-        """Check if the value is within the limits
-        Args:
-            value(float): value
-        Returns:
-            (bool): True if within the limits
-        """
-        if value is None:
-            return True
-        if math.isnan(value) or math.isinf(value):
-            return False
-        limits = self.get_limits()
-        if None in limits:
-            return True
-        return limits[0] <= value <= limits[1]
-
-    def get_undulator_gaps(self):
-        """Returns undulator gaps
-
-        Returns:
-            list: undulator gaps in mm as a list of floats
-        """
-        return ()
-
-    def force_emit_signals(self):
-        """Emits signal energyChanged for both energy and wavelength
+    def update_value(self, value=None):
+        """Emist signal energyChanged for both energy and wavelength
         Argin:
             value: Not used, but kept in the method signature.
         """
-        AbstractActuator.force_emit_signals(self)
-        self.emit("wavelengthChanged", self.get_wavelength())
+
+        if value is None:
+            value = self.get_value()
+        self._nominal_value = value
+
+        _wavelength_value = self._calculate_wavelength(value)
+        self.emit("energyChanged", (value, _wavelength_value))
+        self.emit("valueChanged", (value,))

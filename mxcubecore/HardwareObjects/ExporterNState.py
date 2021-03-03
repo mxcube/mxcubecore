@@ -26,6 +26,7 @@ Example xml file:
   <value_channel_name>FluoDetectorIsBack</value_channel_name>
   <state_channel_name>State</state_channel_name>
   <values>{"IN": False, "OUT": True}</values>
+  <value_state>True</value_state>
 </device>
 """
 from enum import Enum
@@ -48,11 +49,14 @@ class ExporterNState(AbstractNState):
         self._exporter = None
         self.value_channel = None
         self.state_channel = None
+        self.use_value_as_state = None
 
     def init(self):
         """Initialise the device"""
         AbstractNState.init(self)
         value_channel = self.get_property("value_channel_name")
+        # use the value to check if action finished.
+        self.use_value_as_state = self.get_property("value_state")
         state_channel = self.get_property("state_channel_name", "State")
 
         _exporter_address = self.get_property("exporter_address")
@@ -80,6 +84,16 @@ class ExporterNState(AbstractNState):
 
         self.state_channel.connect_signal("update", self._update_state)
         self.update_state()
+
+    def _wait_hardware(self, value, timeout=None):
+        """Wait timeout seconds till hardware in place.
+        Args:
+            value (str, int): value to be tested.
+            timeout(float): Timeout [s]. None means infinite timeout.
+        """
+        with Timeout(timeout, RuntimeError("Timeout waiting for hardware")):
+            while self.value_channel.get_value() != value:
+                sleep(0.5)
 
     def _wait_ready(self, timeout=None):
         """Wait timeout seconds till status is ready.
@@ -123,14 +137,6 @@ class ExporterNState(AbstractNState):
         state = self.state_channel.get_value()
         return self._value2state(state)
 
-    def get_hwstate(self):
-        """Get the device hardware state.
-        Returns:
-            (enum 'HardwareObjectState'): Device state.
-        """
-        state = self.hwstate_channel.get_value()
-        return self._value2state(state)
-
     def abort(self):
         """Stop the action."""
         if self.get_state() != self.STATES.UNKNOWN:
@@ -151,6 +157,9 @@ class ExporterNState(AbstractNState):
             else:
                 value = value.value
         self.value_channel.set_value(value)
+        # wait until the hardware returns value set
+        if self.use_value_as_state:
+            self._wait_hardware(value, 120)
         self._wait_ready(120)
         self.update_state(self.STATES.READY)
 
