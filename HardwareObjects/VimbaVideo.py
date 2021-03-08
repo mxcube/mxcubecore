@@ -8,7 +8,7 @@ try:
 except ImportError:
     pass
 
-from gui.utils.qt_import import QImage, QPixmap
+from mxcubecore.utils.qt_import import QImage, QPixmap
 from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
     AbstractVideoDevice,
 )

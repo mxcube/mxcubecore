@@ -28,9 +28,7 @@ import numpy as np
 from cStringIO import StringIO
 from PIL.ImageQt import ImageQt
 
-
-from mxcubeqt.utils import qt_import
-
+from mxcubecore.utils import qt_import
 from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
     AbstractVideoDevice,
 )

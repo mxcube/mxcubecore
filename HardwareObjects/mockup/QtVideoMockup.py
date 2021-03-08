@@ -21,13 +21,7 @@ import os
 import time
 import numpy as np
 
-try:
-    from PyQt5.QtGui import QPainter, QPixmap, QPen, QBrush, QImage
-    from PyQt5.QtCore import Qt
-except ImportError:
-    from PyQt4.QtGui import QPainter, QPixmap, QPen, QBrush, QImage
-    from PyQt4.QtCore import Qt
-
+from mxcubecore.utils.qt_import import QPainter, QPixmap, QPen, QBrush, QImage
 from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
     AbstractVideoDevice,
 )

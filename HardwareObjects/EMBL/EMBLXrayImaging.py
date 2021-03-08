@@ -38,13 +38,11 @@ from scipy import ndimage, misc
 from cStringIO import StringIO
 from PIL.ImageQt import ImageQt
 
-from gui.utils import qt_import, Colors
-
+from mxcubecore.utils import qt_import, Colors
 from mxcubecore.TaskUtils import task
 from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 from mxcubecore.HardwareObjects.QtGraphicsManager import QtGraphicsManager
 from mxcubecore.HardwareObjects import queue_model_objects as qmo
-
 from mxcubecore import HardwareRepository as HWR
 
 

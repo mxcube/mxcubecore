@@ -32,8 +32,7 @@ except ImportError:
     from http.client import HTTPConnection
 import json
 
-# from PyQt4.QtGui import QImage, QPixmap
-from gui.utils.qt_import import QImage, QPixmap
+from mxcubecore.utils.qt_import import QImage, QPixmap
 from mxcubecore.ConvertUtils import string_types
 
 from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
