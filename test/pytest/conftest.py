@@ -1,4 +1,3 @@
-from mxcubecore import HardwareRepository as HWR
 import pytest
 import sys
 import os
@@ -12,6 +11,7 @@ MXCUBE_CORE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../..
 
 sys.path.insert(0, MXCUBE_CORE_DIR)
 
+from mxcubecore import HardwareRepository as HWR
 
 # hwr_path = os.path.join(HWR_DIR, "configuration/test")
 # HWR.init_hardware_repository(hwr_path)
@@ -30,7 +30,6 @@ def beamline():
         ":",
         os.path.join(MXCUBE_CORE_DIR, "configuration/mockup/test")
     )
-    print(hwr_path)
     HWR._instance = HWR.beamline = None
     HWR.init_hardware_repository(hwr_path)
     hwr = HWR.get_hardware_repository()
