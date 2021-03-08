@@ -23,12 +23,12 @@ Module contains Gphl specific queue entries
 
 
 import logging
-from HardwareRepository.BaseHardwareObjects import HardwareObjectState
-from HardwareRepository.HardwareObjects.base_queue_entry import (
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from mxcubecore.HardwareObjects.base_queue_entry import (
     BaseQueueEntry,
     QueueAbortedException,
 )
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 
 __credits__ = ["MXCuBE collaboration"]

@@ -23,7 +23,7 @@ import logging
 
 from enum import Enum, unique
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 @unique

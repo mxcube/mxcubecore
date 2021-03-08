@@ -1,4 +1,4 @@
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from bliss.config import static
 
 

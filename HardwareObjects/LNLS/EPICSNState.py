@@ -12,8 +12,8 @@ Example xml file:
 import logging
 
 from enum import Enum
-from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractNState
-from HardwareRepository.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
+from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
+from mxcubecore.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
 
 
 class EPICSNState(AbstractNState, EPICSActuator):

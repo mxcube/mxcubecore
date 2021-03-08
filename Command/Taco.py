@@ -22,9 +22,9 @@ import logging
 import weakref
 import copy
 
-from HardwareRepository.dispatcher import saferef
+from mxcubecore.dispatcher import saferef
 from .. import Poller
-from HardwareRepository.CommandContainer import CommandObject, ChannelObject
+from mxcubecore.CommandContainer import CommandObject, ChannelObject
 from .. import TacoDevice_MTSafe as TacoDevice
 
 

@@ -70,7 +70,7 @@ Example Hardware Object XML file :
 
 import logging
 
-from HardwareRepository.HardwareObjects.abstract.AbstractSlits import AbstractSlits
+from mxcubecore.HardwareObjects.abstract.AbstractSlits import AbstractSlits
 
 
 __credits__ = ["EMBL Hamburg"]

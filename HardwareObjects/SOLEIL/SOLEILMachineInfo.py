@@ -65,7 +65,7 @@ import logging
 from gevent import spawn
 from urllib2 import urlopen
 from datetime import datetime, timedelta
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 __credits__ = ["SOLEIL", "EMBL Hamburg"]

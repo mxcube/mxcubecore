@@ -11,8 +11,8 @@ EL6": 6}</values>
 from enum import Enum
 import gevent
 
-from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractNState
-from HardwareRepository.HardwareObjects.abstract.AbstractNState import BaseValueEnum
+from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
+from mxcubecore.HardwareObjects.abstract.AbstractNState import BaseValueEnum
 
 
 class MicrodiffZoomMockup(AbstractNState):

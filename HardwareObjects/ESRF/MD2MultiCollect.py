@@ -3,11 +3,11 @@ import shutil
 import logging
 import os
 
-from HardwareRepository.TaskUtils import task
+from mxcubecore.TaskUtils import task
 from .ESRFMultiCollect import ESRFMultiCollect
-from HardwareRepository.HardwareObjects.LimaPilatusDetector import LimaPilatusDetector
+from mxcubecore.HardwareObjects.LimaPilatusDetector import LimaPilatusDetector
 
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 
 class MD2MultiCollect(ESRFMultiCollect):

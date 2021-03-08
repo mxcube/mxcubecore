@@ -28,7 +28,7 @@ except ImportError:
     from PyQt4.QtGui import QPainter, QPixmap, QPen, QBrush, QImage
     from PyQt4.QtCore import Qt
 
-from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
+from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
     AbstractVideoDevice,
 )
 

@@ -1,6 +1,6 @@
 import logging
-from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
+from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.HardwareObjects.abstract.AbstractMotor import MotorStates
 import time
 
 """

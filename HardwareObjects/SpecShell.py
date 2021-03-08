@@ -7,7 +7,7 @@ template:
 """
 
 import logging
-from HardwareRepository.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import Equipment
 
 try:
     import SpecClient_gevent as SpecClient

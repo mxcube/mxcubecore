@@ -1,7 +1,7 @@
 """Sample Changer Hardware Object
 """
 import logging
-from HardwareRepository.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import Equipment
 import gevent
 
 

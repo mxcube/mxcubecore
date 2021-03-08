@@ -25,9 +25,9 @@ import time
 import copy
 import logging
 
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.TaskUtils import task, cleanup, error_cleanup
-from HardwareRepository.BaseHardwareObjects import Equipment
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.TaskUtils import task, cleanup, error_cleanup
+from mxcubecore.BaseHardwareObjects import Equipment
 
 
 class BIOMAXEigerMockup(Equipment):

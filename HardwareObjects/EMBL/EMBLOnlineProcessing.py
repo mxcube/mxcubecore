@@ -30,24 +30,24 @@ import subprocess
 import numpy as np
 import gevent
 
-from HardwareRepository.HardwareObjects.abstract.AbstractOnlineProcessing import (
+from mxcubecore.HardwareObjects.abstract.AbstractOnlineProcessing import (
     AbstractOnlineProcessing,
 )
 
-from HardwareRepository.HardwareObjects.XSDataCommon import (
+from mxcubecore.HardwareObjects.XSDataCommon import (
     XSDataBoolean,
     XSDataDouble,
     XSDataInteger,
     XSDataString,
 )
-from HardwareRepository.HardwareObjects.XSDataControlDozorv1_1 import (
+from mxcubecore.HardwareObjects.XSDataControlDozorv1_1 import (
     XSDataInputControlDozor,
     XSDataResultControlDozor,
     XSDataControlImageDozor,
 )
 
 
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"

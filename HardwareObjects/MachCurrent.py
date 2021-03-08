@@ -10,7 +10,7 @@ Example XML:
 </device>
 """
 
-from HardwareRepository import BaseHardwareObjects
+from mxcubecore import BaseHardwareObjects
 import logging
 
 

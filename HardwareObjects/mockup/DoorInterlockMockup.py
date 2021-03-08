@@ -22,7 +22,7 @@ DoorInterlockMockup
 """
 
 import logging
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["MXCuBE collaboration"]
 

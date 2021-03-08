@@ -21,7 +21,7 @@
 import logging
 from warnings import warn
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 __credits__ = ["MXCuBE collaboration"]

@@ -19,10 +19,10 @@
 
 import logging
 
-from gui.utils import QtImport, Colors
+from gui.utils import qt_import, Colors
 
-from HardwareRepository.HardwareObjects import QtGraphicsLib as GraphicsLib
-from HardwareRepository.HardwareObjects.QtGraphicsManager import QtGraphicsManager
+from mxcubecore.HardwareObjects import QtGraphicsLib as GraphicsLib
+from mxcubecore.HardwareObjects.QtGraphicsManager import QtGraphicsManager
 
 SEQ_ITEM_COLORS = (
     Colors.LIGHT_GREEN,
@@ -477,7 +477,7 @@ class GraphicsItemCoordAxes(GraphicsLib.GraphicsItem):
         self.channels = []
 
         self.custom_pen.setWidth(1)
-        self.custom_pen.setColor(QtImport.Qt.black)
+        self.custom_pen.setColor(qt_import.Qt.black)
 
     def set_channels(self, channels):
         self.channels = channels
@@ -498,7 +498,7 @@ class GraphicsItemCoordAxes(GraphicsLib.GraphicsItem):
 
         if self.channels:
             self.custom_pen.setColor(Colors.LIGHT_GRAY)
-            self.custom_pen.setStyle(QtImport.Qt.DotLine)
+            self.custom_pen.setStyle(qt_import.Qt.DotLine)
             painter.setPen(self.custom_pen)
             # Draw delay reference lines
 
@@ -509,7 +509,7 @@ class GraphicsItemCoordAxes(GraphicsLib.GraphicsItem):
                         max_length = channels[1] + channels[2]
 
             self.custom_pen.setColor(Colors.BLACK)
-            self.custom_pen.setStyle(QtImport.Qt.SolidLine)
+            self.custom_pen.setStyle(qt_import.Qt.SolidLine)
             painter.setPen(self.custom_pen)
 
             for index, channels in enumerate(self.channels[::-1]):

@@ -20,7 +20,7 @@
 
 import unittest
 import logging
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 BEAMLINE = None
 
@@ -92,7 +92,7 @@ class UnitTest(HardwareObject):
 
     def init(self):
         global BEAMLINE
-        from HardwareRepository import HardwareRepository as HWR
+        from mxcubecore import HardwareRepository as HWR
 
         BEAMLINE = HWR.beamline
 

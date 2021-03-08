@@ -1,5 +1,5 @@
-from HardwareRepository.HardwareObjects.ExpMotor import ExpMotor
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.ExpMotor import ExpMotor
+from mxcubecore import HardwareRepository as HWR
 
 
 class MicrodiffFocusMotor(ExpMotor):

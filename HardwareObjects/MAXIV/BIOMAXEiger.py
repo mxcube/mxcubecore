@@ -25,9 +25,9 @@ import time
 import copy
 import logging
 
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.TaskUtils import task
+from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore import HardwareRepository as HWR
 
 
 class BIOMAXEiger(Equipment):

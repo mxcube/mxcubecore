@@ -1,5 +1,5 @@
-from HardwareRepository.HardwareObjects.abstract import AbstractFlux
-from HardwareRepository.BaseHardwareObjects import Device
+from mxcubecore.HardwareObjects.abstract import AbstractFlux
+from mxcubecore.BaseHardwareObjects import Device
 import taurus
 import logging
 

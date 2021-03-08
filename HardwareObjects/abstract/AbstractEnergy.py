@@ -26,7 +26,7 @@ Emits signals valueChanged and attributeChanged.
 
 import abc
 from scipy.constants import h, c, e
-from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
+from mxcubecore.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
 )
 

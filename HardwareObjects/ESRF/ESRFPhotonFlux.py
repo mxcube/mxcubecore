@@ -30,8 +30,8 @@ Example xml file:
 import logging
 import gevent
 
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.HardwareObjects.abstract.AbstractFlux import AbstractFlux
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 
 
 class ESRFPhotonFlux(AbstractFlux):

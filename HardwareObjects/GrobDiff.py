@@ -1,4 +1,4 @@
-from HardwareRepository.HardwareObjects import MiniDiff
+from mxcubecore.HardwareObjects import MiniDiff
 
 
 class GrobDiff(MiniDiff.MiniDiff):

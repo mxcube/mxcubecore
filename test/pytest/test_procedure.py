@@ -1,6 +1,6 @@
 import gevent
-from HardwareRepository.HardwareObjects import datamodel
-from HardwareRepository.HardwareObjects.abstract.AbstractProcedure import ProcedureState
+from mxcubecore.HardwareObjects import datamodel
+from mxcubecore.HardwareObjects.abstract.AbstractProcedure import ProcedureState
 
 
 def test_procedure_init(beamline):

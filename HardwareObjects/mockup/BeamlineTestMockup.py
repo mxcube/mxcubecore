@@ -29,9 +29,9 @@ from datetime import datetime
 
 import gevent
 
-from HardwareRepository.HardwareObjects import SimpleHTML
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.HardwareObjects import SimpleHTML
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore import HardwareRepository as HWR
 
 
 __credits__ = ["MXCuBE collaboration"]

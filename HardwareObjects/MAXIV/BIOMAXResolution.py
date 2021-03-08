@@ -1,8 +1,8 @@
 import logging
-from HardwareRepository.HardwareObjects import Resolution
+from mxcubecore.HardwareObjects import Resolution
 import math
 
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 
 class BIOMAXResolution(Resolution.Resolution):

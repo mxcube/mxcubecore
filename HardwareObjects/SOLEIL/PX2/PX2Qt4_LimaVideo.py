@@ -110,10 +110,10 @@ class PX2Qt4_LimaVideo(Qt4_LimaVideo):
 
 
 def test_hwo():
-    from gui.utils.QtImport import *
+    from gui.utils.qt_import import *
     import time
 
-    from HardwareRepository import HardwareRepository as HWR
+    from mxcubecore import HardwareRepository as HWR
 
     hwr = HWR.get_hardware_repository()
     hwr.connect()

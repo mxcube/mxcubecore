@@ -1,7 +1,7 @@
 import time
 import logging
 
-from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
+from mxcubecore.HardwareObjects.abstract.AbstractDetector import (
     AbstractDetector,
 )
 import epics

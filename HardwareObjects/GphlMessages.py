@@ -26,7 +26,7 @@ import uuid
 from collections import OrderedDict
 from collections import namedtuple
 
-from HardwareRepository.ConvertUtils import string_types
+from mxcubecore.ConvertUtils import string_types
 
 __copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"

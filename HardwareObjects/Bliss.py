@@ -5,7 +5,7 @@ Emits new_plot, plot_data and plot_end.
 import itertools
 import gevent
 import numpy
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from bliss.config import static
 from bliss.data.node import DataNodeIterator, _get_or_create_node
 

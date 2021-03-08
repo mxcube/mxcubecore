@@ -31,9 +31,9 @@ Example xml file:
 """
 from enum import Enum
 from gevent import Timeout, sleep
-from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractNState
-from HardwareRepository.Command.Exporter import Exporter
-from HardwareRepository.Command.exporter.ExporterStates import ExporterStates
+from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
+from mxcubecore.Command.Exporter import Exporter
+from mxcubecore.Command.exporter.ExporterStates import ExporterStates
 
 __copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

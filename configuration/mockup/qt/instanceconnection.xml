@@ -1,4 +1,4 @@
-<procedure class="InstanceServer">
+<procedure class="QtInstanceServer">
 <!--  <host>HOST</host> -->
   <port>14001</port>
 </procedure>

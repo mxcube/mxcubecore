@@ -24,10 +24,10 @@ import warnings
 import sample_centring
 import gevent
 
-from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
 )
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 from gevent.event import AsyncResult
 
 

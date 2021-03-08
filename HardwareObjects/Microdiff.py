@@ -1,10 +1,10 @@
 import logging
 import math
 import time
-from HardwareRepository.HardwareObjects import MiniDiff
+from mxcubecore.HardwareObjects import MiniDiff
 import gevent
-from HardwareRepository.HardwareObjects import sample_centring
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.HardwareObjects import sample_centring
+from mxcubecore import HardwareRepository as HWR
 
 MICRODIFF = None
 

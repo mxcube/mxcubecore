@@ -32,12 +32,12 @@ import collections
 import gevent
 import gevent.event
 
-from HardwareRepository.TaskUtils import task  # , cleanup_and_handle_error
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.ConvertUtils import string_types
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.TaskUtils import task  # , cleanup_and_handle_error
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.ConvertUtils import string_types
+from mxcubecore import HardwareRepository as HWR
 
-from HardwareRepository.utils.dataobject import DataObject
+from mxcubecore.utils.dataobject import DataObject
 
 __credits__ = ["MXCuBE collaboration"]
 

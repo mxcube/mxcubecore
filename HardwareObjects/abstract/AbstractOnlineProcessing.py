@@ -32,8 +32,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import gevent
 
 import SimpleHTML
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore import HardwareRepository as HWR
 
 
 __license__ = "LGPLv3+"

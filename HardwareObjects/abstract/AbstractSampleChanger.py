@@ -131,9 +131,9 @@ import types
 import gevent
 
 
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.HardwareObjects.abstract.sample_changer.Container import (
+from mxcubecore.TaskUtils import task
+from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.HardwareObjects.abstract.sample_changer.Container import (
     Container,
     Sample,
 )
