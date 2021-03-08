@@ -18,8 +18,8 @@ Example XML::
 
 """
 
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository import BaseHardwareObjects
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore import BaseHardwareObjects
 import logging
 
 from ALBAEpsActuator import ALBAEpsActuator

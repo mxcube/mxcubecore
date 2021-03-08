@@ -20,8 +20,8 @@ import numpy
 import abc
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-from HardwareRepository.TaskUtils import cleanup
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.TaskUtils import cleanup
+from mxcubecore import HardwareRepository as HWR
 
 
 class AbstractXRFSpectrum(object):

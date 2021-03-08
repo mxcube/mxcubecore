@@ -3,8 +3,8 @@ import gevent
 import time
 import numpy
 
-from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import cleanup
+from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.TaskUtils import cleanup
 
 SCAN_LENGTH = 500
 

@@ -1,4 +1,4 @@
-from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import *
+from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import *
 import gevent
 
 

@@ -22,13 +22,13 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 from AbstractEnergyScan import AbstractEnergyScan
-from HardwareRepository.TaskUtils import task, cleanup
+from mxcubecore.TaskUtils import task, cleanup
 
 from xabs_lib import McMaster
-from HardwareRepository.Command.Tango import DeviceProxy
+from mxcubecore.Command.Tango import DeviceProxy
 
-from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore import HardwareRepository as HWR
 
 
 class PX1EnergyScan(AbstractEnergyScan, Equipment):

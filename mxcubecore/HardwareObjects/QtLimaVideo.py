@@ -45,7 +45,7 @@ Example Hardware Object XML file :
 """
 import logging
 
-from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
+from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
     AbstractVideoDevice,
 )
 

@@ -1,4 +1,4 @@
-from HardwareRepository.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import Device
 import math
 import logging
 import time

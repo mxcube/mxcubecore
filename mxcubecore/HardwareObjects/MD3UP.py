@@ -2,9 +2,9 @@ import math
 import numpy
 import logging
 
-from HardwareRepository.HardwareObjects import Microdiff
-from HardwareRepository.HardwareObjects.sample_centring import CentringMotor
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.HardwareObjects import Microdiff
+from mxcubecore.HardwareObjects.sample_centring import CentringMotor
+from mxcubecore import HardwareRepository as HWR
 
 
 class MD3UP(Microdiff.Microdiff):

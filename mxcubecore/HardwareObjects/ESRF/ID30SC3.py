@@ -1,6 +1,6 @@
 """ESRF SC3 Sample Changer Hardware Object
 """
-from HardwareRepository.TaskUtils import task
+from mxcubecore.TaskUtils import task
 import SC3
 import ESRFSC3
 

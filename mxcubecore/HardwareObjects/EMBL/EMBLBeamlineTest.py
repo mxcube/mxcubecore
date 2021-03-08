@@ -40,8 +40,8 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 # except Exception:
 #    logging.getLogger("HWR").warning("pdfkit not available")
 
-from HardwareRepository.HardwareObjects import SimpleHTML
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects import SimpleHTML
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 __credits__ = ["EMBL Hamburg"]

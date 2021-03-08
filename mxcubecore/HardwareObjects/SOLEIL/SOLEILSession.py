@@ -3,7 +3,7 @@ import time
 import logging
 
 import Session
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 
 class SOLEILSession(Session.Session):

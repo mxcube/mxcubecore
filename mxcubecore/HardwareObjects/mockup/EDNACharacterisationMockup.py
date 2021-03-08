@@ -17,10 +17,10 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-from HardwareRepository.HardwareObjects import edna_test_data
-from HardwareRepository.HardwareObjects.EDNACharacterisation import EDNACharacterisation
+from mxcubecore.HardwareObjects import edna_test_data
+from mxcubecore.HardwareObjects.EDNACharacterisation import EDNACharacterisation
 
-from HardwareRepository.HardwareObjects.XSDataMXCuBEv1_3 import XSDataResultMXCuBE
+from mxcubecore.HardwareObjects.XSDataMXCuBEv1_3 import XSDataResultMXCuBE
 
 
 __credits__ = ["MXCuBE collaboration"]

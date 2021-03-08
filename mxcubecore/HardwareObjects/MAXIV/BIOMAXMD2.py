@@ -5,11 +5,11 @@ import time
 import logging
 import math
 
-from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
     DiffractometerState,
 )
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 
 class BIOMAXMD2(GenericDiffractometer):

@@ -52,8 +52,8 @@ import abc
 import math
 import ast
 
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

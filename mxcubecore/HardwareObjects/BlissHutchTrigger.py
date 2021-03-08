@@ -2,8 +2,8 @@ import sys
 import gevent
 import logging
 import PyTango.gevent
-from HardwareRepository import BaseHardwareObjects
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import BaseHardwareObjects
+from mxcubecore import HardwareRepository as HWR
 
 """
 Read the state of the hutch from the PSS device server and take actions

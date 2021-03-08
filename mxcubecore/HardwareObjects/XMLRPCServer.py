@@ -20,9 +20,9 @@ import jsonpickle
 
 from functools import reduce
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.HardwareObjects.SecureXMLRpcRequestHandler import SecureXMLRpcRequestHandler
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.SecureXMLRpcRequestHandler import SecureXMLRpcRequestHandler
 
 if sys.version_info > (3, 0):
     from xmlrpc.server import SimpleXMLRPCServer

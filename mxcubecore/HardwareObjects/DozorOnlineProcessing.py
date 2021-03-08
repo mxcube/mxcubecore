@@ -24,10 +24,10 @@ from XSDataCommon import XSDataInteger
 from XSDataCommon import XSDataString
 from XSDataControlDozorv1_1 import XSDataInputControlDozor
 
-from HardwareRepository.HardwareObjects.abstract.AbstractOnlineProcessing import (
+from mxcubecore.HardwareObjects.abstract.AbstractOnlineProcessing import (
     AbstractOnlineProcessing,
 )
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 
 __credits__ = ["MXCuBE collaboration"]

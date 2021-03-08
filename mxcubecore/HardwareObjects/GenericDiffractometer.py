@@ -27,10 +27,10 @@ import gevent
 import logging
 import math
 import numpy
-from HardwareRepository.HardwareObjects import sample_centring
-from HardwareRepository.HardwareObjects import queue_model_objects
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.HardwareObjects import sample_centring
+from mxcubecore.HardwareObjects import queue_model_objects
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore import HardwareRepository as HWR
 
 try:
     unicode

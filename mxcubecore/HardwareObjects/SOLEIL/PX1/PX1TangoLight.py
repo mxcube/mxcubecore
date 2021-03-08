@@ -2,8 +2,8 @@ import logging
 import time
 import gevent
 
-from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository.Command.Tango import DeviceProxy
+from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.Command.Tango import DeviceProxy
 
 
 class PX1TangoLight(Device):

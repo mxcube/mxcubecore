@@ -1,5 +1,5 @@
-# from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.HardwareObjects.Resolution import Resolution
+# from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.Resolution import Resolution
 
 
 class ResolutionMockup(Resolution):

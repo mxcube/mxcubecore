@@ -40,10 +40,10 @@ from warnings import warn
 import gevent
 from ruamel.yaml import YAML
 
-from HardwareRepository.ConvertUtils import string_types, make_table
-from HardwareRepository.dispatcher import dispatcher
-from . import BaseHardwareObjects
-from . import HardwareObjectFileParser
+from mxcubecore.ConvertUtils import string_types, make_table
+from mxcubecore.dispatcher import dispatcher
+from mxcubecore import BaseHardwareObjects
+from mxcubecore import HardwareObjectFileParser
 
 
 # If you want to write out copies of the file, use typ="rt" instead

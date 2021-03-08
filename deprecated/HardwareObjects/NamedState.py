@@ -17,8 +17,8 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.BaseHardwareObjects import Device
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import Device
 
 import logging
 

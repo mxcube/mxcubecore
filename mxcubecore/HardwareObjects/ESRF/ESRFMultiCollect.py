@@ -1,12 +1,12 @@
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects.abstract.AbstractMultiCollect import *
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects.abstract.AbstractMultiCollect import *
 import logging
 import time
 import os
 import math
-from HardwareRepository.HardwareObjects.queue_model_objects import PathTemplate
-from HardwareRepository.ConvertUtils import string_types
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.queue_model_objects import PathTemplate
+from mxcubecore.ConvertUtils import string_types
+from mxcubecore import HardwareRepository as HWR
 
 from ESRF.ESRFMetadataManagerClient import MXCuBEMetadataClient
 

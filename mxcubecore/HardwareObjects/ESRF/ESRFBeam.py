@@ -29,11 +29,11 @@ __license__ = "LGPLv3+"
 
 import logging
 
-from HardwareRepository.HardwareObjects.abstract.AbstractBeam import (
+from mxcubecore.HardwareObjects.abstract.AbstractBeam import (
     AbstractBeam,
     BeamShape,
 )
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 
 class ESRFBeam(AbstractBeam):

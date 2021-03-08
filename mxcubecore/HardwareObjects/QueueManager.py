@@ -9,9 +9,9 @@ documentation for the queue_entry module for more information.
 """
 import logging
 import gevent
-from HardwareRepository.HardwareObjects import base_queue_entry, queue_entry
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects.base_queue_entry import QUEUE_ENTRY_STATUS
+from mxcubecore.HardwareObjects import base_queue_entry, queue_entry
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects.base_queue_entry import QUEUE_ENTRY_STATUS
 
 QueueEntryContainer = base_queue_entry.QueueEntryContainer
 

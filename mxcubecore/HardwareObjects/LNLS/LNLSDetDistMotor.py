@@ -1,7 +1,7 @@
 import time
 import logging
 
-from HardwareRepository.HardwareObjects.LNLS.LNLSMotor import LNLSMotor
+from mxcubecore.HardwareObjects.LNLS.LNLSMotor import LNLSMotor
 
 
 class LNLSDetDistMotor(LNLSMotor):

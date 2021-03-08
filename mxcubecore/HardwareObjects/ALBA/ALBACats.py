@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from HardwareRepository.HardwareObjects.Cats90 import (
+from mxcubecore.HardwareObjects.Cats90 import (
     Cats90,
     SampleChangerState,
     TOOL_SPINE,

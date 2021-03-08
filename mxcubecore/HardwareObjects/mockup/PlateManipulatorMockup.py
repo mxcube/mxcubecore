@@ -47,8 +47,8 @@ import logging
 import time
 import gevent
 
-from HardwareRepository.HardwareObjects.abstract import AbstractSampleChanger
-from HardwareRepository.HardwareObjects.abstract.sample_changer import (
+from mxcubecore.HardwareObjects.abstract import AbstractSampleChanger
+from mxcubecore.HardwareObjects.abstract.sample_changer import (
     Container,
     Crims,
     Sample,

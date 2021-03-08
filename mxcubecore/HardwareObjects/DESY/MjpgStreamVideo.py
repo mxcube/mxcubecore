@@ -33,10 +33,10 @@ except ImportError:
 import json
 
 # from PyQt4.QtGui import QImage, QPixmap
-from gui.utils.QtImport import QImage, QPixmap
-from HardwareRepository.ConvertUtils import string_types
+from gui.utils.qt_import import QImage, QPixmap
+from mxcubecore.ConvertUtils import string_types
 
-from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
+from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
     AbstractVideoDevice,
 )
 

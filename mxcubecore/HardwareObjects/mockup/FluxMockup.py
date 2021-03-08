@@ -18,9 +18,9 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 from random import random
-from HardwareRepository.HardwareObjects.abstract.AbstractFlux import AbstractFlux
+from mxcubecore.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 __credits__ = ["MXCuBE collaboration"]
 __category__ = "General"

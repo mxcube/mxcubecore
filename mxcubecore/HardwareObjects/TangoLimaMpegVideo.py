@@ -18,8 +18,8 @@ import subprocess
 import uuid
 import psutil
 
-from HardwareRepository.HardwareObjects.TangoLimaVideo import TangoLimaVideo
-from HardwareRepository.utils.video_utils import streaming_processes
+from mxcubecore.HardwareObjects.TangoLimaVideo import TangoLimaVideo
+from mxcubecore.utils.video_utils import streaming_processes
 
 
 class TangoLimaMpegVideo(TangoLimaVideo):

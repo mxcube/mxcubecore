@@ -1,9 +1,9 @@
 # from qt import *
 
-from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
+from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
 
-from HardwareRepository.Command.Tango import DeviceProxy
+from mxcubecore.Command.Tango import DeviceProxy
 
 import logging
 import os

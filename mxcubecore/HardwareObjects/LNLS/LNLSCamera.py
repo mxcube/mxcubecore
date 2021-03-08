@@ -10,7 +10,7 @@ from threading import Thread
 from PIL import Image
 import numpy as np
 
-from HardwareRepository import BaseHardwareObjects
+from mxcubecore import BaseHardwareObjects
 
 CAMERA_DATA = "epicsCameraSample_data"
 CAMERA_BACK = "epicsCameraSample_back"

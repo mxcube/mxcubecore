@@ -1,9 +1,9 @@
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects.abstract.AbstractMultiCollect import (
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects.abstract.AbstractMultiCollect import (
     AbstractMultiCollect,
 )
-from HardwareRepository.TaskUtils import task
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.TaskUtils import task
+from mxcubecore import HardwareRepository as HWR
 import logging
 import time
 import os

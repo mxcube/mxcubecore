@@ -32,9 +32,9 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-from HardwareRepository.HardwareObjects import queue_model_enumerables
+from mxcubecore.HardwareObjects import queue_model_enumerables
 
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """

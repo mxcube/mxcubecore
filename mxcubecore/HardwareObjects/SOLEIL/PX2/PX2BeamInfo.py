@@ -31,7 +31,7 @@ beamPosChanged
 """
 
 import logging
-from HardwareRepository.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import Equipment
 
 
 class PX2BeamInfo(Equipment):

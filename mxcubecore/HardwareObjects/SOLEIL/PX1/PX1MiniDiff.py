@@ -2,10 +2,10 @@ import logging
 import gevent
 import time
 
-from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
 )
-from HardwareRepository.HardwareObjects import sample_centring
+from mxcubecore.HardwareObjects import sample_centring
 
 
 class PX1MiniDiff(GenericDiffractometer):
@@ -210,7 +210,7 @@ class PX1MiniDiff(GenericDiffractometer):
                             and target values.
         :type motors_dict: dict
         """
-        from HardwareRepository.HardwareObjects.queue_model_objects import (
+        from mxcubecore.HardwareObjects.queue_model_objects import (
             CentredPosition,
         )
 

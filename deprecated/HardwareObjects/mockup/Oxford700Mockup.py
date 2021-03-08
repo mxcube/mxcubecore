@@ -1,7 +1,7 @@
 # pylint: skip-file
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore import HardwareRepository as HWR
 import gevent
 import sys
 import random

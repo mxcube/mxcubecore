@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-from HardwareRepository.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import Device
 
 
 class PX1Pss(Device):

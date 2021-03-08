@@ -22,7 +22,7 @@ Convert exporter states to HardwareObject states
 """
 
 from enum import Enum
-from HardwareRepository.BaseHardwareObjects import HardwareObjectState
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
 __copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

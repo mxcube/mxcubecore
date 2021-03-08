@@ -1,7 +1,7 @@
-from HardwareRepository.HardwareObjects import Session
+from mxcubecore.HardwareObjects import Session
 import os
 import time
-from HardwareRepository.HardwareObjects import queue_model_objects
+from mxcubecore.HardwareObjects import queue_model_objects
 
 
 class ESRFSession(Session.Session):

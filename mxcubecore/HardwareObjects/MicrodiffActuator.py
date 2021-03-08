@@ -13,10 +13,10 @@ Example xml file:
 
 import logging
 import time
-from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
+from mxcubecore.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
 )
-from HardwareRepository.TaskUtils import task
+from mxcubecore.TaskUtils import task
 
 
 class MicrodiffActuator(AbstractActuator):

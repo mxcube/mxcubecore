@@ -22,7 +22,7 @@
 import logging
 import gevent
 
-from HardwareRepository.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
+from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
 
 
 __credits__ = ["EMBL Hamburg"]

@@ -1,5 +1,5 @@
 import logging
-from HardwareRepository.TaskUtils import task
+from mxcubecore.TaskUtils import task
 from ESRFEnergyScan import ESRFEnergyScan, TunableEnergy
 
 

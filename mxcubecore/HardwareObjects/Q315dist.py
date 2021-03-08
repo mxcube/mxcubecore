@@ -1,5 +1,5 @@
-from HardwareRepository import BaseHardwareObjects
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import BaseHardwareObjects
+from mxcubecore import HardwareRepository as HWR
 
 
 class Q315dist(BaseHardwareObjects.Equipment):

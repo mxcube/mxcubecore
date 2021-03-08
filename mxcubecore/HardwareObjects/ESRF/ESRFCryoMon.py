@@ -1,5 +1,5 @@
 from PyTango.gevent import DeviceProxy
-from HardwareRepository.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import Device
 import gevent
 import time
 

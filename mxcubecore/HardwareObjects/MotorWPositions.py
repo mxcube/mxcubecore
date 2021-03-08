@@ -18,8 +18,8 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 __author__ = "Jan Meyer"
 __email__ = "jan.meyer@desy.de"

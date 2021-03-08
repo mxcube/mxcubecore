@@ -1,4 +1,4 @@
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 import pytest
 import sys
 import os
