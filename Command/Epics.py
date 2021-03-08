@@ -19,20 +19,16 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import weakref
 import copy
-
-from saferef import *
-
-from Poller import *
-
-# from .CommandContainer import CommandObject, ChannelObject
-from HardwareRepository.CommandContainer import CommandObject, ChannelObject
+import time
 
 try:
     import epics
 except ImportError:
     logging.getLogger("HWR").warning("EPICS support not available.")
+
+from HardwareRepository import Poller, saferef
+from CommandContainer import CommandObject, ChannelObject
 
 
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
@@ -45,6 +41,7 @@ class EpicsCommand(CommandObject):
 
         self.pv_name = pv_name
         self.read_as_str = kwargs.get("read_as_str", False)
+        self.auto_monitor = kwargs.get("auto_monitor", True)
         self.pollers = {}
         self.__value_changed_callback_ref = None
         self.__timeout_callback_ref = None
@@ -64,14 +61,22 @@ class EpicsCommand(CommandObject):
             )
             return
 
-        self.pv = epics.PV(pv_name, auto_monitor=True)
-        self.pv_connected = self.pv.connect()
-        self.value_changed(self.pv.get(as_string=self.read_as_str))
         logging.getLogger("HWR").debug(
             "EpicsCommand: creating pv %s: read_as_str = %s",
             self.pv_name,
-            self.read_as_str,
+            self.read_as_str
         )
+        self.pv = epics.PV(pv_name, auto_monitor = self.auto_monitor)
+        time.sleep(0.01)
+        self.pv_connected = self.pv.connect(timeout=0.1)
+
+        if (self.pv_connected):
+            self.valueChanged(self.pv.get(as_string=self.read_as_str, timeout=0.1))
+        else:
+            logging.getLogger("HWR").error(
+                "EpicsCommand: Error connecting to pv %s.",
+                self.pv_name
+            )
 
     def __call__(self, *args, **kwargs):
         self.emit("commandBeginWaitReply", (str(self.name()),))
@@ -89,17 +94,23 @@ class EpicsCommand(CommandObject):
             # default argument from the xml file
             args = self.arg_list
 
-        # LNLS
-        # if self.pv is not None and self.pv_connected:
         if self.pv is not None:
             if len(args) == 0:
                 # no arguments available -> get the pv's current value
                 try:
-                    ret = self.pv.get(as_string=self.read_as_str)
-                except Exception:
+                    ret = self.pv.get(as_string=self.read_as_str, timeout=0.2)
+                    if ret is None:
+                        ret = self.reconnect()
+                except TypeError:
+                    # When a cached info is lost internally Epics return a TypeError
+                    ret = self.reconnect()
+                    if ret is not None:
+                        self.emit("commandReplyArrived", (ret, str(self.name())))
+                        return ret
+                except Exception as e:
                     logging.getLogger("HWR").error(
-                        "%s: an error occured when calling Epics command %s",
-                        str(self.name()),
+                        "%s: an error occured when getting value with Epics command %s", 
+                        str(self.name()), 
                         self.pv_name,
                     )
                 else:
@@ -108,12 +119,12 @@ class EpicsCommand(CommandObject):
             else:
                 # use the given argument to change the pv's value
                 try:
-                    # LNLS
-                    # self.pv.put(args[0], wait = True)
-                    self.pv.put(args[0], wait=False)
-                except Exception:
+                    value = args[0]
+                    wait = kwargs.get('wait', False)
+                    self.pv.put(value, wait=wait)
+                except:
                     logging.getLogger("HWR").error(
-                        "%s: an error occured when calling Epics command %s",
+                        "%s: an error occured when putting a value with Epics command %s",
                         str(self.name()),
                         self.pv_name,
                     )
@@ -122,9 +133,10 @@ class EpicsCommand(CommandObject):
                     return 0
         self.emit("commandFailed", (-1, str(self.name())))
 
+
     def value_changed(self, value):
         try:
-            callback = self.__value_changed_callback_ref()
+            callback = self.__value_changed_callback_ref(value)
         except Exception:
             pass
         else:
@@ -134,6 +146,7 @@ class EpicsCommand(CommandObject):
     def on_polling_error(self, exception, poller_id):
         # try to reconnect the pv
         self.pv.connect()
+
         poller = Poller.get_poller(poller_id)
         if poller is not None:
             try:
@@ -178,17 +191,23 @@ class EpicsCommand(CommandObject):
     def is_connected(self):
         return self.pv_connected
 
+    def reconnect(self):
+        epics.ca._cache.clear()
+        # Reconnect PV
+        self.pv = epics.PV(self.pv_name, auto_monitor = self.auto_monitor)
+        self.pv_connected = self.pv.connect(timeout=0.2)
+        # Return the result of get()
+        ret = self.pv.get(as_string = self.read_as_str, timeout=0.2)
+        return ret
+
 
 class EpicsChannel(ChannelObject):
     """Emulation of a 'Epics channel' = an Epics command + polling"""
-
     def __init__(self, name, command, username=None, polling=None, args=None, **kwargs):
         ChannelObject.__init__(self, name, username, **kwargs)
-
         self.command = EpicsCommand(
             name + "_internalCmd", command, username, args, **kwargs
         )
-
         try:
             self.polling = int(polling)
         except Exception:

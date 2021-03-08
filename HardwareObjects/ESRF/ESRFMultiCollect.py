@@ -476,6 +476,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     @task
     def data_collection_end_hook(self, data_collect_parameters):
+        self._detector._emit_status()
         self._metadataClient.end(data_collect_parameters)
 
     def prepare_oscillation(
@@ -558,13 +559,16 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         else:
             return
 
-    @task
     def data_collection_cleanup(self):
         try:
-            self.stop_oscillation()
-            HWR.beamline.diffractometer.set_phase("Centring", wait=True, timeout=200)
-        finally:
             self.close_fast_shutter()
+            self.stop_oscillation()
+            HWR.beamline.detector.stop_acquisition()
+        except Exception:
+            logging.getLogger("HWR").exception("")
+
+    def queue_finished_cleanup(self):
+        logging.getLogger("user_level_log").info("Queue execution finished")
 
     @task
     def close_fast_shutter(self):
@@ -633,7 +637,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         except AttributeError:
             pass
 
-    @task
     def prepare_acquisition(
         self,
         take_dark,
@@ -643,9 +646,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         npass,
         number_of_images,
         comment="",
-        trigger_mode=None,
     ):
-        energy = HWR.beamline.energy.get_value()
         self._detector.prepare_acquisition(
             take_dark,
             start,
@@ -654,19 +655,17 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             npass,
             number_of_images,
             comment,
-            energy,
-            trigger_mode,
+            self.mesh,
+            self.mesh_num_lines
         )
 
-    @task
-    def set_detector_filenames(self, frame_number, start, filename, shutterless):
-        if frame_number == 1 or not shutterless:
+    def set_detector_filenames(self, is_first_frame, frame_number, start, filename, shutterless):
+        if is_first_frame or not shutterless:
             return self._detector.set_detector_filenames(frame_number, start, filename)
 
     def stop_oscillation(self):
         HWR.beamline.diffractometer.abort_cmd()
 
-    @task
     def start_acquisition(self, exptime, npass, first_frame, shutterless):
         if first_frame:
             return self._detector.start_acquisition()
@@ -674,7 +673,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     @task
     def write_image(self, last_frame):
         if last_frame:
-            return self._detector.wait_ready()
+            res = self._detector.wait_ready()
+            self._detector._emit_status()
+            return res
 
     def last_image_saved(self):
         return self._detector.last_image_saved()
@@ -683,7 +684,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         return self._detector.stop_acquisition()
 
     def reset_detector(self):
-        return self._detector.reset_detector()
+        return self._detector.reset()
 
     def prepare_input_files(
         self, files_directory, prefix, run_number, process_directory

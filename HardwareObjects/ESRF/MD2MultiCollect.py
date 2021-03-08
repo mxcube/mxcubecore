@@ -18,6 +18,7 @@ class MD2MultiCollect(ESRFMultiCollect):
     def data_collection_hook(self, data_collect_parameters):
         ESRFMultiCollect.data_collection_hook(self, data_collect_parameters)
         self._detector.shutterless = data_collect_parameters["shutterless"]
+
         try:
             comment = HWR.beamline.sample_changer.get_crystal_id()
             data_collect_parameters["comment"] = comment
@@ -70,7 +71,14 @@ class MD2MultiCollect(ESRFMultiCollect):
 
     def do_prepare_oscillation(self, *args, **kwargs):
         # set the detector cover out
-        self.get_object_by_role("controller").detcover.set_out(20)
+        try:
+            detcover = self.get_object_by_role("controller").detcover
+
+            if detcover.state == "IN":
+                detcover.set_out(10)
+        except:
+            logging.getLogger("HWR").exception("Could close detector cover")
+
         diffr = HWR.beamline.diffractometer
 
         # send again the command as MD2 software only handles one
@@ -100,13 +108,22 @@ class MD2MultiCollect(ESRFMultiCollect):
         elif self.mesh:
             det = HWR.beamline.detector
             latency_time = det.get_property("latecy_time_mesh") or det.get_deadtime()
+            sequence_trigger = self.get_property("lima_sequnce_trigger_mode") or False
+
+            if sequence_trigger:
+                msg = "Using LIMA sequnce trigger mode for Eiger"
+                logging.getLogger("HWR").info(msg)
+                mesh_total_nb_frames = self.mesh_num_lines
+            else:
+                mesh_total_nb_frames = self.mesh_total_nb_frames
+
             diffr.oscilScanMesh(
                 start,
                 end,
                 exptime,
                 latency_time,
                 self.mesh_num_lines,
-                self.mesh_total_nb_frames,
+                mesh_total_nb_frames,
                 self.mesh_center,
                 self.mesh_range,
                 wait=True,
@@ -114,12 +131,11 @@ class MD2MultiCollect(ESRFMultiCollect):
         else:
             diffr.oscilScan(start, end, exptime, wait=True)
 
+    @task
     def prepare_acquisition(
         self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""
     ):
-        trigger_mode = "EXTERNAL_GATE" if self.mesh else None
-        return ESRFMultiCollect.prepare_acquisition(
-            self,
+        self._detector.prepare_acquisition(
             take_dark,
             start,
             osc_range,
@@ -127,7 +143,8 @@ class MD2MultiCollect(ESRFMultiCollect):
             npass,
             number_of_images,
             comment,
-            trigger_mode,
+            self.mesh,
+            self.mesh_num_lines
         )
 
     def open_fast_shutter(self):

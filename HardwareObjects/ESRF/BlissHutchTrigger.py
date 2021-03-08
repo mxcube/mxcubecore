@@ -32,7 +32,7 @@ Example xml file:
   <polling_interval>5</polling_interval>
   <pss_card_ch>9/4</pss_card_ch>
   <object href="/bliss" role="controller"/>
-  <values>{"ENABLED: 1, "DISABLED": 0}</values>
+  <values>{"ENABLED": 1, "DISABLED": 0}</values>
 </object>
 """
 

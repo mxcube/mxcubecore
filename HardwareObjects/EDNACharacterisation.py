@@ -1,17 +1,19 @@
 import os
 import copy
 import logging
+import binascii
 import subprocess
 
-import queue_model_enumerables as qme
-import queue_model_objects as qmo
+from HardwareRepository.HardwareObjects import queue_model_objects as qmo
+from HardwareRepository.HardwareObjects import queue_model_enumerables as qme
 
+from HardwareRepository.HardwareObjects.SecureXMLRpcRequestHandler import SecureXMLRpcRequestHandler
 from HardwareRepository import HardwareRepository as HWR
-from abstract.AbstractCharacterisation import AbstractCharacterisation
+from HardwareRepository.HardwareObjects.abstract.AbstractCharacterisation import AbstractCharacterisation
 
-from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
-from XSDataMXCuBEv1_3 import XSDataMXCuBEDataSet
-from XSDataMXCuBEv1_3 import XSDataResultMXCuBE
+from XSDataMXCuBEv1_4 import XSDataInputMXCuBE
+from XSDataMXCuBEv1_4 import XSDataMXCuBEDataSet
+from XSDataMXCuBEv1_4 import XSDataResultMXCuBE
 
 from XSDataCommon import XSDataAngle
 from XSDataCommon import XSDataBoolean
@@ -257,6 +259,9 @@ class EDNACharacterisation(AbstractCharacterisation):
         except Exception:
             dc_id = id(edna_input)
 
+        token = self.generate_new_token()
+        edna_input.token = XSDataString(token)
+
         if hasattr(edna_input, "process_directory"):
             edna_input_file = os.path.join(path, "EDNAInput_%s.xml" % dc_id)
             edna_input.exportToFile(edna_input_file)
@@ -468,3 +473,10 @@ class EDNACharacterisation(AbstractCharacterisation):
         char_params.gamma = 0.06
 
         return char_params
+
+    def generate_new_token(self):
+        # See: https://wyattbaldwin.com/2014/01/09/generating-random-tokens-in-python/
+        token = binascii.hexlify(os.urandom(5)).decode('utf-8')
+        SecureXMLRpcRequestHandler.setReferenceToken(token)
+        return token
+

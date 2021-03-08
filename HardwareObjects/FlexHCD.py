@@ -335,7 +335,8 @@ class FlexHCD(SampleChanger):
                 )
                 if "on_gonio" in loading_state:
                     self._set_loaded_sample(sample)
-                    with gevent.Timeout(20, RuntimeError(err_msg)):
+                    with gevent.Timeout(60, RuntimeError(err_msg)):
+                        logging.getLogger("HWR").info(err_msg)
                         while not self._execute_cmd_exporter(
                             "getRobotIsSafe", attribute=True
                         ):
@@ -347,7 +348,8 @@ class FlexHCD(SampleChanger):
                 )
                 if "on_gonio" in loading_state:
                     self._set_loaded_sample(sample)
-                    with gevent.Timeout(20, RuntimeError(err_msg)):
+                    with gevent.Timeout(60, RuntimeError(err_msg)):
+                        logging.getLogger("HWR").info(err_msg)
                         while (
                             not self._execute_cmd(
                                 "get_robot_cache_variable", "data:dioRobotIsSafe"
@@ -615,6 +617,8 @@ class FlexHCD(SampleChanger):
             self._execute_cmd("abort")
 
     def _do_reset(self):
+        if self.controller:
+            self.controller.hutch_actions(enter=True)
         if self.exporter_addr:
             self._execute_cmd_exporter("homeClear", command=True)
         else:
