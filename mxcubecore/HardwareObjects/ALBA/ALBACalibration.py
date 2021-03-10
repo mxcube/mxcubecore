@@ -38,8 +38,8 @@ Example Hardware Object XML file :
 </device>
 """
 
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository import BaseHardwareObjects
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore import BaseHardwareObjects
 import logging
 
 __author__ = "Jordi Andreu"

@@ -5,9 +5,9 @@ import decimal
 import time
 
 
-from HardwareRepository.TaskUtils import task
+from mxcubecore.TaskUtils import task
 from .ESRFMultiCollect import ESRFMultiCollect, FixedEnergy, PixelDetector
-from HardwareRepository.HardwareObjects.LimaPilatusDetector import LimaPilatusDetector
+from mxcubecore.HardwareObjects.LimaPilatusDetector import LimaPilatusDetector
 
 
 class ID30A1MultiCollect(ESRFMultiCollect):

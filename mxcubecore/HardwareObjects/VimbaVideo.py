@@ -8,8 +8,8 @@ try:
 except ImportError:
     pass
 
-from gui.utils.QtImport import QImage, QPixmap
-from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
+from mxcubecore.utils.qt_import import QImage, QPixmap
+from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
     AbstractVideoDevice,
 )
 

@@ -20,12 +20,12 @@
 import logging
 import gevent
 
-from HardwareRepository.HardwareObjects.abstract.AbstractXRFSpectrum import (
+from mxcubecore.HardwareObjects.abstract.AbstractXRFSpectrum import (
     AbstractXRFSpectrum,
 )
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 
 __credits__ = ["EMBL Hamburg"]

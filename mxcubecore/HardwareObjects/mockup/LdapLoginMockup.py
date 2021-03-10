@@ -1,4 +1,4 @@
-from HardwareRepository.BaseHardwareObjects import Procedure
+from mxcubecore.BaseHardwareObjects import Procedure
 import logging
 
 """

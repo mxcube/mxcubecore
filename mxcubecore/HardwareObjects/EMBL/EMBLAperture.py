@@ -19,7 +19,7 @@
 
 """Inherited from AbstracAperture"""
 
-from HardwareRepository.HardwareObjects.abstract.AbstractAperture import (
+from mxcubecore.HardwareObjects.abstract.AbstractAperture import (
     AbstractAperture,
 )
 

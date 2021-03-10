@@ -1,7 +1,7 @@
 import logging
 import gevent
-from HardwareRepository.HardwareObjects import Energy
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.HardwareObjects import Energy
+from mxcubecore import HardwareRepository as HWR
 
 
 class BIOMAXEnergy(Energy.Energy):

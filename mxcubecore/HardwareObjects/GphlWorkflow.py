@@ -39,16 +39,16 @@ import gevent._threading
 
 import f90nml
 
-from HardwareRepository.dispatcher import dispatcher
-from HardwareRepository import ConvertUtils
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects import queue_model_objects
-from HardwareRepository.HardwareObjects import queue_model_enumerables
-from HardwareRepository.HardwareObjects.queue_entry import QUEUE_ENTRY_STATUS
+from mxcubecore.dispatcher import dispatcher
+from mxcubecore import ConvertUtils
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects import queue_model_objects
+from mxcubecore.HardwareObjects import queue_model_enumerables
+from mxcubecore.HardwareObjects.queue_entry import QUEUE_ENTRY_STATUS
 
-from HardwareRepository.HardwareObjects import GphlMessages
+from mxcubecore.HardwareObjects import GphlMessages
 
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 
 __copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """

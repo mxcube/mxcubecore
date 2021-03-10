@@ -21,8 +21,8 @@
 from enum import Enum
 import ast
 
-from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractNState
-from HardwareRepository.HardwareObjects.abstract.AbstractNState import BaseValueEnum
+from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
+from mxcubecore.HardwareObjects.abstract.AbstractNState import BaseValueEnum
 
 class P11Zoom(AbstractNState):
 

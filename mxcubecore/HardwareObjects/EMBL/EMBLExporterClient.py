@@ -20,8 +20,8 @@
 
 """EMBLExporterClient"""
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.Command import Exporter
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.Command import Exporter
 
 
 __credits__ = ["EMBL Hamburg"]

@@ -4,12 +4,12 @@ import gevent
 import logging
 import time
 
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import (
+from mxcubecore.TaskUtils import task
+from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
     SampleChanger,
     SampleChangerState,
 )
-from HardwareRepository.HardwareObjects.abstract.sample_changer.Container import (
+from mxcubecore.HardwareObjects.abstract.sample_changer.Container import (
     Container,
     Sample,
 )

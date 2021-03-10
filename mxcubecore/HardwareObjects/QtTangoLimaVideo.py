@@ -45,7 +45,7 @@ import numpy as np
 
 import PyTango
 
-from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
+from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
     AbstractVideoDevice,
 )
 

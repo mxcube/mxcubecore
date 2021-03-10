@@ -18,10 +18,10 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-from HardwareRepository.HardwareObjects.abstract.AbstractTransmission import (
+from mxcubecore.HardwareObjects.abstract.AbstractTransmission import (
     AbstractTransmission,
 )
-from HardwareRepository.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
+from mxcubecore.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
 
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """

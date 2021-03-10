@@ -36,8 +36,8 @@ import logging
 import gevent
 import time
 import PyTango
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.BaseHardwareObjects import Equipment
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import Equipment
 
 
 class MachInfo(Equipment):

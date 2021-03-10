@@ -23,7 +23,7 @@
 import logging
 import gevent
 
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"

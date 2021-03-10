@@ -1,5 +1,5 @@
-from HardwareRepository.HardwareObjects.ExporterMotor import ExporterMotor
-from HardwareRepository.BaseHardwareObjects import HardwareObjectState
+from mxcubecore.HardwareObjects.ExporterMotor import ExporterMotor
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
 
 class MicrodiffLight(ExporterMotor):

@@ -1,4 +1,4 @@
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 import os
 import time
@@ -9,8 +9,8 @@ import requests
 import binascii
 
 # import threading
-from HardwareRepository.HardwareObjects.SecureXMLRpcRequestHandler import SecureXMLRpcRequestHandler
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.SecureXMLRpcRequestHandler import SecureXMLRpcRequestHandler
+from mxcubecore import HardwareRepository as HWR
 
 try:
     from httplib import HTTPConnection

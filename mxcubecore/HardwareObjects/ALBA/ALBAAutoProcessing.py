@@ -1,7 +1,7 @@
 from xaloc import XalocJob
 from XSDataCommon import XSDataFile, XSDataString, XSDataInteger
 from XSDataAutoprocv1_0 import XSDataAutoprocInput
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from PyTango import DeviceProxy
 import os
 import logging

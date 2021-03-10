@@ -13,8 +13,8 @@ Vicente Rey - add support for ISARA Model
 """
 import logging
 
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.BaseHardwareObjects import Equipment
+from mxcubecore.TaskUtils import task
+from mxcubecore.BaseHardwareObjects import Equipment
 
 import gevent
 import time

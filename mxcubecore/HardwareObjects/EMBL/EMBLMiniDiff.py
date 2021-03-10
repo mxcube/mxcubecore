@@ -33,12 +33,12 @@ except ImportError:
             "Could not find autocentring library, " + "automatic centring is disabled"
         )
 
-from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
 )
-from HardwareRepository.TaskUtils import task
+from mxcubecore.TaskUtils import task
 
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 
 __credits__ = ["EMBL Hamburg"]

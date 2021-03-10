@@ -1,7 +1,7 @@
 import abc
 import gevent.event
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class AbstractCharacterisation(HardwareObject):

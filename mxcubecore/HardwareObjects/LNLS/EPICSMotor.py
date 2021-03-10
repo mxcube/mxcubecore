@@ -20,8 +20,8 @@ Example xml file:
 import logging
 import time
 
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
-from HardwareRepository.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
+from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+from mxcubecore.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
 
 
 class EPICSMotor(AbstractMotor, EPICSActuator):

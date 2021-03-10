@@ -50,7 +50,7 @@ import numpy as np
 from GenericVideoDevice import GenericVideoDevice
 from camera import camera
 
-from gui.utils.QtImport import QImage, QPixmap
+from mxcubecore.utils.qt_import import QImage, QPixmap
 
 
 class PX2Video(GenericVideoDevice, camera):

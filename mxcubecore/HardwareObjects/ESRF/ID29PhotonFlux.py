@@ -3,9 +3,9 @@ import logging
 import math
 from calc_flux import CalculateFlux
 import sys
-from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import task
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.TaskUtils import task
+from mxcubecore import HardwareRepository as HWR
 
 
 class ID29PhotonFlux(Equipment):

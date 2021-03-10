@@ -28,15 +28,8 @@ import numpy as np
 from cStringIO import StringIO
 from PIL.ImageQt import ImageQt
 
-
-try:
-    from PyQt5.QtGui import QPainter, QPixmap, QPen, QBrush, QImage
-    from PyQt5.QtCore import Qt
-except ImportError:
-    from PyQt4.QtGui import QPainter, QPixmap, QPen, QBrush, QImage
-    from PyQt4.QtCore import Qt
-
-from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
+from mxcubecore.utils import qt_import
+from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
     AbstractVideoDevice,
 )
 
@@ -78,7 +71,7 @@ class QtAxisCamera(AbstractVideoDevice):
         self.emit("imageReceived", self.qpixmap)
 
     def save_snapshot(self, filename, image_type="PNG"):
-        qimage = QImage(self.image)
+        qimage = qt_import.QImage(self.image)
         qimage.save(filename, image_type)
 
     def get_snapshot(self, bw=None, return_as_array=None):
@@ -95,7 +88,7 @@ class QtAxisCamera(AbstractVideoDevice):
                 return image_array
         else:
             if bw:
-                return qimage.convertToFormat(QImage.Format_Mono)
+                return qimage.convertToFormat(qt_import.QImage.Format_Mono)
             else:
                 return qimage
 

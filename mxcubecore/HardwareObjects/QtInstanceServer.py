@@ -1,4 +1,4 @@
-from HardwareRepository.BaseHardwareObjects import Procedure
+from mxcubecore.BaseHardwareObjects import Procedure
 import logging
 import time
 import pickle
@@ -8,7 +8,7 @@ import gevent.server
 import socket
 import pwd
 
-from gui.utils import QtImport
+from mxcubecore.utils import qt_import
 
 """
 <procedure class="InstanceServer">
@@ -27,7 +27,7 @@ CLIENTS = {}
 ###
 
 
-class InstanceServer(Procedure):
+class QtInstanceServer(Procedure):
     # Initializes the hardware object
     def init(self):
         # Read the HO configuration
@@ -64,7 +64,7 @@ class InstanceServer(Procedure):
             pass
 
     def initialize_instance(self):
-        for widget in QtImport.QApplication.allWidgets():
+        for widget in qt_import.QApplication.allWidgets():
             try:
                 if hasattr(widget, "configuration"):
                     self.guiConfiguration = widget.configuration

@@ -1,6 +1,6 @@
 import logging
 import time
-from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
 )
 from gevent.event import AsyncResult

@@ -1,10 +1,10 @@
 # pylint: skip-file
 
 import time
-from HardwareRepository.TaskUtils import task
+from mxcubecore.TaskUtils import task
 import logging
 from PyTango import DeviceProxy
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 
 class LimaDetectorMockup:

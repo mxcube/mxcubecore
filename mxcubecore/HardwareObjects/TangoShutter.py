@@ -112,8 +112,8 @@ In the example the tango attribute is called "exper_shutter"
 
 """
 
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository import BaseHardwareObjects
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore import BaseHardwareObjects
 
 import logging
 

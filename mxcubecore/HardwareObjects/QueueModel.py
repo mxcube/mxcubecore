@@ -31,9 +31,9 @@ import json
 import logging
 import jsonpickle
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects import queue_entry, queue_model_objects
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects import queue_entry, queue_model_objects
+from mxcubecore import HardwareRepository as HWR
 
 
 class Serializer(object):

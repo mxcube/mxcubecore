@@ -1,5 +1,5 @@
 import abc
-from HardwareRepository.TaskUtils import task
+from mxcubecore.TaskUtils import task
 
 
 class AbstractMCA(object):

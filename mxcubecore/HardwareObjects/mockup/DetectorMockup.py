@@ -1,4 +1,4 @@
-from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
+from mxcubecore.HardwareObjects.abstract.AbstractDetector import (
     AbstractDetector,
 )
 

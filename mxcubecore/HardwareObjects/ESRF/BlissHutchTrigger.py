@@ -40,7 +40,7 @@ import logging
 from gevent import sleep, spawn
 from PyTango.gevent import DeviceProxy
 from PyTango import DevFailed
-from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractNState
+from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

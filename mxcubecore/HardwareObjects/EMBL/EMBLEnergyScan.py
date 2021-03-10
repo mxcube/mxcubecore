@@ -27,12 +27,12 @@ import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
-from HardwareRepository import TaskUtils
-from HardwareRepository.HardwareObjects.abstract.AbstractEnergyScan import (
+from mxcubecore import TaskUtils
+from mxcubecore.HardwareObjects.abstract.AbstractEnergyScan import (
     AbstractEnergyScan,
 )
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore import HardwareRepository as HWR
 
 
 __credits__ = ["EMBL Hamburg"]

@@ -26,9 +26,9 @@ from copy import deepcopy
 from datetime import datetime
 from scipy.interpolate import interp1d
 
-from HardwareRepository.HardwareObjects.abstract.AbstractFlux import AbstractFlux
+from mxcubecore.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 
 __credits__ = ["EMBL Hamburg"]

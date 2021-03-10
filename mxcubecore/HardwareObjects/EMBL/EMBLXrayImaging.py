@@ -38,14 +38,12 @@ from scipy import ndimage, misc
 from cStringIO import StringIO
 from PIL.ImageQt import ImageQt
 
-from gui.utils import QtImport, Colors
-
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
-from HardwareRepository.HardwareObjects.QtGraphicsManager import QtGraphicsManager
-from HardwareRepository.HardwareObjects import queue_model_objects as qmo
-
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.utils import qt_import, Colors
+from mxcubecore.TaskUtils import task
+from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
+from mxcubecore.HardwareObjects.QtGraphicsManager import QtGraphicsManager
+from mxcubecore.HardwareObjects import queue_model_objects as qmo
+from mxcubecore import HardwareRepository as HWR
 
 
 __credits__ = ["EMBL Hamburg"]
@@ -205,8 +203,8 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             0, 0, self.image_dimension[0], self.image_dimension[1]
         )
 
-        self.qimage = QtImport.QImage()
-        self.qpixmap = QtImport.QPixmap()
+        self.qimage = qt_import.QImage()
+        self.qpixmap = qt_import.QPixmap()
 
         self.chan_frame = self.get_channel_object("chanFrame")
         self.chan_frame.connect_signal("update", self.frame_changed)
@@ -263,7 +261,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             im = Image.open(jpgdata)
             self.qimage = ImageQt(im)
             self.graphics_camera_frame.setPixmap(
-                self.qpixmap.fromImage(self.qimage, QtImport.Qt.MonoOnly)
+                self.qpixmap.fromImage(self.qimage, qt_import.Qt.MonoOnly)
             )
 
     def ff_ssim_changed(self, value):
@@ -734,12 +732,12 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             )
 
         if im is not None:
-            self.qimage = QtImport.QImage(
+            self.qimage = qt_import.QImage(
                 im.astype(np.uint8),
                 im.shape[1],
                 im.shape[0],
                 im.shape[1],
-                QtImport.QImage.Format_Indexed8,
+                qt_import.QImage.Format_Indexed8,
             )
             self.graphics_camera_frame.setPixmap(self.qpixmap.fromImage(self.qimage))
             self.emit("imageLoaded", index)
@@ -960,49 +958,49 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         )
 
 
-class GraphicsCameraFrame(QtImport.QGraphicsPixmapItem):
+class GraphicsCameraFrame(qt_import.QGraphicsPixmapItem):
     def __init__(self, parent=None):
         super(GraphicsCameraFrame, self).__init__(parent)
 
     def mousePressEvent(self, event):
-        pos = QtImport.QPointF(event.pos())
+        pos = qt_import.QPointF(event.pos())
         self.scene().parent().mouseClickedSignal.emit(
-            pos.x(), pos.y(), event.button() == QtImport.Qt.LeftButton
+            pos.x(), pos.y(), event.button() == qt_import.Qt.LeftButton
         )
         self.update()
 
     def mouseMoveEvent(self, event):
-        pos = QtImport.QPointF(event.pos())
+        pos = qt_import.QPointF(event.pos())
         self.scene().parent().mouseMovedSignal.emit(pos.x(), pos.y())
         self.update()
 
     # def mouseDoubleClickEvent(self, event):
-    #    position = QtImport.QPointF(event.pos())
+    #    position = qt_import.QPointF(event.pos())
     #    self.scene().mouseDoubleClickedSignal.emit(position.x(), position.y())
     #    self.update()
 
     def mouseReleaseEvent(self, event):
-        pos = QtImport.QPointF(event.pos())
+        pos = qt_import.QPointF(event.pos())
         self.scene().parent().mouseReleasedSignal.emit(pos.x(), pos.y())
         self.update()
 
 
-class GraphicsView(QtImport.QGraphicsView):
-    mouseClickedSignal = QtImport.pyqtSignal(int, int, bool)
-    mouseReleasedSignal = QtImport.pyqtSignal(int, int)
-    mouseMovedSignal = QtImport.pyqtSignal(int, int)
-    keyPressedSignal = QtImport.pyqtSignal(str)
-    wheelSignal = QtImport.pyqtSignal(int)
+class GraphicsView(qt_import.QGraphicsView):
+    mouseClickedSignal = qt_import.pyqtSignal(int, int, bool)
+    mouseReleasedSignal = qt_import.pyqtSignal(int, int)
+    mouseMovedSignal = qt_import.pyqtSignal(int, int)
+    keyPressedSignal = qt_import.pyqtSignal(str)
+    wheelSignal = qt_import.pyqtSignal(int)
 
     def __init__(self, parent=None):
         super(GraphicsView, self).__init__(parent)
 
-        self.setScene(QtImport.QGraphicsScene(self))
+        self.setScene(qt_import.QGraphicsScene(self))
         self.scene().clearSelection()
         self.setMouseTracking(True)
-        self.setDragMode(QtImport.QGraphicsView.RubberBandDrag)
-        self.setHorizontalScrollBarPolicy(QtImport.Qt.ScrollBarAlwaysOff)
-        self.setVerticalScrollBarPolicy(QtImport.Qt.ScrollBarAlwaysOff)
+        self.setDragMode(qt_import.QGraphicsView.RubberBandDrag)
+        self.setHorizontalScrollBarPolicy(qt_import.Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(qt_import.Qt.ScrollBarAlwaysOff)
 
     def wheelEvent(self, event):
         self.wheelSignal.emit(event.delta())

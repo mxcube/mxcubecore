@@ -36,9 +36,9 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 from gevent import spawn
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 
 __credits__ = ["EMBL Hamburg"]

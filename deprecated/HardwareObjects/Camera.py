@@ -15,8 +15,8 @@ template:
     </calibration> -->
   </device>
 """
-from HardwareRepository import BaseHardwareObjects
-from HardwareRepository import CommandContainer
+from mxcubecore import BaseHardwareObjects
+from mxcubecore import CommandContainer
 import gevent
 import logging
 import os

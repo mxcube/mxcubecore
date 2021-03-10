@@ -20,7 +20,7 @@
 """
 """
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __author__ = "Ivars Karpics"
 __credits__ = ["MXCuBE collaboration"]

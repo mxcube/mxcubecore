@@ -1,5 +1,5 @@
-from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore import HardwareRepository as HWR
 import gevent
 
 
