@@ -40,10 +40,10 @@ from warnings import warn
 import gevent
 from ruamel.yaml import YAML
 
-from HardwareRepository.ConvertUtils import string_types, make_table
-from HardwareRepository.dispatcher import dispatcher
-from . import BaseHardwareObjects
-from . import HardwareObjectFileParser
+from mxcubecore.ConvertUtils import string_types, make_table
+from mxcubecore.dispatcher import dispatcher
+from mxcubecore import BaseHardwareObjects
+from mxcubecore import HardwareObjectFileParser
 
 
 # If you want to write out copies of the file, use typ="rt" instead
@@ -277,6 +277,10 @@ def init_hardware_repository(configuration_path):
         raise RuntimeError(
             "init_hardware_repository called on already initialised repository"
         )
+    if not configuration_path:
+        logging.getLogger("HWR").error("Unable to initialize hardware repository. No cofiguration path passed.")
+        return
+
 
     # If configuration_path is a string of combined paths, split it up
     lookup_path = [

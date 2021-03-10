@@ -35,8 +35,8 @@ machInfoChanged
 import gevent
 import time
 
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.HardwareObjects.abstract.AbstractMachineInfo import (
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.abstract.AbstractMachineInfo import (
     AbstractMachineInfo,
 )
 

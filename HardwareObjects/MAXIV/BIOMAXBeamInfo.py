@@ -1,5 +1,5 @@
-from HardwareRepository.HardwareObjects import BeamInfo
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.HardwareObjects import BeamInfo
+from mxcubecore import HardwareRepository as HWR
 
 
 class BIOMAXBeamInfo(BeamInfo.BeamInfo):

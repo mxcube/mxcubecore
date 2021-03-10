@@ -19,7 +19,7 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 """Transmission with bliss """
 
-from HardwareRepository.HardwareObjects.abstract.AbstractTransmission import (
+from mxcubecore.HardwareObjects.abstract.AbstractTransmission import (
     AbstractTransmission,
 )
 

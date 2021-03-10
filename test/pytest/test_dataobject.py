@@ -1,6 +1,6 @@
 import jsonschema
 
-from HardwareRepository.utils.dataobject import DataObject
+from mxcubecore.utils.dataobject import DataObject
 
 
 class MockDataObject(DataObject):

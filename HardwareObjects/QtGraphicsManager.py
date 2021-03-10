@@ -64,15 +64,15 @@ except ImportError:
     except ImportError:
         pass
 
-from gui.utils import QtImport
+from mxcubecore.utils import qt_import
 
-from HardwareRepository.HardwareObjects import queue_model_objects
-from HardwareRepository.HardwareObjects import QtGraphicsLib as GraphicsLib
-from HardwareRepository.HardwareObjects.abstract.AbstractSampleView import (
+from mxcubecore.HardwareObjects import queue_model_objects
+from mxcubecore.HardwareObjects import QtGraphicsLib as GraphicsLib
+from mxcubecore.HardwareObjects.abstract.AbstractSampleView import (
     AbstractSampleView,
 )
 
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 __credits__ = ["MXCuBE collaboration"]
 __category__ = "Graphics"
@@ -152,8 +152,8 @@ class QtGraphicsManager(AbstractSampleView):
         """
 
         self.graphics_view = GraphicsLib.GraphicsView()
-        self.graphics_view.setVerticalScrollBarPolicy(QtImport.Qt.ScrollBarAsNeeded)
-        self.graphics_view.setHorizontalScrollBarPolicy(QtImport.Qt.ScrollBarAsNeeded)
+        self.graphics_view.setVerticalScrollBarPolicy(qt_import.Qt.ScrollBarAsNeeded)
+        self.graphics_view.setHorizontalScrollBarPolicy(qt_import.Qt.ScrollBarAsNeeded)
         self.graphics_camera_frame = GraphicsLib.GraphicsCameraFrame()
         self.graphics_scale_item = GraphicsLib.GraphicsItemScale(self)
         self.graphics_histogram_item = GraphicsLib.GraphicsItemHistogram(self)
@@ -361,12 +361,12 @@ class QtGraphicsManager(AbstractSampleView):
 
         custom_cursor_filename = self.get_property("custom_cursor", "")
         if os.path.exists(custom_cursor_filename):
-            self.cursor = QtImport.QCursor(
-                QtImport.QPixmap(custom_cursor_filename), 0, 0
+            self.cursor = qt_import.QCursor(
+                qt_import.QPixmap(custom_cursor_filename), 0, 0
             )
             self.set_cursor_busy(False)
         else:
-            self.cursor = QtImport.Qt.ArrowCursor
+            self.cursor = qt_import.Qt.ArrowCursor
 
     @property
     def zoom(self):
@@ -619,7 +619,7 @@ class QtGraphicsManager(AbstractSampleView):
         if pixmap_image:
             if self.image_scale:
                 pixmap_image = pixmap_image.scaled(
-                    QtImport.QSize(
+                    qt_import.QSize(
                         pixmap_image.width() * self.image_scale,
                         pixmap_image.height() * self.image_scale,
                     )
@@ -999,7 +999,7 @@ class QtGraphicsManager(AbstractSampleView):
         # need to distinguish between View and Scene coordinates.
         # moved_mouse connected to graphics_view's mouseMovedSignal
         # I think we need Scene's coordinates here:
-        scene_point = self.graphics_view.mapToScene(QtImport.QPoint(pos_x, pos_y))
+        scene_point = self.graphics_view.mapToScene(qt_import.QPoint(pos_x, pos_y))
         self.emit("mouseMoved", scene_point.x(), scene_point.y())
         self.mouse_position[0] = scene_point.x()
         self.mouse_position[1] = scene_point.y()
@@ -1037,7 +1037,7 @@ class QtGraphicsManager(AbstractSampleView):
                 abs(select_start_x - scene_point.x()) > 5
                 and abs(select_start_y - scene_point.y()) > 5
             ):
-                painter_path = QtImport.QPainterPath()
+                painter_path = qt_import.QPainterPath()
                 painter_path.addRect(
                     min(select_start_x, scene_point.x()),
                     min(select_start_y, scene_point.y()),
@@ -1152,11 +1152,11 @@ class QtGraphicsManager(AbstractSampleView):
     def set_cursor_busy(self, state):
         return
         if state:
-            QtImport.QApplication.setOverrideCursor(
-                QtImport.QCursor(QtImport.Qt.BusyCursor)
+            qt_import.QApplication.setOverrideCursor(
+                qt_import.QCursor(qt_import.Qt.BusyCursor)
             )
         else:
-            QtImport.QApplication.setOverrideCursor(self.cursor)
+            qt_import.QApplication.setOverrideCursor(self.cursor)
 
     def get_graphics_view(self):
         """Rturns current GraphicsView
@@ -1425,12 +1425,12 @@ class QtGraphicsManager(AbstractSampleView):
             # self.select_shape_with_cpos(shape.get_centred_position())
         # self.graphics_omega_reference_item.hide()
 
-        image = QtImport.QImage(
+        image = qt_import.QImage(
             self.graphics_view.graphics_scene.sceneRect().size().toSize(),
-            QtImport.QImage.Format_ARGB32,
+            qt_import.QImage.Format_ARGB32,
         )
-        image.fill(QtImport.Qt.transparent)
-        image_painter = QtImport.QPainter(image)
+        image.fill(qt_import.Qt.transparent)
+        image_painter = qt_import.QPainter(image)
         self.graphics_view.render(image_painter)
         image_painter.end()
         self.show_all_items()
@@ -2313,8 +2313,8 @@ class QtGraphicsManager(AbstractSampleView):
     def set_magnification_mode(self, mode):
         """Display or hide magnification tool"""
         if mode:
-            QtImport.QApplication.setOverrideCursor(
-                QtImport.QCursor(QtImport.Qt.ClosedHandCursor)
+            qt_import.QApplication.setOverrideCursor(
+                qt_import.QCursor(qt_import.Qt.ClosedHandCursor)
             )
         else:
             self.set_cursor_busy(False)
@@ -2325,8 +2325,8 @@ class QtGraphicsManager(AbstractSampleView):
         """Enables or disables scrollbars"""
         if state:
             self.graphics_view.setHorizontalScrollBarPolicy(
-                QtImport.Qt.ScrollBarAlwaysOff
+                qt_import.Qt.ScrollBarAlwaysOff
             )
             self.graphics_view.setVerticalScrollBarPolicy(
-                QtImport.Qt.ScrollBarAlwaysOff
+                qt_import.Qt.ScrollBarAlwaysOff
             )

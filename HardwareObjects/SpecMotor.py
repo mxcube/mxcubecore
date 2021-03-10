@@ -1,4 +1,4 @@
-from HardwareRepository.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import Device
 from SpecClient_gevent.SpecMotor import SpecMotorA
 
 

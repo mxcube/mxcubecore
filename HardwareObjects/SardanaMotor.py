@@ -1,6 +1,6 @@
 import logging
 import time
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import (
+from mxcubecore.HardwareObjects.abstract.AbstractMotor import (
     AbstractMotor,
     MotorStates,
 )

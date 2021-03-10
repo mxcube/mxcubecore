@@ -42,8 +42,8 @@ Public Interface:
 
 """
 
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository import BaseHardwareObjects
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore import BaseHardwareObjects
 import logging
 
 STATE_OUT, STATE_IN, STATE_MOVING, STATE_FAULT, STATE_ALARM, STATE_UNKNOWN = (

@@ -3,8 +3,8 @@ import PyTango.gevent
 import gevent
 import time
 import sys
-from HardwareRepository import BaseHardwareObjects
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import BaseHardwareObjects
+from mxcubecore import HardwareRepository as HWR
 
 
 class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):

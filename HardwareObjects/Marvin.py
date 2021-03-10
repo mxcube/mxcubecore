@@ -24,14 +24,14 @@ import logging
 import tempfile
 from datetime import datetime
 
-from HardwareRepository.HardwareObjects.abstract import AbstractSampleChanger
-from HardwareRepository.HardwareObjects.abstract.sample_changer import (
+from mxcubecore.HardwareObjects.abstract import AbstractSampleChanger
+from mxcubecore.HardwareObjects.abstract.sample_changer import (
     Container,
     Crims,
     Sample,
 )
 
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 
 POSITION_DESC = {

@@ -27,7 +27,7 @@ __license__ = "LGPLv3+"
 
 import ast
 
-from HardwareRepository.HardwareObjects.abstract.AbstractBeam import BeamShape, AbstractBeam
+from mxcubecore.HardwareObjects.abstract.AbstractBeam import BeamShape, AbstractBeam
 
 
 class LNLSBeam(AbstractBeam):

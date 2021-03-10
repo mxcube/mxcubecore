@@ -36,8 +36,8 @@ Example xml file:
 """
 from ast import literal_eval
 from enum import Enum
-from HardwareRepository.HardwareObjects.abstract.AbstractNState import BaseValueEnum
-from HardwareRepository.HardwareObjects.ExporterNState import ExporterNState
+from mxcubecore.HardwareObjects.abstract.AbstractNState import BaseValueEnum
+from mxcubecore.HardwareObjects.ExporterNState import ExporterNState
 
 __copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

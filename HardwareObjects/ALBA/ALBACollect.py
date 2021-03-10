@@ -24,9 +24,9 @@ import time
 import logging
 import sys
 import gevent
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.TaskUtils import task
+from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
+from mxcubecore import HardwareRepository as HWR
 
 
 __author__ = "Vicente Rey Bakaikoa"

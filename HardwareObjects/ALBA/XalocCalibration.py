@@ -1,8 +1,8 @@
 """
 Class for reading images from Falcon camera OAV
 """
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository import BaseHardwareObjects
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore import BaseHardwareObjects
 
 
 class XalocCalibration(BaseHardwareObjects.Device):

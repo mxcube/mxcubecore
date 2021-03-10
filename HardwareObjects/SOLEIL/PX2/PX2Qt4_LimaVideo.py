@@ -48,7 +48,7 @@ import time
 import logging
 import struct
 
-from Qt4_LimaVideo import Qt4_LimaVideo
+from mxcubecore.HardwareObjects.QtLimaVideo import QtLimaVideo
 
 try:
     from Lima import Core
@@ -66,7 +66,7 @@ except ImportError as e:
     pass
 
 
-class PX2Qt4_LimaVideo(Qt4_LimaVideo):
+class PX2Qt4_LimaVideo(QtLimaVideo):
     default_exposure_time = 0.5
 
     def init(self):
@@ -77,7 +77,7 @@ class PX2Qt4_LimaVideo(Qt4_LimaVideo):
         else:
             self.exposure_time = self.default_exposure_time
 
-        Qt4_LimaVideo.init(self)
+        QtLimaVideo.init(self)
 
     def set_cam_encoding(self, set_cam_encoding):
         if cam_encoding == "yuv422p":
@@ -110,10 +110,10 @@ class PX2Qt4_LimaVideo(Qt4_LimaVideo):
 
 
 def test_hwo():
-    from gui.utils.QtImport import *
+    from mxcubecore.utils.qt_import import *
     import time
 
-    from HardwareRepository import HardwareRepository as HWR
+    from mxcubecore import HardwareRepository as HWR
 
     hwr = HWR.get_hardware_repository()
     hwr.connect()

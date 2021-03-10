@@ -1,6 +1,6 @@
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.CommandContainer import CommandObject
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.TaskUtils import task
+from mxcubecore.CommandContainer import CommandObject
 import gevent
 import logging
 

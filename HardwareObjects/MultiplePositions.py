@@ -144,7 +144,7 @@ try:
 except ImportError:
     import cElementTree
 
-from HardwareRepository.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import Equipment
 import logging
 
 

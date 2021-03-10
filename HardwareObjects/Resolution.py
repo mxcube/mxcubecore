@@ -29,7 +29,7 @@ Example xml file:
 
 """
 
-from HardwareRepository.HardwareObjects.abstract.AbstractResolution import (
+from mxcubecore.HardwareObjects.abstract.AbstractResolution import (
     AbstractResolution,
 )
 

@@ -23,7 +23,7 @@ import time
 import logging
 import gevent
 
-from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
 )
 

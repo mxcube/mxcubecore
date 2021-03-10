@@ -14,7 +14,7 @@ Example xml file:
 </device>
 """
 
-from HardwareRepository.HardwareObjects.ExporterNState import ExporterNState
+from mxcubecore.HardwareObjects.ExporterNState import ExporterNState
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

@@ -6,11 +6,11 @@ import os
 import time
 import copy
 import numpy
-from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.HardwareObjects import sample_centring
-from HardwareRepository.HardwareObjects import queue_model_objects as qmo
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.TaskUtils import task
+from mxcubecore.HardwareObjects import sample_centring
+from mxcubecore.HardwareObjects import queue_model_objects as qmo
+from mxcubecore import HardwareRepository as HWR
 
 try:
     from Qub.Tools import QubImageSave

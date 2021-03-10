@@ -10,10 +10,10 @@ Example XML:
 
 """
 
-from HardwareRepository import BaseHardwareObjects
+from mxcubecore import BaseHardwareObjects
 import logging
 import time
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 
 class SOLEILGuillotine(BaseHardwareObjects.Device):

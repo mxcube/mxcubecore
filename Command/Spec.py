@@ -27,7 +27,7 @@ except ImportError:
     from SpecClient.SpecVariable import SpecVariableA
     from SpecClient import SpecVariable
 
-from HardwareRepository.CommandContainer import CommandObject, ChannelObject
+from mxcubecore.CommandContainer import CommandObject, ChannelObject
 
 
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """

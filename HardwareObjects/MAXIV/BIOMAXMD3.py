@@ -15,11 +15,11 @@ from PIL import Image
 import io
 import math
 
-from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
     DiffractometerState,
 )
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 
 class BIOMAXMD3(GenericDiffractometer):

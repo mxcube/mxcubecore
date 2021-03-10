@@ -5,7 +5,7 @@ from logging.handlers import RotatingFileHandler
 import os
 import sys
 
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 
 hwrpath = os.path.dirname(__file__)

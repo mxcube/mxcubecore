@@ -1,5 +1,5 @@
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.BaseHardwareObjects import Procedure
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import Procedure
 import math
 import numpy
 import logging

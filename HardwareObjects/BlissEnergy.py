@@ -35,8 +35,8 @@ If used, the controller should have method moveEnergy.
 import logging
 import math
 from gevent import spawn
-from HardwareRepository.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
-from HardwareRepository.BaseHardwareObjects import HardwareObjectState
+from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

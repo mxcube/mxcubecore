@@ -2,10 +2,10 @@ import logging
 import time
 import gevent
 from gevent import monkey
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.TaskUtils import task
-from HardwareRepository.CommandContainer import CommandObject
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.TaskUtils import task
+from mxcubecore.CommandContainer import CommandObject
+from mxcubecore import HardwareRepository as HWR
 
 monkey.patch_all(thread=False)
 

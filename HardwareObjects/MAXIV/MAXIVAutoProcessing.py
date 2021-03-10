@@ -34,7 +34,7 @@ from XSDataCommon import XSDataFile
 from XSDataCommon import XSDataInteger
 from XSDataCommon import XSDataString
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class MAXIVAutoProcessing(HardwareObject):

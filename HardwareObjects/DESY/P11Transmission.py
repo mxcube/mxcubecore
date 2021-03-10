@@ -21,7 +21,7 @@
 import gevent
 import logging
 
-from HardwareRepository.HardwareObjects.abstract.AbstractTransmission import (
+from mxcubecore.HardwareObjects.abstract.AbstractTransmission import (
     AbstractTransmission,
 )
 

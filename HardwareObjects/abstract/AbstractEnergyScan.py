@@ -3,7 +3,7 @@ import time
 import abc
 import logging
 import gevent
-from HardwareRepository.TaskUtils import error_cleanup
+from mxcubecore.TaskUtils import error_cleanup
 
 
 class AbstractEnergyScan(object):

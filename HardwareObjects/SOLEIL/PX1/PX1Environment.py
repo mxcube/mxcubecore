@@ -4,10 +4,10 @@ import time
 import logging
 import gevent
 
-from HardwareRepository.Command.Tango import DeviceProxy
+from mxcubecore.Command.Tango import DeviceProxy
 
-from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository.TaskUtils import task
+from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.TaskUtils import task
 
 
 class EnvironmentPhase:

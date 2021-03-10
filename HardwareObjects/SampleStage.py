@@ -1,5 +1,5 @@
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.BaseHardwareObjects import Equipment
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import Equipment
 
 
 class SampleStage(Equipment):

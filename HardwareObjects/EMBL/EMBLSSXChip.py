@@ -19,16 +19,15 @@
 
 import logging
 
-from gui.utils import QtImport, Colors
-
-from HardwareRepository.HardwareObjects import QtGraphicsLib as GraphicsLib
-from HardwareRepository.HardwareObjects.QtGraphicsManager import QtGraphicsManager
+from mxcubecore.utils import qt_import
+from mxcubecore.HardwareObjects import QtGraphicsLib as GraphicsLib
+from mxcubecore.HardwareObjects.QtGraphicsManager import QtGraphicsManager
 
 SEQ_ITEM_COLORS = (
-    Colors.LIGHT_GREEN,
-    Colors.LIGHT_YELLOW,
-    Colors.LIGHT_BLUE,
-    Colors.PLUM,
+    qt_import.QColor(204, 255, 204),
+    qt_import.QColor(254, 254, 121),
+    qt_import.QColor(72, 191, 255),
+    qt_import.QColor(142, 69, 133, 70)
 )
 
 
@@ -477,7 +476,7 @@ class GraphicsItemCoordAxes(GraphicsLib.GraphicsItem):
         self.channels = []
 
         self.custom_pen.setWidth(1)
-        self.custom_pen.setColor(QtImport.Qt.black)
+        self.custom_pen.setColor(qt_import.Qt.black)
 
     def set_channels(self, channels):
         self.channels = channels
@@ -486,19 +485,19 @@ class GraphicsItemCoordAxes(GraphicsLib.GraphicsItem):
         scene_width = self.scene().width()
         scene_height = self.scene().height()
 
-        self.custom_brush.setColor(Colors.LIGHT_BLUE)
+        self.custom_brush.setColor(qt_import.QColor(72, 191, 255))
         painter.setBrush(self.custom_brush)
 
         offset_x = 5
         offset_y = 0
         height = 30
 
-        self.custom_pen.setColor(Colors.LIGHT_GRAY)
+        self.custom_pen.setColor(qt_import.QColor(qt_importQt.lightGray))
         painter.setPen(self.custom_pen)
 
         if self.channels:
-            self.custom_pen.setColor(Colors.LIGHT_GRAY)
-            self.custom_pen.setStyle(QtImport.Qt.DotLine)
+            self.custom_pen.setColor(qt_import.QColor(qt_importQt.lightGray))
+            self.custom_pen.setStyle(qt_import.Qt.DotLine)
             painter.setPen(self.custom_pen)
             # Draw delay reference lines
 
@@ -508,8 +507,8 @@ class GraphicsItemCoordAxes(GraphicsLib.GraphicsItem):
                     if channels[1] + channels[2] > max_length:
                         max_length = channels[1] + channels[2]
 
-            self.custom_pen.setColor(Colors.BLACK)
-            self.custom_pen.setStyle(QtImport.Qt.SolidLine)
+            self.custom_pen.setColor(qt_import.QColor(Qt.black))
+            self.custom_pen.setStyle(qt_import.Qt.SolidLine)
             painter.setPen(self.custom_pen)
 
             for index, channels in enumerate(self.channels[::-1]):

@@ -23,7 +23,7 @@ Defines BaseValueEnum and ShutterStates Enums.
 
 import abc
 from enum import Enum, unique
-from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractNState
+from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 
 __copyright__ = """ Copyright 2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

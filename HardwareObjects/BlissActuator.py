@@ -10,10 +10,10 @@ Example xml file:
 import logging
 from warnings import warn
 
-from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
+from mxcubecore.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
 )
-from HardwareRepository.TaskUtils import task
+from mxcubecore.TaskUtils import task
 
 
 class BlissActuator(AbstractActuator):

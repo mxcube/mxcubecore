@@ -25,7 +25,7 @@ import os
 
 from PyTango.gevent import DeviceProxy
 
-from HardwareRepository import BaseHardwareObjects
+from mxcubecore import BaseHardwareObjects
 
 
 def poll_image(lima_tango_device, video_mode, FORMATS):

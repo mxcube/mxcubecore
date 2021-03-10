@@ -21,14 +21,14 @@ import gevent
 import random
 import ast
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects.DataPublisher import (
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects.DataPublisher import (
     PlotType,
     PlotDim,
     DataType,
     one_d_data,
 )
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 
 
 class ScanMockup(HardwareObject):

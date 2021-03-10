@@ -1,6 +1,6 @@
 import gevent
-from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore import HardwareRepository as HWR
 
 
 class BIOMAXTransmission(Equipment):

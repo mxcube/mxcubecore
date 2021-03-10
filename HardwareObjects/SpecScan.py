@@ -5,7 +5,7 @@ except ImportError:
     from SpecClient import SpecEventsDispatcher
     from SpecClient import SpecConnectionsManager
 
-from HardwareRepository.BaseHardwareObjects import Procedure
+from mxcubecore.BaseHardwareObjects import Procedure
 
 
 class SpecScan(Procedure):

@@ -1,5 +1,5 @@
 # from MD2Motor import MD2Motor
-from HardwareRepository.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import Device
 import math
 
 

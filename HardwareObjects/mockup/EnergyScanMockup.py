@@ -7,12 +7,12 @@ import logging
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
-from HardwareRepository.TaskUtils import cleanup
-from HardwareRepository.HardwareObjects.abstract.AbstractEnergyScan import (
+from mxcubecore.TaskUtils import cleanup
+from mxcubecore.HardwareObjects.abstract.AbstractEnergyScan import (
     AbstractEnergyScan,
 )
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore import HardwareRepository as HWR
 
 scan_test_data = [
     (10841.0, 20.0),

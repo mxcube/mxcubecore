@@ -26,7 +26,7 @@ import logging
 import xml.sax
 from xml.sax.handler import ContentHandler
 
-from HardwareRepository import BaseHardwareObjects
+from mxcubecore import BaseHardwareObjects
 
 
 CURRENT_XML = None

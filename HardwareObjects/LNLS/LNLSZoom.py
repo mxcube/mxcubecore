@@ -12,9 +12,9 @@ from enum import Enum
 import gevent
 import time
 
-from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractNState
-from HardwareRepository.HardwareObjects.abstract.AbstractNState import BaseValueEnum
-from HardwareRepository.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
+from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
+from mxcubecore.HardwareObjects.abstract.AbstractNState import BaseValueEnum
+from mxcubecore.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
 
 
 class LNLSZoom(EPICSActuator, AbstractNState):

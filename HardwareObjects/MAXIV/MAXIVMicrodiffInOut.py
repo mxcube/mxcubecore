@@ -1,4 +1,4 @@
-from HardwareRepository.HardwareObjects import MicrodiffInOut
+from mxcubecore.HardwareObjects import MicrodiffInOut
 import gevent
 import time
 

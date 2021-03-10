@@ -24,8 +24,8 @@ import logging
 import gevent
 import time
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.BaseHardwareObjects import Device
 from gevent import Timeout
 import numpy
 
