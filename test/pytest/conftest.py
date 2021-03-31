@@ -7,9 +7,12 @@ from gevent import monkey
 monkey.patch_all(thread=False)
 
 TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
-MXCUBE_CORE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 
-sys.path.insert(0, MXCUBE_CORE_DIR)
+sys.path.insert(0, ROOT_DIR)
+
+print("DEBUG TESTS")
+print(sys.path)
 
 from mxcubecore import HardwareRepository as HWR
 
@@ -26,9 +29,9 @@ from mxcubecore import HardwareRepository as HWR
 @pytest.fixture(scope="function")
 def beamline():
     hwr_path = "%s%s%s" % (
-        os.path.join(MXCUBE_CORE_DIR, "configuration/mockup"),
+        os.path.join(ROOT_DIR, "mxcubecore/configuration/mockup"),
         ":",
-        os.path.join(MXCUBE_CORE_DIR, "configuration/mockup/test")
+        os.path.join(ROOT_DIR, "mxcubecore/configuration/mockup/test")
     )
     HWR._instance = HWR.beamline = None
     HWR.init_hardware_repository(hwr_path)
