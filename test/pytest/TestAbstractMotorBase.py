@@ -28,7 +28,7 @@ __date__ = "09/04/2020"
 import abc
 import gevent
 import pytest
-from mxcubecore.test.pytest import (
+from test.pytest import (
     TestHardwareObjectBase,
     TestAbstractActuatorBase,
 )

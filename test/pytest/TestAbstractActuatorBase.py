@@ -29,7 +29,7 @@ import abc
 import gevent
 import pytest
 
-from mxcubecore.test.pytest import TestHardwareObjectBase
+from test.pytest import TestHardwareObjectBase
 
 test_object = TestHardwareObjectBase.test_object
 

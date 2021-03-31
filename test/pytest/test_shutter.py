@@ -24,7 +24,7 @@ __license__ = "LGPLv3+"
 import pytest
 
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
-from mxcubecore.test.pytest import TestAbstractNStateBase
+from test.pytest import TestAbstractNStateBase
 
 
 @pytest.fixture
