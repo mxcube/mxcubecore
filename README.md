@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/mxcube/HardwareRepository.svg?branch=master)](https://travis-ci.org/mxcube/HardwareRepository)
+[![Build Status](https://travis-ci.org/mxcube/mxcubecore.svg?branch=master)](https://travis-ci.org/mxcube/mxcubecore)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
 # Backend of MXCuBE
