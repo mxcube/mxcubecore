@@ -34,7 +34,7 @@ setup(
     # version='0.1.0',
     # author='The MXCuBE developers',
     # author_email='mxcube@mxcube.org',
-    description='MXCuBE core libraries',
+    description='MXCuBE core library',
     long_description='Core libraries for the MXCuBE application',
     url='http://github.com/mxcube/mxcubecore',
     packages=find_packages(),
