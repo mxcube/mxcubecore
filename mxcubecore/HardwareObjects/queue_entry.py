@@ -439,7 +439,7 @@ class SampleQueueEntry(BaseQueueEntry):
 
                     params.append(
                         {
-                            "collect_id": grand_child.id,
+                            "collect_id": grand_child.lims_id,
                             "xds_dir": xds_dir,
                             "residues": residues,
                             "anomalous": anomalous,
@@ -595,62 +595,54 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
     def execute(self):
         BaseQueueEntry.execute(self)
-        data_collection = self.get_data_model()
+        data_model = self.get_data_model()
 
-        if data_collection:
-            acq_params = data_collection.acquisitions[0].acquisition_parameters
-            cpos = acq_params.centred_position
+        acq_params = data_model.acquisitions[0].acquisition_parameters
+        cpos = acq_params.centred_position
 
-            empty_cpos = all(mpos is None for mpos in cpos.as_dict().values())
+        empty_cpos = all(mpos is None for mpos in cpos.as_dict().values())
 
-            if empty_cpos and data_collection.center_before_collect:
-                _p, _s = center_before_collect(
-                    self.get_view(),
-                    HWR.beamline.diffractometer,
-                    self.get_queue_controller(),
-                    HWR.beamline.sample_view,
-                )
+        if empty_cpos and data_model.center_before_collect:
+            _p, _s = center_before_collect(
+                self.get_view(),
+                HWR.beamline.diffractometer,
+                self.get_queue_controller(),
+                HWR.beamline.sample_view,
+            )
 
-                acq_params.centred_position = _p
+            acq_params.centred_position = _p
 
-            self.collect_dc(data_collection, self.get_view())
+        HWR.beamline.sample_view.de_select_all()
+        self.get_view().setText(1, "TEST")
+        HWR.beamline.collect.start(self.get_data_model())
+        
+        if (data_model.run_online_processing
+            and acq_params.num_images > 4
+            and HWR.beamline.online_processing is not None
+            ):
+            self.online_processing_task = gevent.spawn(
+                HWR.beamline.online_processing.start, data_model
+            )
 
-        if HWR.beamline.sample_view:
-            HWR.beamline.sample_view.de_select_all()
+        
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
 
         qc = self.get_queue_controller()
 
-        qc.connect(HWR.beamline.collect, "collectStarted", self.collect_started)
+        qc.connect(HWR.beamline.collect, "procedureStarted", self.collection_started)
         qc.connect(
-            HWR.beamline.collect, "collectNumberOfFrames", self.preparing_collect
+            HWR.beamline.collect, "procedureSuccessful", self.collection_successful
         )
-        qc.connect(
-            HWR.beamline.collect, "collectOscillationStarted", self.collect_osc_started
-        )
-        qc.connect(
-            HWR.beamline.collect, "collectOscillationFailed", self.collect_failed
-        )
-        qc.connect(
-            HWR.beamline.collect, "collectOscillationFinished", self.collect_finished
-        )
-        qc.connect(HWR.beamline.collect, "collectImageTaken", self.image_taken)
-        qc.connect(
-            HWR.beamline.collect, "collectNumberOfFrames", self.collect_number_of_frames
-        )
+        qc.connect(HWR.beamline.collect, "imageTaken", self.image_taken)
+
 
         if HWR.beamline.online_processing is not None:
             qc.connect(
                 HWR.beamline.online_processing,
-                "processingFinished",
+                "procedureFinished",
                 self.online_processing_finished,
-            )
-            qc.connect(
-                HWR.beamline.online_processing,
-                "processingFailed",
-                self.online_processing_failed,
             )
 
         data_model = self.get_data_model()
@@ -663,34 +655,17 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         BaseQueueEntry.post_execute(self)
         qc = self.get_queue_controller()
 
-        qc.disconnect(HWR.beamline.collect, "collectStarted", self.collect_started)
+        qc.disconnect(HWR.beamline.collect, "procedureStarted", self.collection_started)
         qc.disconnect(
-            HWR.beamline.collect, "collectNumberOfFrames", self.preparing_collect
+            HWR.beamline.collect, "procedureSuccessful", self.collection_successful
         )
-        qc.disconnect(
-            HWR.beamline.collect, "collectOscillationStarted", self.collect_osc_started
-        )
-        qc.disconnect(
-            HWR.beamline.collect, "collectOscillationFailed", self.collect_failed
-        )
-        qc.disconnect(
-            HWR.beamline.collect, "collectOscillationFinished", self.collect_finished
-        )
-        qc.disconnect(HWR.beamline.collect, "collectImageTaken", self.image_taken)
-        qc.disconnect(
-            HWR.beamline.collect, "collectNumberOfFrames", self.collect_number_of_frames
-        )
+        qc.disconnect(HWR.beamline.collect, "imageTaken", self.image_taken)
 
         if HWR.beamline.online_processing is not None:
             qc.disconnect(
                 HWR.beamline.online_processing,
-                "processingFinished",
+                "procedureFinished",
                 self.online_processing_finished,
-            )
-            qc.disconnect(
-                HWR.beamline.online_processing,
-                "processingFailed",
-                self.online_processing_failed,
             )
 
         self.get_view().set_checkable(False)
@@ -797,13 +772,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             )
             raise QueueExecutionException(msg, self)
 
-    def collect_started(self, owner, num_oscillations):
-        logging.getLogger("user_level_log").info("Collection started")
-        self.get_view().setText(1, "Collecting...")
-
-    def collect_number_of_frames(self, number_of_images=0, exposure_time=0):
-        pass
-
     def image_taken(self, image_number):
         if image_number > 0:
             num_images = (
@@ -815,48 +783,36 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             )
             self.get_view().setText(1, str(image_number) + "/" + str(num_images))
 
-    def preparing_collect(self, number_images=0, exposure_time=0):
-        self.get_view().setText(1, "Preparing to collecting")
+    def collection_started(self):
+        print("collect started")
+        self.get_view().setText(1, "Collecting...")
 
-    def collect_failed(self, owner, state, message, *args):
+    def collection_error(self, error_msg):
         # this is to work around the remote access problem
-        dispatcher.send("collect_finished")
         self.get_view().setText(1, "Failed")
         self.status = QUEUE_ENTRY_STATUS.FAILED
-        logging.getLogger("queue_exec").error(message.replace("\n", " "))
-        # raise QueueExecutionException(message.replace("\n", " "), self)
+        logging.getLogger("queue_exec").error(error_msg.replace("\n", " "))
 
-    def collect_osc_started(
-        self, owner, blsampleid, barcode, location, collect_dict, osc_id
-    ):
-        self.get_view().setText(1, "Preparing")
-
-    def collect_finished(self, owner, state, message, *args):
-        # this is to work around the remote access problem
-        dispatcher.send("collect_finished")
+    def collection_successful(self, results):
         self.get_view().setText(1, "Collection done")
-        logging.getLogger("user_level_log").info("Collection finished")
-
         if self.online_processing_task is not None:
             self.get_view().setText(1, "Processing...")
-            logging.getLogger("user_level_log").warning("Processing: Please wait...")
+            logging.getLogger("user_level_log").warning("Online processing: Please wait...")
             HWR.beamline.online_processing.done_event.wait(timeout=120)
             HWR.beamline.online_processing.done_event.clear()
 
     def stop(self):
         BaseQueueEntry.stop(self)
-        HWR.beamline.collect.stop_collect()
+        HWR.beamline.collect.stop()
         if self.online_processing_task is not None:
-            HWR.beamline.online_processing.stop_processing()
-            logging.getLogger("user_level_log").error("Processing: Stopped")
+            HWR.beamline.online_processing.stop()
+            logging.getLogger("user_level_log").error("Online processing: Stopped")
         if self.centring_task is not None:
             self.centring_task.kill(block=False)
 
         self.get_view().setText(1, "Stopped")
         logging.getLogger("queue_exec").info("Calling stop on: " + str(self))
         logging.getLogger("user_level_log").error("Collection stopped")
-        # this is to work around the remote access problem
-        dispatcher.send("collect_finished")
         raise QueueAbortedException("Queue stopped", self)
 
     def online_processing_finished(self):

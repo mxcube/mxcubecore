@@ -26,18 +26,15 @@ import os
 import sys
 import logging
 import time
-import errno
-import abc
 import collections
-import gevent
-import gevent.event
 
 from mxcubecore.TaskUtils import task  # , cleanup_and_handle_error
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.ConvertUtils import string_types
+from mxcubecore.utils.dataobject import DataObject
+from mxcubecore.HardwareObjects.abstract.AbstractProcedure import AbstractProcedure
+
 from mxcubecore import HardwareRepository as HWR
 
-from mxcubecore.utils.dataobject import DataObject
 
 __credits__ = ["MXCuBE collaboration"]
 
@@ -68,24 +65,14 @@ BeamlineConfig = collections.namedtuple(
 )
 
 
-class AbstractCollect(HardwareObject, object):
-    __metaclass__ = abc.ABCMeta
+class AbstractCollect(AbstractProcedure):
 
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
+        AbstractProcedure.__init__(self, name)
         self.bl_config = BeamlineConfig(*[None] * 17)
 
-        self._error_msg = ""
-        self.exp_type_dict = {}
-
-        self.data_collect_task = None
-        self.run_processing_after = None
-        self.run_processing_parallel = None
-        self.ready_event = None
-
     def init(self):
-        self.ready_event = gevent.event.Event()
-
+        AbstractProcedure.init(self)
         undulators = []
         try:
             for undulator in self["undulators"]:
@@ -93,19 +80,13 @@ class AbstractCollect(HardwareObject, object):
         except Exception:
             pass
 
-        session = HWR.beamline.session
-        if session:
-            synchrotron_name = session.get_property("synchrotron_name")
-        else:
-            synchrotron_name = "UNKNOWN"
-
         (
             beam_divergence_hor,
             beam_divergence_ver,
         ) = HWR.beamline.beam.get_beam_divergence()
 
         self.set_beamline_configuration(
-            synchrotron_name=synchrotron_name,
+            synchrotron_name=HWR.beamline.session.synchrotron_name,
             directory_prefix=self.get_property("directory_prefix"),
             default_exposure_time=HWR.beamline.detector.get_property(
                 "default_exposure_time"
@@ -136,29 +117,18 @@ class AbstractCollect(HardwareObject, object):
         """
         self.bl_config = BeamlineConfig(**configuration_parameters)
 
-    def collect(self, owner, cp_dict):
-        """
-        Main collect method.
-        """
-        self.ready_event.clear()
-        self.data_collect_task = gevent.spawn(
-            self._pre_collect, owner, DataObject(cp_dict)
-        )
-        self.ready_event.wait()
-        self.ready_event.clear()
-
-    def _pre_collect(self, owner, cp):
+    def _pre_execute(self, data_model):
         """
         Actual collect sequence
         """
-        log.info("Collection: Preparing to collect")
-        self.emit("collectReady", (False,))
-        self.emit("collectOscillationStarted", (owner, None, None, None, cp, None))
-        self.emit("progressInit", ("Collection", 100, False))
+        AbstractProcedure._pre_execute(self, data_model)
 
+        log.info("Collection: Preparing...")
+        self.emit("progressInit", ("Collection", 100, False))
+        log.info("Collection: Prepared")
+        return
         try:
             # Prepare data collection
-            self._prepare(cp)
             logging.getLogger("HWR").info("Collection parameters: %s" % str(cp))
 
             # Create directories and input files for processing, XDS, mossflm etc
@@ -213,16 +183,21 @@ class AbstractCollect(HardwareObject, object):
         except Exception:
             exc_type, exc_value, exc_tb = sys.exc_info()
             self._collection_failed(cp, exc_type, exc_value, exc_tb)
-        else:
-            self._post_collect(cp)
-        finally:
-            self._post_collect_cleanup(cp)
-            self.ready_event.set()
 
-        return cp
+    def _execute(self, data_model):
+        """
+        Actual collect sequence
+        """
+        AbstractProcedure._execute(self, data_model)
+        log.info("Collection: Started")
 
-    def _post_collect(self, cp):
+    def _post_execute(self, data_model):
         """Collection finished beahviour"""
+        AbstractProcedure._post_execute(self, data_model)
+
+        log.info("Collection: Finished")
+        self.emit("progressStop", ())
+        return 
         cp.dangerously_set("status", "Data collection successful")
 
         if cp["experiment_type"] != "Collect - Multiwedge":
@@ -252,18 +227,11 @@ class AbstractCollect(HardwareObject, object):
         )
         self.emit("progressStop", ())
 
-    def _post_collect_cleanup(self):
-        """
-        Method called when at end of data collection, successful or not.
-        """
-        self.close_fast_shutter()
-        self.close_safety_shutter()
-        self.close_detector_cover()
 
     def _collection_failed(self, cp, ex_type, ex_value, ex_stacktrace):
         """Collection failed method"""
         failed_msg = "Data collection failed!\n%s" % exc_value
-
+        return 
         cp.dangerously_set("status", "Failed")
         cp.dangerously_set("comments", "%s\n%s" % (failed_msg, self._error_msg))
 
@@ -275,49 +243,12 @@ class AbstractCollect(HardwareObject, object):
         self.emit("progressStop", ())
         self._update_data_collection_in_lims(cp)
 
-    def prepare(self, cp):
-        cp.dangerously_set("status", "Running")
-        cp.dangerously_set("collection_start_time", time.strftime("%Y-%m-%d %H:%M:%S"))
-
-        self.open_detector_cover()
-        self.open_safety_shutter()
-        self.open_fast_shutter()
-
-    def create_file_directories(self, cp):
-        """
-        Method create directories for raw files and processing files.
-        Directorie names for xds, mosflm and hkl are created
-        """
-        log.info("Collection: Creating directories for raw images and processing files")
-
-        self.create_directories(
-            cp["fileinfo"]["directory"],
-            cp["fileinfo"]["process_directory"],
-            cp["fileinfo"]["archive_directory"],
-        )
-
-        xds_directory, mosflm_directory, hkl2000_directory = self.prepare_input_files()
-
-        if xds_directory:
-            cp.dangerously_set("xds_dir", xds_directory)
-
-    def create_directories(self, *args):
-        """
-        Descript. :
-        """
-        for directory in args:
-            try:
-                os.makedirs(directory)
-            except os.error as e:
-                if e.errno != errno.EEXIST:
-                    raise
-
     def get_sample_info(self, cp):
         """
         Descript. :
         """
         log.info("Getting sample information from lims and sample changer")
-
+        return 
         sample_info = cp.get("sample_reference")
         sample_changer = HWR.beamline.sample_changer
 
@@ -356,7 +287,7 @@ class AbstractCollect(HardwareObject, object):
         Descript. :
         """
         log.info("Collection: Storing data collection in LIMS")
-
+        return 
         if HWR.beamline.lims and not cp["in_interleave"]:
             try:
                 cp.dangerously_set("synchrotronMode", self.get_machine_fill_mode())
@@ -379,6 +310,7 @@ class AbstractCollect(HardwareObject, object):
         Descript. :
         """
         log.info("Collect: Storing sample info in LIMS")
+        return 
         if HWR.beamline.lims and not cp["in_interleave"]:
             HWR.beamline.lims.update_bl_sample(cp)
 
@@ -386,6 +318,7 @@ class AbstractCollect(HardwareObject, object):
         """
         Descript. :
         """
+        return 
         dd0 = HWR.beamline.diffractometer.get_positions()
 
         logging.getLogger("HWR").debug(
@@ -413,6 +346,7 @@ class AbstractCollect(HardwareObject, object):
         """
         Descript. :
         """
+        return 
         number_of_snapshots = cp["take_snapshots"]
         snapshot_directory = cp["fileinfo"]["archive_directory"]
         if number_of_snapshots > 0 or cp.get("take_video"):
@@ -441,7 +375,7 @@ class AbstractCollect(HardwareObject, object):
                 cp.dangerously_set(
                     "xtalSnapshotFullPath%i" % (snapshot_index + 1), snapshot_filename
                 )
-                self._take_crystal_snapshot(snapshot_filename)
+                HWR.beamline.sample_view.save_snapshot(snapshot_filename)
                 if number_of_snapshots > 1:
                     HWR.beamline.diffractometer.move_omega_relative(90)
 
@@ -454,14 +388,14 @@ class AbstractCollect(HardwareObject, object):
                 % (cp["fileinfo"]["prefix"], cp["fileinfo"]["run_number"]),
             )
             cp.dangerously_set("xtalSnapshotFullPath2", animation_filename)
-            self._take_crystal_animation(animation_filename, duration_sec=1)
+            self.take_crystal_animation(animation_filename, duration_sec=1)
 
     def _update_data_collection_in_lims(self, cp):
         """
         Descript. :
         """
         log.info("Collection: Updating data collection in LIMS")
-
+        return
         if HWR.beamline.lims and not cp["in_interleave"]:
             cp.dangerously_set("flux", HWR.beamline.flux.get_value())
             cp.dangerously_set("flux_end", HWR.beamline.flux.get_value())
@@ -507,6 +441,7 @@ class AbstractCollect(HardwareObject, object):
         """
         Descript. :
         """
+        return 
         if HWR.beamline.lims and not cp["in_interleave"]:
             file_location = cp["fileinfo"]["directory"]
             image_file_template = cp["fileinfo"]["template"]
@@ -550,6 +485,8 @@ class AbstractCollect(HardwareObject, object):
         :param grid_snapshot_filename: grid snapshot file path
         :type grid_snapshot_filename: string
         """
+        return 
+
         if HWR.beamline.lims is not None:
             try:
                 cp.dangerously_set("workflow_id", workflow_id)
@@ -563,279 +500,3 @@ class AbstractCollect(HardwareObject, object):
 
     def _store_image_in_lims_by_frame_num(self, frame_number):
         pass
-
-    def stop_collect(self):
-        """
-        Stops data collection
-        """
-        if self.data_collect_task is not None:
-            self.data_collect_task.kill(block=False)
-
-    # These methods will be replaced with HWR.beamline. ...
-    # def open_detector_cover(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     pass
-
-    # def open_safety_shutter(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     pass
-
-    # def open_fast_shutter(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     pass
-
-    # def close_fast_shutter(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     pass
-
-    # def close_safety_shutter(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     pass
-
-    # def close_detector_cover(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     pass
-
-    # def set_transmission(self, value):
-    #     """
-    #     Descript. :
-    #     """
-    #     pass
-
-    # def set_wavelength(self, value):
-    #     """
-    #     Descript. :
-    #     """
-    #     pass
-
-    # def set_energy(self, value):
-    #     """
-    #     Descript. :
-    #     """
-    #     pass
-
-    # def set_resolution(self, value):
-    #     """
-    #     Descript. :
-    #     """
-    #     pass
-
-    # def move_detector(self, value):
-    #     """
-    #     Descript. :
-    #     """
-    #     pass
-
-    # def get_flux(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     return
-
-    # def get_wavelength(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     if HWR.beamline.energy is not None:
-    #         return HWR.beamline.energy.get_wavelength()
-
-    # def get_detector_distance(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     if HWR.beamline.detector is not None:
-    #         return HWR.beamline.detector.distance.get_value()
-
-    # def get_resolution(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     if HWR.beamline.resolution is not None:
-    #         return HWR.beamline.resolution.get_value()
-
-    # def get_transmission(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     if HWR.beamline.transmission is not None:
-    #         return HWR.beamline.transmission.get_value()
-
-    # def get_beam_centre(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     if HWR.beamline.detector is not None:
-    #         return HWR.beamline.detector.get_beam_centre()
-    #     else:
-    #         return None, None
-
-    # def get_beam_centre_pix(self):
-    #     """Get beam center in pixels"""
-    #     return HWR.beamline.detector.get_beam_centre_pix()
-
-    # def get_resolution_at_corner(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     return
-
-    # def get_beam_size(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     if HWR.beamline.beam is not None:
-    #         return HWR.beamline.beam.get_beam_size()
-    #     else:
-    #         return None, None
-
-    # def get_slit_gaps(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     if HWR.beamline.beam is not None:
-    #         return HWR.beamline.beam.get_slits_gap()
-    #     return None, None
-
-    # def get_undulators_gaps(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     return {}
-
-    # def get_beam_shape(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     if HWR.beamline.beam is not None:
-    #         return HWR.beamline.beam.get_beam_shape()
-
-    # def get_machine_current(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     if HWR.beamline.machine_info:
-    #         return HWR.beamline.machine_info.get_current()
-    #     else:
-    #         return 0
-
-    # def get_machine_message(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     if HWR.beamline.machine_info:
-    #         return HWR.beamline.machine_info.get_message()
-    #     else:
-    #         return ""
-
-    # def get_machine_fill_mode(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     if HWR.beamline.machine_info:
-    #         fill_mode = str(HWR.beamline.machine_info.get_message())
-    #         return fill_mode[:20]
-    #     else:
-    #         return ""
-
-    # def get_measured_intensity(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     return
-
-    # def get_cryo_temperature(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     return
-
-    # def prepare_input_files(self):
-    #     """
-    #     Prepares input files for xds, mosflm and hkl2000
-    #     returns: 3 strings
-    #     """
-    #     return None, None, None
-
-    # @abc.abstractmethod
-    # @task
-    # def move_motors(self, motor_position_dict):
-    #     """
-    #     Descript. :
-    #     """
-    #     return
-
-    # @abc.abstractmethod
-    # @task
-    # def _take_crystal_snapshot(self, snapshot_filename):
-    #     """
-    #     Depends on gui version how this method is implemented.
-    #     In Qt3 diffractometer has a function,
-    #     In Qt4 graphics_manager is making crystal snapshots
-    #     """
-    #     pass
-
-    # def _take_crystal_animation(self, animation_filename, duration_sec=1):
-    #     """Rotates sample by 360 and composes a gif file
-    #     """
-    #     pass
-
-    # @abc.abstractmethod
-    # def data_collection_hook(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     pass
-
-    # @abc.abstractmethod
-    # def trigger_auto_processing(self, process_event, frame_number):
-    #     """
-    #     Descript. :
-    #     """
-    #     pass
-
-    # def set_helical(self, arg):
-    #     """
-    #     Descript. :
-    #     """
-    #     pass
-
-    # def set_helical_pos(self, arg):
-    #     """
-    #     Descript. :
-    #     """
-    #     pass
-
-    # def setCentringStatus(self, status):
-    #     """
-    #     Descript. :
-    #     """
-    #     pass
-
-    # specifies the next scan will be a mesh scan
-    def set_mesh(self, mesh_on):
-        self.mesh = mesh_on
-
-    def set_mesh_scan_parameters(
-        self, num_lines, total_nb_frames, mesh_center_param, mesh_range_param
-    ):
-        """
-        sets the mesh scan parameters :
-         - vertcal range
-         - horizontal range
-         - nb lines
-         - nb frames per line
-         - invert direction (boolean)  # NOT YET DONE
-         """
-        return

@@ -91,6 +91,10 @@ class Beamline(ConfiguredObject):
         # List[str] of available methods
         self.available_methods = []
 
+        self.offline_processing_methods = []
+
+        self.online_processing_methods = []
+
         # int number of clicks used for click centring
         self.click_centring_num_clicks = 3
 
@@ -101,7 +105,7 @@ class Beamline(ConfiguredObject):
         self.disable_num_passes = False
 
         # bool By default run processing of (certain?)data collections in aprallel?
-        self.run_processing_parallel = False
+        self.run_offline_processing = True
         
         # bool By default run online processing (characterization/mesh?)
         self.run_online_processing = True

@@ -21,6 +21,7 @@
 import time
 import numpy
 
+from mxcubecore.HardwareObjects.abstract.AbstractProcedure import ProcedureState
 from mxcubecore.HardwareObjects.abstract.AbstractOnlineProcessing import (
     AbstractOnlineProcessing,
 )
@@ -33,35 +34,39 @@ class OnlineProcessingMockup(AbstractOnlineProcessing):
     def __init__(self, name):
         AbstractOnlineProcessing.__init__(self, name)
 
-        self.result_type = None
-
     def init(self):
         AbstractOnlineProcessing.init(self)
-        self.result_type = self.get_property("result_type", "random")
 
-    def run_processing(self, data_collection):
-        """
-        no     : no frames with a score
-        firste : first frame has a score
-        middle : middle frame has a score
-        last   : last frame has a score
-        linear : score distributed in a linear way
-        random : random score distribution
-        """
-        self.data_collection = data_collection
-        self.prepare_processing()
+        self.result_types = [
+            {
+                "key": "spots_resolution",
+                "descr": "Resolution",
+                "color": (120, 0, 0)},
+            {
+                "key": "score",
+                "descr": "Score",
+                "color": (0, 120, 0)},
+            {
+                "key": "spots_num",
+                "descr": "Number of spots",
+                "color": (0, 0, 120)},
+        ]
+        self.result_style = self.get_property("result_style", "random")
+
+    def _pre_execute(self, data_model):
+        AbstractOnlineProcessing._pre_execute(self, data_model)
 
         index = 0
         for key in self.results_raw.keys():
-            if self.result_type == "first":
+            if self.result_style == "first":
                 self.results_raw[key][0] = 1
-            elif self.result_type == "last":
+            elif self.result_style == "last":
                 self.results_raw[key][self.params_dict["images_num"] - 1] = 1
-            elif self.result_type == "middle":
+            elif self.result_style == "middle":
                 self.results_raw[key][self.params_dict["images_num"] / 2 - 1] = 1
                 self.results_raw[key][self.params_dict["images_num"] / 2] = 3
                 self.results_raw[key][self.params_dict["images_num"] / 2 + 1] = 2.5
-            elif self.result_type == "linear":
+            elif self.result_style == "linear":
                 self.results_raw[key] = (
                     numpy.linspace(
                         0,
@@ -70,9 +75,11 @@ class OnlineProcessingMockup(AbstractOnlineProcessing):
                     )
                     + index
                 )
-            elif self.result_type == "random":
+            elif self.result_style == "random":
                 self.results_raw[key] = numpy.random.randint(
-                    1, self.params_dict["images_num"], self.params_dict["images_num"]
+                    1,
+                    self.params_dict["images_num"],
+                    self.params_dict["images_num"]
                 )
 
             if key == "spots_resolution":
@@ -86,27 +93,23 @@ class OnlineProcessingMockup(AbstractOnlineProcessing):
 
             index += 1
 
-        self.emit(
-            "processingStarted",
-            (self.params_dict, self.results_raw, self.results_aligned),
-        )
-
+    def _execute(self, data_model):
         step = 10
         for index in range(self.params_dict["images_num"]):
             if index > 0 and not index % step:
-                self.align_processing_results(index - step, index)
+                self.align_results(index - step, index)
                 self.print_log(
                     "GUI",
                     "info",
                     "Parallel processing: Frame %d/%d done"
                     % (index + 1, self.params_dict["images_num"]),
                 )
-                self.emit("processingFrame", index)
-                self.emit("processingResultsUpdate", False)
-            if not self.started:
-                break
-            else:
+                self.emit("resultFrame", index)
+                self.emit("resultsUpdated", False)
+            if self.state == ProcedureState.BUSY:
                 time.sleep(self.params_dict["exp_time"])
-        self.align_processing_results(0, self.params_dict["images_num"] - 1)
-        self.emit("processingResultsUpdate", True)
-        self.set_processing_status("Success")
+            else:
+                break
+        self.align_results(0, self.params_dict["images_num"] - 1)
+        self.emit("resultsUpdated", True)
+        self._set_successful()

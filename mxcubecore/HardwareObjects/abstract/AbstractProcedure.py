@@ -21,7 +21,7 @@ from enum import IntEnum, unique
 
 import gevent.event
 
-from mxcubecore.BaseHardwareObjects import ConfiguredObject
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.dispatcher import dispatcher
 
 # import mxcubecore.HardwareObjects.datamodel
@@ -49,7 +49,7 @@ class ProcedureState(IntEnum):
     READY = 3
 
 
-class AbstractProcedure(ConfiguredObject):
+class AbstractProcedure(HardwareObject):
     __content_roles = []
 
     _ARGS_CLASS = ()
@@ -126,7 +126,7 @@ class AbstractProcedure(ConfiguredObject):
 
         Returns:
         """
-        pass
+        return
 
     def _post_execute(self, data_model):
         """
@@ -141,14 +141,15 @@ class AbstractProcedure(ConfiguredObject):
         """
         pass
 
-    def _set_started(self):
+    def _set_started(self, data_model):
         """
         Emits procedureStarted signal
         Returns:
 
         """
+        print("started!")
         self._state = ProcedureState.BUSY
-        dispatcher.send(self, "procedureStarted")
+        self.emit("procedureStarted", data_model)
 
     def _set_successful(self):
         """
@@ -157,7 +158,7 @@ class AbstractProcedure(ConfiguredObject):
 
         """
         self._state = ProcedureState.READY
-        dispatcher.send(self, "procedureSuccessful", self.results)
+        self.emit("procedureSuccessful", self.results)
 
     def _set_error(self):
         """
@@ -166,7 +167,7 @@ class AbstractProcedure(ConfiguredObject):
 
         """
         self._state = ProcedureState.ERROR
-        dispatcher.send(self, "procedureError", self.msg)
+        self.emit("procedureError", self.msg)
 
     def _set_stopped(self):
         """
@@ -175,14 +176,14 @@ class AbstractProcedure(ConfiguredObject):
 
         """
         self._state = ProcedureState.READY
-        dispatcher.send(self, "procedureStopped", self.results)
+        self.emit("procedureStopped", self.results)
 
     def _start(self, data_model):
         """
         Internal start, for the moment executed in greenlet
         """
         try:
-            self._set_started()
+            self._set_started(data_model)
             self._pre_execute(data_model)
             self._execute(data_model)
         except Exception as ex:

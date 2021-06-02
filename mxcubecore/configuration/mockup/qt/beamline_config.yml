@@ -61,7 +61,13 @@ advanced_methods:
   - XrayCentering
 tunable_wavelength: true
 disable_num_passes: false
-run_processing_parallel: false
+run_offline_processing: false
+run_online_processing: true
+offline_processing_methods:
+    - EDNAProc
+    - AutoProc
+online_processing_methods:
+    - Dozor
 run_number: 1
 
 default_acquisition_parameters:

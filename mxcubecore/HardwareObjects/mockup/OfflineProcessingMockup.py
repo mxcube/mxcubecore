@@ -23,7 +23,6 @@ import subprocess
 
 import gevent
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.XSDataCommon import (
     XSDataDouble,
     XSDataFile,
@@ -31,6 +30,8 @@ from mxcubecore.HardwareObjects.XSDataCommon import (
     XSDataString,
 )
 from mxcubecore.HardwareObjects.XSDataAutoprocv1_0 import XSDataAutoprocInput
+from mxcubecore.HardwareObjects.abstract.AbstractProcedure import AbstractProcedure
+from mxcubecore import HardwareRepository as HWR
 
 
 __credits__ = ["EMBL Hamburg"]
@@ -38,91 +39,37 @@ __license__ = "LGPLv3+"
 __category__ = "General"
 
 
-class OfflineProcessingMockup(HardwareObject):
+class OfflineProcessingMockup(AbstractProcedure):
     """Hwobj assembles input xml and launches EDNAproc autoprocessing"""
 
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
-        self.result = None
-        self.autoproc_programs = []
+        AbstractProcedure.__init__(self, name)
+        self.autoproc_programs = None
 
     def init(self):
+        AbstractProcedure.init(self)
         try:
             self.autoproc_programs = self["programs"]
         except KeyError:
-            self.print_log("AutoProcessing: no autoprocessing program defined.")
+            self.print_log("Offline processing: No autoprocessing program defined.")
 
-    def execute_autoprocessing(
-        self, process_event, params_dict, frame_number, run_processing=True
-    ):
-        """Method called from collection hwobj after successfull collection.
-
-        :param process_event: processing type (after, before, image)
-        :type process_event: str
-        :param params_dict: collection parameters
-        :type params_dict: dict
-        :param frame_number: frame number
-        :type frame_number: int
-        :param run_processing: True = run processing or
-                               False = create just input file
-        :type run_processing: bool
-        """
-        self.autoproc_procedure(
-            process_event, params_dict, frame_number, run_processing
-        )
-
-    def autoproc_procedure(
-        self, process_event, params_dict, frame_number, run_processing=True
-    ):
-        """
-        Main autoprocessing procedure. At the beginning correct event (defined
-        in xml) is found. If the event is executable then accordingly to the
-        event type (image, after) then the sequence is executed:
-        Implemented tasks:
-           - after : Main autoprocessing procedure
-                     1. Input file is generated with create_autoproc_input
-                        Input file has a name template
-                        "edna-autoproc-input-%Y%m%d_%H%M%S.xml".
-                     2. Then it waits for XDS.INP directory and if it exists
-                        then creates input file
-                     3. edna_autoprocessing.sh script is
-                        executed with parameters:
-                        - arg1 : generated xml file
-                        - arg2 : process dir
-                     4. script executes EDNA EDPluginControlEDNAproc
-           - image : Thumbnail generation for first and last image
-                     1. No input file is generated
-                     2. edna_thumbnails.sh script is executed with parameters:
-                        - arg1 : image base dir (place where thumb
-                                 will be generated)
-                        - arg2 : file name
-
-        :param process_event: processing type (after, before, image)
-        :type process_event: str
-        :param params_dict: collection parameters
-        :type params_dict: dict
-        :param frame_number: frame number
-        :type frame_number: int
-        :param run_processing: True = run processing or
-                               False = create just input file
-        :type run_processing: bool
-        """
+    def start_procedure(self, data_model):
         for program in self.autoproc_programs:
             if process_event == program.get_property("event"):
                 executable = program.get_property("executable")
 
                 will_execute = True
                 if process_event == "after":
-                    will_execute = run_processing
+                    will_execute = HWR.beamline.run_offline_processing
                     end_of_line_to_execute = " %s %s " % (
-                        params_dict["xds_dir"],
-                        params_dict.get("collection_id"),
+                        data_model["xds_dir"],
+                        data_model.get("collection_id"),
                     )
                 elif process_event == "image":
-                    filename = params_dict["fileinfo"]["template"] % frame_number
+                    filename = params_dict["template"] % data_model["frame_number"]
                     end_of_line_to_execute = " %s %s/%s" % (
-                        params_dict["fileinfo"]["archive_directory"],
-                        params_dict["fileinfo"]["directory"],
+                        data_model["archive_directory"],
+                        data_model["directory"],
                         filename,
                     )
                 if will_execute:

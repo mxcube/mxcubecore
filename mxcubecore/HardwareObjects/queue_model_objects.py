@@ -590,7 +590,7 @@ class DataCollection(TaskNode):
         self.previous_acquisition = None
         self.experiment_type = queue_model_enumerables.EXPERIMENT_TYPE.NATIVE
         self.html_report = str()
-        self.id = int()
+        self.lims_id = int()
         self.lims_group_id = None
         self.run_offline_processing = True
         self.run_online_processing = False
