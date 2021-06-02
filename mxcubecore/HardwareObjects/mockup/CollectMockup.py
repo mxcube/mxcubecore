@@ -59,5 +59,3 @@ class CollectMockup(AbstractCollect):
             time.sleep(acq_params.exp_time)
             self.emit("imageTaken", image)
             self.emit("progressStep", (int(float(image) / acq_params.num_images * 100)))
-
-        #self._set_successful()

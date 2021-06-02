@@ -20,6 +20,7 @@
 
 import time
 import numpy
+import logging
 
 from mxcubecore.HardwareObjects.abstract.AbstractProcedure import ProcedureState
 from mxcubecore.HardwareObjects.abstract.AbstractOnlineProcessing import (
@@ -113,6 +114,9 @@ class OnlineProcessingMockup(AbstractOnlineProcessing):
                 time.sleep(self.params_dict["exp_time"])
             else:
                 break
+        
+        logging.getLogger("HWR").debug("OnlineProcessingMockup: Sleep for 5 sec to simulate a delay...")
+        time.sleep(15)
+        logging.getLogger("HWR").debug("OnlineProcessingMockup: Processing done.")
         self.align_results(0, self.params_dict["images_num"] - 1)
         self.emit("resultsUpdated", True)
-        self._set_successful()

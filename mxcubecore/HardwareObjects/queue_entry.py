@@ -578,6 +578,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.enable_take_snapshots = True
         self.enable_store_in_lims = True
         self.in_queue = False
+        self.online_processing_task = None
 
     def __setstate__(self, d):
         self.__dict__.update(d)
@@ -613,24 +614,22 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             acq_params.centred_position = _p
 
         HWR.beamline.sample_view.de_select_all()
-        self.get_view().setText(1, "TEST")
-        HWR.beamline.collect.start(self.get_data_model())
-        
+
         if (data_model.run_online_processing
             and acq_params.num_images > 4
             and HWR.beamline.online_processing is not None
             ):
-            self.online_processing_task = gevent.spawn(
-                HWR.beamline.online_processing.start, data_model
-            )
+            self.online_processing_task = HWR.beamline.online_processing.start(data_model)
 
-        
+        HWR.beamline.collect.start(self.get_data_model())
+
+        HWR.beamline.collect.wait()
+        HWR.beamline.online_processing.wait(timeout=10)
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
 
         qc = self.get_queue_controller()
-
         qc.connect(HWR.beamline.collect, "procedureStarted", self.collection_started)
         qc.connect(
             HWR.beamline.collect, "procedureSuccessful", self.collection_successful
@@ -641,8 +640,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         if HWR.beamline.online_processing is not None:
             qc.connect(
                 HWR.beamline.online_processing,
-                "procedureFinished",
-                self.online_processing_finished,
+                "procedureSuccessful",
+                self.online_processing_successful,
             )
 
         data_model = self.get_data_model()
@@ -664,8 +663,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         if HWR.beamline.online_processing is not None:
             qc.disconnect(
                 HWR.beamline.online_processing,
-                "procedureFinished",
-                self.online_processing_finished,
+                "procedureSuccessful",
+                self.online_processing_successful,
             )
 
         self.get_view().set_checkable(False)
@@ -783,8 +782,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             )
             self.get_view().setText(1, str(image_number) + "/" + str(num_images))
 
-    def collection_started(self):
-        print("collect started")
+    def collection_started(self, data_model):
         self.get_view().setText(1, "Collecting...")
 
     def collection_error(self, error_msg):
@@ -798,8 +796,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         if self.online_processing_task is not None:
             self.get_view().setText(1, "Processing...")
             logging.getLogger("user_level_log").warning("Online processing: Please wait...")
-            HWR.beamline.online_processing.done_event.wait(timeout=120)
-            HWR.beamline.online_processing.done_event.clear()
+            #HWR.beamline.online_processing.wait(timeout=120)
+            #HWR.beamline.online_processing.done_event.clear()
 
     def stop(self):
         BaseQueueEntry.stop(self)
@@ -815,11 +813,10 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         logging.getLogger("user_level_log").error("Collection stopped")
         raise QueueAbortedException("Queue stopped", self)
 
-    def online_processing_finished(self):
-        dispatcher.send("collect_finished")
+    def online_processing_successful(self, results):
         self.online_processing_task = None
-        # self.get_view().setText(1, "Done")
-        logging.getLogger("user_level_log").info("Processing: Done")
+        self.get_view().setText(1, "Done")
+        logging.getLogger("user_level_log").info("Online processing: Finished")
 
     def online_processing_failed(self):
         self.online_processing_task = None

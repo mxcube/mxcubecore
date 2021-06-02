@@ -69,10 +69,12 @@ class AbstractCollect(AbstractProcedure):
 
     def __init__(self, name):
         AbstractProcedure.__init__(self, name)
+        
         self.bl_config = BeamlineConfig(*[None] * 17)
 
     def init(self):
         AbstractProcedure.init(self)
+
         undulators = []
         try:
             for undulator in self["undulators"]:

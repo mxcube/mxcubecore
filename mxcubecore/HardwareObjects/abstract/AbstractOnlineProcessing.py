@@ -72,6 +72,8 @@ class AbstractOnlineProcessing(AbstractProcedure):
         self.workflow_info = None
 
     def init(self):
+        AbstractProcedure.init(self)
+
         self.ssx_setup = self.get_object_by_role("ssx_setup")
         self.beamstop_hwobj = self.get_object_by_role("beamstop")
         if self.beamstop_hwobj is None:

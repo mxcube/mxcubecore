@@ -273,7 +273,6 @@ class AbstractProcedure(HardwareObject):
             logging.getLogger("HWR").error(self._msg)
         else:
             self._task = gevent.spawn(self._start, data_model)
-
         return self._task
 
     def stop(self):
@@ -285,11 +284,11 @@ class AbstractProcedure(HardwareObject):
         gevent.kill(self._task)
         self._set_stopped()
 
-    def wait(self):
+    def wait(self, timeout=60):
         """
         Waits for procedure to finish execution
 
         Returns:
             None
         """
-        self._ready_event.wait()
+        self._ready_event.wait(timeout=timeout)
