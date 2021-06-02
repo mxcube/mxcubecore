@@ -118,5 +118,6 @@ class OnlineProcessingMockup(AbstractOnlineProcessing):
         logging.getLogger("HWR").debug("OnlineProcessingMockup: Sleep for 5 sec to simulate a delay...")
         time.sleep(5)
         logging.getLogger("HWR").debug("OnlineProcessingMockup: Processing done.")
+        
         self.align_results(0, self.params_dict["images_num"] - 1)
         self.emit("resultsUpdated", True)
