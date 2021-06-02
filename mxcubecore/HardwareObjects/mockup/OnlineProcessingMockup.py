@@ -96,13 +96,16 @@ class OnlineProcessingMockup(AbstractOnlineProcessing):
     def _execute(self, data_model):
         step = 10
         for index in range(self.params_dict["images_num"]):
-            if index > 0 and not index % step:
+            if not index % step:
                 self.align_results(index - step, index)
                 self.print_log(
                     "GUI",
                     "info",
-                    "Parallel processing: Frame %d/%d done"
-                    % (index + 1, self.params_dict["images_num"]),
+                    "Online processing: Frames %d - %d (%s) processed"
+                    % (
+                        index + 1,
+                        index + step,
+                        self.params_dict["images_num"]),
                 )
                 self.emit("resultFrame", index)
                 self.emit("resultsUpdated", False)

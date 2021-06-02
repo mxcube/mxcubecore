@@ -147,7 +147,6 @@ class AbstractProcedure(HardwareObject):
         Returns:
 
         """
-        print("started!")
         self._state = ProcedureState.BUSY
         self.emit("procedureStarted", data_model)
 

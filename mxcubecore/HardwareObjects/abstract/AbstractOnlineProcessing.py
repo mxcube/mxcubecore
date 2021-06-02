@@ -88,9 +88,7 @@ class AbstractOnlineProcessing(AbstractProcedure):
         """
         Emits procedureStarted signal
         Returns:
-
         """
-        print("started!")
         self._state = ProcedureState.BUSY
         # Modified data_model is emited in the pre_execute method
         #self.emit("procedureStarted", data_model)
