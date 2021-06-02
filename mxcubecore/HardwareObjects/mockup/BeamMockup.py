@@ -38,13 +38,13 @@ class BeamMockup(AbstractBeam):
 
         self._beam_size_dict["slits"] = [9999, 9999]
         self._beam_size_dict["aperture"] = [9999, 9999]
-        
+        self._beam_position_on_screen = [318, 238]
+        self._beam_divergence = (0, 0)
 
     def init(self):
         AbstractBeam.init(self)
         
         self._beam_position_on_screen = [318, 238]
-
 
         self._aperture = self.get_object_by_role("aperture")
         if self._aperture is not None:
@@ -54,6 +54,7 @@ class BeamMockup(AbstractBeam):
 
             ad = self._aperture.get_diameter_size() / 1000.0
             self._beam_size_dict["aperture"] = [ad, ad]
+            self._beam_info_dict["label"] = self._aperture.get_diameter_size()
 
         self._slits = self.get_object_by_role("slits")
         if self._slits is not None:
@@ -74,6 +75,7 @@ class BeamMockup(AbstractBeam):
             size (float): diameter size in microns
         """
         self._beam_size_dict["aperture"] = [size, size]
+        self._beam_info_dict["lable"] = int(size * 1000)
         self.evaluate_beam_info()
         self.re_emit_values()
 
@@ -97,6 +99,9 @@ class BeamMockup(AbstractBeam):
         """
         self._beam_position_on_screen = (beam_x, beam_y)
         self.emit("beamPosChanged", (self._beam_position_on_screen,))
+
+    def get_value(self):
+        return list(self.get_beam_info_dict().values())
 
     def get_slits_gap(self):
         """
@@ -122,3 +127,10 @@ class BeamMockup(AbstractBeam):
         """
         if self._aperture:
             return self._aperture.get_current_pos_name()
+
+    def get_available_size(self):
+        aperture_list = self._aperture.get_diameter_size_list()
+        return {"type": "enum", "values": aperture_list}
+
+    def set_value(self, value):
+        self._aperture.set_diameter_size(value)
