@@ -358,6 +358,14 @@ class ISPyBClientMockup(HardwareObject):
         pass
 
     def get_samples(self, proposal_id, session_id):
+
+        # Try GPhL emulation samples, if available
+        gphl_workflow = HWR.beamline.gphl_workflow
+        if gphl_workflow is not None:
+            sample_dicts = gphl_workflow.get_emulation_samples()
+            if sample_dicts:
+                return sample_dicts
+
         return [
             {
                 "cellA": 0.0,

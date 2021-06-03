@@ -374,7 +374,13 @@ class SelectedLattice(MessageData):
 
     INTENT = "DOCUMENT"
 
-    def __init__(self, lattice_format, solution):
+    def __init__(
+        self,
+        lattice_format,
+        solution,
+        strategyResolution=None,
+        strategyWavelength=None,
+        strategyControl=None):
         if lattice_format in INDEXING_FORMATS:
             self._lattice_format = lattice_format
         else:
@@ -383,6 +389,9 @@ class SelectedLattice(MessageData):
                 % (lattice_format, INDEXING_FORMATS)
             )
         self._solution = tuple(solution)
+        self._strategyResolution = strategyResolution
+        self._strategyWavelength = strategyWavelength
+        self._strategyControl = strategyControl
 
     @property
     def lattice_format(self):
@@ -393,6 +402,22 @@ class SelectedLattice(MessageData):
     def solution(self):
         """Tuple of strings containing proposed solution"""
         return self._solution
+
+    @property
+    def strategyResolution(self):
+        """Resolution to use for strategy calculation and acquisition"""
+        return self._strategyResolution
+
+    @property
+    def strategyWavelength(self):
+        """Wavelength to use for strategy calculation adn acquisition"""
+        return self._strategyWavelength
+
+    @property
+    def strategyControl(self):
+        """JSON string of command line options (*without* prefix)
+        to use for startcal wrapper call"""
+        return self._strategyControl
 
 
 class CollectionDone(MessageData):
@@ -646,7 +671,10 @@ class PositionerSetting(IdentifiedElement):
                 "Programming error -"
                 " attempt to instantiate abstract class PositionerSetting"
             )
-
+        if None in axisSettings.values():
+            raise ValueError(
+                "axisSettings contain value None: %s" % sorted(axisSettings.items())
+            )
         self._axisSettings = axisSettings.copy()
 
     @property
@@ -696,6 +724,15 @@ class GoniostatRotation(PositionerSetting):
 
         NB This link can be set only by GoniostatTranslation.__init__"""
         return self._translation
+
+    def get_motor_settings(self):
+        """Get dictionary of rotation and translation motor setting"""
+        result = dict(self.axisSettings)
+        translation = self.translation
+        if translation is not None:
+            result.update(translation.axisSettings)
+        #
+        return result
 
 
 class GoniostatSweepSetting(GoniostatRotation):
@@ -877,14 +914,9 @@ class Sweep(IdentifiedElement):
         self._scans.add(scan)
 
     def get_initial_settings(self):
-        """Get dictionary of rotation motor settings for start of sweep"""
-
-        sweepSetting = self.goniostatSweepSetting
-        result = dict(sweepSetting.axisSettings)
-        translation = sweepSetting.translation
-        if translation is not None:
-            result.update(translation.axisSettings)
-        result[sweepSetting.scanAxis] = self.start
+        """Get dictionary of rotation and translation motor settings for start of sweep"""
+        result = self.goniostatSweepSetting.get_motor_settings()
+        result[self.goniostatSweepSetting.scanAxis] = self.start
         #
         return result
 
@@ -945,6 +977,8 @@ class GeometricStrategy(IdentifiedElement, Payload):
         defaultDetectorSetting,
         defaultBeamSetting,
         allowedWidths=(),
+        sweepOffset=None,
+        sweepRepeat=None,
         defaultWidthIdx=None,
         sweeps=(),
         id_=None,
@@ -966,9 +1000,20 @@ class GeometricStrategy(IdentifiedElement, Payload):
         else:
             self._allowedWidths = tuple(allowedWidths)
 
+        self._sweepOffset = sweepOffset
+        self._sweepRepeat = sweepRepeat
+
     @property
     def isInterleaved(self):
         return self._isInterleaved
+
+    @property
+    def sweepRepeat(self):
+        return self._sweepRepeat
+
+    @property
+    def sweepOffset(self):
+        return self._sweepOffset
 
     @property
     def isUserModifiable(self):
@@ -997,20 +1042,18 @@ class GeometricStrategy(IdentifiedElement, Payload):
     def get_ordered_sweeps(self):
         """Get sweeps in acquisition order.
 
-        WARNING we do not have the necessary information.
-        So we sort in increasing order by angles, in alphabetical name order,
+        Acquisition order is determined by the sweepGroup -
+        to get results deterministic we use a secondary sort on
+        angles, in alphabetical name order as a backup,
         (in pracite, 'kappa', 'kappa_phi', 'phi')
-        HORRIBLE HACK, but as it happens this will give
-        at least the first one correct mostly
-        and anyway is the best approximation we have
-
-        TODO get this right, once the workflow allows"""
+        which should match what the workflow does internally.
+        Anyway, it is the sweep"""
         ll0 = []
         for sweep in self._sweeps:
             dd0 = sweep.get_initial_settings()
-            ll0.append((tuple(dd0[x] for x in sorted(dd0)), sweep))
+            ll0.append((sweep.sweepGroup, tuple(dd0[x] for x in sorted(dd0)), sweep))
         #
-        return list(tt0[1] for tt0 in sorted(ll0))
+        return list(tt0[2] for tt0 in sorted(ll0))
 
 
 class CollectionProposal(IdentifiedElement, Payload):
