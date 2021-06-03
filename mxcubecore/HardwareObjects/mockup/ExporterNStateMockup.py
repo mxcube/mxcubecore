@@ -92,13 +92,6 @@ class ExporterNStateMockup(AbstractNState):
         """
         return self._value2state(self._mock_state)
 
-    def get_hwstate(self):
-        """Get the device hardware state.
-        Returns:
-            (enum 'HardwareObjectState'): Device state.
-        """
-        return self._value2state(self._mock_state)
-
     def abort(self):
         """Stop the action."""
         pass
