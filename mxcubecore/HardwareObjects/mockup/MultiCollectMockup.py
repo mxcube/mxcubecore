@@ -259,43 +259,43 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
     def get_beam_centre(self):
         return None, None
 
-    def getBeamlineConfiguration(self, *args):
+    def get_beamline_configuration(self, *args):
         return self.bl_config._asdict()
 
-    def isConnected(self):
+    def is_connected(self):
         return True
 
     def is_ready(self):
         return True
 
-    def sampleChangerHO(self):
+    def sample_changer_HO(self):
         return self.bl_control.sample_changer
 
     def diffractometer(self):
         return self.bl_control.diffractometer
 
-    def sanityCheck(self, collect_params):
+    def sanity_check(self, collect_params):
         return
 
-    def setBrick(self, brick):
+    def set_brick(self, brick):
         return
 
-    def directoryPrefix(self):
+    def directory_prefix(self):
         return self.bl_config.directory_prefix
 
     def store_image_in_lims(self, frame, first_frame, last_frame):
         return True
 
-    def getOscillation(self, oscillation_id):
+    def get_oscillation(self, oscillation_id):
         return self.oscillations_history[oscillation_id - 1]
 
-    def sampleAcceptCentring(self, accepted, centring_status):
+    def sample_accept_centring(self, accepted, centring_status):
         self.sample_centring_done(accepted, centring_status)
 
-    def setCentringStatus(self, centring_status):
+    def set_centring_status(self, centring_status):
         self._centring_status = centring_status
 
-    def getOscillations(self, session_id):
+    def get_oscillations(self, session_id):
         return []
 
     def set_helical(self, helical_on):
