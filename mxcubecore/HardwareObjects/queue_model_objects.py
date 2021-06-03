@@ -445,6 +445,11 @@ class Sample(TaskNode):
 
         self.loc_str = str(self.lims_location[0]) + ":" + str(self.lims_location[1])
 
+        if hasattr(lims_sample, "containerCode"):
+            self.container_code = str(lims_sample.containerCode)
+        else:
+            self.container_code = str(lims_sample.get("containerCode"))
+
         if hasattr(lims_sample, "diffractionPlan"):
             self.diffraction_plan = lims_sample.diffractionPlan
 
@@ -543,6 +548,16 @@ class Basket(TaskNode):
 
     def get_sample_list(self):
         return self.sample_list
+
+    def get_display_name(self):
+        display_name = self.name
+        if self.sample_list:
+            for sample in self.sample_list:
+                if sample.container_code:
+                    display_name += " (%s)" % sample.container_code
+                    break
+
+        return display_name
 
 
 class DataCollection(TaskNode):
@@ -1849,19 +1864,25 @@ class GphlWorkflow(TaskNode):
         self._characterisation_strategy = str()
         self._interleave_order = str()
         self._number = 0
-        self._beam_energies = OrderedDict()
+        self._beam_energy_tags = ("Acquisition",)
         self._detector_resolution = None
         self._space_group = None
         self._crystal_system = None
         self._point_group = None
         self._cell_parameters = None
-        self._snapshot_count = None
-        self._centre_before_sweep = None
-        self._centre_before_scan = None
+        self._snapshot_count = int(
+            workflow_hwobj.getProperty("default_snapshot_count", 0)
+        )
+        self._recentring_mode = str()
+        self._current_rotation_id = None
 
         self._dose_budget = None
-        self._characterisation_budget_fraction = 1.0
+        self._decay_limit = workflow_hwobj.getProperty("default_decay_limit", 25)
+        self._characterisation_budget_fraction = 0.05
         self._relative_rad_sensitivity = 1.0
+        self._dose_consumed = 0.0
+        self._exposure_time = 0.0
+        self._image_width = 0.0
 
         # HACK - to differentiate between characterisation and acquisition
         # TODO remove when workflow gives relevant information
@@ -1895,13 +1916,13 @@ class GphlWorkflow(TaskNode):
     # Starting run number. Unnecessary.
     # Left in as it is modified by signal when edited.
     def get_number(self):
-        logging.getLogger().warning(
+        logging.getLogger().debug(
             "Attempt to get unused attribute GphlWorkflow.number"
         )
         return None
 
     def set_number(self, value):
-        logging.getLogger().warning(
+        logging.getLogger().debug(
             "Attempt to set unused attribute GphlWorkflow.number"
         )
 
@@ -1913,11 +1934,11 @@ class GphlWorkflow(TaskNode):
         self._detector_resolution = value
 
     # role:value beam_energy dictionary (in keV)
-    def get_beam_energies(self):
-        return self._beam_energies.copy()
+    def get_beam_energy_tags(self):
+        return self._beam_energy_tags
 
-    def set_beam_energies(self, value):
-        self._beam_energies = OrderedDict(value)
+    def set_beam_energy_tags(self, value):
+        self._beam_energy_tags = tuple(value)
 
     # Space Group.
     def get_space_group(self):
@@ -1954,6 +1975,32 @@ class GphlWorkflow(TaskNode):
     def set_dose_budget(self, value):
         self._dose_budget = value
 
+    # Decay limit. smallest relative intensity allowed - used for setting dose budget.
+    def get_decay_limit(self):
+        return self._decay_limit
+
+    def set_decay_limit(self, value):
+        self._decay_limit = value
+
+    # Dose already consumed, typically in characterisation
+    def get_dose_consumed(self):
+        return self._dose_consumed
+
+    def set_dose_consumed(self, value):
+        self._dose_consumed = value
+
+    def get_exposure_time(self):
+        return self._exposure_time
+
+    def set_exposure_time(self, value):
+        self._exposure_time = value
+
+    def get_image_width(self):
+        return self._image_width
+
+    def set_image_width(self, value):
+        self._image_width = value
+
     # Fraction of dose budget intended for characterisation.
     def get_characterisation_budget_fraction(self):
         return self._characterisation_budget_fraction
@@ -1989,26 +2036,24 @@ class GphlWorkflow(TaskNode):
         self._snapshot_count = value
 
     # (Re)centre before each sweep?.
-    def get_centre_before_sweep(self):
-        return self._centre_before_sweep
+    def get_recentring_mode(self):
+        return self._recentring_mode
 
-    def set_centre_before_sweep(self, value):
-        self._centre_before_sweep = bool(value)
+    def set_recentring_mode(self, value):
+        self._recentring_mode = value
 
-    # (Re)centre before each scan?.
-    def get_centre_before_scan(self):
-        return self._centre_before_scan
+    # id_ of GonioostatRotation matching current goniostat position
+    def get_current_rotation_id(self):
+        return self._current_rotation_id
 
-    def set_centre_before_scan(self, value):
-        self._centre_before_scan = bool(value)
+    def set_current_rotation_id(self, value):
+        self._current_rotation_id = value
 
     def get_path_template(self):
         return self.path_template
 
     def get_workflow_parameters(self):
-        result = HWR.beamline.gphl_workflow.get_available_workflows().get(
-           self.get_type()
-        )
+        result = self.workflow_hwobj.get_available_workflows().get(self.get_type())
         if result is None:
            raise RuntimeError(
                "No parameters for unknown workflow %s" % repr(self.get_type())
@@ -2099,7 +2144,8 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
     acq_params = acquisition.acquisition_parameters
     proc_params = data_collection.processing_parameters
 
-    return [
+
+    result = [
         {
             "comments": acq_params.comments,
             "take_video": acq_params.take_video,
@@ -2163,6 +2209,19 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
             "motors": centred_pos.as_dict() if centred_pos is not None else {},
         }
     ]
+
+    # NBNB HACK. These start life as default values, and you do NOT want to keep
+    # resetting the beamline to the current value,
+    # as this causes unnecessary hardware activities
+    # So remove them altogether if the value is (was excplicitly set to)  None or 0
+    dd = result[0]
+    for tag in ('detector_distance', 'energy', 'transmission'):
+        if tag in dd and not dd[tag]:
+            del dd[tag]
+    resolution = dd.get('resolution')
+    if resolution is not None and not resolution.get('upper'):
+        del dd['resolution']
+    return result
 
 
 def create_subwedges(total_num_images, sw_size, osc_range, osc_start):
