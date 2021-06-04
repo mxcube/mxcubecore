@@ -69,12 +69,12 @@ class ExporterNStateMockup(AbstractNState):
         if not state:
             state = self.get_state()
         else:
-            state = self._value2state(state)
+            state = self._str2state(state)
 
             return self.update_state(state)
 
-    def _value2state(self, state):
-        """Convert string state to HardwareObjectState enum value
+    def _str2state(self, state):
+        """Convert string state to HardwareObjectState enum value.
         Args:
             state (str): the state
         Returns:
@@ -90,7 +90,7 @@ class ExporterNStateMockup(AbstractNState):
         Returns:
             (enum 'HardwareObjectState'): Device state.
         """
-        return self._value2state(self._mock_state)
+        return self._str2state(self._mock_state)
 
     def abort(self):
         """Stop the action."""

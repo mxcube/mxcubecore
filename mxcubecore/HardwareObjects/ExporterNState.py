@@ -114,11 +114,11 @@ class ExporterNState(AbstractNState):
         if not state:
             state = self.get_state()
         else:
-            state = self._value2state(state)
+            state = self._str2state(state)
         return self.update_state(state)
 
-    def _value2state(self, state):
-        """Convert string state to HardwareObjectState enum value
+    def _str2state(self, state):
+        """Convert string state to HardwareObjectState enum value.
         Args:
             state (str): the state
         Returns:
@@ -135,7 +135,7 @@ class ExporterNState(AbstractNState):
             (enum 'HardwareObjectState'): Device state.
         """
         state = self.state_channel.get_value()
-        return self._value2state(state)
+        return self._str2state(state)
 
     def abort(self):
         """Stop the action."""
