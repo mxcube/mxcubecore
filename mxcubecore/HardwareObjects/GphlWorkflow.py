@@ -241,7 +241,7 @@ class GphlWorkflow(HardwareObject, object):
 
             else:
                 wf_dict["options"] = dd0 = mx_workflow_options.copy()
-                if wf_node.hasObject("options"):
+                if wf_node.has_object("options"):
                     dd0.update(wf_node["options"].get_properties())
 
             beam_energy_tags = wf_node.get_property("beam_energy_tags")

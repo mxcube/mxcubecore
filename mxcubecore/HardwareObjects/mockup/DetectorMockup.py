@@ -31,21 +31,22 @@ class DetectorMockup(AbstractDetector):
         self._exposure_time_limits = [0.04, 60000]
         self.update_state(self.STATES.READY)
 
+        """Get approx detector centre (default to Pilatus values)"""
+        xval = self.get_property('width', 2463)/2. + 0.4
+        yval = self.get_property('height', 2527)/2. + 0.4
+        self._beam_centre = (xval, yval)
+
     def has_shutterless(self):
         """Returns always True
         """
         return True
 
-    def get_beam_position(self, distance=None, wavelength=None):
-        """Get approx detector centre """
-        xval, yval = super(DetectorMockup, self).get_beam_position(
-            distance=distance, wavelength=wavelength
-        )
-        if None in (xval, yval):
-            # default to Pilatus values
-            xval = self.get_property("width", 2463) / 2.0 + 0.4
-            yval = self.get_property("height", 2527) / 2.0 + 0.4
-        return xval, yval
+    def get_beam_centre(self):
+        return  self._beam_centre
+
+    def _set_beam_centre(self, beam_centre):
+        # Needed for GPhL collection emulation
+        self._beam_centre = beam_centre
 
     def prepare_acquisition(self, *args, **kwargs):
         """
