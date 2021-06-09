@@ -93,8 +93,8 @@ class AbstractFlux(AbstractActuator):
 
         """
 
-        beam_size = HWR.beamline.beam_info.get_beam_size()
-        flux = HWR.beamline.flux.get_flux()
+        beam_size = HWR.beamline.beam.get_beam_size()
+        flux = self.get_value()
         result = None
         if flux and all(beam_size):
             result = flux / (beam_size[0] * beam_size[1])

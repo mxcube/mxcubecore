@@ -20,23 +20,20 @@
     <!--</program>-->
   <!--</auto_processing>-->
 
-  <override_data_directories>
+<!--  <override_data_directories>-->
     <!-- If override_data_directories is set, it must contain the three base directories -->
     <!-- and may contain raw_folder, process_folder, and archive_folder -->
-<!--    <base_directory>/scratch_fs1/rhfogh/mxcube_base_dir</base_directory>-->
-<!--    <base_process_directory>/scratch_fs1/rhfogh/mxcube_base_dir</base_process_directory>-->
-<!--    <base_archive_directory>/scratch_fs1/rhfogh/mxcube_base_dir</base_archive_directory>-->
-    <base_directory>/mnt/scratch/rhfogh/mxcube_data</base_directory>
-    <base_process_directory>/mnt/scratch/rhfogh/mxcube_data</base_process_directory>
-    <base_archive_directory>/mnt/scratch/rhfogh/mxcube_data</base_archive_directory>
-  </override_data_directories>
+    <base_directory>/scratch_fs1/rhfogh/mxcube_base_dir</base_directory>
+    <base_process_directory>/scratch_fs1/rhfogh/mxcube_base_dir</base_process_directory>
+    <base_archive_directory>/scratch_fs1/rhfogh/mxcube_base_dir</base_archive_directory>
+<!--    <base_directory>/mnt/scratch/rhfogh/mxcube_data</base_directory>-->
+<!--    <base_process_directory>/mnt/scratch/rhfogh/mxcube_data</base_process_directory>-->
+<!--    <base_archive_directory>/mnt/scratch/rhfogh/mxcube_data</base_archive_directory>-->
+<!--  </override_data_directories>-->
 
   <directory_prefix>emulator</directory_prefix>
 
   <!-- From here on specific to emulator -->
-
-  <!-- Name of default test sample to use - source of input parameter file -->
-  <default_sample_name>4k61</default_sample_name>
 
   <!-- All simcal_parameters are passed to the simcal input namelist file -->
   <!-- See Simcal documentation for more parameters and options -->
@@ -58,11 +55,13 @@
   <!-- NB - these options are prefixed with a double hyphen -->
   <simcal_options>
     <!-- Simcal memory pool option, in Gb - should be 50-66% of available memory -->
-    <memory-pool>9</memory-pool>
+    <memory-pool>6</memory-pool>
     <!-- Default is 1.0. Too low makes for 'insufficient spots', -->
     <!-- too high for 'insufficient indexed fraction' errors -->
     <!-- For now all test hkli files are sdcaled to work with scale 1.0 -->
     <hkl-scale>1.0</hkl-scale>
+    <!-- NB set specifically for 5yav PONLY -->
+<!--    <hkl-scale>0.1</hkl-scale>-->
   </simcal_options>
 
   <!-- Both thread number variables should be less than all available threads -->

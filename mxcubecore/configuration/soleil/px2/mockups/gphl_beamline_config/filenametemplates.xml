@@ -71,9 +71,9 @@ Element names are tied to the beamline or workflow and cannot be modified
         </element>
 
         <element xsi:type="tet:ImageNumberMask">
-            <maxWidth>5</maxWidth>
+            <maxWidth>4</maxWidth>
             <minWidth>
-                <width>5</width>
+                <width>4</width>
                 <leftJustify>false</leftJustify>
                 <padding>0</padding>
             </minWidth>
@@ -118,9 +118,9 @@ Element names are tied to the beamline or workflow and cannot be modified
         </element>
 
         <element xsi:type="tet:ImageNumberMask">
-            <maxWidth>5</maxWidth>
+            <maxWidth>6</maxWidth>
             <minWidth>
-                <width>5</width>
+                <width>6</width>
                 <leftJustify>false</leftJustify>
                 <padding>0</padding>
             </minWidth>
@@ -173,9 +173,9 @@ Element names are tied to the beamline or workflow and cannot be modified
         </element>
 
         <element xsi:type="tet:ImageNumberMask">
-            <maxWidth>5</maxWidth>
+            <maxWidth>6</maxWidth>
             <minWidth>
-                <width>5</width>
+                <width>6</width>
                 <leftJustify>false</leftJustify>
                 <padding>0</padding>
             </minWidth>
@@ -233,9 +233,9 @@ Element names are tied to the beamline or workflow and cannot be modified
         </element>
 
         <element xsi:type="tet:ImageNumberMask">
-            <maxWidth>5</maxWidth>
+            <maxWidth>6</maxWidth>
             <minWidth>
-                <width>5</width>
+                <width>6</width>
                 <leftJustify>false</leftJustify>
                 <padding>0</padding>
             </minWidth>
@@ -285,9 +285,9 @@ Element names are tied to the beamline or workflow and cannot be modified
         </element>
 
         <element xsi:type="tet:ImageNumberMask">
-            <maxWidth>5</maxWidth>
+            <maxWidth>6</maxWidth>
             <minWidth>
-                <width>5</width>
+                <width>6</width>
                 <leftJustify>false</leftJustify>
                 <padding>0</padding>
             </minWidth>
@@ -381,6 +381,5 @@ Element names are tied to the beamline or workflow and cannot be modified
         <mapsTo>Beamline</mapsTo>
 
     </c:filenamePatternMapping>
-    
 
 </xml-fragment>

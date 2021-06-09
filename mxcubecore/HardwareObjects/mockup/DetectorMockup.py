@@ -42,7 +42,7 @@ class DetectorMockup(AbstractDetector):
         """
         return True
 
-    def get_beam_centre(self):
+    def get_beam_centre(self, distance=None, wavelength=None):
         return  self._beam_centre
 
     def _set_beam_centre(self, beam_centre):

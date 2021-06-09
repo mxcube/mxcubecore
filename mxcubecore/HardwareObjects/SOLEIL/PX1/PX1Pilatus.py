@@ -103,7 +103,7 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         """Return True if has shutterless mode"""
         return True
 
-    def get_beam_centre(self):
+    def get_beam_centre(self, distance=None, wavelength=None):
         """Returns beam center coordinates"""
         beam_x = 0
         beam_y = 0

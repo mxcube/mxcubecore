@@ -225,6 +225,9 @@ class GenericDiffractometer(HardwareObject):
         self.connect(self, "equipmentReady", self.equipment_ready)
         self.connect(self, "equipmentNotReady", self.equipment_not_ready)
 
+        # HACK
+        self.get_motor_positions = self.get_positions
+
     def init(self):
         # Internal values -----------------------------------------------------
         self.ready_event = gevent.event.Event()
