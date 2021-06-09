@@ -37,7 +37,6 @@ from collections import OrderedDict
 
 import gevent
 import gevent.event
-import gevent._threading
 import f90nml
 
 
@@ -83,7 +82,6 @@ class GphlWorkflow(HardwareObject, object):
 
     def __init__(self, name):
         super(GphlWorkflow, self).__init__(name)
-        self._state = self.STATES.OFF
 
         # Needed to allow methods to put new actions on the queue
         # And as a place to get hold of other objects
@@ -138,6 +136,8 @@ class GphlWorkflow(HardwareObject, object):
             "WorkflowCompleted": self.workflow_completed,
             "WorkflowFailed": self.workflow_failed,
         }
+
+        self._state = self.STATES.OFF
 
     def setup_workflow_object(self):
         """Necessary as this set-up cannot be done at init,
@@ -280,10 +280,21 @@ class GphlWorkflow(HardwareObject, object):
         else:
             raise RuntimeError("GphlWorkflow set to invalid state: s" % value)
 
-    def abort(self, message=None):
-        logging.getLogger("HWR").info("MXCuBE aborting current GPhL workflow")
-        if HWR.beamline.gphl_connection is not None:
-            HWR.beamline.gphl_connection.abort_workflow(message=message)
+    # # NB This was called only from GphlWorkflowQueueEntry.stop()
+    # # Abort from data dialog abort buttons go directly to the execute() queue
+    # # Abort from the Queue stop command stop execution and call post_execute
+    # # Abort originated in Java workflow send back an abort message.
+    # # As of now there is no need for this function
+    # def abort(self, message=None):
+    #     logging.getLogger("HWR").info("MXCuBE aborting current GPhL workflow")
+
+    def pre_execute(self, queue_entry):
+
+        self._queue_entry = queue_entry
+
+        if self.get_state() == self.STATES.OFF:
+            HWR.beamline.gphl_connection.open_connection()
+            self.set_state(self.STATES.READY)
 
     def execute(self):
 
@@ -302,7 +313,7 @@ class GphlWorkflow(HardwareObject, object):
             )
 
         self.set_state(self.STATES.BUSY)
-        self._workflow_queue = gevent._threading.Queue()
+        self._workflow_queue = gevent.queue.Queue()
 
         # Fork off workflow server process
         HWR.beamline.gphl_connection.start_workflow(
@@ -487,7 +498,7 @@ class GphlWorkflow(HardwareObject, object):
             )
 
         # set starting and unchanging values of parameters
-        acq_parameters = HWR.beamline.beamline_setup.get_default_acquisition_parameters()
+        acq_parameters = HWR.beamline.get_default_acquisition_parameters()
 
         resolution = HWR.beamline.resolution.get_value()
 
@@ -507,7 +518,7 @@ class GphlWorkflow(HardwareObject, object):
         flux_density = HWR.beamline.flux.get_average_flux_density(transmission=100.0)
         if flux_density:
             std_dose_rate = (
-                HWR.beamline.flux.dose_rate_per_photon_per_mmsq(initial_energy)
+                HWR.beamline.flux.get_dose_rate_per_photon_per_mmsq(initial_energy)
                 * flux_density
                 * 1.0e-6  # convert to MGy/s
             )
@@ -1411,7 +1422,7 @@ class GphlWorkflow(HardwareObject, object):
             # Edna also sets osc_end
 
             # Path_template
-            path_template = HWR.beamline.beamline_setup.get_default_path_template()
+            path_template = HWR.beamline.get_default_path_template()
             # Naughty, but we want a clone, right?
             # NBNB this ONLY works because all the attributes are immutable values
             path_template.__dict__.update(master_path_template.__dict__)

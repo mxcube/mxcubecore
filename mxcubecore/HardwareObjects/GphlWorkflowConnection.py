@@ -31,15 +31,20 @@ import uuid
 import signal
 import time
 
-import gevent.monkey
-import gevent.event
-from py4j import clientserver
+from py4j import clientserver, java_gateway
 
 from mxcubecore import ConvertUtils
 from mxcubecore.HardwareObjects import GphlMessages
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
+
+# NB this is patching the original socket module in to avoid the
+# monkeypatched version we get from gevent - that causes errors.
+# It depends on knowing where in py4j socket is imported
+# Hacky, but the best solutoin to making py4j and gevent compatible
+java_gateway.socket = HWR.original_socket
+clientserver.socket = HWR.original_socket
 
 try:
     # Needed for 3.6(?) onwards
@@ -180,25 +185,11 @@ class GphlWorkflowConnection(HardwareObject, object):
             (", ".join("%s:%s" % tt0 for tt0 in sorted(params.items()))),
         )
 
-        # set sockets and threading to standard before running py4j
-        # NBNB this can cause ERRORS if socket or thread have been
-        # patched with non-default parameters
-        # It is the best we can do, though
-        #
-        # These should use is_module_patched,
-        # but that is not available in gevent 1.0
-        socket_patched = "socket" in gevent.monkey.saved
-        reload(socket)
-        try:
-            self._gateway = clientserver.ClientServer(
-                java_parameters=clientserver.JavaParameters(**java_parameters),
-                python_parameters=clientserver.PythonParameters(**python_parameters),
-                python_server_entry_point=self,
-            )
-        finally:
-            # patch back to starting state
-            if socket_patched:
-                gevent.monkey.patch_socket()
+        self._gateway = clientserver.ClientServer(
+            java_parameters=clientserver.JavaParameters(**java_parameters),
+            python_parameters=clientserver.PythonParameters(**python_parameters),
+            python_server_entry_point=self,
+        )
 
     def start_workflow(self, workflow_queue, workflow_model_obj):
 

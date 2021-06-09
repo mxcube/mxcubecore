@@ -30,7 +30,7 @@ Implemented methods:
     stop_acquisition
     get_pixel_size, get_width, get_heigth, get_metadata
     get_radius, get_outer_radius
-    get_beam_position
+    get_beam_centre
     get_roi_mode, set_roi_mode, get_roi_mode_name, get_roi_modes
     get_exposure_time_limits
     get_threshold_energy, set_threshold_energy
@@ -206,7 +206,7 @@ class AbstractDetector(HardwareObject):
         """
         self._binning_mode = value
 
-    def get_beam_position(self, distance=None, wavelength=None):
+    def get_beam_centre(self, distance=None, wavelength=None):
         """Calculate the beam position for a given distance.
         Args:
             distance (float): detector distance [mm]
@@ -246,7 +246,7 @@ class AbstractDetector(HardwareObject):
         except AttributeError:
             raise RuntimeError("Cannot calculate radius, distance unknown")
 
-        beam_x, beam_y = self.get_beam_position(distance)
+        beam_x, beam_y = self.get_beam_centre(distance=distance)
         pixel_x, pixel_y = self.get_pixel_size()
         rrx = min(self.get_width() - beam_x, beam_x) * pixel_x
         rry = min(self.get_height() - beam_y, beam_y) * pixel_y
@@ -265,7 +265,7 @@ class AbstractDetector(HardwareObject):
             distance = distance or self._distance_motor_hwobj.get_value()
         except AttributeError:
             raise RuntimeError("Cannot calculate outer radius, distance unknown")
-        beam_x, beam_y = self.get_beam_position(distance)
+        beam_x, beam_y = self.get_beam_centre(distance=distance)
         pixel_x, pixel_y = self.get_pixel_size()
         max_delta_x = max(beam_x, self.width - beam_x) * pixel_x
         max_delta_y = max(beam_y, self.height - beam_y) * pixel_y
