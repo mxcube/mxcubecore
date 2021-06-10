@@ -1000,7 +1000,7 @@ class GphlWorkflow(HardwareObject, object):
                 % new_resolution
             )
             # timeout in seconds: max move is ~2 meters, velocity 4 cm/sec
-            HWR.beamline.resolution.move(new_resolution, timeout=60)
+            HWR.beamline.resolution.set_value(new_resolution, timeout=60)
 
         snapshot_count = parameters.pop("snapshot_count", None)
         if snapshot_count is not None:
@@ -1191,9 +1191,9 @@ class GphlWorkflow(HardwareObject, object):
                 )
                 goniostatTranslations.append(translation)
 
-        orgxy = HWR.beamline.detector.get_beam_centre_pix()
+        orgxy = HWR.beamline.detector.get_beam_centre()
         resolution = HWR.beamline.resolution.get_value()
-        distance = HWR.beamline.detector_distance.get_position()
+        distance = HWR.beamline.detector.distance.get_value()
         dds = geometric_strategy.defaultDetectorSetting
         if distance == dds.axisSettings.get("Distance"):
             id_ = dds._id
@@ -1364,7 +1364,7 @@ class GphlWorkflow(HardwareObject, object):
         sweep_offset = geometric_strategy.sweepOffset
         scan_count = len(scans)
 
-        if repeat_count and sweep_offset and self.get_roperty("use_multitrigger"):
+        if repeat_count and sweep_offset and self.get_property("use_multitrigger"):
             # commpress unrolled multi-trigger sweep
             # NBNB as of 202103 this is only allowed for a single sweep
             #
@@ -1612,7 +1612,7 @@ class GphlWorkflow(HardwareObject, object):
                     % new_resolution
                 )
                 # timeout in seconds: max move is ~2 meters, velocity 4 cm/sec
-                HWR.beamline.resolution.move(new_resolution, timeout=60)
+                HWR.beamline.resolution.set_value(new_resolution, timeout=60)
                 resolution = new_resolution
         kwArgs["strategyResolution"] = resolution
 
