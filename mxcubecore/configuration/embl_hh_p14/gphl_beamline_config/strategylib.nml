@@ -46,6 +46,23 @@ length_deg= 1.2
 start_deg= 0.0
 /
 
+! ################### One 24deg sweep
+
+&sdcp_strategy_list
+strategy_name= 'Char_24deg'
+type= 'geometric'
+allowed_widths= 0.02 0.03 0.04 0.05 0.06 0.08 0.1 0.12 0.15 0.2 0.3 0.4
+default_width_idx= 6
+/
+
+&stratcal_sweep_list
+goniostat_setting_id= 'gset01'
+detector_setting_id= 'dset01'
+beam_setting_id= 'bset01'
+length_deg= 24.0
+start_deg= 0.0
+/
+
 ! ################### 6deg/5 characteristation strategy sweepOverlap
 
 &sdcp_strategy_list

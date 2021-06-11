@@ -132,7 +132,7 @@ class CollectEmulator(CollectMockup):
                 setup_data[tag] = val
 
         setup_data["det_org_x"], setup_data["det_org_y"] = (
-            HWR.beamline.detector.get_beam_centre()
+            HWR.beamline.detector.get_beam_position()
         )
 
         ll0 = self.instrument_data["gonio_axis_dirs"]
@@ -262,7 +262,7 @@ class CollectEmulator(CollectMockup):
         return result, compress_data
 
     @task
-    def data_collection_hook(self):
+    def _collect(self):
         """Spawns data emulation using gphl simcal"""
 
         data_collect_parameters = self.current_dc_parameters

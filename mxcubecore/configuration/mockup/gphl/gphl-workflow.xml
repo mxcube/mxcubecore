@@ -7,6 +7,9 @@
     <!-- Use multitrigger collection when set -->
     <!--    <use_multitrigger>True</use_multitrigger>-->
 
+    <!-- Use advanced_mode for adidtional UI options. Uncoment to set -->
+        <advanced_mode>True</advanced_mode>
+
     <!-- Maximum allowed value of Chi, for strategy calculation -->
     <maximum_chi>48.0</maximum_chi>
 
@@ -43,6 +46,7 @@
     <!-- names refer to stategies in  strategylib.nml -->
     <characterisation_strategies>
         Char_6_5_multitrigger
+        Char_24deg
 <!--        Characterisation_6_5-->
 <!--        TEST_Characterisation_12_3-->
 <!--        TEST_Characterisation_12_4-->

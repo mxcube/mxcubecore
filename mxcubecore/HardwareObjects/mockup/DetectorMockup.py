@@ -26,9 +26,13 @@ class DetectorMockup(AbstractDetector):
         self._temperature = 25
         self._humidity = 60
         self._actual_frame_rate = 50
-        self._roi_modes_list = ("0", "C2", "C16")
+        self._roi_modes_list = eval(
+            self.get_property("roi_mode_list", '["0", "C2", "C16"]')
+        )
         self._roi_mode = 0
-        self._exposure_time_limits = [0.04, 60000]
+        self._exposure_time_limits = eval(
+            self.get_property("exposure_time_limits", "[0.04, 60000]")
+        )
         self.update_state(self.STATES.READY)
         self.distance_motor_hwobj = self.get_object_by_role("detector_distance")
 
@@ -42,7 +46,7 @@ class DetectorMockup(AbstractDetector):
         """
         return True
 
-    def get_beam_centre(self, distance=None, wavelength=None):
+    def get_beam_position(self, distance=None, wavelength=None):
         return  self._beam_centre
 
     def _set_beam_centre(self, beam_centre):
