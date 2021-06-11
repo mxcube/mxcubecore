@@ -510,7 +510,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             )
 
         # self.current_dc_parameters["status"] = "Data collection successful"
-        self.update_data_collection_in_lims()
+        self._update_data_collection_in_lims()
 
         # Copy first and last image to ispyb
         if data_model.xray_imaging_parameters.camera_write_data:
@@ -536,7 +536,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
                     image_filename.replace(".jpeg", ".thumb.jpeg"),
                     misc.imresize(raw_image, (256, 256)),
                 )
-                self.store_image_in_lims(path_template.start_num)
+                self._store_image_in_lims(path_template.start_num)
 
                 if acq_params.num_images > 1:
                     image_filename = (
@@ -561,7 +561,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
                             image_filename.replace(".jpeg", ".thumb.jpeg"),
                             misc.imresize(raw_image, (256, 256)),
                         )
-                        self.store_image_in_lims(
+                        self._store_image_in_lims(
                             acq_params.num_images - path_template.start_num
                         )
 
@@ -1089,7 +1089,7 @@ class ImageReadingThread(threading.Thread):
         return self.corrected_im_min_max
 
     def get_ff_image(self, raw_image_index):
-        print "get_ff_image ", raw_image_index
+        print ("get_ff_image ", raw_image_index)
         if self.ff_ssim:
             ff_index = self.ff_ssim[raw_image_index][2] - 1
         else:
@@ -1098,5 +1098,5 @@ class ImageReadingThread(threading.Thread):
                 / float(len(self.raw_image_list))
                 * len(self.ff_image_list)
             )
-        print ff_index
+        print (ff_index)
         return self.ff_image_list[ff_index]

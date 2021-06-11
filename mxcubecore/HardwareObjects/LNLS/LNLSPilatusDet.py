@@ -62,7 +62,7 @@ class LNLSPilatusDet(AbstractDetector):
         """
         return True
 
-    def get_beam_position(self, distance=None):
+    def get_beam_position(self, distance=None, wavelength=None):
         """Get approx detector centre """
         xval, yval = super(LNLSPilatusDet, self).get_beam_position(distance=distance)
         if None in (xval, yval):

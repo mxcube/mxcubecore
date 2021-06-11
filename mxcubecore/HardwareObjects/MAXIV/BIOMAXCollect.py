@@ -370,7 +370,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.triggers_to_collect = self.prepare_triggers_to_collect()
 
         log.info("Collection: Updating data collection in LIMS")
-        self.update_data_collection_in_lims()
+        self._update_data_collection_in_lims()
 
         # Generate and set a unique id, used in the data catalog and the detector
         # must know it
@@ -643,7 +643,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             "[COLLECT] COLLECTION FAILED, self.current_dc_parameters: %s"
             % self.current_dc_parameters
         )
-        self.update_data_collection_in_lims()
+        self._update_data_collection_in_lims()
 
     def emit_collection_finished(self):
         """
@@ -672,7 +672,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.emit("progressStop", ())
         self._collecting = None
         self.ready_event.set()
-        self.update_data_collection_in_lims()
+        self._update_data_collection_in_lims()
 
         logging.getLogger("HWR").debug(
             "[COLLECT] COLLECTION FINISHED, self.current_dc_parameters: %s"
@@ -725,7 +725,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             # we store the first and the last images, TODO: every 45 degree
             logging.getLogger("HWR").info("Storing images in lims, frame number: 1")
             try:
-                self.store_image_in_lims(1)
+                self._store_image_in_lims(1)
                 self.generate_and_copy_thumbnails(
                     self.current_dc_parameters["fileinfo"]["filename"], 1
                 )
@@ -740,7 +740,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                     "Storing images in lims, frame number: %d" % last_frame
                 )
                 try:
-                    self.store_image_in_lims(last_frame)
+                    self._store_image_in_lims(last_frame)
                     self.generate_and_copy_thumbnails(
                         self.current_dc_parameters["fileinfo"]["filename"], last_frame
                     )
@@ -750,7 +750,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         if self.datacatalog_enabled:
             self.store_datacollection_datacatalog()
 
-    def store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
+    def _store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
         """
         Descript. :
         """
@@ -832,7 +832,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 size1 = os.path.getsize(full_file_path)
                 gevent.sleep(1)
 
-    def store_image_in_lims(self, frame_number, motor_position_id=None):
+    def _store_image_in_lims(self, frame_number, motor_position_id=None):
         """
         Descript. :
         """

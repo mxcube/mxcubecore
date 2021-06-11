@@ -22,7 +22,7 @@ class PX2Resolution(AbstractResolution):
     def _set_value(self, value):
         self.resolution_motor.set_resolution(value)
 
-    def get_beam_centre(self, distance=None, wavelength=None):
+    def get_beam_centre(self, dtox=None):
         return self.beam_center.get_beam_center()
 
     def get_limits(self):

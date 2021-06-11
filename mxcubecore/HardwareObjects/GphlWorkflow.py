@@ -1191,7 +1191,7 @@ class GphlWorkflow(HardwareObject, object):
                 )
                 goniostatTranslations.append(translation)
 
-        orgxy = HWR.beamline.detector.get_beam_centre()
+        orgxy = HWR.beamline.detector.get_beam_position()
         resolution = HWR.beamline.resolution.get_value()
         distance = HWR.beamline.detector.distance.get_value()
         dds = geometric_strategy.defaultDetectorSetting

@@ -495,7 +495,7 @@ class AbstractOnlineProcessing(HardwareObject):
 
             HWR.beamline.lims.store_workflow_step(self.params_dict)
             if len(best_positions) > 0:
-                HWR.beamline.collect.store_image_in_lims_by_frame_num(
+                HWR.beamline.collect._store_image_in_lims_by_frame_num(
                     best_positions[0]["index"]
                 )
             log.info("Online processing: Results saved in ISPyB")

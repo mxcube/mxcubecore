@@ -253,7 +253,7 @@ class EMBLCollect(AbstractCollect):
                 if self._actual_collect_status == "error":
                     self.collection_failed()
                 elif self._actual_collect_status == "collecting":
-                    self.store_image_in_lims_by_frame_num(1)
+                    self._store_image_in_lims_by_frame_num(1)
                 if self._previous_collect_status is None:
                     if self._actual_collect_status == "busy":
                         self.print_log("HWR", "info", "Collection: Preparing ...")
@@ -308,7 +308,7 @@ class EMBLCollect(AbstractCollect):
                 self.emit("progressStep", (int(float(frame) / number_of_images * 100)))
                 self.emit("collectImageTaken", frame)
 
-    def store_image_in_lims_by_frame_num(self, frame_number):
+    def _store_image_in_lims_by_frame_num(self, frame_number):
         """Store image in lims
 
         :param frame: dict with frame parameters
@@ -317,7 +317,7 @@ class EMBLCollect(AbstractCollect):
         :type motor_position_id: int
         """
         self.trigger_auto_processing("image", frame_number)
-        return self.store_image_in_lims(frame_number)
+        return self._store_image_in_lims(frame_number)
 
     def trigger_auto_processing(self, process_event, frame_number):
         """Starts autoprocessing"""
