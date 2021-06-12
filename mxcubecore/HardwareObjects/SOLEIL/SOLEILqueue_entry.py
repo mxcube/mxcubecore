@@ -70,7 +70,7 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
                     )
 
                 param_list = queue_model_objects.to_collect_dict(
-                    dc, self.session, sample
+                    dc, self.session, sample,  cpos if cpos != empty_cpos else None,
                 )
                 self.collect_task = HWR.beamline.collect.collect(
                     COLLECTION_ORIGIN_STR.MXCUBE, param_list
