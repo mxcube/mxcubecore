@@ -101,7 +101,7 @@ class Beamline(ConfiguredObject):
         self.disable_num_passes = False
 
         # bool By default run processing of (certain?)data collections in aprallel?
-        self.run_processing_parallel = False
+        self.run_online_processing = False
         
         # bool By default run online processing (characterization/mesh?)
         self.run_online_processing = True
