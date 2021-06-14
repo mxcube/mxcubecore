@@ -188,14 +188,14 @@ class AbstractOnlineProcessing(HardwareObject):
 
         # self.params_dict["plot_path"] = os.path.join(
         # self.params_dict["directory"],
-        #    "Online_processing_result.png")
+        #    "online_processing_result.png")
 
         self.params_dict["folder_path"] = archive_directory
         self.params_dict["cartography_path"] = os.path.join(
-            archive_directory, "Online_processing_plot.png"
+            archive_directory, "online_processing_plot.png"
         )
         self.params_dict["log_file_path"] = os.path.join(
-            archive_directory, "Online_processing.log"
+            archive_directory, "online_processing.log"
         )
         self.params_dict["html_file_path"] = os.path.join(
             archive_directory, "index.html"
@@ -204,7 +204,7 @@ class AbstractOnlineProcessing(HardwareObject):
             archive_directory, "report.json"
         )
         self.params_dict["csv_file_path"] = os.path.join(
-            archive_directory, "Online_processing.csv"
+            archive_directory, "online_processing.csv"
         )
 
         self.params_dict["template"] = template
@@ -450,10 +450,10 @@ class AbstractOnlineProcessing(HardwareObject):
             self.params_dict["archive_directory"], "grid_overlay.png"
         )
         # processing_plot_archive_file = os.path.join(
-        #    self.params_dict["archive_directory"], "Online_processing_plot.png"
+        #    self.params_dict["archive_directory"], "online_processing_plot.png"
         # )
         processing_csv_archive_file = os.path.join(
-            self.params_dict["archive_directory"], "Online_processing_score.csv"
+            self.params_dict["archive_directory"], "online_processing_score.csv"
         )
 
         # If MeshScan and XrayCentring then info is stored in ISPyB
@@ -675,7 +675,7 @@ class AbstractOnlineProcessing(HardwareObject):
         # ---------------------------------------------------------------------
         # Generates html and json files
         try:
-            # SimpleHTML.generate_Online_processing_report(
+            # SimpleHTML.generate_online_processing_report(
             #    self.results_aligned, self.params_dict
             #)
             log.info(
@@ -853,7 +853,7 @@ class AbstractOnlineProcessing(HardwareObject):
         """Extracts sweeps from processing results"""
 
         # self.results_aligned
-        logging.getLogger("HWR").info("OnlineProcessing: Extracting sweeps")
+        logging.getLogger("HWR").info("Online processing: Extracting sweeps")
         for col in range(self.results_aligned["score"].shape[1]):
             mask = self.results_aligned["score"][:, col] > 0
             label_im, nb_labels = ndimage.label(mask)
