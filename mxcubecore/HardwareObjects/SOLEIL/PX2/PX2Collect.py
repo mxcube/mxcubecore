@@ -319,7 +319,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
                 process_event,
                 self.current_dc_parameters,
                 frame_number,
-                self.run_processing_after,
+                self.run_offline_processing,
             )
 
     @task

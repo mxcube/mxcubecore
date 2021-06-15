@@ -68,7 +68,7 @@ advanced_methods:
   - XrayCentering
 tunable_wavelength: true
 disable_num_passes: false
-run_processing_parallel: true
+run_online_processing: true
 run_number: 1
 
 default_acquisition_parameters:
