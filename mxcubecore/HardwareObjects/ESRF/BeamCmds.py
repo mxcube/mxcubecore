@@ -39,39 +39,19 @@ import logging
 import gevent
 
 from mxcubecore.TaskUtils import task
-from mxcubecore.CommandContainer import CommandObject
+from mxcubecore.CommandContainer import (CommandObject, TWO_STATE_COMMAND_T)
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
-PROCEDURE_COMMAND_T = "CONTROLLER"
-TWO_STATE_COMMAND_T = "INOUT"
-
-ARGUMENT_TYPE_LIST = "List"
-ARGUMENT_TYPE_JSON_SCHEMA = "JSONSchema"
-
-
-class BaseBeamlineAction(CommandObject):
-    """Base command class"""
-
-    def __init__(self, name):
-        super(BaseBeamlineAction, self).__init__(name)
-
-        # From CommandObject consider removing
-        self._arguments = []
-        self._combo_arguments_items = {}
-
-
-class ControllerCommand(BaseBeamlineAction):
+class ControllerCommand(CommandObject):
     """Execute commands class"""
 
     def __init__(self, name, cmd):
         super().__init__(name)
         self._cmd = cmd
         self._cmd_execution = None
-        self.type = PROCEDURE_COMMAND_T
-        self.argument_type = ARGUMENT_TYPE_LIST
 
         if name == "Anneal":
             self._arguments.append(("Time [s]", "float"))
@@ -79,11 +59,6 @@ class ControllerCommand(BaseBeamlineAction):
     def is_connected(self):
         """Dummy method"""
         return True
-
-    def set_argument_json_schema(self, json_schema_str):
-        """Set the JSON Schema"""
-        self.argument_type = ARGUMENT_TYPE_JSON_SCHEMA
-        self._arguments = json_schema_str
 
     def get_arguments(self):
         """Get the command object arguments"""
@@ -155,7 +130,6 @@ class HWObjActuatorCommand(CommandObject):
         super().__init__(name)
         self._hwobj = hwobj
         self.type = TWO_STATE_COMMAND_T
-        self.argument_type = ARGUMENT_TYPE_LIST
         self._hwobj.connect("valueChanged", self._cmd_done)
 
     def _get_action(self):
