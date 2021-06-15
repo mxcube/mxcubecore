@@ -19,23 +19,22 @@
 import os
 import time
 import logging
-import json
-import subprocess
-import numpy as np
-
 from copy import copy
+
+import json
+import gevent
+import numpy as np
 from scipy import ndimage
-from scipy.interpolate import UnivariateSpline
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import gevent
 
 import SimpleHTML
 from mxcubecore.HardwareObjects.abstract.AbstractProcedure import AbstractProcedure, ProcedureState
 from mxcubecore import HardwareRepository as HWR
 
 
+__credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"
 
 
@@ -221,7 +220,7 @@ class AbstractOnlineProcessing(AbstractProcedure):
                 "num_images_per_trigger"
             ] = acq_params.num_images_per_trigger
 
-        self.params_dict["status"] = "Started"
+        #self.params_dict["status"] = "Started"
         self.params_dict["title"] = "%s_%d_#####.cbf (%d - %d)" % (
             prefix,
             run_number,
@@ -319,7 +318,7 @@ class AbstractOnlineProcessing(AbstractProcedure):
                 "Online processing: Could not save snapshot %s" % snapshot_filename
             )
 
-    def set_processing_status(self, status):
+    def _post_execute(self, data_model):
         """Sets processing status and finalize the processing
            Method called from EDNA via xmlrpc
 
@@ -342,37 +341,22 @@ class AbstractOnlineProcessing(AbstractProcedure):
                 )
                 self.store_processing_results(status)
             else:
-                logging.getLogger("GUI").warning(
-                    "Xray Centering: No diffraction found. " + "Stopping Xray centering"
-                )
-                status = "Failed"
                 self.workflow_info = None
-            self.done_event.set()
-            if status == "Failed":
-                self.emit("procedureFailed")
-            else:
-                self.emit("procedureSuccessful")
+                msg = "Xray Centering: No diffraction found. Stopping Xray centering"
+                logging.getLogger("GUI").warning(msg)
+                self._set_error(msg)
         else:
             self.workflow_info = None
-            if status == "Failed":
-                self.emit("procedureFailed")
-            else:
-                self.emit("procedureSuccessful")
+            self.store_processing_results()
 
-            self.done_event.set()
-            self.store_processing_results(status)
-
-    def store_processing_results(self, status):
+    def store_processing_results(self):
         """Stores result plots. In the case of MeshScan and XrayCentering
            html is created and results saved in ISPyB
-
-        :param status: status type
-        :type status: str
         """
         log = logging.getLogger("HWR")
 
         self.started = False
-        self.params_dict["status"] = status
+        #self.params_dict["status"] = status
 
         # ---------------------------------------------------------------------
         # Assembling all file names
@@ -434,7 +418,7 @@ class AbstractOnlineProcessing(AbstractProcedure):
             log.info("online processing: Results saved in ISPyB")
 
         HWR.beamline.lims.set_image_quality_indicators_plot(
-            HWR.beamline.collect.collection_id,
+            self.params_dict["collection_id"],
             self.params_dict["cartography_path"],
             self.params_dict["csv_file_path"],
         )
@@ -574,12 +558,12 @@ class AbstractOnlineProcessing(AbstractProcedure):
                 self.params_dict["cartography_path"], dpi=100, bbox_inches="tight"
             )
             log.info(
-                "online processing: Plot saved in %s"
+                "Online processing: Plot saved in %s"
                 % self.params_dict["cartography_path"]
             )
         except Exception:
             log.exception(
-                "online processing: Could not save plot in %s"
+                "Online processing: Could not save plot in %s"
                 % self.params_dict["cartography_path"]
             )
 
@@ -594,12 +578,12 @@ class AbstractOnlineProcessing(AbstractProcedure):
                 self.params_dict["cartography_path"], dpi=100, bbox_inches="tight"
             )
             log.info(
-                "online processing: Plot for ISPyB saved in %s"
+                "Online processing: Plot for ISPyB saved in %s"
                 % self.params_dict["cartography_path"]
             )
         except Exception:
             log.exception(
-                "online processing: Could not save plot for ISPyB %s"
+                "Online processing: Could not save plot for ISPyB %s"
                 % self.params_dict["cartography_path"]
             )
 
@@ -612,62 +596,50 @@ class AbstractOnlineProcessing(AbstractProcedure):
                 self.results_aligned, self.params_dict
             )
             log.info(
-                "online processing: Html report saved in %s"
+                "Online processing: Html report saved in %s"
                 % self.params_dict["html_file_path"]
             )
             log.info(
-                "online processing: Json report saved in %s"
+                "Online processing: Json report saved in %s"
                 % self.params_dict["json_file_path"]
             )
         except Exception:
             log.exception(
-                "online processing: Could not save results html %s"
+                "Online processing: Could not save results html %s"
                 % self.params_dict["html_file_path"]
             )
             log.exception(
-                "online processing: Could not save json results in %s"
+                "Online processing: Could not save json results in %s"
                 % self.params_dict["json_file_path"]
             )
 
         # ---------------------------------------------------------------------
         # Writes results in the csv file
-        try:
+        #try:
+        if True:
+
+            
             processing_csv_file = open(processing_csv_archive_file, "w")
-            processing_csv_file.write(
-                "%s,%d,%d,%d,%d,%d,%s,%d,%d,%f,%f,%s\n"
-                % (
-                    self.params_dict["template"],
-                    self.params_dict["first_image_num"],
-                    self.params_dict["images_num"],
-                    self.params_dict["run_number"],
-                    self.params_dict["run_number"],
-                    self.params_dict["lines_num"],
-                    str(self.params_dict["reversing_rotation"]),
-                    HWR.beamline.detector.get_pixel_min(),
-                    HWR.beamline.detector.get_pixel_max(),
-                    self.beamstop_hwobj.get_size(),
-                    self.beamstop_hwobj.get_distance(),
-                    self.beamstop_hwobj.get_direction(),
-                )
-            )
+
+            csv_line = ""
+            for result_type in self.result_types:
+                csv_line += "%s," % result_type["descr"]
+            processing_csv_file.write(csv_line[:-1] + "\n")
+
             for index in range(self.params_dict["images_num"]):
-                processing_csv_file.write(
-                    "%d,%f,%d,%f\n"
-                    % (
-                        index,
-                        self.results_raw["score"][index],
-                        self.results_raw["spots_num"][index],
-                        self.results_raw["spots_resolution"][index],
-                    )
-                )
+                csv_line = ""
+                for result_type in self.result_types:
+                    csv_line += "%s," % str(self.results_raw[result_type["key"]][index])
+                processing_csv_file.write(csv_line[:-1] + "\n")
             log.info(
-                "online processing: Raw data stored in %s"
+                "Online processing: Raw data stored in %s"
                 % processing_csv_archive_file
             )
             processing_csv_file.close()
-        except Exception:
+        #except Exception:
+        if False:
             log.error(
-                "online processing: Unable to store raw data in %s"
+                "Online processing: Unable to store raw data in %s"
                 % processing_csv_archive_file
             )
         # ---------------------------------------------------------------------

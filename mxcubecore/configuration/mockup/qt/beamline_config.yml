@@ -70,6 +70,10 @@ online_processing_methods:
     - Dozor
 run_number: 1
 
+available_tasks: 
+    - "discrete"
+    - "ssx"
+
 default_acquisition_parameters:
     default:
         # Default values, also used for standard acquisition.

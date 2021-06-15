@@ -37,6 +37,7 @@ from mxcubecore import HardwareRepository as HWR
 
 
 __credits__ = ["MXCuBE collaboration"]
+__license__ = "LGPLv3+"
 
 log = logging.getLogger("user_level_log")
 

@@ -91,6 +91,9 @@ class Beamline(ConfiguredObject):
         # List[str] of available methods
         self.available_methods = []
 
+        # List[str] of available methods
+        self.available_tasks = []
+
         self.offline_processing_methods = []
 
         self.online_processing_methods = []
@@ -306,11 +309,6 @@ class Beamline(ConfiguredObject):
         Returns:
             Optional[AbstractSampleChanger]:
         """
-        logging.getLogger("HWR").warning(
-            DeprecationWarning(
-                "plate_manipulator role should be replaced by sample_changer"
-            )
-        )
         return self._objects.get("plate_manipulator")
 
     __content_roles.append("plate_manipulator")

@@ -28,10 +28,12 @@ from mxcubecore.HardwareObjects.abstract.AbstractOnlineProcessing import (
 )
 
 
-__license__ = "LGPLv3"
+__credits__ = ["MXCuBE collaboration"]
+__license__ = "LGPLv3+"
 
 
 class OnlineProcessingMockup(AbstractOnlineProcessing):
+
     def __init__(self, name):
         AbstractOnlineProcessing.__init__(self, name)
 
@@ -102,11 +104,12 @@ class OnlineProcessingMockup(AbstractOnlineProcessing):
                 self.print_log(
                     "GUI",
                     "info",
-                    "Online processing: Frames %d - %d (%s) processed"
+                    "Online processing: Frames %d - %d from %s processed"
                     % (
                         index + 1,
                         index + step,
-                        self.params_dict["images_num"]),
+                        self.params_dict["images_num"]
+                    ),
                 )
                 self.emit("resultFrame", index)
                 self.emit("resultsUpdated", False)

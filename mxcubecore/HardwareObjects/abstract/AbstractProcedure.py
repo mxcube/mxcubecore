@@ -34,6 +34,7 @@ from jsonschema import validate, ValidationError
 
 
 __credits__ = ["MXCuBE collaboration"]
+__license__ = "LGPLv3+"
 
 
 # Temporary definition should use common denfinition from

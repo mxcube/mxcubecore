@@ -27,6 +27,7 @@ from mxcubecore import HardwareRepository as HWR
 
 
 __credits__ = ["MXCuBE collaboration"]
+__license__ = "LGPLv3+"
 
 
 class CollectMockup(AbstractCollect):
@@ -35,7 +36,6 @@ class CollectMockup(AbstractCollect):
 
     def __init__(self, name):
         """
-
         :param name: name of the object
         :type name: string
         """
@@ -43,15 +43,10 @@ class CollectMockup(AbstractCollect):
         AbstractCollect.__init__(self, name)
 
     def init(self):
-        """Main init method
-        """
-
         AbstractCollect.init(self)
 
     def _execute(self, data_model):
-        """Main collection hook
-        """
-
+        """Main collection method"""
         AbstractCollect._execute(self, data_model)
 
         acq_params = data_model.acquisitions[0].acquisition_parameters

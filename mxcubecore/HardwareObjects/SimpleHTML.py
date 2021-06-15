@@ -112,7 +112,10 @@ def create_json_images(image_list):
         im = Image.open(image["filename"])
         item["xsize"] = im.size[0] / 2
         item["ysize"] = im.size[1] / 2
-        item["value"] = base64.b64encode(open(image["filename"]).read())
+        with open(image["filename"], 'rb') as f:
+            contents = f.read()
+        item["value"] = base64.b64encode(contents).decode('utf-8')
+
         """
         if item.get("thumbnail_image_filename") is None:
             if thumbnailHeight is not None and thumbnailWidth is not None:
@@ -131,7 +134,7 @@ def create_json_images(image_list):
     return json_item
 
 
-def generate_parallel_processing_report(mesh_scan_results, params_dict):
+def generate_online_processing_report(mesh_scan_results, params_dict):
     json_dict = {"items": []}
 
     html_file = open(params_dict["html_file_path"], "w")
