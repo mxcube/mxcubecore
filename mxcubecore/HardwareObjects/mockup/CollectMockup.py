@@ -1,3 +1,5 @@
+# encoding: utf-8
+#
 #  Project: MXCuBE
 #  https://github.com/mxcube
 #
@@ -16,20 +18,18 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import division, absolute_import
-from __future__ import print_function, unicode_literals
 
 import os
 import time
 from mxcubecore.TaskUtils import task
-from mxcubecore.HardwareObjects.abstract import AbstractCollect
+from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 from mxcubecore import HardwareRepository as HWR
 
 
 __credits__ = ["MXCuBE collaboration"]
 
 
-class CollectMockup(AbstractCollect.AbstractCollect):
+class CollectMockup(AbstractCollect):
     """
     """
 
@@ -40,7 +40,7 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         :type name: string
         """
 
-        AbstractCollect.AbstractCollect.__init__(self, name)
+        AbstractCollect.__init__(self, name)
 
         self.aborted_by_user = False
 
@@ -48,7 +48,7 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         """Main init method
         """
 
-        AbstractCollect.AbstractCollect.init(self)
+        AbstractCollect.init(self)
 
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True,))
@@ -62,7 +62,6 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         number_of_images = self.current_dc_parameters["oscillation_sequence"][0][
             "number_of_images"
         ]
-
         for image in range(
             self.current_dc_parameters["oscillation_sequence"][0]["number_of_images"]
         ):
@@ -142,7 +141,7 @@ class CollectMockup(AbstractCollect.AbstractCollect):
                 process_event,
                 self.current_dc_parameters,
                 frame_number,
-                self.run_processing_after,
+                self.run_offline_processing,
             )
 
     def stopCollect(self, owner="MXCuBE"):
@@ -162,7 +161,9 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         """Rotates sample by 360 and composes a gif file
            Animation is saved as the fourth snapshot
         """
-        HWR.beamline.sample_view.save_scene_animation(animation_filename, duration_sec)
+        HWR.beamline.sample_view.save_scene_animation(
+            animation_filename, duration_sec
+        )
 
     # @task
     # def move_motors(self, motor_position_dict):
@@ -173,7 +174,9 @@ class CollectMockup(AbstractCollect.AbstractCollect):
 
     @task
     def move_motors(self, motor_position_dict):
-        HWR.beamline.diffractometer.move_motors(motor_position_dict)
+        # TODO We copy, as dictionary is reset in move_motors. CLEAR UP!!
+        # TODO clear up this confusion between move_motors and moveMotors
+        HWR.beamline.diffractometer.move_motors(motor_position_dict.copy())
 
     def prepare_input_files(self):
         """
@@ -205,3 +208,19 @@ class CollectMockup(AbstractCollect.AbstractCollect):
         )
 
         return xds_directory, mosflm_directory, ""
+
+    # rhfogh Added to improve interaction with UI and persistence of values
+    def set_wavelength(self, wavelength):
+        HWR.beamline.energy.set_wavelength(wavelength)
+
+    def set_energy(self, energy):
+        HWR.beamline.energy.set_value(energy)
+
+    def set_resolution(self, new_resolution):
+        HWR.beamline.resolution.set_value(new_resolution)
+
+    def set_transmission(self, transmission):
+        HWR.beamline.transmission.set_value(transmission)
+
+    def move_detector(self, detector_distance):
+        HWR.beamline.detector.distance.set_value(detector_distance)
