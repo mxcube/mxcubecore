@@ -30,8 +30,8 @@ class EPICSMotor(AbstractMotor, EPICSActuator):
     MOTOR_STOP = 'epicsMotor_stop'
     MOTOR_RLV = 'epicsMotor_rlv'
     MOTOR_VELO = 'epicsMotor_velo'
-    MOTOR_DLLM = 'epicsMotor_dllm'
-    MOTOR_DHLM = 'epicsMotor_dhlm'
+    MOTOR_HLM = 'epicsMotor_hlm'
+    MOTOR_LLM = 'epicsMotor_llm'
     MOTOR_EGU = 'epicsMotor_egu'
 
     def __init__(self, name):
@@ -67,8 +67,9 @@ class EPICSMotor(AbstractMotor, EPICSActuator):
     def get_limits(self):
         """Override method."""
         try:
-            low_limit = float(self.get_channel_value(self.MOTOR_DLLM))
-            high_limit = float(self.get_channel_value(self.MOTOR_DHLM))
+            low_limit = float(self.get_channel_value(self.MOTOR_LLM))
+            high_limit = float(self.get_channel_value(self.MOTOR_HLM))
+
             self._nominal_limits = (low_limit, high_limit)
         except BaseException:
             self._nominal_limits = (None, None)
