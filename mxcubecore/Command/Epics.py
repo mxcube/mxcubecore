@@ -136,7 +136,7 @@ class EpicsCommand(CommandObject):
 
     def value_changed(self, value):
         try:
-            callback = self.__value_changed_callback_ref(value)
+            callback = self.__value_changed_callback_ref()
         except Exception:
             pass
         else:
