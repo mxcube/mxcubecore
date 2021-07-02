@@ -27,7 +27,8 @@ try:
 except ImportError:
     logging.getLogger("HWR").warning("EPICS support not available.")
 
-from mxcubecore import Poller, saferef
+from mxcubecore import Poller
+from mxcubecore.dispatcher import saferef
 from CommandContainer import CommandObject, ChannelObject
 
 
