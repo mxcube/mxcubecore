@@ -62,8 +62,7 @@ class EPICSMotor(AbstractMotor, EPICSActuator):
     def abort(self):
         """Override method."""
         self.set_channel_value(self.MOTOR_STOP, 1)
-        if self.__move_task is not None:
-            self.__move_task.kill()
+        super().abort()
 
     def get_limits(self):
         """Override method."""
