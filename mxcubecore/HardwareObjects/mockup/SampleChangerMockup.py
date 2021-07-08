@@ -57,10 +57,10 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
         else:
             basket, sample = sample.split(":")
 
-        self._selected_basket = int(basket)
-        self._selected_sample = int(sample)
+        self._selected_basket = basket = int(basket)
+        self._selected_sample = sample = int(sample)
 
-        msg = "Loading sample %d:%d" % (int(basket), int(sample))
+        msg = "Loading sample %d:%d" % (basket, sample)
         logging.getLogger("user_level_log").info(
             "Sample changer: %s. Please wait..." % msg
         )
