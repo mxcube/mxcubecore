@@ -35,12 +35,10 @@ import os
 import time
 import importlib
 from datetime import datetime
-from warnings import warn
 
-import gevent
 from ruamel.yaml import YAML
 
-from mxcubecore.ConvertUtils import string_types, make_table
+from mxcubecore.utils.conversion import string_types, make_table
 from mxcubecore.dispatcher import dispatcher
 from mxcubecore import BaseHardwareObjects
 from mxcubecore import HardwareObjectFileParser

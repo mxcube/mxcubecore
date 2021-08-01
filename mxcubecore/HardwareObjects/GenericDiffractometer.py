@@ -889,7 +889,7 @@ class GenericDiffractometer(HardwareObject):
 
             try:
                 logging.getLogger("HWR").debug(
-                    "Centring finished. Moving motoros to position %s" % str(motor_pos)
+                    "Centring finished. Moving motors to position %s" % str(motor_pos)
                 )
                 self.move_to_motors_positions(motor_pos, wait=True)
             except Exception:

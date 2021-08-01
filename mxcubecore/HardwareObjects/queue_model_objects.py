@@ -1874,13 +1874,13 @@ class GphlWorkflow(TaskNode):
         self._point_group = None
         self._cell_parameters = None
         self._snapshot_count = int(
-            workflow_hwobj.get_property("default_snapshot_count", 0)
+            workflow_hwobj.get_settings.get("default_snapshot_count", 0)
         )
         self._recentring_mode = str()
         self._current_rotation_id = None
 
         self._dose_budget = None
-        self._decay_limit = workflow_hwobj.get_property("default_decay_limit", 25)
+        self._decay_limit = workflow_hwobj.get_settings.get("default_decay_limit", 25)
         self._characterisation_budget_fraction = 0.05
         self._relative_rad_sensitivity = 1.0
         self._dose_consumed = 0.0
@@ -2056,11 +2056,17 @@ class GphlWorkflow(TaskNode):
         return self.path_template
 
     def get_workflow_parameters(self):
-        result = self.workflow_hwobj.get_available_workflows().get(self.get_type())
-        if result is None:
-           raise RuntimeError(
-               "No parameters for unknown workflow %s" % repr(self.get_type())
-           )
+        _type = self.get_type()
+        for wf0 in self.workflow_hwobj.get_available_workflows():
+            for result in wf0["strategies"]:
+                if result["title"] == _type:
+                    break
+            else:
+                continue
+            break
+        else:
+           raise RuntimeError("No parameters for unknown workflow %s" % repr(_type))
+        #
         return result
 
 

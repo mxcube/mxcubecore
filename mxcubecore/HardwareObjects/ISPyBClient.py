@@ -21,7 +21,7 @@ from suds.sudsobject import asdict
 from suds import WebFault
 from suds.client import Client
 from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.ConvertUtils import string_types
+from mxcubecore.utils.conversion import string_types
 from mxcubecore import HardwareRepository as HWR
 
 """

@@ -34,7 +34,7 @@ from mxcubecore.HardwareObjects import queue_model_objects as qmo
 from gevent.event import AsyncResult
 from mxcubecore.TaskUtils import task
 from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.ConvertUtils import string_types
+from mxcubecore.utils.conversion import string_types
 from mxcubecore import HardwareRepository as HWR
 
 # from mxcubecore.HardwareObjects.GenericDiffractometer import GenericDiffractometer

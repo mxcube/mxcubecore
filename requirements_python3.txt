@@ -12,7 +12,7 @@ Pillow
 pylint
 jsonschema
 pydantic
-# f90nml, mgen, and py4j are required for GPhL Workflow and emulation
+# f90nml, xmltodict and py4j are required for GPhL Workflow and emulation
 # f90nml
-# mgen
+# xmltodict
 # py4j

@@ -28,7 +28,7 @@ from gevent import event, Timeout
 
 from mxcubecore.dispatcher import dispatcher
 from mxcubecore.CommandContainer import CommandContainer
-from mxcubecore.ConvertUtils import string_types
+from mxcubecore.utils.conversion import string_types
 
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
