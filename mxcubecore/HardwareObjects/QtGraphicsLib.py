@@ -50,7 +50,7 @@ from datetime import datetime
 from mxcubecore.utils import qt_import
 
 from mxcubecore.HardwareObjects import queue_model_objects
-from mxcubecore.ConvertUtils import string_types
+from mxcubecore.utils.conversion import string_types
 
 
 SELECTED_COLOR = qt_import.Qt.green

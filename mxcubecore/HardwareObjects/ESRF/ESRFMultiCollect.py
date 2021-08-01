@@ -5,7 +5,7 @@ import time
 import os
 import math
 from mxcubecore.HardwareObjects.queue_model_objects import PathTemplate
-from mxcubecore.ConvertUtils import string_types
+from mxcubecore.utils.conversion import string_types
 from mxcubecore import HardwareRepository as HWR
 
 from ESRF.ESRFMetadataManagerClient import MXCuBEMetadataClient

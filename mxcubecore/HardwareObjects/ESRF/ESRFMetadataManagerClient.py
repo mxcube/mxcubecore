@@ -13,7 +13,7 @@ import traceback
 from email.mime.text import MIMEText
 import smtplib
 
-from mxcubecore.ConvertUtils import string_types
+from mxcubecore.utils.conversion import string_types
 from mxcubecore import HardwareRepository as HWR
 
 

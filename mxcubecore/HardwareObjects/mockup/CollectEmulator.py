@@ -28,7 +28,7 @@ import logging
 import re
 from collections import OrderedDict
 import f90nml
-from mxcubecore import ConvertUtils
+from mxcubecore.utils import conversion
 from mxcubecore.HardwareObjects.mockup.CollectMockup import CollectMockup
 from mxcubecore.TaskUtils import task
 
@@ -49,14 +49,14 @@ class CollectEmulator(CollectMockup):
 
         self._counter = 1
 
-    def init(self):
-        CollectMockup.init(self)
-        # NBNB you get an error if you use 'HWR.beamline.session'
-        # session_hwobj = self.getObjectByRole("session")
-        session = HWR.beamline.session
-        if session and self.has_object("override_data_directories"):
-            dirs = self["override_data_directories"].get_properties()
-            session.set_base_data_directories(**dirs)
+    # def init(self):
+    #     CollectMockup.init(self)
+    #     # NBNB you get an error if you use 'HWR.beamline.session'
+    #     # session_hwobj = self.getObjectByRole("session")
+    #     session = HWR.beamline.session
+    #     if session and self.has_object("override_data_directories"):
+    #         dirs = self["override_data_directories"].get_properties()
+    #         session.set_base_data_directories(**dirs)
 
     def _get_simcal_input(self, data_collect_parameters, crystal_data):
         """Get ordered dict with simcal input from available data"""
@@ -156,7 +156,7 @@ class CollectEmulator(CollectMockup):
                 setup_data[tag] = val
 
         # Add/overwrite parameters from emulator configuration
-        conv = ConvertUtils.convert_string_value
+        conv = conversion.convert_string_value
         for key, val in self["simcal_parameters"].get_properties().items():
             setup_data[key] = conv(val)
 
@@ -206,7 +206,7 @@ class CollectEmulator(CollectMockup):
             sweep = OrderedDict()
 
             energy = data_collect_parameters.get("energy") or HWR.beamline.energy.get_value()
-            sweep["lambda"] = ConvertUtils.H_OVER_E / energy
+            sweep["lambda"] = conversion.H_OVER_E / energy
             sweep["res_limit"] = setup_data["res_limit_def"]
             sweep["exposure"] = osc["exposure_time"]
             ll0 = HWR.beamline.gphl_workflow.translation_axis_roles
@@ -225,7 +225,7 @@ class CollectEmulator(CollectMockup):
 
             # Extract format statement from template,
             # and convert to fortran format
-            text_type = ConvertUtils.text_type
+            text_type = conversion.text_type
             template = text_type(data_collect_parameters["fileinfo"]["template"])
             ss0 = re.search("(%[0-9]+d)", template).group(0)
             template = template.replace(ss0, "?" * int(ss0[1:-1]))
@@ -280,7 +280,7 @@ class CollectEmulator(CollectMockup):
             "BDG_home": gphl_connection.software_paths["BDG_home"],
             "GPHL_INSTALLATION": gphl_connection.software_paths["GPHL_INSTALLATION"],
         }
-        text_type = ConvertUtils.text_type
+        text_type = conversion.text_type
         for tag, val in self["environment_variables"].get_properties().items():
             envs[text_type(tag)] = text_type(val)
 
@@ -319,7 +319,7 @@ class CollectEmulator(CollectMockup):
         ]
 
         for tag, val in self["simcal_options"].get_properties().items():
-            command_list.extend(ConvertUtils.command_option(tag, val, prefix="--"))
+            command_list.extend(conversion.command_option(tag, val, prefix="--"))
         logging.getLogger("HWR").info("Executing command: %s", command_list)
         logging.getLogger("HWR").info(
             "Executing environment: %s" % sorted(envs.items())
