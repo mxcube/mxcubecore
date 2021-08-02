@@ -1,25 +1,45 @@
-import gevent
-import time
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU General Lesser Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
+"""LimaEigerDetector Class
+Lima Tango Device Server implementation of the Dectris Eiger2 Detector.
+"""
 import os
 import math
-from mxcubecore.TaskUtils import task
 import logging
-from mxcubecore import HardwareRepository as HWR
+from gevent import Timeout, sleep
 
-from mxcubecore.HardwareObjects.abstract.AbstractDetector import (
-    AbstractDetector
-)
+from mxcubecore.TaskUtils import task
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
 
 
 class LimaEigerDetector(AbstractDetector):
+    """Control Eiger Detector using Lima Tango DS"""
+
     def __init__(self, name):
-        AbstractDetector.__init__(self, name)
+        super().__init__(name)
         self.binning_mode = 1
 
     def init(self):
-        AbstractDetector.init(self)
-
-        self.header = dict()
+        super().init(self)
 
         lima_device = self.get_property("lima_device")
         eiger_device = self.get_property("eiger_device")
@@ -41,6 +61,7 @@ class LimaEigerDetector(AbstractDetector):
             "last_image_saved",
             "saving_frame_per_file",
             "saving_managed_mode",
+            "saving_common_header",
         ):
             self.add_channel(
                 {"type": "tango", "name": channel_name, "tangoname": lima_device},
@@ -66,10 +87,6 @@ class LimaEigerDetector(AbstractDetector):
         self.add_command(
             {"type": "tango", "name": "reset", "tangoname": lima_device}, "reset"
         )
-        self.add_channel(
-            {"type": "tango", "name": "set_image_header", "tangoname": lima_device},
-            "saving_common_header",
-        )
 
         self.get_command_object("prepare_acq").init_device()
         self.get_command_object("prepare_acq").device.set_timeout_millis(5 * 60 * 1000)
@@ -80,16 +97,29 @@ class LimaEigerDetector(AbstractDetector):
         return True
 
     def wait_ready(self, timeout=30):
+        """Wait the detector to be ready for a subsequent command
+        Args:
+            (float): timeout [s] - default 30s
+                     timeout == 0: return at once and do not wait
+                     timeout is None: wait forever.
+        """
         acq_status_chan = self.get_channel_object("acq_status")
-        with gevent.Timeout(timeout, RuntimeError("Detector not ready")):
+        with Timeout(timeout, RuntimeError("Detector not ready")):
             while acq_status_chan.get_value() != "Ready":
-                time.sleep(1)
+                sleep(1)
 
     def last_image_saved(self):
-        # return 0
+        """Get the last saved image number.
+        Returns:
+            (int): Las image saved number
+        """
         return self.get_channel_object("last_image_saved").get_value() + 1
 
     def get_deadtime(self):
+        """Get deadtime between each frame property
+        Returns:
+            (float): The deadtime [ms]
+        """
         return float(self.get_property("deadtime"))
 
     def prepare_acquisition(
@@ -102,46 +132,13 @@ class LimaEigerDetector(AbstractDetector):
         number_of_images,
         comment,
         mesh,
-        mesh_num_lines
-    ):        
-        diffractometer_positions = HWR.beamline.diffractometer.get_positions()
-        self.start_angles = list()
-        for i in range(number_of_images):
-            self.start_angles.append("%0.4f deg." % (start + osc_range * i))
-        self.header["file_comments"] = comment
-        self.header["N_oscillations"] = number_of_images
-        self.header["Oscillation_axis"] = "omega"
-        self.header["Chi"] = "0.0000 deg."
-        try:
-            self.header["Phi"] = "%0.4f deg." % diffractometer_positions.get(
-                "kappa_phi", -9999
-            )
-            self.header["Kappa"] = "%0.4f deg." % diffractometer_positions.get(
-                "kappa", -9999
-            )
-        except Exception:
-            self.header["Phi"] = "0.0000 deg."
-            self.header["Kappa"] = "0.0000 deg."
-        self.header["Alpha"] = "0.0000 deg."
-        self.header["Polarization"] = HWR.beamline.collect.bl_config.polarisation
-        self.header["Detector_2theta"] = "0.0000 deg."
-        self.header["Angle_increment"] = "%0.4f deg." % osc_range
-        self.header["Transmission"] = HWR.beamline.transmission.get_value()
-        self.header["Flux"] = HWR.beamline.flux.get_value()
-        self.header["Detector_Voffset"] = "0.0000 m"
-        self.header["Energy_range"] = "(0, 0) eV"
-        self.header["Trim_directory:"] = "(nil)"
-        self.header["Flat_field:"] = "(nil)"
-        self.header["Excluded_pixels:"] = " badpix_mask.tif"
-        self.header["N_excluded_pixels:"] = "= 321"
-        self.header["Threshold_setting"] = (
-            "%d eV" % self.get_channel_object("photon_energy").get_value()
-        )
-        self.header["Count_cutoff"] = "1048500"
-        self.header["Tau"] = "= 0 s"
-        self.header["Exposure_period"] = "%f s" % (exptime + self.get_deadtime())
-        self.header["Exposure_time"] = "%f s" % exptime
-
+        mesh_num_lines,
+    ):
+        print(f"Unsed, but kept for completeness: take_dark {take_dark}, ")
+        print(f"start {start}, npass {npass}, comment {comment}, ")
+        print(f"mesh_num_lines {mesh_num_lines}\n")
+        self.stop()
+        self.wait_ready()
         beam_x, beam_y = self.get_beam_position()
 
         header_info = [
@@ -153,16 +150,12 @@ class LimaEigerDetector(AbstractDetector):
             "omega_start=%0.4f" % start,
             "omega_increment=%0.4f" % osc_range,
         ]
-        self.get_channel_object("set_image_header").set_value(header_info)
-
-        self.reset()
-        self.wait_ready()
-
-        self.set_energy_threshold(HWR.beamline.energy.get_value())
+        self.get_channel_object("saving_common_header").set_value(header_info)
 
         if mesh:
-            self.get_channel_object("acq_trigger_mode").set_value("EXTERNAL_TRIGGER_SEQUENCES")
-            self.get_channel_object("acq_nb_sequences").set_value(mesh_num_lines)
+            self.get_channel_object("acq_trigger_mode").set_value(
+                "EXTERNAL_TRIGGER_MULTI"
+            )
         elif osc_range < 1e-4:
             self.set_channel_value("acq_trigger_mode", "INTERNAL_TRIGGER")
         else:
@@ -171,16 +164,22 @@ class LimaEigerDetector(AbstractDetector):
         self.get_channel_object("saving_frame_per_file").set_value(
             min(100, number_of_images)
         )
+
+        # 'MANUAL', 'AUTO_FRAME', 'AUTO_SEQUENCE
         self.get_channel_object("saving_mode").set_value("AUTO_FRAME")
         logging.info("Acq. nb frames = %d", number_of_images)
         self.get_channel_object("acq_nb_frames").set_value(number_of_images)
         self.get_channel_object("acq_expo_time").set_value(exptime)
+        # 'ABORT', 'OVERWRITE', 'APPEND'
         self.get_channel_object("saving_overwrite_policy").set_value("OVERWRITE")
+        # 'SOFTWARE', 'HARDWARE'
         self.get_channel_object("saving_managed_mode").set_value("HARDWARE")
 
-        self.wait_ready()
-
     def set_energy_threshold(self, energy):
+        """Set the energy threshold. Attion: the command is time consuming.
+        Args:
+            (float): Energy (eV or KeV).
+        """
         minE = self.get_property("minE")
         if energy < minE:
             energy = minE
@@ -193,6 +192,13 @@ class LimaEigerDetector(AbstractDetector):
 
     @task
     def set_detector_filenames(self, frame_number, start, filename):
+        """Construct the file name (full path) where the date will be saved.
+        Args:
+            frame_number(int): The frame number
+            start (): Not used, but kept for competeness
+            filename (str): The root name.
+        """
+        print(f"Unused but kept for ompleteness: start {start}")
         prefix, suffix = os.path.splitext(os.path.basename(filename))
         prefix = "_".join(prefix.split("_")[:-1]) + "_"
         dirname = os.path.dirname(filename)
@@ -213,6 +219,8 @@ class LimaEigerDetector(AbstractDetector):
         self.get_channel_object("saving_format").set_value("HDF5")
 
     def start_acquisition(self):
+        """Start the acquisition.
+        """
         logging.getLogger("user_level_log").info("Preparing acquisition")
         self.get_command_object("prepare_acq")()
         logging.getLogger("user_level_log").info("Detector ready, continuing")
@@ -220,21 +228,29 @@ class LimaEigerDetector(AbstractDetector):
         self._emit_status()
 
     def stop_acquisition(self):
+        """Stop the acquisition (stop gracefully).
+        """
         try:
             self.get_command_object("stop_acq")()
         except Exception:
             pass
 
-        time.sleep(1)
+        sleep(1)
         self.get_command_object("reset")()
         self.wait_ready()
         self._emit_status()
 
     def reset(self):
+        """Reset the acquisition (stop immediately).
+        """
         self.stop_acquisition()
 
     @property
     def status(self):
+        """Get the status of the acquisition.
+        Returns:
+            (dict): {"acq_satus": status}.
+        """
         try:
             acq_status = self.get_channel_value("acq_status")
         except Exception:
@@ -245,7 +261,8 @@ class LimaEigerDetector(AbstractDetector):
         return status
 
     def _emit_status(self):
+        """Emit statusChanged"""
         self.emit("statusChanged", self.status)
-        
+
     def recover_from_failure(self):
-        pass
+        """?"""
