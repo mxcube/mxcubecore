@@ -87,6 +87,8 @@ class GphlWorkflowConnection(HardwareObject, object):
 
         # Loaded coinfiguration data
         self.configuration = None
+        # NB overwritten duging config load. HACK
+        self._config_file_name = "gphl/gphl-setup.xml"
 
         # ID for current workflow calculation
         self._enactment_id = None
@@ -118,7 +120,14 @@ class GphlWorkflowConnection(HardwareObject, object):
 
     def _load_configuration(self):
         """ Lod configuration and adapt values"""
-        config = self.configuration
+
+        # Read configuration
+        txt = open(
+            HWR.get_hardware_repository().find_in_repository(
+                self._config_file_name
+            )
+        ).read()
+        config = self.configuration = conversion.xml_to_json_data(txt)["object"]
 
         if "ssh_options" in config:
             dd0 = config.get("connection_parameters", {})
@@ -147,19 +156,6 @@ class GphlWorkflowConnection(HardwareObject, object):
 
         pp0 = properties["co.gphl.wf.bin"] = paths["GPHL_INSTALLATION"]
         paths["BDG_home"] = paths.get("co.gphl.wf.bdg_licence_dir") or pp0
-
-
-    def _load_configuration(self):
-        """Load configuratoi data, and prepare for future use"""
-
-        # Read configuration
-        config = open(
-            HWR.get_hardware_repository().find_in_repository(
-                "gphl/gphl-workflow.xml"
-            )
-        ).read()
-        self.configuration = conversion.xml_to_json_data(config)
-
 
     def get_workflow_name(self):
         """Name of currently executing workflow"""
