@@ -2056,18 +2056,7 @@ class GphlWorkflow(TaskNode):
         return self.path_template
 
     def get_workflow_parameters(self):
-        _type = self.get_type()
-        for wf0 in self.workflow_hwobj.get_available_workflows():
-            for result in wf0["strategies"]:
-                if result["title"] == _type:
-                    break
-            else:
-                continue
-            break
-        else:
-           raise RuntimeError("No parameters for unknown workflow %s" % repr(_type))
-        #
-        return result
+        return self.workflow_hwobj.get_available_workflows().get(self.get_type())
 
 
 class XrayImaging(TaskNode):

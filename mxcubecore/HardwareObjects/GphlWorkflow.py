@@ -83,6 +83,8 @@ class GphlWorkflow(HardwareObject, object):
     def __init__(self, name):
         super(GphlWorkflow, self).__init__(name)
 
+        self._config_file_name = "gphl/gphl-workflow.xml"
+
         # Needed to allow methods to put new actions on the queue
         # And as a place to get hold of other objects
         self._queue_entry = None
@@ -140,6 +142,7 @@ class GphlWorkflow(HardwareObject, object):
             "WorkflowCompleted": self.workflow_completed,
             "WorkflowFailed": self.workflow_failed,
         }
+        self.setup_workflow_object()
 
         self._state = self.STATES.OFF
 
@@ -172,6 +175,9 @@ class GphlWorkflow(HardwareObject, object):
                 (instrument_data["det_org_x"], instrument_data["det_org_y"])
             )
 
+        # Must be done after file_paths setting
+        self._load_configuration()
+
     def shutdown(self):
         """Shut down workflow and connection. Triggered on program quit."""
         workflow_connection = HWR.beamline.gphl_connection
@@ -181,14 +187,10 @@ class GphlWorkflow(HardwareObject, object):
 
     def get_settings(self):
         """Get dictionary of workflow settings"""
-        if self._settings is None:
-            self._load_configuration()
         return copy.deepcopy(self._settings)
 
     def get_available_workflows(self):
         """Get list of workflow description dictionaries."""
-        if self._available_workflows is None:
-            self._load_configuration()
         return copy.deepcopy(self._available_workflows)
 
     def _load_configuration(self):
@@ -197,14 +199,14 @@ class GphlWorkflow(HardwareObject, object):
         # Read configuration
         config = open(
             HWR.get_hardware_repository().find_in_repository(
-                "gphl/gphl-workflow.xml"
+               self._config_file_name
             )
         ).read()
         config_data = conversion.xml_to_json_data(
-            config, force_to_list=("variants", "strategies")
-        )
+            config, force_list=("variants", "strategies", "requires")
+        )["object"]
         self._settings = config_data["settings"]
-        workflows = self._available_workflows = []
+        workflows = self._available_workflows = {}
 
 
         if HWR.beamline.gphl_connection.configuration.get("ssh_options"):
@@ -214,9 +216,9 @@ class GphlWorkflow(HardwareObject, object):
             beamline_hook = "py4j::"
 
         # Consolidate workflow options
-        for wf0 in config["workflows"]:
+        for wf0 in config_data["workflows"]:
             workflow = wf0.copy() # shallow copy
-            workflows.append(workflow)
+            workflows[workflow["wfname"]] = workflow
             workflow["strategies"] = []
             opt0 = wf0.get("options", {})
             opt0["beamline"] = beamline_hook
@@ -228,7 +230,7 @@ class GphlWorkflow(HardwareObject, object):
                 strategy["options"] = {}
                 strategy["options"].update(opt0)
                 strategy["options"].update(stra0.get("options", {}))
-                if workflow["wfname"] == "transcal":
+                if workflow["wftype"] == "transcal":
                     relative_file_path = strategy["options"].get("file")
                     if relative_file_path is not None:
                         # Special case - this option must be modified before use
