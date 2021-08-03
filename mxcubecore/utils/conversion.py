@@ -24,8 +24,6 @@
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
-import xmltodict
-
 __date__ = "19/06/17"
 __credits__ = ["MXCuBE collaboration"]
 
@@ -157,13 +155,3 @@ def make_table(column_names, rows):
     #
     return "\n".join(lines)
 
-def xml_to_json_data(text, **kwargs):
-    """Convert xml text to json, converting values to integer or float where possible
-
-    Additional arguments, notably force_to_list, are passed to xmltodict.parse"""
-    def postprocessor(path, key, value):
-        if isinstance(value, string_types):
-            value = convert_string_value(value)
-        return (key, value)
-
-    return xmltodict.parse(text, postprocessor=postprocessor, **kwargs)

@@ -42,7 +42,7 @@ import f90nml
 
 from mxcubecore.dispatcher import dispatcher
 from mxcubecore.utils import conversion
-from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
 from mxcubecore.HardwareObjects import queue_model_objects
 from mxcubecore.HardwareObjects import queue_model_enumerables
 from mxcubecore.HardwareObjects.queue_entry import QUEUE_ENTRY_STATUS
@@ -74,7 +74,7 @@ RECENTRING_MODES = OrderedDict(
 )
 
 
-class GphlWorkflow(HardwareObject, object):
+class GphlWorkflow(HardwareObjectYaml):
     """Global Phasing workflow runner.
     """
 
@@ -83,17 +83,15 @@ class GphlWorkflow(HardwareObject, object):
     def __init__(self, name):
         super(GphlWorkflow, self).__init__(name)
 
-        self._config_file_name = "gphl/gphl-workflow.xml"
-
         # Needed to allow methods to put new actions on the queue
         # And as a place to get hold of other objects
         self._queue_entry = None
 
         # Configuration data - set when queried
-        self._available_workflows = None
-        self._settings = None
+        self.workflows = {}
+        self.settings = {}
 
-        # Current data colelction group. Different for characterisation and collection
+        # Current data collection group. Different for characterisation and collection
         self._data_collection_group = None
 
         # event to handle waiting for parameter input
@@ -142,20 +140,10 @@ class GphlWorkflow(HardwareObject, object):
             "WorkflowCompleted": self.workflow_completed,
             "WorkflowFailed": self.workflow_failed,
         }
-        self.setup_workflow_object()
-
-        self._state = self.STATES.OFF
-
-    def setup_workflow_object(self):
-        """Necessary as this set-up cannot be done at init,
-        when the hwobj are still incomplete. Must be called externally
-        TODO This still necessary?"""
 
         # Set standard configurable file paths
         file_paths = self.file_paths
-        ss0 = HWR.beamline.gphl_connection.configuration[
-            "software_paths"
-        ]["gphl_beamline_config"]
+        ss0 = HWR.beamline.gphl_connection.software_paths["gphl_beamline_config"]
         file_paths["gphl_beamline_config"] = ss0
         file_paths["transcal_file"] = os.path.join(ss0, "transcal.nml")
         file_paths["diffractcal_file"] = os.path.join(ss0, "diffractcal.nml")
@@ -165,6 +153,7 @@ class GphlWorkflow(HardwareObject, object):
         instrument_data = f90nml.read(fp0)["sdcp_instrument_list"]
         self.rotation_axis_roles = instrument_data["gonio_axis_names"]
         self.translation_axis_roles = instrument_data["gonio_centring_axis_names"]
+
         detector = HWR.beamline.detector
         if "Mockup" in detector.__class__.__name__:
             # We are in mock  mode
@@ -175,8 +164,34 @@ class GphlWorkflow(HardwareObject, object):
                 (instrument_data["det_org_x"], instrument_data["det_org_y"])
             )
 
-        # Must be done after file_paths setting
-        self._load_configuration()
+        # Adapt configuration data - must be done after file_paths setting
+        if HWR.beamline.gphl_connection.ssh_options:
+            # We are running workflow through ssh - set beamline url
+            beamline_hook ="py4j:%s:" % socket.gethostname()
+        else:
+            beamline_hook = "py4j::"
+
+        # Consolidate workflow options
+        for title, workflow in self.workflows.items():
+            workflow["wfname"] = title
+
+            opt0 = workflow.get("options", {})
+            opt0["beamline"] = beamline_hook
+            if workflow["wfname"] != "transcal":
+                opt0["appdir"] = HWR.beamline.session.get_base_process_directory()
+            for strategy in workflow["strategies"]:
+                dd0 = opt0.copy()
+                dd0.update(strategy.get("options", {}))
+                strategy["options"] = dd0
+                if workflow["wftype"] == "transcal":
+                    relative_file_path = strategy["options"].get("file")
+                    if relative_file_path is not None:
+                        # Special case - this option must be modified before use
+                        strategy["options"]["file"] = os.path.join(
+                            self.file_paths["gphl_beamline_config"], relative_file_path
+                        )
+
+        self._state = self.STATES.OFF
 
     def shutdown(self):
         """Shut down workflow and connection. Triggered on program quit."""
@@ -187,140 +202,11 @@ class GphlWorkflow(HardwareObject, object):
 
     def get_settings(self):
         """Get dictionary of workflow settings"""
-        return copy.deepcopy(self._settings)
+        return copy.deepcopy(self.settings)
 
     def get_available_workflows(self):
         """Get list of workflow description dictionaries."""
-        return copy.deepcopy(self._available_workflows)
-
-    def _load_configuration(self):
-        """Load configuratoi data, and prepare for future use"""
-
-        # Read configuration
-        config = open(
-            HWR.get_hardware_repository().find_in_repository(
-               self._config_file_name
-            )
-        ).read()
-        config_data = conversion.xml_to_json_data(
-            config, force_list=("variants", "strategies", "requires")
-        )["object"]
-        self._settings = config_data["settings"]
-        workflows = self._available_workflows = {}
-
-
-        if HWR.beamline.gphl_connection.configuration.get("ssh_options"):
-            # We are running workflow through ssh - set beamline url
-            beamline_hook ="py4j:%s:" % socket.gethostname()
-        else:
-            beamline_hook = "py4j::"
-
-        # Consolidate workflow options
-        for wf0 in config_data["workflows"]:
-            workflow = wf0.copy() # shallow copy
-            workflows[workflow["wfname"]] = workflow
-            workflow["strategies"] = []
-            opt0 = wf0.get("options", {})
-            opt0["beamline"] = beamline_hook
-            if workflow["wfname"] != "transcal":
-                opt0["appdir"] = HWR.beamline.session.get_base_process_directory()
-            for stra0 in wf0["strategies"]:
-                strategy = copy.deepcopy(stra0)
-                workflow["strategies"].append(strategy)
-                strategy["options"] = {}
-                strategy["options"].update(opt0)
-                strategy["options"].update(stra0.get("options", {}))
-                if workflow["wftype"] == "transcal":
-                    relative_file_path = strategy["options"].get("file")
-                    if relative_file_path is not None:
-                        # Special case - this option must be modified before use
-                        strategy["options"]["file"] = os.path.join(
-                            self.file_paths["gphl_beamline_config"], relative_file_path
-                        )
-
-        # result = OrderedDict()
-        # if self.has_object("workflow_properties"):
-        #     properties = self["workflow_properties"].get_properties().copy()
-        # else:
-        #     properties = {}
-        # if self.has_object("invocation_properties"):
-        #     invocation_properties = (
-        #         self["invocation_properties"].get_properties().copy()
-        #     )
-        # else:
-        #     invocation_properties = {}
-
-        # acq_workflow_options = all_workflow_options.copy()
-        # acq_workflow_options.update(self["acq_workflow_options"].get_properties())
-        # Add options for target directories:
-
-        # mx_workflow_options = acq_workflow_options.copy()
-        # mx_workflow_options.update(self["mx_workflow_options"].get_properties())
-
-        # for wf_node in self["workflows"]:
-            # name = wf_node.name()
-            # strategy_type = wf_node.get_property("strategy_type")
-            # variant = wf_node.get_property("variant")
-            # wf_dict = {
-            #     "name": name,
-            #     "strategy_type": strategy_type,
-            #     "variant": variant,
-            #     "application": wf_node.get_property("application"),
-            #     "documentation": wf_node.get_property(
-            #         "documentation", default_value=""
-            #     ),
-            #     "interleaveOrder": wf_node.get_property(
-            #         "interleave_order", default_value=""
-            #     ),
-            # }
-            # result[name] = wf_dict
-            #
-            # if strategy_type == "transcal":
-            #     wf_dict["options"] = dd0 = all_workflow_options.copy()
-            #     if wf_node.has_object("options"):
-            #         dd0.update(wf_node["options"].get_properties())
-            #         relative_file_path = dd0.get("file")
-            #         if relative_file_path is not None:
-            #             # Special case - this option must be modified before use
-            #             dd0["file"] = os.path.join(
-            #                 self.file_paths["gphl_beamline_config"], relative_file_path
-            #             )
-
-            # elif strategy_type == "diffractcal":
-            #     wf_dict["options"] = dd0 = acq_workflow_options.copy()
-            #     if wf_node.has_object("options"):
-            #         dd0.update(wf_node["options"].get_properties())
-            #
-            # else:
-            #     wf_dict["options"] = dd0 = mx_workflow_options.copy()
-            #     if wf_node.has_object("options"):
-            #         dd0.update(wf_node["options"].get_properties())
-            #
-            # beam_energy_tags = wf_node.get_property("beam_energy_tags")
-            # if beam_energy_tags:
-            #     wf_dict["beam_energy_tags"] = beam_energy_tags.strip().split()
-            #
-            # wf_dict["properties"] = dd0 = properties.copy()
-            # if wf_node.has_object("properties"):
-            #     dd0.update(wf_node["properties"].get_properties())
-            # # Program-specific properties
-            # devmode = dd0.get("co.gphl.wf.devMode")
-            # if devmode and devmode[0] not in "fFnN":
-            #     # We are in developer mode. Add parameters
-            #     dd0["co.gphl.wf.stratcal.opt.--strategy_type"] = strategy_type
-            #     if variant:
-            #         dd0["co.gphl.wf.stratcal.opt.--variant"] = variant
-            #     angular_tolerance = self.get_property("angular_tolerance")
-            #     if angular_tolerance:
-            #         dd0["co.gphl.wf.stratcal.opt.--angular-tolerance"] = float(
-            #             angular_tolerance
-            #         )
-            #
-            # wf_dict["invocation_properties"] = dd0 = invocation_properties.copy()
-            # if wf_node.has_object("invocation_properties"):
-            #     dd0.update(wf_node["invocation_properties"].get_properties())
-        # #
-        # return result
+        return copy.deepcopy(self.workflows)
 
     def get_state(self):
         return self._state
@@ -331,14 +217,6 @@ class GphlWorkflow(HardwareObject, object):
             self.emit("stateChanged", (value,))
         else:
             raise RuntimeError("GphlWorkflow set to invalid state: s" % value)
-
-    # # NB This was called only from GphlWorkflowQueueEntry.stop()
-    # # Abort from data dialog abort buttons go directly to the execute() queue
-    # # Abort from the Queue stop command stop execution and call post_execute
-    # # Abort originated in Java workflow send back an abort message.
-    # # As of now there is no need for this function
-    # def abort(self, message=None):
-    #     logging.getLogger("HWR").info("MXCuBE aborting current GPhL workflow")
 
     def pre_execute(self, queue_entry):
 
@@ -496,7 +374,7 @@ class GphlWorkflow(HardwareObject, object):
             beam_energies = OrderedDict((("Characterisation", initial_energy),))
             budget_use_fraction = data_model.get_characterisation_budget_fraction()
             dose_label = "Charcterisation dose (MGy)"
-            if not self._settings.get("recentre_before_start"):
+            if not self.settings.get("recentre_before_start"):
                 # replace planned orientation with current orientation
                 current_pos_dict = HWR.beamline.diffractometer.get_motor_positions()
                 dd0 = list(axis_setting_dicts.values())[0]
@@ -539,7 +417,7 @@ class GphlWorkflow(HardwareObject, object):
         if allowed_widths:
             default_width_index = geometric_strategy.defaultWidthIdx or 0
         else:
-            allowed_widths = list(self._settings.get("default_image_widths"))
+            allowed_widths = list(self.settings.get("default_image_widths"))
             val = allowed_widths[0]
             allowed_widths.sort()
             default_width_index = allowed_widths.index(val)
@@ -808,7 +686,7 @@ class GphlWorkflow(HardwareObject, object):
                     "uiLabel": "Wedge width (deg)",
                     "type": "text",
                     "defaultValue": (
-                        "%s" % self._settings.get("default_wedge_width", 15)
+                        "%s" % self.settings.get("default_wedge_width", 15)
                     ),
                     "lowerBound": 0.1,
                     "upperBound": 7200,
@@ -847,7 +725,7 @@ class GphlWorkflow(HardwareObject, object):
         # recentring mode:
         labels = list(RECENTRING_MODES.keys())
         modes = list(RECENTRING_MODES.values())
-        default_recentring_mode = self._settings.get("default_recentring_mode", "sweep")
+        default_recentring_mode = self.settings.get("default_recentring_mode", "sweep")
         if default_recentring_mode == "scan" or default_recentring_mode not in modes:
             raise ValueError(
                 "invalid default recentring mode '%s' " % default_recentring_mode
@@ -914,7 +792,7 @@ class GphlWorkflow(HardwareObject, object):
             if value:
                 image_width = result[tag] = float(value)
             else:
-                image_width = self._settings.get("default_image_width", 15)
+                image_width = self.settings.get("default_image_width", 15)
             tag = "exposure"
             value = params.get(tag)
             if value:
@@ -964,7 +842,7 @@ class GphlWorkflow(HardwareObject, object):
         geometric_strategy = payload
         sweeps = geometric_strategy.get_ordered_sweeps()
         gphl_workflow_model = self._queue_entry.get_data_model()
-        angular_tolerance = self._settings.get("angular_tolerance", 0)
+        angular_tolerance = self.settings.get("angular_tolerance", 0)
 
         # enqueue data collection group
         strategy_type = gphl_workflow_model.get_workflow_parameters()[
@@ -991,7 +869,7 @@ class GphlWorkflow(HardwareObject, object):
         # NB for any type of acquisition, energy and resolution are set before this point
 
         bst = geometric_strategy.defaultBeamSetting
-        if bst and self._settings.get("starting_beamline_energy") == "configured":
+        if bst and self.settings.get("starting_beamline_energy") == "configured":
             # Preset energy
             # First set beam_energy and give it time to settle,
             # so detector distance will trigger correct resolution later
@@ -1080,7 +958,7 @@ class GphlWorkflow(HardwareObject, object):
         sweepSetting = sweepSettings[0]
 
         if (
-            self._settings.get("recentre_before_start")
+            self.settings.get("recentre_before_start")
             and not gphl_workflow_model.lattice_selected
         ):
             # Sample has never been centred reliably.
@@ -1174,7 +1052,7 @@ class GphlWorkflow(HardwareObject, object):
                         )
                         self.collect_centring_snapshots("%s_%s_%s" % okp)
 
-        elif not self._settings.get("recentre_before_start"):
+        elif not self.settings.get("recentre_before_start"):
             # Characterisation, and current position was pre-centred
             # Do characterisation at current position, not the hardcoded one
             rotation_settings = dict(
@@ -1296,10 +1174,8 @@ class GphlWorkflow(HardwareObject, object):
         corresponding x,y,z translation position"""
 
         # Make input file
-        infile = os.path.join(
-            HWR.beamline.gphl_connection.configuration[
-                "software_paths"
-            ]["gphl_beamline_config"]["GPHL_WDIR"],
+        software_paths = HWR.beamline.gphl_connection.software_paths
+        infile = os.path.join(software_paths["gphl_beamline_config"]["GPHL_WDIR"],
             "temp_recen.in"
         )
         recen_data = OrderedDict()
@@ -1332,12 +1208,7 @@ class GphlWorkflow(HardwareObject, object):
         # Get program locations
         recen_executable = HWR.beamline.gphl_connection.get_executable("recen")
         # Get environmental variables
-        envs = {
-            "BDG_home":
-            HWR.beamline.gphl_connection.configuration[
-                "software_paths"
-            ]["gphl_beamline_config"]["BDG_home"]
-        }
+        envs = {"BDG_home":software_paths["gphl_beamline_config"]["BDG_home"]}
         # Run recen
         command_list = [
             recen_executable,
@@ -1422,7 +1293,7 @@ class GphlWorkflow(HardwareObject, object):
         sweep_offset = geometric_strategy.sweepOffset
         scan_count = len(scans)
 
-        if repeat_count and sweep_offset and self._settings.get("use_multitrigger"):
+        if repeat_count and sweep_offset and self.settings.get("use_multitrigger"):
             # commpress unrolled multi-trigger sweep
             # NBNB as of 202103 this is only allowed for a single sweep
             #
@@ -1544,7 +1415,7 @@ class GphlWorkflow(HardwareObject, object):
             sweeps.add(sweep)
 
 
-            if repeat_count and sweep_offset and self._settings.get("use_multitrigger"):
+            if repeat_count and sweep_offset and self.settings.get("use_multitrigger"):
                 # Multitrigger sweep - add in parameters.
                 # NB if we are here ther can be only one scan
                 acq_parameters.num_triggers = scan_count
@@ -1679,7 +1550,7 @@ class GphlWorkflow(HardwareObject, object):
             del ll0[0]
 
         options = {}
-        maximum_chi = self._settings.get("maximum_chi")
+        maximum_chi = self.settings.get("maximum_chi")
         if maximum_chi:
             options["maxmum_chi"] = float(maximum_chi)
 
@@ -2068,7 +1939,7 @@ class GphlWorkflow(HardwareObject, object):
 
         """
         """Get resolution-dependent dose budget using configured values"""
-        max_budget = self._settings.get("maximum_dose_budget", 20)
+        max_budget = self.settings.get("maximum_dose_budget", 20)
         result = 2 * resolution * resolution * math.log(100.0 / decay_limit)
         #
         return min(result, max_budget) / relative_sensitivity
@@ -2081,9 +1952,9 @@ class GphlWorkflow(HardwareObject, object):
         """
         crystal_file_name = "crystal.nml"
         result = []
-        sample_dir = HWR.beamline.gphl_connection.configuration[
-            "software_paths"
-        ]["gphl_beamline_config"].get("gphl_test_samples")
+        sample_dir = HWR.beamline.gphl_connection.software_paths[
+            "gphl_beamline_config"
+        ].get("gphl_test_samples")
         serial = 0
         if sample_dir and os.path.isdir(sample_dir):
             for path, dirnames, filenames in sorted(os.walk(sample_dir)):
@@ -2167,9 +2038,9 @@ class GphlWorkflow(HardwareObject, object):
         if sample_name and sample_name.startswith(self.TEST_SAMPLE_PREFIX):
             sample_name = sample_name[len(self.TEST_SAMPLE_PREFIX) + 1 :]
 
-            sample_dir = HWR.beamline.gphl_connection.configuration[
-                "software_paths"
-            ]["gphl_beamline_config"].get("gphl_test_samples")
+            sample_dir = HWR.beamline.gphl_connection.software_paths[
+                "gphl_beamline_config"
+            ].get("gphl_test_samples")
             if not sample_dir:
                 raise ValueError("Test sample requires gphl_test_samples dir specified")
             sample_dir = os.path.join(sample_dir, sample_name)

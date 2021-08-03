@@ -36,7 +36,7 @@ from py4j import clientserver, java_gateway
 from mxcubecore.utils import conversion
 from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
 from mxcubecore import HardwareRepository as HWR
 
 # NB this is patching the original socket module in to avoid the
@@ -74,7 +74,7 @@ __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
 
-class GphlWorkflowConnection(HardwareObject, object):
+class GphlWorkflowConnection(HardwareObjectYaml):
     """
     This HO acts as a gateway to the Global Phasing workflow engine.
     """
@@ -84,11 +84,6 @@ class GphlWorkflowConnection(HardwareObject, object):
 
         # Py4J gateway to external workflow program
         self._gateway = None
-
-        # Loaded coinfiguration data
-        self.configuration = None
-        # NB overwritten duging config load. HACK
-        self._config_file_name = "gphl/gphl-setup.xml"
 
         # ID for current workflow calculation
         self._enactment_id = None
@@ -102,41 +97,31 @@ class GphlWorkflowConnection(HardwareObject, object):
         self._running_process = None
         self.collect_emulator_process = None
 
-        # # py4j connection parameters
-        # self._connection_parameters = {}
-
-        # # Paths to executables and software locations
-        # self.configuration["software_paths"] = {}
-        # # Properties for GPhL invocation
-        # self.java_properties = {}
+        # Configured parameters
+        self.directory_locations = {}
+        self.ssh_options = {}
+        self.gphl_subdir = "GPHL"
+        self.gphl_persistname = "persistence"
+        self.connection_parameters = {}
+        self.software_paths = {}
+        self.software_properties = {}
 
     def _init(self):
         super(GphlWorkflowConnection, self)._init()
 
     def init(self):
         super(GphlWorkflowConnection, self).init()
-        self._load_configuration()
-        self.update_state(self.STATES.OFF)
 
-    def _load_configuration(self):
-        """ Lod configuration and adapt values"""
 
-        # Read configuration
-        txt = open(
-            HWR.get_hardware_repository().find_in_repository(
-                self._config_file_name
-            )
-        ).read()
-        config = self.configuration = conversion.xml_to_json_data(txt)["object"]
 
-        if "ssh_options" in config:
-            dd0 = config.get("connection_parameters", {})
-            dd0["python_address"] = socket.gethostname()
-            config["connection_parameters"] = dd0
+        # Adapt connections if we are running via ssh
+        if self.ssh_options:
+            self.connection_parameters["python_address"] = socket.gethostname()
 
-        locations = config.get("directory_locations", {})
-        paths = config.get("software_paths", {})
-        properties = config.get("software_properties", {})
+        # Adapt paths and properties to use directory_locations
+        locations = self.directory_locations
+        paths = self.software_paths
+        properties = self.software_properties
 
         for tag, val in paths.items():
             val2 = val.format(**locations)
@@ -157,6 +142,8 @@ class GphlWorkflowConnection(HardwareObject, object):
         pp0 = properties["co.gphl.wf.bin"] = paths["GPHL_INSTALLATION"]
         paths["BDG_home"] = paths.get("co.gphl.wf.bdg_licence_dir") or pp0
 
+        self.update_state(self.STATES.OFF)
+
     def get_workflow_name(self):
         """Name of currently executing workflow"""
         return self._workflow_name
@@ -168,15 +155,15 @@ class GphlWorkflowConnection(HardwareObject, object):
     def get_executable(self, name):
         """Get location of executable binary for program called 'name'"""
         tag = "co.gphl.wf.%s.bin" % name
-        result = self.configuration["software_paths"].get(tag)
+        result = self.software_paths.get(tag)
         if not result:
-            result = os.path.join(self.configuration["software_paths"]["GPHL_INSTALLATION"], name)
+            result = os.path.join(self.software_paths["GPHL_INSTALLATION"], name)
         #
         return result
 
     def open_connection(self):
 
-        params = self.configuration["connection_parameters"]
+        params = self.connection_parameters
 
         python_parameters = {}
         val = params.get("python_address")
@@ -216,15 +203,15 @@ class GphlWorkflowConnection(HardwareObject, object):
             raise RuntimeError("Workflow is already running, cannot be started")
 
         # Cannot be done in init, where the api.sessions link is not yet ready
-        self.configuration["software_paths"]["GPHL_WDIR"] = os.path.join(
-            HWR.beamline.session.get_base_process_directory(),
-            self.configuration.get("gphl_subdir", "GPHL")
+        self.software_paths["GPHL_WDIR"] = os.path.join(
+            HWR.beamline.session.get_base_process_directory(), self.gphl_subdir
         )
 
         self._workflow_name = workflow_model_obj.get_type()
         params = workflow_model_obj.get_workflow_parameters()
+        wf_settings = HWR.beamline.gphl_workflow.settings
 
-        ssh_options = self.configuration.get("ssh_options")
+        ssh_options = self.ssh_options
         in_shell = bool(ssh_options)
         if in_shell:
             ssh_options = ssh_options.copy()
@@ -237,7 +224,7 @@ class GphlWorkflowConnection(HardwareObject, object):
             command_list.append(host)
         else:
             command_list = []
-        command_list.append(self.configuration["software_paths"]["java_binary"])
+        command_list.append(self.software_paths["java_binary"])
 
         # # HACK - debug options REMOVE!
         # import socket
@@ -246,7 +233,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         # ss0 = "-agentlib:jdwp=transport=dt_socket,address=%s:8050,server=y,suspend=y"
         # command_list.append(ss0 % sock.getsockname()[0])
 
-        for tag, val in sorted(params.get("invocation_properties", {}).items()):
+        for tag, val in sorted(wf_settings.get("invocation_properties", {}).items()):
             command_list.extend(
                 conversion.java_property(tag, val, quote_value=in_shell)
             )
@@ -267,10 +254,9 @@ class GphlWorkflowConnection(HardwareObject, object):
         path_template = workflow_model_obj.get_path_template()
         if "prefix" in workflow_options:
             workflow_options["prefix"] = path_template.base_prefix
-        workflow_options["wdir"] = self.configuration["software_paths"]["GPHL_WDIR"]
-        workflow_options["persistname"] = self.configuration.get(
-            "gphl_persistname", "persistence"
-        )
+        workflow_options["wdir"] = self.software_paths["GPHL_WDIR"]
+        workflow_options["persistname"] = self.gphl_persistname
+
         # Set the workflow root subdirectory parameter from the base image directory
         image_root = os.path.abspath(HWR.beamline.session.get_base_image_directory())
         rootsubdir = path_template.directory[len(image_root) :]
@@ -287,17 +273,17 @@ class GphlWorkflowConnection(HardwareObject, object):
         )
 
         ll0 = conversion.command_option(
-            "cp", self.configuration["software_paths"]["gphl_java_classpath"], quote_value=in_shell
+            "cp", self.software_paths["gphl_java_classpath"], quote_value=in_shell
         )
         command_list.extend(ll0)
 
         command_list.append(params["application"])
 
-        for keyword, value in params.get("properties", {}).items():
+        for keyword, value in wf_settings.get("workflow_properties", {}).items():
             command_list.extend(
                 conversion.java_property(keyword, value, quote_value=in_shell)
             )
-        for keyword, value in self.configuration["java_properties"].items():
+        for keyword, value in self.software_properties.items():
             command_list.extend(
                 conversion.java_property(keyword, value, quote_value=in_shell)
             )
@@ -334,16 +320,16 @@ class GphlWorkflowConnection(HardwareObject, object):
 
         # These env variables are needed in some cases for wrapper scripts
         # Specifically for the stratcal wrapper.
-        envs["GPHL_INSTALLATION"] = self.configuration["software_paths"]["GPHL_INSTALLATION"]
-        envs["BDG_home"] = self.configuration["software_paths"]["BDG_home"]
+        envs["GPHL_INSTALLATION"] = self.software_paths["GPHL_INSTALLATION"]
+        envs["BDG_home"] = self.software_paths["BDG_home"]
         envs["GPHL_XDS_PATH"] = os.path.dirname(
-            self.configuration["software_paths"]["co.gphl.wf.xds.bin"]
+            self.software_paths["co.gphl.wf.xds.bin"]
         )
-        GPHL_CCP4_PATH = self.configuration["software_paths"].get("GPHL_CCP4_PATH")
+        GPHL_CCP4_PATH = self.software_paths.get("GPHL_CCP4_PATH")
         if GPHL_CCP4_PATH:
             envs["GPHL_CCP4_PATH"] = GPHL_CCP4_PATH
         # Hack to pass alternative installation dir for processing
-        val = self.configuration["software_paths"].get("gphl_wf_processing_installation")
+        val = self.software_paths.get("gphl_wf_processing_installation")
         if val:
             envs["GPHL_PROC_INSTALLATION"] = val
         else:
