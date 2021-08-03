@@ -43,6 +43,13 @@ from mxcubecore.dispatcher import dispatcher
 from mxcubecore import BaseHardwareObjects
 from mxcubecore import HardwareObjectFileParser
 
+# Save copy of original version of socket, before gevent monkey-patching
+# Used e.g. in GphlWorkflowConnection, to suport py4j
+# DO NOT DELETE
+import socket as original_socket
+# Remove from system dictionaries, to avoid later overwriting of original_socket
+del sys.modules["socket"]
+del sys.modules["_socket"]
 
 # If you want to write out copies of the file, use typ="rt" instead
 # pure=True uses yaml version 1.2, with fewere gotchas for strange type conversions

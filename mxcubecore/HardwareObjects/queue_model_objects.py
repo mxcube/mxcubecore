@@ -2056,7 +2056,12 @@ class GphlWorkflow(TaskNode):
         return self.path_template
 
     def get_workflow_parameters(self):
-        return self.workflow_hwobj.get_available_workflows().get(self.get_type())
+        """Get parameters dictionary for workflow strategy"""
+        for wfdict in self.workflow_hwobj.get_available_workflows().values():
+            for stratdict in wfdict["strategies"]:
+                if stratdict["title"] == self.get_type():
+                    return stratdict
+        raise ValueError("No GPhL workflow strategy named %s found" % self.get_type())
 
 
 class XrayImaging(TaskNode):
