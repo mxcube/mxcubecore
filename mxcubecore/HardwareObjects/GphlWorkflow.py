@@ -179,7 +179,12 @@ class GphlWorkflow(HardwareObjectYaml):
             opt0["beamline"] = beamline_hook
             if workflow["wfname"] != "transcal":
                 opt0["appdir"] = HWR.beamline.session.get_base_process_directory()
+            default_strategy_name = None
             for strategy in workflow["strategies"]:
+                if default_strategy_name is None:
+                    default_strategy_name = workflow["strategy_name"] = (
+                        strategy["title"]
+                    )
                 dd0 = opt0.copy()
                 dd0.update(strategy.get("options", {}))
                 strategy["options"] = dd0

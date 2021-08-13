@@ -1858,12 +1858,15 @@ class Workflow(TaskNode):
 
 
 class GphlWorkflow(TaskNode):
-    def __init__(self, workflow_hwobj):
+    def __init__(self):
         TaskNode.__init__(self)
-        self.workflow_hwobj = workflow_hwobj
+
+        workflow_hwobj = HWR.beamline.gphl_workflow
+
         self.path_template = PathTemplate()
         self._name = str()
         self._type = str()
+        self._shape = str()
         self._characterisation_strategy = str()
         self._interleave_order = str()
         self._number = 0
@@ -1874,13 +1877,13 @@ class GphlWorkflow(TaskNode):
         self._point_group = None
         self._cell_parameters = None
         self._snapshot_count = int(
-            workflow_hwobj.get_settings.get("default_snapshot_count", 0)
+            workflow_hwobj.get_settings().get("default_snapshot_count", 0)
         )
         self._recentring_mode = str()
         self._current_rotation_id = None
 
         self._dose_budget = None
-        self._decay_limit = workflow_hwobj.get_settings.get("default_decay_limit", 25)
+        self._decay_limit = workflow_hwobj.get_settings().get("default_decay_limit", 25)
         self._characterisation_budget_fraction = 0.05
         self._relative_rad_sensitivity = 1.0
         self._dose_consumed = 0.0
@@ -1900,12 +1903,19 @@ class GphlWorkflow(TaskNode):
     def set_name(self, value):
         self._name = value
 
-    # Workflow type (string).
+    # Workflow type (string); equal to title of selected strategy (key to config)
     def get_type(self):
         return self._type
 
     def set_type(self, value):
         self._type = value
+
+    # Name of shape on which workflow is run
+    def get_shape(self):
+        return self._shape
+
+    def set_shape(self, value):
+        self._shape = value
 
     # Workflow interleave order (string).
     # Slowest changing first, characters 'g' (Goniostat position);
@@ -2057,7 +2067,7 @@ class GphlWorkflow(TaskNode):
 
     def get_workflow_parameters(self):
         """Get parameters dictionary for workflow strategy"""
-        for wfdict in self.workflow_hwobj.get_available_workflows().values():
+        for wfdict in HWR.beamline.gphl_workflow.get_available_workflows().values():
             for stratdict in wfdict["strategies"]:
                 if stratdict["title"] == self.get_type():
                     return stratdict
