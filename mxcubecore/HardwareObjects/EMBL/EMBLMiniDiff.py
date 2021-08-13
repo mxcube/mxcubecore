@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube
+#  https://github.com/mxcube.
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,7 +15,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
 import gevent
@@ -24,20 +24,19 @@ import logging
 from math import sqrt
 
 try:
-    import lucid2 as lucid
+    import lucid3 as lucid
 except ImportError:
     try:
         import lucid
     except ImportError:
         logging.warning(
-            "Could not find autocentring library, " + "automatic centring is disabled"
+            "Could not find autocentring library, automatic centring is disabled"
         )
 
 from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
 )
 from mxcubecore.TaskUtils import task
-
 from mxcubecore import HardwareRepository as HWR
 
 
@@ -55,10 +54,10 @@ class EMBLMiniDiff(GenericDiffractometer):
         GenericDiffractometer.__init__(self, *args)
 
         # Hardware objects ----------------------------------------------------
-        self.zoom_motor_hwobj = None
         self.omega_reference_motor = None
         self.centring_hwobj = None
         self.minikappa_correction_hwobj = None
+        self.zoom_motor_hwobj = None
 
         # Channels and commands -----------------------------------------------
         self.chan_calib_x = None
@@ -80,9 +79,8 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.omega_reference_par = None
         self.omega_reference_pos = [0, 0]
         self.imaging_pixels_per_mm = [0, 0]
+
         self.current_phase = None
-        self.imaging_static_positions = None
-        self.imaging_beam_position = [959, 1140]
 
     def init(self):
 
@@ -111,9 +109,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             "update", self.fast_shutter_state_changed
         )
 
-        self.chan_scintillator_position = self.get_channel_object(
-            "ScintillatorPosition"
-        )
+        self.chan_scintillator_position = self.get_channel_object("ScintillatorPosition")
         self.chan_capillary_position = self.get_channel_object("CapillaryPosition")
 
         self.cmd_start_set_phase = self.get_command_object("startSetPhase")
@@ -127,18 +123,19 @@ class EMBLMiniDiff(GenericDiffractometer):
 
         self.centring_hwobj = self.get_object_by_role("centring")
         self.imaging_centring_hwobj = self.get_object_by_role("imaging-centring")
-        self.minikappa_correction_hwobj = self.get_object_by_role(
-            "minikappa_correction"
-        )
-
+        self.minikappa_correction_hwobj = self.get_object_by_role("minikappa_correction")
         self.zoom_motor_hwobj = self.get_object_by_role("zoom")
-        self.connect(self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed)
+        self.connect(
+            self.zoom_motor_hwobj, "valueChanged", self.zoom_position_changed
+        )
         self.connect(
             self.zoom_motor_hwobj,
             "predefinedPositionChanged",
             self.zoom_motor_predefined_position_changed,
         )
-        self.connect(self.motor_hwobj_dict["phi"], "valueChanged", self.phi_motor_moved)
+        self.connect(
+            self.motor_hwobj_dict["phi"], "valueChanged", self.phi_motor_moved
+        )
         self.connect(
             self.motor_hwobj_dict["phiy"], "valueChanged", self.phiy_motor_moved
         )
@@ -160,6 +157,9 @@ class EMBLMiniDiff(GenericDiffractometer):
             self.motor_hwobj_dict["sampy"], "valueChanged", self.sampy_motor_moved
         )
 
+        self.kappa_motor_moved(self.motor_hwobj_dict["kappa"].get_value())
+        self.kappa_phi_motor_moved(self.motor_hwobj_dict["kappa_phi"].get_value())
+
         self.omega_reference_par = eval(self.get_property("omega_reference"))
         self.omega_reference_motor = self.get_object_by_role(
             self.omega_reference_par["motor_name"]
@@ -171,7 +171,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         )
 
         # self.use_sc = self.get_property("use_sample_changer")
-        self.imaging_pixels_per_mm = [3076.923, 3076.923]
+        self.imaging_pixels_per_mm = [1, 1]
         self.centring_methods[
             EMBLMiniDiff.CENTRING_METHOD_IMAGING
         ] = self.start_imaging_centring
@@ -274,17 +274,15 @@ class EMBLMiniDiff(GenericDiffractometer):
 
     def kappa_motor_moved(self, pos):
         self.current_motor_positions["kappa"] = pos
-        if self.centring_time:
-            if time.time() - self.centring_time > 1.0:
-                self.invalidate_centring()
+        if time.time() - self.centring_time > 1.0:
+            self.invalidate_centring()
         self.emit_diffractometer_moved()
         self.emit("kappaMotorMoved", pos)
 
     def kappa_phi_motor_moved(self, pos):
         self.current_motor_positions["kappa_phi"] = pos
-        if self.centring_time:
-            if time.time() - self.centring_time > 1.0:
-                self.invalidate_centring()
+        if time.time() - self.centring_time > 1.0:
+            self.invalidate_centring()
         self.emit_diffractometer_moved()
         self.emit("kappaPhiMotorMoved", pos)
 
@@ -304,15 +302,10 @@ class EMBLMiniDiff(GenericDiffractometer):
            Transfer or Beam location phase if needed then detector
            is moved to the safe distance to avoid collision.
         """
-        # self.wait_device_ready(2)
-        logging.getLogger("GUI").warning(
-            "Diffractometer: Setting %s phase. Please wait..." % phase
-        )
-        if self.in_plate_mode() and phase == GenericDiffractometer.PHASE_TRANSFER:
+        if phase != self.get_current_phase():
             logging.getLogger("GUI").warning(
-                "Diffractometer: Transfer phase in plate mode is not available"
+                "Diffractometer: Setting %s phase. Please wait..." % phase
             )
-            return
 
         if self.in_plate_mode() and (
             phase
@@ -342,7 +335,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             self.wait_device_ready(30)
             self.wait_device_ready(30)
             _howlong = time.time() - _start
-            if _howlong > 20.0:
+            if _howlong > 11.0:
                 logging.getLogger("HWR").error(
                     "Changing phase to %s took %.1f seconds" % (phase, _howlong)
                 )
@@ -419,36 +412,7 @@ class EMBLMiniDiff(GenericDiffractometer):
                 if click < 2:
                     self.motor_hwobj_dict["phi"].set_value_relative(90)
         self.omega_reference_add_constraint()
-        # _x = self.centring_hwobj.centeredPosition(return_by_name=True, shift_to_constraints=True)
-        # logging.getLogger("HWR").debug("opti %s" %_x)
-        return self.centring_hwobj.centeredPosition(
-            return_by_name=False, shift_to_constraints=False
-        )
-
-    def imaging_centring(self):
-        self.imaging_centring_hwobj.initCentringProcedure(
-            0
-        )  # static_positions=self.imaging_static_positions)
-        for click in range(3):
-            self.user_clicked_event = gevent.event.AsyncResult()
-            x, y = self.user_clicked_event.get()
-            self.imaging_centring_hwobj.appendCentringDataPoint(
-                {
-                    "X": (x - self.imaging_beam_position[0])
-                    / self.imaging_pixels_per_mm[0],
-                    "Y": (y - self.imaging_beam_position[1])
-                    / self.imaging_pixels_per_mm[1],
-                }
-                # static_positions=self.imaging_static_positions
-            )
-            if click < 2:
-                self.motor_hwobj_dict["phi"].set_value_relative(90)
-        self.omega_reference_add_constraint()
-        # _x = self.imaging_centring_hwobj.centeredPosition(return_by_name=True, shift_to_constraints=True)
-        # logging.getLogger("HWR").debug("xray %s" %_x)
-        return self.centring_hwobj.centeredPosition(
-            return_by_name=False, shift_to_constraints=True
-        )
+        return self.centring_hwobj.centeredPosition(return_by_name=False)
 
     def automatic_centring(self):
         """Automatic centring procedure. Rotates n times and executes
@@ -474,19 +438,10 @@ class EMBLMiniDiff(GenericDiffractometer):
             gevent.sleep(0.01)
             self.wait_device_ready(15)
         self.omega_reference_add_constraint()
-        centred_pos_dir = self.centring_hwobj.centeredPosition(
-            return_by_name=False, shift_to_constraints=False
-        )
-        self.emit("newAutomaticCentringPoint", centred_pos_dir)
+        centred_pos_dir = self.centring_hwobj.centeredPosition(return_by_name=False)
+        # self.emit("newAutomaticCentringPoint", centred_pos_dir)
 
         return centred_pos_dir
-
-    def set_static_positions(self, static_positions):
-        self.imaging_static_positions = static_positions
-
-    def set_imaging_beam_position(self, pos_x, pos_y):
-        self.imaging_beam_position[0] = pos_x
-        self.imaging_beam_position[1] = pos_y
 
     def start_imaging_centring(self, sample_info=None, wait_result=None):
         self.emit_progress_message("Imaging based 3 click centring...")
@@ -498,25 +453,24 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.current_centring_procedure = gevent.spawn(self.imaging_centring_n)
         self.current_centring_procedure.link(self.centring_done)
 
-    """
     def imaging_centring(self):
-        self.imaging_centring_hwobj.initCentringProcedure(static_positions=self.imaging_static_positions)
+        self.imaging_centring_hwobj.initCentringProcedure()
         for click in range(3):
             self.user_clicked_event = gevent.event.AsyncResult()
             x, y = self.user_clicked_event.get()
             self.imaging_centring_hwobj.appendCentringDataPoint(
                 {
-                    "X": (x - self.imaging_beam_position[0]) / self.imaging_pixels_per_mm[0],
-                    "Y": (y - self.imaging_beam_position[1]) / self.imaging_pixels_per_mm[1],
-                },
-                static_positions=self.imaging_static_positions
+                    "X": (x - 1024.0) / self.imaging_pixels_per_mm[0],
+                    "Y": (y - 1024.0) / self.imaging_pixels_per_mm[1],
+                }
             )
             if click < 2:
                 self.motor_hwobj_dict["phi"].set_value_relative(90)
-        self.omega_reference_add_constraint()
-        return self.imaging_centring_hwobj.centeredPosition(return_by_name=False, shift_to_constraints=True)
+            # print "rotate omega"
+        # self.omega_reference_add_constraint()
+        return self.imaging_centring_hwobj.centeredPosition(return_by_name=False)
 
-    def BRAKE_imaging_centring_n(self):
+    def imaging_centring_n(self):
         self.imaging_centring_hwobj.initCentringProcedure()
         while True:
             self.user_clicked_event = gevent.event.AsyncResult()
@@ -527,9 +481,8 @@ class EMBLMiniDiff(GenericDiffractometer):
                     "Y": (y - 1024.0) / self.imaging_pixels_per_mm[1],
                 }
             )
-        self.omega_reference_add_constraint()
+        # self.omega_reference_add_constraint()
         return self.imaging_centring_hwobj.centeredPosition(return_by_name=False)
-    """
 
     def motor_positions_to_screen(self, centred_positions_dict):
         c = centred_positions_dict
@@ -585,7 +538,7 @@ class EMBLMiniDiff(GenericDiffractometer):
                     self.motor_hwobj_dict["kappa_phi"]: centred_position.kappa_phi,
                 }
                 self.move_to_motors_positions(motor_pos)
-            except Exception:
+            except BaseException:
                 logging.exception("Could not move to centred position")
         else:
             logging.getLogger("HWR").debug(
@@ -593,12 +546,9 @@ class EMBLMiniDiff(GenericDiffractometer):
             )
 
     def move_kappa_and_phi(self, kappa=None, kappa_phi=None, wait=False):
-        try:
-            return self.move_kappa_and_phi_procedure(kappa, kappa_phi)
-        except Exception:
-            logging.exception("Could not move kappa and kappa_phi")
+        return gevent.spawn(self.move_kappa_and_phi_procedure, kappa, kappa_phi)
 
-    @task
+    #@task
     def move_kappa_and_phi_procedure(self, new_kappa=None, new_kappa_phi=None):
         kappa = self.motor_hwobj_dict["kappa"].get_value()
         kappa_phi = self.motor_hwobj_dict["kappa_phi"].get_value()
@@ -665,10 +615,10 @@ class EMBLMiniDiff(GenericDiffractometer):
             t2 = [point_2.sampx, point_2.sampy, point_2.phiy]
             kappa = self.motor_hwobj_dict["kappa"].get_value()
             phi = self.motor_hwobj_dict["kappa_phi"].get_value()
-            (
-                new_kappa,
-                new_phi,
-                (new_sampx, new_sampy, new_phiy,),
+            new_kappa, new_phi, (
+                new_sampx,
+                new_sampy,
+                new_phiy,
             ) = self.minikappa_correction_hwobj.alignVector(t1, t2, kappa, phi)
             self.move_to_motors_positions(
                 {
@@ -680,7 +630,10 @@ class EMBLMiniDiff(GenericDiffractometer):
                 }
             )
 
-    def re_emit_values(self):
+    def force_emit_signals(self):
+        GenericDiffractometer.force_emit_signals(self)
+        self.emit("kappaMotorMoved", (self.current_motor_positions["kappa"],))
+        self.emit("kappaPhiMotorMoved", (self.current_motor_positions["kappa_phi"],))
         self.emit("minidiffPhaseChanged", (self.current_phase,))
         self.emit("omegaReferenceChanged", (self.reference_pos,))
         self.emit("minidiffShutterStateChanged", (self.fast_shutter_is_open,))
@@ -690,7 +643,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             self.chan_fast_shutter_is_open.set_value(not self.fast_shutter_is_open)
 
     def find_loop(self):
-        image_array = HWR.beamline.sample_view.camera.get_snapshot(return_as_array=True)
+        image_array = self.camera_hwobj.get_snapshot(return_as_array=True)
         (info, x, y) = lucid.find_loop(image_array)
         surface_score = 10
         return x, y, surface_score
@@ -708,17 +661,11 @@ class EMBLMiniDiff(GenericDiffractometer):
         """Close kappa task
         """
         logging.getLogger("HWR").debug("Diffractometer: Closing Kappa started...")
-        self.move_kappa_and_phi_procedure(0, 0)  # None)
+        self.move_kappa_and_phi_procedure(0, 270)
         self.wait_device_ready(180)
-        logging.getLogger("HWR").debug("Diffractometer: Done closing Kappa.")
-        """
-        try:
-           self.motor_hwobj_dict["kappa"].home()
-           self.wait_device_ready(60)
-           logging.getLogger("HWR").debug("Diffractometer: Done Closing Kappa")
-        except Exception:
-           logging.getLogger("GUI").error("Diffractometer: Kappa homing failed")
-        """
+        self.motor_hwobj_dict["kappa"].home()
+        self.wait_device_ready(60)
+        logging.getLogger("HWR").debug("Diffractometer: Done Closing Kappa")
 
     def set_zoom(self, position):
         self.zoom_motor_hwobj.move_to_position(position)
@@ -769,9 +716,9 @@ class EMBLMiniDiff(GenericDiffractometer):
 
         total_exposure_time = num_images * exp_time
         a = 0.002
-        b = 0.2037
-        w0 = -24.2816
-        w1 = 24.83680  # was 196 not to shadow laser
+        b = 0.1537
+        w0 = 155.7182
+        w1 = 204.8366  # was 196 not to shadow laser
 
         if num_images == 0:
             return (w0, w1)
@@ -843,7 +790,7 @@ class EMBLMiniDiff(GenericDiffractometer):
 
     def set_capillary_position(self, position):
         self.chan_capillary_position.set_value(position)
-        with gevent.Timeout(5, Exception("Timeout waiting for capillary position")):
+        with gevent.Timeout(60, Exception("Timeout waiting for capillary position")):
             while position != self.get_capillary_position():
                 gevent.sleep(0.01)
 
@@ -855,6 +802,7 @@ class EMBLMiniDiff(GenericDiffractometer):
 
     def save_centring_positions(self):
         self.cmd_save_centring_positions()
+        #self.set_zoom("Zoom 7")
 
     def move_sample_out(self):
         self.motor_hwobj_dict["phiy"].set_value_relative(-2, wait=True, timeout=5)

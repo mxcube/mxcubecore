@@ -32,3 +32,9 @@ class EMBLResolution(TINEMotor):
 
     def __init__(self, name):
         TINEMotor.__init__(self, name)
+
+    def get_limits(self):
+        return self._nominal_limits
+
+    def get_value(self):
+        return self._nominal_value
