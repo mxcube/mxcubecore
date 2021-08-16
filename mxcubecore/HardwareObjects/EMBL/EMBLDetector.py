@@ -27,7 +27,6 @@ import gevent
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import (
     AbstractDetector,
 )
-from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 __credits__ = ["EMBL Hamburg"]
@@ -35,14 +34,13 @@ __license__ = "LGPLv3+"
 __category__ = "General"
 
 
-class EMBLDetector(AbstractDetector, HardwareObject):
+class EMBLDetector(AbstractDetector):
     """Detector class. Contains all information about detector
     """
 
     def __init__(self, name):
 
-        AbstractDetector.__init__(self)
-        HardwareObject.__init__(self, name)
+        AbstractDetector.__init__(self, name)
 
         self.collect_name = None
         self.shutter_name = None
@@ -75,9 +73,9 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.cmd_close_cover = None
         self.cmd_restart_daq = None
 
-        self.distance_motor_hwobj = None
-
     def init(self):
+        AbstractDetector.init(self)
+
         self.cover_state = "unknown"
         self.collect_name = self.get_property("collectName")
         self.shutter_name = self.get_property("shutterName")
@@ -91,8 +89,6 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
         self.pixel_size_mm_x = self.get_property("px")
         self.pixel_size_mm_y = self.get_property("py")
-
-        self.distance_motor_hwobj = self.get_object_by_role("distance_motor")
 
         self.chan_cover_state = self.get_channel_object("chanCoverState", optional=True)
         if self.chan_cover_state is not None:
@@ -186,10 +182,9 @@ class EMBLDetector(AbstractDetector, HardwareObject):
     def frame_rate_changed(self, frame_rate):
         """Updates frame rate"""
         if frame_rate is not None:
-            self.exposure_time_limits[0] = 1 / float(frame_rate)
-            self.exposure_time_limits[1] = 6000
+            self._exposure_time_limits = (1 / float(frame_rate), 6000)
 
-        self.emit("expTimeLimitsChanged", (self.exposure_time_limits,))
+        self.emit("expTimeLimitsChanged", (self._exposure_time_limits,))
 
     def actual_frame_rate_changed(self, value):
         """Updates actual frame rate"""
@@ -286,5 +281,5 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         hum = self.chan_humidity.get_value()
         self.emit("humidityChanged", (hum, hum < self.hum_treshold))
         self.status_changed("")
-        self.emit("expTimeLimitsChanged", (self.exposure_time_limits,))
+        self.emit("expTimeLimitsChanged", (self._exposure_time_limits,))
         self.emit("frameRateChanged", self.actual_frame_rate)

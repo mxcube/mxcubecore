@@ -141,18 +141,6 @@ class EMBLEnergy(AbstractEnergy):
                 return None
         return value
 
-    def get_wavelength(self):
-        """
-        Returns current wavelength in A
-        :return: float
-        """
-        current_en = self.get_current_energy()
-        current_wav = None
-
-        if current_en is not None:
-            current_wav = 12.3984 / current_en
-        return current_wav
-
     def get_limits(self):
         """
         Returns energy limits as list of two floats
@@ -289,15 +277,6 @@ class EMBLEnergy(AbstractEnergy):
                 # Mockup mode
                 self.energy_position_changed([energy * 1000])
 
-    def set_wavelength(self, value, wait=True):
-        """
-        Changes wavelength (in Angstroms)
-        :param value: wavelength in Angstroms (float)
-        :param wait: boolean
-        :return:
-        """
-        self.set_value(12.3984 / value, wait)
-
     def energy_position_changed(self, pos):
         """
         Event called when energy value has been changed
@@ -307,13 +286,10 @@ class EMBLEnergy(AbstractEnergy):
         # self.moveEnergyCmdFinished(True)
         if isinstance(pos, (list, tuple)):
             pos = pos[0]
-        energy = pos / 1000
-        if self._energy_value is None or abs(energy - self._energy_value) > 1e-3:
-            self._energy_value = energy
-            self._wavelength_value = 12.3984 / energy
-            if self._wavelength_value is not None:
-                self.emit("energyChanged", (self._energy_value, self._wavelength_value))
-                self.emit("valueChanged", (self._energy_value,))
+        value = pos / 1000
+
+        if self._nominal_value is None or abs(value - self._nominal_value) > 1e-3: 
+            self.update_value(value)
 
     def energy_limits_changed(self, limits):
         """
@@ -321,8 +297,7 @@ class EMBLEnergy(AbstractEnergy):
         :param limits: (float, float)
         :return:
         """
-        limits = self.get_limits()
-        self.emit("energyLimitsChanged", (limits,))
+        self.update_limits(self.get_limits())
 
     def energy_state_changed(self, state):
         """
@@ -341,7 +316,8 @@ class EMBLEnergy(AbstractEnergy):
                     logging.getLogger("HWR").info("Energy: Perp reset sent")
                     self.cmd_reset_perp()
             self.move_energy_finished(0)
-            self.emit("stateChanged", "ready")
+            self.update_state(self.STATES.READY)
+            #self.emit("stateChanged", "ready")
             self.emit("statusInfoChanged", "")
             if self.do_beam_alignment and self.delta > 0.1:
                 self.emit("beamAlignmentRequested")
@@ -349,7 +325,8 @@ class EMBLEnergy(AbstractEnergy):
 
         elif state == 1:
             self.move_energy_started()
-            self.emit("stateChanged", "busy")
+            self.update_state(self.STATES.BUSY)
+            #self.emit("stateChanged", "busy")
 
     def wait_ready(self, timeout=20):
         """
