@@ -227,9 +227,11 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                     qe.stop()
                     qe.post_execute()
                 except base_queue_entry.QueueAbortedException:
-                    pass
-                except Exception:
-                    pass
+                    logging.getLogger("HWR").info("Queue aborted by the user")
+                except Exception as ex:
+                    logging.getLogger("HWR").exception(
+                       "Exception raised during stopping the queue (%s)" % str(ex)
+                    )
 
         self._root_task.kill(block=False)
 

@@ -365,6 +365,7 @@ class AbstractCollect(HardwareObject, object):
         """
         if self.data_collect_task is not None:
             self.data_collect_task.kill(block=False)
+        self.collection_stopped()
 
     def open_detector_cover(self):
         """
