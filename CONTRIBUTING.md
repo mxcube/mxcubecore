@@ -227,6 +227,7 @@ You can use [autopep8](https://pypi.org/project/autopep8/) and [black](https://p
 For continuous integration [Travis](https://travis-ci.org/) is used.
 
 ### Additional notes
+Abstract classes hierarchy scheme can be found [here](https://github.com/mxcube/mxcubecore/blob/hierarchy/Hierarchy.pdf).
 
 Issue and Pull request Labels
 
