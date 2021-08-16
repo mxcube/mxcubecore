@@ -464,7 +464,7 @@ class EMBLCollect(AbstractCollect):
         return self.bl_config._asdict()
 
     def get_total_absorbed_dose(self):
-        return float("%.3e" % HWR.beamline.flux.get_value())
+        return float("%.3e" % HWR.beamline.flux.get_total_absorbed_dose())
 
     def set_run_autoprocessing(self, status):
         """Enables or disables autoprocessing after a collection"""

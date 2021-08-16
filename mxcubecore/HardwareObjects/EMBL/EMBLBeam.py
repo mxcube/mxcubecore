@@ -140,7 +140,6 @@ class EMBLBeam(AbstractBeam):
         :return: None
         """
         self._beam_position_on_screen[0] = value
-        print("hor ", value)
         self.emit("beamPosChanged", (self._beam_position_on_screen,))
 
     def beam_pos_ver_changed(self, value):
@@ -151,7 +150,6 @@ class EMBLBeam(AbstractBeam):
         :return: None
         """
         self._beam_position_on_screen[1] = value
-        print("ver ", value)
         self.emit("beamPosChanged", (self._beam_position_on_screen,))
 
     def get_beam_position(self):

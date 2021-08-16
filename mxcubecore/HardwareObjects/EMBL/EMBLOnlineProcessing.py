@@ -679,7 +679,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
             )
 
 
-        except BaseException:
+        except Exception:
             self.print_log(
                 "GUI",
                 "error",

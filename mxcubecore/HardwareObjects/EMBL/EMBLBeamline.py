@@ -76,7 +76,7 @@ class EMBLBeamline(Beamline):
 
     @property
     def front_light(self):
-        """PPU control Hardware object
+        """Diffractometer front light
 
         Returns:
             Optional[HardwareObject]:
@@ -88,7 +88,7 @@ class EMBLBeamline(Beamline):
 
     @property
     def back_light(self):
-        """PPU control Hardware object
+        """Diffractometer back light
 
         Returns:
             Optional[HardwareObject]:
