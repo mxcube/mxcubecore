@@ -144,13 +144,12 @@ class CollectMockup(AbstractCollect):
                 self.run_offline_processing,
             )
 
-    def stopCollect(self, owner="MXCuBE"):
+    def stop_collect(self):
         """
         Descript. :
         """
+        AbstractCollect.stop_collect(self) 
         self.aborted_by_user = True
-        self.cmd_collect_abort()
-        self.emit_collection_failed("Aborted by user")
 
     @task
     def _take_crystal_snapshot(self, filename):

@@ -222,7 +222,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         if self._queue_entry_list:
             for qe in self._current_queue_entries:
                 try:
-                    qe.QUEUE_ENTRY_STATUS.FAILED
+                    qe.status = QUEUE_ENTRY_STATUS.FAILED
                     self.emit("queue_entry_execute_finished", (qe, "Aborted"))
                     qe.stop()
                     qe.post_execute()
