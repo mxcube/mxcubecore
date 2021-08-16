@@ -45,6 +45,7 @@ class AbstractEnergy(AbstractActuator):
     def __init__(self, name):
         AbstractActuator.__init__(self, name)
         self._wavelength_limits = (None, None)
+        self.undulator_gaps = ()
 
     def is_ready(self):
         """Check if the state is ready.
@@ -117,6 +118,9 @@ class AbstractEnergy(AbstractActuator):
         hc_over_e = h * c / e * 10e6
         wavelength = wavelength or self.get_wavelength()
         return hc_over_e / wavelength
+
+    def get_undulator_gaps(self):
+        return self.undulator_gaps
 
     def update_value(self, value=None):
         """Emist signal energyChanged for both energy and wavelength

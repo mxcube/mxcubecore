@@ -67,7 +67,6 @@ class AbstractOnlineProcessing(HardwareObject):
         HardwareObject.__init__(self, name)
 
         # Hardware objects ----------------------------------------------------
-        self.beamstop_hwobj = None
         self.ssx_setup = None
 
         # Internal variables --------------------------------------------------
@@ -90,9 +89,6 @@ class AbstractOnlineProcessing(HardwareObject):
     def init(self):
         self.done_event = gevent.event.Event()
         self.ssx_setup = self.get_object_by_role("ssx_setup")
-        self.beamstop_hwobj = self.get_object_by_role("beamstop")
-        if self.beamstop_hwobj is None:
-            logging.info("OnlineProcessing: Beamstop hwobj not defined")
 
         self.result_types = self.get_property("result_types", DEFAULT_RESULT_TYPES)
         self.start_command = str(self.get_property("processing_command"))
@@ -712,9 +708,9 @@ class AbstractOnlineProcessing(HardwareObject):
                     str(self.params_dict["reversing_rotation"]),
                     HWR.beamline.detector.get_pixel_min(),
                     HWR.beamline.detector.get_pixel_max(),
-                    self.beamstop_hwobj.get_size(),
-                    self.beamstop_hwobj.get_distance(),
-                    self.beamstop_hwobj.get_direction(),
+                    HWR.beamline.beamstop.get_size(),
+                    HWR.beamline.beamstop.get_distance(),
+                    HWR.beamline.beamstop.get_direction(),
                 )
             )
             for index in range(self.params_dict["images_num"]):

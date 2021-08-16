@@ -74,7 +74,7 @@ class AbstractDetector(HardwareObject):
 
         self._pixel_size = (None, None)
 
-        self._binning_mode = 0
+        self._binning_mode = "Unbinned"
         self._roi_mode = 0
         self._roi_modes_list = []
 

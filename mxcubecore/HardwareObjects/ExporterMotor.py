@@ -50,8 +50,8 @@ class ExporterMotor(AbstractMotor):
         self._motor_state_suffix = None
         self._exporter = None
         self._exporter_address = None
-        self.motor_position = None
-        self.motor_state = None
+        self.chan_motor_position = None
+        self.chan_motor_state = None
 
     def init(self):
         """Initialise the motor"""
@@ -64,7 +64,7 @@ class ExporterMotor(AbstractMotor):
         _host, _port = self._exporter_address.split(":")
         self._exporter = Exporter(_host, int(_port))
 
-        self.motor_position = self.add_channel(
+        self.chan_motor_position = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self._exporter_address,
@@ -72,11 +72,11 @@ class ExporterMotor(AbstractMotor):
             },
             self.actuator_name + self._motor_pos_suffix,
         )
-        if self.motor_position:
+        if self.chan_motor_position:
             self.get_value()
-            self.motor_position.connect_signal("update", self.update_value)
+            self.chan_motor_position.connect_signal("update", self.update_value)
 
-        self.motor_state = self.add_channel(
+        self.chan_motor_state = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self._exporter_address,
@@ -85,8 +85,8 @@ class ExporterMotor(AbstractMotor):
             self.actuator_name + self._motor_state_suffix,
         )
 
-        if self.motor_state:
-            self.motor_state.connect_signal("update", self._update_state)
+        if self.chan_motor_state:
+            self.chan_motor_state.connect_signal("update", self._update_state)
 
         self.update_state()
 
@@ -96,7 +96,7 @@ class ExporterMotor(AbstractMotor):
             (enum 'HardwareObjectState'): Motor state.
         """
         try:
-            _state = self.motor_state.get_value().upper()
+            _state = self.chan_motor_state.get_value().upper()
             self.specific_state = _state
             return ExporterStates.__members__[_state].value
         except (KeyError, AttributeError):
@@ -135,7 +135,7 @@ class ExporterMotor(AbstractMotor):
         if (
             self._get_swstate() == "Ready"
             and self._get_hwstate() == "Ready"
-            and self.motor_state.get_value() == "Ready"
+            and self.chan_motor_state.get_value() == "Ready"
         ):
             return True
         return False
@@ -174,9 +174,9 @@ class ExporterMotor(AbstractMotor):
         Returns:
             (float): Motor position.
         """
-        _v = self.motor_position.get_value()
+        _v = self.chan_motor_position.get_value()
 
-        if math.isnan(_v) or None:
+        if _v is None or math.isnan(_v):
             logging.getLogger("HWR").debug("Value of %s is NaN" % self.actuator_name)
             _v = self._nominal_value
 
@@ -227,7 +227,7 @@ class ExporterMotor(AbstractMotor):
             value (float): target value
         """
         self.update_state(self.STATES.BUSY)
-        self.motor_position.set_value(value)
+        self.chan_motor_position.set_value(value)
 
     def abort(self):
         """Stop the motor movement immediately."""

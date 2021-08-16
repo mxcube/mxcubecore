@@ -18,7 +18,7 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """ AbstractNState class - interface for N state devices.
-Defines BaseValueEnum, initialise_values and value_to_enum methds.
+Defines BaseValueEnum, initialise_values and value_to_enum methods.
 Implements validate_value, set/update limits.
 """
 

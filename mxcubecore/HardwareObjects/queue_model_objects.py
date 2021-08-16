@@ -282,6 +282,7 @@ class Sample(TaskNode):
         # A pair <basket_number, sample_number>
         self.location = (None, None)
         self.lims_location = (None, None)
+        self.container_code = None
 
         # Crystal information
         self.crystals = [Crystal()]
@@ -445,6 +446,11 @@ class Sample(TaskNode):
 
         self.loc_str = str(self.lims_location[0]) + ":" + str(self.lims_location[1])
 
+        if hasattr(lims_sample, "containerCode"):
+            self.container_code = str(lims_sample.containerCode)
+        else:
+            self.container_code = str(lims_sample.get("containerCode"))
+
         if hasattr(lims_sample, "diffractionPlan"):
             self.diffraction_plan = lims_sample.diffractionPlan
 
@@ -544,6 +550,15 @@ class Basket(TaskNode):
     def get_sample_list(self):
         return self.sample_list
 
+    def get_display_name(self):
+        display_name = self.name
+        if self.sample_list:
+            for sample in self.sample_list:
+                if sample.container_code:
+                    display_name += " (%s)" % sample.container_code
+                    break
+
+        return display_name
 
 class DataCollection(TaskNode):
     """
@@ -836,10 +851,13 @@ class Characterisation(TaskNode):
         self.characterisation_software = None
         self.wait_result = None
         self.run_diffraction_plan = None
-        self.diff_plan_compression = True
 
         self.auto_add_diff_plan = True
         self.diffraction_plan = []
+
+    @staticmethod
+    def set_char_compression(state):
+        Characterisation.diff_plan_compression = state
 
     def get_name(self):
         return "%s_%i" % (self._name, self._number)

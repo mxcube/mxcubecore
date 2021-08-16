@@ -52,6 +52,7 @@ BeamlineConfig = collections.namedtuple(
         "detector_model",
         "detector_px",
         "detector_py",
+        "detector_binning_mode",
         "undulators",
         "focusing_optic",
         "monochromator_type",
@@ -69,7 +70,7 @@ class AbstractCollect(HardwareObject, object):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
-        self.bl_config = BeamlineConfig(*[None] * 17)
+        self.bl_config = BeamlineConfig(*[None] * 18)
 
         self._collecting = False
         self._error_msg = ""
@@ -110,6 +111,7 @@ class AbstractCollect(HardwareObject, object):
             detector_model=HWR.beamline.detector.get_property("model"),
             detector_px=HWR.beamline.detector.get_property("px"),
             detector_py=HWR.beamline.detector.get_property("py"),
+            detector_binning_mode=HWR.beamline.detector.get_binning_mode(),
             undulators=undulators,
             focusing_optic=self.get_property("focusing_optic"),
             monochromator_type=self.get_property("monochromator"),
@@ -494,7 +496,7 @@ class AbstractCollect(HardwareObject, object):
         """
         Descript. :
         """
-        return {}
+        return HWR.beamline.energy.get_undulator_gaps()
 
     def get_beam_shape(self):
         """
