@@ -39,10 +39,6 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
     def execute(self):
         BaseQueueEntry.execute(self)
 
-        state = HWR.beamline.gphl_workflow.get_state()
-        logging.getLogger("queue_exec").info(
-            "GphlWorkflowQueueEntry.execute, WF_hwobj state is %s" % state
-        )
         msg = "Starting workflow (%s), please wait." % (self.get_data_model()._type)
         logging.getLogger("user_level_log").info(msg)
         # TODO add parameter and data transfer.

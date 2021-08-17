@@ -335,7 +335,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         else:
             envs["GPHL_PROC_INSTALLATION"] = envs["GPHL_INSTALLATION"]
 
-        logging.getLogger("HWR").info(
+        logging.getLogger("HWR").debug(
             "Executing GPhL workflow, in environment %s", envs
         )
         try:

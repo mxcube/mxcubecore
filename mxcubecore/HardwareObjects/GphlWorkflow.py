@@ -227,24 +227,21 @@ class GphlWorkflow(HardwareObjectYaml):
 
         self._queue_entry = queue_entry
 
-        if self.get_state() == self.STATES.OFF:
-            HWR.beamline.gphl_connection.open_connection()
-            self.set_state(self.STATES.READY)
-
     def execute(self):
 
-        # Start execution of a new workflow
-        if self.get_state() != self.STATES.READY:
+        if HWR.beamline.gphl_connection is None:
+            raise RuntimeError(
+                "Cannot execute workflow - GphlWorkflowConnection not found"
+            )
+
+        if self.get_state() == self.STATES.OFF:
+            HWR.beamline.gphl_connection.open_connection()
+        else:
             # TODO Add handling of potential conflicts.
             # NBNB GPhL workflow cannot have multiple users
             # unless they use separate persistence layers
             raise RuntimeError(
                 "Cannot execute workflow - GphlWorkflow HardwareObject is not idle"
-            )
-
-        if HWR.beamline.gphl_connection is None:
-            raise RuntimeError(
-                "Cannot execute workflow - GphlWorkflowConnection not found"
             )
 
         self.set_state(self.STATES.BUSY)
