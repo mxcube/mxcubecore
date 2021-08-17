@@ -100,16 +100,12 @@ class Beamline(ConfiguredObject):
         # bool Disable number-of-passes widget NBNB TODO Move elsewhere??
         self.disable_num_passes = False
 
-        # bool By default run processing of (certain?)data collections?
-        self.run_offline_processing = False
-        
-        # bool By default run online processing (characterization/mesh?)
+        # bool By default run processing of (certain?)data collections in aprallel?
         self.run_online_processing = False
         
-        self.offline_processing_methods = []
-
-        self.online_processing_methods = []
-
+        # bool By default run online processing (characterization/mesh?)
+        self.run_online_processing = True
+        
         # Dictionary-of-dictionaries of default acquisition parameters
         self.default_acquisition_parameters = {}
 
@@ -208,18 +204,6 @@ class Beamline(ConfiguredObject):
         return self._objects.get("beam")
 
     __content_roles.append("beam")
-
-    @property
-    def beamstop(self):
-        """Beamstop Hardware object
-
-        Returns:
-            Optional[AbstractActuator]:
-        """
-        return self._objects.get("beamstop")
-
-    __content_roles.append("beamstop")
-
 
     @property
     def hutch_interlock(self):
