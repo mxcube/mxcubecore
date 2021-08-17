@@ -165,7 +165,7 @@ class LimaEigerDetector(AbstractDetector):
             min(100, number_of_images)
         )
 
-        # 'MANUAL', 'AUTO_FRAME', 'AUTO_SEQUENCE
+        # 'MANUAL', 'AUTO_FRAME', 'AUTO_SEQUENCE'
         self.get_channel_object("saving_mode").set_value("AUTO_FRAME")
         logging.info("Acq. nb frames = %d", number_of_images)
         self.get_channel_object("acq_nb_frames").set_value(number_of_images)
@@ -176,7 +176,7 @@ class LimaEigerDetector(AbstractDetector):
         self.get_channel_object("saving_managed_mode").set_value("HARDWARE")
 
     def set_energy_threshold(self, energy):
-        """Set the energy threshold. Attion: the command is time consuming.
+        """Set the energy threshold. Attn: the command is time consuming.
         Args:
             (float): Energy (eV or KeV).
         """
@@ -198,7 +198,7 @@ class LimaEigerDetector(AbstractDetector):
             start (): Not used, but kept for competeness
             filename (str): The root name.
         """
-        print(f"Unused but kept for ompleteness: start {start}")
+        print(f"Unused but kept for completeness: start {start}")
         prefix, suffix = os.path.splitext(os.path.basename(filename))
         prefix = "_".join(prefix.split("_")[:-1]) + "_"
         dirname = os.path.dirname(filename)
@@ -265,4 +265,4 @@ class LimaEigerDetector(AbstractDetector):
         self.emit("statusChanged", self.status)
 
     def recover_from_failure(self):
-        """?"""
+        """Recover from failure"""
