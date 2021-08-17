@@ -47,9 +47,6 @@ class EMBLDoorInterlock(Device):
         self.door_interlock_final_state = None
         self.door_interlock_breakabled = None
 
-        self.before_unlock_commands_present = None
-        self.before_unlock_commands = None
-
         self.chan_ics_error = None
         self.chan_state_locked = None
         self.chan_state_breakable = None
@@ -62,20 +59,8 @@ class EMBLDoorInterlock(Device):
 
         self.door_interlock_state = "unknown"
 
-        self.before_unlock_commands_present = self.get_property(
-            "before_unlock_commands_present"
-        )
-        try:
-            self.before_unlock_commands = eval(
-                self.get_property("beforeUnlockCommands")
-            )
-        except Exception:
-            pass
-
-        self.use_door_interlock = self.get_property("useDoorInterlock")
-        if self.use_door_interlock is None:
-            self.use_door_interlock = True
-
+        self.use_door_interlock = self.get_property("useDoorInterlock", True)
+        
         self.chan_state_locked = self.get_channel_object("chanStateLocked")
         self.chan_state_locked.connect_signal("update", self.state_locked_changed)
         self.chan_state_breakable = self.get_channel_object("chanStateBreakable")

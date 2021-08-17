@@ -186,7 +186,7 @@ class EMBLMachineInfo(HardwareObject):
                 "update", self.overflow_alarm_changed
             )
 
-        if HWR.beamline.ppu_control is not None:
+        if hasattr(HWR.beamline, "ppu_control"):
             self.values_ordered_dict["ppu"] = {
                 "value": "- - -",
                 "in_range": False,

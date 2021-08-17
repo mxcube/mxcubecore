@@ -27,7 +27,8 @@ try:
 except ImportError:
     logging.getLogger("HWR").warning("EPICS support not available.")
 
-from mxcubecore import Poller, saferef
+from mxcubecore import Poller
+from mxcubecore.dispatcher import saferef
 from CommandContainer import CommandObject, ChannelObject
 
 
@@ -71,7 +72,7 @@ class EpicsCommand(CommandObject):
         self.pv_connected = self.pv.connect(timeout=0.1)
 
         if (self.pv_connected):
-            self.valueChanged(self.pv.get(as_string=self.read_as_str, timeout=0.1))
+            self.value_changed(self.pv.get(as_string=self.read_as_str, timeout=0.1))
         else:
             logging.getLogger("HWR").error(
                 "EpicsCommand: Error connecting to pv %s.",
@@ -136,7 +137,7 @@ class EpicsCommand(CommandObject):
 
     def value_changed(self, value):
         try:
-            callback = self.__value_changed_callback_ref(value)
+            callback = self.__value_changed_callback_ref()
         except Exception:
             pass
         else:
