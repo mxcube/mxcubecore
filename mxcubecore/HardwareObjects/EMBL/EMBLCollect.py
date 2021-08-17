@@ -129,6 +129,8 @@ class EMBLCollect(AbstractCollect):
         self.cmd_collect_unit_cell = self.get_command_object("collectUnitCell")
         self.cmd_collect_xds_data_range = self.get_command_object("collectXdsDataRange")
 
+        self.cmd_collect_nexp_frame = self.get_command_object("collectImagesPerTrigger")
+
         self.cmd_collect_start = self.get_command_object("collectStart")
         self.cmd_collect_abort = self.get_command_object("collectAbort")
 
@@ -166,13 +168,15 @@ class EMBLCollect(AbstractCollect):
 
             if self.cmd_collect_compression is not None:
                 self.cmd_collect_compression(file_info["compression"])
+
             self.cmd_collect_description(comment)
             self.cmd_collect_detector(HWR.beamline.detector.get_collect_name())
             self.cmd_collect_directory(str(file_info["directory"]))
             self.cmd_collect_exposure_time(osc_seq["exposure_time"])
             self.cmd_collect_in_queue(self.current_dc_parameters["in_queue"] != False)
+            self.cmd_collect_nexp_frame(1)
             self.cmd_collect_overlap(osc_seq["overlap"])
-            #            self.cmd_collect_overlap(-0.5)
+
             shutter_name = HWR.beamline.detector.get_shutter_name()
             if shutter_name is not None:
                 self.cmd_collect_shutter(shutter_name)
@@ -181,6 +185,7 @@ class EMBLCollect(AbstractCollect):
                 self.cmd_collect_shutterless(1)
             else:
                 self.cmd_collect_shutterless(0)
+
             self.cmd_collect_range(osc_seq["range"])
             if self.current_dc_parameters["experiment_type"] != "Mesh":
                 self.cmd_collect_num_images(osc_seq["number_of_images"])
@@ -191,6 +196,9 @@ class EMBLCollect(AbstractCollect):
                 #    self.current_dc_parameters["processing_parallel"]
                 #    in (True, "MeshScan", "XrayCentering")
                 #
+
+            #if self.current_dc_parameters["processing_online"] is False:
+            #    self.cmd_collect_processing(False)
 
             # GB 2018-05-16 : Workaround a fuzzy mesh scan interface of MD3
             # if self.current_dc_parameters['experiment_type'] == 'Mesh':
@@ -325,7 +333,7 @@ class EMBLCollect(AbstractCollect):
             process_event,
             self.current_dc_parameters,
             frame_number,
-            self.current_dc_parameters["processing_after"],
+            self.current_dc_parameters["processing_offline"],
         )
 
     def stop_collect(self):
@@ -392,15 +400,15 @@ class EMBLCollect(AbstractCollect):
     #     """
     #     self.cmd_collect_energy(self.get_energy() * 1000)
 
-    # def set_resolution(self, value):
-    #     """Sets resolution in A"""
-    #     if not value:
-    #         value = self.get_resolution()
-    #     self.cmd_collect_resolution(value)
+    def set_resolution(self, value):
+         """Sets resolution in A"""
+         if not value:
+             value = self.get_resolution()
+         self.cmd_collect_resolution(value)
 
-    # def set_transmission(self, value):
-    #     """Sets transmission in %"""
-    #     self.cmd_collect_transmission(value)
+    def set_transmission(self, value):
+         """Sets transmission in %"""
+         self.cmd_collect_transmission(value)
 
     @task
     def move_motors(self, motor_position_dict):
@@ -451,7 +459,7 @@ class EMBLCollect(AbstractCollect):
         fill_mode = str(HWR.beamline.machine_info.get_message())
         return fill_mode[:20]
 
-    def getBeamlineConfiguration(self, *args):
+    def get_beamline_configuration(self, *args):
         """Returns beamline config"""
         return self.bl_config._asdict()
 
