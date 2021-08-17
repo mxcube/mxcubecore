@@ -24,6 +24,7 @@ import logging
 import tempfile
 from datetime import datetime
 
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.abstract import AbstractSampleChanger
 from mxcubecore.HardwareObjects.abstract.sample_changer import (
     Container,
@@ -232,7 +233,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         logging.getLogger("HWR").debug("Marvin log filename: %s" % self.log_filename)
         AbstractSampleChanger.SampleChanger.init(self)
 
-        self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
+        self.update_state(HardwareObjectState.READY)
         self.status_list_changed(self.chan_status.get_value())
         self.puck_switches_changed(self.chan_puck_switches.get_value())
         self.mounted_sample_puck_changed(self.chan_mounted_sample_puck.get_value())
@@ -799,15 +800,16 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         # if self._is_device_busy():
         #    raise Exception("Action finished to early. Sample changer is not ready!!!")
         self.sample_is_loaded_changed(self.chan_sample_is_loaded.get_value())
-        self._update_state()
+        #self._update_state()
         self._update_loaded_sample()
-        self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
+        #self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
+        self.update_state(HardwareObjectState.READY)
         self._action_started = False
 
     def _update_state(self):
         state = self._read_state()
         if (
-            state == AbstractSampleChanger.SampleChangerState.Moving
+            state == HardwareObjectState.BUSY
             and self._is_device_busy(self.get_state())
         ):
             return
@@ -816,13 +818,13 @@ class Marvin(AbstractSampleChanger.SampleChanger):
     def _read_state(self):
         """Converts state string to defined state"""
         state_converter = {
-            "ALARM": AbstractSampleChanger.SampleChangerState.Alarm,
-            "Err": AbstractSampleChanger.SampleChangerState.Fault,
-            "Idl": AbstractSampleChanger.SampleChangerState.Ready,
-            "Bsy": AbstractSampleChanger.SampleChangerState.Moving,
+            "ALARM": HardwareObjectState.FAULT,
+            "Err": HardwareObjectState.FAULT,
+            "Idl": HardwareObjectState.READY,
+            "Bsy": HardwareObjectState.BUSY,
         }
         return state_converter.get(
-            self._state_string, AbstractSampleChanger.SampleChangerState.Unknown
+            self._state_string, HardwareObjectState.UNKNOWN
         )
 
     def _is_device_busy(self, state=None):
@@ -830,12 +832,8 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         if state is None:
             state = self._read_state()
         if self._progress >= 100 and state in (
-            AbstractSampleChanger.SampleChangerState.Ready,
-            AbstractSampleChanger.SampleChangerState.Loaded,
-            AbstractSampleChanger.SampleChangerState.Alarm,
-            AbstractSampleChanger.SampleChangerState.Disabled,
-            AbstractSampleChanger.SampleChangerState.Fault,
-            AbstractSampleChanger.SampleChangerState.StandBy,
+                HardwareObjectState.READY,
+                HardwareObjectState.FAULT,
         ):
             return False
         else:
@@ -845,8 +843,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         """Checks whether Sample changer is ready"""
         state = self._read_state()
         return state in (
-            AbstractSampleChanger.SampleChangerState.Ready,
-            AbstractSampleChanger.SampleChangerState.Charging,
+            HardwareObjectState.READY,
         )
 
     def wait_ready(self, timeout=None):
@@ -970,7 +967,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                 Container.Pin.get_sample_address(spl[1], spl[2])
             )
             datamatrix = None
-            present = scanned = loaded = _has_been_loaded = False
+            present = scanned = loaded = has_been_loaded = False
             sample._set_info(present, datamatrix, scanned)
             sample._set_loaded(loaded, has_been_loaded)
             sample._set_holder_length(spl[4])

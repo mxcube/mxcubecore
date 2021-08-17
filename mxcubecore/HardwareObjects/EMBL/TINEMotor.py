@@ -23,11 +23,21 @@
 import logging
 import gevent
 
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
 __category__ = "Motor"
+
+
+TINE_STATE_DICT = {
+    0: HardwareObjectState.READY,
+    "ready": HardwareObjectState.READY,
+    "busy": HardwareObjectState.BUSY,
+    "error": HardwareObjectState.FAULT,
+}
 
 
 class TINEMotor(AbstractMotor):
@@ -43,7 +53,6 @@ class TINEMotor(AbstractMotor):
         self.cmd_set_position = None
         self.cmd_stop_axis = None
         self.cmd_set_online = None
-
         self.step_limits = None
 
     def init(self):
@@ -62,22 +71,22 @@ class TINEMotor(AbstractMotor):
 
         self.chan_position = self.get_channel_object("axisPosition")
         if self.chan_position is not None:
-            self.chan_position.connect_signal("update", self.update_value())
+            self.chan_position.connect_signal("update", self.update_tine_value)
         self.update_value(self.chan_position.get_value())
 
         self.chan_state = self.get_channel_object("axisState", optional=True)
         if self.chan_state is not None:
-            self.chan_state.connect_signal("update", self.update_state)
+            self.chan_state.connect_signal("update", self.update_tine_state)
 
         self.cmd_set_position = self.get_command_object("setPosition")
         if self.cmd_set_position:
-            self.cmd_set_position.connect_signal("connected", self.connected)
-            self.cmd_set_position.connect_signal("disconnected", self.disconnected)
+            self.cmd_set_position.connect("connected", self.connected)
+            self.cmd_set_position.connect("disconnected", self.disconnected)
 
         self.cmd_stop_axis = self.get_command_object("stopAxis")
         if self.cmd_stop_axis:
-            self.cmd_stop_axis.connect_signal("connected", self.connected)
-            self.cmd_stop_axis.connect_signal("disconnected", self.disconnected)
+            self.cmd_stop_axis.connect("connected", self.connected)
+            self.cmd_stop_axis.connect("disconnected", self.disconnected)
 
         self.cmd_set_online = self.get_command_object("setOnline")
 
@@ -94,14 +103,14 @@ class TINEMotor(AbstractMotor):
         Sets ready
         :return:
         """
-        self.update_state(self.STATES.READY)
+        self.update_state(HardwareObjectState.READY)
 
     def disconnected(self):
         """
         Sets not ready
         :return:
         """
-        self.update_state(self.STATES.OFF)
+        self.update_state(HardwareObjectState.OFF)
 
     def connect_notify(self, signal):
         """
@@ -131,15 +140,15 @@ class TINEMotor(AbstractMotor):
         """Get HardwareObject state"""
         # NNBNB TODO map channel states to all HardwareObject states
         # TODO add treatment of specific_states
-        state = self.chan_state.get_value()
-        if type(state) in (tuple, list):
-            state = state[0]
-        if state in ("ready", 0):
-            state = self.STATES.READY
+        if self.chan_state is None:
+            return HardwareObjectState.READY
         else:
-            state = self.STATES.BUSY
-        #
-        return state
+            return self.convert_state(self.chan_state.get_value())
+
+    def convert_state(self, tine_state):
+        if type(tine_state) in (tuple, list):
+            tine_state = tine_state[0]
+        return TINE_STATE_DICT.get(tine_state, HardwareObjectState.UNKNOWN)
 
     def abort(self):
         """Stops motor movement
@@ -155,14 +164,21 @@ class TINEMotor(AbstractMotor):
         if self.chan_state is not None:
             self.update_state(self.STATES.BUSY)
             self.chan_state.set_old_value("moving")
-        self.cmd_set_position(value)
+        if self.cmd_set_position:
+            self.cmd_set_position(value)
+        else:
+            self.chan_position.set_value(value)
 
-    def update_value(self, value=None):
+    def update_tine_value(self, value=None):
         """Updates motor position
         """
         if type(value) in (list, tuple):
             value = value[0]
         super(TINEMotor, self).update_value(value)
+
+    def update_tine_state(self, value):
+        value = self.convert_state(value)
+        super(TINEMotor, self).update_state(value)
 
     def get_motor_mnemonic(self):
         """

@@ -157,7 +157,7 @@ class EMBLBeamCentering(HardwareObject):
 
         aperture_hwobj = HWR.beamline.beam.aperture
         current_energy = HWR.beamline.energy.get_value()
-        current_transmission = HWR.transmission.get_value()
+        current_transmission = HWR.beamline.transmission.get_value()
         active_mode, beam_size = self.get_focus_mode()
 
         log_msg = "Beam centering: Active mode %s" % active_mode
@@ -230,15 +230,19 @@ class EMBLBeamCentering(HardwareObject):
                 energy_transm = interp1d(
                     [6.9, 8.0, 12.7, 19.0], [100.0, 60.0, 15.0, 10]
                 )
-                new_transmission = round(energy_transm(current_energy), 2)
+                new_transmission = round(energy_transm(current_energy).tolist(), 2)
 
             if HWR.beamline.session.beamline_name == "P13":
                 HWR.beamline.transmission.set_value(  # Transmission(
                     new_transmission, timeout=45
                 )
-                HWR.beamline.diffractometer.set_zoom(
-                    "Zoom 4"
-                )  # was 4, use 1 with broken zoom motor
+
+                # TODO re
+                #HWR.beamline.diffractometer.set_zoom(
+                #    "Zoom 4"
+                #)
+
+                # was 4, use 1 with broken zoom motor
                 # capillary_position = (
                 #    HWR.beamline.diffractometer.get_capillary_position()
                 # )
@@ -253,11 +257,11 @@ class EMBLBeamCentering(HardwareObject):
                     HWR.beamline.transmission.set_value(  # Transmission(
                         new_transmission, timeout=45
                     )
-                    HWR.beamline.diffractometer.set_zoom("Zoom 4")
+                    #HWR.beamline.diffractometer.set_zoom("Zoom 4")
                 else:
                     # 2% transmission for beam centering in double foucused mode
                     HWR.beamline.transmission.set_value(2, timeout=45)
-                    HWR.beamline.diffractometer.set_zoom("Zoom 8")
+                    #HWR.beamline.diffractometer.set_zoom("Zoom 8")
 
                 step += 1
                 log_msg = "Opening slits to 1 x 1 mm"
@@ -313,7 +317,6 @@ class EMBLBeamCentering(HardwareObject):
             self.emit("progressStop", ())
             self.ready_event.set()
             return False
-
         finally:
             HWR.beamline.fast_shutter.closeShutter(wait=False)
 
