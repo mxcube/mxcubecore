@@ -2010,7 +2010,7 @@ class GphlWorkflow(HardwareObjectYaml):
                         "requiredMultiplicity": 0.0,
                         # "requiredResolution": 0.0,
                     }
-                    dfp["requiredResolution"] = resolution
+                    dfp["aimedResolution"] = resolution
                     dfp["diffractionPlanId"] = 5000000 + serial
 
                     dd0 = EMULATION_DATA.get(sample_name, {})

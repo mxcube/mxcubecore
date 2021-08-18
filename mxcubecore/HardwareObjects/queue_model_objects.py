@@ -1865,11 +1865,13 @@ class GphlWorkflow(TaskNode):
 
         self.path_template = PathTemplate()
         self._name = str()
+        self._protein_acronym = str()
         self._type = str()
         self._shape = str()
         self._characterisation_strategy = str()
         self._interleave_order = str()
         self._number = 0
+        self._beam_energy = None
         self._beam_energy_tags = ("Acquisition",)
         self._detector_resolution = None
         self._space_group = None
@@ -1896,12 +1898,50 @@ class GphlWorkflow(TaskNode):
 
         self.set_requires_centring(False)
 
+    def init_from_sample(self, sample_model):
+        """Initialise model from Sample and its diffraction plan"""
+        crystal = sample_model.crystals[0]
+        tpl = (
+            crystal.cell_a, crystal.cell_b, crystal.cell_c,
+            crystal.cell_alpha, crystal.cell_beta, crystal.cell_gamma
+        )
+        if None not in tpl:
+            self.set_cell_parameters(tpl)
+        self.set_space_group(crystal.space_group)
+        self.set_protein_acronym(crystal.protein_acronym)
+
+        diffraction_plan = sample_model.diffraction_plan
+        if diffraction_plan:
+            # It is not clear if diffraction_plan is a dict or an object,
+            # and if so which kind
+            if hasattr(diffraction_plan, "radiationSensitivity"):
+                radiation_sensitivity = diffraction_plan.radiationSensitivity
+            else:
+                radiation_sensitivity = diffraction_plan.get("radiationSensitivity")
+
+            if radiation_sensitivity:
+                self.set_relative_rad_sensitivity(radiation_sensitivity)
+
+            if hasattr(diffraction_plan, "aimedResolution"):
+                aimed_resolution = diffraction_plan.aimedResolution
+            else:
+                aimed_resolution = diffraction_plan.get("aimedResolution")
+
+            if aimed_resolution:
+                self.set_detector_resolution(aimed_resolution)
+
     # Workflow name (string) - == path_template.base_prefix.
     def get_name(self):
         return self._name
 
     def set_name(self, value):
         self._name = value
+
+    def get_protein_acronym(self):
+        return self._protein_acronym
+
+    def set_protein_acronym(self, value):
+        self._protein_acronym = value
 
     # Workflow type (string); equal to title of selected strategy (key to config)
     def get_type(self):
@@ -1946,12 +1986,18 @@ class GphlWorkflow(TaskNode):
     def set_detector_resolution(self, value):
         self._detector_resolution = value
 
-    # role:value beam_energy dictionary (in keV)
+    # names (tags) for beam energy values used
     def get_beam_energy_tags(self):
         return self._beam_energy_tags
 
     def set_beam_energy_tags(self, value):
         self._beam_energy_tags = tuple(value)
+
+    def get_beam_energy(self):
+        return self._beam_energy
+
+    def set_beam_energy(self, value):
+        self._beam_energy = value
 
     # Space Group.
     def get_space_group(self):
