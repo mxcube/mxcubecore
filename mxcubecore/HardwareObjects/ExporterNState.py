@@ -104,11 +104,6 @@ class ExporterNState(AbstractNState):
             while not self.get_state() == self.STATES.READY:
                 sleep(0.5)
 
-    def update_value(self, value=None):
-        if value is None:
-            value = self.value_channel.get_value()
-        AbstractNState.update_value(self, self.value_to_enum(value))
-
     def _update_state(self, state=None):
         """To be used to update the state when emiting the "update" signal.
         Args:
@@ -146,12 +141,6 @@ class ExporterNState(AbstractNState):
         """Stop the action."""
         if self.get_state() != self.STATES.UNKNOWN:
             self._exporter.execute("abort")
-
-    def validate_value(self, value):
-        if self.value_to_enum(value) in (None, self.VALUES.UNKNOWN):
-            return False
-        else:
-            return True
 
     def _set_value(self, value):
         """Set device to value
