@@ -100,12 +100,16 @@ class Beamline(ConfiguredObject):
         # bool Disable number-of-passes widget NBNB TODO Move elsewhere??
         self.disable_num_passes = False
 
-        # bool By default run processing of (certain?)data collections in aprallel?
-        self.run_online_processing = False
+        # bool By default run processing of (certain?)data collections?
+        self.run_offline_processing = False
         
         # bool By default run online processing (characterization/mesh?)
-        self.run_online_processing = True
+        self.run_online_processing = False
         
+        self.offline_processing_methods = []
+
+        self.online_processing_methods = []
+
         # Dictionary-of-dictionaries of default acquisition parameters
         self.default_acquisition_parameters = {}
 
@@ -302,11 +306,6 @@ class Beamline(ConfiguredObject):
         Returns:
             Optional[AbstractSampleChanger]:
         """
-        logging.getLogger("HWR").warning(
-            DeprecationWarning(
-                "plate_manipulator role should be replaced by sample_changer"
-            )
-        )
         return self._objects.get("plate_manipulator")
 
     __content_roles.append("plate_manipulator")

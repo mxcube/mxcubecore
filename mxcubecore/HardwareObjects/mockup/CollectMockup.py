@@ -223,3 +223,6 @@ class CollectMockup(AbstractCollect):
 
     def move_detector(self, detector_distance):
         HWR.beamline.detector.distance.set_value(detector_distance)
+
+    def get_undulators_gaps(self):
+        return {"u29" : 10}

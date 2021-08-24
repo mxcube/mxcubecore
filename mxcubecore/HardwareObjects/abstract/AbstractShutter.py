@@ -51,9 +51,11 @@ class AbstractShutter(AbstractNState):
         """Initilise the predefined values"""
         AbstractNState.init(self)
 
+    @property
     def is_open(self):
         return self.get_value() == self.VALUES.OPEN
-
+ 
+    @property
     def is_closed(self):
         return self.get_value() == self.VALUES.CLOSED
 

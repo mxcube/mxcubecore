@@ -45,7 +45,6 @@ class AbstractEnergy(AbstractActuator):
     def __init__(self, name):
         AbstractActuator.__init__(self, name)
         self._wavelength_limits = (None, None)
-        self.undulator_gaps = ()
 
     def is_ready(self):
         """Check if the state is ready.
@@ -119,9 +118,6 @@ class AbstractEnergy(AbstractActuator):
         wavelength = wavelength or self.get_wavelength()
         return hc_over_e / wavelength
 
-    def get_undulator_gaps(self):
-        return self.undulator_gaps
-
     def update_value(self, value=None):
         """Emist signal energyChanged for both energy and wavelength
         Argin:
@@ -135,3 +131,9 @@ class AbstractEnergy(AbstractActuator):
         _wavelength_value = self._calculate_wavelength(value)
         self.emit("energyChanged", (value, _wavelength_value))
         self.emit("valueChanged", (value,))
+
+    def force_emit_signals(self):
+        AbstractActuator.force_emit_signals(self)
+        _energy_value = self.get_value()
+        _wavelength_value = self._calculate_wavelength(_energy_value)
+        self.emit("energyChanged", (_energy_value, _wavelength_value))
