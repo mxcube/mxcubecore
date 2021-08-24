@@ -624,7 +624,6 @@ class AbstractCollect(HardwareObject, object):
             i = 1
             for jj in self.bl_config.undulators:
                 key = jj.type
-                print(key)
                 if key in und:
                     self.current_dc_parameters["undulatorGap%d" % (i)] = und[key]
                     i += 1
