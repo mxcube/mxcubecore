@@ -25,7 +25,7 @@ Emits signals valueChanged and attributeChanged.
 """
 
 import abc
-from scipy.constants import h, c, e
+from conversion import HC_OVER_E
 from mxcubecore.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
 )
@@ -68,7 +68,7 @@ class AbstractEnergy(AbstractActuator):
         Returns:
             (float): Wavelength [Å].
         """
-        return self._calculate_wavelength(self.get_value())
+        return self._calculate_wavelength()
 
     def get_wavelength_limits(self):
         """Return wavelength low and high limits.
@@ -99,13 +99,15 @@ class AbstractEnergy(AbstractActuator):
         Returns:
             (float): wavelength [Å]
         """
-        hc_over_e = h * c / e * 10e6
         energy = energy or self.get_value()
 
+        # TODO NBNB This is naughty. Coud  we not put the heuristic switch
+        #  in the calling functions, to avoid surprises?
+        #  rhfogh 20210826
         # energy in KeV to get wavelength in Å
         energy = energy / 1000.0 if energy > 1000 else energy
 
-        return hc_over_e / energy
+        return HC_OVER_E / energy
 
     def _calculate_energy(self, wavelength=None):
         """Calculate energy from wavelength
@@ -114,9 +116,8 @@ class AbstractEnergy(AbstractActuator):
         Returns:
             (float): Energy [keV]
         """
-        hc_over_e = h * c / e * 10e6
         wavelength = wavelength or self.get_wavelength()
-        return hc_over_e / wavelength
+        return HC_OVER_E / wavelength
 
     def update_value(self, value=None):
         """Emist signal energyChanged for both energy and wavelength

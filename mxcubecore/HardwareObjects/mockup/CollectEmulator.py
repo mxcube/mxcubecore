@@ -206,7 +206,7 @@ class CollectEmulator(CollectMockup):
             sweep = OrderedDict()
 
             energy = data_collect_parameters.get("energy") or HWR.beamline.energy.get_value()
-            sweep["lambda"] = conversion.H_OVER_E / energy
+            sweep["lambda"] = conversion.HC_OVER_E / energy
             sweep["res_limit"] = setup_data["res_limit_def"]
             sweep["exposure"] = osc["exposure_time"]
             ll0 = HWR.beamline.gphl_workflow.translation_axis_roles

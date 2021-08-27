@@ -24,6 +24,8 @@
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
+from scipy.constants import h, c, e
+
 __date__ = "19/06/17"
 __credits__ = ["MXCuBE collaboration"]
 
@@ -40,8 +42,9 @@ except Exception:
     text_type = str
     binary_type = bytes
 
-# Conversion from kEv to A, wavelength = H_OVER_E/energy
-H_OVER_E = 12.3984
+# Conversion from kEv to A, wavelength = HC_OVER_E/energy
+HC_OVER_E = h * c / e * 10e6
+HC_OVER_E = 12.3984
 
 
 # Utility functions:
