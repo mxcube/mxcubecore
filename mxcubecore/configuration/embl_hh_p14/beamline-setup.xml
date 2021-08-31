@@ -45,7 +45,7 @@
   -->
   <advancedMethods>["MeshScan"]</advancedMethods>
   <autoprocessingMethods>["EDNAproc"]</autoprocessingMethods>
-<!--  <run_processing_parallel>True</run_processing_parallel>-->
+<!--  <run_online_processing>True</run_online_processing>-->
 
   <!-- Is it possible to change the beam wavelentgh.
        Should perhaps be associated with the diffractometer -->

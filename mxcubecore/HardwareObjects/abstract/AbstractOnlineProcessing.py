@@ -84,7 +84,6 @@ class AbstractOnlineProcessing(HardwareObject):
         self.started = None
         self.workflow_info = None
 
-        self.plot_points_num = None
         self.current_grid_index = None
         self.grid_properties = []
 
@@ -93,7 +92,7 @@ class AbstractOnlineProcessing(HardwareObject):
         self.ssx_setup = self.get_object_by_role("ssx_setup")
         self.beamstop_hwobj = self.get_object_by_role("beamstop")
         if self.beamstop_hwobj is None:
-            logging.info("ParallelProcessing: Beamstop hwobj not defined")
+            logging.info("OnlineProcessing: Beamstop hwobj not defined")
 
         self.result_types = self.get_property("result_types", DEFAULT_RESULT_TYPES)
         self.start_command = str(self.get_property("processing_command"))
@@ -139,7 +138,7 @@ class AbstractOnlineProcessing(HardwareObject):
         workflow_step_directory = None
         self.params_dict = {}
 
-        if self.data_collection.run_processing_parallel == "XrayCentering":
+        if self.data_collection.run_online_processing == "XrayCentering":
             prefix = "xray_centering_%s" % prefix
             if self.grid:
                 workflow_step_directory = "/mesh"
@@ -179,7 +178,7 @@ class AbstractOnlineProcessing(HardwareObject):
                 os.makedirs(process_directory)
         except Exception:
             logging.getLogger("GUI").exception(
-                "Parallel processing: Unable to create processing directory %s"
+                "Online processing: Unable to create processing directory %s"
                 % process_directory
             )
             self.set_processing_status("Failed")
@@ -189,14 +188,14 @@ class AbstractOnlineProcessing(HardwareObject):
 
         # self.params_dict["plot_path"] = os.path.join(
         # self.params_dict["directory"],
-        #    "parallel_processing_result.png")
+        #    "online_processing_result.png")
 
         self.params_dict["folder_path"] = archive_directory
         self.params_dict["cartography_path"] = os.path.join(
-            archive_directory, "parallel_processing_plot.png"
+            archive_directory, "online_processing_plot.png"
         )
         self.params_dict["log_file_path"] = os.path.join(
-            archive_directory, "parallel_processing.log"
+            archive_directory, "online_processing.log"
         )
         self.params_dict["html_file_path"] = os.path.join(
             archive_directory, "index.html"
@@ -205,7 +204,7 @@ class AbstractOnlineProcessing(HardwareObject):
             archive_directory, "report.json"
         )
         self.params_dict["csv_file_path"] = os.path.join(
-            archive_directory, "parallel_processing.csv"
+            archive_directory, "online_processing.csv"
         )
 
         self.params_dict["template"] = template
@@ -238,7 +237,7 @@ class AbstractOnlineProcessing(HardwareObject):
             lines_num,
             images_num / lines_num,
         )
-        self.params_dict["workflow_type"] = self.data_collection.run_processing_parallel
+        self.params_dict["workflow_type"] = self.data_collection.run_online_processing
 
         self.params_dict["group_id"] = self.data_collection.lims_group_id
         self.params_dict["processing_start_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -260,8 +259,6 @@ class AbstractOnlineProcessing(HardwareObject):
         self.results_aligned = {}
 
         # Empty numpy arrays to store raw and aligned results
-        self.plot_points_num = images_num
-
         for result_type in self.result_types:
             # images_num =  self.params_dict["images_num"]
             if "size" in result_type:
@@ -293,7 +290,7 @@ class AbstractOnlineProcessing(HardwareObject):
             )
         except Exception:
             logging.getLogger("GUI").exception(
-                "Parallel processing: Could not save snapshot: %s"
+                "Online processing: Could not save snapshot: %s"
                 % os.path.join(archive_directory, "snapshot.png")
             )
 
@@ -311,7 +308,7 @@ class AbstractOnlineProcessing(HardwareObject):
         return
 
     def run_processing(self, data_collection):
-        """Starts parallel processing
+        """Starts Online processing
 
         :param: data_collection: data collection obj
         :type: data_collection: queue_model_objects.DataCollection
@@ -332,7 +329,7 @@ class AbstractOnlineProcessing(HardwareObject):
 
         if not os.path.isfile(self.start_command):
             msg = (
-                "ParallelProcessing: Start command %s" % self.start_command
+                "OnlineProcessing: Start command %s" % self.start_command
                 + "is not executable"
             )
             logging.getLogger("queue_exec").error(msg)
@@ -371,11 +368,11 @@ class AbstractOnlineProcessing(HardwareObject):
             else:
                 HWR.beamline.collect._take_crystal_snapshot(snapshot_filename)
                 logging.getLogger("HWR").info(
-                    "Parallel processing: Snapshot %s saved." % snapshot_filename
+                    "Online processing: Snapshot %s saved." % snapshot_filename
                 )
         except Exception:
             logging.getLogger("GUI").exception(
-                "Parallel processing: Could not save snapshot %s" % snapshot_filename
+                "Online processing: Could not save snapshot %s" % snapshot_filename
             )
 
     def is_running(self):
@@ -453,10 +450,10 @@ class AbstractOnlineProcessing(HardwareObject):
             self.params_dict["archive_directory"], "grid_overlay.png"
         )
         # processing_plot_archive_file = os.path.join(
-        #    self.params_dict["archive_directory"], "parallel_processing_plot.png"
+        #    self.params_dict["archive_directory"], "online_processing_plot.png"
         # )
         processing_csv_archive_file = os.path.join(
-            self.params_dict["archive_directory"], "parallel_processing_score.csv"
+            self.params_dict["archive_directory"], "online_processing_score.csv"
         )
 
         # If MeshScan and XrayCentring then info is stored in ISPyB
@@ -501,7 +498,7 @@ class AbstractOnlineProcessing(HardwareObject):
                 HWR.beamline.collect.store_image_in_lims_by_frame_num(
                     best_positions[0]["index"]
                 )
-            log.info("Parallel processing: Results saved in ISPyB")
+            log.info("Online processing: Results saved in ISPyB")
 
         HWR.beamline.lims.set_image_quality_indicators_plot(
             HWR.beamline.collect.collection_id,
@@ -545,12 +542,12 @@ class AbstractOnlineProcessing(HardwareObject):
                 )
                 self.grid.set_overlay_pixmap(processing_grid_overlay_file)
                 log.info(
-                    "Parallel processing: Grid overlay figure saved %s"
+                    "Online processing: Grid overlay figure saved %s"
                     % processing_grid_overlay_file
                 )
             except Exception:
                 log.exception(
-                    "Parallel processing: Could not save grid overlay figure %s"
+                    "Online processing: Could not save grid overlay figure %s"
                     % processing_grid_overlay_file
                 )
 
@@ -644,12 +641,12 @@ class AbstractOnlineProcessing(HardwareObject):
                 self.params_dict["cartography_path"], dpi=100, bbox_inches="tight"
             )
             log.info(
-                "Parallel processing: Plot saved in %s"
+                "Online processing: Plot saved in %s"
                 % self.params_dict["cartography_path"]
             )
         except Exception:
             log.exception(
-                "Parallel processing: Could not save plot in %s"
+                "Online processing: Could not save plot in %s"
                 % self.params_dict["cartography_path"]
             )
 
@@ -664,12 +661,12 @@ class AbstractOnlineProcessing(HardwareObject):
                 self.params_dict["cartography_path"], dpi=100, bbox_inches="tight"
             )
             log.info(
-                "Parallel processing: Plot for ISPyB saved in %s"
+                "Online processing: Plot for ISPyB saved in %s"
                 % self.params_dict["cartography_path"]
             )
         except Exception:
             log.exception(
-                "Parallel processing: Could not save plot for ISPyB %s"
+                "Online processing: Could not save plot for ISPyB %s"
                 % self.params_dict["cartography_path"]
             )
 
@@ -678,24 +675,24 @@ class AbstractOnlineProcessing(HardwareObject):
         # ---------------------------------------------------------------------
         # Generates html and json files
         try:
-            SimpleHTML.generate_parallel_processing_report(
-                self.results_aligned, self.params_dict
-            )
+            # SimpleHTML.generate_online_processing_report(
+            #    self.results_aligned, self.params_dict
+            #)
             log.info(
-                "Parallel processing: Html report saved in %s"
+                "Online processing: Html report saved in %s"
                 % self.params_dict["html_file_path"]
             )
             log.info(
-                "Parallel processing: Json report saved in %s"
+                "Online processing: Json report saved in %s"
                 % self.params_dict["json_file_path"]
             )
         except Exception:
             log.exception(
-                "Parallel processing: Could not save results html %s"
+                "Online processing: Could not save results html %s"
                 % self.params_dict["html_file_path"]
             )
             log.exception(
-                "Parallel processing: Could not save json results in %s"
+                "Online processing: Could not save json results in %s"
                 % self.params_dict["json_file_path"]
             )
 
@@ -731,13 +728,13 @@ class AbstractOnlineProcessing(HardwareObject):
                     )
                 )
             log.info(
-                "Parallel processing: Raw data stored in %s"
+                "Online processing: Raw data stored in %s"
                 % processing_csv_archive_file
             )
             processing_csv_file.close()
         except Exception:
             log.error(
-                "Parallel processing: Unable to store raw data in %s"
+                "Online processing: Unable to store raw data in %s"
                 % processing_csv_archive_file
             )
         # ---------------------------------------------------------------------
@@ -766,9 +763,7 @@ class AbstractOnlineProcessing(HardwareObject):
                             score_key
                         ][cell_index]
             else:
-                self.results_aligned[score_key] = self.results_raw[score_key][
-                    :: self.params_dict["images_num"] / self.plot_points_num
-                ]
+                self.results_aligned[score_key] = self.results_raw[score_key]
                 if self.interpolate_results:
                     x_array = np.linspace(
                         0,
@@ -858,7 +853,7 @@ class AbstractOnlineProcessing(HardwareObject):
         """Extracts sweeps from processing results"""
 
         # self.results_aligned
-        logging.getLogger("HWR").info("ParallelProcessing: Extracting sweeps")
+        logging.getLogger("HWR").info("Online processing: Extracting sweeps")
         for col in range(self.results_aligned["score"].shape[1]):
             mask = self.results_aligned["score"][:, col] > 0
             label_im, nb_labels = ndimage.label(mask)
@@ -879,4 +874,4 @@ class AbstractOnlineProcessing(HardwareObject):
         with open(mesh_best_file, "w") as fp:
             json.dump(json_dict, fp)
 
-        self.print_log("Parallel processing: Mesh best file %s saved" % mesh_best_file)
+        self.print_log("Online processing: Mesh best file %s saved" % mesh_best_file)

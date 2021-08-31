@@ -20,43 +20,47 @@
 """EMBLSafetyShutter"""
 
 import logging
-
-from mxcubecore.BaseHardwareObjects import Device
+from enum import Enum, unique
+from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
 __category__ = "General"
 
+@unique
+class ShutterValueEnum(Enum):
+    """Defines only the compulsory values."""
 
-class EMBLSafetyShutter(Device):
+    OPEN = "Open"
+    CLOSED = "Closed"
+    UNKNOWN = "Unknown"
+    NOPERM = "No permission"
+    DISABLED = "Disabled"
+
+
+class EMBLSafetyShutter(AbstractShutter):
     """
     EMBLSafetyShutter defines interface to DESY ics
     """
 
-    shutter_state_list = {
-        3: "unknown",
-        1: "closed",
-        0: "opened",
-        9: "moving",
-        17: "automatic",
-        23: "fault",
-        46: "disabled",
-        -1: "error",
-    }
+    VALUES = ShutterValueEnum
 
     def __init__(self, name):
-        Device.__init__(self, name)
+        super(EMBLSafetyShutter, self).__init__(name)
+
+        self._nominal_limits = None
 
         self.use_shutter = None
         self.data_collection_state = None
         self.shutter_can_open = None
-        self.shutter_state = None
-        self.shutter_state_open = None
+        self.shutter_is_open = None
+        self.shutter_is_closed = None
         # GB 20190304: per misteriously disappearing first update of
         # shutter_state_closed:
-        self.shutter_state_closed = True
         self.shutter_can_open = None
+        self.ics_enabled = None
 
         self.chan_collection_state = None
         self.chan_state_open = None
@@ -69,11 +73,10 @@ class EMBLSafetyShutter(Device):
         self.cmd_open = None
         self.cmd_close = None
 
-        self.ics_enabled = None
-        self.use_shutter = None
-        self.getWagoState = self.getShutterState
 
     def init(self):
+        super(EMBLSafetyShutter, self).init()
+
         self.chan_collection_state = self.get_channel_object("chanCollectStatus")
         if self.chan_collection_state:
             self.chan_collection_state.connect_signal(
@@ -116,20 +119,6 @@ class EMBLSafetyShutter(Device):
 
         self.state_open_changed(self.chan_state_open.get_value())
 
-    def connected(self):
-        """
-        Sets is ready
-        :return:
-        """
-        self.set_is_ready(True)
-
-    def disconnected(self):
-        """
-        Sets not ready
-        :return:
-        """
-        self.set_is_ready(False)
-
     def data_collection_state_changed(self, state):
         """Updates shutter state when data collection state changes
 
@@ -138,7 +127,7 @@ class EMBLSafetyShutter(Device):
         :return: None
         """
         self.data_collection_state = state
-        self.getShutterState()
+        self.update_shutter_state()
 
     def state_open_changed(self, state):
         """Updates shutter state when shutter open value changes
@@ -148,8 +137,8 @@ class EMBLSafetyShutter(Device):
         :return: None
         """
 
-        self.shutter_state_open = state
-        self.getShutterState()
+        self.shutter_is_open = state
+        self.update_shutter_state()
 
     def state_closed_changed(self, state):
         """Updates shutter state when shutter close value changes
@@ -158,8 +147,8 @@ class EMBLSafetyShutter(Device):
         :type state: str
         :return: None
         """
-        self.shutter_state_closed = state
-        self.getShutterState()
+        self.shutter_is_closed = state
+        self.update_shutter_state()
 
     def state_open_permission_changed(self, state):
         """Updates shutter state when open permission changes
@@ -169,7 +158,7 @@ class EMBLSafetyShutter(Device):
         :return: None
         """
         self.shutter_can_open = state
-        self.getShutterState()
+        self.update_shutter_state()
 
     def cmd_error_msg_changed(self, error_msg):
         """Method called when opening of the shutter fails
@@ -193,9 +182,9 @@ class EMBLSafetyShutter(Device):
             self.ics_enabled = False
         else:
             self.ics_enabled = True
-        self.getShutterState()
+        self.update_shutter_state()
 
-    def getShutterState(self):
+    def update_shutter_state(self):
         """Updates shutter state
 
         :return: shutter state as str
@@ -203,56 +192,33 @@ class EMBLSafetyShutter(Device):
         msg = ""
 
         if self.data_collection_state == "collecting":
-            self.shutter_state = "disabled"
-        elif self.shutter_state_open:
-            self.shutter_state = "opened"
-        elif self.shutter_state_closed:
-            self.shutter_state = "closed"
+            value = self.VALUES.DISABLED
+        elif self.shutter_is_open:
+            value = self.VALUES.OPEN
+        elif self.shutter_is_closed:
+            value = self.VALUES.CLOSED
         elif not self.shutter_can_open:
-            self.shutter_state = "disabled"
+            value = self.VALUES.DISABLED
         else:
-            self.shutter_state = "unknown"
+            value = self.VALUES.UNKNOWN
 
-        if not self.shutter_state_open and not self.shutter_can_open:
-            self.shutter_state = "noperm"
+        if not self.shutter_is_open and not self.shutter_can_open:
+            value = self.VALUES.NOPERM
             msg = "No permission"
 
         if not self.ics_enabled:
-            self.shutter_state = "disabled"
+            value = self.VALUES.DISABLED
             msg = "Ics broke"
 
         if not self.use_shutter:
-            self.shutter_state = self.shutter_state_list[0]
+            value = self.VALUES.DISABLED
 
-        self.emit("shutterStateChanged", (self.shutter_state, msg))
+        self.update_value(value)
 
-        return self.shutter_state
+        return self._nominal_value
 
-    def is_opened(self):
-        """
-        Returns True if shutter is opened
-        :return:
-        """
-        return self.shutter_state_open
-
-    def openShutter(self):
-        """Opens shutter
-           set the shutter open command to any TEXT value of size 1 to open it
-
-        :return: None
-        """
-        if not self.use_shutter:
-            logging.getLogger("HWR").info("Safety shutter is disabled")
-        else:
-            self.control_shutter(True)
-
-    def closeShutter(self):
-        """Closes shutter
-           set the shutter close command to any TEXT value of size 1 to open it
-
-        :return: None
-        """
-        self.control_shutter(False)
+    def get_value(self):
+        return self._nominal_value
 
     def control_shutter(self, open_state):
         """Opens or closses shutter
@@ -262,37 +228,14 @@ class EMBLSafetyShutter(Device):
         :return: None
         """
         if open_state:
-            if self.shutter_state == "closed":
-                self.open_shutter()
+            if self._nominal_value == self.VALUES.CLOSED:
+                self.open()
         else:
-            if self.shutter_state == "opened":
-                self.close_shutter()
+            if self._nominal_value == self.VALUES.OPEN:
+                self.close()
 
-    def close_shutter(self):
-        """Closes shutter
-
-        :return: None
-        """
-        logging.getLogger("HWR").info("Safety shutter: Closing beam shutter...")
-        try:
-            self.cmd_close()
-        except Exception:
-            logging.getLogger("GUI").error("Safety shutter: unable to close shutter")
-
-    def open_shutter(self):
-        """Opens shutter
-
-        :return:
-        """
-        logging.getLogger("HWR").info("Safety shutter: Openning beam shutter...")
-        try:
+    def _set_value(self, value):
+        if value == self.VALUES.OPEN:
             self.cmd_open()
-        except Exception:
-            logging.getLogger("GUI").error("Safety shutter: unable to open shutter")
-
-    def re_emit_values(self):
-        """Reemits all signals
-
-        :return: None
-        """
-        self.getShutterState()
+        elif value == self.VALUES.CLOSED:
+            self.cmd_close()

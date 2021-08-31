@@ -39,6 +39,12 @@ from mxcubecore.dispatcher import dispatcher
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
+PROCEDURE_COMMAND_T = "CONTROLLER"
+TWO_STATE_COMMAND_T = "INOUT"
+
+ARGUMENT_TYPE_LIST = "List"
+ARGUMENT_TYPE_JSON_SCHEMA = "JSONSchema"
+
 
 class ConnectionError(Exception):
     pass
@@ -50,6 +56,14 @@ class CommandObject:
         self._username = username
         self._arguments = []
         self._combo_arguments_items = {}
+
+        self.type = PROCEDURE_COMMAND_T
+        self.argument_type = ARGUMENT_TYPE_LIST
+
+    def set_argument_json_schema(self, json_schema_str):
+        """Set the JSON Schema"""
+        self.argument_type = ARGUMENT_TYPE_JSON_SCHEMA
+        self._arguments = json_schema_str
 
     def name(self):
         return self._name
@@ -81,6 +95,9 @@ class CommandObject:
 
     def get_arguments(self):
         return self._arguments
+
+    def get_combo_argument_items(self, argName):
+        return self._combo_arguments_items[argName]
 
     def userName(self):
         return self._username or str(self.name())
