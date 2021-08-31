@@ -1,16 +1,18 @@
-suds
-gevent
 enum34
+gevent
 jsonpickle
-PyDispatcher
-numpy
-scipy
-matplotlib
-Pillow
-pylint
-ruamel.yaml
 jsonschema
-# f90nml, mgen, and py4j are required for GPhL Workflow and emulation
-# f90nml
-# mgen
-# py4j
+lxml
+matplotlib
+numpy
+Pillow
+PyDispatcher
+pylint
+pymca
+ruamel.yaml
+scipy
+suds
+
+
+
+# GPhL: f90nml, mgen, and py4j are required for GPhL Workflow and emulation
