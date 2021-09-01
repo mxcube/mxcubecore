@@ -291,6 +291,13 @@ class GphlWorkflow(HardwareObjectYaml):
         if HWR.beamline.gphl_connection is not None:
             HWR.beamline.gphl_connection.workflow_ended()
 
+    def return_parameters(self, queueu_entry):
+        self._return_parameters.set(queueu_entry)
+
+    def stop_iteration(self):
+        self._return_parameters.set(StopIteration)
+
+
     def _add_to_queue(self, parent_model_obj, child_model_obj):
         HWR.beamline.queue_model.add_child(parent_model_obj, child_model_obj)
 
@@ -359,7 +366,7 @@ class GphlWorkflow(HardwareObjectYaml):
             data_model.lattice_selected
             or wf_parameters.get("strategy_type") == "diffractcal"
         ):
-            lines = ["%s strategy" % HWR.beamline.gphl_connection.get_workflow_name()]
+            lines = ["%s strategy" % self._queue_entry.get_data_model().get_type()]
             lines.extend(("-" * len(lines[0]), ""))
             # Data collection TODO: Use workflow info to distinguish
             beam_energies = OrderedDict()
@@ -875,7 +882,7 @@ class GphlWorkflow(HardwareObjectYaml):
             # Preset energy
             # First set beam_energy and give it time to settle,
             # so detector distance will trigger correct resolution later
-            initial_energy = conversion.H_OVER_E / bst.wavelength
+            initial_energy = conversion.HC_OVER_E / bst.wavelength
             # TODO NBNB put in wait-till ready to make sure value settles
             HWR.beamline.energy.set_value(initial_energy)
         else:
@@ -907,18 +914,20 @@ class GphlWorkflow(HardwareObjectYaml):
 
         # Set beam_energies to match parameters
         # get wavelengths
-        h_over_e = conversion.H_OVER_E
+        HC_OVER_E = conversion.HC_OVER_E
         beam_energies = parameters.pop("beam_energies")
-        wavelengths = list(
-            GphlMessages.PhasingWavelength(wavelength=h_over_e / val, role=tag)
+        wavelengths = tuple(
+            GphlMessages.PhasingWavelength(wavelength=HC_OVER_E / val, role=tag)
             for tag, val in beam_energies.items()
         )
+        gphl_workflow_model.wavelengths = wavelengths
 
         transmission = parameters["transmission"]
         logging.getLogger("GUI").info(
             "GphlWorkflow: setting transmission to %7.3f %%" % (100.0 * transmission)
         )
         HWR.beamline.transmission.set_value(100 * transmission)
+        gphl_workflow_model.transmission = transmission
 
         new_resolution = parameters.pop("resolution")
         if (
@@ -1121,6 +1130,8 @@ class GphlWorkflow(HardwareObjectYaml):
                 )
                 goniostatTranslations.append(translation)
 
+        gphl_workflow_model.goniostat_translations = goniostatTranslations
+
         orgxy = HWR.beamline.detector.get_beam_position()
         resolution = HWR.beamline.resolution.get_value()
         distance = HWR.beamline.detector.distance.get_value()
@@ -1132,14 +1143,10 @@ class GphlWorkflow(HardwareObjectYaml):
         detectorSetting = GphlMessages.BcsDetectorSetting(
             resolution, id_=id_, orgxy=orgxy, Distance=distance
         )
+        gphl_workflow_model.detector_setting = detectorSetting
 
         # Return SampleCentred message
-        sampleCentred = GphlMessages.SampleCentred(
-            goniostatTranslations=goniostatTranslations,
-            wavelengths=wavelengths,
-            detectorSetting=detectorSetting,
-            **parameters
-        )
+        sampleCentred = GphlMessages.SampleCentred(gphl_workflow_model)
         return sampleCentred
 
     def load_transcal_parameters(self):
@@ -1847,64 +1854,6 @@ class GphlWorkflow(HardwareObjectYaml):
     def obtain_prior_information(self, payload, correlation_id):
 
         workflow_model = self._queue_entry.get_data_model()
-        sample_model = workflow_model.get_sample_node()
-
-        cell_params = workflow_model.get_cell_parameters()
-        if cell_params:
-            unitCell = GphlMessages.UnitCell(*cell_params)
-        else:
-            unitCell = None
-
-        obj = queue_model_enumerables.SPACEGROUP_MAP.get(
-            workflow_model.get_space_group()
-        )
-        space_group = obj.number if obj else None
-
-        crystal_system = workflow_model.get_crystal_system()
-        if crystal_system:
-            crystal_system = crystal_system.upper()
-
-        # NB Expected resolution is deprecated.
-        # It is set to the current resolution value, for now
-        userProvidedInfo = GphlMessages.UserProvidedInfo(
-            scatterers=(),
-            lattice=crystal_system,
-            pointGroup=workflow_model.get_point_group(),
-            spaceGroup=space_group,
-            cell=unitCell,
-            expectedResolution=HWR.beamline.resolution.get_value(),
-            isAnisotropic=None,
-        )
-        ll0 = ["PriorInformation"]
-        for tag in (
-            "expectedResolution",
-            "isAnisotropic",
-            "lattice",
-            "pointGroup",
-            "scatterers",
-            "spaceGroup",
-        ):
-            val = getattr(userProvidedInfo, tag)
-            if val:
-                ll0.append("%s=%s" % (tag, val))
-        if cell_params:
-            ll0.append("cell_parameters=%s" % (cell_params,))
-        logging.getLogger("HWR").debug(", ".join(ll0))
-
-        # Look for existing uuid
-        for text in sample_model.lims_code, sample_model.code, sample_model.name:
-            if text:
-                try:
-                    sampleId = uuid.UUID(text)
-                except Exception:
-                    # The error expected if this goes wrong is ValueError.
-                    # But whatever the error we want to continue
-                    pass
-                else:
-                    # Text was a valid uuid string. Use the uuid.
-                    break
-        else:
-            sampleId = uuid.uuid1()
 
         image_root = HWR.beamline.session.get_base_image_directory()
 
@@ -1918,12 +1867,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     "Could not create image root directory: %s", image_root
                 )
 
-        priorInformation = GphlMessages.PriorInformation(
-            sampleId=sampleId,
-            sampleName=workflow_model.path_template.base_prefix,
-            rootDirectory=image_root,
-            userProvidedInfo=userProvidedInfo,
-        )
+        priorInformation = GphlMessages.PriorInformation(workflow_model, image_root)
         #
         return priorInformation
 

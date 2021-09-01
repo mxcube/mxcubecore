@@ -603,6 +603,12 @@ class PhasingWavelength(IdentifiedElement):
         """Wavelength setting for beam"""
         return self._wavelength
 
+    @wavelength.setter
+    def wavelength(self, value):
+        if self._wavelength:
+            raise TypeError("PhasingWavelength values cannot be re-set if non-zero")
+        self._wavelength = value
+
 
 class BeamSetting(IdentifiedElement):
     """Beam setting"""
@@ -798,24 +804,24 @@ class GoniostatTranslation(PositionerSetting):
 class UserProvidedInfo(MessageData):
     """User-provided information"""
 
-    def __init__(
-        self,
-        scatterers=(),
-        lattice=None,
-        pointGroup=None,
-        spaceGroup=None,
-        cell=None,
-        expectedResolution=None,
-        isAnisotropic=None,
-    ):
+    def __init__(self,data_model):
 
-        self._scatterers = scatterers
-        self._lattice = lattice
-        self._pointGroup = pointGroup
-        self._spaceGroup = spaceGroup
-        self._cell = cell
-        self._expectedResolution = expectedResolution
-        self._isAnisotropic = isAnisotropic
+        self._scatterers = ()
+        lattice = data_model.crystal_system
+        self._lattice = lattice.upper() if lattice else None
+        self._pointGroup = data_model.point_group
+        space_group = data_model.space_group
+        self._spaceGroup = space_group.numer if space_group else None
+        cell_parameters = data_model.cell_parameters
+        if cell_parameters:
+            self._cell = UnitCell(*cell_parameters)
+        else:
+            self._cell = None
+        detector_setting = data_model.detector_setting
+        self._expectedResolution = (
+            detector_setting.resolution if detector_setting else None
+        )
+        self._isAnisotropic = None
 
     @property
     def scatterers(self):
@@ -1087,22 +1093,35 @@ class PriorInformation(Payload):
 
     INTENT = "DOCUMENT"
 
-    def __init__(
-        self, sampleId, sampleName=None, rootDirectory=None, userProvidedInfo=None
-    ):
+    def __init__(self, data_model, image_root):
 
         super(PriorInformation, self).__init__()
 
+        # Look for existing uuid
+        sample_model = data_model.get_sample_node()
+        for text in sample_model.lims_code, sample_model.code, sample_model.name:
+            if text:
+                try:
+                    sampleId = uuid.UUID(text)
+                except Exception:
+                    # The error expected if this goes wrong is ValueError.
+                    # But whatever the error we want to continue
+                    pass
+                else:
+                    # Text was a valid uuid string. Use the uuid.
+                    break
+        else:
+            sampleId = uuid.uuid1()
         if isinstance(sampleId, uuid.UUID):
             self._sampleId = sampleId
         else:
             raise TypeError("sampleId input must be of type uuid.UUID")
 
-        self._sampleName = sampleName
+        self._sampleName = data_model.path_template.base_prefix
         # Draft in API, not currently coded in Java:
         # self._referenceFile = referenceFile
-        self._rootDirectory = rootDirectory
-        self._userProvidedInfo = userProvidedInfo
+        self._rootDirectory = image_root
+        self._userProvidedInfo = UserProvidedInfo(data_model)
 
     @property
     def sampleId(self):
@@ -1178,29 +1197,18 @@ class CentringDone(Payload):
 class SampleCentred(Payload):
     INTENT = "DOCUMENT"
 
-    def __init__(
-        self,
-        imageWidth,
-        transmission,
-        exposure,
-        interleaveOrder="",
-        wedgeWidth=None,
-        beamstopSetting=None,
-        detectorSetting=None,
-        goniostatTranslations=(),
-        wavelengths=(),
-    ):
+    def __init__(self, data_model):
 
         super(SampleCentred, self).__init__()
-        self._imageWidth = imageWidth
-        self._transmission = transmission
-        self._exposure = exposure
-        self._interleaveOrder = interleaveOrder
-        self._wedgeWidth = wedgeWidth
-        self._beamstopSetting = beamstopSetting
-        self._detectorSetting = detectorSetting
-        self._goniostatTranslations = frozenset(goniostatTranslations)
-        self._wavelengths = frozenset(wavelengths)
+        self._imageWidth = data_model.image_width
+        self._transmission = data_model.transmission
+        self._exposure = data_model.exposure_time
+        self._interleaveOrder = data_model.interleave_order
+        self._wedgeWidth = data_model.wedge_width
+        self._beamstopSetting = data_model.beamstop_setting
+        self._detectorSetting = data_model.detector_setting
+        self._goniostatTranslations = frozenset(data_model.goniostat_translations)
+        self._wavelengths = frozenset(data_model.wavelengths)
 
     @property
     def imageWidth(self):

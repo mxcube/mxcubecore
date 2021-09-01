@@ -47,13 +47,6 @@ java_gateway.socket = HWR.original_socket
 clientserver.socket = HWR.original_socket
 
 try:
-    # Needed for 3.6(?) onwards
-    from importlib import reload
-except ImportError:
-    # Works for earlier versions, including Python 2.6
-    from imp import reload
-
-try:
     # This file already does the alternative imports plus some tweaking
     # TODO It ought to be moved out as an accessible Util file, but meanwhile
     # Here we take care of the case where it is missing.
@@ -87,9 +80,6 @@ class GphlWorkflowConnection(HardwareObjectYaml):
 
         # ID for current workflow calculation
         self._enactment_id = None
-
-        # Name of workflow being executed.
-        self._workflow_name = None
 
         # Queue for communicating with MXCuBE HardwareObject
         self.workflow_queue = None
@@ -143,10 +133,6 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         paths["BDG_home"] = paths.get("co.gphl.wf.bdg_licence_dir") or pp0
 
         self.update_state(self.STATES.OFF)
-
-    def get_workflow_name(self):
-        """Name of currently executing workflow"""
-        return self._workflow_name
 
     def to_java_time(self, time_in):
         """Convert time in seconds since the epoch (python time) to Java time value"""
@@ -207,7 +193,6 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             HWR.beamline.session.get_base_process_directory(), self.gphl_subdir
         )
 
-        self._workflow_name = workflow_model_obj.get_type()
         params = workflow_model_obj.get_workflow_parameters()
         wf_settings = HWR.beamline.gphl_workflow.settings
 
@@ -369,7 +354,6 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             # NBNB TODO how do we close down the workflow if there is no answer pending?
 
         self._enactment_id = None
-        self._workflow_name = None
         self.workflow_queue = None
         self._await_result = None
 

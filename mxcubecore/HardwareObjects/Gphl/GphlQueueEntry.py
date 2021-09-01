@@ -34,7 +34,10 @@ __category__ = "queue"
 
 class GphlWorkflowQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
+        if data_model is None:
+            raise ValueError("GphlWorkflowQueueEntry,data_model cannot be None")
         BaseQueueEntry.__init__(self, view, data_model)
+        data_model.init_from_sample()
 
     def execute(self):
         BaseQueueEntry.execute(self)

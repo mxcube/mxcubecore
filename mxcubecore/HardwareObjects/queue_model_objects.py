@@ -27,11 +27,6 @@ import copy
 import os
 import logging
 
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-
 from mxcubecore.HardwareObjects import queue_model_enumerables
 
 from mxcubecore import HardwareRepository as HWR
@@ -1863,52 +1858,84 @@ class GphlWorkflow(TaskNode):
 
         workflow_hwobj = HWR.beamline.gphl_workflow
 
+    # Workflow start attriutes
         self.path_template = PathTemplate()
-        self._name = str()
-        self._protein_acronym = str()
         self._type = str()
-        self._shape = str()
-        self._characterisation_strategy = str()
-        self._interleave_order = str()
-        self._number = 0
-        self._beam_energy = None
-        self._beam_energy_tags = ("Acquisition",)
-        self._detector_resolution = None
-        self._space_group = None
-        self._crystal_system = None
-        self._point_group = None
-        self._cell_parameters = None
-        self._snapshot_count = int(
-            workflow_hwobj.get_settings().get("default_snapshot_count", 0)
-        )
-        self._recentring_mode = str()
-        self._current_rotation_id = None
+        self.shape = str()
 
-        self._dose_budget = None
-        self._decay_limit = workflow_hwobj.get_settings().get("default_decay_limit", 25)
-        self._characterisation_budget_fraction = 0.05
-        self._relative_rad_sensitivity = 1.0
-        self._dose_consumed = 0.0
-        self._exposure_time = 0.0
-        self._image_width = 0.0
+    # Pre-strategy attributes
+        self.space_group = str()
+        self.crystal_system = str()
+        self.point_group = None
+        self._cell_parameters = ()
+        self.beamstop_setting = None
+        self.wavelengths = ()
+        self.detector_setting = None
+        self.goniostat_translations = ()
+        self.strategy = str()
+        self.strategy_options = {}
+        # self._beam_energy = None
+        # self._beam_energy_tags = ("Acquisition",)
+        # self._detector_resolution = None
+        # self._characterisation_strategy = str()
 
+        # TBD - add as they come in use - possibly modified
+        # self._crystal_orientation = None
+        # self._bravais_centring = str()
+        # self._override_symmetry = None
+
+        # Pre-collection attributes
+        # Attributes for workflow
+        self.exposure_time = 0.0
+        self.image_width = 0.0
+        self.wedge_width = 0.0
+        self.transmission = 0.0
+        # Workflow interleave order (string).
+        # Slowest changing first, characters 'g' (Goniostat position);
+        # 's' (Scan number), 'b' (Beam wavelength), 'd' (Detector position)
+        self.interleave_order = "gs"
+
+        # Attributes for MXCuBE
+        # self._number = 0
+        self.snapshot_count = 2
+        # Centring handling and MXCuBE-side flow
+        self.recentring_mode = "sweep"
+        self.current_rotation_id = None
         # HACK - to differentiate between characterisation and acquisition
         # TODO remove when workflow gives relevant information
         self.lattice_selected = False
+        # Dose budget handling
+        self.maximum_dose_budget = 20.0
+        self.dose_budget = None
+        self.decay_limit = 25
+        self.characterisation_budget_fraction = 0.05
+        self.relative_rad_sensitivity = 1.0
+        self.dose_consumed = 0.0
 
         self.set_requires_centring(False)
 
-    def init_from_sample(self, sample_model):
+        self.set_from_dict(workflow_hwobj.get_settings()["defaults"])
+
+    def set_from_dict(self, params_dict):
+        for dict_item in params_dict.items():
+            if hasattr(self, dict_item[0]):
+                setattr(self, dict_item[0], dict_item[1])
+
+    def init_from_sample(self, sample_model=None):
         """Initialise model from Sample and its diffraction plan"""
+        workflow_hwobj = HWR.beamline.gphl_workflow
+
+        if sample_model is None:
+            sample_model = self.get_sample_node()
         crystal = sample_model.crystals[0]
         tpl = (
             crystal.cell_a, crystal.cell_b, crystal.cell_c,
             crystal.cell_alpha, crystal.cell_beta, crystal.cell_gamma
         )
         if None not in tpl:
-            self.set_cell_parameters(tpl)
-        self.set_space_group(crystal.space_group)
-        self.set_protein_acronym(crystal.protein_acronym)
+            self.cell_parameters = tpl
+        self.space_group = crystal.space_group
+        self.protein_acronym = crystal.protein_acronym
 
         diffraction_plan = sample_model.diffraction_plan
         if diffraction_plan:
@@ -1920,8 +1947,9 @@ class GphlWorkflow(TaskNode):
                 radiation_sensitivity = diffraction_plan.get("radiationSensitivity")
 
             if radiation_sensitivity:
-                self.set_relative_rad_sensitivity(radiation_sensitivity)
+                self.relative_rad_sensitivity = radiation_sensitivity
 
+            wavelength = HWR.beamline.,get_wavelength()
             if hasattr(diffraction_plan, "aimedResolution"):
                 aimed_resolution = diffraction_plan.aimedResolution
             else:
@@ -1930,18 +1958,17 @@ class GphlWorkflow(TaskNode):
             if aimed_resolution:
                 self.set_detector_resolution(aimed_resolution)
 
-    # Workflow name (string) - == path_template.base_prefix.
-    def get_name(self):
-        return self._name
+    def get_workflow_parameters(self):
+        """Get parameters dictionary for workflow strategy"""
+        for wfdict in HWR.beamline.gphl_workflow.get_available_workflows().values():
+            for stratdict in wfdict["strategies"]:
+                if stratdict["title"] == self.get_type():
+                    return stratdict
+        raise ValueError("No GPhL workflow strategy named %s found" % self.get_type())
 
-    def set_name(self, value):
-        self._name = value
-
-    def get_protein_acronym(self):
-        return self._protein_acronym
-
-    def set_protein_acronym(self, value):
-        self._protein_acronym = value
+    # Parameters for start of workflow
+    def get_path_template(self):
+        return self.path_template
 
     # Workflow type (string); equal to title of selected strategy (key to config)
     def get_type(self):
@@ -1950,135 +1977,20 @@ class GphlWorkflow(TaskNode):
     def set_type(self, value):
         self._type = value
 
-    # Name of shape on which workflow is run
-    def get_shape(self):
-        return self._shape
+    # Run name - here used for smaple prefix, with no number
+    def get_name(self):
+        return self._name
 
-    def set_shape(self, value):
-        self._shape = value
-
-    # Workflow interleave order (string).
-    # Slowest changing first, characters 'g' (Goniostat position);
-    # 's' (Scan number), 'b' (Beam wavelength), 'd' (Detector position)
-    def get_interleave_order(self):
-        return self._interleave_order
-
-    def set_interleave_order(self, value):
-        self._interleave_order = value
-
-    # Starting run number. Unnecessary.
-    # Left in as it is modified by signal when edited.
-    def get_number(self):
-        logging.getLogger().debug(
-            "Attempt to get unused attribute GphlWorkflow.number"
-        )
-        return None
-
-    def set_number(self, value):
-        logging.getLogger().debug(
-            "Attempt to set unused attribute GphlWorkflow.number"
-        )
-
-    # Detector resolution (determines detector distance).
-    def get_detector_resolution(self):
-        return self._detector_resolution
-
-    def set_detector_resolution(self, value):
-        self._detector_resolution = value
-
-    # names (tags) for beam energy values used
-    def get_beam_energy_tags(self):
-        return self._beam_energy_tags
-
-    def set_beam_energy_tags(self, value):
-        self._beam_energy_tags = tuple(value)
-
-    def get_beam_energy(self):
-        return self._beam_energy
-
-    def set_beam_energy(self, value):
-        self._beam_energy = value
-
-    # Space Group.
-    def get_space_group(self):
-        return self._space_group
-
-    def set_space_group(self, value):
-        self._space_group = value
-
-    # Characterisation strategy.
-    def get_characterisation_strategy(self):
-        return self._characterisation_strategy
-
-    def set_characterisation_strategy(self, value):
-        self._characterisation_strategy = value
-
-    # Crystal system.
-    def get_crystal_system(self):
-        return self._crystal_system
-
-    def set_crystal_system(self, value):
-        self._crystal_system = value
-
-    # Point Group.
-    def get_point_group(self):
-        return self._point_group
-
-    def set_point_group(self, value):
-        self._point_group = value
-
-    # Dose budget (MGy, float).
-    def get_dose_budget(self):
-        return self._dose_budget
-
-    def set_dose_budget(self, value):
-        self._dose_budget = value
-
-    # Decay limit. smallest relative intensity allowed - used for setting dose budget.
-    def get_decay_limit(self):
-        return self._decay_limit
-
-    def set_decay_limit(self, value):
-        self._decay_limit = value
-
-    # Dose already consumed, typically in characterisation
-    def get_dose_consumed(self):
-        return self._dose_consumed
-
-    def set_dose_consumed(self, value):
-        self._dose_consumed = value
-
-    def get_exposure_time(self):
-        return self._exposure_time
-
-    def set_exposure_time(self, value):
-        self._exposure_time = value
-
-    def get_image_width(self):
-        return self._image_width
-
-    def set_image_width(self, value):
-        self._image_width = value
-
-    # Fraction of dose budget intended for characterisation.
-    def get_characterisation_budget_fraction(self):
-        return self._characterisation_budget_fraction
-
-    def set_characterisation_budget_fraction(self, value):
-        self._characterisation_budget_fraction = value
-
-    # Radiation sensitivity of crystal, relative to a 'standard crystal'.
-    def get_relative_rad_sensitivity(self):
-        return self._relative_rad_sensitivity
-
-    def set_relative_rad_sensitivity(self, value):
-        self._relative_rad_sensitivity = value
+    def set_name(self, value):
+        self._name = value
 
     # Cell parameters - sequence of six floats (a,b,c,alpha,beta,gamma)
-    def get_cell_parameters(self):
+    @property
+    def cell_parameters(self):
         return self._cell_parameters
 
-    def set_cell_parameters(self, value):
+    @cell_parameters.setter
+    def cell_parameters(self, value):
         if value:
             if len(value) == 6:
                 self._cell_parameters = tuple(float(x) for x in value)
@@ -2086,38 +1998,6 @@ class GphlWorkflow(TaskNode):
                 raise ValueError("cell_parameters %s does not have length six" % value)
         else:
             self._cell_parameters = None
-
-    # Number of snapshots to take at start of data collection.
-    def get_snapshot_count(self):
-        return self._snapshot_count
-
-    def set_snapshot_count(self, value):
-        self._snapshot_count = value
-
-    # (Re)centre before each sweep?.
-    def get_recentring_mode(self):
-        return self._recentring_mode
-
-    def set_recentring_mode(self, value):
-        self._recentring_mode = value
-
-    # id_ of GonioostatRotation matching current goniostat position
-    def get_current_rotation_id(self):
-        return self._current_rotation_id
-
-    def set_current_rotation_id(self, value):
-        self._current_rotation_id = value
-
-    def get_path_template(self):
-        return self.path_template
-
-    def get_workflow_parameters(self):
-        """Get parameters dictionary for workflow strategy"""
-        for wfdict in HWR.beamline.gphl_workflow.get_available_workflows().values():
-            for stratdict in wfdict["strategies"]:
-                if stratdict["title"] == self.get_type():
-                    return stratdict
-        raise ValueError("No GPhL workflow strategy named %s found" % self.get_type())
 
 
 class XrayImaging(TaskNode):

@@ -25,7 +25,7 @@ Emits signals valueChanged and attributeChanged.
 """
 
 import abc
-from conversion import HC_OVER_E
+from mxcubecore.utils.conversion import HC_OVER_E
 from mxcubecore.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator,
 )
