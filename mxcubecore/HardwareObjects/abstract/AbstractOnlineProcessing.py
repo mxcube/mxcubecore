@@ -43,6 +43,7 @@ DEFAULT_RESULT_TYPES = [
     {"key": "spots_resolution", "descr": "Resolution", "color": (120, 0, 0)},
     {"key": "score", "descr": "Score", "color": (0, 120, 0)},
     {"key": "spots_num", "descr": "Number of spots", "color": (0, 0, 120)},
+    {"key": "is", "descr": "Intensity", "color": (0, 0, 120)},
 ]
 
 
@@ -53,7 +54,7 @@ with real-time results describing diffraction quality.
 Method run_processing is called from the queue_entry when the data collection
 starts. Then empty arrays to store results are created.
 Typicaly an input file is created and processing is started with script via
-subprocess.Popen. Results are emited with paralleProcessingResults signal.
+subprocess.Popen. Results are emited with onlineProcessingResults signal.
 
 Implementations:
  * DozorOnlinelProcessing: online processing based on the EDNA Dozor plugin.
@@ -187,6 +188,9 @@ class AbstractOnlineProcessing(HardwareObject):
         #    "online_processing_result.png")
 
         self.params_dict["folder_path"] = archive_directory
+        self.params_dict["snapshot_path"] = os.path.join(
+            archive_directory, "snapshot.png"
+        )
         self.params_dict["cartography_path"] = os.path.join(
             archive_directory, "online_processing_plot.png"
         )
@@ -200,7 +204,7 @@ class AbstractOnlineProcessing(HardwareObject):
             archive_directory, "report.json"
         )
         self.params_dict["csv_file_path"] = os.path.join(
-            archive_directory, "online_processing.csv"
+            archive_directory, "online_processing_results.csv"
         )
 
         self.params_dict["template"] = template
@@ -209,7 +213,7 @@ class AbstractOnlineProcessing(HardwareObject):
         self.params_dict["lines_num"] = lines_num
         self.params_dict["images_per_line"] = images_num / lines_num
         self.params_dict["run_number"] = run_number
-        self.params_dict["osc_midle"] = acq_params.osc_start
+        self.params_dict["osc_midle"] = float(acq_params.osc_start)
         self.params_dict["osc_range"] = acq_params.osc_range
         self.params_dict["resolution"] = acq_params.resolution
         self.params_dict["exp_time"] = acq_params.exp_time
@@ -234,7 +238,6 @@ class AbstractOnlineProcessing(HardwareObject):
             images_num / lines_num,
         )
         self.params_dict["workflow_type"] = self.data_collection.run_online_processing
-
         self.params_dict["group_id"] = self.data_collection.lims_group_id
         self.params_dict["processing_start_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -282,12 +285,12 @@ class AbstractOnlineProcessing(HardwareObject):
 
         try:
             gevent.spawn(
-                self.save_snapshot_task, os.path.join(archive_directory, "snapshot.png")
+                self.save_snapshot_task, self.params_dict["snapshot_path"]
             )
         except Exception:
             logging.getLogger("GUI").exception(
                 "Online processing: Could not save snapshot: %s"
-                % os.path.join(archive_directory, "snapshot.png")
+                % self.params_dict["snapshot_path"]
             )
 
         self.emit(
@@ -358,14 +361,10 @@ class AbstractOnlineProcessing(HardwareObject):
         :type data_collection: queue_model_objects.DataCollection
         """
         try:
-            if self.data_collection.grid is not None:
-                snapshot = self.data_collection.grid.get_snapshot()
-                snapshot.save(snapshot_filename, "PNG")
-            else:
-                HWR.beamline.collect._take_crystal_snapshot(snapshot_filename)
-                logging.getLogger("HWR").info(
-                    "Online processing: Snapshot %s saved." % snapshot_filename
-                )
+            HWR.beamline.collect._take_crystal_snapshot(snapshot_filename)
+            logging.getLogger("HWR").info(
+                "Online processing: Snapshot %s saved." % snapshot_filename
+            )
         except Exception:
             logging.getLogger("GUI").exception(
                 "Online processing: Could not save snapshot %s" % snapshot_filename
@@ -403,10 +402,13 @@ class AbstractOnlineProcessing(HardwareObject):
                 HWR.beamline.diffractometer.move_motors(
                     self.results_aligned["center_mass"], timeout=15
                 )
+                logging.getLogger("GUI").info(
+                    "Xray centering: Storing mesh results in ISPyB"
+                )
                 self.store_processing_results(status)
             else:
                 logging.getLogger("GUI").warning(
-                    "Xray Centering: No diffraction found. " + "Stopping Xray centering"
+                    "Xray Centering: No diffraction found. Stopping Xray centering"
                 )
                 status = "Failed"
                 self.workflow_info = None
@@ -439,17 +441,11 @@ class AbstractOnlineProcessing(HardwareObject):
 
         # ---------------------------------------------------------------------
         # Assembling all file names
-        self.params_dict["max_dozor_score"] = self.results_aligned["score"].max()
+        self.params_dict["max_dozor_score"] = float(self.results_aligned["score"].max())
         best_positions = self.results_aligned.get("best_positions", [])
 
         processing_grid_overlay_file = os.path.join(
             self.params_dict["archive_directory"], "grid_overlay.png"
-        )
-        # processing_plot_archive_file = os.path.join(
-        #    self.params_dict["archive_directory"], "online_processing_plot.png"
-        # )
-        processing_csv_archive_file = os.path.join(
-            self.params_dict["archive_directory"], "online_processing_score.csv"
         )
 
         # If MeshScan and XrayCentring then info is stored in ISPyB
@@ -486,7 +482,7 @@ class AbstractOnlineProcessing(HardwareObject):
 
             HWR.beamline.collect.update_lims_with_workflow(
                 workflow_id,
-                os.path.join(self.params_dict["archive_directory"], "snapshot.png"),
+                self.params_dict["snapshot_path"]
             )
 
             HWR.beamline.lims.store_workflow_step(self.params_dict)
@@ -502,8 +498,8 @@ class AbstractOnlineProcessing(HardwareObject):
             self.params_dict["csv_file_path"],
         )
 
-        fig, ax = plt.subplots(nrows=1, ncols=1)
-        if self.grid:
+        if self.params_dict["lines_num"] > 1:
+            fig, ax = plt.subplots(nrows=1, ncols=1)
             current_max = max(fig.get_size_inches())
             grid_width = self.params_dict["steps_x"] * self.params_dict["xOffset"]
             grid_height = self.params_dict["steps_y"] * self.params_dict["yOffset"]
@@ -557,41 +553,41 @@ class AbstractOnlineProcessing(HardwareObject):
                 cax.tick_params(axis="y", labelsize=8)
                 plt.colorbar(im, cax=cax)
         else:
-            # max_resolution = self.params_dict["resolution"]
-            # min_resolution = self.results_aligned["spots_resolution"].max()
-
-            # TODO plot results based on the result_name_list
+            fig, ax = plt.subplots(nrows=2, ncols=1)
+            max_resolution = self.params_dict["resolution"]
+            min_resolution = self.results_aligned["spots_resolution"].max()
             max_score = self.results_aligned["score"].max()
+
             if max_score == 0:
                 max_score = 1
             max_spots_num = self.results_aligned["spots_num"].max()
             if max_spots_num == 0:
                 max_spots_num = 1
 
-            plt.plot(
-                self.results_aligned["score"] / max_score, ".", label="Score", c="r"
+            ax[0].plot(
+                self.results_aligned["score"] / max_score, ",", label="Score", c="r"
             )
-            plt.plot(
+            ax[0].plot(
                 self.results_aligned["spots_num"] / max_spots_num,
-                ".",
+                ",",
                 label="Number of spots",
                 c="b",
             )
-            plt.plot(
+            ax[0].plot(
                 self.results_aligned["spots_resolution"], ".", label="Resolution", c="y"
             )
 
-            ax.legend(
+            ax[0].legend(
                 loc="lower center",
                 fancybox=True,
                 numpoints=1,
                 borderaxespad=0.0,
-                bbox_to_anchor=(0.5, -0.13),
+                #bbox_to_anchor=(0.5, -0.13),
                 ncol=3,
                 fontsize=8,
             )
-            ax.set_ylim(-0.01, 1.1)
-            ax.set_xlim(0, self.params_dict["images_num"])
+            ax[0].set_ylim(-0.01, 1.1)
+            ax[0].set_xlim(0, self.params_dict["images_num"])
 
             positions = np.linspace(
                 0, self.results_aligned["spots_resolution"].max(), 5
@@ -599,15 +595,15 @@ class AbstractOnlineProcessing(HardwareObject):
             labels = ["inf"]
             for item in positions[1:]:
                 labels.append("%.2f" % (1.0 / item))
-            ax.set_yticks(positions)
-            ax.set_yticklabels(labels)
+            ax[0].set_yticks(positions)
+            ax[0].set_yticklabels(labels)
 
             # new_labels = numpy.linspace(min_resolution, max_resolution / 1.2, len(ax.get_yticklabels()))
             # new_labels = numpy.round(new_labels, 1)
             # ax.set_yticklabels(new_labels)
-            ax.set_ylabel("Resolution")
+            ax[0].set_ylabel("Resolution")
 
-            ay1 = ax.twinx()
+            ay1 = ax[0].twinx()
             new_labels = np.linspace(
                 0,
                 self.results_aligned["spots_num"].max(),
@@ -617,14 +613,15 @@ class AbstractOnlineProcessing(HardwareObject):
             ay1.set_yticklabels(new_labels)
             ay1.set_ylabel("Number of spots")
 
-        # ---------------------------------------------------------------------
-        ax.tick_params(axis="x", labelsize=8)
-        ax.tick_params(axis="y", labelsize=8)
-        ax.set_title(self.params_dict["title"], fontsize=8)
+            ax[1].plot(
+                self.results_raw["is"], ',', label="Intensity", c="g"
+            )
+            ax[1].set_ylabel("Intensity")
 
-        ax.grid(True)
-        ax.spines["left"].set_position(("outward", 10))
-        ax.spines["bottom"].set_position(("outward", 10))
+            for ax_plot in ax:
+                ax_plot.tick_params(axis="x", labelsize=8)
+                ax_plot.tick_params(axis="y", labelsize=8)
+                ax_plot.grid(True)
 
         # ---------------------------------------------------------------------
         # Stores plot in the processing directory
@@ -671,9 +668,9 @@ class AbstractOnlineProcessing(HardwareObject):
         # ---------------------------------------------------------------------
         # Generates html and json files
         try:
-            # SimpleHTML.generate_online_processing_report(
-            #    self.results_aligned, self.params_dict
-            #)
+            SimpleHTML.generate_online_processing_report(
+                self.results_aligned, self.params_dict
+            )
             log.info(
                 "Online processing: Html report saved in %s"
                 % self.params_dict["html_file_path"]
@@ -682,22 +679,28 @@ class AbstractOnlineProcessing(HardwareObject):
                 "Online processing: Json report saved in %s"
                 % self.params_dict["json_file_path"]
             )
-        except Exception:
+        except Exception as ex:
             log.exception(
-                "Online processing: Could not save results html %s"
-                % self.params_dict["html_file_path"]
+                "Online processing: Could not save results html %s: %s"
+                % (self.params_dict["html_file_path"],
+                str(ex)
+                ) 
+                  
             )
             log.exception(
-                "Online processing: Could not save json results in %s"
-                % self.params_dict["json_file_path"]
+                "Online processing: Could not save json results in %s : %s"
+                % (self.params_dict["json_file_path"],
+                   str(ex)
+                )
             )
 
         # ---------------------------------------------------------------------
         # Writes results in the csv file
         try:
-            processing_csv_file = open(processing_csv_archive_file, "w")
+            det_pixel_size = HWR.beamline.detector.get_pixel_size()
+            processing_csv_file = open(self.params_dict["csv_file_path"], "w")
             processing_csv_file.write(
-                "%s,%d,%d,%d,%d,%d,%s,%d,%d,%f,%f,%s\n"
+                "%s,%d,%d,%d,%d,%d,%s,%d,%d\n"
                 % (
                     self.params_dict["template"],
                     self.params_dict["first_image_num"],
@@ -706,11 +709,8 @@ class AbstractOnlineProcessing(HardwareObject):
                     self.params_dict["run_number"],
                     self.params_dict["lines_num"],
                     str(self.params_dict["reversing_rotation"]),
-                    HWR.beamline.detector.get_pixel_min(),
-                    HWR.beamline.detector.get_pixel_max(),
-                    HWR.beamline.beamstop.get_size(),
-                    HWR.beamline.beamstop.get_distance(),
-                    HWR.beamline.beamstop.get_direction(),
+                    det_pixel_size[0],
+                    det_pixel_size[1],
                 )
             )
             for index in range(self.params_dict["images_num"]):
@@ -725,13 +725,13 @@ class AbstractOnlineProcessing(HardwareObject):
                 )
             log.info(
                 "Online processing: Raw data stored in %s"
-                % processing_csv_archive_file
+                % self.params_dict["csv_file_path"]
             )
             processing_csv_file.close()
         except Exception:
             log.error(
                 "Online processing: Unable to store raw data in %s"
-                % processing_csv_archive_file
+                % self.params_dict["csv_file_path"]
             )
         # ---------------------------------------------------------------------
 
