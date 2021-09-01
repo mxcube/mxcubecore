@@ -71,10 +71,8 @@ class AbstractDetector(HardwareObject):
         self._humidity = None
         self._actual_frame_rate = None
         self._exposure_time_limits = (None, None)
-
         self._pixel_size = (None, None)
-
-        self._binning_mode = "Unbinned"
+        self._binning_mode = None
         self._roi_mode = 0
         self._roi_modes_list = []
 
