@@ -68,7 +68,7 @@ class AbstractEnergy(AbstractActuator):
         Returns:
             (float): Wavelength [Å].
         """
-        return self._calculate_wavelength()
+        return self.calculate_wavelength()
 
     def get_wavelength_limits(self):
         """Return wavelength low and high limits.
@@ -77,8 +77,8 @@ class AbstractEnergy(AbstractActuator):
         """
         _low, _high = self.get_limits()
         self._wavelength_limits = (
-            self._calculate_wavelength(_high),
-            self._calculate_wavelength(_low),
+            self.calculate_wavelength(_high),
+            self.calculate_wavelength(_low),
         )
         return self._wavelength_limits
 
@@ -90,9 +90,9 @@ class AbstractEnergy(AbstractActuator):
                              if timeout = 0: return at once and do not wait
                              if timeout is None: wait forever
         """
-        self.set_value(self._calculate_energy(value), timeout=timeout)
+        self.set_value(self.calculate_energy(value), timeout=timeout)
 
-    def _calculate_wavelength(self, energy=None):
+    def calculate_wavelength(self, energy=None):
         """Calculate wavelength from energy
         Args:
             energy(float): Energy [keV]
@@ -109,7 +109,7 @@ class AbstractEnergy(AbstractActuator):
 
         return HC_OVER_E / energy
 
-    def _calculate_energy(self, wavelength=None):
+    def calculate_energy(self, wavelength=None):
         """Calculate energy from wavelength
         Args:
             value((float): wavelength [Å]
@@ -129,6 +129,6 @@ class AbstractEnergy(AbstractActuator):
             value = self.get_value()
         self._nominal_value = value
 
-        _wavelength_value = self._calculate_wavelength(value)
+        _wavelength_value = self.calculate_wavelength(value)
         self.emit("energyChanged", (value, _wavelength_value))
         self.emit("valueChanged", (value,))

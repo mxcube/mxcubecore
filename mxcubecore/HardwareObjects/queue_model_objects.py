@@ -1858,12 +1858,17 @@ class GphlWorkflow(TaskNode):
 
         workflow_hwobj = HWR.beamline.gphl_workflow
 
-    # Workflow start attriutes
+        # Workflow start attriutes
         self.path_template = PathTemplate()
         self._type = str()
         self.shape = str()
+        # string. Only active mode currently is 'MASSIF1'
+        self.automation_mode = None
+        # Full path of characterisation data directory, if pre-acquired
+        # TODO modify once workflow can use it
+        self.characterisation_directory = None
 
-    # Pre-strategy attributes
+        # Pre-strategy attributes
         self.space_group = str()
         self.crystal_system = str()
         self.point_group = None
@@ -1874,15 +1879,6 @@ class GphlWorkflow(TaskNode):
         self.goniostat_translations = ()
         self.strategy = str()
         self.strategy_options = {}
-        # self._beam_energy = None
-        # self._beam_energy_tags = ("Acquisition",)
-        # self._detector_resolution = None
-        # self._characterisation_strategy = str()
-
-        # TBD - add as they come in use - possibly modified
-        # self._crystal_orientation = None
-        # self._bravais_centring = str()
-        # self._override_symmetry = None
 
         # Pre-collection attributes
         # Attributes for workflow
@@ -1890,20 +1886,18 @@ class GphlWorkflow(TaskNode):
         self.image_width = 0.0
         self.wedge_width = 0.0
         self.transmission = 0.0
+        self.snapshot_count = 2
         # Workflow interleave order (string).
         # Slowest changing first, characters 'g' (Goniostat position);
         # 's' (Scan number), 'b' (Beam wavelength), 'd' (Detector position)
         self.interleave_order = "gs"
 
-        # Attributes for MXCuBE
-        # self._number = 0
-        self.snapshot_count = 2
         # Centring handling and MXCuBE-side flow
         self.recentring_mode = "sweep"
         self.current_rotation_id = None
         # HACK - to differentiate between characterisation and acquisition
         # TODO remove when workflow gives relevant information
-        self.lattice_selected = False
+        self.characterisation_done = False
         # Dose budget handling
         self.maximum_dose_budget = 20.0
         self.dose_budget = None
@@ -1921,12 +1915,148 @@ class GphlWorkflow(TaskNode):
             if hasattr(self, dict_item[0]):
                 setattr(self, dict_item[0], dict_item[1])
 
-    def init_from_sample(self, sample_model=None):
-        """Initialise model from Sample and its diffraction plan"""
-        workflow_hwobj = HWR.beamline.gphl_workflow
+    def set_pre_strategy_params(
+            self,
+            point_group="",
+            bravais_lattice="",
+            space_group=None,
+            cell_parameters=(),
+            resolution=None,
+            energies=(),
+            strategy_options=None,
+            **unused):
+        """"""
 
-        if sample_model is None:
-            sample_model = self.get_sample_node()
+        from mxcubecore.HardwareObjects.Gphl import GphlMessages
+
+        # Order of precedence: space_group, point_group, bravais_lattice.
+        if space_group:
+            # Space group overrides point group and and bravais latice
+            self.space_group = space_group
+            self.point_group = None
+            self.bravais_lattice = None
+        else:
+            if point_group:
+                #To avoid cmpatribility problems, reset other parameters
+                # NB Crystal system follows from ont group
+                self.space_group = None
+                self.point_group = point_group
+                self.bravais_lattice = None
+            if bravais_lattice:
+                # NB there are com[patibility problems here - TODO
+                self.bravais_lattice = bravais_lattice
+        if cell_parameters:
+            self.cell_parameters = cell_parameters
+
+        workflow_parameters = self.get_workflow_parameters()
+
+        settings = HWR.beamline.gphl_workflow.get_settings()
+        energy_tags = (settings["default_beam_energy_tag"],)
+        energy_tags = workflow_parameters.get("beam_energy_tags", energy_tags)
+        interleave_order = workflow_parameters.get("interleave_order")
+        if interleave_order:
+            self.interleave_order = interleave_order
+
+        if energies:
+            if len(energy_tags) != len(energies):
+                raise ValueError(
+                    "Strategy should have %s energies, value was %s"
+                    % (len(energy_tags), energies)
+                )
+            wavelengths = []
+            for iii, role in enumerate(energy_tags):
+                wavelengths.append(
+                    GphlMessages.PhasingWavelength(
+                        wavelength= HWR.beamline.energy.get_wavelength(energies[iii]),
+                        role=role
+                    )
+                )
+            self.wavelengths = tuple(wavelengths)
+        else:
+            if len(energy_tags) != 1:
+                raise ValueError(
+                    "Strategy should have %s explicit energies, values missing"
+                    % len(energy_tags)
+                )
+            # If we are here we fall back on pre-set energy
+            # (role: Acquisition, value previously set as current)
+        wavelength = self.wavelengths[0].wavelength
+
+        if resolution:
+            distance = HWR.beamline.resolution.resolution_to_distance(
+                resolution, wavelength
+            )
+            orgxy = HWR.beamline.detector.get_beam_position(
+                distance, wavelength
+            )
+            self.detector_setting = GphlMessages.BcsDetectorSetting(
+                resolution, orgxy=orgxy, Distance=distance
+            )
+
+        self.strategy_options = {
+            "strategy_type": workflow_parameters["strategy_type"],
+            "angular_tolerance": settings["angular_tolerance"],
+            "maximum_chi": settings["maximum_chi"],
+        }
+        if strategy_options:
+            self.strategy_options.update(strategy_options)
+
+    def set_pre_acquisition_params(
+        self,
+        exposure_time=None,
+        image_width=None,
+        wedge_width=None,
+        transmission=None,
+        snapshot_count=None,
+        **unused
+    ):
+        """"""
+        if exposure_time:
+            self.exposure_time = float(exposure_time)
+        if image_width:
+            self.image_width = float(image_width)
+        if wedge_width:
+            self.wedge_width = float(wedge_width)
+        if transmission:
+            # NBNB TODO transmission must be calculated
+            #  for chareacterisation and acquisition
+            self.transmission = float(transmission)
+        if snapshot_count:
+            self.snapshot_count = int(snapshot_count)
+
+    def init_from_task_data(self, sample_model, params):
+        """
+        sample_model is required as this may be called before the object is enqueued
+        params is a dictionary with structure determined by mxcube3 usage
+        - in this function it is used only for PathTemplate data and strategy_name
+        """
+
+        from mxcubecore.HardwareObjects.Gphl import GphlMessages
+
+        # Set path template
+        self.path_template.set_from_dict(params)
+
+        if params["prefix"]:
+            self.path_template.base_prefix = params["prefix"]
+        else:
+            self.path_template.base_prefix = HWR.beamline.session.get_default_prefix(
+                sample_model, False
+            )
+
+        self.path_template.num_files = 0
+        self.path_template.precision = "0" + str(
+            HWR.beamline.session["file_info"].get_property("precision", 4)
+        )
+
+        self.path_template.directory = os.path.join(
+            HWR.beamline.session.get_base_image_directory(), params.get("subdir", "")
+        )
+
+        self.path_template.process_directory = os.path.join(
+            HWR.beamline.session.get_base_process_directory(), params.get("subdir", ""),
+        )
+
+        # Set crystal parameters from sample node
         crystal = sample_model.crystals[0]
         tpl = (
             crystal.cell_a, crystal.cell_b, crystal.cell_c,
@@ -1937,6 +2067,14 @@ class GphlWorkflow(TaskNode):
         self.space_group = crystal.space_group
         self.protein_acronym = crystal.protein_acronym
 
+        # Set to current wavelength for now - nothing else available
+        wavelength = HWR.beamline.energy.get_wavelength()
+        role = HWR.beamline.gphl_workflow.settings["default_beam_energy_tag"]
+        self.wavelengths = (
+            GphlMessages.PhasingWavelength(wavelength=wavelength, role=role)
+        )
+
+        # Set parameters from diffraction plan
         diffraction_plan = sample_model.diffraction_plan
         if diffraction_plan:
             # It is not clear if diffraction_plan is a dict or an object,
@@ -1949,14 +2087,31 @@ class GphlWorkflow(TaskNode):
             if radiation_sensitivity:
                 self.relative_rad_sensitivity = radiation_sensitivity
 
-            wavelength = HWR.beamline.,get_wavelength()
             if hasattr(diffraction_plan, "aimedResolution"):
-                aimed_resolution = diffraction_plan.aimedResolution
+                resolution = diffraction_plan.aimedResolution
             else:
-                aimed_resolution = diffraction_plan.get("aimedResolution")
+                resolution = diffraction_plan.get("aimedResolution")
+            if not resolution:
+                # Default to current, so we have something set
+                resolution = HWR.beamline.resolution.get_value()
 
-            if aimed_resolution:
-                self.set_detector_resolution(aimed_resolution)
+            if resolution:
+                distance = HWR.beamline.resolution.resolution_to_distance(
+                    resolution, wavelength
+                )
+                orgxy = HWR.beamline.detector.get_beam_position(
+                    distance, wavelength
+                )
+                self.detector_setting = GphlMessages.BcsDetectorSetting(
+                    resolution, orgxy=orgxy, Distance=distance
+                )
+
+        # Swt paramaters from params dict
+        self.set_name(self.path_template.base_prefix)
+        self.set_type(params["strategy_type"])
+        self.shape = params.get("shape", "")
+        self.automation_mode = params.get("automation_mode")
+        self.characterisation_directory = params.get("characterisation_directory")
 
     def get_workflow_parameters(self):
         """Get parameters dictionary for workflow strategy"""
@@ -1970,14 +2125,14 @@ class GphlWorkflow(TaskNode):
     def get_path_template(self):
         return self.path_template
 
-    # Workflow type (string); equal to title of selected strategy (key to config)
+    # Strategy type (string); e.g. 'phasing'
     def get_type(self):
         return self._type
 
     def set_type(self, value):
         self._type = value
 
-    # Run name - here used for smaple prefix, with no number
+    # Run name equal to base_prefix
     def get_name(self):
         return self._name
 

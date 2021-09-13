@@ -188,7 +188,7 @@ class AbstractResolution(AbstractMotor):
             value(float): Energy [keV]
         """
         value = value or HWR.beamline.energy.get_value()
-        _wavelength = HWR.beamline.energy._calculate_wavelength(value)
+        _wavelength = HWR.beamline.energy.calculate_wavelength(value)
         _distance = self._hwr_detector.distance.get_value()
         _radius = self._hwr_detector.get_radius(_distance)
         try:

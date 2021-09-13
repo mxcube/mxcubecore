@@ -28,6 +28,8 @@ from collections import namedtuple
 
 from mxcubecore.utils.conversion import string_types
 
+from mxcubecore.HardwareObjects import queue_model_enumerables
+
 __copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
@@ -804,14 +806,14 @@ class GoniostatTranslation(PositionerSetting):
 class UserProvidedInfo(MessageData):
     """User-provided information"""
 
-    def __init__(self,data_model):
+    def __init__(self, data_model):
 
         self._scatterers = ()
-        lattice = data_model.crystal_system
-        self._lattice = lattice.upper() if lattice else None
+        # lattice = data_model.crystal_system
+        # self._lattice = lattice.upper() if lattice else None
         self._pointGroup = data_model.point_group
-        space_group = data_model.space_group
-        self._spaceGroup = space_group.numer if space_group else None
+        space_group = queue_model_enumerables.SPACEGROUP_MAP.get(data_model.space_group)
+        self._spaceGroup = space_group.number if space_group else None
         cell_parameters = data_model.cell_parameters
         if cell_parameters:
             self._cell = UnitCell(*cell_parameters)
@@ -1203,12 +1205,21 @@ class SampleCentred(Payload):
         self._imageWidth = data_model.image_width
         self._transmission = data_model.transmission
         self._exposure = data_model.exposure_time
-        self._interleaveOrder = data_model.interleave_order
         self._wedgeWidth = data_model.wedge_width
         self._beamstopSetting = data_model.beamstop_setting
         self._detectorSetting = data_model.detector_setting
         self._goniostatTranslations = frozenset(data_model.goniostat_translations)
-        self._wavelengths = frozenset(data_model.wavelengths)
+
+        if data_model.characterisation_done:
+            self._wavelengths = frozenset(data_model.wavelengths)
+            self._interleaveOrder = data_model.interleave_order
+        else:
+            # Ths trick assumes that characterisation and diffractcal
+            # use one, the first, wavelength and default inbterleave order
+            # Which is true. Not the ideal place to put this code
+            # but it works.
+            self._wavelengths = frozenset((data_model.wavelengths,))
+            self._interleaveOrder = None
 
     @property
     def imageWidth(self):

@@ -223,9 +223,24 @@ class GphlWorkflow(HardwareObjectYaml):
         else:
             raise RuntimeError("GphlWorkflow set to invalid state: s" % value)
 
+    def query_pre_strategy_params(self, data_model, choose_lattice=None):
+        """
+        choose_lattice is the Message object, passed in at teh select_lattice stage
+        """
+        #
+        return {}
+
+
     def pre_execute(self, queue_entry):
 
         self._queue_entry = queue_entry
+        data_model = queue_entry.get_data_model()
+        if not data_model.automation_mode:
+            # SIGNAL TO GET Pre-strategy parameters here
+            # NB set defaults from data_model
+            # NB consider whether to override on None
+            params = self.query_pre_strategy_params(data_model)
+            data_model.set_pre_strategy_params(**params)
 
     def execute(self):
 
@@ -363,7 +378,7 @@ class GphlWorkflow(HardwareObjectYaml):
         # Make info_text and do some setting up
         axis_names = self.rotation_axis_roles
         if (
-            data_model.lattice_selected
+            data_model.characterisation_done
             or wf_parameters.get("strategy_type") == "diffractcal"
         ):
             lines = ["%s strategy" % self._queue_entry.get_data_model().get_type()]
@@ -655,7 +670,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 "readOnly": False,
             }
         )
-        if data_model.lattice_selected:
+        if data_model.characterisation_done:
             field_list[-1]["readOnly"] = True
         else:
             field_list[-1]["update_function"] = update_resolution
@@ -687,7 +702,7 @@ class GphlWorkflow(HardwareObjectYaml):
             ]
         )
 
-        if data_model.lattice_selected and data_model.get_interleave_order():
+        if data_model.characterisation_done and data_model.get_interleave_order():
             # NB We do not want the wedgeWdth widget for Diffractcal
             field_list.append(
                 {
@@ -745,7 +760,7 @@ class GphlWorkflow(HardwareObjectYaml):
         if data_model.get_interleave_order():
             use_modes.append("scan")
         if self.load_transcal_parameters() and (
-            data_model.lattice_selected
+            data_model.characterisation_done
             or wf_parameters.get("strategy_type") == "diffractcal"
         ):
             # Not Characteisation
@@ -857,7 +872,7 @@ class GphlWorkflow(HardwareObjectYaml):
         strategy_type = gphl_workflow_model.get_workflow_parameters()[
             "strategy_type"
         ]
-        if gphl_workflow_model.lattice_selected:
+        if gphl_workflow_model.characterisation_done:
             # Data collection TODO: Use workflow info to distinguish
             new_dcg_name = "GPhL Data Collection"
         else:
@@ -932,7 +947,7 @@ class GphlWorkflow(HardwareObjectYaml):
         new_resolution = parameters.pop("resolution")
         if (
             new_resolution != initial_resolution
-            and not gphl_workflow_model.lattice_selected
+            and not gphl_workflow_model.characterisation_done
         ):
             logging.getLogger("GUI").info(
                 "GphlWorkflow: setting detector distance for resolution %7.3f A"
@@ -970,7 +985,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         if (
             self.settings.get("recentre_before_start")
-            and not gphl_workflow_model.lattice_selected
+            and not gphl_workflow_model.characterisation_done
         ):
             # Sample has never been centred reliably.
             # Centre it at sweepsetting and put it into goniostatTranslations
@@ -1005,7 +1020,7 @@ class GphlWorkflow(HardwareObjectYaml):
             # matching the sweepSetting
             pass
 
-        elif gphl_workflow_model.lattice_selected or strategy_type == "diffractcal":
+        elif gphl_workflow_model.characterisation_done or strategy_type == "diffractcal":
             # Acquisition or diffractcal; crystal is already centred
             settings = dict(sweepSetting.axisSettings)
             okp = tuple(settings.get(x, 0) for x in self.rotation_axis_roles)
@@ -1286,7 +1301,7 @@ class GphlWorkflow(HardwareObjectYaml):
         snapshot_count = gphl_workflow_model.get_snapshot_count()
         # wf_parameters = gphl_workflow_model.get_workflow_parameters()
         # if (
-        #     gphl_workflow_model.lattice_selected
+        #     gphl_workflow_model.characterisation_done
         #     or wf_parameters.get("strategy_type") == "diffractcal"
         # ):
         #     snapshot_count = gphl_workflow_model.get_snapshot_count()
@@ -1472,9 +1487,9 @@ class GphlWorkflow(HardwareObjectYaml):
             # imageRoot=path_template.directory
         )
 
-    def select_lattice(self, payload, correlation_id):
-        choose_lattice = payload
-
+    def auto_select_solution(self, choose_lattice):
+        """Select indeing solution automatically"""
+        data_model = self._queue_entry.get_data_model()
         solution_format = choose_lattice.lattice_format
 
         # Must match bravaisLattices column
@@ -1483,92 +1498,141 @@ class GphlWorkflow(HardwareObjectYaml):
         # First letter must match first letter of BravaisLattice
         crystal_system = choose_lattice.crystalSystem
 
-        # Color green (figuratively) if matches lattices,
-        # or otherwise if matches crystalSystem
-
         dd0 = self.parse_indexing_solution(solution_format, choose_lattice.solutions)
-
-        reslimits = HWR.beamline.resolution.get_limits()
-        resolution = HWR.beamline.resolution.get_value()
-        if None in reslimits:
-            reslimits = (0.5, 5.0)
-        field_list = [
-            {
-                "variableName": "_cplx",
-                "uiLabel": "Select indexing solution:",
-                "type": "selection_table",
-                "header": dd0["header"],
-                "colours": None,
-                "defaultValue": (dd0["solutions"],),
-            },
-            {
-                "variableName": "resolution",
-                "uiLabel": "Detector resolution (A)",
-                "type": "floatstring",
-                "defaultValue":resolution,
-                "lowerBound": reslimits[0],
-                "upperBound": reslimits[1],
-                "decimals": 3,
-                "readOnly": False,
-            }
-        ]
-
         # colour matching lattices green
         colour_check = lattices
         if crystal_system and not colour_check:
             colour_check = (crystal_system,)
-        if colour_check:
-            colours = [None] * len(dd0["solutions"])
-            for ii, line in enumerate(dd0["solutions"]):
-                if any(x in line for x in colour_check):
-                    colours[ii] = "LIGHT_GREEN"
-            field_list[0]["colours"] = colours
+        starred = None
+        colourstarred = None
+        for line in dd0["solutions"]:
+            if "*" in  line:
+                starred = line
+                if colour_check and any(x in line for x in colour_check):
+                    colourstarred = line
+        useline = colourstarred or starred
+        if useline:
+            solution = useline.split()
+            if solution[0] == "*":
+                del solution[0]
+            return solution
+        raise ValueError("No indexing solution found")
 
-        self._return_parameters = gevent.event.AsyncResult()
-        responses = dispatcher.send(
-            "gphlParametersNeeded", self, field_list, self._return_parameters, None
-        )
-        if not responses:
-            self._return_parameters.set_exception(
-                RuntimeError("Signal 'gphlParametersNeeded' is not connected")
+    def select_lattice(self, payload, correlation_id):
+
+        choose_lattice = payload
+
+        data_model = self._queue_entry.get_data_model()
+        data_model.characterisation_done = True
+
+
+        if data_model.automation_mode:
+            solution = self.auto_select_solution(choose_lattice)
+            return GphlMessages.SelectedLattice(
+                lattice_format=choose_lattice.solution_format, solution=solution
             )
+        else:
+            # SIGNAL TO GET Pre-strategy parameters here
+            # NB set defaults from data_model
+            # NB consider whether to override on None
+            params = self.query_pre_strategy_params(data_model, choose_lattice)
+            data_model.set_pre_strategy_params(**params)
+            raise NotImplementedError()
 
-        params = self._return_parameters.get()
-        if params is StopIteration:
-            return StopIteration
 
-        kwArgs = {}
-
-        # NB We do not reset the wavelength at this point. We could, later
-        kwArgs["strategyWavelength"] = HWR.beamline.energy.get_wavelength()
-
-        new_resolution = float(params.pop("resolution", 0))
-        if new_resolution:
-            if new_resolution != resolution:
-                logging.getLogger("GUI").info(
-                    "GphlWorkflow: setting detector distance for resolution %7.3f A"
-                    % new_resolution
-                )
-                # timeout in seconds: max move is ~2 meters, velocity 4 cm/sec
-                HWR.beamline.resolution.set_value(new_resolution, timeout=60)
-                resolution = new_resolution
-        kwArgs["strategyResolution"] = resolution
-
-        ll0 = conversion.text_type(params["_cplx"][0]).split()
-        if ll0[0] == "*":
-            del ll0[0]
-
-        options = {}
-        maximum_chi = self.settings.get("maximum_chi")
-        if maximum_chi:
-            options["maxmum_chi"] = float(maximum_chi)
-
-        kwArgs["options"] = json.dumps(options, indent=4, sort_keys=True)
+        # solution_format = choose_lattice.lattice_format
         #
-        self._queue_entry.get_data_model().lattice_selected = True
-        return GphlMessages.SelectedLattice(
-            lattice_format=solution_format, solution=ll0
-        )
+        # # Must match bravaisLattices colu_m
+        # lattices = choose_lattice.lattices
+        #
+        # # First letter must match first letter of BravaisLattice
+        # crystal_system = choose_lattice.crystalSystem
+
+        # # Color green (figuratively) if matches lattices,
+        # # or otherwise if matches crystalSystem
+        #
+        # dd0 = self.parse_indexing_solution(solution_format, choose_lattice.solutions)
+        #
+        # reslimits = HWR.beamline.resolution.get_limits()
+        # resolution = HWR.beamline.resolution.get_value()
+        # if None in reslimits:
+        #     reslimits = (0.5, 5.0)
+        # field_list = [
+        #     {
+        #         "variableName": "_cplx",
+        #         "uiLabel": "Select indexing solution:",
+        #         "type": "selection_table",
+        #         "header": dd0["header"],
+        #         "colours": None,
+        #         "defaultValue": (dd0["solutions"],),
+        #     },
+        #     {
+        #         "variableName": "resolution",
+        #         "uiLabel": "Detector resolution (A)",
+        #         "type": "floatstring",
+        #         "defaultValue":resolution,
+        #         "lowerBound": reslimits[0],
+        #         "upperBound": reslimits[1],
+        #         "decimals": 3,
+        #         "readOnly": False,
+        #     }
+        # ]
+        #
+        # # colour matching lattices green
+        # colour_check = lattices
+        # if crystal_system and not colour_check:
+        #     colour_check = (crystal_system,)
+        # if colour_check:
+        #     colours = [None] * len(dd0["solutions"])
+        #     for ii, line in enumerate(dd0["solutions"]):
+        #         if any(x in line for x in colour_check):
+        #             colours[ii] = "LIGHT_GREEN"
+        #     field_list[0]["colours"] = colours
+        #
+        # self._return_parameters = gevent.event.AsyncResult()
+        # responses = dispatcher.send(
+        #     "gphlParametersNeeded", self, field_list, self._return_parameters, None
+        # )
+        # if not responses:
+        #     self._return_parameters.set_exception(
+        #         RuntimeError("Signal 'gphlParametersNeeded' is not connected")
+        #     )
+        #
+        # params = self._return_parameters.get()
+        # if params is StopIteration:
+        #     return StopIteration
+        #
+        # kwArgs = {}
+        #
+        # # NB We do not reset the wavelength at this point. We could, later
+        # kwArgs["strategyWavelength"] = HWR.beamline.energy.get_wavelength()
+        #
+        # new_resolution = float(params.pop("resolution", 0))
+        # if new_resolution:
+        #     if new_resolution != resolution:
+        #         logging.getLogger("GUI").info(
+        #             "GphlWorkflow: setting detector distance for resolution %7.3f A"
+        #             % new_resolution
+        #         )
+        #         # timeout in seconds: max move is ~2 meters, velocity 4 cm/sec
+        #         HWR.beamline.resolution.set_value(new_resolution, timeout=60)
+        #         resolution = new_resolution
+        # kwArgs["strategyResolution"] = resolution
+        #
+        # ll0 = conversion.text_type(params["_cplx"][0]).split()
+        # if ll0[0] == "*":
+        #     del ll0[0]
+        #
+        # options = {}
+        # maximum_chi = self.settings.get("maximum_chi")
+        # if maximum_chi:
+        #     options["maxmum_chi"] = float(maximum_chi)
+        #
+        # kwArgs["options"] = json.dumps(options, indent=4, sort_keys=True)
+        # #
+        # return GphlMessages.SelectedLattice(
+        #     lattice_format=solution_format, solution=ll0
+        # )
 
     def parse_indexing_solution(self, solution_format, text):
 
@@ -1855,6 +1919,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         workflow_model = self._queue_entry.get_data_model()
 
+        # NBNB TODO check this is also OK in MXCuBE3
         image_root = HWR.beamline.session.get_base_image_directory()
 
         if not os.path.isdir(image_root):

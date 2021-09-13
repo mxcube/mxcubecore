@@ -44,7 +44,6 @@ except Exception:
 
 # Conversion from kEv to A, wavelength = HC_OVER_E/energy
 HC_OVER_E = h * c / e * 10e6
-HC_OVER_E = 12.3984
 
 
 # Utility functions:
