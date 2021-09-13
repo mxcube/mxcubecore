@@ -849,10 +849,13 @@ class Characterisation(TaskNode):
         self.characterisation_software = None
         self.wait_result = None
         self.run_diffraction_plan = None
-        self.diff_plan_compression = True
 
         self.auto_add_diff_plan = True
         self.diffraction_plan = []
+
+    @staticmethod
+    def set_char_compression(state):
+        Characterisation.diff_plan_compression = state
 
     def get_name(self):
         return "%s_%i" % (self._name, self._number)

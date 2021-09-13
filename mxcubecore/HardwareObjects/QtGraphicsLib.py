@@ -2696,7 +2696,11 @@ class GraphicsView(qt_import.QGraphicsView):
         :param event:
         :return:
         """
-        self.wheelSignal.emit(event.delta())
+        try:
+            delta = event.angleDelta().y()
+        except:
+            delta = event.delta()
+        self.wheelSignal.emit(delta)
 
         """
         //Get the original screen centerpoint

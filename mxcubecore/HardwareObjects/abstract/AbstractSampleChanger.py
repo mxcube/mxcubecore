@@ -295,7 +295,8 @@ class SampleChanger(Container, Equipment):
     # #######################    HardwareObject    #######################
 
     def connect_notify(self, signal):
-        logging.getLogger().info("connect_notify " + str(signal))
+        pass
+        #logging.getLogger().info("connect_notify " + str(signal))
 
     # ########################    PUBLIC    #########################
 

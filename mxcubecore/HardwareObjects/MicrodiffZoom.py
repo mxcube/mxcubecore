@@ -43,15 +43,12 @@ __license__ = "LGPLv3+"
 class MicrodiffZoom(ExporterNState):
     """MicrodiffZoom class"""
 
-    def __init__(self, name):
-        ExporterNState.__init__(self, name)
-
     def init(self):
         """Initialize the zoom"""
-        ExporterNState.init(self)
+        super().init()
 
         self.initialise_values()
-        # check if we have values other that UKNOWN
+        # check if we have values other that UNKNOWN
         _len = len(self.VALUES) - 1
         if _len > 0:
             # we can only assume that the values are consecutive integers
@@ -98,7 +95,7 @@ class MicrodiffZoom(ExporterNState):
         """
         try:
             _low, _high = self._exporter.execute("getZoomRange")
-        except Exception:
+        except (AttributeError, ValueError):
             _low, _high = 1, 10
 
         # inf is a problematic value

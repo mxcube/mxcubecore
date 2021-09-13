@@ -39,7 +39,7 @@ class LimaEigerDetector(AbstractDetector):
         self.binning_mode = 1
 
     def init(self):
-        super().init(self)
+        super().init()
 
         lima_device = self.get_property("lima_device")
         eiger_device = self.get_property("eiger_device")
@@ -178,17 +178,17 @@ class LimaEigerDetector(AbstractDetector):
     def set_energy_threshold(self, energy):
         """Set the energy threshold. Attn: the command is time consuming.
         Args:
-            (float): Energy (eV or KeV).
+            (int): Energy [eV or KeV].
         """
         minE = self.get_property("minE")
         if energy < minE:
             energy = minE
+        energy = energy*1000 if energy < 100 else energy
 
         working_energy_chan = self.get_channel_object("photon_energy")
-        working_energy = working_energy_chan.get_value() / 1000.0
-        if math.fabs(working_energy - energy) > 0.1:
-            egy = int(energy * 1000.0)
-            working_energy_chan.set_value(egy)
+        working_energy = working_energy_chan.get_value()
+        if abs(working_energy - energy) > 99:
+            working_energy_chan.set_value(int(egy))
 
     @task
     def set_detector_filenames(self, frame_number, start, filename):

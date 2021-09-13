@@ -1374,3 +1374,7 @@ class GenericDiffractometer(HardwareObject):
 
     def save_centring_positions(self):
         pass
+
+    def force_emit_signals(self):
+        for motor_hwobj in self.motor_hwobj_dict.values():
+            motor_hwobj.force_emit_signals()
