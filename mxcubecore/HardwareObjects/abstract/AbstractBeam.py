@@ -61,6 +61,7 @@ class AbstractBeam(HardwareObject):
         self._beam_size_dict = {
             "aperture": [sys.float_info.max, sys.float_info.max],
             "slits": [sys.float_info.max, sys.float_info.max],
+            "definer": [sys.float_info.max, sys.float_info.max]
         }
         self._beam_width = None
         self._beam_height = None

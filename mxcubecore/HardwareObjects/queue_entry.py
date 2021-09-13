@@ -854,7 +854,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
         self.get_view().setText(1, "Stopped")
         logging.getLogger("queue_exec").info("Calling stop on: " + str(self))
-        logging.getLogger("user_level_log").error("Collection stopped")
+        logging.getLogger("user_level_log").info("Collection stopped")
         # this is to work around the remote access problem
         dispatcher.send("collect_finished")
         raise QueueAbortedException("Queue stopped", self)

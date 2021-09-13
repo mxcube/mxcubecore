@@ -20,6 +20,7 @@
 import os
 import time
 import numpy as np
+from pkg_resources import resource_filename
 
 from mxcubecore.utils.qt_import import QPainter, QPixmap, QPen, QBrush, QImage, Qt
 from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
@@ -35,7 +36,8 @@ class QtVideoMockup(AbstractVideoDevice):
         self.image = None
 
     def init(self):
-        default_image_path = os.path.dirname(os.path.abspath(__file__)) + "/sample.jpg"
+        default_image_path = resource_filename('mxcubecore',
+                                               'configuration/mockup/qt/fakeimg.jpg')
         image_path = self.get_property("file_name", default_image_path)
 
         self.image = QPixmap(image_path)
