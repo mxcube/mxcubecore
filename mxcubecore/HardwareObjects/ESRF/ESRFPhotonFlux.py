@@ -25,6 +25,11 @@ Example xml file:
   <object role="controller" href="/bliss"/>
   <object role="aperture" href="/udiff_aperture"/>
   <counter_name>i0</counter_name>
+  <beam_check_name>beamcheck</beam_check_name>
+  or
+  <object role="counter" href="/i0_counter/>
+  <object role="beam_check" href="/beam_check/>
+
 </object>
 """
 import logging
@@ -35,18 +40,19 @@ from mxcubecore.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 
 
 class ESRFPhotonFlux(AbstractFlux):
-    """Photon flux calculation for ID30B"""
+    """Photon flux calculation"""
 
     def __init__(self, name):
-        super(ESRFPhotonFlux, self).__init__(name)
+        super().__init__(name)
         self._counter = None
         self._flux_calc = None
         self._aperture = None
         self.threshold = None
+        self._beam_check = None
 
     def init(self):
         """Initialisation"""
-        super(ESRFPhotonFlux, self).init()
+        super().init()
         controller = self.get_object_by_role("controller")
 
         self._aperture = self.get_object_by_role("aperture")
@@ -66,8 +72,14 @@ class ESRFPhotonFlux(AbstractFlux):
         else:
             self._counter = self.get_object_by_role("counter")
 
+        beam_check = self.get_property("beam_check_name")
+        if beam_check:
+            self._beam_check = getattr(controller, beam_check)
+        else:
+            self._beam_check = self.get_object_by_role("beam_check")
+
         HWR.beamline.safety_shutter.connect("stateChanged", self.update_value)
-        self._poll_task = gevent.spawn(self._poll_flux)
+        gevent.spawn(self._poll_flux)
 
     def _poll_flux(self):
         while True:
@@ -75,8 +87,7 @@ class ESRFPhotonFlux(AbstractFlux):
             gevent.sleep(0.5)
 
     def get_value(self):
-        """Calculate the flux value as function of a reading
-        """
+        """Calculate the flux value as function of a reading."""
 
         counts = self._counter.raw_read
         if isinstance(counts, list):
@@ -85,7 +96,8 @@ class ESRFPhotonFlux(AbstractFlux):
         if counts == -9999:
             counts = 0.0
 
-        egy = HWR.beamline.energy.get_value() * 1000.0
+        egy = HWR.beamline.energy.get_value()
+        egy = egy * 1000.0 if egy < 1000 else egy
         calib = self._flux_calc.calc_flux_factor(egy)[self._counter.name]
 
         try:
@@ -98,3 +110,20 @@ class ESRFPhotonFlux(AbstractFlux):
             counts = 0.0
 
         return counts
+
+    def is_beam(self):
+        """Check if there is beam on the sample.
+        Returns:
+            (bool): True if beam present, False otherwise
+        """
+        return self._beam_check.is_beam()
+
+    def wait_for_beam(self, timeout=None):
+        """Wait until beam present on the sample.
+        Args:
+             timeout (float): optional - timeout [s],
+                              If timeout == 0: return at once and do not wait
+                                               (default);
+                              if timeout is None: wait forever.
+        """
+        self._beam_check.wait_for_beam(timeout)
