@@ -53,8 +53,9 @@ class DozorOnlineProcessing(AbstractOnlineProcessing):
         input_file.setReversing_rotation(
             XSDataBoolean(self.params_dict["reversing_rotation"])
         )
-        input_file.setPixelMin(XSDataInteger(HWR.beamline.detector.get_pixel_min()))
-        input_file.setPixelMax(XSDataInteger(HWR.beamline.detector.get_pixel_max()))
+        pixel_size = HWR.beamline.detector.get_pixel_size()
+        input_file.setPixelMin(XSDataInteger(pixel_size[0]))
+        input_file.setPixelMax(XSDataInteger(pixel_size[1]))
         input_file.setBeamstopSize(XSDataDouble(self.beamstop_hwobj.get_size()))
         input_file.setBeamstopDistance(XSDataDouble(self.beamstop_hwobj.get_distance()))
         input_file.setBeamstopDirection(
