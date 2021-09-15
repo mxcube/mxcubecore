@@ -819,7 +819,9 @@ class UserProvidedInfo(MessageData):
             self._cell = UnitCell(*cell_parameters)
         else:
             self._cell = None
-        detector_setting = data_model.detector_setting
+        detector_setting = (
+            data_model.char_detector_setting or data_model.detector_setting
+        )
         self._expectedResolution = (
             detector_setting.resolution if detector_setting else None
         )
@@ -1207,8 +1209,15 @@ class SampleCentred(Payload):
         self._exposure = data_model.exposure_time
         self._wedgeWidth = data_model.wedge_width
         self._beamstopSetting = data_model.beamstop_setting
-        self._detectorSetting = data_model.detector_setting
         self._goniostatTranslations = frozenset(data_model.goniostat_translations)
+
+        strategy_type = data_model.get_workflow_parameters()["strategy_type"]
+        if strategy_type == "diffractcal" or data_model.characterisation_done:
+            self._detectorSetting = data_model.detector_setting
+        else:
+            self._detectorSetting = (
+            data_model.char_detector_setting or data_model.detector_setting
+            )
 
         if data_model.characterisation_done:
             self._wavelengths = frozenset(data_model.wavelengths)

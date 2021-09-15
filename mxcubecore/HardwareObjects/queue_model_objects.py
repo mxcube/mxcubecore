@@ -1879,6 +1879,8 @@ class GphlWorkflow(TaskNode):
         self.beamstop_setting = None
         self.wavelengths = ()
         self.detector_setting = None
+        # Detetor setting for characterisation
+        self.char_detector_setting = None
         self.goniostat_translations = ()
         self.strategy = str()
         self.strategy_options = {}
@@ -1908,6 +1910,7 @@ class GphlWorkflow(TaskNode):
         self.characterisation_budget_fraction = 0.05
         self.relative_rad_sensitivity = 1.0
         self.dose_consumed = 0.0
+        self.strategy_length = 0.0
 
         self.set_requires_centring(False)
 
@@ -1981,8 +1984,7 @@ class GphlWorkflow(TaskNode):
                     "Strategy should have %s explicit energies, values missing"
                     % len(energy_tags)
                 )
-            # If we are here we fall back on pre-set energy
-            # (role: Acquisition, value previously set as current)
+
         wavelength = self.wavelengths[0].wavelength
 
         if resolution:
@@ -1995,6 +1997,8 @@ class GphlWorkflow(TaskNode):
             self.detector_setting = GphlMessages.BcsDetectorSetting(
                 resolution, orgxy=orgxy, Distance=distance
             )
+            if not self.characterisation_done:
+                self.char_detector_setting = self.detector_setting
 
         self.strategy_options = {
             "strategy_type": workflow_parameters["strategy_type"],
@@ -2108,6 +2112,7 @@ class GphlWorkflow(TaskNode):
                 self.detector_setting = GphlMessages.BcsDetectorSetting(
                     resolution, orgxy=orgxy, Distance=distance
                 )
+                self.char_detector_setting = self.detector_setting
 
         # Swt paramaters from params dict
         self.set_name(self.path_template.base_prefix)
@@ -2157,6 +2162,77 @@ class GphlWorkflow(TaskNode):
         else:
             self._cell_parameters = None
 
+    def calculate_transmission(self):
+        """Calculate transmission matching current parameters"""
+
+        transmission = None
+        strategy_length = self.strategy_length
+        energy = HWR.beamline.energy.calculate_energy(self.wavelengths[0].wavelength)
+        exposure_time = self.exposure_time
+        image_width = self.image_width
+
+        flux_density = HWR.beamline.flux.get_average_flux_density(transmission=100.0)
+        if flux_density:
+            std_dose_rate = (
+                HWR.beamline.flux.get_dose_rate_per_photon_per_mmsq(energy)
+                * flux_density
+                * 1.0e-6  # convert to MGy/s
+            )
+
+            if image_width and exposure_time and std_dose_rate:
+                experiment_time = exposure_time * strategy_length / image_width
+                max_dose = std_dose_rate * experiment_time
+                transmission = 100. * self.dose_budget / max_dose
+        if not transmission:
+            msg = (
+                "Transmission could not be calculated from:\n"
+                " energy:%s keV, strategy_length:%s deg, exposure_time:%s s, image_width:%s deg, "
+                "flux_density:%s  photons/mm^2"
+            )
+            raise ValueError(
+                msg % (energy, strategy_length, exposure_time, image_width, flux_density)
+            )
+        #
+        return transmission
+
+    def apply_transmission(self):
+        """Reset dose_budget to match current transmission"""
+        transmission = self.calculate_transmission()
+        self.dose_budget = self.dose_budget * self.transmission / transmission
+
+    def apply_dose_budget(self):
+        """
+        Set dose budget, changing transmission, and (if necessary) also exposure time
+        """
+        transmission = self.calculate_transmission()
+        if transmission > 100.:
+            exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
+            self.exposure_time = min(
+                exposure_limits[1], self.exposure_time * transmission / 100.
+            )
+            self.transmission = 100
+            self.apply_transmission()
+        else:
+            self.transmission = transmission
+
+    def reset_transmission(self):
+        """reset transmission to match current parameters, lowering dose budget if transmission goes over 100,
+        reducing dose if transmission goes over 100
+
+        NB intended for running in auto mode, or for changing xposure)time etc."""
+        transmission = self.calculate_transmission()
+        if transmission > 100.:
+            self.transmission = 100.
+            self.dose_budget = self.dose_budget * 100. / transmission
+        else:
+            self.transmission = transmission
+
+    def get_default_dose_budget(self):
+        """Get resolution-dependent dose budget using configured values"""
+        resolution = self.detector_setting.resolution
+        result = 2 * resolution * resolution * math.log(100.0 / self.decay_limit)
+        #
+        return min(result, self.maximum_dose_budget) / self.relative_rad_sensitivity
 
 class XrayImaging(TaskNode):
     def __init__(self, xray_imaging_params, acquisition=None, crystal=None, name=""):

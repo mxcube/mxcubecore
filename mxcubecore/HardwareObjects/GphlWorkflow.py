@@ -230,6 +230,12 @@ class GphlWorkflow(HardwareObjectYaml):
         #
         return {}
 
+    def query_pre_collection_params(self, data_model):
+        """
+        """
+        #
+        return {}
+
 
     def pre_execute(self, queue_entry):
 
@@ -864,22 +870,135 @@ class GphlWorkflow(HardwareObjectYaml):
 
     def setup_data_collection(self, payload, correlation_id):
         geometric_strategy = payload
-        sweeps = geometric_strategy.get_ordered_sweeps()
-        gphl_workflow_model = self._queue_entry.get_data_model()
-        angular_tolerance = self.settings.get("angular_tolerance", 0)
 
-        # enqueue data collection group
+        gphl_workflow_model = self._queue_entry.get_data_model()
+
         strategy_type = gphl_workflow_model.get_workflow_parameters()[
             "strategy_type"
         ]
+        sweeps = geometric_strategy.get_ordered_sweeps()
+
+        # Calculate dose budget and default transimission
+        gphl_workflow_model.strategy_length = len(gphl_workflow_model.wavelengths) * sum(
+            sweep.width for sweep in sweeps()
+        )
+        # if strategy_type == "diffractcal" or gphl_workflow_model.characterisation_done:
+        #     resolution = gphl_workflow_model.detector_setting.resolution
+        # else:
+        #     resolution = gphl_workflow_model.char_detector_setting.resolution
+        # NB dose_budget cnnot be pre-set, as it is overridden here
+        dose_budget = gphl_workflow_model.get_default_dose_budget()
+        if gphl_workflow_model.characterisation_done:
+            dose_budget -= gphl_workflow_model.dose_consumed
+        elif strategy_type != "diffractcal":
+            dose_budget *= gphl_workflow_model.characterisation_budget_fraction
+        gphl_workflow_model.dose_budget = dose_budget
+        gphl_workflow_model.reset_transmission()
+
+        if not gphl_workflow_model.automation_mode:
+            # SiGNAL TO GET Pre-collection parameters here
+            # NB set defaults from data_model
+            # NB consider whether to override on None
+            # NB update functions will be needed in UI
+            params = self.query_pre_collection_params(gphl_workflow_model, geometric_strategy)
+            gphl_workflow_model.set_pre_collection_params(**params)
+            raise NotImplementedError()
+
+            # NB from here to end of 'if' we now have old code that needs replacing
+
+            # NB for any type of acquisition, energy and resolution are set before this point
+
+            bst = geometric_strategy.defaultBeamSetting
+            if bst and self.settings.get("starting_beamline_energy") == "configured":
+                # Preset energy
+                # First set beam_energy and give it time to settle,
+                # so detector distance will trigger correct resolution later
+                initial_energy = conversion.HC_OVER_E / bst.wavelength
+                # TODO NBNB put in wait-till ready to make sure value settles
+                HWR.beamline.energy.set_value(initial_energy)
+            else:
+                initial_energy = HWR.beamline.energy.get_value()
+
+            # NB - now pre-setting of detector has been removed, this gets
+            # the current resolution setting, whatever it is
+            initial_resolution = HWR.beamline.resolution.get_value()
+            # Put resolution value in workflow model object
+            gphl_workflow_model.set_detector_resolution(initial_resolution)
+
+            # Get modified parameters from UI and confirm acquisition
+            # Run before centring, as it also does confirm/abort
+            parameters = self.query_collection_strategy(geometric_strategy, initial_energy)
+            if parameters is StopIteration:
+                return StopIteration
+            user_modifiable = geometric_strategy.isUserModifiable
+            if user_modifiable:
+                # Query user for new rotationSetting and make it,
+                logging.getLogger("HWR").warning(
+                    "User modification of sweep settings not implemented. Ignored"
+                )
+
+            gphl_workflow_model.set_exposure_time(parameters.get("exposure" or 0.0))
+            gphl_workflow_model.set_image_width(parameters.get("imageWidth" or 0.0))
+
+            # Set transmission, detector_disance/resolution to final (unchanging) values
+            # Also set energy to first energy value, necessary to get resolution consistent
+
+            # Set beam_energies to match parameters
+            # get wavelengths
+            HC_OVER_E = conversion.HC_OVER_E
+            beam_energies = parameters.pop("beam_energies")
+            wavelengths = tuple(
+                GphlMessages.PhasingWavelength(wavelength=HC_OVER_E / val, role=tag)
+                for tag, val in beam_energies.items()
+            )
+            gphl_workflow_model.wavelengths = wavelengths
+
+            transmission = parameters["transmission"]
+            logging.getLogger("GUI").info(
+                "GphlWorkflow: setting transmission to %7.3f %%" % (100.0 * transmission)
+            )
+            HWR.beamline.transmission.set_value(100 * transmission)
+            gphl_workflow_model.transmission = transmission
+
+            new_resolution = parameters.pop("resolution")
+            if (
+                new_resolution != initial_resolution
+                and not gphl_workflow_model.characterisation_done
+            ):
+                logging.getLogger("GUI").info(
+                    "GphlWorkflow: setting detector distance for resolution %7.3f A"
+                    % new_resolution
+                )
+                # timeout in seconds: max move is ~2 meters, velocity 4 cm/sec
+                HWR.beamline.resolution.set_value(new_resolution, timeout=60)
+
+            snapshot_count = parameters.pop("snapshot_count", None)
+            if snapshot_count is not None:
+                gphl_workflow_model.set_snapshot_count(snapshot_count)
+
+            recentring_mode = parameters.pop("recentring_mode")
+            gphl_workflow_model.set_recentring_mode(recentring_mode)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         if gphl_workflow_model.characterisation_done:
             # Data collection TODO: Use workflow info to distinguish
             new_dcg_name = "GPhL Data Collection"
+        elif strategy_type == "diffractcal":
+            new_dcg_name = "GPhL DiffractCal"
         else:
-            if strategy_type == "diffractcal":
-                new_dcg_name = "GPhL DiffractCal"
-            else:
-                new_dcg_name = "GPhL Characterisation"
+            new_dcg_name = "GPhL Characterisation"
         logging.getLogger("HWR").debug("setup_data_collection %s" % new_dcg_name)
         new_dcg_model = queue_model_objects.TaskGroup()
         new_dcg_model.set_enabled(True)
@@ -889,79 +1008,6 @@ class GphlWorkflow(HardwareObjectYaml):
         )
         self._data_collection_group = new_dcg_model
         self._add_to_queue(gphl_workflow_model, new_dcg_model)
-
-        # NB for any type of acquisition, energy and resolution are set before this point
-
-        bst = geometric_strategy.defaultBeamSetting
-        if bst and self.settings.get("starting_beamline_energy") == "configured":
-            # Preset energy
-            # First set beam_energy and give it time to settle,
-            # so detector distance will trigger correct resolution later
-            initial_energy = conversion.HC_OVER_E / bst.wavelength
-            # TODO NBNB put in wait-till ready to make sure value settles
-            HWR.beamline.energy.set_value(initial_energy)
-        else:
-            initial_energy = HWR.beamline.energy.get_value()
-
-        # NB - now pre-setting of detector has been removed, this gets
-        # the current resolution setting, whatever it is
-        initial_resolution = HWR.beamline.resolution.get_value()
-        # Put resolution value in workflow model object
-        gphl_workflow_model.set_detector_resolution(initial_resolution)
-
-        # Get modified parameters from UI and confirm acquisition
-        # Run before centring, as it also does confirm/abort
-        parameters = self.query_collection_strategy(geometric_strategy, initial_energy)
-        if parameters is StopIteration:
-            return StopIteration
-        user_modifiable = geometric_strategy.isUserModifiable
-        if user_modifiable:
-            # Query user for new rotationSetting and make it,
-            logging.getLogger("HWR").warning(
-                "User modification of sweep settings not implemented. Ignored"
-            )
-
-        gphl_workflow_model.set_exposure_time(parameters.get("exposure" or 0.0))
-        gphl_workflow_model.set_image_width(parameters.get("imageWidth" or 0.0))
-
-        # Set transmission, detector_disance/resolution to final (unchanging) values
-        # Also set energy to first energy value, necessary to get resolution consistent
-
-        # Set beam_energies to match parameters
-        # get wavelengths
-        HC_OVER_E = conversion.HC_OVER_E
-        beam_energies = parameters.pop("beam_energies")
-        wavelengths = tuple(
-            GphlMessages.PhasingWavelength(wavelength=HC_OVER_E / val, role=tag)
-            for tag, val in beam_energies.items()
-        )
-        gphl_workflow_model.wavelengths = wavelengths
-
-        transmission = parameters["transmission"]
-        logging.getLogger("GUI").info(
-            "GphlWorkflow: setting transmission to %7.3f %%" % (100.0 * transmission)
-        )
-        HWR.beamline.transmission.set_value(100 * transmission)
-        gphl_workflow_model.transmission = transmission
-
-        new_resolution = parameters.pop("resolution")
-        if (
-            new_resolution != initial_resolution
-            and not gphl_workflow_model.characterisation_done
-        ):
-            logging.getLogger("GUI").info(
-                "GphlWorkflow: setting detector distance for resolution %7.3f A"
-                % new_resolution
-            )
-            # timeout in seconds: max move is ~2 meters, velocity 4 cm/sec
-            HWR.beamline.resolution.set_value(new_resolution, timeout=60)
-
-        snapshot_count = parameters.pop("snapshot_count", None)
-        if snapshot_count is not None:
-            gphl_workflow_model.set_snapshot_count(snapshot_count)
-
-        recentring_mode = parameters.pop("recentring_mode")
-        gphl_workflow_model.set_recentring_mode(recentring_mode)
 
         recen_parameters = self.load_transcal_parameters()
         goniostatTranslations = []
@@ -1042,7 +1088,9 @@ class GphlWorkflow(HardwareObjectYaml):
                     for role in self.translation_axis_roles
                 )
 
-            tol = angular_tolerance if recen_parameters else 0.1
+            tol = (
+                self.settings.get("angular_tolerance", 1.0) if recen_parameters else 0.1
+            )
             if maxdev <= tol:
                 # first orientation matches current, set to current centring
                 # Use sweepSetting as is, recentred or very close
@@ -1147,18 +1195,18 @@ class GphlWorkflow(HardwareObjectYaml):
 
         gphl_workflow_model.goniostat_translations = goniostatTranslations
 
-        orgxy = HWR.beamline.detector.get_beam_position()
-        resolution = HWR.beamline.resolution.get_value()
-        distance = HWR.beamline.detector.distance.get_value()
-        dds = geometric_strategy.defaultDetectorSetting
-        if distance == dds.axisSettings.get("Distance"):
-            id_ = dds._id
-        else:
-            id_ = None
-        detectorSetting = GphlMessages.BcsDetectorSetting(
-            resolution, id_=id_, orgxy=orgxy, Distance=distance
-        )
-        gphl_workflow_model.detector_setting = detectorSetting
+        # orgxy = HWR.beamline.detector.get_beam_position()
+        # resolution = HWR.beamline.resolution.get_value()
+        # distance = HWR.beamline.detector.distance.get_value()
+        # dds = geometric_strategy.defaultDetectorSetting
+        # if distance == dds.axisSettings.get("Distance"):
+        #     id_ = dds._id
+        # else:
+        #     id_ = None
+        # detectorSetting = GphlMessages.BcsDetectorSetting(
+        #     resolution, id_=id_, orgxy=orgxy, Distance=distance
+        # )
+        # gphl_workflow_model.detector_setting = detectorSetting
 
         # Return SampleCentred message
         sampleCentred = GphlMessages.SampleCentred(gphl_workflow_model)
@@ -1292,6 +1340,14 @@ class GphlWorkflow(HardwareObjectYaml):
         queue_manager = self._queue_entry.get_queue_controller()
 
         gphl_workflow_model = self._queue_entry.get_data_model()
+
+        if gphl_workflow_model.automation_mode == "MASSIF1":
+            return GphlMessages.CollectionDone(
+                status=0,
+                proposalId=collection_proposal.id_,
+                imageRoot=gphl_workflow_model.characterisation_directory
+            )
+
         master_path_template = gphl_workflow_model.path_template
         relative_image_dir = collection_proposal.relativeImageDir
 
@@ -1484,7 +1540,7 @@ class GphlWorkflow(HardwareObjectYaml):
             status=status,
             proposalId=collection_proposal.id_,
             # Only if you want to override prior information rootdir, which we do not
-            # imageRoot=path_template.directory
+            imageRoot=path_template.directory
         )
 
     def auto_select_solution(self, choose_lattice):
