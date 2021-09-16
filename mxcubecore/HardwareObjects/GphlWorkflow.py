@@ -2019,9 +2019,9 @@ class GphlWorkflow(HardwareObjectYaml):
         """
         crystal_file_name = "crystal.nml"
         result = []
-        sample_dir = HWR.beamline.gphl_connection.software_paths[
-            "gphl_beamline_config"
-        ].get("gphl_test_samples")
+        sample_dir = HWR.beamline.gphl_connection.software_paths.get(
+            "gphl_test_samples"
+        )
         serial = 0
         if sample_dir and os.path.isdir(sample_dir):
             for path, dirnames, filenames in sorted(os.walk(sample_dir)):

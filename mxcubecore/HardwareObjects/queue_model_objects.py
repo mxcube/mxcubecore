@@ -2069,7 +2069,7 @@ class GphlWorkflow(TaskNode):
             crystal.cell_a, crystal.cell_b, crystal.cell_c,
             crystal.cell_alpha, crystal.cell_beta, crystal.cell_gamma
         )
-        if None not in tpl:
+        if all(tpl):
             self.cell_parameters = tpl
         self.space_group = crystal.space_group
         self.protein_acronym = crystal.protein_acronym
@@ -2078,7 +2078,7 @@ class GphlWorkflow(TaskNode):
         wavelength = HWR.beamline.energy.get_wavelength()
         role = HWR.beamline.gphl_workflow.settings["default_beam_energy_tag"]
         self.wavelengths = (
-            GphlMessages.PhasingWavelength(wavelength=wavelength, role=role)
+            GphlMessages.PhasingWavelength(wavelength=wavelength, role=role),
         )
 
         # Set parameters from diffraction plan
@@ -2116,7 +2116,7 @@ class GphlWorkflow(TaskNode):
 
         # Swt paramaters from params dict
         self.set_name(self.path_template.base_prefix)
-        self.set_type(params["strategy_type"])
+        self.set_type(params["strategy_name"])
         self.shape = params.get("shape", "")
         self.automation_mode = params.get("automation_mode")
         self.characterisation_directory = params.get("characterisation_directory")
@@ -2154,13 +2154,12 @@ class GphlWorkflow(TaskNode):
 
     @cell_parameters.setter
     def cell_parameters(self, value):
+        self._cell_parameters = None
         if value:
             if len(value) == 6:
                 self._cell_parameters = tuple(float(x) for x in value)
             else:
-                raise ValueError("cell_parameters %s does not have length six" % value)
-        else:
-            self._cell_parameters = None
+                raise ValueError("invalid value for cell_parameters: %s" % str(value))
 
     def calculate_transmission(self):
         """Calculate transmission matching current parameters"""
