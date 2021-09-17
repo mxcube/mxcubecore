@@ -26,6 +26,7 @@ the QueueModel.
 import copy
 import os
 import logging
+import math
 
 from mxcubecore.HardwareObjects import queue_model_enumerables
 
@@ -1883,6 +1884,7 @@ class GphlWorkflow(TaskNode):
         self.char_detector_setting = None
         self.goniostat_translations = ()
         self.strategy = str()
+        self.characterisation_strategy = str()
         self.strategy_options = {}
 
         # Pre-collection attributes
@@ -2004,6 +2006,7 @@ class GphlWorkflow(TaskNode):
             "strategy_type": workflow_parameters["strategy_type"],
             "angular_tolerance": settings["angular_tolerance"],
             "maximum_chi": settings["maximum_chi"],
+            "variant": workflow_parameters["variants"][0],
         }
         if strategy_options:
             self.strategy_options.update(strategy_options)
@@ -2039,6 +2042,10 @@ class GphlWorkflow(TaskNode):
         """
 
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
+
+        automation_mode = params.get("automation_mode")
+        if automation_mode:
+            self.automation_mode = automation_mode
 
         # Set path template
         self.path_template.set_from_dict(params)
@@ -2081,6 +2088,12 @@ class GphlWorkflow(TaskNode):
             GphlMessages.PhasingWavelength(wavelength=wavelength, role=role),
         )
 
+        # FIrst set some parameters from defaults
+        default_parameters = HWR.beamline.get_default_acquisition_parameters()
+        self.resolution = default_parameters.resolution
+        self.exposure_time = default_parameters.exp_time
+        self.image_width = default_parameters.osc_range
+
         # Set parameters from diffraction plan
         diffraction_plan = sample_model.diffraction_plan
         if diffraction_plan:
@@ -2118,7 +2131,6 @@ class GphlWorkflow(TaskNode):
         self.set_name(self.path_template.base_prefix)
         self.set_type(params["strategy_name"])
         self.shape = params.get("shape", "")
-        self.automation_mode = params.get("automation_mode")
         self.characterisation_directory = params.get("characterisation_directory")
 
     def get_workflow_parameters(self):

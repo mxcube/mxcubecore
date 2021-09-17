@@ -289,7 +289,8 @@ def init_hardware_repository(configuration_path):
 
     # If configuration_path is a string of combined paths, split it up
     lookup_path = [
-        os.path.abspath(x) for x in configuration_path.split(os.path.pathsep)
+        os.path.abspath(os.path.expanduser(x))
+        for x in configuration_path.split(os.path.pathsep)
     ]
     lookup_path = [x for x in lookup_path if os.path.exists(x)]
     if lookup_path:

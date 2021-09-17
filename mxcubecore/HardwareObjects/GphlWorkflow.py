@@ -177,8 +177,6 @@ class GphlWorkflow(HardwareObjectYaml):
 
             opt0 = workflow.get("options", {})
             opt0["beamline"] = beamline_hook
-            if workflow["wfname"] != "transcal":
-                opt0["appdir"] = HWR.beamline.session.get_base_process_directory()
             default_strategy_name = None
             for strategy in workflow["strategies"]:
                 if default_strategy_name is None:
@@ -877,10 +875,9 @@ class GphlWorkflow(HardwareObjectYaml):
             "strategy_type"
         ]
         sweeps = geometric_strategy.get_ordered_sweeps()
-
         # Calculate dose budget and default transimission
         gphl_workflow_model.strategy_length = len(gphl_workflow_model.wavelengths) * sum(
-            sweep.width for sweep in sweeps()
+            sweep.width for sweep in sweeps
         )
         # if strategy_type == "diffractcal" or gphl_workflow_model.characterisation_done:
         #     resolution = gphl_workflow_model.detector_setting.resolution
@@ -901,7 +898,7 @@ class GphlWorkflow(HardwareObjectYaml):
             # NB consider whether to override on None
             # NB update functions will be needed in UI
             params = self.query_pre_collection_params(gphl_workflow_model, geometric_strategy)
-            gphl_workflow_model.set_pre_collection_params(**params)
+            gphl_workflow_model.set_pre_acquisition_params(**params)
             raise NotImplementedError()
 
             # NB from here to end of 'if' we now have old code that needs replacing
@@ -976,21 +973,9 @@ class GphlWorkflow(HardwareObjectYaml):
             if snapshot_count is not None:
                 gphl_workflow_model.set_snapshot_count(snapshot_count)
 
-            recentring_mode = parameters.pop("recentring_mode")
-            gphl_workflow_model.set_recentring_mode(recentring_mode)
+            gphl_workflow_model.recentring_mode = parameters.pop("recentring_mode")
 
-
-
-
-
-
-
-
-
-
-
-
-
+        recentring_mode = gphl_workflow_model.recentring_mode
 
         if gphl_workflow_model.characterisation_done:
             # Data collection TODO: Use workflow info to distinguish
@@ -1041,7 +1026,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 qe, sweepSetting
             )
             goniostatTranslations.append(translation)
-            gphl_workflow_model.set_current_rotation_id(sweepSetting.id_)
+            gphl_workflow_model.current_rotation_id = sweepSetting.id_
         else:
             # Sample was centred already, possibly during earlier characterisation
             # - use current position for recentring
@@ -1098,7 +1083,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     rotation=sweepSetting, **translation_settings
                 )
                 goniostatTranslations.append(translation)
-                gphl_workflow_model.set_current_rotation_id(sweepSetting.id_)
+                gphl_workflow_model.current_rotation_id = sweepSetting.id_
 
             else:
 
@@ -1117,7 +1102,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     qe = self.enqueue_sample_centring(motor_settings=settings)
                     translation, dummy = self.execute_sample_centring(qe, sweepSetting)
                     goniostatTranslations.append(translation)
-                    gphl_workflow_model.set_current_rotation_id(sweepSetting.id_)
+                    gphl_workflow_model.current_rotation_id = sweepSetting.id_
                     if recentring_mode == "start":
                         # We want snapshots in this mode,
                         # and the first sweepmis skipped in the loop below
@@ -1143,7 +1128,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 **translation_settings
             )
             goniostatTranslations.append(translation)
-            gphl_workflow_model.set_current_rotation_id(newRotation.id_)
+            gphl_workflow_model.current_rotation_id = newRotation.id_
 
         # calculate or determine centring for remaining sweeps
         if not goniostatTranslations:
@@ -1167,7 +1152,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 qe = self.enqueue_sample_centring(motor_settings=settings)
                 translation, dummy = self.execute_sample_centring(qe, sweepSetting)
                 goniostatTranslations.append(translation)
-                gphl_workflow_model.set_current_rotation_id(sweepSetting.id_)
+                gphl_workflow_model.current_rotation_id = sweepSetting.id_
                 okp = tuple(int(settings.get(x, 0)) for x in self.rotation_axis_roles)
                 self.collect_centring_snapshots("%s_%s_%s" % okp)
             elif recen_parameters:
@@ -1341,7 +1326,11 @@ class GphlWorkflow(HardwareObjectYaml):
 
         gphl_workflow_model = self._queue_entry.get_data_model()
 
-        if gphl_workflow_model.automation_mode == "MASSIF1":
+        if (
+            gphl_workflow_model.automation_mode == "MASSIF1"
+            and gphl_workflow_model.strategy_options["strategy_type"] != "diffractcal"
+            and not gphl_workflow_model.characterisation_done
+        ):
             return GphlMessages.CollectionDone(
                 status=0,
                 proposalId=collection_proposal.id_,
@@ -1364,7 +1353,7 @@ class GphlWorkflow(HardwareObjectYaml):
         # else:
         #     # Do not make snapshots during chareacterisation
         #     snapshot_count = 0
-        recentring_mode = gphl_workflow_model.get_recentring_mode()
+        recentring_mode = gphl_workflow_model.recentring_mode
         data_collections = []
         scans = collection_proposal.scans
 
@@ -1490,7 +1479,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 # as it controls centring
                 snapshotted_rotation_ids.add(rotation_id)
                 acq_parameters.take_snapshots = snapshot_count
-            gphl_workflow_model.set_current_rotation_id(rotation_id)
+            gphl_workflow_model.current_rotation_id = rotation_id
 
             sweeps.add(sweep)
 

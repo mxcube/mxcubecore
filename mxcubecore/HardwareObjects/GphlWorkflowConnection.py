@@ -233,12 +233,14 @@ class GphlWorkflowConnection(HardwareObjectYaml):
                 workflow_model_obj.get_name(),
             )
         elif not workflow_options.get("strategy"):
-            strategy = workflow_model_obj.get_characterisation_strategy()
+            strategy = workflow_model_obj.characterisation_strategy
             if strategy:
                 workflow_options["strategy"] = strategy
         path_template = workflow_model_obj.get_path_template()
         if "prefix" in workflow_options:
             workflow_options["prefix"] = path_template.base_prefix
+        if params["strategy_type"] != "transcal":
+            workflow_options["appdir"] = HWR.beamline.session.get_base_process_directory()
         workflow_options["wdir"] = self.software_paths["GPHL_WDIR"]
         workflow_options["persistname"] = self.gphl_persistname
 
@@ -272,6 +274,15 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             command_list.extend(
                 conversion.java_property(keyword, value, quote_value=in_shell)
             )
+
+        for keyword, value in workflow_model_obj.strategy_options.items():
+            prefix = "co.gphl.wf.stratcal.opt.--"
+            command_list.extend(
+                conversion.java_property(
+                    prefix + keyword, str(value), quote_value=in_shell
+                )
+            )
+
 
         for keyword, value in workflow_options.items():
             command_list.extend(

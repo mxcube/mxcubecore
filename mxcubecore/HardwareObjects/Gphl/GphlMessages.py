@@ -809,8 +809,8 @@ class UserProvidedInfo(MessageData):
     def __init__(self, data_model):
 
         self._scatterers = ()
-        # lattice = data_model.crystal_system
-        # self._lattice = lattice.upper() if lattice else None
+        lattice = data_model.crystal_system
+        self._lattice = lattice.upper() if lattice else None
         self._pointGroup = data_model.point_group
         space_group = queue_model_enumerables.SPACEGROUP_MAP.get(data_model.space_group)
         self._spaceGroup = space_group.number if space_group else None
@@ -1205,9 +1205,10 @@ class SampleCentred(Payload):
 
         super(SampleCentred, self).__init__()
         self._imageWidth = data_model.image_width
-        self._transmission = data_model.transmission
+        self._transmission = 0.01 * data_model.transmission
         self._exposure = data_model.exposure_time
         self._wedgeWidth = data_model.wedge_width
+        self._interleaveOrder = data_model.interleave_order
         self._beamstopSetting = data_model.beamstop_setting
         self._goniostatTranslations = frozenset(data_model.goniostat_translations)
 
@@ -1221,14 +1222,12 @@ class SampleCentred(Payload):
 
         if data_model.characterisation_done:
             self._wavelengths = frozenset(data_model.wavelengths)
-            self._interleaveOrder = data_model.interleave_order
         else:
             # Ths trick assumes that characterisation and diffractcal
             # use one, the first, wavelength and default inbterleave order
             # Which is true. Not the ideal place to put this code
             # but it works.
-            self._wavelengths = frozenset((data_model.wavelengths,))
-            self._interleaveOrder = None
+            self._wavelengths = frozenset((data_model.wavelengths[0],))
 
     @property
     def imageWidth(self):
