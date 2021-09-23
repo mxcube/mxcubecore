@@ -256,8 +256,8 @@ class GenericDiffractometer(HardwareObject):
                 "Diffractometer: " + "BeamInfo hwobj is not defined"
             )
 
-        self.front_light_swtich = self.get_object_by_role("frontlightswtich")
-        self.back_light_swtich = self.get_object_by_role("backlightswtich")
+        self.front_light_switch = self.get_object_by_role("frontlightswitch")
+        self.back_light_switch = self.get_object_by_role("backlightswitch")
 
         # Channels -----------------------------------------------------------
         ss0 = self.get_property("used_channels")
