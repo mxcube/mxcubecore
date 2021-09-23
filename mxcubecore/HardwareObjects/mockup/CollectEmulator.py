@@ -262,7 +262,7 @@ class CollectEmulator(CollectMockup):
         return result, compress_data
 
     @task
-    def _collect(self):
+    def data_collection_hook(self):
         """Spawns data emulation using gphl simcal"""
 
         data_collect_parameters = self.current_dc_parameters
@@ -338,8 +338,8 @@ class CollectEmulator(CollectMockup):
             )
             gphl_connection.collect_emulator_process = running_process
 
-            # This does waiting, so we want to collect the result afterwards
-            super(CollectEmulator, self).data_collection_hook()
+            # # This does waiting, so we want to collect the result afterwards
+            # super(CollectEmulator, self).data_collection_hook()
 
             logging.getLogger("HWR").info("Waiting for simcal collection emulation.")
             # NBNB TODO put in time-out, somehow

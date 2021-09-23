@@ -472,7 +472,9 @@ class Sample(TaskNode):
         self.free_pin_mode = p.get("freePinMode", False)
         self.loc_str = p.get("locStr", "")
 
-        self.crystals[0].space_group = p.get("spaceGroup", "")
+        self.crystals[0].space_group = (
+            p.get("spaceGroup") or p.get("crystalSpaceGroup", "")
+        )
         self.crystals[0].cell_a = p.get("cellA", "")
         self.crystals[0].cell_alpha = p.get("cellAlpha", "")
         self.crystals[0].cell_b = p.get("cellB", "")

@@ -38,6 +38,7 @@ from collections import OrderedDict
 
 import gevent
 import gevent.event
+import gevent.queue
 import f90nml
 
 from mxcubecore.dispatcher import dispatcher
@@ -194,7 +195,7 @@ class GphlWorkflow(HardwareObjectYaml):
                             self.file_paths["gphl_beamline_config"], relative_file_path
                         )
 
-        self._state = self.STATES.OFF
+        self.update_state(self.STATES.READY)
 
     def shutdown(self):
         """Shut down workflow and connection. Triggered on program quit."""
@@ -210,16 +211,6 @@ class GphlWorkflow(HardwareObjectYaml):
     def get_available_workflows(self):
         """Get list of workflow description dictionaries."""
         return copy.deepcopy(self.workflows)
-
-    def get_state(self):
-        return self._state
-
-    def set_state(self, value):
-        if value in self.STATES:
-            self._state = value
-            self.emit("stateChanged", (value,))
-        else:
-            raise RuntimeError("GphlWorkflow set to invalid state: s" % value)
 
     def query_pre_strategy_params(self, data_model, choose_lattice=None):
         """
@@ -237,8 +228,17 @@ class GphlWorkflow(HardwareObjectYaml):
 
     def pre_execute(self, queue_entry):
 
+        if self.is_ready():
+            self.update_state(self.STATES.BUSY)
+        else:
+            raise RuntimeError(
+                "Cannot execute workflow - GphlWorkflow HardwareObject is not ready"
+            )
+
         self._queue_entry = queue_entry
         data_model = queue_entry.get_data_model()
+        self._workflow_queue = gevent.queue.Queue()
+        HWR.beamline.gphl_connection.open_connection()
         if not data_model.automation_mode:
             # SIGNAL TO GET Pre-strategy parameters here
             # NB set defaults from data_model
@@ -252,19 +252,6 @@ class GphlWorkflow(HardwareObjectYaml):
             raise RuntimeError(
                 "Cannot execute workflow - GphlWorkflowConnection not found"
             )
-
-        if self.get_state() == self.STATES.OFF:
-            HWR.beamline.gphl_connection.open_connection()
-        else:
-            # TODO Add handling of potential conflicts.
-            # NBNB GPhL workflow cannot have multiple users
-            # unless they use separate persistence layers
-            raise RuntimeError(
-                "Cannot execute workflow - GphlWorkflow HardwareObject is not idle"
-            )
-
-        self.set_state(self.STATES.BUSY)
-        self._workflow_queue = gevent.queue.Queue()
 
         # Fork off workflow server process
         HWR.beamline.gphl_connection.start_workflow(
@@ -304,7 +291,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         self._queue_entry = None
         self._data_collection_group = None
-        self.set_state(self.STATES.READY)
+        self.update_state(self.STATES.READY)
         self._server_subprocess_names.clear()
         self._workflow_queue = None
         if HWR.beamline.gphl_connection is not None:
@@ -1343,7 +1330,7 @@ class GphlWorkflow(HardwareObjectYaml):
         sample = gphl_workflow_model.get_sample_node()
         # There will be exactly one for the kinds of collection we are doing
         crystal = sample.crystals[0]
-        snapshot_count = gphl_workflow_model.get_snapshot_count()
+        snapshot_count = gphl_workflow_model.snapshot_count
         # wf_parameters = gphl_workflow_model.get_workflow_parameters()
         # if (
         #     gphl_workflow_model.characterisation_done
@@ -1452,7 +1439,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 recentring_mode == "scan"
                 or (
                     recentring_mode == "sweep"
-                    and rotation_id != gphl_workflow_model.get_current_rotation_id()
+                    and rotation_id != gphl_workflow_model.current_rotation_id
                 )
             ):
                 # Put centring on queue and collect using the resulting position
@@ -1470,7 +1457,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
             if (
                 rotation_id in snapshotted_rotation_ids
-                and rotation_id == gphl_workflow_model.get_current_rotation_id()
+                and rotation_id == gphl_workflow_model.current_rotation_id
             ):
                 acq_parameters.take_snapshots = 0
             else:
@@ -2022,7 +2009,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     ]
                     space_group = indata.get("sg_name")
                     cell_lengths = indata.get("cell_dim")
-                    cell_angles = indata.get("cell_angles")
+                    cell_angles = indata.get("cell_ang_deg")
                     resolution = indata.get("res_limit_def")
 
                     location = (serial // 10 + 1, serial % 10 + 1)
@@ -2088,20 +2075,17 @@ class GphlWorkflow(HardwareObjectYaml):
             sample_name = (
                 self._queue_entry.get_data_model().get_sample_node().get_name()
             )
-
         crystal_data = None
         hklfile = None
-        if sample_name and sample_name.startswith(self.TEST_SAMPLE_PREFIX):
-            sample_name = sample_name[len(self.TEST_SAMPLE_PREFIX) + 1 :]
-
-            sample_dir = HWR.beamline.gphl_connection.software_paths[
-                "gphl_beamline_config"
-            ].get("gphl_test_samples")
+        if sample_name:
+            sample_dir = HWR.beamline.gphl_connection.software_paths.get(
+                "gphl_test_samples"
+            )
             if not sample_dir:
                 raise ValueError("Test sample requires gphl_test_samples dir specified")
             sample_dir = os.path.join(sample_dir, sample_name)
             if not os.path.isdir(sample_dir):
-                raise ValueError("Sample data directory %s does not exist" % sample_dir)
+                raise RuntimeError("No emulation data found for ", sample_name)
             crystal_file = os.path.join(sample_dir, "crystal.nml")
             if not os.path.isfile(crystal_file):
                 raise ValueError(

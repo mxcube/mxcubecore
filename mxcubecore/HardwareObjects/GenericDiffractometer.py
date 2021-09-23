@@ -24,6 +24,7 @@ GenericDiffractometer
 import copy
 import time
 import gevent
+import gevent.event
 import logging
 import math
 import numpy
@@ -544,6 +545,8 @@ class GenericDiffractometer(HardwareObject):
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
             while not self.is_ready():
                 time.sleep(0.01)
+
+    wait_ready = wait_device_ready
 
     def execute_server_task(self, method, timeout=30, *args):
         """Method is used to execute commands and wait till

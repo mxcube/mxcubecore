@@ -380,7 +380,7 @@ class SelectedLattice(MessageData):
         self,
         lattice_format,
         solution,
-        strategyResolution=None,
+        strategyDetectorSetting=None,
         strategyWavelength=None,
         strategyControl=None):
         if lattice_format in INDEXING_FORMATS:
@@ -391,7 +391,7 @@ class SelectedLattice(MessageData):
                 % (lattice_format, INDEXING_FORMATS)
             )
         self._solution = tuple(solution)
-        self._strategyResolution = strategyResolution
+        self._strategyDetectorSetting = strategyDetectorSetting
         self._strategyWavelength = strategyWavelength
         self._strategyControl = strategyControl
 
@@ -406,9 +406,9 @@ class SelectedLattice(MessageData):
         return self._solution
 
     @property
-    def strategyResolution(self):
+    def strategyDetectorSetting(self):
         """Resolution to use for strategy calculation and acquisition"""
-        return self._strategyResolution
+        return self._strategyDetectorSetting
 
     @property
     def strategyWavelength(self):

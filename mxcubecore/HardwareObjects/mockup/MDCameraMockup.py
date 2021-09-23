@@ -95,6 +95,8 @@ class MDCameraMockup(BaseHardwareObjects.Device):
     def takeSnapshot(self, snapshot_filename, bw=True):
         return True
 
+    take_snapshot = takeSnapshot
+
     def get_available_stream_sizes(self):
         return [(self.get_width(), self.get_height())]
 

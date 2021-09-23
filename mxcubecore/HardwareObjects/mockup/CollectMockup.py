@@ -53,7 +53,7 @@ class CollectMockup(AbstractCollect):
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True,))
 
-    def _collect(self):
+    def data_collection_hook(self):
         """Main collection hook
         """
         self.emit("collectStarted", (None, 1))
