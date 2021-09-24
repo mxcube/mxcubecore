@@ -19,6 +19,7 @@ Example xml file:
 """
 import logging
 import time
+import gevent
 
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 from mxcubecore.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
@@ -45,7 +46,16 @@ class EPICSMotor(AbstractMotor, EPICSActuator):
         EPICSActuator.init(self)
         self.get_limits()
         self.get_velocity()
+        self.__watch_task = gevent.spawn(self._watch)
         self.update_state(self.STATES.READY)
+    
+    def _watch(self):
+        """ Watch motor current value and update it on the UI."""
+        while True:
+            time.sleep(0.25)
+            if self.get_state() is self.STATES.BUSY:
+                continue
+            self.update_value()
 
     def _move(self, value):
         """Override method."""
