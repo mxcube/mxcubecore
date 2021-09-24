@@ -310,18 +310,25 @@ class Sample(TaskNode):
         return self._name
 
     def get_display_name(self):
-        name = self.name
-        acronym = self.crystals[0].protein_acronym
-
-        if self.name is not "" and acronym is not "":
-            display_name = "%s - %s-%s" % (self.loc_str, acronym, name)
-        else:
-            display_name = self.get_name()
-
+        display_name =  HWR.beamline.session.get_default_prefix(self)
         if self.lims_code:
             display_name += " (%s)" % self.lims_code
-
         return display_name
+
+
+    # def get_display_name(self):
+    #     name = self.name
+    #     acronym = self.crystals[0].protein_acronym
+    #
+    #     if self.name is not "" and acronym is not "":
+    #         display_name = "%s - %s-%s" % (self.loc_str, acronym, name)
+    #     else:
+    #         display_name = self.get_name()
+    #
+    #     if self.lims_code:
+    #         display_name += " (%s)" % self.lims_code
+    #
+    #     return display_name
 
     def init_from_sc_sample(self, sc_sample):
         self.loc_str = str(sc_sample[1]) + ":" + str(sc_sample[2])
@@ -452,15 +459,12 @@ class Sample(TaskNode):
         else:
             self.diffraction_plan = lims_sample.get("diffractionPlan")
 
-        name = ""
-
+        ll0 = []
         if self.crystals[0].protein_acronym:
-            name += self.crystals[0].protein_acronym
-
+            ll0.append(self.crystals[0].protein_acronym)
         if self.name:
-            name += "-" + self.name
-
-        self.set_name(name)
+            ll0.append(self.name)
+        self.set_name("-".join(ll0))
 
     def set_from_dict(self, p):
         self.code = p.get("code", "")
@@ -1871,8 +1875,7 @@ class GphlWorkflow(TaskNode):
         # string. Only active mode currently is 'MASSIF1'
         self.automation_mode = None
         # Full path of characterisation data directory, if pre-acquired
-        # TODO modify once workflow can use it
-        self.characterisation_directory = None
+        # self.characterisation_directory = None
 
         # Pre-strategy attributes
         self.space_group = str()
@@ -2133,7 +2136,6 @@ class GphlWorkflow(TaskNode):
         self.set_name(self.path_template.base_prefix)
         self.set_type(params["strategy_name"])
         self.shape = params.get("shape", "")
-        self.characterisation_directory = params.get("characterisation_directory")
 
     def get_workflow_parameters(self):
         """Get parameters dictionary for workflow strategy"""

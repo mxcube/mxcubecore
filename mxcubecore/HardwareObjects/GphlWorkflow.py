@@ -300,9 +300,8 @@ class GphlWorkflow(HardwareObjectYaml):
     def return_parameters(self, queueu_entry):
         self._return_parameters.set(queueu_entry)
 
-    def stop_iteration(self):
-        self._return_parameters.set(StopIteration)
-
+    # def stop_iteration(self):
+    #     self._return_parameters.set(StopIteration)
 
     def _add_to_queue(self, parent_model_obj, child_model_obj):
         HWR.beamline.queue_model.add_child(parent_model_obj, child_model_obj)
@@ -1320,8 +1319,7 @@ class GphlWorkflow(HardwareObjectYaml):
         ):
             return GphlMessages.CollectionDone(
                 status=0,
-                proposalId=collection_proposal.id_,
-                imageRoot=gphl_workflow_model.characterisation_directory
+                proposalId=collection_proposal.id_
             )
 
         master_path_template = gphl_workflow_model.path_template
@@ -2030,7 +2028,7 @@ class GphlWorkflow(HardwareObjectYaml):
                         data["crystalSpaceGroup"] = space_group
 
                     data["experimentType"] = "Default"
-                    data["proteinAcronym"] = self.TEST_SAMPLE_PREFIX
+                    # data["proteinAcronym"] = self.TEST_SAMPLE_PREFIX
                     data["smiles"] = None
                     data["sampleId"] = 100000 + serial
 

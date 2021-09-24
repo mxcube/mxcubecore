@@ -154,8 +154,7 @@ class AbstractCollect(HardwareObject, object):
         self.emit("progressInit", ("Collection", 100, False))
         self.collection_id = None
 
-        #try:
-        if True:
+        try:
             # ----------------------------------------------------------------
             # Prepare data collection
 
@@ -261,15 +260,16 @@ class AbstractCollect(HardwareObject, object):
 
             log.info("Collection: Updating data collection in LIMS")
             self.update_data_collection_in_lims()
-        """
+
         except BaseException:
             exc_type, exc_value, exc_tb = sys.exc_info()
             failed_msg = "Data collection failed!\n%s" % exc_value
             self.collection_failed(failed_msg)
+        else:
+            self.collection_finished()
         finally:
             self.data_collection_cleanup()
 
-        """
     def data_collection_cleanup(self):
         """
         Method called when at end of data collection, successful or not.

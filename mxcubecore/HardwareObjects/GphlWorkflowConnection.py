@@ -275,15 +275,6 @@ class GphlWorkflowConnection(HardwareObjectYaml):
                 conversion.java_property(keyword, value, quote_value=in_shell)
             )
 
-        for keyword, value in workflow_model_obj.strategy_options.items():
-            prefix = "co.gphl.wf.stratcal.opt.--"
-            command_list.extend(
-                conversion.java_property(
-                    prefix + keyword, str(value), quote_value=in_shell
-                )
-            )
-
-
         for keyword, value in workflow_options.items():
             command_list.extend(
                 conversion.command_option(keyword, value, quote_value=in_shell)

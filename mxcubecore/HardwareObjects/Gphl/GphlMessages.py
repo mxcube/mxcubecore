@@ -23,6 +23,7 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
 import uuid
+import json
 from collections import OrderedDict
 from collections import namedtuple
 
@@ -376,13 +377,7 @@ class SelectedLattice(MessageData):
 
     INTENT = "DOCUMENT"
 
-    def __init__(
-        self,
-        lattice_format,
-        solution,
-        strategyDetectorSetting=None,
-        strategyWavelength=None,
-        strategyControl=None):
+    def __init__(self, data_model, lattice_format, solution):
         if lattice_format in INDEXING_FORMATS:
             self._lattice_format = lattice_format
         else:
@@ -391,9 +386,11 @@ class SelectedLattice(MessageData):
                 % (lattice_format, INDEXING_FORMATS)
             )
         self._solution = tuple(solution)
-        self._strategyDetectorSetting = strategyDetectorSetting
-        self._strategyWavelength = strategyWavelength
-        self._strategyControl = strategyControl
+        self._strategyDetectorSetting = data_model.detector_setting
+        self._strategyWavelength = data_model.wavelebgths[0]
+        self._strategyControl = json.dumps(
+            data_model.strategy_options, sort_keys=True
+        )
 
     @property
     def lattice_format(self):
