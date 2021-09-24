@@ -50,12 +50,14 @@ class EPICSMotor(AbstractMotor, EPICSActuator):
     def _move(self, value):
         """Override method."""
         self.update_specific_state(self.SPECIFIC_STATES.MOVING)
+        self.update_state(self.STATES.BUSY)
 
         while (self.get_channel_value(self.MOTOR_DMOV) == 0):
-            time.sleep(0.2)
+            time.sleep(0.25)
             current_value = self.get_value()
             self.update_value(current_value)
 
+        self.update_specific_state(None)
         self.update_state(self.STATES.READY)
         return value
 
