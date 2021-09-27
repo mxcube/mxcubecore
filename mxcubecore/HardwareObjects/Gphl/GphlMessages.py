@@ -387,7 +387,7 @@ class SelectedLattice(MessageData):
             )
         self._solution = tuple(solution)
         self._strategyDetectorSetting = data_model.detector_setting
-        self._strategyWavelength = data_model.wavelebgths[0]
+        self._strategyWavelength = data_model.wavelengths[0]
         self._strategyControl = json.dumps(
             data_model.strategy_options, sort_keys=True
         )

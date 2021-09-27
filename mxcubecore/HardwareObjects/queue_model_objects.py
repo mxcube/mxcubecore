@@ -458,13 +458,7 @@ class Sample(TaskNode):
             self.diffraction_plan = lims_sample.diffractionPlan
         else:
             self.diffraction_plan = lims_sample.get("diffractionPlan")
-
-        ll0 = []
-        if self.crystals[0].protein_acronym:
-            ll0.append(self.crystals[0].protein_acronym)
-        if self.name:
-            ll0.append(self.name)
-        self.set_name("-".join(ll0))
+        self.set_name(HWR.beamline.session.get_default_prefix(self))
 
     def set_from_dict(self, p):
         self.code = p.get("code", "")
@@ -1956,7 +1950,7 @@ class GphlWorkflow(TaskNode):
                 self.point_group = point_group
                 self.bravais_lattice = None
             if bravais_lattice:
-                # NB there are com[patibility problems here - TODO
+                # NB there are compatibility problems here - TODO
                 self.bravais_lattice = bravais_lattice
         if cell_parameters:
             self.cell_parameters = cell_parameters
@@ -2059,7 +2053,7 @@ class GphlWorkflow(TaskNode):
             self.path_template.base_prefix = params["prefix"]
         else:
             self.path_template.base_prefix = HWR.beamline.session.get_default_prefix(
-                sample_model, False
+                sample_model
             )
 
         self.path_template.num_files = 0
@@ -2093,7 +2087,7 @@ class GphlWorkflow(TaskNode):
             GphlMessages.PhasingWavelength(wavelength=wavelength, role=role),
         )
 
-        # FIrst set some parameters from defaults
+        # First set some parameters from defaults
         default_parameters = HWR.beamline.get_default_acquisition_parameters()
         self.resolution = default_parameters.resolution
         self.exposure_time = default_parameters.exp_time

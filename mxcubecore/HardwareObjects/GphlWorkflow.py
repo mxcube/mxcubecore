@@ -1319,7 +1319,9 @@ class GphlWorkflow(HardwareObjectYaml):
         ):
             return GphlMessages.CollectionDone(
                 status=0,
-                proposalId=collection_proposal.id_
+                proposalId=collection_proposal.id_,
+                # Only if you want to override prior information rootdir,
+                # imageRoot=gphl_workflow_model.characterisation_directory
             )
 
         master_path_template = gphl_workflow_model.path_template
@@ -1508,13 +1510,9 @@ class GphlWorkflow(HardwareObjectYaml):
         else:
             status = 0
 
-        # NB, uses last path_template,
-        # but directory should be the same for all
         return GphlMessages.CollectionDone(
             status=status,
             proposalId=collection_proposal.id_,
-            # Only if you want to override prior information rootdir, which we do not
-            imageRoot=path_template.directory
         )
 
     def auto_select_solution(self, choose_lattice):
@@ -1527,20 +1525,24 @@ class GphlWorkflow(HardwareObjectYaml):
 
         # First letter must match first letter of BravaisLattice
         crystal_system = choose_lattice.crystalSystem
+        if lattices and not crystal_system:
+            # Get rom lattices if not set directly
+            aset = set(lattice[0] for lattice in lattices)
+            if len(aset) == 1:
+                crystal_system = aset.pop()
 
         dd0 = self.parse_indexing_solution(solution_format, choose_lattice.solutions)
-        # colour matching lattices green
-        colour_check = lattices
-        if crystal_system and not colour_check:
-            colour_check = (crystal_system,)
         starred = None
-        colourstarred = None
+        system_fit = None
+        lattice_fit = None
         for line in dd0["solutions"]:
             if "*" in  line:
                 starred = line
-                if colour_check and any(x in line for x in colour_check):
-                    colourstarred = line
-        useline = colourstarred or starred
+                if crystal_system and crystal_system in line:
+                    system_fit = line
+                if lattices and any(x in line for x in lattices):
+                    lattice_fit = line
+        useline = lattice_fit or system_fit or starred
         if useline:
             solution = useline.split()
             if solution[0] == "*":
@@ -1555,11 +1557,12 @@ class GphlWorkflow(HardwareObjectYaml):
         data_model = self._queue_entry.get_data_model()
         data_model.characterisation_done = True
 
-
         if data_model.automation_mode:
             solution = self.auto_select_solution(choose_lattice)
             return GphlMessages.SelectedLattice(
-                lattice_format=choose_lattice.solution_format, solution=solution
+                data_model,
+                lattice_format=choose_lattice.lattice_format,
+                solution=solution,
             )
         else:
             # SIGNAL TO GET Pre-strategy parameters here

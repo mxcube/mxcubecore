@@ -250,14 +250,15 @@ class Session(HardwareObject):
 
         if sample_data_node:
             if sample_data_node.has_lims_data():
-                prefix = (
-                    sample_data_node.crystals[0].protein_acronym
-                    + "-"
-                    + sample_data_node.name
-                )
+                ll0 = []
+                if sample_data_node.crystals[0].protein_acronym:
+                    ll0.append(sample_data_node.crystals[0].protein_acronym)
+                if sample_data_node.name:
+                    ll0.append(sample_data_node.name)
+                prefix = "-".join(ll0)
         elif generic_name:
             prefix = "<acronym>-<name>"
-
+        #
         return prefix
 
     def get_archive_directory(self):

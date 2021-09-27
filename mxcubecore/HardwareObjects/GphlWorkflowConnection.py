@@ -1065,17 +1065,12 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             selectedLattice.lattice_format
         )
         result = jvm.astra.messagebus.messages.information.SelectedLatticeImpl(
-            frmt, selectedLattice.solution
+            frmt,
+            selectedLattice.solution,
+            self._BcsDetectorSetting_to_java(selectedLattice.strategyDetectorSetting),
+            self._PhasingWavelength_to_java(selectedLattice.strategyWavelength),
+            selectedLattice.strategyControl,
         )
-        strategyResolution = selectedLattice.strategyResolution
-        if strategyResolution is not None:
-            result.setStrategyResolution(float(strategyResolution))
-        strategyWavelength = selectedLattice.strategyWavelength
-        if strategyWavelength is not None:
-            result.setStrategyWavelength(float(strategyWavelength))
-        strategyControl = selectedLattice.strategyControl
-        if strategyControl is not None:
-            result.setStrategyControl(float(strategyControl))
         #
         return result
 
