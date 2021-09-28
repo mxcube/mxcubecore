@@ -75,7 +75,7 @@ class BeamMockup(AbstractBeam):
             size (float): diameter size in microns
         """
         self._beam_size_dict["aperture"] = [size, size]
-        self._beam_info_dict["lable"] = int(size * 1000)
+        self._beam_info_dict["label"] = int(size * 1000)
         self.evaluate_beam_info()
         self.re_emit_values()
 
