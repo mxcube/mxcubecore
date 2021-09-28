@@ -250,12 +250,15 @@ class Session(HardwareObject):
 
         if sample_data_node:
             if sample_data_node.has_lims_data():
-                ll0 = []
-                if sample_data_node.crystals[0].protein_acronym:
-                    ll0.append(sample_data_node.crystals[0].protein_acronym)
-                if sample_data_node.name:
-                    ll0.append(sample_data_node.name)
-                prefix = "-".join(ll0)
+                protein_acronym = sample_data_node.crystals[0].protein_acronym
+                name = sample_data_node.name
+                if protein_acronym:
+                    if name:
+                        prefix = "%s-%s" % (protein_acronym, name)
+                    else:
+                        prefix = protein_acronym
+                else:
+                    prefix = name or ""
         elif generic_name:
             prefix = "<acronym>-<name>"
         #
