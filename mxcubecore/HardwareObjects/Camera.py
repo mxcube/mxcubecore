@@ -498,6 +498,8 @@ class Camera(BaseHardwareObjects.Device):
                         )
                     return False
 
+                take_snapshot = takeSnapshot
+
                 """
                 BPM method
                 """
@@ -848,6 +850,8 @@ class Camera(BaseHardwareObjects.Device):
                             self.name(),
                         )
                     return False
+
+                take_snapshot = takeSnapshot
 
                 def getBpmValues(self):
                     """Taco"""

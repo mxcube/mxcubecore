@@ -244,7 +244,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
             first_image_fullpath, first_image_jpegpath, first_image_thumbpath
         )
         if thumbs_up:
-            self.store_image_in_lims(first_imgno)
+            self._store_image_in_lims(first_imgno)
 
         # update display while collect is running
         while self.is_moving() or self.is_firstimg:
@@ -258,7 +258,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         )
         self.adxv_sync_image(first_image_fullpath)
         if thumbs_up:
-            self.store_image_in_lims(last_imgno)
+            self._store_image_in_lims(last_imgno)
 
     def prepare_characterization(self):
         osc_seq = self.current_dc_parameters["oscillation_sequence"][0]

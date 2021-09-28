@@ -390,7 +390,7 @@ class ALBACollect(AbstractCollect):
         )
         self.image_headers["Detector_Voffset"] = "0 m"
 
-        beamx, beamy = HWR.beamline.detector.get_beam_centre()
+        beamx, beamy = HWR.beamline.detector.get_beam_position()
         self.image_headers["Beam_xy"] = "(%.2f, %.2f) pixels" % (beamx, beamy)
 
         self.image_headers["Filter_transmission"] = "%.4f" % (
@@ -483,7 +483,7 @@ class ALBACollect(AbstractCollect):
         os.system(cmd)
 
         logging.getLogger("HWR").debug("   writing thumbnails info in LIMS")
-        self.store_image_in_lims(frame_number)
+        self._store_image_in_lims(frame_number)
 
         return True
 

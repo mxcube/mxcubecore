@@ -4,10 +4,8 @@
     - file names below are set as file_name.format(directory_locations) -->
     <directory_locations>
         <!-- Wrapper scripts for GPhL programs - must be reachable from workflow and procesing -->
-<!--        <GPHL_SETUP>/archive/rhfogh/GPhL/mxcube_setup</GPHL_SETUP>-->
-<!--        <GPHL_RELEASE>/public/xtal/Server-nightly-alpha-bdg-linux64/</GPHL_RELEASE>-->
-        <GPHL_SETUP>/mnt/scratch/rhfogh/GPhL/mxcube_setup</GPHL_SETUP>
-        <GPHL_RELEASE>/mnt/scratch/rhfogh/GPhL</GPHL_RELEASE>
+        <GPHL_SETUP>/home/experiences/proxima2a/com-proxima2a/SOLEIL20190121</GPHL_SETUP>
+        <GPHL_RELEASE>/home/experiences/proxima2a/com-proxima2a/SOLEIL20190121/GPhL-laptop-20190119/latest</GPHL_RELEASE>
     </directory_locations>
 
     <!-- If set, run workflow through ssh with selected options -->
@@ -52,7 +50,7 @@
         <GPHL_INSTALLATION>{GPHL_RELEASE}/gphl_release/exe</GPHL_INSTALLATION>
 
         <!-- Location of CCP4 release binaries - required ot pass on to some wrapper scripts -->
-        <GPHL_CCP4_PATH>/mnt/scratch/rhfogh/GPhL/ccp4-7.1/bin</GPHL_CCP4_PATH>
+        <!-- <GPHL_CCP4_PATH>/mnt/scratch/rhfogh/GPhL/ccp4-7.1/bin</GPHL_CCP4_PATH> -->
 
         <!-- Gphl workflow Java classpath. -->
         <!--Should point to all contents of workflow application directory-->
@@ -62,7 +60,7 @@
         <gphl_beamline_config>gphl_beamline_config</gphl_beamline_config>
 
         <!--<gphl_test_samples>{GPHL_SETUP}/gphl_test_samples</gphl_test_samples>-->
-        <gphl_test_samples>test_samples</gphl_test_samples>
+        <gphl_test_samples>gphl_beamline_config/test_samples</gphl_test_samples>
 
         <!-- Location of installation used for processing queue (not reachable from BCS computer. -->
         <!-- Passed as environmental variable GPHL_PROC_INSTALLATION. Optional -->
@@ -74,28 +72,24 @@
 
         <!-- Location of GPhL .license directory -->
         <!-- defaults to GPHL_INSTALLATION-->
-        <!-- Only needed if you do NOT use the gphl installation wrapper scripts in .../exe : -->
-<!--        <co.gphl.wf.bdg_licence_dir>{GPHL_RELEASE}/gphl_release/latest</co.gphl.wf.bdg_licence_dir>-->
+        <!-- Only needed if you do NOT use the wrapper script : -->
+<!--        <co.gphl.wf.bdg_licence_dir>{GPHL_RELEASE}</co.gphl.wf.bdg_licence_dir>-->
 
         <!-- Location of executable XDS binary. Mandatory-->
-<!--        <co.gphl.wf.xds.bin>/public/xtal/Xds/XDS-INTEL64_Linux_x86_64/xds_par</co.gphl.wf.xds.bin>-->
-        <co.gphl.wf.xds.bin>{GPHL_RELEASE}/XDS/xds_par</co.gphl.wf.xds.bin>
+        <co.gphl.wf.xds.bin>/data/bioxsoft/bin/xds_par</co.gphl.wf.xds.bin>
 
         <!-- <Location of individual binaries or wrappers are optional. -->
         <!-- They default to within GPHL_INSTALLATION -->
 
         <!-- Location of stratcal binary -->
-<!--        <co.gphl.wf.stratcal.bin>{GPHL_RELEASE}/gphl_release/exe/run_stratcal_wrap.py</co.gphl.wf.stratcal.bin>-->
-<!--        <co.gphl.wf.stratcal.bin>{GPHL_RELEASE}/mxcube_setup/stratcal/scripts/run_stratcal_wrap.py</co.gphl.wf.stratcal.bin>-->
-        <co.gphl.wf.stratcal.bin>{GPHL_RELEASE}/gphl_release/exe/scripts/run_stratcal_wrap.py</co.gphl.wf.stratcal.bin>
-
+        <co.gphl.wf.stratcal.bin>{GPHL_RELEASE}/gphl_release/exe/run_stratcal_wrap.py</co.gphl.wf.stratcal.bin>
         <!-- Location of stratcal-specific license directory - OPTIONAL ->
         <co.gphl.wf.stratcal.bdg_licence_dir>/public/xtal/Server-nightly-alpha-bdg-linux64</co.gphl.wf.stratcal.bdg_licence_dir>
         -->
 
         <!-- Location of simcal binaries -->
         <!--<co.gphl.wf.simcal.bin>{GPHL_SETUP}/scripts/simcal</co.gphl.wf.simcal.bin>-->
-        <co.gphl.wf.simcal.bin>scripts/simcal</co.gphl.wf.simcal.bin>
+        <co.gphl.wf.simcal.bin>{GPHL_SETUP}/scripts/simcal</co.gphl.wf.simcal.bin>
         <!-- Location of simcal-specific license directory - OPTIONAL ->
         <co.gphl.wf.simcal_predict.bdg_licence_dir>/public/xtal/Server-nightly-alpha-bdg-linux64</co.gphl.wf.stratcal.bdg_licence_dir>
         -->
@@ -110,11 +104,7 @@
         calibration) data. In practice, this will almost always be a wrapper
         script that sets up the environment properly. -->
         <!--<co.gphl.wf.diffractcal.bin>{GPHL_SETUP}/scripts/aP_wf_rotcal</co.gphl.wf.diffractcal.bin>-->
-        <co.gphl.wf.diffractcal.bin>scripts/aP_wf_rotcal</co.gphl.wf.diffractcal.bin>
-
-        <!-- processing for stratcal acquisitions. In practice, this will almost always
-         be a wrapper script that sets up the environment properly. -->
-<!--        <co.gphl.wf.process.bin>scripts/aP_wf_process</co.gphl.wf.process.bin>-->
+        <co.gphl.wf.diffractcal.bin>{GPHL_SETUP}/scripts/aP_wf_rotcal</co.gphl.wf.diffractcal.bin>
 
     </software_properties>
 

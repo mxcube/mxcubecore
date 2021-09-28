@@ -35,16 +35,21 @@ import os
 import time
 import importlib
 from datetime import datetime
-from warnings import warn
 
-import gevent
 from ruamel.yaml import YAML
 
-from mxcubecore.ConvertUtils import string_types, make_table
+from mxcubecore.utils.conversion import string_types, make_table
 from mxcubecore.dispatcher import dispatcher
 from mxcubecore import BaseHardwareObjects
 from mxcubecore import HardwareObjectFileParser
 
+# Save copy of original version of socket, before gevent monkey-patching
+# Used e.g. in GphlWorkflowConnection, to suport py4j
+# DO NOT DELETE
+import socket as original_socket
+# Remove from system dictionaries, to avoid later overwriting of original_socket
+del sys.modules["socket"]
+del sys.modules["_socket"]
 
 # If you want to write out copies of the file, use typ="rt" instead
 # pure=True uses yaml version 1.2, with fewere gotchas for strange type conversions
@@ -284,7 +289,8 @@ def init_hardware_repository(configuration_path):
 
     # If configuration_path is a string of combined paths, split it up
     lookup_path = [
-        os.path.abspath(x) for x in configuration_path.split(os.path.pathsep)
+        os.path.abspath(os.path.expanduser(x))
+        for x in configuration_path.split(os.path.pathsep)
     ]
     lookup_path = [x for x in lookup_path if os.path.exists(x)]
     if lookup_path:

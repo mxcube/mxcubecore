@@ -706,8 +706,8 @@ class AbstractMultiCollect(object):
                 logging.getLogger("user_level_log").info("Opening safety shutter")
                 self.open_safety_shutter()
 
-            flux_threshold = self.getProperty("flux_threshold", False)
-            cryo_threshold = self.getProperty("cryo_threshold", False)
+            flux_threshold = self.get_property("flux_threshold", False)
+            cryo_threshold = self.get_property("cryo_threshold", False)
 
             # Wait for flux
             while flux_threshold and HWR.beamline.flux.get_value() < flux_threshold:

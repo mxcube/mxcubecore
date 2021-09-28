@@ -28,8 +28,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
         self.pollInterval = 500
         self.connected = False
         self.image_name = self.get_property("image_name")
-        xml_path = HWR.get_hardware_repository().server_address[0]
-        self.image = os.path.join(xml_path, self.image_name)
+        self.image = HWR.get_hardware_repository().find_in_repository(self.image_name)
         self.set_is_ready(True)
 
     def init(self):
@@ -95,6 +94,8 @@ class MDCameraMockup(BaseHardwareObjects.Device):
 
     def takeSnapshot(self, snapshot_filename, bw=True):
         return True
+
+    take_snapshot = takeSnapshot
 
     def get_available_stream_sizes(self):
         return [(self.get_width(), self.get_height())]

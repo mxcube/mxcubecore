@@ -1,6 +1,7 @@
 import logging
 import math
 import sys
+from conversion import HC_OVER_E
 
 
 class CalculateGaps:
@@ -79,8 +80,7 @@ class CalculateGaps:
         const = 13.056 * arr[1] * 100 / pow(contst_en, 2)
         k2 = (math.pi / arr[1]) / 1000
         # Transform energy in wavelength
-        h_over_e = 12.3984
-        energy = h_over_e / energy
+        energy = HC_OVER_E / energy
         target = energy / const
         nsols = 0
 

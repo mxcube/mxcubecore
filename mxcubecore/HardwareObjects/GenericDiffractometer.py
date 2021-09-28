@@ -24,6 +24,7 @@ GenericDiffractometer
 import copy
 import time
 import gevent
+import gevent.event
 import logging
 import math
 import numpy
@@ -224,6 +225,9 @@ class GenericDiffractometer(HardwareObject):
 
         self.connect(self, "equipmentReady", self.equipment_ready)
         self.connect(self, "equipmentNotReady", self.equipment_not_ready)
+
+        # HACK
+        self.get_motor_positions = self.get_positions
 
     def init(self):
         # Internal values -----------------------------------------------------
@@ -541,6 +545,8 @@ class GenericDiffractometer(HardwareObject):
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
             while not self.is_ready():
                 time.sleep(0.01)
+
+    wait_ready = wait_device_ready
 
     def execute_server_task(self, method, timeout=30, *args):
         """Method is used to execute commands and wait till
@@ -886,7 +892,7 @@ class GenericDiffractometer(HardwareObject):
 
             try:
                 logging.getLogger("HWR").debug(
-                    "Centring finished. Moving motoros to position %s" % str(motor_pos)
+                    "Centring finished. Moving motors to position %s" % str(motor_pos)
                 )
                 self.move_to_motors_positions(motor_pos, wait=True)
             except Exception:

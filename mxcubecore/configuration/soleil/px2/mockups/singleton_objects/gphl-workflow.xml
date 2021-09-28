@@ -4,7 +4,6 @@
     <!-- combined with instcfgout parameter (see below); see also <newinstr> -->
     <!--<instcfgout_dir>/MXCuBE/mxcube</instcfgout_dir>-->
 
-
     <!-- Use advanced_mode for adidtional UI options. Uncoment to set -->
     <!--    <advanced_mode>True</advanced_mode>-->
 

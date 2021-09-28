@@ -102,7 +102,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         """Return True if has shutterless mode"""
         return True
 
-    def get_beam_centre(self):
+    def get_beam_position(self, distance=None, wavelength=None):
         """Returns beam center coordinates"""
         beam_x = 0
         beam_y = 0
@@ -286,5 +286,5 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
 
 def test_hwo(hwo):
     print("Detector Distance is: ", hwo.distance.get_value())
-    print("   Beam X: %s / Beam Y: %s" % hwo.get_beam_centre())
+    print("   Beam X: %s / Beam Y: %s" % hwo.get_beam_position())
     # print("going to 490 : ", hwo.distance.set_value(490))
