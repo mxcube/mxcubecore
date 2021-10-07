@@ -816,12 +816,7 @@ class UserProvidedInfo(MessageData):
             self._cell = UnitCell(*cell_parameters)
         else:
             self._cell = None
-        detector_setting = (
-            data_model.char_detector_setting or data_model.detector_setting
-        )
-        self._expectedResolution = (
-            detector_setting.resolution if detector_setting else None
-        )
+        self._expectedResolution = data_model.aimed_resolution
         self._isAnisotropic = None
 
     @property
@@ -1209,22 +1204,16 @@ class SampleCentred(Payload):
         self._beamstopSetting = data_model.beamstop_setting
         self._goniostatTranslations = frozenset(data_model.goniostat_translations)
 
-        strategy_type = data_model.get_workflow_parameters()["strategy_type"]
-        if strategy_type == "diffractcal" or data_model.characterisation_done:
-            self._detectorSetting = data_model.detector_setting
-        else:
-            self._detectorSetting = (
-            data_model.char_detector_setting or data_model.detector_setting
-            )
-
         if data_model.characterisation_done:
             self._wavelengths = frozenset(data_model.wavelengths)
+            self._detectorSetting = None
         else:
             # Ths trick assumes that characterisation and diffractcal
             # use one, the first, wavelength and default inbterleave order
             # Which is true. Not the ideal place to put this code
             # but it works.
             self._wavelengths = frozenset((data_model.wavelengths[0],))
+            self._detectorSetting = data_model.detector_setting
 
     @property
     def imageWidth(self):

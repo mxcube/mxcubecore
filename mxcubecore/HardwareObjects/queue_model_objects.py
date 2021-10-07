@@ -1879,8 +1879,7 @@ class GphlWorkflow(TaskNode):
         self.beamstop_setting = None
         self.wavelengths = ()
         self.detector_setting = None
-        # Detetor setting for characterisation
-        self.char_detector_setting = None
+        self.aimed_resolution = None
         self.goniostat_translations = ()
         self.strategy = str()
         self.characterisation_strategy = str()
@@ -1958,8 +1957,9 @@ class GphlWorkflow(TaskNode):
         workflow_parameters = self.get_workflow_parameters()
 
         settings = HWR.beamline.gphl_workflow.get_settings()
-        energy_tags = (settings["default_beam_energy_tag"],)
-        energy_tags = workflow_parameters.get("beam_energy_tags", energy_tags)
+        energy_tags = workflow_parameters.get(
+            "beam_energy_tags", (settings["default_beam_energy_tag"],)
+        )
         interleave_order = workflow_parameters.get("interleave_order")
         if interleave_order:
             self.interleave_order = interleave_order
@@ -1988,6 +1988,8 @@ class GphlWorkflow(TaskNode):
 
         wavelength = self.wavelengths[0].wavelength
 
+        if self.detector_setting is None:
+            resolution = resolution or self.aimed_resolution
         if resolution:
             distance = HWR.beamline.resolution.resolution_to_distance(
                 resolution, wavelength
@@ -1998,8 +2000,6 @@ class GphlWorkflow(TaskNode):
             self.detector_setting = GphlMessages.BcsDetectorSetting(
                 resolution, orgxy=orgxy, Distance=distance
             )
-            if not self.characterisation_done:
-                self.char_detector_setting = self.detector_setting
 
         self.strategy_options = {
             "strategy_type": workflow_parameters["strategy_type"],
@@ -2110,21 +2110,9 @@ class GphlWorkflow(TaskNode):
                 resolution = diffraction_plan.aimedResolution
             else:
                 resolution = diffraction_plan.get("aimedResolution")
-            if not resolution:
-                # Default to current, so we have something set
-                resolution = HWR.beamline.resolution.get_value()
 
             if resolution:
-                distance = HWR.beamline.resolution.resolution_to_distance(
-                    resolution, wavelength
-                )
-                orgxy = HWR.beamline.detector.get_beam_position(
-                    distance, wavelength
-                )
-                self.detector_setting = GphlMessages.BcsDetectorSetting(
-                    resolution, orgxy=orgxy, Distance=distance
-                )
-                self.char_detector_setting = self.detector_setting
+                self.aimed_resolution = resolution
 
         # Swt paramaters from params dict
         self.set_name(self.path_template.base_prefix)

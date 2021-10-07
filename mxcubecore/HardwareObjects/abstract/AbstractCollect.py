@@ -24,6 +24,7 @@ Defines a sequence how data collection is executed.
 """
 
 import os
+import sys
 import logging
 import time
 import errno
@@ -261,7 +262,7 @@ class AbstractCollect(HardwareObject, object):
             log.info("Collection: Updating data collection in LIMS")
             self.update_data_collection_in_lims()
 
-        except BaseException:
+        except:
             exc_type, exc_value, exc_tb = sys.exc_info()
             failed_msg = "Data collection failed!\n%s" % exc_value
             self.collection_failed(failed_msg)
