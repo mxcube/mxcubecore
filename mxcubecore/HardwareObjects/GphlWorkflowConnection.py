@@ -437,7 +437,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
                 )
             elif self._enactment_id != enactment_id:
                 logging.getLogger("HWR").warning(
-                    "Workflow enactment I(D %s != info message enactment ID %s."
+                    "Workflow enactment ID %s != info message enactment ID %s."
                     % (self._enactment_id, enactment_id)
                 )
             if self.workflow_queue is not None:
@@ -446,7 +446,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
                     (message_type, payload, correlation_id, None)
                 )
 
-        logging.getLogger("HWR").debug("Text info message - return None")
+        # logging.getLogger("HWR").debug("Text info message - return None")
         #
         return None
 
@@ -582,10 +582,11 @@ class GphlWorkflowConnection(HardwareObjectYaml):
 
         xx0 = py4j_message.getCorrelationId()
         correlation_id = xx0 and xx0.toString()
-        logging.getLogger("HWR").debug(
-            "GPhL incoming: message=%s, jobId=%s,  messageId=%s"
-            % (message_type, enactment_id, correlation_id)
-        )
+        if message_type != "String":
+            logging.getLogger("HWR").debug(
+                "GPhL incoming: message=%s, jobId=%s,  messageId=%s"
+                % (message_type, enactment_id, correlation_id)
+            )
 
         if message_type == "String":
             payload = py4j_message.getPayload()

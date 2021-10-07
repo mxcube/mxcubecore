@@ -234,7 +234,6 @@ class GphlWorkflow(HardwareObjectYaml):
             raise RuntimeError(
                 "Cannot execute workflow - GphlWorkflow HardwareObject is not ready"
             )
-
         self._queue_entry = queue_entry
         data_model = queue_entry.get_data_model()
         self._workflow_queue = gevent.queue.Queue()
@@ -245,6 +244,17 @@ class GphlWorkflow(HardwareObjectYaml):
             # NB consider whether to override on None
             params = self.query_pre_strategy_params(data_model)
             data_model.set_pre_strategy_params(**params)
+        if data_model.detector_setting is None:
+            resolution = HWR.beamline.resolution.get_value()
+            distance = HWR.beamline.detector.distance.get_value()
+            orgxy = HWR.beamline.detector.get_beam_position()
+            data_model.detector_setting = GphlMessages.BcsDetectorSetting(
+                resolution, orgxy=orgxy, Distance=distance
+            )
+        else:
+            # Set detector distance and resolution
+            distance = data_model.detector_setting.axisSettings["Distance"]
+            HWR.beamline.detector.distance.set_value(distance, timeout=30)
 
     def execute(self):
 
@@ -278,7 +288,8 @@ class GphlWorkflow(HardwareObjectYaml):
                     message_type,
                 )
                 break
-            else:
+            elif message_type != "String":
+            # else:
                 logging.getLogger("HWR").info("GPhL queue processing %s", message_type)
                 response = func(payload, correlation_id)
                 if result_list is not None:
@@ -857,6 +868,13 @@ class GphlWorkflow(HardwareObjectYaml):
 
         gphl_workflow_model = self._queue_entry.get_data_model()
 
+        # MOCK ONLY! to reduce file size
+        if (
+            gphl_workflow_model.automation_mode
+            and gphl_workflow_model.characterisation_done
+        ):
+            print ('@~@~ WARNING - step inserting image width to 1.0')
+            gphl_workflow_model.image_width = 1.0
         strategy_type = gphl_workflow_model.get_workflow_parameters()[
             "strategy_type"
         ]
@@ -896,11 +914,9 @@ class GphlWorkflow(HardwareObjectYaml):
                 # Preset energy
                 # First set beam_energy and give it time to settle,
                 # so detector distance will trigger correct resolution later
-                initial_energy = conversion.HC_OVER_E / bst.wavelength
                 # TODO NBNB put in wait-till ready to make sure value settles
-                HWR.beamline.energy.set_value(initial_energy)
-            else:
-                initial_energy = HWR.beamline.energy.get_value()
+                HWR.beamline.energy.set_wavelength(bst.wavelength, timeout=30)
+            initial_energy = HWR.beamline.energy.get_value()
 
             # NB - now pre-setting of detector has been removed, this gets
             # the current resolution setting, whatever it is
@@ -1218,9 +1234,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         # Make input file
         software_paths = HWR.beamline.gphl_connection.software_paths
-        infile = os.path.join(software_paths["gphl_beamline_config"]["GPHL_WDIR"],
-            "temp_recen.in"
-        )
+        infile = os.path.join(software_paths["GPHL_WDIR"], "temp_recen.in")
         recen_data = OrderedDict()
         indata = {"recen_list": recen_data}
 
@@ -1251,7 +1265,7 @@ class GphlWorkflow(HardwareObjectYaml):
         # Get program locations
         recen_executable = HWR.beamline.gphl_connection.get_executable("recen")
         # Get environmental variables
-        envs = {"BDG_home":software_paths["gphl_beamline_config"]["BDG_home"]}
+        envs = {"BDG_home":software_paths["BDG_home"]}
         # Run recen
         command_list = [
             recen_executable,
@@ -1544,6 +1558,9 @@ class GphlWorkflow(HardwareObjectYaml):
                     lattice_fit = line
         useline = lattice_fit or system_fit or starred
         if useline:
+            logging.getLogger("user_level_log").info(
+                "Selected iudexing solution", useline
+            )
             solution = useline.split()
             if solution[0] == "*":
                 del solution[0]
@@ -1559,6 +1576,18 @@ class GphlWorkflow(HardwareObjectYaml):
 
         if data_model.automation_mode:
             solution = self.auto_select_solution(choose_lattice)
+
+            if data_model.automation_mode == "MASSIF1":
+                if not data_model.aimed_resolution:
+                    raise ValueError(
+                        "aimed_resolution must be set in MASSIF1 auto mode"
+                    )
+                # Resets detector_setting to match aimed_resolution
+                data_model.detector_setting = None
+                # NB resets detector_setting
+                data_model.set_pre_strategy_params()
+                distance = data_model.detector_setting.axisSettings["Distance"]
+                HWR.beamline.detector.distance.set_value(distance, timeout=30)
             return GphlMessages.SelectedLattice(
                 data_model,
                 lattice_format=choose_lattice.lattice_format,
