@@ -1559,7 +1559,7 @@ class GphlWorkflow(HardwareObjectYaml):
         useline = lattice_fit or system_fit or starred
         if useline:
             logging.getLogger("user_level_log").info(
-                "Selected iudexing solution", useline
+                "Selected indexing solution", useline
             )
             solution = useline.split()
             if solution[0] == "*":

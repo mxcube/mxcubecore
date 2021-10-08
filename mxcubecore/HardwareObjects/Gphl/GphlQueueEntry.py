@@ -50,9 +50,7 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
         HWR.beamline.gphl_workflow.pre_execute(self)
-        logging.getLogger('HWR').debug(
-            "Done GphlWorkflowQueueEntry.pre_execute"
-        )
+        logging.getLogger('HWR').debug("Done GphlWorkflowQueueEntry.pre_execute")
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
