@@ -132,7 +132,7 @@ class CollectMockup(AbstractCollect):
         image_id = self._store_image_in_lims(frame)
         return image_id
 
-    def trigger_auto_processing(self, process_event, params_dict, frame_number):
+    def trigger_auto_processing(self, process_event, frame_number):
         """
         Descript. :
         """
