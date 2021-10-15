@@ -22,8 +22,8 @@ from __future__ import absolute_import
 
 import logging
 import os
-import time
-import types
+# import time
+# import types
 from mxcubecore.dispatcher import saferef
 
 import gevent
@@ -470,7 +470,7 @@ class SardanaChannel(ChannelObject, SardanaObject):
             if new_value is None:
                 new_value = self.get_value()
 
-            if isinstance(new_value, types.TupleType):
+            if isinstance(new_value, tuple):
                 new_value = list(new_value)
 
             self.value = new_value

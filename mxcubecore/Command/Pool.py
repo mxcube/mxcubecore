@@ -22,7 +22,7 @@ import logging
 import queue
 import weakref
 import qt
-import types
+# import types
 
 from mxcubecore.CommandContainer import (
     CommandObject,

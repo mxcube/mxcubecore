@@ -1,6 +1,6 @@
 import os
 import sys
-import types
+# import types
 import logging
 import time
 import errno
