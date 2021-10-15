@@ -21,7 +21,13 @@
 import logging
 import gevent
 import gevent.event
-from gevent.queue import Queue
+
+try:
+    import Queue as queue
+except ImportError:
+    import queue
+
+
 from mxcubecore.CommandContainer import (
     CommandObject,
     ChannelObject,
@@ -30,12 +36,11 @@ from mxcubecore.CommandContainer import (
 from mxcubecore import Poller
 from mxcubecore.dispatcher import saferef
 
-gevent_version = list(map(int,gevent.__version__.split('.')))
+gevent_version = list(map(int, gevent.__version__.split('.')))
 
 try:
     import PyTango
     from PyTango.gevent import DeviceProxy
-    from PyTango import DeviceProxy as RawDeviceProxy
 except ImportError:
     logging.getLogger("HWR").warning("Tango support is not available.")
 
@@ -44,6 +49,7 @@ __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 log = logging.getLogger("HWR")
+
 
 class TangoCommand(CommandObject):
     def __init__(self, name, command, tangoname=None, username=None, **kwargs):
@@ -113,7 +119,7 @@ def process_tango_events():
     while not TangoChannel._tangoEventsQueue.empty():
         try:
             ev = TangoChannel._tangoEventsQueue.get_nowait()
-        except _threading.Queue.Empty:
+        except queue.Empty:
             break
         else:
             try:
@@ -134,10 +140,10 @@ class E:
 
 
 class TangoChannel(ChannelObject):
-    _tangoEventsQueue = _threading.Queue()
+    _tangoEventsQueue = queue.Queue()
     _eventReceivers = {}
 
-    if gevent_version < [1,3,0]:
+    if gevent_version < [1, 3, 0]:
         _tangoEventsProcessingTimer = getattr(gevent.get_hub().loop, "async")()
     else:
         _tangoEventsProcessingTimer = gevent.get_hub().loop.async_()
@@ -348,4 +354,3 @@ class TangoChannel(ChannelObject):
 
     def is_connected(self):
         return self.device is not None
-
