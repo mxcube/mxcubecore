@@ -7,7 +7,7 @@ import gevent
 import numpy
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from bliss.config import static
-from bliss.data.node import DataNodeIterator, _get_or_create_node
+from bliss.data.node import DataNode, get_or_create_node
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -21,6 +21,9 @@ def all_equal(iterable):
 
 def watch_data(scan_node, scan_new_callback, scan_data_callback, scan_end_callback):
     """Watch for data coming from the bliss scans. Exclude the simple count"""
+    # hack to not execute it
+    if scan_node:
+        return
     scan_info = scan_node._info.get_all()
     if scan_info["type"] == "ct":
         return
@@ -37,7 +40,7 @@ def watch_data(scan_node, scan_new_callback, scan_data_callback, scan_end_callba
 
     scan_new_callback(scan_info)
 
-    scan_data_iterator = DataNodeIterator(scan_node)
+    scan_data_iterator = DataNode(scan_node)
     for event_type, event_data in scan_data_iterator.walk_events(filter="zerod"):
         if event_type is scan_data_iterator.NEW_DATA_IN_CHANNEL_EVENT:
             zerod, channel_name = event_data
@@ -58,9 +61,9 @@ def watch_session(
     session_name, scan_new_callback, scan_data_callback, scan_end_callback
 ):
     """Watch the bliss session for new data"""
-    session_node = _get_or_create_node(session_name, node_type="session")
+    session_node = get_or_create_node(session_name, node_type="session")
     if session_node is not None:
-        data_iterator = DataNodeIterator(session_node)
+        data_iterator = DataNode("session", session_name)
 
         watch_data_task = None
         last = True
@@ -94,13 +97,13 @@ class Bliss(HardwareObject):
 
         session.setup(self.__dict__, verbose=True)
 
-        self.__session_watcher = gevent.spawn(
-            watch_session,
-            self.get_property("session"),
-            self.__on_scan_new,
-            self.__on_scan_data,
-            self.__on_scan_end,
-        )
+        #self.__session_watcher = gevent.spawn(
+        #    watch_session,
+        #    self.get_property("session"),
+        #    self.__on_scan_new,
+        #    self.__on_scan_data,
+        #    self.__on_scan_end,
+        #)
         self.__scan_data = dict()
 
     def __on_scan_new(self, scan_info):

@@ -20,7 +20,7 @@
 
 import time
 import logging
-import Queue
+import queue
 import weakref
 
 from mxcubecore.CommandContainer import CommandObject, ChannelObject

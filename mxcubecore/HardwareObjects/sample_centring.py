@@ -63,7 +63,7 @@ class CentringMotor:
 
 def prepare(centring_motors_dict):
     logging.debug("Preparing for centring")
-    
+
     global SAVED_INITIAL_POSITIONS
 
     if CURRENT_CENTRING and not CURRENT_CENTRING.ready():
@@ -396,6 +396,9 @@ def wait_ready(motor_positions_dict, timeout=None):
 
 
 def move_motors(motor_positions_dict):
+    if not motor_positions_dict:
+        return
+
     wait_ready(motor_positions_dict, timeout=30)
 
     for motor, position in motor_positions_dict.items():
@@ -448,6 +451,7 @@ def center(
     except Exception:
         logging.exception("Exception while centring")
         move_motors(SAVED_INITIAL_POSITIONS)
+        READY_FOR_NEXT_POINT.set()
         raise RuntimeError("Exception while centring")
 
     # logging.info("X=%s,Y=%s", X, Y)
@@ -549,8 +553,16 @@ def find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
     )
     camera.take_snapshot(snapshot_filename, bw=True)
 
+    # Lucid does not accept 0 degree rotation and
+    # has a reference frame that is reversed to the one used
+    # in MXCuBE
+    if chi_angle == 0:
+        chi_angle = None
+    else:
+        chi_angle = -chi_angle
+
     info, x, y = lucid.find_loop(
-        snapshot_filename, rotation=None, debug=False, IterationClosing=6
+        snapshot_filename, rotation=chi_angle, debug=False, IterationClosing=6
     )
 
     try:

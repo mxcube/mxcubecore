@@ -28,6 +28,10 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self._running = False
         self._disable_collect = False
         self._is_stopped = False
+        self._collect_hwobj = None
+
+    def init(self):
+        self._collect_hwobj = self.get_object_by_role("collect")
 
     def __getstate__(self):
         d = dict(self.__dict__)
@@ -38,6 +42,10 @@ class QueueManager(HardwareObject, QueueEntryContainer):
     def __setstate__(self, d):
         self.__dict__.update(d)
         self._paused_event = gevent.event.Event()
+
+    @property
+    def current_queue_entries(self):
+        return self._current_queue_entries
 
     def enqueue(self, queue_entry):
         """
@@ -57,6 +65,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         Starts execution of the queue.
         """
         if not self.is_disabled():
+            self._current_queue_entries = []
             self.emit("statusMessage", ("status", "Queue running", "running"))
             self._is_stopped = False
             self._set_in_queue_flag()
@@ -143,6 +152,10 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         finally:
             self._running = False
             self.emit("queue_execution_finished", (None,))
+
+            if self._collect_hwobj:
+                self._collect_hwobj.queue_finished_cleanup()
+
             # self.emit('centringAllowed', (True, ))
 
     def __execute_entry(self, entry):
@@ -151,7 +164,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
 
         status = "Successful"
         # self.emit('centringAllowed', (False, ))
-        self.emit("queue_entry_execute_started", (entry))
+        self.emit("queue_entry_execute_started", (entry, status))
         self.set_current_entry(entry)
         self._current_queue_entries.append(entry)
 
@@ -210,7 +223,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         finally:
             # self.emit('queue_entry_execute_finished', (entry, ))
             self.set_current_entry(None)
-            self._current_queue_entries.remove(entry)
+            self._current_queue_entries.pop(self._current_queue_entries.index(entry))
 
     def stop(self):
         """
@@ -227,11 +240,9 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                     qe.stop()
                     qe.post_execute()
                 except base_queue_entry.QueueAbortedException:
-                    logging.getLogger("HWR").info("Queue aborted by the user")
-                except Exception as ex:
-                    logging.getLogger("HWR").exception(
-                       "Exception raised during stopping the queue (%s)" % str(ex)
-                    )
+                    pass
+                except Exception:
+                    pass
 
         self._root_task.kill(block=False)
 

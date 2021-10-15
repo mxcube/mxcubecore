@@ -113,7 +113,7 @@ def process_tango_events():
     while not TangoChannel._tangoEventsQueue.empty():
         try:
             ev = TangoChannel._tangoEventsQueue.get_nowait()
-        except Queue.Empty:
+        except _threading.Queue.Empty:
             break
         else:
             try:
@@ -134,11 +134,11 @@ class E:
 
 
 class TangoChannel(ChannelObject):
-    _tangoEventsQueue = Queue()
+    _tangoEventsQueue = _threading.Queue()
     _eventReceivers = {}
 
     if gevent_version < [1,3,0]:
-        _tangoEventsProcessingTimer = gevent.get_hub().loop.async()
+        _tangoEventsProcessingTimer = getattr(gevent.get_hub().loop, "async")()
     else:
         _tangoEventsProcessingTimer = gevent.get_hub().loop.async_()
 
@@ -198,9 +198,8 @@ class TangoChannel(ChannelObject):
         # self.init_poller.stop()
 
         if isinstance(self.polling, int):
+            self.raw_device = DeviceProxy(self.deviceName)
 
-            self.raw_device = RawDeviceProxy(self.device_name)
-            
             Poller.poll(
                 self.poll,
                 polling_period=self.polling,
@@ -327,10 +326,7 @@ class TangoChannel(ChannelObject):
         self.value = value
         self.emit("update", value)
 
-    def get_value(self, force=False):
-        self._device_initialized.wait(timeout=3)
-
-        
+    def get_value(self):
         if self.read_as_str:
             value = self.device.read_attribute(
                 self.attribute_name, PyTango.DeviceAttribute.ExtractAs.String

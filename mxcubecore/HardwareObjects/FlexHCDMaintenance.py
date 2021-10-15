@@ -2,6 +2,8 @@
 FLEX HCD maintenance mockup.
 """
 from mxcubecore.BaseHardwareObjects import Equipment
+import ast
+
 
 
 TOOL_FLANGE, TOOL_UNIPUCK, TOOL_SPINE, TOOL_PLATE, TOOL_LASER, TOOL_DOUBLE_GRIPPER = (
@@ -39,6 +41,15 @@ class FlexHCDMaintenance(Equipment):
 
     def get_current_tool(self):
         return self._sc.get_gripper()
+
+    def _do_trash(self):
+        """
+        Trash sample
+
+        :returns: Task id
+        :rtype: int
+        """
+        return self._sc._do_trash()
 
     def _do_abort(self):
         """
@@ -108,6 +119,7 @@ class FlexHCDMaintenance(Equipment):
             "reset_sample_number": True,
             "change_gripper": True,
             "abort": True,
+            "trash": True
         }
 
         message = ""
@@ -130,9 +142,19 @@ class FlexHCDMaintenance(Equipment):
                     ["defreeze", "Defreeze gripper", "Actions", None],
                     ["reset_sample_number", "Reset sample number", "Actions", None],
                     ["abort", "Abort", "Actions", None],
+                    ["trash", "Trash sample", "Actions", None],
                 ],
             ],
         ]
+
+        exclude_command_list = ast.literal_eval(self.get_property("exclude_commands", "[]"))
+        new_command_list = []
+
+        for command in cmd_list[0][1]:
+            if command[0] not in exclude_command_list:
+                new_command_list.append(command)
+
+        cmd_list[0][1] = new_command_list
 
         try:
             grippers = self._sc.get_available_grippers()
@@ -162,6 +184,8 @@ class FlexHCDMaintenance(Equipment):
             self._do_reset_sample_number()
         if cmdname == "change_gripper":
             self._do_change_gripper(int(args))
+        if cmdname == "trash":
+            self._do_trash()
         if cmdname == "abort":
             self._do_abort()
 

@@ -335,8 +335,8 @@ class DiffractometerMockup(GenericDiffractometer):
             "endTime": curr_time,
         }
         motors = self.get_positions()
-        motors["beam_x"] = 0.1
-        motors["beam_y"] = 0.1
+        #motors["beam_x"] = 0.1
+        #motors["beam_y"] = 0.1
         self.last_centred_position[0] = coord_x
         self.last_centred_position[1] = coord_y
         self.centring_status["motors"] = motors

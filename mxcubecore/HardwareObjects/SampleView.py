@@ -45,6 +45,8 @@ class SampleView(AbstractSampleView):
         self._zoom = self.get_object_by_role("zoom")
         self._frontlight = self.get_object_by_role("frontlight")
         self._backlight = self.get_object_by_role("backlight")
+        self._diffractometer = self.get_object_by_role("diffractometer")
+
         self._ui_snapshot_cb = None
 
         self.hide_grid_threshold = self.get_property("hide_grid_threshold", 5)

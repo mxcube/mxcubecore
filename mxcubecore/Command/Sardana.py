@@ -29,7 +29,7 @@ from mxcubecore.dispatcher import saferef
 import gevent
 from gevent.event import Event
 from gevent import monkey
-import Queue
+import queue
 
 gevent_version = list(map(int,gevent.__version__.split('.')))
 
@@ -65,7 +65,7 @@ def processSardanaEvents():
 
         try:
             ev = SardanaObject._eventsQueue.get_nowait()
-        except Queue.Empty:
+        except queue.Empty:
             break
         else:
             try:
@@ -99,11 +99,11 @@ class AttributeEvent:
 
 
 class SardanaObject(object):
-    _eventsQueue = Queue.Queue()
+    _eventsQueue = queue.Queue()
     _eventReceivers = {}
 
     if gevent_version < [1,3,0]:
-        _eventsProcessingTimer = gevent.get_hub().loop.async()
+        _eventsProcessingTimer = getattr(gevent.get_hub().loop, "async")()
     else:
         _eventsProcessingTimer = gevent.get_hub().loop.async_()
 

@@ -123,8 +123,10 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.get_default_acquisition_parameters)
 
         self._server.register_function(self.get_diffractometer_positions)
+        self._server.register_function(self.get_resolution_limits)
         self._server.register_function(self.move_diffractometer)
         self._server.register_function(self.save_snapshot)
+        self._server.register_function(self.save_multiple_snapshots)
         self._server.register_function(self.cryo_temperature)
         self._server.register_function(self.flux)
         self._server.register_function(self.set_aperture)
@@ -418,6 +420,9 @@ class XMLRPCServer(HardwareObject):
         else:
             self.wokflow_in_progress = False
 
+    def get_resolution_limits(self):
+        return HWR.beamline.resolution.get_limits()
+
     def get_diffractometer_positions(self):
         return HWR.beamline.diffractometer.get_positions()
 
@@ -425,19 +430,43 @@ class XMLRPCServer(HardwareObject):
         HWR.beamline.diffractometer.move_motors(roles_positions_dict)
         return True
 
-    def save_snapshot(self, imgpath, showScale=False):
+
+    def save_multiple_snapshots(self, path_list, show_scale=False):
+        logging.getLogger("HWR").info("Taking snapshot %s " % str(path_list))
+
+        HWR.beamline.diffractometer.set_light_in()
+
+        try:
+            for angle, path in path_list:
+                HWR.beamline.diffractometer.phiMotor.set_value(angle)
+                HWR.beamline.diffractometer.wait_ready()
+                self.save_snapshot(path, show_scale, handle_light=False)
+        except Exception as ex:
+            logging.getLogger("HWR").exception("Could not take snapshot %s " % str(ex))
+        finally:
+            HWR.beamline.diffractometer.set_light_out()
+
+
+    def save_snapshot(self, imgpath, showScale=False, handle_light=True):
         res = True
+        logging.getLogger("HWR").info("Taking snapshot %s " % str(imgpath))
+
+        if handle_light:
+            HWR.beamline.diffractometer.set_light_in()
 
         try:
             if showScale:
                 HWR.beamline.diffractometer.save_snapshot(imgpath)
             else:
-                HWR.beamline.sample_view.get_object_by_role("camera").take_snapshot(
-                    imgpath
+                HWR.beamline.sample_view.save_snapshot(
+                    imgpath, overlay=False, bw=False
                 )
         except Exception as ex:
             logging.getLogger("HWR").exception("Could not take snapshot %s " % str(ex))
             res = False
+        finally:
+            if handle_light:
+                HWR.beamline.diffractometer.set_light_out()
 
         return res
 
@@ -527,7 +556,7 @@ class XMLRPCServer(HardwareObject):
         """
         zoom = HWR.beamline.sample_view.zoom
         zoom.set_value(zoom.value_to_enum(pos))
-        
+
     def get_zoom_level(self):
         """
         Returns the zoom level.
@@ -561,6 +590,7 @@ class XMLRPCServer(HardwareObject):
         """
         Sets the level of the back light
         """
+        logging.getLogger("HWR").info("Setting backlight level to %s" % level)        
         HWR.beamline.diffractometer.setBackLightLevel(level)
 
     def get_back_light_level(self):

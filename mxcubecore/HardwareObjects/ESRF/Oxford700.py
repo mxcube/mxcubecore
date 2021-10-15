@@ -6,7 +6,7 @@ import sys
 CRYO_STATUS = ["OFF", "SATURATED", "READY", "WARNING", "FROZEN", "UNKNOWN"]
 PHASE_ACTION = {
     "RAMP": "ramp",
-    "COOL": "set",
+    "COOL": "cool",
     "HOLD": "hold",
     "PLAT": "plat",
     "PURGE": "purge",
@@ -39,6 +39,7 @@ class Oxford700(HardwareObject):
         if self.ctrl is not None:
             # self.get_params()
             gevent.spawn(self._do_polling)
+            self._hw_ctrl = self.ctrl.controller._hw_controller
 
     def value_changed(self):
         self.emit("temperatureChanged", (self.get_temperature(),))
@@ -46,17 +47,17 @@ class Oxford700(HardwareObject):
         self.emit("stateChanged", (self.get_state(),))
 
     def get_temperature(self):
-        return self.ctrl.read()
+        return self.ctrl.input.read()
 
     def get_value(self):
         return self.get_temperature()
 
     def rampstate(self):
-        return self.ctrl.rampstate()
+        return self.ctrl.is_ramping()
 
     def start_action(self, phase="RAMP", target=None, rate=None):
         if phase in PHASE_ACTION:
-            action = getattr(self.ctrl, PHASE_ACTION[phase])
+            action = getattr(self._hw_ctrl, PHASE_ACTION[phase])
             if rate:
                 action(target, rate=rate)
             elif target:
@@ -64,37 +65,29 @@ class Oxford700(HardwareObject):
             else:
                 action()
 
-    def update_params(self):
-        self.ctrl.controller._oxford._update_cmd()
-
     def stop_action(self, phase="HOLD"):
         if phase in PHASE_ACTION:
-            getattr(self.ctrl, PHASE_ACTION[phase])
+            getattr(self._hw_ctrl, PHASE_ACTION[phase])
 
     def pause(self, execute=True):
-        self.ctrl.pause(execute)
+        if execute:
+            self._hw_ctrl.pause()
+        else:
+            self._hw_ctrl.resume()
 
     def get_state(self):
-        # _, _, _, run_mode = self.get_params()
-        state = self.ctrl.state()
-        if isinstance(state, list):
-            run_mode = state[0]
-        else:
-            run_mode = state
         try:
-            self.cryo_state = run_mode.upper()
-        except TypeError:
-            self.cryo_state = "UNKNOWN"
-        return self.cryo_state
+            return self._hw_ctrl.read_run_mode().upper()
+        except (AttributeError, TypeError):
+            return "UNKNOWN"
 
     def get_static_parameters(self):
         return ["oxford", "K", "hour"]
 
     def get_params(self):
-        self.update_params()
-        target = self.ctrl.controller._oxford.statusPacket.target_temp
-        rate = self.ctrl.controller._oxford.statusPacket.ramp_rate
-        phase = self.ctrl.controller._oxford.statusPacket.phase
-        run_mode = self.ctrl.controller._oxford.statusPacket.run_mode
-        self.temp = self.ctrl.controller._oxford.statusPacket.gas_temp
+        run_mode = self._hw_ctrl.read_run_mode()
+        target = self.ctrl.setpoint
+        rate = self.ctrl.ramprate
+        phase = self._hw_ctrl.read_phase()
+        self.temp = self.ctrl.input.read()
         return [target, rate, phase.upper(), run_mode]

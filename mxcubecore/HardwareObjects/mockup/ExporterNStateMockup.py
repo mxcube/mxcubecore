@@ -44,13 +44,15 @@ class ExporterNStateMockup(AbstractNState):
 
     def __init__(self, name):
         AbstractNState.__init__(self, name)
-        self._mock_value = "OUT"
-        self._mock_state= "READY"
+        # self._mock_value = "OUT"
+        # self._mock_state= "READY"
         
     def init(self):
         """Initialise the device"""
         AbstractNState.init(self)
+        value = [e.value for e in self.VALUES][1]
         self.update_state(self.STATES.READY)
+        self.update_value(value)
 
     def _wait_ready(self, timeout=None):
         """Wait timeout seconds till status is ready.
@@ -69,12 +71,12 @@ class ExporterNStateMockup(AbstractNState):
         if not state:
             state = self.get_state()
         else:
-            state = self._str2state(state)
+            state = self._value2state(state)
 
             return self.update_state(state)
 
-    def _str2state(self, state):
-        """Convert string state to HardwareObjectState enum value.
+    def _value2state(self, state):
+        """Convert string state to HardwareObjectState enum value
         Args:
             state (str): the state
         Returns:
@@ -85,12 +87,12 @@ class ExporterNStateMockup(AbstractNState):
         except (AttributeError, KeyError):
             return self.STATES.UNKNOWN
 
-    def get_state(self):
-        """Get the device state.
-        Returns:
-            (enum 'HardwareObjectState'): Device state.
-        """
-        return self._str2state(self._mock_state)
+    # def get_state(self):
+    #     """Get the device state.
+    #     Returns:
+    #         (enum 'HardwareObjectState'): Device state.
+    #     """
+    #     return self._value2state(self._mock_state)
 
     def abort(self):
         """Stop the action."""
@@ -111,7 +113,7 @@ class ExporterNStateMockup(AbstractNState):
             else:
                 value = value.value
 
-        self._mock_value = value
+        self._nominal_value = value
         self.update_state(self.STATES.READY)
 
     def get_value(self):
@@ -119,5 +121,5 @@ class ExporterNStateMockup(AbstractNState):
         Returns:
             (Enum): Enum member, corresponding to the value or UNKNOWN.
         """
-        _val = self._mock_value
-        return self.value_to_enum(_val)
+        #_val = self._mock_value
+        return self.value_to_enum(self._nominal_value)
