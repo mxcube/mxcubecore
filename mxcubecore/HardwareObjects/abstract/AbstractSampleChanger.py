@@ -127,7 +127,7 @@ How to implement derived SC Classes
 import abc
 import logging
 import time
-import types
+# import types
 import gevent
 
 
@@ -546,7 +546,7 @@ class SampleChanger(Container, Equipment):
             (Object): Value returned by _execute_task either a Task or result of the
                       operation
         """
-        if isinstance(component, types.ListType):
+        if isinstance(component, list):
             for c in component:
                 self._scan_one(c, recursive)
         else:
