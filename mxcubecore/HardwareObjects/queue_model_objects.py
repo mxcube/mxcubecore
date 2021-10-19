@@ -469,6 +469,7 @@ class Sample(TaskNode):
         self.lims_container_location = p.get("containerSampleChangerLocation", -1)
         self.free_pin_mode = p.get("freePinMode", False)
         self.loc_str = p.get("locStr", "")
+        self.diffraction_plan =  p.get("diffractionPlan")
 
         self.crystals[0].space_group = (
             p.get("spaceGroup") or p.get("crystalSpaceGroup", "")
@@ -1868,6 +1869,10 @@ class GphlWorkflow(TaskNode):
         self.shape = str()
         # string. Only active mode currently is 'MASSIF1'
         self.automation_mode = None
+        # Automation mode charancterisation parameters. Replace UI queried values
+        self.auto_char_params = {}
+        # Automation mode acquisition parameters. Replace UI queried values
+        self.auto_acq_params = {}
         # Full path of characterisation data directory, if pre-acquired
         # self.characterisation_directory = None
 
@@ -1900,8 +1905,6 @@ class GphlWorkflow(TaskNode):
         # Centring handling and MXCuBE-side flow
         self.recentring_mode = "sweep"
         self.current_rotation_id = None
-        # HACK - to differentiate between characterisation and acquisition
-        # TODO remove when workflow gives relevant information
         self.characterisation_done = False
         # Dose budget handling
         self.maximum_dose_budget = 20.0
@@ -1914,7 +1917,7 @@ class GphlWorkflow(TaskNode):
 
         self.set_requires_centring(False)
 
-        self.set_from_dict(workflow_hwobj.get_settings()["defaults"])
+        self.set_from_dict(workflow_hwobj.settings["defaults"])
 
     def set_from_dict(self, params_dict):
         for dict_item in params_dict.items():
@@ -1925,10 +1928,12 @@ class GphlWorkflow(TaskNode):
             self,
             point_group="",
             bravais_lattice="",
+            crystal_system="",
             space_group=None,
             cell_parameters=(),
             resolution=None,
             energies=(),
+            relative_rad_sensitivity=None,
             strategy_options=None,
             **unused):
         """"""
@@ -1956,7 +1961,8 @@ class GphlWorkflow(TaskNode):
 
         workflow_parameters = self.get_workflow_parameters()
 
-        settings = HWR.beamline.gphl_workflow.get_settings()
+        # NB this is an internal dictionary. DO NOT MODIFY
+        settings = HWR.beamline.gphl_workflow.settings
         energy_tags = workflow_parameters.get(
             "beam_energy_tags", (settings["default_beam_energy_tag"],)
         )
@@ -2044,7 +2050,14 @@ class GphlWorkflow(TaskNode):
 
         automation_mode = params.get("automation_mode")
         if automation_mode:
+            # Set automation defaults and parameters
             self.automation_mode = automation_mode
+            # NB settings is an internal attribute DO NOT MODIFY
+            settings = HWR.beamline.gphl_workflow.settings
+            self.auto_char_params = copy.deepcopy(settings.get("auto_char_params", {}))
+            self.auto_char_params.update(params.pop("auto_char_params", {}))
+            self.auto_acq_params = copy.deepcopy(settings.get("auto_acq_params", {}))
+            self.auto_acq_params.update(params.pop("auto_acq_params", {}))
 
         # Set path template
         self.path_template.set_from_dict(params)
@@ -2089,7 +2102,7 @@ class GphlWorkflow(TaskNode):
 
         # First set some parameters from defaults
         default_parameters = HWR.beamline.get_default_acquisition_parameters()
-        self.resolution = default_parameters.resolution
+        self.aimed_resolution = default_parameters.resolution
         self.exposure_time = default_parameters.exp_time
         self.image_width = default_parameters.osc_range
 
