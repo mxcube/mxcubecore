@@ -18,14 +18,14 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import time
-import logging
-import weakref
+# import time
+# import logging
+# import weakref
 
-try:
-    import Queue as queue
-except ImportError:
-    import queue
+# try:
+#     import Queue as queue
+# except ImportError:
+#     import queue
 
 
 from mxcubecore.CommandContainer import CommandObject, ChannelObject
@@ -37,7 +37,7 @@ __license__ = "LGPLv3+"
 
 class MockupCommand(CommandObject):
     def __init__(self, name, command_name, list_args=None, timeout=1000, **kwargs):
-        CommandObject.__init__(self, name, username, **kwargs)
+        CommandObject.__init__(self, name, **kwargs)
 
         self.command_name = command_name
         self.result = None
@@ -70,4 +70,5 @@ class MockupChannel(ChannelObject):
         self.emit("update", self.value)
 
     def is_connected(self):
+        # FIXME linkid is not defined for this class but only for Tine
         return self.linkid > 0

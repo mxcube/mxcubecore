@@ -20,6 +20,7 @@
 TangoMotor class defines motor in the Tango control system (used and tested in DESY/P11
 """
 
+# mxcube_logging not found
 from mxcubecore.utils.mxcube_logging import log
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
@@ -135,7 +136,7 @@ class TangoMotor(AbstractMotor):
         return state
 
     def motor_state_changed(self, state=None):
-        if state == None:
+        if state is None:
             state = self.chan_state.getValue()
 
         self.update_state( self.motstate_to_state(state) )

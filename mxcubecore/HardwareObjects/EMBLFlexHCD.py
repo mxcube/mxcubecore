@@ -2,7 +2,6 @@ import base64
 import pickle
 import gevent
 import logging
-import time
 import ast
 
 from mxcubecore.TaskUtils import task
@@ -653,7 +652,7 @@ class EMBLFlexHCD(SampleChanger):
         )
 
         cell = sample_cell
-        puck = sample_puck
+        # puck = sample_puck
 
         for c in self.get_components():
             i = c.get_index()

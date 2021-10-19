@@ -163,6 +163,8 @@ class ChannelObject(object):
                     cmdobj(value)
 
     def get_value(self, force=False):
+        # NBNB INCONSISTENT. funcxtion signature matches only
+        # Tine and Mockup, but is inconsistent with other subclasses
         raise NotImplementedError
 
 

@@ -39,14 +39,13 @@ import logging
 import gevent
 
 from mxcubecore.TaskUtils import task
-from mxcubecore.CommandContainer import (CommandObject, TWO_STATE_COMMAND_T)
+from mxcubecore.CommandContainer import (
+    CommandObject, PROCEDURE_COMMAND_T, TWO_STATE_COMMAND_T
+)
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
-
-PROCEDURE_COMMAND_T = "CONTROLLER"
-TWO_STATE_COMMAND_T = "INOUT"
 
 ARGUMENT_TYPE_LIST = "List"
 ARGUMENT_TYPE_JSON_SCHEMA = "JSONSchema"

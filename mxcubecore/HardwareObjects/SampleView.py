@@ -88,7 +88,7 @@ class SampleView(AbstractSampleView):
     def save_snapshot(self, path, overlay=True, bw=False):
         """ Save a snapshot to file.
         Args:
-            filename (str): The filename.
+            path (str): The filename.
             overlay(bool): Display shapes and other items on the snapshot
             bw(bool): return grayscale image
         """
@@ -347,6 +347,7 @@ class SampleView(AbstractSampleView):
         Args:
             cpos (CenteredPosition): CenteredPosition of shape
         """
+        # Signature incompatible with AbstractSampleView
         pass
 
 

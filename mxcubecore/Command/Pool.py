@@ -60,6 +60,7 @@ class BoundMethodWeakref:
         return id(self)
 
     def __cmp__(self, other):
+        # NBNB 'cmp' and __cmp__ is Python 2 ony
         if other.__class__ == self.__class__:
             return cmp((self.func_ref, self.obj_ref), (other.func_ref, other.obj_ref))
         else:

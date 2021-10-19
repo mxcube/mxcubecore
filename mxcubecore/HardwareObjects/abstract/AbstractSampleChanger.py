@@ -213,10 +213,10 @@ class SampleChanger(Container, Equipment):
     TASK_FINISHED_EVENT = "taskFinished"
     CONTENTS_UPDATED_EVENT = "contentsUpdated"
 
-    def __init__(self, type, scannable, *args, **kwargs):
-        super(SampleChanger, self).__init__(type, None, type, scannable)
+    def __init__(self, type_, scannable, *args, **kwargs):
+        super(SampleChanger, self).__init__(type_, None, type, scannable)
         if len(args) == 0:
-            args = (type,)
+            args = (type_,)
         Equipment.__init__(self, *args, **kwargs)
         self.state = -1
         self.status = ""

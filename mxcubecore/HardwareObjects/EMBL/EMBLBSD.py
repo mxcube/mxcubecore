@@ -124,7 +124,7 @@ class EMBLBSD(GenericDiffractometer):
         """No need to implement"""
         return
 
-    def get_centred_point_from_coord(self):
+    def get_centred_point_from_coord(self, x, y, return_by_names=None):
         """No need to implement"""
         return
 

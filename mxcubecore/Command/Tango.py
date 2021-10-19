@@ -204,7 +204,7 @@ class TangoChannel(ChannelObject):
         # self.init_poller.stop()
 
         if isinstance(self.polling, int):
-            self.raw_device = DeviceProxy(self.deviceName)
+            self.raw_device = DeviceProxy(self.device_name)
 
             Poller.poll(
                 self.poll,

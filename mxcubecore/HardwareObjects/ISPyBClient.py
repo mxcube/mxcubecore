@@ -1073,7 +1073,7 @@ class ISPyBClient(HardwareObject):
     def update_bl_sample(self, bl_sample):
         """
         Creates or stos a BLSample entry.
-
+        # NBNB update doc string
         :param sample_dict: A dictonary with the properties for the entry.
         :type sample_dict: dict
         """

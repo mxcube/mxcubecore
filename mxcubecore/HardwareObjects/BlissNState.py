@@ -108,6 +108,7 @@ class BlissNState(AbstractNState):
                 svalue = value.value
         else:
             self.__saved_state = value.upper()
+        # are we sure we never get to need svalue below without setting it first?
         if self.device_type == "motor":
             self._bliss_obj.move(svalue, wait=False)
         elif self.device_type == "actuator":

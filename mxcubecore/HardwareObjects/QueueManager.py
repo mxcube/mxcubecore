@@ -54,7 +54,9 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         :returns: None
         :rtype: NoneType
         """
-        QueueEntryContainer.enqueue(self, queue_entry)
+
+        queue_entry.set_queue_controller(self)
+        super(QueueManager, self).enqueue(queue_entry)
 
     def execute(self):
         """
@@ -167,7 +169,6 @@ class QueueManager(HardwareObject, QueueEntryContainer):
 
         self.wait_for_pause_event()
 
-        failed = False
         try:
             # Procedure to be done before main implmentation
             # of task.

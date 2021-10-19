@@ -1161,7 +1161,7 @@ class GenericDiffractometer(HardwareObject):
         """
         return copy.deepcopy(self.centring_status)
 
-    def get_centred_point_from_coord(self):
+    def get_centred_point_from_coord(self, x, y, return_by_names=None):
         """
         """
         raise NotImplementedError
