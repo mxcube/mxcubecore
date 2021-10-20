@@ -8,7 +8,8 @@ from mxcubecore.HardwareObjects.queue_model_objects import PathTemplate
 from mxcubecore.utils.conversion import string_types
 from mxcubecore import HardwareRepository as HWR
 
-from ESRF.ESRFMetadataManagerClient import MXCuBEMetadataClient
+from mxcubecore.HardwareObjects.ESRF.ESRFMetadataManagerClient import MXCuBEMetadataClient
+# NBNB nicoproc is not found
 from mxcubecore.utils import nicoproc
 
 try:
@@ -105,9 +106,10 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True,))
 
-    @task
-    def take_crystal_snapshots(self, number_of_snapshots):
-        HWR.beamline.diffractometer.take_snapshots(number_of_snapshots, wait=True)
+    # Moved to AbstractMultiCollect, as it was called there
+    # @task
+    # def take_crystal_snapshots(self, number_of_snapshots):
+    #     HWR.beamline.diffractometer.take_snapshots(number_of_snapshots, wait=True)
 
     @task
     def data_collection_hook(self, data_collect_parameters):
@@ -358,15 +360,15 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         )
         self.raw_hkl2000_dir = os.path.join(files_directory, "process", hkl2000_dirname)
 
-        for dir in (
+        for dir0 in (
             self.raw_data_input_file_dir,
             self.mosflm_raw_data_input_file_dir,
             self.raw_hkl2000_dir,
             autoprocessing_directory,
         ):
             self.create_directories(dir)
-            logging.info("Creating processing input file directory: %s", dir)
-            os.chmod(dir, 0o777)
+            logging.info("Creating processing input file directory: %s", dir0)
+            os.chmod(dir0, 0o777)
 
         try:
             try:

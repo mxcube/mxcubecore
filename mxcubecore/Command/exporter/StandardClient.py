@@ -270,7 +270,7 @@ class StandardClient:
                             # Syntax not allowed in Python 2
                             # raise ProtocolError from e
                             raise ProtocolError(
-                                "UnicodeDecodeError: %s" % sys.exc_info()
+                                "UnicodeDecodeError: %s" % (sys.exc_info(),)
                             )
                         self.on_message_received(buffer_utf8)
                         mReceivedSTX = False

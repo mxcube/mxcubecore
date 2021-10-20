@@ -11,6 +11,9 @@ import gevent
 from mxcubecore.TaskUtils import task, cleanup, error_cleanup
 
 from mxcubecore import HardwareRepository as HWR
+# NBNB nicoproc is not found
+from mxcubecore.utils import nicoproc
+
 
 BeamlineControl = collections.namedtuple(
     "BeamlineControl",
@@ -228,6 +231,11 @@ class AbstractMultiCollect(object):
     @task
     def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
         pass
+
+    @task
+    def take_crystal_snapshots(self, number_of_snapshots):
+        HWR.beamline.diffractometer.take_snapshots(number_of_snapshots, wait=True)
+
 
     def get_sample_info_from_parameters(self, parameters):
         """Returns sample_id, sample_location and sample_code from data collection parameters"""

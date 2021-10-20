@@ -51,6 +51,16 @@ from mxcubecore.BaseHardwareObjects import HardwareObject
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
+class BaseBeamlineAction(CommandObject):
+    """Base command class"""
+
+    def __init__(self, name):
+        super(BaseBeamlineAction, self).__init__(name)
+
+        # From CommandObject consider removing
+        self._arguments = []
+        self._combo_arguments_items = {}
+
 
 class ControllerCommand(CommandObject):
     """Execute commands class"""

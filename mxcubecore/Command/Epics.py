@@ -29,7 +29,7 @@ except ImportError:
 
 from mxcubecore import Poller
 from mxcubecore.dispatcher import saferef
-from CommandContainer import CommandObject, ChannelObject
+from mxcubecore.CommandContainer import CommandObject, ChannelObject
 
 
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """

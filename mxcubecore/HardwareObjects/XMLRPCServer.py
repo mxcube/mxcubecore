@@ -365,6 +365,7 @@ class XMLRPCServer(HardwareObject):
             result = {}
 
             for result in result_data.items():
+                # int_based_result is not defined
                 int_based_result[int(result[0])] = result[1]
         else:
             result = result_data

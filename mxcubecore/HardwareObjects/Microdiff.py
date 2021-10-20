@@ -557,7 +557,6 @@ class Microdiff(MiniDiff.MiniDiff):
                 "setPlateVertical",
             )
             low_lim, high_lim = self.phiMotor.get_dynamic_limits()
-            phi_range = math.fabs(high_lim - low_lim - 1)
             self.current_centring_procedure = sample_centring.start_plate_1_click(
                 {
                     "phi": self.centringPhi,

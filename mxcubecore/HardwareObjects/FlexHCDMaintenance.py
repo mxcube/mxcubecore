@@ -108,7 +108,6 @@ class FlexHCDMaintenance(Equipment):
         """
         """
         state = self._sc._read_state()
-        ready = self._sc._is_device_busy()
         running = state in ("RUNNING",)
 
         state_dict = {"running": running, "state": state}
@@ -174,7 +173,6 @@ class FlexHCDMaintenance(Equipment):
         return cmd_list
 
     def send_command(self, cmd_name, args=None):
-        tool = self.get_current_tool()
 
         if cmd_name in ["home"]:
             self._do_home()
@@ -182,11 +180,11 @@ class FlexHCDMaintenance(Equipment):
             self._do_defreeze_gripper()
         if cmd_name in ["reset_sample_number"]:
             self._do_reset_sample_number()
-        if cmdname == "change_gripper":
+        if cmd_name == "change_gripper":
             self._do_change_gripper(int(args))
-        if cmdname == "trash":
+        if cmd_name == "trash":
             self._do_trash()
-        if cmdname == "abort":
+        if cmd_name == "abort":
             self._do_abort()
 
         return True

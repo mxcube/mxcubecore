@@ -29,7 +29,7 @@ Example xml file:
 </device>
 """
 from enum import Enum
-from gevent import Timeout, sleep
+from gevent import sleep
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 from mxcubecore.Command.Exporter import Exporter
 from mxcubecore.Command.exporter.ExporterStates import ExporterStates

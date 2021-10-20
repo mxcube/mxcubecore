@@ -116,6 +116,7 @@ class SardanaObject(object):
 
     def object_listener(self, *args):
         ev = AttributeEvent(args)
+        # NBNB self.update not defined
         SardanaObject._eventReceivers[id(ev)] = saferef.safe_ref(self.update)
         SardanaObject._eventsQueue.put(ev)
         SardanaObject._eventsProcessingTimer.send()
