@@ -106,7 +106,6 @@ class _Poller:
     def stop(self):
         self.stop_event.set()
         del POLLERS[self.get_id()]
-        self.run_task.kill()
 
     def is_stopped(self):
         return self.stop_event.is_set()
