@@ -19,10 +19,14 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import Queue
 import weakref
 import qt
-# import types
+
+try:
+    import Queue as queue
+except ImportError:
+    import queue
+
 
 from mxcubecore.CommandContainer import (
     CommandObject,
@@ -56,6 +60,7 @@ class BoundMethodWeakref:
         return id(self)
 
     def __cmp__(self, other):
+        # NBNB 'cmp' and __cmp__ is Python 2 ony
         if other.__class__ == self.__class__:
             return cmp((self.func_ref, self.obj_ref), (other.func_ref, other.obj_ref))
         else:
@@ -126,7 +131,7 @@ def process_tango_events():
     while not PoolChannel._tangoEventsQueue.empty():
         try:
             event = PoolChannel._tangoEventsQueue.get_nowait()
-        except Queue.Empty:
+        except queue.Empty:
             break
         else:
             try:
@@ -142,7 +147,7 @@ def process_tango_events():
 
 
 class PoolChannel(ChannelObject):
-    _tangoEventsQueue = Queue.Queue()
+    _tangoEventsQueue = queue.Queue()
     _eventReceivers = {}
     _tangoEventsProcessingTimer = qt.QTimer()
 

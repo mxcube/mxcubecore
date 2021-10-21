@@ -45,6 +45,8 @@ class SampleView(AbstractSampleView):
         self._zoom = self.get_object_by_role("zoom")
         self._frontlight = self.get_object_by_role("frontlight")
         self._backlight = self.get_object_by_role("backlight")
+        self._diffractometer = self.get_object_by_role("diffractometer")
+
         self._ui_snapshot_cb = None
 
         self.hide_grid_threshold = self.get_property("hide_grid_threshold", 5)
@@ -86,7 +88,7 @@ class SampleView(AbstractSampleView):
     def save_snapshot(self, path, overlay=True, bw=False):
         """ Save a snapshot to file.
         Args:
-            filename (str): The filename.
+            path (str): The filename.
             overlay(bool): Display shapes and other items on the snapshot
             bw(bool): return grayscale image
         """
@@ -345,6 +347,7 @@ class SampleView(AbstractSampleView):
         Args:
             cpos (CenteredPosition): CenteredPosition of shape
         """
+        # Signature incompatible with AbstractSampleView
         pass
 
 

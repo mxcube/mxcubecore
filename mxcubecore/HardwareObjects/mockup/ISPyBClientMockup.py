@@ -77,7 +77,7 @@ class ISPyBClientMockup(HardwareObject):
                     "startDate": "2013-06-11 00:00:00",
                     "endDate": "2023-06-12 07:59:59",
                     "beamlineName": self.beamline_name,
-                    "timeStamp": datetime.datetime(2013, 6, 11, 9, 40, 36),
+                    "timeStamp": "2013-06-11 09:40:36",
                     "comments": "Session created by the BCM",
                     "sessionId": 34591,
                     "proposalId": 1,
@@ -117,7 +117,7 @@ class ISPyBClientMockup(HardwareObject):
         new_session = False
         if psd == "nosession":
             new_session = True
-        prop = self.get_proposal(loginID, "")
+        prop = self.get_proposal(loginID, 9999)
         return {
             "status": {"code": "ok", "msg": "Successful login"},
             "Proposal": prop["Proposal"],
@@ -219,7 +219,7 @@ class ISPyBClientMockup(HardwareObject):
         :param proposal_code: The proposal code
         :type proposal_code: str
         :param proposal_number: The proposal number
-        :type propsoal_number: int
+        :type proposal_number: int
 
         :returns: The dict (Proposal, Person, Laboratory, Sessions, Status).
         :rtype: dict
@@ -325,6 +325,7 @@ class ISPyBClientMockup(HardwareObject):
 
         :param sample_dict: A dictonary with the properties for the entry.
         :type sample_dict: dict
+        # NBNB update doc string
         """
         pass
 
@@ -347,10 +348,8 @@ class ISPyBClientMockup(HardwareObject):
         The sample_ref object is defined in the head of the file.
 
         :param sample_ref_list: The list of sample_refs to search.
-        :type sample_ref: list
 
         :param code: The vial datamatrix code (or bar code)
-        :param type: str
 
         :param location: A tuple (<basket>, <vial>) to search for.
         :type location: tuple

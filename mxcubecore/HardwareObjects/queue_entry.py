@@ -732,6 +732,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     )
                     HWR.beamline.collect.set_helical(False)
                     HWR.beamline.collect.set_mesh(True)
+                    # inc_used_for_collection does nothing
                     HWR.beamline.sample_view.inc_used_for_collection(
                         self.get_data_model().shape
                     )
@@ -760,6 +761,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                         snapshot
                     )
 
+                # inc_used_for_collection does nothing
                 HWR.beamline.sample_view.inc_used_for_collection(cpos)
                 param_list = queue_model_objects.to_collect_dict(
                     dc,

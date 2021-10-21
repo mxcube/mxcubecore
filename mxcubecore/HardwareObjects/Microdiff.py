@@ -207,6 +207,13 @@ class Microdiff(MiniDiff.MiniDiff):
         self.wait_ready = self._wait_ready
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(None)
 
+        self.readPhase.connect_signal("update", self._update_value)
+
+    def _update_value(self, value=None):
+        if value is None:
+            value =  self.get_current_phase()
+        self.emit("valueChanged", (value))
+
     def getMotorToExporterNames(self):
         MOTOR_TO_EXPORTER_NAME = {
             "focus": self.focusMotor.get_property("actuator_name"),
@@ -250,7 +257,8 @@ class Microdiff(MiniDiff.MiniDiff):
         # None means infinite timeout
         # <=0 means default timeout
         if timeout is not None and timeout <= 0:
-            timeout = self.timeout
+            logging.getLogger("HWR").warning("DEBUG: Strange timeout value passed %s" % str(timeout))
+            timeout = 30
         with gevent.Timeout(
             timeout, RuntimeError("Timeout waiting for diffractometer to be ready")
         ):
@@ -259,7 +267,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def open_detector_cover(self):
         try:
-            detcover = self.getObjectByRole("controller").detcover
+            detcover = self.get_object_by_role("controller").detcover
 
             if detcover.state == "IN":
                 detcover.set_out(10)
@@ -268,12 +276,32 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def close_detector_cover(self):
         try:
-            detcover = self.getObjectByRole("controller").detcover
+            detcover = self.get_object_by_role("controller").detcover
 
             if detcover.state == "OUT":
                 detcover.set_in(10)
         except:
             logging.getLogger("HWR").exception("")
+
+    def phase_prepare(self, phase):
+        if phase == "Centring":
+            try:
+                diffr = self.get_object_by_role("controller").diffractometer
+                diffr.prepare("centre")
+            except:
+                logging.getLogger("HWR").exception("Cannot prepare centring")
+
+    def set_light_in(self):
+        logging.getLogger("HWR").info("Moving backlight in")
+        venum = self.get_object_by_role("BackLightSwitch").VALUES
+        self.get_object_by_role("BackLightSwitch").handle_beamstop(venum.IN)
+        self.wait_ready()
+
+    def set_light_out(self):
+        logging.getLogger("HWR").info("Moving backlight out")
+        venum = self.get_object_by_role("BackLightSwitch").VALUES
+        self.get_object_by_role("BackLightSwitch").handle_beamstop(venum.OUT)
+        self.wait_ready()
 
     def set_phase(self, phase, wait=False, timeout=None):
         if self._ready():
@@ -281,6 +309,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
                 if phase in ["BeamLocation", "Transfer", "Centring"]:
                     self.close_detector_cover()
+                    self.phase_prepare(phase)
 
                 self.movePhase(phase)
                 if wait:
@@ -288,7 +317,7 @@ class Microdiff(MiniDiff.MiniDiff):
                         timeout = 40
                     self._wait_ready(timeout)
         else:
-            print("moveToPhase - Ready is: ", self._ready())
+            logging.getLogger("HWR").exception("")
 
     def get_current_phase(self):
         return self.readPhase.get_value()
@@ -343,7 +372,7 @@ class Microdiff(MiniDiff.MiniDiff):
         print("oscil scan started at ----------->", time.time())
         if wait:
             self._wait_ready(
-                600
+                20 * 60
             )  # timeout of 10 min # Changed on 20180406 Daniele, because of long exposure time set by users
             print("finished at ---------->", time.time())
 
@@ -379,7 +408,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
         print("helical scan started at ----------->", time.time())
         if wait:
-            self._wait_ready(900)  # timeout of 15 min
+            self._wait_ready(20 * 60)  # timeout of 15 min
             print("finished at ---------->", time.time())
 
     def oscilScanMesh(
@@ -528,7 +557,6 @@ class Microdiff(MiniDiff.MiniDiff):
                 "setPlateVertical",
             )
             low_lim, high_lim = self.phiMotor.get_dynamic_limits()
-            phi_range = math.fabs(high_lim - low_lim - 1)
             self.current_centring_procedure = sample_centring.start_plate_1_click(
                 {
                     "phi": self.centringPhi,
@@ -590,15 +618,6 @@ class Microdiff(MiniDiff.MiniDiff):
             self.beam_position_horizontal.get_value(),
             self.beam_position_vertical.get_value(),
         )
-
-
-def set_light_in(light, light_motor, zoom):
-    self.frontlight.set_value(0)
-    MICRODIFF.get_object_by_role("BackLightSwitch").actuatorIn()
-
-
-MiniDiff.set_light_in = set_light_in
-
 
 def to_float(d):
     for k, v in d.items():

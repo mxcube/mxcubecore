@@ -11,6 +11,9 @@ import gevent
 from mxcubecore.TaskUtils import task, cleanup, error_cleanup
 
 from mxcubecore import HardwareRepository as HWR
+# NBNB nicoproc is not found
+from mxcubecore.utils import nicoproc
+
 
 BeamlineControl = collections.namedtuple(
     "BeamlineControl",
@@ -228,6 +231,11 @@ class AbstractMultiCollect(object):
     @task
     def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
         pass
+
+    @task
+    def take_crystal_snapshots(self, number_of_snapshots):
+        HWR.beamline.diffractometer.take_snapshots(number_of_snapshots, wait=True)
+
 
     def get_sample_info_from_parameters(self, parameters):
         """Returns sample_id, sample_location and sample_code from data collection parameters"""
@@ -702,20 +710,20 @@ class AbstractMultiCollect(object):
         # self.set_detector_mode(data_collect_parameters["detector_mode"])
 
         with cleanup(self.data_collection_cleanup):
-            if not self.safety_shutter_opened():
-                logging.getLogger("user_level_log").info("Opening safety shutter")
-                self.open_safety_shutter()
+            #if not self.safety_shutter_opened():
+            self.open_safety_shutter()
 
-            flux_threshold = self.get_property("flux_threshold", False)
-            cryo_threshold = self.get_property("cryo_threshold", False)
+            flux_threshold = self.get_property("flux_threshold", 0)
+            cryo_threshold = self.get_property("cryo_threshold", 0)
 
-            # Wait for flux
-            while flux_threshold and HWR.beamline.flux.get_value() < flux_threshold:
-                logging.getLogger("user_level_log").info("Waiting for beam ...")
-                gevent.sleep(0.5)
+            check_flux = self.get_property("check_flux", False)
+            check_cryo = self.get_property("check_cryo", False)
+
+            if check_flux:
+                HWR.beamline.flux.wait_for_beam()
 
             # Wait for cryo
-            while cryo_threshold and HWR.beamline.diffractometer.cryostream.get_value() > cryo_threshold:
+            while check_cryo and HWR.beamline.diffractometer.cryostream.get_value() > cryo_threshold:
                 logging.getLogger("user_level_log").info("Cryo temperature too high ...")
                 gevent.sleep(0.5)
 
@@ -784,6 +792,11 @@ class AbstractMultiCollect(object):
                     logging.getLogger("HWR").exception(
                         "Could not store data collection into LIMS"
                     )
+
+            if nicoproc.USE_NICOPROC:
+                print("AbstractMULTI_NICO")
+                print(data_collect_parameters)
+                nicoproc.start(data_collect_parameters, file_parameters)
 
             if HWR.beamline.lims and self.bl_config.input_files_server:
                 logging.getLogger("user_level_log").info(
@@ -975,7 +988,7 @@ class AbstractMultiCollect(object):
             # Bug fix for MD2/3(UP): diffractometer still has things to do even after the last frame is taken (decelerate motors and
             # possibly download diagnostics) so we cannot trigger the cleanup (that will send an abort on the diffractometer) as soon as
             # the last frame is counted
-            self.diffractometer().wait_ready(60)
+            self.diffractometer().wait_ready(1000)
 
         # data collection done
         self.data_collection_end_hook(data_collect_parameters)
@@ -1090,12 +1103,13 @@ class AbstractMultiCollect(object):
                         ),
                     )
 
-            try:
-                self.__safety_shutter_close_task = gevent.spawn_later(
-                    10 * 60, self.close_safety_shutter, timeout=10
-                )
-            except Exception:
-                logging.exception("Could not close safety shutter")
+            if self.get_property("close_safety_shutter_if_idle", False):
+                try:
+                    self.__safety_shutter_close_task = gevent.spawn_later(
+                        10 * 60, self.close_safety_shutter, timeout=10
+                    )
+                except Exception:
+                    logging.exception("Could not close safety shutter")
         finally:
             self.emit(
                 "collectEnded",
@@ -1171,7 +1185,7 @@ class AbstractMultiCollect(object):
 
     def stop_collect(self, owner=None):
         if self.data_collect_task is not None:
-            self.data_collect_task.kill(block=False)
+            self.data_collect_task.kill(block=True, timeout=120)
 
         self.data_collection_cleanup()
 

@@ -19,16 +19,13 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
-bliss implementation of AbstartNState.
-object_name is the name of the object, as defined in bliss.
-Implemented types are 'motor' or 'actuator'. Default type is 'actuator'.
+bliss implementation of AbstartNState
 Example xml file:
 <device class="BlissNState">
   <username>Detector Cover</username>
   <object_name>detcover</>
   <object href="/bliss" role="controller"/>
   <values>{"IN": "IN", "OUT": "OUT"}</values>
-  <type>motor</type>
 </device>
 """
 from enum import Enum
@@ -48,17 +45,16 @@ class BlissNState(AbstractNState):
     SPECIFIC_STATES = MotorStates
 
     def __init__(self, name):
-        super().__init__(name)
+        AbstractNState.__init__(self, name)
         self._bliss_obj = None
         self.device_type = None
         self.__saved_state = None
         self._prefix = None
-        self._multiple_axis_type = None
 
     def init(self):
         """Initialise the device"""
 
-        super().init()
+        AbstractNState.init(self)
         _name = self.get_property("object_name")
         self._prefix = self.get_property("prefix")
         self._bliss_obj = getattr(self.get_object_by_role("controller"), _name)
@@ -79,7 +75,6 @@ class BlissNState(AbstractNState):
         self.update_state()
 
     def _update_state(self, state):
-        """Actuator only."""
         self.update_state(self.STATES.READY)
 
     def get_value(self):
@@ -96,7 +91,7 @@ class BlissNState(AbstractNState):
                 _val = _cmd()
             else:
                 _val = self._bliss_obj.state
-
+        # print(f"get_value:  {self.value_to_enum(_val)}, {_val}")
         return self.value_to_enum(_val)
 
     def _set_value(self, value):
@@ -113,13 +108,9 @@ class BlissNState(AbstractNState):
                 svalue = value.value
         else:
             self.__saved_state = value.upper()
+        # are we sure we never get to need svalue below without setting it first?
         if self.device_type == "motor":
-            if self._multiple_axis_type:
-                # multiple positions motor
-                self._bliss_obj.move(value, wait=False)
-            else:
-                # simple axis motor
-                self._bliss_obj.move(svalue, wait=False)
+            self._bliss_obj.move(svalue, wait=False)
         elif self.device_type == "actuator":
             if self._prefix:
                 _attr = self._prefix + "_" + value.name.lower()
@@ -163,16 +154,13 @@ class BlissNState(AbstractNState):
             (Enum): "ValueEnum" with predefined values.
         """
         if self.device_type == "actuator":
-            super().initialise_values()
+            super(BlissNState, self).initialise_values()
         if self.device_type == "motor":
             try:
-                # multiple positions motor
                 values = {val.upper(): val for val in self._bliss_obj.positions_list}
                 self.VALUES = Enum(
                     "ValueEnum",
                     dict(values, **{item.name: item.value for item in BaseValueEnum}),
                 )
-                self._multiple_axis_type = True
             except AttributeError:
-                # simple axis motor
                 super().initialise_values()

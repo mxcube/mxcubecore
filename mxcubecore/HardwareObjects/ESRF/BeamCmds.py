@@ -39,11 +39,28 @@ import logging
 import gevent
 
 from mxcubecore.TaskUtils import task
-from mxcubecore.CommandContainer import (CommandObject, TWO_STATE_COMMAND_T)
+from mxcubecore.CommandContainer import (
+    CommandObject,
+    TWO_STATE_COMMAND_T,
+    PROCEDURE_COMMAND_T,
+    ARGUMENT_TYPE_JSON_SCHEMA,
+    ARGUMENT_TYPE_LIST
+)
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
+
+class BaseBeamlineAction(CommandObject):
+    """Base command class"""
+
+    def __init__(self, name):
+        super(BaseBeamlineAction, self).__init__(name)
+
+        # From CommandObject consider removing
+        self._arguments = []
+        self._combo_arguments_items = {}
+
 
 class ControllerCommand(CommandObject):
     """Execute commands class"""
@@ -59,10 +76,6 @@ class ControllerCommand(CommandObject):
     def is_connected(self):
         """Dummy method"""
         return True
-
-    def get_arguments(self):
-        """Get the command object arguments"""
-        return CommandObject.get_arguments(self)
 
     @task
     def __call__(self, *args, **kwargs):
@@ -130,6 +143,7 @@ class HWObjActuatorCommand(CommandObject):
         super().__init__(name)
         self._hwobj = hwobj
         self.type = TWO_STATE_COMMAND_T
+        self.argument_type = ARGUMENT_TYPE_LIST
         self._hwobj.connect("valueChanged", self._cmd_done)
 
     def _get_action(self):
@@ -140,7 +154,7 @@ class HWObjActuatorCommand(CommandObject):
         values = [v.name for v in self._hwobj.VALUES]
         values.remove("UNKNOWN")
         values.remove(self._hwobj.get_value().name)
-        
+
         return self._hwobj.VALUES[values[0]]
 
     @task

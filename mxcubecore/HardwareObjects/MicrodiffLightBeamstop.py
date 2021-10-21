@@ -1,6 +1,6 @@
 """
-Combine setting the back light IN with moving the beamstop out.
-This is used to set the back light in/out faster, than using
+Combine setting the back light IN with moving the beamstop to a safety
+position. This is used to set the back light in/out faster, than using
 the phase CENTRING - the beamstop motor moves only if needed.
 Example xml file:
 <device class="MicrodiffLightBeamstop">
@@ -9,7 +9,8 @@ Example xml file:
   <actuator_name>BackLightIsOn</actuator_name>
   <values>{"IN": True, "OUT": False}</values>
   <use_hwstate>True</use_hwstate>
-  <object role="beamstop" href="/udiff_beamstop"/>
+  <object role="beamstop" href="/udiff_bstopx"/>
+  <safety_position>38</safety_position>
 </device>
 """
 
@@ -23,43 +24,46 @@ class MicrodiffLightBeamstop(ExporterNState):
     """Control backlight, move the beamstop to safety position"""
 
     def __init__(self, name):
-        super().__init__(name)
+        super(MicrodiffLightBeamstop, self).__init__(name)
+        self.safety_position = None
         self._beamstop_obj = None
-        self._saved_beamstop_value = None
+        self._saved_value = None
 
     def init(self):
         """Initialize the light and the beamstop object"""
-        super().init()
+        super(MicrodiffLightBeamstop, self).init()
 
-        # get the beamstop object
+        # for now the beamstop only moves in X directiron.
         self._beamstop_obj = self.get_object_by_role("beamstop")
+        self.safety_position = float(self.get_property("safety_position", 38.0))
 
     def _set_value(self, value):
-        """Set light to value. Move the beamstop, if needed.
+        """Set device to value. Move the beamstop, if needed.
         Args:
             value (enum): Value to be set.
         """
-        if value == self.VALUES.IN:
-            # move the beamstop backwords before setting the back light in
-            if self._beamstop_obj:
-                self.handle_beamstop(value)
-            super()._set_value(value)
+        # move the beamstop backwords before setting the back light in
+        if self._beamstop_obj:
+            self.handle_beamstop(value)
         else:
-            super()._set_value(value)
-            # move the beamstop if needed after getting the light out
-            if self._beamstop_obj:
-                self.handle_beamstop(value)
+            super(MicrodiffLightBeamstop, self)._set_value(value)
 
     def handle_beamstop(self, value):
         """ Move the beamstop as function of the value of the back light.
         Args:
-            (enum): light value.
+            (str): value name
         """
-        if value == self.VALUES.IN:
-            self._saved_beamstop_value = self._beamstop_obj.get_value()
-            # move the beamstop out to avoid collision with the back light
-            self._beamstop_obj.set_value(self._beamstop_obj.VALUES.OUT, timeout=60)
-        else:
-            if self._saved_beamstop_value:
-                self._beamstop_obj.set_value(self._saved_beamstop_value, timeout=60)
-                self._saved_beamstop_value = None
+        if value.name == "IN":
+            _pos = self._beamstop_obj.get_value()
+            # only move if the beamstop is closer than the sefety_position
+            if _pos is self._beamstop_obj.VALUES.IN:
+                self._saved_value = _pos
+                self._beamstop_obj.set_value(self._beamstop_obj.VALUES.OUT, timeout=20)
+
+            super(MicrodiffLightBeamstop, self)._set_value(value)
+
+        elif value.name == "OUT":
+            super(MicrodiffLightBeamstop, self)._set_value(value)
+
+            if self._saved_value:
+                self._beamstop_obj.set_value(self._saved_value, timeout=20)
