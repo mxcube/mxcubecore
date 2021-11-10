@@ -29,7 +29,7 @@ class EPICSActuator(AbstractActuator.AbstractActuator):
 
     def __init__(self, name):
         super(EPICSActuator, self).__init__(name)
-        self.__move_task = None
+        self.__wait_actuator_task = None
         self._nominal_limits = (-1E4, 1E4)
 
     def init(self):
@@ -37,20 +37,10 @@ class EPICSActuator(AbstractActuator.AbstractActuator):
         super(EPICSActuator, self).init()
         self.update_state(self.STATES.READY)
 
-    def _move(self, value):
-        """ Value change routine.
-        Args:
-            value : target actuator value
-
-        Returns:
-            final actuator value (may differ from target value)
-        """
-        self.update_state(self.STATES.BUSY)
+    def _wait_actuator(self):
+        """ Wait actuator to be ready."""
         time.sleep(0.3)
-        current_value = self.get_value()
-        #self.update_value(current_value)
         self.update_state(self.STATES.READY)
-        return current_value
 
     def get_value(self):
         """Override AbstractActuator method."""
@@ -61,15 +51,16 @@ class EPICSActuator(AbstractActuator.AbstractActuator):
         if self.read_only:
             raise ValueError("Attempt to set value for read-only Actuator")
         if self.validate_value(value):
+            self.update_state(self.STATES.BUSY)
             if timeout or timeout is None:
                 with gevent.Timeout(
                     timeout, RuntimeError("Motor %s timed out" % self.username)
                 ):
                     self._set_value(value)
-                    new_value = self._move(value)
+                    new_value = self._wait_actuator(value)
             else:
                 self._set_value(value)
-                self.__move_task = gevent.spawn(self._move, value)
+                self.__wait_actuator_task = gevent.spawn(self._wait_actuator)
         else:
             raise ValueError("Invalid value %s; limits are %s"
                              % (value, self.get_limits())
@@ -77,8 +68,8 @@ class EPICSActuator(AbstractActuator.AbstractActuator):
 
     def abort(self):
         """Imediately halt movement. By default self.stop = self.abort"""
-        if self.__move_task is not None:
-            self.__move_task.kill()
+        if self.__wait_actuator_task is not None:
+            self.__wait_actuator_task.kill()
         self.update_state(self.STATES.READY)
         
     def _set_value(self, value):

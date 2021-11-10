@@ -54,24 +54,18 @@ class EPICSMotor(EPICSActuator, AbstractMotor):
         """ Watch motor current value and update it on the UI."""
         while True:
             time.sleep(0.25)
-            if self.get_state() is self.STATES.BUSY:
-                continue
             self.update_value()
 
-    def _move(self, value):
+    def _wait_actuator(self):
         """Override EPICSActuator method."""
         self.update_specific_state(self.SPECIFIC_STATES.MOVING)
-        self.update_state(self.STATES.BUSY)
         current_value = self.get_value()
 
         while (not self.done_movement()):
             time.sleep(0.25)
-            current_value = self.get_value()
-            self.update_value(current_value)
 
         self.update_specific_state(None)
         self.update_state(self.STATES.READY)
-        return current_value
 
     def abort(self):
         """Override EPICSActuator method."""
@@ -107,3 +101,4 @@ class EPICSMotor(EPICSActuator, AbstractMotor):
         """ Return whether motor finished movement or not."""
         dmov = self.get_channel_value(self.MOTOR_DMOV)
         return bool(dmov)
+
