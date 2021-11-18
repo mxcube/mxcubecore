@@ -1880,6 +1880,7 @@ class GphlWorkflow(TaskNode):
         self.space_group = str()
         self.crystal_system = str()
         self.point_group = None
+        self.bravais_lattice = None
         self._cell_parameters = ()
         self.beamstop_setting = None
         self.wavelengths = ()
@@ -1933,7 +1934,6 @@ class GphlWorkflow(TaskNode):
             cell_parameters=(),
             resolution=None,
             energies=(),
-            relative_rad_sensitivity=None,
             strategy_options=None,
             **unused):
         """"""
@@ -1948,8 +1948,8 @@ class GphlWorkflow(TaskNode):
             self.bravais_lattice = None
         else:
             if point_group:
-                #To avoid cmpatribility problems, reset other parameters
-                # NB Crystal system follows from ont group
+                # To avoid compatibility problems, reset other parameters
+                # NB Crystal system follows from point group
                 self.space_group = None
                 self.point_group = point_group
                 self.bravais_lattice = None

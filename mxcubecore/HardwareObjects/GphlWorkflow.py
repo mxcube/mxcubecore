@@ -92,7 +92,7 @@ class GphlWorkflow(HardwareObjectYaml):
         self.workflows = {}
         self.settings = {}
 
-        # Current data collection group. Different for characterisation and collection
+        # Current data collection task group. Different for characterisation and collection
         self._data_collection_group = None
 
         # event to handle waiting for parameter input
@@ -292,7 +292,6 @@ class GphlWorkflow(HardwareObjectYaml):
                 )
                 break
             elif message_type != "String":
-            # else:
                 logging.getLogger("HWR").info("GPhL queue processing %s", message_type)
                 response = func(payload, correlation_id)
                 if result_list is not None:
@@ -1534,7 +1533,7 @@ class GphlWorkflow(HardwareObjectYaml):
         )
 
     def auto_select_solution(self, choose_lattice):
-        """Select indeing solution automatically"""
+        """Select indexing solution automatically"""
         data_model = self._queue_entry.get_data_model()
         solution_format = choose_lattice.lattice_format
 
@@ -1544,7 +1543,7 @@ class GphlWorkflow(HardwareObjectYaml):
         # First letter must match first letter of BravaisLattice
         crystal_system = choose_lattice.crystalSystem
         if lattices and not crystal_system:
-            # Get rom lattices if not set directly
+            # Get from lattices if not set directly
             aset = set(lattice[0] for lattice in lattices)
             if len(aset) == 1:
                 crystal_system = aset.pop()
@@ -1563,7 +1562,7 @@ class GphlWorkflow(HardwareObjectYaml):
         useline = lattice_fit or system_fit or starred
         if useline:
             logging.getLogger("user_level_log").info(
-                "Selected indexing solution", useline
+                "Selected indexing solution: %s" % useline
             )
             solution = useline.split()
             if solution[0] == "*":

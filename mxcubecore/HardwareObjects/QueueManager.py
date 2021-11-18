@@ -160,7 +160,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self.set_current_entry(entry)
         self._current_queue_entries.append(entry)
 
-        logging.getLogger("queue_exec").info("Calling execute on: " + str(entry))
+        logging.getLogger("queue_exec").info("Executing: " + str(entry))
         # logging.getLogger('queue_exec').info('Using model: ' + str(entry.get_data_model()))
 
         if self.is_paused():
