@@ -20,9 +20,10 @@
 
 """ ProtocolError and StandardClient implementation"""
 import sys
-import socket
 import gevent
 import gevent.lock
+
+from mxcubecore.HardwareRepository import original_socket as socket
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
