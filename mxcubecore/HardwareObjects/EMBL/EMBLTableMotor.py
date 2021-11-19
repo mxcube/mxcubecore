@@ -20,10 +20,10 @@
 """EMBLTableMotor"""
 
 import time
-import socket
 import atexit
 import logging
 
+from mxcubecore.HardwareRepository import original_socket as socket
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 __credits__ = ["EMBL Hamburg"]
