@@ -1934,6 +1934,7 @@ class GphlWorkflow(TaskNode):
             cell_parameters=(),
             resolution=None,
             energies=(),
+            relative_rad_sensitivity=None,
             strategy_options=None,
             **unused):
         """"""
