@@ -20,9 +20,10 @@
 
 """ ProtocolError and StandardClient implementation"""
 import sys
-import socket
 import gevent
 import gevent.lock
+
+from mxcubecore.HardwareRepository import original_socket as socket
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -270,7 +271,7 @@ class StandardClient:
                             # Syntax not allowed in Python 2
                             # raise ProtocolError from e
                             raise ProtocolError(
-                                "UnicodeDecodeError: %s" % sys.exc_info()
+                                "UnicodeDecodeError: %s" % (sys.exc_info(),)
                             )
                         self.on_message_received(buffer_utf8)
                         mReceivedSTX = False

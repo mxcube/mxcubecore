@@ -29,17 +29,28 @@ class ID29XRFSpectrum(XRFSpectrum):
         self.fname = self.get_property("cfgfile")
         self.config = ConfigDict.ConfigDict()
         self.mcafit = ClassMcaTheory.McaTheory(self.fname)
+        self.default_integration_time = self.get_property("default_integration_time", 3.5)
 
-    def preset_mca(self, ctime=5, fname=None):
+    def preset_mca(self, ctime=None, fname=None):
+        try:
+            ctime = float(ctime)
+        except (TypeError, ValueError):
+            ctime = self.default_integration_time
+    
         self.mca_hwobj.set_roi(2, 15, channel=1)
         self.mca_hwobj.set_presets(erange=1, ctime=ctime, fname=str(fname))
         self.ctrl_hwobj.mca.set_roi(2, 15, channel=1)
         self.ctrl_hwobj.mca.set_presets(erange=1, ctime=ctime, fname=str(fname))
 
     def _doSpectrum(self, ctime, filename, wait=True):
+        try:
+            ctime = float(ctime)
+        except (TypeError, ValueError):
+            ctime = self.default_integration_time
+        print(f"_doSpectrum ctime {ctime}")
         self.choose_attenuation(ctime, filename)
 
-    def choose_attenuation(self, ctime=5, fname=None):
+    def choose_attenuation(self, ctime=None, fname=None):
         """Choose appropriate maximum attenuation.
         Args:
             ctime (float): count time [s]
@@ -48,6 +59,12 @@ class ID29XRFSpectrum(XRFSpectrum):
         Returns:
             (bool): Procedure executed correcly (True) or error (False)
         """
+        try:
+            ctime = float(ctime)
+        except (TypeError, ValueError):
+            ctime = self.default_integration_time
+        print(f"ctime {ctime}")
+
         res = True
         if not fname:
             fname = self.spectrumInfo["filename"]
@@ -68,7 +85,11 @@ class ID29XRFSpectrum(XRFSpectrum):
         self.ctrl_hwobj.diffractometer.fldet_out()
         return res
 
-    def _findAttenuation(self, ctime=5):
+    def _findAttenuation(self, ctime=None):
+        try:
+            ctime = float(ctime)
+        except (TypeError, ValueError):
+            ctime = self.default_integration_time
         return self.choose_attenuation(ctime)
 
     """

@@ -44,7 +44,7 @@ class BeamMockup(AbstractBeam):
     def init(self):
         AbstractBeam.init(self)
         
-        self._beam_position_on_screen = [318, 238]
+        self._beam_position_on_screen = eval(self.get_property('beam_position', "[318, 238]"))
 
         self._aperture = self.get_object_by_role("aperture")
         if self._aperture is not None:
@@ -75,7 +75,7 @@ class BeamMockup(AbstractBeam):
             size (float): diameter size in microns
         """
         self._beam_size_dict["aperture"] = [size, size]
-        self._beam_info_dict["lable"] = int(size * 1000)
+        self._beam_info_dict["label"] = int(size * 1000)
         self.evaluate_beam_info()
         self.re_emit_values()
 

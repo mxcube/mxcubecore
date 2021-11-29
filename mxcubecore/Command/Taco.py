@@ -19,7 +19,6 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import weakref
 import copy
 
 from mxcubecore.dispatcher import saferef

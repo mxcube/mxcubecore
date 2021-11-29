@@ -39,7 +39,7 @@ class FluxMockup(AbstractFlux):
         self.current_flux_dict = {}
 
     def init(self):
-
+        super(FluxMockup, self).init()
         self.measure_flux()
 
     def get_value(self):

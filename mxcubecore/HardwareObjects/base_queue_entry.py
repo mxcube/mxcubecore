@@ -70,15 +70,13 @@ class QueueEntryContainer(object):
     def get_queue_entry_list(self):
         return self._queue_entry_list
 
-    def enqueue(self, queue_entry, queue_controller=None):
+    def enqueue(self, queue_entry):
         # A queue entry container has a QueueController object
         # which controls the execution of the tasks in the
-        # container. The container is set to be its own controller
-        # if none is given.
-        if queue_controller:
-            queue_entry.set_queue_controller(queue_controller)
-        else:
-            queue_entry.set_queue_controller(self)
+        # container. QueueManagers are their own controller.
+        # These are set in subclasses
+        # NBNB Changed because subclass and superclass signature did not match
+        # (and this is simpler)
 
         queue_entry.set_container(self)
         self._queue_entry_list.append(queue_entry)
@@ -209,12 +207,13 @@ class BaseQueueEntry(QueueEntryContainer):
         """
         return self.status == QUEUE_ENTRY_STATUS.FAILED
 
-    def enqueue(self, queue_entry, queue_controller=None):
+    def enqueue(self, queue_entry):
         """
         Method inherited from QueueEntryContainer, a derived class
         should newer need to override this method.
         """
-        QueueEntryContainer.enqueue(self, queue_entry, self.get_queue_controller())
+        queue_entry.set_queue_controller(self.get_queue_controller())
+        super(BaseQueueEntry, self).enqueue(queue_entry)
 
     def set_data_model(self, data_model):
         """

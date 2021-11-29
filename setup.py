@@ -18,7 +18,7 @@ setup_requirements = []
 
 tests_requirements = []
 
-extras_requirements = {'gphl': ['f90nml', 'mgen', 'py4j']}
+extras_requirements = {'gphl': ['f90nml', 'py4j', 'mgen']}
 
 console_scripts = []
 

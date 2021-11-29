@@ -127,7 +127,7 @@ How to implement derived SC Classes
 import abc
 import logging
 import time
-import types
+# import types
 import gevent
 
 
@@ -213,10 +213,10 @@ class SampleChanger(Container, Equipment):
     TASK_FINISHED_EVENT = "taskFinished"
     CONTENTS_UPDATED_EVENT = "contentsUpdated"
 
-    def __init__(self, type, scannable, *args, **kwargs):
-        super(SampleChanger, self).__init__(type, None, type, scannable)
+    def __init__(self, type_, scannable, *args, **kwargs):
+        super(SampleChanger, self).__init__(type_, None, type_, scannable)
         if len(args) == 0:
-            args = (type,)
+            args = (type_,)
         Equipment.__init__(self, *args, **kwargs)
         self.state = -1
         self.status = ""
@@ -271,7 +271,7 @@ class SampleChanger(Container, Equipment):
     @task
     def __update_timer_task(self, *args):
         while True:
-            gevent.sleep(0.1)
+            gevent.sleep(1)
             try:
                 if self.is_enabled():
                     self._timer_update_counter += 1
@@ -295,8 +295,7 @@ class SampleChanger(Container, Equipment):
     # #######################    HardwareObject    #######################
 
     def connect_notify(self, signal):
-        pass
-        #logging.getLogger().info("connect_notify " + str(signal))
+        logging.getLogger().info("connect_notify " + str(signal))
 
     # ########################    PUBLIC    #########################
 
@@ -546,7 +545,7 @@ class SampleChanger(Container, Equipment):
             (Object): Value returned by _execute_task either a Task or result of the
                       operation
         """
-        if isinstance(component, types.ListType):
+        if isinstance(component, list):
             for c in component:
                 self._scan_one(c, recursive)
         else:
@@ -802,6 +801,8 @@ class SampleChanger(Container, Equipment):
         self._trigger_loaded_sample_changed_event(None)
 
     def _set_loaded_sample(self, sample):
+        # This is a reversal. The new version did not register
+        # samples mounted from the SampleGrid as mounted
         for s in self.get_sample_list():
             if s != sample:
                 s._set_loaded(False)

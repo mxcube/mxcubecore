@@ -1401,6 +1401,7 @@ class QtGraphicsManager(AbstractSampleView):
                 shape.show()
 
     def inc_used_for_collection(self, cpos):
+        # This function is never called - it probably should be
         for shape in self.get_points():
             if shape.get_centred_position() == cpos:
                 shape.used_count += 1

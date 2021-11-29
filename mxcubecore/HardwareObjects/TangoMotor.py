@@ -20,6 +20,7 @@
 TangoMotor class defines motor in the Tango control system (used and tested in DESY/P11
 """
 
+# mxcube_logging not found
 from mxcubecore.utils.mxcube_logging import log
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
@@ -64,7 +65,7 @@ class TangoMotor(AbstractMotor):
                   }, "Position",)
 
         if self.chan_position is not None:
-            self.chan_position.connectSignal("update", self.update_value)
+            self.chan_position.connect_signal("update", self.update_value)
             self.update_value(self.chan_position.getValue())
 
         self.chan_state = self.get_channel_object("axisState", None)
@@ -78,11 +79,11 @@ class TangoMotor(AbstractMotor):
                   }, "State",)
 
         if self.chan_state is not None:
-            self.chan_state.connectSignal("update", self.motor_state_changed)
+            self.chan_state.connect_signal("update", self.motor_state_changed)
 
         self.chan_limits = self.get_channel_object("axisLimits", optional=True)
         if self.chan_limits is not None:
-            self.chan_limits.connectSignal("update", self.update_limits)
+            self.chan_limits.connect_signal("update", self.update_limits)
             self.update_limits(self.chan_limits.getValue())
         else:
             try:
@@ -135,7 +136,7 @@ class TangoMotor(AbstractMotor):
         return state
 
     def motor_state_changed(self, state=None):
-        if state == None:
+        if state is None:
             state = self.chan_state.getValue()
 
         self.update_state( self.motstate_to_state(state) )

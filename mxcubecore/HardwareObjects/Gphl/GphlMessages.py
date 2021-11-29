@@ -23,10 +23,13 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
 import uuid
+import json
 from collections import OrderedDict
 from collections import namedtuple
 
-from mxcubecore.ConvertUtils import string_types
+from mxcubecore.utils.conversion import string_types
+
+from mxcubecore.HardwareObjects import queue_model_enumerables
 
 __copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"
@@ -374,7 +377,7 @@ class SelectedLattice(MessageData):
 
     INTENT = "DOCUMENT"
 
-    def __init__(self, lattice_format, solution):
+    def __init__(self, data_model, lattice_format, solution):
         if lattice_format in INDEXING_FORMATS:
             self._lattice_format = lattice_format
         else:
@@ -383,6 +386,11 @@ class SelectedLattice(MessageData):
                 % (lattice_format, INDEXING_FORMATS)
             )
         self._solution = tuple(solution)
+        self._strategyDetectorSetting = data_model.detector_setting
+        self._strategyWavelength = data_model.wavelengths[0]
+        self._strategyControl = json.dumps(
+            data_model.strategy_options, sort_keys=True
+        )
 
     @property
     def lattice_format(self):
@@ -393,6 +401,22 @@ class SelectedLattice(MessageData):
     def solution(self):
         """Tuple of strings containing proposed solution"""
         return self._solution
+
+    @property
+    def strategyDetectorSetting(self):
+        """Resolution to use for strategy calculation and acquisition"""
+        return self._strategyDetectorSetting
+
+    @property
+    def strategyWavelength(self):
+        """Wavelength to use for strategy calculation adn acquisition"""
+        return self._strategyWavelength
+
+    @property
+    def strategyControl(self):
+        """JSON string of command line options (*without* prefix)
+        to use for startcal wrapper call"""
+        return self._strategyControl
 
 
 class CollectionDone(MessageData):
@@ -578,6 +602,12 @@ class PhasingWavelength(IdentifiedElement):
         """Wavelength setting for beam"""
         return self._wavelength
 
+    @wavelength.setter
+    def wavelength(self, value):
+        if self._wavelength:
+            raise TypeError("PhasingWavelength values cannot be re-set if non-zero")
+        self._wavelength = value
+
 
 class BeamSetting(IdentifiedElement):
     """Beam setting"""
@@ -646,7 +676,10 @@ class PositionerSetting(IdentifiedElement):
                 "Programming error -"
                 " attempt to instantiate abstract class PositionerSetting"
             )
-
+        if None in axisSettings.values():
+            raise ValueError(
+                "axisSettings contain value None: %s" % sorted(axisSettings.items())
+            )
         self._axisSettings = axisSettings.copy()
 
     @property
@@ -696,6 +729,15 @@ class GoniostatRotation(PositionerSetting):
 
         NB This link can be set only by GoniostatTranslation.__init__"""
         return self._translation
+
+    def get_motor_settings(self):
+        """Get dictionary of rotation and translation motor setting"""
+        result = dict(self.axisSettings)
+        translation = self.translation
+        if translation is not None:
+            result.update(translation.axisSettings)
+        #
+        return result
 
 
 class GoniostatSweepSetting(GoniostatRotation):
@@ -761,24 +803,21 @@ class GoniostatTranslation(PositionerSetting):
 class UserProvidedInfo(MessageData):
     """User-provided information"""
 
-    def __init__(
-        self,
-        scatterers=(),
-        lattice=None,
-        pointGroup=None,
-        spaceGroup=None,
-        cell=None,
-        expectedResolution=None,
-        isAnisotropic=None,
-    ):
+    def __init__(self, data_model):
 
-        self._scatterers = scatterers
-        self._lattice = lattice
-        self._pointGroup = pointGroup
-        self._spaceGroup = spaceGroup
-        self._cell = cell
-        self._expectedResolution = expectedResolution
-        self._isAnisotropic = isAnisotropic
+        self._scatterers = ()
+        lattice = data_model.crystal_system
+        self._lattice = lattice.upper() if lattice else None
+        self._pointGroup = data_model.point_group
+        space_group = queue_model_enumerables.SPACEGROUP_MAP.get(data_model.space_group)
+        self._spaceGroup = space_group.number if space_group else None
+        cell_parameters = data_model.cell_parameters
+        if cell_parameters:
+            self._cell = UnitCell(*cell_parameters)
+        else:
+            self._cell = None
+        self._expectedResolution = data_model.aimed_resolution
+        self._isAnisotropic = None
 
     @property
     def scatterers(self):
@@ -877,14 +916,9 @@ class Sweep(IdentifiedElement):
         self._scans.add(scan)
 
     def get_initial_settings(self):
-        """Get dictionary of rotation motor settings for start of sweep"""
-
-        sweepSetting = self.goniostatSweepSetting
-        result = dict(sweepSetting.axisSettings)
-        translation = sweepSetting.translation
-        if translation is not None:
-            result.update(translation.axisSettings)
-        result[sweepSetting.scanAxis] = self.start
+        """Get dictionary of rotation and translation motor settings for start of sweep"""
+        result = self.goniostatSweepSetting.get_motor_settings()
+        result[self.goniostatSweepSetting.scanAxis] = self.start
         #
         return result
 
@@ -945,6 +979,8 @@ class GeometricStrategy(IdentifiedElement, Payload):
         defaultDetectorSetting,
         defaultBeamSetting,
         allowedWidths=(),
+        sweepOffset=None,
+        sweepRepeat=None,
         defaultWidthIdx=None,
         sweeps=(),
         id_=None,
@@ -966,9 +1002,20 @@ class GeometricStrategy(IdentifiedElement, Payload):
         else:
             self._allowedWidths = tuple(allowedWidths)
 
+        self._sweepOffset = sweepOffset
+        self._sweepRepeat = sweepRepeat
+
     @property
     def isInterleaved(self):
         return self._isInterleaved
+
+    @property
+    def sweepRepeat(self):
+        return self._sweepRepeat
+
+    @property
+    def sweepOffset(self):
+        return self._sweepOffset
 
     @property
     def isUserModifiable(self):
@@ -997,20 +1044,18 @@ class GeometricStrategy(IdentifiedElement, Payload):
     def get_ordered_sweeps(self):
         """Get sweeps in acquisition order.
 
-        WARNING we do not have the necessary information.
-        So we sort in increasing order by angles, in alphabetical name order,
+        Acquisition order is determined by the sweepGroup -
+        to get results deterministic we use a secondary sort on
+        angles, in alphabetical name order as a backup,
         (in pracite, 'kappa', 'kappa_phi', 'phi')
-        HORRIBLE HACK, but as it happens this will give
-        at least the first one correct mostly
-        and anyway is the best approximation we have
-
-        TODO get this right, once the workflow allows"""
+        which should match what the workflow does internally.
+        Anyway, it is the sweep"""
         ll0 = []
         for sweep in self._sweeps:
             dd0 = sweep.get_initial_settings()
-            ll0.append((tuple(dd0[x] for x in sorted(dd0)), sweep))
+            ll0.append((sweep.sweepGroup, tuple(dd0[x] for x in sorted(dd0)), sweep))
         #
-        return list(tt0[1] for tt0 in sorted(ll0))
+        return list(tt0[2] for tt0 in sorted(ll0))
 
 
 class CollectionProposal(IdentifiedElement, Payload):
@@ -1044,22 +1089,35 @@ class PriorInformation(Payload):
 
     INTENT = "DOCUMENT"
 
-    def __init__(
-        self, sampleId, sampleName=None, rootDirectory=None, userProvidedInfo=None
-    ):
+    def __init__(self, data_model, image_root):
 
         super(PriorInformation, self).__init__()
 
+        # Look for existing uuid
+        sample_model = data_model.get_sample_node()
+        for text in sample_model.lims_code, sample_model.code, sample_model.name:
+            if text:
+                try:
+                    sampleId = uuid.UUID(text)
+                except Exception:
+                    # The error expected if this goes wrong is ValueError.
+                    # But whatever the error we want to continue
+                    pass
+                else:
+                    # Text was a valid uuid string. Use the uuid.
+                    break
+        else:
+            sampleId = uuid.uuid1()
         if isinstance(sampleId, uuid.UUID):
             self._sampleId = sampleId
         else:
             raise TypeError("sampleId input must be of type uuid.UUID")
 
-        self._sampleName = sampleName
+        self._sampleName = data_model.path_template.base_prefix
         # Draft in API, not currently coded in Java:
         # self._referenceFile = referenceFile
-        self._rootDirectory = rootDirectory
-        self._userProvidedInfo = userProvidedInfo
+        self._rootDirectory = image_root
+        self._userProvidedInfo = UserProvidedInfo(data_model)
 
     @property
     def sampleId(self):
@@ -1135,29 +1193,27 @@ class CentringDone(Payload):
 class SampleCentred(Payload):
     INTENT = "DOCUMENT"
 
-    def __init__(
-        self,
-        imageWidth,
-        transmission,
-        exposure,
-        interleaveOrder="",
-        wedgeWidth=None,
-        beamstopSetting=None,
-        detectorSetting=None,
-        goniostatTranslations=(),
-        wavelengths=(),
-    ):
+    def __init__(self, data_model):
 
         super(SampleCentred, self).__init__()
-        self._imageWidth = imageWidth
-        self._transmission = transmission
-        self._exposure = exposure
-        self._interleaveOrder = interleaveOrder
-        self._wedgeWidth = wedgeWidth
-        self._beamstopSetting = beamstopSetting
-        self._detectorSetting = detectorSetting
-        self._goniostatTranslations = frozenset(goniostatTranslations)
-        self._wavelengths = frozenset(wavelengths)
+        self._imageWidth = data_model.image_width
+        self._transmission = 0.01 * data_model.transmission
+        self._exposure = data_model.exposure_time
+        self._wedgeWidth = data_model.wedge_width
+        self._interleaveOrder = data_model.interleave_order
+        self._beamstopSetting = data_model.beamstop_setting
+        self._goniostatTranslations = frozenset(data_model.goniostat_translations)
+
+        if data_model.characterisation_done:
+            self._wavelengths = tuple(data_model.wavelengths)
+            self._detectorSetting = None
+        else:
+            # Ths trick assumes that characterisation and diffractcal
+            # use one, the first, wavelength and default inbterleave order
+            # Which is true. Not the ideal place to put this code
+            # but it works.
+            self._wavelengths = tuple((data_model.wavelengths[0],))
+            self._detectorSetting = data_model.detector_setting
 
     @property
     def imageWidth(self):

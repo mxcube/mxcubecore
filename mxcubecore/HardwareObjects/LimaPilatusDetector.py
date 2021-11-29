@@ -110,7 +110,7 @@ class LimaPilatusDetector(AbstractDetector):
                 "update", self.roi_mode_changed
             )
 
-            self.get_command_object("prepare_acq").setDeviceTimeout(10000)
+            self.get_command_object("prepare_acq").set_device_timeout(10000)
             self._emit_status()
 
         except ConnectionError:
@@ -165,8 +165,8 @@ class LimaPilatusDetector(AbstractDetector):
     ):
         if mesh:
             trigger_mode = "EXTERNAL_GATE"
-        elif osc_range < 1e-4:
-            trigger_mode = "INTERNAL_TRIGGER"
+        #elif osc_range < 1e-4:
+        #    trigger_mode = "INTERNAL_TRIGGER"
         else:
             trigger_mode = "EXTERNAL_TRIGGER"
 
@@ -174,6 +174,7 @@ class LimaPilatusDetector(AbstractDetector):
         self.start_angles = list()
         for i in range(number_of_images):
             self.start_angles.append("%0.4f deg." % (start + osc_range * i))
+        self.header = {}
         self.header["file_comments"] = comment
         self.header["N_oscillations"] = number_of_images
         self.header["Oscillation_axis"] = "omega"
@@ -259,7 +260,7 @@ class LimaPilatusDetector(AbstractDetector):
         if dirname.startswith(os.path.sep):
             dirname = dirname[len(os.path.sep) :]
 
-        saving_directory = os.path.join(self.get_property("buffer"), dirname)
+        saving_directory = os.path.join(self.get_property("buffer", "/"), dirname)
 
         subprocess.Popen(
             "ssh %s@%s mkdir --parents %s"
@@ -293,18 +294,13 @@ class LimaPilatusDetector(AbstractDetector):
 
             headers.append("%d : array_data/header_contents|%s;" % (i, header))
 
-        self.execute_command("set_image_header", headers)
+        self.header = headers
 
     def start_acquisition(self):
-        try:
-            HWR.beamline.collect.get_object_by_role("detector_cover").set_out()
-        except Exception:
-            pass
-
         self.wait_ready()
-
         self.execute_command("stop_acq")
         self.execute_command("prepare_acq")
+        self.execute_command("set_image_header", self.header)
         self.execute_command("start_acq")
         self._emit_status()
 

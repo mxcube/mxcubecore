@@ -24,6 +24,7 @@ GenericDiffractometer
 import copy
 import time
 import gevent
+import gevent.event
 import logging
 import math
 import numpy
@@ -225,6 +226,9 @@ class GenericDiffractometer(HardwareObject):
         self.connect(self, "equipmentReady", self.equipment_ready)
         self.connect(self, "equipmentNotReady", self.equipment_not_ready)
 
+        # HACK
+        self.get_motor_positions = self.get_positions
+
     def init(self):
         # Internal values -----------------------------------------------------
         self.ready_event = gevent.event.Event()
@@ -256,8 +260,8 @@ class GenericDiffractometer(HardwareObject):
                 "Diffractometer: " + "BeamInfo hwobj is not defined"
             )
 
-        self.front_light_swtich = self.get_object_by_role("frontlightswtich")
-        self.back_light_swtich = self.get_object_by_role("backlightswtich")
+        self.front_light_switch = self.get_object_by_role("frontlightswitch")
+        self.back_light_switch = self.get_object_by_role("backlightswitch")
 
         # Channels -----------------------------------------------------------
         ss0 = self.get_property("used_channels")
@@ -541,6 +545,8 @@ class GenericDiffractometer(HardwareObject):
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
             while not self.is_ready():
                 time.sleep(0.01)
+
+    wait_ready = wait_device_ready
 
     def execute_server_task(self, method, timeout=30, *args):
         """Method is used to execute commands and wait till
@@ -886,7 +892,7 @@ class GenericDiffractometer(HardwareObject):
 
             try:
                 logging.getLogger("HWR").debug(
-                    "Centring finished. Moving motoros to position %s" % str(motor_pos)
+                    "Centring finished. Moving motors to position %s" % str(motor_pos)
                 )
                 self.move_to_motors_positions(motor_pos, wait=True)
             except Exception:
@@ -1155,7 +1161,7 @@ class GenericDiffractometer(HardwareObject):
         """
         return copy.deepcopy(self.centring_status)
 
-    def get_centred_point_from_coord(self):
+    def get_centred_point_from_coord(self, x, y, return_by_names=None):
         """
         """
         raise NotImplementedError

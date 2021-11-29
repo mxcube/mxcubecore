@@ -25,8 +25,9 @@ def multiPointCentre(z, phis):
     def errfunc(p, x, y):
         return fitfunc(p, x) - y
 
-    p1, success = optimize.leastsq(errfunc, [1.0, 0.0, 0.0], args=(phis, z))
-    return p1
+    # The function call returns tuples of varying length
+    result = optimize.leastsq(errfunc, [1.0, 0.0, 0.0], args=(phis, z))
+    return result[0]
 
 
 USER_CLICKED_EVENT = None
@@ -63,7 +64,7 @@ class CentringMotor:
 
 def prepare(centring_motors_dict):
     logging.debug("Preparing for centring")
-    
+
     global SAVED_INITIAL_POSITIONS
 
     if CURRENT_CENTRING and not CURRENT_CENTRING.ready():
@@ -236,6 +237,7 @@ def centre_plate1Click(
         dy = 99999
 
         # while i < n_points and (dx > 3 or dy > 3) :
+        # NBNB is this temporary or permanent?
         while (
             True
         ):  # it is now a while true loop that can be interrupted at any time by the save button, to allow user to have a 1 click centring as precise as he wants (see HutchMenuBrick)
@@ -348,14 +350,6 @@ def centre_plate(
     d_horizontal = d[0] - (beam_xc / float(pixelsPerMm_Hor))
     d_vertical = d[1] - (beam_yc / float(pixelsPerMm_Ver))
 
-    phi_pos = math.radians(phi.direction * phi.get_value())
-    phiRotMatrix = numpy.matrix(
-        [
-            [math.cos(phi_pos), -math.sin(phi_pos)],
-            [math.sin(phi_pos), math.cos(phi_pos)],
-        ]
-    )
-
     centred_pos = SAVED_INITIAL_POSITIONS.copy()
     centred_pos.update(
         {
@@ -396,6 +390,9 @@ def wait_ready(motor_positions_dict, timeout=None):
 
 
 def move_motors(motor_positions_dict):
+    if not motor_positions_dict:
+        return
+
     wait_ready(motor_positions_dict, timeout=30)
 
     for motor, position in motor_positions_dict.items():
@@ -448,6 +445,7 @@ def center(
     except Exception:
         logging.exception("Exception while centring")
         move_motors(SAVED_INITIAL_POSITIONS)
+        READY_FOR_NEXT_POINT.set()
         raise RuntimeError("Exception while centring")
 
     # logging.info("X=%s,Y=%s", X, Y)
@@ -472,12 +470,6 @@ def center(
     d_vertical = d[1] - (beam_yc / float(pixelsPerMm_Ver))
 
     phi_pos = math.radians(phi.direction * phi.get_value())
-    phiRotMatrix = numpy.matrix(
-        [
-            [math.cos(phi_pos), -math.sin(phi_pos)],
-            [math.sin(phi_pos), math.cos(phi_pos)],
-        ]
-    )
 
     centred_pos = SAVED_INITIAL_POSITIONS.copy()
     centred_pos.update(
@@ -549,8 +541,16 @@ def find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
     )
     camera.take_snapshot(snapshot_filename, bw=True)
 
+    # Lucid does not accept 0 degree rotation and
+    # has a reference frame that is reversed to the one used
+    # in MXCuBE
+    if chi_angle == 0:
+        chi_angle = None
+    else:
+        chi_angle = -chi_angle
+
     info, x, y = lucid.find_loop(
-        snapshot_filename, rotation=None, debug=False, IterationClosing=6
+        snapshot_filename, rotation=chi_angle, debug=False, IterationClosing=6
     )
 
     try:

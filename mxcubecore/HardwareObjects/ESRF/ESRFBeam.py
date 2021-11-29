@@ -62,7 +62,7 @@ class ESRFBeam(AbstractBeam):
 
         self._complex = self.get_object_by_role("complex")
 
-        beam_position = self.ge_property("beam_position")
+        beam_position = self.get_property("beam_position")
 
         if beam_position:
             self._beam_position_on_screen = tuple(map(float, beam_position.split()))

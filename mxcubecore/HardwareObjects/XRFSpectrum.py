@@ -4,13 +4,16 @@ import shutil
 import time
 import gevent.event
 import gevent
-from mxcubecore.BaseHardwareObjects import Equipment
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
-class XRFSpectrum(Equipment):
+
+# class XRFSpectrum(Equipment):
+class XRFSpectrum(HardwareObject):
     def __init__(self, *args, **kwargs):
-        Equipment.__init__(self, *args, **kwargs)
+        HardwareObject.__init__(self, *args, **kwargs)
+        #Equipment.__init__(self, *args, **kwargs)
         self.config_data = None
         self.calib_data = None
         self.energy_spectrum_args = None
@@ -296,8 +299,6 @@ class XRFSpectrum(Equipment):
             session_id = int(self.spectrumInfo["sessionId"])
         except Exception:
             return
-        blsampleid = self.spectrumInfo["blSampleId"]
-
         db_status = HWR.beamline.lims.storeXfeSpectrum(self.spectrumInfo)
 
     def updateXrfSpectrum(self, spectrum_id, jpeg_spectrum_filename):

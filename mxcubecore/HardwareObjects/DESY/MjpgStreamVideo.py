@@ -24,7 +24,6 @@ __license__ = "GPL"
 
 
 import gevent
-import time
 
 try:
     from httplib import HTTPConnection
@@ -33,7 +32,7 @@ except ImportError:
 import json
 
 from mxcubecore.utils.qt_import import QImage, QPixmap
-from mxcubecore.ConvertUtils import string_types
+from mxcubecore.utils.conversion import string_types
 
 from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
     AbstractVideoDevice,

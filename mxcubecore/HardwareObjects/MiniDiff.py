@@ -613,7 +613,7 @@ class MiniDiff(Equipment):
             self.emitCentringSuccessful()
             return
 
-        if self.currentCentringMethod is not None:
+        if self.current_centring_procedure is not None:
             logging.getLogger("HWR").error(
                 "MiniDiff: already in centring method %s" % self.currentCentringMethod
             )
@@ -642,11 +642,16 @@ class MiniDiff(Equipment):
     def cancel_centring_method(self, reject=False):
         if self.current_centring_procedure is not None:
             try:
-                self.current_centring_procedure.kill()
+                self.current_centring_procedure.kill(block=True)
             except Exception:
                 logging.getLogger("HWR").exception(
                     "MiniDiff: problem aborting the centring method"
                 )
+
+            logging.getLogger("HWR").exception(
+                "MiniDiff: Centring canceled"
+            )
+
             try:
                 fun = self.cancel_centring_methods[self.currentCentringMethod]
             except KeyError as diag:
@@ -663,6 +668,8 @@ class MiniDiff(Equipment):
 
         if reject:
             self.rejectCentring()
+
+        self.wait_ready(30)
 
     def currentCentringMethod(self):
         return self.currentCentringMethod

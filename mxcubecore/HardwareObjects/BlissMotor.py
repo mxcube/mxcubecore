@@ -84,12 +84,13 @@ class BlissMotor(AbstractMotor):
         AbstractMotor.init(self)
         cfg = static.get_config()
         self.motor_obj = cfg.get(self.actuator_name)
-        self.connect(self.motor_obj, "position", self.update_value)
-        self.connect(self.motor_obj, "state", self._update_state)
-        self.connect(self.motor_obj, "move_done", self._update_state)
 
         # init state to match motor's one
         self.update_state(self.get_state())
+
+        self.connect(self.motor_obj, "position", self.update_value)
+        self.connect(self.motor_obj, "state", self._update_state)
+        self.connect(self.motor_obj, "move_done", self._update_state)
 
     def _state2enum(self, state):
         """Translate the state to HardwareObjectState and BlissMotorStates

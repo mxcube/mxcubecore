@@ -4,6 +4,10 @@
     <!-- combined with instcfgout parameter (see below); see also <newinstr> -->
     <!--<instcfgout_dir>/MXCuBE/mxcube</instcfgout_dir>-->
 
+
+    <!-- Use advanced_mode for adidtional UI options. Uncoment to set -->
+    <!--    <advanced_mode>True</advanced_mode>-->
+
     <!-- default image width selection if None are given by the workflow-->
     <!-- First value is the default; values are sorted before use -->
     <default_image_widths> 0.1 0.05 0.2</default_image_widths>

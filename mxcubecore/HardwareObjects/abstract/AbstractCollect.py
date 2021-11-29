@@ -24,6 +24,7 @@ Defines a sequence how data collection is executed.
 """
 
 import os
+import sys
 import logging
 import time
 import errno
@@ -154,8 +155,7 @@ class AbstractCollect(HardwareObject, object):
         self.emit("progressInit", ("Collection", 100, False))
         self.collection_id = None
 
-        #try:
-        if True:
+        try:
             # ----------------------------------------------------------------
             # Prepare data collection
 
@@ -261,15 +261,16 @@ class AbstractCollect(HardwareObject, object):
 
             log.info("Collection: Updating data collection in LIMS")
             self.update_data_collection_in_lims()
-        """
-        except BaseException:
+
+        except:
             exc_type, exc_value, exc_tb = sys.exc_info()
             failed_msg = "Data collection failed!\n%s" % exc_value
             self.collection_failed(failed_msg)
+        else:
+            self.collection_finished()
         finally:
             self.data_collection_cleanup()
 
-        """
     def data_collection_cleanup(self):
         """
         Method called when at end of data collection, successful or not.
@@ -432,12 +433,6 @@ class AbstractCollect(HardwareObject, object):
         """
         pass
 
-    def get_flux(self):
-        """
-        Descript. :
-        """
-        return
-
     def get_total_absorbed_dose(self):
         return 
 
@@ -469,12 +464,6 @@ class AbstractCollect(HardwareObject, object):
         if HWR.beamline.transmission is not None:
             return HWR.beamline.transmission.get_value()
 
-    def get_resolution_at_corner(self):
-        """
-        Descript. :
-        """
-        return
-
     def get_beam_size(self):
         """
         Descript. :
@@ -498,13 +487,6 @@ class AbstractCollect(HardwareObject, object):
         """
         return {}
         #return HWR.beamline.energy.get_undulator_gaps()
-
-    def get_beam_shape(self):
-        """
-        Descript. :
-        """
-        if HWR.beamline.beam is not None:
-            return HWR.beamline.beam.get_beam_shape()
 
     def get_machine_current(self):
         """
@@ -607,39 +589,38 @@ class AbstractCollect(HardwareObject, object):
         """
         Descript. :
         """
-        if HWR.beamline.lims and not self.current_dc_parameters["in_interleave"]:
-            self.current_dc_parameters["flux"] = self.get_flux()
-            self.current_dc_parameters["flux_end"] = self.get_flux()
-            self.current_dc_parameters["totalAbsorbedDose"] = self.get_total_absorbed_dose()
-            self.current_dc_parameters["wavelength"] = self.get_wavelength()
-            self.current_dc_parameters[
-                "detectorDistance"
-            ] = self.get_detector_distance()
-            self.current_dc_parameters["resolution"] = self.get_resolution()
-            self.current_dc_parameters["transmission"] = self.get_transmission()
+        params = self.current_dc_parameters
+        if HWR.beamline.lims and not params["in_interleave"]:
+            params["flux"] =  HWR.beamline.flux.get_value()
+            params["flux_end"] = params["flux"]
+            params["totalAbsorbedDose"] = self.get_total_absorbed_dose()
+            params["wavelength"] = HWR.beamline.energy.get_wavelength()
+            params[ "detectorDistance"] = HWR.beamline.detector.distance.get_value()
+            params["resolution"] = HWR.beamline.resolution.get_value()
+            params["transmission"] = HWR.beamline.transmission.get_value()
             beam_centre_x, beam_centre_y = HWR.beamline.detector.get_beam_position()
-            self.current_dc_parameters["xBeam"] = beam_centre_x
-            self.current_dc_parameters["yBeam"] = beam_centre_y
+            params["xBeam"] = beam_centre_x
+            params["yBeam"] = beam_centre_y
             und = self.get_undulators_gaps()
             i = 1
             for jj in self.bl_config.undulators:
                 key = jj.type
                 if key in und:
-                    self.current_dc_parameters["undulatorGap%d" % (i)] = und[key]
+                    params["undulatorGap%d" % (i)] = und[key]
                     i += 1
-            self.current_dc_parameters[
+            params[
                 "resolutionAtCorner"
-            ] = self.get_resolution_at_corner()
-            beam_size_x, beam_size_y = self.get_beam_size()
-            self.current_dc_parameters["beamSizeAtSampleX"] = beam_size_x
-            self.current_dc_parameters["beamSizeAtSampleY"] = beam_size_y
-            self.current_dc_parameters["beamShape"] = self.get_beam_shape()
+            ] = HWR.beamline.resolution.get_value_at_corner()
+            beam_size_x, beam_size_y = HWR.beamline.beam.get_beam_size()
+            params["beamSizeAtSampleX"] = beam_size_x
+            params["beamSizeAtSampleY"] = beam_size_y
+            params["beamShape"] = HWR.beamline.beam.get_beam_shape()
             hor_gap, vert_gap = self.get_slit_gaps()
-            self.current_dc_parameters["slitGapHorizontal"] = hor_gap
-            self.current_dc_parameters["slitGapVertical"] = vert_gap
+            params["slitGapHorizontal"] = hor_gap
+            params["slitGapVertical"] = vert_gap
             try:
                 HWR.beamline.lims.update_data_collection(
-                    self.current_dc_parameters
+                    params
                 )
             except BaseException:
                 logging.getLogger("HWR").exception(
