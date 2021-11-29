@@ -221,6 +221,17 @@ class Beamline(ConfiguredObject):
     __content_roles.append("hutch_interlock")
 
     @property
+    def sample_environment(self):
+        """Sample Environment Hardware Object
+
+        Returns:
+            Optional[AbstractSampleEnvironment]:
+        """
+        return self._objects.get("sample_environment")
+
+    __content_roles.append("sample_environment")
+
+    @property
     def safety_shutter(self):
         """Safety Shutter Hardware object
 
