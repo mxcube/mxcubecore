@@ -92,7 +92,7 @@ class GphlWorkflow(HardwareObjectYaml):
         self.workflows = {}
         self.settings = {}
 
-        # Current data collection group. Different for characterisation and collection
+        # Current data collection task group. Different for characterisation and collection
         self._data_collection_group = None
 
         # event to handle waiting for parameter input
@@ -175,11 +175,13 @@ class GphlWorkflow(HardwareObjectYaml):
         # Consolidate workflow options
         for title, workflow in self.workflows.items():
             workflow["wfname"] = title
+            wftype = workflow["wftype"]
 
             opt0 = workflow.get("options", {})
             opt0["beamline"] = beamline_hook
             default_strategy_name = None
             for strategy in workflow["strategies"]:
+                strategy["wftype"] = wftype
                 if default_strategy_name is None:
                     default_strategy_name = workflow["strategy_name"] = (
                         strategy["title"]
@@ -203,10 +205,6 @@ class GphlWorkflow(HardwareObjectYaml):
         if workflow_connection is not None:
             workflow_connection.workflow_ended()
             workflow_connection.close_connection()
-
-    def get_settings(self):
-        """Get dictionary of workflow settings"""
-        return copy.deepcopy(self.settings)
 
     def get_available_workflows(self):
         """Get list of workflow description dictionaries."""
@@ -238,12 +236,17 @@ class GphlWorkflow(HardwareObjectYaml):
         data_model = queue_entry.get_data_model()
         self._workflow_queue = gevent.queue.Queue()
         HWR.beamline.gphl_connection.open_connection()
-        if not data_model.automation_mode:
+        if data_model.automation_mode:
+            if data_model.get_workflow_parameters()["wftype"] == "acquisition":
+                params = data_model.auto_char_params
+            else:
+                params = data_model.auto_acq_params
+        else:
             # SIGNAL TO GET Pre-strategy parameters here
             # NB set defaults from data_model
             # NB consider whether to override on None
             params = self.query_pre_strategy_params(data_model)
-            data_model.set_pre_strategy_params(**params)
+        data_model.set_pre_strategy_params(**params)
         if data_model.detector_setting is None:
             resolution = HWR.beamline.resolution.get_value()
             distance = HWR.beamline.detector.distance.get_value()
@@ -289,7 +292,6 @@ class GphlWorkflow(HardwareObjectYaml):
                 )
                 break
             elif message_type != "String":
-            # else:
                 logging.getLogger("HWR").info("GPhL queue processing %s", message_type)
                 response = func(payload, correlation_id)
                 if result_list is not None:
@@ -867,14 +869,6 @@ class GphlWorkflow(HardwareObjectYaml):
         geometric_strategy = payload
 
         gphl_workflow_model = self._queue_entry.get_data_model()
-
-        # MOCK ONLY! to reduce file size
-        if (
-            gphl_workflow_model.automation_mode
-            and gphl_workflow_model.characterisation_done
-        ):
-            print ('@~@~ WARNING - step inserting image width to 1.0')
-            gphl_workflow_model.image_width = 1.0
         strategy_type = gphl_workflow_model.get_workflow_parameters()[
             "strategy_type"
         ]
@@ -896,7 +890,16 @@ class GphlWorkflow(HardwareObjectYaml):
         gphl_workflow_model.dose_budget = dose_budget
         gphl_workflow_model.reset_transmission()
 
-        if not gphl_workflow_model.automation_mode:
+        if gphl_workflow_model.automation_mode:
+            if (
+                gphl_workflow_model.get_workflow_parameters()["wftype"] == "acquisition"
+                and not gphl_workflow_model.characterisation_done
+            ):
+                params = gphl_workflow_model.auto_char_params
+            else:
+                params = gphl_workflow_model.auto_acq_params
+            gphl_workflow_model.set_pre_acquisition_params(**params)
+        else:
             # SiGNAL TO GET Pre-collection parameters here
             # NB set defaults from data_model
             # NB consider whether to override on None
@@ -1530,7 +1533,7 @@ class GphlWorkflow(HardwareObjectYaml):
         )
 
     def auto_select_solution(self, choose_lattice):
-        """Select indeing solution automatically"""
+        """Select indexing solution automatically"""
         data_model = self._queue_entry.get_data_model()
         solution_format = choose_lattice.lattice_format
 
@@ -1540,7 +1543,7 @@ class GphlWorkflow(HardwareObjectYaml):
         # First letter must match first letter of BravaisLattice
         crystal_system = choose_lattice.crystalSystem
         if lattices and not crystal_system:
-            # Get rom lattices if not set directly
+            # Get from lattices if not set directly
             aset = set(lattice[0] for lattice in lattices)
             if len(aset) == 1:
                 crystal_system = aset.pop()
@@ -1559,7 +1562,7 @@ class GphlWorkflow(HardwareObjectYaml):
         useline = lattice_fit or system_fit or starred
         if useline:
             logging.getLogger("user_level_log").info(
-                "Selected indexing solution", useline
+                "Selected indexing solution: %s" % useline
             )
             solution = useline.split()
             if solution[0] == "*":
@@ -1577,17 +1580,17 @@ class GphlWorkflow(HardwareObjectYaml):
         if data_model.automation_mode:
             solution = self.auto_select_solution(choose_lattice)
 
-            if data_model.automation_mode == "MASSIF1":
-                if not data_model.aimed_resolution:
-                    raise ValueError(
-                        "aimed_resolution must be set in MASSIF1 auto mode"
-                    )
-                # Resets detector_setting to match aimed_resolution
-                data_model.detector_setting = None
-                # NB resets detector_setting
-                data_model.set_pre_strategy_params()
-                distance = data_model.detector_setting.axisSettings["Distance"]
-                HWR.beamline.detector.distance.set_value(distance, timeout=30)
+            if not data_model.aimed_resolution:
+                raise ValueError(
+                    "aimed_resolution must be set in automation mode"
+                )
+            # Resets detector_setting to match aimed_resolution
+            data_model.detector_setting = None
+            # NB resets detector_setting
+            params = data_model.auto_acq_params
+            data_model.set_pre_strategy_params(**params)
+            distance = data_model.detector_setting.axisSettings["Distance"]
+            HWR.beamline.detector.distance.set_value(distance, timeout=30)
             return GphlMessages.SelectedLattice(
                 data_model,
                 lattice_format=choose_lattice.lattice_format,

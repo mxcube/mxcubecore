@@ -1205,14 +1205,14 @@ class SampleCentred(Payload):
         self._goniostatTranslations = frozenset(data_model.goniostat_translations)
 
         if data_model.characterisation_done:
-            self._wavelengths = frozenset(data_model.wavelengths)
+            self._wavelengths = tuple(data_model.wavelengths)
             self._detectorSetting = None
         else:
             # Ths trick assumes that characterisation and diffractcal
             # use one, the first, wavelength and default inbterleave order
             # Which is true. Not the ideal place to put this code
             # but it works.
-            self._wavelengths = frozenset((data_model.wavelengths[0],))
+            self._wavelengths = tuple((data_model.wavelengths[0],))
             self._detectorSetting = data_model.detector_setting
 
     @property
