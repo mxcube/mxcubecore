@@ -825,7 +825,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         dispatcher.send("collect_finished")
         self.get_view().setText(1, "Failed")
         self.status = QUEUE_ENTRY_STATUS.FAILED
-        logging.getLogger("queue_exec").error(message.replace("\n", " "))
+        logging.getLogger("queue_exec").error(message.replace("\n", ";  "))
         # raise QueueExecutionException(message.replace("\n", " "), self)
 
     def collect_osc_started(
