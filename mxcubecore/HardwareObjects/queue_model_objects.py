@@ -2049,16 +2049,17 @@ class GphlWorkflow(TaskNode):
 
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
+        # NB settings is an internal attribute DO NOT MODIFY
+        settings = HWR.beamline.gphl_workflow.settings
+        self.auto_char_params = copy.deepcopy(settings.get("auto_char_params", {}))
+        self.auto_char_params.update(params.pop("auto_char_params", {}))
+        self.auto_acq_params = copy.deepcopy(settings.get("auto_acq_params", {}))
+        self.auto_acq_params.update(params.pop("auto_acq_params", {}))
+
         automation_mode = params.get("automation_mode")
         if automation_mode:
             # Set automation defaults and parameters
             self.automation_mode = automation_mode
-            # NB settings is an internal attribute DO NOT MODIFY
-            settings = HWR.beamline.gphl_workflow.settings
-            self.auto_char_params = copy.deepcopy(settings.get("auto_char_params", {}))
-            self.auto_char_params.update(params.pop("auto_char_params", {}))
-            self.auto_acq_params = copy.deepcopy(settings.get("auto_acq_params", {}))
-            self.auto_acq_params.update(params.pop("auto_acq_params", {}))
 
         # Set path template
         self.path_template.set_from_dict(params)

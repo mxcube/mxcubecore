@@ -939,8 +939,8 @@ class GphlWorkflow(HardwareObjectYaml):
                     "User modification of sweep settings not implemented. Ignored"
                 )
 
-            gphl_workflow_model.set_exposure_time(parameters.get("exposure" or 0.0))
-            gphl_workflow_model.set_image_width(parameters.get("imageWidth" or 0.0))
+            gphl_workflow_model.exposure_time = parameters.get("exposure" or 0.0)
+            gphl_workflow_model.image_width = parameters.get("imageWidth" or 0.0)
 
             # Set transmission, detector_disance/resolution to final (unchanging) values
             # Also set energy to first energy value, necessary to get resolution consistent
