@@ -1,8 +1,0 @@
-<object class="QtGraphicsManager">
-<!--   <object href="/mini-diff" role="diffractometer"/>-->
-   <object href="/camera" role="camera"/>
-   <object href="/beam-info" role="beam_info"/>
-   <imageScaleList>(1, 1.5, 2.)</imageScaleList>
-   <store_graphics_config>True</store_graphics_config>
-   <auto_grid_size_mm>(0.6, 0.6)</auto_grid_size_mm>
-</object>

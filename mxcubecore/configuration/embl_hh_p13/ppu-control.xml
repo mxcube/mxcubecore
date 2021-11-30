@@ -1,7 +1,7 @@
 <procedure class="EMBLPPUControl">
   <channel type="tine" name="chanAllStatus" tinename="/P13/ppu/ppu-cmd" attach="datachange" timeout="100">all-status-running</channel>
   <channel type="tine" name="chanAllRestart" tinename="/P13/ppu/ppu-cmd" attach="datachange">all-restart-running</channel>
-  <channel type="tine" name="chanFileInfo" tinename="/P13/image-tracker/img-tracker">file-info</channel>
+  <!--channel type="tine" name="chanFileInfo" tinename="/P13/image-tracker/img-tracker">file-info</channel-->
 
   <command type="tine" name="cmdAllStatus" tinename="/P13/ppu/ppu-cmd">all-status</command>
   <command type="tine" name="cmdAllRestart" tinename="/P13/ppu/ppu-cmd">all-restart-self</command>

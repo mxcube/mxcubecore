@@ -1,0 +1,8 @@
+<object class="QtGraphicsManager">
+   <object href="/oav-camera" role="camera"/>
+   <object href="/diffractometer" role="diffractometer"/>
+   <imageScaleList>(1, 1.5, 2.)</imageScaleList>
+   <store_graphics_config>True</store_graphics_config>
+   <auto_grid_size_mm>(0.6, 0.6)</auto_grid_size_mm>
+   <draw_beams>True</draw_beams>
+</object>

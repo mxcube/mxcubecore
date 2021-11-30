@@ -1,43 +1,13 @@
 <object class="EMBLFlux">
-   <object href="/eh1/diff-backLight" role="backlight" />
-   <object href="/beam-info" role="beam_info" />
-   <object href="/eh1/diff-beamstop" role="beamstop"/>
-   <object href="/eh1/detector" role="detector" />
-   <object href="/eh1/detector-distance" role="detector_distance"/>
-   <object href="/mini-diff" role="diffractometer"/>
-   <object href="/energy" role="energy" />
-   <object href="/fast-shut" role="fast_shutter" />
-   <object href="/attenuators" role="transmission" />
-   <object href="/session" role="session" />
-   <object href="/safshut" role="safety_shutter"/>
-   
-   <channel type="tine" name="intensMean" tinename="/P14/BCUIntensity/Device0" timeout="100">ChannelsMean.get</channel>
-   <channel type="tine" name="intensRange" tinename="/P14/BCUIntensity/Device0">CurrentRange.set</channel>
- 
-   <intensity>
-        <shutterOpenValue>opened</shutterOpenValue>
-        <valueOnClose>1e-9</valueOnClose>
-        <initialResolution>1</initialResolution>
-        <updateRelativeTolerance>0.1</updateRelativeTolerance>
-        <acqTimeOnCloseMs>1000</acqTimeOnCloseMs>
-        <acqTimeOnOpenMs>100</acqTimeOnOpenMs>
-        <ranges>
-            <range>
-                <CurMax>2.5e-9</CurMax>
-                <CurOffset>16.147e-12</CurOffset>
-                <CurIndex>2</CurIndex>
-            </range>
-            <range>
-                <CurMax>2.5e-6</CurMax>
-                <CurOffset>-2.810e-9</CurOffset>
-                <CurIndex>1</CurIndex>
-            </range>
-            <range>
-                <CurMax>10e-2</CurMax>
-                <CurOffset>-2.780e-6</CurOffset>
-                <CurIndex>0</CurIndex>
-            </range>
-        </ranges>
-    </intensity>
-    <amplChannelIndex>0</amplChannelIndex>
+   <channel type="tine" name="intensMean" tinename="/P14/PinDiode/Device0" timeout="100">ChannelsMean.get</channel>
+   <channel type="tine" name="intensRange" tinename="/P14/PinDiode/Device0">CurrentRange.set</channel>
+
+   <channel type="tine" name="fluxStatus" tinename="/P14/flux-history/flux-record">status</channel>
+   <channel type="tine" name="fluxTransmission" tinename="/P14/flux-history/flux-record">transmission</channel>
+
+   <channel type="tine" name="fluxMessage" tinename="/P14/flux-history/flux-record" attach="datachange">error</channel>
+
+   <command type="tine" name="fluxRecord" tinename="/P14/flux-history/flux-record">intensity</command>
+   <command type="tine" name="slitsRecord" tinename="/P14/flux-history/flux-record">beam-size</command>  
+   <intensity_offset>6.65-e7</intensity_offset> 
 </object>

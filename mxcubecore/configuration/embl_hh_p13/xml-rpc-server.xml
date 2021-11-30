@@ -5,6 +5,7 @@
        by socket.gethostname()-->
   <all_interfaces>True</all_interfaces>
   <port>8011</port>
+  <use_token>False</use_token>
 
   <apis>
     <api>
@@ -13,7 +14,4 @@
    </api>
   </apis>
 
-  <object href="/beamline-setup" role="beamline_setup"/>
-  <object href="/queue" role="queue"/>
-  <object href="/queue-model" role="queue_model"/>
 </object>

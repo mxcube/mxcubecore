@@ -38,14 +38,16 @@
      <axis>
         <!-- direction of sampx at Chi==0 and Omega == 0 --> 
         <motorname>sampx</motorname>
-        <direction>[-0.281085,  0, 0.959683]</direction>
+        <!--direction>[-0.281085,  0, 0.959683]</direction-->
+        <direction>[-0.9999505209310272, 0, 0.00994764744888108]</direction>
         <type>translation</type>
         <motorHO>/eh1/diff-sampx</motorHO> 
      </axis>
 
      <axis>
         <motorname>sampy</motorname>
-        <direction>[0.959683,  0, 0.281085 ]</direction>
+        <!--direction>[0.959683,  0, 0.281085 ]</direction-->
+        <direction>[0.00994764744888108, 0, 0.9999505209310272]</direction>
         <type>translation</type>
         <motorHO>/eh1/diff-sampy</motorHO> 
      </axis>

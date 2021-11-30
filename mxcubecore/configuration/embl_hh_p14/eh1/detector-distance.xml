@@ -4,10 +4,9 @@
   <channel type="tine" name="axisState" tinename="/P14/collection/distance">state2</channel>
   <channel type="tine" name="axisPosition" tinename="/P14/collection/distance">position</channel>
   <channel type="tine" name="axisLimits" tinename="/P14/collection/distance">limits</channel>
-
+-->
   <!-- <moveHOSignals>{'Door_Interlock':'DoorInterlockStateChanged'}</moveHOSignals>
   <moveConditions>{'Door_Interlock.doorIsInterlocked()':True}</moveConditions> -->
-
   <epsilon>0.01</epsilon>
   <verboseUpdate>False</verboseUpdate>
   <maxMotorPosition>1000</maxMotorPosition>

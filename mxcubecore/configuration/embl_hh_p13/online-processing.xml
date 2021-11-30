@@ -1,0 +1,6 @@
+<object class="EMBLOnlineProcessing">
+  <channel type="tine" name="chanStatus" tinename="/P13/rideau/tioga" attach="datachange">status</channel>	
+  <channel type="tine" name="chanDozorPass" tinename="/P13/rideau/tioga" attach="event">dozor-pass</channel>
+  <channel type="tine" name="chanFrameCount" tinename="/P13/rideau/tioga" attach="timer">frame-count</channel>
+  <channel type="tine" name="chanDozorIS" tinename="/P13/rideau/tioga" attach="event">dozor-pass-IS</channel>
+</object>

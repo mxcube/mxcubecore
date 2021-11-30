@@ -1,0 +1,7 @@
+<device class="QtAxisCamera">
+   <interval>1000</interval>
+   <address>http://p13axiscameh.embl-hamburg.de/axis-cgi/jpg/image.cgi</address>
+   <user>root</user>
+   <password>instrumentation</password>
+   <image_size>(704, 576)</image_size>
+</device>

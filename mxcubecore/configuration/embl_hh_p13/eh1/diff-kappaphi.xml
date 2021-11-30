@@ -2,4 +2,6 @@
   <exporter_address>p13md201.embl-hamburg.de:9001</exporter_address>
   <actuator_name>Phi</actuator_name>
   <predefined_positions>{'close': 0}</predefined_positions>
+  <resolution>0.1</resolution>
+  <command type="tine" name="cmdStartHomingMotor" tinename="/P13/MD/MD_0">startHomingMotor</command>
 </device>

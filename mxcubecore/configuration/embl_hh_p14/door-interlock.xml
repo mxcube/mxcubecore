@@ -1,7 +1,4 @@
 <device class="EMBLDoorInterlock">
-  <object href="/eh1/detector-distance" role="detector_distance"/>
-  <object href="/mini-diff" role="diffractometer"/>
-
   <channel type="tine" name="chanStateBreakable" tinename="/P14/ics/interlock-EH1" attach="datachange" >state-breakable</channel>
   <channel type="tine" name="chanStateLocked" tinename="/P14/ics/interlock-EH1" attach="datachange" >state-locked</channel>
   <command type="tine" name="cmdBreak" tinename="/P14/ics/interlock-EH1" timeout="1000">break</command>

@@ -8,7 +8,7 @@
             <value>2.00</value>
         </aimedIOverSigmaAtHighestResolution>
         <aimedMultiplicity>
-            <value>4.0</value>
+            <value>48.0</value>
         </aimedMultiplicity>
         <aimedResolution>
             <value>0.5</value>
@@ -26,7 +26,7 @@
            <value>0.2500000e-01</value>
         </goniostatMinOscillationWidth>
         <detectorDistanceMin>
-           <value>130</value>
+           <value>135.30</value>
         </detectorDistanceMin>
         <detectorDistanceMax>
            <value>2400</value>

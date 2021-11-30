@@ -1,22 +1,8 @@
 <object class="EMBLXrayImaging">
-  <object href="/eh1/beamFocusing" role="beam_focusing"/>
-  <object href="/mini-diff" role="diffractometer"/>
-  <object href="/graphics" role="graphics_manager"/>
-  <object href="/safshut" role="safety_shutter"/>
-  <object href="/beam-info" role="beam_info"/>
-  <object href="/mach-info" role="machine_info"/>
-  <object href="/energy" role="energy"/>
-  <object href="/flux" role="flux"/>
-  <object href="/eh1/detector" role="detector"/>
-  <object href="/eh1/resolution" role="resolution"/>
-  <object href="/attenuators" role="transmission"/>
-  <object href="/dbconnection" role="lims_client"/>
-  <object href="/session" role="session"/>
-
   <!-- <channel type="tine" name="chanFrame" tinename="/P14/arapaho/arapaho" attach="event">frame</channel> 
 
   <channel type="tine" name="chanFrameCount" tinename="/P14/arapaho/arapaho" attach="datachange" timeout="100">frame-count</channel>
-  <channel type="tine" name="chanFFSSIM" tinename="/P14/arapaho/arapaho">ff-ssim</channel>
+  <channel type="tine" name="chanFFSSIM" tinename="/P14/arapaho/arapaho" attach="event">ff-ssim</channel>
 
   <channel type="tine" name="collectStatus" tinename="/P14/collection/mx-standard" attach="event">status</channel>
   <channel type="tine" name="collectError" tinename="/P14/collection/mx-standard" attach="event">error</channel>
@@ -52,4 +38,9 @@
   <command type="tine" name="collectAbort"   tinename="/P14/collection/mx-standard">abort</command> -->
 
   <interval>40</interval>
+  <reference_distance>135.30</reference_distance>
+  <reference_angle>-0.0040</reference_angle>
+  <!--reference_angle>-0.003530541</reference_angle-->
+  <!--reference_angle>-0.0031490</reference_angle at 0.5  to 1.0 m -->
+  <!--reference_angle>0.003482</reference_angle through the mirrors-->
 </object>     

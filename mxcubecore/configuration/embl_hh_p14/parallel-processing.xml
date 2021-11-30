@@ -1,7 +1,0 @@
-<object class="EMBLParallelProcessing">
-  <object href="/mxcollect" role="collect"/>
-  <object href="/mini-diff" role="diffractometer"/>
-  <object href="/eh1/diff-beamstop" role="beamstop"/>
-  <channel type="tine" name="chanDozorPass" tinename="/P14/tioga/tioga" attach="event">dozor-pass</channel>
-  <channel type="tine" name="chanFrameCount" tinename="/P14/tioga/tioga" attach="timer">frame-count</channel>
-</object>

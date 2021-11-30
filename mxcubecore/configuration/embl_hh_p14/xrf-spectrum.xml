@@ -1,8 +1,4 @@
 <object class="EMBLXRFSpectrum">
-  <object hwrid="/attenuators" role="transmission"/>
-  <object hwrid="/energy" role="energy"/>
-  <object hwrid="/beam-info" role="beam_info"/>
-  <object hwrid="/dbconnection" role="dbserver"/>
 
   <channel type="tine" name="chanSpectrumStatus" tinename="/P14/fluorescence-scan/fls-scan">status</channel>
   <channel type="tine" name="chanSpectrumConsts" tinename="/P14/fluorescence-scan/fls-scan">calibration-consts</channel>
