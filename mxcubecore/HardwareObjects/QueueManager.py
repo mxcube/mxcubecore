@@ -235,14 +235,18 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                 except Exception:
                     pass
 
-        self._root_task.kill(block=False)
+        if self._root_task:
+            self._root_task.kill(block=False)
 
+        self._queue_end()
+
+    def _queue_end(self):
         # Reset the pause event, incase we were waiting.
         self.set_pause(False)
-        self.emit("queue_stopped", (None,))
-        self.emit("statusMessage", ("status", "", "Queue stopped"))
-        # self.emit('centringAllowed', (True, ))
         self._is_stopped = True
+        self._running = False
+        self.emit("statusMessage", ("status", "", "Queue stopped"))
+        self.emit("queue_stopped", (None,))
 
     def set_pause(self, state):
         """
@@ -361,7 +365,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                 if result:
                     return result
 
-    def execute_entry(self, entry):
+    def execute_entry(self, entry, _async=False):
         """
         Executes the queue entry <entry>.
 
@@ -371,7 +375,17 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         :returns: None
         :rtype: NoneType
         """
-        self.__execute_entry(entry)
+        self._running = True
+        self._is_stopped = False
+        self._set_in_queue_flag()
+
+        if _async:
+            task = gevent.spawn(self.__execute_entry, entry)
+            task.link((lambda _t: self._queue_end()))
+        else:
+            self.__execute_entry(entry)
+            self._queue_end()
+
 
     def clear(self):
         """
