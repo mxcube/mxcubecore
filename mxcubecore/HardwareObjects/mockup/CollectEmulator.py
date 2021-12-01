@@ -333,12 +333,13 @@ class CollectEmulator(CollectMockup):
         # resource.setrlimit(resource.RLIMIT_STACK, (-1,-1))
 
         try:
+            self.emit("collectStarted", (None, 1))
             running_process = subprocess.Popen(
                 command_list, stdout=fp1, stderr=fp2, env=envs
             )
             gphl_connection.collect_emulator_process = running_process
 
-            # # This does waiting, so we want to collect the result afterwards
+            # # NBNB leaving this in causes simulations to be killed and missing images
             # super(CollectEmulator, self).data_collection_hook()
 
             logging.getLogger("HWR").info("Waiting for simcal collection emulation.")
@@ -359,5 +360,6 @@ class CollectEmulator(CollectMockup):
             )
         else:
             logging.getLogger("HWR").info("Simcal collection emulation successful")
+        self.ready_event.set()
 
         return
