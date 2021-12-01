@@ -1,16 +1,19 @@
 <object class="EMBLBeamlineTest">
     <device_list>/opt/embl-hh/etc/p13/app/mxcube/HardwareObjects.xml/p13devicesList.csv</device_list>
-    <object href="/beamline-setup" role="beamline_setup"/> 
-
     <object hwrid="/oh1/motor-pitch-hfm" role="horizontal_motor"/>
     <object hwrid="/oh1/motor-pitch-vfm" role="vertical_motor"/>
 
-    <channel type="tine" name="intensMean" tinename="/P13/BCUIntensity/Device0" timeout="100" >ChannelsMean.get</channel>
-    <channel type="tine" name="intensRange" tinename="/P13/BCUIntensity/Device0">CurrentRange.set</channel>
+    <!--channel type="tine" name="intensMean" tinename="/P13/BCUIntensity/Device0" timeout="100" >ChannelsMean.get</channel>
+    <channel type="tine" name="intensRange" tinename="/P13/BCUIntensity/Device0">CurrentRange.set</channel-->
 
     <channel type="tine" name="chanPitchScanStatus" tinename="/P13/p13mono.cdi/PitchScanStat" attach="datachange">PitchScanStat</channel>
+ 
+    <!-- 
     <channel type="tine" name="chanQBPMAr" tinename="/P13/p13mono.cdi/QBPMAr">RECV</channel>
-    <channel type="tine" name="chanPitchPositionAr" tinename="/P13/p13mono.cdi/PitchPos">RECV</channel>
+    <channel type="tine" name="chanPitchPositionAr" tinename="/P13/p13mono.cdi/VPitchAr">RECV</channel>
+    <channel type="tine" name="chanEncAr" tinename="/P13/p13mono.cdi/EncAr">RECV</channel>
+    -->
+
 
     <command type="tine" name="cmdSetPitchPosition" tinename="/P13/p13mono.cdi/PitchPos">SEND</command>
     <command type="tine" name="cmdSetPitch" tinename="/P13/p13mono.cdi/SetPitch">SEND</command>
@@ -32,40 +35,10 @@
         "measure_intensity": "Intensity measurement",
         "sc_stats": "Sample changer statistics",
         "graph": "Graph"}
-    -->
-
     <available_tests>["ppu", "autocentring", "com", "sc_stats"]</available_tests>
     -->
     
     <startup_tests>["measure_intensity"]</startup_tests>
-
-    <scale_hor>-0.25</scale_hor>
-    <scale_ver>-0.25</scale_ver>
-
-    <intensity>
-        <shutterOpenValue>opened</shutterOpenValue>
-        <valueOnClose>1e-9</valueOnClose>
-        <initialResolution>1</initialResolution>
-        <updateRelativeTolerance>0.1</updateRelativeTolerance>
-        <acqTimeOnCloseMs>1000</acqTimeOnCloseMs>
-        <acqTimeOnOpenMs>100</acqTimeOnOpenMs>
-        <ranges>
-            <range>
-                <CurMax>2.5e-9</CurMax>
-                <CurOffset>1.665e-11</CurOffset>
-                <CurIndex>2</CurIndex>
-            </range>
-            <range>
-                <CurMax>2.5e-6</CurMax>
-                <CurOffset>-6.73e-10</CurOffset>
-                <CurIndex>1</CurIndex>
-            </range>
-            <range>
-                <CurMax>10e-2</CurMax>
-                <CurOffset>-6.59e-7</CurOffset>
-                <CurIndex>0</CurIndex>
-            </range>
-        </ranges>
-    </intensity>
-    <amplChannelIndex>0</amplChannelIndex>
+    <scale_hor>-0.020</scale_hor>
+    <scale_ver>-0.020</scale_ver>
 </object>

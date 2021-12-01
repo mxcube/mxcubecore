@@ -1,6 +1,8 @@
 <object class="EMBLImageTracking">
-      <channel type="tine" name="chanImageTrackingEnabled" tinename="/P13/image-tracker/img-tracker" attach="datachange" timeout="100">load-state</channel>
+   <channel type="tine" name="chanImageTrackingEnabled" tinename="/P13/image-tracker/img-tracker" attach="datachange" timeout="100">load-state</channel>
    <channel type="tine" name="chanState" tinename="/P13/image-tracker/img-tracker" attach="datachange" timeout="100">status</channel>
+   <channel type="tine" name="chanFilterFramesEnabled" tinename="/P13/image-tracker/img-tracker" attach="datachange">filter</channel>
+   <channel type="tine" name="chanSpotListEnabled" tinename="/P13/image-tracker/img-tracker" attach="datachange">spot-list</channel>
 
    <command type="tine" name="cmdLoadImage" tinename="/P13/image-tracker/img-tracker">load</command>
 

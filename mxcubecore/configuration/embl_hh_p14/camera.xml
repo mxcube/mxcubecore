@@ -1,6 +1,0 @@
-<device class="VimbaVideo"> 
-   <type>Prosilica</type> 
-   <mirror>(True, False)</mirror> 
-   <interval>40</interval>
-   <camera_index>-1</camera_index>
-</device>

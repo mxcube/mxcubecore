@@ -1,0 +1,21 @@
+<equipment class="EMBLMachineInfo">
+    <updateIntervalS>120</updateIntervalS>		
+    <limits>{'current':75, 'temp': 25, 'hum': 60, 'intens': 5e-8}</limits>
+    <hutchTempAddress>G47cS9:K:KL:P14EH1RaTIW_ai</hutchTempAddress>
+    <hutchHumAddress>G47cS9:K:KL:P14EH1RaF_ai</hutchHumAddress>
+    <channel type="tine" name="machStateText" tinename="/PETRA/ARCHIVER/keyword" attach="datachange">MachineStateText</channel>
+    <channel type="tine" name="machCurrent" tinename="/PETRA/ARCHIVER/keyword" >curDC</channel>
+    <channel type="tine" name="machEnergy" tinename="/PETRA/ARCHIVER/keyword" attach="datachange">Energy</channel>
+    <channel type="tine" name="machBunchCount" tinename="/PETRA/ARCHIVER/keyword" attach="datachange">NBunches</channel>
+    <channel type="tine" name="cryojetIn" tinename="/P14/P14Cryojet.CDI/CryojetIn">RECV</channel>
+    <channel type="tine" name="cryojetTemperature" tinename="/P14/P14Cryostream/CRYOSTREAM" attach="datachange" tolerance="0.01" >SampleTemp</channel>
+    <channel type="tine" name="scLowLevelAlarm" tinename="/P14/P14Cryojet.CDI/LowLevelAlarm">RECV</channel>
+    <channel type="tine" name="scOverflowAlarm" tinename="/P14/P14Cryojet.CDI/OverflowAlarm">RECV</channel>
+    <channel type="tine" name="frontEndStatus" tinename="/PETRA/ARCHIVER/PS_0" attach="datachange">P14.Stellung</channel>
+    <channel type="tine" name="chanUndulatorGap" tinename="/P14/Energy/P14Energy">Gap</channel>
+
+    <channel type="tine" name="framesCountDropped" tinename="/P14/detector/eiger16m">count-dropped</channel>
+    <!--
+    <channel type="tine" name="framesAverageI" tinename="/P14/tioga/tioga">dozor-average-i</channel>
+    -->
+</equipment>

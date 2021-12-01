@@ -1,4 +1,5 @@
 <device class="ExporterMotor">
-  <exporter_address>p14md301.embl-hamburg.de:9001</exporter_address>
+  <exporter_address>p14md302.embl-hamburg.de:9001</exporter_address>
   <actuator_name>Phi</actuator_name>
+  <resolution>0.1</resolution>
 </device>

@@ -1,8 +1,0 @@
-<object class="EDNACharacterisation">
-  <object href="/mxcollect" role="collect"/>
-  <object href="/eh1/diff-beamstop" role="beamstop"/> 
-  <object href="/beam-info" role="beam"/>
-  <edna_command>/opt/embl-hh/bin/edna_characterisation.sh</edna_command>
-  <edna_default_file>edna-defaults.xml</edna_default_file>
-  <dozor_command>/opt/embl-hh/bin/edna_dozor.sh</dozor_command>
-</object>

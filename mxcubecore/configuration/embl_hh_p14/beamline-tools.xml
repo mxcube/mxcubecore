@@ -1,7 +1,4 @@
 <object class="BeamlineTools">
-   <object href="/beamline-test" role="beamline_test"/>
-   <object href="/flux" role="flux"/>
-   <object href="/eh1/detector" role="detector"/>
    <tools>
      <!-- <tool>
        <hwobj>beamline_test</hwobj>

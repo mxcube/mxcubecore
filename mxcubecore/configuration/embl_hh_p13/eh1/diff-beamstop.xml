@@ -5,4 +5,5 @@
   <defaultBeamstopDistance>15.0</defaultBeamstopDistance>
   <defaultBeamstopDirection>-X</defaultBeamstopDirection>
   <channel type="exporter" name="BeamstopPosition">CapillaryPosition</channel>
+  <!-- <channel type="exporter" name="BeamstopDistance">BeamstopDistance</channel> -->
 </device>

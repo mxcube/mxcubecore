@@ -10,11 +10,14 @@
         <aimedResolution>
             <value>0.5</value>
         </aimedResolution>
+        <aimedMultiplicity>
+            <value>48</value>
+        </aimedMultiplicity>
         <complexity>
-            <value>min</value>
+            <value>none</value>
         </complexity>
         <maxExposureTimePerDataCollection>
-            <value>600</value>
+            <value>200</value>
         </maxExposureTimePerDataCollection>
         <detectorDistanceMin>
            <value>135</value>
@@ -29,7 +32,7 @@
                 <value>3.000000e+12</value>
             </flux>
             <minExposureTimePerImage>
-                <value>0.040</value>
+                <value>0.00769</value>
             </minExposureTimePerImage>
             <size>
                 <x>

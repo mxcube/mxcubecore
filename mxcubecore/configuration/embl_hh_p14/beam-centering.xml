@@ -1,0 +1,26 @@
+ <object class="EMBLBeamCentering">
+    <object hwrid="/oh1/motor-roll-second" role="horizontal_motor"/>
+    <object hwrid="/oh1/motor-perp" role="vertical_motor"/>
+    <object hwrid="/oh1/motor-hfm-pitch" role="horizontal_double_mode_motor"/>
+    <object hwrid="/oh1/motor-vfm-pitch" role="vertical_double_mode_motor"/>
+
+    <channel type="tine" name="intensMean" tinename="/P14/PinDiode/Device0" timeout="100" >ChannelsMean.get</channel>
+    <channel type="tine" name="intensRange" tinename="/P14/PinDiode/Device0">CurrentRange.set</channel>
+    <command type="tine" name="setIntensResolution" tinename="/P14/PindDiode/Device0" timeout="3000">ADCResolution.set</command>
+    <command type="tine" name="setIntensAcqTime" tinename="/P14/PinDiode/Device0" timeout="3000">AcquisitionTime.set</command>
+    <command type="tine" name="setIntensRange" tinename="/P14/PinDiode/Device0" timeout="3000">CurrentRange.set</command>
+
+    <channel type="tine" name="chanPitchScanStatus" tinename="/P14/p14mono.cdi/ScanStatus" attach="datachange">RECV</channel>
+    <channel type="tine" name="chanEncoderAr" tinename="/P14/p14mono.cdi/EncAr">RECV</channel>
+    <channel type="tine" name="chanQBPMAr" tinename="/p14/p14mono.cdi/QBPMAr">RECV</channel>
+    <channel type="tine" name="chanPitchPositionAr" tinename="/P14/p14mono.cdi/PitchPosAr">RECV</channel>
+    <command type="tine" name="cmdSetPitchPosition" tinename="/P14/p14mono.cdi/PitchPos">SEND</command>
+    <command type="tine" name="cmdSetPitch" tinename="/P14/p14mono.cdi/SetPitch">SEND</command>
+    <command type="tine" name="cmdStartPitchScan" tinename="/P14/p14mono.cdi/StartPitchScan">SEND</command>
+    <command type="tine" name="cmdSetVMaxPitch" tinename="/p14/p14mono.cdi/SetVMaxPitch">SEND</command>
+
+    <scale_hor>0.034</scale_hor>
+    <scale_ver>-1</scale_ver>
+    <scale_double_hor>-0.5</scale_double_hor>
+    <scale_double_ver>-0.5</scale_double_ver>
+</object>

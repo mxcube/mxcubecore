@@ -2,7 +2,7 @@
     <focusModes>
 	<focusMode>
 	   <modeName>Collimated</modeName>
-           <lensCombination>[0,1,1,1,1,0]</lensCombination>
+	   <lensCombination>[1,0,1,1,1,0,0,0]</lensCombination>
            <lensModes>['Automatic','Manual']</lensModes>
 	   <size>(9999, 9999) </size>
            <divergence>(20, 10)</divergence>
@@ -11,25 +11,33 @@
 	</focusMode>
         <focusMode>
            <modeName>Double</modeName>
-           <lensCombination>[0,0,1,1,0,0]</lensCombination>
+           <lensCombination>[0,0,1,0,0,0,0,0]</lensCombination>
            <lensModes>['Manual']</lensModes>
-           <size>(0.010, 0.005)</size>
+           <size>(0.007, 0.003)</size>
            <divergence>(999, 500)</divergence>
-           <message>'Double microfocued mode. \nCrystal life time will be ~0.3 sec.\n Beam size will be 0.005x0.010 mm.'</message>
+           <message>'Double microfocued mode. \nCrystal life time will be ~0.080 sec.\n Beam size will be 0.007x0.02 mm.'</message>
            <aperture>150</aperture> 
         </focusMode>
         <focusMode>
            <modeName>Imaging</modeName>
-           <lensCombination>[0,0,0,0,0,0]</lensCombination>
+           <lensCombination>[0,0,0,0,0,0,0,0]</lensCombination>
            <lensModes>['Manual']</lensModes>
            <size>(9999, 9999) </size>
            <divergence>(20, 10)</divergence>
            <message>'Imaging mode. \n Will set the imaging camera on the beam'</message>
            <aperture>1400</aperture>
         </focusMode>
+        <focusMode>
+           <modeName>TREXX</modeName>
+           <lensCombination>[0,0,0,0,1,0,0,0]</lensCombination>
+           <lensModes>['Manual']</lensModes>
+           <size>(9999, 9999) </size>
+           <divergence>(20, 10)</divergence>
+           <message>'TREXX mode. Will set the detecor of for EH2 beam transport'</message>
+           <aperture>1400</aperture>
+        </focusMode>
     </focusModes>
     <focusMotors>['ExTblVUp', 'ExTblHUp', 'ExTblHDwn', 'ExTblVerDwnI', 'ExTblVerDwnO', 'VFM_VerTrans', 'HFM_HorTrans', 'P14DetHor1', 'P14DetHor2', 'P14DetVer', 'P14DetTilt', 'ShutterTrans']</focusMotors>
-
     <!--focusMotors>['ExTblVUp', 'ExTblHUp', 'ExTblHDwn', 'ExTblVerDwnI', 'ExTblVerDwnO', 'VFM_VerTrans', 'HFM_HorTrans']</focusMotors-->
     <object hwrid="/eh1/beamFocusingMotors/P14ExpTbl" role="P14ExpTbl"/>
     <object hwrid="/eh1/beamFocusingMotors/P14KB" role="P14KB"/>

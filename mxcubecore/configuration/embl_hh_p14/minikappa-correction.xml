@@ -1,12 +1,15 @@
 <device class="MiniKappaCorrection">
    <kappa>
-      <direction>[0.287606,0.287606,-0.913545]</direction>
-      <!-- ORIGINAL MD3 Minikappa position>[-0.083453947345,-0.15278782895,-0.22471079235]</position-->
-      <position>[0.36576754385, 0.45933388156, -1.499648602]</position>
+      <!-- ORIGINAL MD3 Minikappa direction>direction>[0.287606,0.287606,-0.913545]</direction --> 
+      <!-- ORIGINAL MD3 Minikappa  position>[-0.083453947345,-0.15278782895,-0.22471079235]</position-->
+      <direction>[0.0,-0.40673767,-0.913545]</direction>
+      <!--position>[-0.131891604025, -0.73538824445, 0.08983292865]</position-->
+      <position>[-0.15192456299,-0.53154922485,0.4680776895]</position>
    </kappa>
    <phi>
       <direction>[0, 0, -1]</direction>
       <!--ORIGINAL MD3 Minikappa position>[0.013089364035,-0.18904784085,-0.3148448717]</position-->
-      <position>[-0.0213733553, 0.03060032895, -1.669944936]</position>
+      <!--position>[-0.1459669214,-0.4697167742,-0.1368219489]</position  Mon Nov 25 12:09:43 CET 2019-->
+      <position>[-0.16287732179,-0.4429583311,0.5745180532]</position>
    </phi>
 </device>
