@@ -1,31 +1,20 @@
 <object class="EMBLCollect">
-  <object href="/mini-diff" role="diffractometer"/>
-  <object href="/graphics" role="graphics_manager"/>
-  <object href="/safshut" role="safety_shutter"/>
-  <object href="/beam-info" role="beam_info"/>
-  <object href="/mach-info" role="machine_info"/>
-  <object href="/energy" role="energy"/>
-  <object href="/flux" role="flux"/>
-  <object href="/eh1/detector" role="detector"/>
-  <object href="/eh1/resolution" role="resolution"/>
-  <object href="/attenuators" role="transmission"/>
-  <object href="/auto-processing" role="auto_processing"/>
-  <object href="/dbconnection" role="lims_client"/>
-<!--  <object href="/image-tracking" role="image_tracking"/>-->
-
   <channel type="tine" name="collectFrame" tinename="/P13/collection/mx-standard" attach="event">frame</channel>
   <channel type="tine" name="collectStatus" tinename="/P13/collection/mx-standard" attach="event">status</channel>
-  <channel type="tine" name="collectError" tinename="/P13/collection/mx-standard" attach="event">error</channel> 
+  <channel type="tine" name="collectError" tinename="/P13/collection/mx-standard" attach="event">Error</channel>
+  <channel type="tine" name="guillotineState" tinename="P13/P13DetTrans.CDI/GuillCmd" size="2">RECV</channel> 
 
+  <command type="tine" name="collectCompression" tinename="/P13/collection/mx-standard">compression</command>
   <command type="tine" name="collectDescription" tinename="/P13/collection/mx-standard">description</command>
   <command type="tine" name="collectDetector" tinename="/P13/collection/mx-standard">detector</command>
   <command type="tine" name="collectDirectory" tinename="/P13/collection/mx-standard">directory</command>
   <command type="tine" name="collectEnergy" tinename="/P13/collection/mx-standard">energy</command>
   <command type="tine" name="collectExposureTime" tinename="/P13/collection/mx-standard">exposure-time</command>
   <command type="tine" name="collectHelicalPosition" tinename="/P13/collection/mx-standard">helical-position</command>
-  <command type="tine" name="collectInQueue" tinename="/P13/collection/mx-standard">in-queue</command>
+  <command type="tine" name="collectInQueue" tinename="/P13/collection/mx-standard">in-queue</command> 
   <command type="tine" name="collectNumImages" tinename="/P13/collection/mx-standard">num-images</command>
   <command type="tine" name="collectOverlap" tinename="/P13/collection/mx-standard">overlap</command>
+  <command type="tine" name="collectProcessing" tinename="/P13/collection/mx-standard">processing</command>
   <command type="tine" name="collectRange" tinename="/P13/collection/mx-standard">range</command>
   <command type="tine" name="collectRasterLines" tinename="/P13/collection/mx-standard">raster-lines</command>
   <command type="tine" name="collectRasterRange" tinename="/P13/collection/mx-standard">raster-range</command>
@@ -39,12 +28,14 @@
   <command type="tine" name="collectTransmission" tinename="/P13/collection/mx-standard">transmission</command>
   <command type="tine" name="collectSpaceGroup" tinename="/P13/collection/xds">space-group-symbol</command>
   <command type="tine" name="collectUnitCell" tinename="/P13/collection/xds">unit-cell</command>
+  <command type="tine" name="collectXdsDataRange" tinename="/P13/collection/xds">data-range</command>
+
   <command type="tine" name="collectStart" tinename="/P13/collection/mx-standard">collect</command>
   <command type="tine" name="collectAbort"   tinename="/P13/collection/mx-standard">abort</command>
 
-  <command type="tine" name="collectXdsDataRange" tinename="/P13/collection/xds">data-range</command>
+  <command type="tine" name="collectImagesPerTrigger" tinename="/P13/collection/mx-standard">nexp-frame</command>
 
-  <useEDNA>True</useEDNA>
+  <command type="tine" name="cmdSetCallibrationName"   tinename="/P13/collection/distance">calibration</command>
 
   <input_files_server>localhost:5698</input_files_server>
   <monochromator>Si(111)</monochromator>
@@ -52,9 +43,11 @@
   <polarisation>0.99</polarisation>
   <undulators>
    <undulator>
-     <type>U29</type>
+     <type>u29</type>
      <device_uri></device_uri>
      <gap_index>0</gap_index>
     </undulator>
    </undulators>
+  <use_still>False</use_still>
 </object>
+

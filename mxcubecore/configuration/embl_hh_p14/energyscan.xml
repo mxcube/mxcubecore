@@ -1,10 +1,4 @@
 <object class="EMBLEnergyScan">
-  <object hwrid="/energy" role="energy"/>
-  <object hwrid="/eh1/resolution" role="resolution"/>
-  <object hwrid="/attenuators" role="transmission"/>
-  <object hwrid="/beam-info" role="beam_info"/>
-  <object hwrid="/dbconnection" role="dbserver"/>
-
   <channel type="tine" name="energyScanStart" tinename="/P14/fluorescence-scan/fls-scan" attach="event">start</channel>
   <channel type="tine" name="energyScanStatus" tinename="/P14/fluorescence-scan/fls-scan" attach="event">status</channel>
   <channel type="tine" name="energyScanError" tinename="/P14/fluorescence-scan/fls-scan" attach="datachange">error</channel>

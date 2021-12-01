@@ -5,7 +5,7 @@
   <channel type="tine" name="chanLimitHigh" tinename="/P13/Energy/P13Energy">ELimitHigh</channel>  -->
   <channel type="tine" name="chanStatus" tinename="/P13/Energy/P13Energy">Status</channel>
   <channel type="tine" name="chanUndulatorGap" tinename="/P13/Energy/P13Energy" attach="datachange">Gap</channel>
-  <channel type="tine" name="chanStatusBraggBreak" tinename="/P13/MonoBragg/Device 0">StatusBraggBreak</channel>
+  <channel type="tine" name="chanStatusBraggBreak" tinename="/P13/MonoBragg/Device 0" attach="datachange" timeout="50" >StatusBraggBreak</channel>
 
   <command type="tine" name="cmdEnergyCtrlByte" tinename="/P13/Energy/P13Energy" timeout="5000">EnergyCtrlByte</command>
   <command type="tine" name="cmdReleaseBreakBragg" tinename="/P13/MonoBragg/Device 0">ReleaseBreakBragg</command>
@@ -15,7 +15,7 @@
 
   <tunableEnergy>True</tunableEnergy>
   <!-- <defaultEnergy>12.8</defaultEnergy>  -->
-  <staticLimits>[3.99, 18.5]</staticLimits>
+  <staticLimits>[3.99, 17.05]</staticLimits>
   <ctrlBytes>[5, 63]</ctrlBytes>
 </device>
 

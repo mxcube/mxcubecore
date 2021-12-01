@@ -1,0 +1,8 @@
+<object class="QtGraphicsManager">
+   <object href="/xray-imaging" role="camera"/>
+   <!-- <imageScaleList>[0.5, 1, 1.5, 2]</imageScaleList> -->
+   <!-- <defaultImageScale>0.5</defaultImageScale> -->
+   <!-- <store_graphics_config>True</store_graphics_config> -->
+   <!-- <save_file_name></save_file_name> -->
+   <!-- <custom_cursor>/home/karpics/Downloads/icons8-cursor-40.png</custom_cursor> -->
+</object>

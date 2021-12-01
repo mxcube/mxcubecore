@@ -1,0 +1,16 @@
+<object class="EMBLOfflineProcessing">
+ <programs>
+    <program>
+      <executable>ssh bcrunch srun /mx-beta/edna-cluster-scripts/edna_proc.csh</executable>
+      <event>after</event>
+    </program> 
+    <program>
+      <executable>ssh bcrunch srun /mx-beta/edna-cluster-scripts/edna_autoPROC.csh</executable>
+      <event>after</event>
+    </program>
+    <program>
+      <executable>ssh bcrunch srun /mx-beta/edna-cluster-scripts/edna_thumbnails.csh</executable>
+      <event>image</event>
+    </program>
+  </programs>
+</object>

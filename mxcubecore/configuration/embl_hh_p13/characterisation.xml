@@ -1,0 +1,5 @@
+<object class="EDNACharacterisation">
+  <edna_command>ssh bcrunch srun -c 4 /mx-beta/edna-cluster-scripts/edna_characterisation.csh</edna_command>
+  <edna_default_file>/opt/embl-hh/etc/p13/app/mxcube/configuration/edna-defaults.xml</edna_default_file>
+  <dozor_command>/opt/embl-hh/bin/edna_dozor.sh</dozor_command>
+</object>

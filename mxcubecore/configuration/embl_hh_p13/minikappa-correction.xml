@@ -2,11 +2,11 @@
    <kappa>
       <direction>[0.287606,0.287606,-0.913545]</direction>
       <!--position>[0.581607, 0.542426, -2.15786]</position-->
-      <position>[-0.499986, -0.2591313, 0.484796]</position>
+     <position>[0.32302357455,0.28042214915,-1.01869386225]</position>
    </kappa>
    <phi>
       <direction>[0, 0, -1]</direction>
       <!--position>[-0.254882,-0.020743,-0.000462]</position-->
-      <position>[-0.316151,-0.039378,0.4179955]</position>
+      <position>[0.045545504,-0.06830043858,-1.369085147]</position>
    </phi>
 </device>

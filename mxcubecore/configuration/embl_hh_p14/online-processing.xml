@@ -1,0 +1,7 @@
+<object class="EMBLOnlineProcessing">
+  <object href="/eh1/diff-beamstop" role="beamstop"/>
+  <channel type="tine" name="chanStatus" tinename="/P14/rideau/tioga" attach="datachange">status</channel>
+  <channel type="tine" name="chanDozorPass" tinename="/P14/rideau/tioga" attach="event">dozor-pass</channel>
+  <channel type="tine" name="chanFrameCount" tinename="/P14/rideau/tioga" attach="datachange">frame-count</channel>
+  <channel type="tine" name="chanDozorIS" tinename="/P14/rideau/tioga" attach="event">dozor-pass-IS</channel>
+</object>

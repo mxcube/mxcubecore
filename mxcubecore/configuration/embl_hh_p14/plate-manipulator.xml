@@ -1,5 +1,5 @@
 <equipment class = "PlateManipulator">
-   <exporter_address>p14md301.embl-hamburg.de:9001</exporter_address>
+   <exporter_address>p14md302.embl-hamburg.de:9001</exporter_address>
    <command type="exporter" name="startMovePlateToLocation">startMovePlateToLocation</command>
    <channel type="exporter" name="PlateLocation">PlateLocation</channel>
    <channel type="exporter" name="State">State</channel>

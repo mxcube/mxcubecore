@@ -1,0 +1,20 @@
+<object class="EMBLBeamCentering">
+    <object hwrid="/oh1/motor-pitch-hfm" role="horizontal_motor"/>
+    <object hwrid="/oh1/motor-pitch-vfm" role="vertical_motor"/>
+
+    <channel type="tine" name="intensMean" tinename="/P13/BCUIntensity/Device0" timeout="100" >ChannelsMean.get</channel>
+    <channel type="tine" name="intensRange" tinename="/P13/BCUIntensity/Device0">CurrentRange.set</channel>
+
+    <channel type="tine" name="chanPitchScanStatus" tinename="/P13/p13mono.cdi/PitchScanStat" attach="datachange">PitchScanStat</channel>
+    <!--channel type="tine" name="chanQBPMAr" tinename="/P13/p13mono.cdi/QBPMAr">RECV</channel-->
+    <channel type="tine" name="chanPitchPositionAr" tinename="/P13/p13mono.cdi/PitchPos">RECV</channel>
+
+    <command type="tine" name="cmdSetPitchPosition" tinename="/P13/p13mono.cdi/PitchPos">SEND</command>
+    <command type="tine" name="cmdSetPitch" tinename="/P13/p13mono.cdi/SetPitch">SEND</command>
+    <command type="tine" name="cmdStartPitchScan" tinename="/P13/p13mono.cdi/StartPitchScan">SEND</command>
+    <command type="tine" name="cmdSetVMaxPitch" tinename="/p13/p13mono.cdi/SetVMaxPitch">SEND</command>
+    <command type="tine" name="cmdQBPMRangeSet" tinename="/P13/QBPM1/Device0">CurrentRange.set</command>
+  
+    <scale_hor>-0.020</scale_hor>
+    <scale_ver>-0.020</scale_ver>
+</object>

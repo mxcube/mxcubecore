@@ -11,12 +11,12 @@
 	  <motor>
  	    <motorName>Out</motorName>
             <motorsGroup>slitsMotors</motorsGroup>
-	    <reference>17000</reference>
+	    <reference>-45099</reference>
 	  </motor>
           <motor>
  	    <motorName>In</motorName>
             <motorsGroup>slitsMotors</motorsGroup>
-	    <reference>303000</reference>	          
+            <reference>1230240</reference>	          
 	  </motor>
        </motors>
     </gapH>
@@ -30,12 +30,12 @@
 	  <motor>
 	    <motorName>Top</motorName>
             <motorsGroup>slitsMotors</motorsGroup>
-            <reference>266000</reference>
+    	    <reference>331505.0</reference>
 	  </motor>
 	  <motor>
  	    <motorName>But</motorName>
-            <motorsGroup>slitsMotors</motorsGroup>	          
-            <reference>-259000</reference>
+            <motorsGroup>slitsMotors</motorsGroup>
+            <reference>-372780</reference>
 	  </motor>
        </motors>
     </gapV>  

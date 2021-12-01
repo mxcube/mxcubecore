@@ -1,0 +1,13 @@
+<equipment class = "Marvin">
+   <channel type="tine" name="chanSampleIsLoaded" tinename="/P13/MD/MD_0" attach="datachange" timeout="100">SampleIsLoaded</channel>
+   <channel type="tine" name="chanStatusList" tinename="/P13/P13SC/P13Marvin">MarvinStatus</channel>
+   <channel type="tine" name="chanPuckSwitches" tinename="/P13/P13SC/P13Marvin">PuckSwitches</channel>
+   <channel type="tine" name="chanMountedSamplePuck" tinename="/P13/P13SC/P13Marvin">StsSmplMnted</channel>
+   <channel type="tine" name="chanVeto" tinename="/P13/P13DetTrans.CDI/VetoActive">RECV</channel> 
+
+   <command type="tine" name="cmdMountSample" tinename="/P13/P13SC/P13Marvin" timeout="5000">Mount</command> 
+   <command type="tine" name="cmdUnmountSample" tinename="/P13/P13SC/P13Marvin" timeout="5000">DismountSample</command>
+
+   <useUpdateTimer>False</useUpdateTimer>
+   <log_filename>/opt/embl-hh/var/log/marvin.log</log_filename>
+</equipment>
