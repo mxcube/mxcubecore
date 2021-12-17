@@ -48,3 +48,17 @@ class Resolution(AbstractResolution):
     def init(self):
         """Initialisation"""
         super(Resolution, self).init()
+
+    def set_value(self, value, timeout=None):
+        """Set the resolution.
+        Args:
+            value(float): target value [Å]
+            timeout(float): optional - timeout [s],
+                             if timeout is None: wait forever (default).
+        """
+        # The precision depoends on the difference between the current
+        # resolution and the target value - the smaller the difference,
+        # the better the precision.
+        # We move twice to get the closet possible to the requested resolution.
+        super().set_value(value, timeout)
+        super().set_value(value, timeout)
