@@ -195,6 +195,3 @@ class BlissMotor(AbstractMotor):
         """Stop the motor movement"""
         self.motor_obj.stop(wait=False)
 
-    def name(self):
-        """Get the motor name. Should be removed when GUI ready"""
-        return self.actuator_name
