@@ -292,21 +292,22 @@ class Microdiff(MiniDiff.MiniDiff):
                 logging.getLogger("HWR").exception("Cannot prepare centring")
 
     def set_light_in(self):
+        """Set the backlight in - used by the XMLRPC calls"""
         logging.getLogger("HWR").info("Moving backlight in")
-        venum = self.get_object_by_role("BackLightSwitch").VALUES
-        self.get_object_by_role("BackLightSwitch").handle_beamstop(venum.IN)
-        self.wait_ready()
+        light_hwobj = self.getObjectByRole("BackLightSwitch")
+        light_hwobj.set_value(light_hwobj.VALUES.IN)
+        self.wait_ready(20)
 
     def set_light_out(self):
+        """Set the backlight out - used by the XMLRPC calls"""
         logging.getLogger("HWR").info("Moving backlight out")
-        venum = self.get_object_by_role("BackLightSwitch").VALUES
-        self.get_object_by_role("BackLightSwitch").handle_beamstop(venum.OUT)
-        self.wait_ready()
+        light_hwobj = self.getObjectByRole("BackLightSwitch")
+        light_hwobj.set_value(light_hwobj.VALUES.OUT)
+        self.wait_ready(20)
 
     def set_phase(self, phase, wait=False, timeout=None):
         if self._ready():
             if phase in self.phases:
-
                 if phase in ["BeamLocation", "Transfer", "Centring"]:
                     self.close_detector_cover()
                     self.phase_prepare(phase)
