@@ -1,0 +1,30 @@
+name: Bump version
+on:
+  push:
+    branches:
+      - develop
+      - release
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '0'
+    - run: git config --local user.email "action@github.com"
+    - run: git config --local user.name "GitHub Action"
+    - name: Bump version and push tag
+      uses: mxcube/github-tag-action@develop
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        WITH_V: false
+    - name: push
+      uses: mxcube/commit@develop
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+#        push-branch: develop The same original source branch: develop or release
+
+        files: .bumpversion.cfg
+        commit-message: 'Bump version'
+        rebase: 'true' # pull and rebase before commit
