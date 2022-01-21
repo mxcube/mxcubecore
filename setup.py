@@ -25,15 +25,15 @@ console_scripts = []
 gui_scripts = []
 
 entry_points = {
-        'console_scripts': console_scripts,
-        'gui_scripts': gui_scripts
-    }
+    'console_scripts': console_scripts,
+    'gui_scripts': gui_scripts
+}
 
 setup(
     name='mxcubecore',
-    # version='0.1.0',
-    # author='The MXCuBE developers',
-    # author_email='mxcube@mxcube.org',
+    version='0.0.0.gamma',
+    author='The MXCuBE collaboration',
+    author_email='mxcube@esrf.fr',
     description='MXCuBE core library',
     long_description='Core libraries for the MXCuBE application',
     url='http://github.com/mxcube/mxcubecore',
@@ -60,4 +60,4 @@ setup(
     tests_require=tests_requirements,
     extras_require=extras_requirements,
     python_requires='>=2.7',
-   )
+)
