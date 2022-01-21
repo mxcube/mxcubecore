@@ -31,7 +31,7 @@ entry_points = {
 
 setup(
     name='mxcubecore',
-    version='0.1.0.dev0.gamma',
+    version='0.1.0.dev1.gamma',
     author='The MXCuBE collaboration',
     author_email='mxcube@esrf.fr',
     description='MXCuBE core library',
