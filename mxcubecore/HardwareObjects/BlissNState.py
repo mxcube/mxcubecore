@@ -88,7 +88,10 @@ class BlissNState(AbstractNState):
             if self._prefix:
                 _attr = self._prefix + "_is_in"
                 _cmd = getattr(self._bliss_obj, _attr)
-                _val = _cmd()
+                if isinstance(_cmd, bool):
+                    _val = _cmd
+                else:
+                    _val = _cmd()
             else:
                 _val = self._bliss_obj.state
 
