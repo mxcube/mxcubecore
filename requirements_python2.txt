@@ -13,6 +13,8 @@ ruamel.yaml
 scipy
 suds
 
+# Development requirements
+bump2version
 
 
 # GPhL: f90nml, mgen, and py4j are required for GPhL Workflow and emulation
