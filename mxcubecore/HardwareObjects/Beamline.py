@@ -434,6 +434,17 @@ class Beamline(ConfiguredObject):
     __content_roles.append("xml_rpc_server")
 
     @property
+    def beamline_actions(self):
+        """Beamline actions
+
+        Returns:
+            Optional[HardwareObject]:
+        """
+        return self._objects.get("beamline_actions")
+
+    __content_roles.append("beamline_actions")
+
+    @property
     def workflow(self):
         """Standarad EDNA workflow procedure.
 
