@@ -1869,18 +1869,14 @@ class GphlWorkflow(TaskNode):
         self.shape = str()
         # string. Only active mode currently is 'MASSIF1'
         self.automation_mode = None
-        # Automation mode charancterisation parameters. Replace UI queried values
-        self.auto_char_params = {}
         # Automation mode acquisition parameters. Replace UI queried values
-        self.auto_acq_params = {}
-        # Full path of characterisation data directory, if pre-acquired
-        # self.characterisation_directory = None
+        # multiple dictionaries, in acquisition order (characterisation, then main)
+        self.auto_acq_parameters = [{}]
 
         # Pre-strategy attributes
         self.space_group = str()
         self.crystal_system = str()
         self.point_group = None
-        self.bravais_lattice = None
         self._cell_parameters = ()
         self.beamstop_setting = None
         self.wavelengths = ()
@@ -1928,7 +1924,6 @@ class GphlWorkflow(TaskNode):
     def set_pre_strategy_params(
             self,
             point_group="",
-            bravais_lattice="",
             crystal_system="",
             space_group=None,
             cell_parameters=(),
@@ -1941,22 +1936,23 @@ class GphlWorkflow(TaskNode):
 
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
-        # Order of precedence: space_group, point_group, bravais_lattice.
+        # Order of precedence: space_group, point_group, crystal_system.
         if space_group:
-            # Space group overrides point group and and bravais latice
+            # Space group overrides point group and crystal_system
             self.space_group = space_group
             self.point_group = None
-            self.bravais_lattice = None
+            self.crystal_system = None
         else:
             if point_group:
                 # To avoid compatibility problems, reset other parameters
                 # NB Crystal system follows from point group
                 self.space_group = None
                 self.point_group = point_group
-                self.bravais_lattice = None
-            if bravais_lattice:
-                # NB there are compatibility problems here - TODO
-                self.bravais_lattice = bravais_lattice
+                self.crystal_system = None
+            elif crystal_system:
+                self.space_group = None
+                self.point_group = None
+                self.crystal_system = crystal_system
         if cell_parameters:
             self.cell_parameters = cell_parameters
 
@@ -2051,25 +2047,26 @@ class GphlWorkflow(TaskNode):
 
         # NB settings is an internal attribute DO NOT MODIFY
         settings = HWR.beamline.gphl_workflow.settings
-        self.auto_char_params = copy.deepcopy(settings.get("auto_char_params", {}))
-        self.auto_char_params.update(params.pop("auto_char_params", {}))
-        self.auto_acq_params = copy.deepcopy(settings.get("auto_acq_params", {}))
-        self.auto_acq_params.update(params.pop("auto_acq_params", {}))
+        acq_params = copy.deepcopy(settings.get("auto_acq_parameters")) or [{}]
+        new_acq_params = params.pop("auto_acq_parameters", [{}])
+        self.auto_acq_parameters = ll1 = [acq_params[0], acq_params[-1]]
+        ll1[0].update (new_acq_params[0])
+        ll1[-1].update(new_acq_params[-1])
 
         automation_mode = params.get("automation_mode")
         if automation_mode:
             # Set automation defaults and parameters
             self.automation_mode = automation_mode
 
-        # Set path template
-        self.path_template.set_from_dict(params)
+        # NBNB REMOVED - opnly explicit parameter setting wanted
+        # # Set path template
+        # self.path_template.set_from_dict(params)
 
-        if params["prefix"]:
-            self.path_template.base_prefix = params["prefix"]
-        else:
-            self.path_template.base_prefix = HWR.beamline.session.get_default_prefix(
-                sample_model
-            )
+        self.path_template.base_prefix = (
+            params.get("prefix")
+            or HWR.beamline.session.get_default_prefix(sample_model)
+        )
+        self.path_template.suffix = params.get("suffix") or HWR.beamline.session.file_suffix
 
         self.path_template.num_files = 0
         self.path_template.precision = "0" + str(
@@ -2092,8 +2089,10 @@ class GphlWorkflow(TaskNode):
         )
         if all(tpl):
             self.cell_parameters = tpl
-        self.space_group = crystal.space_group
         self.protein_acronym = crystal.protein_acronym
+        self.space_group = crystal.space_group
+        self.point_group = params.get("point_group")
+        self.crystal_system = params.get("crystal_system")
 
         # Set to current wavelength for now - nothing else available
         wavelength = HWR.beamline.energy.get_wavelength()
@@ -2129,10 +2128,22 @@ class GphlWorkflow(TaskNode):
             if resolution:
                 self.aimed_resolution = resolution
 
-        # Swt paramaters from params dict
+        # Set paramaters from params dict
         self.set_name(self.path_template.base_prefix)
         self.set_type(params["strategy_name"])
         self.shape = params.get("shape", "")
+        value = params.get("decay_limit")
+        if value:
+            self.decay_limit = value
+        value = params.get("maximum_dose_budget")
+        if value:
+            self.maximum_dose_budget = value
+        value = params.get("characterisation_budget_fraction")
+        if value:
+            self.characterisation_budget_fraction = value
+        value = params.get("characterisation_strategy")
+        if value:
+            self.characterisation_strategy = value
 
     def get_workflow_parameters(self):
         """Get parameters dictionary for workflow strategy"""
@@ -2214,7 +2225,7 @@ class GphlWorkflow(TaskNode):
 
     def apply_dose_budget(self):
         """
-        Set dose budget, changing transmission, and (if necessary) also exposure time
+        Apply dose budget, changing transmission, and (if necessary) also exposure time
         """
         transmission = self.calculate_transmission()
         if transmission > 100.:
@@ -2231,7 +2242,7 @@ class GphlWorkflow(TaskNode):
         """reset transmission to match current parameters, lowering dose budget if transmission goes over 100,
         reducing dose if transmission goes over 100
 
-        NB intended for running in auto mode, or for changing xposure)time etc."""
+        NB intended for running in auto mode, or for changing exposure)time etc."""
         transmission = self.calculate_transmission()
         if transmission > 100.:
             self.transmission = 100.

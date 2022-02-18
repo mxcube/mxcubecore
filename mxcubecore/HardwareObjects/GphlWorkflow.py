@@ -237,10 +237,7 @@ class GphlWorkflow(HardwareObjectYaml):
         self._workflow_queue = gevent.queue.Queue()
         HWR.beamline.gphl_connection.open_connection()
         if data_model.automation_mode:
-            if data_model.get_workflow_parameters()["wftype"] == "acquisition":
-                params = data_model.auto_char_params
-            else:
-                params = data_model.auto_acq_params
+            params = data_model.auto_acq_parameters[0]
         else:
             # SIGNAL TO GET Pre-strategy parameters here
             # NB set defaults from data_model
@@ -873,15 +870,13 @@ class GphlWorkflow(HardwareObjectYaml):
             "strategy_type"
         ]
         sweeps = geometric_strategy.get_ordered_sweeps()
-        # Calculate dose budget and default transimission
+
+        # Set strategy length
         gphl_workflow_model.strategy_length = len(gphl_workflow_model.wavelengths) * sum(
             sweep.width for sweep in sweeps
         )
-        # if strategy_type == "diffractcal" or gphl_workflow_model.characterisation_done:
-        #     resolution = gphl_workflow_model.detector_setting.resolution
-        # else:
-        #     resolution = gphl_workflow_model.char_detector_setting.resolution
-        # NB dose_budget cnnot be pre-set, as it is overridden here
+
+        # Set recommended dose budget and reset transmission to match
         dose_budget = gphl_workflow_model.get_default_dose_budget()
         if gphl_workflow_model.characterisation_done:
             dose_budget -= gphl_workflow_model.dose_consumed
@@ -895,16 +890,23 @@ class GphlWorkflow(HardwareObjectYaml):
                 gphl_workflow_model.get_workflow_parameters()["wftype"] == "acquisition"
                 and not gphl_workflow_model.characterisation_done
             ):
-                params = gphl_workflow_model.auto_char_params
+                params = gphl_workflow_model.auto_acq_parameters[0]
             else:
-                params = gphl_workflow_model.auto_acq_params
+                params = gphl_workflow_model.auto_acq_parameters[-1]
             gphl_workflow_model.set_pre_acquisition_params(**params)
+            if "dose_budget" in params:
+                # Reset transmission and if necessary exposure time to match dose budget
+                gphl_workflow_model.apply_dose_budget()
+            elif "transmission" in params:
+                # Reset dose budget to match transmission
+                gphl_workflow_model.apply_transmission()
         else:
             # SiGNAL TO GET Pre-collection parameters here
             # NB set defaults from data_model
             # NB consider whether to override on None
             # NB update functions will be needed in UI
             params = self.query_pre_collection_params(gphl_workflow_model, geometric_strategy)
+            # Here transmission comes from UI
             gphl_workflow_model.set_pre_acquisition_params(**params)
             raise NotImplementedError()
 
@@ -979,6 +981,8 @@ class GphlWorkflow(HardwareObjectYaml):
                 gphl_workflow_model.set_snapshot_count(snapshot_count)
 
             gphl_workflow_model.recentring_mode = parameters.pop("recentring_mode")
+
+        # Set (re)centring behaviour and enqueue
 
         recentring_mode = gphl_workflow_model.recentring_mode
 
@@ -1185,18 +1189,8 @@ class GphlWorkflow(HardwareObjectYaml):
 
         gphl_workflow_model.goniostat_translations = goniostatTranslations
 
-        # orgxy = HWR.beamline.detector.get_beam_position()
-        # resolution = HWR.beamline.resolution.get_value()
-        # distance = HWR.beamline.detector.distance.get_value()
-        # dds = geometric_strategy.defaultDetectorSetting
-        # if distance == dds.axisSettings.get("Distance"):
-        #     id_ = dds._id
-        # else:
-        #     id_ = None
-        # detectorSetting = GphlMessages.BcsDetectorSetting(
-        #     resolution, id_=id_, orgxy=orgxy, Distance=distance
-        # )
-        # gphl_workflow_model.detector_setting = detectorSetting
+        # Unpdate dose_consumed to include dose (about to be) acquired.
+        gphl_workflow_model.dose_consumed += gphl_workflow_model.dose_budget
 
         # Return SampleCentred message
         sampleCentred = GphlMessages.SampleCentred(gphl_workflow_model)
@@ -1514,11 +1508,13 @@ class GphlWorkflow(HardwareObjectYaml):
             self._data_collection_group
         )
 
-        dispatcher.send("gphlStartAcquisition", self, gphl_workflow_model)
+        # dispatcher.send("gphlStartAcquisition", self, gphl_workflow_model)
         try:
             queue_manager.execute_entry(data_collection_entry)
-        finally:
-            dispatcher.send("gphlDoneAcquisition", self, gphl_workflow_model)
+        except:
+            HWR.beamline.queue_manager.emit("queue_execution_failed", (None,))
+        # finally:
+        #     dispatcher.send("gphlDoneAcquisition", self, gphl_workflow_model)
         self._data_collection_group = None
 
         if data_collection_entry.status == QUEUE_ENTRY_STATUS.FAILED:
@@ -1577,6 +1573,8 @@ class GphlWorkflow(HardwareObjectYaml):
         data_model = self._queue_entry.get_data_model()
         data_model.characterisation_done = True
 
+        # Add consumed dose to data model
+
         if data_model.automation_mode:
             solution = self.auto_select_solution(choose_lattice)
 
@@ -1587,7 +1585,7 @@ class GphlWorkflow(HardwareObjectYaml):
             # Resets detector_setting to match aimed_resolution
             data_model.detector_setting = None
             # NB resets detector_setting
-            params = data_model.auto_acq_params
+            params = data_model.auto_acq_parameters[-1]
             data_model.set_pre_strategy_params(**params)
             distance = data_model.detector_setting.axisSettings["Distance"]
             HWR.beamline.detector.distance.set_value(distance, timeout=30)
@@ -1957,7 +1955,10 @@ class GphlWorkflow(HardwareObjectYaml):
     ):
 
         queue_manager = self._queue_entry.get_queue_controller()
-        queue_manager.execute_entry(centring_entry)
+        try:
+            queue_manager.execute_entry(centring_entry)
+        except:
+            HWR.beamline.queue_manager.emit("queue_execution_failed", (None,))
 
         centring_result = centring_entry.get_data_model().get_centring_result()
         if centring_result:
