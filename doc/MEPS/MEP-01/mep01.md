@@ -60,7 +60,7 @@ Goals & considerations
 
 The following lists the main goals taken into consideration for this proposal:
 
-1. A release schema have to provide a clear versioning of the code at different stages.ç
+1. A release schema have to provide a clear versioning of the code at different stages.
    This will facilitate the identification of the code used at any time.
 
 2. Each release should provide a comprehensive list of changes with all additions and 
@@ -203,21 +203,24 @@ recommended list: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed` and `Secu
 
 The naming practice follows directly from the use of [PEP440](https://www.python.org/dev/peps/pep-0440/) 
 and the description in the preceding sections, but some interpretation might be helpful: 
-All version numbers are with reference to a final, public release. Thus e.g. versions 1.2.0.dev4, and 
+All version numbers refer to the version of the *next* public release. Thus e.g. versions 1.2.0.dev4, and 
 1.2.0.rc2 are both part of the preparations *preceding* release 1.2.0. Similarly version 1.2.1.dev1 
 is part of the *preparation* of the (patch) release 1.2.1, and thus is derived from release 1.2.0.
 This should make it clear when and how we need to bump versions.
 
 ### Local versions
 
-We may not want to give explicit version numbers to local beamline-specific code, 
-but it would be useful to agree on the correct way to do it, even so. Following
+Local beamline-specific code is essentially a matter for the beamline, and is not
+expected to appear on github. It would still be useful to have a purely optional
+naming convention for beamline-specific branches, for the case when beamlin-specific
+code is shared with others (e.g. workflow developers). Following
 PEP440, local versions must conform to the API of the official release they match, 
-and are indicared by a suffix starting with '+'. I would recommend that we agree
+and are indicated by a suffix starting with '+'. I would recommend that we agree
 on starting the local version identifier with a beamline identifier. Thus version 
-1.2.1+ESRF.3 would be an ESRF-specific version that conformed to the 1.2.1 API except
-for beamline-specific code (which we have agreed is not considered when deriving 
-version numbers).The last field in the identifier (the '3') is strictly speaking 
+1.2.1+ESRF.3 would be an ESRF-specific version that conformed to the 1.0 API and 
+the 1.2 feature set and incorporated patches up to 1.2.1. Beamline-specific code
+coudl be modified at will, since we have agreed that this is not considered when deriving 
+version numbers. The last field in the identifier (the '3') is strictly speaking 
 free text, so beamlines can deal with it as they wish, though they might find it 
 practical to include some kind of consecutive numbering. 
 
@@ -227,12 +230,12 @@ I would propose we should follow the following sequence when we make a release.
 This should pretty much match the diagram above.
 Supposing we want to make a release from version 1.1.0.dev12:
 
-- First push version 1.1.0.dev12 to the release branch under the name 1.1.0rc0
+- First push version 1.1.0.dev12 to the release branch under the name 1.1.0.rc0
 
 - Then bump the version of the development branch to 1.2.0.dev0. 
   Future development will be happening under this tag.
 
-- After finishing with the release candidates (say we are at 1.1.0rc2) 
+- After finishing with the release candidates (say we are at 1.1.0.rc2) 
   we push the candidate to the master branch as 1.1.0, and merge the 
   accumulated changes into the development branch, incrementing the final
   number to (e.g.) 1.2.0.dev1. 
@@ -245,13 +248,13 @@ Supposing we want to make a release from version 1.1.0.dev12:
   
 - PEP440 and the first version of this document are not quite clear (IMHO)
   on how we should handle patch levels. I would propose that increases in patch
-  level are only done by forking directly from a release, e.g. from 1.2.0 to 1.2.1rc0,
-  and further proceding as for other release candidates. This makes the system
-  a lot simpler, and frees us from having to consider in the development branch 
-  whether we are planning to add new features or not.
+  level are only done by forking directly from a release, e.g. from 1.2.0 to 1.2.1.dev0,
+  and that the final 1.2.1.devn would then be merged back to the main branch as 1.2.1.
+  This makes the system a lot simpler, and frees us from having to consider in the 
+  development branch whether we are planning to add new features or not.
   
 I have assumed that we want to start new branches at patch level 0. This seems 
-sensible (to me), but we can opt for starting at .1 if we so pr3efer.
+sensible (to me), but we can opt for starting at .1 if we so prefer.
  
   
 License
