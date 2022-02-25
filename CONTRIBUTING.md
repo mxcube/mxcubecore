@@ -17,28 +17,31 @@ If the corresponding issue do not exist then:
 * Assign a label to the issue (see available labels).
 
 ### Submiting code to the repository
-GF
-Pull request (PR) is the most convinient way of submitting a new code to the repository. It helps developers to see the proposed code and publicly review it. To avoid any conflicts in the code base it is important to keep your local git repository syncronized with the latest code in the repository. If repository is checkout out directly then use `git pull` to obtain the latest code from the repository. If a local fork is used then:
+Pull request (PR) are used to submitt new code to the repository, it helps developers to review and dicuss the proposed code. To avoid any conflicts in the code base it is important to keep your local git repository syncronized with the latest code in the repository. If repository is checkout out directly then use `git pull` to obtain the latest code from the repository. If a local fork is used then:
 
 * If necessary add link to the upstream repository:
 
   ```bash
   git remote add upstream https://github.com/mxcube/HardwareRepository.git
   ```
+  
+A branching model based on the popular [gitlfow model](https://nvie.com/posts/a-successful-git-branching-model/) is used inorder to be able to provide versioned releases and at the same time continue seperaete development. The stable releases are kept on the [**master**](https://github.com/mxcube/mxcubecore/tree/master) branch and the development takes place on [**develop**](https://github.com/mxcube/mxcubecore/tree/develop).
 
-* Fetch all branches and merge upstream to your forked master:
+This means that all pull requests should be made against the [**develop**](https://github.com/mxcube/mxcubecore/tree/develop) branch. The work on the **develop** branch is performed by simply creating a branch for the work to be done and then making a PR according to the ddescription below.
+
+* To fetch all branches and merge upstream to your forked develop branch:
   ```bash
   git fetch --all
-  git checkout master
-  git merge upstream/master
+  git checkout develop
+  git merge upstream/develop
   ```
 
 #### Preparing a new commit
 
-* Create a new branch:
-  `git checkout -b NEW_BRACH_NAME`
-  * If the pull request is associated with an issue then reference the issue in the name. For example:
-  `git checkout -b issue_100`
+* Create a new branch, its recommended to use a meaningfull name. for instance [initials]-[fix/feature]-[some name] i.e mo-feature-gizmo1
+ `git checkout -b mo-feature-gizmo1`
+* If the pull request is associated with an issue then reference the issue in the name. For example:
+  `git checkout -b issue_100` 
 * Edit necessary files, delete existing or add a new file.
 * Add files to the staging area:
    `git add ChangedFile1 ChangedFile2`
@@ -72,6 +75,26 @@ Pull request (PR) is the most convinient way of submitting a new code to the rep
 * All the assigned reviewers of a PR have to approve the PR before it can be merged.
 * The last reviewer to review the PR have the responsibility of merging it.
 * A PR that has no reviewer can be approved and merged by anyone.
+
+### Versioning 
+Versioning is partly automated by GitHub actions and the software called [bump2version](https://github.com/c4urself/bump2version) and based on the gitflow braching model:
+
+- Each new feature is implemented in a `feature branch`, branching from the `development branch`.
+
+- The merge of a `feature branch` is made via PR to the `develop branch`. The author of 
+  the PR must solve any conflicts with the latest development version before the merge.
+
+- When decided, a release branch is created from the development branch and becomes
+  a release candidate version.
+
+- Once the code can be released, the release branch is merged to the `main branch` and
+  also to the `develop branch`.
+  
+- If a bug is found in a released version, a `hotfix branch` is created with the 
+  necessary changes and applied to the `main branch` and the corresponding commits are
+  also cherry-picked to the development branch.
+
+The exact routine is described more preceisly in [MEP01](https://github.com/mxcube/mxcubecore/blob/develop/doc/MEPS/MEP-01/mep01.md).
 
 ### Coding convention and style guidelines
 
