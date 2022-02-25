@@ -33,7 +33,7 @@ This means that all pull requests should be made against the [**develop**](https
   ```bash
   git fetch --all
   git checkout develop
-  git merge --no-ff upstream/develop
+  git rebase upstream/develop
   ```
 
 #### Preparing a new commit
