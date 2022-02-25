@@ -17,9 +17,9 @@ If the corresponding issue do not exist then:
 * Assign a label to the issue (see available labels).
 
 ### Submiting code to the repository
-Pull request (PR) are used to submitt new code to the repository, it helps developers to review and dicuss the proposed code. To avoid any conflicts in the code base it is important to keep your local git repository syncronized with the latest code in the repository. If repository is checkout out directly then use `git pull` to obtain the latest code from the repository. If a local fork is used then:
+Pull request (PR) are used to submitt new code to the repository, it helps developers to review and dicuss the proposed change. To avoid any conflicts in the code base it is important to keep your local git repository syncronized with the latest code in the upstream repository. If the repository is checked out directly then use `git pull` to obtain the latest code, if a fork is used then add the offical mxcubecore repository to the list of remotes.
 
-* If necessary add link to the upstream repository:
+* If necessary add link to the offical mxcubecore repository:
 
   ```bash
   git remote add upstream https://github.com/mxcube/HardwareRepository.git
