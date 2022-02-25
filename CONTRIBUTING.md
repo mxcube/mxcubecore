@@ -25,9 +25,9 @@ Pull request (PR) are used to submitt new code to the repository, it helps devel
   git remote add upstream https://github.com/mxcube/HardwareRepository.git
   ```
   
-A branching model based on the popular [gitlfow model](https://nvie.com/posts/a-successful-git-branching-model/) is used inorder to be able to provide versioned releases and at the same time continue seperaete development. The stable releases are kept on the [**master**](https://github.com/mxcube/mxcubecore/tree/master) branch and the development takes place on [**develop**](https://github.com/mxcube/mxcubecore/tree/develop).
+A branching model based on the popular [gitlfow model](https://nvie.com/posts/a-successful-git-branching-model/) is used inorder to be able to provide versioned releases and at the same time continue seperate development. The stable releases are kept on the [**master**](https://github.com/mxcube/mxcubecore/tree/master) branch and the development takes place on [**develop**](https://github.com/mxcube/mxcubecore/tree/develop).
 
-This means that all pull requests should be made against the [**develop**](https://github.com/mxcube/mxcubecore/tree/develop) branch. The work on the **develop** branch is performed by simply creating a branch for the work to be done and then making a PR according to the ddescription below.
+This means that all pull requests should be made against the [**develop**](https://github.com/mxcube/mxcubecore/tree/develop) branch. The work on the **develop** branch is performed by simply creating a branch for the work to be done and then making a PR according to the description below.
 
 * To fetch all branches and merge upstream to your forked develop branch:
   ```bash
