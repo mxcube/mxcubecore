@@ -52,26 +52,20 @@ Pull request (PR) is the most convinient way of submitting a new code to the rep
    `git push origin NEW_BRACH_NAME`
 * Go to the github webpage and create a new PR.
 
-#### Anouncing a new pull request via github webpage
+#### Creating a new pull request via github webpage
 
-* Go to the project webpage and press "Create pull request".
-* Edit information about the PR.
+* Keep the pull requests small preferbly contaning a single feature
+* Give enough information about the changes in the pull request summary so that the reviewers easily understands whats been done
+* Highlight tehnically complex/complicated sections of the code and supply additional comments to code that might need extra explication/motivation by making inline comments
 * If needed assign a developer who shall review the PR.
 
 ### Accepting a pull request
-
 * The author of a PR may request a PR review from a certain amount of developers.
 * A reviewer can Comment, Approve or Request changes.
-* Before accepting the PR reviewer has to test the proposed code changes. To test the PR pull the proposed PR and run mxcube:
-  ```bash
-  git fetch origin pull/ID/head:NEW_BRANCH_NAME
-  git checkout NEW_BRANCH_NAME
-
-  start mxcube
-  ```
-* All the assigned reviewers of a PR have to approve the PR before it can be merged.
-* The last reviewer to review the PR have the responsibility of merging it.
-* A PR that has no reviewer can be approved and merged by anyone.
+* The changes made in the PR are assumed to be tested by the author
+* All the assigned reviewers of a PR have to review the PR before it can be merged.
+* A PR that has no reviewer assigned can be reviwed by anyone.
+* The author of the PR are free to merge the PR once its been reviewed and all pending comments/discussions are solved 
 
 ### Coding convention and style guidelines
 
