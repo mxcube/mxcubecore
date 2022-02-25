@@ -56,16 +56,16 @@ Pull request (PR) is the most convinient way of submitting a new code to the rep
 
 * Keep the pull requests small preferbly contaning a single feature
 * Give enough information about the changes in the pull request summary so that the reviewers easily understands whats been done
-* Highlight tehnically complex/complicated sections of the code and supply additional comments to code that might need extra explication/motivation by making inline comments
+* Highlight technically complex/complicated sections of the code and supply additional comments to code that might need extra explication/motivation by making inline comments
 * If needed assign a developer who shall review the PR.
 
 ### Accepting a pull request
-* The author of a PR may request a PR review from a certain amount of developers.
+* The author of a PR may request a PR review from a certain number of developers.
 * A reviewer can Comment, Approve or Request changes.
 * The changes made in the PR are assumed to be tested by the author
 * All the assigned reviewers of a PR have to review the PR before it can be merged.
-* A PR that has no reviewer assigned can be reviwed by anyone.
-* The author of the PR are free to merge the PR once its been reviewed and all pending comments/discussions are solved 
+* A PR that has no reviewer assigned can be reviewed by anyone.
+* The author of the PR is free to merge the PR once its been reviewed and all pending comments/discussions are solved 
 
 ### Coding convention and style guidelines
 
