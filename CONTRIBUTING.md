@@ -79,7 +79,7 @@ This means that all pull requests should be made against the [**develop**](https
 ### Versioning 
 Versioning is partly automated by GitHub actions and the software called [bump2version](https://github.com/c4urself/bump2version) and based on the gitflow braching model:
 
-- Each new feature is implemented in a `feature branch`, branching from the `development branch`.
+- Each new feature is implemented in a `feature branch`, branching from the `develop branch`.
 
 - The merge of a `feature branch` is made via PR to the `develop branch`. The author of 
   the PR must solve any conflicts with the latest development version before the merge.
@@ -87,7 +87,7 @@ Versioning is partly automated by GitHub actions and the software called [bump2v
 - When decided, a release branch is created from the development branch and becomes
   a release candidate version.
 
-- Once the code can be released, the release branch is merged to the `main branch` and
+- Once the code can be released, the release branch is merged to the `master branch` and
   also to the `develop branch`.
   
 - If a bug is found in a released version, a `hotfix branch` is created with the 
