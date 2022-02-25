@@ -17,7 +17,7 @@ If the corresponding issue do not exist then:
 * Assign a label to the issue (see available labels).
 
 ### Submiting code to the repository
-
+GF
 Pull request (PR) is the most convinient way of submitting a new code to the repository. It helps developers to see the proposed code and publicly review it. To avoid any conflicts in the code base it is important to keep your local git repository syncronized with the latest code in the repository. If repository is checkout out directly then use `git pull` to obtain the latest code from the repository. If a local fork is used then:
 
 * If necessary add link to the upstream repository:
