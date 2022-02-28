@@ -17,7 +17,7 @@ If the corresponding issue do not exist then:
 * Assign a label to the issue (see available labels).
 
 ### Submiting code to the repository
-Pull requests (PR's) are used to submitt new code to the repository, it helps developers to review and dicuss the proposed change. To avoid any conflicts in the code base it is important to keep your local git repository syncronised with the latest code in the upstream repository. If the repository is checked out directly then use `git pull` to obtain the latest code, if a fork is used then add the offical mxcubecore repository to the list of remotes.
+Pull requests (PR's) are used to submitt new code to the repository, it helps developers to review and dicuss the proposed change. To avoid any conflicts in the code base it is important to keep your local git repository syncronised with the latest code in the upstream repository. If the repository is checked out directly then use `git pull --rebase` to obtain the latest code, if a fork is used then add the offical mxcubecore repository to the list of remotes.
 
 * If necessary add link to the offical mxcubecore repository:
 
@@ -37,19 +37,21 @@ This means that all pull requests should be made against the [**develop**](https
   ```
  
 * If you already are working on the **develop** branch and tracking the official repository, simply:
-```bash
-   git pull --rebase develop
-```
+  ```bash
+  git pull --rebase develop
+  ```
 
 We **recommend to always rebase your local changes instead of merging them**, git can be configured to do this by default:
-```bash
-git config --global pull.rebase true
-```
+  ```bash
+  git config --global pull.rebase true
+  ```
 
 #### Preparing a new commit
 * First, make sure that you are working with the latest changes from develop
-`git checkout develop`
-`git pull --rebase develop`
+```bash 
+git checkout develop`
+git pull --rebase develop
+```
 * Create a new branch, its recommended to use a meaningfull name. for instance [initials]-[fix/feature]-[some name] i.e mo-feature-gizmo1
  `git checkout -b mo-feature-gizmo1`
 * If the pull request is associated with an issue then reference the issue in the name. For example:
