@@ -35,9 +35,21 @@ This means that all pull requests should be made against the [**develop**](https
   git checkout develop
   git rebase upstream/develop
   ```
+ 
+* If you already are working on the **develop** branch and tracking the official repository, simply:
+```bash
+   git pull --rebase develop
+```
+
+We **recommend to always rebase your local changes instead of merging them**, git can be configured to do this by default:
+```bash
+git config --global pull.rebase true
+```
 
 #### Preparing a new commit
-
+* First, make sure that you are working with the latest changes from develop
+`git checkout develop`
+`git pull --rebase develop`
 * Create a new branch, its recommended to use a meaningfull name. for instance [initials]-[fix/feature]-[some name] i.e mo-feature-gizmo1
  `git checkout -b mo-feature-gizmo1`
 * If the pull request is associated with an issue then reference the issue in the name. For example:
