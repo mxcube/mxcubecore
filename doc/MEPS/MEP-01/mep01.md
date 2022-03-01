@@ -1,14 +1,16 @@
 	Title: Development and release guidelines
 	MEP: 1
 	State: CANDIDATE
-	Date: 2021-05-03
-	Drivers: Jordi Andreu Segura <jandreu@cells.es>
+	Date: 2022-02-28
+	Drivers: Rasmus Fogh, Marcus Oscrasson
 	URL:
 	Abstract:
 	This MEP describes how to create releases for the mxcubecore package by adopting
-      a tag schema compliant with PEP440. I proposes a git flow to structure and
-      organize the repository and also propose 2 different solution for helping
-      on the bumping of versions according to the different releases.
+      a tag schema compliant with PEP440. It is a further development of the original
+      gitflow proposal by Jordi Andreu, as refined by the mxcube developers, inspired 
+      by the oneflow workflow. It deviates from the latest consensus (hopefully in a
+      way that will simplify the work), particularly in reducing and simplifying the 
+      versioning scheme.
       
 
 
@@ -21,30 +23,45 @@ it has been realized the need to adopt of a robust version model and release str
 order to easily track the version of the library, being the core library for the MXCuBE
 `web` and `qt` applications.
 
+This version is based on recent discussions among the MXCuBE developers, and inspired 
+by the oneflow workflow. It proposes a simplified versioning model, that is 
+consisent with semantic versioning.
+
 
 Out of scope
 ============
 The mechanism (manual or automated) to create the library package for each release and
 its upload to a software repository is out of the scope of this proposal.
 
+This proposal (like the oneflow model) covers the situation where each release 
+follows from the preceding one, in a linear fashion. Long-lived, parallel release branches
+(like Python 2 v. Python 3), are not well catered for - and may well be a problem with
+no solution. There is a risk that we may run into similar situations with beamline-specific
+versions, or versions using different front ends, and such cases will have to be
+dealt with ad-hoc. This system also does not allow for making either releases or patches 
+anywhere but at the newest release; i.e. you cannot make release 2.2.1 after 2.3.0 is 
+released, or 2.4.0 after 3.0.0 is released. 
+
 
 Glossary
 ========
 
-- `Main branch:` Name adopted for the [old master branch](https://www.zdnet.com/article/github-to-replace-master-with-alternative-term-to-avoid-slavery-references/)
-  
+- `master branch:` The permanent main branch that is checked out by default. Used solely for holding tagged releases.
+
+- `develop branch` The permanent branch used to gather all changes in MXCuBE and serve as the starting point for releases. 
+
 - `Release:` The distribution of a certain (final) version of an application.
 
 - [Release Lifecycle:](https://en.wikipedia.org/wiki/Software_release_life_cycle) Set of
   actions involved in the creation of a new piece of software.
 
 
-Current situation (previous to MEP1)
+Prior situation (previous to MEP1)
 ====================================
 The [canonical repository](http://www.github.com/mxcube/mxcubecore) is hosted at 
 `github.com` under the `mxcube` organization. Current development guidelines are based
-on the so called [github flow](https://guides.github.com/introduction/flow/). We use a
-single `main branch` to merge any `feature branch` by the mechanism of creating a PR and
+on the so called [GitHub flow](https://guides.github.com/introduction/flow/). We use a
+single `master branch` to merge any `feature branch` by the mechanism of creating a PR and
 its acceptance after review. There is no versioning model defined nevertheless, some
 code releases have been documented using the release tag feature from GitHub.
 
@@ -60,7 +77,7 @@ Goals & considerations
 
 The following lists the main goals taken into consideration for this proposal:
 
-1. A release schema have to provide a clear versioning of the code at different stages.
+1. A release schema has to provide a clear versioning of the code at different stages.
    This will facilitate the identification of the code used at any time.
 
 2. Each release should provide a comprehensive list of changes with all additions and 
@@ -73,6 +90,7 @@ The following lists the main goals taken into consideration for this proposal:
 4. We need to adopt development and release guidelines according to the project nature:
    code need to be tested with site-specific hardware and is difficult to perform functional
    tests covering most of the scenarios.
+5.  The scheme should be as simple in everyday use as possible, to maximise compliance.
   
 
 Implementation
@@ -83,103 +101,71 @@ goals:
 
 ## Development guidelines
 
-We propose the adoption of the well known [gitflow](https://nvie.com/posts/a-successful-git-branching-model/))
-branching model. We can summarize the most important procedures in this model as:
+We propose the adoption of the [oneflow workflow](https://www.endoflineblog.com/implementing-oneflow-on-github-bitbucket-and-gitlab),
+two-branch variant. We can summarize the most important procedures in this model as:
 
-- Each new feature is implemented in a `feature branch`, branching from the `development branch`.
+- The `master branch`, which is the one checked out by default, serves only to collect successive releases.
+  Releases are merged to the master branch, and rebasing or cherrypicking is not allowed.
+
+- The (permanent) `develop branch` Tracks the (linear) development of the project and is the only starting point for releases.
+  Changes are merged to the develop branch, and rebasing or cherrypicking is not allowed.
+
+- Each new feature is implemented in a temporary `feature branch`, branching from the `develop branch`.
 
 - The merge of a `feature branch` is made via PR to the `develop branch`. The author of 
-  the PR must solve any conflicts with the latest development version before the merge.
+  the PR must solve any conflicts with the latest development version before the merge,
+  by rebasing the feature branch on the develop branch.
 
-- When decided, a release branch is created from the development branch and becomes
+- When decided, a `release branch` is created from the `develop branch` and becomes
   a release candidate version.
 
-- Once the code can be released, the release branch is merged to the `main branch` and
+- Once the code can be released, the release branch is merged to the `master branch` and
   also to the `develop branch`.
   
 - If a bug is found in a released version, a `hotfix branch` is created with the 
-  necessary changes and applied to the `main branch` and the corresponding commits are
-  also cherry-picked to the development branch.
+  necessary changes and the completed fix is merged to the `master branch` and
+  also to the `develop branch`.
+
 
 
 ## Versioning guidelines
 
-- The commits of the code proposed to be versioned are:
-  - Any merge commit to the `develop branch`.
-  - Any commit in the `release branch`.
-  - Any merge commit to the `main branch`.
-  
-- Even if the [semantic versioning](https://semver.org/) is widely used as a model for 
-  versioning software, the general schema described in the [PEP440](https://www.python.org/dev/peps/pep-0440/)
-  seems more convenient to define a model aligned with the development guidelines 
-  proposed in this document.
-  
-- We will use the segments `major.minor.patch` to assign a version released from the 
-  `main branch` (this is compliant with semantic versioning).
+The general schema described in the [PEP440](https://www.python.org/dev/peps/pep-0440/):
+  is highly powerful and flexible, and in this problably superior to the more common 
+  [semantic versioning](https://semver.org/). Nevertheless it is unavoidably complex
+  and labour intensive to keep and track a seperate version for every commit in the
+  `develop` branch. The scheme presented here applies semantic versioning, but 
+  *only to the actual releases* with their associated `release` and `hotfix` branches.
+  After all, how often do you need an external and reliable reference to a specific
+  non-released commit (beyond, of course, the git commit hash)?
 
-- We will use the segment `.devN` as a suffix when versioning in the `development branch`. 
-  At this stage, the patch segment could also be omitted (i.e. `major.minor.devN`) 
-  
-- We will use the segment `.rcN` when versioning in the `release branch`. 
-  This `release candidate` version is intended for the developers' community.
-
-This is an example of different transitions when bumping the version:
-
-- `bump version dev`: 0.1.0.dev0 -> 0.1.0.dev1
-  
-- `bump version release`: 0.1.0.dev0 -> 0.1.0.rc0
-
-- `bump version dev`: 0.1.0.rc0 -> 0.1.0.rc1
-  
-- `bump version release`: 0.1.0.rc1 -> 0.1.0
-
-- `bump version major`: 0.1.0 -> 1.0.0.dev0
-
-- `bump version minor`: 0.1.0 -> 0.2.0.dev0
-
-- `bump version patch`: 0.1.0 -> 0.1.1.dev0
-
-The following figure illustrates the implementation of this versioning schema on a
-gitflow branching model.
-
-![version_model](gitflow_pep440.png)
-*Version model proposed in a gitflow chart example.* 
+- We will use the segments `major.minor.patch` to assign a version released from the
+  `master branch`, following semantic versioning. Changes that break the API require
+  a major version change, changes that add features require a minor version change, and
+  other changes require patch changes. Changes that only affect a single beamline are
+  treated as neutral; so are changes that only affect the GPhL workflow, until such a 
+  time that the workflow is adopted for production use.
+- We will store in the code (location to be decided) a matching version string, which 
+  outside of tagged releases will refer to the version of the *most recent prior release* 
+  among the ancestors of the present commit. This is the *Bumpversion model* (see below).
+- Version bumping will *only* take place as part of the release procedure.
+- Distinctions between successive commits, and between develop, release candidate and 
+  hotfix candidate commits will be done using the branch structure and commits of the 
+  git repository.
+- The decision whether a new release is breaking (-> bump major version) or non-breaking
+  (-> bump minor version) has to be taken at release time. To avoid errors we shall
+  have to rely on updating release notes at each commit, noting explicitly when we have
+  a breaking change.
 
 
-## Versioning models
-Here two different models for versioning a package are presented. A complete list of 
-options for python projects can be found [here](https://packaging.python.org/guides/single-sourcing-package-version/).
-
-### Option 1: Bumpversion model
-A first option is using [bumpversion](https://github.com/c4urself/bump2version) as a
-tool to tag the different versions. In this case, `bumpversion` assumes that the version
+### Bumpversion model
+We will use [bumpversion](https://github.com/c4urself/bump2version) as a
+tool to track the different versions. In this case, `bumpversion` assumes that the version
 string is writen in (at least) one project file. When bumping the version, `bumpversion`
 will search for the current version string, will calculate the next version
 according to the segment to bump and will replace the old version string by the new one.
-In addition, a tag can be also added to the repository, making easier the identification
-between the version tag and the code.
-
-However, this means that after bumping the version, you have local changes on the repository
-that need to be committed at some point.
-
-The proposed version flow configuration can be implemented using [this](bumpversion.cfg) 
-`bumpversion` configuration file.
-
-
-### Option 2: Tag model
-A second option is not to hardcode the version in the project files, but calculated
-dynamically from the git repository information. When using `git` as a VCS, you can use
-`git tags` to version you code, being the unique source of truth for the code version.
-
-This approach requires to always work with the repository project as sources in order
-to obtain the version tag for the code when creating a release of the code. A python
-module [setuptools_scm](https://pypi.org/project/setuptools-scm/) provide several tools
-for implementing such tag versioning models and support git and mercurial VCSs.
-
-In addition, the operation to tag the repository can be automated making use of the
-`GitHub Actions` and there exist projects [here](https://github.com/anothrNick/github-tag-action)
-implementing actions to automatically tag the repository triggered by events (for
-instance, a git push to a certain branch after a PR accepted).
+We will not use bumpversion to tag the repository, since the tagging needs to be done after the bump.
+ 
 
 ## Keep track of the repository changes
 
@@ -187,75 +173,142 @@ A `changelog` file should be used to track the changes of the different versions
 This will require a dedicated commit on the corresponding branch.
 
 We propose to follow the guidelines from [keepachangelog](https://keepachangelog.com/en/1.0.0/).
-The changelog file will be updated manually at each merge commit in different situations:
+The changelog file will be updated manually before each merge commit the following situations:
 
 - Adding an entry at the `Unreleased` changes section of the changelog when merging any
-  feature branch to the development branch.
+  feature branch to the develop branch. It is crucial that breaking changes are clearly
+  signalled at this point, in order to guide the generation of the next release.
   
-- Moving the content of the `Unreleased` section to a new `Release` section in the changelog.
+- Moving the content of the `Unreleased` section to a new `Release` section in the 
+  changelog as part of the release procedure.
 
 All changes in a release will be grouped using the most appropriate category from the 
 recommended list: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed` and `Security`.
 
-## Version numbers and their interpretation
+## Procedures
 
-### Interpretation of versions
+Procedures are taken from [oneflow](https://www.endoflineblog.com/implementing-oneflow-on-github-bitbucket-and-gitlab#feature-branches), 
+adapted to our versioning scheme. More details can be found on the oneflow page
 
-The naming practice follows directly from the use of [PEP440](https://www.python.org/dev/peps/pep-0440/) 
-and the description in the preceding sections, but some interpretation might be helpful: 
-All version numbers refer to the version of the *next* public release. Thus e.g. versions 1.2.0.dev4, and 
-1.2.0.rc2 are both part of the preparations *preceding* release 1.2.0. Similarly version 1.2.1.dev1 
-is part of the *preparation* of the (patch) release 1.2.1, and thus is derived from release 1.2.0.
-This should make it clear when and how we need to bump versions.
+### Feature branches
 
-### Local versions
+These are temporary branches that serve to make a new feature and edit it until it can be merged into 
+the `develop branch`
 
-Local beamline-specific code is essentially a matter for the beamline, and is not
-expected to appear on github. It would still be useful to have a purely optional
-naming convention for beamline-specific branches, for the case when beamlin-specific
-code is shared with others (e.g. workflow developers). Following
-PEP440, local versions must conform to the API of the official release they match, 
-and are indicated by a suffix starting with '+'. I would recommend that we agree
-on starting the local version identifier with a beamline identifier. Thus version 
-1.2.1+ESRF.3 would be an ESRF-specific version that conformed to the 1.0 API and 
-the 1.2 feature set and incorporated patches up to 1.2.1. Beamline-specific code
-coudl be modified at will, since we have agreed that this is not considered when deriving 
-version numbers. The last field in the identifier (the '3') is strictly speaking 
-free text, so beamlines can deal with it as they wish, though they might find it 
-practical to include some kind of consecutive numbering. 
+#### Starting a feature branch
 
-### What versions to bump
+$ git checkout -b my-feature develop
 
-I would propose we should follow the following sequence when we make a release.
-This should pretty much match the diagram above.
-Supposing we want to make a release from version 1.1.0.dev12:
+$ git push -u my-fork my-feature
 
-- First push version 1.1.0.dev12 to the release branch under the name 1.1.0.rc0
+Feature branches can be named freely. It is recommended to create the name from your 
+name and a descriptive title such as `rhf/add_gphl_ui`.
 
-- Then bump the version of the development branch to 1.2.0.dev0. 
-  Future development will be happening under this tag.
+You can add new commits freely as you work on the feature, and push them to your fork
 
-- After finishing with the release candidates (say we are at 1.1.0.rc2) 
-  we push the candidate to the master branch as 1.1.0, and merge the 
-  accumulated changes into the development branch, incrementing the final
-  number to (e.g.) 1.2.0.dev1. 
-  
-- Further development will be happening under 1.2.0.dev, increasing only 
-  the last number (to .dev2, .dev3, ...) no matter how many features are added.
-  
-- When we decide for changes in the major version we bump the major version at
-  the start of the process (2.0.0.dev0).
-  
-- PEP440 and the first version of this document are not quite clear (IMHO)
-  on how we should handle patch levels. I would propose that increases in patch
-  level are only done by forking directly from a release, e.g. from 1.2.0 to 1.2.1.dev0,
-  and that the final 1.2.1.devn would then be merged back to the main branch as 1.2.1.
-  This makes the system a lot simpler, and frees us from having to consider in the 
-  development branch whether we are planning to add new features or not.
-  
-I have assumed that we want to start new branches at patch level 0. This seems 
-sensible (to me), but we can opt for starting at .1 if we so prefer.
- 
+$ git push
+
+or
+
+$ git push -f my-fork my-feature
+
+It is recommended to periodically rebase your feature branch on develop.
+
+#### Finishing a feature branch
+
+When you are ready to merge in your feature, you rebase on develop and make a pull request.
+
+
+Edit the release notes, adding the changes from your feature to the `Unreleased` list, 
+and commit the result.
+
+$ git fetch origin
+
+$ git checkout my-feature
+
+$ git rebase origin/develop
+
+$ git push -f my-fork my-feature
+
+Now you can make the pull request.
+You add additional commits and push them as necessary until the pull request is accepted.
+
+After the pull request is accepted and merged in, you should delete the feature branch
+
+There are three ways to do the merges into develop, which presumably have to be set in
+the git repository. I would recommend the following (Option #3 from oneflow):
+
+`merge --no-ff`
+
+This will add a merge commit for every feature merge, so the feature can be undone in a 
+single operation. It will keep a nice, linear commit graph, *provided* all users
+remember to rebase before merging, as above. Alternatives are:
+
+`rebase / merge --ff-only`  (Option #1 from oneflow)
+
+This will add the individual commits from the feature to the tip of the `develop branch`
+without a merge commit
+
+`merge --squash`   (Option #2 from oneflow)
+
+This will collapse the feature commits into a single commit, and put that on the tip of the develop branch.
+
+### Release branches
+
+Release branches must be started from a commit on the `develop branch`. It need not be the tip
+(though it mostly will be), but it must be subsequent to any previous release.
+
+Release branches are named as proposed by oneflow. This is not teh only possibility, 
+but is a clear and visible way to signal that this is a release branch. It avoids 
+the 'rc0' etc. suffixes, since we are not versioning the individual commits.
+
+$ git checkout -b release/2.3.0 develop   # If you want a specific commit check out that instead
+
+$ git push origin release/2.3.0
+
+Now edit the release notes, and bump the internal version string. Be careful to note
+(from the release notes) whether this is a breaking change (requiring a major version 
+bump) or not. Commit the result.
+
+As you modify the release, make PRs (or push) the changes to the origin repository. 
+The merge options are the same as for feature branches.
+
+When the release is ready it should be tagged and merged. It is simpler to do this in raw
+git, rather than thorugh Pull Requests - anyway there should be agreement on the final 
+form before we get to this point. Note that if you made a PR at this point you would
+need to do a bit more gymnastics (see oneflow). So you do:
+
+$ git checkout release/2.3.0
+
+$ git tag 2.3.0
+
+$ git checkout develop
+
+$ git merge release/2.3.0
+
+$ git push --tags origin develop
+
+$ git branch -d release/2.3.0
+
+Followed by
+
+$ git checkout master
+
+$ git merge --ff-only 2.3.0
+
+$ git push origin master
+
+Note that at this point, the internal version tag (that was bumped at the start of 
+making the release branch) will have been merged into the develop branch, so that
+the develpo branch internal tag reflects the version of the last release.
+
+### hotfix branches
+
+A hotfix branch must begin as a fork from the latest release on the master branch.
+Hotfix branches by definition do not break the API or add features, so the new tag
+always increases the patch level. The naming of the hotfix branches should be e.g. 
+`hotfix/2.3.1` (an alternative would be `patch/2.3.1`). Apart from these points,
+hotfix branches are treated exactly liek release branches.
   
 License
 =======
@@ -293,3 +346,7 @@ Changes
 
 2022-01-25
 [Rasmus Fogh](https://github.com/rhfogh/): Added section "Version numbers and their interpretation".
+
+2022-03-01
+[Rasmus Fogh](https://github.com/rhfogh/): Major rewrite, changing and simplifying
+the versioning system, adding detailed commands, and moving from gitflow to oneflow.
