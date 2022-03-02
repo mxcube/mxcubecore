@@ -165,7 +165,32 @@ string is writen in (at least) one project file. When bumping the version, `bump
 will search for the current version string, will calculate the next version
 according to the segment to bump and will replace the old version string by the new one.
 We will not use bumpversion to tag the repository, since the tagging needs to be done after the bump.
- 
+
+
+## Release and versioning life cycle
+
+![version_model](Oneflow_work_cycle.png)
+**Work cycle diagram**
+
+The permanent `master branch` consists only of successive releases. The releases are 
+tagged, for retrieval. 
+
+The permanent `develop branch` follows the development of the code; it contains only 
+merge commits, one for each feature or release, giving a clean linear structure. 
+
+Release, feature, and hotfix branches are temporary and are deleted once they are
+finished and merged in.
+
+The code has an internal version string (shown inside the circles), that is bumped 
+only as part of the releaase procedure (release or hotfix). The version string inside 
+an arbitrary commit will correspond to the version of the last tagged release among 
+the commit ancestors. 
+
+Feature branches are rebased on develop as development proceeds, and must be fully 
+rebased before being merged into develop. The internal version strings in the diagram
+are an approximation. In practice *all* the version strings in a feature branch wil be
+changed when the branch is rebased, so e.g. feature-branch-2 will have the same
+version string in all commits, either 0.9.0, 1.0.0, or 1.0.1 at different points in time. 
 
 ## Keep track of the repository changes
 
