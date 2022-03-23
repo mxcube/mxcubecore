@@ -17,16 +17,31 @@
 #   You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
+import enum
 import time
 import logging
 import random
 import warnings
+
+from pydantic import BaseModel, ValidationError
 
 from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
 )
 from mxcubecore import HardwareRepository as HWR
 from gevent.event import AsyncResult
+
+
+class PhaseEnum(str, enum.Enum):
+    centring = "Centring"
+    data_collection = 'DataCollection'
+    beam_location = 'BeamLocation'
+    transfer = "Transfer"
+    unknown = "Unknown"
+
+
+class PhaseModel(BaseModel):
+    value: PhaseEnum = PhaseEnum.unknown
 
 
 class DiffractometerMockup(GenericDiffractometer):
@@ -40,7 +55,7 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         GenericDiffractometer.__init__(self, *args)
 
-    def init(self):
+    def init(self) -> bool:
         """
         Descript. :
         """
@@ -170,7 +185,7 @@ class DiffractometerMockup(GenericDiffractometer):
         #
         return result
 
-    def is_ready(self):
+    def is_ready(self) -> bool:
         """
         Descript. :
         """
@@ -386,3 +401,15 @@ class DiffractometerMockup(GenericDiffractometer):
 
     def get_point_from_line(self, point_one, point_two, index, images_num):
         return point_one.as_dict()
+
+    def abort(self) -> None:
+        return None
+
+    def status(self) -> str:
+        return "READY"
+    
+    def my_fancy_function(self, speed: float, num_images:int, exp_time:float, phase:PhaseEnum) -> bool:
+        return True
+    
+    def my_other_funny_function(self) -> None:
+        pass

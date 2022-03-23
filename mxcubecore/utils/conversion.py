@@ -20,9 +20,10 @@
 
 """General data and functions, that can be shared between different HardwareObjects
 """
-
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
+
+import re
 
 from scipy.constants import h, c, e
 
@@ -157,3 +158,6 @@ def make_table(column_names, rows):
     #
     return "\n".join(lines)
 
+def camel_to_snake(name):
+    pattern = re.compile(r'(?<!^)(?=[A-Z])')
+    return pattern.sub('_', name).lower()

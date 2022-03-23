@@ -18,4 +18,5 @@
   <sample_mount_mode>sample_changer</sample_mount_mode>
   <!-- MD3 -->
   <grid_direction>{"fast": (0, 1), "slow": (1, 0), "omega_ref": 0}</grid_direction>
+  <exports>["abort", "status", "my_fancy_function", "my_other_funny_function"]</exports>
 </equipment>

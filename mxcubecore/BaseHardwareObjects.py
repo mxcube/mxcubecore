@@ -21,10 +21,13 @@
 
 from __future__ import absolute_import
 
+import typing
+import ast
 import enum
 from collections import OrderedDict
 import logging
 from gevent import event, Timeout
+import pydantic
 
 from mxcubecore.dispatcher import dispatcher
 from mxcubecore.CommandContainer import CommandContainer
@@ -680,6 +683,63 @@ class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
         HardwareObjectMixin.__init__(self)
         self.log = logging.getLogger("HWR").getChild(self.__class__.__name__)
         self.user_log = logging.getLogger("user_log_level")
+        self.__exports = {}
+        self.__pydantic_models = {}
+        self._exported_attributes = {}
+        self._exports_config_list = []
+
+    def init(self):
+        self._exports_config_list.extend(
+            ast.literal_eval(self.get_property("exports", "[]").strip())
+        )
+
+        self.__exports = dict.fromkeys(self._exports_config_list, {})
+
+        if self.__exports:
+            self._get_type_annotations()
+
+    def _get_type_annotations(self):
+        _models = {}
+
+        for attr_name, _ in self.__exports.items():
+            self._exported_attributes[attr_name] = {}
+            self.__exports[attr_name] = []
+            self.__pydantic_models[attr_name] = {}
+            fdict = {}
+
+            for _n, _t in typing.get_type_hints(getattr(self, attr_name)).items():
+                # Skipp return typehint
+                if _n != "return":
+                    self.__exports[attr_name].append(_n)
+                    fdict[_n] = (_t, pydantic.Field(alias=_n))
+
+            _models[attr_name] = (
+                pydantic.create_model(attr_name, **fdict),
+                pydantic.Field(alias=attr_name)
+            )
+
+            self.__pydantic_models[attr_name] = _models[attr_name][0]
+            self._exported_attributes[attr_name]["signature"] = self.__exports[attr_name]
+            self._exported_attributes[attr_name]["schema"] = self.__pydantic_models[attr_name].schema_json()
+
+
+        model = pydantic.create_model(self.__class__.__name__, **_models)
+        self.__pydantic_models["all"] = model
+
+    def execute_exported_command(self, cmd_name, args):
+        if cmd_name in self.__exports.keys():
+            cmd = getattr(self, cmd_name)
+            cmd(**args)
+        else:
+            self.log.info(f"Command {cmd} not exported, check type hints and configuration file")
+
+    @property
+    def pydantic_model(self):
+        return self.__pydantic_models
+
+    @property
+    def exported_attributes(self):
+        return self._exported_attributes
 
     def __getstate__(self):
         return self.name()
