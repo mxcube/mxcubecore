@@ -64,3 +64,6 @@ class DetectorMockup(AbstractDetector):
         Starts acquisition
         """
         return
+
+    def restart(self) -> None:
+        pass
