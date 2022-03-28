@@ -84,6 +84,7 @@ class AbstractDetector(HardwareObject):
 
     def init(self):
         """Initialise some common paramerters"""
+        super().init()
 
         try:
             self._metadata = dict(self["beam"].get_properties())
