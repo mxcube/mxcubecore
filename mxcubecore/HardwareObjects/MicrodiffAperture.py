@@ -20,6 +20,8 @@
 """
 MicrodiffAperture. Move the aperture in the beam to a specified value or
 out of the beam.
+The factor, which serves to calculate the flux, can be a single value or a
+tuple of values per aperture size.
 
 Example xml file:
 <object class="MicrodiffAperture">
@@ -39,7 +41,7 @@ from enum import Enum
 from mxcubecore.HardwareObjects.abstract.AbstractNState import BaseValueEnum
 from mxcubecore.HardwareObjects.ExporterNState import ExporterNState
 
-__copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © 2022 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -49,12 +51,12 @@ class MicrodiffAperture(ExporterNState):
     unit = "um"
 
     def __init__(self, name):
-        super(MicrodiffAperture, self).__init__(name)
+        super().__init__(name)
         self.inout_obj = None
 
     def init(self):
         """Initialize the aperture"""
-        super(MicrodiffAperture, self).init()
+        super().init()
 
         # check if we have values other that UKNOWN (no values in config)
         if len(self.VALUES) == 1:
@@ -71,10 +73,13 @@ class MicrodiffAperture(ExporterNState):
             value (str, int, float or enum): Value to be set.
         """
         if value.name in ("IN", "OUT"):
-            _e = self.inout_obj.value_to_enum(value.value)
-            self.inout_obj.set_value(_e, timeout=60)
+            _eval = self.inout_obj.value_to_enum(value.value)
+            self.inout_obj.set_value(_eval, timeout=60)
         else:
-            super(MicrodiffAperture, self)._set_value(value)
+            super()._set_value(value)
+            # put the aperture in
+            if self.inout_obj:
+                self.inout_obj.set_value(self.inout_obj.VALUES.IN, timeout=60)
 
     def _initialise_inout(self):
         """Add IN and OUT to the values Enum"""
@@ -115,24 +120,24 @@ class MicrodiffAperture(ExporterNState):
         )
 
     def get_factor(self, label):
-        """ Get the factor associated to a label.
+        """Get the factor associated to a label.
         Args:
             (enum, str): label enum or name
         Returns:
-            (float): Factor value
+            (float) or (tuple): Factor value
         """
         if isinstance(label, str):
             try:
-                return float(self.VALUES[label].value[2])
+                return self.VALUES[label].value[2]
             except (KeyError, ValueError, IndexError):
                 return 1.0
         try:
-            return float(label.value[2])
+            return label.value[2]
         except (ValueError, IndexError):
             return 1.0
 
     def get_size(self, label):
-        """ Get the aperture size associated to a label.
+        """Get the aperture size associated to a label.
         Args:
             (enum, str): label enum or name
         Returns:
@@ -148,16 +153,22 @@ class MicrodiffAperture(ExporterNState):
         try:
             return float(label.value[1])
         except (ValueError, IndexError):
+            if self.inout_obj:
+                return None
             raise RuntimeError("Unknown aperture size")
 
     def get_diameter_size_list(self):
+        """Get the list of values to be visible. Hide IN and UNKNOWN.
+        Returns:
+            (list): List of availble aperture values (string).
+        """
         values = []
         for value in self.VALUES:
-            _n = value.name
+            _nam = value.name
 
-            if _n in ["IN", "OUT"]:
-                values.append(_n)
-            elif _n not in ["UNKNOWN"]:
-                values.append(_n[1:])
+            if _nam in ["OUT"]:
+                values.append(_nam)
+            elif _nam not in ["IN", "UNKNOWN"]:
+                values.append(_nam[1:])
 
         return values
