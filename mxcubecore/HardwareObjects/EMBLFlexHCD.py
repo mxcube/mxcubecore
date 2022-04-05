@@ -2,6 +2,7 @@ import base64
 import pickle
 import gevent
 import logging
+import time
 import ast
 
 from mxcubecore.TaskUtils import task
@@ -186,7 +187,6 @@ class EMBLFlexHCD(SampleChanger):
     @task
     def _prepare_centring_task(self):
         if self.controller:
-            #gevent.sleep(2)
             self.controller.hutch_actions(enter=False, sc_loading=True)
         else:
             gevent.sleep(2)
@@ -347,12 +347,11 @@ class EMBLFlexHCD(SampleChanger):
 
         if not -1 in sample and sample != previous_sample:
             self._set_loaded_sample(self.get_sample_with_address(sample))
-            self._prepare_centring_task()
             res = True
 
         return res
 
-    def _hw_get_mounted_sample(self):        
+    def _hw_get_mounted_sample(self):
         loaded_sample = tuple(
             self._execute_cmd_exporter("getMountedSamplePosition", attribute=True)
         )
@@ -403,7 +402,8 @@ class EMBLFlexHCD(SampleChanger):
             res = SampleChanger.load(self, sample)
         finally:
             for msg in self.get_robot_exceptions():
-                logging.getLogger("HWR").error(msg)
+                if msg is not None:
+                    logging.getLogger("HWR").error(msg)
 
         if res:
             self.prepare_centring()
@@ -508,7 +508,12 @@ class EMBLFlexHCD(SampleChanger):
         )
 
         # Wait for sample changer to start activity
-        self._wait_busy(30)
+        try:
+            self._wait_busy(30)
+        except:
+            for msg in self.get_robot_exceptions():
+                logging.getLogger("user_level_log").error(msg)
+            raise
 
         # Wait for the sample to be loaded, (put on the goniometer)
         err_msg = "Timeout while waiting to sample to be loaded"
@@ -541,7 +546,9 @@ class EMBLFlexHCD(SampleChanger):
                 gevent.sleep(2)
 
         for msg in self.get_robot_exceptions():
-            logging.getLogger("HWR").error(msg)
+            if msg is not None:
+                logging.getLogger("HWR").error(msg)
+                logging.getLogger("user_level_log").error(msg)
 
         return self._set_loaded_sample_and_prepare(loaded_sample, previous_sample)
 
@@ -559,7 +566,9 @@ class EMBLFlexHCD(SampleChanger):
         )
 
         for msg in self.get_robot_exceptions():
-            logging.getLogger("HWR").error(msg)
+            if msg is not None:
+                logging.getLogger("HWR").error(msg)
+                logging.getLogger("user_level_log").error(msg)
 
         if loaded_sample == (-1, -1, -1):
             self._reset_loaded_sample()
@@ -652,7 +661,7 @@ class EMBLFlexHCD(SampleChanger):
         )
 
         cell = sample_cell
-        # puck = sample_puck
+        puck = sample_puck
 
         for c in self.get_components():
             i = c.get_index()
