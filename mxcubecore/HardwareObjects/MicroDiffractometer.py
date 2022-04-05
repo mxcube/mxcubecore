@@ -167,23 +167,25 @@ class MicroDiffractometer(AbstractDiffractometer):
         self.wait_ready(timeout)
 
     def get_values_motors(self, motors_list=None):
-        """ Get the positions of diffractometer motors. If the
+        """Get the positions of diffractometer motors. If the
             motors_positions_list is empty, return the positions of all
             the availble motors
         Args:
-            motors_list (list): List of motor names or hwobj
+            motors_list (list): List of motor roles.
         Returns:
-            motors_positions_dict (dict): role: position dictionary
+            (list): list of tuples (motor role, position)
         """
-        motors_positions_dict = super().get_values_motors(self, motors_list)
+        motors_positions_list = super().get_values_motors(motors_list)
         if not self.in_kappa_mode():
-            motors_positions_dict["kappa"] = None
-            motors_positions_dict["kappa_phi"] = None
-        return motors_positions_dict
+            for _mot in motors_positions_list:
+                if _mot[0] in ("kappa", "kappa_phi"):
+                    motors_positions_list.remove(_mot)
+            motors_positions_list += [("kappa", None), ("kappa_phi", None)]
+        return motors_positions_list
 
     @property
     def get_head_type(self):
-        """ Get the head type
+        """Get the head type
         Returns:
             head_type(enum): Head type
         """
@@ -236,10 +238,10 @@ class MicroDiffractometer(AbstractDiffractometer):
         return True
 
     def do_oscillation_scan(self, start, end, exptime, timeout=None):
-        """ Do an oscillation scan on omega.
+        """Do an oscillation scan on omega.
         Args:
-            start (float): scan start position.
-            end (float): scan end position.
+            start (float): omega start position.
+            end (float): omega end position.
             exptime (float): scan exposure time (total).
             timeout (float): optional - timeout [s],
                              If timeout = 0: return at once and do not wait
@@ -257,7 +259,7 @@ class MicroDiffractometer(AbstractDiffractometer):
         self._wait_ready(timeout)
 
     def do_line_scan(self, start, end, exptime, motors_pos, timeout=None):
-        """ Do helical (line) scan on omega.
+        """Do helical (line) scan on omega.
         Args:
             start (float): scan start position.
             end (float): scan end position.
@@ -294,7 +296,7 @@ class MicroDiffractometer(AbstractDiffractometer):
         dead_time=0,
         timeout=None,
     ):
-        """ Do a mesh scan.
+        """Do a mesh scan.
         Args:
             start (float): scan start position.
             end (float): scan end position.
@@ -339,12 +341,49 @@ class MicroDiffractometer(AbstractDiffractometer):
         self._wait_ready(timeout)
 
     def do_still_scan(self, pulse_duration, pulse_period, nb_pulse, timeout=None):
-        """ Do a zero oscillation acquisition.
+        """Do a zero oscillation acquisition.
         Args:
             pulse_duration (float): Duration of the pulse sent to the detector.
             pulse_period (float): The period of the pulse sent to the detector.
             nb_pulse (int): Number of pulses to be sent.
+            timeout (float): optional - timeout [s],
+                             If timeout = 0: return at once and do not wait
+                             if timeout is None: wait forever (default).
+        Raises:
+            RuntimeError: Timeout waiting for status ready.
         """
         scan_params = f"{pulse_duration:0.7}\t{pulse_period:0.7}\t{nb_pulse}"
         self._exporter.execute("startStillScan", (scan_params,))
+        self._wait_ready(timeout)
+
+    def do_characterisation_scan(
+        self, start, scan_range, nb_frames, exptime, nb_scans, angle, timeout=None
+    ):
+        """Do fast characterisation.
+        Args:
+            start (float): Position of omega for the first scan [deg].
+            scan_range (float): range for each scan [deg].
+            nb_frames (int): Frame numbers for each scan.
+            exptime (float): Total exposure time for each scan [s].
+            nb_scans (int): How many times a scan to be repeated.
+            angle (float): The angle between each scan [deg]. This number,
+                           added to the last position of each scan and will
+                           be the start position of the consequent scan.
+            timeout (float): optional - timeout [s],
+                             If timeout = 0: return at once and do not wait
+                             if timeout is None: wait forever (default).
+        Raises:
+            RuntimeError: Timeout waiting for status ready.
+        """
+
+        if self.in_plate_mode():
+            # to see if needed when plates
+            return
+        scan_params = f"{nb_frames}\t{start:0.4}\t{scan_range:0.4}\t{exptime:0.4}\t"
+        scan_params += f"{exptime:0.4}\t{nb_scans}\t{angle:0.3f}"
+        if timeout:
+            # min timeout is 15 min
+            timeout = 20 * 60 if timeout < (20 * 60) else timeout
+
+        self._exporter.execute("startCharacterisationScanEx", (scan_params,))
         self._wait_ready(timeout)
