@@ -101,7 +101,6 @@ class AbstractMotor(AbstractActuator):
         Args:
             value (float): value
         """
-
         if value is None:
             value = self.get_value()
 
