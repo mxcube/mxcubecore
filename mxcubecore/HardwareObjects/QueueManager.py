@@ -384,7 +384,6 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             task.link((lambda _t: self._queue_end()))
         else:
             self.__execute_entry(entry)
-            self._queue_end()
 
 
     def clear(self):
