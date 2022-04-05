@@ -100,18 +100,15 @@ class TangoLimaMpegVideo(TangoLimaVideo):
 
             self._video_stream_process = subprocess.Popen(
                 [
-                    python_executable,
-                    streaming_processes.__file__,
-                    self.get_property("tangoname"),
-                    "%s, %s" % (self.get_width(), self.get_height()),
-                    self._current_stream_size,
-                    self.stream_hash,
-                    self.video_mode,
-                    self._loopback_device,
-                    str(self._debug),
-                    str(self._sleep_time),
-                    str(self._quality)
+                    "video-streamer",
+                    "-d", self.get_property("tangoname").strip(),
+                    "-b", "localhost",
+                    "-p", "4042",
+                    "-q", str(self._quality),
+                    "-hs", self.stream_hash
                 ],
+                stdin=subprocess.PIPE,
+                shell=False,
                 close_fds=True,
             )
 
