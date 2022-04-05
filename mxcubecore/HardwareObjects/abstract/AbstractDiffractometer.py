@@ -22,7 +22,7 @@
 Initialises the username property and all the motors, actuators and
 complex equipment which is a part of the diffractometer.
 Defines:
-  methods: move_motors, get/set_phase methods
+  methods: get/set_values_motors, get/set_phase methods
   properties: get_head_type, in_kappa_mode, in_plate_mode
 
 Emits signals valueChanged and limitsChanged.
