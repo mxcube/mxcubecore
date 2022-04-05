@@ -74,9 +74,9 @@ class AbstractDiffractometer(HardwareObject):
 
     def __init__(self, name):
         super().__init__(name)
-        self.motors_hwobjs = {}
-        self.actuators_hwobj = {}
-        self.complex_eqipment = {}
+        self.motors_hwobj_dict = {}
+        self.actuators_hwobj_dict = {}
+        self.complex_eqipment_hwobj_dict = {}
         self.username = name
         self.current_phase = None
         self.head_type = None
@@ -87,27 +87,59 @@ class AbstractDiffractometer(HardwareObject):
         Initialise the equipment, defined in the configuration file
         """
         self.username = self.get_property("username") or self.username
-        try:
-            for role in self["motors"].get_roles():
-                self.motors_hwobj[role] = self["motors"].get_object_by_role(role)
-        except IndexError:
-            print("No motors configured")
+        all_roles = self._on
+        if "motors" in all_roles:
+            try:
+                _roles = all_roles[: all_roles.index("motors")]
+                for role in _roles:
+                    self.motors_hwobj_dict[role] = self.get_object_by_role(role)
+                    all_roles.remove(role)
+            except (KeyError, IndexError, AttributeError):
+                print("No motors configured")
+            all_roles.remove("motors")
 
         # actuators
-        try:
-            for role in self["actuators"].get_roles():
-                self.actuators_hwobj[role] = self["actuators"].get_object_by_role(role)
-        except IndexError:
-            print("No actuators configured")
+        if "actuators" in all_roles:
+            try:
+                _roles = all_roles[: all_roles.index("actuators")]
+                for role in _roles:
+                    self.actuators_hwobj_dict[role] = self.get_object_by_role(role)
+                    all_roles.remove(role)
+            except (KeyError, IndexError, AttributeError):
+                print("No actuators configured")
+            all_roles.remove("actuators")
 
         # complex equipment
-        try:
-            for role in self["complex_equipment"].get_roles():
-                self.complex_eqipment_hwobj[role] = self[
-                    "complex_equipment"
-                ].get_object_by_role(role)
-        except IndexError:
-            print("No complex equipment configured")
+        if "complex_equipment" in all_roles:
+            try:
+                _roles = all_roles[: all_roles.index("complex_equipment")]
+                for role in _roles:
+                    self.complex_eqipment_hwobj_dict[role] = self.get_object_by_role(
+                        role
+                    )
+            except (KeyError, IndexError, AttributeError):
+                print("No complex equipment configured")
+
+    def get_motors(self):
+        """Get the dictionary of all configured motors.
+        Returns:
+            (dict): Dictionary key=role: value=hardware_object
+        """
+        return self.motors_hwobj_dict
+
+    def get_actuators(self):
+        """Get the dictionary of all configured actuators.
+        Returns:
+            (dict): Dictionary key=role: value=hardware_object
+        """
+        return self.actuators_hwobj_dict
+
+    def get_complex_equipment(self):
+        """Get the dictionary of all configured complex equipment
+        Returns:
+            (dict): Dictionary key=role: value=hardware_object
+        """
+        return self.complex_eqipment_hwobj_dict
 
     # -------- Motor Groups --------
 
@@ -126,22 +158,22 @@ class AbstractDiffractometer(HardwareObject):
         motor_hwobj = []
         for motor in motors_positions_list:
             try:
-                motor_hwobj.append(self.motors_hwobj[motor[0]])
+                motor_hwobj.append(self.motors_hwobj_dict[motor[0]])
             except KeyError:
                 raise RuntimeError(f"Invalid motor name {motor[0]}")
 
             if simultaneous:
-                self.motors_hwobj[motor[0]].set_value(motor[1], timeout=0)
+                self.motors_hwobj_dict[motor[0]].set_value(motor[1], timeout=0)
             else:
-                self.motors_hwobj[motor[0]].set_value(motor[1], timeout=timeout)
+                self.motors_hwobj_dict[motor[0]].set_value(motor[1], timeout=timeout)
 
             # now wait for the end of all the move of all the motors if needed
             if simultaneous:
                 for mot in motors_positions_list:
-                    self.motors_hwobj[mot[0]].wait_ready(timeout)
+                    self.motors_hwobj_dict[mot[0]].wait_ready(timeout)
 
     def get_values_motors(self, motors_list=None):
-        """ Get the positions of diffractometer motors. If the motors_list is
+        """Get the positions of diffractometer motors. If the motors_list is
             empty, return the positions of all the available motors.
         Args:
             motors_list (list): List of motor roles (optional).
@@ -153,12 +185,12 @@ class AbstractDiffractometer(HardwareObject):
             for motor in motors_list:
                 try:
                     mot_pos_list.append(
-                        (str(motor), float(self.motors_hwobj[motor].get_value()))
+                        (str(motor), float(self.motors_hwobj_dict[motor].get_value()))
                     )
                 except KeyError:
                     logging.getLogger("HWR").error("Invalid motor name (%s)", motor)
         else:
-            for role, motor in self.motors_hwobj.items():
+            for role, motor in self.motors_hwobj_dict.items():
                 mot_pos_list.append((role, float(motor.get_value())))
 
         return mot_pos_list
@@ -233,23 +265,23 @@ class AbstractDiffractometer(HardwareObject):
 
     # -------- data acquisition scans --------
     def do_oscillation_scan(self, *args, **kwargs):
-        """ Do an oscillation scan. """
+        """Do an oscillation scan."""
         raise NotImplementedError
 
     def do_line_scan(self, *args, **kwargs):
-        """ Do a line (helical) scan. """
+        """Do a line (helical) scan."""
         raise NotImplementedError
 
     def do_mesh_scan(self, *args, **kwargs):
-        """ Do a mesh scan. """
+        """Do a mesh scan."""
         raise NotImplementedError
 
     def do_still_scan(self, *args, **kwargs):
-        """ Do a zero oscillation acquisition. """
+        """Do a zero oscillation acquisition."""
         raise NotImplementedError
 
     def do_characterisation_scan(self, *args, **kwargs):
-        """ Do characterisation. """
+        """Do characterisation."""
         raise NotImplementedError
 
     # -------- auxilarly methods --------
