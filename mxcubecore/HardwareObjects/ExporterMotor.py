@@ -45,7 +45,6 @@ class ExporterMotor(AbstractMotor):
 
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
-        self.username = None
         self._motor_pos_suffix = None
         self._motor_state_suffix = None
         self._exporter = None
