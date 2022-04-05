@@ -61,7 +61,7 @@ Example xml file:
 """
 import math
 from gevent import Timeout, sleep
-from AbstractDiffractometer import (
+from mxcubecore.HardwareObjects.abstract.AbstractDiffractometer import (
     AbstractDiffractometer,
     DiffractometerHead,
     DiffractometerPhase,
@@ -73,7 +73,7 @@ __copyright__ = """ Copyright © 2010-2022 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
-class Microdiff(AbstractDiffractometer):
+class MicroDiffractometer(AbstractDiffractometer):
     """Microdiff with Exporter implementation of AbstartDiffractometer"""
 
     def __init__(self, name):
@@ -82,7 +82,7 @@ class Microdiff(AbstractDiffractometer):
 
     def init(self):
         """Initialise the device"""
-        super.init()
+        super().init()
         # Initialise the commands and channels
         exporter_address = self.get_property("exporter_address")
         _host, _port = exporter_address.split(":")
