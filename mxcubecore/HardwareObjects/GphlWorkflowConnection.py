@@ -30,6 +30,7 @@ import subprocess
 import uuid
 import signal
 import time
+import socket
 
 from py4j import clientserver, java_gateway
 
@@ -43,8 +44,8 @@ from mxcubecore import HardwareRepository as HWR
 # monkeypatched version we get from gevent - that causes errors.
 # It depends on knowing where in py4j socket is imported
 # Hacky, but the best solutoin to making py4j and gevent compatible
-java_gateway.socket = HWR.original_socket
-clientserver.socket = HWR.original_socket
+java_gateway.socket = socket #HWR.original_socket
+clientserver.socket = socket #HWR.original_socket
 
 try:
     # This file already does the alternative imports plus some tweaking
