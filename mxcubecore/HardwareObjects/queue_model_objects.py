@@ -30,7 +30,10 @@ import math
 
 from mxcubecore.HardwareObjects import queue_model_enumerables
 
-from mxcubecore import HardwareRepository as HWR
+try:
+    from mxcubecore import HardwareRepository as HWR
+except ImportError:
+    pass
 
 
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
