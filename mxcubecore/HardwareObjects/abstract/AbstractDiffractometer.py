@@ -201,7 +201,7 @@ class AbstractDiffractometer(HardwareObject):
     def get_head_type(self):
         """Get the head type
         Returns:
-            (Enum): DiffractometerPhase value.
+            (Enum): DiffractometerHead member.
         """
         return self.head_type
 
@@ -221,6 +221,13 @@ class AbstractDiffractometer(HardwareObject):
         """
 
         return self.get_head_type == DiffractometerHead.MINI_KAPPA
+
+    def get_head_enum(self):
+        """Get the diffractometer head Enum. Used when no import possible.
+        Returns:
+            (Enum): DiffractometerHead.
+        """
+        return DiffractometerHead
 
     # -------- phases --------
 
@@ -250,7 +257,7 @@ class AbstractDiffractometer(HardwareObject):
     def get_phase(self):
         """Get the current phase
         Returns:
-            (Enum): DiffractometerPhase value.
+            (Enum): DiffractometerPhase member.
         """
         return self.current_phase
 
@@ -262,6 +269,13 @@ class AbstractDiffractometer(HardwareObject):
         if value is None:
             value = self.get_phase()
         self.emit("valueChanged", (value,))
+
+    def get_phase_enum(self):
+        """Get the phase Enum. Used when no import possible.
+        Returns:
+            (Enum): DiffractometerPhase.
+        """
+        return DiffractometerPhase
 
     # -------- data acquisition scans --------
     def do_oscillation_scan(self, *args, **kwargs):
