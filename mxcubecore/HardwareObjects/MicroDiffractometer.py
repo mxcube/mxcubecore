@@ -176,7 +176,7 @@ class MicroDiffractometer(AbstractDiffractometer):
             (list): list of tuples (motor role, position)
         """
         motors_positions_list = super().get_values_motors(motors_list)
-        if not self.in_kappa_mode():
+        if not self.in_kappa_mode:
             for _mot in motors_positions_list:
                 if _mot[0] in ("kappa", "kappa_phi"):
                     motors_positions_list.remove(_mot)
@@ -225,7 +225,7 @@ class MicroDiffractometer(AbstractDiffractometer):
         Returns:
             (bool): True (parameters within the limits), False otherwise.
         """
-        if self.in_plate_mode():
+        if self.in_plate_mode:
             scan_speed = math.fabs(end - start) / exptime
             llim, hlim = map(
                 float,
@@ -376,7 +376,7 @@ class MicroDiffractometer(AbstractDiffractometer):
             RuntimeError: Timeout waiting for status ready.
         """
 
-        if self.in_plate_mode():
+        if self.in_plate_mode:
             # to see if needed when plates
             return
         scan_params = f"{nb_frames}\t{start:0.4}\t{scan_range:0.4}\t{exptime:0.4}\t"
