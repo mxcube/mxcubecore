@@ -40,11 +40,22 @@ __license__ = "LGPLv3+"
 class MotorStates(Enum):
     """Motor states definitions."""
 
-    HOME = HardwareObjectState.READY, 5
-    LOWLIMIT = HardwareObjectState.READY, 6
-    HIGHLIMIT = HardwareObjectState.READY, 7
-    MOVING = HardwareObjectState.BUSY, 8
 
+    INITIALIZING = HardwareObjectState.BUSY, 0
+    ON = HardwareObjectState.READY, 1
+    OFF = HardwareObjectState.OFF, 2
+    READY = HardwareObjectState.READY, 3
+    BUSY = HardwareObjectState.BUSY, 4
+    MOVING = HardwareObjectState.BUSY, 5    
+    STANDBY = HardwareObjectState.READY, 6
+    DISABLED = HardwareObjectState.FAULT, 7
+    UNKNOWN= HardwareObjectState.UNKNOWN, 8
+    ALARM = HardwareObjectState.FAULT, 9
+    FAULT = HardwareObjectState.FAULT, 10
+    INVALID = HardwareObjectState.FAULT, 11
+    OFFLINE = HardwareObjectState.OFF, 12
+    LOWLIMIT = HardwareObjectState.READY, 13
+    HIGHLIMIT = HardwareObjectState.READY, 14
 
 class AbstractMotor(AbstractActuator):
     """Abstract motor class"""
