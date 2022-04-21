@@ -487,7 +487,8 @@ class CatsMaint(Equipment):
             # calculate CATS specific lid/sample number
             lid = (int(sample_tmp[0]) - 1) / 3 + 1
             puc_pos = ((int(sample_tmp[0]) - 1) % 3) * 10 + int(sample_tmp[1])
-            argin = [str(lid), str(puc_pos), "0"]
+            basket_types = self.cats_device.read_attribute("CassetteType").value
+            argin = [str(lid), str(puc_pos), str( basket_types[ sample_tmp[0]-1 ] ) ]
             logging.getLogger().info("to SetOnDiff %s", argin)
             self._execute_server_task(self._cmdSetOnDiff, argin)
 
