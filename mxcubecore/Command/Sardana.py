@@ -54,6 +54,7 @@ try:
     from taurus import Device, Attribute
     import taurus
     from taurus.core.tango.enums import DevState
+    from taurus.core.tango.tangoattribute import TangoAttrValue
 except Exception:
     logging.getLogger("HWR").warning("Sardana is not available in this computer.")
 
@@ -239,7 +240,8 @@ class SardanaMacro(CommandObject, SardanaObject):
         data = event.event[2]
 
         try:
-            if not isinstance(data, PyTango.DeviceAttribute):
+            if not isinstance(data, PyTango.DeviceAttribute) and \
+               not isinstance(data, TangoAttrValue):
                 # Events different than a value changed on attribute.  Taurus sends an event with attribute info
                 # logging.getLogger('HWR').debug("==========. Got an event, but it is not an attribute . it is %s" % type(data))
                 # logging.getLogger('HWR').debug("doorstate event. type is %s" % str(type(data)))
