@@ -588,7 +588,7 @@ class Cats90(SampleChanger):
             datamatrix = None
             present = scanned = loaded = _has_been_loaded = False
             sample._set_info(present, datamatrix, scanned)
-            sample._set_loaded(loaded, has_been_loaded)
+            sample._set_loaded(loaded, _has_been_loaded)
             sample._set_holder_length(spl[4])
 
         logging.getLogger("HWR").warning("Cats90:  initializing contents done")
@@ -1485,7 +1485,7 @@ class Cats90(SampleChanger):
 
                     # forget about any loaded state in newly mounted or removed basket)
                     loaded = _has_been_loaded = False
-                    sample._set_loaded(loaded, has_been_loaded)
+                    sample._set_loaded(loaded, _has_been_loaded)
 
         self._trigger_contents_updated_event()
         self._update_loaded_sample()
