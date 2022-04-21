@@ -468,11 +468,16 @@ class SardanaChannel(ChannelObject, SardanaObject):
 
     def get_info(self):
         try:
-            b = dir(self.attribute)
-            (
-                self.info.minval,
-                self.info.maxval,
-            ) = self.attribute._TangoAttribute__attr_config.get_limits()
+            if taurus.Release.version_info[0] == 3:
+                ranges = self.attribute.getConfig().getRanges()
+                if ranges is not None and ranges[0] != "Not specified":
+                    self.info.min_val = float(ranges[0])
+                if ranges is not None and ranges[-1] != "Not specified":
+                    self.info.max_val = float(ranges[-1])
+            elif taurus.Release.version_info[0] > 3:   # taurus 4 and beyond
+                range = getattr(self.attribute, 'range')
+                self.info.min_val = range[0].magnitude
+                self.info.max_val = range[1].magnitude
         except Exception:
             import traceback
 
