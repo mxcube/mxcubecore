@@ -215,6 +215,9 @@ class SardanaMotor(AbstractMotor):
                     static_limits is returned
         """
         try:
+            info = self.position_channel.get_info()
+            self.limit_lower = info.minval
+            self.limit_upper = info.maxval
             return (self.limit_lower, self.limit_upper)
         except Exception:
             return (None, None)
