@@ -53,6 +53,7 @@ try:
     from sardana.taurus.core.tango.sardana import registerExtensions
     from taurus import Device, Attribute
     import taurus
+    from taurus.core.tango.enums import DevState
 except Exception:
     logging.getLogger("HWR").warning("Sardana is not available in this computer.")
 
@@ -191,7 +192,7 @@ class SardanaMacro(CommandObject, SardanaObject):
             import time
 
             self.t0 = time.time()
-            if self.doorstate in ["ON", "ALARM"]:
+            if self.doorstate in [DevState.ON, DevState.ALARM]:
                 self.door.runMacro(fullcmd.split())
                 self.macrostate = SardanaMacro.STARTED
                 self.emit("commandBeginWaitReply", (str(self.name()),))
@@ -245,7 +246,7 @@ class SardanaMacro(CommandObject, SardanaObject):
                 return
 
             # Handling macro state changed event
-            doorstate = str(data.value)
+            doorstate = data.rvalue
             logging.getLogger("HWR").debug(
                 "doorstate changed. it is %s" % str(doorstate)
             )
@@ -256,24 +257,25 @@ class SardanaMacro(CommandObject, SardanaObject):
                 # logging.getLogger('HWR').debug("self.doorstate is %s" % self.canExecute())
                 self.emit("commandCanExecute", (self.can_execute(),))
 
-                if doorstate in ["ON", "ALARM"]:
+                if doorstate in [DevState.ON, DevState.ALARM]:
                     # logging.getLogger('HWR').debug("Macroserver ready for commands")
                     self.emit("commandReady", ())
                 else:
                     # logging.getLogger('HWR').debug("Macroserver busy ")
                     self.emit("commandNotReady", ())
 
-            if self.macrostate == SardanaMacro.STARTED and doorstate == "RUNNING":
+            if self.macrostate == SardanaMacro.STARTED and \
+                doorstate == DevState.RUNNING:
                 # logging.getLogger('HWR').debug("Macro server is running")
                 self.macrostate = SardanaMacro.RUNNING
-            elif self.macrostate == SardanaMacro.RUNNING and (
-                doorstate in ["ON", "ALARM"]
+            elif self.macrostate == SardanaMacro.RUNNING and (\
+                doorstate in [DevState.ON, DevState.ALARM]
             ):
                 logging.getLogger("HWR").debug("Macro execution finished")
                 self.macrostate = SardanaMacro.DONE
                 self.result = self.door.result
                 self.emit("commandReplyArrived", (self.result, str(self.name())))
-                if doorstate == "ALARM":
+                if doorstate == DevState.ALARM:
                     self.emit("commandAborted", (str(self.name()),))
                 self._reply_arrived_event.set()
             elif (
