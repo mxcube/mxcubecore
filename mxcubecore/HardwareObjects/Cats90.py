@@ -643,7 +643,7 @@ class Cats90(SampleChanger):
         :rtype: None
         """
         logging.info(
-            "doUpdateInfo should not be called for cats. only for update timer type of SC"
+            "do_update_info should not be called for cats. only for update timer type of SC"
         )
         return
 
