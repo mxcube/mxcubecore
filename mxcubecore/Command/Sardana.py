@@ -455,7 +455,15 @@ class SardanaChannel(ChannelObject, SardanaObject):
         self.attribute.write(new_value)
 
     def _read_value(self):
-        value = self.attribute.read().value
+        value = None
+        if taurus.Release.version_info[0] == 3:
+            value = self.attribute.read().value
+        elif taurus.Release.version_info[0] > 3:  # taurus 4 and beyond
+            try:
+                magnitude = getattr(self.attribute.rvalue, 'magnitude')
+                value = magnitude
+            except Exception:
+                value = self.attribute.rvalue
         return value
 
     def get_info(self):
