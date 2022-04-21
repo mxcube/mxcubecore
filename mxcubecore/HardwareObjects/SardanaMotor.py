@@ -59,7 +59,7 @@ class SardanaMotor(AbstractMotor):
         self.limit_lower = None
         self.static_limits = (-1e4, 1e4)
         self.limits = (None, None)
-        self.motor_state = MotorStates.NOTINITIALIZED
+        self.motor_state = MotorStates.INITIALIZING
 
     def init(self):
 
