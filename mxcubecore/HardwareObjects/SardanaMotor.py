@@ -175,7 +175,7 @@ class SardanaMotor(AbstractMotor):
         if state is None:
             state = self.state_channel.get_value()
 
-        state = str(state)
+        state = str(state).strip("DevState.")
         motor_state = SardanaMotor.state_map[state]
 
         if motor_state != MotorStates.DISABLED:
