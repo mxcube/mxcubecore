@@ -184,7 +184,6 @@ class SardanaMotor(AbstractMotor):
             elif self.motor_position <= self.limit_lower:
                 motor_state = MotorStates.LOWLIMIT
 
-        self.set_ready(motor_state > MotorStates.DISABLED)
 
         if motor_state != self.motor_state:
             self.motor_state = motor_state
