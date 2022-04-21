@@ -742,7 +742,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
                 if (
                     dc.run_online_processing
-                    and acq_1.acquisition_parameters.num_images > 4
                     and HWR.beamline.online_processing is not None
                 ):
                     self.online_processing_task = gevent.spawn(
