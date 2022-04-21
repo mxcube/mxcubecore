@@ -489,7 +489,14 @@ class SardanaChannel(ChannelObject, SardanaObject):
         data = event.event[2]
 
         try:
-            new_value = data.value
+            new_value = None
+            if taurus.Release.version_info[0] == 3:
+                new_value = data.value
+            elif taurus.Release.version_info[0] > 3:  # taurus 4 and beyond
+                try:
+                    new_value = data.rvalue.magnitude
+                except Exception:
+                    new_value = data.rvalue
 
             if new_value is None:
                 new_value = self.get_value()
