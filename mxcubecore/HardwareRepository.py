@@ -176,7 +176,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
                 (role, class_name, configuration_file, "%.1d" % load_time, msg1)
             )
             msg0 = "Done loading contents"
-        for role1, config_file in _objects.items():
+        for role1, config_file in _objects:
             fname, fext = os.path.splitext(config_file)
             if fext == ".yml":
                 load_from_yaml(
