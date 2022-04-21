@@ -610,7 +610,7 @@ class AbstractCollect(HardwareObject, object):
                     i += 1
             params[
                 "resolutionAtCorner"
-            ] = HWR.beamline.resolution.get_value_at_corner()
+            ] = self.get_value_at_corner()
             beam_size_x, beam_size_y = HWR.beamline.beam.get_beam_size()
             params["beamSizeAtSampleX"] = beam_size_x
             params["beamSizeAtSampleY"] = beam_size_y
@@ -828,6 +828,13 @@ class AbstractCollect(HardwareObject, object):
 
     @abc.abstractmethod
     def data_collection_hook(self):
+        """
+        Descript. :
+        """
+        pass
+
+    @abc.abstractmethod
+    def get_value_at_corner(self):
         """
         Descript. :
         """
