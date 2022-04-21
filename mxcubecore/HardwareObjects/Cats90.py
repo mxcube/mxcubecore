@@ -1011,7 +1011,7 @@ class Cats90(SampleChanger):
 
         if presence != self.basket_presence:
             logging.getLogger("HWR").warning(
-                "Basket presence changed. Updating contents"
+                "cats_basket_presence_changed Basket presence changed. Updating contents"
             )
             self.basket_presence = presence
             self._update_cats_contents()
@@ -1445,7 +1445,7 @@ class Cats90(SampleChanger):
     def _update_cats_contents(self):
 
         logging.getLogger("HWR").warning(
-            "Updating contents %s" % str(self.basket_presence)
+            "_update_cats_contents Updating contents %s" % str(self.basket_presence)
         )
         for basket_index in range(self.number_of_baskets):
             # get saved presence information from object's internal bookkeeping
