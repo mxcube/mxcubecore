@@ -416,22 +416,25 @@ class SardanaChannel(ChannelObject, SardanaObject):
             return
 
         # read information
-        try:
-            if taurus.Release.version_info[0] == 3:
-                ranges = self.attribute.getConfig().getRanges()
-                if ranges is not None and ranges[0] != "Not specified":
-                    self.info.minval = float(ranges[0])
-                if ranges is not None and ranges[-1] != "Not specified":
-                    self.info.maxval = float(ranges[-1])
-            elif taurus.Release.version_info[0] > 3:  # taurus 4 and beyond
-                minval, maxval = self.attribute.ranges()
-                self.info.minval = minval.magnitude
-                self.info.maxval = maxval.magnitude
-        except Exception:
-            import traceback
+        if "Position" in str(self.attribute): # RB: quick hack, find a better way to check if this channel is a position channel
+            try:
+                if taurus.Release.version_info[0] == 3:
+                    ranges = self.attribute.getConfig().getRanges()
+                    if ranges is not None and ranges[0] != "Not specified":
+                        self.info.minval = float(ranges[0])
+                    if ranges is not None and ranges[-1] != "Not specified":
+                        self.info.maxval = float(ranges[-1])
+                elif taurus.Release.version_info[0] > 3:  # taurus 4 and beyond
+                    minval, maxval = self.attribute.getRanges()
+                    print self.attribute
+                    print str(self.attribute.getRanges())
+                    self.info.minval = minval.magnitude
+                    self.info.maxval = maxval.magnitude
+            except Exception:
+                import traceback
 
-            logging.getLogger("HWR").info("info initialized. Cannot get limits")
-            logging.getLogger("HWR").info("%s" % traceback.format_exc())
+                logging.getLogger("HWR").info("info initialized. Cannot get limits")
+                logging.getLogger("HWR").info("%s" % traceback.format_exc())
 
         # prepare polling
         # if the polling value is a number set it as the taurus polling period
