@@ -207,11 +207,13 @@ class BeamInfo(AbstractBeam):
         Return    : dictionary,{size_x:0.1, size_y:0.1, shape:"rectangular"}
         """
         size_x = min(
+            self.beam_info_dict["size_x"],
             self.beam_size_aperture[0],
             self.beam_size_slits[0],
             self.beam_size_definer[0],
         )
         size_y = min(
+            self.beam_info_dict["size_y"], 
             self.beam_size_aperture[1],
             self.beam_size_slits[1],
             self.beam_size_definer[1],
