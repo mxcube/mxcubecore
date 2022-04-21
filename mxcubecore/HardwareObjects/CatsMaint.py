@@ -525,7 +525,6 @@ class CatsMaint(Equipment):
         else:
             self._cmdPowerOff()
 
-        self.do_state_action("power", state)
 
     def _do_enable_regulation(self):
         """
