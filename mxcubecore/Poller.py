@@ -206,6 +206,7 @@ class _Poller:
                 if new_value:
                     self.old_res = res
                     self.queue.put(res)
+                    self.async_watcher.send()
             sleep(self.polling_period / 1000.0)
 
         if error_cb is not None:
