@@ -20,7 +20,7 @@
 
 """MD2 implementation of the AbstractDiffractometer class.
 Overloads the methods:
-set_values_motors, _get_values_motors, set_phase, get_phase and all the scans.
+set_value_motors, _get_value_motors, set_phase, get_phase and all the scans.
 
 Example xml file:
 <object class = "Microdiff"
@@ -141,7 +141,7 @@ class MicroDiffractometer(AbstractDiffractometer):
             while not self._ready:
                 sleep(0.5)
 
-    def set_values_motors(self, motors_positions_list, simultaneous=True, timeout=None):
+    def set_value_motors(self, motors_positions_list, simultaneous=True, timeout=None):
         """Move specified motors to the requested positions.
         Args:
             motors_positions_list (list): list of tuples (motor role, target value).
@@ -166,22 +166,19 @@ class MicroDiffractometer(AbstractDiffractometer):
             return
         self.wait_ready(timeout)
 
-    def get_values_motors(self, motors_list=None):
-        """Get the positions of diffractometer motors. If the
-            motors_positions_list is empty, return the positions of all
-            the availble motors
+    def get_value_motors(self, motors_list=None):
+        """Get the positions of diffractometer motors. If no specific motor
+           roles requested in the motors_list argument, return the positions
+           of all the availble motors.
         Args:
             motors_list (list): List of motor roles.
         Returns:
-            (list): list of tuples (motor role, position)
+            (dict): dict {motor role: position}
         """
-        motors_positions_list = super().get_values_motors(motors_list)
+        motors_positions_dict = super().get_value_motors(motors_list)
         if not self.in_kappa_mode:
-            for _mot in motors_positions_list:
-                if _mot[0] in ("kappa", "kappa_phi"):
-                    motors_positions_list.remove(_mot)
-            motors_positions_list += [("kappa", None), ("kappa_phi", None)]
-        return motors_positions_list
+            motors_positions_dict.update({"kappa": None, "kappa_phi": None})
+        return motors_positions_dict
 
     @property
     def get_head_type(self):
@@ -324,7 +321,7 @@ class MicroDiffractometer(AbstractDiffractometer):
             "DetectorGatePulseReadoutTime", (dead_time * 1000 + servo_time)
         )
 
-        self.set_values_motors(grid_centre, simultaneous=True, timeout=timeout)
+        self.set_value_motors(grid_centre, simultaneous=True, timeout=timeout)
         scan_params = f"{(end-start):0.4}\t"
         scan_params += f'{-mesh_range["horizontal_range"]:0.4}\t'
         scan_params += f'{-mesh_range["vertical_range"]:0.4}\t'
@@ -387,3 +384,13 @@ class MicroDiffractometer(AbstractDiffractometer):
 
         self._exporter.execute("startCharacterisationScanEx", (scan_params,))
         self._wait_ready(timeout)
+
+    # -------- should go to centring or sample view --------
+    def get_pixels_per_mm(self):
+        """Get pixels per mm value for the current zoom factor
+        Returns:
+            (tuple): x, y [pixel/mm]
+        """
+        scale_x = self._exporter.read_property("CoaxCamScaleX")
+        scale_y = self._exporter.read_property("CoaxCamScaleY")
+        return (1.0 / scale_x, 1.0 / scale_y)
