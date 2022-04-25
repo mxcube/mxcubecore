@@ -22,7 +22,7 @@
 Initialises the username property and all the motors, actuators and
 complex equipment which is a part of the diffractometer.
 Defines:
-  methods: get/set_values_motors, get/set_phase methods
+  methods: get/set_value_motors, get/set_phase methods
   properties: get_head_type, in_kappa_mode, in_plate_mode
 
 Emits signals valueChanged and limitsChanged.
@@ -49,6 +49,7 @@ class DiffractometerHead(Enum):
     MINI_KAPPA = "MiniKappa"
     SMART_MAGNET = "SmartMagnet"
     PLATE = "Plate"
+    SSX = "SSX"
 
 
 @unique
@@ -87,37 +88,29 @@ class AbstractDiffractometer(HardwareObject):
         Initialise the equipment, defined in the configuration file
         """
         self.username = self.get_property("username") or self.username
-        all_roles = self._on
-        if "motors" in all_roles:
+
+        for role in self["motors"].get_roles():
             try:
-                _roles = all_roles[: all_roles.index("motors")]
-                for role in _roles:
-                    self.motors_hwobj_dict[role] = self.get_object_by_role(role)
-                    all_roles.remove(role)
-            except (KeyError, IndexError, AttributeError):
+                self.motors_hwobj_dict[role] = self["motors"].get_object_by_role(role)
+            except KeyError:
                 print("No motors configured")
-            all_roles.remove("motors")
 
         # actuators
-        if "actuators" in all_roles:
+        for role in self["actuators"].get_roles():
             try:
-                _roles = all_roles[: all_roles.index("actuators")]
-                for role in _roles:
-                    self.actuators_hwobj_dict[role] = self.get_object_by_role(role)
-                    all_roles.remove(role)
-            except (KeyError, IndexError, AttributeError):
+                self.actuators_hwobj_dict[role] = self["actuators"].get_object_by_role(
+                    role
+                )
+            except KeyError:
                 print("No actuators configured")
-            all_roles.remove("actuators")
 
         # complex equipment
-        if "complex_equipment" in all_roles:
+        for role in self["complex_equipment"].get_roles():
             try:
-                _roles = all_roles[: all_roles.index("complex_equipment")]
-                for role in _roles:
-                    self.complex_eqipment_hwobj_dict[role] = self.get_object_by_role(
-                        role
-                    )
-            except (KeyError, IndexError, AttributeError):
+                self.complex_eqipment_hwobj_dict[role] = self[
+                    "complex_equipment"
+                ].get_object_by_role(role)
+            except KeyError:
                 print("No complex equipment configured")
 
     def get_motors(self):
@@ -143,7 +136,7 @@ class AbstractDiffractometer(HardwareObject):
 
     # -------- Motor Groups --------
 
-    def set_values_motors(self, motors_positions_list, simultaneous=True, timeout=None):
+    def set_value_motors(self, motors_positions_list, simultaneous=True, timeout=None):
         """Move specified motors to the requested positions
         Args:
             motors_positions_list (list): list of tuples (motor role, target value).
@@ -172,28 +165,30 @@ class AbstractDiffractometer(HardwareObject):
                 for mot in motors_positions_list:
                     self.motors_hwobj_dict[mot[0]].wait_ready(timeout)
 
-    def get_values_motors(self, motors_list=None):
+    def get_value_motors(self, motors_list=None):
         """Get the positions of diffractometer motors. If the motors_list is
             empty, return the positions of all the available motors.
         Args:
             motors_list (list): List of motor roles (optional).
         Returns:
-            (list): list of tuples (motor role, position)
+            (dict): dict {motor role: position}
         """
-        mot_pos_list = []
+        mot_pos_dict = {}
         if motors_list:
             for motor in motors_list:
                 try:
-                    mot_pos_list.append(
-                        (str(motor), float(self.motors_hwobj_dict[motor].get_value()))
-                    )
+                    if self.motors_hwobj_dict[motor].get_value() is not None:
+                        mot_pos_dict[str(motor)] = float(
+                            self.motors_hwobj_dict[motor].get_value()
+                        )
                 except KeyError:
                     logging.getLogger("HWR").error("Invalid motor name (%s)", motor)
         else:
             for role, motor in self.motors_hwobj_dict.items():
-                mot_pos_list.append((role, float(motor.get_value())))
+                if float(motor.get_value()) is not None:
+                    mot_pos_dict[role] = float(motor.get_value())
 
-        return mot_pos_list
+        return mot_pos_dict
 
     # -------- Head Type and Modes --------
 
@@ -219,7 +214,6 @@ class AbstractDiffractometer(HardwareObject):
         Returns:
             (bool): True/False
         """
-
         return self.get_head_type == DiffractometerHead.MINI_KAPPA
 
     def get_head_enum(self):
