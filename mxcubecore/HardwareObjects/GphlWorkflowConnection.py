@@ -36,6 +36,7 @@ from py4j import clientserver, java_gateway
 
 from mxcubecore.utils import conversion
 from mxcubecore.HardwareObjects.Gphl import GphlMessages
+from mxcubecore.utils.greenlet_utils import repatch_module, unpatch_module
 
 from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
 from mxcubecore import HardwareRepository as HWR
@@ -44,8 +45,11 @@ from mxcubecore import HardwareRepository as HWR
 # monkeypatched version we get from gevent - that causes errors.
 # It depends on knowing where in py4j socket is imported
 # Hacky, but the best solutoin to making py4j and gevent compatible
-java_gateway.socket = socket #HWR.original_socket
-clientserver.socket = socket #HWR.original_socket
+
+unpatch_module(socket, "socket")
+java_gateway.socket = socket
+clientserver.socket = socket
+repatch_module(socket, "socket")
 
 try:
     # This file already does the alternative imports plus some tweaking
