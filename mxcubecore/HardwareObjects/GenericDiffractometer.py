@@ -438,6 +438,10 @@ class GenericDiffractometer(HardwareObject):
                 return self.pixels_per_mm_y
             return HardwareObject.__getattr__(self, attr)
 
+
+    def get_motors(self):
+        return self.motor_hwobj_dict
+
     # Contained Objects
     # NBNB Temp[orary hack - should be cleaned up together with configuration
     @property
