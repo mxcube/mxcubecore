@@ -422,7 +422,7 @@ class MiniDiff(Equipment):
     def is_ready(self):
         return self.is_valid() and not any(
             [
-                m.motorIsMoving()
+                m.is_ready()
                 for m in (
                     self.sampleXMotor,
                     self.sampleYMotor,

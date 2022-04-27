@@ -440,6 +440,8 @@ class XMLRPCServer(HardwareObject):
         try:
             for angle, path in path_list:
                 HWR.beamline.diffractometer.phiMotor.set_value(angle)
+                # give some time to get the snapshot
+                time.sleep(1)
                 HWR.beamline.diffractometer.wait_ready()
                 self.save_snapshot(path, show_scale, handle_light=False)
         except Exception as ex:
@@ -454,6 +456,8 @@ class XMLRPCServer(HardwareObject):
 
         if handle_light:
             HWR.beamline.diffractometer.set_light_in()
+            # give some time to get the snapshot
+            time.sleep(1)
 
         try:
             if showScale:

@@ -248,7 +248,3 @@ class ExporterMotor(AbstractMotor):
             (float): the maximim speed [unit/s].
         """
         return self._exporter.execute("getMotorMaxSpeed", (self.actuator_name,))
-
-    def name(self):
-        """Get the motor name. Should be removed when GUI ready"""
-        return self.actuator_name
