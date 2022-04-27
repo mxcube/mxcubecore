@@ -631,8 +631,8 @@ class Beamline(ConfiguredObject):
         for tag, val in params.items():
             setattr(acq_parameters, tag, val)
 
-        motor_positions = self.diffractometer.get_positions()
-        osc_start = motor_positions.get("phi", params["osc_start"])
+        motor_positions = self.diffractometer.get_value_motors()
+        osc_start = motor_positions.get("omega", params["osc_start"])
         acq_parameters.osc_start = round(float(osc_start), 2)
         kappa = motor_positions.get("kappa", 0.0)
         kappa = kappa if kappa else 0.0

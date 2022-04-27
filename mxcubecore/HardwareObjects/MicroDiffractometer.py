@@ -27,7 +27,7 @@ Example xml file:
   <username>MD2S</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <motors>
-    <device role="phi" hwrid="/udiff_omega"/>
+    <device role="omega" hwrid="/udiff_omega"/>
     <device role="phiy" hwrid="/udiff_phiy"/>
     <device role="phiz" hwrid="/udiff_phiz"/>
     <device role="sampx" hwrid="/udiff_sampx"/>
