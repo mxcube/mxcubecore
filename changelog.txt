@@ -1,0 +1,121 @@
+CHANGELOG (DRAFT)
+
+===========
+
+Background
+
+-----------------
+
+MXCuBE is a project with a long history, initially started at ESRF in 2003 and built
+on top of a inhouse developed framework called Framework-2. The project has since
+been adopted by a large number of sites performing MX experiments. There is within
+MXCuBE the possibility to create encapsulated pieces of code that pertain to certain
+equipment or routines. This logic is written as what's called HardwareObjects. These
+HardwareObjects can be configured via XML (and more recently YAML) files, there is
+further an infrastructure for emitting events from and to HardwareObjects. Each site
+has the possibility to extend and adapt the functionality by adding site specific
+HardwareObects.
+
+During the course of time parts of the API have been "organically" patched and grown
+to be less consistent. The MXCuBE developers team therefore decided that it would be
+crucial to refactor and cleanup up inconsistencies and rework other aspects of the
+core functionality (known as HardwareRepository) to facilitate the  further
+development of the MXCuBE application.
+
+The MXCuBE developers conducted a series of meetings and workshops to discuss these
+matters before starting the initial work. The discussions have naturally continued
+during the process and some are still ongoing. This means that there are still
+features and ideas that are being discussed that are not yet settled but are likely
+to be implemented soon, found in the the BEING DRAFTED section. Finally, the aim of
+this rework is to make it easier and faster to extend MXCuBE with new functionality.
+It will also contribute to make it easier for new sites to adopt MXCuBE.
+
+During this process a more rigorous versioning schema have been put in place to
+facilitate the update and maintenance process of the software on the various sites.
+This file is the first changelog and are meant to summarise the changes made in a
+comprehensible way so that any developer can get an idea of what has changed, being
+discussed and are still subject to change. It's of course impossible to summarize
+all the work that have been done during the course of the last 2 years but the
+intention is that the developer with this information can get a good idea of what
+is considered stable or at least to be well informed enough to know when to ask the
+community for input.
+
+
+## Added/Changed in Version 1.0.0 <DATE>
+=================================
+
+- HardwareRepository was renamed to mxcubecore and made into a Python module (installable with i.e pip)
+
+- Possibility to configure HardwareObjects using YAML
+
+- All method names and variables are snake cased
+
+- Methods that set a value of a member are prefixed with set_[member name] and members
+    that retrieve a value are called get_[member name].
+
+- The HardwareObject base class have been refactored so that all hardware objects have
+    application wide state being either: UNKNOWN, WARNING, BUSY, READY, FAULT or OFF
+    accessed via the "get_state" method
+
+    A HardwareObject can further implement a device/routine specific state accessed via
+    get_specific_state.
+
+    The HardwareObject base class implements the following methods that can be considered
+    part of the stable API (defined by the class HardwareObjectMixin in BaseHardwareObjects.py)
+
+      abort()
+      stop()
+      get_state()
+      get_specific_state()
+      wait_ready(timeout=None)
+      is_ready()
+      update_state(state=None)
+      update_specific_state(state=None)
+      re_emit_values()
+      force_emit_signals()
+      emit(signal, *args)
+      connect(sender, signal, slot=None)
+      disconnect(sender, signal, slot=None)
+
+   The AbstractActuator base class implements the functionality required by hardware objects
+   that acts as actuators or more specifically have a value. This includes a value, its
+   limits and limit validation. An object inheriting abstract actuator has the following
+   signature in addition to that of HarwareObject:
+
+     get_value()
+     get_limits()
+     set_limits(limits)
+     validate_value(value)
+     set_value(value, timeout=0)
+     update_value(value=None)
+     update_limits(limits=None)
+
+   The abstract classes considered stable are derived from HardwareObject and/or AbstractActuator
+   and considered stable are:
+
+     AbstractAperture
+     AbstractBeam
+     AbstractCharacterisation
+     AbstractDetector
+     AbstractEnergy
+     AbstractEnergyScan
+     AbstractFlux
+     AbstractMCA
+     AbstractMachineInfo
+     AbstractMotor
+     AbstractNState
+     AbstractResolution
+     AbstractSampleChanger
+     AbstractSampleView
+     AbstractShutter
+     AbstractSlits
+     AbstractTransmission
+
+BEING DRAFTED (Likely to be implemented soon)
+
+     AbstractDiffractometer
+     AbstractCollect
+     AbstractProcedure
+     AbstractCentring
+     AbstractProcessing
+     Improvements of Queing system
