@@ -1632,10 +1632,14 @@ class AcquisitionParameters(object):
         self.detector_roi_mode = str()
         self.induce_burn = False
         self.mesh_range = ()
+        self.cell_counting = "zig-zag"
+        self.mesh_center = "top-left"
+        self.cell_spacing = (0, 0)
         self.mesh_snapshot = None
         self.comments = ""
         self.in_queue = False
         self.in_interleave = None
+        self.sub_wedge_size = 10
 
         self.num_triggers = int()
         self.num_images_per_trigger = int()
@@ -1682,6 +1686,10 @@ class AcquisitionParameters(object):
             "in_interleave": self.in_interleave,
             "num_triggers": self.num_triggers,
             "num_images_per_trigger": self.num_images_per_trigger,
+            "cell_counting": self.cell_counting,
+            "mesh_center": self.mesh_center,
+            "cell_spacing": self.cell_spacing,
+            "sub_wedge_size": self.sub_wedge_size
         }
 
     def copy(self):
