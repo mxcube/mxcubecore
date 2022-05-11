@@ -28,6 +28,7 @@ from pydantic import BaseModel, ValidationError
 from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
 )
+from mxcubecore import HardwareObjects, HardwareRepository as HWR
 from mxcubecore import HardwareRepository as HWR
 from gevent.event import AsyncResult
 
@@ -412,4 +413,7 @@ class DiffractometerMockup(GenericDiffractometer):
         return True
     
     def my_other_funny_function(self) -> None:
-        pass
+        pass    
+    @HardwareObjects.export_method
+    def move_chip_to(self, x: int, y: int) -> None:
+        print("moving chip to")
