@@ -46,9 +46,7 @@ class TaskNode(object):
     the QueueModel object.
     """
 
-    def __init__(self):
-        object.__init__(self)
-
+    def __init__(self, task_data=None):
         self._children = []
         self._name = str()
         self._number = 0
@@ -60,6 +58,19 @@ class TaskNode(object):
         self._node_id = None
         self._requires_centring = True
         self._origin = None
+        self._task_data = task_data
+        
+        acquisition_list = [Acquisition()]
+        crystal = Crystal()
+        processing_parameters = ProcessingParameters()
+
+        self.acquisitions = acquisition_list
+        self.crystal = crystal
+        self.processing_parameters = processing_parameters
+
+    @property
+    def task_data(self):
+        return self._task_data
 
     def is_enabled(self):
         """
