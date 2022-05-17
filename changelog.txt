@@ -6,7 +6,7 @@ Background
 
 -----------------
 
-MXCuBE is a project with a long history, initially started at ESRF in 2003 and built
+MXCuBE is an project with a long history, initially started at ESRF in 2003 and built
 on top of a inhouse developed framework called Framework-2. The project has since
 been adopted by a large number of sites performing MX experiments. There is within
 MXCuBE the possibility to create encapsulated pieces of code that pertain to certain
@@ -14,7 +14,7 @@ equipment or routines. This logic is written as what's called HardwareObjects. T
 HardwareObjects can be configured via XML (and more recently YAML) files, there is
 further an infrastructure for emitting events from and to HardwareObjects. Each site
 has the possibility to extend and adapt the functionality by adding site specific
-HardwareObects.
+HardwareObjects.
 
 During the course of time parts of the API have been "organically" patched and grown
 to be less consistent. The MXCuBE developers team therefore decided that it would be
@@ -32,7 +32,7 @@ It will also contribute to make it easier for new sites to adopt MXCuBE.
 
 During this process a more rigorous versioning schema have been put in place to
 facilitate the update and maintenance process of the software on the various sites.
-This file is the first changelog and are meant to summarise the changes made in a
+This file is the first changelog and is meant to summarise the changes made in a
 comprehensible way so that any developer can get an idea of what has changed, being
 discussed and is still subject to change. It's of course impossible to summarize
 all the work that have been done during the course of the last 2 years but the
