@@ -45,7 +45,7 @@ class ExporterNState(AbstractNState):
     SPECIFIC_STATES = ExporterStates
 
     def __init__(self, name):
-        super.__init__(name)
+        super().__init__(name)
         self._exporter = None
         self.value_channel = None
         self.state_channel = None
@@ -53,7 +53,7 @@ class ExporterNState(AbstractNState):
 
     def init(self):
         """Initialise the device"""
-        super.init()
+        super().init()
         value_channel = self.get_property("value_channel_name")
         # use the value to check if action finished.
         self.use_value_as_state = self.get_property("value_state")
