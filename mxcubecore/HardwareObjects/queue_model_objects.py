@@ -30,10 +30,13 @@ import math
 
 from mxcubecore.HardwareObjects import queue_model_enumerables
 
+# This module is used as a self contained entity by the BES
+# workflows, so we need to make sure that this module can be
+# imported eventhough HardwareRepository is not avilable.
 try:
     from mxcubecore import HardwareRepository as HWR
-except ImportError:
-    pass
+except ImportError as ex:
+    logging.getLogger("HWR").exception("Could not import HardwareRepository")
 
 
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
