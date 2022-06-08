@@ -403,7 +403,6 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             gevent.spawn(self.__execute_entry, entry)
         else:
             self.__execute_entry(entry)
-            self._queue_end()
 
     def clear(self):
         """

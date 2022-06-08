@@ -2500,6 +2500,27 @@ class XrayImaging(TaskNode):
     def get_files_to_be_written(self):
         return self.acquisitions[0].path_template.get_files_to_be_written()
 
+#
+# Add-to-queue functions
+# - written to be usable as static class function in e.g. XMLRPCServer
+#
+
+def addXrayCentring(parent_node, **centring_parameters):
+    """Add Xray centring to queue.
+    NB can also be accessed as a static function of XMLRPCServer
+    e.g. myXMLRPCServer.addXrayCentring(...)"""
+    xc_model = XrayCentring2(**centring_parameters)
+    HWR.beamline.queue_model.add_child(parent_node, xc_model)
+    #
+    return xc_model
+
+def addGphlWorkflow(parent_node, task_dict):
+    """Add GPhL owrkflow to queue.
+    NB can also be accessed as a static function of XMLRPCServer
+    e.g. myXMLRPCServer.addGphlWorkflow(...)"""
+    gphl_model = GphlWorkflow()
+    sample_model = parent_node.get_sample_node()
+    gphl_model.init_from_task_data(sample_model, task_dict)
 
 def addXrayCentring(parent_node, **centring_parameters):
     """Add Xray centring to queue."""
