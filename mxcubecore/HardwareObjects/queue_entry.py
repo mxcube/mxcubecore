@@ -21,7 +21,7 @@
 Contains following classes:
 * QueueEntryContainer
 * BaseQueueEntry
-* DummyQueueEntry
+* DelayQueueEntry
 * TaskGroupQueueEntry
 * SampleQueueEntry
 * SampleCentringQueueEntry
@@ -33,7 +33,7 @@ All queue entries inherits the baseclass BaseQueueEntry which inturn
 inherits QueueEntryContainer. This makes it possible to arrange and
 execute queue entries in a hierarchical maner.
 
-The rest of the classes: DummyQueueEntry, TaskGroupQueueEntry,
+The rest of the classes: DelayQueueEntry, TaskGroupQueueEntry,
 SampleQueueEntry, SampleCentringQueueEntry, DataCollectionQueueEntry,
 CharacterisationQueueEntry, EnergyScanQueueEntry are concrete
 implementations of tasks.
@@ -470,14 +470,14 @@ class BasketQueueEntry(BaseQueueEntry):
         BaseQueueEntry.__init__(self, view, data_model)
 
 
-class DummyQueueEntry(BaseQueueEntry):
+class DelayQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
 
     def execute(self):
         BaseQueueEntry.execute(self)
         delay = self.get_data_model().delay
-        logging.getLogger("HWR").debug("Execute Dummy entry, delay =  %s" % delay)
+        logging.getLogger("HWR").debug("Execute Delay entry, delay =  %s" % delay)
         time.sleep(delay)
 
 
@@ -1924,7 +1924,7 @@ MODEL_QUEUE_ENTRY_MAPPINGS = {
     queue_model_objects.DataCollection: DataCollectionQueueEntry,
     queue_model_objects.Characterisation: CharacterisationGroupQueueEntry,
     queue_model_objects.EnergyScan: EnergyScanQueueEntry,
-    queue_model_objects.DummyTask: DummyQueueEntry,
+    queue_model_objects.DelayTask: DelayQueueEntry,
     queue_model_objects.XRFSpectrum: XRFSpectrumQueueEntry,
     queue_model_objects.SampleCentring: SampleCentringQueueEntry,
     queue_model_objects.OpticalCentring: OpticalCentringQueueEntry,

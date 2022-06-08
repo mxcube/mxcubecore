@@ -243,7 +243,7 @@ class TaskNode(object):
     def set_snapshot(self, snapshot):
         pass
 
-class DummyTask(TaskNode):
+class DelayTask(TaskNode):
     """Dummy task, for mock testing only"""
     def __init__(self, delay=10):
         TaskNode.__init__(self)
