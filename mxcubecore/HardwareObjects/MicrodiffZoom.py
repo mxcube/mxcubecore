@@ -43,9 +43,12 @@ __license__ = "LGPLv3+"
 class MicrodiffZoom(ExporterNState):
     """MicrodiffZoom class"""
 
+    def __init__(self, name):
+        ExporterNState.__init__(self, name)
+
     def init(self):
         """Initialize the zoom"""
-        super().init()
+        ExporterNState.init(self)
 
         self.initialise_values()
         # check if we have values other that UNKNOWN
@@ -65,6 +68,16 @@ class MicrodiffZoom(ExporterNState):
             limits (tuple): two integers tuple (low limit, high limit).
         """
         self._nominal_limits = limits
+
+    def update_value(self, value=None):
+        """Check if the value has changed. Emits signal valueChanged.
+        Args:
+            value: value
+        """
+        # Make sure that update value of super class always is passed value=None
+        # so that _get_value is called to get the Enum value and not the numeric
+        # value passed by underlaying event data.
+        super().update_value()
 
     def update_limits(self, limits=None):
         """Check if the limits have changed. Emits signal limitsChanged.
