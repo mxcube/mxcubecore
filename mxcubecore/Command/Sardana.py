@@ -28,7 +28,6 @@ from mxcubecore.dispatcher import saferef
 
 import gevent
 from gevent.event import Event
-from gevent import monkey
 
 try:
     import Queue as queue
@@ -55,8 +54,6 @@ try:
     import taurus
 except Exception:
     logging.getLogger("HWR").warning("Sardana is not available in this computer.")
-
-monkey.patch_all(thread=False, subprocess=False)
 
 
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """

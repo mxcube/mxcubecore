@@ -30,6 +30,7 @@ import subprocess
 import uuid
 import signal
 import time
+import sys
 
 from py4j import clientserver, java_gateway
 
@@ -43,8 +44,17 @@ from mxcubecore import HardwareRepository as HWR
 # monkeypatched version we get from gevent - that causes errors.
 # It depends on knowing where in py4j socket is imported
 # Hacky, but the best solutoin to making py4j and gevent compatible
-java_gateway.socket = HWR.original_socket
-clientserver.socket = HWR.original_socket
+
+import socket
+origsocket = sys.modules.pop("socket")
+_origsocket = sys.modules.pop("_socket")
+import socket
+java_gateway.socket = socket #HWR.original_socket
+clientserver.socket = socket #HWR.original_socket
+sys.modules["socket"] = origsocket
+sys.modules["_socket"] =_origsocket
+del origsocket
+del _origsocket
 
 try:
     # This file already does the alternative imports plus some tweaking
@@ -102,14 +112,13 @@ class GphlWorkflowConnection(HardwareObjectYaml):
     def init(self):
         super(GphlWorkflowConnection, self).init()
 
-
-
         # Adapt connections if we are running via ssh
         if self.ssh_options:
             self.connection_parameters["python_address"] = socket.gethostname()
 
         # Adapt paths and properties to use directory_locations
         locations = self.directory_locations
+        installdir = locations["GPHL_INSTALLATION"]
         paths = self.software_paths
         properties = self.software_properties
 
@@ -120,6 +129,13 @@ class GphlWorkflowConnection(HardwareObjectYaml):
                 if val2 is None:
                     raise ValueError("File path %s not recognised" % val)
             paths[tag] = val2
+        paths["GPHL_INSTALLATION"] = locations["GPHL_INSTALLATION"]
+        if "java_binary" not in paths:
+            paths["java_binary"] = "java"
+        paths["gphl_java_classpath"] = (
+            "%s/ASTRAWorkflows/config:%s/ASTRAWorkflows/lib/*"
+            % (installdir, installdir)
+        )
 
         for tag, val in properties.items():
             val2 = val.format(**locations)
@@ -129,8 +145,10 @@ class GphlWorkflowConnection(HardwareObjectYaml):
                     raise ValueError("File path %s not recognised" % val)
             paths[tag] = properties[tag] = val2
 
-        pp0 = properties["co.gphl.wf.bin"] = paths["GPHL_INSTALLATION"]
-        paths["BDG_home"] = paths.get("co.gphl.wf.bdg_licence_dir") or pp0
+        # Set master location, based on known release directory structure
+        properties["co.gphl.wf.bin"] = os.path.join(locations["GPHL_INSTALLATION"], "exe")
+        if "GPHL_XDS_PATH" in paths:
+            properties["co.gphl.wf.xds.bin"] = os.path.join(paths["GPHL_XDS_PATH"], "xds_par")
 
         self.update_state(self.STATES.OFF)
 
@@ -143,7 +161,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         tag = "co.gphl.wf.%s.bin" % name
         result = self.software_paths.get(tag)
         if not result:
-            result = os.path.join(self.software_paths["GPHL_INSTALLATION"], name)
+            result = os.path.join(self.software_paths["GPHL_INSTALLATION"], "exe", name)
         #
         return result
 
@@ -222,6 +240,10 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             command_list.extend(
                 conversion.java_property(tag, val, quote_value=in_shell)
             )
+
+        init_spot_dir = workflow_model_obj.init_spot_dir
+        if init_spot_dir:
+            command_list.extend(conversion.java_property("co.gphl.wf.initSpotDir", init_spot_dir))
 
         # We must get hold of the options here, as we need wdir for a property
         workflow_options = dict(params.get("options", {}))
@@ -308,19 +330,18 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         # These env variables are needed in some cases for wrapper scripts
         # Specifically for the stratcal wrapper.
         envs["GPHL_INSTALLATION"] = self.software_paths["GPHL_INSTALLATION"]
-        envs["BDG_home"] = self.software_paths["BDG_home"]
-        envs["GPHL_XDS_PATH"] = os.path.dirname(
-            self.software_paths["co.gphl.wf.xds.bin"]
-        )
+        GPHL_XDS_PATH = self.software_paths.get("GPHL_XDS_PATH")
+        if GPHL_XDS_PATH:
+            envs["GPHL_XDS_PATH"] = GPHL_XDS_PATH
         GPHL_CCP4_PATH = self.software_paths.get("GPHL_CCP4_PATH")
         if GPHL_CCP4_PATH:
             envs["GPHL_CCP4_PATH"] = GPHL_CCP4_PATH
-        # Hack to pass alternative installation dir for processing
-        val = self.software_paths.get("gphl_wf_processing_installation")
-        if val:
-            envs["GPHL_PROC_INSTALLATION"] = val
-        else:
-            envs["GPHL_PROC_INSTALLATION"] = envs["GPHL_INSTALLATION"]
+        GPHL_AUTOPROC_PATH = self.software_paths.get("GPHL_AUTOPROC_PATH")
+        if GPHL_AUTOPROC_PATH:
+            envs["GPHL_AUTOPROC_PATH"] = GPHL_AUTOPROC_PATH
+        GPHL_MINICONDA_PATH = self.software_paths.get("GPHL_MINICONDA_PATH")
+        if GPHL_MINICONDA_PATH:
+            envs["GPHL_MINICONDA_PATH"] = GPHL_MINICONDA_PATH
 
         logging.getLogger("HWR").debug(
             "Executing GPhL workflow, in environment %s", envs
@@ -328,7 +349,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         try:
             self._running_process = subprocess.Popen(command_list, env=envs)
         except Exception:
-            logging.getLogger().error("Error in spawning workflow application")
+            logging.getLogger().exception("Error in spawning workflow application")
             raise
 
         self.workflow_queue = workflow_queue
