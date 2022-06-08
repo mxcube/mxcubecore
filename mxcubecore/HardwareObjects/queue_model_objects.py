@@ -2505,18 +2505,14 @@ class XrayImaging(TaskNode):
 #
 
 def addXrayCentring(parent_node, **centring_parameters):
-    """Add Xray centring to queue.
-    NB can also be accessed as a static function of XMLRPCServer
-    e.g. myXMLRPCServer.addXrayCentring(...)"""
+    """Add Xray centring to queue."""
     xc_model = XrayCentring2(**centring_parameters)
     HWR.beamline.queue_model.add_child(parent_node, xc_model)
     #
     return xc_model
 
 def addGphlWorkflow(parent_node, task_dict):
-    """Add GPhL owrkflow to queue.
-    NB can also be accessed as a static function of XMLRPCServer
-    e.g. myXMLRPCServer.addGphlWorkflow(...)"""
+    """Add GPhL owrkflow to queue"""
     gphl_model = GphlWorkflow()
     sample_model = parent_node.get_sample_node()
     gphl_model.init_from_task_data(sample_model, task_dict)
