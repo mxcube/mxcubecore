@@ -495,6 +495,20 @@ class Microdiff(MiniDiff.MiniDiff):
             self.head_type.get_value() == "MiniKappa" and self.kappa_channel.get_value()
         )
 
+    def get_motors(self):
+        """Get motor_name:Motor dictionary"""
+        return {
+            "phi": self.phiMotor,
+            "focus": self.focusMotor,
+            "phiy": self.phiyMotor,
+            "phiz": self.phizMotor,
+            "sampx": self.sampleXMotor,
+            "sampy": self.sampleYMotor,
+            "zoom": self.zoomMotor,
+            "kappa": self.kappaMotor if self.in_kappa_mode() else None,
+            "kappa_phi": self.kappaPhiMotor if self.in_kappa_mode() else None,
+        }
+
     def get_positions(self):
         pos = {
             "phi": float(self.phiMotor.get_value()),
