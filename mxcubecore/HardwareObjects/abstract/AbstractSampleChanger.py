@@ -801,16 +801,23 @@ class SampleChanger(Container, Equipment):
         self._trigger_loaded_sample_changed_event(None)
 
     def _set_loaded_sample(self, sample):
-        # This is a reversal. The new version did not register
-        # samples mounted from the SampleGrid as mounted
-        for s in self.get_sample_list():
-            if s != sample:
-                s._set_loaded(False)
-            else:
-                if self.get_loaded_sample() != s:
-                    s._set_loaded(True)
+        previous_loaded = None
 
-        self._trigger_loaded_sample_changed_event(sample)
+        for sm in self.get_sample_list():
+            if sm.is_loaded():
+                previous_loaded = sm
+                break
+
+        for sm in self.get_sample_list():
+            if sm != sample:
+                sm._set_loaded(False)
+            else:
+                if self.get_loaded_sample() == sm:
+                    sm._set_loaded(True)
+
+        if previous_loaded != self.get_loaded_sample():
+            self._trigger_loaded_sample_changed_event(sample)
+
 
     def _set_selected_sample(self, sample):
         cur = self.get_selected_sample()
