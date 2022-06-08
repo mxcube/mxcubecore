@@ -132,6 +132,7 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.move_diffractometer)
         self._server.register_function(self.save_snapshot)
         self._server.register_function(self.save_multiple_snapshots)
+        self._server.register_function(self.save_twelve_snapshots_script)
         self._server.register_function(self.cryo_temperature)
         self._server.register_function(self.flux)
         self._server.register_function(self.set_aperture)
@@ -439,11 +440,25 @@ class XMLRPCServer(HardwareObject):
         HWR.beamline.diffractometer.move_motors(roles_positions_dict)
         return True
 
+    def save_twelve_snapshots_script(self, path):
+        logging.getLogger("HWR").info("Taking snapshot with java script in %s " % str(path))
+        HWR.beamline.diffractometer.run_script("Take12Snapshots")
+        # Wait a couple of seconds for the files to appear
+        time.sleep(2)
+        HWR.beamline.diffractometer.wait_ready()
+        tmp_path = '/tmp_14_days/nurizzo/snapshots/'
+        file_list = os.listdir(tmp_path)
+        for filename in file_list:
+            shutil.copy(tmp_path + filename, path)
+        
+            
+        
 
+        
     def save_multiple_snapshots(self, path_list, show_scale=False):
         logging.getLogger("HWR").info("Taking snapshot %s " % str(path_list))
 
-        HWR.beamline.diffractometer.set_light_in()
+       # HWR.beamline.diffractometer.set_light_in()
 
         try:
             for angle, path in path_list:
@@ -452,16 +467,16 @@ class XMLRPCServer(HardwareObject):
                 self.save_snapshot(path, show_scale, handle_light=False)
         except Exception as ex:
             logging.getLogger("HWR").exception("Could not take snapshot %s " % str(ex))
-        finally:
-            HWR.beamline.diffractometer.set_light_out()
+       # finally:
+       #     HWR.beamline.diffractometer.set_light_out()
 
 
     def save_snapshot(self, imgpath, showScale=False, handle_light=True):
         res = True
         logging.getLogger("HWR").info("Taking snapshot %s " % str(imgpath))
 
-        if handle_light:
-            HWR.beamline.diffractometer.set_light_in()
+        #if handle_light:
+        #    HWR.beamline.diffractometer.set_light_in()
 
         try:
             if showScale:
@@ -474,8 +489,9 @@ class XMLRPCServer(HardwareObject):
             logging.getLogger("HWR").exception("Could not take snapshot %s " % str(ex))
             res = False
         finally:
-            if handle_light:
-                HWR.beamline.diffractometer.set_light_out()
+            pass
+            #if handle_light:
+            #    HWR.beamline.diffractometer.set_light_out()
 
         return res
 

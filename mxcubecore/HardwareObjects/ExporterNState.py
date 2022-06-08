@@ -82,6 +82,7 @@ class ExporterNState(AbstractNState):
             state_channel,
         )
 
+        # Line below was commented
         self.state_channel.connect_signal("update", self._update_state)
         self.update_state()
 

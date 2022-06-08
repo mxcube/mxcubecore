@@ -67,11 +67,12 @@ class ESRFPhotonFlux(AbstractFlux):
             self._counter = self.get_object_by_role("counter")
 
         beam_check = self.get_property("beam_check_name")
+        
         if beam_check:
             self.beam_check = getattr(controller, beam_check)
 
         HWR.beamline.safety_shutter.connect("stateChanged", self.update_value)
-        self._poll_task = gevent.spawn(self._poll_flux)
+        #self._poll_task = gevent.spawn(self._poll_flux)
 
     def _poll_flux(self):
         while True:
@@ -118,4 +119,4 @@ class ESRFPhotonFlux(AbstractFlux):
                                               (default);
                              if timeout is None: wait forever.
         """
-        self.beam_check.wait_for_beam(timeout)
+        return self.beam_check.wait_for_beam(timeout)

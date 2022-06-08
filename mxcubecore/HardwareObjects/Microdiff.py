@@ -484,6 +484,51 @@ class Microdiff(MiniDiff.MiniDiff):
             self._wait_ready(1800)  # timeout of 30 min
             print("finished at ---------->", time.time())
 
+    def characterisation_scan(self,
+                              start,
+                              scan_range,
+                              nb_frames,
+                              exptime,
+                              nb_scans,
+                              angle,
+                              wait=False,
+        ):
+        """Do N scans continuously.
+        Args:
+            start (float): Position of omega for the first scan [deg].
+            scan_range (float): range for each scan [deg].
+            nb_frames (int): Frame numbers for each scan.
+            exptime (float): Total exposure time for each scan [s].
+            nb_scans (int): How many times a scan to be repeated.
+            angle (float): The angle between each scan [deg]. This number,
+                           added to the last position of each scan and will
+                           be the start position of the consequent scan.
+            wait (bool); Wait (True) or no (False) the end of the command.
+        """
+
+        if self.in_plate_mode():
+            # to see if needed when plates
+            return
+        scan_params = "%d\t%0.3f\t%0.3f\t" % (nb_frames, start, scan_range)
+        scan_params += "%0.3f\t%d\t%0.3f" % (exptime, nb_scans, angle)
+
+        scan = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "characterisation_scan",
+            },
+            "startCharacterisationScanEx",
+        )
+
+
+        scan(scan_params)
+
+        print("characterisation scan started at ----------->", time.time())
+        if wait:
+            self._wait_ready(20 * 60)  # timeout of 15 min
+            print("finished at ---------->", time.time())
+
     def in_plate_mode(self):
         try:
             return self.head_type.get_value() == "Plate"
@@ -553,6 +598,25 @@ class Microdiff(MiniDiff.MiniDiff):
                     "Microdiff: could not move to beam, aborting"
                 )
 
+
+    def run_script(self, script_cmd, wait=True):
+        runScript =  self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "run_script",
+            },
+            "runScript",
+        )
+
+        runScript(script_cmd)
+
+        if wait:
+            self._wait_ready(60)
+
+
+            
+                
     def start_manual_centring(self, sample_info=None):
         self._wait_ready(5)
 

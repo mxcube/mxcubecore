@@ -13,6 +13,7 @@ from mxcubecore import HardwareRepository as HWR
 class MD2MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
         ESRFMultiCollect.__init__(self, name)
+        self.fast_characterisation = None
 
     @task
     def data_collection_hook(self, data_collect_parameters):
@@ -128,6 +129,15 @@ class MD2MultiCollect(ESRFMultiCollect):
                 self.mesh_range,
                 wait=True,
             )
+        elif self.fast_characterisation:
+            self.nb_frames = 10
+            self.nb_scan = 4
+            self.angle = 90
+            exptime *= 10
+            range = (end-start) * 10
+            diffr.characterisation_scan(
+                start, range, self.nb_frames, exptime, self.nb_scan,
+                self.angle, wait=True)
         else:
             diffr.oscilScan(start, end, exptime, wait=True)
 
@@ -135,6 +145,10 @@ class MD2MultiCollect(ESRFMultiCollect):
     def prepare_acquisition(
         self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""
     ):
+        if self.fast_characterisation:
+            number_of_images *= 40
+        ext_gate = self.mesh or self.fast_characterisation
+
         self._detector.prepare_acquisition(
             take_dark,
             start,
@@ -143,7 +157,7 @@ class MD2MultiCollect(ESRFMultiCollect):
             npass,
             number_of_images,
             comment,
-            self.mesh,
+            ext_gate,
             self.mesh_num_lines
         )
 
@@ -180,6 +194,9 @@ class MD2MultiCollect(ESRFMultiCollect):
         self.mesh_total_nb_frames = total_nb_frames
         self.mesh_range = mesh_range_param
         self.mesh_center = mesh_center_param
+
+    def set_fast_characterisation(self, value=False):
+        self.fast_characterisation = value
 
     def get_cryo_temperature(self):
         return 0

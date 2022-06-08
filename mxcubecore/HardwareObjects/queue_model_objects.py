@@ -667,6 +667,9 @@ class DataCollection(TaskNode):
         if self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.MESH:
             self.set_requires_centring(False)
 
+    def is_fast_characterisation(self):
+        return self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.EDNA_REF
+
     def is_helical(self):
         return self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.HELICAL
 
