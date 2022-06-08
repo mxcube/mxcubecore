@@ -170,7 +170,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self.wait_for_pause_event()
 
         try:
-            # Procedure to be done before main implmentation
+            # Procedure to be done before main implementation
             # of task.
             entry.status = QUEUE_ENTRY_STATUS.RUNNING
             entry.pre_execute()
@@ -384,7 +384,6 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             task.link((lambda _t: self._queue_end()))
         else:
             self.__execute_entry(entry)
-            self._queue_end()
 
 
     def clear(self):
