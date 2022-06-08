@@ -266,7 +266,6 @@ class GphlWorkflow(HardwareObjectYaml):
             resolution = HWR.beamline.resolution.get_value()
             distance = HWR.beamline.detector.distance.get_value()
             orgxy = HWR.beamline.detector.get_beam_position()
-            orgxy = tuple(x / 0.172 for x in orgxy)
             data_model.detector_setting = GphlMessages.BcsDetectorSetting(
                 resolution, orgxy=orgxy, Distance=distance
             )
