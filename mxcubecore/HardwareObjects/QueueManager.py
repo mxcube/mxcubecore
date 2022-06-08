@@ -170,7 +170,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self.wait_for_pause_event()
 
         try:
-            # Procedure to be done before main implmentation
+            # Procedure to be done before main implementation
             # of task.
             entry.status = QUEUE_ENTRY_STATUS.RUNNING
             entry.pre_execute()
@@ -365,7 +365,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                 if result:
                     return result
 
-    def execute_entry(self, entry, _async=False):
+    def execute_entry(self, entry, use_async=False):
         """
         Executes the queue entry <entry>.
 
@@ -379,12 +379,11 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self._is_stopped = False
         self._set_in_queue_flag()
 
-        if _async:
+        if use_async:
             task = gevent.spawn(self.__execute_entry, entry)
             task.link((lambda _t: self._queue_end()))
         else:
             self.__execute_entry(entry)
-            self._queue_end()
 
 
     def clear(self):

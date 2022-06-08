@@ -6,7 +6,8 @@ configuration XML for more information.
 """
 
 import logging
-import sys
+import sys, os
+import shutil
 import inspect
 import pkgutil
 import types
@@ -40,6 +41,7 @@ __email__ = "marcus.oscarsson@esrf.fr"
 __status__ = "Draft"
 
 
+
 class XMLRPCServer(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
@@ -56,6 +58,7 @@ class XMLRPCServer(HardwareObject):
         self.use_token = True
 
         atexit.register(self.close)
+        self.gphl_workflow_status = None
 
     def init(self):
         """
@@ -110,6 +113,8 @@ class XMLRPCServer(HardwareObject):
         msg = "XML-RPC server listening on: %s:%s" % (self.host, self.port)
         logging.getLogger("HWR").info(msg)
 
+        self.connect(HWR.beamline.gphl_workflow, "gphl_workflow_finished", self._async_job_completed)
+
         self._server.register_introspection_functions()
         self._server.register_function(self.start_queue)
         self._server.register_function(self.log_message)
@@ -150,6 +155,9 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.set_back_light_level)
         self._server.register_function(self.get_back_light_level)
         self._server.register_function(self.centre_beam)
+        self._server.register_function(self.addXrayCentring)
+        self._server.register_function(self.addGphlWorkflow)
+        self._server.register_function(self.get_gphl_workflow_status)
 
         # Register functions from modules specified in <apis> element
         if self.has_object("apis"):
@@ -284,7 +292,7 @@ class XMLRPCServer(HardwareObject):
         else:
             return node
 
-    def queue_execute_entry_with_id(self, node_id):
+    def queue_execute_entry_with_id(self, node_id, use_async=False):
         """
         Execute the entry that has the model with node id <node_id>.
 
@@ -297,7 +305,7 @@ class XMLRPCServer(HardwareObject):
 
             if entry:
                 self.current_entry_task = HWR.beamline.queue_manager.execute_entry(
-                    entry
+                    entry, use_async=use_async
                 )
 
         except Exception as ex:
@@ -668,3 +676,32 @@ class XMLRPCServer(HardwareObject):
 
     def setToken(self, token):
         SecureXMLRpcRequestHandler.setReferenceToken(token)
+
+    def addXrayCentring(self, parent_node_id, **centring_parameters):
+        """Add Xray centring to queue.
+        NB can also be accessed as a static function of XMLRPCServer
+        e.g. myXMLRPCServer.addXrayCentring(...)"""
+        from mxcubecore.HardwareObjects import queue_model_objects as qmo
+        xc_model = qmo.XrayCentring2(**centring_parameters)
+        child_id = HWR.beamline.queue_model.add_child_at_id(parent_node_id, xc_model)
+        return child_id
+
+    def addGphlWorkflow(self, parent_node_id, task_dict):
+        """Add GPhL owrkflow to queue.
+        NB can also be accessed as a static function of XMLRPCServer
+        e.g. myXMLRPCServer.addGphlWorkflow(...)"""
+        from mxcubecore.HardwareObjects import queue_model_objects as qmo
+        gphl_model = qmo.GphlWorkflow()
+        parent_model = HWR.beamline.queue_model.get_node(int(parent_node_id))
+        sample_model = parent_model.get_sample_node()
+        gphl_model.init_from_task_data(sample_model, task_dict)
+        child_id = HWR.beamline.queue_model.add_child_at_id(parent_node_id, gphl_model)
+        self.gphl_workflow_status = "RUNNING"
+        return child_id
+
+    def _async_job_completed(self, job_status):
+        self.gphl_workflow_status = job_status
+
+    def get_gphl_workflow_status(self):
+        return self.gphl_workflow_status
+

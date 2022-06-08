@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+This XML snippet is used to load instances of SDCP::Core::FilenamePattern into datamodel
+instances.
+
+Refer to the TemplateElementTypes class diagram.
+
+The following restrictions must be adhered to:
+
+  (1) The root element MUST be
+     
+       <xml-fragment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ...>
+     
+      It MUST be called "xml-fragment" and it MUST assign the prefix "xsi" to
+      the standard XML Schema instance namespace. It also must also declare namespaces
+      for all the types that are used: those take the form of the relative path
+      in the data model only. The prefix "tag:globalphasing.com,YYYY-MM-DD:schemata:"
+      will be added when this file is read.
+     
+  (2) XML elements within the top-level elements MUST follow the order of their
+      declaration in the UML data model (elements corresponding to inherited
+      properties come before locally-defined ones). XML elements whose values
+      are absent (allowed where the property's lower bound is 0) should be
+      omitted, not given null or empty values.
+      
+  (3) Each <element> contained within a <filenamePattern> element MUST contain
+      a "xsi:type" attribute. The localname of the value of this attribute MUST
+      be the unqualified name of one of the non-abstract subtypes of
+      Types::TemplateElementTypes::NameTemplateElement.
+      
+  (4) Elements that are direct children of the document root:
+  
+        (i) MUST contain the appropriate xsi:type attribute
+        (ii) may be called anything, but the recommended name is the
+        same as the value of the xsi:type attribute with the first letter
+        of the local part lower cased.
+        
+        In the future, a proper XSD type for the root element of this
+        file may be defined: when this happens the xsi:type attribute
+        will become unnecessary, and the element name will be used for
+        implicit typing instead.
+
+-->
+
+
+<xml-fragment
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:tet="Types/TemplateElementTypes"
+    xmlns:c="SDCP/Core"
+>
+
+    <c:filenamePattern xsi:type="c:FilenamePattern">
+        <exid>GDA</exid>
+        
+        <element xsi:type="tet:Parameter">
+        <maxWidth>43</maxWidth>
+        <name>prefix</name>
+        <type>string</type>
+        </element>
+        
+        <element xsi:type="tet:Separator">
+            <value>_</value>
+        </element>
+        
+        <element xsi:type="tet:Parameter">
+            <maxWidth>2</maxWidth>
+            <name>run</name>
+            <type>unsignedInt</type>
+        </element>
+        
+        <element xsi:type="tet:Separator">
+            <value>_</value>
+        </element>
+
+        <element xsi:type="tet:ImageNumberMask">
+            <maxWidth>4</maxWidth>
+            <minWidth>
+                <width>4</width>
+                <leftJustify>false</leftJustify>
+                <padding>0</padding>
+            </minWidth>
+        </element>
+
+    </c:filenamePattern>
+
+    <c:filenamePattern xsi:type="c:FilenamePattern">
+        <exid>generic</exid>
+
+        <element xsi:type="tet:Parameter">
+            <maxWidth>43</maxWidth>
+            <name>prefix</name>
+            <type>string</type>
+        </element>
+
+        <element xsi:type="tet:Separator">
+            <value>_</value>
+        </element>
+
+        <element xsi:type="tet:Parameter">
+            <maxWidth>2</maxWidth>
+            <name>run_number</name>
+            <type>unsignedInt</type>
+        </element>
+
+        <element xsi:type="tet:Separator">
+            <value>_</value>
+        </element>
+
+        <element xsi:type="tet:ImageNumberMask">
+            <maxWidth>4</maxWidth>
+            <minWidth>
+                <width>4</width>
+                <leftJustify>false</leftJustify>
+                <padding>0</padding>
+            </minWidth>
+        </element>
+
+    </c:filenamePattern>
+
+    <!-- Non-inverse-beam filename pattern -->
+    <c:filenamePattern xsi:type="c:FilenamePattern">
+        <exid>interleaved</exid>
+
+        <element xsi:type="tet:Parameter">
+            <maxWidth>36</maxWidth>
+            <name>prefix</name>
+            <type>string</type>
+        </element>
+
+        <element xsi:type="tet:Separator">
+            <value>_</value>
+        </element>
+
+        <element xsi:type="tet:Separator">
+            <value>G</value>
+        </element>
+
+        <element xsi:type="tet:Parameter">
+            <maxWidth>1</maxWidth>
+            <name>gonio_setting_index</name>
+            <type>unsignedInt</type>
+        </element>
+
+        <element xsi:type="tet:Separator">
+            <value>B</value>
+        </element>
+
+        <element xsi:type="tet:Parameter">
+            <maxWidth>1</maxWidth>
+            <name>beam_setting_index</name>
+            <type>unsignedInt</type>
+        </element>
+        
+        <element xsi:type="tet:Separator">
+            <value>_</value>
+        </element>
+
+        <element xsi:type="tet:Parameter">
+            <maxWidth>2</maxWidth>
+            <name>run_number</name>
+            <type>unsignedInt</type>
+        </element>
+        
+        <element xsi:type="tet:Separator">
+            <value>_</value>
+        </element>
+
+        <element xsi:type="tet:ImageNumberMask">
+            <maxWidth>4</maxWidth>
+            <minWidth>
+                <width>4</width>
+                <leftJustify>false</leftJustify>
+                <padding>0</padding>
+            </minWidth>
+        </element>
+
+    </c:filenamePattern>
+
+    <!-- Inverse beam interleaved filename pattern -->
+    <c:filenamePattern xsi:type="c:FilenamePattern">
+        <exid>ib_interleaved</exid>
+
+        <element xsi:type="tet:Parameter">
+            <maxWidth>37</maxWidth>
+            <name>prefix</name>
+            <type>string</type>
+        </element>
+
+        <element xsi:type="tet:Separator">
+            <value>_</value>
+        </element>
+
+        <element xsi:type="tet:Separator">
+            <value>G</value>
+        </element>
+
+        <element xsi:type="tet:Parameter">
+            <maxWidth>1</maxWidth>
+            <name>gonio_setting_index</name>
+            <type>unsignedInt</type>
+        </element>
+
+        <element xsi:type="tet:Separator">
+            <value>B</value>
+        </element>
+
+        <element xsi:type="tet:Parameter">
+            <maxWidth>1</maxWidth>
+            <name>beam_setting_index</name>
+            <type>unsignedInt</type>
+        </element>
+        
+        <element xsi:type="tet:Parameter">
+            <maxWidth>1</maxWidth>
+            <name>inverse_beam_component_sign</name>
+            <type>string</type>
+        </element>
+
+        <element xsi:type="tet:Separator">
+            <value>_</value>
+        </element>
+
+        <element xsi:type="tet:Parameter">
+            <maxWidth>2</maxWidth>
+            <name>run_number</name>
+            <type>unsignedInt</type>
+        </element>
+        
+        <element xsi:type="tet:Separator">
+            <value>_</value>
+        </element>
+
+        <element xsi:type="tet:ImageNumberMask">
+            <maxWidth>4</maxWidth>
+            <minWidth>
+                <width>4</width>
+                <leftJustify>false</leftJustify>
+                <padding>0</padding>
+            </minWidth>
+        </element>
+
+    </c:filenamePattern>
+
+    <!-- single-wavelength multi-orientation -->
+    <c:filenamePattern xsi:type="c:FilenamePattern">
+        <exid>multiorientation</exid>
+
+        <element xsi:type="tet:Parameter">
+            <maxWidth>38</maxWidth>
+            <name>prefix</name>
+            <type>string</type>
+        </element>
+
+        <element xsi:type="tet:Separator">
+            <value>_</value>
+        </element>
+
+        <element xsi:type="tet:Separator">
+            <value>G</value>
+        </element>
+
+        <element xsi:type="tet:Parameter">
+            <maxWidth>2</maxWidth>
+            <minWidth>
+            <width>2</width>
+               <leftJustify>false</leftJustify>
+               <padding>0</padding>
+            </minWidth>
+            <name>gonio_setting_index</name>
+            <type>unsignedInt</type>
+        </element>
+
+        <element xsi:type="tet:Separator">
+            <value>_</value>
+        </element>
+
+        <element xsi:type="tet:Parameter">
+            <maxWidth>2</maxWidth>
+            <name>run_number</name>
+            <type>unsignedInt</type>
+        </element>
+        
+        <element xsi:type="tet:Separator">
+            <value>_</value>
+        </element>
+
+        <element xsi:type="tet:ImageNumberMask">
+            <maxWidth>4</maxWidth>
+            <minWidth>
+                <width>4</width>
+                <leftJustify>false</leftJustify>
+                <padding>0</padding>
+            </minWidth>
+        </element>
+
+    </c:filenamePattern>
+
+
+    <c:filenamePatternMapping xsi:type="c:FilenamePatternMapping">
+    
+        <entry>
+            <tgtName>prefix</tgtName>
+            <srcRange>0</srcRange>
+            <srcRange>6</srcRange>
+        </entry>
+        
+        <entry>
+            <tgtName>run</tgtName>
+            <srcRange>7</srcRange>
+            <srcRange>8</srcRange>
+        </entry>
+        
+        <mapsFrom>interleaved</mapsFrom>
+        <mapsTo>GDA</mapsTo>
+        
+    </c:filenamePatternMapping>
+
+    <c:filenamePatternMapping xsi:type="c:FilenamePatternMapping">
+    
+        <entry>
+            <tgtName>prefix</tgtName>
+            <srcRange>0</srcRange>
+            <srcRange>7</srcRange>
+        </entry>
+        
+        <entry>
+            <tgtName>run</tgtName>
+            <srcRange>8</srcRange>
+            <srcRange>9</srcRange>
+        </entry>
+        
+        <mapsFrom>ib_interleaved</mapsFrom>
+        <mapsTo>GDA</mapsTo>
+        
+    </c:filenamePatternMapping>
+
+    <c:filenamePatternMapping xsi:type="c:FilenamePatternMapping">
+    
+        <entry>
+            <tgtName>prefix</tgtName>
+            <srcRange>0</srcRange>
+            <srcRange>1</srcRange>
+        </entry>
+        
+        <entry>
+            <tgtName>run</tgtName>
+            <srcRange>2</srcRange>
+            <srcRange>3</srcRange>
+        </entry>
+        
+        <mapsFrom>generic</mapsFrom>
+        <mapsTo>GDA</mapsTo>
+        
+    </c:filenamePatternMapping>
+
+    <c:filenamePatternMapping xsi:type="c:FilenamePatternMapping">
+    
+        <entry>
+            <tgtName>prefix</tgtName>
+            <srcRange>0</srcRange>
+            <srcRange>4</srcRange>
+        </entry>
+        
+        <entry>
+            <tgtName>run</tgtName>
+            <srcRange>5</srcRange>
+            <srcRange>6</srcRange>
+        </entry>
+        
+        <mapsFrom>multiorientation</mapsFrom>
+        <mapsTo>GDA</mapsTo>
+        
+    </c:filenamePatternMapping>
+
+
+
+</xml-fragment>

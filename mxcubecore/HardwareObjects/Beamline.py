@@ -482,6 +482,17 @@ class Beamline(ConfiguredObject):
 
     __content_roles.append("centring")
 
+    @property
+    def xray_centring(self):
+        """Xray Ccntring hardware object.
+
+        Returns:
+            Optional[XrayCentring2]:
+        """
+        return self._objects.get("xray_centring")
+
+    __content_roles.append("xray_centring")
+
     # Analysis (combines processing and data analysis)
 
     @property
