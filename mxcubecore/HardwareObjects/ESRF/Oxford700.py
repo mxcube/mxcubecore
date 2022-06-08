@@ -1,7 +1,12 @@
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore import HardwareRepository as HWR
 import gevent
 import sys
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore import HardwareRepository as HWR
+
+from mxcubecore.HardwareObjects.abstract.AbstractActuator import (
+    AbstractActuator,
+)
 
 CRYO_STATUS = ["OFF", "SATURATED", "READY", "WARNING", "FROZEN", "UNKNOWN"]
 PHASE_ACTION = {
@@ -14,9 +19,9 @@ PHASE_ACTION = {
 }
 
 
-class Oxford700(HardwareObject):
+class Oxford700(AbstractActuator):
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
+        AbstractActuator.__init__(self, name)
 
         self.temp = None
         self.temp_error = None
@@ -47,7 +52,14 @@ class Oxford700(HardwareObject):
         self.emit("stateChanged", (self.get_state(),))
 
     def get_temperature(self):
-        return self.ctrl.input.read()
+        try:
+            return self.ctrl.input.read()
+        except:
+            # try to read again
+            temp = self.ctrl.input.read()
+            if temp is None:
+                return 9999.
+        return temp
 
     def get_value(self):
         return self.get_temperature()
@@ -75,7 +87,7 @@ class Oxford700(HardwareObject):
         else:
             self._hw_ctrl.resume()
 
-    def get_state(self):
+    def get_specific_state(self):
         try:
             return self._hw_ctrl.read_run_mode().upper()
         except (AttributeError, TypeError):
