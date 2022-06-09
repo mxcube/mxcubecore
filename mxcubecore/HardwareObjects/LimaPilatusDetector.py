@@ -194,8 +194,8 @@ class LimaPilatusDetector(AbstractDetector):
         self.header["Transmission"] = HWR.beamline.transmission.get_value()
 
         self.header["Flux"] = HWR.beamline.flux.get_value()
-        self.header["Beam_xy"] = "(%.2f, %.2f) pixels" % tuple(
-            [value / 0.172 for value in HWR.beamline.detector.get_beam_position()]
+        self.header["Beam_xy"] = (
+            "(%.2f, %.2f) pixels" % HWR.beamline.detector.get_beam_position()
         )
         self.header["Detector_Voffset"] = "0.0000 m"
         self.header["Energy_range"] = "(0, 0) eV"

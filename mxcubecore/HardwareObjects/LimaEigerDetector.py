@@ -149,8 +149,8 @@ class LimaEigerDetector(AbstractDetector):
 
         beam_x, beam_y = HWR.beamline.detector.get_beam_position()
         header_info = [
-            "beam_center_x=%s" % (beam_x / 7.5000003562308848e-02),
-            "beam_center_y=%s" % (beam_y / 7.5000003562308848e-02),
+            "beam_center_x=%s" % (beam_x),
+            "beam_center_y=%s" % (beam_y),
             "detector_distance=%s"
             % (HWR.beamline.detector.distance.get_value() / 1000.0),
             "omega_start=%0.4f" % start,

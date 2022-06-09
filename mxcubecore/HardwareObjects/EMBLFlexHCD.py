@@ -403,7 +403,8 @@ class EMBLFlexHCD(SampleChanger):
             res = SampleChanger.load(self, sample)
         finally:
             for msg in self.get_robot_exceptions():
-                logging.getLogger("HWR").error(msg)
+                if msg is not None:
+                    logging.getLogger("HWR").error(msg)
 
         if res:
             self.prepare_centring()
@@ -541,7 +542,8 @@ class EMBLFlexHCD(SampleChanger):
                 gevent.sleep(2)
 
         for msg in self.get_robot_exceptions():
-            logging.getLogger("HWR").error(msg)
+            if msg is not None:
+                logging.getLogger("HWR").error(msg)
 
         return self._set_loaded_sample_and_prepare(loaded_sample, previous_sample)
 
@@ -559,7 +561,8 @@ class EMBLFlexHCD(SampleChanger):
         )
 
         for msg in self.get_robot_exceptions():
-            logging.getLogger("HWR").error(msg)
+            if msg is not None:
+                logging.getLogger("HWR").error(msg)
 
         if loaded_sample == (-1, -1, -1):
             self._reset_loaded_sample()

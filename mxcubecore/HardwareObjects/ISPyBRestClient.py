@@ -183,7 +183,7 @@ class ISPyBRestClient(HardwareObject):
             response = json.loads(get(url).text)[0]
         except Exception as ex:
             response = None
-            logging.getLogger("ispyb_client").exception(str(ex))
+            # logging.getLogger("ispyb_client").exception(str(ex))
 
         lims_dc = {}
         lims_dc["workflow_result_url_list"] = []

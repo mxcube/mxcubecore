@@ -390,6 +390,8 @@ class ALBACollect(AbstractCollect):
         )
         self.image_headers["Detector_Voffset"] = "0 m"
 
+        # NBNB TODO check if get_beam_position() (should be pixels)
+        # matches beamx, beamy (should be mm)
         beamx, beamy = HWR.beamline.detector.get_beam_position()
         self.image_headers["Beam_xy"] = "(%.2f, %.2f) pixels" % (beamx, beamy)
 
