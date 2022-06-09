@@ -38,7 +38,7 @@ class ESRFPhotonFlux(AbstractFlux):
     """Photon flux calculation for ID30B"""
 
     def __init__(self, name):
-        super(ESRFPhotonFlux, self).__init__(name)
+        super().__init__(name)
         self._counter = None
         self._flux_calc = None
         self._aperture = None
@@ -46,7 +46,7 @@ class ESRFPhotonFlux(AbstractFlux):
 
     def init(self):
         """Initialisation"""
-        super(ESRFPhotonFlux, self).init()
+        super().init()
         controller = self.get_object_by_role("controller")
 
         self._aperture = self.get_object_by_role("aperture")

@@ -470,6 +470,13 @@ class HardwareObjectMixin(CommandContainer):
         For ConfiguredObjects called after loading contained objects"""
         self._exports = dict.fromkeys(self._exports_config_list, {})
 
+        # Add methods that are exported programatically
+        for attr_name in dir(self):
+            _attr = getattr(self, attr_name)
+
+            if getattr(_attr, "__exported__", False):
+                self._exports[attr_name] = []
+
         if self._exports:
             self._get_type_annotations()
 
@@ -506,9 +513,10 @@ class HardwareObjectMixin(CommandContainer):
     def execute_exported_command(self, cmd_name, args):
         if cmd_name in self._exports.keys():
             cmd = getattr(self, cmd_name)
-            cmd(**args)
         else:
             self.log.info(f"Command {cmd} not exported, check type hints and configuration file")
+
+        return cmd(**args)
 
     @property
     def pydantic_model(self):

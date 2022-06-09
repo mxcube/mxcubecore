@@ -37,7 +37,6 @@ class ISPyBRestClient(HardwareObject):
         self.beamline_name = None
 
     def init(self):
-
         if HWR.beamline.session:
             self.beamline_name = HWR.beamline.session.beamline_name
         else:

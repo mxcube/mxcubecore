@@ -50,6 +50,28 @@ class SampleView(AbstractSampleView):
         self._ui_snapshot_cb = None
 
         self.hide_grid_threshold = self.get_property("hide_grid_threshold", 5)
+        for motor_name, motor_ho in self._diffractometer.get_motors().items():
+            if motor_ho:
+                motor_ho.connect("stateChanged", self._update_shape_positions)
+
+
+    def _update_shape_positions(self, *args, **kwargs):
+        shapes_updated = False
+
+        for shape in self.get_shapes():
+            previous_screen_coord = shape.screen_coord
+            shape.update_position(HWR.beamline.diffractometer.motor_positions_to_screen)
+
+            # We assume that all positions are changed when a motor moves
+            # and that if the screen coordinate for the first motor is unchanged
+            # so are the rest, simply return and emit no change.
+            if shape.screen_coord != previous_screen_coord:
+                shapes_updated = True
+            else:
+                break
+
+        if shapes_updated:
+            self.emit("shapesChanged")
 
         for motor_name, motor_ho in self._diffractometer.get_motors().items():
             motor_ho.connect("stateChanged", self._update_shape_positions)

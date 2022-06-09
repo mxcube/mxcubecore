@@ -187,7 +187,6 @@ class EMBLFlexHCD(SampleChanger):
     @task
     def _prepare_centring_task(self):
         if self.controller:
-            #gevent.sleep(2)
             self.controller.hutch_actions(enter=False, sc_loading=True)
         else:
             gevent.sleep(2)
@@ -353,7 +352,7 @@ class EMBLFlexHCD(SampleChanger):
 
         return res
 
-    def _hw_get_mounted_sample(self):        
+    def _hw_get_mounted_sample(self):
         loaded_sample = tuple(
             self._execute_cmd_exporter("getMountedSamplePosition", attribute=True)
         )

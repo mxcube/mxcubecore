@@ -1,16 +1,31 @@
 import logging
 import math
+import enum
 import time
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects import MiniDiff
 import gevent
 from mxcubecore.HardwareObjects import sample_centring
 from mxcubecore import HardwareRepository as HWR
+from pydantic import BaseModel
 
 MICRODIFF = None
 
 
+class PhaseEnum(str, enum.Enum):
+    centring = "Centring"
+    data_collection = 'DataCollection'
+    beam_location = 'BeamLocation'
+    transfer = "Transfer"
+    unknown = "Unknown"
+
+
+class PhaseModel(BaseModel):
+    value: PhaseEnum = PhaseEnum.unknown
+
+
 class Microdiff(MiniDiff.MiniDiff):
-    def init(self):
+    def init(self):       
         global MICRODIFF
         MICRODIFF = self
         self.phiMotor = self.get_object_by_role("phi")
@@ -188,9 +203,37 @@ class Microdiff(MiniDiff.MiniDiff):
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
-                "name": "abort",
+                "name": "save_centring_positions",
             },
             "saveCentringPositions",
+        )
+
+        self.auto_align_ssx_block = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "auto_align_ssx_block",
+            },
+            "autoAlignSSXBlock",
+        )
+
+        self.start_ssx_scan = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_scan",
+            },
+            "startSSXScan",
+        )
+
+
+        self.start_still_ssx_scan = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_still_ssx_scan",
+            },
+            "startStillSSXScan",
         )
 
         MiniDiff.MiniDiff.init(self)
@@ -208,6 +251,7 @@ class Microdiff(MiniDiff.MiniDiff):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(None)
 
         self.readPhase.connect_signal("update", self._update_value)
+        HardwareObject.init(self)
 
     def _update_value(self, value=None):
         if value is None:
@@ -697,6 +741,22 @@ class Microdiff(MiniDiff.MiniDiff):
             self.beam_position_horizontal.get_value(),
             self.beam_position_vertical.get_value(),
         )
+
+    def status(self) -> str:
+        return "READY"
+
+    def my_fancy_function(self, speed: float, num_images:int, exp_time:float, phase:PhaseEnum) -> bool:
+        return True
+    
+    def my_other_fancy_function(self) -> None:
+        pass
+
+    def head_configuration(self) -> dict:
+        return {
+            "description": {},
+            "type": {}
+        }
+
 
 def to_float(d):
     for k, v in d.items():

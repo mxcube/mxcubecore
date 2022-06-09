@@ -583,6 +583,14 @@ class Beamline(ConfiguredObject):
 
     __content_roles.append("data_publisher")
 
+    @property
+    def task_manager(self):
+        """
+        """
+        return self._objects.get("task_manager")
+
+    __content_roles.append("task_manager")
+
     # NB this is just an example of a globally shared procedure description
     @property
     def manual_centring(self):
@@ -668,14 +676,7 @@ class Beamline(ConfiguredObject):
             )
             acq_parameters.transmission = 0.0
 
-        try:
-            acq_parameters.shutterless = self.detector.has_shutterless()
-        except Exception:
-            logging.getLogger("HWR").warning(
-                "get_default_acquisition_parameters: "
-                "Could not get has_shutterless, setting to False"
-            )
-            acq_parameters.shutterless = False
+        acq_parameters.shutterless = params.get("shutterless", True)
 
         try:
             acq_parameters.detector_binning_mode = self.detector.get_binning_mode()

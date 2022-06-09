@@ -772,7 +772,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             HWR.beamline.collect.run_offline_processing = dc.run_offline_processing
             HWR.beamline.collect.aborted_by_user = None
             self.online_processing_task = None
-
             try:
                 HWR.beamline.collect.set_fast_characterisation(False)
                 if dc.experiment_type == EXPERIMENT_TYPE.HELICAL:

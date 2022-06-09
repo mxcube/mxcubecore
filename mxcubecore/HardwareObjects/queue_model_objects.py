@@ -49,9 +49,7 @@ class TaskNode(object):
     the QueueModel object.
     """
 
-    def __init__(self):
-        object.__init__(self)
-
+    def __init__(self, task_data=None):
         self._children = []
         self._name = str()
         self._number = 0
@@ -63,6 +61,19 @@ class TaskNode(object):
         self._node_id = None
         self._requires_centring = True
         self._origin = None
+        self._task_data = task_data
+        
+        acquisition_list = [Acquisition()]
+        crystal = Crystal()
+        processing_parameters = ProcessingParameters()
+
+        self.acquisitions = acquisition_list
+        self.crystal = crystal
+        self.processing_parameters = processing_parameters
+
+    @property
+    def task_data(self):
+        return self._task_data
 
     def is_enabled(self):
         """
@@ -1770,10 +1781,14 @@ class AcquisitionParameters(object):
         self.detector_roi_mode = str()
         self.induce_burn = False
         self.mesh_range = ()
+        self.cell_counting = "zig-zag"
+        self.mesh_center = "top-left"
+        self.cell_spacing = (0, 0)
         self.mesh_snapshot = None
         self.comments = ""
         self.in_queue = False
         self.in_interleave = None
+        self.sub_wedge_size = 10
 
         self.num_triggers = int()
         self.num_images_per_trigger = int()
@@ -1820,6 +1835,10 @@ class AcquisitionParameters(object):
             "in_interleave": self.in_interleave,
             "num_triggers": self.num_triggers,
             "num_images_per_trigger": self.num_images_per_trigger,
+            "cell_counting": self.cell_counting,
+            "mesh_center": self.mesh_center,
+            "cell_spacing": self.cell_spacing,
+            "sub_wedge_size": self.sub_wedge_size
         }
 
     def copy(self):

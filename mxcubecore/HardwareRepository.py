@@ -294,6 +294,12 @@ def init_hardware_repository(configuration_path):
     beamline = load_from_yaml(BEAMLINE_CONFIG_FILE, role="beamline")
 
 
+def uninit_hardware_repository():
+    global _instance, beamline
+    _instance = None
+    beamline = None
+
+
 def get_hardware_repository():
     """
     Get the HardwareRepository (singleton) instance,

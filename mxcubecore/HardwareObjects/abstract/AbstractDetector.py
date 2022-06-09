@@ -31,9 +31,7 @@ Implemented methods:
     get_pixel_size, get_width, get_heigth, get_metadata
     get_radius, get_outer_radius
     get_beam_position
-    get_roi_mode, set_roi_mode, get_roi_mode_name, get_roi_modes
-    get_exposure_time_limits
-    get_threshold_energy, set_threshold_energy
+    get_roi_mode, setwagy, set_threshold_energy
     get_binning_mode, set_binning_mode
 Implemented propertries:
     distance
@@ -246,10 +244,10 @@ class AbstractDetector(HardwareObject):
             raise RuntimeError("Cannot calculate radius, distance unknown")
 
         beam_x, beam_y = self.get_beam_position(distance)
-        pixel_x, pixel_y = self.get_pixel_size()
-        rrx = min(self.get_width() - beam_x, beam_x) * pixel_x
-        rry = min(self.get_height() - beam_y, beam_y) * pixel_y
-        radius = min(rrx, rry)
+
+        radius = min(
+            self.get_width() - beam_x, self.get_height() - beam_y, beam_x, beam_y
+        )
 
         return radius
 

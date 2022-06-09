@@ -211,7 +211,6 @@ class LimaPilatusDetector(AbstractDetector):
 
         self.reset()
         self.wait_ready()
-
         self.set_energy_threshold(HWR.beamline.energy.get_value())
 
         self.set_channel_value("acq_trigger_mode", trigger_mode)
