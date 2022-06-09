@@ -406,7 +406,7 @@ class EMBLFlexHCD(SampleChanger):
             for msg in self.get_robot_exceptions():
                 if msg is not None:
                     logging.getLogger("HWR").error(msg)
-        
+
         if res:
             self.prepare_centring()
 
