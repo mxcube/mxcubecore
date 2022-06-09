@@ -250,7 +250,7 @@ class DelayTask(TaskNode):
     """Dummy task, for mock testing only"""
     def __init__(self, delay=10):
         TaskNode.__init__(self)
-        self._name = "Dummy"
+        self._name = "Delay"
         self.delay = delay
 
 class RootNode(TaskNode):
