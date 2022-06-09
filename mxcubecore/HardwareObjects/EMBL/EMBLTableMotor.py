@@ -22,8 +22,8 @@
 import time
 import atexit
 import logging
+import socket
 
-from mxcubecore.HardwareRepository import original_socket as socket
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 __credits__ = ["EMBL Hamburg"]

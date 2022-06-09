@@ -29,7 +29,7 @@ __category__ = "General"
 class FluxMockup(AbstractFlux):
 
     # default_flux - for initialising mockup
-    default_flux = 1e10
+    default_flux = 1.5e10
 
     def __init__(self, name):
         AbstractFlux.__init__(self, name)
@@ -50,7 +50,7 @@ class FluxMockup(AbstractFlux):
         """Measures intesity"""
         beam_size = HWR.beamline.beam.get_beam_size()
         transmission = HWR.beamline.transmission.get_value()
-        flux = self.default_flux * (1 + random())
+        flux = self.default_flux * (1 + 0.001 * random())
 
         self.measured_flux_list = [
             {

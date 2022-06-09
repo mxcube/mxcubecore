@@ -366,7 +366,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             self.raw_hkl2000_dir,
             autoprocessing_directory,
         ):
-            self.create_directories(dir)
+            self.create_directories(dir0)
             logging.info("Creating processing input file directory: %s", dir0)
             os.chmod(dir0, 0o777)
 

@@ -1,13 +1,11 @@
 import logging
 import time
 import gevent
-from gevent import monkey
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.TaskUtils import task
 from mxcubecore.CommandContainer import CommandObject
 from mxcubecore import HardwareRepository as HWR
-
-monkey.patch_all(thread=False)
 
 
 class ControllerCommand(CommandObject):
