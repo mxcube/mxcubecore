@@ -1,8 +1,9 @@
 ! Standard Pilatus XDS input
 ! Used for XDS processing of characterisation images only.
 
-! DETECTOR and OVERLOAD are mandatory, but are set in instrumentation.nml, NOT here.
+! DETECTOR and OVERLOAD are mandatory
 ! http://xds.mpimf-heidelberg.mpg.de/html_doc/INPUT_templates/XDS-PILATUS.INP
+! But are handled through the workflow
 ! DETECTOR=PILATUS
 ! OVERLOAD=1048500
 
@@ -11,6 +12,7 @@
  SEPMIN=	4
  CLUSTER_RADIUS= 2
  MAXIMUM_ERROR_OF_SPOT_POSITION= 2
+ MINIMUM_FRACTION_OF_INDEXED_SPOTS=0.5
 
 ! Resolution exclusion to exclude ice rings:
 ! Source Clemens Vonrhein (autoPROC values)

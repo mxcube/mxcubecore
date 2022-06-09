@@ -1,3 +1,11 @@
+! Fortran namelist file defining fixed strategies.
+! Note that the data are organised in objects, referred to internally by the 'xyz_id' fields
+!
+! See namelist specification and examples below for details
+!
+! The 'group_no' field serves to specify acquisition order of sweeps;
+! sweeps with the same group number must share teh same orientation
+
 &sdcp_goniostat_setting_list
 id= 'gset01'
 scan_axis_name= 'phi'
@@ -9,19 +17,56 @@ id= 'dset01'
 !detector_axis_settings= 291.0
 !detector_axis_settings= 260.96
 ! Matches 2.3A resolution at 1.0A wavelength
-detector_axis_settings= 470.00
+detector_axis_settings= 204.8
 /
 
 &beam_setting_list
 id= 'bset01'
 ! Standard ESRF ID30B wavelength, matching 12.7 keV
-lambda= 0.97625196850393714
+! lambda= 0.97625196850393714
+lambda = 0.965
 /
 
-! ################### 6deg/5 characteristation strategy
+! ################### 4 * 1deg/10 characteristation strategy
 
 &sdcp_strategy_list
-strategy_name= 'InitialCharacterisation_6_5'
+strategy_name= 'Char_4_by_10'
+type= 'geometric'
+allowed_widths= 0.1
+default_width_idx= 0
+/
+
+&stratcal_sweep_list
+repeat= 4
+offset= 90.0
+goniostat_setting_id= 'gset01'
+detector_setting_id= 'dset01'
+beam_setting_id= 'bset01'
+length_deg= 1.0
+start_deg= 0.0
+/
+
+! ################### One 24deg sweep
+
+&sdcp_strategy_list
+strategy_name= 'Char_24deg'
+type= 'geometric'
+allowed_widths= 0.02 0.03 0.04 0.05 0.06 0.08 0.1 0.12 0.15 0.2 0.3 0.4
+default_width_idx= 6
+/
+
+&stratcal_sweep_list
+goniostat_setting_id= 'gset01'
+detector_setting_id= 'dset01'
+beam_setting_id= 'bset01'
+length_deg= 24.0
+start_deg= 0.0
+/
+
+! ################### 6deg/5 characteristation strategy sweepOverlap
+
+&sdcp_strategy_list
+strategy_name= 'Characterisation_6_5'
 type= 'geometric'
 allowed_widths= 0.02 0.03 0.04 0.05 0.06 0.08 0.1 0.12 0.15 0.2 0.3 0.4
 default_width_idx= 6
@@ -70,7 +115,7 @@ start_deg= 180.0
 ! ################### 12deg/5 characteristation strategy
 
 &sdcp_strategy_list
-strategy_name= 'InitialCharacterisation_12_5'
+strategy_name= 'TEST_Characterisation_12_5'
 type= 'geometric'
 allowed_widths= 0.02 0.03 0.04 0.05 0.06 0.08 0.1 0.12 0.15 0.2 0.3 0.4
 default_width_idx= 6
@@ -119,7 +164,7 @@ start_deg= 180.0
 ! ################### 12deg/4 characteristation strategy
 
 &sdcp_strategy_list
-strategy_name= 'InitialCharacterisation_12_4'
+strategy_name= 'TEST_Characterisation_12_4'
 type= 'geometric'
 allowed_widths= 0.02 0.03 0.04 0.05 0.06 0.08 0.1 0.12 0.15 0.2 0.3 0.4
 default_width_idx= 6
@@ -160,7 +205,7 @@ start_deg= 180.0
 ! ################### 12deg/3 characteristation strategy
 
 &sdcp_strategy_list
-strategy_name= 'InitialCharacterisation_12_3'
+strategy_name= 'TEST_Characterisation_12_3'
 type= 'geometric'
 allowed_widths= 0.02 0.03 0.04 0.05 0.06 0.08 0.1 0.12 0.15 0.2 0.3 0.4
 default_width_idx= 6
@@ -221,9 +266,9 @@ goniostat_axis_settings= 0.0 45.0 90.0
 /
 
 &sdcp_goniostat_setting_list
-id= 'dcalgsetk90_p270'
+id= 'dcalgsetk45_p270'
 scan_axis_name= 'phi'
-goniostat_axis_settings= 0.0 90.0 270.0
+goniostat_axis_settings= 0.0 45.0 270.0
 /
 
 &sdcp_goniostat_setting_list
@@ -277,7 +322,7 @@ goniostat_axis_settings= 0.0 225.0 270.0
 !################## Short diffractometer calibration ################
 
 &sdcp_strategy_list
-strategy_name= 'DiffractCal'
+strategy_name= 'DiffractCal_short'
 type= 'geometric'
 allowed_widths= 0.05 0.1 0.15 0.2
 default_width_idx= 0
@@ -342,7 +387,7 @@ length_deg= 60
 !################## Long diffractometer calibration ################
 
 &sdcp_strategy_list
-strategy_name= 'DiffractCal_ex'
+strategy_name= 'DiffractCal_full'
 type= 'geometric'
 allowed_widths= 0.05 0.1 0.15 0.2
 default_width_idx= 0
@@ -386,7 +431,7 @@ length_deg= 60
 
 &stratcal_sweep_list
 group_no= 3
-goniostat_setting_id= 'dcalgsetk90_p270'
+goniostat_setting_id= 'dcalgsetk45_p270'
 detector_setting_id= 'dset01'
 beam_setting_id= 'dcalbset'
 start_deg= 120
@@ -395,7 +440,7 @@ length_deg= 60
 
 &stratcal_sweep_list
 group_no= 3
-goniostat_setting_id= 'dcalgsetk90_p270'
+goniostat_setting_id= 'dcalgsetk45_p270'
 detector_setting_id= 'dset01'
 beam_setting_id= 'dcalbset'
 start_deg= 300
