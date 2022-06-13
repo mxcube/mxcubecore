@@ -17,6 +17,7 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import sys
+import logging
 from importlib import import_module
 from pathlib import Path
 
@@ -26,11 +27,22 @@ def import_all_queue_entry_modules():
     for f in  Path(__file__).parent.glob("*.py"):
         m = import_module(f"{__package__}.{f.stem}")
         cls_name = f.stem.title().replace("_", "") + "QueueEntry"
+
+        # Skipp BaseQueueEntry, it is explcicitly imported below as the module 
+        # contains several essential calsses and helper functions
+        # Skipp xrf_spectrum to preserve casing (XRF) so that we are backwards
+        # compatible (for the time being)
+        if f.stem in ["base_queue_entry", "xrf_spectrum", "__init__"]:
+            continue
+
         cls = getattr(m, cls_name, None)
 
         if cls:
             modules[cls_name] = cls
             setattr(sys.modules[__name__], cls_name, cls)
+            logging.getLogger("HWR").info(f"Imported queue entry: {cls_name} from {f}")
+        else:
+            logging.getLogger("HWR").warning(f"Could not find queue entry: {cls_name} in {f}")
 
     return modules
 
@@ -56,6 +68,7 @@ from mxcubecore.HardwareObjects.EMBL import EMBLQueueEntry
 from mxcubecore.HardwareObjects.queue_entry.xrf_spectrum import XRFSpectrumQueueEntry
 from mxcubecore.HardwareObjects.queue_entry.characterisation import CharacterisationGroupQueueEntry
 
+
 # At this stage the QueueEntries are dynamically imported (A linter
 # will complain that they are not defined)
 MODEL_QUEUE_ENTRY_MAPPINGS = {
@@ -65,11 +78,13 @@ MODEL_QUEUE_ENTRY_MAPPINGS = {
     queue_model_objects.XRFSpectrum: XRFSpectrumQueueEntry,
     queue_model_objects.SampleCentring: _modules["SampleCentringQueueEntry"],
     queue_model_objects.OpticalCentring: _modules["OpticalCentringQueueEntry"],
+    queue_model_objects.DelayTask: DelayQueueEntry,
     queue_model_objects.Sample: SampleQueueEntry,
     queue_model_objects.Basket: BasketQueueEntry,
     queue_model_objects.TaskGroup: TaskGroupQueueEntry,
     queue_model_objects.Workflow: _modules["GenericWorkflowQueueEntry"],
     queue_model_objects.XrayCentering: _modules["XrayCenteringQueueEntry"],
+    queue_model_objects.XrayCentring2: _modules["XrayCentering2QueueEntry"],
     queue_model_objects.GphlWorkflow: GphlQueueEntry.GphlWorkflowQueueEntry,
     queue_model_objects.XrayImaging: EMBLQueueEntry.XrayImagingQueueEntry,
 }
