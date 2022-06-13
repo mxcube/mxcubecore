@@ -887,6 +887,17 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
                 dm.disconnect("centringAccepted", centring_done_cb)
 
 
+class DelayQueueEntry(BaseQueueEntry):
+    def __init__(self, view=None, data_model=None):
+        BaseQueueEntry.__init__(self, view, data_model)
+
+    def execute(self):
+        BaseQueueEntry.execute(self)
+        delay = self.get_data_model().delay
+        logging.getLogger("HWR").debug("Execute Delay entry, delay =  %s" % delay)
+        time.sleep(delay)
+
+
 def center_before_collect(view, dm, queue, sample_view):
     view.setText(1, "Waiting for input")
     log = logging.getLogger("user_level_log")
