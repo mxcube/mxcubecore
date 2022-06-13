@@ -1,5 +1,5 @@
 import os
-from fileinput import filename
+
 from pydantic import BaseModel, Field
 from devtools import debug
 
@@ -57,7 +57,7 @@ class PathParameters(BaseModel):
     num_images: int
     energy: float
     transmission: float
-    resolution: float    
+    resolution: float
 
     class Config:
         extra: "ignore"
@@ -116,7 +116,6 @@ class SsxChipCollectionQueueEntry(BaseQueueEntry):
 
             fname_prefix = self._data_model._task_data.path_parameters.prefix
             fname_prefix += f"_block_{region[0]}_{region[1]}_"
-            print(region)
 
             HWR.beamline.detector.stop_acquisition()
             HWR.beamline.detector.prepare_acquisition(
@@ -125,7 +124,10 @@ class SsxChipCollectionQueueEntry(BaseQueueEntry):
             HWR.beamline.detector.wait_ready()
             HWR.beamline.detector.start_acquisition()
 
-            HWR.beamline.diffractometer.auto_align_ssx_block(region[0], region[1])
+            HWR.beamline.diffractometer.auto_align_ssx_block(
+                region[0],
+                region[1]
+            )
             HWR.beamline.diffractometer.wait_ready()
             HWR.beamline.diffractometer.start_ssx_scan(2)
             HWR.beamline.diffractometer.wait_ready()
