@@ -59,7 +59,7 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
         HWR.beamline.gphl_workflow.post_execute()
 
     def stop(self):
-        HWR.beamline.gphl_workflow.workflow_aborted()
+        HWR.beamline.gphl_workflow.workflow_aborted('Dummy', 'Dummy')
         BaseQueueEntry.stop(self)
         logging.getLogger("HWR").info("MXCuBE aborting current GPhL workflow")
         self.get_view().setText(1, 'Stopped')
