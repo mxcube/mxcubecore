@@ -106,6 +106,8 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         self.software_paths = {}
         self.software_properties = {}
 
+        self.update_state(self.STATES.UNKNOWN)
+
     def _init(self):
         super(GphlWorkflowConnection, self)._init()
 
@@ -201,7 +203,12 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         # NBNB All command line option values are put in quotes (repr) when
         # the workflow is invoked remotely through ssh.
 
-        if self.get_state() != self.STATES.OFF:
+        if self.get_state() == self.STATES.UNKNOWN:
+            logging.getLogger("HWR").warning(
+                "GphlWorkflowConnection not correctly initialised - check for errors"
+            )
+
+        elif self.get_state() != self.STATES.OFF:
             # NB, for now workflow is started as the connection is made,
             # so we are never in state 'ON'/STANDBY
             raise RuntimeError("Workflow is already running, cannot be started")
