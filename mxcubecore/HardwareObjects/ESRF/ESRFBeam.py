@@ -264,3 +264,8 @@ class ESRFBeam(AbstractBeam):
                 )
             self._beam_position_on_screen = _beam_position_on_screen
         return self._beam_position_on_screen
+
+
+    def get_beam_size(self):
+        beam_value = self.get_value()
+        return (beam_value[0], beam_value[1])

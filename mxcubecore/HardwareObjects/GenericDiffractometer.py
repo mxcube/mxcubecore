@@ -230,6 +230,7 @@ class GenericDiffractometer(HardwareObject):
         self.get_motor_positions = self.get_positions
 
     def init(self):
+        super().init()
         # Internal values -----------------------------------------------------
         self.ready_event = gevent.event.Event()
         self.user_clicked_event = gevent.event.AsyncResult()
@@ -685,6 +686,10 @@ class GenericDiffractometer(HardwareObject):
         ) / self.pixels_per_mm_x
 
         return self.current_motor_positions
+
+    def get_motors(self):
+        """Get motor_name:Motor dictionary"""
+        return self.motor_hwobj_dict.copy()
 
     # def get_omega_position(self):
     #     """

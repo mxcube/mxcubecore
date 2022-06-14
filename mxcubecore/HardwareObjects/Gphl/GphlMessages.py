@@ -171,12 +171,13 @@ CRYSTAL_SYSTEMS = (
     "ORTHORHOMBIC",
     "TETRAGONAL",
     "TRIGONAL",
-    "HEXAGONAL",
+    # "HEXAGONAL",
     "CUBIC",
 )
 # Map from single letter code tro Crystal system name
 # # NB trigonal and hexagonal DO both have code 'h'
-CRYSTAL_SYSTEM_MAP = dict(zip("amothhc", CRYSTAL_SYSTEMS))
+CRYSTAL_SYSTEM_MAP = dict(zip("amothc", CRYSTAL_SYSTEMS))
+
 
 POINT_GROUPS = ("1", "2", "222", "4", "422", "6", "622", "32", "23", "432")
 
@@ -807,7 +808,11 @@ class UserProvidedInfo(MessageData):
 
         self._scatterers = ()
         lattice = data_model.crystal_system
-        self._lattice = lattice.upper() if lattice else None
+        if lattice in CRYSTAL_SYSTEM_MAP:
+            self._lattice = CRYSTAL_SYSTEM_MAP[lattice]
+        else:
+            self._lattice = None
+        # self._lattice = lattice.upper() if lattice else None
         self._pointGroup = data_model.point_group
         space_group = queue_model_enumerables.SPACEGROUP_MAP.get(data_model.space_group)
         self._spaceGroup = space_group.number if space_group else None

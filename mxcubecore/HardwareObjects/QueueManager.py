@@ -189,7 +189,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self.wait_for_pause_event()
 
         try:
-            # Procedure to be done before main implmentation
+            # Procedure to be done before main implementation
             # of task.
             entry.status = QUEUE_ENTRY_STATUS.RUNNING
             entry.pre_execute()
@@ -395,7 +395,6 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         :returns: None
         :rtype: NoneType
         """
-
         if not self._running:
             raise RuntimeError("Queue has to be running to execute an entry with execute_entry")
 
@@ -403,8 +402,8 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             gevent.spawn(self.__execute_entry, entry)
         else:
             self.__execute_entry(entry)
-            self._queue_end()
 
+            
     def clear(self):
         """
         Clears the queue (removes all entries).

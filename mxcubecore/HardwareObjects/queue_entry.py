@@ -21,7 +21,7 @@
 Contains following classes:
 * QueueEntryContainer
 * BaseQueueEntry
-* DummyQueueEntry
+* DelayQueueEntry
 * TaskGroupQueueEntry
 * SampleQueueEntry
 * SampleCentringQueueEntry
@@ -33,7 +33,7 @@ All queue entries inherits the baseclass BaseQueueEntry which inturn
 inherits QueueEntryContainer. This makes it possible to arrange and
 execute queue entries in a hierarchical maner.
 
-The rest of the classes: DummyQueueEntry, TaskGroupQueueEntry,
+The rest of the classes: DelayQueueEntry, TaskGroupQueueEntry,
 SampleQueueEntry, SampleCentringQueueEntry, DataCollectionQueueEntry,
 CharacterisationQueueEntry, EnergyScanQueueEntry are concrete
 implementations of tasks.
@@ -470,6 +470,17 @@ class BasketQueueEntry(BaseQueueEntry):
         BaseQueueEntry.__init__(self, view, data_model)
 
 
+class DelayQueueEntry(BaseQueueEntry):
+    def __init__(self, view=None, data_model=None):
+        BaseQueueEntry.__init__(self, view, data_model)
+
+    def execute(self):
+        BaseQueueEntry.execute(self)
+        delay = self.get_data_model().delay
+        logging.getLogger("HWR").debug("Execute Delay entry, delay =  %s" % delay)
+        time.sleep(delay)
+
+
 class SampleCentringQueueEntry(BaseQueueEntry):
     """
     Entry for centring a sample
@@ -563,6 +574,61 @@ class SampleCentringQueueEntry(BaseQueueEntry):
 
     def get_type_str(self):
         return "Sample centering"
+
+
+class XrayCentring2QueueEntry(BaseQueueEntry):
+    """
+    Entry for X-ray centring (2022 version)
+    """
+
+    def __init__(self, view=None, data_model=None):
+        BaseQueueEntry.__init__(self, view, data_model)
+
+    def execute(self):
+        BaseQueueEntry.execute(self)
+        HWR.beamline.xray_centring.execute()
+
+    def pre_execute(self):
+        """Pre-execute. Set to new motor position, if any"""
+        BaseQueueEntry.pre_execute(self)
+        logging.getLogger("user_level_log").info( "Starting Xray centring, please wait.")
+
+        data_model = self.get_data_model()
+
+        motor_positions = dict(
+            item for item in data_model.get_motor_positions().items()
+            if item[1] is not None
+        )
+        pos_dict = {}
+        for tag in ("kappa", "kappa_phi"):
+            if tag in motor_positions:
+                pos_dict[tag] = motor_positions.pop(tag)
+        if pos_dict:
+            # Some beamlines move centering motors while moving kappa, kappa_phi
+            # Hence we need to move kappa, kappa_phi first.
+            HWR.beamline.diffractometer.move_motors(pos_dict)
+        if motor_positions:
+            # Move the rest of the motors, if needed
+            HWR.beamline.diffractometer.move_motors(motor_positions)
+
+        HWR.beamline.xray_centring.pre_execute(self)
+
+    def post_execute(self):
+        """Post-execute. Store centring result in data model"""
+        BaseQueueEntry.post_execute(self)
+
+        # Create a centred position object of the current position
+        # and put it in the data model for future access.
+        pos_dict = HWR.beamline.diffractometer.get_positions()
+        cpos = queue_model_objects.CentredPosition(pos_dict)
+        self._data_model.set_centring_result(cpos)
+
+        logging.getLogger("user_level_log").info("Finishing Xray centring")
+
+        HWR.beamline.xray_centring.post_execute()
+
+    def get_type_str(self):
+        return "X-ray centring"
 
 
 class DataCollectionQueueEntry(BaseQueueEntry):
@@ -708,7 +774,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             self.online_processing_task = None
 
             try:
-                if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:
+                HWR.beamline.collect.set_fast_characterisation(False)
+                if dc.experiment_type == EXPERIMENT_TYPE.HELICAL:
                     acq_1, acq_2 = (dc.acquisitions[0], dc.acquisitions[1])
                     HWR.beamline.collect.set_helical(True)
                     HWR.beamline.collect.set_mesh(False)
@@ -722,7 +789,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     # msg = "Helical data collection, moving to start position"
                     # log.info(msg)
                     # list_item.setText(1, "Moving sample")
-                elif dc.experiment_type is EXPERIMENT_TYPE.MESH:
+                elif dc.experiment_type == EXPERIMENT_TYPE.MESH:
                     mesh_nb_lines = acq_1.acquisition_parameters.num_lines
                     mesh_total_nb_frames = acq_1.acquisition_parameters.num_images
                     mesh_range = acq_1.acquisition_parameters.mesh_range
@@ -736,6 +803,10 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     HWR.beamline.sample_view.inc_used_for_collection(
                         self.get_data_model().shape
                     )
+                elif dc.experiment_type == EXPERIMENT_TYPE.EDNA_REF:
+                    HWR.beamline.collect.set_helical(False)
+                    HWR.beamline.collect.set_mesh(False)
+                    HWR.beamline.collect.set_fast_characterisation(True)
                 else:
                     HWR.beamline.collect.set_helical(False)
                     HWR.beamline.collect.set_mesh(False)
@@ -1853,6 +1924,7 @@ MODEL_QUEUE_ENTRY_MAPPINGS = {
     queue_model_objects.DataCollection: DataCollectionQueueEntry,
     queue_model_objects.Characterisation: CharacterisationGroupQueueEntry,
     queue_model_objects.EnergyScan: EnergyScanQueueEntry,
+    queue_model_objects.DelayTask: DelayQueueEntry,
     queue_model_objects.XRFSpectrum: XRFSpectrumQueueEntry,
     queue_model_objects.SampleCentring: SampleCentringQueueEntry,
     queue_model_objects.OpticalCentring: OpticalCentringQueueEntry,
@@ -1860,6 +1932,7 @@ MODEL_QUEUE_ENTRY_MAPPINGS = {
     queue_model_objects.Basket: BasketQueueEntry,
     queue_model_objects.TaskGroup: TaskGroupQueueEntry,
     queue_model_objects.Workflow: GenericWorkflowQueueEntry,
+    queue_model_objects.XrayCentring2: XrayCentring2QueueEntry,
     queue_model_objects.XrayCentering: XrayCenteringQueueEntry,
     queue_model_objects.GphlWorkflow: GphlQueueEntry.GphlWorkflowQueueEntry,
     queue_model_objects.XrayImaging: EMBLQueueEntry.XrayImagingQueueEntry,

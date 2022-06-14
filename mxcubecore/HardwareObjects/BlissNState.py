@@ -94,7 +94,7 @@ class BlissNState(AbstractNState):
                     _val = _cmd()
             else:
                 _val = self._bliss_obj.state
-        # print(f"get_value:  {self.value_to_enum(_val)}, {_val}")
+
         return self.value_to_enum(_val)
 
     def _set_value(self, value):

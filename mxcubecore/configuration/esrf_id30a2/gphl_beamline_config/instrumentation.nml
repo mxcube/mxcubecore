@@ -1,0 +1,92 @@
+&sdcp_instrument_list
+! Values for id30a2 simulator as of 20220503
+
+calibration_name= 'Initial'
+beamline_name= 'id30a2'
+
+! Coordinate system.
+! NOTE that all values in this file must use the same coordinate system,
+! but that the choice of coordinate system is arbitrary
+coord_sys_name= 'UNKNOWN'
+
+! Beam specification
+nominal_beam_dir= 0.0  0.0  1.0
+beam_sd_deg= 0.03 0.03
+lambda_sd= 0.0002
+pol_plane_n= 0.0 1.0 0.0
+pol_frac= 0.99
+
+! Detector specification
+det_name= "pilatus2m"
+! Axis directions
+det_x_axis= 1.0  0.0  0.0
+det_y_axis= 0.0  1.0  0.0
+! Pixel sizes
+det_qx= 0.172000
+det_qy= 0.172000
+! Pixel counts
+det_nx= 1475
+det_ny= 1679
+! Default beam centre and detector distance - will be read from MXCuBE on acauisition
+det_org_x= 699.14
+det_org_y= 852.03
+det_org_dist= 227.0
+! Sensor thickness
+d_sensor= 0.45
+
+! Detector file name. E.g. '.cbf' also covers compressed fies with suffix '.cbf.gz'
+det_filename_suffix= '.cbf'
+
+! Taken from http://xds.mpimf-heidelberg.mpg.de/html_doc/INPUT_templates/XDS-PILATUS.INP
+xds_DETECTOR= PILATUS
+xds_OVERLOAD= 1048500
+
+! Detector distance axis and file naming
+det_gonio_axis_dirs=  0.0  0.0  1.0
+ ! Detector movement axis
+ ! Actual value is irrelevant, since axis is (nominally) parallel to beam
+ ! and we don't refine its direction
+det_gonio_axis_datum_settings= 227.0
+det_gonio_axis_limits= 125, 834
+det_gonio_axis_names= 'Distance'
+det_gonio_axis_types= 'Translation'
+det_gonio_axis_calibratable = 'False'
+
+! Goniostat rotation axes, in order from goniostat to sample.
+! Names must match the motor name convention used in MXCuBE.
+! Axis directions will be overridden from diffraction calibration results, if present
+gonio_name= "MiniKappa"
+gonio_axis_dirs= 1.0 0.0 0.0
+   ! Normalised to sum to 1.0000000 exactly
+   0.9135 -0.4068387272617984 0.0
+   1.0, 0.0, 0.0
+gonio_axis_datum_settings= 0 0 0
+gonio_axis_limits= , , -5, 240, , ,
+gonio_axis_names= 'phi' 'kappa' 'kappa_phi'
+gonio_axis_scannable= 'True' 'False' 'False'
+gonio_axis_calibratable= 'False' 'True' 'True'
+
+! Nominal centring axis directions
+gonio_centring_axis_dirs=  0.0,  0.0, -1.0,
+                           0.0, -1.0,  0.0,
+                          -1.0,  0.0,  0.0
+! Actual limits on centring axes
+gonio_centring_axis_limits=  -3.0, 3.0, -3.0, 3.0, -10.0, 10.0
+! Names must match the motor name convention used in MXCuBE.
+gonio_centring_axis_names= 'sampx', 'sampy', 'phiy'
+
+! Beamstop specification, for collision avoidance and shadow description in simulation
+! Introduced for the Diamond I23 curved detector
+! Not required for strategy calculations on mini-kappa goniostat
+! DO NOT UNCOMMENT
+! beamstop_name= 'BEAMSTOPV1'
+! beamstop_param_names= 'BEAM_STOP_RADIUS' 'BEAM_STOP_S_LENGTH' 'BEAM_STOP_S_DISTANCE'
+! beamstop_param_vals=    1.0               -120.0                60.0
+
+
+! Detector segment description
+! Must match detector type
+! Otherwise DO NOT EDIT from this point of the file onwards
+/
+
+

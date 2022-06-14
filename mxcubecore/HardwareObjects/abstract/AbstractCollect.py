@@ -599,8 +599,9 @@ class AbstractCollect(HardwareObject, object):
             params["resolution"] = HWR.beamline.resolution.get_value()
             params["transmission"] = HWR.beamline.transmission.get_value()
             beam_centre_x, beam_centre_y = HWR.beamline.detector.get_beam_position()
-            params["xBeam"] = beam_centre_x
-            params["yBeam"] = beam_centre_y
+            pixel_x, pixel_y = self.get_pixel_size()
+            params["xBeam"] = beam_centre_x * pixel_x
+            params["yBeam"] = beam_centre_y * pixel_y
             und = self.get_undulators_gaps()
             i = 1
             for jj in self.bl_config.undulators:

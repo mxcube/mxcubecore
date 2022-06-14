@@ -89,17 +89,22 @@ class ESRFPhotonFlux(AbstractFlux):
         if counts == -9999:
             counts = 0.0
 
-        egy = HWR.beamline.energy.get_value() * 1000.0
-        calib = self._flux_calc.calc_flux_factor(egy)[self._counter.name]
+        egy = HWR.beamline.energy.get_value()
+        calib = self._flux_calc.calc_flux_factor(egy * 1000.0)[self._counter.name]
 
         try:
             label = self._aperture.get_value().name
             aperture_factor = self._aperture.get_factor(label)
-        except AttributeError:
-            aperture_factor = 1
-        counts = abs(counts * calib * aperture_factor)
+            if isinstance(aperture_factor, tuple):
+                factor = aperture_factor[0] + aperture_factor[1]*egy
+            else:
+                factor = float(aperture_factor)
+        except (AttributeError, ValueError, RuntimeError):
+            factor = 1.
+
+        counts = abs(counts * calib * factor)
         if counts < self.threshold:
-            counts = 0.0
+            return 0.0
 
         return counts
 

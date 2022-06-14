@@ -189,7 +189,9 @@ class MD2MultiCollect(ESRFMultiCollect):
         return
 
     def get_beam_centre(self):
-        return HWR.beamline.detector.get_beam_position()
+        pixel_x, pixel_y = HWR.beamline.detector.get_pixel_size()
+        bcx, bcy = HWR.beamline.detector.get_beam_position()
+        return [bcx * pixel_x, bcy * pixel_y]
 
     @task
     def write_input_files(self, datacollection_id):

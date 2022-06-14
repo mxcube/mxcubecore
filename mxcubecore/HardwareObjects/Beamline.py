@@ -423,6 +423,17 @@ class Beamline(ConfiguredObject):
     __content_roles.append("imaging")
 
     @property
+    def beamline_actions(self):
+        """Beamline Actions
+
+        Returns:
+            Optional[beamline_actions]:
+        """
+        return self._objects.get("beamline_actions")
+
+    __content_roles.append("beamline_actions")
+
+    @property
     def xml_rpc_server(self):
         """XMLRPCServer for RPC
 
@@ -481,6 +492,17 @@ class Beamline(ConfiguredObject):
         return self._objects.get("centring")
 
     __content_roles.append("centring")
+
+    @property
+    def xray_centring(self):
+        """Xray Ccntring hardware object.
+
+        Returns:
+            Optional[XrayCentring2]:
+        """
+        return self._objects.get("xray_centring")
+
+    __content_roles.append("xray_centring")
 
     # Analysis (combines processing and data analysis)
 
