@@ -58,16 +58,35 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         queue_entry.set_queue_controller(self)
         super(QueueManager, self).enqueue(queue_entry)
 
-    def execute(self):
+    def execute(self, entry=None):
         """
         Starts execution of the queue.
+
+        Runs the entire queue or a single entry (entry is set) as one "run" of
+        the queue and  manages the various states such as "running", "paused"
+        and "stopped".
+
+        :param entry: Optional, queue_entry to run
+        :type entry: QueueEntry
+        :raises: RuntimeError, if the queue is already running when called
         """
+        if self._running:
+            raise RuntimeError("Can't call excute on a queue that is already running")
+
         if not self.is_disabled():
-            self._current_queue_entries = []
+            # If no entry is passed run all entries in the queue
+            # otherwise, run only the entry given
             self.emit("statusMessage", ("status", "Queue running", "running"))
             self._is_stopped = False
-            self._set_in_queue_flag()
-            self._root_task = gevent.spawn(self.__execute_task)
+
+            if not entry:
+                self._current_queue_entries = []
+                self._set_in_queue_flag()
+                self._root_task = gevent.spawn(self.__execute_task)
+            else:
+                self._running = True
+                task = gevent.spawn(self.__execute_entry, entry)
+                task.link((lambda _t: self._queue_end()))
 
     def _set_in_queue_flag(self):
         """
@@ -367,25 +386,24 @@ class QueueManager(HardwareObject, QueueEntryContainer):
 
     def execute_entry(self, entry, use_async=False):
         """
-        Executes the queue entry <entry>.
+        Executes the queue entry once the queue has been started <entry>.
 
         :param entry: The entry to execute.
         :type entry: QueueEntry
 
+        :raises: RuntimeError if the queue is not already running when called
         :returns: None
         :rtype: NoneType
         """
-        self._running = True
-        self._is_stopped = False
-        self._set_in_queue_flag()
+        if not self._running:
+            raise RuntimeError("Queue has to be running to execute an entry with execute_entry")
 
         if use_async:
-            task = gevent.spawn(self.__execute_entry, entry)
-            # task.link((lambda _t: self._queue_end()))
+            gevent.spawn(self.__execute_entry, entry)
         else:
             self.__execute_entry(entry)
 
-
+            
     def clear(self):
         """
         Clears the queue (removes all entries).
