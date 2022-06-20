@@ -30,10 +30,13 @@ import math
 
 from mxcubecore.HardwareObjects import queue_model_enumerables
 
+# This module is used as a self contained entity by the BES
+# workflows, so we need to make sure that this module can be
+# imported eventhough HardwareRepository is not avilable.
 try:
     from mxcubecore import HardwareRepository as HWR
-except ImportError:
-    pass
+except ImportError as ex:
+    logging.getLogger("HWR").exception("Could not import HardwareRepository")
 
 
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
@@ -243,11 +246,11 @@ class TaskNode(object):
     def set_snapshot(self, snapshot):
         pass
 
-class DummyTask(TaskNode):
+class DelayTask(TaskNode):
     """Dummy task, for mock testing only"""
     def __init__(self, delay=10):
         TaskNode.__init__(self)
-        self._name = "Dummy"
+        self._name = "Delay"
         self.delay = delay
 
 class RootNode(TaskNode):
@@ -2159,10 +2162,8 @@ class GphlWorkflow(TaskNode):
             distance = HWR.beamline.resolution.resolution_to_distance(
                 resolution, wavelength
             )
-            orgxy = HWR.beamline.detector.get_beam_position(
-                distance, wavelength
-            )
-            orgxy = tuple(x / 0.172 for x in orgxy)
+            orgxy = HWR.beamline.detector.get_beam_position(distance, wavelength)
+
             self.detector_setting = GphlMessages.BcsDetectorSetting(
                 resolution, orgxy=orgxy, Distance=distance
             )
@@ -2499,33 +2500,17 @@ class XrayImaging(TaskNode):
     def get_files_to_be_written(self):
         return self.acquisitions[0].path_template.get_files_to_be_written()
 
-#
-# Add-to-queue functions
-# - written to be usable as static class function in e.g. XMLRPCServer
-#
 
 def addXrayCentring(parent_node, **centring_parameters):
-    """Add Xray centring to queue.
-    NB can also be accessed as a static function of XMLRPCServer
-    e.g. myXMLRPCServer.addXrayCentring(...)"""
+    """Add Xray centring to queue."""
     xc_model = XrayCentring2(**centring_parameters)
     HWR.beamline.queue_model.add_child(parent_node, xc_model)
     #
     return xc_model
 
-def addGphlWorkflow(parent_node, task_dict):
-    """Add GPhL owrkflow to queue.
-    NB can also be accessed as a static function of XMLRPCServer
-    e.g. myXMLRPCServer.addGphlWorkflow(...)"""
-    gphl_model = GphlWorkflow()
-    sample_model = parent_node.get_sample_node()
-    gphl_model.init_from_task_data(sample_model, task_dict)
-
 #
 # Collect hardware object utility function.
 #
-
-
 def to_collect_dict(data_collection, session, sample, centred_pos=None):
     """ return [{'comment': '',
           'helical': 0,

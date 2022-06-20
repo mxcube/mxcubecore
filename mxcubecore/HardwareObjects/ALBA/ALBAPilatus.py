@@ -104,6 +104,9 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
 
     def get_beam_position(self, distance=None, wavelength=None):
         """Returns beam center coordinates"""
+
+        # NBNB TODO check if pixels or mm, and adjust code
+        # Should be pixels
         beam_x = 0
         beam_y = 0
         try:

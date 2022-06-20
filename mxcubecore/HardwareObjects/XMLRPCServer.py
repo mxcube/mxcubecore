@@ -694,18 +694,14 @@ class XMLRPCServer(HardwareObject):
         SecureXMLRpcRequestHandler.setReferenceToken(token)
 
     def addXrayCentring(self, parent_node_id, **centring_parameters):
-        """Add Xray centring to queue.
-        NB can also be accessed as a static function of XMLRPCServer
-        e.g. myXMLRPCServer.addXrayCentring(...)"""
+        """Add Xray centring to queue."""
         from mxcubecore.HardwareObjects import queue_model_objects as qmo
         xc_model = qmo.XrayCentring2(**centring_parameters)
         child_id = HWR.beamline.queue_model.add_child_at_id(parent_node_id, xc_model)
         return child_id
 
     def addGphlWorkflow(self, parent_node_id, task_dict):
-        """Add GPhL owrkflow to queue.
-        NB can also be accessed as a static function of XMLRPCServer
-        e.g. myXMLRPCServer.addGphlWorkflow(...)"""
+        """Add GPhL owrkflow to queue."""
         from mxcubecore.HardwareObjects import queue_model_objects as qmo
         gphl_model = qmo.GphlWorkflow()
         parent_model = HWR.beamline.queue_model.get_node(int(parent_node_id))

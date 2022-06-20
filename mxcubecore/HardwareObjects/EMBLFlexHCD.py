@@ -440,7 +440,8 @@ class EMBLFlexHCD(SampleChanger):
             SampleChanger.unload(self, sample)
         finally:
             for msg in self.get_robot_exceptions():
-                logging.getLogger("HWR").error(msg)
+                if msg is not None:
+                    logging.getLogger("HWR").error(msg)
 
     def get_gripper(self):
         gripper_type = self._execute_cmd_exporter("get_gripper_type", attribute=True)

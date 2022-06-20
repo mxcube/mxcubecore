@@ -44,11 +44,11 @@ class MicrodiffZoom(ExporterNState):
     """MicrodiffZoom class"""
 
     def __init__(self, name):
-        ExporterNState.__init__(self, name)
+        super().__init__(name)
 
     def init(self):
         """Initialize the zoom"""
-        ExporterNState.init(self)
+        super().init()
 
         self.initialise_values()
         # check if we have values other that UNKNOWN
