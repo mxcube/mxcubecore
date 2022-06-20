@@ -325,7 +325,7 @@ class GphlWorkflow(HardwareObjectYaml):
         self._workflow_queue = None
         if HWR.beamline.gphl_connection is not None:
             HWR.beamline.gphl_connection.workflow_ended()
-            HWR.beamline.gphl_connection.close_connection()
+            # HWR.beamline.gphl_connection.close_connection()
 
     def update_state(self, state=None):
         """
@@ -1934,8 +1934,16 @@ class GphlWorkflow(HardwareObjectYaml):
         )
 
     def enqueue_sample_centring(self, motor_settings, in_queue=False):
+
+        # NBNB Should be refactored later and combined with execute_sample_centring
+        # Now in_queue==False implies immediate execution
+
         queue_manager = self._queue_entry.get_queue_controller()
         data_model = self._queue_entry.get_data_model()
+        if in_queue:
+            parent = self._data_collection_group
+        else:
+            parent = data_model
         task_label = "Centring (kappa=%0.1f,phi=%0.1f)" % (
             motor_settings.get("kappa"),
             motor_settings.get("kappa_phi"),
@@ -1944,7 +1952,7 @@ class GphlWorkflow(HardwareObjectYaml):
             # Either TEST or MASSIF1
             #m NB Negotiate different location with Olof Svensson
             centring_model = queue_model_objects.addXrayCentring(
-                self._data_collection_group,
+                parent,
                 name=task_label,
                 motor_positions=motor_settings,
                 grid_size=None
@@ -1953,7 +1961,7 @@ class GphlWorkflow(HardwareObjectYaml):
             centring_model = queue_model_objects.SampleCentring(
                 name=task_label, motor_positions=motor_settings
             )
-            self._add_to_queue(self._data_collection_group, centring_model)
+            self._add_to_queue(parent, centring_model)
         centring_entry = queue_manager.get_entry_with_model(centring_model)
         centring_entry.in_queue = in_queue
 
