@@ -1,4 +1,4 @@
-CHANGELOG (DRAFT)
+CHANGELOG
 
 ===========
 
@@ -41,7 +41,7 @@ is considered stable or at least to be well informed enough to know when to ask 
 community for input.
 
 
-## Added/Changed in Version 1.0.0 <DATE>
+## Added/Changed in Version 1.0.0 - 2022-06-21
 =================================
 
 - HardwareRepository was renamed to mxcubecore and made into a Python module (installable with i.e pip)
