@@ -6,6 +6,9 @@ import os
 import sys
 
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore import __version__
+
+__version__ = __version__.__version__
 
 hwrpath = os.path.dirname(__file__)
 sys.path.insert(0, hwrpath)
@@ -14,6 +17,7 @@ sys.path.insert(0, hwrpath)
 # this makes it possible for Hardware Objects to import
 # standard Hardware Objects easily
 #
+
 
 def getStdHardwareObjectsPath():
     import HardwareObjects  # first looks in containing package
