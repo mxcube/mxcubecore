@@ -1964,6 +1964,9 @@ class GphlWorkflow(HardwareObjectYaml):
             self._add_to_queue(parent, centring_model)
         centring_entry = queue_manager.get_entry_with_model(centring_model)
         centring_entry.in_queue = in_queue
+        # Olof thinks we need this one.
+        # NBNB TODO check status and use of is_enabled
+        centring_entry.set_enabled(True)
 
         return centring_entry
 
