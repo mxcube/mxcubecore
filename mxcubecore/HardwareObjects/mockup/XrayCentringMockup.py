@@ -26,8 +26,6 @@ from mxcubecore.HardwareObjects import queue_model_objects
 
 from mxcubecore.HardwareObjects.abstract.AbstractXrayCentring import AbstractXrayCentring
 
-from mxcubecore import HardwareRepository as HWR
-
 __copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 __author__ = "rhfogh"

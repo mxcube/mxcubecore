@@ -102,7 +102,7 @@ class ISPyBRestClient(HardwareObject):
             logging.getLogger("ispyb_client").exception(msg)
         else:
             msg = "Authenticated to LIMS token is: %s" % self.__rest_root
-            logging.getLogger("ispyb_client").exception(msg)
+            logging.getLogger("ispyb_client").debug(msg)
 
     def sample_link(self):
         """
