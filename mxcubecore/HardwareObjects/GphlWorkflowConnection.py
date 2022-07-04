@@ -106,6 +106,8 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         self.software_paths = {}
         self.software_properties = {}
 
+        self.update_state(self.STATES.UNKNOWN)
+
     def _init(self):
         super(GphlWorkflowConnection, self)._init()
 
@@ -167,6 +169,10 @@ class GphlWorkflowConnection(HardwareObjectYaml):
 
     def open_connection(self):
 
+        if self._gateway is not None:
+            logging.getLogger("HWR").debug("GPhL connection is already open")
+            return
+
         params = self.connection_parameters
 
         python_parameters = {}
@@ -186,7 +192,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             java_parameters["port"] = val
 
         logging.getLogger("HWR").debug(
-            "GPhL Open connection: %s ",
+            "Opening GPhL connection: %s ",
             (", ".join("%s:%s" % tt0 for tt0 in sorted(params.items()))),
         )
 
@@ -201,7 +207,12 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         # NBNB All command line option values are put in quotes (repr) when
         # the workflow is invoked remotely through ssh.
 
-        if self.get_state() != self.STATES.OFF:
+        if self.get_state() == self.STATES.UNKNOWN:
+            logging.getLogger("HWR").warning(
+                "GphlWorkflowConnection not correctly initialised - check for errors"
+            )
+
+        elif self.get_state() != self.STATES.OFF:
             # NB, for now workflow is started as the connection is made,
             # so we are never in state 'ON'/STANDBY
             raise RuntimeError("Workflow is already running, cannot be started")
@@ -408,8 +419,9 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         if xx0 is not None:
             try:
                 # Exceptions 'can easily happen' (py4j docs)
-                # We could catch them here rather than have them caught and echoed
-                # downstream, but it seems to keep the program open (??)
+                # WIthout raise_exceptioon exceptions in the first part of the shutddown
+                # will be caught and the rest of the shutdown will continue.
+                # whici is what we want.
                 # xx0.shutdown(raise_exception=True)
                 xx0.shutdown()
             except Exception:

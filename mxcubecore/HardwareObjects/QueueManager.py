@@ -381,7 +381,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
 
         if use_async:
             task = gevent.spawn(self.__execute_entry, entry)
-            task.link((lambda _t: self._queue_end()))
+            # task.link((lambda _t: self._queue_end()))
         else:
             self.__execute_entry(entry)
 

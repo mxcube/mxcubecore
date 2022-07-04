@@ -230,6 +230,7 @@ class GenericDiffractometer(HardwareObject):
         self.get_motor_positions = self.get_positions
 
     def init(self):
+        super().init()
         # Internal values -----------------------------------------------------
         self.ready_event = gevent.event.Event()
         self.user_clicked_event = gevent.event.AsyncResult()
