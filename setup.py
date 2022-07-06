@@ -28,7 +28,7 @@ requirements = get_requirements(
 )
 setup_requirements = []
 tests_requirements = []
-extras_requirements = {'gphl': ['f90nml', 'py4j', 'mgen']}
+extras_requirements = {'gphl': ['f90nml', 'py4j']}
 console_scripts = []
 gui_scripts = []
 

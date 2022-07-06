@@ -17,5 +17,4 @@ gipc==1.4.0
 
 # GPhL: f90nml, mgen, and py4j are required for GPhL Workflow and emulation
 py4j==0.10.9.5
-mgen==1.2.0
 f90nml==1.4.2
