@@ -23,9 +23,8 @@ def get_requirements(fname):
 
     return requirements
 
-
 requirements = get_requirements(
-    os.path.join(Path(__file__).parent.stem, "requirements_python3.txt")
+    os.path.join(Path(os.path.abspath(__file__)).parent.as_posix(), "requirements.txt")
 )
 setup_requirements = []
 tests_requirements = []
@@ -39,7 +38,7 @@ entry_points = {
 }
 
 version = get_version(
-    os.path.join(Path(__file__).parent.stem, "mxcubecore/__version__.py")
+    os.path.join(Path(os.path.abspath(__file__)).parent.as_posix(), "mxcubecore/__version__.py")
 )
 
 setup(
