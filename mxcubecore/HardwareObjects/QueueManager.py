@@ -9,6 +9,7 @@ documentation for the queue_entry module for more information.
 """
 import logging
 import gevent
+import traceback
 from mxcubecore.HardwareObjects import base_queue_entry, queue_entry
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.base_queue_entry import QUEUE_ENTRY_STATUS
@@ -209,25 +210,39 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                 entry.status = QUEUE_ENTRY_STATUS.SUCCESS
                 self.emit("queue_entry_execute_finished", (entry, "Successful"))
                 self.emit("statusMessage", ("status", "", "ready"))
-        except base_queue_entry.QueueSkippEntryException:
+        except base_queue_entry.QueueSkippEntryException as ex:
+            logging.getLogger("HWR").warning(
+                "encountered Exception (continuing):\n%s" % ex.stack_trace
+            )
             # Queue entry, failed, skipp.
             entry.status = QUEUE_ENTRY_STATUS.SKIPPED
             self.emit("queue_entry_execute_finished", (entry, "Skipped"))
         except base_queue_entry.QueueExecutionException as ex:
+            logging.getLogger("HWR").warning(
+                "encountered Exception (continuing):\n%s" % ex.stack_trace
+            )
             entry.status = QUEUE_ENTRY_STATUS.FAILED
             self.emit("queue_entry_execute_finished", (entry, "Failed"))
             self.emit("statusMessage", ("status", "Queue execution failed", "error"))
-        except (base_queue_entry.QueueAbortedException, Exception) as ex:
+        except base_queue_entry.QueueAbortedException as ex:
             # Queue entry was aborted in a controlled, way.
             # or in the exception case:
             # Definetly not good state, but call post_execute
-            # in anyways, there might be code that cleans up things
+            # anyway, there might be code that cleans up things
             # done in _pre_execute or before the exception in _execute.
+            logging.getLogger("HWR").warning(
+                "encountered Exception (continuing):\n%s" % ex.stack_trace
+            )
             entry.status = QUEUE_ENTRY_STATUS.FAILED
             self.emit("queue_entry_execute_finished", (entry, "Aborted"))
             entry.post_execute()
             entry.handle_exception(ex)
             raise ex
+        except:
+            logging.getLogger("HWR").warning(
+                "encountered Exception:\n%s" % traceback.format_exc()
+            )
+            raise
         else:
             entry.post_execute()
         finally:
@@ -403,7 +418,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         else:
             self.__execute_entry(entry)
 
-            
+
     def clear(self):
         """
         Clears the queue (removes all entries).

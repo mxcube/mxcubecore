@@ -167,7 +167,19 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         #
         return result
 
+    def get_bdg_licence_dir(self, name):
+        """Get directory containing specific licence file (if any)
+        for program called 'name'"""
+        tag = "co.gphl.wf.%s.bdg_licence_dir" % name
+        result = self.software_paths.get(tag)
+        #
+        return result
+
     def open_connection(self):
+
+        if self._gateway is not None:
+            logging.getLogger("HWR").debug("GPhL connection is already open")
+            return
 
         params = self.connection_parameters
 
@@ -188,7 +200,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             java_parameters["port"] = val
 
         logging.getLogger("HWR").debug(
-            "GPhL Open connection: %s ",
+            "Opening GPhL connection: %s ",
             (", ".join("%s:%s" % tt0 for tt0 in sorted(params.items()))),
         )
 
@@ -415,8 +427,9 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         if xx0 is not None:
             try:
                 # Exceptions 'can easily happen' (py4j docs)
-                # We could catch them here rather than have them caught and echoed
-                # downstream, but it seems to keep the program open (??)
+                # Without raise_exception exceptions in the first part of the shutddown
+                # will be caught and the rest of the shutdown will continue.
+                # which is what we want.
                 # xx0.shutdown(raise_exception=True)
                 xx0.shutdown()
             except Exception:

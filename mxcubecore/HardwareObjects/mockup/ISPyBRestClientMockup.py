@@ -109,7 +109,7 @@ class ISPyBRestClientMockup(HardwareObject):
         self.__rest_username = user
         self.__rest_password = password
         msg = "Authenticated to LIMS token is: %s" % self.__rest_root
-        logging.getLogger("ispyb_client").exception(msg)
+        logging.getLogger("ispyb_client").debug(msg)
 
     def sample_link(self):
         """

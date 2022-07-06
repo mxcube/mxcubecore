@@ -73,7 +73,7 @@ class AbstractXrayCentring(HardwareObjectYaml):
             )
         new_dcg_model = queue_model_objects.TaskGroup()
         new_dcg_model.set_enabled(True)
-        new_dcg_model.set_name("DummyCentringGroup")
+        new_dcg_model.set_name("CentringTaskGroup")
         self._data_collection_group = new_dcg_model
         self._add_to_queue(self._queue_entry.get_data_model(), new_dcg_model)
 
@@ -94,6 +94,6 @@ class AbstractXrayCentring(HardwareObjectYaml):
         self.update_state(self.STATES.READY)
 
     def _add_to_queue(self, parent_model_obj, child_model_obj):
-        """Used to add entes to queue while centring process is running (if needed)"""
+        """Used to add entries to queue while centring process is running (if needed)"""
         HWR.beamline.queue_model.add_child(parent_model_obj, child_model_obj)
 

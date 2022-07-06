@@ -34,6 +34,7 @@ import sys
 import os
 import time
 import importlib
+import traceback
 from datetime import datetime
 
 from ruamel.yaml import YAML
@@ -84,7 +85,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
     start_time = time.time()
     msg0 = ""
     result = None
-    class_name = None
+    class_name = "None"
 
     # Get full path for configuration file
     if _instance is None:
@@ -127,8 +128,11 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
             if _container:
                 msg0 = "Error importing class"
                 class_name = class_import
+                print (
+                    "Encountered Exception (continuing):\n%s" % traceback.format_exc()
+                )
             else:
-                # at top lavel we want to get the actual error
+                # at top level we want to get the actual error
                 raise
 
     if not msg0:
@@ -138,12 +142,15 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
         except Exception:
             if _container:
                 msg0 = "Error instantiating %s" % cls.__name__
+                print (
+                    "Encountered Exception (continuing):\n%s" % traceback.format_exc()
+                )
             else:
-                # at top lavel we want to get the actual error
+                # at top level we want to get the actual error
                 raise
 
     if _container is None:
-        # We are loading the beamline object into HardwarePepository
+        # We are loading the beamline object into HardwareRepository
         # and want the link to be set before _init or content loading
         beamline = result
 
@@ -155,7 +162,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
             if _container:
                 msg0 = "Error in %s._init()" % cls.__name__
             else:
-                # at top lavel we want to get the actual error
+                # at top level we want to get the actual error
                 raise
 
     if not msg0:
@@ -222,7 +229,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
             if _container:
                 msg0 = "Error in %s.init()" % cls.__name__
             else:
-                # at top lavel we want to get the actual error
+                # at top level we want to get the actual error
                 raise
 
     load_time = 1000 * (time.time() - start_time)
