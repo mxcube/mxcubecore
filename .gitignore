@@ -3,3 +3,7 @@
 *~
 *swp
 *swo
+mxcubecore.egg-info/*
+mxcubecore/utils/video_utils/node_modules/*
+mxcubecore/utils/video_utils/package-lock.json
+mxcubecore/utils/video_utils/package.json
