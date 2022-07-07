@@ -30,8 +30,8 @@ Example xml file:
 import enum
 from ast import literal_eval
 
-from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
-from HardwareRepository.BaseHardwareObjects import HardwareObjectState
+from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from gevent import sleep
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """

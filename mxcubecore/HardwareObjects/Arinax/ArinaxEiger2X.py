@@ -19,11 +19,11 @@ __credits__ = ["The MxCuBE collaboration"]
 __email__ = ""
 __status__ = "Beta"
 
-from HardwareRepository.TaskUtils import task, cleanup, error_cleanup
-from HardwareRepository.HardwareObjects.abstract.AbstractDetector import AbstractDetector
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.BaseHardwareObjects import HardwareObjectState
-from HardwareRepository import HardwareRepository as HWR
+from mxcubecore.TaskUtils import task, cleanup, error_cleanup
+from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from mxcubecore import HardwareRepository as HWR
 
 class ArinaxEiger2X(AbstractDetector, HardwareObject):
     """
@@ -81,15 +81,15 @@ class ArinaxEiger2X(AbstractDetector, HardwareObject):
         AbstractDetector.init(self)
         HardwareObject.init(self)
 
-        self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
-        self.file_suffix = self.getProperty("file_suffix")
-        self.default_exposure_time = self.getProperty("default_exposure_time")
-        self.default_compression = self.getProperty("default_compression")
-        self.buffer_limit = self.getProperty("buffer_limit")
-        self.dcu = self.getProperty("dcu")
-        self.det_ip_address = self.getProperty("det_ip_address") # 10.30.51.152
-        self.api_version = self.getProperty("api_version")
-        self.trigger_mode = self.getProperty("trigger_mode") # can be inte, ints, exte, exts
+        self.distance_motor_hwobj = self.get_object_by_role("distance_motor")
+        self.file_suffix = self.get_property("file_suffix")
+        self.default_exposure_time = self.get_property("default_exposure_time")
+        self.default_compression = self.get_property("default_compression")
+        self.buffer_limit = self.get_property("buffer_limit")
+        self.dcu = self.get_property("dcu")
+        self.det_ip_address = self.get_property("det_ip_address") # 10.30.51.152
+        self.api_version = self.get_property("api_version")
+        self.trigger_mode = self.get_property("trigger_mode") # can be inte, ints, exte, exts
         self.URL = "http://" + self.det_ip_address + "/%s/api/" + self.api_version + "/%s"
 
         # config needed to be set up for data collection
@@ -116,7 +116,7 @@ class ArinaxEiger2X(AbstractDetector, HardwareObject):
 
         try:
             self.energy_change_threshold = float(
-                self.getProperty("min_trigger_energy_change")
+                self.get_property("min_trigger_energy_change")
             )
         except Exception:
             self.energy_change_threshold = self.energy_change_threshold_default
@@ -474,7 +474,7 @@ class ArinaxEiger2X(AbstractDetector, HardwareObject):
             return 0
 
     def get_latency_time(self):
-        return float(self.getProperty("latency_time"))
+        return float(self.get_property("latency_time"))
 
     def set_energy_threshold(self, threshold):
         """

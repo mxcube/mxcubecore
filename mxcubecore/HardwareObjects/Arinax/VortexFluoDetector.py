@@ -7,9 +7,9 @@ Could use Tango or Epics channels
 import time
 import gevent
 
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects.abstract.AbstractMCA import AbstractMCA
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects.abstract.AbstractMCA import AbstractMCA
 
 import logging
 
@@ -59,22 +59,22 @@ class VortexFluoDetector(AbstractMCA, HardwareObject):
 
     def init(self):
         self.state = "READY"
-        self.pv_base = self.getProperty("pv_base")
+        self.pv_base = self.get_property("pv_base")
         self.adc_clock = 80000000 # Hz  per point
 
 
     def connect_device(self):
         # TODO SET CONNECT PARAMS
-        self.get_channel_object("CONNECT").setValue(1)
+        self.get_channel_object("CONNECT").set_value(1)
         return self.is_connected()
 
     def is_connected(self):
-        return self.get_channel_object("CONNECTED").getValue()
+        return self.get_channel_object("CONNECTED").get_value()
 
     # def read
 
     def get_roi_count(self):
-        return self.get_channel_object("ROI_Sum_Value").getValue()
+        return self.get_channel_object("ROI_Sum_Value").get_value()
 
     #
     # def start(self):
@@ -105,7 +105,7 @@ class VortexFluoDetector(AbstractMCA, HardwareObject):
         Returns:
             list. Raw data.
         """
-        return self.get_channel_object("SumArrayData").getValue()[chmin:chmax]
+        return self.get_channel_object("SumArrayData").get_value()[chmin:chmax]
 
     def read_roi_data(self):
         """Read the data for the predefined ROI
@@ -114,7 +114,7 @@ class VortexFluoDetector(AbstractMCA, HardwareObject):
             list. Raw data for the predefined ROI channels.
         """
 
-        return self.get_channel_object("ROI_Sum_ArrayData").getValue()
+        return self.get_channel_object("ROI_Sum_ArrayData").get_value()
 
     def read_data(self, chmin, chmax, calib):
         """Read the data
@@ -179,8 +179,8 @@ class VortexFluoDetector(AbstractMCA, HardwareObject):
             pass
 
         idx_range = emax - emin
-        self.get_channel_object("ROIDATA_MinY").setValue(emin)
-        self.get_channel_object("ROIDATA_SizeY").setValue(idx_range + 1)
+        self.get_channel_object("ROIDATA_MinY").set_value(emin)
+        self.get_channel_object("ROIDATA_SizeY").set_value(idx_range + 1)
 
     def get_roi(self, **kwargs):
         """Get ROI settings
@@ -192,8 +192,8 @@ class VortexFluoDetector(AbstractMCA, HardwareObject):
             dict. ROI dictionary.
         """
         ROI_dict = {}
-        ROI_dict["ROI_MIN_CHANNEL"] = self.get_channel_object("ROIDATA_MinY").getValue()
-        ROI_dict["ROI_SIZE_CHANNEL"] = self.get_channel_object("ROIDATA_SizeY").getValue()
+        ROI_dict["ROI_MIN_CHANNEL"] = self.get_channel_object("ROIDATA_MinY").get_value()
+        ROI_dict["ROI_SIZE_CHANNEL"] = self.get_channel_object("ROIDATA_SizeY").get_value()
         return ROI_dict
 
     def clear_roi(self, **kwargs):
@@ -259,7 +259,7 @@ class VortexFluoDetector(AbstractMCA, HardwareObject):
 
         # TODO Verify sending channel numbers is correct
         # set NUM_FRAMES_CONFIG ?
-        # self.chan_obj_dict["ROI_SIZE_ENERGY"].setValue(kwargs["erange"])
+        # self.chan_obj_dict["ROI_SIZE_ENERGY"].set_value(kwargs["erange"])
 
     def start_acq(self, cnt_time=None):
         """Start new acquisition. If cnt_time is not specified, counts for preset real time.
@@ -274,18 +274,18 @@ class VortexFluoDetector(AbstractMCA, HardwareObject):
             frame_duration = self.get_roi()["ROI_SIZE_CHANNEL"] * self.adc_clock  # TODO check if this is correct
             num_frames = round(cnt_time / self.frame_duration)  # number of frames of 1 cycle (when Value_RBV=1 ?)
             # TODO check if use of C1_SCA0:Value_RBV is necessary
-            self.get_channel_object("NumImages_RBV").setValue(num_frames)
+            self.get_channel_object("NumImages_RBV").set_value(num_frames)
 
         self.state = "RUNNING"
-        self.get_channel_object("Acquire").setValue(1)
+        self.get_channel_object("Acquire").set_value(1)
 
     def stop_acq(self):
         """Stop the running acquisition"""
-        self.get_channel_object("Acquire").setValue(0)
+        self.get_channel_object("Acquire").set_value(0)
 
     def clear_spectrum(self):
         """Clear the acquired spectrum"""
-        self.get_channel_object("ERASE").getValue()
+        self.get_channel_object("ERASE").get_value()
 
     """ HardwareObject Methods Override """
 
@@ -300,4 +300,4 @@ class VortexFluoDetector(AbstractMCA, HardwareObject):
         Returns:
             string Idle or Acquire
         """
-        return self.get_channel_object("DetectorState_RBV").getValue()
+        return self.get_channel_object("DetectorState_RBV").get_value()

@@ -7,11 +7,11 @@ import time
 import copy
 import logging
 
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.TaskUtils import task, cleanup, error_cleanup
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.TaskUtils import task, cleanup, error_cleanup
 # from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.HardwareObjects.abstract.AbstractDetector import AbstractDetector
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 class ArinaxEigerMockup(AbstractDetector, HardwareObject):
     """
@@ -40,19 +40,20 @@ class ArinaxEigerMockup(AbstractDetector, HardwareObject):
         self.distance_motor_hwobj = None
         # defaults
         self.energy_change_threshold_default = 20
+        self.trigger_mode = "exte"
 
     def init(self):
 
         AbstractDetector.init(self)
         HardwareObject.init(self)
 
-        self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
+        self.distance_motor_hwobj = self.get_object_by_role("distance_motor")
 
-        self.file_suffix = self.getProperty("file_suffix")
-        self.default_exposure_time = self.getProperty("default_exposure_time")
-        self.default_compression = self.getProperty("default_compression")
-        self.buffer_limit = self.getProperty("buffer_limit")
-        self.dcu = self.getProperty("dcu")
+        self.file_suffix = self.get_property("file_suffix")
+        self.default_exposure_time = self.get_property("default_exposure_time")
+        self.default_compression = self.get_property("default_compression")
+        self.buffer_limit = self.get_property("buffer_limit")
+        self.dcu = self.get_property("dcu")
 
         # config needed to be set up for data collection
         # if values are None, use the one from the system
@@ -78,21 +79,29 @@ class ArinaxEigerMockup(AbstractDetector, HardwareObject):
 
         try:
             self.energy_change_threshold = float(
-                self.getProperty("min_trigger_energy_change")
+                self.get_property("min_trigger_energy_change")
             )
         except Exception:
             self.energy_change_threshold = self.energy_change_threshold_default
 
         self.update_state(self.STATES.READY)
 
+    def is_exte_enabled(self):
+        return self.trigger_mode == "exte"
+
     def get_state(self):
         """Get the motor state.
         Returns:
             (enum HardwareObjectState): Motor state.
         """
-        return self.distance_motor_hwobj.get_state()
+        if self.distance_motor_hwobj:
+            return self.distance_motor_hwobj.get_state()
+        return self.STATES.READY
 
     def get_deadtime(self):
+        return 0.01
+
+    def get_latency_time(self):
         return 0.01
 
     def get_distance(self):

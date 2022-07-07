@@ -21,8 +21,8 @@ XML Configuration Example:
 
 """
 
-from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 import logging
 

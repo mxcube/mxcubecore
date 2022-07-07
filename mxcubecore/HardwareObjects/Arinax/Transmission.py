@@ -19,7 +19,7 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 """Transmission """
 
-from HardwareRepository.HardwareObjects.abstract.AbstractTransmission import (
+from mxcubecore.HardwareObjects.abstract.AbstractTransmission import (
     AbstractTransmission,
 )
 
@@ -41,7 +41,7 @@ class Transmission(AbstractTransmission):
         """Initialise from the config"""
         super(Transmission, self).init()
         self.transmission_channel = self.get_channel_object("transmissionChannel")
-        self.transmission_channel.connectSignal("update", self.update_value)
+        self.transmission_channel.connect_signal("update", self.update_value)
         self._transmission = self.get_value()
 
     def _set_value(self, value):
@@ -49,7 +49,7 @@ class Transmission(AbstractTransmission):
         Args:
             value(float): Transmission [%]
         """
-        self.transmission_channel.setValue(value)
+        self.transmission_channel.set_value(value)
         self.update_value(value)
 
         # Busy is set by AbstractActuator, simply set state to ready
@@ -61,4 +61,4 @@ class Transmission(AbstractTransmission):
         Returns:
             (float): Transmission [%]
         """
-        return self.transmission_channel.getValue()
+        return self.transmission_channel.get_value()
