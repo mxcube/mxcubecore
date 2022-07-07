@@ -21,12 +21,10 @@ class ArinaxMD3UP(Microdiff.Microdiff):
             phiy_ref = None
 
         self.readPhase.connect_signal("update", self.current_phase_changed)
-        self.centringPhi = CentringMotor(self.phiMotor, direction=1)
+        self.centringPhi = CentringMotor(self.phiMotor, direction=self.phiMotor.direction) #direction must be 1 on MD3 and mirrored MD2
         self.centringPhiz = CentringMotor(self.phizMotor)
-        self.centringPhiy = CentringMotor(
-            self.phiyMotor, direction=-1, reference_position=None
-        )
-        self.centringSamplex = CentringMotor(self.sampleXMotor, direction=1)
+        self.centringPhiy = CentringMotor(self.phiyMotor, direction=self.phiyMotor.direction, reference_position=None)  #direction must be -1 on MD2 and MD3
+        self.centringSamplex = CentringMotor(self.sampleXMotor, direction=self.sampleXMotor.direction) # direction must be 1 on MD3 and -1 on MD2
         self.centringSampley = CentringMotor(self.sampleYMotor)
         self.scan_nb_frames = 1
 
@@ -126,7 +124,6 @@ class ArinaxMD3UP(Microdiff.Microdiff):
 
     def get_state(self):
         state = self.state_chan.get_value()
-        #print("###################### MD3UP State = " + str(state))
         return state
 
     def setNbImages(self, number_of_images):
@@ -226,7 +223,7 @@ class ArinaxMD3UP(Microdiff.Microdiff):
         self.move_motors(mesh_center.as_dict())
 
         positions = self.get_positions()
-        #import pdb;pdb.set_trace()
+
         """
         # TODO the hack below overrides the num_lines from queue entry
         # that is correct for MD2 but not for MD3
@@ -286,7 +283,6 @@ class ArinaxMD3UP(Microdiff.Microdiff):
             self.centringPhi.direction * self.centringPhi.get_value()
         )
 
-        #import pdb; pdb.set_trace()
         sampx = self.centringSamplex.direction * self.centringSamplex.get_value()
         sampy = self.centringSampley.direction * self.centringSampley.get_value()
 
@@ -334,8 +330,8 @@ class ArinaxMD3UP(Microdiff.Microdiff):
 
     # Override using value from Camera device instead than from exporter MD3 server
     def getCalibrationData(self, offset):
-        # return self.zoomMotor.get_pixels_per_mm()
-        return 500, 500
+        return self.zoomMotor.get_pixels_per_mm()
+
     def motor_positions_to_screen(self, centred_positions_dict):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
             self.zoomMotor.get_value()
@@ -343,11 +339,6 @@ class ArinaxMD3UP(Microdiff.Microdiff):
 
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
-
-        #print("+++++++ motor_positions_to_screen " + str(centred_positions_dict))
-        #print("Mapping motor positions to screen: scale = %f pix/mm %f um/pix" %
-        #      (self.pixelsPerMmY, 1000 / self.pixelsPerMmY)
-        #      )
 
         phi_angle = math.radians(
             self.centringPhi.direction * self.centringPhi.get_value()
@@ -395,8 +386,6 @@ class ArinaxMD3UP(Microdiff.Microdiff):
         x = (sy + phiy) * self.pixelsPerMmY + beam_pos_x
         y = phiz * self.pixelsPerMmZ + beam_pos_y
 
-        #print("MD3: centring point on screen = (%d,%d) from mpos = %s" % (int(x), int(y), str(centred_positions_dict)))
-
         return float(x), float(y)
 
     def move_to_beam(self, x, y):
@@ -442,11 +431,11 @@ class ArinaxMD3UP(Microdiff.Microdiff):
         sampx = sampx + sx
         sampy = sampy + sy
         phiz = phiz + dy
-        # import pdb; pdb.set_trace()
+
         try:
             self.centringSamplex.set_value(sampx)
             self.centringSampley.set_value(sampy)
             self.centringPhiz.set_value(phiz)
         except Exception:
-            msg = "MiniDiff: could not center to beam, aborting"
+            msg = "ArinaxMD3UP: could not center to beam, aborting"
             logging.getLogger("HWR").exception(msg)

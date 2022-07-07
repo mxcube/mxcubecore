@@ -6,6 +6,7 @@ import logging
 # import PyTango
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 from mxcubecore.HardwareObjects.abstract.AbstractNState import BaseValueEnum
+from mxcubecore import HardwareRepository as HWR
 
 """ XML Configuration example
 <device class="Arinax.ArinaxCameraZoom">
@@ -36,7 +37,7 @@ class ArinaxCameraZoom(AbstractNState):
         self.um_per_pixel = self.get_channel_object("video_scale")
         self.um_per_pixel.connect_signal("update", self.update_value)
         self.zoom_levels = self.get_channel_object("num_zoom_levels")
-        limits = (1, self.zoom_levels.get_value()-1)
+        limits = (1, self.zoom_levels.get_value())
         self.set_limits(limits)
         self.state = self.get_channel_object("zoom_state")
 
@@ -68,6 +69,10 @@ class ArinaxCameraZoom(AbstractNState):
         self.update_value(value.value)
         self.update_state(self.STATES.READY)
         self.emit("stateChanged", (self.STATES.READY,))
+        camera_device = HWR.beamline.diffractometer.get_object_by_role("camera")
+        if camera_device is not None:
+            camera_device._zoom_changed()
+
 
     def set_limits(self, limits):
         self._nominal_limits = limits

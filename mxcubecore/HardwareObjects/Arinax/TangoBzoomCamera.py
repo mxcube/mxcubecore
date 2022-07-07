@@ -1,8 +1,8 @@
 import time
 import gevent
-# import array
 import uuid
 from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice
+from mxcubecore import HardwareRepository as HWR
 import logging
 import PyTango
 import struct
@@ -12,6 +12,7 @@ from PIL import Image
 import subprocess
 import psutil
 from mxcubecore.utils.video_utils import streaming_processes
+from mxcube3 import app
 
 """
 <device class="Arinax.TangoBzoomCamera">
@@ -28,6 +29,7 @@ from mxcubecore.utils.video_utils import streaming_processes
   <type>bzoom</type>
   <encoding>rgb24</encoding>
   <scale>1</scale>
+  <python_dir>/home/arinax/.conda/envs/mxcubecore/bin/python</python_dir>
 </device>
 """
 
@@ -48,6 +50,7 @@ class TangoBzoomCamera(AbstractVideoDevice):
         # and the second the desried output format. The image is
         # passed on as it is of the video mode is not in the dictionary
         self._FORMATS = {
+            "Y8": "L",
             "RGB8": "L",
             "RGB24": "RGB",
             "RGB32": "RGBA"
@@ -57,8 +60,8 @@ class TangoBzoomCamera(AbstractVideoDevice):
         logging.getLogger("HWR").info("initializing camera object")
         tangoname = self.get_property("tangoname")
         self.device = PyTango.DeviceProxy(tangoname)
-        # self.video_mode = self.add_channel(
-        #     {"type": "tango", "name": "video_mode"}, self.get_property("camera_video_mode"))
+        self.video_mode = self.add_channel(
+            {"type": "tango", "name": "video_mode"}, self.get_property("camera_video_mode"))
         self.image_attr = self.add_channel(
             {"type": "tango", "name": "video_last_image"}, self.get_property("image_channel"))
         self.exposure = self.add_channel(
@@ -74,10 +77,11 @@ class TangoBzoomCamera(AbstractVideoDevice):
         if self.get_property("interval"):
             self.pollInterval = self.get_property("interval")
         self.stopper = False
-        # self.camera_format = self.get_video_mode()
-        self.camera_format = self.get_property("video_mode")
+        self.camera_format = self.get_video_mode()
+        # self.camera_format = self.get_property("video_mode")
         # self.video_live = False
         self.cam_name = self.get_property("username")
+        self.python_executable = self.get_property("python_dir")
         self._current_stream_size = "-1, -1"
         self._quality = self.get_property("compression", 10)
         self._debug = self.get_property("debug", False)
@@ -87,8 +91,17 @@ class TangoBzoomCamera(AbstractVideoDevice):
 
         AbstractVideoDevice.init(self)
 
+    def _zoom_changed(self):
+        if app.MXCUBEApplication.VIDEO_FORMAT == "MJPEG":
+            self.camera_format = self.get_video_mode()
+        # if app.MXCUBEApplication.VIDEO_FORMAT == "MPEG1":
+        #     if self._video_stream_process:
+        #         self.restart_streaming()
+                # import pdb; pdb.set_trace()
+
+
     def get_video_mode(self):
-        return self._FORMATS[self.video_mode.getValue()]
+        return self._FORMATS[self.video_mode.get_value()]
 
     """Implementation of Abstract methods"""
 
@@ -171,7 +184,7 @@ class TangoBzoomCamera(AbstractVideoDevice):
             except Exception as ex:
                 self.log.error("Exception while polling image from Tango Camera: ", ex)
 
-    def connectNotify(self, signal):
+    def connect_notify(self, signal):
         if signal == "imageReceived":
             if self.image_polling is None:
                 self.image_polling = gevent.spawn(
@@ -256,11 +269,11 @@ class TangoBzoomCamera(AbstractVideoDevice):
             # python_executable = os.sep.join(
             #     os.path.dirname(os.__file__).split(os.sep)[:-2] + ["bin", "python"]
             # )
-            python_executable = "/home/arinax/mx3env_py3/bin/python3"
+            # python_executable = "/home/arinax/.conda/envs/mxcubecore/bin/python"
 
             self._video_stream_process = subprocess.Popen(
                 [
-                    python_executable,
+                    self.python_executable,
                     streaming_processes.__file__,
                     self.get_property("tangoname"),
                     "%s, %s" % (self.get_width(), self.get_height()),
