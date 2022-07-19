@@ -1,0 +1,9 @@
+<object class="XalocOnlineProcessing">
+  <object href="/mxcollect" role="collect"/>
+  <object href="/mini-diff" role="diffractometer"/>
+  <object href="/beamstop-mockup" role="beamstop"/>
+  <processing_command>/beamlines/bl13/controls/production/software/dozor_launcher.sh</processing_command>
+  <!--processing_command>/beamlines/bl13/sdm/production/processing_xaloc/edna-mx/dozor/run_dozor.sh</processing_command-->
+<!--  <result_type>random</result_type>-->
+<!--  <run_as_mockup>True</run_as_mockup>-->
+</object>

@@ -1,0 +1,14 @@
+<equipment class="XalocImageTracking">
+   <taurusname>bl13/ct/pilatus</taurusname>
+
+   <!--   <channel type="sardana" name="state">state</channel>-->
+<!--   <channel type="sardana" name="status">status</channel>-->
+<!--   <command type="sardana" name="start">start</command>-->
+<!--   <command type="sardana" name="stop">stop</command>-->
+   <command type="sardana" name="send_image">send_image</command>
+
+<!--   <executable>adxv</executable>-->
+<!--   <host>ctbl1302</host>-->
+<!--   <port>8100</port>-->
+<!--   <autofront>True</autofront>-->
+</equipment>

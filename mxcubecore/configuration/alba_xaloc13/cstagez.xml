@@ -1,0 +1,8 @@
+<device class="XalocSardanaMotor">
+  <username>StageZ</username>
+  <taurusname>cstagez</taurusname>
+  <actuator_name>StageZ</actuator_name>
+  <guistep>45</guistep>
+  <!-- interval>500</interval -->
+  <threshold>0.0001</threshold>
+</device>
