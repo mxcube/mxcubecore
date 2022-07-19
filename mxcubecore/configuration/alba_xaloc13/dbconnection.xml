@@ -1,13 +1,14 @@
 <!-- object class="ALBAISPyBClient" -->
-<object class="ALBAISPyBClient">
+<object class="XalocISPyBClient">
 
   <loginType>proposal</loginType>
   <authServerType>ldap</authServerType>
 
-  <ws_root>https://ispybtest.cells.es/ispyb/ispyb-ws/ispybWS/</ws_root>
+  <!--ws_root>https://ispybtest.cells.es/ispyb/ispyb-ws/ispybWS/</ws_root-->
+  <ws_root>https://ispyb.cells.es/ispyb/ispyb-ws/ispybWS/</ws_root>
 
-  <ws_username>user</ws_username>
-  <ws_password>password</ws_password>
+  <ws_username>wservice</ws_username>
+  <ws_password>jS625Kyg*3DA,;:z</ws_password>
 
 
   <ws_collection>ToolsForCollectionWebService</ws_collection>
@@ -24,7 +25,7 @@
        mxCuBE 1.0 works with the new xml files (ie. cherry picking
        commits from master to 1.0 or merging)
   -->
-  <beamline_name>MX-XALOC</beamline_name>
+  <beamline_name>MX-BL13</beamline_name>
   <proposals>
      <proposal>
        <code>mx</code>

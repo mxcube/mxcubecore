@@ -3,7 +3,7 @@
   <object href="/supervisor" role="supervisor"/>
   <object href="/mini-diff" role="diffractometer"/>
   <object href="/omega" role="omega"/>
-  <object href="/Qt4_graphics-manager" role="graphics_manager"/>
+  <!-- object href="/Qt4_graphics-manager" role="graphics_manager"/ -->
   <object href="/dbconnection" role="lims_client"/>
 
   <object href="/auto-processing" role="auto_processing"/>

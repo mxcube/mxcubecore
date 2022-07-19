@@ -1,7 +1,8 @@
-<device class="SardanaMotor">
+<device class="XalocSardanaMotor">
   <username>Omega X</username>
   <taurusname>omegax</taurusname>
   <actuator_name>OmegaX</actuator_name>
+  <threshold>0.00</threshold>
   <!--
   <channel type="sardana" polling="events" name="position">Position</channel>
   <channel type="sardana" polling="events" name="state">State</channel>
