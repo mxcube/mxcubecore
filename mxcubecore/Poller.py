@@ -90,7 +90,7 @@ class _Poller:
         self.error_callback_ref = saferef.safe_ref(error_callback)
         self.compare = compare
         self.old_res = NotInitializedValue
-        self.queue = _threading.Queue() 
+        self.queue = queue.Queue()#_threading.Queue() 
         self.delay = 0
         self.stop_event = Event()
 

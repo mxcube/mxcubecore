@@ -36,7 +36,9 @@ import time
 import importlib
 from datetime import datetime
 
+#RB: no module named ruamel.yaml, conda environment update needed?
 from ruamel.yaml import YAML
+#import yaml
 
 from mxcubecore.utils.conversion import string_types, make_table
 from mxcubecore.dispatcher import dispatcher
@@ -53,9 +55,11 @@ del sys.modules["_socket"]
 
 # If you want to write out copies of the file, use typ="rt" instead
 # pure=True uses yaml version 1.2, with fewere gotchas for strange type conversions
+#RB: since YAML doesnt exist, remove this line
 yaml = YAML(typ="safe", pure=True)
 # The following are not needed for load, but define the default style.
 yaml.default_flow_style = False
+#RB: yaml module has no attribute indent, probably needs the ruamel version
 yaml.indent(mapping=4, sequence=4, offset=2)
 
 
@@ -176,7 +180,9 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
                 (role, class_name, configuration_file, "%.1d" % load_time, msg1)
             )
             msg0 = "Done loading contents"
-        for role1, config_file in _objects:
+        #RB: critical bug, objects does not have an attibute items
+        for role1, config_file in _objects.items():
+        #for role1, config_file in _objects:
             fname, fext = os.path.splitext(config_file)
             if fext == ".yml":
                 load_from_yaml(
