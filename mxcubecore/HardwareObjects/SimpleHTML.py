@@ -131,7 +131,7 @@ def create_json_images(image_list):
     return json_item
 
 
-def generate_parallel_processing_report(mesh_scan_results, params_dict):
+def generate_online_processing_report(mesh_scan_results, params_dict):
     json_dict = {"items": []}
 
     html_file = open(params_dict["html_file_path"], "w")
