@@ -1,0 +1,11 @@
+<device class="XalocDigitalZoom">
+  <username>Zoom</username>
+  <taurusname>bl13/eh/bzoomspecific</taurusname>
+  <alias>zoom</alias>
+  <!--channel type="sardana" polling="200" name="value">video_zoom_percent</channel-->
+  <!--channel type="sardana" polling="200" name="position">video_zoom_idx</channel-->
+  <channel type="sardana" polling="500" name="position">zoom_index</channel>
+  <channel type="sardana" polling="1000" name="state">State</channel>
+<!--  This is the backlight IOR device-->
+  <!--channel type="sardana" taurusname="ioregister/eh_zoom_tangoior_ctrl/2" name="blight">Value</channel-->
+</device>

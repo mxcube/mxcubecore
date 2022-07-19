@@ -1,0 +1,12 @@
+<object class="XalocEDNACharacterisation">
+
+  <!--<edna_command>/users/blissadm/local/bin/edna_script.sh</edna_command>-->
+  <!--<edna_default_file>/homelocal/sicilia/MXCuBE/local/hardware_objects.xml/edna_defaults.xml</edna_default_file>-->
+  <!--<edna_default_file>/homelocal/sicilia/staging/MXCuBE-prod/bl13_config/hardware_objects.xml/edna_defaults.xml</edna_default_file>-->
+  <!--<edna_default_file>/homelocal/sicilia/staging/bl13_processing/edna-mx/XSDataInput_templates/mxcube/edna_defaults.xml</edna_default_file>-->
+  <object href="/mxcollect" role="collect" />
+  <object href="/cluster" role="cluster"/>
+  <edna_default_file>/beamlines/bl13/controls/production/git/bl13_processing/edna-mx/XSDataInput_templates/mxcube/edna_defaults.xml</edna_default_file>
+  <!--<variables_ds>bl13/ct/variables</variables_ds>-->
+  
+</object>

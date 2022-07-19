@@ -1,0 +1,5 @@
+<device class="XalocSardanaMotor">
+  <username>Kappa</username>
+  <taurusname>kappaalign</taurusname>
+  <actuator_name>Kappa</actuator_name>
+</device>
