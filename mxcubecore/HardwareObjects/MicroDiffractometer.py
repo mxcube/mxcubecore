@@ -87,6 +87,7 @@ class MicroDiffractometer(AbstractDiffractometer):
         exporter_address = self.get_property("exporter_address")
         _host, _port = exporter_address.split(":")
         self._exporter = Exporter(_host, int(_port))
+        self.head_type = self._get_head_type
 
     def abort(self):
         """Immediately terminate action."""
@@ -141,58 +142,40 @@ class MicroDiffractometer(AbstractDiffractometer):
             while not self._ready:
                 sleep(0.5)
 
-    def set_value_motors(self, motors_positions_list, simultaneous=True, timeout=None):
+    def set_value_motors(self, motors_positions_dict, simultaneous=True, timeout=None):
         """Move specified motors to the requested positions.
         Args:
-            motors_positions_list (list): list of tuples (motor role, target value).
+            motors_positions_dict (dict): Dictionary {motor_role: target_value}.
             simultaneous (bool): Move the motors simultaneously (True - default) or not.
             timeout (float): optional - timeout [s],
-                             If timeout = 0: return at once and do not wait
+                             if timeout = 0: return at once and do not wait,
                              if timeout is None: wait forever (default).
         Raises:
             TimeoutError: Timeout
             KeyError: The name does not correspond to an existing motor
         """
         # prepare the command
-        for mot, pos in motors_positions_list:
+        argin = ""
+        for role, pos in motors_positions_dict.items():
             try:
-                name = self.motors_hwobj[mot].name
-                argin += "%s=%0.3f;" % (name, pos)
+                name = self.motors_hwobj[role].name
+                argin += f"{name}={pos:0.3f};"
             except KeyError:
                 raise
 
         self._exporter.execute("startSimultaneousMoveMotors", (argin,))
-        if timeout == 0:
-            return
-        self.wait_ready(timeout)
-
-    def get_value_motors(self, motors_list=None):
-        """Get the positions of diffractometer motors. If no specific motor
-           roles requested in the motors_list argument, return the positions
-           of all the availble motors.
-        Args:
-            motors_list (list): List of motor roles.
-        Returns:
-            (dict): dict {motor role: position}
-        """
-        motors_positions_dict = super().get_value_motors(motors_list)
-        if not self.in_kappa_mode:
-            motors_positions_dict.update({"kappa": None, "kappa_phi": None})
-        return motors_positions_dict
+        self._wait_ready(timeout)
 
     @property
-    def get_head_type(self):
-        """Get the head type
+    def _get_head_type(self):
+        """Get the head type.
         Returns:
             head_type(enum): Head type
         """
         try:
-            self.head_type = DiffractometerHead(
-                self._exporter.read_property("HeadType")
-            )
+            return DiffractometerHead(self._exporter.read_property("HeadType"))
         except ValueError:
-            self.head_type = DiffractometerHead.UNKNOWN
-        return self.head_type
+            return DiffractometerHead.UNKNOWN
 
     def _set_phase(self, phase):
         """Specific implementation to set the diffractometer to selected phase
@@ -241,7 +224,7 @@ class MicroDiffractometer(AbstractDiffractometer):
             end (float): omega end position.
             exptime (float): scan exposure time (total).
             timeout (float): optional - timeout [s],
-                             If timeout = 0: return at once and do not wait
+                             if timeout = 0: return at once and do not wait,
                              if timeout is None: wait forever (default).
         Raises:
             RuntimeError: Timeout waiting for status ready.
@@ -262,7 +245,7 @@ class MicroDiffractometer(AbstractDiffractometer):
             end (float): scan end position.
             exptime (float): scan exposure time (total).
             timeout (float): optional - timeout [s],
-                             If timeout = 0: return at once and do not wait
+                             if timeout = 0: return at once and do not wait,
                              if timeout is None: wait forever (default).
         Raises:
             RuntimeError: Timeout waiting for status ready.
@@ -302,10 +285,10 @@ class MicroDiffractometer(AbstractDiffractometer):
             nb_frames_total (int): Total number of frames
             grid_centre (list): List of tuples (motor_role, position)
                                 representing the centre of the mesh grid.
-            mesh_range (dict): Hirizontal and vertical range.
+            mesh_range (dict): Horizontal and vertical range.
             dead_time (float): Dead time between the adjust the pulses.
             timeout (float): optional - timeout [s],
-                             If timeout = 0: return at once and do not wait
+                             if timeout = 0: return at once and do not wait,
                              if timeout is None: wait forever (default).
         Raises:
             RuntimeError: Timeout waiting for status ready.
@@ -344,7 +327,7 @@ class MicroDiffractometer(AbstractDiffractometer):
             pulse_period (float): The period of the pulse sent to the detector.
             nb_pulse (int): Number of pulses to be sent.
             timeout (float): optional - timeout [s],
-                             If timeout = 0: return at once and do not wait
+                             if timeout = 0: return at once and do not wait,
                              if timeout is None: wait forever (default).
         Raises:
             RuntimeError: Timeout waiting for status ready.
@@ -367,7 +350,7 @@ class MicroDiffractometer(AbstractDiffractometer):
                            added to the last position of each scan and will
                            be the start position of the consequent scan.
             timeout (float): optional - timeout [s],
-                             If timeout = 0: return at once and do not wait
+                             if timeout = 0: return at once and do not wait,
                              if timeout is None: wait forever (default).
         Raises:
             RuntimeError: Timeout waiting for status ready.
