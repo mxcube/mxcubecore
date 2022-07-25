@@ -138,6 +138,10 @@ class GphlWorkflow(HardwareObjectYaml):
         # Configurable file paths
         self.file_paths = {}
 
+        # TEST mxcube3 UI
+        self.gevent_event = gevent.event.Event()
+        self.params_dict = {}
+
     def _init(self):
         super(GphlWorkflow, self)._init()
 
@@ -273,6 +277,8 @@ class GphlWorkflow(HardwareObjectYaml):
             # Set detector distance and resolution
             distance = data_model.detector_setting.axisSettings["Distance"]
             HWR.beamline.detector.distance.set_value(distance, timeout=30)
+        print ('@~@~ TEST:')
+        self.test_dialog()
 
     def execute(self):
 
@@ -2191,3 +2197,119 @@ class GphlWorkflow(HardwareObjectYaml):
                 raise ValueError("Emulator hkli file %s does not exist" % hklfile)
         #
         return crystal_data, hklfile
+
+
+    def test_dialog(self):
+        characterisationExposureTime = 1.0
+        osc_range = 2.0
+        transmission = 29.6
+        resolution = 2.1
+        listDialog = [
+            {
+                "variableName": "no_reference_images",
+                "label": "Number of reference images",
+                "type": "int",
+                "defaultValue": 2,
+                "unit": "",
+                "lowerBound": 1,
+                "upperBound": 4,
+            }, {
+                "variableName": "angle_between_reference_images",
+                "label": "Angle between reference images",
+                "type": "combo",
+                "defaultValue": "90",
+                "textChoices": ["30", "45", "60", "90"],
+            }, {
+                "variableName": "characterisationExposureTime",
+                "label": "Characterisation exposure time",
+                "type": "float",
+                "value": characterisationExposureTime,
+                "unit": "%",
+                "lowerBound": 0.0,
+                "upperBound": 100.0,
+            }, {
+                "variableName": "osc_range",
+                "label": "Total oscillation range",
+                "type": "float",
+                "value": osc_range,
+                "unit": "%",
+                "lowerBound": 0.1,
+                "upperBound": 10.0,
+            }, {
+                "variableName": "transmission",
+                "label": "Transmission",
+                "type": "float",
+                "value": transmission,
+                "unit": "%",
+                "lowerBound": 0,
+                "upperBound": 100.0,
+            }, {
+                "variableName": "resolution",
+                "label": "Resolution",
+                "type": "float",
+                "defaultValue": resolution,
+                "unit": "A",
+                "lowerBound": 0.5,
+                "upperBound": 7.0,
+            }, {
+                "variableName": "do_data_collect",
+                "label": "Do data collection?",
+                "type": "combo",
+                "textChoices": ["true", "false"],
+                "value": "false",
+            }
+        ]
+        # self.emit("parametersNeeded", (listDialog,))
+        from mxcubecore.utils import dialog
+        dictDialog = dialog.create_test_dict(listDialog, "GphlTestDialog")
+        print ('@~@~ got dialog dict')
+        for tpl in dictDialog.items():
+            print ('  --> %s: %s' % tpl)
+        return_params = self.open_dialog(dictDialog)
+
+        print ('@~@~ DIALOG TEST DONE')
+        for tpl in return_params.items():
+            print ('  --> %s: %s' % tpl)
+
+    def open_dialog(self, dict_dialog):
+        # If necessary unblock dialog
+        print ('@~@~ open_dialog')
+        for tpl in dict_dialog.items():
+            print ('  --> %s: %s' % tpl)
+        if not self.gevent_event.is_set():
+            self.gevent_event.set()
+        self.params_dict = dict()
+        if "reviewData" in dict_dialog and "inputMap" in dict_dialog:
+            review_data = dict_dialog["reviewData"]
+            for dict_entry in dict_dialog["inputMap"]:
+                if "value" in dict_entry:
+                    value = dict_entry["value"]
+                else:
+                    value = dict_entry["defaultValue"]
+                self.params_dict[dict_entry["variableName"]] = str(value)
+            print ('@~@~ emitting gphlParametersNeeded')
+            self.emit("gphlParametersNeeded", (review_data,))
+            print ('@~@~ DONE emitting gphlParametersNeeded')
+            # self.state.value = "OPEN"
+            self.gevent_event.clear()
+            print ('@~@~ cleared event')
+            ii = 0
+            while not self.gevent_event.is_set():
+                ii += 1
+                self.gevent_event.wait()
+                time.sleep(0.1)
+                print ('@~@~ waiting, ', ii)
+                if ii > 60:
+                    print ('@~@~ TIMED OUT')
+                    return self.params_dict
+            print ('@~@~ event done set, returning')
+        return self.params_dict
+
+    def get_values_map(self):
+        return self.params_dict
+
+    def set_values_map(self, params):
+        print ('@~@~ in set_values_map')
+        self.params_dict = params
+        self.gevent_event.set()
+        print ('@~@~ DONE set_values_map')
