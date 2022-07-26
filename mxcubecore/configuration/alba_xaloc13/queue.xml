@@ -1,3 +1,5 @@
 <object class="QueueManager">
+  <!-- 
   <object href="/beamline-setup" role="beamline_setup"/>
+  -->
 </object>
