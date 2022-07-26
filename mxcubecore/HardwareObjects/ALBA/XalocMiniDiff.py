@@ -79,7 +79,6 @@ class XalocMiniDiff(GenericDiffractometer):
         GenericDiffractometer.__init__(self, *args)
         self.logger = logging.getLogger("HWR.XalocMiniDiff")
         self.userlogger = logging.getLogger("user_level_log")
-        self.calibration_hwobj = None
         self.centring_hwobj = None
         self.super_hwobj = None
         self.chan_state = None
@@ -312,23 +311,19 @@ class XalocMiniDiff(GenericDiffractometer):
 
     def getCalibrationData(self, offset=None):
         """
-        Get pixel size for OAV system in mm
+        Returns the number of pixels per mm for the camera image
 
         @offset: Unused
         @return: 2-tuple float
+
         """
         #self.logger.debug("Getting calibration data")
-        # This MUST be equivalent:
-        # calibration uses the zoom percentage
-        #calibx, caliby = self.calibration_hwobj.get_calibration()
-        # zoom motor use zoom index
-        #calibx, caliby = self.calibration_hwobj.get_calibration()
         calibx, caliby = [1,1]
         if self.zoom_motor_hwobj != None:
             calibx, caliby = self.zoom_motor_hwobj.get_calibration()
         else: 
             self.userlogger.error('zoom_motor_hwobj not defined. The bzoom camera DS probably needs to be reset ')
-        return 1000.0 / caliby, 1000.0 / caliby
+        return 1000.0 / calibx, 1000.0 / caliby
 
     def get_pixels_per_mm(self):
         """
