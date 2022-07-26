@@ -29,11 +29,9 @@ from mxcubecore.HardwareObjects.DozorOnlineProcessing import (
 
 from XSDataCommon import XSDataBoolean
 from XSDataCommon import XSDataDouble
+from XSDataCommon import XSDataFloat
 from XSDataCommon import XSDataInteger
 from XSDataCommon import XSDataString
-from XSDataControlDozorv1_1 import XSDataInputControlDozor
-from XSDataControlDozorv1_1 import XSDataResultControlDozor
-from XSDataControlDozorv1_1 import XSDataControlImageDozor
 
 import numpy
 
@@ -113,12 +111,15 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
 #                close_fds=True,
             )
 
-    def create_processing_input_file(self, processing_input_filename):
+    def create_processing_input_file1_1(self, processing_input_filename):
         """Creates dozor input file base on data collection parameters
 
         :param processing_input_filename
         :type : str
         """
+        from XSDataControlDozorv1_1 import XSDataInputControlDozor
+        from XSDataControlDozorv1_1 import XSDataResultControlDozor
+        from XSDataControlDozorv1_1 import XSDataControlImageDozor
 
         self.logger.debug('Creating Dozor input file %s' % processing_input_filename )
 
@@ -140,6 +141,52 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
         #input_file.setBeamstopSize(XSDataDouble(self.beamstop_hwobj.get_size()))
         #input_file.setBeamstopDistance(XSDataDouble(self.beamstop_hwobj.get_distance()))
         #input_file.setBeamstopDirection(XSDataString(self.beamstop_hwobj.get_direction()))
+
+        input_file.exportToFile(processing_input_filename)
+
+    def create_processing_input_file1_0(self, processing_input_filename):
+        """Creates dozor input file base on data collection parameters using version 1_0
+
+        :param processing_input_filename
+        :type : str
+        """
+        from XalocXSDataControlDozorv1_0 import XSDataInputControlDozor
+        from XalocXSDataControlDozorv1_0 import XSDataResultControlDozor
+        from XalocXSDataControlDozorv1_0 import XSDataControlImageDozor
+
+        self.logger.debug('Creating Dozor input file %s' % processing_input_filename )
+        self.logger.debug('Data collection id %d' % self.params_dict["collection_id"] )
+
+        input_file = XSDataInputControlDozor()
+        input_file.setDataCollectionId(
+            XSDataInteger(
+                self.params_dict["collection_id"]
+            )
+        )
+        input_file.setDoISPyBUpload(
+            XSDataBoolean(True)
+        )
+        input_file.setBatchSize( XSDataInteger(self.params_dict["images_per_line"]) )
+        #input_file.setFirst_image_number(XSDataInteger(self.params_dict["first_image_num"]))
+        #input_file.setLast_image_number(XSDataInteger(self.params_dict["images_num"]))
+        #input_file.setFirst_run_number(XSDataInteger(self.params_dict["run_number"]))
+        #input_file.setLast_run_number(XSDataInteger(self.params_dict["run_number"]))
+        #input_file.setLine_number_of(XSDataInteger(self.params_dict["lines_num"]))
+        #input_file.setReversing_rotation(
+            #XSDataBoolean(self.params_dict["reversing_rotation"])
+        #)
+        ##TODO: the pixel sizes are 0??
+        #pixel_size = HWR.beamline.detector.get_pixel_size()
+        #input_file.setPixelMin(XSDataInteger(pixel_size[0]))
+        #input_file.setPixelMax(XSDataInteger(pixel_size[1]))
+        ##input_file.setPixelMin(XSDataInteger(HWR.beamline.detector.get_pixel_min()))
+        ##input_file.setPixelMax(XSDataInteger(HWR.beamline.detector.get_pixel_max()))
+        ##input_file.setBeamstopSize(XSDataDouble(self.beamstop_hwobj.get_size()))
+        ##input_file.setBeamstopDistance(XSDataDouble(self.beamstop_hwobj.get_distance()))
+        ##input_file.setBeamstopDirection(XSDataString(self.beamstop_hwobj.get_direction()))
+        #input_file.setBeamstopSize( XSDataDouble(1.5) )
+        #input_file.setBeamstopDistance( XSDataDouble(34)  )
+        #input_file.setBeamstopDirection( XSDataString("Y") )
 
         input_file.exportToFile(processing_input_filename)
 
