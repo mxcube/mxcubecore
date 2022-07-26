@@ -71,7 +71,7 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
                 self.params_dict["process_directory"], "dozor_input.xml"
             )
 
-        self.create_processing_input_file1_0(input_filename)
+        self.create_processing_input_file1_1(input_filename)
 
         # results = {"raw" : self.results_raw,
         #           "aligned": self.results_aligned}
