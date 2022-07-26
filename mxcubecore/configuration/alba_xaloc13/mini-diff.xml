@@ -3,7 +3,6 @@
   <taurusname>bl13/eh/diff</taurusname>
 
   <!-- Specific for Xaloc -->
-  <object role="calibration" hwrid="/calibration"/>
 
   <object href="/limavideo" role="camera"/>
   <object href="/omega" role="phi"/>
