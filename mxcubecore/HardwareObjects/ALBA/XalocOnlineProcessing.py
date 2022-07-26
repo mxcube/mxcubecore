@@ -332,7 +332,7 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
         for score_key in self.results_raw.keys():
             if (
                 self.grid
-                and self.results_raw[score_key].size == self.params_dict["images_num"]
+                #and self.results_raw[score_key].size == self.params_dict["images_num"]
             ):
                 for cell_index in range(start_index, end_index + 1):
                     col, row = self.grid.get_col_row_from_image_serial(
@@ -342,9 +342,8 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
                         col < self.results_aligned[score_key].shape[0]
                         and row < self.results_aligned[score_key].shape[1]
                     ):
-                        self.results_aligned[score_key][col][row] = self.results_raw[
-                            score_key
-                        ][cell_index]
+                        self.results_aligned[score_key][col][row] = \
+                            self.results_raw[ score_key ][ cell_index ]
             else:
                 self.results_aligned[score_key] = self.results_raw[score_key]
                 if self.interpolate_results:
@@ -363,7 +362,6 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
 
         if self.grid:
             # TODO: this should depend on the user selection of the self._score_type_cbox selection in the brick
-            # IS this even used? The code doesnt get here
             self.grid.set_score(self.results_raw["score"]) 
             (center_x, center_y) = ndimage.measurements.center_of_mass(
                 self.results_aligned["score"]
