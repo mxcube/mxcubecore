@@ -463,7 +463,10 @@ class XalocCats(Cats90):
         # This runs the AbstractSampleChanger method!
         ok = self._execute_task(SampleChangerState.Loading,
                                  wait, self._do_load, sample, None, use_ht)
-        if not ok: self.sample_can_be_centered = False
+        #if not ok: self.sample_can_be_centered = False
+        
+        if ok: HWR.beamline.diffractometer.sample_has_been_centred = False
+        
         return ok
 
     def unload(self, sample_slot=None, shifts=None, wait=False):

@@ -99,6 +99,7 @@ class XalocMiniDiff(GenericDiffractometer):
         self.phi_direction = None # direction of the phi rotation angle as defined in centringMath
         self.phi_centring_direction = None # change centring direction depending on phi value
         self.saved_zoom_pos = None
+        self.sample_has_been_centred = None
         
         # Number of images and total angle range used in automatic centering, defined in centring-math.xml
         self.numCentringImages = None
@@ -107,7 +108,6 @@ class XalocMiniDiff(GenericDiffractometer):
 
     def init(self):
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
-        self.calibration_hwobj = self.get_object_by_role("calibration")
 
         self.centring_hwobj = self.get_object_by_role('centring')
         self.super_hwobj = self.get_object_by_role('beamline-supervisor')
@@ -513,7 +513,9 @@ class XalocMiniDiff(GenericDiffractometer):
         Descript. :
         """
         self.centring_hwobj.initCentringProcedure()
-        #self.head_type = self.chan_head_type.get_value()
+        if not self.sample_has_been_centred: 
+            self.zoom_motor_hwobj.move_to_position( 1 )
+            
         for click in range(3):
             self.user_clicked_event = gevent.event.AsyncResult()
             x, y = self.user_clicked_event.get()
@@ -541,7 +543,10 @@ class XalocMiniDiff(GenericDiffractometer):
         
         # Fix the omegaz (phiz) motor position to the known center
         centred_pos_dict[ self.motor_hwobj_dict['phiz'] ] = self.omegaz_reference
-        #TODO: add the difference between self.motor_hwobj_dict['phiz'] and self.omegaz_reference to centx & centy
+
+        if not self.sample_has_been_centred: 
+            self.zoom_motor_hwobj.move_to_position( self.saved_zoom_pos)
+            self.sample_has_been_centred = True
 
         #self.logger.debug( "centred_pos_dict %s" % str( centred_pos_dict ) )
         
