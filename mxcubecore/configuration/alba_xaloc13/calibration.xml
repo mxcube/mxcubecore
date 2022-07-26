@@ -1,4 +1,4 @@
-<device class="ALBACalibration">
+<device class="XalocCalibration">
   <username>Calibration</username>
   <taurusname>bl13/ct/variables</taurusname>
   <channel type="sardana" name="calibx">OAV_PIXELSIZE_X</channel>

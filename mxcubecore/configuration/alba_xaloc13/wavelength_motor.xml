@@ -1,7 +1,8 @@
-<device class="SardanaMotor">
+<device class="XalocSardanaMotor">
   <username>Wavelength</username>
   <taurusname>wavelength</taurusname>
   <actuator_name>wavelength</actuator_name>
+  <threshold>0.0</threshold>
   <guistep>45</guistep>
   <!-- interval>500</interval -->
 </device>

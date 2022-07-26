@@ -1,23 +1,35 @@
-<equipment class = "ALBACatsMaint">
-  <username>CatsMaint</username>
+<equipment class = "XalocCatsMaint">
+  <username>CatsMaintenance</username>
   <tangoname>bl13/eh/cats</tangoname>    
+  <object href="/cats" role="cats90"/>
   
-  <!--  COMMANDS -->
-
-  <channel type="tango" tangoname="bl13/eh/diff" name="shifts">MountingPosition</channel>
-
-  <command type="tango" tangoname="bl13/eh/supervisor" name="super_abort">Abort</command>
-
+  <!--  COMMANDS 
   <command type="tango" name="_cmdCalibration">calibration</command>
+  <channel type="tango" name="_chnPowered" polling="1000">Powered</channel>
   <command type="tango" name="_cmdPanic">panic</command>
   <command type="tango" name="_cmdPause">pause</command>
   <command type="tango" name="_cmdRestart">restart</command>
   <command type="tango" name="_cmdSendOperation">send_op_cmd</command>
+  <command type="tango" name="_cmdClearMemory">clear_memory</command>
+  <command type="tango" name="_cmdSetTool">settool</command>
+  <command type="tango" name="_cmdSetTool2">settool</command>
+  <command type="tango" name="_cmdRecoverFailure">recoverFailure</command>
+  -->
+  <command type="sardana" taurusname="bl13/eh/supervisor" name="super_abort">Abort</command>
 
-  <!--  CHANNELS -->
-
-  <channel type="tango" name="_chnBarcode" polling="2000">Barcode</channel>
   <channel type="tango" name="_chnAtHome" polling="2000">do_PRO6_RAH</channel>
 
+  <!--  CHANNELS 
+  <channel type="tango" name="_chnPowered" polling="1000">Powered</channel>
+  <channel type="tango" name="_chnState" polling="1000">State</channel>
+  <channel type="tango" name="_chnBarcode" polling="2000">Barcode</channel>
+  <channel type="tango" name="_chnLidSampleOnTool" polling="1000">LidSampleOnTool</channel>
+  <channel type="tango" name="_chnNumSampleOnTool" polling="1000">NumSampleOnTool</channel>
+  <channel type="tango" name="_chnLidLoadedSample" polling="1000">LidSampleOnDiff</channel>
+  <channel type="tango" name="_chnNumLoadedSample" polling="1000">NumSampleOnDiff</channel>
+  -->
+  
+  <channel type="sardana" taurusname="bl13/eh/diff" name="som">SampleOnMagnet</channel>
+  <channel type="sardana" taurusname="bl13/eh/diff" name="shifts">MountingPosition</channel>
 </equipment>
 

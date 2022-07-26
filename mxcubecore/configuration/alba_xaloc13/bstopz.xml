@@ -1,4 +1,4 @@
-<device class="SardanaMotor">
+<device class="XalocSardanaMotor">
   <username>Beam Stop Z</username>
   <taurusname>bstopz</taurusname>
   <actuator_name>bstopz</actuator_name>

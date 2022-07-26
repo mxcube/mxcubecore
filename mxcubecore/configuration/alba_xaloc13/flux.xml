@@ -1,2 +1,7 @@
-<object class="ALBAFlux">
+<object class="XalocFlux">
+    <username>Flux</username>
+    <channel type="sardana" taurusname="pc/mach_attrpc_ctrl/1" name="current" polling="events">value</channel>
+    <channel type="sardana" taurusname="mbattrans" name="transmission" polling="events">position</channel>
+    <channel type="sardana" taurusname="bl13/ct/variables" name="last_flux" polling="events">fluxlast</channel>
+    <channel type="sardana" taurusname="bl13/ct/variables" name="last_flux_norm" polling="events">fluxlastnorm</channel>
 </object>

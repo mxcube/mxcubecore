@@ -1,4 +1,4 @@
-<device class="ALBATransmission">
+<device class="XalocTransmission">
   <username>Transmission</username>
   <taurusname>motor/eh_mbattransmot_ctrl/1</taurusname>
   <channel type="sardana" name="transmission" polling="events">Position</channel>

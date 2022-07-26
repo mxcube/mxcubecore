@@ -1,7 +1,7 @@
-<equipment class="ALBAMachineInfo">
-    <username>Mach</username>
-    <taurusname>mach/ct/gateway</taurusname>
-    <channel type="sardana" name="MachStatus" polling="1000">State</channel>
-    <channel type="sardana" name="MachCurrent" polling="1000">Current</channel>
-    <channel type="sardana" name="TopUpRemaining" polling="1000">TopUpRemaining</channel>
+<equipment class="XalocMachineInfo">
+    <username>MachineInfo</username>
+    <taurusname>tango://alba03.cells.es:10000/sr/ct/gateway</taurusname>
+    <channel type="sardana" name="MachStatus" polling="1000">state</channel>
+    <channel type="sardana" name="MachCurrent" polling="1000">current</channel>
+    <channel type="sardana" name="TopUpRemaining" polling="1000">topupremaining</channel>
 </equipment>

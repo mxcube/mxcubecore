@@ -1,4 +1,4 @@
-<equipment class="ALBASupervisor">
+<equipment class="XalocSupervisor">
     <username>Beamline Supervisor</username>
     <taurusname>bl13/eh/supervisor</taurusname>
     <channel type="sardana" name="detector_cover_open" polling="1000">DetCoverOpen</channel>

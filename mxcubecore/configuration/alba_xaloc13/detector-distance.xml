@@ -1,4 +1,4 @@
-<device class="SardanaMotor">
+<device class="XalocSardanaMotor">
   <username>Detector Distance</username>
   <taurusname>detsamdis</taurusname>
   <actuator_name>Detector Distance</actuator_name>

@@ -1,5 +1,6 @@
-<device class="SardanaMotor">
+<device class="XalocSardanaMotor">
   <username>Kappa</username>
   <taurusname>kappa</taurusname>
   <actuator_name>Kappa</actuator_name>
+  <threshold>0.0005</threshold>
 </device>
