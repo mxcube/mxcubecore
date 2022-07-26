@@ -41,6 +41,7 @@ class XalocSardanaMotor(SardanaMotor):
         self.state_channel = None
         self.taurusname = None
         self.motor_position = 0.0
+        self.last_position_emitted = 0.0
         self.threshold_default = 0.0018
         self.move_threshold_default = 0.0
         self.polling_default = "events"
@@ -113,5 +114,20 @@ class XalocSardanaMotor(SardanaMotor):
             while not self.is_ready(): 
                 time.sleep(0.05)
     
+    def motor_position_changed(self, position=None):
+        """
+        Descript. : called by the position channels update event
+                    if the position change exceeds threshold,
+                    valueChanged is fired
+        """
+        if position is None:
+            position = self.position_channel.get_value()
+            self.last_position_emitted = position
+        if abs(self.last_position_emitted - position) >= self.threshold:
+            self.motor_position = position
+            self.last_position_emitted = position
+            self.emit("valueChanged", (position,))
+            self.motor_state_changed()
+
 
 
