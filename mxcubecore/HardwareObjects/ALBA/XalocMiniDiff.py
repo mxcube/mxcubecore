@@ -724,6 +724,7 @@ class XalocMiniDiff(GenericDiffractometer):
         #self.logger.debug("self.numCentringImages %d, self.centringAngleRange %d" % \
               #(self.numCentringImages, self.centringAngleRange) )
         for image in range( self.numCentringImages ):
+            if self.current_centring_method == None: break
             #self.logger.debug("Harvesting fotos for automatic_centring : x %s, y %s, info %s, surface_score %s" % 
                               #( str(x), str(y), str(info), str(surface_score) ) ) 
             if x > 0 and y > 0:
@@ -742,7 +743,7 @@ class XalocMiniDiff(GenericDiffractometer):
         #self.omega_reference_add_constraint()
         centred_pos_dict = self.centring_hwobj.centeredPosition(return_by_name=False)
         self.emit("newAutomaticCentringPoint", centred_pos_dict)
-      
+    
 
         #TODO: add the difference between self.motor_hwobj_dict['phiz'] and self.omegaz_reference to centx & centy
         vertdist = centred_pos_dict[ self.motor_hwobj_dict['phiz'] ] - self.omegaz_reference 
@@ -884,6 +885,7 @@ class XalocMiniDiff(GenericDiffractometer):
         phi = self.motor_hwobj_dict['kappa_phi'].get_value()
         #IK TODO remove this director call
 
+        # TODO:implement minikappa_correction_hwobj
         #if (c['kappa'], c['kappa_phi']) != (kappa, phi) \
          #and self.minikappa_correction_hwobj is not None:
             ##c['sampx'], c['sampy'], c['phiy']
@@ -947,8 +949,11 @@ class XalocMiniDiff(GenericDiffractometer):
             self.ready_event.set()
             self.centring_time = time.time()
             self.update_centring_status(motor_pos)
-            self.emit_centring_successful()
-            self.emit_progress_message("")
+            if self.current_centring_method == GenericDiffractometer.CENTRING_METHOD_AUTO and  \
+                self.automatic_centring_try_count == self.numAutoCentringCycles or \
+                self.current_centring_method != GenericDiffractometer.CENTRING_METHOD_AUTO: 
+                self.emit_centring_successful()
+                self.emit_progress_message("")
 
     def update_centring_status(self, motor_pos):
         curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
