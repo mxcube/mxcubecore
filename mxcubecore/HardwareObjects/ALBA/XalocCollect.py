@@ -683,7 +683,7 @@ class XalocCollect(AbstractCollect):
         #self.set_pilatus_saving_pattern( measurement_group, savingpattern, wait=True)
         self.set_pilatus_saving_pattern( 'ValueRefEnabled', True, 'pilatus_image', measurement_group, wait=True)
         self.set_pilatus_saving_pattern( 'ValueRefPattern', savingpattern, 'pilatus_image', measurement_group, wait=True)
-        self.logger.debug("set_pilatus_saving_pattern.doorstate = %s" % self.set_pilatus_saving_pattern.doorstate )
+        #self.logger.debug("set_pilatus_saving_pattern.doorstate = %s" % self.set_pilatus_saving_pattern.doorstate )
 
         # save the collection details
         self.logger.info("setting ScanDir")
