@@ -53,15 +53,17 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
     def init(self):
         DozorOnlineProcessing.init(self)
 
+
     def run_processing(self, data_collection):
         """Starts parallel processing
 
-        :param: data_collection: data collection obj
+        :param: data_collection: data collection obj, not used, set in queue_entry
         :type: data_collection: queue_model_objects.DataCollection
 
         """
-        self.data_collection = data_collection
-        self.prepare_processing()
+        #self.data_collection = data_collection
+        #self.logger.debug("data_collection %s" % str(data_collection) )
+        #self.prepare_processing()
 
         input_filename = self.get_input_filename(self.data_collection)
         if not input_filename:
@@ -69,7 +71,7 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
                 self.params_dict["process_directory"], "dozor_input.xml"
             )
 
-        self.create_processing_input_file(input_filename)
+        self.create_processing_input_file1_0(input_filename)
 
         # results = {"raw" : self.results_raw,
         #           "aligned": self.results_aligned}

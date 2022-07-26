@@ -171,12 +171,22 @@ class AbstractCollect(HardwareObject, object):
                 "%Y-%m-%d %H:%M:%S"
             )
 
+            log.info("Collection: Storing data collection in LIMS")
+            self.store_data_collection_in_lims()
+
             logging.getLogger("HWR").info(
                 "Collection parameters: %s" % str(self.current_dc_parameters)
             )
 
-            log.info("Collection: Storing data collection in LIMS")
-            self.store_data_collection_in_lims()
+            if (
+                self.current_dc_parameters['processing_online']
+                and HWR.beamline.online_processing is not None
+            ):
+                HWR.beamline.online_processing.params_dict["collection_id"] = self.current_dc_parameters["collection_id"] 
+                self.online_processing_task = gevent.spawn(
+                    HWR.beamline.online_processing.run_processing, 
+                    self.current_dc_parameters
+                )
 
             log.info(
                 "Collection: Creating directories for raw images and processing files"
