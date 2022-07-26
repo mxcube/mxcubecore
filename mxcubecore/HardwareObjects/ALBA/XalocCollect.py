@@ -478,7 +478,8 @@ class XalocCollect(AbstractCollect):
                       self.mesh_mxcube_slow_motor_name,
                       slow_motor_nr_images,
                       self.mesh_range,
-                      exp_time
+                      exp_time,
+                      self.mesh_center
                     )
             #self.finalize_mesh_scan()
 
@@ -525,7 +526,8 @@ class XalocCollect(AbstractCollect):
                        mesh_mxcube_slow_motor_name, 
                        mesh_num_lines,
                        mesh_range, 
-                       time_interval
+                       time_interval,
+                       mesh_center
                     ):
         """
            mesh scan using Sardana ascanct. It is assumed that the fast motor and slow motor move in a positive direction
@@ -610,12 +612,10 @@ class XalocCollect(AbstractCollect):
                 #self.logger.debug('  scan_start_positions after swap= %s' % self.scan_start_positions )
                 #self.logger.debug('  scan_end_positions after swap= %s' % self.scan_end_positions )
 
-        if self.diffractometer_hwobj.get_property("omegaReference"):
-                #self.logger.debug("\t Property %s" % str( self.diffractometer_hwobj.get_property("omegaReference") ) )
-                omegaz_reference = eval( HWR.beamline.collect.omegaz_reference )
-                self.logger.debug("\t Moving motor %s to %.4f" % ( self.mesh_mxcube_slow_motor_name, omegaz_reference['position'] ) )
-                self.scan_motors_hwobj[ self.mesh_mxcube_slow_motor_name ].wait_ready()
-                self.scan_motors_hwobj[ self.mesh_mxcube_slow_motor_name ].set_value( omegaz_reference['position'], timeout = 10  )
+        self.scan_motors_hwobj[ self.mesh_mxcube_slow_motor_name ].wait_ready()
+        # move motors to center of scan
+        self.move_motors( mesh_center.as_dict() )
+        self.go_to_sampleview()
         self.wait_collection_done(first_image_no, first_image_no + ( mesh_num_frames_per_line * mesh_num_lines ) - 1, total_time + 5)
                 
     # omega_speed and det_trigger are not necessary for sardanized collections            
