@@ -277,8 +277,7 @@ class GphlWorkflow(HardwareObjectYaml):
             # Set detector distance and resolution
             distance = data_model.detector_setting.axisSettings["Distance"]
             HWR.beamline.detector.distance.set_value(distance, timeout=30)
-        print ('@~@~ TEST:')
-        self.test_dialog()
+        # self.test_dialog()
 
     def execute(self):
 
