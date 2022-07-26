@@ -337,8 +337,8 @@ class XalocXSDataInputXia2DIALS(XSDataInput):
     def delDoAnomAndNonanom(self): self._doAnomAndNonanom = None
     doAnomAndNonanom = property(getDoAnomAndNonanom, setDoAnomAndNonanom, delDoAnomAndNonanom, "Property for doAnomAndNonanom")
     # Methods and properties for the 'symm' attribute
-    def getSpaceGroup(self): return self._symm
-    def setSpaceGroup(self, symm):
+    def getSpacegroup(self): return self._symm
+    def setSpacegroup(self, symm):
         if symm is None:
             self._symm = None
         elif symm.__class__.__name__ == "XSDataString":
@@ -346,8 +346,8 @@ class XalocXSDataInputXia2DIALS(XSDataInput):
         else:
             strMessage = "ERROR! XalocXSDataInputXia2DIALS.setSymm argument is not XSDataString but %s" % symm.__class__.__name__
             raise BaseException(strMessage)
-    def delSpaceGroup(self): self._symm = None
-    spacegroup = property(getSpaceGroup, setSpaceGroup, delSpaceGroup, "Property for symm")
+    def delSpacegroup(self): self._symm = None
+    symm = property(getSpacegroup, setSpacegroup, delSpacegroup, "Property for symm")
     # Methods and properties for the 'cell' attribute
     def getUnit_cell(self): return self._cell
     def setUnit_cell(self, cell):
@@ -411,11 +411,11 @@ class XalocXSDataInputXia2DIALS(XSDataInput):
         if self._doAnomAndNonanom is not None:
             self.doAnomAndNonanom.export(outfile, level, name_='doAnomAndNonanom')
         if self._symm is not None:
-            self.symm.export(outfile, level, name_='symm')
+            self.symm.export(outfile, level, name_='spaceGroup')
         if self._cell is not None:
             self._cell.export(outfile, level, name_='cell')
         if self._small_molecule_3dii is not None:
-            self._small_molecule_3dii.export(outfile, level, name_='small_molecule_3dii')
+            self._small_molecule_3dii.export(outfile, level, name_='smallMolecule3dii')
         #TODO: implement this properly using children
         if self._diffractionImage is not None:
             showIndent(outfile, level)

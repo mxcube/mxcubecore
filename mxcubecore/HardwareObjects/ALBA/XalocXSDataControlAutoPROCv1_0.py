@@ -292,8 +292,8 @@ class XalocXSDataInputControlAutoPROC(XSDataInput):
     def delDoAnomAndNonanom(self): self._doAnomAndNonanom = None
     doAnomAndNonanom = property(getDoAnomAndNonanom, setDoAnomAndNonanom, delDoAnomAndNonanom, "Property for doAnomAndNonanom")
     # Methods and properties for the 'symm' attribute
-    def getSpaceGroup(self): return self._symm
-    def setSpaceGroup(self, symm):
+    def getSpacegroup(self): return self._symm
+    def setSpacegroup(self, symm):
         if symm is None:
             self._symm = None
         elif symm.__class__.__name__ == "XSDataString":
@@ -301,8 +301,8 @@ class XalocXSDataInputControlAutoPROC(XSDataInput):
         else:
             strMessage = "ERROR! XSDataInputControlAutoPROC.setSymm argument is not XSDataString but %s" % symm.__class__.__name__
             raise BaseException(strMessage)
-    def delSpaceGroup(self): self._symm = None
-    spacegroup = property(getSpaceGroup, setSpaceGroup, delSpaceGroup, "Property for symm")
+    def delSpacegroup(self): self._symm = None
+    symm = property(getSpacegroup, setSpacegroup, delSpacegroup, "Property for symm")
     # Methods and properties for the 'cell' attribute
     def getUnit_cell(self): return self._cell
     def setUnit_cell(self, cell):
