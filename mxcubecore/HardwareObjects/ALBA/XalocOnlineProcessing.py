@@ -101,7 +101,7 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
                 + line_to_execute 
                 + '\" '
             )
-            logging.getLogger("HWR").debug("Processing DOZOR with command: %s" % line_to_execute)
+            self.logger.debug("Processing DOZOR with command: %s" % line_to_execute)
 
             self.started = True
             subprocess.Popen(
