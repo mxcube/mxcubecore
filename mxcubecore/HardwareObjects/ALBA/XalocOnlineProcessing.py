@@ -84,7 +84,7 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
                 "ParallelProcessing: Start command %s" % self.start_command
                 + "is not executable"
             )
-            logging.getLogger("queue_exec").error(msg)
+            self.logger.error(msg)
             self.set_processing_status("Failed")
         else:
             #TODO: it can be something more complex than a script file
