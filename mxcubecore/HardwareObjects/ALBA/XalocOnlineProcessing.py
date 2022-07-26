@@ -240,6 +240,7 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
         """Method called from EDNA via xmlrpc to set results
         :param batch: list of dictionaries describing processing results
         :type batch: lis
+        Reimplmented here for extra logging
         """
 
         self.logger.debug("batch_processed called, batch is %s" % batch)
