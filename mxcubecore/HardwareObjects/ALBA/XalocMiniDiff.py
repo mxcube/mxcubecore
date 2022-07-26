@@ -884,11 +884,11 @@ class XalocMiniDiff(GenericDiffractometer):
         phi = self.motor_hwobj_dict['kappa_phi'].get_value()
         #IK TODO remove this director call
 
-        if (c['kappa'], c['kappa_phi']) != (kappa, phi) \
-         and self.minikappa_correction_hwobj is not None:
-            #c['sampx'], c['sampy'], c['phiy']
-            c['sampx'], c['sampy'], c['phiy'] = self.minikappa_correction_hwobj.shift(
-            c['kappa'], c['kappa_phi'], [c['sampx'], c['sampy'], c['phiy']], kappa, phi)
+        #if (c['kappa'], c['kappa_phi']) != (kappa, phi) \
+         #and self.minikappa_correction_hwobj is not None:
+            ##c['sampx'], c['sampy'], c['phiy']
+            #c['sampx'], c['sampy'], c['phiy'] = self.minikappa_correction_hwobj.shift(
+            #c['kappa'], c['kappa_phi'], [c['sampx'], c['sampy'], c['phiy']], kappa, phi)
 
         #TODO: beam_x and beam_y are not part of c? These give difference in beam pos with respect to center
         #self.logger.debug('motor_positions_to_screen, zoom_centre x %d, y %d' % \
