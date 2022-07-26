@@ -255,7 +255,7 @@ class XalocOfflineProcessing(HardwareObject):
         # When the user does not give a cell, the cell parameters are set to 0, 
         #  the EDNA autoproc plugin does not accept this
         # TODO: dont add cell parameters unless specified by the user
-        #autoproc_input = self.add_user_input_to_xml(autoproc_input, dc_pars)            
+        autoproc_input = self.add_user_input_to_xml(autoproc_input, dc_pars)            
             
         # Export file
         autoproc_input_filename = os.path.join(output_dir,
@@ -281,7 +281,7 @@ class XalocOfflineProcessing(HardwareObject):
         else:
             raise NotImplementedError("Cannot process with XIA2 without using ISPyB")
         
-        #xia2_input = self.add_user_input_to_xml(xia2_input, dc_pars)            
+        xia2_input = self.add_user_input_to_xml(xia2_input, dc_pars)            
 
         # Export file
         xia2_input_filename = os.path.join(output_dir, "XIA2Input_%d.xml" % collection_id) 
@@ -327,7 +327,7 @@ class XalocOfflineProcessing(HardwareObject):
         self.xia2chem_input_file = xia2_input_filename
 
     def add_user_input_to_xml(self, xsd_autoproc_input, params):
-        residues_num = float(params.get("residues", 0))
+        #residues_num = float(params.get("residues", 0))
         # These lines are not compatible with the GP AutoPROC module
         #if residues_num != 0:
             #xsd_autoproc_input.setNres(XSDataDouble(residues_num))
@@ -335,8 +335,8 @@ class XalocOfflineProcessing(HardwareObject):
         if not isinstance(space_group, int) and len(space_group) > 0:
             xsd_autoproc_input.setSpacegroup(XSDataString(space_group))
         unit_cell = params.get("sample_reference").get("cell", "")
-        if len(unit_cell) > 0:
-            xsd_autoproc_input.setUnit_cell(XSDataString(unit_cell))
+        #if len(unit_cell) > 0:
+            #xsd_autoproc_input.setUnit_cell(XSDataString(unit_cell))
         return xsd_autoproc_input
         
     def trigger_auto_processing(self, dc_pars):
