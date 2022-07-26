@@ -596,8 +596,8 @@ class XalocMiniDiff(GenericDiffractometer):
     # Override GenericDiffractometer to add prepare_centring, which sets omega velocity to 60. 
     def start_automatic_centring(self, sample_info=None, loop_only=False, wait_result=None):
         """
-        Start manual centring. Overrides GenericDiffractometer method.
-        Prepares diffractometer for manual centring.
+        Start Automatic centring. Overrides GenericDiffractometer method.
+        Prepares diffractometer for automatic centring.
         """
         self.automatic_centring_try_count = 0
         
@@ -980,7 +980,7 @@ class XalocMiniDiff(GenericDiffractometer):
 
         # the following lines are used because the lucid3 package installed at xaloc 
         #      does not allow an array as argument. Lucid3 should be updated to use the code below
-        self.logger.debug("starting find_loop")       
+        #self.logger.debug("starting find_loop")       
         #snapshot_filename = os.path.join(tempfile.gettempdir(), "mxcube_sample_snapshot.png")
         #image_array = HWR.beamline.sample_view.camera.get_snapshot(return_as_array=True)
         ## Now flip the image and convert to PIL type image
