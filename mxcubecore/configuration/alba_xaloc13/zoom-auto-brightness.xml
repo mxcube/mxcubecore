@@ -1,5 +1,0 @@
-<device class="ALBAZoomMotorAutoBrightness">
-  <object role="zoom" hwrid="/zoom"></object>
-  <object role="blight" hwrid="/blight"></object>
-</device>
-
