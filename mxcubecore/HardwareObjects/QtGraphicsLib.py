@@ -1005,7 +1005,7 @@ class GraphicsItemGrid(GraphicsItem):
             self.__frame_polygon.setPoint(index, coord[0], coord[1])
 
         if self.__overlay_pixmap:
-            if min(self.__spacing_pix) < 20:
+            if min(self.__spacing_pix) > 20:
                 width = abs(corner_coord[0][0] - corner_coord[1][0])
                 height = abs(corner_coord[0][1] - corner_coord[3][1])
                 self.__overlay_pixmap.setPixmap(
@@ -1015,7 +1015,7 @@ class GraphicsItemGrid(GraphicsItem):
                 self.__overlay_pixmap.setOpacity(self.__fill_alpha / 255.0)
                 self.__overlay_pixmap.setPos(corner_coord[0][0], corner_coord[0][1])
             else:
-                loggin.getLogger("HWR").debug("__overlay_pixmap not visible")
+                logging.getLogger("HWR").debug("__overlay_pixmap not visible")
                 self.__overlay_pixmap.setVisible(False)
 
         self.__grid_size_pix[0] = self.__spacing_pix[0] * self.__num_cols
@@ -1040,7 +1040,7 @@ class GraphicsItemGrid(GraphicsItem):
             self.__frame_polygon.point(0).x(), self.__frame_polygon.point(0).y()
         )
         self.__overlay_pixmap.setOpacity(self.__fill_alpha / 255.0)
-        self.__overlay_pixmap.setVisible(min(self.__spacing_pix) < 20)
+        self.__overlay_pixmap.setVisible(min(self.__spacing_pix) > 20)
 
     def set_center_coord(self, center_coord):
         """
@@ -1059,6 +1059,7 @@ class GraphicsItemGrid(GraphicsItem):
         :param adjust_size: boolean
         :return:
         """
+
         self.__spacing_mm[0] = spacing[0]
         self.__spacing_mm[1] = spacing[1]
         self.__spacing_pix[0] = self.pixels_per_mm[0] * self.__spacing_mm[0]

@@ -258,4 +258,7 @@ class XalocDigitalZoom(Device):
         return x * 1000.0, x * 1000.0
 
     def get_calibration(self):
+        """
+          Maintained for compatibility. Use get_calibration_pixels_per_mm or get_calibration_microns_per_pixel
+        """
         return self.get_calibration_microns_per_pixel()
