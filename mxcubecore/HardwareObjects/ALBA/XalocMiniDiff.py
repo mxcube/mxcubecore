@@ -309,39 +309,24 @@ class XalocMiniDiff(GenericDiffractometer):
             self.current_state = state
             self.emit("minidiffStateChanged", (self.current_state))
 
-    def getCalibrationData(self, offset=None):
-        """
-        Returns the number of pixels per mm for the camera image
-
-        @offset: Unused
-        @return: 2-tuple float
-
-        """
-        #self.logger.debug("Getting calibration data")
-        calibx, caliby = [1,1]
-        if self.zoom_motor_hwobj != None:
-            calibx, caliby = self.zoom_motor_hwobj.get_calibration()
-        else: 
-            self.userlogger.error('zoom_motor_hwobj not defined. The bzoom camera DS probably needs to be reset ')
-        return 1000.0 / calibx, 1000.0 / caliby
-
-    def get_pixels_per_mm(self):
+    def update_pixels_per_mm(self):
         """
         Returns the pixel/mm for x and y. Overrides GenericDiffractometer method.
         """
-        px_x, px_y = self.getCalibrationData()
-        return px_x, px_y
+        if self.zoom_motor_hwobj != None:
+            self.pixels_per_mm_x, self.pixels_per_mm_y = self.zoom_motor_hwobj.get_calibration_pixels_per_mm()
+        self.emit('pixelsPerMmChanged', ((self.pixels_per_mm_x, self.pixels_per_mm_y), ))
 
-    def update_pixels_per_mm(self, *args):
+    def get_pixels_per_mm(self, *args):
         """
         Emit signal with current pixel/mm values.
         """
-        self.pixels_per_mm_x, self.pixels_per_mm_y = self.getCalibrationData()
-        self.emit('pixelsPerMmChanged', ((self.pixels_per_mm_x, self.pixels_per_mm_y), ))
+        return self.pixels_per_mm_x, self.pixels_per_mm_y 
 
     # Overwrite from generic diffractometer
     def update_zoom_calibration(self):
         """
+          This is used by GenericDiffractometer and basically renamed here to specify the calibraion units
         """
         self.update_pixels_per_mm()
 

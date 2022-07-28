@@ -225,7 +225,7 @@ class XalocDigitalZoom(Device):
         # TODO: Bug in Arinax server: state is ALWAYS UNKNOWN
         return True
 
-    def get_calibration(self):
+    def get_calibration_pixels_per_mm(self):
         """
           Returns the pixel size in um for the current zoom level (self.current_position)
         """
@@ -248,4 +248,14 @@ class XalocDigitalZoom(Device):
         #self.logger.debug("Getting calibration from zoom hwobj: position (level) {} pix size (um) {}".
                                #format(self.current_position,x) 
                           #)
-        return x, x
+        return 1000.0/x, 1000.0/x
+
+    def get_calibration_microns_per_pixel(self):
+        """
+          Returns the pixel size in um for the current zoom level (self.current_position)
+        """
+        x,x = self.get_calibration_pixels_per_mm()
+        return x * 1000.0, x * 1000.0
+
+    def get_calibration(self):
+        return self.get_calibration_microns_per_pixel()
