@@ -516,114 +516,114 @@ class GphlWorkflow(HardwareObjectYaml):
             std_dose_rate = 0
         transmission = acq_parameters.transmission
 
-        # define update functions
-
-        def update_function(field_widget):
-            """When image_width or exposure_time change,
-             update rotation_rate, experiment_time and either use_dose or transmission
-            In parameter popup"""
-            parameters = field_widget.get_parameters_map()
-            exposure_time = float(parameters.get("exposure", 0))
-            image_width = float(parameters.get("imageWidth", 0))
-            use_dose = float(parameters.get("use_dose", 0))
-            transmission = float(parameters.get("transmission", 0))
-
-            if image_width and exposure_time:
-                rotation_rate = image_width / exposure_time
-                experiment_time = total_strategy_length / rotation_rate
-                dd0 = {
-                    "rotation_rate": rotation_rate,
-                    "experiment_time": experiment_time,
-                }
-
-                if std_dose_rate:
-                    if use_dose:
-                        use_dose -= data_model.get_dose_consumed()
-                        transmission = (
-                            100 * use_dose / (std_dose_rate * experiment_time)
-                        )
-                        if transmission > 100:
-                            dd0["transmission"] = 100
-                            dd0["use_dose"] = (
-                                use_dose * 100 / transmission
-                                + data_model.get_dose_consumed()
-                            )
-                        else:
-                            dd0["transmission"] = transmission
-                    elif transmission:
-                        use_dose = std_dose_rate * experiment_time * transmission / 100
-                        dd0["use_dose"] = use_dose + data_model.get_dose_consumed()
-                field_widget.set_values(**dd0)
-
-        def update_transmission(field_widget):
-            """When transmission changes, update use_dose
-            In parameter popup"""
-            parameters = field_widget.get_parameters_map()
-            exposure_time = float(parameters.get("exposure", 0))
-            image_width = float(parameters.get("imageWidth", 0))
-            transmission = float(parameters.get("transmission", 0))
-            if image_width and exposure_time and std_dose_rate:
-                experiment_time = exposure_time * total_strategy_length / image_width
-                use_dose = std_dose_rate * experiment_time * transmission / 100
-                field_widget.set_values(
-                    use_dose=use_dose + data_model.get_dose_consumed()
-                )
-
-        def update_resolution(field_widget):
-
-            parameters = field_widget.get_parameters_map()
-            resolution = float(parameters.get("resolution"))
-            dbg = self.resolution2dose_budget(
-                resolution,
-                decay_limit=data_model.get_decay_limit(),
-                relative_sensitivity=data_model.get_relative_rad_sensitivity(),
-            )
-            field_widget.set_values(dose_budget=dbg)
-            use_dose = dbg * budget_use_fraction
-            if use_dose < std_dose_rate * experiment_time:
-                field_widget.set_values(use_dose=use_dose)
-                update_dose(field_widget)
-            else:
-                field_widget.set_values(transmission=100)
-                update_transmission(field_widget)
-
-        def update_dose(field_widget):
-            """When use_dose changes, update transmission and/or exposure_time
-            In parameter popup"""
-            parameters = field_widget.get_parameters_map()
-            exposure_time = float(parameters.get("exposure", 0))
-            image_width = float(parameters.get("imageWidth", 0))
-            use_dose = float(parameters.get("use_dose", 0))
-
-            if image_width and exposure_time and std_dose_rate and use_dose:
-                experiment_time = exposure_time * total_strategy_length / image_width
-                # NB set_values causes successive upate calls for changed values
-                use_dose -= data_model.get_dose_consumed()
-                transmission = 100 * use_dose / (std_dose_rate * experiment_time)
-                if transmission <= 100:
-                    field_widget.set_values(transmission=transmission)
-                else:
-                    # Tranmision over max; adjust exposure_time to compensate
-                    exposure_time = exposure_time * transmission / 100
-                    if (
-                        exposure_limits[1] is None
-                        or exposure_time <= exposure_limits[1]
-                    ):
-                        field_widget.set_values(
-                            exposure=exposure_time, transmission=100
-                        )
-                    else:
-                        # exposure_time over max; set does to highest achievable
-                        exposure_time = exposure_limits[1]
-                        experiment_time = (
-                            exposure_time * total_strategy_length / image_width
-                        )
-                        use_dose = std_dose_rate * experiment_time
-                        field_widget.set_values(
-                            exposure=exposure_time,
-                            transmission=100,
-                            use_dose=use_dose + data_model.get_dose_consumed(),
-                        )
+        # # define update functions
+        #
+        # def update_function(field_widget):
+        #     """When image_width or exposure_time change,
+        #      update rotation_rate, experiment_time and either use_dose or transmission
+        #     In parameter popup"""
+        #     parameters = field_widget.get_parameters_map()
+        #     exposure_time = float(parameters.get("exposure", 0))
+        #     image_width = float(parameters.get("imageWidth", 0))
+        #     use_dose = float(parameters.get("use_dose", 0))
+        #     transmission = float(parameters.get("transmission", 0))
+        #
+        #     if image_width and exposure_time:
+        #         rotation_rate = image_width / exposure_time
+        #         experiment_time = total_strategy_length / rotation_rate
+        #         dd0 = {
+        #             "rotation_rate": rotation_rate,
+        #             "experiment_time": experiment_time,
+        #         }
+        #
+        #         if std_dose_rate:
+        #             if use_dose:
+        #                 use_dose -= data_model.get_dose_consumed()
+        #                 transmission = (
+        #                     100 * use_dose / (std_dose_rate * experiment_time)
+        #                 )
+        #                 if transmission > 100:
+        #                     dd0["transmission"] = 100
+        #                     dd0["use_dose"] = (
+        #                         use_dose * 100 / transmission
+        #                         + data_model.get_dose_consumed()
+        #                     )
+        #                 else:
+        #                     dd0["transmission"] = transmission
+        #             elif transmission:
+        #                 use_dose = std_dose_rate * experiment_time * transmission / 100
+        #                 dd0["use_dose"] = use_dose + data_model.get_dose_consumed()
+        #         field_widget.set_values(**dd0)
+        #
+        # def update_transmission(field_widget):
+        #     """When transmission changes, update use_dose
+        #     In parameter popup"""
+        #     parameters = field_widget.get_parameters_map()
+        #     exposure_time = float(parameters.get("exposure", 0))
+        #     image_width = float(parameters.get("imageWidth", 0))
+        #     transmission = float(parameters.get("transmission", 0))
+        #     if image_width and exposure_time and std_dose_rate:
+        #         experiment_time = exposure_time * total_strategy_length / image_width
+        #         use_dose = std_dose_rate * experiment_time * transmission / 100
+        #         field_widget.set_values(
+        #             use_dose=use_dose + data_model.get_dose_consumed()
+        #         )
+        #
+        # def update_resolution(field_widget):
+        #
+        #     parameters = field_widget.get_parameters_map()
+        #     resolution = float(parameters.get("resolution"))
+        #     dbg = self.resolution2dose_budget(
+        #         resolution,
+        #         decay_limit=data_model.get_decay_limit(),
+        #         relative_sensitivity=data_model.get_relative_rad_sensitivity(),
+        #     )
+        #     field_widget.set_values(dose_budget=dbg)
+        #     use_dose = dbg * budget_use_fraction
+        #     if use_dose < std_dose_rate * experiment_time:
+        #         field_widget.set_values(use_dose=use_dose)
+        #         update_dose(field_widget)
+        #     else:
+        #         field_widget.set_values(transmission=100)
+        #         update_transmission(field_widget)
+        #
+        # def update_dose(field_widget):
+        #     """When use_dose changes, update transmission and/or exposure_time
+        #     In parameter popup"""
+        #     parameters = field_widget.get_parameters_map()
+        #     exposure_time = float(parameters.get("exposure", 0))
+        #     image_width = float(parameters.get("imageWidth", 0))
+        #     use_dose = float(parameters.get("use_dose", 0))
+        #
+        #     if image_width and exposure_time and std_dose_rate and use_dose:
+        #         experiment_time = exposure_time * total_strategy_length / image_width
+        #         # NB set_values causes successive upate calls for changed values
+        #         use_dose -= data_model.get_dose_consumed()
+        #         transmission = 100 * use_dose / (std_dose_rate * experiment_time)
+        #         if transmission <= 100:
+        #             field_widget.set_values(transmission=transmission)
+        #         else:
+        #             # Tranmision over max; adjust exposure_time to compensate
+        #             exposure_time = exposure_time * transmission / 100
+        #             if (
+        #                 exposure_limits[1] is None
+        #                 or exposure_time <= exposure_limits[1]
+        #             ):
+        #                 field_widget.set_values(
+        #                     exposure=exposure_time, transmission=100
+        #                 )
+        #             else:
+        #                 # exposure_time over max; set does to highest achievable
+        #                 exposure_time = exposure_limits[1]
+        #                 experiment_time = (
+        #                     exposure_time * total_strategy_length / image_width
+        #                 )
+        #                 use_dose = std_dose_rate * experiment_time
+        #                 field_widget.set_values(
+        #                     exposure=exposure_time,
+        #                     transmission=100,
+        #                     use_dose=use_dose + data_model.get_dose_consumed(),
+        #                 )
 
         reslimits = HWR.beamline.resolution.get_limits()
         if None in reslimits:
@@ -639,6 +639,58 @@ class GphlWorkflow(HardwareObjectYaml):
             )
 
         field_list = [
+            # Hidden information-holder fields
+            {
+                "variableName": "total_strategy_length",
+                "uiLabel": "Strategy length",
+                "type": "floatstring",
+                "defaultValue": total_strategy_length,
+                "hidden": True,
+            },
+            {
+                "variableName": "std_dose_rate",
+                "uiLabel": "Dose rate",
+                "type": "floatstring",
+                "defaultValue": std_dose_rate,
+                "hidden": True,
+            },
+            {
+                "variableName": "dose_consumed",
+                "uiLabel": "Dose consumeed",
+                "type": "floatstring",
+                "defaultValue": data_model.get_dose_consumed(),
+                "hidden": True,
+            },
+            {
+                "variableName": "decay_limit",
+                "uiLabel": "Decay limit",
+                "type": "floatstring",
+                "defaultValue": data_model.get_decay_limit(),
+                "hidden": True,
+            },
+            {
+                "variableName": "relative_rad_sensitivity",
+                "uiLabel": "Relative radiation sensitivity",
+                "type": "floatstring",
+                "defaultValue": data_model.get_relative_rad_sensitivity(),
+                "hidden": True,
+            },
+            {
+                "variableName": "budget_use_fraction",
+                "uiLabel": "Budget fraction to use",
+                "type": "floatstring",
+                "defaultValue": budget_use_fraction,
+                "hidden": True,
+            },
+            {
+                "variableName": "maximum_dose_budget",
+                "uiLabel": "Maximum dose budget (MGy)",
+                "type": "floatstring",
+                "defaultValue": self.settings.get("maximum_dose_budget", 20),
+                "hidden": True,
+            },
+
+            # From here on real fields
             {
                 "variableName": "_info",
                 "uiLabel": "Data collection plan",
@@ -651,7 +703,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 "type": "combo",
                 "defaultValue": str(default_image_width),
                 "textChoices": [str(x) for x in allowed_widths],
-                "update_function": update_function,
+                "update_function": "update_exposure",
             },
             {
                 "variableName": "exposure",
@@ -661,7 +713,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 "lowerBound": exposure_limits[0],
                 "upperBound": exposure_limits[1],
                 "decimals": 6,
-                "update_function": update_function,
+                "update_function": "update_exposure",
             },
             {
                 "variableName": "dose_budget",
@@ -679,7 +731,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 "defaultValue": use_dose_start,
                 "lowerBound": 0.01,
                 "decimals": 4,
-                "update_function": update_dose,
+                "update_function": "update_dose",
                 "readOnly": use_dose_frozen,
             },
             # NB Transmission is in % in UI, but in 0-1 in workflow
@@ -691,7 +743,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 "lowerBound": 0.0001,
                 "upperBound": 100.0,
                 "decimals": 4,
-                "update_function": update_transmission,
+                "update_function": "update_transmission",
             },
         ]
         # Add third column of non-edited values
@@ -711,7 +763,7 @@ class GphlWorkflow(HardwareObjectYaml):
         if data_model.characterisation_done:
             field_list[-1]["readOnly"] = True
         else:
-            field_list[-1]["update_function"] = update_resolution
+            field_list[-1]["update_function"] = "update_resolution"
         field_list.extend(
             [
                 {
@@ -834,7 +886,7 @@ class GphlWorkflow(HardwareObjectYaml):
             self,
             field_list,
             self._return_parameters,
-            update_function,
+            "update_exposure",
         )
         if not responses:
             self._return_parameters.set_exception(
@@ -2198,6 +2250,10 @@ class GphlWorkflow(HardwareObjectYaml):
         return crystal_data, hklfile
 
 
+    #
+    # Test web dialog functions
+    #
+
     def test_dialog(self):
         characterisationExposureTime = 1.0
         osc_range = 2.0
@@ -2312,3 +2368,136 @@ class GphlWorkflow(HardwareObjectYaml):
         self.params_dict = params
         self.gevent_event.set()
         print ('@~@~ DONE set_values_map')
+
+
+#
+# Functions for new version of UI handling
+#
+
+
+def update_exposure(field_widget):
+    """When image_width or exposure_time change,
+     update rotation_rate, experiment_time and either use_dose or transmission
+    In parameter popup"""
+    parameters = field_widget.get_parameters_map()
+    exposure_time = float(parameters.get("exposure", 0))
+    image_width = float(parameters.get("imageWidth", 0))
+    use_dose = float(parameters.get("use_dose", 0))
+    transmission = float(parameters.get("transmission", 0))
+
+    std_dose_rate = float(parameters.get("std_dose_rate", 0))
+    total_strategy_length = float(parameters.get("total_strategy_length", 0))
+    dose_consumed = float(parameters.get("dose_consumed", 0))
+
+    if image_width and exposure_time:
+        rotation_rate = image_width / exposure_time
+        experiment_time = total_strategy_length / rotation_rate
+        dd0 = {
+            "rotation_rate": rotation_rate,
+            "experiment_time": experiment_time,
+        }
+
+        if std_dose_rate:
+            if use_dose:
+                use_dose -= dose_consumed
+                transmission = (
+                    100 * use_dose / (std_dose_rate * experiment_time)
+                )
+                if transmission > 100:
+                    dd0["transmission"] = 100
+                    dd0["use_dose"] = (
+                        use_dose * 100 / transmission
+                        + dose_consumed
+                    )
+                else:
+                    dd0["transmission"] = transmission
+            elif transmission:
+                use_dose = std_dose_rate * experiment_time * transmission / 100
+                dd0["use_dose"] = use_dose + dose_consumed
+        field_widget.set_values(**dd0)
+
+def update_transmission(field_widget):
+    """When transmission changes, update use_dose
+    In parameter popup"""
+    parameters = field_widget.get_parameters_map()
+    exposure_time = float(parameters.get("exposure", 0))
+    image_width = float(parameters.get("imageWidth", 0))
+    transmission = float(parameters.get("transmission", 0))
+    std_dose_rate = float(parameters.get("std_dose_rate", 0))
+    total_strategy_length = float(parameters.get("total_strategy_length", 0))
+    dose_consumed = float(parameters.get("dose_consumed", 0))
+
+    if image_width and exposure_time and std_dose_rate:
+        experiment_time = exposure_time * total_strategy_length / image_width
+        use_dose = std_dose_rate * experiment_time * transmission / 100
+        field_widget.set_values(
+            use_dose=use_dose + dose_consumed
+        )
+
+
+def update_dose(field_widget):
+    """When use_dose changes, update transmission and/or exposure_time
+    In parameter popup"""
+    exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
+    parameters = field_widget.get_parameters_map()
+    exposure_time = float(parameters.get("exposure", 0))
+    image_width = float(parameters.get("imageWidth", 0))
+    use_dose = float(parameters.get("use_dose", 0))
+    std_dose_rate = float(parameters.get("std_dose_rate", 0))
+    total_strategy_length = float(parameters.get("total_strategy_length", 0))
+    dose_consumed = float(parameters.get("dose_consumed", 0))
+
+    if image_width and exposure_time and std_dose_rate and use_dose:
+        experiment_time = exposure_time * total_strategy_length / image_width
+        # NB set_values causes successive upate calls for changed values
+        use_dose -= dose_consumed
+        transmission = 100 * use_dose / (std_dose_rate * experiment_time)
+        if transmission <= 100:
+            field_widget.set_values(transmission=transmission)
+        else:
+            # Tranmision over max; adjust exposure_time to compensate
+            exposure_time = exposure_time * transmission / 100
+            if (
+                exposure_limits[1] is None
+                or exposure_time <= exposure_limits[1]
+            ):
+                field_widget.set_values(
+                    exposure=exposure_time, transmission=100
+                )
+            else:
+                # exposure_time over max; set does to highest achievable
+                exposure_time = exposure_limits[1]
+                experiment_time = (
+                    exposure_time * total_strategy_length / image_width
+                )
+                use_dose = std_dose_rate * experiment_time
+                field_widget.set_values(
+                    exposure=exposure_time,
+                    transmission=100,
+                    use_dose=use_dose + dose_consumed,
+                )
+
+def update_resolution(field_widget):
+
+    parameters = field_widget.get_parameters_map()
+    resolution = float(parameters.get("resolution"))
+    decay_limit = float(parameters.get("decay_limit", 0))
+    relative_rad_sensitivity = float(parameters.get("relative_rad_sensitivity", 0))
+    std_dose_rate = float(parameters.get("std_dose_rate", 0))
+    total_strategy_length = float(parameters.get("total_strategy_length", 0))
+    budget_use_fraction = float(parameters.get("budget_use_fraction", 0))
+    exposure_time = float(parameters.get("exposure_time", 0))
+    image_width = float(parameters.get("image_width", 0))
+    maximum_dose_budget = float(parameters.get("maximum_dose_budget", 0))
+    experiment_time = exposure_time * total_strategy_length / image_width
+    dbg = 2 * resolution * resolution * math.log(100.0 / decay_limit)
+    #
+    dbg =  min(dbg, maximum_dose_budget) / relative_rad_sensitivity
+    field_widget.set_values(dose_budget=dbg)
+    use_dose = dbg * budget_use_fraction
+    if use_dose < std_dose_rate * experiment_time:
+        field_widget.set_values(use_dose=use_dose)
+        update_dose(field_widget)
+    else:
+        field_widget.set_values(transmission=100)
+        update_transmission(field_widget)
