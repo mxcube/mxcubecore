@@ -1,0 +1,14 @@
+<object class="XalocLN2Shower">
+  <username>Ln2 Shower</username>
+
+  <channel type="sardana" taurusname="bl13/eh/ln2pump" name="operation">operation_mode</channel>
+  
+  <doorname>bl13/door/05</doorname>
+  <command type="sardana" name="ln2shower_wash">ln2shower_wash</command>
+  <command type="sardana" name="ln2shower_cold">ln2shower_cold</command>
+  <command type="sardana" name="ln2shower_setflow">ln2shower_setflow</command>
+  <command type="sardana" name="ln2shower_on">ln2shower_on</command>
+  <command type="sardana" name="ln2shower_off">ln2shower_off</command>
+  <command type="sardana" name="ln2shower_sleep">ln2shower_sleep</command>
+
+</object>
