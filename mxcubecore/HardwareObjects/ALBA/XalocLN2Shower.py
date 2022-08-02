@@ -80,10 +80,7 @@ class XalocMiniDiff(GenericDiffractometer):
         
         self.connect(self.chn_operation_mode, "update", self.operation_mode_changed)
         
-    def run_ln2shower_wash(self, washflow):
-        self.cmd_ln2shower_wash(washflow, wait = False)
-
-    def run_ln2shower_wash(self, washflow):
+    def run_ln2shower_wash(self, washflow = 120):
         #TODO: move diff to transfer phase first, use GenericDiffractometer
         if HWR:diffractometer.get_current_phase() != HWR:diffractometer.PHASE_TRANSFER:
             HWR:diffractometer.set_phase( HWR:diffractometer.PHASE_TRANSFER )
