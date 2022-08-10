@@ -17,43 +17,14 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-import logging
-from importlib import import_module
-from pathlib import Path
 
-def import_all_queue_entry_modules():
-    modules = {}
-
-    for f in  Path(__file__).parent.glob("*.py"):
-        m = import_module(f"{__package__}.{f.stem}")
-        cls_name = f.stem.title().replace("_", "") + "QueueEntry"
-
-        # Skipp BaseQueueEntry, it is explcicitly imported below as the module 
-        # contains several essential calsses and helper functions
-        # Skipp xrf_spectrum to preserve casing (XRF) so that we are backwards
-        # compatible (for the time being)
-        if f.stem in ["base_queue_entry", "xrf_spectrum", "__init__"]:
-            continue
-
-        cls = getattr(m, cls_name, None)
-
-        if cls:
-            modules[cls_name] = cls
-            setattr(sys.modules[__name__], cls_name, cls)
-            logging.getLogger("HWR").info(f"Imported queue entry: {cls_name} from {f}")
-        else:
-            logging.getLogger("HWR").warning(f"Could not find queue entry: {cls_name} in {f}")
-
-    return modules
+from mxcubecore.HardwareObjects.queue_entry.import_helper import ImportHelper
 
 # Import all queue entries defined in package, using the convention
 # that the class name is the camel cased modulename with a QueueEntry
 # suffix.
-_modules = import_all_queue_entry_modules()
-__all__ = _modules.values()
-
-del import_module, Path, import_all_queue_entry_modules
-
+_modules = ImportHelper.import_all_queue_entry_modules(__name__)
+__all__ = [*_modules.values()]
 
 # Import all constants and BaseQueueEntry from base_queue_entry so that
 # queue _entry can be imported and used as before.
