@@ -34,6 +34,7 @@ class SSXCollectionParameters(BaseModel):
 
 class SSXUserCollectionParameters(BaseModel):
     sub_sampling: float = Field(2, gt=0, lt=100)
+    take_pedestal: bool = Field(True)
 
     class Config:
         extra: "ignore"
