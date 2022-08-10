@@ -394,7 +394,9 @@ class Microdiff(MiniDiff.MiniDiff):
             self._wait_ready()
         # print "end moving motors =============", time.time()
 
-    def oscilScan(self, start, end, exptime, wait=False):
+    # DN detector in gate mode
+    #def oscilScan(self, start, end, exptime, wait=False):
+    def oscilScan(self, start, end, exptime, number_of_images, wait=False):
         if self.in_plate_mode():
             scan_speed = math.fabs(end - start) / exptime
             low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
@@ -403,7 +405,10 @@ class Microdiff(MiniDiff.MiniDiff):
             elif end > hi_lim:
                 raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
 
-        self.nb_frames.set_value(1)
+        # DN detector in gate mode
+        self.nb_frames.set_value(number_of_images)
+        #self.nb_frames.set_value(1)
+       
         scan_params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
         scan = self.add_command(
             {
@@ -421,7 +426,10 @@ class Microdiff(MiniDiff.MiniDiff):
             )  # timeout of 10 min # Changed on 20180406 Daniele, because of long exposure time set by users
             print("finished at ---------->", time.time())
 
-    def oscilScan4d(self, start, end, exptime, motors_pos, wait=False):
+
+    # DN detector in gate mode
+    #def oscilScan4d(self, start, end, exptime, motors_pos, wait=False):
+    def oscilScan4d(self, start, end, exptime, number_of_images, motors_pos, wait=False):
         if self.in_plate_mode():
             scan_speed = math.fabs(end - start) / exptime
             low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
@@ -429,7 +437,9 @@ class Microdiff(MiniDiff.MiniDiff):
                 raise ValueError("Scan start below the allowed value %f" % low_lim)
             elif end > hi_lim:
                 raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
-        self.nb_frames.set_value(1)
+        # DN detector in gate mode
+        #self.nb_frames.set_value(1)
+        self.nb_frames.set_value(number_of_images)
         scan_params = "%0.3f\t%0.3f\t%f\t" % (start, (end - start), exptime)
         scan_params += "%0.3f\t" % motors_pos["1"]["phiy"]
         scan_params += "%0.3f\t" % motors_pos["1"]["phiz"]
@@ -472,10 +482,11 @@ class Microdiff(MiniDiff.MiniDiff):
 
         # Adding the servo time to the readout time to avoid any
         # servo cycle jitter
-        servo_time = 0.110
-
+        # servo_time = 0.110
+        # servo_time = 0.200
+        
         self.scan_detector_gate_pulse_readout_time.set_value(
-            dead_time * 1000 + servo_time
+            dead_time * 1000
         )
 
         self.move_motors(mesh_center.as_dict())
