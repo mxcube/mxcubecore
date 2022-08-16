@@ -10,8 +10,6 @@ class ImportHelper():
     def import_all_queue_entry_modules(name):
         if not ImportHelper.MODULES:
             for f in  Path(__file__).parent.glob("*.py"):
-                m = import_module(f"{__package__}.{f.stem}")
-                cls_name = f.stem.title().replace("_", "") + "QueueEntry"
 
                 # Skipp BaseQueueEntry, it is explcicitly imported below as the module 
                 # contains several essential calsses and helper functions
@@ -19,6 +17,8 @@ class ImportHelper():
                 # compatible (for the time being)
                 if f.stem in ["import_helper", "base_queue_entry", "xrf_spectrum", "__init__"]:
                     continue
+                m = import_module(f"{__package__}.{f.stem}")
+                cls_name = f.stem.title().replace("_", "") + "QueueEntry"
 
                 cls = getattr(m, cls_name, None)
 
