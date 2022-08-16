@@ -186,6 +186,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     acq_1, acq_2 = (dc.acquisitions[0], dc.acquisitions[1])
                     HWR.beamline.collect.set_helical(True)
                     HWR.beamline.collect.set_mesh(False)
+                    HWR.beamline.collect.set_fast_characterisation(False)
                     start_cpos = acq_1.acquisition_parameters.centred_position
                     end_cpos = acq_2.acquisition_parameters.centred_position
                     helical_oscil_pos = {
@@ -205,15 +206,20 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                         mesh_nb_lines, mesh_total_nb_frames, mesh_center, mesh_range
                     )
                     HWR.beamline.collect.set_helical(False)
+                    HWR.beamline.collect.set_fast_characterisation(False)
                     HWR.beamline.collect.set_mesh(True)
                     # inc_used_for_collection does nothing
                     HWR.beamline.sample_view.inc_used_for_collection(
                         self.get_data_model().shape
                     )
+                elif dc.experiment_type is EXPERIMENT_TYPE.EDNA_REF:
+                    HWR.beamline.collect.set_helical(False)
+                    HWR.beamline.collect.set_mesh(False)
+                    HWR.beamline.collect.set_fast_characterisation(True)
                 else:
                     HWR.beamline.collect.set_helical(False)
                     HWR.beamline.collect.set_mesh(False)
-
+                    HWR.beamline.collect.set_fast_characterisation(False)
                 if (
                     dc.run_online_processing
                     and acq_1.acquisition_parameters.num_images > 4
