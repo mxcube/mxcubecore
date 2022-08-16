@@ -2,30 +2,29 @@ import logging
 import math
 import enum
 import time
+import os
+import json
+import ast
+
+import gevent
+
+from typing import List, Tuple, Union
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects import MiniDiff
-import gevent
 from mxcubecore.HardwareObjects import sample_centring
 from mxcubecore import HardwareRepository as HWR
-from pydantic import BaseModel
+
+from mxcubecore.HardwareObjects.GenericDiffractometer import (
+    PhaseEnum, PhaseModel, HeadTypeEnum, BlockShapeEnum,
+    SampleHolderSectionModel, GonioHeadConfiguration
+)
+
 
 MICRODIFF = None
 
-
-class PhaseEnum(str, enum.Enum):
-    centring = "Centring"
-    data_collection = 'DataCollection'
-    beam_location = 'BeamLocation'
-    transfer = "Transfer"
-    unknown = "Unknown"
-
-
-class PhaseModel(BaseModel):
-    value: PhaseEnum = PhaseEnum.unknown
-
-
 class Microdiff(MiniDiff.MiniDiff):
-    def init(self):       
+    def init(self):
         global MICRODIFF
         MICRODIFF = self
         self.phiMotor = self.get_object_by_role("phi")
@@ -408,7 +407,7 @@ class Microdiff(MiniDiff.MiniDiff):
         # DN detector in gate mode
         self.nb_frames.set_value(number_of_images)
         #self.nb_frames.set_value(1)
-       
+
         scan_params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
         scan = self.add_command(
             {
@@ -758,15 +757,24 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def my_fancy_function(self, speed: float, num_images:int, exp_time:float, phase:PhaseEnum) -> bool:
         return True
-    
+
     def my_other_fancy_function(self) -> None:
         pass
 
-    def head_configuration(self) -> dict:
-        return {
-            "description": {},
-            "type": {}
-        }
+    def get_head_configuration(self) -> Union[GonioHeadConfiguration, None]:
+        chip_def_fpath = self.get_property("chip_definition_file", "")
+        data = None
+
+        if os.path.isfile(chip_def_fpath):
+            with open(chip_def_fpath, "r") as _f:
+                chip_def = json.load(_f)
+
+                try:
+                    data = GonioHeadConfiguration(**chip_def)
+                except ValidationError:
+                    logging.getLogger("HWR").exception("Validation error in %s" % chip_def_fpath)
+
+        return data
 
 
 def to_float(d):
