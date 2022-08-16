@@ -92,9 +92,6 @@ class QueueEntryContainer(object):
         # which controls the execution of the tasks in the
         # container. QueueManagers are their own controller.
         # These are set in subclasses
-        # NBNB Changed because subclass and superclass signature did not match
-        # (and this is simpler)
-
         queue_entry.set_container(self)
         self._queue_entry_list.append(queue_entry)
 
