@@ -478,14 +478,10 @@ class Microdiff(MiniDiff.MiniDiff):
         wait=False,
     ):
         self.scan_detector_gate_pulse_enabled.set_value(True)
+        servo_time = self.get_property("md_servo_time", 0.110)
 
-        # Adding the servo time to the readout time to avoid any
-        # servo cycle jitter
-        # servo_time = 0.110
-        # servo_time = 0.200
-        
         self.scan_detector_gate_pulse_readout_time.set_value(
-            dead_time * 1000
+            dead_time * 1000 + servo_time
         )
 
         self.move_motors(mesh_center.as_dict())
