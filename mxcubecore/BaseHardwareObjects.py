@@ -177,6 +177,7 @@ class HardwareObjectNode(object):
         self.__name = node_name
         self.__references = []
         self._xml_path = None
+        self._global_role = None
 
     @staticmethod
     def set_user_file_directory(user_file_directory):
@@ -195,9 +196,22 @@ class HardwareObjectNode(object):
         """Set the 'path' of the Hardware Object in the XML file describing it
         (the path follows the XPath syntax)
 
-        Parameters :
-          path -- string representing the path of the Hardware Object in its file"""
+        Args :
+          path (str): String representing the path of the Hardware Object in its file"""
         self._path = path
+
+    def set_global_role(self, role):
+        """
+        Set the "global role" of the HardwareObject
+
+        Args:
+          role (str): Role
+        """
+        self._global_role = role
+
+    @property
+    def global_role(self):
+        return self._global_role
 
     def get_xml_path(self):
         return self._xml_path
