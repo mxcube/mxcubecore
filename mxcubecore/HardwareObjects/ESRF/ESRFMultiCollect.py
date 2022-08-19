@@ -518,13 +518,13 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def get_machine_message(self):
         if HWR.beamline.machine_info:
-            return HWR.beamline.machine_info.getMessage()
+            return HWR.beamline.machine_info.get_message()
         else:
             return ""
 
     def get_machine_fill_mode(self):
         if HWR.beamline.machine_info:
-            return HWR.beamline.machine_info.getFillMode()
+            return HWR.beamline.machine_info.get_fill_mode()
         else:
             ""
 
