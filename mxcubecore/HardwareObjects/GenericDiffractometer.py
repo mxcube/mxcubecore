@@ -28,6 +28,7 @@ import gevent.event
 import logging
 import math
 import numpy
+import enum
 
 from typing import List, Tuple
 from pydantic import BaseModel, Field
