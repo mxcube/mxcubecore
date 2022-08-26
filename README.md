@@ -1,4 +1,4 @@
-[![Build and test](https://github.com/mxcube/mxcubecore/actions/workflows/pytest.yml/badge.svg)](https://github.com/mxcube/mxcubecore/actions/workflows/pytest.yml)
+[![Build and test](https://github.com/mxcube/mxcubecore/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/mxcube/mxcubecore/actions/workflows/build_and_test.yml)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
 # Backend of MXCuBE
