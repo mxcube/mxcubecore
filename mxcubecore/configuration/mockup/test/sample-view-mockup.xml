@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <object class="SampleView">
-  <object hwrid="/camera-mockup" role="camera"/>
+  <!-- Camera mockup configuration camera-mockup.xml missing, commenting line not to break tests -->
+  <!-- <object hwrid="/camera-mockup" role="camera"/> -->
   <object hwrid="/diffractometer-mockup" role="diffractometer"/>
 
   <!--- Autmoatically hide grid when 5 deg from defined angle -->

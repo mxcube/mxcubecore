@@ -12,5 +12,4 @@
   <hasShutterless>True</hasShutterless>
   <fileSuffix>h5</fileSuffix>
   <object hwrid="/detector-distance-mockup" role="detector_distance"/>
-  <exports>["reset"]</exports>
 </object>
