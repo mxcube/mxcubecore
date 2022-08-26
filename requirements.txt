@@ -4,7 +4,9 @@ jsonpickle==2.2.0
 jsonschema==4.6.1
 lxml==4.9.1
 matplotlib==3.5.2
-numpy==1.23.0
+# Temporarily unpinning numpy, for testing github action
+#numpy==1.23.0
+numpy
 Pillow==9.2.0
 pydantic==1.9.1
 PyDispatcher==2.0.5
