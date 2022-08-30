@@ -26,6 +26,10 @@ import subprocess
 from mxcubecore.HardwareObjects.DozorOnlineProcessing import (
     DozorOnlineProcessing,
 )
+from mxcubecore.HardwareObjects.abstract.AbstractOnlineProcessing import (
+    AbstractOnlineProcessing,
+)
+import ALBA.XalocSimpleHTML
 
 from XSDataCommon import XSDataBoolean
 from XSDataCommon import XSDataDouble
@@ -438,6 +442,126 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
 
         self.logger.debug("after best_poitions: self.results_aligned %s" % (str(self.results_aligned)) )
 
+    def store_processing_results(self, status):
+        """
+          Reimplement generation of json file that will fit XALOC preferences
+          
+          Note: the location of this file is sent ISpyB in the ISPyBClient module, in the store_workflow methods
+        """
+        AbstractOnlineProcessing.store_processing_results(status)
+        # At this point, a html and json file have already been generated. We just want to overwrite the json file
+        try:
+            self.generate_online_processing_json_xaloc()
+
+    def generate_online_processing_json_xaloc(self):
+        import json
+        import SimpleHTML
+        
+        mesh_scan_results = self.results_aligned
+        params_dict =  self.params_dict
+        json_dict = {"items": []}
+
+        osc_range_per_line = params_dict["osc_range"] * (params_dict["images_per_line"] - 1)
+        
+        if params_dict["lines_num"] > 1:
+            json_dict["items"].append({"type": "title", "value": "Mesh scan results"})
+        else:
+            json_dict["items"].append({"type": "title", "value": "Line scan results"})
+
+        # Add the table with the grid size
+        table_grid_size = {
+            "type":"table", 
+            "title": "Grid size", 
+            "orientation": "horizontal"
+        }
+        if params_dict["lines_num"] > 1:
+            table_grid_size["columns"] = [
+                    "Grid size", 
+                    "Scan area",
+                    "Horizontal distance between frames",
+                    "Vertical distance between frames",
+                    "Oscillation middle", 
+                    "Oscillation range per frame",
+                    "Oscillation range per line",
+            ]
+        elif params_dict["lines_num"] == 1:
+            table_grid_size["columns"] = [
+                    "Grid size", 
+                    "Scan area",
+                    "Horizontal distance between frames",
+                    "Oscillation middle", 
+                    "Oscillation range per frame",
+                    "Oscillation range per line",
+            ]
+
+        data_array = [
+                    "%d x %d microns"
+                        % (
+                            (params_dict["steps_x"] * params_dict["xOffset"] * 1000),
+                            (params_dict["steps_y"] * params_dict["yOffset"] * 1000),
+                        ),
+                    "%d x %d microns"
+                        % ((params_dict["dx_mm"] * 1000), (params_dict["dy_mm"] * 1000)),
+                    "%d microns" % (params_dict["xOffset"] * 1000),
+        ]
+        if params_dict["lines_num"] > 1: 
+            data_array.append(
+                                "%d microns" % (params_dict["yOffset"] * 1000),
+                             )
+        data_array.extend( [
+                    "%.1f" % params_dict["osc_midle"],
+                    "%.2f" % params_dict["osc_range"],
+                    "%.2f (from %.2f to %2.f)"
+                        % (
+                            osc_range_per_line,
+                            (params_dict["osc_midle"] - osc_range_per_line / 2),
+                            (params_dict["osc_midle"] + osc_range_per_line / 2),
+                        ),
+                ])
+        table_grid_size["data"] =  [data_array]
+        json_dict["items"].append(table_grid_size)
+        
+        # Add the table with the best positions
+        table_best_positions= {}
+        positions = mesh_scan_results.get("best_positions", [])
+        if len(positions) > 0:
+            data_array = [[]]
+            # TODO convert following two lines to json equivalent
+            #html_file.write(create_text("All positions", heading=1))
+            #html_file.write("</br>")
+
+            table_best_positions = {
+                "type":"table", 
+                "title": "Grid size", 
+                "columns": [
+                    "Index",
+                    "Score", 
+                    "Number of spots", 
+                    "Resolution", 
+                    "File name", 
+                    "Column", 
+                    "Row" 
+                ]
+                "orientation": "horizontal"
+            }
+            pos = 0
+            for position in positions:
+                data_array[pos] = 
+                    [
+                        "%d" % position["index"],
+                        "%.2f" % position["score"],
+                        "%d" % position["spots_num"],
+                        "%.1f" % position["spots_resolution"],
+                        position["filename"],
+                        "%d" % (position["col"] + 1),
+                        "%d" % (position["row"] + 1),
+                    ]
+                )
+                pos+=1
+            table_best_positions["data"] = data_array
+            json_dict["items"].append(table_best_positions)
+
+        open(params_dict["json_file_path"], "w").write(json.dumps(json_dict, indent=4))
 
     # def update_map(self):
     #     """Updates plot map
