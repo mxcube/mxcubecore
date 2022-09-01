@@ -144,7 +144,7 @@ def generate_online_processing_report(mesh_scan_results, params_dict):
         html_file.write(HTML_START % "Line scan results")
         json_dict["items"].append({"type": "title", "value": "Line scan results"})
 
-    html_file.write(create_image("parallel_processing_plot.png"))
+    html_file.write(create_image("online_processing_plot.png"))
     html_file.write("</br>")
     html_file.write(create_text("Scan parameters", heading=1))
     osc_range_per_line = params_dict["osc_range"] * (params_dict["images_per_line"] - 1)
