@@ -29,7 +29,6 @@ from mxcubecore.HardwareObjects.DozorOnlineProcessing import (
 from mxcubecore.HardwareObjects.abstract.AbstractOnlineProcessing import (
     AbstractOnlineProcessing,
 )
-import ALBA.XalocSimpleHTML
 
 from XSDataCommon import XSDataBoolean
 from XSDataCommon import XSDataDouble
@@ -448,14 +447,18 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
           
           Note: the location of this file is sent ISpyB in the ISPyBClient module, in the store_workflow methods
         """
-        AbstractOnlineProcessing.store_processing_results(status)
+        AbstractOnlineProcessing.store_processing_results(self, status)
         # At this point, a html and json file have already been generated. We just want to overwrite the json file
         try:
             self.generate_online_processing_json_xaloc()
+        except Exception as e:
+            self.logger.error(
+                "Can not generate json file, error is %s" % ( str(e) ) 
+            )
 
     def generate_online_processing_json_xaloc(self):
         import json
-        import SimpleHTML
+        from mxcubecore.HardwareObjects.SimpleHTML import create_json_images
         
         mesh_scan_results = self.results_aligned
         params_dict =  self.params_dict
@@ -474,6 +477,9 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
             "title": "Grid size", 
             "orientation": "horizontal"
         }
+        image = {"title": "plot", "filename": params_dict["cartography_path"]}
+        json_dict["items"].append(create_json_images([image]))
+
         if params_dict["lines_num"] > 1:
             table_grid_size["columns"] = [
                     "Grid size", 
@@ -541,12 +547,12 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
                     "File name", 
                     "Column", 
                     "Row" 
-                ]
+                ],
                 "orientation": "horizontal"
             }
             pos = 0
             for position in positions:
-                data_array[pos] = 
+                data_array[pos] = \
                     [
                         "%d" % position["index"],
                         "%.2f" % position["score"],
@@ -556,11 +562,11 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
                         "%d" % (position["col"] + 1),
                         "%d" % (position["row"] + 1),
                     ]
-                )
                 pos+=1
             table_best_positions["data"] = data_array
             json_dict["items"].append(table_best_positions)
 
+        self.logger.debug("writing json file %s" % (params_dict["json_file_path"]) )
         open(params_dict["json_file_path"], "w").write(json.dumps(json_dict, indent=4))
 
     # def update_map(self):
