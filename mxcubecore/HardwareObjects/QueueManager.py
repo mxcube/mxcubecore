@@ -79,13 +79,13 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             # otherwise, run only the entry given
             self.emit("statusMessage", ("status", "Queue running", "running"))
             self._is_stopped = False
+            self._running = True
 
             if not entry:
                 self._current_queue_entries = []
                 self._set_in_queue_flag()
                 self._root_task = gevent.spawn(self.__execute_task)
             else:
-                self._running = True
                 task = gevent.spawn(self.__execute_entry, entry)
                 task.link((lambda _t: self._queue_end()))
 
