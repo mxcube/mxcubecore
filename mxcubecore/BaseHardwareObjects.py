@@ -485,7 +485,13 @@ class HardwareObjectMixin(CommandContainer):
             self._pydantic_models[attr_name] = {}
             fdict = {}
 
-            for _n, _t in typing.get_type_hints(getattr(self, attr_name)).items():
+            try:
+                _attr = getattr(self, attr_name)
+            except AttributeError:
+                logging.getLogger("HWR").error(f"{attr_name} configured as exported for {self.name} but not implemented")
+                continue
+
+            for _n, _t in typing.get_type_hints(_attr).items():
                 # Skipp return typehint
                 if _n != "return":
                     self._exports[attr_name].append(_n)
