@@ -89,8 +89,7 @@ class XMLRPCServer(HardwareObject):
             del self._server
         except AttributeError:
             pass
-        logging.getLogger("HWR").info("XML-RPC server closed")
-
+        
     def open(self):
         # The value of the member self.port is set in the xml configuration
         # file. The initialization is done by the baseclass HardwareObject.
