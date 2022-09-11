@@ -39,6 +39,7 @@ import time
 import PyTango
 import gevent
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.Cats90 import Cats90, SampleChangerState#, TOOL_SPINE
 
 __credits__ = ["ALBA Synchrotron"]
