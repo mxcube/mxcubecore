@@ -136,5 +136,5 @@ class AbstractEnergy(AbstractActuator):
     def force_emit_signals(self):
         AbstractActuator.force_emit_signals(self)
         _energy_value = self.get_value()
-        _wavelength_value = self._calculate_wavelength(_energy_value)
+        _wavelength_value = self.calculate_wavelength(_energy_value)
         self.emit("energyChanged", (_energy_value, _wavelength_value))
