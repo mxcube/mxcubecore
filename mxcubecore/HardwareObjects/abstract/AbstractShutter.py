@@ -35,6 +35,7 @@ class BaseValueEnum(Enum):
 
     OPEN = "OPEN"
     CLOSED = "CLOSED"
+    MOVING = "MOVING"
     UNKNOWN = "UNKNOWN"
 
 
@@ -49,11 +50,14 @@ class AbstractShutter(AbstractNState):
 
     def init(self):
         """Initilise the predefined values"""
+        self.set_value(self.VALUES.UNKNOWN)
         AbstractNState.init(self)
 
-    @property
     def is_open(self):
-        return self.get_value() == self.VALUES.OPEN
+        return (self.get_value() == self.VALUES.OPEN)
+
+    def is_closed(self):
+        return ( self.get_value() == self.VALUES.CLOSED )
  
     def open(self):
         self.set_value(self.VALUES.OPEN)
