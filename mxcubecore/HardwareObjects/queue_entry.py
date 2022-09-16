@@ -43,6 +43,7 @@ import os
 import time
 import logging
 from copy import copy
+log = logging.getLogger("queue_exec")
 
 import gevent
 
@@ -487,71 +488,75 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         return d
 
     def execute(self):
-        BaseQueueEntry.execute(self)
-
-        self.get_view().setText(1, "Waiting for input")
-        log = logging.getLogger("user_level_log")
-
-        data_model = self.get_data_model()
-
-        kappa = data_model.get_kappa()
-        kappa_phi = data_model.get_kappa_phi()
-
-        # kappa and kappa_phi settings are applied first, and assume that the
-        # beamline does have axes with exactly these names
-        #
-        # Other motor_positions are applied afterwards, but in random order.
-        # motor_positions override kappa and kappa_phi if both are set
-        #
-        # Since setting one motor can change the position of another
-        # (on ESRF ID30B setting kappa and kappa_phi changes the translation motors)
-        # the order is important.
-        dd0 = {}
-        if kappa is not None:
-            dd0["kappa"] = kappa
-        if kappa_phi is not None:
-            dd0["kappa_phi"] = kappa_phi
-        if dd0:
-            if (
-                not hasattr(HWR.beamline.diffractometer, "in_kappa_mode")
-                or HWR.beamline.diffractometer.in_kappa_mode()
-            ):
+        try:
+            BaseQueueEntry.execute(self)
+    
+            self.get_view().setText(1, "Waiting for input")
+            log = logging.getLogger("user_level_log")
+    
+            data_model = self.get_data_model()
+    
+            kappa = data_model.get_kappa()
+            kappa_phi = data_model.get_kappa_phi()
+    
+            # kappa and kappa_phi settings are applied first, and assume that the
+            # beamline does have axes with exactly these names
+            #
+            # Other motor_positions are applied afterwards, but in random order.
+            # motor_positions override kappa and kappa_phi if both are set
+            #
+            # Since setting one motor can change the position of another
+            # (on ESRF ID30B setting kappa and kappa_phi changes the translation motors)
+            # the order is important.
+            dd0 = {}
+            if kappa is not None:
+                dd0["kappa"] = kappa
+            if kappa_phi is not None:
+                dd0["kappa_phi"] = kappa_phi
+            if dd0:
+                if (
+                    not hasattr(HWR.beamline.diffractometer, "in_kappa_mode")
+                    or HWR.beamline.diffractometer.in_kappa_mode()
+                ):
+                    HWR.beamline.diffractometer.move_motors(dd0)
+    
+            motor_positions = data_model.get_other_motor_positions()
+            dd0 = dict(
+                tt0
+                for tt0 in data_model.get_other_motor_positions().items()
+                if tt0[1] is not None
+            )
+            if motor_positions:
                 HWR.beamline.diffractometer.move_motors(dd0)
-
-        motor_positions = data_model.get_other_motor_positions()
-        dd0 = dict(
-            tt0
-            for tt0 in data_model.get_other_motor_positions().items()
-            if tt0[1] is not None
-        )
-        if motor_positions:
-            HWR.beamline.diffractometer.move_motors(dd0)
-
-        log.warning(
-            "Please center a new or select an existing point and press continue."
-        )
-        self.get_queue_controller().pause(True)
-        pos = None
-
-        shapes = list(HWR.beamline.sample_view.get_selected_shapes())
-
-        if shapes:
-            pos = shapes[0]
-            if hasattr(pos, "get_centred_position"):
-                cpos = pos.get_centred_position()
+    
+            log.warning(
+                "Please center a new or select an existing point and press continue."
+            )
+            self.get_queue_controller().pause(True)
+            pos = None
+    
+            shapes = list(HWR.beamline.sample_view.get_selected_shapes())
+    
+            if shapes:
+                pos = shapes[0]
+                if hasattr(pos, "get_centred_position"):
+                    cpos = pos.get_centred_position()
+                else:
+                    cpos = pos.get_centred_positions()[0]
             else:
-                cpos = pos.get_centred_positions()[0]
-        else:
-            msg = "No centred position selected, using current position."
-            log.info(msg)
-
-            # Create a centred positions of the current position
-            pos_dict = HWR.beamline.diffractometer.get_positions()
-            cpos = queue_model_objects.CentredPosition(pos_dict)
-
-        self._data_model.set_centring_result(cpos)
-
-        self.get_view().setText(1, "Input accepted")
+                msg = "No centred position selected, using current position."
+                log.info(msg)
+    
+                # Create a centred positions of the current position
+                pos_dict = HWR.beamline.diffractometer.get_positions()
+                cpos = queue_model_objects.CentredPosition(pos_dict)
+    
+            self._data_model.set_centring_result(cpos)
+    
+            self.get_view().setText(1, "Input accepted")
+        except BaseException as e:
+            import traceback
+            log.debug(traceback.format_exc())
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
@@ -613,6 +618,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
                 acq_params.centred_position = _p
 
+            logging.getLogger("HWR").debug("queue_entry - about to start data collection")
             self.collect_dc(data_collection, self.get_view())
 
         if HWR.beamline.sample_view:
@@ -698,6 +704,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
     def collect_dc(self, dc, list_item):
         log = logging.getLogger("user_level_log")
 
+        logging.getLogger("HWR").debug("queue_entry - collect_dc")
         if HWR.beamline.collect:
             acq_1 = dc.acquisitions[0]
             acq_1.acquisition_parameters.in_queue = self.in_queue
@@ -736,6 +743,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                         self.get_data_model().shape
                     )
                 else:
+                    logging.getLogger("HWR").debug("queue_entry - standard collect")
                     HWR.beamline.collect.set_helical(False)
                     HWR.beamline.collect.set_mesh(False)
 
@@ -748,30 +756,40 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                         HWR.beamline.online_processing.run_processing, dc
                     )
 
-                empty_cpos = queue_model_objects.CentredPosition()
-                if cpos != empty_cpos:
-                    HWR.beamline.sample_view.select_shape_with_cpos(cpos)
-                else:
-                    pos_dict = HWR.beamline.diffractometer.get_positions()
-                    cpos = queue_model_objects.CentredPosition(pos_dict)
-                    snapshot = HWR.beamline.sample_view.get_snapshot()
-                    acq_1.acquisition_parameters.centred_position = cpos
-                    acq_1.acquisition_parameters.centred_position.snapshot_image = (
-                        snapshot
+                logging.getLogger("HWR").debug("queue_entry - standard collect")
+                try:
+                    empty_cpos = queue_model_objects.CentredPosition()
+                    if cpos != empty_cpos:
+                        HWR.beamline.sample_view.select_shape_with_cpos(cpos)
+                    else:
+                        pos_dict = HWR.beamline.diffractometer.get_positions()
+                        cpos = queue_model_objects.CentredPosition(pos_dict)
+                        snapshot = HWR.beamline.sample_view.get_snapshot()
+                        acq_1.acquisition_parameters.centred_position = cpos
+                        acq_1.acquisition_parameters.centred_position.snapshot_image = (
+                            snapshot
+                        )
+
+                    HWR.beamline.sample_view.inc_used_for_collection(cpos)
+                    param_list = queue_model_objects.to_collect_dict(
+                        dc,
+                        HWR.beamline.session,
+                        sample,
+                        cpos if cpos != empty_cpos else None,
                     )
+                except BaseException as e:
+                    import traceback
+                    logging.getLogger("HWR").debug(traceback.format_exc())
 
-                HWR.beamline.sample_view.inc_used_for_collection(cpos)
-                param_list = queue_model_objects.to_collect_dict(
-                    dc,
-                    HWR.beamline.session,
-                    sample,
-                    cpos if cpos != empty_cpos else None,
-                )
-
+                logging.getLogger("HWR").debug("queue_entry - now calling collect hwo")
                 # TODO this is wrong. Rename to something like collect.start_procedure
-                self.collect_task = HWR.beamline.collect.collect(
-                    COLLECTION_ORIGIN_STR.MXCUBE, param_list
-                )
+                try:
+                    self.collect_task = HWR.beamline.collect.collect(
+                        COLLECTION_ORIGIN_STR.MXCUBE, param_list
+                    )
+                except BaseException as e:
+                    import traceback
+                    logging.getLogger("HWR").debug(traceback.format_exc())
                 self.collect_task.get()
 
                 if "collection_id" in param_list[0]:
@@ -898,15 +916,23 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
         self.in_queue = False
 
     def execute(self):
-        BaseQueueEntry.execute(self)
+        log.debug("char execute here 4")
+        try:
+            BaseQueueEntry.execute(self)
+        except BaseException as e:
+            import traceback
+            log.debug("error on execute")
+            log.debug(traceback.format_exc())
 
     def pre_execute(self):
+        log.debug("char pre execute here 1")
         BaseQueueEntry.pre_execute(self)
         char = self.get_data_model()
         reference_image_collection = char.reference_image_collection
 
         # Trick to make sure that the reference collection has a sample.
         reference_image_collection._parent = char.get_parent()
+        log.debug("char pre execute here 2")
 
         gid = self.get_data_model().get_parent().lims_group_id
         reference_image_collection.lims_group_id = gid
@@ -919,6 +945,7 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
         dc_qe.in_queue = self.in_queue
         self.enqueue(dc_qe)
         self.dc_qe = dc_qe
+        log.debug("char pre execute here 3")
         if char.run_characterisation:
             try:
                 char_qe = CharacterisationQueueEntry(
@@ -935,6 +962,7 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
                 self.char_qe = char_qe
 
     def post_execute(self):
+        log.debug("char post execute here 4")
         if self.char_qe:
             self.status = self.char_qe.status
         else:
