@@ -30,18 +30,19 @@ class P11Energy(AbstractEnergy):
     
     _default_energy = 12.0
 
-
     def __init__(self, name):
         super(P11Energy,self).__init__(name)
 
     def init(self):
         self.chan_energy = self.get_channel_object("chanEnergy")
         if self.chan_energy is not None:
-            self.chan_energy.connectSignal("update", self.energy_position_changed)
+            self.chan_energy.connect_signal("update", self.energy_position_changed)
 
         self.chan_status = self.get_channel_object("chanStatus")
         if self.chan_status is not None:
-            self.chan_status.connectSignal("update", self.energy_state_changed)
+            self.chan_status.connect_signal("update", self.energy_state_changed)
+
+        self.chan_autobrake = self.get_channel_object("chanAutoBrake")
 
         limits = self.get_property('limits',None)
 
@@ -57,33 +58,30 @@ class P11Energy(AbstractEnergy):
         else:
             self.set_limits(limits)
 
-        self.re_emit_values()
-
-    def re_emit_values(self):
-        self._nominal_value = None
-        self._state = None
         self.energy_state_changed()
         self.energy_position_changed()
+
+    def re_emit_values(self):
+        self.emit("valueChanged", (self._nominal_value))
+        self.emit("energyChanged", (self._nominal_value, self._wavelength_value))
 
     def is_ready(self):
         return self._state == self.STATES.READY
 
     def energy_state_changed(self, state=None):
         if state is None:
-            state = self.chan_status.getValue()
+            state = self.chan_status.get_value()
 
         _state = str(state)
 
         if _state == 'ON':
-            self._state = self.STATES.READY
+            self.update_state(self.STATES.READY)
         elif _state == 'MOVING':
-            self._state = self.STATES.BUSY
+            self.update_state(self.STATES.BUSY)
         elif _state == 'DISABLED':
-            self._state = self.STATES.OFF
+            self.update_state(self.STATES.OFF)
         else:
-            self._state = self.STATES.FAULT
-
-        self.emit("stateChanged", self._state)
+            self.update_state(self.STATES.FAULT)
 
     def energy_position_changed(self, pos=None):
         """
@@ -92,21 +90,25 @@ class P11Energy(AbstractEnergy):
         :return:
         """
         if pos is None:
-            pos = self.chan_energy.getValue()
+            pos = self.chan_energy.get_value()
 
         energy = pos / 1000.0
 
         if self._nominal_value is None or abs(energy - self._nominal_value) > 1e-3:
-            self._nominal_value = energy
+            self.log.debug("P11Energy - updating value %s" % energy)
+            self.update_value(energy)
             self._wavelength_value = 12.3984 / energy
-            if self._wavelength_value is not None:
-                self.emit("energyChanged", (self._nominal_value, self._wavelength_value))
-                self.emit("valueChanged", (self._nominal_value,))
+            self.emit("energyChanged", (energy, self._wavelength_value))
 
     def _set_value(self, value):
         """
         Implementation pending
         """
+        prog_value = value * 1000
+        self.chan_autobrake.set_value(True)
+        if self.get_state() == self.STATES.READY: 
+            self.log.debug("Programming ENERGY to %s" % prog_value)
+            self.chan_energy.set_value(prog_value)
         pass
 
     def get_value(self):
@@ -118,7 +120,7 @@ class P11Energy(AbstractEnergy):
         value = self._default_energy
         if self.chan_energy is not None:
             try:
-                value = self.chan_energy.getValue()
+                value = self.chan_energy.get_value()
                 return value / 1000
             except Exception:
                 logging.getLogger("HWR").exception(
@@ -126,11 +128,4 @@ class P11Energy(AbstractEnergy):
                 )
                 return None
         return value
-
-    #def get_limits(self):
-        #return my_limits
-
-
-def test_hwo(hwo):
-    print( "Energy is: {0} keV".format(hwo.get_value()))
 
