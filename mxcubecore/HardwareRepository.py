@@ -46,10 +46,10 @@ from mxcubecore import HardwareObjectFileParser
 # Save copy of original version of socket, before gevent monkey-patching
 # Used e.g. in GphlWorkflowConnection, to suport py4j
 # DO NOT DELETE
-import socket as original_socket
+# import socket as original_socket
 # Remove from system dictionaries, to avoid later overwriting of original_socket
-del sys.modules["socket"]
-del sys.modules["_socket"]
+# del sys.modules["socket"]
+# del sys.modules["_socket"]
 
 # If you want to write out copies of the file, use typ="rt" instead
 # pure=True uses yaml version 1.2, with fewere gotchas for strange type conversions
@@ -784,7 +784,7 @@ class __HardwareRepositoryClient:
                             "macro or function": str(cmd.command),
                         }
                     elif cmd.__class__.__name__ == "TacoCommand":
-                        dd = {"type": "taco", "device": cmd.deviceName}
+                        dd = {"type": "taco", "device": cmd.device_name}
 
                         try:
                             dd["imported ?"] = "yes" if cmd.device.imported else "no"
@@ -797,7 +797,7 @@ class __HardwareRepositoryClient:
                     elif cmd.__class__.__name__ == "TangoCommand":
                         d["commands"][cmd.userName()] = {
                             "type": "tango",
-                            "device": cmd.deviceName,
+                            "device": cmd.device_name,
                             "imported ?": (
                                 "no, invalid Tango device"
                                 if cmd.device is None
@@ -823,11 +823,11 @@ class __HardwareRepositoryClient:
                     elif chan.__class__.__name__ == "TangoChannel":
                         d["channels"][chan.userName()] = {
                             "type": "tango",
-                            "device": chan.deviceName,
+                            "device": chan.device_name,
                             "imported ?": chan.device is not None
                             and "yes"
                             or "no, invalid Tango device or attribute name",
-                            "attribute": str(chan.attributeName),
+                            "attribute": str(chan.attribute_name),
                         }
 
             if "SpecMotorA" in [

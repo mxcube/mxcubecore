@@ -927,7 +927,7 @@ class GenericDiffractometer(HardwareObject):
         """
         raise NotImplementedError
 
-    def centring_motor_moved(self, pos):
+    def centring_motor_moved(self, pos=None):
         """
         """
         if time.time() - self.centring_time > 1.0:
