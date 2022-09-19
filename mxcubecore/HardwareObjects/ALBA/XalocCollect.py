@@ -335,10 +335,9 @@ class XalocCollect(AbstractCollect):
 
         # pass wavelength needed in auto processing input files
         osc_seq = self.current_dc_parameters['oscillation_sequence'][0]
+        osc_seq['wavelength'] = self.get_wavelength()
         self.logger.info('osc_seq %s' % str(osc_seq) )
         self.logger.debug("current_dc_parameters %s" % str( self.current_dc_parameters ) )
-
-        osc_seq['wavelength'] = self.get_wavelength()
 
         self.current_dc_parameters['detector_binning_mode'] = ['EXTERNAL_TRIGGER']
 
