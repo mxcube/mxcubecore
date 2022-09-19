@@ -224,10 +224,14 @@ class XalocEDNACharacterisation(EDNACharacterisation):
 
     def _run_edna_xaloc(self, dc_id, input_file, results_file, output_dir):
         """Starts EDNA"""
+        log = logging.getLogger('user_level_log')
+        if self.collect_obj.current_dc_parameters["status"] == "Failed":
+            log.error("Collection failed, no characterisation done") 
+            return
+
         msg = "Starting EDNA characterisation using xml file %s" % input_file
         logging.getLogger("queue_exec").info(msg)
 
-        log = logging.getLogger('user_level_log')
         jobname = os.path.basename( os.path.dirname(output_dir) )
 
         self.logger.debug("Submitting Job")

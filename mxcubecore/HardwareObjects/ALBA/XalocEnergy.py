@@ -61,7 +61,7 @@ class XalocEnergy(Energy):
             self.is_tunable = self.get_property("tunable_energy")
         except KeyError:
             self.is_tunable = False
-            logging.getLogger("HWR").warning("Energy: will set to fixed energy")
+            logging.getLogger("HWR").warning("Energy: will be set to fixed energy")
 
         self.connect(self.wavelength_motor, "valueChanged",
                      self.energy_position_changed)
@@ -98,10 +98,10 @@ class XalocEnergy(Energy):
     #  this calls updateResolution, which also calls update_beam_center, but probably this doesnt affect Xaloc
     #  as the beam center is taken from Variables just before a collect. Check though...
     def energy_position_changed(self, value):
-        energy_position = self.energy_motor.get_value()
-        wavelength_position = self.wavelength_motor.get_value()
-        if None not in [energy_position, wavelength_position]:
-            self.emit('energyChanged', energy_position, wavelength_position)
+        self.energy_position = self.energy_motor.get_value()
+        self.wavelength_position = self.wavelength_motor.get_value()
+        if None not in [self.energy_position, self.wavelength_position]:
+            self.emit('energyChanged', self.energy_position, self.wavelength_position)
 
     #def wavelength_position_changed(self, value):
         #wavelength_position = value
