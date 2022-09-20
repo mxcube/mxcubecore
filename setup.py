@@ -71,5 +71,5 @@ setup(
     setup_requires=setup_requirements,
     tests_require=tests_requirements,
     extras_require=extras_requirements,
-    python_requires='>=3.6',
+    python_requires='>=3.7',
 )
