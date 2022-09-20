@@ -454,6 +454,9 @@ class SardanaChannel(ChannelObject, SardanaObject):
     def _write_value(self, new_value):
         self.attribute.write(new_value)
 
+    #TODO improve this: the magnitude is probably only available for certain channels, and the rvalue for others
+    #   Instead of an exception, an if statement should decide which read method is to be applied, 
+    #   and a proper exception should be issued when necessary
     def _read_value(self):
         value = None
         if taurus.Release.version_info[0] == 3:

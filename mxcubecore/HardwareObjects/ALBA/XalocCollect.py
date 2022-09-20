@@ -292,6 +292,25 @@ class XalocCollect(AbstractCollect):
 
         self.rescorner = self.get_channel_object("rescorner_position")
 
+    # TODO: the idea here is to detect that the DS is blocked. 
+    #   However, this depends on the Sardana channel throwing an error when a read is tried, which doesnt seem to happen
+    #   see comments in Command/Sardana.py
+    #def do_collect(self, owner):
+        #"""
+        #Reimplemented to get error messages to user
+        #"""
+        #try:
+            #self.supervisor_hwobj.get_state()
+        #except:
+            #errormsg = "Cannot read state of supervisor. Check bl13/eh/supervisor"
+            #self.data_collection_failed( Exception(errormsg), errormsg )
+        #try:
+            #self.diffractometer_hwobj.get_state()
+        #except:
+            #errormsg = "Cannot read state of diffractometer. Check bl13/eh/diff"
+            #self.data_collection_failed( Exception(errormsg), errormsg )
+        #AbstractCollect.do_collect(self,owner)
+
     def data_collection_hook(self):
         """Main collection hook, called from do_collect in AbstractCollect
         """
@@ -868,11 +887,8 @@ class XalocCollect(AbstractCollect):
         self.omega_hwobj.set_velocity(60)
         self.unconfigure_ni()
 
-    def data_collection_failed(self, exception, failed_msg="XalocCollect data_collection_failed"):
-        self.stop_collect()
-        self.logger.info("XalocCollect data_collection_failed")
-        logging.getLogger('user_level_log').error(failed_msg)
-
+    def data_collection_failed(self, exception, failed_msg="XalocCollect: data_collection_failed"):
+        self.user_logger.error(failed_msg)
         self.logger.debug("  Initiating recovery sequence")
         self.stop_collect() # is it necessary to call this, or is it called through events? If it is not
         raise Exception( exception )
@@ -1602,20 +1618,20 @@ class XalocCollect(AbstractCollect):
         if (time.time() - start_wait) > timeout:
             logging.getLogger('user_level_log').error("Timeout waiting for scan to stop. Is the Macroserver ok?")
 
-        self.logger.debug("XalocCollect stop_collect")
-        self.logger.info("  Stopping all motors")
-        self.detector_hwobj.stop_collection()
-        self.omega_hwobj.stop()
-
-        self.logger.info("  Closing fast shutter")
+        self.logger.info(" Closing fast shutter")
         self.close_fast_shutter()
+        self.logger.info(" Stopping detector")
+        self.detector_hwobj.stop_collection()
+        self.logger.info(" Stopping all motors")
+        self.omega_hwobj.stop()
 
         for helmovemotorname in self.scan_move_motor_names:
             self.scan_motors_hwobj[helmovemotorname].stop()
 
         self._collecting = False
 
-        raise Exception("Collect aborted by user")
+        AbstractCollect.stop_collect() # this kills the collect job
+        #raise Exception("Collect aborted by user")
         #if self.data_collect_task is not None:
         #    self.data_collect_task.kill(block = False)
 
