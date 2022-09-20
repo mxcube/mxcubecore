@@ -309,6 +309,16 @@ class XalocMiniDiff(GenericDiffractometer):
             self.current_state = state
             self.emit("minidiffStateChanged", (self.current_state))
 
+    def get_state(self):
+        try:
+            _value = self.chan_state.get_value()
+            #self.logger.debug('get_state: (value={0}, type={1})'.format(_value, type(_value)))
+        except Exception as e:
+            raise RuntimeError('Cannot get diffractometer state:\n%s' % str(e))
+        return _value
+        #return self.chan_state.get_value()
+
+
     def update_pixels_per_mm(self):
         """
         Returns the pixel/mm for x and y. Overrides GenericDiffractometer method.
@@ -622,6 +632,7 @@ class XalocMiniDiff(GenericDiffractometer):
         # Activate the sample tree after centring
         #self.accept_centring()
         
+        self.sample_has_been_centred = True
         self.zoom_motor_hwobj.move_to_position( self.saved_zoom_pos)
         #self.backlight_hwobj.setLevel( self.saved_backlight_level )
         
@@ -1047,6 +1058,54 @@ class XalocMiniDiff(GenericDiffractometer):
         if wait:
             self.wait_device_not_ready(50)
             self.wait_device_ready(10)
+ 
+    def move_motors(self, motor_positions, timeout=15):
+        """
+        Moves diffractometer motors to the requested positions
+
+        :param motors_dict: dictionary with motor names or hwobj
+                            and target values.
+        :type motors_dict: dict
+        
+        Reimplemented to improve error messaging ()
+        """
+        if not isinstance(motor_positions, dict):
+            motor_positions = motor_positions.as_dict()
+
+        try:
+            self.wait_device_ready(timeout)
+        except Exception as e:
+            self.userlogger.error( str(e) )
+            raise(e)
+
+        for motor in motor_positions.keys():
+            position = motor_positions[motor]
+            """
+            if isinstance(motor, (str, unicode)):
+                logging.getLogger("HWR").debug(" Moving %s to %s" % (motor, position))
+            else:
+                logging.getLogger("HWR").debug(
+                    " Moving %s to %s" % (str(motor.name()), position)
+                )
+            """
+            if isinstance(motor, (str, unicode)):
+                motor_role = motor
+                motor = self.motor_hwobj_dict.get(motor_role)
+                # del motor_positions[motor_role]
+                if None in (motor, position):
+                    continue
+                # motor_positions[motor] = position
+            motor.set_value(position)
+        self.wait_device_ready(timeout)
+
+        if self.delay_state_polling is not None and self.delay_state_polling > 0:
+            # delay polling for state in the
+            # case of controller not reporting MOVING inmediately after cmd
+            gevent.sleep(self.delay_state_polling)
+
+        self.wait_device_ready(timeout)
+
+
  
     def get_grid_direction(self):
         
