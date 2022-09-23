@@ -47,8 +47,8 @@ _objects:
     - xrf_spectrum: xrf-spectrum-mockup.xml
     - energy_scan: energyscan-mockup.xml
 #    - imaging: xray-imaging.xml # Only in EMBL as of 201907
-    - gphl_workflow: gphl-workflow.xml
-    - gphl_connection: gphl-setup.xml
+    - gphl_connection: gphl-setup.yml
+    - gphl_workflow: gphl-workflow.yml
     # - centring: centring.xml
     # Analysis:
     - offline_processing: offline-processing-mockup.xml
