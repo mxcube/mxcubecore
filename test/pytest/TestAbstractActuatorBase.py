@@ -101,7 +101,7 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
             f"AbstractActuator limits must be a tuple, are {limits}"
         )
         assert len(limits) == 2, (
-            "AbstractActuator limits must be length 2, are {limits}"
+            f"AbstractActuator limits must be length 2, are {limits}"
         )
 
     def test_limits_setting(self, test_object):
