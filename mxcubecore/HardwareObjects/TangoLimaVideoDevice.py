@@ -115,6 +115,18 @@ class TangoLimaVideoDevice(AbstractVideoDevice):
         return [self.device.image_width, self.device.image_height]
 
     def get_image(self):
+        """
+        Reads image from `video_last_image` attribute of lima device proxy,
+        which is type of `bytes` and converts it into np.array of int.
+
+        Returns
+            raw_buffer : 1d np.array of np.uint16
+                Image
+            width : int
+                Image width
+            height : int
+                Image height
+        """
         img_data = self.device.video_last_image
 
         if img_data[0] == "VIDEO_IMAGE":

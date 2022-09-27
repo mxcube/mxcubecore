@@ -214,9 +214,15 @@ class AbstractVideoDevice(Device):
             return qimage.copy()
 
     def get_jpg_image(self):
-        """ for now this function allows to deal with prosilica or any RGB encoded video data"""
         """
-           the signal imageReceived is as expected by mxcube3
+        Reads`raw_data` image `[1D numpy array of np.uint16]` from `self.get_image()`
+        and converts it to .jpg image. 
+        For now this function allows to deal with prosilica or any RGB encoded video data
+
+        Returns
+        -------
+        jpg_img : bytes
+            Coverted image, emited as signal imageReceived expected by mxcube3.
         """
         raw_buffer, width, height = self.get_image()
 
