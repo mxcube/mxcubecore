@@ -1,3 +1,5 @@
 <object class="FluxMockup">
-   <defaultFlux>2.3e+12</defaultFlux>
+  <username>MockFlux</username>
+  <actuator_name>Flux</actuator_name>
+  <default_value>2.3e+12</default_value>
 </object>

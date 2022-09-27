@@ -28,7 +28,7 @@ _objects:
     - transmission: transmission-mockup.xml
     - energy: energy-mockup.xml
     - beam: beam-mockup.xml
-    #- flux: flux-mockup.xml
+    - flux: flux-mockup.xml
     - detector: detector-mockup.xml
     - resolution: resolution-mockup.xml
     #- hutch_interlock: door-interlock-mockup.xml

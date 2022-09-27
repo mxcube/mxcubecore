@@ -15,21 +15,19 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
-"""
-"""
 
-from __future__ import division, absolute_import
-from __future__ import print_function, unicode_literals
+"""Test suite for AbstractActuator class"""
 
-__copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
+__copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 __date__ = "09/04/2020"
+
+from test.pytest import TestHardwareObjectBase
 
 import abc
 import gevent
 import pytest
 
-from test.pytest import TestHardwareObjectBase
 
 test_object = TestHardwareObjectBase.test_object
 
@@ -57,6 +55,11 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
 
     def test_value_setting(self, test_object):
         """Test effect of update_value and (if not read_only) set_value"""
+
+        # do not run if read_only object
+        if test_object.read_only:
+            return
+
         startval = test_object.get_value()
 
         test_object.update_value()
@@ -92,12 +95,13 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
             )
 
     def test_limits_type(self, test_object):
+        """Test the limits"""
         limits = test_object.get_limits()
         assert isinstance(limits, tuple), (
-            "AbstractActuator limits must be a tuple, are %s" % limits
+            f"AbstractActuator limits must be a tuple, are {limits}"
         )
         assert len(limits) == 2, (
-            "AbstractActuator limits must be length 2, are %s" % limits
+            f"AbstractActuator limits must be length 2, are {limits}"
         )
 
     def test_limits_setting(self, test_object):
