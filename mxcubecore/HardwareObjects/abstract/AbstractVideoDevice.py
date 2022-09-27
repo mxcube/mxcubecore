@@ -46,6 +46,8 @@ except Exception:
 
 from mxcubecore.BaseHardwareObjects import Device
 
+from io import BytesIO
+
 
 module_names = ["qt", "PyQt5", "PyQt4"]
 
@@ -228,14 +230,12 @@ class AbstractVideoDevice(Device):
 
         if raw_buffer is not None and raw_buffer.any():
             image = Image.frombytes("RGB", (width, height), raw_buffer)
-            from cStringIO import StringIO
-
-            strbuf = StringIO()
-            image.save(strbuf, "JPEG")
-            jpgimg_str = strbuf.getvalue()
-            if jpgimg_str is not None:
-                self.emit("imageReceived", jpgimg_str, width, height)
-            return jpgimg_str
+            buffer = BytesIO()
+            image.save(buffer, "JPEG")
+            jpg_img = buffer.getvalue()
+            if jpg_img is not None:
+                self.emit("imageReceived", jpg_img, width, height)
+            return jpg_img
         else:
             return None
 
