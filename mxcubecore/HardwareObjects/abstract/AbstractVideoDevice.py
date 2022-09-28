@@ -46,15 +46,17 @@ except Exception:
 
 from mxcubecore.BaseHardwareObjects import Device
 
+from io import BytesIO
+
 
 module_names = ["qt", "PyQt5", "PyQt4"]
 
 if any(mod in sys.modules for mod in module_names):
     USEQT = True
     try:
-        from PyQt5.QtGui import QImage, QPixmap
+        from PyQt5.QtGui import QImage, QPixmap, QSize
     except ImportError:
-        from PyQt4.QtGui import QImage, QPixmap
+        from PyQt4.QtGui import QImage, QPixmap, QSize
 else:
     USEQT = False
     from PIL import Image
@@ -214,22 +216,26 @@ class AbstractVideoDevice(Device):
             return qimage.copy()
 
     def get_jpg_image(self):
-        """ for now this function allows to deal with prosilica or any RGB encoded video data"""
         """
-           the signal imageReceived is as expected by mxcube3
+        Reads`raw_data` image `[1D numpy array of np.uint16]` from `self.get_image()`
+        and converts it to .jpg image. 
+        For now this function allows to deal with prosilica or any RGB encoded video data
+
+        Returns
+        -------
+        jpg_img : bytes
+            Coverted image, emited as signal imageReceived expected by mxcube3.
         """
         raw_buffer, width, height = self.get_image()
 
         if raw_buffer is not None and raw_buffer.any():
             image = Image.frombytes("RGB", (width, height), raw_buffer)
-            from cStringIO import StringIO
-
-            strbuf = StringIO()
-            image.save(strbuf, "JPEG")
-            jpgimg_str = strbuf.getvalue()
-            if jpgimg_str is not None:
-                self.emit("imageReceived", jpgimg_str, width, height)
-            return jpgimg_str
+            buffer = BytesIO()
+            image.save(buffer, "JPEG")
+            jpg_img = buffer.getvalue()
+            if jpg_img is not None:
+                self.emit("imageReceived", jpg_img, width, height)
+            return jpg_img
         else:
             return None
 
