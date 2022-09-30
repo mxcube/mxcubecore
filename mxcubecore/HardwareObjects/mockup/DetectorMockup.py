@@ -46,9 +46,6 @@ class DetectorMockup(AbstractDetector):
         """
         return True
 
-    def get_beam_position(self, distance=None, wavelength=None):
-        return  self._beam_centre
-
     def _set_beam_centre(self, beam_centre):
         # Needed for GPhL collection emulation
         self._beam_centre = beam_centre

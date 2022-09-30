@@ -12,4 +12,17 @@
   <hasShutterless>True</hasShutterless>
   <fileSuffix>h5</fileSuffix>
   <object hwrid="/detector-distance-mockup" role="detector_distance"/>
+
+  <roiModes>("0", "C18", "C12", "C2")</roiModes>
+
+  <px>0.172</px>
+  <py>0.172</py>
+
+  <beam>
+    <ax>-0.00872</ax>
+    <ay>-0.0002139</ay>
+    <bx>2075.0</bx>
+    <by>2135.5</by>
+  </beam>
+
 </object>
