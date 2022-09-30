@@ -48,50 +48,40 @@ class TestDetector(TestHardwareObjectBase.TestHardwareObjectBase):
         has_shutterless = test_object.has_shutterless()
 
     def test_get_beam_position(self, test_object):
-        # Beam position for detector distance 0 (at sample)
-        # should give widht / 2 and height /2
-        val = test_object.get_beam_position(distance=0)
-
-        assert (
-            test_object.width / 2.0,
-            test_object.height / 2.0,
-        ) == val, "Beam position should be in the middle of the detector"
-
-        # Also check linear regression and that the slope values
-        # are read correctly
-        val = test_object.get_beam_position(distance=1)
-
+        bx = test_object.get_metadata()["bx"]
+        by = test_object.get_metadata()["by"]
         ax = test_object.get_metadata()["ax"]
         ay = test_object.get_metadata()["ay"]
 
-        assert (
-            (test_object.width / 2.0) + ax,
-            (test_object.height / 2.0) + ay,
-        ) == val, "Beam position should be slightly off center"
+        for _d in range(0, 100):
+            val = test_object.get_beam_position(distance=_d)
+            beam_position = (_d * ax + bx, _d * ay + by)
+
+            assert beam_position == val, "Beam position should be slightly off center"
 
     def test_get_radius(self, test_object):
-        # Beam position for detector distance 0 (at sample)
-        # should give width / 2 and height /2 so the radius should
-        # be min(width / 2, height / 2)
-        val = test_object.get_radius(distance=0)
-        pixel_x, pixel_y = test_object.get_pixel_size()
+        for _d in range(0, 100):
+            val = test_object.get_radius(distance=_d)
+            pixel_x, pixel_y = test_object.get_pixel_size()
+            bx, by = test_object.get_beam_position(_d)
 
-        assert (
-            min(test_object.width / 2 * pixel_x, test_object.height / 2 * pixel_y)
-            == val
-        ), "Radius should be min(width / 2, height / 2)"
+            rrx = min(test_object.width - bx, bx) * pixel_x
+            rry = min(test_object.height - by, by) * pixel_y
+
+            assert min(rrx, rry) == val, "Radius incorrect"
 
     def test_get_outer_radius(self, test_object):
-        # Beam position for detector distance 0 (at sample)
-        # should give width / 2 and height /2 so the radius should
-        # be min(width / 2, height / 2)
-        val = test_object.get_outer_radius(distance=0)
-        pixel_x, pixel_y = test_object.get_pixel_size()
+        for _d in range(0, 100):
+            val = test_object.get_outer_radius(distance=_d)
+            pixel_x, pixel_y = test_object.get_pixel_size()
 
-        max_delta_x = (test_object.width / 2) * pixel_x
-        max_delta_y = (test_object.height / 2) * pixel_y
-        outer_radius = math.sqrt(max_delta_x * max_delta_x + max_delta_y * max_delta_y)
+            bx, by = test_object.get_beam_position(_d)
 
-        assert (
-            outer_radius == val
-        ), "Radius should be math.sqrt(max_delta_x * max_delta_x + max_delta_y * max_delta_y)"
+            max_delta_x = max(bx, test_object.width - bx) * pixel_x
+            max_delta_y = max(by, test_object.height - by) * pixel_y
+
+            outer_radius = math.sqrt(
+                max_delta_x * max_delta_x + max_delta_y * max_delta_y
+            )
+
+            assert outer_radius == val, "Outer radius incorrect"
