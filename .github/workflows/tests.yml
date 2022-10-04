@@ -1,7 +1,9 @@
 name: Pytest
-
-on: [pull_request]
-
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - '**.py'
 jobs:
   Python:
     runs-on: ubuntu-latest
