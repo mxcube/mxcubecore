@@ -1,8 +1,8 @@
 try:
     # Python3.8+ standard library
-    from importlib.metadata import metadata
+    from importlib.metadata import version
 except ImportError:
     # Python3.7 module backport
-    import importlib_metadata as metadata
+    from importlib_metadata import version
 
-__version__ = metadata.version(__package__ or __name__)
+__version__ = version(__package__ or __name__)
