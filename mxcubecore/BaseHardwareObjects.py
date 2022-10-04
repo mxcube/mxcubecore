@@ -521,7 +521,7 @@ class HardwareObjectMixin(CommandContainer):
             cmd = getattr(self, cmd_name)
         else:
             self.log.info(
-                f"Command {cmd} not exported, check type hints and configuration file"
+                f"Command {cmd_name} not exported, check type hints and configuration file"
             )
 
         return cmd(**args)
