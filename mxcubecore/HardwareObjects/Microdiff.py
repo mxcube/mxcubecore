@@ -498,7 +498,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def get_motors(self):
         """Get motor_name:Motor dictionary"""
-        return {
+        motors = {
             "phi": self.phiMotor,
             "focus": self.focusMotor,
             "phiy": self.phiyMotor,
@@ -506,9 +506,13 @@ class Microdiff(MiniDiff.MiniDiff):
             "sampx": self.sampleXMotor,
             "sampy": self.sampleYMotor,
             "zoom": self.zoomMotor,
-            "kappa": self.kappaMotor if self.in_kappa_mode() else None,
-            "kappa_phi": self.kappaPhiMotor if self.in_kappa_mode() else None,
         }
+        # If there is no MiniKappa on the Microdiffractometer, MiniKappa motors do not need to be returned
+        if self.in_kappa_mode():
+            motors.update({"kappa": self.kappaMotor,
+                        "kappa_phi": self.kappaPhiMotor,
+                        })
+        return motors
 
     def get_positions(self):
         pos = {
