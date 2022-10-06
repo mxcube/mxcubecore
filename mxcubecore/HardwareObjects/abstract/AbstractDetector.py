@@ -100,8 +100,7 @@ class AbstractDetector(HardwareObject):
         self._height = self.get_property("height")
 
     def force_emit_signals(self):
-        """Emit all hardware object signals.
-        """
+        """Emit all hardware object signals."""
         self.emit("detectorRoiModeChanged", (self._roi_mode,))
         self.emit("temperatureChanged", (self._temperature, True))
         self.emit("humidityChanged", (self._humidity, True))
@@ -141,12 +140,10 @@ class AbstractDetector(HardwareObject):
 
     @abc.abstractmethod
     def start_acquisition(self):
-        """Start the acquisition.
-        """
+        """Start the acquisition."""
 
     def stop_acquisition(self):
-        """Stop the acquisition.
-        """
+        """Stop the acquisition."""
 
     def get_roi_mode(self):
         """Get the current ROI mode.
@@ -220,8 +217,18 @@ class AbstractDetector(HardwareObject):
         # wavelength
 
         try:
-            distance = distance or self._distance_motor_hwobj.get_value()
-            wavelength = wavelength or HWR.beamline.energy.get_wavelength()
+            distance = (
+                distance
+                if distance is not None
+                else self._distance_motor_hwobj.get_value()
+            )
+
+            wavelength = (
+                wavelength
+                if wavelength is not None
+                else HWR.beamline.energy.get_wavelength()
+            )
+
             metadata = self.get_metadata()
 
             beam_position = (
@@ -241,7 +248,11 @@ class AbstractDetector(HardwareObject):
             (float): Detector radius [mm]
         """
         try:
-            distance = distance or self._distance_motor_hwobj.get_value()
+            distance = (
+                distance
+                if distance is not None
+                else self._distance_motor_hwobj.get_value()
+            )
         except AttributeError:
             raise RuntimeError("Cannot calculate radius, distance unknown")
 
@@ -261,13 +272,19 @@ class AbstractDetector(HardwareObject):
             (float): Detector outer adius [mm]
         """
         try:
-            distance = distance or self._distance_motor_hwobj.get_value()
+            distance = (
+                distance
+                if distance is not None
+                else self._distance_motor_hwobj.get_value()
+            )
         except AttributeError:
             raise RuntimeError("Cannot calculate outer radius, distance unknown")
+
         beam_x, beam_y = self.get_beam_position(distance)
         pixel_x, pixel_y = self.get_pixel_size()
         max_delta_x = max(beam_x, self.width - beam_x) * pixel_x
         max_delta_y = max(beam_y, self.height - beam_y) * pixel_y
+
         return math.sqrt(max_delta_x * max_delta_x + max_delta_y * max_delta_y)
 
     def get_metadata(self):

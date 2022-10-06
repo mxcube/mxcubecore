@@ -21,6 +21,7 @@
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
+import math
 import pytest
 from test.pytest import TestHardwareObjectBase
 
@@ -45,3 +46,42 @@ class TestDetector(TestHardwareObjectBase.TestHardwareObjectBase):
         ), "Detector hardware object is None (not initialized)"
         exp_time_limits = test_object.get_exposure_time_limits()
         has_shutterless = test_object.has_shutterless()
+
+    def test_get_beam_position(self, test_object):
+        bx = test_object.get_metadata()["bx"]
+        by = test_object.get_metadata()["by"]
+        ax = test_object.get_metadata()["ax"]
+        ay = test_object.get_metadata()["ay"]
+
+        for _d in range(0, 100):
+            val = test_object.get_beam_position(distance=_d)
+            beam_position = (_d * ax + bx, _d * ay + by)
+
+            assert beam_position == val, "Beam position should be slightly off center"
+
+    def test_get_radius(self, test_object):
+        for _d in range(0, 100):
+            val = test_object.get_radius(distance=_d)
+            pixel_x, pixel_y = test_object.get_pixel_size()
+            bx, by = test_object.get_beam_position(_d)
+
+            rrx = min(test_object.width - bx, bx) * pixel_x
+            rry = min(test_object.height - by, by) * pixel_y
+
+            assert min(rrx, rry) == val, "Radius incorrect"
+
+    def test_get_outer_radius(self, test_object):
+        for _d in range(0, 100):
+            val = test_object.get_outer_radius(distance=_d)
+            pixel_x, pixel_y = test_object.get_pixel_size()
+
+            bx, by = test_object.get_beam_position(_d)
+
+            max_delta_x = max(bx, test_object.width - bx) * pixel_x
+            max_delta_y = max(by, test_object.height - by) * pixel_y
+
+            outer_radius = math.sqrt(
+                max_delta_x * max_delta_x + max_delta_y * max_delta_y
+            )
+
+            assert outer_radius == val, "Outer radius incorrect"
