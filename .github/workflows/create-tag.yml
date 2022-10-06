@@ -14,16 +14,12 @@ jobs:
       with:
         python-version: "3.10"
 
-    - name: Install dependencies
+    - name: Read package version
+      id: set-tag
       run: |
         pip install --upgrade pip
-        pip install poetry
-        poetry config virtualenvs.create false
-        poetry install
-
-    - name: Set tag name
-      id: set-tag
-      run:  echo "::set-output name=tag_name::v$(poetry run python -c 'import mxcubecore; print(mxcubecore.__version__)')"
+        pip install toml
+        echo ::set-output name=tag_name::v$(python -c 'import toml; print(toml.load("./pyproject.toml")["tool"]["poetry"]["version"])')
 
     - name: Check tag exists
       id: check-tag-exists
