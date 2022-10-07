@@ -1,681 +1,445 @@
 """
+HardwareObject for Arinax Microdiffractometers
 """
 
-Derived from BIOMAXMD3
-
-"""
-
-import time
+import math
+import numpy
 import logging
 import gevent
-import numpy as np
-from PIL import Image
 
-# import lucid
-import io
-import math
+from mxcubecore.HardwareObjects import Microdiff
+from mxcubecore.HardwareObjects.sample_centring import CentringMotor
+from mxcubecore import HardwareRepository as HWR
 
-from HardwareRepository.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer,
-    DiffractometerState,
-)
-from HardwareRepository import HardwareRepository as HWR
-__author__ = "Bernard Lavault and Daniel Homs - ARINAX"
-__credits__ = ["The MxCuBE collaboration"]
 
-__email__ = ""
-__status__ = "NOT WORKING PROPERLY - DEBUGGING STATE"
+class ArinaxMicrodiff(Microdiff.Microdiff):
+    def __init__(self, *args, **kwargs):
+        Microdiff.Microdiff.__init__(self, *args, **kwargs)
 
-try:
-    import lucid2 as lucid
-except ImportError:
-    try:
-        import lucid
-    except ImportError:
-        logging.warning(
-            "Could not find autocentring library, " + "automatic centring is disabled"
-        )
-
-class ArinaxMicrodiff(GenericDiffractometer):
-
-    MOTOR_TO_EXPORTER_NAME = {
-        "focus": "AlignmentX",
-        "kappa": "Kappa",
-        "kappa_phi": "Phi",
-        "phi": "Omega",
-        "phiy": "AlignmentY",
-        "phiz": "AlignmentZ",
-        "sampx": "CentringX",
-        "sampy": "CentringY",
-        # "zoom": "Zoom",
-    }
-
-    AUTOMATIC_CENTRING_IMAGES = 6
-
-    def __init__(self, *args):
-        """
-        Description:
-        """
-        GenericDiffractometer.__init__(self, *args)
-        # Compatibility line
-        self.C3D_MODE = GenericDiffractometer.CENTRING_METHOD_AUTO
-        self.MANUAL3CLICK_MODE = "Manual 3-click"
 
     def init(self):
-
-        GenericDiffractometer.init(self)
-
-        self.front_light = self.getObjectByRole("frontlight")
-        self.back_light = self.getObjectByRole("backlight")
-        self.back_light_switch = self.getObjectByRole("backlightswitch")
-        self.front_light_switch = self.getObjectByRole("frontlightswitch")
-        self.zoom_motor_hwobj = self.getObjectByRole("zoom")
-        self.centringVertical = self.getObjectByRole("sample_vertical")
-        self.centringHorizontal = self.getObjectByRole("sample_horizontal")
-
-        self.beamstop = self.getObjectByRole("beamstop")
-        self.beamstopDistance = self.getObjectByRole("beamstop_distance")
-        self.capillary = self.getObjectByRole("capillary")
-        self.aperture = self.getObjectByRole("aperture")
-
-        self.centring_hwobj = self.getObjectByRole("centring")
-        if self.centring_hwobj is None:
-            logging.getLogger("HWR").debug("EMBLMinidiff: Centring math is not defined")
-
-        self.phi_motor_hwobj = self.getObjectByRole("phi")
-        self.phiz_motor_hwobj = self.getObjectByRole("phiz")
-        self.phiy_motor_hwobj = self.getObjectByRole("phiy")
-
-        self.focus_motor_hwobj = self.getObjectByRole("focus")
-        self.sample_x_motor_hwobj = self.getObjectByRole("sampx")
-        self.sample_y_motor_hwobj = self.getObjectByRole("sampy")
+        Microdiff.Microdiff.init(self)
         try:
-            self.kappa_motor_hwobj = self.getObjectByRole("kappa")
-        except Exception:
-            self.kappa_motor_hwobj = None
-        try:
-            self.kappa_phi_motor_hwobj = self.getObjectByRole("kappa_phi")
-        except Exception:
-            self.kappa_phi_motor_hwobj = None
+            phiy_ref = self["centringReferencePosition"].getProperty("phiy")
+        except:
+            phiy_ref = None
 
-        self.cent_vertical_pseudo_motor = None
-        try:
-            self.cent_vertical_pseudo_motor = self.add_channel(
-                {"type": "exporter", "name": "CentringTableVerticalPositionPosition"},
-                "CentringTableVerticalPosition",
-            )
-            if self.cent_vertical_pseudo_motor is not None:
-                self.connect(
-                    self.cent_vertcial_pseudo_motor, "update", self.centring_motor_moved
-                )
-        except Exception:
-            logging.getLogger("HWR").warning(
-                "Cannot initialize CentringTableVerticalPosition"
-            )
+        self.readPhase.connect_signal("update", self.current_phase_changed)
+        self.centringPhi = CentringMotor(self.phiMotor, direction=self.phiMotor.direction) #direction must be 1 on MD3 and mirrored MD2
+        self.centringPhiz = CentringMotor(self.phizMotor)
+        self.centringPhiy = CentringMotor(self.phiyMotor, direction=self.phiyMotor.direction, reference_position=None)  #direction must be -1 on MD2 and MD3
+        self.centringSamplex = CentringMotor(self.sampleXMotor, direction=self.sampleXMotor.direction) # direction must be 1 on MD3 and -1 on MD2
+        self.centringSampley = CentringMotor(self.sampleYMotor)
+        self.scan_nb_frames = 1
 
-        try:
-            use_sc = self.getProperty("use_sc")
-            self.set_use_sc(use_sc)
-        except Exception:
-            logging.getLogger("HWR").debug("Cannot set sc mode, use_sc: ", str(use_sc))
+        # Raster scan attributes
+        self.nb_frames = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "nbframes",
+            },
+            "ScanNumberOfFrames",
+        )
+        self.scan_range = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "scan_range",
+            },
+            "ScanRange",
+        )
+        self.scan_exposure_time = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "exposure_time",
+            },
+            "ScanExposureTime",
+        )
+        self.scan_start_angle = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_angle",
+            },
+            "ScanStartAngle",
+        )
+        self.scan_detector_gate_pulse_enabled = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "detector_gate_pulse_enabled",
+            },
+            "DetectorGatePulseEnabled",
+        )
+        self.scan_detector_gate_pulse_readout_time = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "detector_gate_pulse_readout_time",
+            },
+            "DetectorGatePulseReadoutTime",
+        )
 
-        try:
-            self.zoom_centre = eval(self.getProperty("zoom_centre"))
-            zoom = HWR.beamline.sample_view.camera.get_image_zoom()
-            if zoom is not None:
-                self.zoom_centre["x"] = self.zoom_centre["x"] * zoom
-                self.zoom_centre["y"] = self.zoom_centre["y"] * zoom
-            self.beam_position = [self.zoom_centre["x"], self.zoom_centre["y"]]
-            HWR.beamline.beam.set_beam_position(self.beam_position)
-        except Exception:
-            self.zoom_centre = {"x": 0, "y": 0}
-            logging.getLogger("HWR").warning(
-                "ArinaxMicrodiff: " + "zoom centre not configured"
-            )
-        # self.update_zoom_calibration()
-        self.scan_start_angle = self.get_channel_object("ScanStartAngle")
-        self.scan_expo_time = self.get_channel_object("ScanExposureTime")
-        self.scan_range = self.get_channel_object("ScanRange")
-        self.scan_num_frames = self.get_channel_object("ScanNumberOfFrames")
-        self.pixels_per_mm_x = self.get_channel_object("CoaxCamScaleX").getValue()
-        self.pixels_per_mm_y = self.get_channel_object("CoaxCamScaleY").getValue()
-        print("pixels per mm in x !!!!!!!!!!!!!!!!!!!!!!!!!!!!! ", self.pixels_per_mm_x)
+        self.state_chan = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "state_chan",
+            },
+            "State",
+        )
+
+        self.save_centring_positions = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "save_centring_positions",
+            },
+            "saveCentringPositions",
+        )
+
+        self.connect("update", self.state_changed)
+
+    def state_changed(self, state):
+        logging.getLogger("HWR").debug("MD3 State changed %s" % str(state))
+        #self.emit("minidiffStateChanged", (self.current_state))
+
+    # def getBeamPosX(self):
+    #     return self.beam_info.get_beam_position_on_screen()[0]
+    #
+    # def getBeamPosY(self):
+    #     return self.beam_info.get_beam_position_on_screen()[1]
 
     def current_phase_changed(self, current_phase):
         """
         Descript. :
         """
-        self.current_phase = current_phase
         logging.getLogger("HWR").info("MD3 phase changed to %s" % current_phase)
         self.emit("phaseChanged", (current_phase,))
 
-    def start3ClickCentring(self):
-        self.start_centring_method(self.CENTRING_METHOD_MANUAL)
+    def update_scale(self):
+        pixelsPerMmY = self.x_calib.get_value()
+        pixelsPerMmZ = self.y_calib.get_value()
 
-    def startAutoCentring(self):
-        self.start_centring_method(self.CENTRING_METHOD_AUTO)
+    def zoomMotorPredefinedPositionChanged(self, positionName, offset=None):
+        self.emit("zoomMotorPredefinedPositionChanged", (positionName, offset))
 
-    def get_pixels_per_mm(self):
+    def get_state(self):
+        state = self.state_chan.get_value()
+        return state
+
+    def setNbImages(self, number_of_images):
+        """ Set number of hardware triggers
         """
-        Get the values from coaxCamScaleX and coaxCamScaleY channels diretly
+        self.scan_nb_frames = number_of_images
 
-        :returns: list with two floats
-        """
-        zoom = HWR.beamline.sample_view.camera.get_image_zoom()
-        # return (0.5/self.channel_dict["CoaxCamScaleX"].getValue(),
-        # 0.5/self.channel_dict["CoaxCamScaleY"].getValue())
-        return (
-            self.get_channel_object("CoaxCamScaleX").getValue(),
-            self.get_channel_object("CoaxCamScaleY").getValue(),
-        )
-
-    def update_zoom_calibration(self):
-        """
-        """
-        # self.pixels_per_mm_x = 0.5/self.channel_dict["CoaxCamScaleX"].getValue()
-        # self.pixels_per_mm_y = 0.5/self.channel_dict["CoaxCamScaleY"].getValue()
-        zoom = HWR.beamline.sample_view.camera.get_image_zoom()
-        self.pixels_per_mm_x = self.get_channel_object("CoaxCamScaleX").getValue()
-        self.pixels_per_mm_y = self.get_channel_object("CoaxCamScaleY").getValue()
-
-    def manual_centring(self):
-        """
-        Descript. :
-        """
-        self.centring_hwobj.initCentringProcedure()
-        for click in range(3):
-            self.user_clicked_event = gevent.event.AsyncResult()
-            x, y = self.user_clicked_event.get()
-            self.centring_hwobj.appendCentringDataPoint(
-                {
-                    "X": (x - self.beam_position[0]) / self.pixels_per_mm_x,
-                    "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y,
-                }
-            )
-            if self.in_plate_mode():
-                dynamic_limits = self.phi_motor_hwobj.getDynamicLimits()
-                if click == 0:
-                    self.phi_motor_hwobj.set_value(dynamic_limits[0])
-                elif click == 1:
-                    self.phi_motor_hwobj.set_value(dynamic_limits[1])
-            else:
-                if click < 2:
-                    self.phi_motor_hwobj.set_value_relative(90)
-        self.omega_reference_add_constraint()
-        return self.centring_hwobj.centeredPosition(return_by_name=False)
-
-    def automatic_centring_old(self):
-        """Automatic centring procedure. Rotates n times and executes
-           centring algorithm. Optimal scan position is detected.
-        """
-
-        surface_score_list = []
-        self.zoom_motor_hwobj.moveToPosition("Zoom 1")
-        self.wait_device_ready(3)
-        self.centring_hwobj.initCentringProcedure()
-        for image in range(ArinaxMicrodiff.AUTOMATIC_CENTRING_IMAGES):
-            x, y, score = self.find_loop()
-            if x > -1 and y > -1:
-                self.centring_hwobj.appendCentringDataPoint(
-                    {
-                        "X": (x - self.beam_position[0]) / self.pixels_per_mm_x,
-                        "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y,
-                    }
-                )
-            surface_score_list.append(score)
-            self.phi_motor_hwobj.set_value_relative(
-                360.0 / ArinaxMicrodiff.AUTOMATIC_CENTRING_IMAGES, timeout=5
-            )
-        self.omega_reference_add_constraint()
-        return self.centring_hwobj.centeredPosition(return_by_name=False)
-
-    def automatic_centring(self):
-        """Automatic centring procedure. Rotates n times and executes
-           centring algorithm. Optimal scan position is detected.
-        """
-
-        # check if loop is there at the beginning
-        i = 0
-        while -1 in self.find_loop():
-            self.phi_motor_hwobj.set_value_relative(90, timeout=5)
-            i += 1
-            if i > 4:
-                self.emit_progress_message("No loop detected, aborting")
-                return
-
-        for k in range(3):
-            self.emit_progress_message("Doing automatic centring")
-            surface_score_list = []
-            self.centring_hwobj.initCentringProcedure()
-            for a in range(3):
-                x, y, score = self.find_loop()
-                logging.info("in autocentre, x=%f, y=%f", x, y)
-                if x < 0 or y < 0:
-                    for i in range(1, 9):
-                        # logging.info("loop not found - moving back %d" % i)
-                        self.phi_motor_hwobj.set_value_relative(10, timeout=5)
-                        x, y, score = self.find_loop()
-                        surface_score_list.append(score)
-                        if -1 in (x, y):
-                            continue
-                        if y >= 0:
-                            if x < HWR.beamline.sample_view.camera.getWidth() / 2:
-                                x = 0
-                                self.centring_hwobj.appendCentringDataPoint(
-                                    {
-                                        "X": (x - self.beam_position[0])
-                                        / self.pixels_per_mm_x,
-                                        "Y": (y - self.beam_position[1])
-                                        / self.pixels_per_mm_y,
-                                    }
-                                )
-                                break
-                            else:
-                                x = HWR.beamline.sample_view.camera.getWidth()
-                                self.centring_hwobj.appendCentringDataPoint(
-                                    {
-                                        "X": (x - self.beam_position[0])
-                                        / self.pixels_per_mm_x,
-                                        "Y": (y - self.beam_position[1])
-                                        / self.pixels_per_mm_y,
-                                    }
-                                )
-                                break
-                    if -1 in (x, y):
-                        raise RuntimeError("Could not centre sample automatically.")
-                    self.phi_motor_hwobj.set_value_relative(-i * 10, timeout=5)
-                else:
-                    self.centring_hwobj.appendCentringDataPoint(
-                        {
-                            "X": (x - self.beam_position[0]) / self.pixels_per_mm_x,
-                            "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y,
-                        }
-                    )
-                self.phi_motor_hwobj.set_value_relative(90)
-                self.wait_device_ready(5)
-
-            self.omega_reference_add_constraint()
-            centred_pos = self.centring_hwobj.centeredPosition(return_by_name=False)
-            if k < 2:
-                self.move_to_centred_position(centred_pos)
-                self.wait_device_ready(5)
-        return centred_pos
-
-    def find_loop(self):
-        """
-        Description:
-        """
-        imgStr = HWR.beamline.sample_view.camera.get_snapshot_img_str()
-        image = Image.open(io.BytesIO(imgStr))
-        try:
-            img = np.array(image)
-            img_rot = np.rot90(img, 1)
-            info, y, x = lucid.find_loop(
-                np.array(img_rot, order="C"), IterationClosing=6
-            )
-            x = HWR.beamline.sample_view.camera.getWidth() - x
-        except Exception:
-            return -1, -1, 0
-        if info == "Coord":
-            surface_score = 10
-            return x, y, surface_score
-        else:
-            return -1, -1, 0
-
-    def omega_reference_add_constraint(self):
-        """
-        Descript. :
-        """
-        if self.omega_reference_par is None or self.beam_position is None:
-            return
-        if self.omega_reference_par["camera_axis"].lower() == "x":
-            on_beam = (
-                (self.beam_position[0] - self.zoom_centre["x"])
-                * self.omega_reference_par["direction"]
-                / self.pixels_per_mm_x
-                + self.omega_reference_par["position"]
-            )
-        else:
-            on_beam = (
-                (self.beam_position[1] - self.zoom_centre["y"])
-                * self.omega_reference_par["direction"]
-                / self.pixels_per_mm_y
-                + self.omega_reference_par["position"]
-            )
-        self.centring_hwobj.appendMotorConstraint(self.omega_reference_motor, on_beam)
-
-    def omega_reference_motor_moved(self, pos):
-        """
-        Descript. :
-        """
-        if self.omega_reference_par["camera_axis"].lower() == "x":
-            pos = (
-                self.omega_reference_par["direction"]
-                * (pos - self.omega_reference_par["position"])
-                * self.pixels_per_mm_x
-                + self.zoom_centre["x"]
-            )
-            self.reference_pos = (pos, -10)
-        else:
-            pos = (
-                self.omega_reference_par["direction"]
-                * (pos - self.omega_reference_par["position"])
-                * self.pixels_per_mm_y
-                + self.zoom_centre["y"]
-            )
-            self.reference_pos = (-10, pos)
-        self.emit("omegaReferenceChanged", (self.reference_pos,))
-
-    def motor_positions_to_screen(self, centred_positions_dict):
-        """
-        Descript. :
-        """
-        c = centred_positions_dict
-
-        if self.head_type == GenericDiffractometer.HEAD_TYPE_MINIKAPPA:
-            kappa = self.motor_hwobj_dict["kappa"]
-            phi = self.motor_hwobj_dict["kappa_phi"]
-
-        #        if (c['kappa'], c['kappa_phi']) != (kappa, phi) \
-        #         and self.minikappa_correction_hwobj is not None:
-        #            c['sampx'], c['sampy'], c['phiy'] = self.minikappa_correction_hwobj.shift(
-        # c['kappa'], c['kappa_phi'], [c['sampx'], c['sampy'], c['phiy']], kappa,
-        # phi)
-        xy = self.centring_hwobj.centringToScreen(c)
-        # x = (xy['X'] + c['beam_x']) * self.pixels_per_mm_x + \
-        x = xy["X"] * self.pixels_per_mm_x + self.zoom_centre["x"]
-        # y = (xy['Y'] + c['beam_y']) * self.pixels_per_mm_y + \
-        y = xy["Y"] * self.pixels_per_mm_y + self.zoom_centre["y"]
-        return x, y
-
-    def osc_scan(self, start, end, exptime, wait=False):
+    def oscilScan(self, start, end, exptime, wait=False):
         if self.in_plate_mode():
             scan_speed = math.fabs(end - start) / exptime
-            # todo, JN, get scan_speed limit
-            """
             low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
             if start < low_lim:
                 raise ValueError("Scan start below the allowed value %f" % low_lim)
             elif end > hi_lim:
-                raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
-            """
-        scan_params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
-        scan = self.command_dict["startScanEx"]
-        logging.getLogger("HWR").info(
-            "[ArinaxMicrodiff] MD3 oscillation requested, waiting device ready..., params "
-            + str(scan_params)
-        )
-        self.wait_device_ready(200)
-        logging.getLogger("HWR").info(
-            "[ArinaxMicrodiff] MD3 oscillation requested, device ready."
-        )
-        scan(scan_params)
-        logging.getLogger("HWR").info(
-            "[ArinaxMicrodiff] MD3 oscillation launched, waiting for device ready."
-        )
-        # if wait:
-        time.sleep(0.1)
-        self.wait_device_ready(exptime + 30)  # timeout of 5 min
-        logging.getLogger("HWR").info("[ArinaxMicrodiff] MD3 oscillation, device ready.")
+                raise ValueError("Scan end above the allowed value %f" % hi_lim)
+        self.nb_frames.set_value(self.scan_nb_frames)
 
-    def osc_scan_4d(self, start, end, exptime, helical_pos, wait=False):
-        if self.in_plate_mode():
-            scan_speed = math.fabs(end - start) / exptime
-            # todo, JN, get scan_speed limit
-            """
-            low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
-            if start < low_lim:
-                raise ValueError("Scan start below the allowed value %f" % low_lim)
-            elif end > hi_lim:
-                raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
-            """
-        scan_params = "%0.3f\t%0.3f\t%0.4f\t" % (start, (end - start), exptime)
-        scan_params += "%0.3f\t" % helical_pos["1"]["phiy"]
-        scan_params += "%0.3f\t" % helical_pos["1"]["phiz"]
-        scan_params += "%0.3f\t" % helical_pos["1"]["sampx"]
-        scan_params += "%0.3f\t" % helical_pos["1"]["sampy"]
-        scan_params += "%0.3f\t" % helical_pos["2"]["phiy"]
-        scan_params += "%0.3f\t" % helical_pos["2"]["phiz"]
-        scan_params += "%0.3f\t" % helical_pos["2"]["sampx"]
-        scan_params += "%0.3f\t" % helical_pos["2"]["sampy"]
+        params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
 
-        logging.getLogger("HWR").info(
-            "[ArinaxMicrodiff] MD3 helical oscillation requested, waiting device ready..., params "
-            + str(scan_params)
+        scan = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_scan",
+            },
+            "startScanEx",
         )
-        scan = self.command_dict["startScan4DEx"]
-        time.sleep(0.1)
-        logging.getLogger("HWR").info(
-            "[ArinaxMicrodiff] MD3 helical oscillation requested, device ready."
-        )
-        scan(scan_params)
-        self.wait_device_ready(exptime + 30)
+
+        self._wait_ready(300)
+
+        scan(params)
+
         if wait:
-            self.wait_device_ready(900)  # timeout of 5 min
+            # Timeout of 5 min
+            self._wait_ready(300)
 
-    def raster_scan(
+    def oscilScan4d(self, start, end, exptime, motors_pos, wait=False):
+        if self.in_plate_mode():
+            scan_speed = math.fabs(end - start) / exptime
+            low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
+            if start < low_lim:
+                raise ValueError("Scan start below the allowed value %f" % low_lim)
+            elif end > hi_lim:
+                raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
+
+        self.nb_frames.set_value(self.scan_nb_frames)
+
+        params = "%0.3f\t%0.3f\t%f\t" % (start, (end - start), exptime)
+        params += "%0.3f\t" % motors_pos["1"]["phiz"]
+        params += "%0.3f\t" % motors_pos["1"]["phiy"]
+        params += "%0.3f\t" % motors_pos["1"]["sampx"]
+        params += "%0.3f\t" % motors_pos["1"]["sampy"]
+        params += "%0.3f\t" % motors_pos["2"]["phiz"]
+        params += "%0.3f\t" % motors_pos["2"]["phiy"]
+        params += "%0.3f\t" % motors_pos["2"]["sampx"]
+        params += "%0.3f" % motors_pos["2"]["sampy"]
+
+        scan = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_scan4d",
+            },
+            "startScan4DEx",
+        )
+
+        scan(params)
+
+        if wait:
+            # Timeout of 15 min
+            self._wait_ready(900)
+
+    def oscilScanMesh(
         self,
         start,
         end,
-        exptime,
-        vertical_range,
-        horizontal_range,
-        nlines,
-        nframes,
-        invert_direction=1,
+        exptime_per_frame,
+        dead_time,
+        mesh_num_lines,
+        mesh_total_nb_frames,
+        mesh_center,
+        mesh_range,
         wait=False,
     ):
+
+        self.scan_detector_gate_pulse_enabled.set_value(True)
+
+        # Adding the servo time to the readout time to avoid any
+        # servo cycle jitter
+        servo_time = 0.110
+
+        self.scan_detector_gate_pulse_readout_time.set_value(
+            dead_time * 1000 + servo_time
+        )
+
+        # Prepositionning at the center of the grid
+        self.move_motors(mesh_center.as_dict())
+
+        positions = self.get_positions()
+
         """
-           raster_scan: snake scan by default
-           start, end, exptime are the parameters per line
-           Note: vertical_range and horizontal_range unit is mm, a test value could be 0.1,0.1
-           example, raster_scan(20, 22, 5, 0.1, 0.1, 10, 10)
+        # TODO the hack below overrides the num_lines from queue entry
+        # that is correct for MD2 but not for MD3
+        # a better implementation would be to fix the value in the set_dc_params
+        shape = HWR.beamline.sample_view.get_selected_shapes()[0].as_dict()
+        mesh_num_lines = shape.get("num_cols")
+        # TODO the hack below overrides the mesh_total_nb_frames from queue entry
+        mesh_total_nb_frames = shape.get("num_cols") * shape.get("num_rows")
         """
-        if self.in_plate_mode():
-            scan_speed = math.fabs(end - start) / exptime
-            # todo, JN, get scan_speed limit
-            """
-            low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
-            if start < low_lim:
-                raise ValueError("Scan start below the allowed value %f" % low_lim)
-            elif end > hi_lim:
-                raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
-            """
+        num_rows =  mesh_total_nb_frames / mesh_num_lines
+        params = "%0.3f\t" % (end - start)
+        # Set positive pitch to move phiz towards the top because it starts from grid top left corner
+        params += "%0.3f\t" % (mesh_range["vertical_range"] / 1000.0)   # TODO check why BIOMAX used to pass micrometers
+        # Set negative pitch to move CT towards the left because it starts from grid top left corner
+        params += "%0.3f\t" % -(mesh_range["horizontal_range"] / 1000.0)
+        params += "%0.3f\t" % start
+        params += "%0.3f\t" % positions["phiz"]
+        params += "%0.3f\t" % positions["phiy"]
+        params += "%0.3f\t" % positions["sampx"]
+        params += "%0.3f\t" % positions["sampy"]
+        params += "%d\t" % mesh_num_lines
+        params += "%d\t" % num_rows
+        params += "%0.3f\t" % exptime_per_frame  # MD expects time per line (per column in MD3)
+        params += "%r\t" % True
+        params += "%r\t" % True
+        params += "%r\t" % True
 
-        logging.getLogger("HWR").info("[ArinaxMicrodiff] MD3 raster oscillation requested")
-        msg = "[ArinaxMicrodiff] MD3 raster scan params:"
-        msg += " start: %s, end: %s, exptime: %s, range: %s, nframes: %s" % (
-            start,
-            end,
-            exptime,
-            end - start,
-            nframes,
+        scan = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_raster_scan",
+            },
+            "startRasterScanEx",
         )
-        logging.getLogger("HWR").info(msg)
+        # self.abort_cmd()
+        self._wait_ready()
+        scan(params)
 
-        self.scan_start_angle.setValue(start)
-        self.scan_expo_time.setValue(exptime)
-        self.scan_range.setValue(end - start)
-        self.scan_num_frames.setValue(nframes)
-
-        raster_params = "%0.5f\t%0.5f\t%i\t%i\t%i" % (
-            vertical_range,
-            horizontal_range,
-            nlines,
-            nframes,
-            invert_direction,
-        )
-
-        raster = self.command_dict["startRasterScan"]
-        logging.getLogger("HWR").info(
-            "[ArinaxMicrodiff] MD3 raster oscillation requested, params: %s" % (raster_params)
-        )
-        logging.getLogger("HWR").info(
-            "[ArinaxMicrodiff] MD3 raster oscillation requested, waiting device ready"
-        )
-
-        self.wait_device_ready(200)
-        logging.getLogger("HWR").info(
-            "[ArinaxMicrodiff] MD3 raster oscillation requested, device ready."
-        )
-        raster(raster_params)
-        logging.getLogger("HWR").info(
-            "[ArinaxMicrodiff] MD3 raster oscillation launched, waiting for device ready."
-        )
-        time.sleep(0.1)
-        self.wait_device_ready(exptime * nlines + 30)
-        logging.getLogger("HWR").info(
-            "[ArinaxMicrodiff] MD3 finish raster scan, device ready."
-        )
-
-    def keep_position_after_phase_change(self, new_phase):
-        """
-          Check if MD3 should keep the current position after changing phase
-        """
-        current_phase = self.get_current_phase()
-        if current_phase == "DataCollection" and new_phase == "Centring":
-            return True
-
-        # Probably not needed
-        # if current_phase == "Centring" and new_phase == "DataCollection":
-        #    return True
-
-        return False
-
-    def set_phase(self, phase, wait=False, timeout=None):
-        keep_position = self.keep_position_after_phase_change(phase)
-        current_positions = {}
-        motors = [
-            "phi",
-            "focus",
-            "phiz",
-            "phiy",
-            "sampx",
-            "sampy",
-            "kappa",
-            "kappa_phi",
-        ]
-        motors_dict = {}
-        if keep_position:
-            for motor in motors:
-                try:
-                    current_positions[motor] = self.motor_hwobj_dict[motor].get_value()
-                except Exception:
-                    pass
-        try:
-            self.wait_device_ready(10)
-        except Exception as ex:
-            logging.getLogger("HWR").error(
-                "[ArinaxMicrodiff] Cannot change phase to %s, timeout waiting for MD3 ready, %s"
-                % (phase, ex)
-            )
-            logging.getLogger("user_log").error(
-                "[MD3] Cannot change phase to %s, timeout waiting for MD3 ready" % phase
-            )
-        else:
-            self.command_dict["startSetPhase"](phase)
-            if keep_position:
-                self.move_sync_motors(current_positions)
-            if wait:
-                if not timeout:
-                    timeout = 40
-                self.wait_device_ready(timeout)
-
-    # def move_sync_motors(self, motors_dict, wait=False, timeout=None):
-    def move_sync_motors(self, motors_dict, wait=True, timeout=30):
-        argin = ""
-        logging.getLogger("HWR").debug(
-            "ArinaxMicrodiff: in move_sync_motors, wait: %s, motors: %s, tims: %s "
-            % (wait, motors_dict, time.time())
-        )
-        for motor, position in motors_dict.items():
-            if motor in ("kappa", "kappa_phi"):
-                logging.getLogger("HWR").info("[ArinaxMicrodiff] Removing %s motor.", motor)
-                continue
-            if position is None:
-                continue
-            name = self.MOTOR_TO_EXPORTER_NAME[motor]
-            argin += "%s=%0.3f;" % (name, position)
-        if not argin:
-            return
-        self.wait_device_ready(2000)
-        self.command_dict["startSimultaneousMoveMotors"](argin)
         if wait:
-            self.wait_device_ready(timeout)
-
-    def moveToBeam(self, x, y):
-        try:
-            self.emit_progress_message("Move to beam...")
-            pos_x, pos_y = HWR.beamline.beam.get_beam_position_on_screen()
-            self.beam_position = (pos_x, pos_y)
-            beam_xc = self.beam_position[0]
-            beam_yc = self.beam_position[1]
-            cent_vertical_to_move = self.cent_vertical_pseudo_motor.getValue() - (
-                x - beam_xc
-            ) / float(self.pixelsPerMmY)
-            self.emit_progress_message("")
-
-            self.phiy_motor_hwobj.set_value_relative(
-                -1 * (y - beam_yc) / float(self.pixelsPerMmZ)
-            )
-            self.cent_vertical_pseudo_motor.set_value(cent_vertical_to_move)
-            self.wait_device_ready(5)
-        except Exception:
-            logging.getLogger("HWR").exception("MD3: could not move to beam.")
+            # Timeout of 30 min
+            self._wait_ready()
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
-        """
-        Descript. :
-        """
-        self.centring_hwobj.initCentringProcedure()
-        self.centring_hwobj.appendCentringDataPoint(
-            {
-                "X": (x - self.beam_position[0]) / self.pixels_per_mm_x,
-                "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y,
-            }
-        )
-        self.omega_reference_add_constraint()
-        pos = self.centring_hwobj.centeredPosition()
-        if return_by_names:
-            pos = self.convert_from_obj_to_name(pos)
-        return pos
-
-    def abort(self):
-        """
-        Stops all the pending tasks, stops all the motors and closes all theirs control loop.
-        """
-        logging.getLogger("HWR").exception("MiniDiff: going to abort")
-        self.command_dict["abort"]()
-        logging.getLogger("HWR").exception("MiniDiff: all movements aborted")
-
-    def move_omega_relative(self, relative_angle):
-        """
-        Descript. :
-        """
-        self.phi_motor_hwobj.set_value_relative(relative_angle, 10)
-
-    def is_ready(self):
-        """
-        Detects if device is ready
-        """
-        return self.get_channel_object("State").getValue() == DiffractometerState.tostring(
-            # return self.current_state == DiffractometerState.tostring(\
-            DiffractometerState.Ready
+        self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
+            self.zoomMotor.get_value()
         )
 
-    def get_positions(self):
-        return {
-            "phi": float(self.phi_motor_hwobj.get_value()),
-            "focus": float(self.focus_motor_hwobj.get_value()),
-            "phiy": float(self.phiy_motor_hwobj.get_value()),
-            "phiz": float(self.phiz_motor_hwobj.get_value()),
-            "sampx": float(self.sample_x_motor_hwobj.get_value()),
-            "sampy": float(self.sample_y_motor_hwobj.get_value()),
-            "kappa": float(self.kappa_motor_hwobj.get_value())
-            if self.kappa_motor_hwobj
-            else None,
-            "kappa_phi": float(self.kappa_phi_motor_hwobj.get_value())
-            if self.kappa_phi_motor_hwobj
-            else None,
-            "zoom": self.zoom_motor_hwobj.get_value().value,
+        if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
+            return 0, 0
+
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+        dx = (x - beam_pos_x) / self.pixelsPerMmY
+        dy = (y - beam_pos_y) / self.pixelsPerMmZ
+
+        phi_angle = math.radians(
+            self.centringPhi.direction * self.centringPhi.get_value()
+        )
+
+        sampx = self.centringSamplex.direction * self.centringSamplex.get_value()
+        sampy = self.centringSampley.direction * self.centringSampley.get_value()
+
+        phiy = -self.centringPhiy.direction * self.centringPhiy.get_value()
+        phiz = self.centringPhiz.direction * self.centringPhiz.get_value()
+
+        # Focus df and horizontal move (along dx) result from sampx,sampy * RotMatrix
+        rotMatrix = numpy.matrix(
+            [
+                [math.cos(phi_angle), -math.sin(phi_angle)],
+                [math.sin(phi_angle), math.cos(phi_angle)],
+            ]
+        )
+
+        invRotMatrix = numpy.array(rotMatrix.I)
+
+        # calculate the shift with sampx sampy to do inside focus plan to reach x from beam center (move vector 0,dx in MD frame cs)
+        dsampx, dsampy = numpy.dot(numpy.array([0, dx]), invRotMatrix)
+
+        chi_angle = math.radians(-self.chiAngle)
+        chiRot = numpy.matrix(
+            [
+                [math.cos(chi_angle), -math.sin(chi_angle)],
+                [math.sin(chi_angle), math.cos(chi_angle)],
+            ]
+        )
+
+        sx, sy = numpy.dot(numpy.array([dsampx, dsampy]), numpy.array(chiRot))
+
+        sampx = sampx + sx
+        sampy = sampy + sy
+        phiz = phiz + dy
+
+        dict = {
+            "phi": round(self.centringPhi.get_value()),
+            "phiz": round(phiz, 4),
+            "phiy": round(phiy, 4),
+            "sampx": round(sampx, 4),
+            "sampy": round(sampy, 4),
         }
+
+        logging.getLogger("HWR").debug("MD3: centring point from coord (%d,%d) -> %s" %(x, y, str(dict)))
+
+        return dict
+
+    # Override using value from Camera device instead than from exporter MD3 server
+    def getCalibrationData(self, offset):
+        return self.zoomMotor.get_pixels_per_mm()
+
+    def motor_positions_to_screen(self, centred_positions_dict):
+        self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
+            self.zoomMotor.get_value()
+        )
+
+        if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
+            return 0, 0
+
+        phi_angle = math.radians(
+            self.centringPhi.direction * self.centringPhi.get_value()
+        )
+        sampx = self.centringSamplex.direction * (
+            centred_positions_dict["sampx"] - self.centringSamplex.get_value()
+        )
+        sampy = self.centringSampley.direction * (
+            centred_positions_dict["sampy"] - self.centringSampley.get_value()
+        )
+        phiy = self.centringPhiy.direction * (
+            centred_positions_dict["phiy"] - self.centringPhiy.get_value()
+        )
+        phiz = self.centringPhiz.direction * (
+            centred_positions_dict["phiz"] - self.centringPhiz.get_value()
+        )
+
+        rotMatrix = numpy.matrix(
+            [
+                math.cos(phi_angle),
+                -math.sin(phi_angle),
+                math.sin(phi_angle),
+                math.cos(phi_angle),
+            ]
+        )
+        rotMatrix.shape = (2, 2)
+        invRotMatrix = numpy.array(rotMatrix.I)
+
+        dsx, dsy = numpy.dot(numpy.array([sampx, sampy]), invRotMatrix)
+
+        chi_angle = math.radians(self.chiAngle)
+        chiRot = numpy.matrix(
+            [
+                math.cos(chi_angle),
+                -math.sin(chi_angle),
+                math.sin(chi_angle),
+                math.cos(chi_angle),
+            ]
+        )
+        chiRot.shape = (2, 2)
+
+        sx, sy = numpy.dot(numpy.array([0, dsy]), numpy.array(chiRot))
+
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+        x = (sy + phiy) * self.pixelsPerMmY + beam_pos_x
+        y = phiz * self.pixelsPerMmZ + beam_pos_y
+
+        return float(x), float(y)
+
+    def move_to_beam(self, x, y):
+        self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
+            self.zoomMotor.get_value()
+        )
+
+        if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
+            return 0, 0
+
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+        dx = (x - beam_pos_x) / self.pixelsPerMmY
+        dy = (y - beam_pos_y) / self.pixelsPerMmZ
+
+        phi_angle = math.radians(
+            self.centringPhi.direction * self.centringPhi.get_value()
+        )
+
+        sampx = -self.centringSamplex.direction * self.centringSamplex.get_value()
+        sampy = self.centringSampley.direction * self.centringSampley.get_value()
+        phiz = self.centringPhiz.direction * self.centringPhiz.get_value()
+
+        rotMatrix = numpy.matrix(
+            [
+                [math.cos(phi_angle), -math.sin(phi_angle)],
+                [math.sin(phi_angle), math.cos(phi_angle)],
+            ]
+        )
+        invRotMatrix = numpy.array(rotMatrix.I)
+
+        dsampx, dsampy = numpy.dot(numpy.array([dx, 0]), invRotMatrix)
+
+        chi_angle = math.radians(-self.chiAngle)
+        chiRot = numpy.matrix(
+            [
+                [math.cos(chi_angle), -math.sin(chi_angle)],
+                [math.sin(chi_angle), math.cos(chi_angle)],
+            ]
+        )
+
+        sx, sy = numpy.dot(numpy.array([dsampx, dsampy]), numpy.array(chiRot))
+
+        sampx = sampx + sx
+        sampy = sampy + sy
+        phiz = phiz + dy
+
+        try:
+            self.centringSamplex.set_value(sampx)
+            self.centringSampley.set_value(sampy)
+            self.centringPhiz.set_value(phiz)
+        except Exception:
+            msg = "ArinaxMicrodiff: could not center to beam, aborting"
+            logging.getLogger("HWR").exception(msg)
