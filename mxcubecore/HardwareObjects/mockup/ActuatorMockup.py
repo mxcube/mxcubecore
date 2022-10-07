@@ -39,12 +39,12 @@ class ActuatorMockup(AbstractActuator.AbstractActuator):
     """Mock Motor implementation"""
 
     def __init__(self, name):
-        super(ActuatorMockup, self).__init__(name)
+        super().__init__(name)
         self.__move_task = None
 
     def init(self):
         """ Initialisation method """
-        super(ActuatorMockup, self).init()
+        super().init()
         self.update_state(self.STATES.READY)
 
     def _move(self, value):
@@ -82,6 +82,7 @@ class ActuatorMockup(AbstractActuator.AbstractActuator):
                              if timeout is None: wait forever.
         Raises:
             ValueError: Value not valid or attemp to set read-only actuator.
+            RuntimeError: Timeout.
         """
         if self.read_only:
             raise ValueError("Attempt to set value for read-only Actuator")
@@ -89,7 +90,7 @@ class ActuatorMockup(AbstractActuator.AbstractActuator):
             self.update_state(self.STATES.BUSY)
             if timeout or timeout is None:
                 with gevent.Timeout(
-                    timeout, RuntimeError("Motor %s timed out" % self.username)
+                    timeout, RuntimeError(f"Motor {self.username} timed out")
                 ):
                     new_value = self._move(value)
                     self._set_value(new_value)
@@ -97,9 +98,7 @@ class ActuatorMockup(AbstractActuator.AbstractActuator):
                 self.__move_task = gevent.spawn(self._move, value)
                 self.__move_task.link(self._callback)
         else:
-            raise ValueError(
-                "Invalid value %s; limits are %s" % (value, self.get_limits())
-            )
+            raise ValueError("Invalid value {value}; limits are {self.get_limits()}")
 
     def abort(self):
         """Imediately halt movement. By default self.stop = self.abort"""
