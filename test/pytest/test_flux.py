@@ -47,7 +47,8 @@ class TestFlux(TestAbstractActuatorBase.TestAbstractActuatorBase):
         startval = test_object.default_value
 
         assert startval is not None, "initial value may not be None"
-        msg = f"get_value() {startval} differs from _nominal_value {test_object._nominal_value}"
+        msg = f"get_value() {startval} differs "
+        msg += f"from _nominal_value {test_object._nominal_value}"
         assert test_object._nominal_value == startval, msg
 
     def test_flux_attributes(self, test_object):
@@ -63,4 +64,5 @@ class TestFlux(TestAbstractActuatorBase.TestAbstractActuatorBase):
         """Test the methods"""
         # Test timeout - expecting to have RuntimeError
         with pytest.raises(RuntimeError) as info:
+            print(f"------> Flux: {info}")
             test_object.wait_for_beam(0)

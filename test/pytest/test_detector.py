@@ -22,17 +22,16 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
 import math
-import pytest
 from test.pytest import TestHardwareObjectBase
+import pytest
 
 __copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
-__author__ = "rhfogh"
-__date__ = "08/04/2020"
 
 
 @pytest.fixture
 def test_object(beamline):
+    """Use the detector object from beamline"""
     result = beamline.detector
     yield result
     # Cleanup code here - restores starting state for next call:
