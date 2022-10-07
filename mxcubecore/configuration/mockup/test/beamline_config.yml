@@ -30,7 +30,7 @@ _objects:
     - beam: beam-mockup.xml
     - flux: flux-mockup.xml
     - detector: detector-mockup.xml
-    #- resolution: resolution-mockup.xml
+    - resolution: resolution-mockup.xml
     #- hutch_interlock: door-interlock-mockup.xml
     - safety_shutter: safety-shutter-mockup.xml
     #- fast_shutter: shutter-mockup.xml
