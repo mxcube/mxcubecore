@@ -1,10 +1,34 @@
-import pytest
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU General Lesser Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+"""Tests configuration"""
+
 import sys
 import os
 
+from mxcubecore import HardwareRepository as HWR
+
 from gevent import monkey
+import pytest
 
 monkey.patch_all(thread=False)
+
 
 TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
@@ -14,7 +38,6 @@ sys.path.insert(0, ROOT_DIR)
 print("DEBUG TESTS")
 print(sys.path)
 
-from mxcubecore import HardwareRepository as HWR
 
 # hwr_path = os.path.join(HWR_DIR, "configuration/test")
 # HWR.init_hardware_repository(hwr_path)
@@ -28,6 +51,7 @@ from mxcubecore import HardwareRepository as HWR
 # @pytest.fixture(scope="session")
 @pytest.fixture(scope="function")
 def beamline():
+    """Define the beamline mock-up classes configuration directories"""
     hwr_path = "%s%s%s" % (
         os.path.join(ROOT_DIR, "mxcubecore/configuration/mockup"),
         ":",
