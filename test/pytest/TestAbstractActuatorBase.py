@@ -20,7 +20,6 @@
 
 __copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
-__date__ = "09/04/2020"
 
 from test.pytest import TestHardwareObjectBase
 
@@ -54,18 +53,13 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
             )
 
     def test_value_setting(self, test_object):
-        """Test effect of update_value and (if not read_only) set_value"""
-
-        # do not run if read_only object
-        if test_object.read_only:
-            return
+        """Test effect of update_value and set_value"""
 
         startval = test_object.get_value()
-
-        test_object.update_value()
+        test_object.update_value(startval)
         assert (
             test_object._nominal_value == startval
-        ), "Updating value to None does not set to get_value()"
+        ), f"Updating value to {startval} does not set _nominal_value"
 
         # Must be set to None so the next command causes a change
         test_object._nominal_value = None
@@ -75,12 +69,18 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
             % (startval, test_object._nominal_value)
         )
 
-        if not test_object.read_only:
-            # Test set_value with and without a timeout (different code branches)
+        if test_object.read_only:
+            # test that there is an exception as read only
+            with pytest.raises(ValueError):
+                test_object.set_value(test_object.default_value)
+        else:
+            # Test set_value with and without a timeout (different code branch)
             # Must be set to None so the next command causes a change
             test_object._nominal_value = None
             test_object._set_value(startval)
             test_object.wait_ready()
+            # _nominal_value is only updated by update_value or get_value
+            test_object.get_value()
             assert test_object._nominal_value == startval, (
                 "_set_value(%s) leaves _nominal_value as %s"
                 % (startval, test_object._nominal_value),
@@ -97,12 +97,12 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
     def test_limits_type(self, test_object):
         """Test the limits"""
         limits = test_object.get_limits()
-        assert isinstance(limits, tuple), (
-            f"AbstractActuator limits must be a tuple, are {limits}"
-        )
-        assert len(limits) == 2, (
-            f"AbstractActuator limits must be length 2, are {limits}"
-        )
+        assert isinstance(
+            limits, tuple
+        ), f"AbstractActuator limits must be a tuple, not {limits}"
+        assert (
+            len(limits) == 2
+        ), f"AbstractActuator limits must have length 2, not {len(limits)}"
 
     def test_limits_setting(self, test_object):
         """Test update_limits and (if not read_oinly) set_limits"""
@@ -128,18 +128,10 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
                     % (limits, test_object._nominal_limits)
                 )
 
-    def test_setting_readonly(self, test_object):
-        """Test that setting is disabled for read_only"""
-        if test_object.read_only:
-            with pytest.raises(ValueError):
-                test_object.set_value(test_object.default_value)
-
     def test_validate_value(self, test_object):
         """Ensure that initial value tests valid, """
-        start_val = test_object.get_value()
-        assert test_object.validate_value(start_val), (
-            "Staring valuee %s evaluates invalid" % start_val
-        )
+        value = test_object.get_value()
+        assert test_object.validate_value(value), f"Value {value} evaluates invalid"
 
     def test_setting_timeouts_1(self, test_object):
         """Test that setting is not istantaneuos,
@@ -169,6 +161,7 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
             test_object.wait_ready(timeout=1.0e-6)
 
     def test_signal_value_changed(self, test_object):
+        """Test for valueChanged signal"""
         catcher = TestHardwareObjectBase.SignalCatcher()
         val = test_object.get_value()
         # Must be set to None so the next command causes a change
