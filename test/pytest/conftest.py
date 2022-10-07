@@ -31,7 +31,7 @@ def beamline():
     hwr_path = "%s%s%s" % (
         os.path.join(ROOT_DIR, "mxcubecore/configuration/mockup"),
         ":",
-        os.path.join(ROOT_DIR, "mxcubecore/configuration/mockup/test")
+        os.path.join(ROOT_DIR, "mxcubecore/configuration/mockup/test"),
     )
     HWR._instance = HWR.beamline = None
     HWR.init_hardware_repository(hwr_path)

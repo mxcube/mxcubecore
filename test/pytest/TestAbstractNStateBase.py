@@ -15,19 +15,17 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
+
 """
+Test suite to be used by any class, inheriting from AbstractNState
 """
 
-from __future__ import division, absolute_import
-from __future__ import print_function, unicode_literals
-
-__copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
+__copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
-__date__ = "09/04/2020"
 
+from test.pytest import TestAbstractActuatorBase
 import abc
 import pytest
-from test.pytest import TestAbstractActuatorBase
 
 test_object = TestAbstractActuatorBase.test_object
 
@@ -41,11 +39,11 @@ class TestAbstractNStateBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         """Test there are at last trhee values, including UNKNOWN"""
 
         assert len(test_object.VALUES) > 2, (
-            "Less than three values in enumeration; %s" % test_object.VALUES
+            f"Less than three values in enumeration: {test_object.VALUES}"
         )
 
         assert test_object.VALUES.UNKNOWN.value == "UNKNOWN", (
-            "Walue 'UNKNOWN' missing from enumeration: %s" % test_object.VALUES
+            "Walue 'UNKNOWN' missing from enumeration: {test_object.VALUES}"
         )
 
     def test_limits_setting(self, test_object):
