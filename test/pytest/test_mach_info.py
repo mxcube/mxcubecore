@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
-"""Test suite for MacuneInfo hardware object
+"""Test suite for MachineInfo hardware object
 """
 
 from test.pytest import TestHardwareObjectBase
@@ -27,7 +27,7 @@ __license__ = "LGPLv3+"
 
 @pytest.fixture
 def test_object(beamline):
-    """Use the machie_info object from beamline"""
+    """Use the machine_info object from beamline"""
     result = beamline.machine_info
     yield result
     # Cleanup code here - restores starting state for next call:
@@ -35,7 +35,7 @@ def test_object(beamline):
 
 
 class TestMachineInfo(TestHardwareObjectBase.TestHardwareObjectBase):
-    """MachineInfo inherots from HardwareObject"""
+    """MachineInfo uses the HardwareObject tests."""
     def test_mach_info_atributes(self, test_object):
         """Test for attributes"""
         assert (
