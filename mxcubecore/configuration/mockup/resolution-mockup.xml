@@ -1,4 +1,5 @@
 <device class = "ResolutionMockup">
-  <object hwrid="/detector-distance-mockup" role="detector_distance"/>
-  <object hwrid="/energy-mockup" role="energy"/>
+  <username>Resolution</username>
+  <actuator_name>resolution</actuator_name>
+  <tolerance>1e-3</tolerance>
 </device>
