@@ -26,11 +26,13 @@ __license__ = "LGPLv3+"
 from test.pytest import TestAbstractActuatorBase
 import pytest
 
+
 @pytest.fixture
 def test_object(beamline):
     """Use the flux object from beamline"""
     result = beamline.flux
     yield result
+
 
 class TestFlux(TestAbstractActuatorBase.TestAbstractActuatorBase):
     """Test Flux methods"""

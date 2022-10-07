@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 """
+Test suite to be used as base for testing when inheriting from HardwareObject.
 """
 
 from __future__ import division, absolute_import
@@ -23,13 +24,13 @@ from __future__ import print_function, unicode_literals
 
 __copyright__ = """ Copyright © 2020 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
-__date__ = "09/04/2020"
-
 
 import abc
-import pytest
 import gevent.event
+
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
+
+import pytest
 
 
 @pytest.fixture
@@ -62,7 +63,7 @@ class TestHardwareObjectBase:
             name = ho_state.name
             assert (
                 getattr(test_object.STATES, name) is ho_state
-            ), "state %s does not match HardwareObjectState.%s" % (name, name)
+            ), "state {name} does not match HardwareObjectState.{name}"
 
     def test_update_state(self, test_object):
         """Test that update_state works for all states
@@ -76,23 +77,24 @@ class TestHardwareObjectBase:
                 "update_state(HardwareObjectState.%s) is not reflected in result"
                 % ho_state.name
             )
-            assert test_object._state is ho_state, (
-                "get_state does not reflect _state for %s" % ho_state.name
-            )
+            assert (
+                test_object._state is ho_state
+            ), f"get_state does not reflect _state for {ho_state.name}"
             if ho_state is HardwareObjectState.READY:
                 assert (
                     test_object.is_ready()
                 ), "is_ready=False does not reflect state READY"
             else:
-                assert not test_object.is_ready(), (
-                    "is_ready=True does not reflect state %s" % ho_state.name
-                )
+                assert (
+                    not test_object.is_ready()
+                ), f"is_ready=True does not reflect state {ho_state.name}"
             test_object.update_state()
             assert (
                 test_object._state is result
             ), "update_state() does not set state to current state"
 
     def test_wait_ready(self, test_object):
+        """Test for wait_ready method."""
         test_object.update_state(test_object.STATES.READY)
         test_object.wait_ready(timeout=1.0e-6)
 
@@ -101,6 +103,7 @@ class TestHardwareObjectBase:
             test_object.wait_ready(timeout=1.0e-6)
 
     def test_signal_state_changed(self, test_object):
+        """Test for stateChanged signal."""
         catcher = SignalCatcher()
         test_object.update_state(test_object.STATES.READY)
         test_object.connect("stateChanged", catcher.catch)
@@ -113,7 +116,7 @@ class TestHardwareObjectBase:
             test_object.disconnect("stateChanged", catcher.catch)
 
 
-class SignalCatcher(object):
+class SignalCatcher:
     """Utility class to test emissoi of signals
 
     Connect the catch function ot the signal, and use async_result.get()
@@ -124,4 +127,5 @@ class SignalCatcher(object):
         self.async_result = gevent.event.AsyncResult()
 
     def catch(self, value):
+        """Catch a signal"""
         self.async_result.set(value)
