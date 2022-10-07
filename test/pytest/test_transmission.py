@@ -18,16 +18,18 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
+"""Test suite for Transmission hardware object.
+"""
 __copyright__ = """ Copyright © 2019-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
-import pytest
-
 from test.pytest import TestAbstractActuatorBase
+import pytest
 
 
 @pytest.fixture
 def test_object(beamline):
+    """Use the transmission object from beamline"""
     result = beamline.transmission
     yield result
     # Cleanup code here - restores starting state for next call:
@@ -35,9 +37,11 @@ def test_object(beamline):
 
 
 class TestTransmission(TestAbstractActuatorBase.TestAbstractActuatorBase):
+    """Transmission test suite"""
     def test_transmission_attributes(self, beamline, test_object):
+        """Test for attributes"""
         assert (
-            not beamline.energy is None
+            beamline.energy is not None
         ), "Transmission hardware object is None (not initialized)"
 
         value = test_object.get_value()
@@ -50,6 +54,7 @@ class TestTransmission(TestAbstractActuatorBase.TestAbstractActuatorBase):
         assert limits[0] < limits[1], "Transmission limits define an invalid range"
 
     def test_transmission_methods(self, test_object):
+        """Test for methods"""
         target = 60.0
         test_object.set_value(target, timeout=None)
         assert test_object.get_value() == target

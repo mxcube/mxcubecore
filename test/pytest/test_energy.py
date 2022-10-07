@@ -54,8 +54,8 @@ class TestEnergy(TestAbstractActuatorBase.TestAbstractActuatorBase):
         assert isinstance(
             wavelength_limits, tuple
         ), "Energy limits has to be defined as tuple or list"
-        assert not None in energy_limits, "One or several energy limits is None"
-        assert not None in wavelength_limits, "One or several wavelength limits is None"
+        assert None not in energy_limits, "One or several energy limits is None"
+        assert None not in wavelength_limits, "One or several wavelength limits is None"
         assert (
             energy_limits[0] < energy_limits[1]
         ), "First value of energy limits has to be the low limit"

@@ -19,7 +19,7 @@ def test_object_creation():
 def test_validation_not_valid():
     # Limit should be a number so this should raise a ValidationError
     try:
-        do = MockDataObject({"value": 2, "limit": "2"})
+        MockDataObject({"value": 2, "limit": "2"})
     except jsonschema.exceptions.ValidationError:
         assert True
     else:
@@ -28,7 +28,7 @@ def test_validation_not_valid():
 
 def test_validation_valid():
     try:
-        do = MockDataObject({"value": 2, "limit": 2})
+        MockDataObject({"value": 2, "limit": 2})
     except jsonschema.exceptions.ValidationError:
         assert False
     else:
