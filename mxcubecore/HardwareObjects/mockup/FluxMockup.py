@@ -17,6 +17,10 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Mock-up class to simulate the beamline flux, used for testing.
+"""
+
 from random import random
 from gevent import sleep, Timeout
 from mxcubecore.HardwareObjects.abstract.AbstractFlux import AbstractFlux
@@ -24,8 +28,8 @@ from mxcubecore.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 from mxcubecore import HardwareRepository as HWR
 
 
-__credits__ = ["MXCuBE collaboration"]
-__category__ = "General"
+__copyright__ = """ Copyright © 2010-2022 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
 
 class FluxMockup(AbstractFlux):

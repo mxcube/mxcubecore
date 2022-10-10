@@ -15,23 +15,16 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
-"""
+"""Test suite for AbstractMotor class.
 """
 
-from __future__ import division, absolute_import
-from __future__ import print_function, unicode_literals
-
-__copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
+__copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
-__date__ = "09/04/2020"
 
 import abc
 import gevent
 import pytest
-from test.pytest import (
-    TestHardwareObjectBase,
-    TestAbstractActuatorBase,
-)
+from test.pytest import TestHardwareObjectBase, TestAbstractActuatorBase
 
 test_object = TestAbstractActuatorBase.test_object
 
@@ -47,9 +40,9 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         if velocity:
             vel2 = 0.9 * velocity
             test_object.set_velocity(vel2)
-            assert (
-                test_object.get_velocity() == vel2
-            ), "Velocity set to %s ut remains as %s" % (vel2, velocity)
+            assert test_object.get_velocity() == vel2, (
+                "Velocity set to %s ut remains as %s" % (vel2, velocity)
+            )
 
     def test_attribute_types(self, test_object):
         """Test that values are int or float, and limits are two-tuples,
@@ -74,7 +67,7 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         that values set are within tolerance for both set_value, set_value_relative
         and update_value, and that out-ot-range values are invalid"""
 
-        super(TestAbstractMotorBase, self).test_validate_value(test_object)
+        super().test_validate_value(test_object)
 
         if test_object.read_only:
             return
