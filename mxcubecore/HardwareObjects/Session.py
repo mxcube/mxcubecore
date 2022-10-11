@@ -9,7 +9,7 @@ import time
 import socket
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.HardwareObjects.queue_model_objects import PathTemplate
+from mxcubecore.model.queue_model_objects import PathTemplate
 
 default_raw_data_folder = "RAW_DATA"
 default_processed_data_folder = "PROCESSED_DATA"

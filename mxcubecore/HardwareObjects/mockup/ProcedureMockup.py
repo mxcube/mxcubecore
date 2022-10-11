@@ -1,11 +1,10 @@
 import gevent
-import mxcubecore.HardwareObjects.datamodel
 
 from mxcubecore.HardwareObjects.abstract.AbstractProcedure import (
     AbstractProcedure,
 )
 
-import mxcubecore.HardwareObjects.datamodel as datamodel
+from mxcubecore.model import procedure_model as datamodel
 
 
 class ProcedureMockup(AbstractProcedure):

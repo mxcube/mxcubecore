@@ -4,8 +4,8 @@ import logging
 import binascii
 import subprocess
 
-from mxcubecore.HardwareObjects import queue_model_objects as qmo
-from mxcubecore.HardwareObjects import queue_model_enumerables as qme
+from mxcubecore.model import queue_model_objects as qmo
+from mxcubecore.model import queue_model_enumerables as qme
 
 from mxcubecore.HardwareObjects.SecureXMLRpcRequestHandler import SecureXMLRpcRequestHandler
 from mxcubecore import HardwareRepository as HWR

@@ -1,4 +1,5 @@
-from mxcubecore.HardwareObjects.queue_entry import *
+from mxcubecore.queue_entry import *
+from mxcubecore.model import queue_model_objects
 
 
 class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):

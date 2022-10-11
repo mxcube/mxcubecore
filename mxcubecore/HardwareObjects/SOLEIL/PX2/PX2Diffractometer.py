@@ -41,7 +41,7 @@ import scan_and_align
 import optical_alignment
 
 from anneal import anneal as anneal_procedure
-from queue_model_enumerables_v1 import CENTRING_METHOD
+from mxcubecore.model.queue_model_enumerables import CENTRING_METHOD
 
 try:
     import lmfit

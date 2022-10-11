@@ -28,7 +28,9 @@ import os
 import logging
 import math
 
-from mxcubecore.HardwareObjects import queue_model_enumerables
+from pydantic import BaseModel, Field
+
+from mxcubecore.model import queue_model_enumerables
 
 # This module is used as a self contained entity by the BES
 # workflows, so we need to make sure that this module can be
@@ -43,15 +45,69 @@ __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 
+class CommonCollectionParamters(BaseModel):
+    skip_existing_images: bool
+    take_snapshots: int
+    type: str
+    label: str
+
+class PathParameters(BaseModel):
+    #prefixTemplate: str
+    #subDirTemplate: str
+    prefix: str
+    subdir: str
+
+    class Config:
+        extra: "ignore"
+
+class LegacyParameters(BaseModel):
+    #exp_time: float = Field(100e-6, gt=0, lt=1)
+    take_dark_current: int
+#    detector_mode: int
+    inverse_beam: bool
+    num_passes: int
+    overlap: float
+
+    class Config:
+        extra: "ignore"
+
+class StandardCollectionParameters(BaseModel):
+    osc_start: float
+    osc_range: float
+
+    energy: float
+    transmission: float
+    resolution: float    
+    
+    first_image: int
+    kappa: float
+    kappa_phi: float
+#    numRows: int
+#    numCols: int
+    beam_size: float
+    shutterless: bool
+    selection: list = Field([])
+
+    class Config:
+        extra: "ignore"
+
+class BeamlineParameters(BaseModel):
+    energy: float
+    transmission: float
+    resolution: float
+    wavelength: float
+    detector_distance: float
+    beam_x: float
+    beam_y: float
+ 
+
 class TaskNode(object):
     """
     Objects that inherit TaskNode can be added to and handled by
     the QueueModel object.
     """
 
-    def __init__(self):
-        object.__init__(self)
-
+    def __init__(self, task_data=None):
         self._children = []
         self._name = str()
         self._number = 0
@@ -63,6 +119,19 @@ class TaskNode(object):
         self._node_id = None
         self._requires_centring = True
         self._origin = None
+        self._task_data = task_data
+        
+        acquisition_list = [Acquisition()]
+        crystal = Crystal()
+        processing_parameters = ProcessingParameters()
+
+        self.acquisitions = acquisition_list
+        self.crystal = crystal
+        self.processing_parameters = processing_parameters
+
+    @property
+    def task_data(self):
+        return self._task_data
 
     def is_enabled(self):
         """
@@ -669,6 +738,9 @@ class DataCollection(TaskNode):
         self.experiment_type = exp_type
         if self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.MESH:
             self.set_requires_centring(False)
+
+    def is_fast_characterisation(self):
+        return self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.EDNA_REF
 
     def is_helical(self):
         return self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.HELICAL
@@ -1767,10 +1839,14 @@ class AcquisitionParameters(object):
         self.detector_roi_mode = str()
         self.induce_burn = False
         self.mesh_range = ()
+        self.cell_counting = "zig-zag"
+        self.mesh_center = "top-left"
+        self.cell_spacing = (0, 0)
         self.mesh_snapshot = None
         self.comments = ""
         self.in_queue = False
         self.in_interleave = None
+        self.sub_wedge_size = 10
 
         self.num_triggers = int()
         self.num_images_per_trigger = int()
@@ -1817,6 +1893,10 @@ class AcquisitionParameters(object):
             "in_interleave": self.in_interleave,
             "num_triggers": self.num_triggers,
             "num_images_per_trigger": self.num_images_per_trigger,
+            "cell_counting": self.cell_counting,
+            "mesh_center": self.mesh_center,
+            "cell_spacing": self.cell_spacing,
+            "sub_wedge_size": self.sub_wedge_size
         }
 
     def copy(self):

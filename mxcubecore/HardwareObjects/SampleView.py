@@ -23,7 +23,7 @@ __license__ = "LGPLv3+"
 import copy
 from functools import reduce
 
-from mxcubecore.HardwareObjects import queue_model_objects
+from mxcubecore.model import queue_model_objects
 
 from mxcubecore.HardwareObjects.abstract.AbstractSampleView import (
     AbstractSampleView,

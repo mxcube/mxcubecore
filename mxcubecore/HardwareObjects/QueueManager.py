@@ -9,10 +9,10 @@ documentation for the queue_entry module for more information.
 """
 import logging
 import gevent
-import traceback
-from mxcubecore.HardwareObjects import base_queue_entry, queue_entry
+from mxcubecore import queue_entry
 from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.HardwareObjects.base_queue_entry import QUEUE_ENTRY_STATUS
+from mxcubecore.queue_entry.base_queue_entry import QUEUE_ENTRY_STATUS
+from mxcubecore.queue_entry import base_queue_entry
 
 QueueEntryContainer = base_queue_entry.QueueEntryContainer
 
@@ -29,6 +29,10 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self._running = False
         self._disable_collect = False
         self._is_stopped = False
+
+    def init(self):
+        site_entry_path = self.get_property("site_entry_path", "ESRF")
+        queue_entry.import_queue_entries(site_entry_path.split(","))
 
     def __getstate__(self):
         d = dict(self.__dict__)

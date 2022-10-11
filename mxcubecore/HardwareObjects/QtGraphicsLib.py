@@ -49,7 +49,7 @@ from datetime import datetime
 
 from mxcubecore.utils import qt_import
 
-from mxcubecore.HardwareObjects import queue_model_objects
+from mxcubecore.model import queue_model_objects
 from mxcubecore.utils.conversion import string_types
 
 

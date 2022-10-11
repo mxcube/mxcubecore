@@ -66,7 +66,7 @@ except ImportError:
 
 from mxcubecore.utils import qt_import
 
-from mxcubecore.HardwareObjects import queue_model_objects
+from mxcubecore.model import queue_model_objects
 from mxcubecore.HardwareObjects import QtGraphicsLib as GraphicsLib
 from mxcubecore.HardwareObjects.abstract.AbstractSampleView import (
     AbstractSampleView,

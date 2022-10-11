@@ -34,6 +34,7 @@ __author__ = "Rasmus H Fogh"
 import logging
 
 from mxcubecore.BaseHardwareObjects import ConfiguredObject
+from mxcubecore.model.queue_model_objects import BeamlineParameters
 
 # NBNB The acq parameter names match the attributes of AcquisitionParameters
 # Whereas the limit parmeter values use more udnerstandable names
@@ -612,7 +613,7 @@ class Beamline(ConfiguredObject):
                   specified acquisition type. "default" is a standard acqquisition
         """
         # Imported here to avoid circular imports
-        from mxcubecore.HardwareObjects import queue_model_objects
+        from mxcubecore.model import queue_model_objects
 
         acq_parameters = queue_model_objects.AcquisitionParameters()
 
@@ -702,7 +703,7 @@ class Beamline(ConfiguredObject):
         :returns: A PathTemplate object with default parameters.
         """
         # Imported here to avoid circular imports
-        from mxcubecore.HardwareObjects import queue_model_objects
+        from mxcubecore.model import queue_model_objects
 
         path_template = queue_model_objects.PathTemplate()
 

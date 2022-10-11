@@ -32,7 +32,8 @@ import logging
 import jsonpickle
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.HardwareObjects import queue_entry, queue_model_objects
+from mxcubecore import queue_entry
+from mxcubecore.model import queue_model_objects
 from mxcubecore import HardwareRepository as HWR
 
 
