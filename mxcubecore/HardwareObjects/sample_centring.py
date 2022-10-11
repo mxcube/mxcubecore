@@ -85,13 +85,13 @@ def prepare(centring_motors_dict):
         [(m.motor, m.motor.get_value()) for m in centring_motors_dict.values()]
     )
 
-    omega = centring_motors_dict["omega"]
+    phi = centring_motors_dict["phi"]
     phiy = centring_motors_dict["phiy"]
     sampx = centring_motors_dict["sampx"]
     sampy = centring_motors_dict["sampy"]
     phiz = centring_motors_dict["phiz"]
 
-    return omega, phiy, phiz, sampx, sampy
+    return phi, phiy, phiz, sampx, sampy
 
 
 def start(
@@ -105,11 +105,11 @@ def start(
 ):
     global CURRENT_CENTRING
 
-    omega, phiy, phiz, sampx, sampy = prepare(centring_motors_dict)
+    phi, phiy, phiz, sampx, sampy = prepare(centring_motors_dict)
 
     CURRENT_CENTRING = gevent.spawn(
         center,
-        omega,
+        phi,
         phiy,
         phiz,
         sampx,
@@ -133,20 +133,20 @@ def start_plate(
     plate_vertical,
     chi_angle=0,
     n_points=3,
-    omega_range=10,
+    phi_range=10,
     lim_pos=314.0,
 ):
     global CURRENT_CENTRING
 
     plateTranslation = centring_motors_dict["plateTranslation"]
     centring_motors_dict.pop("plateTranslation")
-    omega, phiy, phiz, sampx, sampy = prepare(centring_motors_dict)
+    phi, phiy, phiz, sampx, sampy = prepare(centring_motors_dict)
 
-    omega.set_value(lim_pos)
+    phi.set_value(lim_pos)
 
     CURRENT_CENTRING = gevent.spawn(
         centre_plate,
-        omega,
+        phi,
         phiy,
         phiz,
         sampx,
@@ -159,7 +159,7 @@ def start_plate(
         plate_vertical,
         chi_angle,
         n_points,
-        omega_range,
+        phi_range,
     )
     return CURRENT_CENTRING
 
@@ -171,8 +171,8 @@ def start_plate_1_click(
     beam_xc,
     beam_yc,
     plate_vertical,
-    omega_min,
-    omega_max,
+    phi_min,
+    phi_max,
     n_points=10,
 ):
     global CURRENT_CENTRING
@@ -180,20 +180,20 @@ def start_plate_1_click(
     # plateTranslation = centring_motors_dict["plateTranslation"]
     # centring_motors_dict.pop("plateTranslation")
 
-    # omega, phiy,phiz, sampx, sampy = prepare(centring_motors_dict)
+    # phi, phiy,phiz, sampx, sampy = prepare(centring_motors_dict)
 
-    omega = centring_motors_dict["omega"]
+    phi = centring_motors_dict["phi"]
     phiy = centring_motors_dict["phiy"]
     sampx = centring_motors_dict["sampx"]
     sampy = centring_motors_dict["sampy"]
     phiz = centring_motors_dict["phiz"]
 
-    # omega.set_value(omega_min)
+    # phi.set_value(phi_min)
     plate_vertical()
 
     CURRENT_CENTRING = gevent.spawn(
         centre_plate1Click,
-        omega,
+        phi,
         phiy,
         phiz,
         sampx,
@@ -203,8 +203,8 @@ def start_plate_1_click(
         beam_xc,
         beam_yc,
         plate_vertical,
-        omega_min,
-        omega_max,
+        phi_min,
+        phi_max,
         n_points,
     )
 
@@ -212,7 +212,7 @@ def start_plate_1_click(
 
 
 def centre_plate1Click(
-    omega,
+    phi,
     phiy,
     phiz,
     sampx,
@@ -222,8 +222,8 @@ def centre_plate1Click(
     beam_xc,
     beam_yc,
     plate_vertical,
-    omega_min,
-    omega_max,
+    phi_min,
+    phi_max,
     n_points,
 ):
 
@@ -257,18 +257,18 @@ def centre_plate1Click(
             previous_click_x = x
             previous_click_y = y
 
-            # Alterning between omega min and omega max to gradually converge to the
+            # Alterning between phi min and phi max to gradually converge to the
             # centring point
             if i % 2 == 0:
-                omega_min = (
-                    omega.get_value()
-                )  # in case the omega range sent us to a position where sample is invisible, if user moves omega, this modifications is saved for future moves
-                omega.set_value(omega_max)
+                phi_min = (
+                    phi.get_value()
+                )  # in case the phi range sent us to a position where sample is invisible, if user moves phi, this modifications is saved for future moves
+                phi.set_value(phi_max)
             else:
-                omega_max = (
-                    omega.get_value()
-                )  # in case the omega range sent us to a position where sample is invisible, if user moves omega, this modifications is saved for future moves
-                omega.set_value(omega_min)
+                phi_max = (
+                    phi.get_value()
+                )  # in case the phi range sent us to a position where sample is invisible, if user moves phi, this modifications is saved for future moves
+                phi.set_value(phi_min)
 
             READY_FOR_NEXT_POINT.set()
             i += 1
@@ -289,7 +289,7 @@ def centre_plate1Click(
 
 
 def centre_plate(
-    omega,
+    phi,
     phiy,
     phiz,
     sampx,
@@ -302,12 +302,12 @@ def centre_plate(
     plate_vertical,
     chi_angle,
     n_points,
-    omega_range=40,
+    phi_range=40,
 ):
     global USER_CLICKED_EVENT
-    X, Y, omega_positions = [], [], []
+    X, Y, phi_positions = [], [], []
 
-    omega_angle = omega_range / (n_points - 1)
+    phi_angle = phi_range / (n_points - 1)
 
     try:
         i = 0
@@ -319,9 +319,9 @@ def centre_plate(
             USER_CLICKED_EVENT = gevent.event.AsyncResult()
             X.append(x / float(pixelsPerMm_Hor))
             Y.append(y / float(pixelsPerMm_Ver))
-            omega_positions.append(omega.direction * math.radians(omega.get_value()))
+            phi_positions.append(phi.direction * math.radians(phi.get_value()))
             if i != n_points - 1:
-                omega.set_value_relative(omega.direction * omega_angle, timeout=None)
+                phi.set_value_relative(phi.direction * phi_angle, timeout=None)
             READY_FOR_NEXT_POINT.set()
             i += 1
     except Exception:
@@ -341,7 +341,7 @@ def centre_plate(
     z = Z[1]
     avg_pos = Z[0].mean()
 
-    r, a, offset = multiPointCentre(numpy.array(z).flatten(), omega_positions)
+    r, a, offset = multiPointCentre(numpy.array(z).flatten(), phi_positions)
     dy = r * numpy.sin(a)
     dx = r * numpy.cos(a)
 
@@ -409,7 +409,7 @@ def user_click(x, y, wait=False):
 
 
 def center(
-    omega,
+    phi,
     phiy,
     phiz,
     sampx,
@@ -420,12 +420,12 @@ def center(
     beam_yc,
     chi_angle,
     n_points,
-    omega_range=180,
+    phi_range=180,
 ):
     global USER_CLICKED_EVENT
-    X, Y, omega_positions = [], [], []
+    X, Y, phi_positions = [], [], []
 
-    omega_angle = omega_range / (n_points - 1)
+    phi_angle = phi_range / (n_points - 1)
 
     try:
         i = 0
@@ -437,9 +437,9 @@ def center(
             USER_CLICKED_EVENT = gevent.event.AsyncResult()
             X.append(x / float(pixelsPerMm_Hor))
             Y.append(y / float(pixelsPerMm_Ver))
-            omega_positions.append(omega.direction * math.radians(omega.get_value()))
+            phi_positions.append(phi.direction * math.radians(phi.get_value()))
             if i != n_points - 1:
-                omega.set_value_relative(omega.direction * omega_angle, timeout=10)
+                phi.set_value_relative(phi.direction * phi_angle, timeout=10)
             READY_FOR_NEXT_POINT.set()
             i += 1
     except Exception:
@@ -460,7 +460,7 @@ def center(
     z = Z[1]
     avg_pos = Z[0].mean()
 
-    r, a, offset = multiPointCentre(numpy.array(z).flatten(), omega_positions)
+    r, a, offset = multiPointCentre(numpy.array(z).flatten(), phi_positions)
     dy = r * numpy.sin(a)
     dx = r * numpy.cos(a)
 
@@ -469,7 +469,7 @@ def center(
     d_horizontal = d[0] - (beam_xc / float(pixelsPerMm_Hor))
     d_vertical = d[1] - (beam_yc / float(pixelsPerMm_Ver))
 
-    omega_pos = math.radians(omega.direction * omega.get_value())
+    phi_pos = math.radians(phi.direction * phi.get_value())
 
     centred_pos = SAVED_INITIAL_POSITIONS.copy()
     centred_pos.update(
@@ -513,12 +513,12 @@ def start_auto(
 ):
     global CURRENT_CENTRING
 
-    omega, phiy, phiz, sampx, sampy = prepare(centring_motors_dict)
+    phi, phiy, phiz, sampx, sampy = prepare(centring_motors_dict)
 
     CURRENT_CENTRING = gevent.spawn(
         auto_center,
         camera,
-        omega,
+        phi,
         phiy,
         phiz,
         sampx,
@@ -569,7 +569,7 @@ def find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
 
 def auto_center(
     camera,
-    omega,
+    phi,
     phiy,
     phiz,
     sampx,
@@ -589,7 +589,7 @@ def auto_center(
     # check if loop is there at the beginning
     i = 0
     while -1 in find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
-        omega.set_value_relative(90)
+        phi.set_value_relative(90)
         i += 1
         if i > 4:
             if callable(msg_cb):
@@ -602,7 +602,7 @@ def auto_center(
 
         centring_greenlet = gevent.spawn(
             center,
-            omega,
+            phi,
             phiy,
             phiz,
             sampx,
@@ -621,7 +621,7 @@ def auto_center(
             if x < 0 or y < 0:
                 for i in range(1, 18):
                     # logging.info("loop not found - moving back %d" % i)
-                    omega.set_value_relative(5)
+                    phi.set_value_relative(5)
                     x, y = find_loop(
                         camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb
                     )
@@ -643,7 +643,7 @@ def auto_center(
                 if -1 in (x, y):
                     centring_greenlet.kill()
                     raise RuntimeError("Could not centre sample automatically.")
-                omega.set_value_relative(-i * 5)
+                phi.set_value_relative(-i * 5)
             else:
                 user_click(x, y, wait=True)
 
