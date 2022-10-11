@@ -365,7 +365,7 @@ class SampleQueueEntry(BaseQueueEntry):
 
         # Only execute samples with collections and when sample changer is used
         if len(self.get_data_model().get_children()) != 0 and sc_used:
-            if HWR.beamline.diffractometer.in_plate_mode:
+            if HWR.beamline.diffractometer.in_plate_mode():
                 return
             else:
                 mount_device = HWR.beamline.sample_changer
@@ -525,9 +525,9 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         if dd0:
             if (
                 not hasattr(HWR.beamline.diffractometer, "in_kappa_mode")
-                or HWR.beamline.diffractometer.in_kappa_mode
+                or HWR.beamline.diffractometer.in_kappa_mode()
             ):
-                HWR.beamline.diffractometer.set_value_motors(dd0)
+                HWR.beamline.diffractometer.move_motors(dd0)
 
         motor_positions = data_model.get_other_motor_positions()
         dd0 = dict(
@@ -536,7 +536,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             if tt0[1] is not None
         )
         if motor_positions:
-            HWR.beamline.diffractometer.set_value_motors(dd0)
+            HWR.beamline.diffractometer.move_motors(dd0)
 
         log.warning(
             "Please center a new or select an existing point and press continue."
@@ -557,7 +557,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             log.info(msg)
 
             # Create a centred positions of the current position
-            pos_dict = HWR.beamline.diffractometer.get_value_motors()
+            pos_dict = HWR.beamline.diffractometer.get_positions()
             cpos = queue_model_objects.CentredPosition(pos_dict)
 
         self._data_model.set_centring_result(cpos)
@@ -824,7 +824,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 if cpos != empty_cpos:
                     HWR.beamline.sample_view.select_shape_with_cpos(cpos)
                 else:
-                    pos_dict = HWR.beamline.diffractometer.get_value_motors()
+                    pos_dict = HWR.beamline.diffractometer.get_positions()
                     cpos = queue_model_objects.CentredPosition(pos_dict)
                     snapshot = HWR.beamline.sample_view.get_snapshot()
                     acq_1.acquisition_parameters.centred_position = cpos
@@ -1717,11 +1717,11 @@ class AdvancedConnectorQueueEntry(BaseQueueEntry):
 
                 # logging.getLogger("user_level_log").info(\
                 #    "Moving to the best position")
-                # HWR.beamline.diffractometer.set_value_motors(best_cpos)
+                # HWR.beamline.diffractometer.move_motors(best_cpos)
                 # gevent.sleep(2)
 
                 logging.getLogger("user_level_log").info("Rotating 90 degrees")
-                HWR.beamline.diffractometer.motors_hwobj_dict["omega"].set_value_relative(90)
+                HWR.beamline.diffractometer.move_omega_relative(90)
                 logging.getLogger("user_level_log").info("Creating a helical line")
 
                 gevent.sleep(2)
@@ -1804,7 +1804,7 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
     # can move sample on beam (sample changer, plate holder, in future
     # also harvester)
     # TODO make sample_Changer_one, sample_changer_two
-    if HWR.beamline.diffractometer.in_plate_mode:
+    if HWR.beamline.diffractometer.in_plate_mode():
         sample_mount_device = HWR.beamline.plate_manipulator
     else:
         sample_mount_device = HWR.beamline.sample_changer

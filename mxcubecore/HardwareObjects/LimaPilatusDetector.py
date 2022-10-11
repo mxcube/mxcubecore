@@ -170,7 +170,7 @@ class LimaPilatusDetector(AbstractDetector):
         else:
             trigger_mode = "EXTERNAL_TRIGGER"
 
-        diffractometer_positions = HWR.beamline.diffractometer.get_value_motors()
+        diffractometer_positions = HWR.beamline.diffractometer.get_positions()
         self.start_angles = list()
         for i in range(number_of_images):
             self.start_angles.append("%0.4f deg." % (start + osc_range * i))
