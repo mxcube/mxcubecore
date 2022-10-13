@@ -28,6 +28,10 @@ import gevent.event
 import logging
 import math
 import numpy
+import enum
+
+from typing import List, Tuple
+from pydantic import BaseModel, Field
 from mxcubecore.HardwareObjects import sample_centring
 from mxcubecore.HardwareObjects import queue_model_objects
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -114,6 +118,63 @@ class DiffractometerState:
         return DiffractometerState.STATE_DESC.get(state, "Unknown")
 
 
+class PhaseEnum(str, enum.Enum):
+    centring = "Centring"
+    data_collection = "DataCollection"
+    beam_location = "BeamLocation"
+    transfer = "Transfer"
+    unknown = "Unknown"
+
+
+class PhaseModel(BaseModel):
+    value: PhaseEnum = PhaseEnum.unknown
+
+
+class HeadTypeEnum(str, enum.Enum):
+    no_kappa = "NO_KAPPA"
+    mini_kappa = "MINI_KAPPA"
+    chip = "CHIP"
+    plate = "PLATE"
+
+
+class HolderTypeEnum(str, enum.Enum):
+    known_geometry = "KNOWN_GEOMETRY"
+    free_geometry = "FREE_GEOMETRY"
+
+
+class BlockShapeEnum(str, enum.Enum):
+    rectangular = "RECTANGULAR"
+    elliptical = "ELLIPTICAL"
+
+
+class SampleHolderSectionModel(BaseModel):
+    section_offset: Tuple[int, int] = Field(
+        [0, 0], description="Block offset in grid layout system coordinates x, y"
+    )
+    block_size: Tuple[float, float] = Field(
+        [15, 15], description="Block size horizontal, vertical in mm"
+    )
+    block_spacing: Tuple[float, float] = Field(
+        [15, 15], description="Spacing between blocks horizontal, vertical in mm"
+    )
+    block_shape: BlockShapeEnum = BlockShapeEnum.rectangular
+    number_of_rows: int = Field(6, description="Numer of rows")
+    number_of_collumns: int = Field(6, description="Numer of collumns")
+    row_labels: List[str] = Field([], description="Row lables")
+    column_lables: List[str] = Field([], description="Collumn lables")
+    targets_per_block: Tuple[int, int] = Field(
+        [20, 20], description="Targets per block dim1 and dim2"
+    )
+
+
+class GonioHeadConfiguration(BaseModel):
+    head_type: HeadTypeEnum = HeadTypeEnum.chip
+    holder_type: HolderTypeEnum = HolderTypeEnum.known_geometry
+    holder_brand: str = Field("", description="Brand/make of sample holder")
+    holder_size: Tuple[float, float] = Field(
+        [0, 0], description="Size of sample holder in mm horizontal and vertical"
+    )
+    sections: List[SampleHolderSectionModel]
 class GenericDiffractometer(HardwareObject):
     """
     Abstract base class for diffractometers
