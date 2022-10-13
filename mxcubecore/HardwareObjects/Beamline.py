@@ -456,6 +456,17 @@ class Beamline(ConfiguredObject):
     __content_roles.append("workflow")
 
     @property
+    def control(self):
+        """Beamline control system
+
+        Returns:
+            Optional[Control]:
+        """
+        return self._objects.get("control")
+
+    __content_roles.append("control")
+
+    @property
     def gphl_workflow(self):
         """Global phasing data collection workflow procedure.
 
