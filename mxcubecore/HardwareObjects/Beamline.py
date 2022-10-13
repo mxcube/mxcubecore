@@ -102,10 +102,10 @@ class Beamline(ConfiguredObject):
 
         # bool By default run processing of (certain?)data collections?
         self.run_offline_processing = False
-        
+
         # bool By default run online processing (characterization/mesh?)
         self.run_online_processing = False
-        
+
         self.offline_processing_methods = []
 
         self.online_processing_methods = []
@@ -460,7 +460,7 @@ class Beamline(ConfiguredObject):
         """Global phasing data collection workflow procedure.
 
         Returns:
-            Optional[GpglWorkflow]:
+            Optional[GphlWorkflow]:
         """
         return self._objects.get("gphl_workflow")
 
@@ -569,16 +569,14 @@ class Beamline(ConfiguredObject):
 
     @property
     def mock_procedure(self):
-        """
-        """
+        """ """
         return self._objects.get("mock_procedure")
 
     __content_roles.append("mock_procedure")
 
     @property
     def data_publisher(self):
-        """
-        """
+        """ """
         return self._objects.get("data_publisher")
 
     __content_roles.append("data_publisher")
@@ -586,7 +584,7 @@ class Beamline(ConfiguredObject):
     # NB this is just an example of a globally shared procedure description
     @property
     def manual_centring(self):
-        """ Manual centring Procedure
+        """Manual centring Procedure
 
         NB AbstractManualCentring serves to define the parameters for manual centring
         The actual implementation is set by configuration,
@@ -735,14 +733,16 @@ class Beamline(ConfiguredObject):
 
     def force_emit_signals(self):
         for role in self.all_roles:
-            hwobj =  getattr(self, role)
+            hwobj = getattr(self, role)
             if hwobj is not None:
                 try:
                     hwobj.force_emit_signals()
                     for attr in dir(hwobj):
                         if not attr.startswith("_"):
-                            if hasattr(getattr(hwobj, attr), 'force_emit_signals'):
+                            if hasattr(getattr(hwobj, attr), "force_emit_signals"):
                                 child_hwobj = getattr(hwobj, attr)
                                 child_hwobj.force_emit_signals()
                 except BaseException as ex:
-                    logging.getLogger("HWR").error("Unable to call force_emit_signals (%s)" % str(ex))
+                    logging.getLogger("HWR").error(
+                        "Unable to call force_emit_signals (%s)" % str(ex)
+                    )
