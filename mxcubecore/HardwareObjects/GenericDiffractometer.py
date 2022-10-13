@@ -30,8 +30,9 @@ import math
 import numpy
 import enum
 
-from typing import List, Tuple
+from typing import List, Tuple, Union
 from pydantic import BaseModel, Field
+
 from mxcubecore.HardwareObjects import sample_centring
 from mxcubecore.model import queue_model_objects
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -500,6 +501,9 @@ class GenericDiffractometer(HardwareObject):
             if attr == "pixelsPerMmZ":
                 return self.pixels_per_mm_y
             return HardwareObject.__getattr__(self, attr)
+
+    def get_motors(self):
+        return self.motor_hwobj_dict
 
     # Contained Objects
     # NBNB Temp[orary hack - should be cleaned up together with configuration
@@ -1426,3 +1430,20 @@ class GenericDiffractometer(HardwareObject):
     def force_emit_signals(self):
         for motor_hwobj in self.motor_hwobj_dict.values():
             motor_hwobj.force_emit_signals()
+
+    def get_head_configuration(self) -> Union[GonioHeadConfiguration, None]:
+        chip_def_fpath = self.get_property("chip_definition_file", "")
+        data = None
+
+        if os.path.isfile(chip_def_fpath):
+            with open(chip_def_fpath, "r") as _f:
+                chip_def = json.load(_f)
+
+                try:
+                    data = GonioHeadConfiguration(**chip_def)
+                except ValidationError:
+                    logging.getLogger("HWR").exception(
+                        "Validation error in %s" % chip_def_fpath
+                    )
+
+        return data
