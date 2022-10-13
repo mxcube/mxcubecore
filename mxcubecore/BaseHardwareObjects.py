@@ -51,8 +51,7 @@ class HardwareObjectState(enum.Enum):
 
 
 class DefaultSpecificState(enum.Enum):
-    """Placeholder enumeration for HardwareObject-specific states
-    """
+    """Placeholder enumeration for HardwareObject-specific states"""
 
     UNKNOWN = "UNKNOWN"
 
@@ -166,7 +165,6 @@ class PropertySet(dict):
 
 
 class HardwareObjectNode(object):
-    
     def __init__(self, node_name):
         """Constructor"""
         self.__dict__["_property_set"] = PropertySet()
@@ -422,7 +420,7 @@ class HardwareObjectNode(object):
 
 
 class HardwareObjectMixin(CommandContainer):
-    """ Functionality for either xml- or yaml-configured HardwareObjects
+    """Functionality for either xml- or yaml-configured HardwareObjects
 
     Signals emited:
 
@@ -479,7 +477,7 @@ class HardwareObjectMixin(CommandContainer):
         self.update_state(self.STATES.UNKNOWN)
 
     def init(self):
-        """"'public' post-initialization method. Override as needed
+        """ "'public' post-initialization method. Override as needed
 
         For ConfiguredObjects called after loading contained objects"""
         self._exports = dict.fromkeys(self._exports_config_list, {})
@@ -581,7 +579,7 @@ class HardwareObjectMixin(CommandContainer):
         self.abort()
 
     def get_state(self):
-        """ Getter for state attribute
+        """Getter for state attribute
 
         Implementations must query the hardware directly, to ensure current results
 
@@ -591,7 +589,7 @@ class HardwareObjectMixin(CommandContainer):
         return self._state
 
     def get_specific_state(self):
-        """ Getter for specific_state attribute. Override if needed.
+        """Getter for specific_state attribute. Override if needed.
 
         Returns:
             HardwareObjectSpecificState or None

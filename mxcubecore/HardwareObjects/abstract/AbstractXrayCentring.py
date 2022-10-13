@@ -34,8 +34,7 @@ from mxcubecore.model import queue_model_objects
 
 
 class AbstractXrayCentring(HardwareObjectYaml):
-    """Xray Centring Hardware Object. Set to Yaml configuration.
-    """
+    """Xray Centring Hardware Object. Set to Yaml configuration."""
 
     def __init__(self, name):
         super().__init__(name)

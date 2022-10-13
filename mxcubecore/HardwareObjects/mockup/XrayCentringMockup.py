@@ -24,7 +24,9 @@ from __future__ import print_function, unicode_literals
 import logging
 from mxcubecore.model import queue_model_objects
 
-from mxcubecore.HardwareObjects.abstract.AbstractXrayCentring import AbstractXrayCentring
+from mxcubecore.HardwareObjects.abstract.AbstractXrayCentring import (
+    AbstractXrayCentring,
+)
 
 __copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
@@ -32,11 +34,10 @@ __author__ = "rhfogh"
 __date__ = "25/03/2022"
 __category__ = "General"
 
-class XrayCentringMockup(AbstractXrayCentring):
 
+class XrayCentringMockup(AbstractXrayCentring):
     def execute(self):
-        """Dummy execution. Adds new entries to queue, to serve as example.
-        """
+        """Dummy execution. Adds new entries to queue, to serve as example."""
 
         queue_manager = self._queue_entry.get_queue_controller()
 

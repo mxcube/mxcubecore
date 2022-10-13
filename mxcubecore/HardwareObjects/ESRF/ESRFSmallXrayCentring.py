@@ -1,18 +1,18 @@
 #! /usr/bin/env python
 # encoding: utf-8
-# 
+#
 # This file is part of MXCuBE.
-# 
+#
 # MXCuBE is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # MXCuBE is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public License
 # along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
 """
@@ -29,7 +29,9 @@ import requests
 
 from mxcubecore.model import queue_model_objects
 
-from mxcubecore.HardwareObjects.abstract.AbstractXrayCentring import AbstractXrayCentring
+from mxcubecore.HardwareObjects.abstract.AbstractXrayCentring import (
+    AbstractXrayCentring,
+)
 
 from mxcubecore import HardwareRepository as HWR
 
@@ -39,12 +41,10 @@ __author__ = "rhfogh"
 __date__ = "25/03/2022"
 __category__ = "General"
 
+
 class ESRFSmallXrayCentring(AbstractXrayCentring):
-
     def execute(self):
-        """Executes the BES workflow SmallXrayCentring
-        """
-
+        """Executes the BES workflow SmallXrayCentring"""
 
         logging.getLogger("HWR").debug("Executes SmallXrayCentring workflow")
         workflow_name = "SmallXrayCentring"
@@ -62,13 +62,15 @@ class ESRFSmallXrayCentring(AbstractXrayCentring):
         response = requests.post(start_URL, json=dict_parameters)
         if response.status_code == 200:
             request_id = response.text
-            logging.getLogger("HWR").info("Workflow started, request id: %r" % request_id)
+            logging.getLogger("HWR").info(
+                "Workflow started, request id: %r" % request_id
+            )
         else:
             logging.getLogger("HWR").error("Workflow didn't start!")
         status_url = os.path.join(bes_url, "STATUS", str(request_id))
         logging.getLogger("HWR").info("STATUS URL: %r" % status_url)
         start_time = time.time()
-        max_time = 600 # Max five minutes
+        max_time = 600  # Max five minutes
         finished = False
         timed_out = False
         while not timed_out and not finished:
@@ -82,4 +84,3 @@ class ESRFSmallXrayCentring(AbstractXrayCentring):
             if time.time() > start_time + max_time:
                 logging.getLogger("HWR").info("Workflow timed out!")
                 timed_out = True
-

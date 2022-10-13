@@ -75,7 +75,6 @@ class SampleView(AbstractSampleView):
         for motor_name, motor_ho in self._diffractometer.get_motors().items():
             motor_ho.connect("stateChanged", self._update_shape_positions)
 
-
     def _update_shape_positions(self, *args, **kwargs):
         shapes_updated = False
 
@@ -120,7 +119,7 @@ class SampleView(AbstractSampleView):
         self._ui_snapshot_cb = fun
 
     def get_snapshot(self, overlay=True, bw=False, return_as_array=False):
-        """ Get snappshot(s)
+        """Get snappshot(s)
         Args:
             overlay(bool): Display shapes and other items on the snapshot
             bw(bool): return grayscale image
@@ -129,7 +128,7 @@ class SampleView(AbstractSampleView):
         pass
 
     def save_snapshot(self, path, overlay=True, bw=False):
-        """ Save a snapshot to file.
+        """Save a snapshot to file.
         Args:
             path (str): The filename.
             overlay(bool): Display shapes and other items on the snapshot
@@ -371,7 +370,6 @@ class SampleView(AbstractSampleView):
         else:
             msg = "Cant set result for %s, no shape with id %s" % (sid, sid)
             raise AttributeError(msg)
-
 
     def get_grid_data(self, key):
         result = {}

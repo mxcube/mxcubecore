@@ -6,7 +6,8 @@ configuration XML for more information.
 """
 
 import logging
-import sys, os
+import sys
+import os
 import shutil
 import inspect
 import pkgutil
@@ -23,7 +24,9 @@ from functools import reduce
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.HardwareObjects.SecureXMLRpcRequestHandler import SecureXMLRpcRequestHandler
+from mxcubecore.HardwareObjects.SecureXMLRpcRequestHandler import (
+    SecureXMLRpcRequestHandler,
+)
 
 if sys.version_info > (3, 0):
     from xmlrpc.server import SimpleXMLRPCServer
@@ -39,7 +42,6 @@ __version__ = ""
 __maintainer__ = "Marcus Oskarsson"
 __email__ = "marcus.oscarsson@esrf.fr"
 __status__ = "Draft"
-
 
 
 class XMLRPCServer(HardwareObject):
@@ -112,7 +114,11 @@ class XMLRPCServer(HardwareObject):
         msg = "XML-RPC server listening on: %s:%s" % (self.host, self.port)
         logging.getLogger("HWR").info(msg)
 
-        self.connect(HWR.beamline.gphl_workflow, "gphl_workflow_finished", self._async_job_completed)
+        self.connect(
+            HWR.beamline.gphl_workflow,
+            "gphl_workflow_finished",
+            self._async_job_completed,
+        )
 
         self._server.register_introspection_functions()
         self._server.register_function(self.start_queue)
@@ -131,6 +137,7 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.move_diffractometer)
         self._server.register_function(self.save_snapshot)
         self._server.register_function(self.save_multiple_snapshots)
+        self._server.register_function(self.save_twelve_snapshots_script)
         self._server.register_function(self.cryo_temperature)
         self._server.register_function(self.flux)
         self._server.register_function(self.set_aperture)
@@ -438,11 +445,15 @@ class XMLRPCServer(HardwareObject):
         HWR.beamline.diffractometer.move_motors(roles_positions_dict)
         return True
 
+    def save_twelve_snapshots_script(self, path):
+        logging.getLogger("HWR").info(
+            "Taking snapshot with java script in %s " % str(path)
+        )
+        HWR.beamline.diffractometer.run_script("Take12Snapshots")
+        HWR.beamline.diffractometer.wait_ready()
 
     def save_multiple_snapshots(self, path_list, show_scale=False):
         logging.getLogger("HWR").info("Taking snapshot %s " % str(path_list))
-
-        HWR.beamline.diffractometer.set_light_in()
 
         try:
             for angle, path in path_list:
@@ -453,32 +464,21 @@ class XMLRPCServer(HardwareObject):
                 self.save_snapshot(path, show_scale, handle_light=False)
         except Exception as ex:
             logging.getLogger("HWR").exception("Could not take snapshot %s " % str(ex))
-        finally:
-            HWR.beamline.diffractometer.set_light_out()
-
 
     def save_snapshot(self, imgpath, showScale=False, handle_light=True):
         res = True
         logging.getLogger("HWR").info("Taking snapshot %s " % str(imgpath))
 
-        if handle_light:
-            HWR.beamline.diffractometer.set_light_in()
-            # give some time to get the snapshot
-            time.sleep(1)
-
         try:
             if showScale:
                 HWR.beamline.diffractometer.save_snapshot(imgpath)
             else:
-                HWR.beamline.sample_view.save_snapshot(
-                    imgpath, overlay=False, bw=False
-                )
+                HWR.beamline.sample_view.save_snapshot(imgpath, overlay=False, bw=False)
         except Exception as ex:
             logging.getLogger("HWR").exception("Could not take snapshot %s " % str(ex))
             res = False
         finally:
-            if handle_light:
-                HWR.beamline.diffractometer.set_light_out()
+            pass
 
         return res
 
@@ -602,7 +602,7 @@ class XMLRPCServer(HardwareObject):
         """
         Sets the level of the back light
         """
-        logging.getLogger("HWR").info("Setting backlight level to %s" % level)        
+        logging.getLogger("HWR").info("Setting backlight level to %s" % level)
         HWR.beamline.diffractometer.setBackLightLevel(level)
 
     def get_back_light_level(self):
@@ -682,14 +682,16 @@ class XMLRPCServer(HardwareObject):
 
     def addXrayCentring(self, parent_node_id, **centring_parameters):
         """Add Xray centring to queue."""
-        from mxcubecore.HardwareObjects import queue_model_objects as qmo
+        from mxcubecore.model import queue_model_objects as qmo
+
         xc_model = qmo.XrayCentring2(**centring_parameters)
         child_id = HWR.beamline.queue_model.add_child_at_id(parent_node_id, xc_model)
         return child_id
 
     def addGphlWorkflow(self, parent_node_id, task_dict):
         """Add GPhL owrkflow to queue."""
-        from mxcubecore.HardwareObjects import queue_model_objects as qmo
+        from mxcubecore.model import queue_model_objects as qmo
+
         gphl_model = qmo.GphlWorkflow()
         parent_model = HWR.beamline.queue_model.get_node(int(parent_node_id))
         sample_model = parent_model.get_sample_node()
@@ -703,4 +705,3 @@ class XMLRPCServer(HardwareObject):
 
     def get_gphl_workflow_status(self):
         return self.gphl_workflow_status
-

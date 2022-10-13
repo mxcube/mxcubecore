@@ -158,7 +158,7 @@ class MicrodiffAperture(ExporterNState):
             raise RuntimeError("Unknown aperture size")
 
     def get_diameter_size_list(self):
-        """Get the list of values to be visible. Hide IN and UNKNOWN.
+        """Get the list of values to be visible. Hide IN, OUT and UNKNOWN.
         Returns:
             (list): List of availble aperture values (string).
         """
@@ -166,9 +166,7 @@ class MicrodiffAperture(ExporterNState):
         for value in self.VALUES:
             _nam = value.name
 
-            if _nam in ["OUT"]:
-                values.append(_nam)
-            elif _nam not in ["IN", "UNKNOWN"]:
+            if _nam not in ["IN", "OUT", "UNKNOWN"]:
                 values.append(_nam[1:])
 
         return values
