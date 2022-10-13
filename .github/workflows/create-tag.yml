@@ -2,7 +2,7 @@ name: Create/Update Tag
 on:
   push:
     branches:
-      - main
+      - develop
 jobs:
   create-version-tag:
     runs-on: ubuntu-latest
