@@ -19,13 +19,22 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """Abstract Diffractometer class.
-Initialises the username property and all the motors, actuators and
-complex equipment which is a part of the diffractometer.
+Initialises the username property and all the motors and nstate (discrete
+possitions) equipment, which are part of the diffractometer.
+The equipment is identified by the roles.
+The fixed motor roles are:
+omega, kappa, kappa_phi, horizontal_alignment, vertical_alignment,
+horizontal_centring, vertical_centring, focus, front_light, back_light
+The fixed nstate equipment roles are:
+fast_shutter, scintillator, fluo_detector, cryostream, front_light, back_light,
+zoom, aperture, beamstop, capillary, diode
+
 Defines:
   methods: get/set_value_motors, get/set_phase, get_set_constraint
   properties: get_head_type, in_kappa_mode, in_plate_mode
 
 Emits signals valueChanged and limitsChanged.
+
 """
 
 import logging
@@ -51,15 +60,6 @@ class DiffractometerHead(Enum):
 
 
 @unique
-class DiffractometerConstraint(Enum):
-    """Enumeration diffractometer constraint types"""
-
-    UNKNOWN = "Unknown"
-    JET = "Jet"
-    STILL = "Still"
-
-
-@unique
 class DiffractometerPhase(Enum):
     """Enumeration diffractometer phases"""
 
@@ -69,6 +69,16 @@ class DiffractometerPhase(Enum):
     SEE_BEAM = "BeamLocation"
     TRANSFER = "Transfer"
     SEE_SAMPLE = "LightSample"
+
+
+@unique
+class DiffractometerConstraint(Enum):
+    """Enumeration diffractometer constraint types"""
+
+    UNKNOWN = "Unknown"
+    RELEASE = "Normal"
+    INJECTOR = "Injector"
+    STILL = "LockRotation"
 
 
 class AbstractDiffractometer(HardwareObject):
@@ -81,12 +91,11 @@ class AbstractDiffractometer(HardwareObject):
     def __init__(self, name):
         super().__init__(name)
         self.motors_hwobj_dict = {}
-        self.actuators_hwobj_dict = {}
-        self.complex_eqipment_hwobj_dict = {}
+        self.nstate_equipment_hwobj_dict = {}
         self.username = name
         self.current_phase = None
         self.head_type = None
-        self.constraint_type = None
+        self.current_constraint = None
         self.timeout = 3  # default timeout 3 s
 
     def init(self):
@@ -102,26 +111,15 @@ class AbstractDiffractometer(HardwareObject):
             except KeyError:
                 logging.getLogger("HWR").warning("Diffractometer: No motors configured")
 
-        # actuators
-        for role in self["actuators"].get_roles():
+        # nstate (discrete positions) equipment
+        for role in self["nstate_equipment"].get_roles():
             try:
-                self.actuators_hwobj_dict[role] = self["actuators"].get_object_by_role(
-                    role
-                )
-            except KeyError:
-                logging.getLogger("HWR").warning(
-                    "Diffractometer: No actuators configured"
-                )
-
-        # complex equipment
-        for role in self["complex_equipment"].get_roles():
-            try:
-                self.complex_eqipment_hwobj_dict[role] = self[
-                    "complex_equipment"
+                self.nstate_equipment_hwobj_dict[role] = self[
+                    "nstate_equipment"
                 ].get_object_by_role(role)
             except KeyError:
                 logging.getLogger("HWR").warning(
-                    "Diffractometer: No complex equipment configured"
+                    "No nstate (discrete positions) equipment configured"
                 )
 
     def get_motors(self):
@@ -131,20 +129,12 @@ class AbstractDiffractometer(HardwareObject):
         """
         return self.motors_hwobj_dict
 
-    def get_actuators(self):
-        """Get the dictionary of all configured actuators or the ones to use.
+    def get_nstate_equipment(self):
+        """Get the dictionary of all the nstate (discrete positions) equipment.
         Returns:
             (dict): Dictionary key=role: value=hardware_object
         """
-        return self.actuators_hwobj_dict
-
-    def get_complex_equipment(self):
-        """Get the dictionary of all configured complex equipment or the
-           ones to use.
-        Returns:
-            (dict): Dictionary key=role: value=hardware_object
-        """
-        return self.complex_eqipment_hwobj_dict
+        return self.nstate_equipment_hwobj_dict
 
     # -------- Motor Groups --------
 
@@ -198,16 +188,19 @@ class AbstractDiffractometer(HardwareObject):
                 try:
                     mot_pos_dict[role] = float(motor.get_value())
                 except TypeError:
-                    logging.getLogger("HWR").warning(f"No value for {role}")
+                    msg = f"No value for {role}"
+                    logging.getLogger("HWR").warning(msg)
             return mot_pos_dict
 
         for motor in motors_list:
             try:
                 mot_pos_dict[str(motor)] = float(mot_hwobj_dict[motor].get_value())
             except KeyError:
-                logging.getLogger("HWR").error(f"Invalid motor name {motor}")
+                msg = f"Invalid motor name {motor}"
+                logging.getLogger("HWR").error(msg)
             except TypeError:
-                logging.getLogger("HWR").warning(f"No value for {motor}")
+                msg = f"No value for {motor}"
+                logging.getLogger("HWR").warning(msg)
         return mot_pos_dict
 
     # -------- Head Type and Modes --------
@@ -243,68 +236,31 @@ class AbstractDiffractometer(HardwareObject):
         """
         return DiffractometerHead
 
-    # -------- Constraints --------
-
-    def get_constraint(self):
-        """Get the diffrractometer constraint type.
-        Returns:
-            (Enum): DiffractometerConstraint member.
-        """
-        return self.constraint_type
-
-    def set_constraint(self, value, timeout=None):
-        """Set the constraint type,
-        Args:
-            value (Enum): DiffractometerConstraint member.
-            timeout (float): optional - timeout [s],
-                             if timeout = 0: return at once and do not wait,
-                             if timeout is None: wait forever (default).
-        """
-        if isinstance(value, DiffractometerConstraint):
-            self.constraint_type = value
-            self._set_constraint(self.constraint_type)
-            self.update_value(method=self.get_constraint())
-            if timeout == 0:
-                return
-            self.wait_ready(timeout)
-
-    def _set_constraint(self, value):
-        """Specific implementation to set the diffractometer to selected
-           constraint type.
-        Args:
-            value (Enum): DiffractometerConstraint member
-        """
-
-    def get_constraint_enum(self):
-        """Get the constraints Enum. Used when no import possible.
-        Returns:
-            (Enum): DiffractometerConstraint.
-        """
-        return DiffractometerConstraint
-
     # -------- Phases --------
 
-    def set_phase(self, phase, timeout=None):
+    def set_phase(self, value, timeout=None):
         """Sets diffractometer to selected phase.
         Args:
-            phase (Enum): DiffractometerPhase value.
+            value (Enum): DiffractometerPhase value.
             timeout (float): optional - timeout [s],
-                             if timeout = 0: return at once and do not wait,
+                             If timeout = 0: return at once and do not wait;
                              if timeout is None: wait forever (default).
         """
-        if isinstance(phase, DiffractometerPhase):
-            self.current_phase = phase
-        if self.current_phase:
+        if isinstance(value, DiffractometerPhase):
+            self.current_phase = value
+        else:
+            self.current_phase = self.value_to_enum(value, DiffractometerPhase)
+        if self.current_phase != DiffractometerPhase.UNKNOWN:
             self._set_phase(self.current_phase)
             self.update_value(method=self.get_phase())
             if timeout == 0:
                 return
             self.wait_ready(timeout)
 
-    def _set_phase(self, phase):
+    def _set_phase(self, value):
         """Specific implementation to set the diffractometer to selected phase
         Args:
-            phase (Enum): DiffractometerPhase value.
+            value (Enum): DiffractometerPhase value.
         """
 
     def get_phase(self):
@@ -320,6 +276,49 @@ class AbstractDiffractometer(HardwareObject):
             (Enum): DiffractometerPhase.
         """
         return DiffractometerPhase
+
+    # -------- Constraints --------
+
+    def set_constraint(self, value, timeout=None):
+        """Sets diffractometer to selected constraint.
+        Args:
+            value (Enum): DiffractometerConstraint member.
+            timeout (float): optional - timeout [s],
+                             if timeout = 0: return at once and do not wait,
+                             if timeout is None: wait forever (default).
+        """
+        if isinstance(value, DiffractometerConstraint):
+            self.current_constraint = value
+        else:
+            self.current_constraint = self.value_to_enum(
+                value, DiffractometerConstraint
+            )
+            self._set_constraint(self.current_constraint)
+            self.update_value(method=self.get_constraint())
+            if timeout == 0:
+                return
+            self.wait_ready(timeout)
+
+    def _set_constraint(self, value):
+        """Specific implementation to set the diffractometer to selected
+        constraint.
+        Args:
+            value (Enum): DiffractometerConstraint member
+        """
+
+    def get_constraint(self):
+        """Get the current constraint
+        Returns:
+            (Enum): DiffractometerConstraint member.
+        """
+        return self.current_constraint
+
+    def get_constraint_enum(self):
+        """Get the constraints Enum. Used when no import possible.
+        Returns:
+            (Enum): DiffractometerConstraint.
+        """
+        return DiffractometerConstraint
 
     # -------- data acquisition scans --------
     def do_oscillation_scan(self, *args, **kwargs):
@@ -348,8 +347,27 @@ class AbstractDiffractometer(HardwareObject):
             value: value
             method: Method or property to get the value to compare with.
         """
-        if method:
+        curr_value = None
+        if method and value is None:
             curr_value = method
 
         if value != curr_value:
             self.emit("valueChanged", (value,))
+
+    # -------- auxilarly methods --------
+
+    def value_to_enum(self, value, which_enum):
+        """Tranform a value to Enum
+        Args:
+           value(str, int, float, tuple): value
+           which_enum (Enum): The enum to be checked.
+        Returns:
+            (Enum): Enum member, corresponding to the value or UNKNOWN.
+        """
+        try:
+            return which_enum(value)
+        except ValueError:
+            for evar in which_enum.__members__.values():
+                if isinstance(evar.value, tuple) and (value in evar.value):
+                    return evar
+        return which_enum.UNKNOWN
