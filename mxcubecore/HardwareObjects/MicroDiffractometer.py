@@ -23,7 +23,7 @@ Overloads the methods:
 set_value_motors, _get_value_motors, set_phase, get_phase and all the scans.
 
 Example xml file:
-<object class = "Microdiff"
+<object class = "MicroDiffractometer"
   <username>MD2S</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <motors>
@@ -42,7 +42,7 @@ Example xml file:
     <device role="horizontal_centring" hwrid="/udiff_sampx"/>
     <device role="vertical_centring" hwrid="/udiff_sampy"/>
   </motors>
-  <actuators>
+  <nstate_equipment>
     <object role="fast_shutter" href="/udiff_fastshut"/>
     <object role="scintillator" href="/udiff_scint"/>
     <object role="diode" href="/udiff_diode"/>
@@ -50,21 +50,20 @@ Example xml file:
     <object role="cryostream" href="/udiff_cryostream"/>
     <object role="front_light" href="/udiff_frontlight_inout"/>
     <object role="back_light" href="/udiff_backlight_inout"/>
-  </actuators>
-  <complex_equipment>
     <object role="beamstop" href="/udiff_beamstop"/>
     <object role="capillary" href="/udiff_capillary"/>
     <object role="aperture" href="/udiff_aperturemot"/>
     <object role="zoom" href="/udiff_zoom"/>
-  </complex_equipment>
+  </nstate_equipment>
 </object>
 """
-import math
+
 from gevent import Timeout, sleep
 from mxcubecore.HardwareObjects.abstract.AbstractDiffractometer import (
     AbstractDiffractometer,
     DiffractometerHead,
     DiffractometerPhase,
+    DiffractometerConstraint,
 )
 from mxcubecore.Command.Exporter import Exporter
 from mxcubecore.Command.exporter.ExporterStates import ExporterStates
@@ -142,6 +141,19 @@ class MicroDiffractometer(AbstractDiffractometer):
             while not self._ready:
                 sleep(0.5)
 
+    def get_motors(self):
+        """Get the dictionary of all configured motors or the ones to use.
+        Returns:
+            (dict): Dictionary key=role: value=hardware_object
+        """
+        motors_list = self._exporter.read_property("MotorStates")
+        for mot in motors_list:
+            mot_stat = mot.split("=")
+            if mot_stat[1] not in ("Disable", "Unknown"):
+                if mot_stat[0] in self.motors_hwobj_dict:
+                    motors_list.append(mot_stat[0])
+        return motors_list
+
     def set_value_motors(self, motors_positions_dict, simultaneous=True, timeout=None):
         """Move specified motors to the requested positions.
         Args:
@@ -157,14 +169,49 @@ class MicroDiffractometer(AbstractDiffractometer):
         # prepare the command
         argin = ""
         for role, pos in motors_positions_dict.items():
-            try:
+            if role in self.get_movable_motors():
                 name = self.motors_hwobj[role].name
                 argin += f"{name}={pos:0.3f};"
-            except KeyError:
-                raise
 
         self._exporter.execute("startSimultaneousMoveMotors", (argin,))
-        self._wait_ready(timeout)
+        self.wait_ready(timeout)
+
+    def get_value_motors(self, motors_list=None):
+        """Get the positions of diffractometer motors. If no specific motor
+           roles requested in the motors_list argument, return the positions
+           of all the available motors.
+        Args:
+            motors_list (list): List of motor roles.
+        Returns:
+            (dict): dict {motor role: position}
+        """
+        motors_positions_dict = super().get_value_motors(motors_list)
+        if not self.in_kappa_mode:
+            motors_positions_dict.update({"kappa": None, "kappa_phi": None})
+        return motors_positions_dict
+
+    def get_movable_motors(self):
+        """Get the dictionary of all configured motors or the ones to use.
+        Returns:
+            (dict): Dictionary key=role: value=hardware_object
+        """
+
+        def find_elem(ddict, val):
+            """Find dictionary elemnt from motor actuator_name"""
+            for role, hwobj in ddict.items():
+                if hwobj.actuator_name == val:
+                    return {role: hwobj}
+            return {}
+
+        motors = self._exporter.read_property("MotorStates")
+        motors_dict = {}
+        for mot in motors:
+            mot_stat = mot.split("=")
+            if mot_stat[1] not in ("Disable", "Unknown"):
+                elem = find_elem(self.motors_hwobj_dict, mot_stat[0])
+                motors_dict.update(elem)
+
+        return motors_dict
 
     @property
     def _get_head_type(self):
@@ -177,24 +224,43 @@ class MicroDiffractometer(AbstractDiffractometer):
         except ValueError:
             return DiffractometerHead.UNKNOWN
 
-    def _set_phase(self, phase):
+    def _set_phase(self, value):
         """Specific implementation to set the diffractometer to selected phase
         Args:
-            phase (Enum): DiffractometerPhase value.
+            value (Enum): DiffractometerPhase member.
         """
-        self._exporter.execute("startSetPhase", (phase.value,))
+        self._exporter.execute("startSetPhase", (value.value,))
 
     def get_phase(self):
         """Get the current phase
         Returns:
             (Enum): DiffractometerPhase value.
         """
-        phase = self._exporter.read_property("CurrentPhase")
+        value = self._exporter.read_property("CurrentPhase")
         try:
-            self.current_phase = DiffractometerPhase(phase)
+            self.current_phase = DiffractometerPhase(value)
         except ValueError:
             self.current_phase = DiffractometerPhase.UNKNOWN
         return self.current_phase
+
+    def _set_constraint(self, value):
+        """Specific implementation to set the diffractometer to selected constraint
+        Args:
+            value (Enum): DiffractometerConstraint member.
+        """
+        self._exporter.execute("startSetMode", (value.value,))
+
+    def get_constraint(self):
+        """Get the diffrractometer constraint type.
+        Returns:
+            (Enum): DiffractometerConstraint member.
+        """
+        value = self._exporter.read_property("CurrentMode")
+        try:
+            self.current_constraint = DiffractometerConstraint(value)
+        except ValueError:
+            self.current_constraint = DiffractometerConstraint.UNKNOWN
+        return self.current_constraint
 
     def check_scan_limits(self, start, end, exptime):
         """Check if the scan parameters are within the limits
@@ -206,7 +272,7 @@ class MicroDiffractometer(AbstractDiffractometer):
             (bool): True (parameters within the limits), False otherwise.
         """
         if self.in_plate_mode:
-            scan_speed = math.fabs(end - start) / exptime
+            scan_speed = abs(end - start) / exptime
             llim, hlim = map(
                 float,
                 self._exporter.execute("getOmegaMotorDynamicScanLimits", (scan_speed,)),
