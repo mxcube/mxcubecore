@@ -419,21 +419,3 @@ class DiffractometerMockup(GenericDiffractometer):
     def move_chip_to(self, x: int, y: int) -> None:
         print("moving chip to")
         return
-
-    def get_head_configuration(self) -> Union[GonioHeadConfiguration, None]:
-        chip_def_fpath = self.get_property("chip_definition_file", "")
-        data = None
-
-        config_path = HWR.get_hardware_repository().find_in_repository(chip_def_fpath)
-
-        with open(config_path, "r") as _f:
-            chip_def = json.load(_f)
-
-            try:
-                data = GonioHeadConfiguration(**chip_def)
-            except ValidationError:
-                logging.getLogger("HWR").exception(
-                    "Validation error in %s" % config_path
-                )
-
-        return data
