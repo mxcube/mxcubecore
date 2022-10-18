@@ -84,13 +84,16 @@ class XalocLN2Shower(HardwareObject):
         self.connect(self.chn_operation_mode, "update", self.operation_mode_changed)
         
     def run_ln2shower_wash(self, washflow = 120):
-        #TODO: move diff to transfer phase first, use GenericDiffractometer
+        #TODO: move diff to transfer phase first, use XalocMiniDiff set_phase method
+        
+        self.logger.debug( "get_current_phase %s" % HWR.beamline.diffractometer.get_current_phase() ) 
         if HWR.beamline.diffractometer.get_current_phase() != HWR.beamline.diffractometer.PHASE_TRANSFER:
-            HWR.beamline.diffractometer.set_phase( HWR.beamline.diffractometer.PHASE_TRANSFER )
+            HWR.beamline.diffractometer.set_phase( HWR.beamline.diffractometer.PHASE_TRANSFER, timeout = 20 )
         if HWR.beamline.diffractometer.get_current_phase() == HWR.beamline.diffractometer.PHASE_TRANSFER:
             self.cmd_ln2shower_wash(washflow, wait = False)
         else:
-            self.userlogger.error("Cannot turn on pump because the diffractometer cannot move to transfer phase. If there is no other task running, call your LC")
+            return False
+        return True
             
     def run_ln2shower_off(self):
         self.cmd_ln2shower_off(wait = False)

@@ -1308,8 +1308,13 @@ class XalocMiniDiff(GenericDiffractometer):
             self.super_hwobj.go_sample_view()
         else:
             self.logger.warning(
-                "Diffractometer set_phase asked for un-handled phase: %s" %
-                phase)
+                "Diffractometer set_phase asked for un-handled phase: %s" % phase
+            )
+            return
+    
+        if timeout:
+            time.sleep(0.1)
+            self.wait_device_ready( timeout )
     
     # Copied from GenericDiffractometer just to improve error loggin
     def wait_device_ready(self, timeout=30):
