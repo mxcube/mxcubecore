@@ -324,7 +324,6 @@ class XalocCollect(AbstractCollect):
             )
         if os.path.exists( full_path ):
             msg = "Filename already exists"
-            logging.getLogger('user_level_log').error(msg)            
             self.data_collection_failed( Exception(msg) , msg )
         
         if not self.resolution_hwobj.is_ready(): 
@@ -889,9 +888,11 @@ class XalocCollect(AbstractCollect):
 
     def data_collection_failed(self, exception, failed_msg="XalocCollect: data_collection_failed"):
         self.user_logger.error(failed_msg)
+        self.logger.debug("Data collection failed with error %s" % str(e) )
         self.logger.debug("  Initiating recovery sequence")
         self.stop_collect() # is it necessary to call this, or is it called through events? If it is not
-        raise Exception( exception )
+        self.collection_failed(failed_msg)
+        #raise Exception( exception )
 
     def prepare_acquisition(self):
         """
@@ -936,9 +937,7 @@ class XalocCollect(AbstractCollect):
             success = self.go_to_collect()
             if not success:
                 msg = "Supervisor cannot set COLLECT phase. Issue an Init in the diff and supervisor devices. Omegax should be between -1 and +1 mm"
-                logging.getLogger('user_level_log').error(msg)
-                self.logger.error(msg)
-                self.data_collection_failed( Exception(e), msg )
+                self.data_collection_failed( Exception(msg), msg )
 
         detok = self.detector_hwobj.get_cam_state() == 'STANDBY'
         self.logger.info( 'Detector ok %s, cam_state = %s' % ( detok, self.detector_hwobj.get_cam_state() ) )
@@ -1188,18 +1187,23 @@ class XalocCollect(AbstractCollect):
             #self._motor_persistently_set_velocity( self.scan_motors_hwobj[motorname], self.scan_init_velocities[motorname] )
             self.scan_motors_hwobj[motorname].set_velocity( self.scan_init_velocities[motorname] )
 
-        self.logger.debug("Cleanup: moving omega to initial position %s" % self.omega_init_pos)
+        ## RB: isnt it better that the detetor keeps collecting to not loose images of a collection.Or increase wating time?
+        ## In fact, this is done in stopCollect when a user specifically asks for an Abort
+        if self.detector_hwobj.get_cam_state() == 'ERROR': self.detector_hwobj.stop_collection()
+        
+        #self.logger.debug("Cleanup: moving omega to initial position %s" % self.omega_init_pos)
+        self.logger.debug("Cleanup: moving omega to zero")
         try:
-            # RB: isnt it better that the detetor keeps collecting to not loose images of a collection.Or increase wating time?
-            # In fact, this is done in stopCollect when a user specifically asks for an Abort
-            if self.detector_hwobj.get_cam_state() == 'ERROR': self.detector_hwobj.stop_collection()
-            if self.omega_init_pos != None: # Sometiemes collection fails before omega_init_pos is set, no need to move in those cases
-                self.omega_hwobj.set_value( self.omega_init_pos )
+            #Move omega to initial position to speed up collection process 
+            #if self.omega_init_pos != None: # Sometiemes collection fails before omega_init_pos is set, no need to move in those cases
+                #self.omega_hwobj.set_value( self.omega_init_pos )
+            self.omega_hwobj.set_value(0)
         except:
             self.logger.debug("Omega needs to be stopped before restoring initial position, will try this now")
             self.omega_hwobj.stop()
             self.omega_hwobj.set_velocity( self.omega_init_vel )
-            self.omega_hwobj.set_value(self.omega_init_pos)
+            #self.omega_hwobj.set_value(self.omega_init_pos)
+            self.omega_hwobj.set_value( 0 )
 
         self.scan_delete_motor_data()
         self.fastshut_hwobj.close() # RB: not sure if it closes when unconfiguring it, just in case
@@ -1630,7 +1634,7 @@ class XalocCollect(AbstractCollect):
 
         self._collecting = False
 
-        AbstractCollect.stop_collect() # this kills the collect job
+        AbstractCollect.stop_collect(self) # this kills the collect job
         #raise Exception("Collect aborted by user")
         #if self.data_collect_task is not None:
         #    self.data_collect_task.kill(block = False)
