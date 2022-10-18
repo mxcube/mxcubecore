@@ -18,7 +18,6 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-
 from __future__ import absolute_import
 
 import typing
@@ -32,7 +31,6 @@ import pydantic
 from mxcubecore.dispatcher import dispatcher
 from mxcubecore.CommandContainer import CommandContainer
 from mxcubecore.utils.conversion import string_types
-
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -477,7 +475,7 @@ class HardwareObjectMixin(CommandContainer):
         self.update_state(self.STATES.UNKNOWN)
 
     def init(self):
-        """ "'public' post-initialization method. Override as needed
+        """'public' post-initialization method. Override as needed
 
         For ConfiguredObjects called after loading contained objects"""
         self._exports = dict.fromkeys(self._exports_config_list, {})
@@ -826,13 +824,16 @@ class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
 
             _models[attr_name] = (
                 pydantic.create_model(attr_name, **fdict),
-                pydantic.Field(alias=attr_name)
+                pydantic.Field(alias=attr_name),
             )
 
             self.__pydantic_models[attr_name] = _models[attr_name][0]
-            self._exported_attributes[attr_name]["signature"] = self.__exports[attr_name]
-            self._exported_attributes[attr_name]["schema"] = self.__pydantic_models[attr_name].schema_json()
-
+            self._exported_attributes[attr_name]["signature"] = self.__exports[
+                attr_name
+            ]
+            self._exported_attributes[attr_name]["schema"] = self.__pydantic_models[
+                attr_name
+            ].schema_json()
 
         model = pydantic.create_model(self.__class__.__name__, **_models)
         self.__pydantic_models["all"] = model
@@ -842,7 +843,9 @@ class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
             cmd = getattr(self, cmd_name)
             cmd(**args)
         else:
-            self.log.info(f"Command {cmd} not exported, check type hints and configuration file")
+            self.log.info(
+                f"Command {cmd} not exported, check type hints and configuration file"
+            )
 
     @property
     def pydantic_model(self):
