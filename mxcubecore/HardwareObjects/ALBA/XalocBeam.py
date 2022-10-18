@@ -107,15 +107,15 @@ class XalocBeam(BeamInfo):
 
     def beam_width_changed(self, value):
         self.beam_info_dict['size_x'] = value / 1000.
-        self.logger.debug("New beam width %.3f" % value)
+        #self.logger.debug("New beam width %.3f" % value)
 
         self.evaluate_beam_info()
-        self.re_emit_values()
+        self.emit_beam_info_changed()
 
     def beam_height_changed(self, value):
         self.beam_info_dict['size_y'] = value / 1000.
         self.evaluate_beam_info()
-        self.re_emit_values()
+        self.emit_beam_info_changed()
 
     def beam_posx_changed(self, value):
         self.beam_position = ( value, self.beam_position[1] )
@@ -131,14 +131,6 @@ class XalocBeam(BeamInfo):
         ##self.beam_info_dict["shape"] = "rectangular"
         ##return self.beam_info_dict
 
-    #def emit_beam_info_changed(self):
-        #self.logger.debug(" emitting beam info")
-        #if self.beam_info_dict["size_x"] != 9999 and \
-                #self.beam_info_dict["size_y"] != 9999:
-            #self.emit("beamSizeChanged", ((self.beam_info_dict["size_x"],
-                                           #self.beam_info_dict["size_y"]), ))
-            #self.emit("beamInfoChanged", (self.beam_info_dict, ))
-
     def get_beam_position_on_screen(self):
         """Get the beam position
         Returns:
@@ -150,7 +142,7 @@ class XalocBeam(BeamInfo):
         return self.get_beam_position()
 
     def emit_beam_info_changed(self):
-        self.logger.debug(" emitting beam info")
+        #self.logger.debug(" emitting beam info")
         if self.beam_info_dict["size_x"] != 9999 and \
                 self.beam_info_dict["size_y"] != 9999:
             self.emit("beamSizeChanged", ((self.beam_info_dict["size_x"],
