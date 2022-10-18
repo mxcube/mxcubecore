@@ -1,22 +1,12 @@
 import gevent
 import time
 import subprocess
-import os
 import logging
 
-from PyTango import DeviceProxy
-from mxcubecore.TaskUtils import task
-from mxcubecore import HardwareRepository as HWR
 from mxcubecore.CommandContainer import ConnectionError
-
-from mxcubecore.HardwareObjects.abstract.AbstractDetector import (
-    AbstractDetector
-)
-
+from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
-MaskDir = '/data/id29/inhouse/opid291/Jungfrau/tests/ahoms/processing/20220928'
-MaskFile = os.path.join(MaskDir, 'mask_hot.edf')
 
 class LimaJungfrauDetector(AbstractDetector):
     def __init__(self, name):
@@ -31,9 +21,9 @@ class LimaJungfrauDetector(AbstractDetector):
         if not lima_device:
             return
 
-        t = lima_device.split('/')
-        t[-2] = 'mask'
-        mask_device = '/'.join(t)
+        t = lima_device.split("/")
+        t[-2] = "mask"
+        mask_device = "/".join(t)
 
         try:
             for channel_name in (
@@ -62,13 +52,13 @@ class LimaJungfrauDetector(AbstractDetector):
                 )
 
             self.add_channel(
-                    {"type": "tango", "name": "mask_file", "tangoname": mask_device},
-                    "MaskFile",
-                )
+                {"type": "tango", "name": "mask_file", "tangoname": mask_device},
+                "MaskFile",
+            )
             self.add_channel(
-                    {"type": "tango", "name": "mask_run_level", "tangoname": mask_device},
-                    "RunLevel",
-                )
+                {"type": "tango", "name": "mask_run_level", "tangoname": mask_device},
+                "RunLevel",
+            )
             self.add_command(
                 {"type": "tango", "name": "start_mask", "tangoname": mask_device},
                 "Start",
@@ -126,22 +116,19 @@ class LimaJungfrauDetector(AbstractDetector):
     def get_deadtime(self):
         return float(self.get_property("deadtime"))
 
-    def prepare_acquisition(
-        self,
-        number_of_images,
-        exptime,
-        data_root_path,
-        prefix
-    ):
+    def prepare_acquisition(self, number_of_images, exptime, data_root_path, prefix):
         self.set_channel_value("acq_trigger_mode", "EXTERNAL_TRIGGER_MULTI")
-        #self.set_channel_value("acq_trigger_mode", "INTERNAL_TRIGGER")
 
         self.set_channel_value("acq_nb_frames", number_of_images)
         self.set_channel_value("acq_expo_time", exptime)
         self.set_channel_value("latency_time", 990e-6)
         self.set_channel_value("saving_frame_per_file", 1000)
 
-        self.set_channel_value("mask_file", MaskFile)
+        mask_file = self.get_property("mask_file", None)
+
+        if mask_file:
+            self.set_channel_value("mask_file", mask_file)
+
         self.set_channel_value("mask_run_level", 0)
 
         self.set_detector_filenames(data_root_path, prefix)
