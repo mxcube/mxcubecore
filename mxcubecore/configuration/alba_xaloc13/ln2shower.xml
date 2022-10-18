@@ -1,7 +1,8 @@
 <object class="XalocLN2Shower">
   <username>Ln2 Shower</username>
+  <taurusname>bl13/eh/ln2pump</taurusname>
 
-  <channel type="sardana" taurusname="bl13/eh/ln2pump" name="operation">operation_mode</channel>
+  <channel type="sardana" name="operation">operation_mode</channel>
   
   <doorname>bl13/door/05</doorname>
   <command type="sardana" name="ln2shower_wash">ln2shower_wash</command>

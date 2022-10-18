@@ -38,18 +38,21 @@ import logging
 import PyTango
 
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["ALBA Synchrotron"]
 __version__ = "3"
 __category__ = "General"
 __author__ = "Roeland Boer"
 
-class XalocMiniDiff(GenericDiffractometer):
+class XalocLN2Shower(HardwareObject):
     """
     Specific liquid nitrogen shower HwObj for XALOC beamline.
     """
 
-    def __init__(self, *args):
+    def __init__(self, name):
+        HardwareObject.__init__(self, name)
+
         self.logger = logging.getLogger("HWR.XalocLN2Shower")
         self.userlogger = logging.getLogger("user_level_log")
 
@@ -82,12 +85,12 @@ class XalocMiniDiff(GenericDiffractometer):
         
     def run_ln2shower_wash(self, washflow = 120):
         #TODO: move diff to transfer phase first, use GenericDiffractometer
-        if HWR:diffractometer.get_current_phase() != HWR:diffractometer.PHASE_TRANSFER:
-            HWR:diffractometer.set_phase( HWR:diffractometer.PHASE_TRANSFER )
-        if HWR:diffractometer.get_current_phase() == HWR:diffractometer.PHASE_TRANSFER:
+        if HWR.beamline.diffractometer.get_current_phase() != HWR.beamline.diffractometer.PHASE_TRANSFER:
+            HWR.beamline.diffractometer.set_phase( HWR.beamline.diffractometer.PHASE_TRANSFER )
+        if HWR.beamline.diffractometer.get_current_phase() == HWR.beamline.diffractometer.PHASE_TRANSFER:
             self.cmd_ln2shower_wash(washflow, wait = False)
         else:
-            self.userlogger("Cannot turn on pump because the diffractometer cannot move to transfer phase. If there is no other task running, call your LC")
+            self.userlogger.error("Cannot turn on pump because the diffractometer cannot move to transfer phase. If there is no other task running, call your LC")
             
     def run_ln2shower_off(self):
         self.cmd_ln2shower_off(wait = False)
