@@ -32,6 +32,7 @@ Specific HwObj to interface the Beamline Supervisor TangoDS
 from __future__ import print_function
 
 import logging
+import time
 
 from mxcubecore.BaseHardwareObjects import Device
 
@@ -78,11 +79,11 @@ class XalocSupervisor(Device):
         self.logger.debug("Supervisor state: {0}".format(self.current_state))
         self.logger.debug("Supervisor phase: {0}".format(self.current_phase))
 
-    def isReady(self):
-        return True
+    #def isReady(self):
+        #return True
 
-    def getUserName(self):
-        return self.username
+    #def getUserName(self):
+        #return self.username
 
     def state_changed(self, value):
         self.current_state = value
@@ -140,6 +141,17 @@ class XalocSupervisor(Device):
     def is_fast_shutter_in_collect_position(self):
         return self.chan_fast_shutter_collect_position.get_value()
 
+    def wait_ready(self, timeout = None):
+        stime = time.time()
+        while True:
+            state = str(self.chan_state.get_value())
+            if self.current_state == "ON":
+                self.logger.debug("Supervisor is in ON state. Returning")
+                break
+            time.sleep(0.2)
+            if timeout is not None:
+                if time.time() - stime > timeout:
+                    raise Exception("Supervisor timed out waiting for ON state")
 
 def test_hwo(hwo):
     print("Supervisor control \"%s\"\n" % hwo.getUserName())
