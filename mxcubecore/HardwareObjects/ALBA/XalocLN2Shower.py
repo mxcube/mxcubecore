@@ -59,7 +59,7 @@ class XalocLN2Shower(HardwareObject):
         self.username = None
         self.chn_operation_mode = None
         self.operation_mode = None
-        self.is_pumping = None
+        self.is_pumping_attr = None
         self.cmd_ln2shower_wash = None
         self.cmd_ln2shower_cold = None
         self.cmd_ln2shower_setflow = None
@@ -71,9 +71,8 @@ class XalocLN2Shower(HardwareObject):
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
         self.username = self.get_property("username")
         
-        self.chn_operation_mode = self.get_channel_object("operaion_mode")
-        self.operation_mode = 0
-        self.is_pumping = False
+        self.chn_operation_mode = self.get_channel_object("operation_mode")
+        
         self.cmd_ln2shower_wash = self.get_command_object("ln2shower_wash")
         self.cmd_ln2shower_cold = self.get_command_object("ln2shower_cold")
         self.cmd_ln2shower_setflow = self.get_command_object("ln2shower_setflow")
@@ -102,8 +101,10 @@ class XalocLN2Shower(HardwareObject):
         if self.operation_mode != int( value ):
             self.operation_mode = int( value )
             if self.operation_mode in [3]:
-                self.is_pumping = True
+                self.is_pumping_attr = True
             else:
-                self.is_pumping = False
-            self.emit("ln2showerIsPumpingChanged", self.is_pumping)
+                self.is_pumping_attr = False
+            self.emit("ln2showerIsPumpingChanged", self.is_pumping_attr)
  
+    def is_pumping(self):
+        return self.is_pumping_attr
