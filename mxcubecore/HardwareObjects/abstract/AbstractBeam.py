@@ -26,7 +26,7 @@ emits:
 - beamInfoChanged (self._beam_info_dict.copy())
 """
 
-__copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
+__copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -39,7 +39,7 @@ from mxcubecore.BaseHardwareObjects import HardwareObject
 
 @unique
 class BeamShape(Enum):
-    """ Beam shape definitions """
+    """Beam shape definitions"""
 
     UNKNOWN = "unknown"
     RECTANGULAR = "rectangular"
@@ -47,12 +47,12 @@ class BeamShape(Enum):
 
 
 class AbstractBeam(HardwareObject):
-    """ AbstractBeam class """
+    """AbstractBeam class"""
 
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
+        super().__init__(name)
 
         self._aperture = None
         self._slits = None
@@ -61,7 +61,7 @@ class AbstractBeam(HardwareObject):
         self._beam_size_dict = {
             "aperture": [sys.float_info.max, sys.float_info.max],
             "slits": [sys.float_info.max, sys.float_info.max],
-            "definer": [sys.float_info.max, sys.float_info.max]
+            "definer": [sys.float_info.max, sys.float_info.max],
         }
         self._beam_width = None
         self._beam_height = None
@@ -81,7 +81,7 @@ class AbstractBeam(HardwareObject):
         """
         Initialise default values and objects
         """
-        HardwareObject.init(self)
+        super().init()
         _divergence_vertical = self.get_property("beam_divergence_vertical")
         _divergence_horizontal = self.get_property("beam_divergence_horizontal")
         self._beam_divergence = (_divergence_horizontal, _divergence_vertical)
@@ -115,8 +115,7 @@ class AbstractBeam(HardwareObject):
         """
         if self._definer:
             return self._definer.get_divergence()
-        else:
-            return self._beam_divergence
+        return self._beam_divergence
 
     def get_available_size(self):
         """Get the available predefined beam definers configuration.
@@ -189,10 +188,10 @@ class AbstractBeam(HardwareObject):
         """
 
         size_x = min(
-            self._beam_size_dict["aperture"][0], self._beam_size_dict["slits"][0],
+            self._beam_size_dict["aperture"][0], self._beam_size_dict["slits"][0]
         )
         size_y = min(
-            self._beam_size_dict["aperture"][1], self._beam_size_dict["slits"][1],
+            self._beam_size_dict["aperture"][1], self._beam_size_dict["slits"][1]
         )
 
         self._beam_width = size_x
