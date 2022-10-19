@@ -21,6 +21,7 @@
 GenericDiffractometer
 """
 
+import os
 import copy
 import time
 import gevent
