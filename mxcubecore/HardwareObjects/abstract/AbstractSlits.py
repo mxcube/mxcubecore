@@ -20,6 +20,7 @@
 """
 """
 import abc
+from warnings import warn
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
@@ -31,6 +32,10 @@ class AbstractSlits(HardwareObject, object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, *args):
+        warn(
+            "AbstractSlits is deprecated. Use specific motors instead",
+            DeprecationWarning,
+        )
         HardwareObject.__init__(self, *args)
 
         self._value = [None, None]
