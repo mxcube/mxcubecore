@@ -22,6 +22,7 @@ GenericDiffractometer
 """
 
 import os
+import json
 import copy
 import time
 import gevent
@@ -1434,6 +1435,10 @@ class GenericDiffractometer(HardwareObject):
 
     def get_head_configuration(self) -> Union[GonioHeadConfiguration, None]:
         chip_def_fpath = self.get_property("chip_definition_file", "")
+        chip_def_fpath = HWR.get_hardware_repository().find_in_repository(
+            chip_def_fpath
+        )
+
         data = None
 
         if os.path.isfile(chip_def_fpath):
