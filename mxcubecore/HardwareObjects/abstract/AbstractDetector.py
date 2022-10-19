@@ -254,13 +254,6 @@ class AbstractDetector(HardwareObject):
             )
         except AttributeError as err:
             raise RuntimeError("Cannot calculate radius, unknown distance") from err
-            distance = (
-                distance
-                if distance is not None
-                else self._distance_motor_hwobj.get_value()
-            )
-        except AttributeError:
-            raise RuntimeError("Cannot calculate radius, distance unknown")
 
         beam_x, beam_y = self.get_beam_position(distance)
         pixel_x, pixel_y = self.get_pixel_size()
