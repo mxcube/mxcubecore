@@ -2,7 +2,7 @@
   <username>Ln2 Shower</username>
   <taurusname>bl13/eh/ln2pump</taurusname>
 
-  <channel type="sardana" name="operation">operation_mode</channel>
+  <channel type="sardana" polling="500" name="operation_mode">operation</channel>
   
   <doorname>bl13/door/05</doorname>
   <command type="sardana" name="ln2shower_wash">ln2shower_wash</command>
