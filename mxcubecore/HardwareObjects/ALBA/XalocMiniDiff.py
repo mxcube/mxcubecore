@@ -75,6 +75,12 @@ class XalocMiniDiff(GenericDiffractometer):
     Specific diffractometer HwObj for XALOC beamline.
     """
 
+    PHASE_TRANSFER = "Transfer"
+    PHASE_CENTRING = "Sample"
+    PHASE_COLLECTION = "Collect"
+    PHASE_BEAM = "Beam"
+    PHASE_UNKNOWN = "Unknown"
+
     def __init__(self, *args):
         GenericDiffractometer.__init__(self, *args)
         self.logger = logging.getLogger("HWR.XalocMiniDiff")
@@ -677,7 +683,7 @@ class XalocMiniDiff(GenericDiffractometer):
             self.zoom_motor_hwobj.move_to_position(4)
             gevent.sleep(1) # wait for motors from previous centrings to start moving
         
-        self.wait_device_ready(20) # wait for motors from previous centrings to finish
+        self.wait_device_ready( timeout = 20) # wait for motors from previous centrings to finish
  
         #self.logger.debug('find_loop output %s' % str(self.find_loop_xaloc()) )
 
@@ -729,7 +735,7 @@ class XalocMiniDiff(GenericDiffractometer):
                     self.centringAngleRange/ ( self.numCentringImages - 1 ) )
                 self.motor_hwobj_dict['phi'].set_value( new_pos, timeout = 5 )
                 gevent.sleep(0.01)
-                self.wait_device_ready(15)
+                self.wait_device_ready( timeout = 15)
                 x, y, info, surface_score = self.find_loop_xaloc()
         #self.omega_reference_add_constraint()
         centred_pos_dict = self.centring_hwobj.centeredPosition(return_by_name=False)
@@ -1051,8 +1057,8 @@ class XalocMiniDiff(GenericDiffractometer):
              self.move_motors, motors_positions)
         self.move_to_motors_positions_procedure.link(self.move_motors_done)
         if wait:
-            self.wait_device_not_ready(50)
-            self.wait_device_ready(10)
+            self.wait_device_not_ready( timeout = 50 )
+            self.wait_device_ready( timeout = 10 )
  
     def move_motors(self, motor_positions, timeout=15):
         """
@@ -1068,7 +1074,7 @@ class XalocMiniDiff(GenericDiffractometer):
             motor_positions = motor_positions.as_dict()
 
         try:
-            self.wait_device_ready(timeout)
+            self.wait_device_ready( timeout =  timeout)
         except Exception as e:
             self.userlogger.error( str(e) )
             raise(e)
@@ -1098,7 +1104,7 @@ class XalocMiniDiff(GenericDiffractometer):
             # case of controller not reporting MOVING inmediately after cmd
             gevent.sleep(self.delay_state_polling)
 
-        self.wait_device_ready(timeout)
+        self.wait_device_ready( timeout = timeout)
 
 
  
@@ -1313,8 +1319,7 @@ class XalocMiniDiff(GenericDiffractometer):
             return
     
         if timeout:
-            time.sleep(0.1)
-            self.wait_device_ready( timeout )
+            self.wait_device_ready( timeout = timeout )
     
     # Copied from GenericDiffractometer just to improve error loggin
     def wait_device_ready(self, timeout=30):
@@ -1327,6 +1332,12 @@ class XalocMiniDiff(GenericDiffractometer):
         with gevent.Timeout(timeout, Exception("Timeout waiting for Diffracometer ready, check bl13/eh/diff. Is omegax close enough to 0??")):
             while not self.is_ready():
                 time.sleep(0.01)
+
+    def get_current_phase(self):
+        """
+        Descript. :
+        """
+        return self.super_hwobj.get_current_phase()
 
 
 def test_hwo(hwo):
