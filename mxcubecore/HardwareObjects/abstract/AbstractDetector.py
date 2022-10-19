@@ -65,7 +65,7 @@ class AbstractDetector(HardwareObject):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
+        super().__init__(name)
 
         self._temperature = None
         self._humidity = None
@@ -253,8 +253,8 @@ class AbstractDetector(HardwareObject):
                 if distance is not None
                 else self._distance_motor_hwobj.get_value()
             )
-        except AttributeError:
-            raise RuntimeError("Cannot calculate radius, distance unknown")
+        except AttributeError as err:
+            raise RuntimeError("Cannot calculate radius, unknown distance") from err
 
         beam_x, beam_y = self.get_beam_position(distance)
         pixel_x, pixel_y = self.get_pixel_size()
@@ -277,8 +277,10 @@ class AbstractDetector(HardwareObject):
                 if distance is not None
                 else self._distance_motor_hwobj.get_value()
             )
-        except AttributeError:
-            raise RuntimeError("Cannot calculate outer radius, distance unknown")
+        except AttributeError as err:
+            raise RuntimeError(
+                "Cannot calculate outer radius, distance unknown"
+            ) from err
 
         beam_x, beam_y = self.get_beam_position(distance)
         pixel_x, pixel_y = self.get_pixel_size()

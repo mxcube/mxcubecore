@@ -32,7 +32,7 @@ from ast import literal_eval
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
-__copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © 2010-2022 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -44,7 +44,7 @@ class AbstractActuator(HardwareObject):
     unit = None
 
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
+        super().__init__(name)
         self._nominal_value = None
         self._nominal_limits = (None, None)
         self.actuator_name = None
@@ -140,7 +140,7 @@ class AbstractActuator(HardwareObject):
                 return
             self.wait_ready(timeout)
         else:
-            raise ValueError("Invalid value %s" % str(value))
+            raise ValueError(f"Invalid value {value}")
 
     def update_value(self, value=None):
         """Check if the value has changed. Emits signal valueChanged.

@@ -25,12 +25,10 @@ Implements validate_value, set/update limits.
 import abc
 import ast
 from enum import Enum, unique
-from mxcubecore.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator,
-)
+from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
 
 
-__copyright__ = """ Copyright 2020 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © 2010-2022 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -47,12 +45,9 @@ class AbstractNState(AbstractActuator):
     __metaclass__ = abc.ABCMeta
     VALUES = BaseValueEnum
 
-    def __init__(self, name):
-        AbstractActuator.__init__(self, name)
-
     def init(self):
         """Initilise the predefined values"""
-        AbstractActuator.init(self)
+        super().init()
         self.initialise_values()
 
     def validate_value(self, value):
@@ -113,7 +108,7 @@ class AbstractNState(AbstractActuator):
         self.update_value(self.get_value())
 
         # NB DO NOT 'FIX', this is deliberate.
-        # One would normally call super(AbstractNState ...), however we want to call
-        # re_emit_values of HardwareObject to avoid the limit handling implemented in
-        # AbstractActuator
+        # One would normally call super(AbstractNState ...), however we
+        # want to call re_emit_values of HardwareObject to avoid the limit
+        # handling implemented in AbstractActuator
         super(AbstractActuator, self).re_emit_values()

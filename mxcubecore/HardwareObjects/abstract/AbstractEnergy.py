@@ -20,15 +20,13 @@
 
 """Abstract Energy and Wavelength class.
 Defines the get/set wavelength, get_wavelength_limits methods and is_tunable
-property. Implements update_value
+property. Implements update_value.
 Emits signals valueChanged and attributeChanged.
 """
 
 import abc
 from mxcubecore.utils.conversion import HC_OVER_E
-from mxcubecore.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator,
-)
+from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -43,7 +41,7 @@ class AbstractEnergy(AbstractActuator):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, name):
-        AbstractActuator.__init__(self, name)
+        super().__init__(name)
         self._wavelength_limits = (None, None)
 
     def is_ready(self):
@@ -53,7 +51,7 @@ class AbstractEnergy(AbstractActuator):
         """
         if self.read_only:
             return True
-        return super(AbstractEnergy, self).is_ready()
+        return super().is_ready()
 
     @property
     def is_tunable(self):
@@ -134,7 +132,7 @@ class AbstractEnergy(AbstractActuator):
         self.emit("valueChanged", (value,))
 
     def force_emit_signals(self):
-        AbstractActuator.force_emit_signals(self)
+        super().force_emit_signals()
         _energy_value = self.get_value()
         _wavelength_value = self.calculate_wavelength(_energy_value)
         self.emit("energyChanged", (_energy_value, _wavelength_value))

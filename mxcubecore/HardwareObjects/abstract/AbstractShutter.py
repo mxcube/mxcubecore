@@ -25,7 +25,7 @@ import abc
 from enum import Enum, unique
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 
-__copyright__ = """ Copyright 2020 by the MXCuBE collaboration """
+__copyright__ = """ Copyright 2016-2022 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -39,24 +39,23 @@ class BaseValueEnum(Enum):
 
 
 class AbstractShutter(AbstractNState):
-    """Abstract base class for N state objects."""
+    """Abstract base class for shutter type objects."""
 
     __metaclass__ = abc.ABCMeta
     VALUES = BaseValueEnum
 
-    def __init__(self, name):
-        AbstractNState.__init__(self, name)
-
-    def init(self):
-        """Initilise the predefined values"""
-        AbstractNState.init(self)
-
     @property
     def is_open(self):
+        """Check the state of the shutter.
+        Returns:
+            (bool): True if open, False otherwise.
+        """
         return self.get_value() == self.VALUES.OPEN
- 
+
     def open(self):
+        """Open the shutter."""
         self.set_value(self.VALUES.OPEN)
 
     def close(self):
+        """Close the shutter"""
         self.set_value(self.VALUES.CLOSED)

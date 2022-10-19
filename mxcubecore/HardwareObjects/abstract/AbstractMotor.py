@@ -55,13 +55,13 @@ class AbstractMotor(AbstractActuator):
     SPECIFIC_STATES = MotorStates
 
     def __init__(self, name):
-        AbstractActuator.__init__(self, name)
+        super().__init__(name)
         self._velocity = None
         self._tolerance = None
 
     def init(self):
         """Initialise tolerance property"""
-        AbstractActuator.init(self)
+        super().init()
         self._tolerance = self.get_property("tolerance") or 1e-3
 
     def get_velocity(self):
