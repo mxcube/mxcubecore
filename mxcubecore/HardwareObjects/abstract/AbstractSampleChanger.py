@@ -529,7 +529,7 @@ class SampleChanger(Container, HardwareObject):
 
     @dtask
     def scan(self, component=None, recursive=False):
-        """Scan component or list of components for prescence.
+        """Scan component or list of components for presence.
         Args:
             component (Component): Root component to start scan from. Sample
                                    changer root is used if None is passed.

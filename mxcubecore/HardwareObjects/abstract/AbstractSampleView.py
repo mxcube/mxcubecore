@@ -17,7 +17,7 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""Anstract class for a Sample View.
+"""Abstract class for a Sample View.
 Defines methods to handle snapshots, animation and shapes.
 """
 __copyright__ = """2019 by the MXCuBE collaboration """
