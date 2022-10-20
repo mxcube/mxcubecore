@@ -1,7 +1,6 @@
 import os
 import logging
 import contextlib
-from fileinput import filename
 from pydantic import BaseModel, Field
 from devtools import debug
 
@@ -12,7 +11,15 @@ from mxcubecore.queue_entry.base_queue_entry import (
 )
 
 from mxcubecore.model.queue_model_objects import (
-    TaskNode,
+    DataCollection,
+)
+
+
+from mxcubecore.model.common import (
+    CommonCollectionParamters,
+    PathParameters,
+    LegacyParameters,
+    StandardCollectionParameters,
 )
 
 
@@ -41,20 +48,6 @@ def jungfrau_visualization(session, jungfrau_name, active=True):
         monitor.active = False
 
 
-class SSXCollectionParameters(BaseModel):
-    first_image: int
-    kappa: float
-    kappa_phi: float
-    #    numRows: int
-    #    numCols: int
-    beam_size: float
-    shutterless: bool
-    selection: list = Field([])
-
-    class Config:
-        extra: "ignore"
-
-
 class SSXUserCollectionParameters(BaseModel):
     sub_sampling: float = Field(4, gt=0, lt=100)
     exp_time: float = Field(100e-6, gt=0, lt=1)
@@ -65,45 +58,10 @@ class SSXUserCollectionParameters(BaseModel):
         extra: "ignore"
 
 
-class CommonCollectionParamters(BaseModel):
-    skip_existing_images: bool
-    take_snapshots: int
-    type: str
-    label: str
-
-
-class PathParameters(BaseModel):
-    # prefixTemplate: str
-    # subDirTemplate: str
-    prefix: str
-    subdir: str
-    exp_time: float = Field(10, gt=0, lt=100)
-    osc_start: float
-    osc_range: float
-    num_images: int
-    energy: float
-    transmission: float
-    resolution: float
-
-    class Config:
-        extra: "ignore"
-
-
-class LegacyParameters(BaseModel):
-    take_dark_current: int
-    #    detector_mode: int
-    inverse_beam: bool
-    num_passes: int
-    overlap: float
-
-    class Config:
-        extra: "ignore"
-
-
 class SsxChipColletionTaskParameters(BaseModel):
     path_parameters: PathParameters
     common_parameters: CommonCollectionParamters
-    collection_parameters: SSXCollectionParameters
+    collection_parameters: StandardCollectionParameters
     user_collection_parameters: SSXUserCollectionParameters
     legacy_parameters: LegacyParameters
 
@@ -120,7 +78,7 @@ class SsxChipCollectionQueueEntry(BaseQueueEntry):
     # New style queue entry does not take view argument,
     # adding kwargs for compatability, but they are unsued
     def __init__(self, data: SsxChipColletionTaskParameters, view=None, **kwargs):
-        super().__init__(view=view, data_model=TaskNode(data))
+        super().__init__(view=view, data_model=DataCollection(task_data=data))
 
     def execute(self):
         super().execute()

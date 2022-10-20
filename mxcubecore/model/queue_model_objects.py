@@ -1,5 +1,5 @@
 # encoding: utf-8
-# 
+#
 #  Project: MXCuBE
 #  https://github.com/mxcube
 #
@@ -45,62 +45,6 @@ __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 
-class CommonCollectionParamters(BaseModel):
-    skip_existing_images: bool
-    take_snapshots: int
-    type: str
-    label: str
-
-class PathParameters(BaseModel):
-    #prefixTemplate: str
-    #subDirTemplate: str
-    prefix: str
-    subdir: str
-
-    class Config:
-        extra: "ignore"
-
-class LegacyParameters(BaseModel):
-    #exp_time: float = Field(100e-6, gt=0, lt=1)
-    take_dark_current: int
-#    detector_mode: int
-    inverse_beam: bool
-    num_passes: int
-    overlap: float
-
-    class Config:
-        extra: "ignore"
-
-class StandardCollectionParameters(BaseModel):
-    osc_start: float
-    osc_range: float
-
-    energy: float
-    transmission: float
-    resolution: float    
-    
-    first_image: int
-    kappa: float
-    kappa_phi: float
-#    numRows: int
-#    numCols: int
-    beam_size: float
-    shutterless: bool
-    selection: list = Field([])
-
-    class Config:
-        extra: "ignore"
-
-class BeamlineParameters(BaseModel):
-    energy: float
-    transmission: float
-    resolution: float
-    wavelength: float
-    detector_distance: float
-    beam_x: float
-    beam_y: float
- 
-
 class TaskNode(object):
     """
     Objects that inherit TaskNode can be added to and handled by
@@ -120,14 +64,6 @@ class TaskNode(object):
         self._requires_centring = True
         self._origin = None
         self._task_data = task_data
-        
-        acquisition_list = [Acquisition()]
-        crystal = Crystal()
-        processing_parameters = ProcessingParameters()
-
-        self.acquisitions = acquisition_list
-        self.crystal = crystal
-        self.processing_parameters = processing_parameters
 
     @property
     def task_data(self):
@@ -315,12 +251,15 @@ class TaskNode(object):
     def set_snapshot(self, snapshot):
         pass
 
+
 class DelayTask(TaskNode):
     """Dummy task, for mock testing only"""
+
     def __init__(self, delay=10):
         TaskNode.__init__(self)
         self._name = "Delay"
         self.delay = delay
+
 
 class RootNode(TaskNode):
     def __init__(self):
@@ -391,11 +330,10 @@ class Sample(TaskNode):
         return self._name
 
     def get_display_name(self):
-        display_name =  HWR.beamline.session.get_default_prefix(self)
+        display_name = HWR.beamline.session.get_default_prefix(self)
         if self.lims_code:
             display_name += " (%s)" % self.lims_code
         return display_name
-
 
     # def get_display_name(self):
     #     name = self.name
@@ -550,10 +488,10 @@ class Sample(TaskNode):
         self.lims_container_location = p.get("containerSampleChangerLocation", -1)
         self.free_pin_mode = p.get("freePinMode", False)
         self.loc_str = p.get("locStr", "")
-        self.diffraction_plan =  p.get("diffractionPlan")
+        self.diffraction_plan = p.get("diffractionPlan")
 
-        self.crystals[0].space_group = (
-            p.get("spaceGroup") or p.get("crystalSpaceGroup", "")
+        self.crystals[0].space_group = p.get("spaceGroup") or p.get(
+            "crystalSpaceGroup", ""
         )
         self.crystals[0].cell_a = p.get("cellA", "")
         self.crystals[0].cell_alpha = p.get("cellAlpha", "")
@@ -665,9 +603,14 @@ class DataCollection(TaskNode):
     """
 
     def __init__(
-        self, acquisition_list=None, crystal=None, processing_parameters=None, name=""
+        self,
+        acquisition_list=None,
+        crystal=None,
+        processing_parameters=None,
+        name="",
+        task_data=None,
     ):
-        TaskNode.__init__(self)
+        TaskNode.__init__(self, task_data=task_data)
 
         if not acquisition_list:
             acquisition_list = [Acquisition()]
@@ -1392,7 +1335,7 @@ class XrayCentring2(TaskNode):
             )
 
     def init_from_task_data(self, sample_model, params):
-        """ Set parameters from task input dictionary.
+        """Set parameters from task input dictionary.
 
         sample_model is required as this may be called before the object is enqueued
         params is a dictionary with structure determined by mxcube3 usage
@@ -1422,9 +1365,9 @@ class XrayCentring2(TaskNode):
             HWR.beamline.session.get_base_image_directory(), params.get("subdir", "")
         )
         self.path_template.process_directory = os.path.join(
-            HWR.beamline.session.get_base_process_directory(), params.get("subdir", ""),
+            HWR.beamline.session.get_base_process_directory(),
+            params.get("subdir", ""),
         )
-
 
         # # First set some parameters from defaults
         # default_parameters = HWR.beamline.get_default_acquisition_parameters()
@@ -1896,7 +1839,7 @@ class AcquisitionParameters(object):
             "cell_counting": self.cell_counting,
             "mesh_center": self.mesh_center,
             "cell_spacing": self.cell_spacing,
-            "sub_wedge_size": self.sub_wedge_size
+            "sub_wedge_size": self.sub_wedge_size,
         }
 
     def copy(self):
@@ -2139,11 +2082,20 @@ class GphlWorkflow(TaskNode):
 
     def parameter_summary(self):
         """Main parameter summary, for output purposes"""
-        summary = {"strategy":self.get_type()}
-        for tag in ("automation_mode", "init_spot_dir",
-            "exposure_time", "image_width", "strategy_length",
-            "transmission", "dose_budget", "dose_consumed",
-            "space_group","crystal_system","point_group", "_cell_parameters",
+        summary = {"strategy": self.get_type()}
+        for tag in (
+            "automation_mode",
+            "init_spot_dir",
+            "exposure_time",
+            "image_width",
+            "strategy_length",
+            "transmission",
+            "dose_budget",
+            "dose_consumed",
+            "space_group",
+            "crystal_system",
+            "point_group",
+            "_cell_parameters",
             "aimed_resolution",
         ):
             summary[tag] = getattr(self, tag)
@@ -2156,24 +2108,23 @@ class GphlWorkflow(TaskNode):
         #
         return summary
 
-
-
     def set_from_dict(self, params_dict):
         for dict_item in params_dict.items():
             if hasattr(self, dict_item[0]):
                 setattr(self, dict_item[0], dict_item[1])
 
     def set_pre_strategy_params(
-            self,
-            point_group="",
-            crystal_system="",
-            space_group=None,
-            cell_parameters=(),
-            resolution=None,
-            energies=(),
-            strategy_options=None,
-            init_spot_dir=None,
-            **unused):
+        self,
+        point_group="",
+        crystal_system="",
+        space_group=None,
+        cell_parameters=(),
+        resolution=None,
+        energies=(),
+        strategy_options=None,
+        init_spot_dir=None,
+        **unused
+    ):
         """"""
 
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
@@ -2219,8 +2170,10 @@ class GphlWorkflow(TaskNode):
             for iii, role in enumerate(energy_tags):
                 wavelengths.append(
                     GphlMessages.PhasingWavelength(
-                        wavelength= HWR.beamline.energy.calculate_wavelength(energies[iii]),
-                        role=role
+                        wavelength=HWR.beamline.energy.calculate_wavelength(
+                            energies[iii]
+                        ),
+                        role=role,
                     )
                 )
             self.wavelengths = tuple(wavelengths)
@@ -2343,15 +2296,15 @@ class GphlWorkflow(TaskNode):
             self.image_width = default_parameters.osc_range
         self.aimed_resolution = default_parameters.resolution
 
-        ll1[0].update (new_acq_params[0])
+        ll1[0].update(new_acq_params[0])
         ll1[-1].update(new_acq_params[-1])
 
-
-        self.path_template.base_prefix = (
-            params.get("prefix")
-            or HWR.beamline.session.get_default_prefix(sample_model)
+        self.path_template.base_prefix = params.get(
+            "prefix"
+        ) or HWR.beamline.session.get_default_prefix(sample_model)
+        self.path_template.suffix = (
+            params.get("suffix") or HWR.beamline.session.file_suffix
         )
-        self.path_template.suffix = params.get("suffix") or HWR.beamline.session.file_suffix
 
         self.path_template.num_files = 0
         self.path_template.precision = "0" + str(
@@ -2363,14 +2316,19 @@ class GphlWorkflow(TaskNode):
         )
 
         self.path_template.process_directory = os.path.join(
-            HWR.beamline.session.get_base_process_directory(), params.get("subdir", ""),
+            HWR.beamline.session.get_base_process_directory(),
+            params.get("subdir", ""),
         )
 
         # Set crystal parameters from sample node
         crystal = sample_model.crystals[0]
         tpl = (
-            crystal.cell_a, crystal.cell_b, crystal.cell_c,
-            crystal.cell_alpha, crystal.cell_beta, crystal.cell_gamma
+            crystal.cell_a,
+            crystal.cell_b,
+            crystal.cell_c,
+            crystal.cell_alpha,
+            crystal.cell_beta,
+            crystal.cell_gamma,
         )
         if all(tpl):
             self.cell_parameters = tpl
@@ -2459,13 +2417,12 @@ class GphlWorkflow(TaskNode):
             if not self.characterisation_done:
                 dose_budget *= self.characterisation_budget_fraction
             if max_dose > dose_budget:
-                transmission = 100. * dose_budget / max_dose
+                transmission = 100.0 * dose_budget / max_dose
             else:
                 transmission = 100.0
             return transmission
         else:
             raise ValueError("Could not calculate transmission")
-
 
     def calculate_dose_consumed(self, transmission=None):
         """Calculate dose consumed with current parameters"""
@@ -2498,7 +2455,15 @@ class GphlWorkflow(TaskNode):
         )
         if not result:
             raise ValueError(
-                msg % (energy, strategy_length, exposure_time, image_width, transmission, flux_density)
+                msg
+                % (
+                    energy,
+                    strategy_length,
+                    exposure_time,
+                    image_width,
+                    transmission,
+                    flux_density,
+                )
             )
         #
         return result
@@ -2513,10 +2478,10 @@ class GphlWorkflow(TaskNode):
         Apply dose budget, changing transmission, and (if necessary) also exposure time
         """
         transmission = self.calculate_transmission()
-        if transmission > 100.:
+        if transmission > 100.0:
             exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
             self.exposure_time = min(
-                exposure_limits[1], self.exposure_time * transmission / 100.
+                exposure_limits[1], self.exposure_time * transmission / 100.0
             )
             self.transmission = 100
             self.apply_transmission()
@@ -2529,9 +2494,9 @@ class GphlWorkflow(TaskNode):
 
         NB intended for running in auto mode, or for changing exposure)time etc."""
         transmission = self.calculate_transmission()
-        if transmission > 100.:
-            self.transmission = 100.
-            self.dose_budget = self.dose_budget * 100. / transmission
+        if transmission > 100.0:
+            self.transmission = 100.0
+            self.dose_budget = self.dose_budget * 100.0 / transmission
         else:
             self.transmission = transmission
 
@@ -2541,6 +2506,7 @@ class GphlWorkflow(TaskNode):
         result = 2 * resolution * resolution * math.log(100.0 / self.decay_limit)
         #
         return min(result, self.maximum_dose_budget) / self.relative_rad_sensitivity
+
 
 class XrayImaging(TaskNode):
     def __init__(self, xray_imaging_params, acquisition=None, crystal=None, name=""):
@@ -2584,6 +2550,7 @@ def addXrayCentring(parent_node, **centring_parameters):
     HWR.beamline.queue_model.add_child(parent_node, xc_model)
     #
     return xc_model
+
 
 #
 # Collect hardware object utility function.
@@ -2629,7 +2596,6 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
     acquisition = data_collection.acquisitions[0]
     acq_params = acquisition.acquisition_parameters
     proc_params = data_collection.processing_parameters
-
 
     result = [
         {
@@ -2701,12 +2667,12 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
     # as this causes unnecessary hardware activities
     # So remove them altogether if the value is (was excplicitly set to)  None or 0
     dd = result[0]
-    for tag in ('detector_distance', 'energy', 'transmission'):
+    for tag in ("detector_distance", "energy", "transmission"):
         if tag in dd and not dd[tag]:
             del dd[tag]
-    resolution = dd.get('resolution')
-    if resolution is not None and not resolution.get('upper'):
-        del dd['resolution']
+    resolution = dd.get("resolution")
+    if resolution is not None and not resolution.get("upper"):
+        del dd["resolution"]
     return result
 
 

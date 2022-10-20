@@ -34,7 +34,6 @@ __author__ = "Rasmus H Fogh"
 import logging
 
 from mxcubecore.BaseHardwareObjects import ConfiguredObject
-from mxcubecore.model.queue_model_objects import BeamlineParameters
 
 # NBNB The acq parameter names match the attributes of AcquisitionParameters
 # Whereas the limit parmeter values use more udnerstandable names

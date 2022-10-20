@@ -20,7 +20,7 @@ from mxcubecore.queue_entry.base_queue_entry import (
 )
 
 from mxcubecore.model.queue_model_objects import (
-    TaskNode,
+    DataCollection,
 )
 
 
@@ -83,7 +83,7 @@ class SsxInjectorCollectionQueueEntry(BaseQueueEntry):
     # New style queue entry does not take view argument,
     # adding kwargs for compatability, but they are unsued
     def __init__(self, data: InjectorColletionTaskParameters, view=None, **kwargs):
-        super().__init__(view=view, data_model=TaskNode(data))
+        super().__init__(view=view, data_model=DataCollection(task_data=data))
 
     def execute(self):
         super().execute()
