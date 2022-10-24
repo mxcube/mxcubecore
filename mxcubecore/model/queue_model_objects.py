@@ -2242,8 +2242,6 @@ class GphlWorkflow(TaskNode):
         if wedge_width:
             self.wedge_width = float(wedge_width)
         if transmission:
-            # NBNB TODO transmission must be calculated
-            #  for chareacterisation and acquisition
             self.transmission = float(transmission)
         if snapshot_count:
             self.snapshot_count = int(snapshot_count)
