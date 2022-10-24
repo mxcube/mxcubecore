@@ -110,6 +110,7 @@ class GphlWorkflow(HardwareObjectYaml):
         # Configuration data - set when queried
         self.workflows = {}
         self.settings = {}
+        self.test_crystals = {}
 
         # Current data collection task group. Different for characterisation and collection
         self._data_collection_group = None
@@ -491,11 +492,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         resolution = HWR.beamline.resolution.get_value()
 
-        dose_budget = self.resolution2dose_budget(
-            resolution,
-            decay_limit=data_model.get_decay_limit(),
-            relative_sensitivity=data_model.get_relative_rad_sensitivity(),
-        )
+        dose_budget = data_model.recommended_dose_budget(resolution)
         default_image_width = float(allowed_widths[default_width_index])
         default_exposure = acq_parameters.exp_time
         exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
@@ -686,7 +683,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 "variableName": "maximum_dose_budget",
                 "uiLabel": "Maximum dose budget (MGy)",
                 "type": "floatstring",
-                "defaultValue": self.settings.get("maximum_dose_budget", 20),
+                "defaultValue": data_model.maximum_dose_budget,
                 "hidden": True,
             },
 
@@ -965,11 +962,7 @@ class GphlWorkflow(HardwareObjectYaml):
             strategy_length * len(gphl_workflow_model.wavelengths)
         )
 
-        # Set recommended dose budget and reset transmission to match
-        dose_budget = gphl_workflow_model.get_default_dose_budget()
-        if gphl_workflow_model.characterisation_done:
-            dose_budget -= gphl_workflow_model.dose_consumed
-        gphl_workflow_model.dose_budget = dose_budget
+        #
         if gphl_workflow_model.automation_mode:
             if gphl_workflow_model.characterisation_done:
                 params = gphl_workflow_model.auto_acq_parameters[-1]
@@ -977,15 +970,48 @@ class GphlWorkflow(HardwareObjectYaml):
                 params = gphl_workflow_model.auto_acq_parameters[0]
             gphl_workflow_model.set_pre_acquisition_params(**params)
             if "dose_budget" in params:
-                # Reset transmission and if necessary exposure time to match dose budget
-                gphl_workflow_model.apply_dose_budget()
-            elif "transmission" in params:
-                # Reset dose budget to match transmission
-                gphl_workflow_model.apply_transmission()
-            else:
-                gphl_workflow_model.reset_transmission()
-
+                raise ValueError(
+                    "'dose_budget' parameter no longer supported. "
+                    "Use 'use_dose' or 'transmission' instead"
+                )
+            transmission = params.get("transmission")
+            use_dose = params.get("use_dose")
         else:
+            transmission = None
+            use_dose = None
+
+        if transmission is None:
+            # If transmission is already set (automation mode), there is nothing to do
+            if use_dose is None:
+                # Set use_dose from recommended budget
+                use_dose = gphl_workflow_model.recommended_dose_budget()
+                if gphl_workflow_model.characterisation_done:
+                    use_dose -= gphl_workflow_model.dose_consumed
+                elif strategy_type != "diffractcal":
+                    # This is characterisation
+                    use_dose *= gphl_workflow_model.characterisation_budget_fraction
+            transmission = gphl_workflow_model.calculate_transmission(use_dose)
+            if transmission > 100:
+                if (
+                    gphl_workflow_model.characterisation_done
+                    or strategy_type == "diffractcal"
+                ):
+                    # We are not in characterisation.
+                    # Try top reset exposure time to get desired dose
+                    exposure_time = (
+                        gphl_workflow_model.exposure_time * transmission / 100
+                    )
+                    exposure_limits = (
+                        HWR.beamline.detector.get_exposure_time_limits()
+                    )
+                    if exposure_limits[1]:
+                        exposure_time = max (exposure_limits[1], exposure_time)
+                    gphl_workflow_model.exposure_time = exposure_time
+                transmission = 100
+            gphl_workflow_model.transmission = transmission
+
+
+        if not gphl_workflow_model.automation_mode:
             # SiGNAL TO GET Pre-collection parameters here
             # NB set defaults from data_model
             # NB consider whether to override on None
@@ -1069,8 +1095,9 @@ class GphlWorkflow(HardwareObjectYaml):
 
             gphl_workflow_model.recentring_mode = parameters.pop("recentring_mode")
 
-        # Set (re)centring behaviour and enqueue
+        # From here on same for manual and automation
 
+        # Set (re)centring behaviour and enqueue
         recentring_mode = gphl_workflow_model.recentring_mode
 
         if gphl_workflow_model.characterisation_done:
@@ -1277,7 +1304,7 @@ class GphlWorkflow(HardwareObjectYaml):
         gphl_workflow_model.goniostat_translations = goniostatTranslations
 
         # Unpdate dose_consumed to include dose (about to be) acquired.
-        gphl_workflow_model.dose_consumed += gphl_workflow_model.calculate_dose_consumed()
+        gphl_workflow_model.dose_consumed += gphl_workflow_model.calculate_dose()
 
         # Return SampleCentred message
         sampleCentred = GphlMessages.SampleCentred(gphl_workflow_model)
@@ -1682,6 +1709,11 @@ class GphlWorkflow(HardwareObjectYaml):
             data_model.detector_setting = None
             # NB resets detector_setting
             params = data_model.auto_acq_parameters[-1]
+            if "resolution" not in params:
+                params["resolution"] = (
+                    data_model.aimed_resolution
+                    or HWR.beamline.get_default_acquisition_parameters().resolution
+                )
             data_model.set_pre_strategy_params(**params)
             distance = data_model.detector_setting.axisSettings["Distance"]
             HWR.beamline.detector.distance.set_value(distance, timeout=30)
@@ -2118,22 +2150,49 @@ class GphlWorkflow(HardwareObjectYaml):
 
     # Utility functions
 
-    def resolution2dose_budget(self, resolution, decay_limit, relative_sensitivity=1.0):
+    def resolution2dose_budget(
+        self,
+        resolution,
+        decay_limit=None,
+        maximum_dose_budget=None,
+        relative_rad_sensitivity=1.0):
         """
 
         Args:
             resolution (float): resolution in A
             decay_limit (float): min. intensity at resolution edge at experiment end (%)
-            relative_sensitivity (float) : relative radiation sensitivity of crystal
+            maximum_dose_budget (float): maximum allowed dose budget
+            relative_rad_sensitivity (float) : relative radiation sensitivity of crystal
 
         Returns (float): Dose budget (MGy)
 
+        Get resolution-dependent dose budget that gives intensity decay_limit%
+        at the end of acquisition for reflections at resolution
+        assuming an increase in B factor of 1A^2/MGy
+
         """
-        """Get resolution-dependent dose budget using configured values"""
-        max_budget = self.settings.get("maximum_dose_budget", 20)
+        max_budget = maximum_dose_budget or self.settings.get("maximum_dose_budget", 20)
+        decay_limit = decay_limit or self.settings.get("decay_limit", 25)
         result = 2 * resolution * resolution * math.log(100.0 / decay_limit)
         #
-        return min(result, max_budget) / relative_sensitivity
+        return min(result, max_budget) / relative_rad_sensitivity
+
+    @staticmethod
+    def calculate_dose(duration, energy, flux_density):
+        """ Calculate dose accumulated by sample
+
+        :param duration (s): Duration of radiation
+        :param energy (keV): Energy of ratiation
+        :param flux_density: Flux in photons per second per mm^2
+        :return: Accumulted dose in MGy
+        """
+
+        return (
+            duration
+            * flux_density
+            * HWR.beamline.flux.get_dose_rate_per_photon_per_mmsq(energy)
+            * 1.0e-6  # convert to MGy
+        )
 
     def get_emulation_samples(self):
         """ Get list of lims_sample information dictionaries for mock/emulation

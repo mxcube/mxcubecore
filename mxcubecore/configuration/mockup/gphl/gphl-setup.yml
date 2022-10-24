@@ -53,7 +53,7 @@ software_paths:
 #    java_binary: "/alt/rhfogh/Software/GPhL/mxcube_setup/jre1.8.0_144/bin/java"
 
     # gphl test samples directory - for collection emulation
-#    gphl_test_samples: gphl/test_samples
+    gphl_test_samples: gphl/test_samples
 
     #Location of installation used for processing queue (if not reachable from BCS computer.
     #Passed as environmental variable GPHL_PROC_INSTALLATION. Optional

@@ -2026,28 +2026,32 @@ class GphlWorkflow(TaskNode):
         self.path_template = PathTemplate()
         self._type = str()
         self.shape = str()
+        self.characterisation_strategy = str()
+        self.maximum_dose_budget = 20.0
+        self.decay_limit = 25
+        self.characterisation_budget_fraction = 0.05
+        self.relative_rad_sensitivity = 1.0
+
         # string. Only active mode currently is 'MASSIF1'
         self.automation_mode = None
         # Automation mode acquisition parameters. Replace UI queried values
         # multiple dictionaries, in acquisition order (characterisation, then main)
         self.auto_acq_parameters = [{}]
-        # Directory containing SPOT.XDS file
-        # For cases where characterisation and XDS processing are done
-        # before workflow is started
-        self.init_spot_dir = None
 
         # Pre-strategy attributes
+        # Set in  def set_pre_strategy_params(
         self.space_group = str()
         self.crystal_system = str()
         self.point_group = None
         self._cell_parameters = ()
-        self.beamstop_setting = None
-        self.wavelengths = ()
-        self.detector_setting = None
-        self.aimed_resolution = None
-        self.goniostat_translations = ()
-        self.characterisation_strategy = str()
-        self.strategy_options = {}
+        self.detector_setting = None  # from 'resolution' parameter or defaults
+        self.aimed_resolution = None  # from 'resolution' parameter or defaults
+        self.wavelengths = ()  # from 'energies' parametes
+        self.strategy_options = {}  # includes variant. Overrides config/defuault
+        # Directory containing SPOT.XDS file
+        # For cases where characterisation and XDS processing are done
+        # before workflow is started
+        self.init_spot_dir = None
 
         # Pre-collection attributes
         # Attributes for workflow
@@ -2056,23 +2060,23 @@ class GphlWorkflow(TaskNode):
         self.wedge_width = 0.0
         self.transmission = 0.0
         self.snapshot_count = 2
+        self.recentring_mode = "sweep"
+
+        # Internal / config-only attributes
         # Workflow interleave order (string).
         # Slowest changing first, characters 'g' (Goniostat position);
         # 's' (Scan number), 'b' (Beam wavelength), 'd' (Detector position)
-        self.interleave_order = "gs"
-
-        # Centring handling and MXCuBE-side flow
-        self.recentring_mode = "sweep"
+        self.interleave_order = "gs"  # from workflow strategy
+        self.beamstop_setting = None  # Not currently set or used
+        self.goniostat_translations = ()  # Internal only - set by program
         self.current_rotation_id = None
         self.characterisation_done = False
-        # Dose budget handling
-        self.maximum_dose_budget = 20.0
-        self.dose_budget = None
-        self.decay_limit = 25
-        self.characterisation_budget_fraction = 0.05
-        self.relative_rad_sensitivity = 1.0
         self.dose_consumed = 0.0
         self.strategy_length = 0.0
+
+        # # Centring handling and MXCuBE-side flow
+        # # Dose budget handling
+        # self.dose_budget = None
 
         self.set_requires_centring(False)
 
@@ -2088,7 +2092,6 @@ class GphlWorkflow(TaskNode):
             "image_width",
             "strategy_length",
             "transmission",
-            "dose_budget",
             "dose_consumed",
             "space_group",
             "crystal_system",
@@ -2102,7 +2105,8 @@ class GphlWorkflow(TaskNode):
         summary["orgxy"] = self.detector_setting.orgxy
         summary["strategy_variant"] = self.strategy_options.get("variant", "not set")
         summary["orientation_count"] = len(self.goniostat_translations)
-        summary["total_dose_budget"] = self.get_default_dose_budget()
+        summary["radiation_dose"] = self.calculate_dose()
+        summary["total_dose_budget"] = self.recommended_dose_budget()
         #
         return summary
 
@@ -2112,18 +2116,29 @@ class GphlWorkflow(TaskNode):
                 setattr(self, dict_item[0], dict_item[1])
 
     def set_pre_strategy_params(
-        self,
-        point_group="",
-        crystal_system="",
-        space_group=None,
-        cell_parameters=(),
-        resolution=None,
-        energies=(),
-        strategy_options=None,
-        init_spot_dir=None,
-        **unused
-    ):
-        """"""
+            self,
+            point_group="",
+            crystal_system="",
+            space_group="",
+            cell_parameters=(),
+            resolution=None,
+            energies=(),
+            strategy_options=None,
+            init_spot_dir=None,
+            **unused):
+        """
+
+        :param point_group (str):
+        :param crystal_system (str):
+        :param space_group (str):
+        :param cell_parameters tuple(float):
+        :param resolution (Optional[float]):
+        :param energies tuple(float):
+        :param strategy_options (dict):
+        :param init_spot_dir (str):
+        :param unused (dict):
+        :return (None):
+        """
 
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
@@ -2208,6 +2223,7 @@ class GphlWorkflow(TaskNode):
 
         self.init_spot_dir = init_spot_dir
 
+
     def set_pre_acquisition_params(
         self,
         exposure_time=None,
@@ -2245,35 +2261,34 @@ class GphlWorkflow(TaskNode):
         # Set attributes directly from params
         self.set_type(params["strategy_name"])
         self.shape = params.get("shape", "")
-        value = params.get("decay_limit")
-        if value:
-            self.decay_limit = value
-        value = params.get("maximum_dose_budget")
-        if value:
-            self.maximum_dose_budget = value
-        value = params.get("characterisation_budget_fraction")
-        if value:
-            self.characterisation_budget_fraction = value
-        value = params.get("characterisation_strategy")
-        if value:
-            self.characterisation_strategy = value
+        for tag in (
+            "decay_limit",
+            "maximum_dose_budget",
+            "characterisation_budget_fraction",
+            "characterisation_strategy"
+        ):
+            value = params.get(tag)
+            if value:
+                setattr(self, tag, value)
 
-        # Start on settings and parameter sources
-        # NB settings is an internal attribute DO NOT MODIFY
         settings = HWR.beamline.gphl_workflow.settings
+        # NB settings is an internal attribute DO NOT MODIFY
+
+        # Auto acquisition parameters
         acq_param_settings = settings.get("auto_acq_parameters") or [{}]
         self.auto_acq_parameters = ll1 = [copy.deepcopy(acq_param_settings[0])]
         if acq_param_settings[0] is acq_param_settings[-1]:
             ll1.append(copy.deepcopy(acq_param_settings[0]))
         else:
             ll1.append(copy.deepcopy(acq_param_settings[-1]))
-
         new_acq_params = params.pop("auto_acq_parameters", [{}])
+        ll1[0].update (new_acq_params[0])
+        ll1[-1].update(new_acq_params[-1])
+
         if "automation_mode" in params:
             self.automation_mode = params["automation_mode"]
 
         # Set automation switches and basic acquisition parameters
-        default_parameters = HWR.beamline.get_default_acquisition_parameters()
         if new_acq_params[0].get("init_spot_dir"):
             # Characterisation is pre-acquired
             if not self.automation_mode:
@@ -2283,36 +2298,33 @@ class GphlWorkflow(TaskNode):
                 or "image_width" not in new_acq_params[0]
             ):
                 raise ValueError(
-                    "Parameters 'exposure_time', 'image_count', and 'image_width' are mandatory"
+                    "Parameters 'exposure_time', and 'image_width' are mandatory"
                     "when 'init_spot_dir' is set"
                 )
             self.transmission = HWR.beamline.transmission.get_value()
 
         else:
-            # Set some parameters from defaults
+            # Normal characterisation, set some parameters from defaults
+            default_parameters = HWR.beamline.get_default_acquisition_parameters()
             self.exposure_time = default_parameters.exp_time
             self.image_width = default_parameters.osc_range
-        self.aimed_resolution = default_parameters.resolution
 
-        ll1[0].update(new_acq_params[0])
-        ll1[-1].update(new_acq_params[-1])
-
-        self.path_template.base_prefix = params.get(
-            "prefix"
-        ) or HWR.beamline.session.get_default_prefix(sample_model)
+        # Path template and prefixes
+        base_prefix = self.path_template.base_prefix = (
+            params.get("prefix")
+            or HWR.beamline.session.get_default_prefix(sample_model)
+        )
+        self.set_name(base_prefix)
         self.path_template.suffix = (
             params.get("suffix") or HWR.beamline.session.file_suffix
         )
-
         self.path_template.num_files = 0
         self.path_template.precision = "0" + str(
             HWR.beamline.session["file_info"].get_property("precision", 4)
         )
-
         self.path_template.directory = os.path.join(
             HWR.beamline.session.get_base_image_directory(), params.get("subdir", "")
         )
-
         self.path_template.process_directory = os.path.join(
             HWR.beamline.session.get_base_process_directory(),
             params.get("subdir", ""),
@@ -2363,9 +2375,6 @@ class GphlWorkflow(TaskNode):
             if resolution:
                 self.aimed_resolution = resolution
 
-        # Set paramaters from params dict
-        self.set_name(self.path_template.base_prefix)
-
     def get_workflow_parameters(self):
         """Get parameters dictionary for workflow strategy"""
         for wfdict in HWR.beamline.gphl_workflow.get_available_workflows().values():
@@ -2406,104 +2415,125 @@ class GphlWorkflow(TaskNode):
             else:
                 raise ValueError("invalid value for cell_parameters: %s" % str(value))
 
-    def calculate_transmission(self):
-        """Calculate transmission matching current parameters"""
+    # def calculate_transmission(self):
+    #     """Calculate transmission matching current parameters"""
+    #
+    #     max_dose = self.calculate_dose(transmission=100.0)
+    #     if max_dose:
+    #         dose_budget = self.dose_budget
+    #         if not self.characterisation_done:
+    #             dose_budget *= self.characterisation_budget_fraction
+    #         if max_dose > dose_budget:
+    #             transmission = 100. * dose_budget / max_dose
+    #         else:
+    #             transmission = 100.0
+    #         return transmission
+    #     else:
+    #         raise ValueError("Could not calculate transmission")
 
-        max_dose = self.calculate_dose_consumed(transmission=100.0)
+
+    def calculate_transmission(self, use_dose=None):
+        """Calculate transmission correspoiding to using up a given dose
+        NBNB value may be higher than 100%; this must be dealt with by the caller
+
+        :param use_dose (float): Dose to consume, in MGy
+        :return (float): transmission in %
+        """
+        if not use_dose:
+            use_dose = self.recommended_dose_budget() - self.dose_consumed
+        max_dose = self.calculate_dose(transmission=100.0)
         if max_dose:
-            dose_budget = self.dose_budget
-            if not self.characterisation_done:
-                dose_budget *= self.characterisation_budget_fraction
-            if max_dose > dose_budget:
-                transmission = 100.0 * dose_budget / max_dose
-            else:
-                transmission = 100.0
-            return transmission
+            return 100. * use_dose / max_dose
         else:
             raise ValueError("Could not calculate transmission")
 
-    def calculate_dose_consumed(self, transmission=None):
-        """Calculate dose consumed with current parameters"""
+
+    def calculate_dose(self, transmission=None):
+        """Calculate dose consumed with current parameters
+
+        :param transmission (float): Transmission in %. Defaults to current setting
+        :return:
+        """
+
         result = None
         if transmission is None:
             transmission = self.transmission
-        strategy_length = self.strategy_length
         energy = HWR.beamline.energy.calculate_energy(self.wavelengths[0].wavelength)
-        exposure_time = self.exposure_time
-        image_width = self.image_width
-
         flux_density = HWR.beamline.flux.get_average_flux_density(
             transmission=transmission
         )
+        strategy_length = self.strategy_length
+        exposure_time = self.exposure_time
+        image_width = self.image_width
         if flux_density:
-            dose_rate = (
-                HWR.beamline.flux.get_dose_rate_per_photon_per_mmsq(energy)
-                * flux_density
-                * 1.0e-6  # convert to MGy/s
-            )
-
-            if image_width and exposure_time and dose_rate:
-                experiment_time = exposure_time * strategy_length / image_width
-                result = dose_rate * experiment_time
-
+            if strategy_length and exposure_time and image_width:
+                duration = exposure_time * strategy_length / image_width
+                return HWR.beamline.gphl_workflow.calculate_dose(
+                    duration, energy, flux_density
+                )
         msg = (
             "Dose could not be calculated from:\n"
-            " energy:%s keV, strategy_length:%s deg, exposure_time:%s s, image_width:%s deg, "
-            "transmission: %s flux_density:%s  photons/mm^2"
+            " energy:%s keV, strategy_length:%s deg, exposure_time:%s s, "
+            "image_width:%s deg, transmission: %s %% flux_density:%s  photons/mm^2"
         )
-        if not result:
-            raise ValueError(
-                msg
-                % (
-                    energy,
-                    strategy_length,
-                    exposure_time,
-                    image_width,
-                    transmission,
-                    flux_density,
-                )
+        raise ValueError(
+            msg % (
+                energy,
+                strategy_length,
+                exposure_time,
+                image_width,
+                transmission,
+                flux_density
             )
-        #
-        return result
+        )
 
-    def apply_transmission(self):
-        """Reset dose_budget to match current transmission"""
-        transmission = self.calculate_transmission()
-        self.dose_budget = self.dose_budget * self.transmission / transmission
+    # def apply_transmission(self):
+    #     """Reset dose_budget to match current transmission"""
+    #     transmission = self.calculate_transmission()
+    #     self.dose_budget = self.dose_budget * self.transmission / transmission
 
-    def apply_dose_budget(self):
+    # def apply_dose_budget(self):
+    #     """
+    #     Apply dose budget, changing transmission, and (if necessary) also exposure time
+    #     """
+    #     transmission = self.calculate_transmission()
+    #     if transmission > 100.:
+    #         exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
+    #         self.exposure_time = min(
+    #             exposure_limits[1], self.exposure_time * transmission / 100.
+    #         )
+    #         self.transmission = 100
+    #         self.apply_transmission()
+    #     else:
+    #         self.transmission = transmission
+    #
+    # def reset_transmission(self):
+    #     """reset transmission to match current parameters, lowering dose budget if transmission goes over 100,
+    #     reducing dose if transmission goes over 100
+    #
+    #     NB intended for running in auto mode, or for changing exposure)time etc."""
+    #     transmission = self.calculate_transmission()
+    #     if transmission > 100.:
+    #         self.transmission = 100.
+    #         self.dose_budget = self.dose_budget * 100. / transmission
+    #     else:
+    #         self.transmission = transmission
+
+    def recommended_dose_budget(self, resolution=None):
+        """Get resolution-dependent dose budget using current configuration
+
+        :param resolution (float): Target resolution (in A), defauls to current setting
+        :return:
         """
-        Apply dose budget, changing transmission, and (if necessary) also exposure time
-        """
-        transmission = self.calculate_transmission()
-        if transmission > 100.0:
-            exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
-            self.exposure_time = min(
-                exposure_limits[1], self.exposure_time * transmission / 100.0
-            )
-            self.transmission = 100
-            self.apply_transmission()
-        else:
-            self.transmission = transmission
-
-    def reset_transmission(self):
-        """reset transmission to match current parameters, lowering dose budget if transmission goes over 100,
-        reducing dose if transmission goes over 100
-
-        NB intended for running in auto mode, or for changing exposure)time etc."""
-        transmission = self.calculate_transmission()
-        if transmission > 100.0:
-            self.transmission = 100.0
-            self.dose_budget = self.dose_budget * 100.0 / transmission
-        else:
-            self.transmission = transmission
-
-    def get_default_dose_budget(self):
-        """Get resolution-dependent dose budget using configured values"""
-        resolution = self.detector_setting.resolution
-        result = 2 * resolution * resolution * math.log(100.0 / self.decay_limit)
-        #
-        return min(result, self.maximum_dose_budget) / self.relative_rad_sensitivity
+        resolution = resolution or self.detector_setting.resolution
+        if not resolution:
+            raise ValueError("No resolution set to calculate dose budget")
+        return HWR.beamline.gphl_workflow.resolution2dose_budget(
+            resolution,
+            decay_limit=self.decay_limit,
+            maximum_dose_budget=self.maximum_dose_budget,
+            relative_rad_sensitivity=self.relative_rad_sensitivity
+        )
 
 
 class XrayImaging(TaskNode):
