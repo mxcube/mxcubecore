@@ -419,9 +419,9 @@ class GphlWorkflow(HardwareObjectYaml):
             data_model.characterisation_done
             or wf_parameters.get("strategy_type") == "diffractcal"
         ):
+            # Data collection
             lines = ["%s strategy" % self._queue_entry.get_data_model().get_type()]
             lines.extend(("-" * len(lines[0]), ""))
-            # Data collection TODO: Use workflow info to distinguish
             beam_energies = OrderedDict()
             energies = [initial_energy, initial_energy + 0.01, initial_energy - 0.01]
             for ii, tag in enumerate(data_model.wavelengths):
@@ -445,6 +445,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     if pos is not None:
                         dd0[tag] = pos
 
+        # Make strategy-description info_text
         if len(beam_energies) > 1:
             lines.append(
                 "Experiment length: %s * %6.1f°" % (len(beam_energies), strategy_length)
@@ -471,7 +472,6 @@ class GphlWorkflow(HardwareObjectYaml):
             spacer = " " * (len(ss0) + 2)
             for ss1 in ll1[1:]:
                 lines.append(spacer + ss1)
-
         info_text = "\n".join(lines)
 
         # Set up image width pulldown
@@ -950,20 +950,30 @@ class GphlWorkflow(HardwareObjectYaml):
         return result
 
     def setup_data_collection(self, payload, correlation_id):
+        """Query data colletion parameters and return SampleCentred to ASTRA workflow
+
+        :param payload (GphlMessages.GeometricStrategy):
+        :param correlation_id (int) Astra workflow correlation ID
+        :return (GphlMessages.SampleCentred):
+        """
         geometric_strategy = payload
 
+        # Set up
         gphl_workflow_model = self._queue_entry.get_data_model()
         strategy_type = gphl_workflow_model.get_workflow_parameters()[
             "strategy_type"
         ]
         sweeps = geometric_strategy.get_ordered_sweeps()
+
+        # Set strategy_length
         strategy_length = sum(sweep.width for sweep in sweeps)
         gphl_workflow_model.strategy_length = (
             strategy_length * len(gphl_workflow_model.wavelengths)
         )
 
-        #
+        # get params and initial transmission/use_dose
         if gphl_workflow_model.automation_mode:
+            # Get params and transmission/use_dose
             if gphl_workflow_model.characterisation_done:
                 params = gphl_workflow_model.auto_acq_parameters[-1]
             else:
@@ -980,6 +990,7 @@ class GphlWorkflow(HardwareObjectYaml):
             transmission = None
             use_dose = None
 
+        # set transmission
         if transmission is None:
             # If transmission is already set (automation mode), there is nothing to do
             if use_dose is None:
@@ -1010,7 +1021,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 transmission = 100
             gphl_workflow_model.transmission = transmission
 
-
+        # If not in automation mode, get params from user query
         if not gphl_workflow_model.automation_mode:
             # SiGNAL TO GET Pre-collection parameters here
             # NB set defaults from data_model
@@ -1097,9 +1108,10 @@ class GphlWorkflow(HardwareObjectYaml):
 
         # From here on same for manual and automation
 
-        # Set (re)centring behaviour and enqueue
-        recentring_mode = gphl_workflow_model.recentring_mode
+        # Unpdate dose_consumed to include dose (about to be) acquired.
+        gphl_workflow_model.dose_consumed += gphl_workflow_model.calculate_dose()
 
+        # Enqueue data collection
         if gphl_workflow_model.characterisation_done:
             # Data collection TODO: Use workflow info to distinguish
             new_dcg_name = "GPhL Data Collection"
@@ -1117,6 +1129,9 @@ class GphlWorkflow(HardwareObjectYaml):
         self._data_collection_group = new_dcg_model
         self._add_to_queue(gphl_workflow_model, new_dcg_model)
 
+        #
+        # Set (re)centring behaviour and goniostatTranslations
+        recentring_mode = gphl_workflow_model.recentring_mode
         recen_parameters = self.load_transcal_parameters()
         goniostatTranslations = []
 
@@ -1130,13 +1145,13 @@ class GphlWorkflow(HardwareObjectYaml):
                 sweepSettingIds.add(sweepSettingId)
                 sweepSettings.append(sweepSetting)
 
-        # For recentring mode start do settings in reverse order
+        # For recentring mode 'start' do settings in reverse order
         if recentring_mode == "start":
             sweepSettings.reverse()
 
+        # Handle centring of first orientation
         pos_dict = HWR.beamline.diffractometer.get_positions()
         sweepSetting = sweepSettings[0]
-
         if (
             self.settings.get("recentre_before_start")
             and not gphl_workflow_model.characterisation_done
@@ -1158,7 +1173,6 @@ class GphlWorkflow(HardwareObjectYaml):
         current_xyz = tuple(
             current_pos_dict[role] for role in self.translation_axis_roles
         )
-
         if recen_parameters:
             # Currrent position is now centred one way or the other
             # Update recentring parameters
@@ -1168,7 +1182,6 @@ class GphlWorkflow(HardwareObjectYaml):
                 "Recentring set-up. Parameters are: %s",
                 sorted(recen_parameters.items()),
             )
-
         if goniostatTranslations:
             # We had recentre_before_start and already have the goniosatTranslation
             # matching the sweepSetting
@@ -1300,11 +1313,8 @@ class GphlWorkflow(HardwareObjectYaml):
                     rotation=sweepSetting, **translation_settings
                 )
                 goniostatTranslations.append(translation)
-
+        #
         gphl_workflow_model.goniostat_translations = goniostatTranslations
-
-        # Unpdate dose_consumed to include dose (about to be) acquired.
-        gphl_workflow_model.dose_consumed += gphl_workflow_model.calculate_dose()
 
         # Return SampleCentred message
         sampleCentred = GphlMessages.SampleCentred(gphl_workflow_model)

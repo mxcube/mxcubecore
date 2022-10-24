@@ -2213,8 +2213,6 @@ class GphlWorkflow(TaskNode):
         if wedge_width:
             self.wedge_width = float(wedge_width)
         if transmission:
-            # NBNB TODO transmission must be calculated
-            #  for chareacterisation and acquisition
             self.transmission = float(transmission)
         if snapshot_count:
             self.snapshot_count = int(snapshot_count)
@@ -2275,7 +2273,7 @@ class GphlWorkflow(TaskNode):
             self.transmission = HWR.beamline.transmission.get_value()
 
         else:
-            # NPrmal characterisation, set some parameters from defaults
+            # Normal characterisation, set some parameters from defaults
             default_parameters = HWR.beamline.get_default_acquisition_parameters()
             self.exposure_time = default_parameters.exp_time
             self.image_width = default_parameters.osc_range
