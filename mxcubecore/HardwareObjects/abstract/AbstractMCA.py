@@ -1,4 +1,5 @@
 import abc
+from warnings import warn
 from mxcubecore.TaskUtils import task
 
 
@@ -6,6 +7,10 @@ class AbstractMCA(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self):
+        warn(
+            "AbstractMCA is deprecated. Make an mxcubecore issue if still needed",
+            DeprecationWarning,
+        )
         self.mca = None
         self.calib_cf = []
 

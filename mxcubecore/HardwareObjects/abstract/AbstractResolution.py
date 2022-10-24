@@ -33,7 +33,7 @@ from math import asin, atan, sin, tan
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
-__copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © 2010-2022 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -109,7 +109,8 @@ class AbstractResolution(AbstractMotor):
         self._hwr_detector.distance.set_value(distance)
 
     def _calculate_resolution(self, radius, distance, wavelength=None):
-        """Calculate the resolution as function of the detector radius and the distance.
+        """Calculate the resolution as function of the detector radius and
+        the distance.
         Args:
             radius (float): Detector radius [mm]
             distance (float): Distance from the sample to the detector [mm]
@@ -204,4 +205,4 @@ class AbstractResolution(AbstractMotor):
 
     def stop(self):
         """Stop the distance motor movement"""
-        self.self._hwr_detector.distance.stop()
+        self._hwr_detector.distance.stop()

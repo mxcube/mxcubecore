@@ -23,7 +23,7 @@ import abc
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
-__copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © 2010-2022 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -33,16 +33,12 @@ class AbstractMachineInfo(HardwareObject):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
+        super().__init__(name)
         self._current = None
         self._message = None
         self._lifetime = None
         self._topup_remaining = None
         self._mach_info_dict = {}
-
-    def init(self):
-        """Initialise some parameters."""
-        pass
 
     @abc.abstractmethod
     def get_current(self):
@@ -62,7 +58,7 @@ class AbstractMachineInfo(HardwareObject):
     def get_lifetime(self):
         """Read life time.
         Returns:
-            value: Life time.
+            value: Life time [s].
         """
         return None
 

@@ -24,12 +24,16 @@ from warnings import warn
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
-__credits__ = ["MXCuBE collaboration"]
-__license__ = "LGPLv3"
+__copyright__ = """ Copyright © 2010-2022 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
 
 class AbstractAperture(HardwareObject):
     def __init__(self, name):
+        warn(
+            "AbstractAperture is deprecated. Use AbstractNState instead",
+            DeprecationWarning,
+        )
         HardwareObject.__init__(self, name)
 
         self._current_position_name = None

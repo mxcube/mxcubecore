@@ -17,6 +17,9 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
+"""Abstract class for a Sample View.
+Defines methods to handle snapshots, animation and shapes.
+"""
 __copyright__ = """2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
@@ -31,7 +34,7 @@ class AbstractSampleView(HardwareObject):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
+        super().__init__(name)
         self._camera = None
         self._focus = None
         self._zoom = None
@@ -47,25 +50,22 @@ class AbstractSampleView(HardwareObject):
             bw(bool): return grayscale image
             return_as_array(bool): return as np array
         """
-        pass
 
     @abc.abstractmethod
     def save_snapshot(self, filename, overlay=True, bw=False):
         """ Save a snapshot to file.
         Args:
             filename (str): The filename.
-            overlay(bool): Display shapes and other items on the snapshot
-            bw(bool): return grayscale image
+            overlay(bool): Display shapes and other items on the snapshot.
+            bw(bool): Return grayscale image.
         """
-        pass
 
     def save_scene_animation(self, filename, duration=1):
         """ Take snapshots and create an animation.
         Args:
-            filename (str): Filename.
+            filename (str): The filename.
             duration (int): Duration time [s].
         """
-        pass
 
     @property
     def camera(self):
@@ -143,47 +143,38 @@ class AbstractSampleView(HardwareObject):
 
     @abc.abstractmethod
     def add_shape(self, shape):
-        """
-        Add the shape <shape> to the dictionary of handled shapes.
-
+        """Add the shape <shape> to the dictionary of handled shapes.
         Args:
-            (Shape): Shape to add
+            shape(Shape): Shape to add
         """
         return
 
     @abc.abstractmethod
     def add_shape_from_mpos(self, mpos_list, screen_cord, _type):
-        """
-        Adds a shape of type <t>, with motor positions from mpos_list and
+        """Add a shape of type <t>, with motor positions from mpos_list and
         screen position screen_coord.
-
         Args:
             mpos_list (list[mpos_list]): List of motor positions
             screen_coord (tuple(x, y): Screen cordinate for shape
-            t (str): Type str for shape, P (Point), L (Line), G (Grid)
-
+            _type (str): Type str for shape, P (Point), L (Line), G (Grid)
         Returns:
-            (Shape) Shape of type <t>
+            (Shape): Shape of type _type
         """
         return
 
     @abc.abstractmethod
     def delete_shape(self, sid):
-        """
-        Removes the shape with id <sid> from the list of handled shapes.
-
+        """Remove the shape with specified id from the list of handled shapes.
         Args:
             sid (str): The id of the shape to remove
-
         Returns:
             (Shape): The removed shape
         """
+        return
 
     @abc.abstractmethod
     def select_shape(self, sid):
-        """
-        Select the shape <shape>.
-
+        """Select the shape <shape>.
         Args:
             sid (str): Id of the shape to select.
         """
@@ -191,9 +182,7 @@ class AbstractSampleView(HardwareObject):
 
     @abc.abstractmethod
     def de_select_shape(self, sid):
-        """
-        De-select the shape with id <sid>.
-
+        """De-select the shape with id <sid>.
         Args:
             sid (str): The id of the shape to de-select.
         """
@@ -201,35 +190,31 @@ class AbstractSampleView(HardwareObject):
 
     @abc.abstractmethod
     def is_selected(self, sid):
-        """
-        Check if Shape with <sid> is selected.
-
+        """Check if Shape with specified id is selected.
+        Args:
+            sid (int): Shape id.
         Returns:
-            (Boolean) True if Shape with <sid> is selected False otherwise
+            (Boolean) True if selected, False otherwise.
         """
 
     @abc.abstractmethod
     def get_selected_shapes(self):
-        """
-        Get all selected shapes.
-
+        """Get all selected shapes.
         Returns:
-           (list[Shape]) List fot selected Shapes
+           (list) List of the selected Shapes.
         """
         return
 
     @abc.abstractmethod
     def de_select_all(self):
-        """De select all shapes."""
+        """De-select all shapes."""
         return
 
     @abc.abstractmethod
     def select_shape_with_cpos(self, cpos):
-        """
-        Selects shape with the assocaitaed centerd posotion <cpos>
-
+        """Selects shape with the assocaitaed centred posotion <cpos>
         Args:
-            cpos (CenteredPosition)
+            cpos (CentredPosition): Centred position
         """
         return
 
@@ -255,53 +240,44 @@ class AbstractSampleView(HardwareObject):
 
     @abc.abstractmethod
     def get_grid(self):
-        """
-        Get the first of the selected grids, (the one that was selected first in
-        a sequence of select operations)
-
+        """Get the first of the selected grids, (the one that was selected
+        first in a sequence of select operations).
         Returns:
-            (dict): The first selected grid as a dictionary
+            (dict): The first selected grid as a dictionary.
         """
         return
 
     @abc.abstractmethod
     def get_points(self):
-        """
-        Get all Points currently handled.
-
+        """ Get all currently handled centred points.
         Returns:
-            (list[Point]): All points currently handled
+            (list): All points currently handled as list.
         """
         return
 
     @abc.abstractmethod
     def get_lines(self):
-        """
-        Get all Lines currently handled.
+        """Get all the currently handled lines.
 
         Returns:
-            (list[Line]): All lines currently handled
+            (list): All lines currently handled as list.
         """
         return
 
     @abc.abstractmethod
     def get_grids(self):
-        """
-        Get all Grids currently handled.
-
+        """Get all currently handled grids.
         Returns:
-            (list[Grid]): All grids currently handled
+            (list): All grids currently handled as list.
         """
         return
 
     @abc.abstractmethod
     def inc_used_for_collection(self):
         # Signature incompatible with SampleView
-        """
-        Increase counter that keepts on collect made on this shape,
-        shape with associated CenteredPosition cpos
-
+        """Increase the counter that keepts on collect made on this shape,
+        shape with associated CentredPosition cpos.
         Args:
-            cpos (CenteredPosition): CenteredPosition of shape
+            cpos (CentredPosition): CentredPosition of shape
         """
         return
