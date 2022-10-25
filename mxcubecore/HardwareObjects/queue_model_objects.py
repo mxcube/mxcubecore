@@ -327,21 +327,6 @@ class Sample(TaskNode):
             display_name += " (%s)" % self.lims_code
         return display_name
 
-
-    # def get_display_name(self):
-    #     name = self.name
-    #     acronym = self.crystals[0].protein_acronym
-    #
-    #     if self.name is not "" and acronym is not "":
-    #         display_name = "%s - %s-%s" % (self.loc_str, acronym, name)
-    #     else:
-    #         display_name = self.get_name()
-    #
-    #     if self.lims_code:
-    #         display_name += " (%s)" % self.lims_code
-    #
-    #     return display_name
-
     def init_from_sc_sample(self, sc_sample):
         self.loc_str = str(sc_sample[1]) + ":" + str(sc_sample[2])
         self.location = (sc_sample[1], sc_sample[2])
@@ -2026,6 +2011,7 @@ class GphlWorkflow(TaskNode):
         self.detector_setting = None  # from 'resolution' parameter or defaults
         self.aimed_resolution = None  # from 'resolution' parameter or defaults
         self.wavelengths = ()  # from 'energies' parametes
+        self.use_cell_for_processing = False
         self.strategy_options = {}  # includes variant. Overrides config/defuault
         # Directory containing SPOT.XDS file
         # For cases where characterisation and XDS processing are done
@@ -2054,9 +2040,6 @@ class GphlWorkflow(TaskNode):
         self.strategy_length = 0.0
 
         # # Centring handling and MXCuBE-side flow
-        # # Dose budget handling
-        # self.dose_budget = None
-
         self.set_requires_centring(False)
 
         self.set_from_dict(workflow_hwobj.settings["defaults"])
@@ -2379,22 +2362,6 @@ class GphlWorkflow(TaskNode):
             else:
                 raise ValueError("invalid value for cell_parameters: %s" % str(value))
 
-    # def calculate_transmission(self):
-    #     """Calculate transmission matching current parameters"""
-    #
-    #     max_dose = self.calculate_dose(transmission=100.0)
-    #     if max_dose:
-    #         dose_budget = self.dose_budget
-    #         if not self.characterisation_done:
-    #             dose_budget *= self.characterisation_budget_fraction
-    #         if max_dose > dose_budget:
-    #             transmission = 100. * dose_budget / max_dose
-    #         else:
-    #             transmission = 100.0
-    #         return transmission
-    #     else:
-    #         raise ValueError("Could not calculate transmission")
-
 
     def calculate_transmission(self, use_dose=None):
         """Calculate transmission correspoiding to using up a given dose
@@ -2450,38 +2417,6 @@ class GphlWorkflow(TaskNode):
                 flux_density
             )
         )
-
-    # def apply_transmission(self):
-    #     """Reset dose_budget to match current transmission"""
-    #     transmission = self.calculate_transmission()
-    #     self.dose_budget = self.dose_budget * self.transmission / transmission
-
-    # def apply_dose_budget(self):
-    #     """
-    #     Apply dose budget, changing transmission, and (if necessary) also exposure time
-    #     """
-    #     transmission = self.calculate_transmission()
-    #     if transmission > 100.:
-    #         exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
-    #         self.exposure_time = min(
-    #             exposure_limits[1], self.exposure_time * transmission / 100.
-    #         )
-    #         self.transmission = 100
-    #         self.apply_transmission()
-    #     else:
-    #         self.transmission = transmission
-    #
-    # def reset_transmission(self):
-    #     """reset transmission to match current parameters, lowering dose budget if transmission goes over 100,
-    #     reducing dose if transmission goes over 100
-    #
-    #     NB intended for running in auto mode, or for changing exposure)time etc."""
-    #     transmission = self.calculate_transmission()
-    #     if transmission > 100.:
-    #         self.transmission = 100.
-    #         self.dose_budget = self.dose_budget * 100. / transmission
-    #     else:
-    #         self.transmission = transmission
 
     def recommended_dose_budget(self, resolution=None):
         """Get resolution-dependent dose budget using current configuration
