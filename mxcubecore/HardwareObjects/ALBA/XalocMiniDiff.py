@@ -88,6 +88,7 @@ class XalocMiniDiff(GenericDiffractometer):
         self.centring_hwobj = None
         self.super_hwobj = None
         self.chan_state = None
+        self.chan_phase = None
         self.phi_motor_hwobj = None
         self.phiz_motor_hwobj = None
         self.phiy_motor_hwobj = None
@@ -109,7 +110,6 @@ class XalocMiniDiff(GenericDiffractometer):
         # Number of images and total angle range used in automatic centering, defined in centring-math.xml
         self.numCentringImages = None
         self.centringAngleRange = None
-        
 
     def init(self):
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
@@ -131,6 +131,7 @@ class XalocMiniDiff(GenericDiffractometer):
                 self.supervisor_phase_changed)
 
         self.chan_state = self.get_channel_object("State")
+        self.chan_phase = self.get_channel_object("CurrentPhase")
         self.connect(self.chan_state, "update", self.state_changed)
 
         self.phi_motor_hwobj = self.get_object_by_role('phi')
@@ -1332,6 +1333,12 @@ class XalocMiniDiff(GenericDiffractometer):
         with gevent.Timeout(timeout, Exception("Timeout waiting for Diffracometer ready, check bl13/eh/diff. Is omegax close enough to 0??")):
             while not self.is_ready():
                 time.sleep(0.01)
+
+    def get_diff_phase(self):
+        """
+        Descript. :
+        """
+        return self.chan_phase.get_value()
 
     def get_current_phase(self):
         """

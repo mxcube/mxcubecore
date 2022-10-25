@@ -30,7 +30,7 @@
 
   <phase_list>("Transfer", "Centring", "Collect", "BeamView")</phase_list>
 
-  <channel type="sardana" taurusname="bl13/eh/supervisor" polling="500" name="CurrentPhase">CurrentPhase</channel>
+  <channel type="sardana" taurusname="bl13/eh/diff" polling="500" name="CurrentPhase">CurrentPhase</channel>
   <channel type="sardana" taurusname="bl13/eh/diff" polling="500" name="State">State</channel>
   <channel type="sardana" taurusname="bl13/eh/diff" polling="500" name="omegazReference">OmegaZReference</channel>
   <used_channels>State,CurrentPhase</used_channels>
