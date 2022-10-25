@@ -425,10 +425,11 @@ class CollectionDone(MessageData):
 
     INTENT = "EVENT"
 
-    def __init__(self, proposalId, status, imageRoot=None):
+    def __init__(self, proposalId, status, procWithLatticeParams=False, imageRoot=None):
         self._proposalId = proposalId
         self._imageRoot = imageRoot
         self._status = status
+        self._procWithLatticeParams = procWithLatticeParams
 
     @property
     def proposalId(self):
@@ -445,6 +446,11 @@ class CollectionDone(MessageData):
     def status(self):
         """Integer status code for collection result"""
         return self._status
+
+    @property
+    def procWithLatticeParams(self):
+        """Boolean, whether lattice parameters should be used for processing"""
+        return self._procWithLatticeParams
 
 
 # Complex payloads

@@ -238,7 +238,7 @@ class GphlWorkflow(HardwareObjectYaml):
         """
         choose_lattice is the Message object, passed in at teh select_lattice stage
         """
-        #
+        #Use for both characterisation, diffreactcal, and acquisition, with different
         return {}
 
     def query_pre_collection_params(self, data_model):
@@ -990,7 +990,7 @@ class GphlWorkflow(HardwareObjectYaml):
             transmission = None
             use_dose = None
 
-        # set transmission
+        # set gphl_workflow_model.transmission (initial value for interactive mode)
         if transmission is None:
             # If transmission is already set (automation mode), there is nothing to do
             if use_dose is None:
@@ -1131,6 +1131,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         #
         # Set (re)centring behaviour and goniostatTranslations
+        #
         recentring_mode = gphl_workflow_model.recentring_mode
         recen_parameters = self.load_transcal_parameters()
         goniostatTranslations = []
@@ -1659,6 +1660,7 @@ class GphlWorkflow(HardwareObjectYaml):
         return GphlMessages.CollectionDone(
             status=status,
             proposalId=collection_proposal.id_,
+            procWithLatticeParams=gphl_workflow_model.use_cell_for_processing,
         )
 
     def auto_select_solution(self, choose_lattice):
@@ -1706,8 +1708,6 @@ class GphlWorkflow(HardwareObjectYaml):
         data_model = self._queue_entry.get_data_model()
         data_model.characterisation_done = True
 
-        # Add consumed dose to data model
-
         if data_model.automation_mode:
             solution = self.auto_select_solution(choose_lattice)
 
@@ -1724,14 +1724,6 @@ class GphlWorkflow(HardwareObjectYaml):
                     data_model.aimed_resolution
                     or HWR.beamline.get_default_acquisition_parameters().resolution
                 )
-            data_model.set_pre_strategy_params(**params)
-            distance = data_model.detector_setting.axisSettings["Distance"]
-            HWR.beamline.detector.distance.set_value(distance, timeout=30)
-            return GphlMessages.SelectedLattice(
-                data_model,
-                lattice_format=choose_lattice.lattice_format,
-                solution=solution,
-            )
         else:
             # SIGNAL TO GET Pre-strategy parameters here
             # NB set defaults from data_model
@@ -1739,6 +1731,14 @@ class GphlWorkflow(HardwareObjectYaml):
             params = self.query_pre_strategy_params(data_model, choose_lattice)
             data_model.set_pre_strategy_params(**params)
             raise NotImplementedError()
+        data_model.set_pre_strategy_params(**params)
+        distance = data_model.detector_setting.axisSettings["Distance"]
+        HWR.beamline.detector.distance.set_value(distance, timeout=30)
+        return GphlMessages.SelectedLattice(
+            data_model,
+            lattice_format=choose_lattice.lattice_format,
+            solution=solution,
+        )
 
 
         # solution_format = choose_lattice.lattice_format
