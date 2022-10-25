@@ -160,3 +160,48 @@ class XalocQtGraphicsManager(QtGraphicsManager):
                         item.set_pixels_per_mm(self.pixels_per_mm)
                 self.diffractometer_state_changed()
                 self.graphics_view.graphics_scene.update()
+
+
+    # CHECK: accept_centring, reject_centring, cancel_centring, start_one_click_centring, stop_one_click_centring
+    #   did not have an emit, but this perhaps is done through emits from the diffractometer??
+    def accept_centring(self):
+        """Accepts centring
+        """
+        self.set_cursor_busy(False)
+        self.diffractometer_hwobj.accept_centring()
+        self.diffractometer_state_changed()
+        self.show_all_items()
+        self.emit("centringInProgress", False)
+
+    def reject_centring(self):
+        """Rejects centring
+        """
+        self.set_cursor_busy(False)
+        self.diffractometer_hwobj.reject_centring()
+        self.show_all_items()
+        self.emit("centringInProgress", False)
+
+    def cancel_centring(self, reject=False):
+        """Cancels centring
+
+        :param reject: reject position
+        :type reject: bool
+        """
+        self.set_cursor_busy(False)
+        self.diffractometer_hwobj.cancel_centring_method(reject=reject)
+        self.show_all_items()
+        self.emit("centringInProgress", False)
+
+    def start_one_click_centring(self):
+        self.set_cursor_busy(True)
+        self.emit("infoMsg", "Click on the screen to create centring points")
+        self.in_one_click_centering = True
+        self.graphics_centring_lines_item.setVisible(True)
+        self.emit("centringInProgress", True)
+
+    def stop_one_click_centring(self):
+        self.set_cursor_busy(False)
+        self.emit("infoMsg", "")
+        self.in_one_click_centering = False
+        self.graphics_centring_lines_item.setVisible(False)
+        self.emit("centringInProgress", False)

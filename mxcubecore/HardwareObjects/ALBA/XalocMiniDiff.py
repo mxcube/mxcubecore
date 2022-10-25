@@ -628,13 +628,8 @@ class XalocMiniDiff(GenericDiffractometer):
                 self.current_centring_procedure = gevent.spawn( self.automatic_centring, i )
                 self.current_centring_procedure.link(self.centring_done)
 
-        # TODO: fix this somewhere else, after moving the motors! 
-        # Activate the sample tree after centring
-        #self.accept_centring()
-        
-        self.sample_has_been_centred = True
+        self.sample_has_been_centred = True # used for setting the zoom level 
         self.zoom_motor_hwobj.move_to_position( self.saved_zoom_pos)
-        #self.backlight_hwobj.setLevel( self.saved_backlight_level )
         
         #TODO: make method called finish_centring to reset values?
 

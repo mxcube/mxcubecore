@@ -798,8 +798,9 @@ class XalocCats(Cats90):
         # Check again the collision sensor in case the robot collided after being in a safe position
         if not self._chnCollisionSensorOK.get_value() or collision_occurred:
             self._update_state()
+            msg = "The robot had a collision, call your LC or floor coordinator"
             self.emit("taskFailed", str(msg))
-            raise Exception ("The robot had a collision, call your LC or floor coordinator")
+            raise Exception ( msg )
 
     def _wait_device_safe(self,timeout=10):
         """

@@ -6,7 +6,7 @@
   <move_threshold>0.0002</move_threshold>
   <!-- threshold determines the minimal positional difference that will trigger an emit update of the position-->
   <threshold>0.0001</threshold>
-  <guistep>45</guistep>
+  <guistep>0.5</guistep>
   <!-- interval corresponds to the polling interval -->
   <!-- interval>500</interval -->
 </device>
