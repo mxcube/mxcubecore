@@ -847,6 +847,7 @@ class XalocCollect(AbstractCollect):
         try:
             if math.fabs(self.omega_hwobj.get_value() - omega_pos) > 0.0001:
                 self.omega_hwobj.set_value( omega_pos, timeout = 30 )
+                self.omega_hwobj.wait_end_of_move( timeout = 30 )
         except Exception as e :
             self.logger.info("Omega state is %s" % str(self.omega_hwobj.get_state()))
             self.data_collection_failed( e, 'Omega position could not be set' )

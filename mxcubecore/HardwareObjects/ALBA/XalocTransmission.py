@@ -34,6 +34,7 @@ Specific HwObj to setup the beamline transmission
 import logging
 
 from mxcubecore.BaseHardwareObjects import Device, HardwareObjectState
+from mxcubecore import HardwareRepository as HWR
 
 __credits__ = ["ALBA"]
 __version__ = "3"
@@ -98,6 +99,9 @@ class XalocTransmission(Device):
         self.chan_state.connect_signal("update", self.state_changed)
         
         self.update_values()
+        
+        if HWR.beamline.energy is not None:
+            HWR.beamline.energy.connect("energyChanged", self.energy_changed )
 
     def is_ready(self):
         return True
@@ -134,7 +138,13 @@ class XalocTransmission(Device):
         self.transmission_changed( value )
         state = self.get_state()
         self.state_changed( state )
-
+        
+    def energy_changed(self, energy_position, wavelength_position):
+        #self.update_values()
+        if HWR.beamline.energy.is_ready():
+            self.set_value( self.get_value() )
+            self.logger.debug("Energy changed, updating transmission to %s" % self.chan_transmission.get_value() )
+            #self.transmission_changed( self.get_value() )
 
 def test_hwo(hwo):
     print("Transmission is: ", hwo.get_value())

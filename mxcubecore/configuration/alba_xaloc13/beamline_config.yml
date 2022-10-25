@@ -25,8 +25,8 @@ _objects:
     # Hardware:
     - session: session.xml
     - machine_info: mach-info.xml
-    - transmission: transmission.xml
     - energy: energy.xml
+    - transmission: transmission.xml
     #- beam_info: beam-info.xml
     - beam: beam.xml
     - flux: flux.xml

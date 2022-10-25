@@ -176,14 +176,13 @@ class XalocFastShutter(BaseHardwareObjects.Device):
     def cmd_out(self):
         self.close()
 
-    # TODO: Review, it is called twice after a collection (already in motion problem)
     def close(self):
         self.logger.debug("Closing the fast shutter")
-        self.logger.debug("value = %s, state = %s" %
-                                       (self.chan_motor_pos.get_value(),
-                                        self.actuator_state))
+        #self.logger.debug("value = %s, state = %s" %
+                                       #(self.chan_motor_pos.get_value(),
+                                        #self.actuator_state))
         if abs(self.chan_motor_pos.get_value()) > 0.01:
-            while self.getMotorState() != DevState.ON:
+            while self.get_motor_state() != DevState.ON:
                 time.sleep(0.5)
             # closed position is 0
             self.chan_motor_pos.set_value(0)
@@ -191,9 +190,9 @@ class XalocFastShutter(BaseHardwareObjects.Device):
 
     def open(self):
         self.logger.debug("Opening the fast shutter")
-        self.logger.debug("value = %s, state = %s" %
-                                       (self.chan_motor_pos.get_value(),
-                                        self.actuator_state))
+        #self.logger.debug("value = %s, state = %s" %
+                                       #(self.chan_motor_pos.get_value(),
+                                        #self.actuator_state))
 
         if abs(self.chan_motor_pos.get_value()) > 0.01:
             self.chan_motor_pos.set_value(0)
@@ -219,10 +218,10 @@ class XalocFastShutter(BaseHardwareObjects.Device):
 
 
 def test_hwo(hwo):
-    print("Name is: ", hwo.getUserName())
-    print("Shutter state is: ", hwo.getState())
-    print("Shutter status is: ", hwo.getStatus())
-    print("Motor position is: ", hwo.getMotorPosition())
-    print("Motor state is: ", hwo.getMotorState())
+    print("Name is: ", hwo.get_user_name())
+    print("Shutter state is: ", hwo.get_state())
+    print("Shutter status is: ", hwo.get_status())
+    print("Motor position is: ", hwo.get_motor_position())
+    print("Motor state is: ", hwo.get_motor_state())
     print("Is shutter open: ", hwo.is_open())
     print("Is shutter close: ", hwo.is_close())

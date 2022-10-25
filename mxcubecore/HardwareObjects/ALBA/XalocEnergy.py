@@ -70,9 +70,18 @@ class XalocEnergy(Energy):
         
 
     def is_ready(self):
-        return True
+        try: 
+            if self.energy_motor is not None: 
+                return self.energy_motor.is_ready()
+            else: return True
+        except Exception as e:
+            logging.getLogger("HWR").warning("Energy error %s" % str(e) )
+            return True
 
     def can_move_energy(self):
+        #if self.energy_motor is not none: 
+            #return not self.energy_motor.is_moving()
+        #else: return True
         return True
 
     def get_value(self):
