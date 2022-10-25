@@ -4,6 +4,8 @@
 
   <channel type="sardana" polling="500" name="operation_mode">operation</channel>
   
+  <wash_mounted_crystals>False</wash_mounted_crystals>
+  
   <doorname>bl13/door/05</doorname>
   <command type="sardana" name="ln2shower_wash">ln2shower_wash</command>
   <command type="sardana" name="ln2shower_cold">ln2shower_cold</command>
