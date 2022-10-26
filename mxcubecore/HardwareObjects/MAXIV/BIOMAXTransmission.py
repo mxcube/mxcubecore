@@ -1,27 +1,45 @@
+import sys
 import gevent
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore import HardwareRepository as HWR
+import time
+import logging
+import math
+from mxcubecore.TaskUtils import *
+from mxcubecore.HardwareObjects.abstract.AbstractTransmission import (
+    AbstractTransmission,
+)
 
 
-class BIOMAXTransmission(HardwareObject):
+class BIOMAXTransmission(AbstractTransmission):
+    def __init__(self, *args, **kwargs):
+        AbstractTransmission.__init__(self, *args, **kwargs)
+
     def init(self):
+        super(BIOMAXTransmission, self).init()
         self.ready_event = gevent.event.Event()
+        self.transmission_motor = None
         self.moving = None
         self.limits = [0, 100]
         self.threhold = 5
 
-        if HWR.beamline.transmission is not None:
-            HWR.beamline.transmission.connect(
-                "valueChanged", self.transmissionPositionChanged
+        try:
+            self.transmission_motor =  self.get_object_by_role("transmission_motor")
+        except KeyError:
+            logging.getLogger("HWR").warning("Error initializing transmission motor")
+        if self.transmission_motor is not None:
+            self.transmission_motor.connect("positionChanged", self.transmission_position_changed
             )
 
     def is_ready(self):
         return True
 
     def get_value(self):
-        return "%.3f" % HWR.beamline.transmission.get_value()
+        val = "%.3f" % self.transmission_motor.get_value()
+        return float(val)
 
-    def getAttState(self):
+    def get_att_factor(self):
+        return "%.3f" % self.transmission_motor.get_value()
+
+    def get_att_state(self):
         return 1
 
     def get_limits(self):
@@ -29,25 +47,32 @@ class BIOMAXTransmission(HardwareObject):
 
     def setpoint_reached(self, setpoint):
         curr_pos = float(self.get_value())
-        return abs(curr_pos - setpoint) < 5
+        return abs(curr_pos - setpoint) < (0.05 * setpoint) #within %5 of reach
 
     def set_value(self, value, wait=False):
         if value < self.limits[0] or value > self.limits[1]:
             raise Exception("Transmssion out of limits.")
-        HWR.beamline.transmission.set_value(value)
+
+        with gevent.Timeout(10, Exception("Timeout waiting for device to be stopped")):
+                while self.transmission_motor.is_moving():
+                    gevent.sleep(0.1)
+
+        self.transmission_motor.set_value(value) # self.transmission_motor.move(value)
+        time.sleep(0.25) #motor does not switch to moving inmediately
         if wait:
             with gevent.Timeout(30, Exception("Timeout waiting for device ready")):
-                while not self.setpoint_reached(value):
+                #while not self.setpoint_reached(value):
+                while self.transmission_motor.is_moving():
                     gevent.sleep(0.1)
 
         self._update()
 
     def _update(self):
-        self.emit("attStateChanged", self.getAttState())
+        self.emit("attStateChanged", self.get_att_state())
 
-    def transmissionPositionChanged(self, *args):
+    def transmission_position_changed(self, *args):
         pos = self.get_value()
         self.emit("valueChanged", (pos,))
 
     def stop(self):
-        HWR.beamline.transmission.stop()
+        self.transmission_motor.stop()

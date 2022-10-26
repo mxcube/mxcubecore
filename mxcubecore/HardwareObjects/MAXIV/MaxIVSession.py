@@ -28,6 +28,7 @@ class MaxIVSession(Session):
         self.login = ""
         self.is_commissioning = False
         self.synchrotron_name = self.get_property("synchrotron_name")
+        self.beamline_name = self.get_property("beamline_name")
         self.endstation_name = self.get_property("endstation_name").lower()
         self.suffix = self["file_info"].get_property("file_suffix")
         self.base_directory = self["file_info"].get_property("base_directory")
@@ -44,7 +45,11 @@ class MaxIVSession(Session):
         )
 
         try:
-            self.in_house_users = self.get_property("inhouse_users").split(",")
+            inhouse_proposals = self["inhouse_users"]["proposal"]
+            for prop in inhouse_proposals:
+                self.in_house_users.append(
+                    (prop.get_property("code"), str(prop.get_property("number")))
+                )
         except Exception:
             self.in_house_users = []
 
