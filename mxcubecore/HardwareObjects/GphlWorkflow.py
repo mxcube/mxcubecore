@@ -342,12 +342,6 @@ class GphlWorkflow(HardwareObjectYaml):
         if tag in ("BUSY", "READY", "UNKNOWN", "FAULT"):
             self.update_specific_state(getattr(self.SPECIFIC_STATES, tag))
 
-    def return_parameters(self, queue_entry):
-        self._return_parameters.set(queue_entry)
-
-    # def stop_iteration(self):
-    #     self._return_parameters.set(StopIteration)
-
     def _add_to_queue(self, parent_model_obj, child_model_obj):
         HWR.beamline.queue_model.add_child(parent_model_obj, child_model_obj)
 
@@ -396,6 +390,9 @@ class GphlWorkflow(HardwareObjectYaml):
         """Display collection strategy for user approval,
         and query parameters needed"""
 
+        # Number of decimals for rounding use_dose values
+        use_dose_decimals = 4
+
         data_model = self._queue_entry.get_data_model()
         wf_parameters = data_model.get_workflow_parameters()
 
@@ -419,8 +416,10 @@ class GphlWorkflow(HardwareObjectYaml):
             data_model.characterisation_done
             or wf_parameters.get("strategy_type") == "diffractcal"
         ):
-            # Data collection
-            lines = ["%s strategy" % self._queue_entry.get_data_model().get_type()]
+            lines = [
+                "GPhL workflow %s, strategy '%s'"
+                % (data_model.get_type(), data_model.get_variant())
+            ]
             lines.extend(("-" * len(lines[0]), ""))
             beam_energies = OrderedDict()
             energies = [initial_energy, initial_energy + 0.01, initial_energy - 0.01]
@@ -807,6 +806,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         field_list[-1]["NEW_COLUMN"] = "True"
 
+        energy_limits = HWR.beamline.energy.get_limits()
         ll0 = []
         for tag, val in beam_energies.items():
             ll0.append(
@@ -815,8 +815,8 @@ class GphlWorkflow(HardwareObjectYaml):
                     "uiLabel": "%s beam energy (keV)" % tag,
                     "type": "floatstring",
                     "defaultValue": val,
-                    "lowerBound": 2.0,
-                    "upperBound": 30.0,
+                    "lowerBound": energy_limits[0],
+                    "upperBound": energy_limits[1],
                     "decimals": 4,
                 }
             )
@@ -942,10 +942,10 @@ class GphlWorkflow(HardwareObjectYaml):
                 RECENTRING_MODES.get(params.get(tag)) or default_recentring_mode
             )
 
-            data_model.dose_budget = float(params.get("dose_budget", 0))
-            # Register the dose (about to be) consumed
-            if std_dose_rate:
-                data_model.set_dose_consumed(float(params.get("use_dose", 0)))
+            # data_model.dose_budget = float(params.get("dose_budget", 0))
+            # # Register the dose (about to be) consumed
+            # if std_dose_rate:
+            #     data_model.set_dose_consumed(float(params.get("use_dose", 0)))
         #
         return result
 
@@ -1196,6 +1196,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
             if recen_parameters:
                 # recentre first sweep from okp
+                tol = self.settings.get("angular_tolerance", 1.0)
                 translation_settings = self.calculate_recentring(
                     okp, **recen_parameters
                 )
@@ -1205,14 +1206,12 @@ class GphlWorkflow(HardwareObjectYaml):
                 )
             else:
                 # existing centring - take from current position
+                tol = 0.1
                 translation_settings = dict(
                     (role, current_pos_dict.get(role))
                     for role in self.translation_axis_roles
                 )
 
-            tol = (
-                self.settings.get("angular_tolerance", 1.0) if recen_parameters else 0.1
-            )
             if maxdev <= tol:
                 # first orientation matches current, set to current centring
                 # Use sweepSetting as is, recentred or very close
@@ -1400,11 +1399,11 @@ class GphlWorkflow(HardwareObjectYaml):
             "--input",
             infile,
             "--init-xyz",
-            "%s %s %s" % ref_xyz,
+            "%s,%s,%s" % ref_xyz,
             "--init-okp",
-            "%s %s %s" % ref_okp,
+            "%s,%s,%s" % ref_okp,
             "--okp",
-            "%s %s %s" % okp,
+            "%s,%s,%s" % okp,
         ]
         # NB the universal_newlines has the NECESSARY side effect of converting
         # output from bytes to string (with default encoding),
@@ -1450,6 +1449,8 @@ class GphlWorkflow(HardwareObjectYaml):
 
     def collect_data(self, payload, correlation_id):
         collection_proposal = payload
+
+        angular_tolerance = float(self.get_property("angular_tolerance", 1.0))
         queue_manager = self._queue_entry.get_queue_controller()
 
         gphl_workflow_model = self._queue_entry.get_data_model()
@@ -1502,9 +1503,17 @@ class GphlWorkflow(HardwareObjectYaml):
             scans = scans[:1]
 
         sweeps = set()
+        last_orientation = ()
+        maxdev = -1
         snapshotted_rotation_ids = set()
         for scan in scans:
             sweep = scan.sweep
+            goniostatRotation = sweep.goniostatSweepSetting
+            rotation_id = goniostatRotation.id_
+            initial_settings = sweep.get_initial_settings()
+            orientation = tuple(
+                initial_settings.get(tag) for tag in ("kappa", "kappa_phi")
+            )
             acq = queue_model_objects.Acquisition()
 
             # Get defaults, even though we override most of them
@@ -1527,7 +1536,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
             ##
             wavelength = sweep.beamSetting.wavelength
-            acq_parameters.wavelength = wavelength
+            acq_parameters.energy = HWR.beamline.energy._calculate_energy(wavelength)
             detdistance = sweep.detectorSetting.axisSettings["Distance"]
             # not needed when detdistance is set :
             # acq_parameters.resolution = resolution
@@ -1571,19 +1580,28 @@ class GphlWorkflow(HardwareObjectYaml):
             path_template.start_num = acq_parameters.first_image
             path_template.num_files = acq_parameters.num_images
 
-            goniostatRotation = sweep.goniostatSweepSetting
-            rotation_id = goniostatRotation.id_
-            initial_settings = sweep.get_initial_settings()
+            if last_orientation:
+                maxdev = max(
+                    abs(orientation[ind] - last_orientation[ind])
+                    for ind in range(2)
+                )
             if sweeps and (
                 recentring_mode == "scan"
                 or (
                     recentring_mode == "sweep"
-                    and rotation_id != gphl_workflow_model.current_rotation_id
+                    and not (
+                        rotation_id == gphl_workflow_model.get_current_rotation_id()
+                        or (0 <= maxdev < angular_tolerance)
+                    )
                 )
             ):
                 # Put centring on queue and collect using the resulting position
                 # NB this means that the actual translational axis positions
                 # will NOT be known to the workflow
+                #
+                # Done if 1) we centre for each acan
+                # 2) we centre for each sweep unless the rotation ID is unchanged
+                #    or the kappa and phi values are unchanged anyway
                 self.enqueue_sample_centring(
                     motor_settings=initial_settings, in_queue=True
                 )
@@ -1608,6 +1626,7 @@ class GphlWorkflow(HardwareObjectYaml):
             gphl_workflow_model.current_rotation_id = rotation_id
 
             sweeps.add(sweep)
+            last_orientation = orientation
 
             if repeat_count and sweep_offset and self.settings.get("use_multitrigger"):
                 # Multitrigger sweep - add in parameters.
@@ -1728,6 +1747,9 @@ class GphlWorkflow(HardwareObjectYaml):
             # SIGNAL TO GET Pre-strategy parameters here
             # NB set defaults from data_model
             # NB consider whether to override on None
+
+            # NBNB DISPLAY_ENERGY_DECIMALS
+
             params = self.query_pre_strategy_params(data_model, choose_lattice)
             data_model.set_pre_strategy_params(**params)
             raise NotImplementedError()
@@ -2128,7 +2150,6 @@ class GphlWorkflow(HardwareObjectYaml):
                 positionsDict,
             )
         else:
-            self.abort()
             raise RuntimeError("Centring gave no result")
 
     def prepare_for_centring(self, payload, correlation_id):
