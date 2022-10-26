@@ -239,6 +239,47 @@ class GphlWorkflow(HardwareObjectYaml):
         choose_lattice is the Message object, passed in at teh select_lattice stage
         """
         #Use for both characterisation, diffreactcal, and acquisition, with different
+
+        # NBNB energies MUST be set, default to current
+        # NBNB if energy has been changed, set energy_changed to True
+
+
+        # Make info_text and do some setting up
+        axis_names = self.rotation_axis_roles
+        if (
+            data_model.characterisation_done
+            or wf_parameters.get("strategy_type") == "diffractcal"
+        ):
+            lines = [
+                "GPhL workflow %s, strategy '%s'"
+                % (data_model.get_type(), data_model.get_variant())
+            ]
+            lines.extend(("-" * len(lines[0]), ""))
+            beam_energies = OrderedDict()
+            energies = [initial_energy, initial_energy + 0.01, initial_energy - 0.01]
+            for ii, tag in enumerate(data_model.wavelengths):
+                beam_energies[tag] = energies[ii]
+            budget_use_fraction = 1.0
+            dose_label = "Total dose (MGy)"
+
+        else:
+            # Characterisation
+            lines = ["Characterisation strategy"]
+            lines.extend(("=" * len(lines[0]), ""))
+            beam_energies = OrderedDict((("Characterisation", initial_energy),))
+            budget_use_fraction = data_model.get_characterisation_budget_fraction()
+            dose_label = "Charcterisation dose (MGy)"
+            if not self.settings.get("recentre_before_start"):
+                # replace planned orientation with current orientation
+                current_pos_dict = HWR.beamline.diffractometer.get_positions()
+                dd0 = list(axis_setting_dicts.values())[0]
+                for tag in dd0:
+                    pos = current_pos_dict.get(tag)
+                    if pos is not None:
+                        dd0[tag] = pos
+
+
+
         return {}
 
     def query_pre_collection_params(self, data_model):
@@ -1038,6 +1079,8 @@ class GphlWorkflow(HardwareObjectYaml):
 
             # NB for any type of acquisition, energy and resolution are set before this point
 
+            NBNB check status/story of defaultBeamSetting
+
             bst = geometric_strategy.defaultBeamSetting
             if bst and self.settings.get("starting_beamline_energy") == "configured":
                 # Preset energy
@@ -1751,8 +1794,8 @@ class GphlWorkflow(HardwareObjectYaml):
             # NBNB DISPLAY_ENERGY_DECIMALS
 
             params = self.query_pre_strategy_params(data_model, choose_lattice)
-            data_model.set_pre_strategy_params(**params)
-            raise NotImplementedError()
+            if params.pop("energy_changed"):
+                HWR.beamline.energy.set_value(params.get("energies")[0], 60)
         data_model.set_pre_strategy_params(**params)
         distance = data_model.detector_setting.axisSettings["Distance"]
         HWR.beamline.detector.distance.set_value(distance, timeout=30)
