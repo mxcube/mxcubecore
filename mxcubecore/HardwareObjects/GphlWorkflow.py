@@ -44,6 +44,7 @@ from mxcubecore.dispatcher import dispatcher
 from mxcubecore.utils import conversion
 from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
 from mxcubecore.HardwareObjects import queue_model_objects
+from mxcubecore.HardwareObjects import queue_model_enumerables
 from mxcubecore.HardwareObjects.queue_entry import QUEUE_ENTRY_STATUS
 from mxcubecore.HardwareObjects.queue_entry import QueueAbortedException
 
@@ -235,12 +236,96 @@ class GphlWorkflow(HardwareObjectYaml):
         return copy.deepcopy(self.workflows)
 
     def query_pre_strategy_params(self, data_model, choose_lattice=None):
-        """
-        choose_lattice is the Message object, passed in at teh select_lattice stage
-        """
-        #Use for both characterisation, diffreactcal, and acquisition, with different
+        """Query pre_strategy parameters.
+        Used for both characterisation, diffractcal, and acquisition
 
-        # NBNB energies MUST be set, default to current
+        :param data_model (GphlWorkflow): GphlWorkflow QueueModelObjecy
+        :param choose_lattice (ChooseLattice): GphlMessage.ChooseLattice
+        :return: -> dict
+        """
+
+        schema = {
+            "cell_a": {
+                "title": "A",
+                "type": "number",
+                "minimum": 0,
+            },
+            "cell_b": {
+                "title": "B",
+                "type": "number",
+                "minimum": 0,
+            },
+            "cell_c": {
+                "title": "C",
+                "type": "number",
+                "minimum": 0,
+            },
+            "cell_alpha": {
+                "title": "α",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 180,
+            },
+            "cell_beta": {
+                "title": "β",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 180,
+            },
+            "cell_gamma": {
+                "title": "γ",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 180,
+            },
+            "lattice": {
+                "title": "Lattice",
+                "type": "string",
+                "oneOf": {
+                    "":""
+                },
+            },
+            "point_group": {
+                "title": "Point Group",
+                "type": "string",
+                "oneOf": {
+                    "":""
+                },
+            },
+            "space_group": {
+                "title": "Space Group",
+                "type": "string",
+                "oneOf": {
+                    "":""
+                },
+            },
+        }
+        schema["lattice"]["oneOf"].extend(
+            {"const":tag, "title": tag}
+            for tag in queue_model_enumerables.lattice2xtal_point_groups
+        )
+        schema["point_group"]["oneOf"].extend(
+            {"const":tag, "title": tag}
+            for tag in queue_model_enumerables.xtal_point_groups
+        )
+        schema["space_group"]["oneOf"].extend(
+            {"const":tag, "title": tag}
+            for tag in queue_model_enumerables.XTAL_SPACEGROUPS[1:]
+        )
+
+        data = {
+            "cell_a": data_model.cell_a,
+            "cell_b": data_model.cell_b,
+            "cell_c": data_model.cell_c,
+            "cell_alpha": data_model.cell_alpha,
+            "cell_beta": data_model.cell_beta,
+            "cell_gamma": data_model.cell_gamma,
+            "lattice": data_model,
+            "point_group": data_model.point_group or ""
+            "space_group": data_model.space_group or ""
+        }
+
+        # NBNB energies MUST be set, default to current αβγ
         # NBNB if energy has been changed, set energy_changed to True
 
 
