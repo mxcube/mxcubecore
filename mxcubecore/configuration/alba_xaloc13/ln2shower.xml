@@ -2,6 +2,8 @@
   <username>Ln2 Shower</username>
   <taurusname>bl13/eh/ln2pump</taurusname>
 
+  <object href="/supervisor" role="beamline-supervisor"/>
+  
   <channel type="sardana" polling="500" name="operation_mode">operation</channel>
   
   <wash_mounted_crystals>False</wash_mounted_crystals>

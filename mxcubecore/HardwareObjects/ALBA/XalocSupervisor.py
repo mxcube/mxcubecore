@@ -35,6 +35,7 @@ import logging
 import time
 
 from mxcubecore.BaseHardwareObjects import Device
+from taurus.core.tango.enums import DevState
 
 __credits__ = ["ALBA"]
 __version__ = "3."
@@ -141,11 +142,10 @@ class XalocSupervisor(Device):
     def is_fast_shutter_in_collect_position(self):
         return self.chan_fast_shutter_collect_position.get_value()
 
-    def wait_ready(self, timeout = None):
+    def wait_ready(self, timeout = 30):
         stime = time.time()
         while True:
-            state = str(self.chan_state.get_value())
-            if self.current_state == "ON":
+            if self.current_state == DevState.ON:
                 self.logger.debug("Supervisor is in ON state. Returning")
                 break
             time.sleep(0.2)

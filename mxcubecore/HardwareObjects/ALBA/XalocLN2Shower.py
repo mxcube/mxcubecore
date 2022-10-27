@@ -140,7 +140,7 @@ class XalocLN2Shower(HardwareObject):
         #TODO: move diff to transfer phase first, use XalocMiniDiff set_phase method
         
         self.logger.debug( "get_current_phase %s" % HWR.beamline.diffractometer.get_current_phase() ) 
-        self.super_hwobj.wait_ready()
+        self.super_hwobj.wait_ready(timeout = 30)
         if not self.collecting:
             if HWR.beamline.diffractometer.get_current_phase() != HWR.beamline.diffractometer.PHASE_TRANSFER:
                 HWR.beamline.diffractometer.set_phase( HWR.beamline.diffractometer.PHASE_TRANSFER, timeout = 20 )
