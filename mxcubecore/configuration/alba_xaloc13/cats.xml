@@ -24,6 +24,7 @@
   <command type="tango" tangoname="bl13/eh/supervisor" name="super_abort">Abort</command>
   <channel type="tango" tangoname="bl13/eh/supervisor" name="super_state">State</channel>
   <channel type="tango" tangoname="bl13/eh/supervisor" name="detdist_position">DetDistance</channel>
+  <channel type="tango" tangoname="bl13/eh/supervisor" name="super_cryo_position">CryoPosition</channel>
   <channel type="tango" tangoname="omega" name="omega_position" polling="1000">position</channel>
   <channel type="tango" tangoname="kappa" name="kappa_position" polling="1000">position</channel>
 

@@ -99,6 +99,8 @@ class XalocCats(Cats90):
         self._cmdClearMemory = None
         self._cmdSetTool = None
 
+        self.cats_ri2 = None
+
         self.auto_prepare_diff = None
         self.mount_and_pick = None
         self.sample_can_be_centered = None
@@ -115,6 +117,7 @@ class XalocCats(Cats90):
         self.super_phase_channel = self.get_channel_object("super_phase")
         self.super_state_channel = self.get_channel_object("super_state")
         self.detdist_position_channel = self.get_channel_object("detdist_position")
+        self.super_cryopos_channel = self.get_channel_object("super_cryo_position")
         self.omega_position_channel = self.get_channel_object("omega_position") # position of the omega axis
         self.kappa_position_channel = self.get_channel_object("kappa_position") # position of the kappa axis
         self._chnisDetDistSafe = self.get_channel_object("DetDistanceSafe")
@@ -147,11 +150,14 @@ class XalocCats(Cats90):
         self.mount_and_pick = False 
         self.sample_can_be_centered = True
 
-        if self._chnPathRunning is not None:
-            self._chnPathRunning.connect_signal("update", self._update_running_state)
+        if self._chnIsCatsRI2 is not None:
+            self._chnIsCatsRI2.connect_signal("update", self._cats_ri2_changed)
 
-        if self._chnPowered is not None:
-            self._chnPowered.connect_signal("update", self._update_powered_state)
+        #if self._chnPathRunning is not None:
+            #self._chnPathRunning.connect_signal("update", self._update_running_state)
+
+        #if self._chnPowered is not None:
+            #self._chnPowered.connect_signal("update", self._update_powered_state)
 
         ret,msg = self._check_coherence()
         if not ret: 
@@ -188,6 +194,10 @@ class XalocCats(Cats90):
 
         #self.cats_state = value
         #self._update_state()
+
+    def _cats_ri2_changed(self, value):
+        if value is not None:
+            self._cats_ri2 = value
 
     def is_ready(self):
         """
@@ -248,6 +258,18 @@ class XalocCats(Cats90):
                 return False
 
         return True
+
+    def _wait_super_cryoposition_out(self, timeout = 2):
+        stime = time.time()
+        ret = False
+        while time.time() - stime < timeout:
+            cryopos = str(self.super_cryopos_channel.get_value())
+            if cryopos.upper() == "SAMPOUT":
+                self.logger.debug("Cryo position is in SAMPOUT. Returning")
+                ret = True
+                break
+            time.sleep(0.02)
+        return ret
 
     # TODO: Move to XalocSupervisor 
     def _wait_super_ready(self):
@@ -1003,6 +1025,22 @@ class XalocCats(Cats90):
         """
         self.recover_cats_from_failed_put()
 
+    def recover_cats_blocked_in_RI2(self):
+            can_be_powered = False
+            if self.read_super_phase().upper() != 'TRANSFER':
+                self.go_transfer_cmd()
+                self._wait_super_ready()
+                if self.read_super_phase().upper() == 'TRANSFER':
+                    can_be_powered = True
+            if str(self.super_cryopos_channel.get_value()).upper() == "SAMPIN":
+                if self.wait_super_cryoposition_out():
+                    can_be_powered = True
+                else:
+                    can_be_powered = False
+            if can_be_powered: self._cmdPowerOn()
+            else: raise Exception("The robot is stuck and can not be recovered automatically, call LC or floor")
+        
+
     def recover_cats_from_failed_put(self):
         """
            Deletes sample info on diff, but should retain info of samples on tools, eg when doing picks
@@ -1138,10 +1176,13 @@ class XalocCats(Cats90):
                 elif not self.path_running():
                         logging.getLogger("HWR").debug("Cats90. server execution polling finished as path is not running")
                         break
-                elif not self._chnCollisionSensorOK.get_value(): 
+                if not self._chnCollisionSensorOK.get_value(): 
                     # Should the exception be raised here?? It is also done in _do_load
                     self._update_state()
                     raise Exception ("The robot had a collision, call your LC or floor coordinator")
+                elif not self.cats_powered and self.cats_ri2:
+                    # CATS is blocked in front of diff
+                    self.recover_cats_blocked_in_RI2()
                 # in case nothing is happening. The check for RI1 is because there is a transient loss of sample info when changing samples
                 if not self._check_unknown_sample_presence()[0] and not self._chnIsCatsRI1.get_value():
                     break
