@@ -53,7 +53,7 @@ class QtVideoMockup(AbstractVideoDevice):
         custom_brush.setColor(Qt.lightGray)
         self.painter.setBrush(custom_brush)
 
-        self.set_is_ready(True)
+        self.update_state(self.STATES.READY)
         AbstractVideoDevice.init(self)
 
     def get_new_image(self):
@@ -74,7 +74,7 @@ class QtVideoMockup(AbstractVideoDevice):
             ptr = qimage.bits()
             ptr.setsize(qimage.byteCount())
 
-            image_array = np.array(ptr).reshape(qimage.height(), qimage.width(), 4)
+            image_array = np.array(ptr).reshape(qimage.height(), qimage.width())
             if bw:
                 return np.dot(image_array[..., :3], [0.299, 0.587, 0.144])
             else:

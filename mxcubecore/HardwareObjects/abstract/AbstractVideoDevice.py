@@ -155,7 +155,7 @@ class AbstractVideoDevice(HardwareObject):
             self.image_polling.link_exception(self.polling_ended_exc)
             self.image_polling.link(self.polling_ended)
 
-        self.set_is_ready(True)
+        self.update_state(self.STATES.READY)
 
     def get_camera_name(self):
         """Get the camera name.
