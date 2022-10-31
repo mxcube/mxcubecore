@@ -28,8 +28,6 @@ import os
 import logging
 import math
 
-from pydantic import BaseModel, Field
-
 from mxcubecore.model import queue_model_enumerables
 
 # This module is used as a self contained entity by the BES

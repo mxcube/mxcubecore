@@ -36,6 +36,7 @@ from mxcubecore.queue_entry.characterisation import (
 )
 
 __all__ = []
+MODEL_QUEUE_ENTRY_MAPPINGS = {}
 
 
 def get_queue_entry_from_task_name(task_name):
@@ -96,3 +97,10 @@ def import_queue_entries(site_name_list):
         queue_model_objects.GphlWorkflow: GphlQueueEntry.GphlWorkflowQueueEntry,
         queue_model_objects.XrayImaging: EMBLQueueEntry.XrayImagingQueueEntry,
     }
+
+    # NBNB This is added for the queue models using pydantic (task_data
+    # attribute) objects to define the data, to be able to use
+    # MODEL_QUEUE_ENTRY_MAPPINGS for creating queue entries given a model.
+    for _m in _modules.values():
+        if hasattr(_m, "QMO"):
+            MODEL_QUEUE_ENTRY_MAPPINGS[_m.QMO] = _m

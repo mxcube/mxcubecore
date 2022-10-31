@@ -1,3 +1,6 @@
+from pydantic import BaseModel, Field
+
+
 class CommonCollectionParamters(BaseModel):
     skip_existing_images: bool
     take_snapshots: int

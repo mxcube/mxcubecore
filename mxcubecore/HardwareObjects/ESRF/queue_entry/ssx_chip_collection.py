@@ -66,19 +66,25 @@ class SsxChipColletionTaskParameters(BaseModel):
     legacy_parameters: LegacyParameters
 
 
+class SsxChipCollectionQueueModel(DataCollection):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
 class SsxChipCollectionQueueEntry(BaseQueueEntry):
     """
     Defines the behaviour of a data collection.
     """
 
+    QMO = SsxChipCollectionQueueModel
     DATA_MODEL = SsxChipColletionTaskParameters
     NAME = "SSXChipCollection"
     REQUIRES = ["point", "line", "no_shape", "chip", "mesh"]
 
     # New style queue entry does not take view argument,
     # adding kwargs for compatability, but they are unsued
-    def __init__(self, data: SsxChipColletionTaskParameters, view=None, **kwargs):
-        super().__init__(view=view, data_model=DataCollection(task_data=data))
+    def __init__(self, data_model: SsxChipCollectionQueueModel, view=None):
+        super().__init__(view=view, data_model=data_model)
 
     def execute(self):
         super().execute()
