@@ -243,7 +243,8 @@ class GphlWorkflow(HardwareObjectYaml):
         :param choose_lattice (ChooseLattice): GphlMessage.ChooseLattice
         :return: -> dict
         """
-
+        gphl_workflow_hwr = HWR.beamline.gphl_workflow
+        workflow_parameters = data_model.get_workflow_parameters()
         schema = {
             "cell_a": {
                 "title": "A",
@@ -299,6 +300,44 @@ class GphlWorkflow(HardwareObjectYaml):
                     "":""
                 },
             },
+            "relative_rad_sensitivity": {
+                "title": "Radiation sensitivity",
+                "type": "number",
+                "minimum": 0,
+            },
+            "use_cell_for_processing": {
+                "title": "Use for indexing",
+                "type": "boolean",
+                "default": False,
+            },
+            "resolution": {
+                "title": "Resolution",
+                "type": "number",
+                "minimum": 0,
+            },
+            "decay_limit": {
+                "title": "Signal decay limit (%)",
+                "type": "number",
+                "minimum": 1,
+                "maximum": 99,
+            },
+            "strategy":{
+                "title": "Strategy",
+                "type": "string",
+                "oneOf": [],
+
+            },
+
+            "energies": {
+                "title": "Beam energies (keV)",
+                "type": "array",
+                "items": [
+                    {
+                        "title": "Main",
+                        "type": "number",
+                    }
+                ],
+            },
         }
         schema["lattice"]["oneOf"].extend(
             {"const":tag, "title": tag}
@@ -312,6 +351,57 @@ class GphlWorkflow(HardwareObjectYaml):
             {"const":tag, "title": tag}
             for tag in queue_model_enumerables.XTAL_SPACEGROUPS[1:]
         )
+        if data_model.characterisation_done or data_model.get_type() == "diffractcal":
+            strategies = workflow_parameters()["variants"]
+            default_strategy = strategies[0]
+            schema["strategy"]["title"] = "Acquisition strategy"
+            energy_tags = workflow_parameters.get(
+                "beam_energy_tags",
+                (gphl_workflow_hwr.settings["default_beam_energy_tag"],)
+            )
+        else:
+            # Characterisation
+            strategies = gphl_workflow_hwr.settings["characterisation_strategies"]
+            default_strategy = (
+                gphl_workflow_hwr.settings.defaults.characterisation_strategy
+            )
+            schema["strategy"]["title"] = "Characterisation strategy"
+            energy_tags = ("Characterisation",)
+        schema["strategy"]["oneOf"] = list(
+            {
+                "const": tag,
+                "title": tag,
+            }
+            for tag in strategies
+        )
+        # NBNB allow for fixed-energy beamlines
+        min_energy, max_energy = HWR.beamline.energy.get_limits()
+        schema["energies"]["items"] = its = []
+        for tag in energy_tags:
+            dd0 = {
+                "title": "%s beam energy (keV)" % tag,
+                "type": "number",
+            }
+            if min_energy:
+                dd0["minimum"] = min_energy
+            if max_energy:
+                dd0["maximum"] = max_energy
+            its.append(dd0)
+
+        ui_schema = {}
+        for tag in schema:
+            ui_schema[tag] = {}
+        for tag in (
+            "cell_a",
+            "cell_b",
+            "cell_c",
+            "cell_alpha",
+            "cell_beta",
+            "cell_gamma",
+            "decay_limit",
+        ):
+            ui_schema[tag]
+
 
         data = {
             "cell_a": data_model.cell_a,
@@ -320,48 +410,58 @@ class GphlWorkflow(HardwareObjectYaml):
             "cell_alpha": data_model.cell_alpha,
             "cell_beta": data_model.cell_beta,
             "cell_gamma": data_model.cell_gamma,
-            "lattice": data_model,
-            "point_group": data_model.point_group or ""
-            "space_group": data_model.space_group or ""
+            "lattice": data_model.crystal_system,
+            "point_group": data_model.point_group or "",
+            "space_group": data_model.space_group or "",
+            "relative_rad_sensitivity": data_model.relative_rad_sensitivity,
+            "use_cell_for_processing": data_model.use_cell_for_processing,
+            "resolution": HWR.beamline.resolution.get_value(),
+            "strategy": default_strategy,
+            "decay_limit": data_model.decay_limit,
         }
 
-        # NBNB energies MUST be set, default to current αβγ
-        # NBNB if energy has been changed, set energy_changed to True
 
 
-        # Make info_text and do some setting up
-        axis_names = self.rotation_axis_roles
-        if (
-            data_model.characterisation_done
-            or wf_parameters.get("strategy_type") == "diffractcal"
-        ):
-            lines = [
-                "GPhL workflow %s, strategy '%s'"
-                % (data_model.get_type(), data_model.get_variant())
-            ]
-            lines.extend(("-" * len(lines[0]), ""))
-            beam_energies = OrderedDict()
-            energies = [initial_energy, initial_energy + 0.01, initial_energy - 0.01]
-            for ii, tag in enumerate(data_model.wavelengths):
-                beam_energies[tag] = energies[ii]
-            budget_use_fraction = 1.0
-            dose_label = "Total dose (MGy)"
 
-        else:
-            # Characterisation
-            lines = ["Characterisation strategy"]
-            lines.extend(("=" * len(lines[0]), ""))
-            beam_energies = OrderedDict((("Characterisation", initial_energy),))
-            budget_use_fraction = data_model.get_characterisation_budget_fraction()
-            dose_label = "Charcterisation dose (MGy)"
-            if not self.settings.get("recentre_before_start"):
-                # replace planned orientation with current orientation
-                current_pos_dict = HWR.beamline.diffractometer.get_positions()
-                dd0 = list(axis_setting_dicts.values())[0]
-                for tag in dd0:
-                    pos = current_pos_dict.get(tag)
-                    if pos is not None:
-                        dd0[tag] = pos
+
+
+        # # NBNB energies MUST be set, default to current
+        # # NBNB if energy has been changed, set energy_changed to True
+        #
+        #
+        # # Make info_text and do some setting up
+        # axis_names = self.rotation_axis_roles
+        # if (
+        #     data_model.characterisation_done
+        #     or wf_parameters.get("strategy_type") == "diffractcal"
+        # ):
+        #     lines = [
+        #         "GPhL workflow %s, strategy '%s'"
+        #         % (data_model.get_type(), data_model.get_variant())
+        #     ]
+        #     lines.extend(("-" * len(lines[0]), ""))
+        #     beam_energies = OrderedDict()
+        #     energies = [initial_energy, initial_energy + 0.01, initial_energy - 0.01]
+        #     for ii, tag in enumerate(data_model.wavelengths):
+        #         beam_energies[tag] = energies[ii]
+        #     budget_use_fraction = 1.0
+        #     dose_label = "Total dose (MGy)"
+        #
+        # else:
+        #     # Characterisation
+        #     lines = ["Characterisation strategy"]
+        #     lines.extend(("=" * len(lines[0]), ""))
+        #     beam_energies = OrderedDict((("Characterisation", initial_energy),))
+        #     budget_use_fraction = data_model.get_characterisation_budget_fraction()
+        #     dose_label = "Charcterisation dose (MGy)"
+        #     if not self.settings.get("recentre_before_start"):
+        #         # replace planned orientation with current orientation
+        #         current_pos_dict = HWR.beamline.diffractometer.get_positions()
+        #         dd0 = list(axis_setting_dicts.values())[0]
+        #         for tag in dd0:
+        #             pos = current_pos_dict.get(tag)
+        #             if pos is not None:
+        #                 dd0[tag] = pos
 
 
 
@@ -1164,15 +1264,18 @@ class GphlWorkflow(HardwareObjectYaml):
 
             # NB for any type of acquisition, energy and resolution are set before this point
 
-            NBNB check status/story of defaultBeamSetting
-
-            bst = geometric_strategy.defaultBeamSetting
-            if bst and self.settings.get("starting_beamline_energy") == "configured":
-                # Preset energy
-                # First set beam_energy and give it time to settle,
-                # so detector distance will trigger correct resolution later
-                # TODO NBNB put in wait-till ready to make sure value settles
-                HWR.beamline.energy.set_wavelength(bst.wavelength, timeout=30)
+            # NBNB check status/story of defaultBeamSetting
+            #
+            # bst = geometric_strategy.defaultBeamSetting
+            # if (bst
+            #     and not gphl_workflow_model.characterisation_done
+            #     and self.settings.get("starting_beamline_energy") == "configured"
+            # ):
+            #     # Preset energy
+            #     # First set beam_energy and give it time to settle,
+            #     # so detector distance will trigger correct resolution later
+            #     # TODO NBNB put in wait-till ready to make sure value settles
+            #     HWR.beamline.energy.set_wavelength(bst.wavelength, timeout=30)
             initial_energy = HWR.beamline.energy.get_value()
 
             # NB - now pre-setting of detector has been removed, this gets
