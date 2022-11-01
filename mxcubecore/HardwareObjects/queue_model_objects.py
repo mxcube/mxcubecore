@@ -2324,11 +2324,12 @@ class GphlWorkflow(TaskNode):
 
     def get_workflow_parameters(self):
         """Get parameters dictionary for workflow strategy"""
-        for wfdict in HWR.beamline.gphl_workflow.get_available_workflows().values():
-            for stratdict in wfdict["strategies"]:
-                if stratdict["title"] == self.get_type():
-                    return stratdict
-        raise ValueError("No GPhL workflow strategy named %s found" % self.get_type())
+        name = self.get_type()
+        result = HWR.beamline.gphl_workflow.workflow_strategies.get(name)
+        if result is None:
+            raise ValueError("No GPhL workflow strategy named %s found" % name)
+        #
+        return result
 
     # Parameters for start of workflow
     def get_path_template(self):
