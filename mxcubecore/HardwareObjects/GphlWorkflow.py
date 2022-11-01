@@ -108,10 +108,12 @@ class GphlWorkflow(HardwareObjectYaml):
         # And as a place to get hold of other objects
         self._queue_entry = None
 
-        # Configuration data - set when queried
-        self.workflows = {}
+        # Configuration data - set on load
+        self.workflows = OrderedDict()
         self.settings = {}
         self.test_crystals = {}
+        # auxiliary data structure from configuration. Set in init
+        self.workflow_strategies = OrderedDict()
 
         # Current data collection task group. Different for characterisation and collection
         self._data_collection_group = None
@@ -206,11 +208,11 @@ class GphlWorkflow(HardwareObjectYaml):
             opt0["beamline"] = beamline_hook
             default_strategy_name = None
             for strategy in workflow["strategies"]:
+                strategy_name = strategy["title"]
+                self.workflow_strategies[strategy_name] = strategy
                 strategy["wftype"] = wftype
                 if default_strategy_name is None:
-                    default_strategy_name = workflow["strategy_name"] = (
-                        strategy["title"]
-                    )
+                    default_strategy_name = workflow["strategy_name"] = strategy_name
                 dd0 = opt0.copy()
                 dd0.update(strategy.get("options", {}))
                 strategy["options"] = dd0
@@ -282,23 +284,29 @@ class GphlWorkflow(HardwareObjectYaml):
             "lattice": {
                 "title": "Lattice",
                 "type": "string",
-                "oneOf": {
-                    "":""
-                },
+                "oneOf": [
+                    {
+                        "":""
+                    },
+                ],
             },
             "point_group": {
                 "title": "Point Group",
                 "type": "string",
-                "oneOf": {
-                    "":""
-                },
+                "oneOf": [
+                    {
+                        "":""
+                    },
+                ],
             },
             "space_group": {
                 "title": "Space Group",
                 "type": "string",
-                "oneOf": {
-                    "":""
-                },
+                "oneOf": [
+                    {
+                        "":""
+                    },
+                ],
             },
             "relative_rad_sensitivity": {
                 "title": "Radiation sensitivity",
@@ -363,7 +371,7 @@ class GphlWorkflow(HardwareObjectYaml):
             # Characterisation
             strategies = gphl_workflow_hwr.settings["characterisation_strategies"]
             default_strategy = (
-                gphl_workflow_hwr.settings.defaults.characterisation_strategy
+                gphl_workflow_hwr.settings["defaults"]["characterisation_strategy"]
             )
             schema["strategy"]["title"] = "Characterisation strategy"
             energy_tags = ("Characterisation",)
@@ -400,30 +408,31 @@ class GphlWorkflow(HardwareObjectYaml):
             "cell_gamma",
             "decay_limit",
         ):
-            ui_schema[tag]
+            ui_schema[tag] = {
+                "title": tag,
+                "type": "number"
+            }
 
 
         data = {
-            "cell_a": data_model.cell_a,
-            "cell_b": data_model.cell_b,
-            "cell_c": data_model.cell_c,
-            "cell_alpha": data_model.cell_alpha,
-            "cell_beta": data_model.cell_beta,
-            "cell_gamma": data_model.cell_gamma,
             "lattice": data_model.crystal_system,
             "point_group": data_model.point_group or "",
             "space_group": data_model.space_group or "",
             "relative_rad_sensitivity": data_model.relative_rad_sensitivity,
             "use_cell_for_processing": data_model.use_cell_for_processing,
             "resolution": HWR.beamline.resolution.get_value(),
+            "energies": (HWR.beamline.energy.get_value(),),
             "strategy": default_strategy,
             "decay_limit": data_model.decay_limit,
         }
-
-
-
-
-
+        cell_parameters = data_model.cell_parameters
+        if cell_parameters:
+            data.update(
+                zip(
+                    ("cell_a", "cell_b", "cell_c", "cell_alpha", "cell_beta", "cell_gamma"),
+                    data_model.cell_parameters
+                )
+            )
 
         # # NBNB energies MUST be set, default to current
         # # NBNB if energy has been changed, set energy_changed to True
@@ -464,8 +473,9 @@ class GphlWorkflow(HardwareObjectYaml):
         #                 dd0[tag] = pos
 
 
-
-        return {}
+        # Temporary, for test
+        result = copy.deepcopy(data)
+        return result
 
     def query_pre_collection_params(self, data_model):
         """
