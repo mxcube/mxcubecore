@@ -247,122 +247,145 @@ class GphlWorkflow(HardwareObjectYaml):
         """
         gphl_workflow_hwr = HWR.beamline.gphl_workflow
         workflow_parameters = data_model.get_workflow_parameters()
+        fields = {}
         schema = {
-            "cell_a": {
-                "title": "A",
-                "type": "number",
-                "minimum": 0,
-            },
-            "cell_b": {
-                "title": "B",
-                "type": "number",
-                "minimum": 0,
-            },
-            "cell_c": {
-                "title": "C",
-                "type": "number",
-                "minimum": 0,
-            },
-            "cell_alpha": {
-                "title": "α",
-                "type": "number",
-                "minimum": 0,
-                "maximum": 180,
-            },
-            "cell_beta": {
-                "title": "β",
-                "type": "number",
-                "minimum": 0,
-                "maximum": 180,
-            },
-            "cell_gamma": {
-                "title": "γ",
-                "type": "number",
-                "minimum": 0,
-                "maximum": 180,
-            },
-            "lattice": {
-                "title": "Lattice",
-                "type": "string",
-                "oneOf": [
-                    {
-                        "":""
-                    },
-                ],
-            },
-            "point_group": {
-                "title": "Point Group",
-                "type": "string",
-                "oneOf": [
-                    {
-                        "":""
-                    },
-                ],
-            },
-            "space_group": {
-                "title": "Space Group",
-                "type": "string",
-                "oneOf": [
-                    {
-                        "":""
-                    },
-                ],
-            },
-            "relative_rad_sensitivity": {
-                "title": "Radiation sensitivity",
-                "type": "number",
-                "minimum": 0,
-            },
-            "use_cell_for_processing": {
-                "title": "Use for indexing",
-                "type": "boolean",
-                "default": False,
-            },
-            "resolution": {
-                "title": "Resolution",
-                "type": "number",
-                "minimum": 0,
-            },
-            "decay_limit": {
-                "title": "Signal decay limit (%)",
-                "type": "number",
-                "minimum": 1,
-                "maximum": 99,
-            },
-            "strategy":{
-                "title": "Strategy",
-                "type": "string",
-                "oneOf": [],
-
-            },
-
-            "energies": {
-                "title": "Beam energies (keV)",
-                "type": "array",
-                "items": [
-                    {
-                        "title": "Main",
-                        "type": "number",
-                    }
-                ],
-            },
+            "title": "GΦL Pre-strategy parameters",
+            "type": "object",
+            "properties": {}
         }
-        schema["lattice"]["oneOf"].extend(
+        fields = schema["properties"]
+        fields["cell_a"] = {
+            "title": "A",
+            "type": "number",
+            "minimum": 0,
+        }
+        fields["cell_b"] = {
+            "title": "B",
+            "type": "number",
+            "minimum": 0,
+        }
+        fields["cell_c"] = {
+            "title": "C",
+            "type": "number",
+            "minimum": 0,
+        }
+        fields["cell_alpha"] = {
+            "title": "α",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 180,
+        }
+        fields["cell_beta"] = {
+            "title": "β",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 180,
+        }
+        fields["cell_gamma"] = {
+            "title": "γ",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 180,
+        }
+        fields[ "lattice"] = {
+            "title": "Lattice",
+            "type": "string",
+            "default": data_model.crystal_system or "",
+            "oneOf": [
+                {
+                    "":""
+                },
+            ],
+        }
+        fields["point_group"] = {
+            "title": "Point Group",
+            "type": "string",
+            "default": data_model.point_group or "",
+            "oneOf": [
+                {
+                    "":""
+                },
+            ],
+        }
+        fields["space_group"] = {
+            "title": "Space Group",
+            "type": "string",
+            "default": data_model.space_group or "",
+            "oneOf": [
+                {
+                    "":""
+                },
+            ],
+        }
+        fields["relative_rad_sensitivity"] = {
+            "title": "Radiation sensitivity",
+            "default": data_model.relative_rad_sensitivity or 1.0,
+            "type": "number",
+            "minimum": 0,
+        }
+        fields["use_cell_for_processing"] = {
+            "title": "Use for indexing",
+            "type": "boolean",
+            "default": False,
+        }
+        fields["resolution"] = {
+            "title": "Resolution",
+            "type": "number",
+            "default": HWR.beamline.resolution.get_value(),
+            "minimum": 0,
+        }
+        fields["decay_limit"] = {
+            "title": "Signal decay limit (%)",
+            "type": "number",
+            "default": 25,
+            "minimum": 1,
+            "maximum": 99,
+        }
+        fields["strategy"] = {
+            "title": "Strategy",
+            "type": "string",
+            "oneOf": [],
+
+        }
+        energy_limits = HWR.beamline.energy.get_limits()
+        fields["energy1"] = {
+            "title": "Main energy (keV)",
+            "type": "number",
+            "default": HWR.beamline.energy.get_value(),
+            "minimum": energy_limits[0],
+            "maximum": energy_limits[1],
+        }
+        fields["energy2"] = {
+            "title": "MAD energy 1(keV)",
+            "type": "number",
+            "default": HWR.beamline.energy.get_value() - 0.01,
+            "minimum": energy_limits[0],
+            "maximum": energy_limits[1],
+        }
+        fields["energy3"] = {
+            "title": "MAD energy 2 (keV)",
+            "type": "number",
+            "default": HWR.beamline.energy.get_value() + 0.01,
+            "minimum": energy_limits[0],
+            "maximum": energy_limits[1],
+        }
+        fields["lattice"]["oneOf"].extend(
             {"const":tag, "title": tag}
             for tag in queue_model_enumerables.lattice2xtal_point_groups
         )
-        schema["point_group"]["oneOf"].extend(
+        fields["point_group"]["oneOf"].extend(
             {"const":tag, "title": tag}
             for tag in queue_model_enumerables.xtal_point_groups
         )
-        schema["space_group"]["oneOf"].extend(
+        fields["space_group"]["oneOf"].extend(
             {"const":tag, "title": tag}
             for tag in queue_model_enumerables.XTAL_SPACEGROUPS[1:]
         )
+        # Handle strategy fields
         if data_model.characterisation_done or data_model.get_type() == "diffractcal":
             strategies = workflow_parameters()["variants"]
-            default_strategy = strategies[0]
-            schema["strategy"]["title"] = "Acquisition strategy"
+            fields["strategy"]["default"] = strategies[0]
+            fields["strategy"]["title"] = "Acquisition strategy"
             energy_tags = workflow_parameters.get(
                 "beam_energy_tags",
                 (gphl_workflow_hwr.settings["default_beam_energy_tag"],)
@@ -370,69 +393,136 @@ class GphlWorkflow(HardwareObjectYaml):
         else:
             # Characterisation
             strategies = gphl_workflow_hwr.settings["characterisation_strategies"]
-            default_strategy = (
+            fields["strategy"]["default"] = (
                 gphl_workflow_hwr.settings["defaults"]["characterisation_strategy"]
             )
-            schema["strategy"]["title"] = "Characterisation strategy"
+            fields["strategy"]["title"] = "Characterisation strategy"
             energy_tags = ("Characterisation",)
-        schema["strategy"]["oneOf"] = list(
+        fields["strategy"]["oneOf"] = list(
             {
                 "const": tag,
                 "title": tag,
             }
             for tag in strategies
         )
-        # NBNB allow for fixed-energy beamlines
-        min_energy, max_energy = HWR.beamline.energy.get_limits()
-        schema["energies"]["items"] = its = []
-        for tag in energy_tags:
-            dd0 = {
-                "title": "%s beam energy (keV)" % tag,
-                "type": "number",
-            }
-            if min_energy:
-                dd0["minimum"] = min_energy
-            if max_energy:
-                dd0["maximum"] = max_energy
-            its.append(dd0)
-
-        ui_schema = {}
-        for tag in schema:
-            ui_schema[tag] = {}
-        for tag in (
-            "cell_a",
-            "cell_b",
-            "cell_c",
-            "cell_alpha",
-            "cell_beta",
-            "cell_gamma",
-            "decay_limit",
-        ):
-            ui_schema[tag] = {
-                "title": tag,
-                "type": "number"
-            }
-
-
-        data = {
-            "lattice": data_model.crystal_system,
-            "point_group": data_model.point_group or "",
-            "space_group": data_model.space_group or "",
-            "relative_rad_sensitivity": data_model.relative_rad_sensitivity,
-            "use_cell_for_processing": data_model.use_cell_for_processing,
-            "resolution": HWR.beamline.resolution.get_value(),
-            "energies": (HWR.beamline.energy.get_value(),),
-            "strategy": default_strategy,
-            "decay_limit": data_model.decay_limit,
-        }
+        # Handle cell parameters
         cell_parameters = data_model.cell_parameters
         if cell_parameters:
-            data.update(
-                zip(
-                    ("cell_a", "cell_b", "cell_c", "cell_alpha", "cell_beta", "cell_gamma"),
-                    data_model.cell_parameters
-                )
+            for tag, val in zip(
+                ("cell_a", "cell_b", "cell_c", "cell_alpha", "cell_beta", "cell_gamma"),
+                data_model.cell_parameters
+            ):
+                fields[tag]["default"] = val
+        ui_schema = {
+            "ui:order": ["crystal_data", "parameters"],
+            "crystal_data": {
+                "ui:widget": "column_grid",
+                "ui:order": ["cell_edges", "cell_angles", "symmetry"],
+                "cell_edges": {
+                    "ui:order": ["cell_a", "cell_b", "cell_c"],
+                },
+                "cell_angles": {
+                    "ui:order": ["cell_alpha", "cell_beta", "cell_gamma"],
+                },
+                "symmetry": {
+                    "ui:order": ["lattice", "point_group", "space_group"],
+                    "lattice":{
+                        "ui:widget": "select",
+                    },
+                    "point_group":{
+                        "ui:widget": "select",
+                    },
+                    "space_group":{
+                        "ui:widget": "select",
+                    },
+                },
+            },
+            "parameters": {
+                "ui:widget": "column_grid",
+                "ui:order": ["column1", "column2"],
+                "column1": {
+                    "ui:order": [
+                        "relative_rad_sensitivity",
+                        "strategy",
+                        "decay_limit"
+                    ],
+                    "relative_rad_sensitivity": {
+                        "ui:options": {
+                            "decimals": 2,
+                        }
+                    },
+                    "strategy":{
+                        "ui:widget": "select",
+                    },
+                    "decay_limit": {
+                        "ui:readonly": True,
+                        "ui:options": {
+                            "decimals": 1,
+                        },
+                    },
+                },
+                "column2": {
+                    "ui:widget": "vertical_box",
+                    "ui:order": [
+                        "use_cell_for_processing",
+                        "resolution",
+                        "energy1",
+                        "energy2",
+                        "energy3"
+                    ],
+                    "resolution": {
+                        "ui:options": {
+                            "decimals": 3,
+                        },
+                    },
+                    "energy1": {
+                        "ui:options": {
+                            "decimals": 4,
+                        },
+                    },
+                    "energy2": {
+                        "ui:widget": "hidden",
+                        "ui:options": {
+                            "decimals": 4,
+                        },
+                    },
+                    "energy3": {
+                        "ui:widget": "hidden",
+                        "ui:options": {
+                            "decimals": 4,
+                        },
+                    },
+                },
+            },
+        }
+
+        # Handle energies field
+        # NBNB allow for fixed-energy beamlines
+        tags = ("energy1", "energy2", "energy3", )
+        for ii,sss in enumerate(energy_tags):
+            fields[tags[ii]]["title"] = "%s beam energy (keV)" % sss
+        for ii in range(len(energy_tags), len(tags)):
+            ui_schema["params"]["column2"][tags[ii]]["hidden"] = True
+
+        self._return_parameters = gevent.event.AsyncResult()
+        try:
+            responses = dispatcher.send(
+                "gphlJsonParametersNeeded",
+                self,
+                schema,
+                ui_schema,
+                self._return_parameters,
             )
+            if not responses:
+                self._return_parameters.set_exception(
+                    RuntimeError("Signal 'gphlParametersNeeded' is not connected")
+                )
+
+            params = self._return_parameters.get()
+            if params is StopIteration:
+                return StopIteration
+        finally:
+            self._return_parameters = None
 
         # # NBNB energies MUST be set, default to current
         # # NBNB if energy has been changed, set energy_changed to True
@@ -474,8 +564,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
 
         # Temporary, for test
-        result = copy.deepcopy(data)
-        return result
+        return params
 
     def query_pre_collection_params(self, data_model):
         """
