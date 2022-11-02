@@ -146,13 +146,7 @@ class MicroDiffractometer(AbstractDiffractometer):
         Returns:
             (dict): Dictionary key=role: value=hardware_object
         """
-        motors_list = self._exporter.read_property("MotorStates")
-        for mot in motors_list:
-            mot_stat = mot.split("=")
-            if mot_stat[1] not in ("Disable", "Unknown"):
-                if mot_stat[0] in self.motors_hwobj_dict:
-                    motors_list.append(mot_stat[0])
-        return motors_list
+        return self.get_movable_motors()
 
     def set_value_motors(self, motors_positions_dict, simultaneous=True, timeout=None):
         """Move specified motors to the requested positions.
@@ -191,7 +185,7 @@ class MicroDiffractometer(AbstractDiffractometer):
         return motors_positions_dict
 
     def get_movable_motors(self):
-        """Get the dictionary of all configured motors or the ones to use.
+        """Get the dictionary of all the motors which can be used.
         Returns:
             (dict): Dictionary key=role: value=hardware_object
         """
