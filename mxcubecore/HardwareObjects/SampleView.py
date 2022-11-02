@@ -119,7 +119,7 @@ class SampleView(AbstractSampleView):
         self._ui_snapshot_cb = fun
 
     def get_snapshot(self, overlay=True, bw=False, return_as_array=False):
-        """Get snappshot(s)
+        """Get snapshot(s)
         Args:
             overlay(bool): Display shapes and other items on the snapshot
             bw(bool): return grayscale image
@@ -143,8 +143,9 @@ class SampleView(AbstractSampleView):
         """
         Add the shape <shape> to the dictionary of handled shapes.
 
-        :param shape: Shape to add.
-        :type shape: Shape object.
+        Args:
+            param (shape): Shape to add.
+            type (shape): Shape object.
         """
         self.shapes[shape.id] = shape
         shape.shapes_hw_object = self
