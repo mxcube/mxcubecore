@@ -19,7 +19,7 @@ between two Point objects.
 
 import logging
 import os
-from mxcubecore.HardwareObjects import queue_model_objects
+from mxcubecore.model import queue_model_objects
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 

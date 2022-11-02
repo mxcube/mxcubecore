@@ -38,7 +38,7 @@ class ESRFPhotonFlux(AbstractFlux):
     """Photon flux calculation for ID30B"""
 
     def __init__(self, name):
-        super(ESRFPhotonFlux, self).__init__(name)
+        super().__init__(name)
         self._counter = None
         self._flux_calc = None
         self._aperture = None
@@ -46,7 +46,7 @@ class ESRFPhotonFlux(AbstractFlux):
 
     def init(self):
         """Initialisation"""
-        super(ESRFPhotonFlux, self).init()
+        super().init()
         controller = self.get_object_by_role("controller")
 
         self._aperture = self.get_object_by_role("aperture")
@@ -67,6 +67,7 @@ class ESRFPhotonFlux(AbstractFlux):
             self._counter = self.get_object_by_role("counter")
 
         beam_check = self.get_property("beam_check_name")
+
         if beam_check:
             self.beam_check = getattr(controller, beam_check)
 
@@ -76,11 +77,10 @@ class ESRFPhotonFlux(AbstractFlux):
     def _poll_flux(self):
         while True:
             self.re_emit_values()
-            gevent.sleep(0.5)
+            gevent.sleep(2)
 
     def get_value(self):
-        """Calculate the flux value as function of a reading
-        """
+        """Calculate the flux value as function of a reading"""
 
         counts = self._counter.raw_read
         if isinstance(counts, list):
@@ -96,11 +96,11 @@ class ESRFPhotonFlux(AbstractFlux):
             label = self._aperture.get_value().name
             aperture_factor = self._aperture.get_factor(label)
             if isinstance(aperture_factor, tuple):
-                factor = aperture_factor[0] + aperture_factor[1]*egy
+                factor = aperture_factor[0] + aperture_factor[1] * egy
             else:
                 factor = float(aperture_factor)
         except (AttributeError, ValueError, RuntimeError):
-            factor = 1.
+            factor = 1.0
 
         counts = abs(counts * calib * factor)
         if counts < self.threshold:
@@ -123,4 +123,4 @@ class ESRFPhotonFlux(AbstractFlux):
                                               (default);
                              if timeout is None: wait forever.
         """
-        self.beam_check.wait_for_beam(timeout)
+        return self.beam_check.wait_for_beam(timeout)

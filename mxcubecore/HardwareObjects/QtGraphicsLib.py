@@ -49,7 +49,7 @@ from datetime import datetime
 
 from mxcubecore.utils import qt_import
 
-from mxcubecore.HardwareObjects import queue_model_objects
+from mxcubecore.model import queue_model_objects
 from mxcubecore.utils.conversion import string_types
 
 
@@ -61,8 +61,7 @@ LIGHT_GREEN = qt_import.QColor(125, 181, 121)
 
 
 class GraphicsItem(qt_import.QGraphicsItem):
-    """Base class for all graphics items.
-    """
+    """Base class for all graphics items."""
 
     def __init__(self, parent=None, position_x=0, position_y=0):
         """
@@ -122,8 +121,7 @@ class GraphicsItem(qt_import.QGraphicsItem):
         self.rect.setHeight(height)
 
     def set_start_position(self, position_x, position_y):
-        """Sets start position
-        """
+        """Sets start position"""
 
         if position_x is not None and position_y is not None:
             self.start_coord[0] = position_x
@@ -172,19 +170,16 @@ class GraphicsItem(qt_import.QGraphicsItem):
         self.base_color = color
 
     def update_item(self):
-        """Updates current item. Calls parent scene update method
-        """
+        """Updates current item. Calls parent scene update method"""
         self.scene().update()
 
     def mousePressEvent(self, event):
-        """Emits scene itemClickedSignal to indicate selected item
-        """
+        """Emits scene itemClickedSignal to indicate selected item"""
         self.update()
         self.scene().itemClickedSignal.emit(self, self.isSelected())
 
     def toggle_selected(self):
-        """Toggles item selection
-        """
+        """Toggles item selection"""
         self.setSelected(not self.isSelected())
         self.update()
 
@@ -204,13 +199,11 @@ class GraphicsItem(qt_import.QGraphicsItem):
             self.beam_size_pix[1] = int(self.beam_size_mm[1] * self.pixels_per_mm[1])
 
     def set_beam_position(self, beam_position):
-        """Sets beam position
-        """
+        """Sets beam position"""
         self.beam_position = beam_position
 
     def set_pixels_per_mm(self, pixels_per_mm):
-        """Sets pixels per mm and updates item
-        """
+        """Sets pixels per mm and updates item"""
         if not (math.isnan(pixels_per_mm[0]) or math.isnan(pixels_per_mm[1])):
             self.pixels_per_mm = pixels_per_mm
             self.beam_size_pix[0] = int(self.beam_size_mm[0] * self.pixels_per_mm[0])
@@ -230,12 +223,10 @@ class GraphicsItem(qt_import.QGraphicsItem):
 
 
 class GraphicsItemBeam(GraphicsItem):
-    """Beam base class
-    """
+    """Beam base class"""
 
     def __init__(self, parent, position_x=0, position_y=0):
-        """Sets item flag ItemIsMovable
-        """
+        """Sets item flag ItemIsMovable"""
         GraphicsItem.__init__(self, parent, position_x=0, position_y=0)
         self.beam_is_rectangle = True
         self.display_beam_size = False
@@ -244,7 +235,7 @@ class GraphicsItemBeam(GraphicsItem):
 
     def paint(self, painter, option, widget):
         """Main beam painter method
-           Draws ellipse or rectangle with a cross in the middle
+        Draws ellipse or rectangle with a cross in the middle
         """
         self.custom_pen.setColor(qt_import.Qt.blue)
         painter.setPen(self.custom_pen)
@@ -289,7 +280,7 @@ class GraphicsItemBeam(GraphicsItem):
                 self.beam_position[0] + self.beam_size_pix[0] / 2 + 2,
                 self.beam_position[1] + self.beam_size_pix[1] / 2 + 10,
                 "%d x %d %sm"
-                % (self.beam_size_mm[0] * 1000, self.beam_size_mm[1] * 1000, u"\u00B5"),
+                % (self.beam_size_mm[0] * 1000, self.beam_size_mm[1] * 1000, "\u00B5"),
             )
         if None not in self.detected_beam_info_dict:
             painter.drawLine(
@@ -327,8 +318,7 @@ class GraphicsItemBeam(GraphicsItem):
 
 
 class GraphicsItemInfo(GraphicsItem):
-    """Message box for displaying information on the screen
-    """
+    """Message box for displaying information on the screen"""
 
     def __init__(self, parent, position_x=0, position_y=0):
         """
@@ -352,7 +342,7 @@ class GraphicsItemInfo(GraphicsItem):
 
     def paint(self, painter, option, widget):
         """Main painter class. Draws message box and after display time
-           hides the message box.
+        hides the message box.
         """
         self.custom_pen.setColor(qt_import.Qt.transparent)
         painter.setPen(self.custom_pen)
@@ -412,8 +402,7 @@ class GraphicsItemInfo(GraphicsItem):
 
 
 class GraphicsItemPoint(GraphicsItem):
-    """Centred point class.
-    """
+    """Centred point class."""
 
     def __init__(
         self, centred_position=None, full_centring=True, position_x=0, position_y=0
@@ -676,7 +665,7 @@ class GraphicsItemLine(GraphicsItem):
 
     def get_centred_positions(self):
         """Returns centered positions associated to the starting and
-           ending points of the line
+        ending points of the line
         """
         return (
             self.__cp_start.get_centred_position(),
@@ -763,8 +752,7 @@ class GraphicsItemGrid(GraphicsItem):
 
     @staticmethod
     def set_grid_direction(grid_direction):
-        """Sets grids direction.
-        """
+        """Sets grids direction."""
         GraphicsItemGrid.grid_direction = grid_direction
 
     @staticmethod
@@ -876,8 +864,7 @@ class GraphicsItemGrid(GraphicsItem):
         self.__osc_range = osc_range
 
     def set_end_position(self, pos_x, pos_y):
-        """Actual drawing moment, when grid size is defined
-        """
+        """Actual drawing moment, when grid size is defined"""
         self.end_coord[0] = pos_x
         self.end_coord[1] = pos_y
         self.update_grid_draw_parameters(in_draw=True)
@@ -1389,8 +1376,7 @@ class GraphicsItemGrid(GraphicsItem):
         )
 
     def move_by_pix(self, move_direction):
-        """Moves grid by one pixel
-        """
+        """Moves grid by one pixel"""
         move_delta_x = 0
         move_delta_y = 0
         if move_direction == "left":
@@ -1436,8 +1422,8 @@ class GraphicsItemGrid(GraphicsItem):
 
     def get_coord_from_line_image(self, line, image):
         """Returns the screen coordinates x, y in pixel, of a middle
-           of the cell that correspoinds to
-           number an frame #image in line #line
+        of the cell that correspoinds to
+        number an frame #image in line #line
         """
         ref_fast, ref_slow = self.get_coord_ref_from_line_image(line, image)
 
@@ -1455,7 +1441,7 @@ class GraphicsItemGrid(GraphicsItem):
 
     def get_coord_ref_from_line_image(self, line, image):
         """returns nameless constants used in conversion between
-           scan and screen coordinates.
+        scan and screen coordinates.
         """
         fast_ref = 0.5
         if self.__num_images_per_line > 1:
@@ -1479,7 +1465,7 @@ class GraphicsItemGrid(GraphicsItem):
 
     def get_image_from_col_row(self, col, row):
         """calculate image serial number, number of line and number of
-           image in line from col and row col and row can be floats
+        image in line from col and row col and row can be floats
         """
         image = int(
             self.__num_images_per_line / 2.0
@@ -1526,8 +1512,8 @@ class GraphicsItemGrid(GraphicsItem):
 
     def get_col_row_from_line_image(self, line, image):
         """converts frame grid coordinates from scan grid "slow","fast") to screen grid
-           ("col","raw"), i.e. rotates/inverts the scan coordinates
-           into grid coordinates.
+        ("col","raw"), i.e. rotates/inverts the scan coordinates
+        into grid coordinates.
         """
         ref_fast, ref_slow = self.get_coord_ref_from_line_image(line, image)
 
@@ -1548,8 +1534,7 @@ class GraphicsItemGrid(GraphicsItem):
         return int(col), int(row)
 
     def get_motor_pos_from_col_row(self, col, row, as_cpos=False):
-        """x = x(click - x_middle_of_the_plot), y== the same
-        """
+        """x = x(click - x_middle_of_the_plot), y== the same"""
         new_point = copy.deepcopy(self.__centred_position.as_dict())
         (hor_range, ver_range) = self.get_grid_size_mm()
         hor_range = -hor_range * (self.__num_cols / 2.0 - col) / self.__num_cols
@@ -1592,14 +1577,14 @@ class GraphicsItemGrid(GraphicsItem):
 
 class GraphicsItemScale(GraphicsItem):
     """Displays vertical and horizontal scale on the bottom, left corner.
-       Horizontal scale is scaled to 50 or 100 microns and
-       vertical scale is two times shorter.
+    Horizontal scale is scaled to 50 or 100 microns and
+    vertical scale is two times shorter.
     """
 
     HOR_LINE_LEN_MICRONS = (300, 200, 100, 50, 30, 20, 10)
     HOR_LINE_LEN_MM = (10, 5, 2, 1)
 
-    LOWER_LEFT, UPPER_LEFT = (0,1)
+    LOWER_LEFT, UPPER_LEFT = (0, 1)
 
     def __init__(self, parent, position_x=0, position_y=0, anchor=None):
         """
@@ -1611,11 +1596,11 @@ class GraphicsItemScale(GraphicsItem):
         GraphicsItem.__init__(self, parent, position_x=0, position_y=0)
         self.__scale_len = 0
         self.__scale_len_pix = 0
-        self.__scale_unit = u"\u00B5"
+        self.__scale_unit = "\u00B5"
         self.__display_grid = False
 
         if anchor is None:
-           anchor = GraphicsItemScale.LOWER_LEFT
+            anchor = GraphicsItemScale.LOWER_LEFT
         self.set_anchor(anchor)
 
         self.custom_pen_color = SELECTED_COLOR
@@ -1641,27 +1626,37 @@ class GraphicsItemScale(GraphicsItem):
         painter.setPen(self.custom_pen)
 
         if self.anchor_position == GraphicsItemScale.LOWER_LEFT:
-            line_horiz_coords = (7, self.start_coord[1] - 15, 7 + self.__scale_len_pix, self.start_coord[1] - 15)
-            horiz_text_pos = ( self.__scale_len_pix - 18, self.start_coord[1] - 20)
-    
-            line_vert_coords =  ( 7, self.start_coord[1] - 15, 7, self.start_coord[1] - 15 - self.__scale_len_pix / 2)
+            line_horiz_coords = (
+                7,
+                self.start_coord[1] - 15,
+                7 + self.__scale_len_pix,
+                self.start_coord[1] - 15,
+            )
+            horiz_text_pos = (self.__scale_len_pix - 18, self.start_coord[1] - 20)
+
+            line_vert_coords = (
+                7,
+                self.start_coord[1] - 15,
+                7,
+                self.start_coord[1] - 15 - self.__scale_len_pix / 2,
+            )
             vert_text_pos = (12, self.start_coord[1] - 7 - self.__scale_len_pix / 2)
         elif self.anchor_position == GraphicsItemScale.UPPER_LEFT:
             line_horiz_coords = (7, 15, 7 + self.__scale_len_pix, 15)
-            horiz_text_pos = ( self.__scale_len_pix + 18, 20)
-            line_vert_coords =  ( 7, 15, 7, 15 + self.__scale_len_pix / 2)
+            horiz_text_pos = (self.__scale_len_pix + 18, 20)
+            line_vert_coords = (7, 15, 7, 15 + self.__scale_len_pix / 2)
             vert_text_pos = (12, 7 + self.__scale_len_pix / 2)
 
         x0, y0, x1, y1 = line_horiz_coords
         painter.drawLine(x0, y0, x1, y1)
 
-        x0, y0 = horiz_text_pos 
+        x0, y0 = horiz_text_pos
         painter.drawText(x0, y0, "%d %s" % (self.__scale_len, self.__scale_unit))
 
         x0, y0, x1, y1 = line_vert_coords
         painter.drawLine(x0, y0, x1, y1)
 
-        x0, y0 = vert_text_pos 
+        x0, y0 = vert_text_pos
         painter.drawText(x0, y0, "%d %s" % (self.__scale_len / 2, self.__scale_unit))
 
         if self.__display_grid:
@@ -1726,7 +1721,7 @@ class GraphicsItemScale(GraphicsItem):
                 and self.pixels_per_mm[0] * line_len / 1000 > 50
             ):
                 self.__scale_len = line_len
-                self.__scale_unit = u"\u00B5"
+                self.__scale_unit = "\u00B5"
                 self.__scale_len_pix = int(
                     self.pixels_per_mm[0] * self.__scale_len / 1000
                 )
@@ -1789,7 +1784,7 @@ class GraphicsItemOmegaReference(GraphicsItem):
             painter.drawText(
                 self.end_coord[0] - 40,
                 self.end_coord[1] - 10,
-                "%d %s" % (self.phi_position, u"\u00b0"),
+                "%d %s" % (self.phi_position, "\u00b0"),
             )
 
     def set_phi_position(self, phi_position):
@@ -2033,8 +2028,8 @@ class GraphicsItemMoveBeamMark(GraphicsItem):
 
 class GraphicsItemBeamDefine(GraphicsItem):
     """Tool to define beam size with slits.
-       Draw a rectange to define width and height.
-       After drawing move diffractometer to the center of the rect.
+    Draw a rectange to define width and height.
+    After drawing move diffractometer to the center of the rect.
     """
 
     def __init__(self, parent):
@@ -2068,7 +2063,7 @@ class GraphicsItemBeamDefine(GraphicsItem):
         painter.drawText(
             self.end_coord[0] + 7,
             self.end_coord[1],
-            "%d x %d %sm" % (self.width_microns, self.height_microns, u"\u00B5"),
+            "%d x %d %sm" % (self.width_microns, self.height_microns, "\u00B5"),
         )
 
         self.custom_pen.setColor(qt_import.Qt.red)
@@ -2115,8 +2110,7 @@ class GraphicsItemBeamDefine(GraphicsItem):
 
 
 class GraphicsItemMeasureDistance(GraphicsItem):
-    """Item to measure distance between to points
-    """
+    """Item to measure distance between to points"""
 
     def __init__(self, parent):
         """
@@ -2127,7 +2121,7 @@ class GraphicsItemMeasureDistance(GraphicsItem):
 
         self.setFlags(qt_import.QGraphicsItem.ItemIsSelectable)
         self.do_measure = None
-        self.measure_unit = u"\u00B5"
+        self.measure_unit = "\u00B5"
         self.measure_points = None
         self.measured_distance = None
         self.custom_pen_color = SELECTED_COLOR
@@ -2189,7 +2183,7 @@ class GraphicsItemMeasureDistance(GraphicsItem):
                 self.measured_distance /= 1000
                 self.measure_unit = "mm"
             else:
-                self.measure_unit = u"\u00B5"
+                self.measure_unit = "\u00B5"
             self.scene().update()
 
     def store_coord(self, position_x, position_y):
@@ -2215,8 +2209,7 @@ class GraphicsItemMeasureDistance(GraphicsItem):
 
 
 class GraphicsItemMeasureAngle(GraphicsItem):
-    """Item to measure angle between two vectors
-    """
+    """Item to measure angle between two vectors"""
 
     def __init__(self, parent):
         """
@@ -2247,7 +2240,7 @@ class GraphicsItemMeasureAngle(GraphicsItem):
                 painter.drawText(
                     self.measure_points[2].x() + 10,
                     self.measure_points[2].y() + 10,
-                    "%.2f %s" % (self.measured_angle, u"\u00B0"),
+                    "%.2f %s" % (self.measured_angle, "\u00B0"),
                 )
 
     def set_start_position(self, position_x, position_y):
@@ -2284,8 +2277,7 @@ class GraphicsItemMeasureAngle(GraphicsItem):
             self.scene().update()
 
     def store_coord(self, position_x, position_y):
-        """Stores coordinate
-        """
+        """Stores coordinate"""
         if len(self.measure_points) == 4:
             self.measure_points = []
             self.measure_points.append(qt_import.QPoint(position_x, position_y))
@@ -2293,8 +2285,7 @@ class GraphicsItemMeasureAngle(GraphicsItem):
 
 
 class GraphicsItemMeasureArea(GraphicsItem):
-    """Item to measure area
-    """
+    """Item to measure area"""
 
     def __init__(self, parent):
         """
@@ -2329,7 +2320,7 @@ class GraphicsItemMeasureArea(GraphicsItem):
         painter.drawText(
             self.current_point.x() + 10,
             self.current_point.y() + 10,
-            "%.2f %s" % (self.measured_area, u"\u00B5"),
+            "%.2f %s" % (self.measured_area, "\u00B5"),
         )
 
         if self.min_max_coord:
@@ -2352,7 +2343,7 @@ class GraphicsItemMeasureArea(GraphicsItem):
             painter.drawText(
                 self.min_max_coord[0][0] - 40,
                 self.min_max_coord[0][1],
-                "%.1f %s" % (ver_size, u"\u00B5"),
+                "%.1f %s" % (ver_size, "\u00B5"),
             )
             painter.drawLine(
                 self.min_max_coord[0][0],
@@ -2363,7 +2354,7 @@ class GraphicsItemMeasureArea(GraphicsItem):
             painter.drawText(
                 self.min_max_coord[1][0],
                 self.min_max_coord[1][1] + 25,
-                "%.1f %s" % (hor_size, u"\u00B5"),
+                "%.1f %s" % (hor_size, "\u00B5"),
             )
 
     def set_start_position(self, pos_x, pos_y):
@@ -2440,8 +2431,7 @@ class GraphicsItemMeasureArea(GraphicsItem):
 
 
 class GraphicsItemMoveButton(GraphicsItem):
-    """Move buttons
-    """
+    """Move buttons"""
 
     def __init__(self, parent, direction):
         """

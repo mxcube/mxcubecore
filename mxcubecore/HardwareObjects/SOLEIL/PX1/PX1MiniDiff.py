@@ -80,8 +80,7 @@ class PX1MiniDiff(GenericDiffractometer):
         return GenericDiffractometer.get_pixels_per_mm(self)
 
     def update_zoom_calibration(self):
-        """
-        """
+        """ """
         if "zoom" not in self.motor_hwobj_dict:
             # not initialized yet
             return
@@ -107,8 +106,7 @@ class PX1MiniDiff(GenericDiffractometer):
             )
 
     def px1_manual_centring(self, sample_info=None, wait_result=None):
-        """
-        """
+        """ """
         self.emit_progress_message("Manual 3 click centring...")
         logging.getLogger("HWR").debug(
             "   starting manual 3 click centring. phiy is %s" % str(self.centring_phiy)
@@ -186,8 +184,7 @@ class PX1MiniDiff(GenericDiffractometer):
             self.ready_event.set()
 
     def move_to_motors_positions(self, motors_positions, wait=False):
-        """
-        """
+        """ """
         self.emit_progress_message("Moving to motors positions...")
         self.move_to_motors_positions_procedure = gevent.spawn(
             self.move_motors, motors_positions
@@ -210,7 +207,7 @@ class PX1MiniDiff(GenericDiffractometer):
                             and target values.
         :type motors_dict: dict
         """
-        from mxcubecore.HardwareObjects.queue_model_objects import (
+        from mxcubecore.model.queue_model_objects import (
             CentredPosition,
         )
 

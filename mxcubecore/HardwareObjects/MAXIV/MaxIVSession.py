@@ -14,7 +14,7 @@ except Exception:
     raise Exception("Cannot import SDM library.")
 
 from mxcubecore.HardwareObjects.Session import Session
-from mxcubecore.HardwareObjects import queue_model_objects
+from mxcubecore.model import queue_model_objects
 
 
 class MaxIVSession(Session):

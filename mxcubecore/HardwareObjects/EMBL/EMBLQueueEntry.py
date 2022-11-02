@@ -24,7 +24,7 @@ Module contains EMBL specific queue entries
 import logging
 
 from mxcubecore.dispatcher import dispatcher
-from mxcubecore.HardwareObjects.base_queue_entry import (
+from mxcubecore.queue_entry.base_queue_entry import (
     BaseQueueEntry,
     QueueExecutionException,
     QUEUE_ENTRY_STATUS,

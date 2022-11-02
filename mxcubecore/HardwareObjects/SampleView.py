@@ -23,7 +23,7 @@ __license__ = "LGPLv3+"
 import copy
 from functools import reduce
 
-from mxcubecore.HardwareObjects import queue_model_objects
+from mxcubecore.model import queue_model_objects
 
 from mxcubecore.HardwareObjects.abstract.AbstractSampleView import (
     AbstractSampleView,
@@ -50,10 +50,30 @@ class SampleView(AbstractSampleView):
         self._ui_snapshot_cb = None
 
         self.hide_grid_threshold = self.get_property("hide_grid_threshold", 5)
+        for motor_name, motor_ho in self._diffractometer.get_motors().items():
+            if motor_ho:
+                motor_ho.connect("stateChanged", self._update_shape_positions)
+
+    def _update_shape_positions(self, *args, **kwargs):
+        shapes_updated = False
+
+        for shape in self.get_shapes():
+            previous_screen_coord = shape.screen_coord
+            shape.update_position(HWR.beamline.diffractometer.motor_positions_to_screen)
+
+            # We assume that all positions are changed when a motor moves
+            # and that if the screen coordinate for the first motor is unchanged
+            # so are the rest, simply return and emit no change.
+            if shape.screen_coord != previous_screen_coord:
+                shapes_updated = True
+            else:
+                break
+
+        if shapes_updated:
+            self.emit("shapesChanged")
 
         for motor_name, motor_ho in self._diffractometer.get_motors().items():
             motor_ho.connect("stateChanged", self._update_shape_positions)
-
 
     def _update_shape_positions(self, *args, **kwargs):
         shapes_updated = False
@@ -99,7 +119,7 @@ class SampleView(AbstractSampleView):
         self._ui_snapshot_cb = fun
 
     def get_snapshot(self, overlay=True, bw=False, return_as_array=False):
-        """ Get snappshot(s)
+        """Get snapshot(s)
         Args:
             overlay(bool): Display shapes and other items on the snapshot
             bw(bool): return grayscale image
@@ -108,7 +128,7 @@ class SampleView(AbstractSampleView):
         pass
 
     def save_snapshot(self, path, overlay=True, bw=False):
-        """ Save a snapshot to file.
+        """Save a snapshot to file.
         Args:
             path (str): The filename.
             overlay(bool): Display shapes and other items on the snapshot
@@ -123,8 +143,9 @@ class SampleView(AbstractSampleView):
         """
         Add the shape <shape> to the dictionary of handled shapes.
 
-        :param shape: Shape to add.
-        :type shape: Shape object.
+        Args:
+            param (shape): Shape to add.
+            type (shape): Shape object.
         """
         self.shapes[shape.id] = shape
         shape.shapes_hw_object = self
@@ -350,7 +371,6 @@ class SampleView(AbstractSampleView):
         else:
             msg = "Cant set result for %s, no shape with id %s" % (sid, sid)
             raise AttributeError(msg)
-
 
     def get_grid_data(self, key):
         result = {}

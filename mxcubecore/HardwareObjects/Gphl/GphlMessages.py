@@ -29,7 +29,7 @@ from collections import namedtuple
 
 from mxcubecore.utils.conversion import string_types
 
-from mxcubecore.HardwareObjects import queue_model_enumerables
+from mxcubecore.model import queue_model_enumerables
 
 __copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"

@@ -49,6 +49,7 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
 
     def load(self, sample, wait=False):
         self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
+        previous_sample = self.get_loaded_sample()
         self._set_state(AbstractSampleChanger.SampleChangerState.Loading)
         self._reset_loaded_sample()
 
@@ -73,10 +74,10 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
         mounted_sample = self.get_component_by_address(
             Container.Pin.get_sample_address(basket, sample)
         )
-        # mounted_sample._set_loaded(True, False)
         self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
 
-        self._set_loaded_sample(mounted_sample)
+        if mounted_sample is not previous_sample:
+            self._trigger_loaded_sample_changed_event(mounted_sample)
         self.update_info()
         logging.getLogger("user_level_log").info("Sample changer: Sample loaded")
         self.emit("progressStop", ())

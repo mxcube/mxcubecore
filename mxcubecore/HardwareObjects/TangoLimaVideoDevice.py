@@ -68,6 +68,7 @@ import numpy as np
 
 import PyTango
 
+from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice
 
 class TangoLimaVideoDevice(AbstractVideoDevice):
     """

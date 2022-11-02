@@ -23,7 +23,7 @@ Module contains Gphl specific queue entries
 
 
 import logging
-from mxcubecore.HardwareObjects.base_queue_entry import  BaseQueueEntry
+from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
 from mxcubecore import HardwareRepository as HWR
 
 

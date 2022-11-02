@@ -175,6 +175,15 @@ class HardwareObjectHandler(ContentHandler):
         elif len(self.objects) == 1:
             return self.objects[0]
 
+    def add_global_role(self, attrs, obj):
+        if "global_role" in attrs:
+            obj.set_global_role(attrs["global_role"])
+        else:
+            logging.getLogger("HWR").warning(
+                f"No global role defined for {self.name}, using filename as global role"
+            )
+            obj.set_global_role(self.name[1:])
+
     def startElement(self, name, attrs):
         """[summary]
 
@@ -281,6 +290,8 @@ class HardwareObjectHandler(ContentHandler):
                 else:
                     new_object.set_path(self.path)
                     self.objects.append(new_object)
+
+                self.add_global_role(attrs, new_object)
             else:
                 new_object_class = new_objects_classes[name]
                 new_object = new_object_class(object_name)
@@ -308,6 +319,8 @@ class HardwareObjectHandler(ContentHandler):
                     if new_object is None:
                         self.class_error = True
                         return
+
+                    self.add_global_role(attrs, new_object)
                 else:
                     new_object = BaseHardwareObjects.HardwareObject(object_name)
 

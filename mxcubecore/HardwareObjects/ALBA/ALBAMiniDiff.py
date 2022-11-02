@@ -52,7 +52,7 @@ from mxcubecore.HardwareObjects.GenericDiffractometer import (
 )
 import gevent
 
-from mxcubecore.HardwareObjects import queue_model_objects
+from mxcubecore.model import queue_model_objects
 
 
 __author__ = "Jordi Andreu"
@@ -429,8 +429,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         self.emit("stateChanged", (state,))
 
     def phiz_motor_moved(self, pos):
-        """
-        """
+        """ """
         self.current_motor_positions["phiz"] = pos
         # if time.time() - self.centring_time > 3.0:
         #    self.invalidate_centring()
@@ -449,8 +448,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         self.emit("stateChanged", (state,))
 
     def phiy_motor_moved(self, pos):
-        """
-        """
+        """ """
         self.current_motor_positions["phiy"] = pos
         # if time.time() - self.centring_time > 3.0:
         #    self.invalidate_centring()
@@ -482,8 +480,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         self.emit("stateChanged", (state,))
 
     def sampleX_motor_moved(self, pos):
-        """
-        """
+        """ """
         self.current_motor_positions["sampx"] = pos
         # if time.time() - self.centring_time > 3.0:
         #    self.invalidate_centring()
@@ -497,8 +494,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         self.emit("stateChanged", (state,))
 
     def sampleY_motor_moved(self, pos):
-        """
-        """
+        """ """
         self.current_motor_positions["sampy"] = pos
         # if time.time() - self.centring_time > 3.0:
         #    self.invalidate_centring()
@@ -512,8 +508,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         self.emit("stateChanged", (state,))
 
     def focus_motor_moved(self, pos):
-        """
-        """
+        """ """
         self.current_motor_positions["focus"] = pos
 
     # TODO:  The command is not configured in the xml. Unused

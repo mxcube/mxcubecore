@@ -24,7 +24,7 @@ import gevent.event
 from mxcubecore.BaseHardwareObjects import ConfiguredObject
 from mxcubecore.dispatcher import dispatcher
 
-# import mxcubecore.HardwareObjects.datamodel
+# import mxcubecore.model.procedure_model
 
 # Using jsonschma for validating the JSCONSchemas
 # https://json-schema.org/
@@ -107,7 +107,7 @@ class AbstractProcedure(ConfiguredObject):
         Override to implement main task logic
 
         Args:
-            data_model: sub class of mxcubecore.HardwareObjects.datamodel
+            data_model: sub class of mxcubecore.model.procedure_model
             dict in Python 2.7 and Data class in Python 3.7. Data is validated
             by the data_model object
 
@@ -120,9 +120,8 @@ class AbstractProcedure(ConfiguredObject):
         Override to implement pre execute task logic
 
         Args:
-            data_model: sub class of mxcubecore.HardwareObjects.datamodel
-            dict in Python 2.7 and Data class in Python 3.7. Data is validated
-            by the data_model object
+            data_model: sub class of mxcubecore.model.procedure_model
+            Data is validated by the data_model object
 
         Returns:
         """
@@ -133,9 +132,8 @@ class AbstractProcedure(ConfiguredObject):
         Override to implement post execute task logic
 
         Args:
-            data_model: sub class of mxcubecore.HardwareObjects.datamodel
-            dict in Python 2.7 and Data class in Python 3.7. Data is validated
-            by the data_model object
+            data_model: sub class of mxcubecore.model.procedure_model
+            Data is validated by the data_model object
 
         Returns:
         """
@@ -261,9 +259,8 @@ class AbstractProcedure(ConfiguredObject):
         """
         Starts procedure
         Args:
-            data_model: sub class of mxcubecore.HardwareObjects.datamodel
-            dict in Python 2.7 and Data class in Python 3.7. Data is validated
-            by the data_model object
+            data_model: sub class of mxcubecore.model.procedure_model.
+            Data is validated by the data_model object
 
         Returns:
             (Greenlet) The gevent task

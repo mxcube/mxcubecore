@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 from enum import Enum
-from .common import ValidationError
 
 import pydantic
 from pydantic import Field
+
+
+class ValidationError(Exception):
+    pass
 
 
 class BaseModel(pydantic.BaseModel):

@@ -43,10 +43,10 @@ import f90nml
 from mxcubecore.dispatcher import dispatcher
 from mxcubecore.utils import conversion
 from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
-from mxcubecore.HardwareObjects import queue_model_objects
-from mxcubecore.HardwareObjects import queue_model_enumerables
-from mxcubecore.HardwareObjects.queue_entry import QUEUE_ENTRY_STATUS
-from mxcubecore.HardwareObjects.queue_entry import QueueAbortedException
+from mxcubecore.model import queue_model_objects
+from mxcubecore.model import queue_model_enumerables
+from mxcubecore.queue_entry import QUEUE_ENTRY_STATUS
+from mxcubecore.queue_entry import QueueAbortedException
 
 from mxcubecore.HardwareObjects.Gphl import GphlMessages
 

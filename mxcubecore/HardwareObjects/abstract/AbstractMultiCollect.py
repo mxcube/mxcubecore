@@ -624,6 +624,7 @@ class AbstractMultiCollect(object):
 
         start_image_number = oscillation_parameters["start_image_number"]
         last_frame = start_image_number + nframes - 1
+
         if data_collect_parameters["skip_images"]:
             for start, wedge_size in wedges_to_collect[:]:
                 filename = image_file_template % start_image_number

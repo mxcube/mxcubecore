@@ -4,11 +4,14 @@ import logging
 import time
 import os
 import math
-from mxcubecore.HardwareObjects.queue_model_objects import PathTemplate
+from mxcubecore.model.queue_model_objects import PathTemplate
 from mxcubecore.utils.conversion import string_types
 from mxcubecore import HardwareRepository as HWR
 
-from mxcubecore.HardwareObjects.ESRF.ESRFMetadataManagerClient import MXCuBEMetadataClient
+from mxcubecore.HardwareObjects.ESRF.ESRFMetadataManagerClient import (
+    MXCuBEMetadataClient,
+)
+
 # NBNB nicoproc is not found
 from mxcubecore.utils import nicoproc
 
@@ -23,6 +26,7 @@ try:
 except Exception:
     # Python3
     from urllib.parse import urlencode
+
 
 class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def __init__(self, name):
@@ -120,7 +124,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     @task
     def data_collection_end_hook(self, data_collect_parameters):
         if nicoproc.USE_NICOPROC:
-             nicoproc.stop()
+            nicoproc.stop()
 
         self._detector._emit_status()
         self._metadataClient.end(data_collect_parameters)
@@ -297,10 +301,12 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             number_of_images,
             comment,
             self.mesh,
-            self.mesh_num_lines
+            self.mesh_num_lines,
         )
 
-    def set_detector_filenames(self, is_first_frame, frame_number, start, filename, shutterless):
+    def set_detector_filenames(
+        self, is_first_frame, frame_number, start, filename, shutterless
+    ):
         if is_first_frame or not shutterless:
             return self._detector.set_detector_filenames(frame_number, start, filename)
 
@@ -525,7 +531,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         if HWR.beamline.machine_info:
             return HWR.beamline.machine_info.getFillMode()
         else:
-            ""
+            """"""
 
     def get_cryo_temperature(self):
         while True:

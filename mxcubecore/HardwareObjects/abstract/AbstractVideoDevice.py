@@ -49,7 +49,10 @@ module_names = ["qt", "PyQt5", "PyQt4"]
 
 if any(mod in sys.modules for mod in module_names):
     USEQT = True
-    from mxcubecore.utils.qt_import import QImage, QPixmap, QSize
+    try:
+        from PyQt5.QtGui import QImage, QPixmap, QSize
+    except ImportError:
+        from PyQt4.QtGui import QImage, QPixmap, QSize
 else:
     USEQT = False
     from PIL import Image

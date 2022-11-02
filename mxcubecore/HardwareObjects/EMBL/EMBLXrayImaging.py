@@ -42,7 +42,7 @@ from mxcubecore.utils import qt_import, Colors
 from mxcubecore.TaskUtils import task
 from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 from mxcubecore.HardwareObjects.QtGraphicsManager import QtGraphicsManager
-from mxcubecore.HardwareObjects import queue_model_objects as qmo
+from mxcubecore.model import queue_model_objects as qmo
 from mxcubecore import HardwareRepository as HWR
 
 
@@ -160,7 +160,9 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             self.diffractometer_centring_started,
         )
         self.disconnect(
-            HWR.beamline.diffractometer, "centringAccepted", self.create_centring_point,
+            HWR.beamline.diffractometer,
+            "centringAccepted",
+            self.create_centring_point,
         )
         self.disconnect(
             HWR.beamline.diffractometer,
@@ -1089,7 +1091,7 @@ class ImageReadingThread(threading.Thread):
         return self.corrected_im_min_max
 
     def get_ff_image(self, raw_image_index):
-        print ("get_ff_image ", raw_image_index)
+        print("get_ff_image ", raw_image_index)
         if self.ff_ssim:
             ff_index = self.ff_ssim[raw_image_index][2] - 1
         else:
@@ -1098,5 +1100,5 @@ class ImageReadingThread(threading.Thread):
                 / float(len(self.raw_image_list))
                 * len(self.ff_image_list)
             )
-        print (ff_index)
+        print(ff_index)
         return self.ff_image_list[ff_index]

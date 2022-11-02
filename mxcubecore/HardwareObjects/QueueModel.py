@@ -32,7 +32,8 @@ import logging
 import jsonpickle
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.HardwareObjects import queue_entry, queue_model_objects
+from mxcubecore import queue_entry
+from mxcubecore.model import queue_model_objects
 from mxcubecore import HardwareRepository as HWR
 
 
@@ -421,7 +422,7 @@ class QueueModel(HardwareObject):
 
     def save_queue(self, filename=None):
         """Saves queue in the file. Current selected model is saved as a list
-           of dictionaries. Information about samples and baskets is not saved
+        of dictionaries. Information about samples and baskets is not saved
         """
         if not filename:
             filename = os.path.join(self.user_file_directory, "queue_active.dat")
@@ -507,10 +508,10 @@ class QueueModel(HardwareObject):
 
     def load_queue_from_file(self, filename, snapshot=None):
         """Loads queue from file. The problem is snapshots that are
-           not stored in the file, so we have to add new ones in
-           the loading process
+        not stored in the file, so we have to add new ones in
+        the loading process
 
-           :returns: model name 'free-pin', 'ispyb' or 'plate'
+        :returns: model name 'free-pin', 'ispyb' or 'plate'
         """
 
         logging.getLogger("HWR").info("Loading queue from file %s" % filename)

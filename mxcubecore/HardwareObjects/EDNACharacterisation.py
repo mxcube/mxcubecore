@@ -4,12 +4,16 @@ import logging
 import binascii
 import subprocess
 
-from mxcubecore.HardwareObjects import queue_model_objects as qmo
-from mxcubecore.HardwareObjects import queue_model_enumerables as qme
+from mxcubecore.model import queue_model_objects as qmo
+from mxcubecore.model import queue_model_enumerables as qme
 
-from mxcubecore.HardwareObjects.SecureXMLRpcRequestHandler import SecureXMLRpcRequestHandler
+from mxcubecore.HardwareObjects.SecureXMLRpcRequestHandler import (
+    SecureXMLRpcRequestHandler,
+)
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.HardwareObjects.abstract.AbstractCharacterisation import AbstractCharacterisation
+from mxcubecore.HardwareObjects.abstract.AbstractCharacterisation import (
+    AbstractCharacterisation,
+)
 
 from XSDataMXCuBEv1_4 import XSDataInputMXCuBE
 from XSDataMXCuBEv1_4 import XSDataMXCuBEDataSet
@@ -325,9 +329,11 @@ class EDNACharacterisation(AbstractCharacterisation):
                 )
                 acquisition_parameters = acq.acquisition_parameters
 
-                acquisition_parameters.centred_position = reference_image_collection.acquisitions[
-                    0
-                ].acquisition_parameters.centred_position
+                acquisition_parameters.centred_position = (
+                    reference_image_collection.acquisitions[
+                        0
+                    ].acquisition_parameters.centred_position
+                )
 
                 acq.path_template = HWR.beamline.get_default_path_template()
 
@@ -476,7 +482,6 @@ class EDNACharacterisation(AbstractCharacterisation):
 
     def generate_new_token(self):
         # See: https://wyattbaldwin.com/2014/01/09/generating-random-tokens-in-python/
-        token = binascii.hexlify(os.urandom(5)).decode('utf-8')
+        token = binascii.hexlify(os.urandom(5)).decode("utf-8")
         SecureXMLRpcRequestHandler.setReferenceToken(token)
         return token
-

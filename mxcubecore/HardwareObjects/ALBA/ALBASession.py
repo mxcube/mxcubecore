@@ -3,7 +3,7 @@ import time
 import logging
 
 from mxcubecore.HardwareObjects import Session
-from mxcubecore.HardwareObjects import queue_model_objects
+from mxcubecore.model import queue_model_objects
 
 
 class ALBASession(Session.Session):

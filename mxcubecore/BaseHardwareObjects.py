@@ -18,7 +18,6 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-
 from __future__ import absolute_import
 
 import typing
@@ -32,7 +31,6 @@ import pydantic
 from mxcubecore.dispatcher import dispatcher
 from mxcubecore.CommandContainer import CommandContainer
 from mxcubecore.utils.conversion import string_types
-
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -51,8 +49,7 @@ class HardwareObjectState(enum.Enum):
 
 
 class DefaultSpecificState(enum.Enum):
-    """Placeholder enumeration for HardwareObject-specific states
-    """
+    """Placeholder enumeration for HardwareObject-specific states"""
 
     UNKNOWN = "UNKNOWN"
 
@@ -166,7 +163,6 @@ class PropertySet(dict):
 
 
 class HardwareObjectNode(object):
-    
     def __init__(self, node_name):
         """Constructor"""
         self.__dict__["_property_set"] = PropertySet()
@@ -177,6 +173,7 @@ class HardwareObjectNode(object):
         self.__name = node_name
         self.__references = []
         self._xml_path = None
+        self._global_role = None
 
     @staticmethod
     def set_user_file_directory(user_file_directory):
@@ -195,9 +192,22 @@ class HardwareObjectNode(object):
         """Set the 'path' of the Hardware Object in the XML file describing it
         (the path follows the XPath syntax)
 
-        Parameters :
-          path -- string representing the path of the Hardware Object in its file"""
+        Args :
+          path (str): String representing the path of the Hardware Object in its file"""
         self._path = path
+
+    def set_global_role(self, role):
+        """
+        Set the "global role" of the HardwareObject
+
+        Args:
+          role (str): Role
+        """
+        self._global_role = role
+
+    @property
+    def global_role(self):
+        return self._global_role
 
     def get_xml_path(self):
         return self._xml_path
@@ -408,7 +418,7 @@ class HardwareObjectNode(object):
 
 
 class HardwareObjectMixin(CommandContainer):
-    """ Functionality for either xml- or yaml-configured HardwareObjects
+    """Functionality for either xml- or yaml-configured HardwareObjects
 
     Signals emited:
 
@@ -465,10 +475,17 @@ class HardwareObjectMixin(CommandContainer):
         self.update_state(self.STATES.UNKNOWN)
 
     def init(self):
-        """"'public' post-initialization method. Override as needed
+        """'public' post-initialization method. Override as needed
 
         For ConfiguredObjects called after loading contained objects"""
         self._exports = dict.fromkeys(self._exports_config_list, {})
+
+        # Add methods that are exported programatically
+        for attr_name in dir(self):
+            _attr = getattr(self, attr_name)
+
+            if getattr(_attr, "__exported__", False):
+                self._exports[attr_name] = []
 
         if self._exports:
             self._get_type_annotations()
@@ -488,7 +505,9 @@ class HardwareObjectMixin(CommandContainer):
             try:
                 _attr = getattr(self, attr_name)
             except AttributeError:
-                logging.getLogger("HWR").error(f"{attr_name} configured as exported for {self.name} but not implemented")
+                logging.getLogger("HWR").error(
+                    f"{attr_name} configured as exported for {self.name} but not implemented"
+                )
                 continue
 
             for _n, _t in typing.get_type_hints(_attr).items():
@@ -499,12 +518,14 @@ class HardwareObjectMixin(CommandContainer):
 
             _models[attr_name] = (
                 pydantic.create_model(attr_name, **fdict),
-                pydantic.Field(alias=attr_name)
+                pydantic.Field(alias=attr_name),
             )
 
             self._pydantic_models[attr_name] = _models[attr_name][0]
             self._exported_attributes[attr_name]["signature"] = self._exports[attr_name]
-            self._exported_attributes[attr_name]["schema"] = self._pydantic_models[attr_name].schema_json()
+            self._exported_attributes[attr_name]["schema"] = self._pydantic_models[
+                attr_name
+            ].schema_json()
 
         model = pydantic.create_model(self.__class__.__name__, **_models)
         self._pydantic_models["all"] = model
@@ -512,9 +533,12 @@ class HardwareObjectMixin(CommandContainer):
     def execute_exported_command(self, cmd_name, args):
         if cmd_name in self._exports.keys():
             cmd = getattr(self, cmd_name)
-            cmd(**args)
         else:
-            self.log.info(f"Command {cmd_name} not exported, check type hints and configuration file")
+            self.log.info(
+                f"Command {cmd_name} not exported, check type hints and configuration file"
+            )
+
+        return cmd(**args)
 
     @property
     def pydantic_model(self):
@@ -553,7 +577,7 @@ class HardwareObjectMixin(CommandContainer):
         self.abort()
 
     def get_state(self):
-        """ Getter for state attribute
+        """Getter for state attribute
 
         Implementations must query the hardware directly, to ensure current results
 
@@ -563,7 +587,7 @@ class HardwareObjectMixin(CommandContainer):
         return self._state
 
     def get_specific_state(self):
-        """ Getter for specific_state attribute. Override if needed.
+        """Getter for specific_state attribute. Override if needed.
 
         Returns:
             HardwareObjectSpecificState or None
@@ -768,6 +792,68 @@ class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
         HardwareObjectMixin.__init__(self)
         self.log = logging.getLogger("HWR").getChild(self.__class__.__name__)
         self.user_log = logging.getLogger("user_log_level")
+        self.__exports = {}
+        self.__pydantic_models = {}
+        self._exported_attributes = {}
+        self._exports_config_list = []
+
+    def init(self):
+        self._exports_config_list.extend(
+            ast.literal_eval(self.get_property("exports", "[]").strip())
+        )
+
+        self.__exports = dict.fromkeys(self._exports_config_list, {})
+
+        if self.__exports:
+            self._get_type_annotations()
+
+    def _get_type_annotations(self):
+        _models = {}
+
+        for attr_name, _ in self.__exports.items():
+            self._exported_attributes[attr_name] = {}
+            self.__exports[attr_name] = []
+            self.__pydantic_models[attr_name] = {}
+            fdict = {}
+
+            for _n, _t in typing.get_type_hints(getattr(self, attr_name)).items():
+                # Skipp return typehint
+                if _n != "return":
+                    self.__exports[attr_name].append(_n)
+                    fdict[_n] = (_t, pydantic.Field(alias=_n))
+
+            _models[attr_name] = (
+                pydantic.create_model(attr_name, **fdict),
+                pydantic.Field(alias=attr_name),
+            )
+
+            self.__pydantic_models[attr_name] = _models[attr_name][0]
+            self._exported_attributes[attr_name]["signature"] = self.__exports[
+                attr_name
+            ]
+            self._exported_attributes[attr_name]["schema"] = self.__pydantic_models[
+                attr_name
+            ].schema_json()
+
+        model = pydantic.create_model(self.__class__.__name__, **_models)
+        self.__pydantic_models["all"] = model
+
+    def execute_exported_command(self, cmd_name, args):
+        if cmd_name in self.__exports.keys():
+            cmd = getattr(self, cmd_name)
+            cmd(**args)
+        else:
+            self.log.info(
+                f"Command {cmd} not exported, check type hints and configuration file"
+            )
+
+    @property
+    def pydantic_model(self):
+        return self.__pydantic_models
+
+    @property
+    def exported_attributes(self):
+        return self._exported_attributes
 
     def init(self):
         self._exports_config_list.extend(
