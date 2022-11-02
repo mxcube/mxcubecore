@@ -612,7 +612,7 @@ class Beamline(ConfiguredObject):
                   specified acquisition type. "default" is a standard acqquisition
         """
         # Imported here to avoid circular imports
-        from mxcubecore.HardwareObjects import queue_model_objects
+        from mxcubecore.model import queue_model_objects
 
         acq_parameters = queue_model_objects.AcquisitionParameters()
 
@@ -702,7 +702,7 @@ class Beamline(ConfiguredObject):
         :returns: A PathTemplate object with default parameters.
         """
         # Imported here to avoid circular imports
-        from mxcubecore.HardwareObjects import queue_model_objects
+        from mxcubecore.model import queue_model_objects
 
         path_template = queue_model_objects.PathTemplate()
 

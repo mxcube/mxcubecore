@@ -9,7 +9,7 @@ import numpy
 from mxcubecore.BaseHardwareObjects import Equipment
 from mxcubecore.TaskUtils import task
 from mxcubecore.HardwareObjects import sample_centring
-from mxcubecore.HardwareObjects import queue_model_objects as qmo
+from mxcubecore.model import queue_model_objects as qmo
 from mxcubecore import HardwareRepository as HWR
 
 try:

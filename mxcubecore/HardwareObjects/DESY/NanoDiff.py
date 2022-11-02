@@ -29,7 +29,7 @@ import math
 import lucid
 
 
-from mxcubecore.HardwareObjects import queue_model_objects as qmo
+from mxcubecore.model import queue_model_objects as qmo
 
 from gevent.event import AsyncResult
 from mxcubecore.TaskUtils import task

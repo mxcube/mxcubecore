@@ -28,8 +28,12 @@ import gevent.event
 import logging
 import math
 import numpy
+import enum
+
+from typing import List, Tuple
+from pydantic import BaseModel, Field
 from mxcubecore.HardwareObjects import sample_centring
-from mxcubecore.HardwareObjects import queue_model_objects
+from mxcubecore.model import queue_model_objects
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
 
@@ -112,6 +116,65 @@ class DiffractometerState:
     @staticmethod
     def tostring(state):
         return DiffractometerState.STATE_DESC.get(state, "Unknown")
+
+
+class PhaseEnum(str, enum.Enum):
+    centring = "Centring"
+    data_collection = "DataCollection"
+    beam_location = "BeamLocation"
+    transfer = "Transfer"
+    unknown = "Unknown"
+
+
+class PhaseModel(BaseModel):
+    value: PhaseEnum = PhaseEnum.unknown
+
+
+class HeadTypeEnum(str, enum.Enum):
+    no_kappa = "NO_KAPPA"
+    mini_kappa = "MINI_KAPPA"
+    chip = "CHIP"
+    plate = "PLATE"
+
+
+class HolderTypeEnum(str, enum.Enum):
+    known_geometry = "KNOWN_GEOMETRY"
+    free_geometry = "FREE_GEOMETRY"
+
+
+class BlockShapeEnum(str, enum.Enum):
+    rectangular = "RECTANGULAR"
+    elliptical = "ELLIPTICAL"
+
+
+class SampleHolderSectionModel(BaseModel):
+    section_offset: Tuple[int, int] = Field(
+        [0, 0], description="Block offset in grid layout system coordinates x, y"
+    )
+    block_size: Tuple[float, float] = Field(
+        [15, 15], description="Block size horizontal, vertical in mm"
+    )
+    block_spacing: Tuple[float, float] = Field(
+        [15, 15], description="Spacing between blocks horizontal, vertical in mm"
+    )
+    block_shape: BlockShapeEnum = BlockShapeEnum.rectangular
+    number_of_rows: int = Field(6, description="Numer of rows")
+    number_of_collumns: int = Field(6, description="Numer of collumns")
+    row_labels: List[str] = Field([], description="Row lables")
+    column_lables: List[str] = Field([], description="Collumn lables")
+    targets_per_block: Tuple[int, int] = Field(
+        [20, 20], description="Targets per block dim1 and dim2"
+    )
+
+
+class GonioHeadConfiguration(BaseModel):
+    head_type: HeadTypeEnum = HeadTypeEnum.chip
+    holder_type: HolderTypeEnum = HolderTypeEnum.known_geometry
+    holder_brand: str = Field("", description="Brand/make of sample holder")
+    holder_size: Tuple[float, float] = Field(
+        [0, 0], description="Size of sample holder in mm horizontal and vertical"
+    )
+    sections: List[SampleHolderSectionModel]
 
 
 class GenericDiffractometer(HardwareObject):
@@ -538,7 +601,7 @@ class GenericDiffractometer(HardwareObject):
                 time.sleep(0.01)
 
     def wait_device_ready(self, timeout=30):
-        """ Waits when diffractometer status is ready:
+        """Waits when diffractometer status is ready:
 
         :param timeout: timeout in second
         :type timeout: int
@@ -630,8 +693,7 @@ class GenericDiffractometer(HardwareObject):
         self.emit("minidiffTransferModeChanged", (transfer_mode,))
 
     def get_transfer_mode(self):
-        """
-        """
+        """ """
         return self.transfer_mode
 
     def get_current_phase(self):
@@ -659,8 +721,7 @@ class GenericDiffractometer(HardwareObject):
         return self.current_centring_method
 
     def is_reversing_rotation(self):
-        """
-        """
+        """ """
         return self.reversing_rotation is True
 
     def beam_position_changed(self, value):
@@ -702,8 +763,7 @@ class GenericDiffractometer(HardwareObject):
             return HWR.beamline.sample_view.take_snapshot()
 
     def save_snapshot(self, filename):
-        """
-        """
+        """ """
         if HWR.beamline.sample_view:
             return HWR.beamline.sample_view.save_snapshot(filename)
 
@@ -724,8 +784,7 @@ class GenericDiffractometer(HardwareObject):
         return self.phase_list
 
     def start_centring_method(self, method, sample_info=None, wait=False):
-        """
-        """
+        """ """
 
         if self.current_centring_method is not None:
             logging.getLogger("HWR").error(
@@ -758,8 +817,7 @@ class GenericDiffractometer(HardwareObject):
                 self.emit_centring_failed()
 
     def cancel_centring_method(self, reject=False):
-        """
-        """
+        """ """
 
         if self.current_centring_procedure is not None:
             try:
@@ -786,8 +844,7 @@ class GenericDiffractometer(HardwareObject):
             self.reject_centring()
 
     def start_manual_centring(self, sample_info=None, wait_result=None):
-        """
-        """
+        """ """
         self.emit_progress_message("Manual 3 click centring...")
         if self.use_sample_centring:
             self.current_centring_procedure = sample_centring.start(
@@ -810,8 +867,7 @@ class GenericDiffractometer(HardwareObject):
     def start_automatic_centring(
         self, sample_info=None, loop_only=False, wait_result=None
     ):
-        """
-        """
+        """ """
         self.emit_progress_message("Automatic centring...")
 
         while self.automatic_centring_try_count > 0:
@@ -923,38 +979,32 @@ class GenericDiffractometer(HardwareObject):
             self.emit_progress_message("")
 
     def manual_centring(self):
-        """
-        """
+        """ """
         raise NotImplementedError
 
     def automatic_centring(self):
-        """
-        """
+        """ """
         raise NotImplementedError
 
     def centring_motor_moved(self, pos):
-        """
-        """
+        """ """
         if time.time() - self.centring_time > 1.0:
             self.invalidate_centring()
         self.emit_diffractometer_moved()
 
     def invalidate_centring(self):
-        """
-        """
+        """ """
         if self.current_centring_procedure is None and self.centring_status["valid"]:
             self.centring_status = {"valid": False}
             self.emit_progress_message("")
             self.emit("centringInvalid", ())
 
     def emit_diffractometer_moved(self, *args):
-        """
-        """
+        """ """
         self.emit("diffractometerMoved", ())
 
     def motor_positions_to_screen(self, centred_positions_dict):
-        """
-        """
+        """ """
         if self.use_sample_centring:
             self.update_zoom_calibration()
             if None in (self.pixels_per_mm_x, self.pixels_per_mm_y):
@@ -997,13 +1047,11 @@ class GenericDiffractometer(HardwareObject):
             raise NotImplementedError
 
     def move_to_centred_position(self, centred_position):
-        """
-        """
+        """ """
         self.move_motors(centred_position)
 
     def move_to_motors_positions(self, motors_positions, wait=False):
-        """
-        """
+        """ """
         self.emit_progress_message("Moving to motors positions...")
         self.move_to_motors_positions_procedure = gevent.spawn(
             self.move_motors, motors_positions
@@ -1167,8 +1215,7 @@ class GenericDiffractometer(HardwareObject):
         return copy.deepcopy(self.centring_status)
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
-        """
-        """
+        """ """
         raise NotImplementedError
 
     def get_point_between_two_points(
@@ -1194,8 +1241,7 @@ class GenericDiffractometer(HardwareObject):
         return new_point
 
     def convert_from_obj_to_name(self, motor_pos):
-        """
-        """
+        """ """
         motors = {}
         for motor_role in self.centring_motors_list:
             motor_obj = self.get_object_by_role(motor_role)
@@ -1262,32 +1308,27 @@ class GenericDiffractometer(HardwareObject):
             self.command_dict["startSetPhase"](phase)
 
     def update_zoom_calibration(self):
-        """
-        """
+        """ """
         self.pixels_per_mm_x = 1.0 / self.channel_dict["CoaxCamScaleX"].get_value()
         self.pixels_per_mm_y = 1.0 / self.channel_dict["CoaxCamScaleY"].get_value()
         self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y)))
 
     def zoom_motor_state_changed(self, state):
-        """
-        """
+        """ """
         self.emit("zoomMotorStateChanged", (state,))
         self.emit("minidiffStateChanged", (state,))
 
     def zoom_motor_predefined_position_changed(self, position_name, offset):
-        """
-        """
+        """ """
         self.update_zoom_calibration()
         self.emit("zoomMotorPredefinedPositionChanged", (position_name, offset))
 
     def equipment_ready(self):
-        """
-        """
+        """ """
         self.emit("minidiffReady", ())
 
     def equipment_not_ready(self):
-        """
-        """
+        """ """
         self.emit("minidiffNotReady", ())
 
     """
@@ -1369,8 +1410,7 @@ class GenericDiffractometer(HardwareObject):
         return (-10000, 10000)
 
     def get_osc_max_speed(self):
-        """
-        """
+        """ """
         return None
         # raise NotImplementedError
 

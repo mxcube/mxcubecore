@@ -30,7 +30,7 @@ import abc
 
 from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.HardwareObjects import queue_model_objects
+from mxcubecore.model import queue_model_objects
 
 
 class AbstractXrayCentring(HardwareObjectYaml):
