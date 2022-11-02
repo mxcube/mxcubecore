@@ -1,8 +1,10 @@
 import logging
 import math
 import time
-from mxcubecore.HardwareObjects import MiniDiff
 import gevent
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects import MiniDiff
 from mxcubecore.HardwareObjects import sample_centring
 from mxcubecore import HardwareRepository as HWR
 
@@ -188,9 +190,45 @@ class Microdiff(MiniDiff.MiniDiff):
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
-                "name": "abort",
+                "name": "save_centring_positions",
             },
             "saveCentringPositions",
+        )
+
+        self.auto_align_ssx_block = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "auto_align_ssx_block",
+            },
+            "autoAlignSSXBlock",
+        )
+
+        self.start_ssx_scan = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_scan",
+            },
+            "startSSXScan",
+        )
+
+        self.start_still_ssx_scan = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_still_ssx_scan",
+            },
+            "startStillSSXScan",
+        )
+
+        self.define_ssx_scan_region = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "define_ssx_scan_region",
+            },
+            "defineSSXScanRegion",
         )
 
         MiniDiff.MiniDiff.init(self)
@@ -208,10 +246,11 @@ class Microdiff(MiniDiff.MiniDiff):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(None)
 
         self.readPhase.connect_signal("update", self._update_value)
+        HardwareObject.init(self)
 
     def _update_value(self, value=None):
         if value is None:
-            value =  self.get_current_phase()
+            value = self.get_current_phase()
         self.emit("valueChanged", (value))
 
     def getMotorToExporterNames(self):
@@ -257,7 +296,9 @@ class Microdiff(MiniDiff.MiniDiff):
         # None means infinite timeout
         # <=0 means default timeout
         if timeout is not None and timeout <= 0:
-            logging.getLogger("HWR").warning("DEBUG: Strange timeout value passed %s" % str(timeout))
+            logging.getLogger("HWR").warning(
+                "DEBUG: Strange timeout value passed %s" % str(timeout)
+            )
             timeout = 30
         with gevent.Timeout(
             timeout, RuntimeError("Timeout waiting for diffractometer to be ready")
@@ -271,8 +312,8 @@ class Microdiff(MiniDiff.MiniDiff):
 
             if detcover.state == "IN":
                 detcover.set_out(10)
-        except:
-            logging.getLogger("HWR").exception("")
+        except AttributeError:
+            logging.getLogger("HWR").exception("No detector cover configured")
 
     def close_detector_cover(self):
         try:
@@ -280,8 +321,8 @@ class Microdiff(MiniDiff.MiniDiff):
 
             if detcover.state == "OUT":
                 detcover.set_in(10)
-        except:
-            logging.getLogger("HWR").exception("")
+        except AttributeError:
+            logging.getLogger("HWR").exception("No detector cover configured")
 
     def phase_prepare(self, phase):
         if phase == "Centring":
@@ -608,7 +649,7 @@ class Microdiff(MiniDiff.MiniDiff):
         self.current_centring_procedure.link(self.manualCentringDone)
 
     def interrupt_and_accept_centring(self):
-        """ Used when plate. Kills the current 1 click centring infinite loop
+        """Used when plate. Kills the current 1 click centring infinite loop
         and accepts fake centring - only save the motor positions
         """
         self.current_centring_procedure.kill()
@@ -633,6 +674,7 @@ class Microdiff(MiniDiff.MiniDiff):
             self.beam_position_horizontal.get_value(),
             self.beam_position_vertical.get_value(),
         )
+
 
 def to_float(d):
     for k, v in d.items():

@@ -276,18 +276,20 @@ class PX2Diffractometer(GenericDiffractometer):
             return
         if self.omega_reference_par["camera_axis"].lower() == "x":
             on_beam = (
-                (self.beam_position[0] - self.zoom_centre["x"])
-                * self.omega_reference_par["direction"]
-                / self.pixels_per_mm_x
-                + self.omega_reference_par["position"]
-            )
+                self.beam_position[0] - self.zoom_centre["x"]
+            ) * self.omega_reference_par[
+                "direction"
+            ] / self.pixels_per_mm_x + self.omega_reference_par[
+                "position"
+            ]
         else:
             on_beam = (
-                (self.beam_position[1] - self.zoom_centre["y"])
-                * self.omega_reference_par["direction"]
-                / self.pixels_per_mm_y
-                + self.omega_reference_par["position"]
-            )
+                self.beam_position[1] - self.zoom_centre["y"]
+            ) * self.omega_reference_par[
+                "direction"
+            ] / self.pixels_per_mm_y + self.omega_reference_par[
+                "position"
+            ]
         self.centring_hwobj.appendMotorConstraint(self.omega_reference_motor, on_beam)
 
     def omega_reference_motor_moved(self, pos):
@@ -396,9 +398,9 @@ class PX2Diffractometer(GenericDiffractometer):
 
     def set_phase(self, phase, timeout=60):
         """Sets diffractometer to the selected phase.
-           In the plate mode before going to or away from
-           Transfer or Beam location phase if needed then detector
-           is moved to the safe distance to avoid collision.
+        In the plate mode before going to or away from
+        Transfer or Beam location phase if needed then detector
+        is moved to the safe distance to avoid collision.
         """
         # self.wait_device_ready(2)
         logging.getLogger("GUI").warning(
@@ -578,8 +580,7 @@ class PX2Diffractometer(GenericDiffractometer):
         return pos
 
     def move_to_beam(self, x, y, omega=None):
-        """Creates a new centring point based on all motors positions
-        """
+        """Creates a new centring point based on all motors positions"""
         if self.current_phase != "BeamLocation":
             GenericDiffractometer.move_to_beam(
                 self, x, y, omega=self.goniometer.get_omega_position()
@@ -799,8 +800,7 @@ class PX2Diffractometer(GenericDiffractometer):
         return translated_position
 
     def convert_from_obj_to_name(self, motor_pos):
-        """
-        """
+        """ """
         # self.log.info('convert_from_obj_to_name motor_pos %s' % str(motor_pos))
         # self.log.info('convert_from_obj_to_name cml %s ' % str(self.centring_motors_list))
         # self.log.info('convert_from_obj_to_name motor_names %s' % str([motor.motor_name for motor in motor_pos]))
@@ -1025,8 +1025,7 @@ class PX2Diffractometer(GenericDiffractometer):
             )
 
     def move_to_motors_positions(self, motors_positions, wait=False):
-        """
-        """
+        """ """
         self.emit_progress_message("Moving to motors positions...")
         self.move_to_motors_positions_procedure = gevent.spawn(
             self.move_motors, motors_positions
@@ -1092,7 +1091,11 @@ class PX2Diffractometer(GenericDiffractometer):
             (
                 new_kappa,
                 new_phi,
-                (new_sampx, new_sampy, new_phiy,),
+                (
+                    new_sampx,
+                    new_sampy,
+                    new_phiy,
+                ),
             ) = self.goniometer.get_align_vector(t1, t2, kappa, phi)
             # self.minikappa_correction_hwobj.alignVector(t1,t2,kappa,phi)
             self.move_to_motors_positions(
@@ -1142,8 +1145,7 @@ class PX2Diffractometer(GenericDiffractometer):
         gevent.spawn(self.close_kappa_task)
 
     def close_kappa_task(self):
-        """Close kappa task
-        """
+        """Close kappa task"""
         logging.getLogger("HWR").debug("Started closing Kappa")
         self.move_kappa_and_phi_procedure(0, None)
         self.wait_device_ready(60)
@@ -1155,8 +1157,7 @@ class PX2Diffractometer(GenericDiffractometer):
         # self.kappa_phi_motor_hwobj.homeMotor()
 
     def set_zoom(self, position):
-        """
-        """
+        """ """
         self.zoom_motor_hwobj.moveToPosition(position)
 
     def get_status(self):
@@ -1220,11 +1221,11 @@ class PX2Diffractometer(GenericDiffractometer):
         if result_speed < 0:
             return (None, None), None
         elif result_speed > max_speed:
-            delta = a * max_speed ** 2 + b * max_speed
+            delta = a * max_speed**2 + b * max_speed
             # total_exposure_time = total_exposure_time * result_speed / max_speed
             total_exposure_time = (w1 - w0 - 2 * delta) / (max_speed - 0.1)
         else:
-            delta = a * result_speed ** 2 + b * result_speed
+            delta = a * result_speed**2 + b * result_speed
 
         return (w0 + delta, w1 - delta), total_exposure_time / num_images
 
@@ -1371,8 +1372,7 @@ class PX2Diffractometer(GenericDiffractometer):
     def start_automatic_centring(
         self, sample_info=None, loop_only=False, wait_result=None
     ):
-        """
-        """
+        """ """
         self.emit_progress_message("Automatic centring...")
         self.current_centring_procedure = gevent.spawn(self.optical_alignment)
         self.current_centring_procedure.link(self.centring_done)
