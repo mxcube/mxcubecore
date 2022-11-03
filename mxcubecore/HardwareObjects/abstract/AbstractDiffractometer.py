@@ -127,7 +127,7 @@ class AbstractDiffractometer(HardwareObject):
         Returns:
             (dict): Dictionary key=role: value=hardware_object
         """
-        return self.motors_hwobj_dict
+        return self.motors_hwobj_dict.copy()
 
     def get_nstate_equipment(self):
         """Get the dictionary of all the nstate (discrete positions) equipment.
@@ -252,7 +252,7 @@ class AbstractDiffractometer(HardwareObject):
             self.current_phase = self.value_to_enum(value, DiffractometerPhase)
         if self.current_phase != DiffractometerPhase.UNKNOWN:
             self._set_phase(self.current_phase)
-            self.update_value(method=self.get_phase())
+            self._update_value(value_cmp=self.get_phase())
             if timeout == 0:
                 return
             self.wait_ready(timeout)
@@ -294,7 +294,7 @@ class AbstractDiffractometer(HardwareObject):
                 value, DiffractometerConstraint
             )
             self._set_constraint(self.current_constraint)
-            self.update_value(method=self.get_constraint())
+            self._update_value(value_cmp=self.get_constraint())
             if timeout == 0:
                 return
             self.wait_ready(timeout)
@@ -341,15 +341,15 @@ class AbstractDiffractometer(HardwareObject):
         """Do characterisation."""
         raise NotImplementedError
 
-    def update_value(self, value=None, method=None):
+    def _update_value(self, value=None, value_cmp=None):
         """Check if the value has changed. Emits signal valueChanged.
         Args:
             value: value
-            method: Method or property to get the value to compare with.
+            value_cmp: Value to compare with.
         """
         curr_value = None
-        if method and value is None:
-            curr_value = method
+        if value_cmp and value is None:
+            curr_value = value_cmp
 
         if value != curr_value:
             self.emit("valueChanged", (value,))
@@ -359,7 +359,7 @@ class AbstractDiffractometer(HardwareObject):
     def value_to_enum(self, value, which_enum):
         """Tranform a value to Enum
         Args:
-           value(str, int, float, tuple): value
+           value(str, int, float, tuple, list): value
            which_enum (Enum): The enum to be checked.
         Returns:
             (Enum): Enum member, corresponding to the value or UNKNOWN.
@@ -367,7 +367,7 @@ class AbstractDiffractometer(HardwareObject):
         try:
             return which_enum(value)
         except ValueError:
-            for evar in which_enum.__members__.values():
-                if isinstance(evar.value, tuple) and (value in evar.value):
+            for evar in which_enum:
+                if isinstance(evar.value, (tuple, list)) and (value in evar.value):
                     return evar
         return which_enum.UNKNOWN
