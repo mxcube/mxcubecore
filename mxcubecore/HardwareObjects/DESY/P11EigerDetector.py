@@ -80,16 +80,18 @@ class P11EigerDetector(AbstractDetector):
         self.writer_dev.write_attribute("NamePattern", filepath)
 
     def prepare_characterisation(self, exptime, number_of_images, angle_inc, filepath):
+        self.writer_dev.write_attribute("NImagesPerFile", 1) # To write one image per characterisation.
         self.prepare_common(exptime, filepath)
         self.eiger_dev.write_attribute("Nimages", 1)
         self.log.debug("Eiger. preparing characterization. Number of triggers is: %d" % number_of_images)
         self.eiger_dev.write_attribute("Ntrigger", int(number_of_images))
 
-    def prepare_std_collection(self, exptime, number_of_images, filepath):
+    def prepare_std_collection(self, exptime, number_of_images, filepath):  
         self.prepare_common(exptime, filepath)
 
         self.eiger_dev.write_attribute("Nimages", int(number_of_images))
         self.eiger_dev.write_attribute("Ntrigger", 1)
+        self.writer_dev.write_attribute("NImagesPerFile", 1000) # Default
 
         self.writer_dev.write_attribute("ImageNrStart", 1) 
 
