@@ -1,0 +1,18 @@
+Metadata-Version: 2.1
+Name: mxcubecore
+Version: 0.0.0
+Summary: MXCuBE core library
+Home-page: http://github.com/mxcube/mxcubecore
+License: LGPL
+Description: Core libraries for the MXCuBE application
+Platform: all
+Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: License :: OSI Approved :: Lesser General Public License v3 (LGPLv3)
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 3
+Classifier: Topic :: Scientific/Engineering
+Requires-Python: >=2.7
+Provides-Extra: gphl
