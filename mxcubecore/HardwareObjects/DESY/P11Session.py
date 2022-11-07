@@ -65,6 +65,11 @@ class P11Session(Session):
     def is_writable_dir(self, folder):
         return os.path.isdir(folder) and os.access(folder, os.F_OK | os.W_OK )
 
+    def get_current_beamtime_id(self):
+        if self.is_beamtime_open():
+           info = self.get_beamtime_info()
+           return info['beamtimeId'] 
+
     def get_current_proposal_code(self):
         if self.is_beamtime_open():
            info = self.get_beamtime_info()
