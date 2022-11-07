@@ -30,7 +30,7 @@ class P11Collect(AbstractCollect):
 
         super(P11Collect,self).init()
 
-        self.default_speed = self.get_property("omega_default_speed", 130)
+        self.default_speed = self.get_property("omega_default_speed", 50)
         self.turnback_time = self.get_property("turnback_time", 0.1)
         self.filter_server_name = self.get_property('filterserver')
         self.mono_server_name = self.get_property('monoserver')
@@ -46,7 +46,7 @@ class P11Collect(AbstractCollect):
         self.acq_window_off_cmd = self.get_command_object("acq_window_off")
 
         if None in [self.lower_bound_ch, self.upper_bound_ch,
-                    self.acq_arm_cmd, self.acq_on_cmd, self.acq_off_cmd, 
+                    self.acq_arm_cmd, self.acq_on_cmd, self.acq_off_cmd,
                     self.acq_window_off_cmd]:
             self.init_ok = False
             self.log.debug("lower_bound_ch: %s" % self.lower_bound_ch)
@@ -60,7 +60,7 @@ class P11Collect(AbstractCollect):
     @task
     def move_motors(self, motor_position_dict):
         HWR.beamline.diffractometer.wait_omega()
-        HWR.beamline.diffractometer.move_motors(motor_position_dict) 
+        HWR.beamline.diffractometer.move_motors(motor_position_dict)
 
     def _take_crystal_snapshot(self, filename):
         diffr = HWR.beamline.diffractometer
@@ -75,8 +75,8 @@ class P11Collect(AbstractCollect):
             raise BaseException("P11Collect. cannot reach centring phase for acquiring snapshots")
 
         self.log.debug("#COLLECT# saving snapshot to %s" % filename)
-        HWR.beamline.sample_view.save_snapshot(filename) 
-        
+        HWR.beamline.sample_view.save_snapshot(filename)
+
     def data_collection_hook(self):
         if not self.init_ok:
             raise BaseException("P11Collect. - object initialization failed. COLLECTION not possible")
@@ -86,8 +86,8 @@ class P11Collect(AbstractCollect):
 
         dc_pars = self.current_dc_parameters
         collection_type = dc_pars["experiment_type"]
-        
-        
+
+
 
         self.log.debug("======================= P11Collect. DATA COLLECTION HOOK ==========================================")
         self.log.debug(str(collection_type))
@@ -110,7 +110,7 @@ class P11Collect(AbstractCollect):
 
         if collection_type == "Characterization":
             self.log.debug("P11Collect.  Characterization")
-            ret = self.prepare_characterization()
+            ret = self.prepare_characterization() # Doing nothing, returns true.
         else:
             stop_angle = start_angle + img_range*nframes
 
@@ -128,30 +128,32 @@ class P11Collect(AbstractCollect):
             self.log.debug("############# #COLLECT# Opening detector cover")
             self.diffr.detector_cover_open(wait=True)
             self.log.debug("############ #COLLECT# detector cover is now open. Wait 2 more seconds")
-            time.sleep(2) # wait extra time to allow det cover to be opened. 
+            time.sleep(2.0) # wait extra time to allow det cover to be opened.
 
             basepath = file_info['directory']
             prefix = file_info['prefix']
             runno = file_info['run_number']
 
-            
+
 
             self.log.debug("#COLLECT# Programming detector for data collection")
             if collection_type == "Characterization":
 
                 #AG: Create screening_001, etc the same way as for CC in case of characterisation
-                filepath = os.path.join(basepath, "screening_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno))            
+                filepath = os.path.join(basepath, "screening_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno)) 
+                # filepath = os.path.join(basepath)
                 self.log.debug("======= CURRENT FILEPATH: "+str(filepath)+"=======================================")
                 self.latest_h5_filename = "%s_master.h5" % filepath
                 self.log.debug("======= LATEST H5 FILENAME FILEPATH: "+str(self.latest_h5_filename)+"=======================================")
 
                 overlap = osc_pars['overlap']
                 angle_inc = 90.0
-                detector.prepare_characterisation(exp_time, nframes, angle_inc, filepath) 
+                detector.prepare_characterisation(exp_time, nframes, angle_inc, filepath)
             else:
-                
+
                 #AG: Create rotational_001, etc the same way as for CC in case of characterisation
-                filepath = os.path.join(basepath, "rotational_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno))            
+                filepath = os.path.join(basepath, "rotational_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno))
+                # filepath = os.path.join(basepath)
                 self.log.debug("======= CURRENT FILEPATH: "+str(filepath)+"=======================================")
                 self.latest_h5_filename = "%s_master.h5" % filepath
                 self.log.debug("======= LATEST H5 FILENAME FILEPATH: "+str(self.latest_h5_filename)+"=======================================")
@@ -160,12 +162,12 @@ class P11Collect(AbstractCollect):
 
 
             self.log.debug("#COLLECT# Starting detector")
-            detector.start_acquisition() 
+            detector.start_acquisition()
 
             if collection_type == "Characterization":
                 self.collect_characterisation(start_angle, img_range, nframes, angle_inc, exp_time)
                 self.add_h5_info()
-            
+
             else:
                 self.collect_std_collection(start_angle, stop_angle)
                 self.add_h5_info()
@@ -177,12 +179,12 @@ class P11Collect(AbstractCollect):
         finally:
             self.acquisition_cleanup()
 
-        #self.add_h5_info() 
+        #self.add_h5_info()
 
         #
         # generate template for XDS
         #
-        
+
         self.trigger_auto_processing()
 
     def collect_std_collection(self, start_angle, stop_angle):
@@ -206,7 +208,7 @@ class P11Collect(AbstractCollect):
         self.log.debug("#COLLECT# Running OMEGA through the char acquisition")
 
         for img_no in range(nimages):
-            print("collecting image %s" % img_no) 
+            print("collecting image %s" % img_no)
             start_at = start_angle + angle_inc*img_no
             stop_angle = start_at + img_range * 1.0
 
@@ -215,10 +217,12 @@ class P11Collect(AbstractCollect):
             self.omega_mv(init_pos, self.default_speed)
             self.collect_std_collection(start_angle, stop_angle)
 
-            # 
+            #
             diffr.set_omega_velocity( self.default_speed )
             self.acq_window_off_cmd()
             self.acq_off_cmd()
+            self.log.debug("======= collect_characterisation  Waiting =======================================")
+            time.sleep(1)
 
     def acquisition_cleanup(self):
         try:
@@ -229,15 +233,15 @@ class P11Collect(AbstractCollect):
             self.acq_off_cmd()
             self.log.debug("#COLLECT# Closing detector cover")
             diffr.detector_cover_close(wait=True)
-            detector.stop_acquisition() 
+            detector.stop_acquisition()
         except BaseException as e:
             import traceback
             self.log.error(traceback.format_exc())
 
     def add_h5_info(self):
-        
+
         self.log.debug("========== Writing H5 info ==============")
-        h5file = self.latest_h5_filename 
+        h5file = self.latest_h5_filename
 
         # wait up to 5 seconds to see the file appear
         start_wait = time.time()
@@ -306,7 +310,7 @@ class P11Collect(AbstractCollect):
         self.log.debug("============== Generating XDS template.============================")
 
         h5file = self.latest_h5_filename
-        
+
 
         basedir, fname = os.path.split(h5file)
 
@@ -328,18 +332,18 @@ class P11Collect(AbstractCollect):
 
     def trigger_auto_processing(self, process_event=None, frame_number=None):
         self.log.debug("Triggering auto processing. NOT IMPLEMENTED YET")
-        
+
         dc_pars = self.current_dc_parameters
         collection_type = dc_pars["experiment_type"]
         self.log.debug("=============== Supported experiment types: ===========\n"+str(dc_pars["experiment_type"]))
 
         if collection_type == "Characterization":
-            
+
             self.log.debug("==== AUTOPROCESSING CHARACTERISATION IN PROGRESS ==========")
-    
+
             #creation will fail if beamtime folder, slurm reservation or
-            #bl-fs mount on the compute nodes can not be found  
-            try:    
+            #bl-fs mount on the compute nodes can not be found
+            try:
                 btHelper = triggerUtils.Trigger()
             except BaseException as e:
                 self.log.debug(sys.exc_info())
@@ -351,7 +355,7 @@ class P11Collect(AbstractCollect):
 
             image_dir_local, filename = os.path.split( self.latest_h5_filename )
             #AG: Image dir at this point is located locally. This path is not seen on the MAXWELL. Path needs to be converted.
-            #/gpfs/current/ to  get_beamline_metadata()[2]        
+            #/gpfs/current/ to  get_beamline_metadata()[2]
             image_dir=image_dir_local.replace("/gpfs/current",triggerUtils.get_beamtime_metadata()[2])
             process_dir = image_dir.replace("/raw/", "/processed/")
             process_dir_local=image_dir_local.replace("/raw/","/processed/")
@@ -362,12 +366,12 @@ class P11Collect(AbstractCollect):
 
 
             ssh = btHelper.get_ssh_command()
-    
+
             try:
                 self.mkdir_with_mode(mosflm_path_local, mode=0o777)
-                
+
                 #AG: Explicit write of the non-empty file so that the directory is synchronised with /asap3/...
-                # Is is substituted by appropriate process from mosflm_sbatch.sh --output.            
+                # Is is substituted by appropriate process from mosflm_sbatch.sh --output.
                 #f=open(mosflm_path_local+"/mosflm.log", 'a')
                 #f.write("mosflm.log")
                 #f.close()
@@ -377,30 +381,30 @@ class P11Collect(AbstractCollect):
                 #  ssh = ssh,
                 #  mosflm_path = mosflm_path
                 #))
-    
+
                 self.log.debug("=========== MOSFLM ============ Mosflm directory created")
-    
-    
-     
-            
+
+
+
+
             except OSError:
                 self.log.debug(sys.exc_info())
                 self.log.debug("Cannot create mosflm directory")
-    
+
             base_process_dir = self.base_dir(process_dir_local, 'processed')
             datasets_file = os.path.join(base_process_dir, 'datasets.txt')
-    
+
             #add to datasets.txt for presenterd
             try:
                 open(datasets_file, 'a').write(mosflm_path_local.split("/gpfs/current/processed/")[1]+'\n')
             except:
                 print(sys.exc_info())
-    
+
             #create call
             #btHelper.user_sshkey = btHelper.user_sshkey.replace("/gpfs/current",triggerUtils.get_beamtime_metadata()[2])
             ssh = btHelper.get_ssh_command()
             sbatch = btHelper.get_sbatch_command(jobname_prefix = "mosflm",job_dependency='singleton', logfile_path=mosflm_path.replace(triggerUtils.get_beamtime_metadata()[2],"/beamline/p11/current")+"/mosflm.log")
-    
+
             cmd = ("/asap3/petra3/gpfs/common/p11/processing/mosflm_sbatch.sh " + \
                      "{imagepath:s} {filename:s} {processpath:s} {frames:d} {res:f}").format(
                 imagepath = image_dir,
@@ -417,8 +421,8 @@ class P11Collect(AbstractCollect):
                 sbatch = sbatch,
                 cmd = cmd
             ))
-    
-            
+
+
             os.system("{ssh:s} \"{sbatch:s} --wrap \\\"{cmd:s}\"\\\"".format(
                 ssh = ssh,
                 sbatch = sbatch,
@@ -428,7 +432,7 @@ class P11Collect(AbstractCollect):
             if collection_type=="OSC":
                 self.log.debug("==== AUTOPROCESSING STANDARD PROCESSING IN PROGRESS ==========")
 
-                try:    
+                try:
                     btHelper = triggerUtils.Trigger()
                 except BaseException as e:
                     self.log.debug(sys.exc_info())
@@ -439,7 +443,7 @@ class P11Collect(AbstractCollect):
                 frames = self.latest_frames
 
                 image_dir_local, filename = os.path.split( self.latest_h5_filename )
-            
+
 
 
 
@@ -456,9 +460,9 @@ class P11Collect(AbstractCollect):
                     #f=open(xdsapp_path_local+"/xdsapp.log", 'a')
                     #f.write("xdsapp.log")
                     #f.close()
-    
+
                     self.log.debug("=========== XDSAPP ============ XDSAPP directory created")
-    
+
                 except OSError:
                     self.log.debug(sys.exc_info())
                     self.log.debug("Cannot create XDSAPP directory")
@@ -466,14 +470,14 @@ class P11Collect(AbstractCollect):
 
                 base_process_dir = self.base_dir(process_dir_local, 'processed')
                 datasets_file = os.path.join(base_process_dir, 'datasets.txt')
-    
+
                 #add to datasets.txt for presenterd
                 try:
                     open(datasets_file, 'a').write(xdsapp_path_local.split("/gpfs/current/processed/")[1]+'\n')
                 except:
                     print(sys.exc_info())
 
-                
+
                 #create call
                 ssh = btHelper.get_ssh_command()
                 sbatch = btHelper.get_sbatch_command(
@@ -481,21 +485,21 @@ class P11Collect(AbstractCollect):
                     job_dependency = "",
                     logfile_path = xdsapp_path.replace(triggerUtils.get_beamtime_metadata()[2],"/beamline/p11/current") + "/xdsapp.log"
                 )
-                
-                self.log.debug("=============== XDSAPP ================"+xdsapp_path.replace(triggerUtils.get_beamtime_metadata()[2],"/beamline/p11/current"))                
+
+                self.log.debug("=============== XDSAPP ================"+xdsapp_path.replace(triggerUtils.get_beamtime_metadata()[2],"/beamline/p11/current"))
                 cmd = ("/asap3/petra3/gpfs/common/p11/processing/xdsapp_sbatch.sh " + \
                         "{imagepath:s} {processpath:s} {res:f}").format(
                     imagepath = image_dir+"/"+filename,
                     processpath = xdsapp_path.replace(triggerUtils.get_beamtime_metadata()[2],"/beamline/p11/current"),
                     res = resolution
                 )
-                
+
                 self.log.debug("{ssh:s} \"{sbatch:s} --wrap \\\"{cmd:s}\\\"\"".format(
                     ssh = ssh,
                     sbatch = sbatch,
                     cmd = cmd
                 ))
-                
+
                 os.system("{ssh:s} \"{sbatch:s} --wrap \\\"{cmd:s}\\\"\"".format(
                     ssh = ssh,
                     sbatch = sbatch,
@@ -549,15 +553,15 @@ class P11Collect(AbstractCollect):
 #            sbatch = sbatch,
 #            cmd = cmd
 #        ))
-    
-    
-    
-    
+
+
+
+
 
 #Test of the autoprocessing as in CC (AG)
-#    def trigger_auto_processing(self, process_event=None, frame_number=None): 
+#    def trigger_auto_processing(self, process_event=None, frame_number=None):
 #        self.log.debug("Triggering auto processing. NOT IMPLEMENTED YET. Direct test from CC.")
-#       
+#
 #       #creation will fail if beamtime folder, slurm reservation or
 #        #bl-fs mount on the compute nodes can not be found
 #        try:
@@ -608,11 +612,11 @@ class P11Collect(AbstractCollect):
 #            ssh = ssh,
 #            sbatch = sbatch,
 #            cmd = cmd
-#        )) 
-    
-    
+#        ))
+
+
     def diffractometer_prepare_collection(self):
-        diffr = HWR.beamline.diffractometer 
+        diffr = HWR.beamline.diffractometer
 
         self.log.debug("#COLLECT# preparing collection ")
         if not diffr.is_collect_phase():
@@ -623,7 +627,7 @@ class P11Collect(AbstractCollect):
 
         self.log.debug("#COLLECT# now in collect phase: %s" % diffr.is_collect_phase())
         return diffr.is_collect_phase()
-        
+
     def prepare_std_collection(self, start_angle, img_range):
         self.log.debug("Preparing for standard data collection.")
         init_pos = start_angle - self.acq_speed * self.turnback_time
@@ -674,7 +678,7 @@ class P11Collect(AbstractCollect):
             os.makedirs(directory, mode=mode)
             os.umask(oldmask)
             #self.checkPath(directory,force=True)
-        
+
             self.log.debug("local directory created")
 
     def checkPath(self, path=None, force=False):
@@ -703,11 +707,9 @@ class P11Collect(AbstractCollect):
 
     #def mkdir_with_mode_remote(self, directory, mode):
     #    ssh = btHelper.get_ssh_command()
-    #    
+    #
     #    os.system("{ssh:s} \"{sbatch:s} --wrap \\\"{cmd:s}\\\"\"".format(
     #        ssh = ssh,
     #        sbatch = sbatch,
     #        cmd = cmd
     #    ))
-
-
