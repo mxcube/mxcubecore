@@ -1005,6 +1005,8 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         BaseQueueEntry.__setstate__(self, d)
 
     def execute(self):
+        log.debug("executing characterization - %s" % HWR.beamline.characterisation)
+
         BaseQueueEntry.execute(self)
 
         if HWR.beamline.characterisation is not None:
@@ -1018,6 +1020,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                     "Characterisation: Started in the background"
                 )
                 gevent.spawn(self.start_char)
+        log.debug("executing characterization finished")
 
     def start_char(self):
         log = logging.getLogger("user_level_log")
@@ -1052,8 +1055,10 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                 collection_plan = strategy_result.getCollectionPlan()
             else:
                 collection_plan = None
+            log.debug("collection plan is %s. IGNORD FOR NOW" % str(collection_plan))
 
-            if collection_plan:
+            # if collection_plan:
+            if False:
                 if char.auto_add_diff_plan:
                     # default action
                     self.handle_diffraction_plan(self.edna_result, None)
