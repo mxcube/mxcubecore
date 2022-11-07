@@ -503,8 +503,10 @@ class ISPyBClient(HardwareObject):
                     )
 
                     if proposal:
+                        logging.getLogger("HWR").debug("ISPyB. found  proposal=%s" % (proposal_number))
                         proposal.code = proposal_code
                     else:
+                        logging.getLogger("HWR").debug("ISPyB. could not find proposal=%s" % (proposal_number))
                         return {
                             "Proposal": {},
                             "Person": {},
@@ -1176,6 +1178,10 @@ class ISPyBClient(HardwareObject):
     def get_samples(self, proposal_id, session_id):
         response_samples = None
 
+        logging.getLogger("HWR").debug("getting samples from ISPyB - session_id %s" % str(session_id))
+
+        logging.getLogger("HWR").debug("getting samples from ISPyB - proposal_id %s beamline is %s" % (str(proposal_id), self.beamline_name))
+
         if self._tools_ws:
             try:
                 response_samples = self._tools_ws.service.findSampleInfoLightForProposal(
@@ -1195,6 +1201,7 @@ class ISPyBClient(HardwareObject):
                 "Error in get_samples: could not connect to server"
             )
 
+        logging.getLogger("HWR").debug("  - found %d samples in ISPyB for this session" % len(response_samples))
         return response_samples
 
     @trace
@@ -1221,6 +1228,8 @@ class ISPyBClient(HardwareObject):
         :returns: A list with sample_ref objects.
         :rtype: list
         """
+        logging.getLogger("HWR").debug("getting session samples from ISPyB - session_id %s" % str(session_id))
+
         if self._tools_ws:
             sample_references = []
             session = self.get_session(session_id)
@@ -1253,6 +1262,7 @@ class ISPyBClient(HardwareObject):
                     except Exception:
                         pass
 
+                    logging.getLogger("HWR").debug(" - sample found with location %s" % str(loc))
                     # Unmatched sample, just catch and do nothing
                     # (dont remove from sample_ref)
                     if not sample.code and not sample.sampleLocation:
@@ -1743,6 +1753,9 @@ class ISPyBClient(HardwareObject):
     def get_proposals_by_user(self, user_name):
         proposal_list = []
         res_proposal = []
+
+        # user_name = "clemenbor"
+        self.log.debug("ISPyB - Getting proposal for user: %s" % user_name)
 
         if self._disabled:
             return proposal_list
