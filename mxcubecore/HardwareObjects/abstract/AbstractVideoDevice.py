@@ -290,7 +290,7 @@ class AbstractVideoDevice(HardwareObject):
             jpgstr = self.get_jpg_image()
             open(filename, "w").write(jpgstr)
 
-    def get_snapshot(self, bw=None, return_as_array=True):
+    def take_snapshot(self, bw=None, return_as_array=True):
         """Get the snapshot.
         Args:
             bs(bool): Return grayscale image (True)
