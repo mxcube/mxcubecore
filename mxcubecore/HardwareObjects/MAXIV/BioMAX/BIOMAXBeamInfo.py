@@ -94,8 +94,6 @@ class BIOMAXBeamInfo(AbstractBeam):
 
     def beam_size_state_changed(self, value):
         """called if aperture, slits or focusing has been changed"""
-        self._beam_info_dict['state_x'] = self.beam_size_hor.get_state()
-        self._beam_info_dict['state_y'] = self.beam_size_ver.get_state()
         self.re_emit_values()
         self.get_beam_info_dict()
 

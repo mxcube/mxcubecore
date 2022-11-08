@@ -825,14 +825,9 @@ class BIOMAXMD3(GenericDiffractometer):
             if type(motor)==str:
                 motor_role = motor
                 motor = self.motor_hwobj_dict[motor_role]
-                del motor_positions[motor_role]
                 if motor is None:
                     continue
-                motor_positions[motor] = position
-            print('------------position----------', position)
-            print('----------motor------------', motor)
-            print('------------motor.set_value----------', motor.set_value)
-            motor._set_value(position)
+            motor.set_value(position)
         self.wait_device_ready(timeout)
 
 def test():
