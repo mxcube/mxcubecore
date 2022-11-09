@@ -24,8 +24,6 @@ configuration = pyispyb_client.Configuration(
 
 TOKEN = None
 
-import pdb
-pdb.set_trace()
 
 # Enter a context with an instance of the API client
 with pyispyb_client.ApiClient(configuration) as api_client:
@@ -94,8 +92,7 @@ with pyispyb_client.ApiClient(configuration) as api_client:
             ],
         ),
     ) # SSXDataCollectionGroupCreate | 
-    import pdb
-    pdb.set_trace()
+
     # example passing only required values which don't have defaults set
     try:
         # Create Datacollectiongroup
