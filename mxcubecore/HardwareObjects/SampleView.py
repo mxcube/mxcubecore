@@ -41,11 +41,7 @@ class SampleView(AbstractSampleView):
         super(SampleView, self).init()
 
         self._camera = self.get_object_by_role("camera")
-        self._focus = self.get_object_by_role("focus")
-        self._zoom = self.get_object_by_role("zoom")
-        self._frontlight = self.get_object_by_role("frontlight")
-        self._backlight = self.get_object_by_role("backlight")
-        self._diffractometer = self.get_object_by_role("diffractometer")
+        self._diffractometer =  HWR.beamline.diffractometer
 
         self._ui_snapshot_cb = None
 
