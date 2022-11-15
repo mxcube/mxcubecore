@@ -2068,7 +2068,7 @@ class GphlWorkflow(TaskNode):
 
     def parameter_summary(self):
         """Main parameter summary, for output purposes"""
-        summary = {"strategy": self.get_type()}
+        summary = {"strategy":self.get_type()}
         for tag in (
             "automation_mode",
             "init_spot_dir",
@@ -2079,7 +2079,7 @@ class GphlWorkflow(TaskNode):
             "dose_consumed",
             "space_group",
             "crystal_system",
-            "point_group",
+            "point_group"
             "_cell_parameters",
             "aimed_resolution",
         ):
