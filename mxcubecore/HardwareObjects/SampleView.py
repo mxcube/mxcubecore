@@ -39,18 +39,11 @@ class SampleView(AbstractSampleView):
 
     def init(self):
         super(SampleView, self).init()
-
         self._camera = self.get_object_by_role("camera")
-        self._focus = self.get_object_by_role("focus")
-        self._zoom = self.get_object_by_role("zoom")
-        self._frontlight = self.get_object_by_role("frontlight")
-        self._backlight = self.get_object_by_role("backlight")
-        self._diffractometer = self.get_object_by_role("diffractometer")
-
         self._ui_snapshot_cb = None
 
         self.hide_grid_threshold = self.get_property("hide_grid_threshold", 5)
-        for motor_name, motor_ho in self._diffractometer.get_motors().items():
+        for motor_name, motor_ho in HWR.beamline.diffractometer.get_motors().items():
             if motor_ho:
                 motor_ho.connect("stateChanged", self._update_shape_positions)
 
@@ -72,7 +65,7 @@ class SampleView(AbstractSampleView):
         if shapes_updated:
             self.emit("shapesChanged")
 
-        for motor_name, motor_ho in self._diffractometer.get_motors().items():
+        for motor_name, motor_ho in HWR.beamline.diffractometer.get_motors().items():
             motor_ho.connect("stateChanged", self._update_shape_positions)
 
     def _update_shape_positions(self, *args, **kwargs):

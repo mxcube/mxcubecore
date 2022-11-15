@@ -299,6 +299,7 @@ def init_hardware_repository(configuration_path):
     _instance = __HardwareRepositoryClient(configuration_path)
     _instance.connect()
     beamline = load_from_yaml(BEAMLINE_CONFIG_FILE, role="beamline")
+    beamline._hwr_init_done()
 
 
 def uninit_hardware_repository():
@@ -442,6 +443,7 @@ class __HardwareRepositoryClient:
             else:
                 if hwobj_instance is not None:
                     self.xml_source[hwobj_name] = xml_data
+
                     dispatcher.send("hardwareObjectLoaded", hwobj_name, self)
 
                     def hardwareObjectDeleted(name=hwobj_instance.name()):

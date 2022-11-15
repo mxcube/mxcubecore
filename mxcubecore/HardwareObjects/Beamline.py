@@ -27,13 +27,15 @@ All HardwareObjects
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
+from typing import Union
+
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
 import logging
 
-from mxcubecore.BaseHardwareObjects import ConfiguredObject
+from mxcubecore.BaseHardwareObjects import ConfiguredObject, HardwareObject
 
 # NBNB The acq parameter names match the attributes of AcquisitionParameters
 # Whereas the limit parmeter values use more udnerstandable names
@@ -122,9 +124,13 @@ class Beamline(ConfiguredObject):
         # List of undulators
         self.undulators = []
 
+        # Dictionary with the python id of hardwareobject as key 
+        # and the "dotted/attribute path" to hardwareobject from the 
+        # Beamline object
+        self._hardware_object_id_dict = {}
+
     def init(self):
         """Object initialisation - executed *after* loading contents"""
-
         # Validate acquisition parameters
         for acquisition_type, params in self.default_acquisition_parameters.items():
             unrecognised = [x for x in params if x not in self.SUPPORTED_ACQ_PARAMETERS]
@@ -143,6 +149,81 @@ class Beamline(ConfiguredObject):
             logging.getLogger("HWR").warning(
                 "Unrecognised parameter limits for: %s" % unrecognised
             )
+
+    def _hwr_init_done(self):
+        """
+        Method called after the initialization of HardwareRepository is done
+        (when all HardwreObjects have been created and initialized)
+        """
+        self._hardware_object_id_dict = self._get_id_dict()
+
+    def get_id(self, ho: HardwareObject) -> str:
+        """
+        Returns "dotted path/attribute" which is unique within the context of
+        HardwareRepository
+
+        Args:
+            ho: The hardware object for which to get the id
+
+        Returns:
+            "dotted path/attribute"
+        """
+        return self._hardware_object_id_dict.get(ho)
+
+    def get_hardware_object(self, _id: str) -> Union[HardwareObject, None]:
+        """
+        Returns the HardwareObject with the given id
+
+        Args:
+            _id: "attribute path" / id of HardwareObject
+        Returns:
+            HardwareObject with the given id
+        """
+        found_ho = None
+
+        for current_ho, current_id in self._hardware_object_id_dict.items():
+            if current_id == _id:
+                found_ho = current_ho
+
+        return found_ho
+
+    def _get_id_dict(self) -> dict:
+        """
+        Wrapper function used to call the recursive method used to find all 
+        HardwareObjects accessible from the Beamline object.
+        """
+        result = {}
+
+        for ho_name in self.all_roles:
+            ho = self._objects.get(ho_name)
+
+            if ho:
+                result[ho] = ho_name
+                self._get_id_dict_rec(ho, ho_name, result)
+
+        return result
+
+    def _get_id_dict_rec(self, ho: HardwareObject, _path: str="", result: dict = {}) -> str:
+        """
+        Recurses through all the roles of ho and constructs its corresponding 
+        "dotted path/attribute"
+
+        Args:
+            ho (HardwreObject): The HardwareObject to get the id for
+            _path (str): Current path (used in recursion)
+            result: A dictionary where the key is the id of the HardwareObject
+                    and the value its dotted path.
+
+        Returns:
+            (str): Dotted path for the given HardwareObject
+        """
+        if hasattr(ho, "get_roles"):
+            for role in ho.get_roles():
+                child_ho = ho.get_object_by_role(role)
+                if child_ho not in result:
+                    result[child_ho] = self._get_id_dict_rec(child_ho, f"{_path}.{role}", result)
+
+        return _path
 
     # NB this function must be re-implemented in nested subclasses
     @property
