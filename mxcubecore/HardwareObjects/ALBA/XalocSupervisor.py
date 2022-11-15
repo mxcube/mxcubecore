@@ -118,6 +118,10 @@ class XalocSupervisor(Device):
     def go_beam_view(self):
         return self.cmd_go_beam_view()
 
+
+    def get_phase(self):
+        return self.current_phase
+
     def get_state(self):
         try:
             _value = self.chan_state.get_value()

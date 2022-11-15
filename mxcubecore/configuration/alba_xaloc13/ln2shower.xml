@@ -4,7 +4,8 @@
 
   <object href="/supervisor" role="beamline-supervisor"/>
   
-  <channel type="sardana" polling="500" name="operation_mode">operation</channel>
+  <channel type="sardana" polling="1000" name="operation_mode">operation</channel>
+  <channel type="sardana" polling="1000" name="State">State</channel>
   
   <wash_mounted_crystals>False</wash_mounted_crystals>
   

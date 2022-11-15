@@ -19,23 +19,23 @@
 
 """
 [Name]
-XalocMiniDiff
+Liquid nitrogen shower hardware object
 
 [Description]
-Specific HwObj for M2D2 diffractometer @ ALBA
+Specific HwObj for the liquid nitrogen pump installed at XALOC to wash the crystal
 
 [Emitted signals]
-- pixelsPerMmChanged
-- kappaMotorMoved
-- phiMotorMoved
-- stateChanged
-- zoomMotorPredefinedPositionChanged
-- minidiffStateChanged
-- minidiffPhaseChanged
+- ln2showerIsPumpingChanged
+- ln2showerFault
+
+TODO: when the dewar is empty, the operation is INVALID and the State is FAULT
 """
 
 import logging
 import PyTango
+import time
+
+from taurus.core.tango.enums import DevState
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -58,7 +58,9 @@ class XalocLN2Shower(HardwareObject):
 
         self.username = None
         self.chn_operation_mode = None
+        self.chn_state = None
         self.operation_mode = None
+        self.state = None
         self.is_pumping_attr = None
         self.cmd_ln2shower_wash = None
         self.cmd_ln2shower_cold = None
@@ -78,8 +80,10 @@ class XalocLN2Shower(HardwareObject):
     def init(self):
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
         self.username = self.get_property("username")
+        self.wash_mounted_crystals = self.get_property("wash_mounted_crystals")
         
         self.chn_operation_mode = self.get_channel_object("operation_mode")
+        self.chn_state = self.get_channel_object("State")
         
         self.cmd_ln2shower_wash = self.get_command_object("ln2shower_wash")
         self.cmd_ln2shower_cold = self.get_command_object("ln2shower_cold")
@@ -87,7 +91,6 @@ class XalocLN2Shower(HardwareObject):
         self.cmd_ln2shower_on = self.get_command_object("ln2shower_on")
         self.cmd_ln2shower_off = self.get_command_object("ln2shower_off")
         self.cmd_ln2shower_sleep = self.get_command_object("ln2shower_sleep")
-        self.wash_mounted_crystals = self.get_property("wash_mounted_crystals")
 
         if HWR.beamline.sample_changer is not None:
             self.robot_path_is_safe = HWR.beamline.sample_changer.path_safe()
@@ -104,6 +107,8 @@ class XalocLN2Shower(HardwareObject):
         self.super_hwobj = self.get_object_by_role('beamline-supervisor')
 
         self.connect(self.chn_operation_mode, "update", self.operation_mode_changed)
+        self.connect(self.chn_state, "update", self.state_changed)
+        
         if HWR.beamline.collect is not None:
             self.connect(
                 HWR.beamline.collect, "collectStarted", self.collect_started
@@ -143,9 +148,10 @@ class XalocLN2Shower(HardwareObject):
         self.super_hwobj.wait_ready(timeout = 30)
         if not self.collecting:
             if HWR.beamline.diffractometer.get_current_phase() != HWR.beamline.diffractometer.PHASE_TRANSFER:
-                HWR.beamline.diffractometer.set_phase( HWR.beamline.diffractometer.PHASE_TRANSFER, timeout = 20 )
-            if HWR.beamline.diffractometer.get_current_phase() == HWR.beamline.diffractometer.PHASE_TRANSFER:
+                HWR.beamline.diffractometer.set_diff_phase( HWR.beamline.diffractometer.PHASE_TRANSFER, timeout = 20 )
+            if HWR.beamline.diffractometer.get_diff_phase() == HWR.beamline.diffractometer.PHASE_TRANSFER:
                 self.cmd_ln2shower_wash(washflow, wait = False)
+                return True
             else:
                 return False
         else:
@@ -158,14 +164,31 @@ class XalocLN2Shower(HardwareObject):
         self.cmd_ln2shower_off(wait = False)
 
     def operation_mode_changed(self, value):
-        if self.operation_mode != int( value ):
-            self.operation_mode = int( value )
+        """
+          value can be None!
+        """
+        if value is not None: value = int(value)
+        if self.operation_mode != value:
+            self.operation_mode = value
             if self.operation_mode in [3]:
                 self.is_pumping_attr = True
             else:
                 self.is_pumping_attr = False
             self.emit("ln2showerIsPumpingChanged", self.is_pumping_attr)
  
+    def state_changed(self, value):
+        """
+          value can be DevState.FAULT, DevState.ON
+        """
+        if value is not None: 
+	    if self.state != value:
+		self.state = value
+		self.emit("stateChanged", self.state)
+		if value in [DevState.FAULT]:
+		    self.emit("ln2showerFault", True)
+		else:
+		    self.emit("ln2showerFault", False)
+    
     def is_pumping(self):
         return self.is_pumping_attr
 
@@ -180,7 +203,8 @@ class XalocLN2Shower(HardwareObject):
         """
         time_margin = 2 # waiting time between detecting change of sample and turning off the shower
         if self.sample_changer_loading:
-            time.sleep( time_margin ) # give the CATS time to load the next (in case of getput)
-            self.run_ln2shower_off()
+            if self.wash_mounted_crystals:
+                time.sleep( time_margin ) # give the CATS time to load the next (in case of getput)
+                self.run_ln2shower_off()
             self.sample_changer_loading = False
             
