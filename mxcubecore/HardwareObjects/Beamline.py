@@ -220,8 +220,8 @@ class Beamline(ConfiguredObject):
         if hasattr(ho, "get_roles"):
             for role in ho.get_roles():
                 child_ho = ho.get_object_by_role(role)
-                if id(child_ho) not in result:
-                    result[id(child_ho)] = self._get_id_dict_rec(child_ho, f"{_path}.{role}", result)
+                if child_ho not in result:
+                    result[child_ho] = self._get_id_dict_rec(child_ho, f"{_path}.{role}", result)
 
         return _path
 
