@@ -247,7 +247,6 @@ class GphlWorkflow(HardwareObjectYaml):
         """
         gphl_workflow_hwr = HWR.beamline.gphl_workflow
         workflow_parameters = data_model.get_workflow_parameters()
-        fields = {}
         schema = {
             "title": "GΦL Pre-strategy parameters",
             "type": "object",
@@ -413,8 +412,10 @@ class GphlWorkflow(HardwareObjectYaml):
                 data_model.cell_parameters
             ):
                 fields[tag]["default"] = val
+
         ui_schema = {
             "ui:order": ["crystal_data", "parameters"],
+            "ui:widget": "vertical_box",
             "crystal_data": {
                 "ui:widget": "column_grid",
                 "ui:order": ["cell_edges", "cell_angles", "symmetry"],
@@ -462,7 +463,6 @@ class GphlWorkflow(HardwareObjectYaml):
                     },
                 },
                 "column2": {
-                    "ui:widget": "vertical_box",
                     "ui:order": [
                         "use_cell_for_processing",
                         "resolution",
@@ -502,9 +502,10 @@ class GphlWorkflow(HardwareObjectYaml):
         for ii,sss in enumerate(energy_tags):
             fields[tags[ii]]["title"] = "%s beam energy (keV)" % sss
         for ii in range(len(energy_tags), len(tags)):
-            ui_schema["params"]["column2"][tags[ii]]["hidden"] = True
+            ui_schema["parameters"]["column2"][tags[ii]]["hidden"] = True
 
         self._return_parameters = gevent.event.AsyncResult()
+
         try:
             responses = dispatcher.send(
                 "gphlJsonParametersNeeded",
@@ -591,6 +592,9 @@ class GphlWorkflow(HardwareObjectYaml):
             # NB set defaults from data_model
             # NB consider whether to override on None
             params = self.query_pre_strategy_params(data_model)
+            if params is StopIteration:
+                self.workflow_failed()
+
         data_model.set_pre_strategy_params(**params)
         if data_model.detector_setting is None:
             resolution = HWR.beamline.resolution.get_value()
@@ -672,17 +676,17 @@ class GphlWorkflow(HardwareObjectYaml):
 
     # Message handlers:
 
-    def workflow_aborted(self, payload, correlation_id):
+    def workflow_aborted(self, payload=None, correlation_id=None):
         logging.getLogger("user_level_log").warning("GPhL Workflow aborted.")
         self.update_specific_state(self.SPECIFIC_STATES.ABORTED)
         self._workflow_queue.put_nowait(StopIteration)
 
-    def workflow_completed(self, payload, correlation_id):
+    def workflow_completed(self, payload=None, correlation_id=None):
         logging.getLogger("user_level_log").info("GPhL Workflow completed.")
         self.update_specific_state(self.SPECIFIC_STATES.COMPLETED)
         self._workflow_queue.put_nowait(StopIteration)
 
-    def workflow_failed(self, payload, correlation_id):
+    def workflow_failed(self, payload=None, correlation_id=None):
         logging.getLogger("user_level_log").warning("GPhL Workflow failed.")
         self.update_specific_state(self.SPECIFIC_STATES.FAULT)
         self._workflow_queue.put_nowait(StopIteration)
