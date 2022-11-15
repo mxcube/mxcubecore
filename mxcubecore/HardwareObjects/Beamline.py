@@ -170,7 +170,7 @@ class Beamline(ConfiguredObject):
         """
         return self._hardware_object_id_dict.get(ho)
 
-    def get_ho(self, _id: str) -> Union[HardwareObject, None]:
+    def get_hardware_object(self, _id: str) -> Union[HardwareObject, None]:
         """
         Returns the HardwareObject with the given id
 
