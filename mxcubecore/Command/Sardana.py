@@ -433,7 +433,7 @@ class SardanaChannel(ChannelObject, SardanaObject):
             except Exception:
                 import traceback
 
-                logging.getLogger("HWR").info("info initialized. Cannot get limits")
+                logging.getLogger("HWR").info("info initialized for Sardana channel %s. Cannot get limits" % self.model)
                 logging.getLogger("HWR").info("%s" % traceback.format_exc())
 
         # prepare polling
@@ -447,6 +447,9 @@ class SardanaChannel(ChannelObject, SardanaObject):
 
     def get_value(self):
         return self._read_value()
+
+    def force_get_value(self):
+        return self._force_read_value()
 
     def set_value(self, new_value):
         self._write_value(new_value)
@@ -467,6 +470,14 @@ class SardanaChannel(ChannelObject, SardanaObject):
                 value = magnitude
             except Exception:
                 value = self.attribute.rvalue
+        return value
+
+    def _force_read_value(self):
+        value = None
+        if taurus.Release.version_info[0] == 3: # not sure if this works in versions of taurus 3 and below
+            value = self.attribute.read(cache=False).value
+        elif taurus.Release.version_info[0] > 3:  # taurus 4 and beyond
+            value = self.attribute.read(cache=False).rvalue
         return value
 
     def get_info(self):
