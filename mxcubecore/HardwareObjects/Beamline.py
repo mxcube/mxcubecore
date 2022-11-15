@@ -27,6 +27,8 @@ All HardwareObjects
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
+from typing import Union
+
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
@@ -161,12 +163,29 @@ class Beamline(ConfiguredObject):
         HardwareRepository
 
         Args:
-            ho (HardwareObject): The hardware object for which to get the id
+            ho: The hardware object for which to get the id
 
         Returns:
-            (str): Returns "dotted path/attribute"
+            "dotted path/attribute"
         """
-        return self._hardware_object_id_dict.get(id(ho))
+        return self._hardware_object_id_dict.get(ho)
+
+    def get_ho(self, _id: str) -> Union[HardwareObject, None]:
+        """
+        Returns the HardwareObject with the given id
+
+        Args:
+            _id: "attribute path" / id of HardwareObject
+        Returns:
+            HardwareObject with the given id
+        """
+        found_ho = None
+
+        for current_ho, current_id in self._hardware_object_id_dict.items():
+            if current_id == _id:
+                found_ho = current_ho
+
+        return found_ho
 
     def _get_id_dict(self) -> dict:
         """
@@ -179,7 +198,7 @@ class Beamline(ConfiguredObject):
             ho = self._objects.get(ho_name)
 
             if ho:
-                result[id(ho)] = ho_name
+                result[ho] = ho_name
                 self._get_id_dict_rec(ho, ho_name, result)
 
         return result
