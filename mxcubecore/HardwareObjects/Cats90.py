@@ -418,8 +418,11 @@ class Cats90(SampleChanger):
         try:
             self.basket_types = self.cats_device.read_attribute("CassetteType").value
             self.number_of_baskets = len(self.basket_types)
-        except PyTango.DevFailed:
-            pass
+        except PyTango.DevFailed as e:
+            logging.getLogger("HWR").warning(
+                "Device failed with error %s" % (e)
+            )  
+            #pass
 
         # find number of baskets and number of samples per basket
         if self.number_of_baskets is not None:

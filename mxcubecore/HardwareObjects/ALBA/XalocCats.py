@@ -99,14 +99,14 @@ class XalocCats(Cats90):
         self._cmdClearMemory = None
         self._cmdSetTool = None
 
+        self._cmdCATSRecovery = None
+
         self.cats_ri2 = None
 
         self.auto_prepare_diff = None
         self.mount_and_pick = None
         self.sample_can_be_centered = None
         
-        self.logger.debug("unipuck_tool property = %s" % self.get_property("unipuck_tool") )
-
     def init(self):
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
         Cats90.init(self)
@@ -146,9 +146,13 @@ class XalocCats(Cats90):
         self._cmdSetTool = self.get_command_object("_cmdSetTool")
         self._cmdSetTool2 = self.get_command_object("_cmdSetTool2")
 
+        self._cmdCATSRecovery = self.get_command_object("macro_cats_recovery")
+
         self.auto_prepare_diff = self.get_property("auto_prepare_diff")
         self.mount_and_pick = False 
         self.sample_can_be_centered = True
+
+        self.logger.debug("unipuck_tool property = %s" % self.get_property("unipuck_tool") )
 
         if self._chnIsCatsRI2 is not None:
             self._chnIsCatsRI2.connect_signal("update", self._cats_ri2_changed)
@@ -196,8 +200,12 @@ class XalocCats(Cats90):
         #self._update_state()
 
     def _cats_ri2_changed(self, value):
+        logging.getLogger("HWR").debug("Cats ri2 change, is %s" % 
+                                    str(value) 
+        )
+
         if value is not None:
-            self._cats_ri2 = value
+            self.cats_ri2 = value
 
     def is_ready(self):
         """
@@ -843,6 +851,7 @@ class XalocCats(Cats90):
         @sample_slot:
         @shifts: mounting position
         """
+        self.logger.error("checking power")
         if not self._chnPowered.get_value():
             try: self._cmdPowerOn()  # try switching power on
             except Exception as e:
@@ -850,6 +859,7 @@ class XalocCats(Cats90):
 
         #TODO: wait for cats poweron
 
+        self.logger.error("diff send transfer")
         ret = self.diff_send_transfer()
 
         if ret is False:
@@ -956,7 +966,20 @@ class XalocCats(Cats90):
 
         return True, ""
 
+    def _update_loaded_sample(self, sample_num=None, lid=None):
+        """
+        Reads the currently mounted sample basket and pin indices from the CATS Tango DS,
+        translates the lid/sample notation into the basket/sample notation and marks the
+        respective sample as loaded.
 
+        :returns: None
+        :rtype: None
+        """
+        if not self._chnSampleIsDetected.get_value():
+            Cats90._update_loaded_sample(self, -1, -1)
+        else:
+            Cats90._update_loaded_sample(self, sample_num, lid)
+            
     def _get_shifts(self):
         """
         Get the mounting position from the Diffractometer DS.
@@ -1026,20 +1049,7 @@ class XalocCats(Cats90):
         self.recover_cats_from_failed_put()
 
     def recover_cats_blocked_in_RI2(self):
-            can_be_powered = False
-            if self.read_super_phase().upper() != 'TRANSFER':
-                self.go_transfer_cmd()
-                self._wait_super_ready()
-                if self.read_super_phase().upper() == 'TRANSFER':
-                    can_be_powered = True
-            if str(self.super_cryopos_channel.get_value()).upper() == "SAMPIN":
-                if self.wait_super_cryoposition_out():
-                    can_be_powered = True
-                else:
-                    can_be_powered = False
-            if can_be_powered: self._cmdPowerOn()
-            else: raise Exception("The robot is stuck and can not be recovered automatically, call LC or floor")
-        
+        self._cmdCATSRecovery(wait = True)
 
     def recover_cats_from_failed_put(self):
         """
@@ -1143,6 +1153,7 @@ class XalocCats(Cats90):
         :returns: None
         :rtype: None
         """
+        logging.getLogger("HWR").debug("XalocCats. executing method %s " % str(method))
         self._wait_device_ready(3.0)
         try:
             task_id = method(*args)
@@ -1156,7 +1167,7 @@ class XalocCats(Cats90):
 
         waitsafe = kwargs.get('waitsafe',False)
         waitfinished = kwargs.get('waitfinished',False)
-        logging.getLogger("HWR").debug("Cats90. executing method %s / task_id %s / waiting only for safe status is %s" % (str(method), task_id, waitsafe))
+        logging.getLogger("HWR").debug("XalocCats. executing method %s / task_id %s / waiting only for safe status is %s" % (str(method), task_id, waitsafe))
         
         # What does the first part of the if do? It's not resetting anything...
         ret=None
@@ -1179,13 +1190,15 @@ class XalocCats(Cats90):
                 if not self._chnCollisionSensorOK.get_value(): 
                     # Should the exception be raised here?? It is also done in _do_load
                     self._update_state()
+                    logging.getLogger("HWR").debug("Cats90. server execution polling finished as path is safe")
                     raise Exception ("The robot had a collision, call your LC or floor coordinator")
                 elif not self.cats_powered and self.cats_ri2:
                     # CATS is blocked in front of diff
+                    logging.getLogger("HWR").debug("Cats90. Robot blocked in front of diff, attempting a recovery")
                     self.recover_cats_blocked_in_RI2()
                 # in case nothing is happening. The check for RI1 is because there is a transient loss of sample info when changing samples
-                if not self._check_unknown_sample_presence()[0] and not self._chnIsCatsRI1.get_value():
-                    break
+                #if not self._check_unknown_sample_presence()[0] and not self._chnIsCatsRI1.get_value():
+                    #break
                 gevent.sleep(0.1)            
             ret = True
         return ret
