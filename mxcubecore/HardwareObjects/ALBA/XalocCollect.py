@@ -109,17 +109,9 @@ class XalocCollect(AbstractCollect):
         self.flux_hwobj = None
         self.aborted_by_user = None
         
-        #
-        #
-        # START of 20210218: Lines only necessary for ni660 collects, remove when switching to pure meshct/ascanct scans   
         self.cmd_ni_conf = None
         self.cmd_ni_unconf = None
-        # END of lines for ni660 scans
-        #
-        #
 
-        #self.cmd_ni_conf = None
-        #self.cmd_ni_unconf = None
         self.set_pilatus_saving_pattern = None
         self.ascanct = None
         self.meshct = None
@@ -292,23 +284,170 @@ class XalocCollect(AbstractCollect):
 
         self.rescorner = self.get_channel_object("rescorner_position")
 
-    # TODO: the idea here is to detect that the DS is blocked. 
-    #   However, this depends on the Sardana channel throwing an error when a read is tried, which doesnt seem to happen
-    #   see comments in Command/Sardana.py
+    #TODO: there is something wrong with throwing exeptions in do_collect, see data_collection_failed for details
     #def do_collect(self, owner):
         #"""
-        #Reimplemented to get error messages to user
+            #Reimplemented to do ALBA checks
         #"""
+        
+        #self.user_logger.info("Collection: Preparing to collect")
+        #self.emit("collectReady", (False,))
+        #self.emit(
+            #"collectOscillationStarted",
+            #(owner, None, None, None, self.current_dc_parameters, None),
+        #)
+        #self.emit("progressInit", ("Collection", 100, False))
+        #self.collection_id = None
+
         #try:
-            #self.supervisor_hwobj.get_state()
+            # TODO: the idea here is to detect that the DS is blocked. 
+            #   However, this depends on the Sardana channel throwing an error when a read is tried, which doesnt seem to happen
+            #   see comments in Command/Sardana.py
+            #try:
+                #self.supervisor_hwobj.get_state()
+            #except:
+                #errormsg = "Cannot read state of supervisor. Check bl13/eh/supervisor"
+                #self.data_collection_failed( Exception(errormsg), errormsg )
+            #try:
+                #self.diffractometer_hwobj.get_state()
+            #except:
+                #errormsg = "Cannot read state of diffractometer. Check bl13/eh/diff"
+                #self.data_collection_failed( Exception(errormsg), errormsg )
+
+            ## ----------------------------------------------------------------
+            ## Prepare data collection
+
+            #self.open_detector_cover()
+            #self.open_safety_shutter()
+            #self.open_fast_shutter()
+
+            ## ----------------------------------------------------------------
+            ## Store information in LIMS
+
+            #self.current_dc_parameters["status"] = "Running"
+            #self.current_dc_parameters["collection_start_time"] = time.strftime(
+                #"%Y-%m-%d %H:%M:%S"
+            #)
+
+            #self.user_logger.info("Collection: Storing data collection in LIMS")
+            #self.store_data_collection_in_lims()
+
+            ##CHECK if files exist, exit if true
+            #full_path = self.get_image_file_name( 
+                    #self.current_dc_parameters['oscillation_sequence'][0]['start_image_number'] 
+                #)
+            #if os.path.exists( full_path ):
+                #msg = "Filename already exists"
+                #self.data_collection_failed( Exception(msg) , msg )
+
+            #self.logger.info(
+                #"Collection parameters: %s" % str(self.current_dc_parameters)
+            #)
+
+            #if (
+                #self.current_dc_parameters['processing_online']
+                #and HWR.beamline.online_processing is not None
+            #):
+                #HWR.beamline.online_processing.params_dict["collection_id"] = self.current_dc_parameters["collection_id"] 
+                #self.online_processing_task = gevent.spawn(
+                    #HWR.beamline.online_processing.run_processing, 
+                    #self.current_dc_parameters
+                #)
+
+            #self.user_logger.info(
+                #"Collection: Creating directories for raw images and processing files"
+            #)
+            #self.create_file_directories()
+
+            #self.user_logger.info("Collection: Getting sample info from parameters")
+            #self.get_sample_info()
+
+            #self.user_logger.info("Collection: Storing sample info in LIMS")
+            #self.store_sample_info_in_lims()
+
+            #if all(
+                #item is None for item in self.current_dc_parameters["motors"].values()
+            #):
+                ## No centring point defined
+                ## create point based on the current position
+                #current_diffractometer_position = (
+                    #HWR.beamline.diffractometer.get_positions()
+                #)
+                #for motor in self.current_dc_parameters["motors"].keys():
+                    #self.current_dc_parameters["motors"][
+                        #motor
+                    #] = current_diffractometer_position.get(motor)
+
+            ## ----------------------------------------------------------------
+            ## Move to the centered position and take crystal snapshots
+
+            #self.user_logger.info("Collection: Moving to centred position")
+            #self.move_to_centered_position()
+            #self.take_crystal_snapshots()
+            #self.move_to_centered_position()
+
+            ## ----------------------------------------------------------------
+            ## Set data collection parameters
+
+            #if "transmission" in self.current_dc_parameters:
+                #self.user_logger.info(
+                    #"Collection: Setting transmission to %.2f",
+                    #self.current_dc_parameters["transmission"],
+                #)
+                #self.set_transmission(self.current_dc_parameters["transmission"])
+
+            #if "wavelength" in self.current_dc_parameters:
+                #self.user_logger.info(
+                    #"Collection: Setting wavelength to %.4f",
+                    #self.current_dc_parameters["wavelength"],
+                #)
+                #self.set_wavelength(self.current_dc_parameters["wavelength"])
+
+            #elif "energy" in self.current_dc_parameters:
+                #self.user_logger.info(
+                    #"Collection: Setting energy to %.4f",
+                    #self.current_dc_parameters["energy"],
+                #)
+                #self.set_energy(self.current_dc_parameters["energy"])
+
+            #dd = self.current_dc_parameters.get("resolution")
+            #if dd and dd.get('upper'):
+                #resolution = dd["upper"]
+                #self.user_logger.info("Collection: Setting resolution to %.3f", resolution)
+                #self.set_resolution(resolution)
+
+            #elif "detector_distance" in self.current_dc_parameters:
+                #self.user_logger.info(
+                    #"Collection: Moving detector to %.2f",
+                    #self.current_dc_parameters["detector_distance"],
+                #)
+                #self.move_detector(self.current_dc_parameters["detector_distance"])
+
+            ## ----------------------------------------------------------------
+            ## Site specific implementation of a data collection
+
+            ## In order to call the hook with original parameters
+            ## before update_data_collection_in_lims changes them
+            ## TODO check why this happens
+
+            #self.data_collection_hook()
+
+            ## ----------------------------------------------------------------
+            ## Store information in LIMS
+
+            #self.user_logger.info("Collection: Updating data collection in LIMS")
+            #self.update_data_collection_in_lims()
+
         #except:
-            #errormsg = "Cannot read state of supervisor. Check bl13/eh/supervisor"
-            #self.data_collection_failed( Exception(errormsg), errormsg )
-        #try:
-            #self.diffractometer_hwobj.get_state()
-        #except:
-            #errormsg = "Cannot read state of diffractometer. Check bl13/eh/diff"
-            #self.data_collection_failed( Exception(errormsg), errormsg )
+            #exc_type, exc_value, exc_tb = sys.exc_info()
+            #failed_msg = "Data collection failed!\n%s" % exc_value
+            #self.collection_failed(failed_msg)
+        #else:
+            #self.collection_finished()
+        #finally:
+            #self.data_collection_cleanup()
+
+
         #AbstractCollect.do_collect(self,owner)
 
     def data_collection_hook(self):
@@ -317,7 +456,6 @@ class XalocCollect(AbstractCollect):
 
         self.logger.info("Running Xaloc data collection hook")
         
-        
         #CHECK if files exist, exit if true
         full_path = self.get_image_file_name( 
                 self.current_dc_parameters['oscillation_sequence'][0]['start_image_number'] 
@@ -325,6 +463,10 @@ class XalocCollect(AbstractCollect):
         if os.path.exists( full_path ):
             msg = "Filename already exists"
             self.data_collection_failed( Exception(msg) , msg )
+
+        self.senv('MXCollectDir', self.current_dc_parameters['fileinfo']['directory'], wait=True)
+        self.senv('MXCollectPrefix', self.current_dc_parameters['fileinfo']['prefix'], wait=True)
+        self.senv('MXRunNumber', self.current_dc_parameters['fileinfo']['run_number'], wait=True)
         
         if not self.resolution_hwobj.is_ready(): 
             self.logger.info("Waiting for resolution ready...")
@@ -847,7 +989,10 @@ class XalocCollect(AbstractCollect):
         try:
             if math.fabs(self.omega_hwobj.get_value() - omega_pos) > 0.0001:
                 self.omega_hwobj.set_value( omega_pos, timeout = 30 )
-                self.omega_hwobj.wait_end_of_move( timeout = 30 )
+                # TODO: check why both of the following checks  are necessary for the omega to be ready
+                self.omega_hwobj.wait_end_of_move( timeout = 30 )
+                self.omega_hwobj.wait_ready( timeout = 2 )
+
         except Exception as e :
             self.logger.info("Omega state is %s" % str(self.omega_hwobj.get_state()))
             self.data_collection_failed( e, 'Omega position could not be set' )
@@ -889,10 +1034,10 @@ class XalocCollect(AbstractCollect):
 
     def data_collection_failed(self, exception, failed_msg="XalocCollect: data_collection_failed"):
         self.user_logger.error(failed_msg)
-        self.logger.debug("Data collection failed with error %s" % str(e) )
+        self.logger.debug("Data collection failed with error %s" % str( exception ) )
         self.logger.debug("  Initiating recovery sequence")
         self.stop_collect() # is it necessary to call this, or is it called through events? If it is not
-        self.collection_failed(failed_msg)
+        #TODO: this fails with list index out of range QueueManager line 149
         #raise Exception( exception )
 
     def prepare_acquisition(self):
@@ -961,9 +1106,9 @@ class XalocCollect(AbstractCollect):
             detok = self.detector_hwobj.prepare_acquisition(self.current_dc_parameters)
             self.logger.info("Prepared detector for acquistion, detok = %s" % str( detok ) )
         except Exception as e:
-            self.logger.error( "Cannot prepare the detector for acquisition" )
             msg = "Cannot prepare the detector for acquisition"
-            self.data_collection_failed( Exception(msg), msg )
+            self.logger.error( msg )
+            self.data_collection_failed( e, msg )
 
         if not detok:
             msg = "Cannot prepare the detector for acquisition" 
@@ -1268,7 +1413,7 @@ class XalocCollect(AbstractCollect):
         except Exception as e:
             msg = "Cannot return current phase from supervisor. Please, restart MXCuBE."
             logging.getLogger('user_level_log').error(msg)
-            self.data_collection_failed( Exception(msg), msg )
+            self.data_collection_failed( e, msg )
 
     def go_to_sampleview(self, timeout=180):
         self.wait_supervisor_ready()
@@ -1676,7 +1821,7 @@ class XalocCollect(AbstractCollect):
                 import errno
                 if e.errno != errno.EEXIST:
                     logging.getLogger('user_level_log').error('Error in making the directories, has the permission lockdown been setup properly?' )
-                    raise
+                    raise e
             
     def _create_proc_files_directory(self, proc_name):
 
@@ -1702,7 +1847,7 @@ class XalocCollect(AbstractCollect):
         except Exception as e:
             msg = "Could not create directory %s, are the file permissions setup correctly?\n%s" % (_directory, str(e))
             self.logger.exception(msg)
-            return
+            self.data_collection_failed( e, msg) 
 
         # save directory names in current_dc_parameters. They will later be used
         #  by autoprocessing.
@@ -1847,7 +1992,7 @@ class XalocCollect(AbstractCollect):
                 self.lims_client_hwobj.update_data_collection(
                     self.current_dc_parameters)
             except Exception as e:
-                logging.getLogger("HWR").exception(
+                logging.getLogger("HWR").error(
                     "Could not store data collection into ISPyB\n%s" % e)
 
     def _store_image_in_lims_by_frame_num(self, frame_number):

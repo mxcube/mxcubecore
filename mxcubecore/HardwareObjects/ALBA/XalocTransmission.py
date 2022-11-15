@@ -142,9 +142,8 @@ class XalocTransmission(Device):
     def energy_changed(self, energy_position, wavelength_position):
         #self.update_values()
         if HWR.beamline.energy.is_ready():
-            self.set_value( self.get_value() )
-            self.logger.debug("Energy changed, updating transmission to %s" % self.chan_transmission.get_value() )
-            #self.transmission_changed( self.get_value() )
+            self.logger.debug("Reading transmission after energy change")
+            self.emit( 'valueChanged', self.chan_transmission.force_get_value() )
 
 def test_hwo(hwo):
     print("Transmission is: ", hwo.get_value())
