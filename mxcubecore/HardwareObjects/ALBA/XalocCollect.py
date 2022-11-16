@@ -1343,7 +1343,8 @@ class XalocCollect(AbstractCollect):
             #Move omega to initial position to speed up collection process 
             #if self.omega_init_pos != None: # Sometiemes collection fails before omega_init_pos is set, no need to move in those cases
                 #self.omega_hwobj.set_value( self.omega_init_pos )
-            self.omega_hwobj.set_value(0)
+            if self.current_dc_parameters['experiment_type'] in ['OSC','Helical']:
+                self.omega_hwobj.set_value(0)
         except:
             self.logger.debug("Omega needs to be stopped before restoring initial position, will try this now")
             self.omega_hwobj.stop()
