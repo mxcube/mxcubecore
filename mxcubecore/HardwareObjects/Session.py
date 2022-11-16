@@ -284,10 +284,10 @@ class Session(HardwareObject):
             sample_name = sample_data.name
             protein_acronym = sample_data.crystals[0].protein_acronym
 
-        if protein_acronym:
-            subdir = "%s/%s-%s/" % (protein_acronym, protein_acronym, sample_name)
-        else:
-            subdir = "%s/" % sample_name
+        #if protein_acronym:
+        #    subdir = "%s/%s-%s/" % (protein_acronym, protein_acronym, sample_name)
+        #else:
+        subdir = "%s/" % sample_name
 
         return subdir.replace(":", "-")
 
