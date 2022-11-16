@@ -84,14 +84,14 @@ class XalocCluster(HardwareObject):
 
     def wait_done(self, job):
         state = self.manager.get_job_state(job)
-        logging.getLogger("HWR").debug("Job state is %s" % state)
+        self.logger.debug("Job state is %s" % state)
 
         while state in ["RUNNING", "PENDING"]:
-            logging.getLogger("HWR").debug("Job / is %s" % state)
+            self.logger.debug("Job / is %s" % state)
             time.sleep(0.5)
             state = self.manager.get_job_state(job)
 
-        logging.getLogger("HWR").debug(" job finished with state: \"%s\"" % state)
+        self.logger.debug(" job finished with state: \"%s\"" % state)
         return state
 
     def create_strategy_job(self, collect_id, input_file, output_dir):
@@ -119,6 +119,8 @@ class XalocCluster(HardwareObject):
                                     self.pipelines['autoproc']['script'])
         configdef = os.path.join(self._scripts_root,
                                  self.pipelines['autoproc']['configdef'])
+
+        self.logger.debug("configDef is %s" % configdef)
 
         _yml_file = create_edna_yml(str(collect_id),
                                     plugin_name,

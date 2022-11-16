@@ -139,7 +139,7 @@ class XalocEDNACharacterisation(EDNACharacterisation):
 
         jobstatus = self.job.status
 
-        self.logger.debug("Job COMPLETED")
+        self.logger.debug("Characterization Job COMPLETED")
         self.logger.debug("Status: %s" % jobstatus)
         self.logger.debug("Results file: %s" % self.results_file)
         if os.path.exists(self.results_file):
