@@ -1,8 +1,8 @@
 <object class="XalocCluster">
   <user>opbl13</user>
   <cla>claxaloc01</cla>
-  <pipelines_scripts_root>/beamlines/bl13/controls/production/git/bl13_processing</pipelines_scripts_root>
-  <!--pipelines_scripts_root>/beamlines/bl13/sdm/production/processing_xaloc</pipelines_scripts_root-->
+  <!--pipelines_scripts_root>/beamlines/bl13/controls/production/git/bl13_processing</pipelines_scripts_root-->
+  <pipelines_scripts_root>/beamlines/bl13/sdm/production/processing_xaloc</pipelines_scripts_root>
   
   <strategy_pipeline>{'plugin': 'EDPluginControlInterfaceToMXCuBEv1_3', 'script': 'edna-mx/strategy/mxcube/edna-mx.strategy.sl'}</strategy_pipeline>
   <ednaproc_pipeline>{'plugin': 'EDPluginControlEDNAprocv1_0', 'script': 'edna-mx/ednaproc/mxcube/edna-mx.ednaproc.sl'}</ednaproc_pipeline>
