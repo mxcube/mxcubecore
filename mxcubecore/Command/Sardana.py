@@ -119,7 +119,7 @@ class SardanaObject(object):
         SardanaObject._eventsProcessingTimer.send()
 
 
-class SardanaMacro(CommandObject, SardanaObject):
+class SardanaMacro(CommandObject, SardanaObject, ChannelObject):
 
     macroStatusAttr = None
     INIT, STARTED, RUNNING, DONE = range(4)
@@ -131,14 +131,16 @@ class SardanaMacro(CommandObject, SardanaObject):
         self.macro_format = macro
         self.doorname = doorname
         self.door = None
-        self.init_device()
+        self.id_result = -1
         self.macrostate = SardanaMacro.INIT
         self.doorstate = None
         self.t0 = 0
+        self.init_device()
 
     def init_device(self):
         self.door = Device(self.doorname)
         self.door.set_timeout_millis(10000)
+        self.doorstate = self.door.state.name.upper()
 
         #
         # DIRTY FIX to make compatible taurus listeners and existence of Tango channels/commands
@@ -154,6 +156,11 @@ class SardanaMacro(CommandObject, SardanaObject):
         if self.macroStatusAttr is None:
             self.macroStatusAttr = self.door.getAttribute("State")
             self.macroStatusAttr.addListener(self.object_listener)
+
+    def result_callback(self, received_event):
+        val = received_event.attr_value.value
+        if val is not None:
+            self.emit('macroResultUpdated', received_event.attr_value.value)
 
     def __call__(self, *args, **kwargs):
 
@@ -188,7 +195,9 @@ class SardanaMacro(CommandObject, SardanaObject):
             import time
 
             self.t0 = time.time()
-            if self.doorstate in ["ON", "ALARM"]:
+            if self.doorstate in ["ON", "ALARM", "READY"]:
+                self.id_result = self.door.subscribe_event('Result', PyTango.EventType.CHANGE_EVENT,
+                                self.result_callback)
                 self.door.runMacro(fullcmd.split())
                 self.macrostate = SardanaMacro.STARTED
                 self.emit("commandBeginWaitReply", (str(self.name()),))
@@ -410,16 +419,16 @@ class SardanaChannel(ChannelObject, SardanaObject):
 
         # read information
         try:
-            if taurus.Release.version_info[0] == 3:
+            if int(taurus.Release.version[0]) == 3:
                 ranges = self.attribute.getConfig().getRanges()
                 if ranges is not None and ranges[0] != "Not specified":
                     self.info.minval = float(ranges[0])
                 if ranges is not None and ranges[-1] != "Not specified":
                     self.info.maxval = float(ranges[-1])
-            elif taurus.Release.version_info[0] > 3:  # taurus 4 and beyond
-                minval, maxval = self.attribute.ranges()
-                self.info.minval = minval.magnitude
-                self.info.maxval = maxval.magnitude
+            elif int(taurus.Release.version[0]) > 3:  # taurus 4 and beyond
+                minval, maxval = self.attribute.getRange()
+                self.info.minval = minval
+                self.info.maxval = maxval
         except Exception:
             import traceback
 

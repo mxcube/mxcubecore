@@ -1,9 +1,7 @@
 import logging
 import time
-from mxcubecore.HardwareObjects.abstract.AbstractMotor import (
-    AbstractMotor,
-    MotorStates,
-)
+from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from gevent import Timeout
 
 """
@@ -29,20 +27,20 @@ class SardanaMotor(AbstractMotor):
     suffix_acceleration = "Acceleration"
 
     state_map = {
-        "ON": MotorStates.READY,
-        "OFF": MotorStates.OFF,
-        "CLOSE": MotorStates.DISABLED,
-        "OPEN": MotorStates.DISABLED,
-        "INSERT": MotorStates.DISABLED,
-        "EXTRACT": MotorStates.DISABLED,
-        "MOVING": MotorStates.MOVING,
-        "STANDBY": MotorStates.READY,
-        "FAULT": MotorStates.FAULT,
-        "INIT": MotorStates.INITIALIZING,
-        "RUNNING": MotorStates.MOVING,
-        "ALARM": MotorStates.ALARM,
-        "DISABLE": MotorStates.DISABLED,
-        "UNKNOWN": MotorStates.UNKNOWN,
+        "ON": HardwareObjectState.READY,
+        "OFF": HardwareObjectState.OFF,
+        "CLOSE": HardwareObjectState.READY,
+        "OPEN": HardwareObjectState.READY,
+        "INSERT": HardwareObjectState.BUSY,
+        "EXTRACT": HardwareObjectState.BUSY,
+        "MOVING": HardwareObjectState.BUSY,
+        "STANDBY": HardwareObjectState.WARNING,
+        "FAULT": HardwareObjectState.FAULT,
+        "INIT": HardwareObjectState.BUSY,
+        "RUNNING": HardwareObjectState.BUSY,
+        "ALARM": HardwareObjectState.WARNING,
+        "DISABLE": HardwareObjectState.WARNING,
+        "UNKNOWN": HardwareObjectState.UNKNOWN,
     }
 
     def __init__(self, name):
@@ -59,9 +57,10 @@ class SardanaMotor(AbstractMotor):
         self.limit_lower = None
         self.static_limits = (-1e4, 1e4)
         self.limits = (None, None)
-        self.motor_state = MotorStates.NOTINITIALIZED
+        self.motor_state = HardwareObjectState.UNKNOWN
 
     def init(self):
+        super().init()
 
         self.taurusname = self.get_property("taurusname")
         if not self.taurusname:
@@ -175,16 +174,22 @@ class SardanaMotor(AbstractMotor):
         if state is None:
             state = self.state_channel.get_value()
 
-        state = str(state)
+        state = str(state.name)
         motor_state = SardanaMotor.state_map[state]
 
-        if motor_state != MotorStates.DISABLED:
+        if motor_state != HardwareObjectState.BUSY:
             if self.motor_position >= self.limit_upper:
-                motor_state = MotorStates.HIGHLIMIT
+                motor_state = HardwareObjectState.OFF
             elif self.motor_position <= self.limit_lower:
-                motor_state = MotorStates.LOWLIMIT
+                motor_state = HardwareObjectState.OFF
 
-        self.set_ready(motor_state > MotorStates.DISABLED)
+        ready = motor_state.value > HardwareObjectState.BUSY.value
+        if ready and self.motor_state == HardwareObjectState.BUSY:
+            self.motor_state = HardwareObjectState.READY
+            self.emit("deviceReady")
+        elif not ready and self.motor_state == HardwareObjectState.READY:
+            self.motor_state = HardwareObjectState.BUSY
+            self.emit("deviceNotReady")
 
         if motor_state != self.motor_state:
             self.motor_state = motor_state
@@ -234,6 +239,16 @@ class SardanaMotor(AbstractMotor):
         # if abs(absolute_position - current_pos) > self.move_threshold_default:
         self.position_channel.set_value(value)
 
+    def sync_move(self, position, timeout=None):
+        """
+        Descript. : move to the given position and wait till it's reached
+        """
+        self._set_value(position)
+        try:
+            self.wait_end_of_move(timeout)
+        except:
+            raise Timeout
+
     def stop(self):
         """
         Descript. : stops the motor immediately
@@ -244,7 +259,7 @@ class SardanaMotor(AbstractMotor):
         """
         Descript. : True if the motor is currently moving
         """
-        return self.is_ready() and self.get_state() == MotorStates.MOVING
+        return self.is_ready() and self.get_state() == HardwareObjectState.BUSY
 
     motorIsMoving = is_moving
 
