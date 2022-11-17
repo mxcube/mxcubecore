@@ -3,5 +3,5 @@
     <taurusname>tango://alba03.cells.es:10000/sr/ct/gateway</taurusname>
     <channel type="sardana" name="MachStatus" polling="1000">state</channel>
     <channel type="sardana" name="MachCurrent" polling="1000">current</channel>
-    <channel type="sardana" name="TopUpRemaining" polling="1000">topupremaining</channel>
+    <channel type="sardana" taurusname="mach/ct/gateway" name="TopUpRemaining" polling="1000">topupremaining</channel>
 </equipment>

@@ -18,7 +18,8 @@
   <object href="/centring-math" role="centring"/>
   <object href="/cats" role="sample-changer"/>
   <object href="/supervisor" role="beamline-supervisor"/>
-  <object href="/beam-info" role="beam_info"/>
+  <object href="/ln2shower" role="ln2shower"/>
+  <!--object href="/beam-info" role="beam_info"/-->
   
   <sample_centring>False</sample_centring>
 
@@ -30,9 +31,10 @@
 
   <phase_list>("Transfer", "Centring", "Collect", "BeamView")</phase_list>
 
-  <channel type="sardana" taurusname="bl13/eh/supervisor" name="CurrentPhase">CurrentPhase</channel>
+  <channel type="sardana" taurusname="bl13/eh/diff" polling="500" name="CurrentPhase">CurrentPhase</channel>
   <channel type="sardana" taurusname="bl13/eh/diff" polling="500" name="State">State</channel>
   <channel type="sardana" taurusname="bl13/eh/diff" polling="500" name="omegazReference">OmegaZReference</channel>
+  <command type="sardana" taurusname="bl13/eh/diff" name="go_transfer">GoTransferPhase</command>
   <used_channels>State,CurrentPhase</used_channels>
 
   <delay_state_polling>0.2</delay_state_polling>

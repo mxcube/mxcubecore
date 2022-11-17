@@ -75,13 +75,21 @@ class XalocMiniDiff(GenericDiffractometer):
     Specific diffractometer HwObj for XALOC beamline.
     """
 
+    PHASE_TRANSFER = "Transfer"
+    PHASE_CENTRING = "Sample"
+    PHASE_COLLECTION = "Collect"
+    PHASE_BEAM = "Beam"
+    PHASE_UNKNOWN = "Unknown"
+
     def __init__(self, *args):
         GenericDiffractometer.__init__(self, *args)
         self.logger = logging.getLogger("HWR.XalocMiniDiff")
         self.userlogger = logging.getLogger("user_level_log")
         self.centring_hwobj = None
         self.super_hwobj = None
+        self.ln2shower_hwobj = None
         self.chan_state = None
+        self.chan_phase = None
         self.phi_motor_hwobj = None
         self.phiz_motor_hwobj = None
         self.phiy_motor_hwobj = None
@@ -103,13 +111,15 @@ class XalocMiniDiff(GenericDiffractometer):
         # Number of images and total angle range used in automatic centering, defined in centring-math.xml
         self.numCentringImages = None
         self.centringAngleRange = None
-        
+
+        self.cmd_go_transfer = None
 
     def init(self):
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
 
         self.centring_hwobj = self.get_object_by_role('centring')
         self.super_hwobj = self.get_object_by_role('beamline-supervisor')
+        self.ln2shower_hwobj = self.get_object_by_role('ln2shower')
 
         if self.centring_hwobj is None:
             self.logger.debug('XalocMinidiff: Centring math is not defined')
@@ -125,7 +135,10 @@ class XalocMiniDiff(GenericDiffractometer):
                 self.supervisor_phase_changed)
 
         self.chan_state = self.get_channel_object("State")
+        self.chan_phase = self.get_channel_object("CurrentPhase")
         self.connect(self.chan_state, "update", self.state_changed)
+
+        self.cmd_go_transfer = self.get_command_object("go_transfer")
 
         self.phi_motor_hwobj = self.get_object_by_role('phi')
         self.phiz_motor_hwobj = self.get_object_by_role('phiz')
@@ -292,7 +305,6 @@ class XalocMiniDiff(GenericDiffractometer):
              self.zoom_centre['x'] )/self.pixels_per_mm_x
         self.current_motor_positions["beam_y"] = (self.beam_position[1] - \
              self.zoom_centre['y'] )/self.pixels_per_mm_y
-
 
     def state_changed(self, state):
         """
@@ -677,7 +689,7 @@ class XalocMiniDiff(GenericDiffractometer):
             self.zoom_motor_hwobj.move_to_position(4)
             gevent.sleep(1) # wait for motors from previous centrings to start moving
         
-        self.wait_device_ready(20) # wait for motors from previous centrings to finish
+        self.wait_device_ready( timeout = 20) # wait for motors from previous centrings to finish
  
         #self.logger.debug('find_loop output %s' % str(self.find_loop_xaloc()) )
 
@@ -729,7 +741,7 @@ class XalocMiniDiff(GenericDiffractometer):
                     self.centringAngleRange/ ( self.numCentringImages - 1 ) )
                 self.motor_hwobj_dict['phi'].set_value( new_pos, timeout = 5 )
                 gevent.sleep(0.01)
-                self.wait_device_ready(15)
+                self.wait_device_ready( timeout = 15)
                 x, y, info, surface_score = self.find_loop_xaloc()
         #self.omega_reference_add_constraint()
         centred_pos_dict = self.centring_hwobj.centeredPosition(return_by_name=False)
@@ -1051,8 +1063,8 @@ class XalocMiniDiff(GenericDiffractometer):
              self.move_motors, motors_positions)
         self.move_to_motors_positions_procedure.link(self.move_motors_done)
         if wait:
-            self.wait_device_not_ready(50)
-            self.wait_device_ready(10)
+            self.wait_device_not_ready( timeout = 50 )
+            self.wait_device_ready( timeout = 10 )
  
     def move_motors(self, motor_positions, timeout=15):
         """
@@ -1068,7 +1080,7 @@ class XalocMiniDiff(GenericDiffractometer):
             motor_positions = motor_positions.as_dict()
 
         try:
-            self.wait_device_ready(timeout)
+            self.wait_device_ready( timeout =  timeout)
         except Exception as e:
             self.userlogger.error( str(e) )
             raise(e)
@@ -1098,7 +1110,7 @@ class XalocMiniDiff(GenericDiffractometer):
             # case of controller not reporting MOVING inmediately after cmd
             gevent.sleep(self.delay_state_polling)
 
-        self.wait_device_ready(timeout)
+        self.wait_device_ready( timeout = timeout)
 
 
  
@@ -1293,11 +1305,51 @@ class XalocMiniDiff(GenericDiffractometer):
         self.wait_device_ready()
 
     # TODO: define phases as enum members.
-    def set_phase(self, phase, timeout=None):
-        #TODO: implement timeout. Current API to fulfilll the API.
+    # TODO: this method sets the supervisor phase. Move it to supervisor
+    def set_diff_phase(self, phase, timeout=None):
+        #TODO: implement timeout. Current API to fulfill the API.
         """
         General function to set phase by using supervisor commands.
         """
+        if phase != "Transfer" and self.ln2shower_hwobj.is_pumping():
+            msg = "Cannot change to non transfer phase when the lnshower is pumping, turn off the shower first"
+            self.user_level_log.error(msg)
+            raise Exception(msg)
+        if phase == "Transfer":
+            self.go_transfer()
+        #elif phase == "Collect":
+            #self.go_collect()
+        #elif phase == "BeamView":
+            #self.go_beam_view()
+        #elif phase == "Centring":
+            #self.go_sample_view()
+        else:
+            self.logger.warning(
+                "Diffractometer set_phase asked for un-handled phase: %s" % phase
+            )
+            return
+
+        self.logger.debug(
+            "Telling diff to go to phase %s, with timeout %s" % ( phase, timeout )
+        )
+    
+        if timeout:
+            time.sleep(1)
+            self.wait_ready( timeout = timeout )
+            time.sleep(1)
+            self.logger.debug(
+                "Diff phase is %s" % ( self.get_diff_phase() )
+            )
+        
+    def set_phase(self, phase, timeout=None):
+        #TODO: implement timeout. Current API to fulfill the API.
+        """
+        General function to set phase by using supervisor commands.
+        """
+        if phase != "Transfer" and self.ln2shower_hwobj.is_pumping():
+            msg = "Cannot change to non transfer phase when the lnshower is pumping, turn off the shower first"
+            self.user_level_log.error(msg)
+            raise Exception(msg)
         if phase == "Transfer":
             self.super_hwobj.go_transfer()
         elif phase == "Collect":
@@ -1308,8 +1360,21 @@ class XalocMiniDiff(GenericDiffractometer):
             self.super_hwobj.go_sample_view()
         else:
             self.logger.warning(
-                "Diffractometer set_phase asked for un-handled phase: %s" %
-                phase)
+                "Diffractometer set_phase asked for un-handled phase: %s" % phase
+            )
+            return
+
+        self.logger.debug(
+            "Telling supervisor to go to phase %s, with timeout %s" % ( phase, timeout )
+        )
+    
+        if timeout:
+            time.sleep(1)
+            self.super_hwobj.wait_ready( timeout = timeout )
+            time.sleep(1)
+            self.logger.debug(
+                "Supervisor phase is %s" % ( self.super_hwobj.get_phase() )
+            )
     
     # Copied from GenericDiffractometer just to improve error loggin
     def wait_device_ready(self, timeout=30):
@@ -1322,6 +1387,23 @@ class XalocMiniDiff(GenericDiffractometer):
         with gevent.Timeout(timeout, Exception("Timeout waiting for Diffracometer ready, check bl13/eh/diff. Is omegax close enough to 0??")):
             while not self.is_ready():
                 time.sleep(0.01)
+                
+    def get_diff_phase(self):
+        """
+        Descript. :
+        """
+        return self.chan_phase.get_value()
+
+    def go_transfer(self):
+        self.cmd_go_transfer()
+
+
+    # TODO: move to supervisor
+    def get_current_phase(self):
+        """
+        Descript. :
+        """
+        return self.super_hwobj.get_current_phase()
 
 
 def test_hwo(hwo):
