@@ -33,7 +33,7 @@ import numpy
 import enum
 
 from typing import List, Tuple, Union
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 from mxcubecore.HardwareObjects import sample_centring
 from mxcubecore.model import queue_model_objects
