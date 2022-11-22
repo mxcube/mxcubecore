@@ -218,6 +218,7 @@ class XalocOfflineProcessing(HardwareObject):
         ednaproc_input.setInput_file(input_file)
         ednaproc_input.setData_collection_id(XSDataInteger(collection_id))
 
+        ednaproc_input.setDoAnomAndNonanom(XSDataBoolean(True))
         ednaproc_input = self.add_user_input_to_xml(ednaproc_input, dc_pars)
         
         ednaproc_input.exportToFile(ednaproc_input_file)
