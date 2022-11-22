@@ -41,6 +41,7 @@ import gevent
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.Cats90 import Cats90, SampleChangerState#, TOOL_SPINE
+from mxcubecore import HardwareRepository as HWR
 
 __credits__ = ["ALBA Synchrotron"]
 __version__ = "3"
@@ -109,6 +110,7 @@ class XalocCats(Cats90):
         
         self.sample_lid_on_tool = None
         self.sample_num_on_tool = None
+        self.changing_tool = None
         
         self.logger.debug("unipuck_tool property = %s" % self.get_property("unipuck_tool") )
 
@@ -483,8 +485,9 @@ class XalocCats(Cats90):
         self.sample_can_be_centered = True
 
         self.logger.debug(
-            "Loading sample %s / type(%s)" %
-            (sample, type(sample)))
+                "Loading sample %s / type(%s)" %
+                ( sample, type(sample) )
+            )
 
         ok, msg = self._check_incoherent_sample_info()
         if not ok:
@@ -502,7 +505,7 @@ class XalocCats(Cats90):
             use_ht = True
 
         if self.has_loaded_sample():
-            if (wash is False) and self.get_loaded_sample() == sample:
+            if (wash == False) and self.get_loaded_sample() == sample:
                 raise Exception(
                     "The sample %s is already loaded" % sample.get_address())
             else:
@@ -601,9 +604,10 @@ class XalocCats(Cats90):
 
         # get sample selection
         selected = self.get_selected_sample()
-
+        self.logger.debug("Selected sample object is %s " % selected )
+        
         self.logger.debug("Selected sample is %s (prev %s)" %
-                            (str( selected.get_address() ), str( sample.get_address() ) )
+                            ( str(selected), sample.get_address() )
                          )
 
         # RB: what does the following code do? Correct any discrepancies between selected sample and sample passed as arg??
@@ -687,7 +691,7 @@ class XalocCats(Cats90):
         if not cmd_ok:
             self.logger.info("Load Command failed on device server")
             return False
-        elif self.auto_prepare_diff and not changing_tool and not collision_occurred:
+        elif self.auto_prepare_diff and not self.changing_tool and not collision_occurred:
             self.logger.info(
                 "AUTO_PREPARE_DIFF (On) sample changer is in safe state... "
                 "preparing diff now")
@@ -735,8 +739,9 @@ class XalocCats(Cats90):
                 
         else:
             self.logger.info(
-                "AUTO_PREPARE_DIFF (Off) sample loading done / or changing tool (%s)" %
-                changing_tool)
+                                "AUTO_PREPARE_DIFF (Off) sample loading done / or changing tool (%s)" %
+                                self.changing_tool
+                            )
 
         # Check again the collision sensor in case the robot collided after being in a safe position
         if not self._chnCollisionSensorOK.get_value() or collision_occurred:
@@ -768,12 +773,12 @@ class XalocCats(Cats90):
 
         tool = self.tool_for_basket(100)  # basketno)
 
-        if tool != current_tool:
+        if tool != self.get_current_tool():
             self.logger.warning("Changing tool from %s to %s" %
-                                (current_tool, tool))
-            changing_tool = True
+                                (self.get_current_tool(), tool))
+            self.changing_tool = True
         else:
-            changing_tool = False
+            self.changing_tool = False
 
         argin = ["2", str(sample), "0", "0", xshift, yshift, zshift]
         self.logger.warning("Loading HT sample, %s" % str(argin))
@@ -795,12 +800,12 @@ class XalocCats(Cats90):
         tool = self.tool_for_basket(basketno)
         stype = self.get_cassette_type(basketno)
 
-        if tool != current_tool:
+        if tool != self.get_current_tool():
             self.logger.warning("Changing tool from %s to %s" %
-                                (current_tool, tool))
-            changing_tool = True
+                                (self.get_current_tool(), tool))
+            self.changing_tool = True
         else:
-            changing_tool = False
+            self.changing_tool = False
 
         if tool == TOOL_SPINE:
             read_barcode = self.read_datamatrix and \
@@ -812,7 +817,7 @@ class XalocCats(Cats90):
             read_barcode = False
 
         if self.has_loaded_sample():  # has a loaded but it is not an HT
-            if changing_tool:
+            if self.changing_tool:
                 raise Exception(
                     "This operation requires a tool change. You should unload"
                     "sample first")
@@ -827,12 +832,16 @@ class XalocCats(Cats90):
             )
             
         else: # no loaded sample
-            cmd_ok = self._do_nochain_load_dewar(selected, pick_sample, tool, read_barcode, xshift, yshift, zshift)
+            cmd_ok = self._do_nochain_load_dewar(selected, tool, read_barcode, xshift, yshift, zshift)
             pick_required = ( pick_sample is not None )
 
         return pick_required, cmd_ok 
     
     def _do_chain_load_dewar(self, selected, pick_sample, tool, read_barcode, xshift, yshift, zshift ):
+        """
+          do an unload followd by a load. If requested, followed by a pick
+        """
+        
         
         pick_required = False
         
@@ -912,6 +921,10 @@ class XalocCats(Cats90):
         return pick_required, cmd_ok
 
     def _do_nochain_load_dewar(self, selected, tool, read_barcode, xshift, yshift, zshift ):
+        """
+          Do a simple load, no sample to unload. If a pick is required, this should be done in a subsequent operation
+        """
+        
         basketno = selected.get_basket_no()
         sampleno = selected.get_vial_no()
 
@@ -931,7 +944,7 @@ class XalocCats(Cats90):
         argin = [
             str(tool),
             str(lid),
-            str(sample),
+            str(sampleno),
             str(stype),
             "0",
             xshift,
