@@ -133,7 +133,7 @@ class XalocISPyBClient(ISPyBClient):
                 response_samples = [
                     utf_encode(asdict(sample)) for sample in response_samples
                 ]
-                #logging.getLogger("HWR").debug("%s" % response_samples)
+                logging.getLogger("HWR").debug("%s" % response_samples)
                 # response_samples holds an array of dictionaries. Each dictionary represents a sample. 
                 # the basket location in the robot is held in the key containerSampleChangerLocation
                 # the sample location in the basket is held in the key sampleLocation
@@ -153,6 +153,30 @@ class XalocISPyBClient(ISPyBClient):
 
         return response_samples
 
+    def next_sample_by_SC_position(self, input_sample ):
+        input_sample_container = input_sample['containerSampleChangerLocation']
+        input_sample_num = input_sample['sampleLocation']
+        input_sample_type = HWR.sample_changer.basket_type[ input_sample['containerSampleChangerLocation'] ]# spine or unipuck
+        next_sample_container = HWR.sample_changer.number_of_baskets #+1 # more than max number of containers
+        next_sample_num = 1E7 # +1 # 
+        
+        sample_dict = self.get_samples( HWR.beamline.session.get_proposal(), HWR.beamline.session.session_id ) #Use self.get_session_samples???
+        next_container_found = False
+        next_container = input_sample_container
+        
+        while not next_container_found:
+            for sample in sample_list:
+                if sample['containerSampleChangerLocation'] != None:
+                    if sample['containerSampleChangerLocation'] == next_container:
+                        if sample['sampleLocation'] > input_sample_num and \
+                                sample['containerSampleChangerLocation'] < next_sample_num:
+                            next_sample_num = input_sample['sampleLocation']
+                            input_sample_container = input_sample['containerSampleChangerLocation']
+                            next_container_found = True
+            if not next_container_found: next_container += 1
+            if next_container == HWR.sample_changer.number_of_baskets: return -1,-1
+
+        return next_sample_container, next_sample_num
 
 def test_hwo(hwo):
     proposal = 'mx2018002222'
