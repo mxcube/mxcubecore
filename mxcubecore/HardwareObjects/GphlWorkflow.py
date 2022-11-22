@@ -250,7 +250,8 @@ class GphlWorkflow(HardwareObjectYaml):
         schema = {
             "title": "GΦL Pre-strategy parameters",
             "type": "object",
-            "properties": {}
+            "properties": {},
+            "definitions": {},
         }
         fields = schema["properties"]
         fields["cell_a"] = {
@@ -288,33 +289,18 @@ class GphlWorkflow(HardwareObjectYaml):
         }
         fields[ "lattice"] = {
             "title": "Lattice",
-            "type": "string",
             "default": data_model.crystal_system or "",
-            "oneOf": [
-                {
-                    "":""
-                },
-            ],
+            "$ref": "#/definitions/lattice",
         }
         fields["point_group"] = {
             "title": "Point Group",
-            "type": "string",
             "default": data_model.point_group or "",
-            "oneOf": [
-                {
-                    "":""
-                },
-            ],
+            "$ref": "#/definitions/point_group",
         }
         fields["space_group"] = {
             "title": "Space Group",
-            "type": "string",
             "default": data_model.space_group or "",
-            "oneOf": [
-                {
-                    "":""
-                },
-            ],
+            "$ref": "#/definitions/space_group",
         }
         fields["relative_rad_sensitivity"] = {
             "title": "Radiation sensitivity",
@@ -342,8 +328,7 @@ class GphlWorkflow(HardwareObjectYaml):
         }
         fields["strategy"] = {
             "title": "Strategy",
-            "type": "string",
-            "oneOf": [],
+            "$ref": "#/definitions/strategy",
 
         }
         energy_limits = HWR.beamline.energy.get_limits()
@@ -368,16 +353,28 @@ class GphlWorkflow(HardwareObjectYaml):
             "minimum": energy_limits[0],
             "maximum": energy_limits[1],
         }
-        fields["lattice"]["oneOf"].extend(
-            {"const":tag, "title": tag}
+        schema["definitions"]["lattice"] = list(
+            {
+                "type": "string",
+                "enum": [tag],
+                "title": tag,
+            }
             for tag in queue_model_enumerables.lattice2xtal_point_groups
         )
-        fields["point_group"]["oneOf"].extend(
-            {"const":tag, "title": tag}
+        schema["definitions"]["point_group"] = list(
+            {
+                "type": "string",
+                "enum": [tag],
+                "title": tag,
+            }
             for tag in queue_model_enumerables.xtal_point_groups
         )
-        fields["space_group"]["oneOf"].extend(
-            {"const":tag, "title": tag}
+        schema["definitions"]["space_group"] = list(
+            {
+                "type": "string",
+                "enum": [tag],
+                "title": tag,
+            }
             for tag in queue_model_enumerables.XTAL_SPACEGROUPS[1:]
         )
         # Handle strategy fields
@@ -397,9 +394,10 @@ class GphlWorkflow(HardwareObjectYaml):
             )
             fields["strategy"]["title"] = "Characterisation strategy"
             energy_tags = ("Characterisation",)
-        fields["strategy"]["oneOf"] = list(
+        schema["definitions"]["strategy"] = list(
             {
-                "const": tag,
+                "type": "string",
+                "enum": [tag],
                 "title": tag,
             }
             for tag in strategies
@@ -417,6 +415,7 @@ class GphlWorkflow(HardwareObjectYaml):
             "ui:order": ["crystal_data", "parameters"],
             "ui:widget": "vertical_box",
             "crystal_data": {
+                "ui:title": "Unit Cell",
                 "ui:widget": "column_grid",
                 "ui:order": ["cell_edges", "cell_angles", "symmetry"],
                 "cell_edges": {
@@ -427,18 +426,19 @@ class GphlWorkflow(HardwareObjectYaml):
                 },
                 "symmetry": {
                     "ui:order": ["lattice", "point_group", "space_group"],
-                    "lattice":{
-                        "ui:widget": "select",
-                    },
-                    "point_group":{
-                        "ui:widget": "select",
-                    },
-                    "space_group":{
-                        "ui:widget": "select",
-                    },
+                    # "lattice":{
+                    #     "ui:widget": "select",
+                    # },
+                    # "point_group":{
+                    #     "ui:widget": "select",
+                    # },
+                    # "space_group":{
+                    #     "ui:widget": "select",
+                    # },
                 },
             },
             "parameters": {
+                "ui:title": "Parameters",
                 "ui:widget": "column_grid",
                 "ui:order": ["column1", "column2"],
                 "column1": {
@@ -452,9 +452,9 @@ class GphlWorkflow(HardwareObjectYaml):
                             "decimals": 2,
                         }
                     },
-                    "strategy":{
-                        "ui:widget": "select",
-                    },
+                    # "strategy":{
+                    #     "ui:widget": "select",
+                    # },
                     "decay_limit": {
                         "ui:readonly": True,
                         "ui:options": {
@@ -2500,7 +2500,7 @@ class GphlWorkflow(HardwareObjectYaml):
         image_root = HWR.beamline.session.get_base_image_directory()
 
         if not os.path.isdir(image_root):
-            # This direstory must exist by the time the WF software checks for it
+            # This directory must exist by the time the WF software checks for it
             try:
                 os.makedirs(image_root)
             except Exception:

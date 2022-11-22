@@ -2298,7 +2298,7 @@ class GphlWorkflow(TaskNode):
         )
         self.set_name(base_prefix)
         self.path_template.suffix = (
-            params.get("suffix") or HWR.beamline.session.file_suffix
+            params.get("suffix") or HWR.beamline.session.suffix
         )
         self.path_template.num_files = 0
         self.path_template.precision = "0" + str(
