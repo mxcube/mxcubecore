@@ -34,7 +34,7 @@ class Session(HardwareObject):
         self.email_extension = None
         self.template = None
 
-        self.default_precision = "05"
+        self.default_precision = 5
         self.suffix = None
 
         self.base_directory = None
@@ -263,6 +263,33 @@ class Session(HardwareObject):
             prefix = "<acronym>-<name>"
         #
         return prefix
+
+    def get_default_subdir(self, sample_data: dict) -> str:
+        """
+        Gets the default sub-directory based on sample information
+
+        Args:
+           sample_data: Lims sample dictionary
+
+        Returns:
+           Sub-directory path string
+        """
+
+        subdir = ""
+
+        if isinstance(sample_data, dict):
+            sample_name = sample_data.get("sampleName", "")
+            protein_acronym = sample_data.get("proteinAcronym", "")
+        else:
+            sample_name = sample_data.name
+            protein_acronym = sample_data.crystals[0].protein_acronym
+
+        if protein_acronym:
+            subdir = "%s/%s-%s/" % (protein_acronym, protein_acronym, sample_name)
+        else:
+            subdir = "%s/" % sample_name
+
+        return subdir.replace(":", "-")
 
     def get_archive_directory(self):
         archive_directory = os.path.join(
