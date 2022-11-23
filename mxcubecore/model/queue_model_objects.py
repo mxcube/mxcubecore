@@ -1339,14 +1339,6 @@ class XrayCentring2(TaskNode):
         params is a dictionary with structure determined by mxcube3 usage
         """
 
-        # Set configured settings
-        # # NB settings is an internal attribute DO NOT MODIFY
-        # settings = HWR.beamline.gphl_workflow.settings
-        # self.auto_char_params = copy.deepcopy(settings.get("auto_char_params", {}))
-        # self.auto_char_params.update(params.pop("auto_char_params", {}))
-        # self.auto_acq_params = copy.deepcopy(settings.get("auto_acq_params", {}))
-        # self.auto_acq_params.update(params.pop("auto_acq_params", {}))
-
         # Set path template
         self.path_template.set_from_dict(params)
         if params["prefix"]:
@@ -1356,9 +1348,9 @@ class XrayCentring2(TaskNode):
                 sample_model
             )
         self.path_template.num_files = 0
-        self.path_template.precision = "0" + str(
-            HWR.beamline.session["file_info"].get_property("precision", 4)
-        )
+        # self.path_template.precision = "0" + str(
+        #     HWR.beamline.session["file_info"].get_property("precision", 4)
+        # )
         self.path_template.directory = os.path.join(
             HWR.beamline.session.get_base_image_directory(), params.get("subdir", "")
         )
@@ -1366,33 +1358,6 @@ class XrayCentring2(TaskNode):
             HWR.beamline.session.get_base_process_directory(),
             params.get("subdir", ""),
         )
-
-        # # First set some parameters from defaults
-        # default_parameters = HWR.beamline.get_default_acquisition_parameters()
-        # self.aimed_resolution = default_parameters.resolution
-        # self.exposure_time = default_parameters.exp_time
-        # self.image_width = default_parameters.osc_range
-        #
-        # # Set parameters from diffraction plan
-        # diffraction_plan = sample_model.diffraction_plan
-        # if diffraction_plan:
-        #     # It is not clear if diffraction_plan is a dict or an object,
-        #     # and if so which kind
-        #     if hasattr(diffraction_plan, "radiationSensitivity"):
-        #         radiation_sensitivity = diffraction_plan.radiationSensitivity
-        #     else:
-        #         radiation_sensitivity = diffraction_plan.get("radiationSensitivity")
-        #
-        #     if radiation_sensitivity:
-        #         self.relative_rad_sensitivity = radiation_sensitivity
-        #
-        #     if hasattr(diffraction_plan, "aimedResolution"):
-        #         resolution = diffraction_plan.aimedResolution
-        #     else:
-        #         resolution = diffraction_plan.get("aimedResolution")
-        #
-        #     if resolution:
-        #         self.aimed_resolution = resolution
 
         # Set paramaters from params dict
         if "name" in params:
@@ -1619,7 +1584,7 @@ class PathTemplate(object):
         return prefix
 
     def get_image_file_name(self, suffix=None):
-        template = "%s_%s_%%" + str(self.precision) + "d.%s"
+        template = "%s_%s_%%0" + str(self.precision) + "d.%s"
 
         if suffix:
             file_name = template % (self.get_prefix(), self.run_number, suffix)
@@ -2305,9 +2270,9 @@ class GphlWorkflow(TaskNode):
         )
 
         self.path_template.num_files = 0
-        self.path_template.precision = "0" + str(
-            HWR.beamline.session["file_info"].get_property("precision", 4)
-        )
+        # self.path_template.precision = "0" + str(
+        #     HWR.beamline.session["file_info"].get_property("precision", 4)
+        # )
 
         self.path_template.directory = os.path.join(
             HWR.beamline.session.get_base_image_directory(), params.get("subdir", "")

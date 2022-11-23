@@ -9,7 +9,7 @@
 
   <file_info>
      <file_suffix>cbf</file_suffix>
-     <precision>'04'</precision>    
+     <precision>4</precision>
      <!-- base_directory>/beamlines/bl13/projects/cycle2017-I</base_directory -->
 
      <!-- ATTENTION - base directory is obtained from ldap user home directory. Following lines are ignored -->

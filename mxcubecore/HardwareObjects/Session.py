@@ -34,7 +34,7 @@ class Session(HardwareObject):
         self.email_extension = None
         self.template = None
 
-        self.default_precision = "05"
+        self.default_precision = 5
         self.suffix = None
 
         self.base_directory = None
