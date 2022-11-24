@@ -796,27 +796,11 @@ class Beamline(ConfiguredObject):
 
         path_template = queue_model_objects.PathTemplate()
 
-        # path_template.directory = str()
-        # path_template.process_directory = str()
-        # path_template.base_prefix = str()
-        # path_template.mad_prefix = ""
-        # path_template.reference_image_prefix = ""
-        # path_template.wedge_prefix = ""
-
         acq_params = self.get_default_acquisition_parameters()
         path_template.start_num = acq_params.first_image
         path_template.num_files = acq_params.num_images
 
         path_template.run_number = self.run_number
-
-        # file_info = self.session["file_info"]
-        # path_template.suffix = file_info.get_property("file_suffix")
-        # path_template.precision = "04"
-        # try:
-        #     if file_info.get_property("precision"):
-        #         path_template.precision = eval(file_info.get_property("precision"))
-        # except Exception:
-        #     pass
 
         return path_template
 
