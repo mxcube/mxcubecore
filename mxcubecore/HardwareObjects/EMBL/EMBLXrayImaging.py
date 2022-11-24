@@ -473,7 +473,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         acq_params = data_model.acquisitions[0].acquisition_parameters
         path_template = data_model.acquisitions[0].path_template
 
-        filename_template = "%s_%d_%" + str(path_template.precision) + "d"
+        filename_template = "%s_%d_%0" + str(path_template.precision) + "d"
         config_filename = (
             filename_template
             % (

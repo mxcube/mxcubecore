@@ -4,7 +4,7 @@
   <beamline_name>PE2</beamline_name>
   <file_info>
     <file_suffix>cbf</file_suffix>
-    <precision>'07'</precision>
+    <precision>7</precision>
     <base_directory>/mnt/beegfs/PE2/2019/</base_directory>
     <raw_data_folder_name>RAW_DATA</raw_data_folder_name>
     <processed_data_base_directory>/dataInt/</processed_data_base_directory>

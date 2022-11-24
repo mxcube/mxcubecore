@@ -24,7 +24,7 @@ class MaxIVSession(Session):
     # Framework-2 method, inherited from HardwareObject and called
     # by the framework after the object has been initialized.
     def init(self):
-        self.default_precision = "04"
+        self.default_precision = 4
         self.login = ""
         self.is_commissioning = False
         self.synchrotron_name = self.get_property("synchrotron_name")
