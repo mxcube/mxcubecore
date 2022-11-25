@@ -105,7 +105,7 @@ class XalocCats(Cats90):
         self.cats_ri2 = None
 
         self.auto_prepare_diff = None
-        self.next_pick_sample = None
+        self.next_pick_sample_location = None
         self.sample_can_be_centered = None
         
         self.sample_lid_on_tool = None
@@ -157,7 +157,6 @@ class XalocCats(Cats90):
         self._cmdCATSRecovery = self.get_command_object("macro_cats_recovery")
 
         self.auto_prepare_diff = self.get_property("auto_prepare_diff")
-        self.next_pick_sample = None 
         self.sample_can_be_centered = True
 
         self.logger.debug("unipuck_tool property = %s" % self.get_property("unipuck_tool") )
@@ -675,7 +674,7 @@ class XalocCats(Cats90):
                     "Mixing load/unload dewar vs HT, unload sample first")
                 return
             else: # either no sample or non HT sample
-              pick_required, cmd_ok = self._do_load_dewar(selected, self.next_pick_sample, xshift, yshift, zshift)
+              pick_required, cmd_ok = self._do_load_dewar(selected, None, xshift, yshift, zshift)
 
         # At this point, due to the waitsafe, we can be sure that the robot has left RI2 and will not return
         # TODO: check if the diff should be prepared or not
@@ -686,7 +685,7 @@ class XalocCats(Cats90):
         # A time sleep is needed to get updates on the sample status etc.
         time.sleep(3)
 
-        self.next_pick_sample = None# Dont use pick for the next mounting cycle unless requested
+        self.next_pick_sample_location = None# Dont use pick for the next mounting cycle unless requested
 
         if not cmd_ok:
             self.logger.info("Load Command failed on device server")
@@ -753,7 +752,7 @@ class XalocCats(Cats90):
         if pick_required:
             load_command = self._cmdPick
             lid, sampleno = self.basketsample_to_lidsample(
-                self.next_pick_sample.get_basket_no(), next_pick_sample.get_vial_no()
+                self.next_pick_sample_location[0], next_pick_sample_location[1]
             )
             argin = [
                 str(tool),
@@ -788,7 +787,7 @@ class XalocCats(Cats90):
         else:
             cmd_ok = self._execute_server_task(self._cmdLoadHT, argin, waitsafe=False)
 
-    def _do_load_dewar(self, selected, pick_sample, xshift, yshift, zshift):
+    def _do_load_dewar(self, selected, pick_sample_location, xshift, yshift, zshift):
 
         pick_required = False
         cmd_ok = False
@@ -810,7 +809,7 @@ class XalocCats(Cats90):
         if tool == TOOL_SPINE:
             read_barcode = self.read_datamatrix and \
                             self._cmdChainedLoadBarcode is not None
-            pick_sample = None # pick not compatible with SPINE single gripper
+            pick_sample_location = None # pick not compatible with SPINE single gripper
         else:
             if self.read_datamatrix:
                 self.logger.error("Reading barcode only possible with spine pucks, no barcode will be read")
@@ -823,7 +822,7 @@ class XalocCats(Cats90):
                     "sample first")
             pick_required, cmd_ok = self._do_chain_load_dewar(
                 selected, 
-                pick_sample, 
+                pick_sample_location, 
                 tool, 
                 read_barcode, 
                 xshift, 
@@ -833,11 +832,11 @@ class XalocCats(Cats90):
             
         else: # no loaded sample
             cmd_ok = self._do_nochain_load_dewar(selected, tool, read_barcode, xshift, yshift, zshift)
-            pick_required = ( pick_sample is not None )
+            pick_required = ( pick_sample_location is not None )
 
         return pick_required, cmd_ok 
     
-    def _do_chain_load_dewar(self, selected, pick_sample, tool, read_barcode, xshift, yshift, zshift ):
+    def _do_chain_load_dewar(self, selected, pick_sample_location, tool, read_barcode, xshift, yshift, zshift ):
         """
           do an unload followd by a load. If requested, followed by a pick
         """
@@ -863,8 +862,8 @@ class XalocCats(Cats90):
 
         if self.sample_lid_on_tool == -1 and self.sample_num_on_tool == -1:
             # no sample on tool, just load the requested sample using a standard chain load
-            #   NOTE, a subsequent pick should still be done if pick_sample is not None!
-            pick_required = ( pick_sample is not None )
+            #   NOTE, a subsequent pick should still be done if pick_sample_location is not None!
+            pick_required = ( not -1 in pick_sample_location )
             if read_barcode: 
                 chained_load_command = self._cmdChainedLoadBarcode                    
                 self.logger.warning(
@@ -883,11 +882,11 @@ class XalocCats(Cats90):
         elif (self.sample_lid_on_tool, self.sample_num_on_tool) == selected.get_address():
             # There is a sample on the tool, and it coincides with the requested sample. 
             # no subsequent explicit pick required, the robot will pick the smaple in the arguments
-            if pick_sample != None:
+            if pick_sample_location != None:
                 # A pick is requested, so do a chainloadpick and pass as sample parameters the pick sample
                 chained_load_command = self._cmdChainedLoadPick
                 lid, sampleno = self.basketsample_to_lidsample(
-                    pick_sample.get_basket_no(), pick_sample.get_vial_no()
+                    pick_sample_location[0], pick_sample_location[1]
                 )
                 argin = [
                     str(tool),
@@ -934,7 +933,6 @@ class XalocCats(Cats90):
 
         # in case that there is a sample on the tool, the sample info in the arguments is ignored by CATS. 
         # in case that there is no sample on the tool, the selected sample is mounted. 
-        # in both cases, a subsequent pick may be required, if pick_sample is not None
         load_command = self._cmdLoad
 
         if read_barcode:
@@ -1045,6 +1043,9 @@ class XalocCats(Cats90):
 
     def sample_num_on_tool_changed(self, value):
         self.sample_num_on_tool = value
+
+    def set_next_pick_sample(self, pick_sample_location):
+        self.next_pick_sample_location = pick_sample_location
 
     def _do_abort(self):
         """
