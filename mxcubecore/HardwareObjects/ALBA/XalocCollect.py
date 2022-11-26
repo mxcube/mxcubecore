@@ -464,10 +464,6 @@ class XalocCollect(AbstractCollect):
             msg = "Filename already exists"
             self.data_collection_failed( Exception(msg) , msg )
 
-        self.senv('MXCollectDir', self.current_dc_parameters['fileinfo']['directory'], wait=True)
-        self.senv('MXCollectPrefix', self.current_dc_parameters['fileinfo']['prefix'], wait=True)
-        self.senv('MXRunNumber', self.current_dc_parameters['fileinfo']['run_number'], wait=True)
-        
         if not self.resolution_hwobj.is_ready(): 
             self.logger.info("Waiting for resolution ready...")
             self.resolution_hwobj.wait_ready()
@@ -1856,6 +1852,15 @@ class XalocCollect(AbstractCollect):
         self.current_dc_parameters[key] = _directory
         self.logger.debug("dc_pars[%s] = %s" % (key, _directory))
         return _directory
+
+    def set_sardana_collect_env(self, MXCollectDir = None, MXCollectPrefix = None, MXRunNumber = None):
+        if MXCollectDir != None:
+            self.senv('MXCollectDir', MXCollectDir, wait=True)
+        if MXCollectPrefix != None:
+            self.senv('MXCollectPrefix', MXCollectPrefix, wait=True)
+        if MXRunNumber != None:
+            self.senv('MXRunNumber', MXRunNumber, wait=True)
+        
 
     def get_wavelength(self):
         """

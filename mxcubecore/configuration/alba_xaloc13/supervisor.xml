@@ -9,4 +9,5 @@
     <command type="sardana" name="go_transfer">GoTransferPhase</command>
     <command type="sardana" name="go_sample_view">GoSampleViewPhase</command>
     <command type="sardana" name="go_beam_view">GoBeamViewPhase</command>
+
 </equipment>

@@ -59,6 +59,8 @@ _objects:
     - online_processing: online-processing.xml
     - characterisation: characterisation.xml
     - xml_rpc_server: xml-rpc-server.xml
+    - supervisor: supervisor.xml
+    - ln2shower: ln2shower.xml
     # - beam_realign: # Skipped - optional
 # Non-object attributes:
 advanced_methods:

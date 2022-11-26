@@ -37,10 +37,12 @@ import time
 from mxcubecore.BaseHardwareObjects import Device
 from taurus.core.tango.enums import DevState
 
+from mxcubecore import HardwareRepository as HWR
+
 __credits__ = ["ALBA"]
 __version__ = "3."
 __category__ = "General"
-
+__autho__ = "Roeland Boer, Jordi Andreu"
 
 class XalocSupervisor(Device):
 
@@ -73,7 +75,6 @@ class XalocSupervisor(Device):
         self.chan_state.connect_signal("update", self.state_changed)
         self.chan_phase.connect_signal("update", self.phase_changed)
         self.chan_detector_cover.connect_signal("update", self.detector_cover_changed)
-
 
         self.current_state = self.get_state()
         self.current_phase = self.get_current_phase()
@@ -156,6 +157,43 @@ class XalocSupervisor(Device):
             if timeout is not None:
                 if time.time() - stime > timeout:
                     raise Exception("Supervisor timed out waiting for ON state")
+
+    def set_phase(self, phase, timeout=None):
+        #TODO: implement timeout. Current API to fulfill the API.
+        """
+        General function to set phase by using supervisor commands.
+        """
+        if phase != "Transfer" and HWR.beamline.ln2shower.is_pumping():
+            msg = "Cannot change to non transfer phase when the lnshower is pumping, turn off the shower first"
+            self.user_level_log.error(msg)
+            raise Exception(msg)
+        if phase == "Transfer":
+            self.go_transfer()
+        elif phase == "Collect":
+            self.go_collect()
+        elif phase == "BeamView":
+            self.go_beam_view()
+        elif phase == "Centring":
+            self.go_sample_view()
+        else:
+            self.logger.warning(
+                "Diffractometer set_phase asked for un-handled phase: %s" % phase
+            )
+            return
+
+        self.logger.debug(
+            "Telling supervisor to go to phase %s, with timeout %s" % ( phase, timeout )
+        )
+    
+        if timeout:
+            time.sleep(1)
+            self.wait_ready( timeout = timeout )
+            time.sleep(1)
+            self.logger.debug(
+                "Supervisor phase is %s" % ( self.get_phase() )
+            )
+    
+
 
 def test_hwo(hwo):
     print("Supervisor control \"%s\"\n" % hwo.getUserName())
