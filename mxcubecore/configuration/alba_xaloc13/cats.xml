@@ -13,12 +13,14 @@
   <auto_prepare_diff>True</auto_prepare_diff>
 
   <channel type="sardana" taurusname="bl13/eh/diff" name="shifts">MountingPosition</channel>
+  <command type="sardana" taurusname="bl13/eh/diff" name="diff_go_sampleview">GoSampleViewPhase</command>
+  <command type="sardana" taurusname="bl13/eh/supervisor" name="super_go_sampleview">GoSampleViewPhase</command>
   <channel type="sardana" taurusname="bl13/eh/diff" name="diff_phase">CurrentPhase</channel>
   <channel type="sardana" taurusname="bl13/eh/diff" name="diff_state">State</channel>
-  <channel type="sardana" taurusname="bl13/eh/diff" name="ApertureInOut">AperturePosition</channel>
-  <channel type="sardana" taurusname="bl13/eh/supervisor" name="DetDistanceSafe">DetDistanceSafe</channel>
-  <channel type="sardana" taurusname="bl13/eh/supervisor" name="detdist_position">DetDistance</channel>
-  <channel type="sardana" taurusname="bl13/eh/supervisor" name="super_cryo_position">CryoPosition</channel>
+  <channel type="tango" tangoname="bl13/eh/diff" name="ApertureInOut">AperturePosition</channel>
+  <channel type="tango" tangoname="bl13/eh/supervisor" name="DetDistanceSafe">DetDistanceSafe</channel>
+  <command type="tango" tangoname="bl13/eh/supervisor" name="super_abort">Abort</command>
+  <channel type="tango" tangoname="bl13/eh/supervisor" name="detdist_position">DetDistance</channel>
   <channel type="tango" tangoname="omega" name="omega_position" polling="1000">position</channel>
   <channel type="tango" tangoname="kappa" name="kappa_position" polling="1000">position</channel>
 
@@ -53,7 +55,6 @@
   <command type="tango" name="_cmdChainedLoadBarcode">getput_bcrd</command>
 
   <command type="tango" name="_cmdScanSample">barcode</command>
->>>>>>> First approach to implementation of the pick function in the Cats code
 
   <doorname>bl13/door/05</doorname>           
   <command type="sardana" name="macro_cats_recovery">cats_recover_collision</command>

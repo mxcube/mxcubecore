@@ -87,6 +87,7 @@ class XalocMiniDiff(GenericDiffractometer):
         self.userlogger = logging.getLogger("user_level_log")
         self.centring_hwobj = None
 
+        self.chan_phase = None
         self.chan_state = None
         self.chan_phase = None
         self.phi_motor_hwobj = None
@@ -110,8 +111,7 @@ class XalocMiniDiff(GenericDiffractometer):
         # Number of images and total angle range used in automatic centering, defined in centring-math.xml
         self.numCentringImages = None
         self.centringAngleRange = None
-
-        self.cmd_go_transfer = None
+        self.centring_hwobj = None
 
     def init(self):
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
@@ -122,6 +122,8 @@ class XalocMiniDiff(GenericDiffractometer):
         if self.centring_hwobj is None:
             self.logger.debug('XalocMinidiff: Centring math is not defined')
 
+        self.chan_phase = self.get_channel_object("Phase")
+        self.connect(self.chan_state, "update", self.phase_changed)
         self.chan_state = self.get_channel_object("State")
         self.chan_phase = self.get_channel_object("CurrentPhase")
         self.connect(self.chan_state, "update", self.state_changed)
@@ -140,7 +142,8 @@ class XalocMiniDiff(GenericDiffractometer):
         
         self.omegaz_reference_channel = self.get_channel_object("omegazReference")
         
-        for axis in HWR.beamline.centring.gonioAxes:
+        #for axis in HWR.beamline.centring.gonioAxes:
+        for axis in self.centring_hwobj.gonioAxes:
             if axis['motor_name'] == 'phi':
                 self.logger.warning('XalocMinidiff: phi rotation direction is %s' % str(axis['direction']) )
                 self.phi_direction = sum( axis['direction'] )
@@ -149,15 +152,18 @@ class XalocMiniDiff(GenericDiffractometer):
 
         
         # For automatic centring
-        self.numCentringImages = HWR.beamline.centring.get_property('numCentringImages')
+        #self.numCentringImages = HWR.beamline.centring.get_property('numCentringImages')
+        self.numCentringImages = self.centring_hwobj.get_property('numCentringImages')
         if self.numCentringImages < 2: 
           self.logger.warning('XalocMinidiff: numCentringImages should be at least 2, reset to 2')
           self.numCentringImages = 2
-        self.centringAngleRange = HWR.beamline.centring.get_property('centringAngleRange')
+        #self.centringAngleRange = HWR.beamline.centring.get_property('centringAngleRange')
+        self.centringAngleRange = self.centring_hwobj.get_property('centringAngleRange')
         if self.centringAngleRange > 360: 
           self.logger.warning('XalocMinidiff: centringAngleRange should be smaller than 360 degrees, reset to 360 degrees')
           self.centringAngleRange = 360
-        self.numAutoCentringCycles = HWR.beamline.centring.get_property('numAutoCentringCycles')
+        #self.numAutoCentringCycles = HWR.beamline.centring.get_property('numAutoCentringCycles')
+        self.numAutoCentringCycles = self.centring_hwobj.get_property('numAutoCentringCycles')
         if self.centringAngleRange < 0: 
           self.logger.warning('XalocMinidiff: numAutoCentringCycles should be at least 1, reset to 1')
           self.numAutoCentringCycles = 1
@@ -1123,13 +1129,13 @@ class XalocMiniDiff(GenericDiffractometer):
         #self.current_state = state
         #self.emit('stateChanged', (self.current_state, ))
 
-    ## TODO: Review override current_state by current_phase
-    #def supervisor_phase_changed(self, phase):
-        #"""
-        #Emit stateChanged signal according to supervisor current phase.
-        #"""
-        ##self.current_state = phase
-        #self.emit('minidiffPhaseChanged', (phase, ))
+    # TODO: Review override current_state by current_phase
+    def phase_changed(self, phase):
+        """
+        Emit stateChanged signal according to supervisor current phase.
+        """
+        #self.current_phase = phase
+        self.emit('minidiffPhaseChanged', (phase, ))
 
     def phi_motor_moved(self, pos):
         """

@@ -41,7 +41,9 @@ _objects:
     - sample_changer_maintenance: catsmaint.xml
     # NBNB TODO remove plate_manipulater and treat as another smaple changer
 #    - plate_manipulator: plate-manipulator.xml
+    - ln2shower: ln2shower.xml
     - diffractometer: mini-diff.xml
+    - supervisor: supervisor.xml
     - lims: dbconnection.xml
     - queue_manager: queue.xml
     - queue_model: queue-model.xml
@@ -59,8 +61,6 @@ _objects:
     - online_processing: online-processing.xml
     - characterisation: characterisation.xml
     - xml_rpc_server: xml-rpc-server.xml
-    - supervisor: supervisor.xml
-    - ln2shower: ln2shower.xml
     # - beam_realign: # Skipped - optional
 # Non-object attributes:
 advanced_methods:

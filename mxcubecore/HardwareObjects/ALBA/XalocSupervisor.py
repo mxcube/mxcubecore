@@ -192,6 +192,15 @@ class XalocSupervisor(Device):
             self.logger.debug(
                 "Supervisor phase is %s" % ( self.get_phase() )
             )
+
+    def wait_ready(self):
+        while True:
+            state = str( self.get_state() )
+            if state == "ON":
+                self.logger.debug("Supervisor is in ON state. Returning")
+                break
+            time.sleep(0.2)
+
     
 
 

@@ -72,8 +72,6 @@ class XalocCats(Cats90):
         self.shifts_channel = None
         self.diff_phase_channel = None
         self.diff_state_channel = None
-        self.super_phase_channel = None
-        self.super_state_channel = None
         self.detdist_position_channel = None
         self.omega_position_channel = None
         self.kappa_position_channel = None
@@ -89,7 +87,6 @@ class XalocCats(Cats90):
         self._chnLidSampleOnTool = None
         self._chnNumSampleOnTool = None
         
-        self.go_transfer_cmd = None
         self.diff_go_sampleview_cmd = None
         self.super_go_sampleview_cmd = None
         self.super_abort_cmd = None
@@ -121,8 +118,6 @@ class XalocCats(Cats90):
         self.shifts_channel = self.get_channel_object("shifts")
         self.diff_phase_channel = self.get_channel_object("diff_phase")
         self.diff_state_channel = self.get_channel_object("diff_state")
-        self.super_phase_channel = self.get_channel_object("super_phase")
-        self.super_state_channel = self.get_channel_object("super_state")
         self.detdist_position_channel = self.get_channel_object("detdist_position")
         self.super_cryopos_channel = self.get_channel_object("super_cryo_position")
         self.omega_position_channel = self.get_channel_object("omega_position") # position of the omega axis
@@ -139,7 +134,6 @@ class XalocCats(Cats90):
         self._chnLidSampleOnTool = self.get_channel_object( "_chnLidSampleOnTool" )
         self._chnNumSampleOnTool = self.get_channel_object( "_chnNumSampleOnTool" )
         
-        self.go_transfer_cmd = self.get_command_object("go_transfer")
         self.diff_go_sampleview_cmd = self.get_command_object("diff_go_sampleview")
         self.super_go_sampleview_cmd = self.get_command_object("super_go_sampleview")
         self.super_abort_cmd = self.get_command_object("super_abort")
@@ -238,24 +232,23 @@ class XalocCats(Cats90):
             self.state == SampleChangerState.StandBy or \
             self.state == SampleChangerState.Disabled
 
-    #TODO: rename this method, it is the supervisor that is sent to transfer
-    def diff_send_transfer(self, timeout = 36):
+    def super_send_transfer(self, timeout = 36):
         """
         Checks if beamline diff is in TRANSFER phase (i.e. sample changer in
-        TRANSFER phase too). If is not the case, It sends the supervisor to TRANSFER
+        TRANSFER phase too). If it is not the case, It sends the supervisor to TRANSFER
         phase. Then waits for the minimal conditions of the beamline to start the transfer
 
         @return: boolean
         """
-        if self.read_super_phase().upper() == "TRANSFER":
+        if HWR.beamline.supervisor.get_current_phase().upper() == "TRANSFER":
             #self.logger.error("Supervisor is already in transfer phase")
             return True
 
-        # First wait till the diff is ready to accept a go_transfer_cmd
+        # First wait till the diff is ready to accept a sample transfer
         if not self._wait_diff_on(timeout): return False
         time.sleep(0.1)
  
-        self.go_transfer_cmd()
+        HWR.beamline.supervisor.set_phase("TRANSFER")
 
         # To improve the speed of sample mounting, the wait for phase done was removed.
         # Rationale: the time it takes the diff to go to transfer phase is about 7-9 seconds. 
@@ -297,15 +290,6 @@ class XalocCats(Cats90):
                 break
             time.sleep(0.02)
         return ret
-
-    # TODO: Move to XalocSupervisor 
-    def _wait_super_ready(self):
-        while True:
-            state = str(self.super_state_channel.get_value())
-            if state == "ON":
-                self.logger.debug("Supervisor is in ON state. Returning")
-                break
-            time.sleep(0.2)
 
     def _wait_cats_idle(self):
         while True:
@@ -364,7 +348,7 @@ class XalocCats(Cats90):
     def _wait_super_moving(self):
         allokret = True # No problems
         while allokret:
-            state = str(self.super_state_channel.get_value())
+            state = str( HWR.beamline.supervisor.get_state() )
             if not self._chnCollisionSensorOK.get_value(): 
                 self._update_state()
                 raise Exception ("The robot had a collision, call your LC or floor coordinator")
@@ -416,9 +400,9 @@ class XalocCats(Cats90):
         """
        
         t0 = time.time()
-        while self.read_super_phase().upper() != final_phase:
-            state = str(self.super_state_channel.get_value())
-            phase = self.read_super_phase().upper()
+        while HWR.beamline.supervisor.get_current_phase().upper() != final_phase:
+            state = str( HWR.beamline.supervisor.get_state() )
+            phase = HWR.beamline.supervisor.get_current_phase().upper()
             if not str(state) in [ "MOVING", "ON" ]:
                 self.logger.error("Supervisor is in a funny state %s" % str(state))
                 return False
@@ -428,12 +412,12 @@ class XalocCats(Cats90):
 
         t0 = time.time()
         timeout = 5
-        while self.read_super_phase().upper() != final_phase or timeout > time.time() - t0:
+        while HWR.beamline.supervisor.get_current_phase().upper() != final_phase or timeout > time.time() - t0:
             logging.getLogger("HWR").warning(
                 "Phase changed done. Waiting phase change....")
             time.sleep(0.2)
 
-        if self.read_super_phase().upper() != final_phase:
+        if HWR.beamline.supervisor.get_current_phase().upper() != final_phase:
             self.logger.error("Supervisor is not yet in %s phase. Aborting load" %
                               final_phase)
             return False
@@ -453,18 +437,9 @@ class XalocCats(Cats90):
                 "Restoring det.distance to %s" % self.detdist_saved)
             self.detdist_position_channel.set_value(self.detdist_saved)
 
-    def read_super_phase(self):
-        """
-        Returns supervisor phase (CurrentPhase attribute from Beamline Supervisor
-        TangoDS)
-
-        @return: str
-        """
-        return self.super_phase_channel.get_value()
-
     def read_diff_phase(self):
         """
-        Returns supervisor phase (CurrentPhase attribute from Beamline Supervisor
+        Returns diff phase (CurrentPhase attribute from Beamline Diffractometer
         TangoDS)
 
         @return: str
@@ -587,7 +562,7 @@ class XalocCats(Cats90):
         current_tool = self.get_current_tool()
 
         self.save_detdist_position()
-        ret = self.diff_send_transfer()
+        ret = self.super_send_transfer()
 
         if ret is False:
             self.logger.error(
@@ -982,8 +957,7 @@ class XalocCats(Cats90):
 
         #TODO: wait for cats poweron
 
-        self.logger.error("diff send transfer")
-        ret = self.diff_send_transfer()
+        ret = self.super_send_transfer()
 
         if ret is False:
             self.logger.error(
@@ -1030,7 +1004,7 @@ class XalocCats(Cats90):
 
         allok = self._check_coherence()[0]
         if not allok:
-                self._wait_super_ready()
+                HWR.beamline.supervisor.wait_ready()
                 if not self.has_loaded_sample() and self.cats_sample_on_diffr():
                       msg = "The CATS device indicates there was a problem in unmounting the sample, click on Fix Fail Get"
                 self._update_state()
