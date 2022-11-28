@@ -51,8 +51,13 @@ class FluxMockup(AbstractFlux):
         self.measure_flux()
         return self.current_flux_dict["flux"]
 
-    def measure_flux(self):
-        """Measures intesity"""
+    def measure_flux(self) -> None:
+        """
+        Measures intesity
+
+        Emits:
+           valueChanged (float): The new flux value
+        """
         beam_size = HWR.beamline.beam.get_beam_size()
         transmission = HWR.beamline.transmission.get_value()
         flux = self.default_value * (1 + 0.001 * random())
@@ -69,10 +74,7 @@ class FluxMockup(AbstractFlux):
         self.measured_flux_dict = self.measured_flux_list[0]
         self.current_flux_dict = self.measured_flux_list[0]
 
-        self.emit(
-            "valueChanged",
-            {"measured": self.measured_flux_dict, "current": self.current_flux_dict},
-        )
+        self.emit("valueChanged", self.current_flux_dict["flux"])
 
     @property
     def is_beam(self):
