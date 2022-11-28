@@ -1,0 +1,46 @@
+name: Coverage Report
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - '**.py'
+jobs:
+  pytest-coverage:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install poetry
+        poetry config virtualenvs.create false
+        poetry install
+
+    - name: Run and write pytest
+      run: |
+        set -o pipefail
+        poetry run pytest --cov=mxcubecore --junitxml=pytest.xml --cov-report=term-missing:skip-covered | tee pytest-coverage.txt
+
+    - name: Pytest coverage comment
+      id: coverage-comment
+      uses: MishaKav/pytest-coverage-comment@v1.1.35
+      with:
+        pytest-coverage-path: ./pytest-coverage.txt
+        junitxml-path: ./pytest.xml
+        report-only-changed-files: true
+
+    - name: Check the output coverage
+      run: |
+        echo "Coverage Percantage - ${{ steps.coverage-comment.outputs.coverage }}"
+        echo "Coverage Warnings - ${{ steps.coverage-comment.outputs.warnings }}"
+        echo "Coverage Errors - ${{ steps.coverage-comment.outputs.errors }}"
+        echo "Coverage Failures - ${{ steps.coverage-comment.outputs.failures }}"
+        echo "Coverage Skipped - ${{ steps.coverage-comment.outputs.skipped }}"
+        echo "Coverage Tests - ${{ steps.coverage-comment.outputs.tests }}"
+        echo "Coverage Time - ${{ steps.coverage-comment.outputs.time }}"
