@@ -140,6 +140,9 @@ Imports that are incompatable between Python 2x and 3x should be handled with:
 
 #### Naming convention
 
+##### Language and spelling
+* UK english should be used for the spelling in documentation and code. Relevant examples for the mxcubecore code base are for instance the words *centring* and *characterisation* that are the prefered spelling instead of *centering* and *characterization*.
+
 ##### Functions
   * functions names should be recognisable as actions and should generally contain a verb
 
