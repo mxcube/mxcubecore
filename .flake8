@@ -1,5 +1,19 @@
 [flake8]
-ignore = E203, E266, E501, W503, F403, F401
+ignore =
+    # Whitespace before ':' [https://www.flake8rules.com/rules/E203.html]
+    E203,
+    # Too many leading '#' for block comment [https://www.flake8rules.com/rules/E266.html]
+    E266,
+    # Line too long (82 > 79 characters) [https://www.flake8rules.com/rules/E501.html]
+    E501,
+    # Line break occurred before a binary operator [https://www.flake8rules.com/rules/W503.html]
+    W503,
+    # 'from module import *' used; unable to detect undefined names [https://www.flake8rules.com/rules/F403.html]
+    F403,
+    # Module imported but unused [https://www.flake8rules.com/rules/F401.html]
+    F401,
+    # Line too long (99 > 88) [https://github.com/PyCQA/flake8-bugbear/blob/main/README.rst#list-of-warnings]
+    B950
 max-line-length = 88
 max-complexity = 18
 select = B,C,E,F,W,T4,B9
