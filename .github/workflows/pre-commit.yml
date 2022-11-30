@@ -23,4 +23,5 @@ jobs:
 
     - name: Run Pre-Commit
       run: |
-        poetry run pre-commit run --all-files
+        # Disable linting for now
+        # poetry run pre-commit run --all-files
