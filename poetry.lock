@@ -85,7 +85,7 @@ unicode-backport = ["unicodedata2"]
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
-category = "dev"
+category = "main"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
 
@@ -1078,7 +1078,7 @@ tango = ["PyTango"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7,<3.12"
-content-hash = "a40ed92967429ea915f171b43dd6233ebb5a969e97e2837e78a332faf9170ad0"
+content-hash = "2c84a53809b4530e382d962701a5c6619b9cb4051f715a7c6e4744423bccc8c9"
 
 [metadata.files]
 astroid = [
