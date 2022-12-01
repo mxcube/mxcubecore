@@ -2,8 +2,10 @@ import os
 import xmltodict
 import argparse
 import pprint
+import pydantic
 
 from colorama import Fore, Back, Style
+from mxcubecore.model import configmodel
 
 
 def check_xml(rpath="."):
@@ -21,6 +23,24 @@ def check_xml(rpath="."):
                         f"{Fore.RED}WARNING: equipment and device are depricated, use object instead"
                     )
                     print(Style.RESET_ALL)
+
+                _data_to_validate = data[list(data.keys())[0]]
+
+
+                try:
+                    config_model_class_name = _data_to_validate["@class"].strip("Mockup")
+                    config_model = getattr(configmodel, f"{config_model_class_name}ConfigModel", None)
+                except KeyError:
+                    print(f"{Fore.RED}WARNING in: {fpath}")
+                    print(f"{Fore.RED}WARNING: no class")
+                else:
+                    if config_model:
+                        try:
+                            config_model(**_data_to_validate)
+                        except pydantic.ValidationError as ex:
+                            print(f"{Fore.RED}WARNING in: {fpath}")
+                            print(f"{str(ex)}")
+                            print(Style.RESET_ALL)
 
 
 def parse_args():
