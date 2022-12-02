@@ -1,7 +1,0 @@
-name: mxcubcore
-channels:
-  - conda-forge
-dependencies:
-  - openldap
-  - pip
-  - poetry
