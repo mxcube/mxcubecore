@@ -44,7 +44,7 @@
   <command type="tango" name="_cmdLoadHT">put_HT</command>
   <command type="tango" name="_cmdUnloadHT">get_HT</command>
   <command type="tango" name="_cmdChainedLoadHT">getput_HT</command>
-  <command type="tango" name="_cmdChainedLoadPick">getputpick</command>
+  <command type="tango" name="_cmdChainedLoadPick">getpuckpick</command>
   <command type="tango" name="_cmdClearMemory">clear_memory</command>
   <command type="tango" name="_cmdSetTool">settool</command>
   <command type="tango" name="_cmdSetTool2">settool</command>
