@@ -2044,8 +2044,10 @@ class GphlWorkflow(TaskNode):
             "dose_consumed",
             "space_group",
             "crystal_system",
-            "point_group"
+            "point_group",
             "_cell_parameters",
+            "use_cell_for_processing",
+            "relative_rad_sensitivity",
             "aimed_resolution",
         ):
             summary[tag] = getattr(self, tag)
@@ -2074,6 +2076,7 @@ class GphlWorkflow(TaskNode):
             energies=(),
             strategy_options=None,
             init_spot_dir=None,
+            use_cell_for_processing=False,
             **unused):
         """
 
@@ -2171,6 +2174,7 @@ class GphlWorkflow(TaskNode):
             self.strategy_options.update(strategy_options)
 
         self.init_spot_dir = init_spot_dir
+        self.use_cell_for_processing = use_cell_for_processing
 
 
     def set_pre_acquisition_params(
