@@ -157,41 +157,60 @@ class XalocISPyBClient(ISPyBClient):
         input_sample_container = input_sample_location[0]
         input_sample_num = input_sample_location[1]
         self.logger.debug(
-            "next_sample_by_SC_position: next sample to location %s" % str(input_sample_location)
+            "next_sample_by_SC_position: searching for next sample, current location %s" % str(input_sample_location)
         )
         input_sample_type = HWR.beamline.sample_changer.basket_types[ input_sample_container ]# spine or unipuck
-        next_sample_container = HWR.beamline.sample_changer.number_of_baskets #+1 # more than max number of containers
-        next_sample_num = 1000000 # +1 # 
         
         sample_dict = self.get_samples( 
             HWR.beamline.session.proposal_id, HWR.beamline.session.session_id 
         )
-        next_container_found = False
-        next_container = input_sample_container
-        
-        while not next_container_found:
-            for sample in sample_dict:
-                if sample['containerSampleChangerLocation'] != 'None':
-                    #self.logger.debug("next sample container %s" % sample['containerSampleChangerLocation'] )
-                    if int(sample['containerSampleChangerLocation']) == next_container:
-                        self.logger.debug("next sample in next_container %s" % sample['containerSampleChangerLocation'] )
-                        if sample['containerSampleChangerLocation'] != 'None':
-                            if int( sample['sampleLocation'] ) > input_sample_num:
-                                self.logger.debug("next sample found container %s, location %s" % 
-                                                    ( sample['containerSampleChangerLocation'], sample['sampleLocation'] )
-                                                )
-                                next_sample_num = int( sample['sampleLocation'] )
-                                next_sample_container = int( sample['containerSampleChangerLocation'] )
-                                next_container_found = True
-            if not next_container_found: 
-                next_container += 1
-                next_sample_num = 1000000 
-                input_sample_number = -1
-                self.logger.debug("no suitable sample found in previous container, new container is %s, type %s" % 
-                                    ( next_container, type(next_container) )
-                                )
-            if next_container == HWR.beamline.sample_changer.number_of_baskets + 1: return -1,-1
 
+        next_sample_container = HWR.beamline.sample_changer.number_of_baskets+1 #+1 # more than max number of containers
+        #next_sample_container = 17
+        next_sample_num = 100000
+        suitable_sample_in_input_container = False
+        for sample in sample_dict:
+            if sample['containerSampleChangerLocation'] != 'None' and \
+                    HWR.beamline.sample_changer.get_cassette_type( int(sample['containerSampleChangerLocation']) ) == \
+                        HWR.beamline.sample_changer.get_cassette_type( input_sample_container ):
+            #if sample['containerSampleChangerLocation'] != 'None':
+                self.logger.debug("next sample container %s" % sample['containerSampleChangerLocation'] )
+                #print("next sample container %s" % sample['containerSampleChangerLocation'] )
+                first_sample_num = 0
+                if int(sample['containerSampleChangerLocation']) == input_sample_container:
+                    first_sample_num = input_sample_num
+                    self.logger.debug(" sample in same container %s" % sample['containerSampleChangerLocation'] )
+                    #print(" sample in same container %s" % sample['containerSampleChangerLocation'] )
+                    if int( sample['sampleLocation'] ) > first_sample_num: 
+                        self.logger.debug(" suitable sample %s in same container %s" % (sample['sampleLocation'], sample['containerSampleChangerLocation'] ) )
+                        #print(" suitable sample %s in same container %s" % (sample['sampleLocation'], sample['containerSampleChangerLocation'] ) )
+                        suitable_sample_in_input_container = True
+                        next_sample_container = input_sample_container
+                        if int( sample['sampleLocation'] ) < next_sample_num: 
+                            next_sample_num = int( sample['sampleLocation'] )
+                            if next_sample_num == input_sample_num+1: break
+                elif int(sample['containerSampleChangerLocation']) > input_sample_container and \
+                        not suitable_sample_in_input_container:
+                    if int(sample['containerSampleChangerLocation']) < next_sample_container:
+                        self.logger.debug("found container %s, which is closer to input container %s" % ( sample['containerSampleChangerLocation'], input_sample_container ) )
+                        #print("found container %s, which is closer to input container %s" % ( sample['containerSampleChangerLocation'], input_sample_container ) )
+                        next_sample_container = int(sample['containerSampleChangerLocation']) 
+                        next_sample_num = 100000
+                        first_sample_num = 0
+                    if int( sample['sampleLocation'] ) > first_sample_num and int( sample['sampleLocation'] ) < next_sample_num:
+                        self.logger.debug("next sample found container %s, location %s" % 
+                                            ( sample['containerSampleChangerLocation'], sample['sampleLocation'] )
+                                        )
+                        #print("next sample found: container %s, location %s" % ( sample['containerSampleChangerLocation'], sample['sampleLocation'] ) )
+                        next_sample_num = int( sample['sampleLocation'] )
+                    
+# For testing purposes, delete...
+#sample_dict = []
+#for container in range(9):
+   #for sample in range(16):
+       #if container != 2: sample_dict.append( {'containerSampleChangerLocation': 9-container, 'sampleLocation': sample})
+       
+        if next_sample_container == HWR.beamline.sample_changer.number_of_baskets+1: return -1,-1
         return next_sample_container, next_sample_num
 
 def test_hwo(hwo):
