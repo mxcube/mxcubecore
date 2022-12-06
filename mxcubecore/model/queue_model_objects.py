@@ -2411,7 +2411,7 @@ class GphlWorkflow(TaskNode):
         msg = (
             "Dose could not be calculated from:\n"
             " energy:%s keV, strategy_length:%s deg, exposure_time:%s s, "
-            "image_width:%s deg, transmission: %s %% flux_density:%s  photons/mm^2"
+            "image_width:%s deg, transmission: %s  flux_density:%s  photons/mm^2"
         )
         raise ValueError(
             msg % (

@@ -379,7 +379,7 @@ class GphlWorkflow(HardwareObjectYaml):
         )
         # Handle strategy fields
         if data_model.characterisation_done or data_model.get_type() == "diffractcal":
-            strategies = workflow_parameters()["variants"]
+            strategies = workflow_parameters["variants"]
             fields["strategy"]["default"] = strategies[0]
             fields["strategy"]["title"] = "Acquisition strategy"
             energy_tags = workflow_parameters.get(
@@ -713,7 +713,7 @@ class GphlWorkflow(HardwareObjectYaml):
             title_string = data_model.get_type()
             lines = [
                 "GΦL workflow %s, strategy '%s'"
-                % (title_string, data_model.get_variant())
+                % (title_string, data_model.strategy_options["variant"])
             ]
             lines.extend(("-" * len(lines[0]), ""))
             beam_energies = OrderedDict()
@@ -807,9 +807,6 @@ class GphlWorkflow(HardwareObjectYaml):
         else:
             std_dose_rate = 0
         transmission = acq_parameters.transmission
-
-
-
 
         reslimits = HWR.beamline.resolution.get_limits()
         if None in reslimits:
@@ -1105,14 +1102,17 @@ class GphlWorkflow(HardwareObjectYaml):
                 return StopIteration
         finally:
             self._return_parameters = None
+        print ('@~@~ returned parameters 1')
+        for item in result.items():
+            print ('--> %s : %s' % item)
 
-        result = {}
         tag = "image_width"
         value = result.get(tag)
         if value:
-            image_width = result[tag] = float(value)
+            image_width = float(value)
         else:
-            image_width = self.settings.get("default_image_width", 15)
+            image_width = self.settings.get("default_image_width", default_image_width)
+        result[tag] = image_width
         # exposure OK as is
         tag = "transmission"
         value = result.get(tag)
@@ -1134,7 +1134,7 @@ class GphlWorkflow(HardwareObjectYaml):
             result[tag] = int(value)
 
         if geometric_strategy.isInterleaved:
-            result["interleave_order"] = data_model.get_interleave_order()
+            result["interleave_order"] = data_model.interleave_order
 
         for tag in beam_energies:
             beam_energies[tag] = result.get(tag, 0)
@@ -1145,20 +1145,20 @@ class GphlWorkflow(HardwareObjectYaml):
             RECENTRING_MODES.get(result.get(tag)) or default_recentring_mode
         )
 
+        print ('@~@~ returned parameters 2')
+        for item in result.items():
+            print ('--> %s : %s' % item)
+
         # data_model.dose_budget = float(params.get("dose_budget", 0))
         # # Register the dose (about to be) consumed
         # if std_dose_rate:
         #     data_model.set_dose_consumed(float(params.get("use_dose", 0)))
 
-        format = "--> %s: %s"
-        print ("GPHL workflow. Data collection parameters:")
-        for item in data_model.parameter_summary().items():
-            print (format % item)
         #
         return result
 
     def setup_data_collection(self, payload, correlation_id):
-        """Query data colletion parameters and return SampleCentred to ASTRA workflow
+        """Query data collection parameters and return SampleCentred to ASTRA workflow
 
         :param payload (GphlMessages.GeometricStrategy):
         :param correlation_id (int) Astra workflow correlation ID
@@ -1253,10 +1253,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 )
 
             gphl_workflow_model.exposure_time = parameters.get("exposure" or 0.0)
-            gphl_workflow_model.image_width = parameters.get("imageWidth" or 0.0)
-
-            # Set transmission, detector_disance/resolution to final (unchanging) values
-            # Also set energy to first energy value, necessary to get resolution consistent
+            gphl_workflow_model.image_width = parameters.get("image_width" or 0.0)
 
             # Set beam_energies to match parameters
             # get wavelengths
@@ -1290,7 +1287,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
             snapshot_count = parameters.pop("snapshot_count", None)
             if snapshot_count is not None:
-                gphl_workflow_model.set_snapshot_count(snapshot_count)
+                gphl_workflow_model.snapshot_count = snapshot_count
 
             gphl_workflow_model.recentring_mode = parameters.pop("recentring_mode")
 
@@ -1298,6 +1295,11 @@ class GphlWorkflow(HardwareObjectYaml):
 
         # Unpdate dose_consumed to include dose (about to be) acquired.
         gphl_workflow_model.dose_consumed += gphl_workflow_model.calculate_dose()
+
+        format = "--> %s: %s"
+        print ("GPHL workflow. Data collection parameters:")
+        for item in gphl_workflow_model.parameter_summary().items():
+            print (format % item)
 
         # Enqueue data collection
         if gphl_workflow_model.characterisation_done:
@@ -1638,7 +1640,7 @@ class GphlWorkflow(HardwareObjectYaml):
     def collect_data(self, payload, correlation_id):
         collection_proposal = payload
 
-        angular_tolerance = float(self.get_property("angular_tolerance", 1.0))
+        angular_tolerance = float(self.settings.get("angular_tolerance", 1.0))
         queue_manager = self._queue_entry.get_queue_controller()
 
         gphl_workflow_model = self._queue_entry.get_data_model()
@@ -1724,7 +1726,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
             ##
             wavelength = sweep.beamSetting.wavelength
-            acq_parameters.energy = HWR.beamline.energy._calculate_energy(wavelength)
+            acq_parameters.energy = HWR.beamline.energy.calculate_energy(wavelength)
             detdistance = sweep.detectorSetting.axisSettings["Distance"]
             # not needed when detdistance is set :
             # acq_parameters.resolution = resolution
@@ -1778,7 +1780,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 or (
                     recentring_mode == "sweep"
                     and not (
-                        rotation_id == gphl_workflow_model.get_current_rotation_id()
+                        rotation_id == gphl_workflow_model.current_rotation_id
                         or (0 <= maxdev < angular_tolerance)
                     )
                 )
@@ -1840,7 +1842,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         # debug
         format = "--> %s: %s"
-        print ("GPHL workflow. Data collection parameters:")
+        print ("GPHL workflow. Collect with parameters:")
         for item in gphl_workflow_model.parameter_summary().items():
             print (format % item)
         print( format % ("sweep_count", len(sweeps)))
@@ -2284,7 +2286,7 @@ class GphlWorkflow(HardwareObjectYaml):
         """
 
         gphl_workflow_model = self._queue_entry.get_data_model()
-        number_of_snapshots = gphl_workflow_model.get_snapshot_count()
+        number_of_snapshots = gphl_workflow_model.snapshot_count
         if number_of_snapshots:
             filename_template = "%s_%s_%s.jpeg"
             snapshot_directory = os.path.join(
