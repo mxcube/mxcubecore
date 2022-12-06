@@ -18,6 +18,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install openldap
+        run: sudo apt-get install -y libldap2-dev libsasl2-dev slapd ldap-utils tox lcov valgrind
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
