@@ -997,7 +997,7 @@ class GphlWorkflow(HardwareObjectYaml):
         default_label = labels[modes.index(default_recentring_mode)]
         if len(modes) > 1:
             fields["recentring_mode"] = {
-                "title": "Recentring mode",
+                # "title": "Recentring mode",
                 "type": "string",
                 "default": default_label,
                 "$ref": "#/definitions/recentring_mode",
