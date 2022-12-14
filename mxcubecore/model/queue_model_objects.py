@@ -1334,9 +1334,6 @@ class XrayCentring2(TaskNode):
                 sample_model
             )
         self.path_template.num_files = 0
-        # self.path_template.precision = "0" + str(
-        #     HWR.beamline.session["file_info"].get_property("precision", 4)
-        # )
         self.path_template.directory = os.path.join(
             HWR.beamline.session.get_base_image_directory(), params.get("subdir", "")
         )
@@ -2270,9 +2267,6 @@ class GphlWorkflow(TaskNode):
             params.get("suffix") or HWR.beamline.session.suffix
         )
         self.path_template.num_files = 0
-        # self.path_template.precision = "0" + str(
-        #     HWR.beamline.session["file_info"].get_property("precision", 4)
-        # )
 
         self.path_template.directory = os.path.join(
             HWR.beamline.session.get_base_image_directory(), params.get("subdir", "")

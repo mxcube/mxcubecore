@@ -1,0 +1,11 @@
+[run]
+omit =
+    setup.py
+    test/*
+    mxcubecore/HardwareObjects/ALBA/*
+    mxcubecore/HardwareObjects/DESY/*
+    mxcubecore/HardwareObjects/EMBL/*
+    mxcubecore/HardwareObjects/ESRF/*
+    mxcubecore/HardwareObjects/LNLS/*
+    mxcubecore/HardwareObjects/MAXIV/*
+    mxcubecore/HardwareObjects/SOLEIL/*

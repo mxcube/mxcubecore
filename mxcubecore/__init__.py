@@ -4,6 +4,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 import os
 import sys
+from colorama import Fore, Back, Style
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore import __version__
@@ -18,6 +19,22 @@ sys.path.insert(0, hwrpath)
 # standard Hardware Objects easily
 #
 
+
+class ColorFormatter(logging.Formatter):
+
+    FORMATS = {
+        logging.DEBUG: '\033[1m' + "%s" + Style.RESET_ALL,
+        logging.INFO: Fore.BLUE + "%s" + Style.RESET_ALL,
+        logging.WARNING: Fore.YELLOW + "%s" + Style.RESET_ALL,
+        logging.ERROR: '\033[1m' + Fore.RED + "%s" + Style.RESET_ALL,
+        logging.CRITICAL: '\033[1m' + Fore.RED + "%s" + Style.RESET_ALL
+    }
+
+    def format(self, record):
+        formatter = logging.Formatter(
+            self.FORMATS.get(record.levelno) % self._fmt
+        )
+        return formatter.format(record)
 
 def getStdHardwareObjectsPath():
     import HardwareObjects  # first looks in containing package
@@ -46,7 +63,7 @@ if len(logging.root.handlers) == 0:
     # log to stdout
     #
     _hdlr = logging.StreamHandler(sys.stdout)
-    _hdlr.setFormatter(_hwr_formatter)
+    _hdlr.setFormatter(ColorFormatter("%(asctime)s |%(levelname)-7s| %(message)s"))
     _hwr_logger.addHandler(_hdlr)
 
 
