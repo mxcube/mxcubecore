@@ -1,8 +1,10 @@
 import logging
 import time
-from mxcubecore.HardwareObjects.abstract.AbstractMotor import (
-    AbstractMotor,
-    MotorStates,
+import enum
+from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+from mxcubecore.BaseHardwareObjects import (
+    HardwareObject,
+    HardwareObjectState
 )
 from gevent import Timeout
 
@@ -19,8 +21,17 @@ taurusname is the only obligatory property.
 </device>
 """
 
+class SardanaMotorState(enum.Enum):
 
-class SardanaMotor(AbstractMotor):
+    READY = HardwareObjectState.READY
+    MOVESTARTED = HardwareObjectState.BUSY
+    MOVING = HardwareObjectState.BUSY
+    LOWLIMIT = HardwareObjectState.READY
+    HIGHLIMIT = HardwareObjectState.READY
+    NOTINITIALIZED = HardwareObjectState.FAULT
+    UNUSABLE = HardwareObjectState.FAULT
+
+class SardanaMotor(AbstractMotor, HardwareObject):
 
     suffix_position = "Position"
     suffix_state = "State"
@@ -29,24 +40,25 @@ class SardanaMotor(AbstractMotor):
     suffix_acceleration = "Acceleration"
 
     state_map = {
-        "ON": MotorStates.READY,
-        "OFF": MotorStates.OFF,
-        "CLOSE": MotorStates.DISABLED,
-        "OPEN": MotorStates.DISABLED,
-        "INSERT": MotorStates.DISABLED,
-        "EXTRACT": MotorStates.DISABLED,
-        "MOVING": MotorStates.MOVING,
-        "STANDBY": MotorStates.READY,
-        "FAULT": MotorStates.FAULT,
-        "INIT": MotorStates.INITIALIZING,
-        "RUNNING": MotorStates.MOVING,
-        "ALARM": MotorStates.ALARM,
-        "DISABLE": MotorStates.DISABLED,
-        "UNKNOWN": MotorStates.UNKNOWN,
+        "ON": SardanaMotorState.READY,
+        "OFF": SardanaMotorState.UNUSABLE,
+        "CLOSE": SardanaMotorState.UNUSABLE,
+        "OPEN": SardanaMotorState.UNUSABLE,
+        "INSERT": SardanaMotorState.UNUSABLE,
+        "EXTRACT": SardanaMotorState.UNUSABLE,
+        "MOVING": SardanaMotorState.MOVING,
+        "STANDBY": SardanaMotorState.UNUSABLE,
+        "FAULT": SardanaMotorState.UNUSABLE,
+        "INIT": SardanaMotorState.UNUSABLE,
+        "RUNNING": SardanaMotorState.UNUSABLE,
+        "ALARM": SardanaMotorState.UNUSABLE,
+        "DISABLE": SardanaMotorState.UNUSABLE,
+        "UNKNOWN": SardanaMotorState.UNUSABLE,
     }
 
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
+        HardwareObject.__init__(self, name)
         self.stop_command = None
         self.position_channel = None
         self.state_channel = None
@@ -59,9 +71,10 @@ class SardanaMotor(AbstractMotor):
         self.limit_lower = None
         self.static_limits = (-1e4, 1e4)
         self.limits = (None, None)
-        self.motor_state = MotorStates.NOTINITIALIZED
+        self.motor_state = SardanaMotorState.NOTINITIALIZED
 
     def init(self):
+        super().init()
 
         self.taurusname = self.get_property("taurusname")
         if not self.taurusname:
@@ -157,13 +170,6 @@ class SardanaMotor(AbstractMotor):
         elif signal == "stateChanged":
             self.motor_state_changed()
 
-    def updateState(self):
-        """
-        Descript. : forces position and state update
-        """
-        self.motor_position_changed()
-        self.motor_state_changed()
-
     def motor_state_changed(self, state=None):
         """
         Descript. : called by the state channels update event
@@ -175,16 +181,17 @@ class SardanaMotor(AbstractMotor):
         if state is None:
             state = self.state_channel.get_value()
 
-        state = str(state)
-        motor_state = SardanaMotor.state_map[state]
+        state = str(state.name)
+        motor_state = SardanaMotor.state_map[state].value
 
-        if motor_state != MotorStates.DISABLED:
+        if motor_state != SardanaMotorState.UNUSABLE.value:
             if self.motor_position >= self.limit_upper:
-                motor_state = MotorStates.HIGHLIMIT
+                motor_state = SardanaMotorState.HIGHLIMIT.value
             elif self.motor_position <= self.limit_lower:
-                motor_state = MotorStates.LOWLIMIT
+                motor_state = SardanaMotorState.LOWLIMIT.value
 
-        self.set_ready(motor_state > MotorStates.DISABLED)
+        if motor_state.value < SardanaMotorState.UNUSABLE.value.value:
+            self.is_ready()
 
         if motor_state != self.motor_state:
             self.motor_state = motor_state
@@ -216,7 +223,8 @@ class SardanaMotor(AbstractMotor):
                     static_limits is returned
         """
         try:
-            return (self.limit_lower, self.limit_upper)
+            self._nominal_limits = (self.limit_lower, self.limit_upper)
+            return self._nominal_limits
         except Exception:
             return (None, None)
 
@@ -244,7 +252,7 @@ class SardanaMotor(AbstractMotor):
         """
         Descript. : True if the motor is currently moving
         """
-        return self.is_ready() and self.get_state() == MotorStates.MOVING
+        return self.is_ready() and self.get_state() == HardwareObjectState.BUSY
 
     motorIsMoving = is_moving
 
