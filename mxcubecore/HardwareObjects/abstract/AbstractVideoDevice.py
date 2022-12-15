@@ -292,6 +292,13 @@ class AbstractVideoDevice(HardwareObject):
             open(filename, "w").write(jpgstr)
 
     def take_snapshot(self, bw=None, return_as_array=True):
+        """Take the snapshot.
+        Args:
+            bs(bool): Return grayscale image (True)
+            return_as_array(bool): Return the image as array. Default is True.
+        Returns:
+            (): Snapshot image.
+        """
         self.get_snapshot(bw, return_as_array)
     
     def get_snapshot(self, bw=None, return_as_array=True):
