@@ -36,6 +36,7 @@ import logging
 from io import BytesIO
 import gevent
 import numpy as np
+import warnings
 
 try:
     import cv2
@@ -290,6 +291,16 @@ class AbstractVideoDevice(HardwareObject):
             jpgstr = self.get_jpg_image()
             open(filename, "w").write(jpgstr)
 
+    def take_snapshot(self, bw=None, return_as_array=True):
+        """Take the snapshot.
+        Args:
+            bs(bool): Return grayscale image (True)
+            return_as_array(bool): Return the image as array. Default is True.
+        Returns:
+            (): Snapshot image.
+        """
+        self.get_snapshot(bw, return_as_array)
+    
     def get_snapshot(self, bw=None, return_as_array=True):
         """Get the snapshot.
         Args:
@@ -298,6 +309,9 @@ class AbstractVideoDevice(HardwareObject):
         Returns:
             (): Snapshot image.
         """
+        warnings.warn(
+            "Deprecated method, call take_snapshot instead", DeprecationWarning
+        )
         if not USEQT:
             print("get snapshot not implemented yet for non-qt mode")
             return None
