@@ -800,12 +800,12 @@ class XSDataAtomicComposition(XSData):
 
 class XSDataBeam(XSData):
     """This object contains all the properties related to the beam:
-- the exposure time (sec)
-- the flux (photons/sec)
-- The minimum exposure time permitted by hardware (sec)
-- The size of the beam (mm x mm)
-- The wavelength (a)
-- Transmission in %"""
+    - the exposure time (sec)
+    - the flux (photons/sec)
+    - The minimum exposure time permitted by hardware (sec)
+    - The size of the beam (mm x mm)
+    - The wavelength (a)
+    - Transmission in %"""
 
     def __init__(
         self,
@@ -2095,7 +2095,7 @@ class XSDataCollection(XSData):
 
 
 class XSDataDetector(XSData):
-    """The properties of a detector. """
+    """The properties of a detector."""
 
     def __init__(
         self,
@@ -2890,18 +2890,18 @@ class XSDataDetector(XSData):
 class XSDataDiffractionPlan(XSData):
     """This object contains the main properties a user can parameterize for a crystal characterisation:
 
-- the aimed* parameters are the parameters that a user would like to reach for a BEST run.
-- the required* are not yet used (the idea is to warn the user if these parameters cannot be reached)
-- complexity: BEST complexity input, can be either "none" (always single wedge strategy). "min" (few subwedges) or "full" (many subwedges).
-- maxExposureTimePerDataCollection is the max total exposure time (shutter open, not including readout time) the crystal can be exposed to the X-ray beam.
-- forcedSpaceGroup: option to force the space group of the indexing solution
-- strategyOption: extra option for BEST for more advanced strategies like estimating the sensitivity to radiation damage
-- anomalousData: Depreccated! Boolean value for enabling anomalous strategy. In the future the strategyOption should be used instead of anomalousData.
-- estimateRadiationDamage: Boolean value for enabling or disabling the use of Raddose for estimation of radiation damage. If estimateRadiationDamage is enabled also the flux and beamsize must be provided.
-- detectorDistanceMin and detectorDistanceMax: optimal input to BEST for limiting the calculated strategy resolution to be in the range of the detector displacements with respect to the sample.
-- minTransmission: optional input for BEST
-- kappaStrategyOption: optional input for kappa strategies
-- numberOfPositions: optional input for BEST"""
+    - the aimed* parameters are the parameters that a user would like to reach for a BEST run.
+    - the required* are not yet used (the idea is to warn the user if these parameters cannot be reached)
+    - complexity: BEST complexity input, can be either "none" (always single wedge strategy). "min" (few subwedges) or "full" (many subwedges).
+    - maxExposureTimePerDataCollection is the max total exposure time (shutter open, not including readout time) the crystal can be exposed to the X-ray beam.
+    - forcedSpaceGroup: option to force the space group of the indexing solution
+    - strategyOption: extra option for BEST for more advanced strategies like estimating the sensitivity to radiation damage
+    - anomalousData: Depreccated! Boolean value for enabling anomalous strategy. In the future the strategyOption should be used instead of anomalousData.
+    - estimateRadiationDamage: Boolean value for enabling or disabling the use of Raddose for estimation of radiation damage. If estimateRadiationDamage is enabled also the flux and beamsize must be provided.
+    - detectorDistanceMin and detectorDistanceMax: optimal input to BEST for limiting the calculated strategy resolution to be in the range of the detector displacements with respect to the sample.
+    - minTransmission: optional input for BEST
+    - kappaStrategyOption: optional input for kappa strategies
+    - numberOfPositions: optional input for BEST"""
 
     def __init__(
         self,
@@ -4058,11 +4058,11 @@ class XSDataDiffractionPlan(XSData):
 
 class XSDataGoniostat(XSData):
     """The properties of a goniostat:
-- the maximal rotation speed permitted
-- the minimal width for an oscillation width of subwedge
-- the name of the rotation axis (typically phi)
-- the rotation start angle
-- the rotation end angle"""
+    - the maximal rotation speed permitted
+    - the minimal width for an oscillation width of subwedge
+    - the name of the rotation axis (typically phi)
+    - the rotation start angle
+    - the rotation end angle"""
 
     def __init__(
         self,
@@ -7266,10 +7266,10 @@ class XSDataResolutionBin(XSData):
 
 class XSDataSample(XSData):
     """This defines the main properties of a sample:
-- absorbed dose rate in Gray/sec
-- shape: the factor that is related to the sample and the beam size (1 if crystal smaller than beam size or = to the ratio of crystal size to the beam size if the beam is smaller then crystal).
-- sample size
-- the susceptibility of the sample to radiation damage."""
+    - absorbed dose rate in Gray/sec
+    - shape: the factor that is related to the sample and the beam size (1 if crystal smaller than beam size or = to the ratio of crystal size to the beam size if the beam is smaller then crystal).
+    - sample size
+    - the susceptibility of the sample to radiation damage."""
 
     def __init__(
         self,
@@ -10334,7 +10334,7 @@ class XSDataCrystal(XSData):
 
 class XSDataStructure(XSData):
     """This is the polymer structure composed by a list of chains and a list of ligands.
-This structure is also defined by its number in the asymmetric unit."""
+    This structure is also defined by its number in the asymmetric unit."""
 
     def __init__(self, numberOfCopiesInAsymmetricUnit=None, ligand=None, chain=None):
         XSData.__init__(self)
@@ -10595,7 +10595,7 @@ This structure is also defined by its number in the asymmetric unit."""
 
 class XSDataSubWedge(XSData):
     """A subwedge is defined as a list of images that been collected or is to be collected with some particular experimental condition. If the images are to be collected, the image list is empty.
-The subWedgeNumber is an optional number for relating different subwedges, especially for planning data collections."""
+    The subWedgeNumber is an optional number for relating different subwedges, especially for planning data collections."""
 
     def __init__(
         self, subWedgeNumber=None, image=None, experimentalCondition=None, action=None

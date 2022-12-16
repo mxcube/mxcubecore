@@ -26,22 +26,23 @@ import pytest
 __copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
+
 @pytest.fixture
 def test_object(beamline):
     result = beamline
     yield result
 
-class TestBeamlineHoId():
+
+class TestBeamlineHoId:
     def test_beamline_id(self, test_object):
-        
-        # Test if we can retrive a object located directly on 
+
+        # Test if we can retrive a object located directly on
         # the beamline object
         ho = test_object.get_hardware_object("diffractometer")
         ho_id = test_object.get_id(ho)
-        assert("diffractometer" == ho_id)
+        assert "diffractometer" == ho_id
 
         # Test if we can get an object further down the strucutre
         ho = test_object.get_hardware_object("diffractometer.sampx")
         ho_id = test_object.get_id(ho)
-        assert("diffractometer.sampx" == ho_id)
-
+        assert "diffractometer.sampx" == ho_id

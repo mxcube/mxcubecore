@@ -8,7 +8,6 @@ import fcntl
 import subprocess
 import sys
 import time
-import uuid
 import logging
 import struct
 import ast
@@ -172,8 +171,10 @@ def start_video_stream(
             "scale=w=%s:h=%s" % (w, h),
             "-f",
             "mpegts",
-            "-b:v", "750000",
-            "-q:v", "%s" % quality,
+            "-b:v",
+            "750000",
+            "-q:v",
+            "%s" % quality,
             "-an",
             "-vcodec",
             "mpeg1video",
@@ -198,8 +199,10 @@ def start_video_stream(
             "scale=w=%s:h=%s" % (w, h),
             "-f",
             "mpegts",
-            "-b:v", "750000",
-            "-q:v", "%s" % quality,
+            "-b:v",
+            "750000",
+            "-q:v",
+            "%s" % quality,
             "-an",
             "-vcodec",
             "mpeg1video",

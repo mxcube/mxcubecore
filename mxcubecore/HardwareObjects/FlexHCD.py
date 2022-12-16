@@ -436,7 +436,7 @@ class FlexHCD(SampleChanger):
 
         if not sample:
             sample = self.get_loaded_sample().get_address()
-        
+
         try:
             SampleChanger.unload(self, sample)
         finally:
@@ -457,7 +457,7 @@ class FlexHCD(SampleChanger):
         grippers = []
 
         try:
-        
+
             if self.exporter_addr:
                 ret = sorted(
                     self._execute_cmd_exporter("getSupportedGrippers", attribute=True)
@@ -465,7 +465,7 @@ class FlexHCD(SampleChanger):
                 for gripper in ret:
                     grippers.append(self.gripper_types[gripper])
             else:
-                ret = [1, 3] #self._execute_cmd("get_supported_grippers")
+                ret = [1, 3]  # self._execute_cmd("get_supported_grippers")
 
                 for gripper in ret:
                     grippers.append(self.gripper_types[gripper])

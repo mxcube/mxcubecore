@@ -24,7 +24,16 @@ import time
 import PyTango
 import logging
 
-from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import *
+from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
+    Container,
+    Sample,
+    SampleChanger,
+    SampleChangerState,
+    argin,
+    gevent,
+    has_been_loaded,
+    new_loaded,
+)
 
 __author__ = "Michael Hellmig, Jie Nan, Bixente Rey"
 __credits__ = ["The MXCuBE collaboration"]

@@ -124,8 +124,8 @@ class Beamline(ConfiguredObject):
         # List of undulators
         self.undulators = []
 
-        # Dictionary with the python id of hardwareobject as key 
-        # and the "dotted/attribute path" to hardwareobject from the 
+        # Dictionary with the python id of hardwareobject as key
+        # and the "dotted/attribute path" to hardwareobject from the
         # Beamline object
         self._hardware_object_id_dict = {}
 
@@ -189,7 +189,7 @@ class Beamline(ConfiguredObject):
 
     def _get_id_dict(self) -> dict:
         """
-        Wrapper function used to call the recursive method used to find all 
+        Wrapper function used to call the recursive method used to find all
         HardwareObjects accessible from the Beamline object.
         """
         result = {}
@@ -203,9 +203,11 @@ class Beamline(ConfiguredObject):
 
         return result
 
-    def _get_id_dict_rec(self, ho: HardwareObject, _path: str="", result: dict = {}) -> str:
+    def _get_id_dict_rec(
+        self, ho: HardwareObject, _path: str = "", result: dict = {}
+    ) -> str:
         """
-        Recurses through all the roles of ho and constructs its corresponding 
+        Recurses through all the roles of ho and constructs its corresponding
         "dotted path/attribute"
 
         Args:
@@ -221,7 +223,9 @@ class Beamline(ConfiguredObject):
             for role in ho.get_roles():
                 child_ho = ho.get_object_by_role(role)
                 if child_ho not in result:
-                    result[child_ho] = self._get_id_dict_rec(child_ho, f"{_path}.{role}", result)
+                    result[child_ho] = self._get_id_dict_rec(
+                        child_ho, f"{_path}.{role}", result
+                    )
 
         return _path
 

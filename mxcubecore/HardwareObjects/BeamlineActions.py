@@ -1,6 +1,5 @@
 import sys
 import typing
-import enum
 import ast
 import importlib
 import operator
@@ -13,6 +12,7 @@ from mxcubecore.utils.conversion import camel_to_snake
 import gevent
 import logging
 
+
 class ControllerCommand(CommandObject):
     def __init__(self, name, cmd=None, username=None, klass=None):
         CommandObject.__init__(self, name, username)
@@ -20,7 +20,7 @@ class ControllerCommand(CommandObject):
         if not cmd:
             self._cmd = klass()
         else:
-            self._cmd=cmd
+            self._cmd = cmd
 
         self._cmd_execution = None
         self.type = "CONTROLLER"
@@ -56,7 +56,7 @@ class ControllerCommand(CommandObject):
                 else:
                     self.emit("commandReplyArrived", (str(self.name()), res))
         finally:
-            self.emit("commandReady",  (str(self.name()), ""))
+            self.emit("commandReady", (str(self.name()), ""))
 
     def abort(self):
         if self._cmd_execution and not self._cmd_execution.ready():
@@ -64,6 +64,7 @@ class ControllerCommand(CommandObject):
 
     def value(self):
         return None
+
 
 class HWObjActuatorCommand(CommandObject):
     """Class for two state hardware objects"""
@@ -133,6 +134,7 @@ class CommandDescription(typing.NamedTuple):
     result: typing.Any
     messages: list
 
+
 class AnnotatedCommand(CommandObject):
     def __init__(self, beamline_action_ho, name, cmd_name):
         self._beamline_action_ho = beamline_action_ho
@@ -142,6 +144,7 @@ class AnnotatedCommand(CommandObject):
 
     def get_value(self):
         return self._value
+
 
 class BeamlineActions(HardwareObject):
     def __init__(self, *args):
@@ -155,17 +158,17 @@ class BeamlineActions(HardwareObject):
     def _get_command_object_class(self, path_str):
         parts = path_str.split(".")
 
-        _module_name = "mxcubecore."+".".join(parts[:-1])
+        _module_name = "mxcubecore." + ".".join(parts[:-1])
         _cls_name = parts[-1]
         self._annotated_commands.append(_cls_name)
-        
+
         # Assume import from current module if only class name givien (no module)
         if len(parts) == 1:
             _cls = getattr(sys.modules[__name__], _cls_name)
         else:
             _mod = importlib.import_module(_module_name)
             _cls = getattr(_mod, _cls_name)
-        
+
         return _cls
 
     def init(self):
@@ -175,9 +178,12 @@ class BeamlineActions(HardwareObject):
 
         for command in command_list:
             attrname = camel_to_snake(command["command"].split(".")[-1])
-            
+
             if hasattr(self, attrname):
-                msg = "Command with name %s already exists" % command["command"].split(".")[-1]
+                msg = (
+                    "Command with name %s already exists"
+                    % command["command"].split(".")[-1]
+                )
                 logging.getLogger("HWR").warning(msg)
                 continue
 
@@ -195,7 +201,9 @@ class BeamlineActions(HardwareObject):
                     _cmd_obj = ControllerCommand(command["name"], cmd, command["name"])
                 except AttributeError:
                     _cls = self._get_command_object_class(command["command"])
-                    _cmd_obj = ControllerCommand(command["name"], None, command["name"], klass=_cls)
+                    _cmd_obj = ControllerCommand(
+                        command["name"], None, command["name"], klass=_cls
+                    )
 
                 self._command_list.append(_cmd_obj)
                 setattr(self, attrname, _cmd_obj)
@@ -211,7 +219,7 @@ class BeamlineActions(HardwareObject):
 
     def get_annotated_command(self, name):
         return self._annotated_command_dict[name]
-    
+
     def get_annotated_commands(self):
         return list(self._annotated_command_dict.values())
 
@@ -225,14 +233,14 @@ class BeamlineActions(HardwareObject):
             self._annotated_command_dict[name].emit("commandBeginWaitReply", name)
             _t = gevent.spawn(cmd, **args)
             _t.link(self._command_done)
-            
+
             self._current_command = CommandDescription(name, _t, None, [])
             self._command_log.append(self._current_command)
 
     def _command_done(self, greenlet):
         cmd_obj = self._annotated_command_dict[self._current_command.name]
         result = ""
-        
+
         try:
             try:
                 result = greenlet.get()
@@ -247,11 +255,13 @@ class BeamlineActions(HardwareObject):
                     cmd_obj.emit("commandFailed", (self._current_command.name,))
                 else:
                     self._current_command.result = result
-                    cmd_obj.emit("commandReplyArrived", (self._current_command.name, result))
+                    cmd_obj.emit(
+                        "commandReplyArrived", (self._current_command.name, result)
+                    )
         finally:
-            cmd_obj.emit("commandReady", (
-                self._current_command.name,
-                self._current_command.result)
+            cmd_obj.emit(
+                "commandReady",
+                (self._current_command.name, self._current_command.result),
             )
 
             self._current_command = CommandDescription("", None, None, [])
@@ -259,4 +269,3 @@ class BeamlineActions(HardwareObject):
     def abort_command(self, name):
         cmd_obj = self._annotated_command_dict[self._current_command.name]
         self._current_command.task.kill()
-

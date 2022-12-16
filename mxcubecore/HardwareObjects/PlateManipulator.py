@@ -190,8 +190,7 @@ class Cell(Container):
 
 
 class PlateManipulator(SampleChanger):
-    """
-    """
+    """ """
 
     __TYPE__ = "PlateManipulator"
 

@@ -30,9 +30,9 @@ __credits__ = ["DESY P11"]
 __license__ = "LGPLv3+"
 __category__ = "Motor"
 
+
 class TangoMotor(AbstractMotor):
-    """TINEMotor class defines motor in the TINE control system
-    """
+    """TINEMotor class defines motor in the TINE control system"""
 
     default_polling = 500
 
@@ -56,13 +56,15 @@ class TangoMotor(AbstractMotor):
 
         self.chan_position = self.get_channel_object("axisPosition", optional=True)
         if self.chan_position is None:
-             self.chan_position = self.add_channel(
-                  {
-                      "type": "tango",
-                      "name": "axisPosition",
-                      "tangoname": self.tangoname,
-                      "polling": self.polling,
-                  }, "Position",)
+            self.chan_position = self.add_channel(
+                {
+                    "type": "tango",
+                    "name": "axisPosition",
+                    "tangoname": self.tangoname,
+                    "polling": self.polling,
+                },
+                "Position",
+            )
 
         if self.chan_position is not None:
             self.chan_position.connect_signal("update", self.update_value)
@@ -70,13 +72,15 @@ class TangoMotor(AbstractMotor):
 
         self.chan_state = self.get_channel_object("axisState", None)
         if self.chan_state is None:
-             self.chan_state = self.add_channel(
-                  {
-                      "type": "tango",
-                      "name": "axisState",
-                      "tangoname": self.tangoname,
-                      "polling": self.polling,
-                  }, "State",)
+            self.chan_state = self.add_channel(
+                {
+                    "type": "tango",
+                    "name": "axisState",
+                    "tangoname": self.tangoname,
+                    "polling": self.polling,
+                },
+                "State",
+            )
 
         if self.chan_state is not None:
             self.chan_state.connect_signal("update", self.motor_state_changed)
@@ -94,13 +98,15 @@ class TangoMotor(AbstractMotor):
 
         self.cmd_stop = self.get_command_object("stopAxis")
         if self.cmd_stop is None:
-             self.cmd_stop = self.add_command(
-                  {
-                      "type": "tango",
-                      "name": "stopAxis",
-                      "tangoname": self.tangoname,
-                      "polling": self.polling,
-                  }, "Stop",)
+            self.cmd_stop = self.add_command(
+                {
+                    "type": "tango",
+                    "name": "stopAxis",
+                    "tangoname": self.tangoname,
+                    "polling": self.polling,
+                },
+                "Stop",
+            )
 
     def connectNotify(self, signal):
         """
@@ -121,7 +127,7 @@ class TangoMotor(AbstractMotor):
     def motstate_to_state(self, motstate):
 
         motstate = str(motstate)
-    
+
         if motstate == "ON":
             state = self.STATES.READY
         elif motstate == "MOVING":
@@ -139,11 +145,10 @@ class TangoMotor(AbstractMotor):
         if state is None:
             state = self.chan_state.getValue()
 
-        self.update_state( self.motstate_to_state(state) )
+        self.update_state(self.motstate_to_state(state))
 
     def abort(self):
-        """Stops motor movement
-        """
+        """Stops motor movement"""
         self.cmd_stop()
 
     def _set_value(self, value):
@@ -166,10 +171,9 @@ class TangoMotor(AbstractMotor):
     def _update_state(self):
         gevent.sleep(0.5)
         self.motor_state_changed(self.chan_state.getValue())
-            
+
     def update_value(self, value=None):
-        """Updates motor position
-        """
+        """Updates motor position"""
         if value is None:
             value = self.get_value()
         super(TangoMotor, self).update_value(value)

@@ -14,7 +14,7 @@ try:
 except ImportError:
     import SpecClient
 
-from qt import *
+from qt import PYSIGNAL, QObject
 
 
 class SpecOutputVar(QObject, SpecClient.SpecVariable.SpecVariableA):

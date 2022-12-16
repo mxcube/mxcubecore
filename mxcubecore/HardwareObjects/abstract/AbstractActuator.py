@@ -120,7 +120,7 @@ class AbstractActuator(HardwareObject):
         """
 
     def set_value(self, value, timeout=0):
-        """ Set actuator to value.
+        """Set actuator to value.
         Args:
             value: target value
             timeout (float): optional - timeout [s],

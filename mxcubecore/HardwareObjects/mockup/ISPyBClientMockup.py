@@ -3,7 +3,6 @@ A client for ISPyB Webservices.
 """
 
 import logging
-import datetime
 import time
 
 from mxcubecore.BaseHardwareObjects import HardwareObject

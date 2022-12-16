@@ -8,12 +8,11 @@ from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
-
 # class XRFSpectrum(Equipment):
 class XRFSpectrum(HardwareObject):
     def __init__(self, *args, **kwargs):
         HardwareObject.__init__(self, *args, **kwargs)
-        #Equipment.__init__(self, *args, **kwargs)
+        # Equipment.__init__(self, *args, **kwargs)
         self.config_data = None
         self.calib_data = None
         self.energy_spectrum_args = None
@@ -245,7 +244,7 @@ class XRFSpectrum(HardwareObject):
             mcaConfig["bsX"] = self.spectrumInfo["beamSizeHorizontal"]
             mcaConfig["bsY"] = self.spectrumInfo["beamSizeVertical"]
             roi = self.ctrl_hwobj.mca.get_roi()
-            #roi = self.mca_hwobj.get_roi()
+            # roi = self.mca_hwobj.get_roi()
             mcaConfig["min"] = roi["chmin"]
             mcaConfig["max"] = roi["chmax"]
             mcaConfig["legend"] = self.spectrumInfo["annotatedPymcaXfeSpectrum"]

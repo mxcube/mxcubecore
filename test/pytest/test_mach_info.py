@@ -36,6 +36,7 @@ def test_object(beamline):
 
 class TestMachineInfo(TestHardwareObjectBase.TestHardwareObjectBase):
     """MachineInfo uses the HardwareObject tests."""
+
     def test_mach_info_atributes(self, test_object):
         """Test for attributes"""
         assert (

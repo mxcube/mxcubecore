@@ -196,8 +196,7 @@ class Cell(Container.Container):
 
 
 class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
-    """
-    """
+    """ """
 
     __TYPE__ = "PlateManipulator"
 
@@ -310,7 +309,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         Descript. : function to move to plate location.
                     Location is estimated by sample location and reference positions.
         """
-       
+
         row = sample_location[0] - 1
         col = (sample_location[1] - 1) / self.num_drops
         drop = sample_location[1] - self.num_drops * col
@@ -535,6 +534,6 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
 
     def sync_with_crims(self, barcode):
         return self._load_data(barcode)
-    
+
     def re_emit_values(self):
         return

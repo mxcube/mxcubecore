@@ -383,7 +383,6 @@ class SampleView(AbstractSampleView):
             cpos (CenteredPosition): CenteredPosition of shape
         """
         # Signature incompatible with AbstractSampleView
-        pass
 
 
 class Shape(object):

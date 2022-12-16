@@ -1,7 +1,7 @@
 import time
 import atexit
 import numpy as np
-from pymba import *
+from pymba import Vimba
 
 try:
     import cv2
@@ -48,9 +48,9 @@ class VimbaVideo(AbstractVideoDevice):
 
             self.raw_image_dimensions = (
                 self.camera.feature("Width").value,
-                self.camera.feature("Height").value
+                self.camera.feature("Height").value,
             )
-            
+
             while True:
                 self.frame.wait_for_capture(1000)
                 self.frame.queue_for_capture()
@@ -73,8 +73,7 @@ class VimbaVideo(AbstractVideoDevice):
                     self.emit("imageReceived", self.qpixmap)
                 else:
                     image_data = cv2.cvtColor(
-                        self.frame.buffer_data_numpy(),
-                        cv2.COLOR_BGR2RGBA
+                        self.frame.buffer_data_numpy(), cv2.COLOR_BGR2RGBA
                     )
                     ret, im = cv2.imencode(".jpg", image_data)
                     self.emit(

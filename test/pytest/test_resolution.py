@@ -36,12 +36,12 @@ def test_object(beamline):
 
 class TestResolution(TestAbstractMotorBase.TestAbstractMotorBase):
     """Overload some of the AbstractMotor tests, as resolution depends on
-       the detector_distance mock motor.
+    the detector_distance mock motor.
     """
 
     def test_limits_setting(self, test_object):
         """Cannot set resolution limits, but read the detector distance
-           limits and check calculation for resolution limits.
+        limits and check calculation for resolution limits.
         """
         limits = test_object.get_limits()
         if limits != (None, None):
@@ -56,7 +56,7 @@ class TestResolution(TestAbstractMotorBase.TestAbstractMotorBase):
 
     def test_update_state(self, test_object):
         """The state corresponds to the detector distance motor state.
-           As the detector distance state does not change, the test is empty.
+        As the detector distance state does not change, the test is empty.
         """
 
     def test_setting_with_tolerance(self, test_object):

@@ -5727,7 +5727,7 @@ class XSDataMatrix(XSDataMatrixDouble):
 
 class XSDataUnitVector(XSDataVectorDouble):
     """<<Invariant>>
-{abs(v1**2.0 + v3**2.0-1.0) < epsilon}"""
+    {abs(v1**2.0 + v3**2.0-1.0) < epsilon}"""
 
     def __init__(self, v3=None, v2=None, v1=None):
         XSDataVectorDouble.__init__(self, v3, v2, v1)

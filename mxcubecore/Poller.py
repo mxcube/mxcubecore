@@ -19,7 +19,7 @@ log = logging.getLogger("HWR")
 
 POLLERS = {}
 
-gevent_version = list(map(int, gevent.__version__.split('.')))
+gevent_version = list(map(int, gevent.__version__.split(".")))
 
 
 class _NotInitializedValue:

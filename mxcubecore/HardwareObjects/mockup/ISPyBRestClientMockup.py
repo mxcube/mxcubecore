@@ -255,7 +255,6 @@ class ISPyBRestClientMockup(HardwareObject):
         :returns: None
         """
         print("update_data_collection... ", mx_collection)
-        pass
 
     def store_image(self, image_dict):
         """

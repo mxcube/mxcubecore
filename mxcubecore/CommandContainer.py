@@ -31,7 +31,6 @@ from __future__ import absolute_import
 
 import weakref
 import logging
-from warnings import warn
 
 from mxcubecore.dispatcher import dispatcher
 

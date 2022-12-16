@@ -1,4 +1,12 @@
-from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import *
+from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
+    Container,
+    Sample,
+    SampleChanger,
+    SampleChangerMode,
+    SampleChangerState,
+    gevent,
+    sys,
+)
 
 import xml.sax
 from xml.sax.handler import ContentHandler

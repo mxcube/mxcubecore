@@ -1,6 +1,3 @@
-import time
-import xml.etree.cElementTree as et
-
 try:
     from urllib import urlopen
 except ImportError:

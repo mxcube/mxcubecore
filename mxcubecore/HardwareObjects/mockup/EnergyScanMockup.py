@@ -413,6 +413,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         except IndexError:
             pass
         return elements
+
     #
     # def getDefaultMadEnergies(self):
     #     energies = []

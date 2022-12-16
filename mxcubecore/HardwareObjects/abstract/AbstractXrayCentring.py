@@ -86,8 +86,7 @@ class AbstractXrayCentring(HardwareObjectYaml):
         """
 
     def post_execute(self):
-        """The workflow has finished, sets the state to 'READY'.
-        """
+        """The workflow has finished, sets the state to 'READY'."""
 
         self._queue_entry = None
         self._data_collection_group = None

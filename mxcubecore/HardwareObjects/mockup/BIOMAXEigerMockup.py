@@ -22,7 +22,6 @@ hardware object status:
 
 import gevent
 import time
-import copy
 import logging
 
 from mxcubecore import HardwareRepository as HWR
