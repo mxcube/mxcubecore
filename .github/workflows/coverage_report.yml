@@ -7,6 +7,8 @@ on:
 jobs:
   pytest-coverage:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
     - uses: actions/checkout@v3
 
@@ -17,10 +19,10 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install --upgrade pip
-        pip install poetry
-        poetry config virtualenvs.create false
-        poetry install
+        sudo apt-get install -y libsasl2-dev libldap2-dev libssl-dev
+        python -m pip install --upgrade pip
+        python -m pip install poetry --user
+        python -m poetry install
 
     - name: Run and write pytest
       run: |
@@ -29,7 +31,7 @@ jobs:
 
     - name: Pytest coverage comment
       id: coverage-comment
-      uses: MishaKav/pytest-coverage-comment@v1.1.35
+      uses: MishaKav/pytest-coverage-comment@v1.1.40
       with:
         pytest-coverage-path: ./pytest-coverage.txt
         junitxml-path: ./pytest.xml
