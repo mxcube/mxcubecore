@@ -188,10 +188,13 @@ class CentringMath(Procedure):
         for axis in self.gonioAxes:
             if axis["type"] == "translation":
                 motname = axis["motor_name"]
-                if centrings_dictionary[motname] is not None:
-                    vector[index] = float(centrings_dictionary[axis["motor_name"]])
-                else:
-                    return None
+                try:
+                    if centrings_dictionary[motname] is not None:
+                        vector[index] = float(centrings_dictionary[axis["motor_name"]])
+                    else:
+                        return None
+                except KeyError:  # missing kappa and kappa_phi
+                    continue
                 index += 1
         return vector
 
