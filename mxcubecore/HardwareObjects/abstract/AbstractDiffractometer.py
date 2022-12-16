@@ -92,6 +92,7 @@ class AbstractDiffractometer(HardwareObject):
         super().__init__(name)
         self.motors_hwobj_dict = {}
         self.nstate_equipment_hwobj_dict = {}
+        self.complex_hwobj_dict = {}
         self.username = name
         self.current_phase = None
         self.head_type = None
@@ -121,6 +122,14 @@ class AbstractDiffractometer(HardwareObject):
                 logging.getLogger("HWR").warning(
                     "No nstate (discrete positions) equipment configured"
                 )
+        for role in self["complex_equipment"].get_roles():
+            try:
+                self.complex_hwobj_dict[role] = self[
+                    "complex_equipment"
+                ].get_object_by_role(role)
+
+            except Exception as ex:
+                logging.getLogger("HWR").warning("Diffractometer: could not load complex equipment {}".format(ex))
 
     def get_motors(self):
         """Get the dictionary of all configured motors or the ones to use.
