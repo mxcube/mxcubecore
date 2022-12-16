@@ -30,8 +30,7 @@ __credits__ = ["MXCuBE collaboration"]
 
 
 class CollectMockup(AbstractCollect):
-    """
-    """
+    """ """
 
     def __init__(self, name):
         """
@@ -45,8 +44,7 @@ class CollectMockup(AbstractCollect):
         self.aborted_by_user = False
 
     def init(self):
-        """Main init method
-        """
+        """Main init method"""
 
         AbstractCollect.init(self)
 
@@ -54,8 +52,7 @@ class CollectMockup(AbstractCollect):
         self.emit("collectReady", (True,))
 
     def data_collection_hook(self):
-        """Main collection hook
-        """
+        """Main collection hook"""
         self.emit("collectStarted", (None, 1))
         self.emit("fsmConditionChanged", "data_collection_started", True)
         self._store_image_in_lims_by_frame_num(1)
@@ -85,8 +82,7 @@ class CollectMockup(AbstractCollect):
         self.emit_collection_finished()
 
     def emit_collection_finished(self):
-        """Collection finished beahviour
-        """
+        """Collection finished beahviour"""
         if self.current_dc_parameters["experiment_type"] != "Collect - Multiwedge":
             self._update_data_collection_in_lims()
 
@@ -148,7 +144,7 @@ class CollectMockup(AbstractCollect):
         """
         Descript. :
         """
-        AbstractCollect.stop_collect(self) 
+        AbstractCollect.stop_collect(self)
         self.aborted_by_user = True
 
     @task
@@ -158,11 +154,9 @@ class CollectMockup(AbstractCollect):
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec=1):
         """Rotates sample by 360 and composes a gif file
-           Animation is saved as the fourth snapshot
+        Animation is saved as the fourth snapshot
         """
-        HWR.beamline.sample_view.save_scene_animation(
-            animation_filename, duration_sec
-        )
+        HWR.beamline.sample_view.save_scene_animation(animation_filename, duration_sec)
 
     # @task
     # def move_motors(self, motor_position_dict):
@@ -225,4 +219,4 @@ class CollectMockup(AbstractCollect):
         HWR.beamline.detector.distance.set_value(detector_distance)
 
     def get_undulators_gaps(self):
-        return {"u29" : 10}
+        return {"u29": 10}

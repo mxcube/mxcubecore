@@ -1,4 +1,11 @@
-from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import *
+from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
+    Container,
+    SC3,
+    Sample,
+    SampleChanger,
+    SampleChangerState,
+    gevent,
+)
 import time
 
 

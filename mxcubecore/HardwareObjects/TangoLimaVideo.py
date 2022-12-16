@@ -21,7 +21,6 @@ import PyTango
 from PIL import Image
 import io
 import gipc
-import os
 
 from PyTango.gevent import DeviceProxy
 

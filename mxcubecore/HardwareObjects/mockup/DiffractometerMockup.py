@@ -17,14 +17,11 @@
 #   You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import enum
 import time
 import logging
 import random
 import warnings
-import json
 
-from typing import Union
 from pydantic import ValidationError
 
 from mxcubecore.HardwareObjects.GenericDiffractometer import (

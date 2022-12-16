@@ -123,7 +123,9 @@ class SignalCatcher:
     to get the value passed back by the signal.
     NB consider timeout ot avoid waiting forever"""
 
-    def __init__(self,):
+    def __init__(
+        self,
+    ):
         self.async_result = gevent.event.AsyncResult()
 
     def catch(self, value):

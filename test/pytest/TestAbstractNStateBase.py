@@ -38,13 +38,13 @@ class TestAbstractNStateBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
     def test_values(self, test_object):
         """Test there are at last trhee values, including UNKNOWN"""
 
-        assert len(test_object.VALUES) > 2, (
-            f"Less than three values in enumeration: {test_object.VALUES}"
-        )
+        assert (
+            len(test_object.VALUES) > 2
+        ), f"Less than three values in enumeration: {test_object.VALUES}"
 
-        assert test_object.VALUES.UNKNOWN.value == "UNKNOWN", (
-            "Walue 'UNKNOWN' missing from enumeration: {test_object.VALUES}"
-        )
+        assert (
+            test_object.VALUES.UNKNOWN.value == "UNKNOWN"
+        ), "Walue 'UNKNOWN' missing from enumeration: {test_object.VALUES}"
 
     def test_limits_setting(self, test_object):
         """Test that set_limits and update_limits are diabled

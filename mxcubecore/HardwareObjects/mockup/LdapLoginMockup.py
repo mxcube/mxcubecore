@@ -1,5 +1,4 @@
 from mxcubecore.BaseHardwareObjects import Procedure
-import logging
 
 """
 <procedure class="LdapLogin">

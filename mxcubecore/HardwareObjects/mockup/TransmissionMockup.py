@@ -29,7 +29,6 @@ __license__ = "LGPLv3+"
 
 
 class TransmissionMockup(ActuatorMockup, AbstractTransmission):
-    """Transmission value as a percentage """
+    """Transmission value as a percentage"""
 
     # All necessary functionality is present in superclasses
-    pass

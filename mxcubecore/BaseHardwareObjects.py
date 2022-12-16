@@ -972,8 +972,6 @@ class DeviceContainerNode(HardwareObjectNode, DeviceContainer):
     in HardwareObjectFileParser.HardwareObjectHandler.startElement
     And that use looks like it could be replaced by something else"""
 
-    pass
-
 
 class Equipment(HardwareObject, DeviceContainer):
     """Equipment class -old style

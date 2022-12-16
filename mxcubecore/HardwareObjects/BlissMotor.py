@@ -194,4 +194,3 @@ class BlissMotor(AbstractMotor):
     def abort(self):
         """Stop the motor movement"""
         self.motor_obj.stop(wait=False)
-

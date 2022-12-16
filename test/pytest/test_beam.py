@@ -45,11 +45,10 @@ def test_object(beamline):
 
 class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
     """TestBeam class"""
+
     def test_beam_atributes(self, test_object):
         """Test if object exists."""
-        assert test_object is not None, (
-            "Beam hardware object is None (not initialized)"
-            )
+        assert test_object is not None, "Beam hardware object is None (not initialized)"
 
     def test_get(self, test_object):
         """

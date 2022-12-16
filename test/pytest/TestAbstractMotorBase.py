@@ -40,9 +40,9 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         if velocity:
             vel2 = 0.9 * velocity
             test_object.set_velocity(vel2)
-            assert test_object.get_velocity() == vel2, (
-                "Velocity set to %s ut remains as %s" % (vel2, velocity)
-            )
+            assert (
+                test_object.get_velocity() == vel2
+            ), "Velocity set to %s ut remains as %s" % (vel2, velocity)
 
     def test_attribute_types(self, test_object):
         """Test that values are int or float, and limits are two-tuples,
@@ -93,18 +93,22 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
                 mid,
                 val,
             )
-            assert abs(test_object._nominal_value - mid) < tol, (
-                "update_value nominal result %s differs from target %s"
-                % (test_object._nominal_value, mid)
+            assert (
+                abs(test_object._nominal_value - mid) < tol
+            ), "update_value nominal result %s differs from target %s" % (
+                test_object._nominal_value,
+                mid,
             )
         else:
             assert val == mid, "update_value result %s differs from target %s" % (
                 val,
                 mid,
             )
-            assert test_object._nominal_value == mid, (
-                "update_value nominal result %s differs from target %s"
-                % (test_object._nominal_value, mid)
+            assert (
+                test_object._nominal_value == mid
+            ), "update_value nominal result %s differs from target %s" % (
+                test_object._nominal_value,
+                mid,
             )
 
         toobig = high + 0.1 * (high - low)
@@ -120,9 +124,12 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         test_object.set_value_relative(0.5 * (high - low), timeout=None)
         val = test_object.get_value()
         if tol:
-            assert abs(val - mid) < tol, (
-                "set_value_relative result %s more than %s from target %s"
-                % (val, tol, mid)
+            assert (
+                abs(val - mid) < tol
+            ), "set_value_relative result %s more than %s from target %s" % (
+                val,
+                tol,
+                mid,
             )
 
             test_object.update_value(low)

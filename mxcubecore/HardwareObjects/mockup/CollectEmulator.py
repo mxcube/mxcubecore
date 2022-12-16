@@ -40,7 +40,6 @@ __author__ = "Rasmus H Fogh"
 
 
 class CollectEmulator(CollectMockup):
-
     def __init__(self, name):
         CollectMockup.__init__(self, name)
 
@@ -64,7 +63,6 @@ class CollectEmulator(CollectMockup):
         # Set up and add crystal data
         result = OrderedDict()
         setup_data = result["setup_list"] = crystal_data
-
 
         if self.instrument_data is None:
             # Read instrumentation.nml and put data into mock objects
@@ -131,9 +129,10 @@ class CollectEmulator(CollectMockup):
             if val is not None:
                 setup_data[tag] = val
 
-        setup_data["det_org_x"], setup_data["det_org_y"] = (
-            HWR.beamline.detector.get_beam_position()
-        )
+        (
+            setup_data["det_org_x"],
+            setup_data["det_org_y"],
+        ) = HWR.beamline.detector.get_beam_position()
 
         ll0 = self.instrument_data["gonio_axis_dirs"]
         setup_data["omega_axis"] = ll0[:3]
@@ -205,7 +204,9 @@ class CollectEmulator(CollectMockup):
             motors = data_collect_parameters["motors"]
             sweep = OrderedDict()
 
-            energy = data_collect_parameters.get("energy") or HWR.beamline.energy.get_value()
+            energy = (
+                data_collect_parameters.get("energy") or HWR.beamline.energy.get_value()
+            )
             sweep["lambda"] = conversion.HC_OVER_E / energy
             sweep["res_limit"] = setup_data["res_limit_def"]
             sweep["exposure"] = osc["exposure_time"]
@@ -294,7 +295,7 @@ class CollectEmulator(CollectMockup):
         # get crystal data
         crystal_data, hklfile = HWR.beamline.gphl_workflow.get_emulation_crystal_data()
 
-        input_data, compress_data= self._get_simcal_input(
+        input_data, compress_data = self._get_simcal_input(
             data_collect_parameters, crystal_data
         )
 
@@ -341,9 +342,9 @@ class CollectEmulator(CollectMockup):
 
         def set_ulimit():
             import resource
+
             resource.setrlimit(
-                resource.RLIMIT_STACK,
-                (resource.RLIM_INFINITY, resource.RLIM_INFINITY)
+                resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY)
             )
 
         try:

@@ -65,18 +65,17 @@ class EpicsCommand(CommandObject):
         logging.getLogger("HWR").debug(
             "EpicsCommand: creating pv %s: read_as_str = %s",
             self.pv_name,
-            self.read_as_str
+            self.read_as_str,
         )
-        self.pv = epics.PV(pv_name, auto_monitor = self.auto_monitor)
+        self.pv = epics.PV(pv_name, auto_monitor=self.auto_monitor)
         time.sleep(0.01)
         self.pv_connected = self.pv.connect(timeout=0.1)
 
-        if (self.pv_connected):
+        if self.pv_connected:
             self.value_changed(self.pv.get(as_string=self.read_as_str, timeout=0.1))
         else:
             logging.getLogger("HWR").error(
-                "EpicsCommand: Error connecting to pv %s.",
-                self.pv_name
+                "EpicsCommand: Error connecting to pv %s.", self.pv_name
             )
 
     def __call__(self, *args, **kwargs):
@@ -110,8 +109,8 @@ class EpicsCommand(CommandObject):
                         return ret
                 except Exception as e:
                     logging.getLogger("HWR").error(
-                        "%s: an error occured when getting value with Epics command %s", 
-                        str(self.name()), 
+                        "%s: an error occured when getting value with Epics command %s",
+                        str(self.name()),
                         self.pv_name,
                     )
                 else:
@@ -121,7 +120,7 @@ class EpicsCommand(CommandObject):
                 # use the given argument to change the pv's value
                 try:
                     value = args[0]
-                    wait = kwargs.get('wait', False)
+                    wait = kwargs.get("wait", False)
                     self.pv.put(value, wait=wait)
                 except:
                     logging.getLogger("HWR").error(
@@ -133,7 +132,6 @@ class EpicsCommand(CommandObject):
                     self.emit("commandReplyArrived", (0, str(self.name())))
                     return 0
         self.emit("commandFailed", (-1, str(self.name())))
-
 
     def value_changed(self, value):
         try:
@@ -195,15 +193,16 @@ class EpicsCommand(CommandObject):
     def reconnect(self):
         epics.ca._cache.clear()
         # Reconnect PV
-        self.pv = epics.PV(self.pv_name, auto_monitor = self.auto_monitor)
+        self.pv = epics.PV(self.pv_name, auto_monitor=self.auto_monitor)
         self.pv_connected = self.pv.connect(timeout=0.2)
         # Return the result of get()
-        ret = self.pv.get(as_string = self.read_as_str, timeout=0.2)
+        ret = self.pv.get(as_string=self.read_as_str, timeout=0.2)
         return ret
 
 
 class EpicsChannel(ChannelObject):
     """Emulation of a 'Epics channel' = an Epics command + polling"""
+
     def __init__(self, name, command, username=None, polling=None, args=None, **kwargs):
         ChannelObject.__init__(self, name, username, **kwargs)
         self.command = EpicsCommand(

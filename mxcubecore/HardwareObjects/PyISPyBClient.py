@@ -3,7 +3,6 @@ A client for PyISPyB Webservices.
 """
 import logging
 import datetime
-import pprint
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR

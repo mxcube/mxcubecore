@@ -17,7 +17,9 @@ def check_xml(rpath="."):
                 if list(data.keys())[0] in ["equipment", "device"]:
                     print(f"{fpath}")
                     pprint.pprint(data)
-                    print(f"{Fore.RED}WARNING: equipment and device are depricated, use object instead")
+                    print(
+                        f"{Fore.RED}WARNING: equipment and device are depricated, use object instead"
+                    )
                     print(Style.RESET_ALL)
 
 

@@ -1,8 +1,7 @@
 import sys
 import time
-import string
 import threading
-from ExporterClient import *
+from ExporterClient import ExporterClient
 from mxcubecore.Command.exporter.StandardClient import PROTOCOL
 
 SERVER_ADDRESS = "localhost"
@@ -237,7 +236,7 @@ if __name__ == "__main__":
 
     class Microdiff(MDEvents):
         def onReceivedEvent(self, name, value, timestamp):
-            print ("     Event: " + name + " = " + str(value))
+            print("     Event: " + name + " = " + str(value))
 
     md = Microdiff(SERVER_ADDRESS, SERVER_PORT, PROTOCOL.STREAM, TIMEOUT, RETRIES)
     md.start()
@@ -246,6 +245,6 @@ if __name__ == "__main__":
         # FIXME - this loop never exits
         time.sleep(1.0)
         if not md.is_connected():
-            print ("Not Connected")
+            print("Not Connected")
 
     md.stop()

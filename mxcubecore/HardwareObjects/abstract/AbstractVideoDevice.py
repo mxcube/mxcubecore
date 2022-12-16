@@ -300,7 +300,7 @@ class AbstractVideoDevice(HardwareObject):
             (): Snapshot image.
         """
         self.get_snapshot(bw, return_as_array)
-    
+
     def get_snapshot(self, bw=None, return_as_array=True):
         """Get the snapshot.
         Args:
@@ -358,7 +358,7 @@ class AbstractVideoDevice(HardwareObject):
 
     def change_owner(self):
         """LIMA specific, because it has to be root at startup
-           move this to Qt4_LimaVideo
+        move this to Qt4_LimaVideo
         """
         if os.getuid() == 0:
             try:
@@ -440,7 +440,7 @@ class AbstractVideoDevice(HardwareObject):
 
     @abc.abstractmethod
     def get_image(self):
-        """ The implementing class should return here the latest_image in
+        """The implementing class should return here the latest_image in
         raw_format, followed by the width and height of the image"""
 
     @abc.abstractmethod

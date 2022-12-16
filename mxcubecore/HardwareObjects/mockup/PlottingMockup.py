@@ -1,6 +1,4 @@
 from mxcubecore.BaseHardwareObjects import HardwareObject
-import os
-import sys
 import gevent
 import numpy
 

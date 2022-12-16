@@ -247,7 +247,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         return self.log_filename
 
     def run_test(self):
-        """Test method mounts/dismounts samples """
+        """Test method mounts/dismounts samples"""
         samples_mounted = 0
         for cycle in range(5):
             for sample_index in range(1, 11):
@@ -419,7 +419,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         self.cmd_dry_gripper(1)
 
     def get_sample_properties(self):
-        """Gets sample properties """
+        """Gets sample properties"""
         return (Container.Pin.__HOLDER_LENGTH_PROPERTY__,)
 
     def assert_can_execute_task(self):
@@ -427,7 +427,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
 
     def _do_update_info(self):
         """Updates the sample changers status: mounted pucks, state,
-           currently loaded sample
+        currently loaded sample
         """
         # self._update_state()
         # self._updateSCContents()
@@ -455,8 +455,8 @@ class Marvin(AbstractSampleChanger.SampleChanger):
 
     def _do_select(self, component):
         """Selects a new component (basket or sample).
-           Uses method >_directly_update_selected_component< to actually
-           search and select the corrected positions.
+        Uses method >_directly_update_selected_component< to actually
+        search and select the corrected positions.
         """
         if type(component) in (Container.Pin, Sample.Sample):
             selected_basket_no = component.get_basket_no()
@@ -471,16 +471,16 @@ class Marvin(AbstractSampleChanger.SampleChanger):
 
     def _do_scan(self, component, recursive):
         """Scans the barcode of a single sample, puck or recursively even the
-           complete sample changer.
-           Not implemented
+        complete sample changer.
+        Not implemented
         """
         print("_do_scan TODO")
 
     def _do_load(self, sample=None):
         """Loads a sample on the diffractometer. Performs a simple put operation
-           if the diffractometer is empty, and a sample exchange (unmount of
-           old + mount of  new sample) if a sample is already mounted on
-           the diffractometer.
+        if the diffractometer is empty, and a sample exchange (unmount of
+        old + mount of  new sample) if a sample is already mounted on
+        the diffractometer.
         """
         # self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
         log = logging.getLogger("GUI")
@@ -630,7 +630,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             raise Exception("Sample not loaded!")
 
     def load(self, sample=None, wait=True):
-        """ Load a sample"""
+        """Load a sample"""
         # self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
         if self._focusing_mode == "P13mode":
             AbstractSampleChanger.SampleChanger.load(self, sample, wait)
@@ -758,14 +758,14 @@ class Marvin(AbstractSampleChanger.SampleChanger):
 
     def _do_reset(self):
         """Clean all sample info, move sample to his position and move puck
-           from center to base"""
+        from center to base"""
         self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
         self._init_sc_contents()
         self._in_error_state = False
 
     def _execute_server_task(self, method, *args):
         """Executes called cmd, waits until sample changer is ready and
-           updates loaded sample info
+        updates loaded sample info
         """
         # self.wait_ready(60.0)
         self._state_string = "Bsy"
@@ -800,18 +800,15 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         # if self._is_device_busy():
         #    raise Exception("Action finished to early. Sample changer is not ready!!!")
         self.sample_is_loaded_changed(self.chan_sample_is_loaded.get_value())
-        #self._update_state()
+        # self._update_state()
         self._update_loaded_sample()
-        #self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
+        # self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
         self.update_state(HardwareObjectState.READY)
         self._action_started = False
 
     def _update_state(self):
         state = self._read_state()
-        if (
-            state == HardwareObjectState.BUSY
-            and self._is_device_busy(self.get_state())
-        ):
+        if state == HardwareObjectState.BUSY and self._is_device_busy(self.get_state()):
             return
         self._set_state(state)
 
@@ -823,17 +820,15 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             "Idl": HardwareObjectState.READY,
             "Bsy": HardwareObjectState.BUSY,
         }
-        return state_converter.get(
-            self._state_string, HardwareObjectState.UNKNOWN
-        )
+        return state_converter.get(self._state_string, HardwareObjectState.UNKNOWN)
 
     def _is_device_busy(self, state=None):
         """Checks whether Sample changer is busy"""
         if state is None:
             state = self._read_state()
         if self._progress >= 100 and state in (
-                HardwareObjectState.READY,
-                HardwareObjectState.FAULT,
+            HardwareObjectState.READY,
+            HardwareObjectState.FAULT,
         ):
             return False
         else:
@@ -842,9 +837,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
     def _is_device_ready(self):
         """Checks whether Sample changer is ready"""
         state = self._read_state()
-        return state in (
-            HardwareObjectState.READY,
-        )
+        return state in (HardwareObjectState.READY,)
 
     def wait_ready(self, timeout=None):
         """Waits until the samle changer is ready"""
