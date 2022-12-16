@@ -6,7 +6,7 @@ repos:
     hooks:
       - id: autoflake
         name: Autoflake
-        exclude: (utils/pyispyb_client/|deprecated/|mxcubecore/HardwareObjects/(ALBA|ASLS|DESY|EMBL|ESRF|LNLS|MAXIV|SOLEIL|ANSTO|Gphl))
+        exclude: (utils/pyispyb_client/|deprecated/|mxcubecore/HardwareObjects/(ALBA|ASLS|DESY|EMBL|ESRF|LNLS|MAXIV|SOLEIL|ANSTO|Gphl|Arinax))
         args:
           - --expand-star-imports
           - --ignore-init-module-imports
@@ -19,13 +19,13 @@ repos:
     - id: black
       name: Black
       language_version: python3.7
-      exclude: (utils/pyispyb_client/|deprecated/|mxcubecore/HardwareObjects/(ALBA|ASLS|DESY|EMBL|ESRF|LNLS|MAXIV|SOLEIL|ANSTO|Gphl))
+      exclude: (utils/pyispyb_client/|deprecated/|mxcubecore/HardwareObjects/(ALBA|ASLS|DESY|EMBL|ESRF|LNLS|MAXIV|SOLEIL|ANSTO|Gphl|Arinax))
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.3.0
     hooks:
       # - id: trailing-whitespace
       # - id: end-of-file-fixer
-      #   exclude: (deprecated/|mxcubecore/HardwareObjects/(ALBA|ASLS|DESY|EMBL|ESRF|LNLS|MAXIV|SOLEIL|ANSTO|Gphl))
+      #   exclude: (deprecated/|mxcubecore/HardwareObjects/(ALBA|ASLS|DESY|EMBL|ESRF|LNLS|MAXIV|SOLEIL|ANSTO|Gphl|Arinax))
       - id: check-case-conflict
       - id: check-merge-conflict
         # exclude files where underlines are not distinguishable from merge conflicts
@@ -43,11 +43,11 @@ repos:
   #       name: Import Sort
   #       args:
   #         - --settings=.
-  #       exclude: (/__init__\.py$|deprecated/|mxcubecore/HardwareObjects/(ALBA|ASLS|DESY|EMBL|ESRF|LNLS|MAXIV|SOLEIL|ANSTO|Gphl))
+  #       exclude: (/__init__\.py$|deprecated/|mxcubecore/HardwareObjects/(ALBA|ASLS|DESY|EMBL|ESRF|LNLS|MAXIV|SOLEIL|ANSTO|Gphl|Arinax))
   # - repo: https://github.com/PyCQA/flake8
   #   rev: 4.0.1
   #   hooks:
   #   - id: flake8
   #     name: Flake8
   #     additional_dependencies: ["flake8-bugbear==22.9.11"]
-  #     exclude: (utils/pyispyb_client/|deprecated/|mxcubecore/HardwareObjects/(ALBA|ASLS|DESY|EMBL|ESRF|LNLS|MAXIV|SOLEIL|ANSTO|Gphl))
+  #     exclude: (utils/pyispyb_client/|deprecated/|mxcubecore/HardwareObjects/(ALBA|ASLS|DESY|EMBL|ESRF|LNLS|MAXIV|SOLEIL|ANSTO|Gphl|Arinax))
