@@ -39,7 +39,7 @@ class QtVideoMockup(AbstractVideoDevice):
             "mxcubecore", "configuration/mockup/qt/fakeimg.jpg"
         )
         image_path = self.get_property("file_name", default_image_path)
-
+        print('image_path', image_path)
         self.image = QPixmap(image_path)
         self.image_dimensions = (self.image.width(), self.image.height())
         self.painter = QPainter(self.image)
@@ -53,7 +53,6 @@ class QtVideoMockup(AbstractVideoDevice):
         custom_brush.setColor(Qt.lightGray)
         self.painter.setBrush(custom_brush)
 
-        self.set_is_ready(True)
         AbstractVideoDevice.init(self)
 
     def get_new_image(self):
