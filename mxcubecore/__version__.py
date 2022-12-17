@@ -5,4 +5,8 @@ except ImportError:
     # Python3.7 module backport
     from importlib_metadata import version
 
-__version__ = version(__package__ or __name__)
+try:
+    __version__ = version(__package__ or __name__)
+except:
+    __version__ = 'local'
+
