@@ -33,6 +33,7 @@ jobs:
       id: coverage-comment
       uses: MishaKav/pytest-coverage-comment@v1.1.40
       with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
         pytest-coverage-path: ./pytest-coverage.txt
         junitxml-path: ./pytest.xml
         report-only-changed-files: true
