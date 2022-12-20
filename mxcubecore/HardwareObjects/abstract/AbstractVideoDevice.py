@@ -50,10 +50,7 @@ module_names = ["qt", "PyQt5", "PyQt4"]
 
 if any(mod in sys.modules for mod in module_names):
     USEQT = True
-    try:
-        from PyQt5.QtGui import QImage, QPixmap, QSize
-    except ImportError:
-        from PyQt4.QtGui import QImage, QPixmap, QSize
+    from mxcubecore.utils.qt_import import QPixmap, QImage, QSize
 else:
     USEQT = False
     from PIL import Image
@@ -159,8 +156,6 @@ class AbstractVideoDevice(HardwareObject):
             self.image_polling.link_exception(self.polling_ended_exc)
             self.image_polling.link(self.polling_ended)
 
-        self.set_is_ready(True)
-
     def get_camera_name(self):
         """Get the camera name.
         Returns:
@@ -169,10 +164,10 @@ class AbstractVideoDevice(HardwareObject):
         return self.cam_name
 
     def polling_ended(self, gl=None):
-        logging.getLogger("HWR").info("Polling ended for qt4 camera")
+        logging.getLogger("HWR").info("Polling ended for qt camera")
 
     def polling_ended_exc(self, gl=None):
-        logging.getLogger("HWR").info("Polling ended exception for qt4 camera")
+        logging.getLogger("HWR").info("Polling ended exception for qt camera")
 
     # -------- Generic methods --------
 
