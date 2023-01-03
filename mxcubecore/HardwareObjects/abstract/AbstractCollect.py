@@ -235,7 +235,7 @@ class AbstractCollect(HardwareObject, object):
                 self.set_energy(self.current_dc_parameters["energy"])
 
             dd = self.current_dc_parameters.get("resolution")
-            if dd and dd.get('upper'):
+            if dd and dd.get("upper"):
                 resolution = dd["upper"]
                 log.info("Collection: Setting resolution to %.3f", resolution)
                 self.set_resolution(resolution)
@@ -434,7 +434,7 @@ class AbstractCollect(HardwareObject, object):
         pass
 
     def get_total_absorbed_dose(self):
-        return 
+        return
 
     def get_wavelength(self):
         """
@@ -486,7 +486,7 @@ class AbstractCollect(HardwareObject, object):
         Descript. :
         """
         return {}
-        #return HWR.beamline.energy.get_undulator_gaps()
+        # return HWR.beamline.energy.get_undulator_gaps()
 
     def get_machine_current(self):
         """
@@ -570,10 +570,7 @@ class AbstractCollect(HardwareObject, object):
                 self.current_dc_parameters[
                     "synchrotronMode"
                 ] = self.get_machine_fill_mode()
-                (
-                    collection_id,
-                    detector_id,
-                ) = HWR.beamline.lims.store_data_collection(
+                (collection_id, detector_id,) = HWR.beamline.lims.store_data_collection(
                     self.current_dc_parameters, self.bl_config
                 )
                 self.current_dc_parameters["collection_id"] = collection_id
@@ -591,11 +588,11 @@ class AbstractCollect(HardwareObject, object):
         """
         params = self.current_dc_parameters
         if HWR.beamline.lims and not params["in_interleave"]:
-            params["flux"] =  HWR.beamline.flux.get_value()
+            params["flux"] = HWR.beamline.flux.get_value()
             params["flux_end"] = params["flux"]
             params["totalAbsorbedDose"] = self.get_total_absorbed_dose()
             params["wavelength"] = HWR.beamline.energy.get_wavelength()
-            params[ "detectorDistance"] = HWR.beamline.detector.distance.get_value()
+            params["detectorDistance"] = HWR.beamline.detector.distance.get_value()
             params["resolution"] = HWR.beamline.resolution.get_value()
             params["transmission"] = HWR.beamline.transmission.get_value()
             beam_centre_x, beam_centre_y = HWR.beamline.detector.get_beam_position()
@@ -609,9 +606,7 @@ class AbstractCollect(HardwareObject, object):
                 if key in und:
                     params["undulatorGap%d" % (i)] = und[key]
                     i += 1
-            params[
-                "resolutionAtCorner"
-            ] = HWR.beamline.resolution.get_value_at_corner()
+            params["resolutionAtCorner"] = HWR.beamline.resolution.get_value_at_corner()
             beam_size_x, beam_size_y = HWR.beamline.beam.get_beam_size()
             params["beamSizeAtSampleX"] = beam_size_x
             params["beamSizeAtSampleY"] = beam_size_y
@@ -620,9 +615,7 @@ class AbstractCollect(HardwareObject, object):
             params["slitGapHorizontal"] = hor_gap
             params["slitGapVertical"] = vert_gap
             try:
-                HWR.beamline.lims.update_data_collection(
-                    params
-                )
+                HWR.beamline.lims.update_data_collection(params)
             except BaseException:
                 logging.getLogger("HWR").exception(
                     "Could not update data collection in LIMS"
@@ -691,9 +684,7 @@ class AbstractCollect(HardwareObject, object):
                     self.current_dc_parameters[
                         "xtalSnapshotFullPath3"
                     ] = grid_snapshot_filename
-                HWR.beamline.lims.update_data_collection(
-                    self.current_dc_parameters
-                )
+                HWR.beamline.lims.update_data_collection(self.current_dc_parameters)
             except BaseException:
                 logging.getLogger("HWR").exception(
                     "Could not store data collection into ISPyB"
@@ -796,8 +787,9 @@ class AbstractCollect(HardwareObject, object):
                 if number_of_snapshots > 1:
                     HWR.beamline.diffractometer.move_omega_relative(90)
 
-        if not HWR.beamline.diffractometer.in_plate_mode() and self.current_dc_parameters.get(
-            "take_video"
+        if (
+            not HWR.beamline.diffractometer.in_plate_mode()
+            and self.current_dc_parameters.get("take_video")
         ):
             # Add checkbox to allow enable/disable creation of gif
             logging.getLogger("user_level_log").info("Collection: Saving animated gif")
@@ -823,8 +815,7 @@ class AbstractCollect(HardwareObject, object):
         pass
 
     def _take_crystal_animation(self, animation_filename, duration_sec=1):
-        """Rotates sample by 360 and composes a gif file
-        """
+        """Rotates sample by 360 and composes a gif file"""
         pass
 
     @abc.abstractmethod
@@ -891,7 +882,7 @@ class AbstractCollect(HardwareObject, object):
          - nb lines
          - nb frames per line
          - invert direction (boolean)  # NOT YET DONE
-         """
+        """
         return
 
         # self.mesh_num_lines = num_lines

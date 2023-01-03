@@ -2,10 +2,7 @@ import logging
 import time
 import enum
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
-from mxcubecore.BaseHardwareObjects import (
-    HardwareObject,
-    HardwareObjectState
-)
+from mxcubecore.BaseHardwareObjects import HardwareObject, HardwareObjectState
 from gevent import Timeout
 
 """
@@ -21,6 +18,7 @@ taurusname is the only obligatory property.
 </device>
 """
 
+
 class SardanaMotorState(enum.Enum):
 
     READY = HardwareObjectState.READY
@@ -30,6 +28,7 @@ class SardanaMotorState(enum.Enum):
     HIGHLIMIT = HardwareObjectState.READY
     NOTINITIALIZED = HardwareObjectState.FAULT
     UNUSABLE = HardwareObjectState.FAULT
+
 
 class SardanaMotor(AbstractMotor, HardwareObject):
 

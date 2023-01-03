@@ -5,7 +5,6 @@ from mxcubecore.BaseHardwareObjects import Equipment
 import ast
 
 
-
 TOOL_FLANGE, TOOL_UNIPUCK, TOOL_SPINE, TOOL_PLATE, TOOL_LASER, TOOL_DOUBLE_GRIPPER = (
     0,
     1,
@@ -105,8 +104,7 @@ class FlexHCDMaintenance(Equipment):
         self.emit("globalStateChanged", (state_dict, cmd_state, message))
 
     def get_global_state(self):
-        """
-        """
+        """ """
         state = self._sc._read_state()
         running = state in ("RUNNING",)
 
@@ -118,7 +116,7 @@ class FlexHCDMaintenance(Equipment):
             "reset_sample_number": True,
             "change_gripper": True,
             "abort": True,
-            "trash": True
+            "trash": True,
         }
 
         message = ""
@@ -126,10 +124,10 @@ class FlexHCDMaintenance(Equipment):
         return state_dict, cmd_state, message
 
     def get_cmd_info(self):
-        """ return information about existing commands for this object
-           the information is organized as a list
-           with each element contains
-           [ cmd_name,  display_name, category ]
+        """return information about existing commands for this object
+        the information is organized as a list
+        with each element contains
+        [ cmd_name,  display_name, category ]
         """
         """ [cmd_id, cmd_display_name, nb_args, cmd_category, description ] """
 
@@ -146,7 +144,9 @@ class FlexHCDMaintenance(Equipment):
             ],
         ]
 
-        exclude_command_list = ast.literal_eval(self.get_property("exclude_commands", "[]"))
+        exclude_command_list = ast.literal_eval(
+            self.get_property("exclude_commands", "[]")
+        )
         new_command_list = []
 
         for command in cmd_list[0][1]:
@@ -163,10 +163,22 @@ class FlexHCDMaintenance(Equipment):
             gripper_cmd_list = []
 
             for gripper in grippers:
-                arg = list(self._sc.gripper_types.keys())[list(self._sc.gripper_types.values()).index(gripper)]
-                gripper_cmd_list.append(["change_gripper", gripper.title().replace("_", " "), "Gripper", arg])
+                arg = list(self._sc.gripper_types.keys())[
+                    list(self._sc.gripper_types.values()).index(gripper)
+                ]
+                gripper_cmd_list.append(
+                    [
+                        "change_gripper",
+                        gripper.title().replace("_", " "),
+                        "Gripper",
+                        arg,
+                    ]
+                )
 
-            grippers_cmd = ["Gripper: %s" % self._sc.get_gripper().title().replace("_", " "), gripper_cmd_list,]
+            grippers_cmd = [
+                "Gripper: %s" % self._sc.get_gripper().title().replace("_", " "),
+                gripper_cmd_list,
+            ]
 
             cmd_list.append(grippers_cmd)
 

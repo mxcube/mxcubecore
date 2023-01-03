@@ -23,18 +23,17 @@ sys.path.insert(0, hwrpath)
 class ColorFormatter(logging.Formatter):
 
     FORMATS = {
-        logging.DEBUG: '\033[1m' + "%s" + Style.RESET_ALL,
+        logging.DEBUG: "\033[1m" + "%s" + Style.RESET_ALL,
         logging.INFO: Fore.BLUE + "%s" + Style.RESET_ALL,
         logging.WARNING: Fore.YELLOW + "%s" + Style.RESET_ALL,
-        logging.ERROR: '\033[1m' + Fore.RED + "%s" + Style.RESET_ALL,
-        logging.CRITICAL: '\033[1m' + Fore.RED + "%s" + Style.RESET_ALL
+        logging.ERROR: "\033[1m" + Fore.RED + "%s" + Style.RESET_ALL,
+        logging.CRITICAL: "\033[1m" + Fore.RED + "%s" + Style.RESET_ALL,
     }
 
     def format(self, record):
-        formatter = logging.Formatter(
-            self.FORMATS.get(record.levelno) % self._fmt
-        )
+        formatter = logging.Formatter(self.FORMATS.get(record.levelno) % self._fmt)
         return formatter.format(record)
+
 
 def getStdHardwareObjectsPath():
     import HardwareObjects  # first looks in containing package

@@ -9,14 +9,16 @@ import requests
 import binascii
 
 # import threading
-from mxcubecore.HardwareObjects.SecureXMLRpcRequestHandler import SecureXMLRpcRequestHandler
+from mxcubecore.HardwareObjects.SecureXMLRpcRequestHandler import (
+    SecureXMLRpcRequestHandler,
+)
 from mxcubecore import HardwareRepository as HWR
 
 try:
     from httplib import HTTPConnection
 except Exception:
     # Python3
-    from http.client import HTTPConnection
+    pass
 
 
 class State(object):
@@ -171,20 +173,25 @@ class EdnaWorkflow(HardwareObject):
             self.gevent_event.set()
         self.command_failed = False
         if self.bes_workflow_id is not None:
-            abort_URL = os.path.join("http://{0}:{1}".format(self.bes_host, 
-                                                             self.bes_port),
-                                     "ABORT", 
-                                     self.bes_workflow_id)
+            abort_URL = os.path.join(
+                "http://{0}:{1}".format(self.bes_host, self.bes_port),
+                "ABORT",
+                self.bes_workflow_id,
+            )
             logging.getLogger("HWR").info("BES abort web service URL: %r" % abort_URL)
             response = requests.get(abort_URL)
             if response.status_code == 200:
-                workflow_status=response.text
-                logging.getLogger("HWR").info("BES workflow id {0}: {1}".format(self.bes_workflow_id, workflow_status))
+                workflow_status = response.text
+                logging.getLogger("HWR").info(
+                    "BES workflow id {0}: {1}".format(
+                        self.bes_workflow_id, workflow_status
+                    )
+                )
         self.state.value = "ON"
 
     def generateNewToken(self):
         # See: https://wyattbaldwin.com/2014/01/09/generating-random-tokens-in-python/
-        self.token = binascii.hexlify(os.urandom(5)).decode('utf-8')
+        self.token = binascii.hexlify(os.urandom(5)).decode("utf-8")
         SecureXMLRpcRequestHandler.setReferenceToken(self.token)
 
     def getToken(self):
@@ -237,16 +244,19 @@ class EdnaWorkflow(HardwareObject):
         self.dict_parameters["sessionId"] = HWR.beamline.session.session_id
         self.dict_parameters["externalRef"] = HWR.beamline.session.get_proposal()
         self.dict_parameters["token"] = self.token
-        start_URL = os.path.join("http://{0}:{1}".format(self.bes_host, 
-                                                         self.bes_port),
-                                 "RUN", 
-                                 self.workflow_name)
+        start_URL = os.path.join(
+            "http://{0}:{1}".format(self.bes_host, self.bes_port),
+            "RUN",
+            self.workflow_name,
+        )
         logging.getLogger("HWR").info("BES start URL: %r" % start_URL)
         response = requests.post(start_URL, json=self.dict_parameters)
         if response.status_code == 200:
             self.state.value = "RUNNING"
             request_id = response.text
-            logging.getLogger("HWR").info("Workflow started, request id: %r" % request_id)
+            logging.getLogger("HWR").info(
+                "Workflow started, request id: %r" % request_id
+            )
             self.bes_workflow_id = request_id
         else:
             logging.getLogger("HWR").error("Workflow didn't start!")

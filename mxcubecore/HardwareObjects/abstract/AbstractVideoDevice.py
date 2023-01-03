@@ -50,7 +50,7 @@ module_names = ["qt", "PyQt5", "PyQt4"]
 
 if any(mod in sys.modules for mod in module_names):
     USEQT = True
-    from mxcubecore.utils.qt_import import QImage, QPixmap, QSize
+    from mxcubecore.utils.qt_import import QPixmap, QImage, QSize
 else:
     USEQT = False
     from PIL import Image
@@ -156,8 +156,6 @@ class AbstractVideoDevice(HardwareObject):
             self.image_polling.link_exception(self.polling_ended_exc)
             self.image_polling.link(self.polling_ended)
 
-        self.update_state(self.STATES.READY)
-
     def get_camera_name(self):
         """Get the camera name.
         Returns:
@@ -166,10 +164,10 @@ class AbstractVideoDevice(HardwareObject):
         return self.cam_name
 
     def polling_ended(self, gl=None):
-        logging.getLogger("HWR").info("Polling ended for qt4 camera")
+        logging.getLogger("HWR").info("Polling ended for qt camera")
 
     def polling_ended_exc(self, gl=None):
-        logging.getLogger("HWR").info("Polling ended exception for qt4 camera")
+        logging.getLogger("HWR").info("Polling ended exception for qt camera")
 
     # -------- Generic methods --------
 
@@ -297,7 +295,7 @@ class AbstractVideoDevice(HardwareObject):
             (): Snapshot image.
         """
         self.get_snapshot(bw, return_as_array)
-    
+
     def get_snapshot(self, bw=None, return_as_array=True):
         """Get the snapshot.
         Args:
@@ -355,7 +353,7 @@ class AbstractVideoDevice(HardwareObject):
 
     def change_owner(self):
         """LIMA specific, because it has to be root at startup
-           move this to Qt4_LimaVideo
+        move this to Qt4_LimaVideo
         """
         if os.getuid() == 0:
             try:
@@ -437,7 +435,7 @@ class AbstractVideoDevice(HardwareObject):
 
     @abc.abstractmethod
     def get_image(self):
-        """ The implementing class should return here the latest_image in
+        """The implementing class should return here the latest_image in
         raw_format, followed by the width and height of the image"""
 
     @abc.abstractmethod

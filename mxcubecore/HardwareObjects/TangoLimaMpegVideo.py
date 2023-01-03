@@ -12,7 +12,6 @@ Example configuration:
   <video_mode>RGB24</video_mode>
 </device>
 """
-import logging
 import os
 import subprocess
 import uuid
@@ -33,12 +32,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
         self.video_device = None
         self._p = None
         self._quality_str = "High"
-        self._QUALITY_STR_TO_INT = {
-            "High": 4,
-            "Medium": 10,
-            "Low": 20,
-            "Adaptive": -1
-        }
+        self._QUALITY_STR_TO_INT = {"High": 4, "Medium": 10, "Low": 20, "Adaptive": -1}
 
     def init(self):
         super().init()
@@ -46,6 +40,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
         self._loopback_device = self.get_property("loopback_device", "")
         self._quality = self.get_property("compression", 10)
         self._mpeg_scale = self.get_property("mpeg_scale", 1)
+
     def _encoder_friendly_size(self, w, h):
         # Some video decoders have difficulties to decode videos with odd image dimensions
         # (JSMPEG beeing one of them) so we make sure that the size is even
@@ -110,7 +105,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
                     self._loopback_device,
                     str(self._debug),
                     str(self._sleep_time),
-                    str(self._quality)
+                    str(self._quality),
                 ],
                 close_fds=True,
             )

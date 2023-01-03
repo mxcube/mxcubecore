@@ -36,7 +36,7 @@ from mxcubecore.CommandContainer import (
 from mxcubecore import Poller
 from mxcubecore.dispatcher import saferef
 
-gevent_version = list(map(int, gevent.__version__.split('.')))
+gevent_version = list(map(int, gevent.__version__.split(".")))
 
 try:
     import PyTango

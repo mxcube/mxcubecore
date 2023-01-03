@@ -9,9 +9,7 @@ from mxcubecore.TaskUtils import task
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.CommandContainer import ConnectionError
 
-from mxcubecore.HardwareObjects.abstract.AbstractDetector import (
-    AbstractDetector
-)
+from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
 
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
@@ -165,7 +163,7 @@ class LimaPilatusDetector(AbstractDetector):
     ):
         if mesh:
             trigger_mode = "EXTERNAL_GATE"
-        #elif osc_range < 1e-4:
+        # elif osc_range < 1e-4:
         #    trigger_mode = "INTERNAL_TRIGGER"
         else:
             trigger_mode = "EXTERNAL_TRIGGER"
@@ -216,7 +214,7 @@ class LimaPilatusDetector(AbstractDetector):
 
         self.set_channel_value("acq_trigger_mode", trigger_mode)
 
-        if self.get_property("set_latency_time",  False):
+        if self.get_property("set_latency_time", False):
             self.set_channel_value("latency_time", self.get_deadtime())
 
         self.set_channel_value("saving_mode", "AUTO_FRAME")
@@ -232,13 +230,13 @@ class LimaPilatusDetector(AbstractDetector):
         minE = self.get_property("minE")
         # some versions of Lima Pilatus server take the energy ergument in keV
         # some in eV. From minE we can set a convertion factor.
-        factor = 1000 if minE > 100 else 1.
+        factor = 1000 if minE > 100 else 1.0
 
         energy_threshold = self.get_channel_value("energy_threshold")
 
         # check if need to convert energy in eV.
         if energy < 100:
-             energy *= factor
+            energy *= factor
 
         if energy < minE:
             energy = minE
@@ -344,7 +342,7 @@ class LimaPilatusDetector(AbstractDetector):
             1,
             "",
             HWR.beamline.energy.get_value(),
-            "INTERNAL_TRIGGER"
+            "INTERNAL_TRIGGER",
         )
         self.start_acquisition()
         self.wait_ready()

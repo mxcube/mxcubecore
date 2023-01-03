@@ -22,6 +22,7 @@ from __future__ import absolute_import
 
 import logging
 import os
+
 # import time
 # import types
 from mxcubecore.dispatcher import saferef
@@ -34,7 +35,7 @@ try:
 except ImportError:
     import queue
 
-gevent_version = list(map(int, gevent.__version__.split('.')))
+gevent_version = list(map(int, gevent.__version__.split(".")))
 
 
 from mxcubecore.CommandContainer import (
@@ -160,7 +161,7 @@ class SardanaMacro(CommandObject, SardanaObject, ChannelObject):
     def result_callback(self, received_event):
         val = received_event.attr_value.value
         if val is not None:
-            self.emit('macroResultUpdated', received_event.attr_value.value)
+            self.emit("macroResultUpdated", received_event.attr_value.value)
 
     def __call__(self, *args, **kwargs):
 
@@ -196,8 +197,9 @@ class SardanaMacro(CommandObject, SardanaObject, ChannelObject):
 
             self.t0 = time.time()
             if self.doorstate in ["ON", "ALARM", "READY"]:
-                self.id_result = self.door.subscribe_event('Result', PyTango.EventType.CHANGE_EVENT,
-                                self.result_callback)
+                self.id_result = self.door.subscribe_event(
+                    "Result", PyTango.EventType.CHANGE_EVENT, self.result_callback
+                )
                 self.door.runMacro(fullcmd.split())
                 self.macrostate = SardanaMacro.STARTED
                 self.emit("commandBeginWaitReply", (str(self.name()),))

@@ -153,7 +153,7 @@ if (qt_variant == "PyQt5") or (qt_variant is None and not qt_imported):
             QGraphicsScene,
             QGraphicsView,
             QGridLayout,
-            QGroupBox, 
+            QGroupBox,
             QHBoxLayout,
             QHeaderView,
             QInputDialog,
@@ -221,13 +221,13 @@ if (qt_variant == "PyQt5") or (qt_variant is None and not qt_imported):
             QPixmap,
             QPolygon,
             QRegExpValidator,
-            QValidator
+            QValidator,
         )
         from PyQt5.uic import loadUi
 
         QStringList = list
         getQApp = QCoreApplication.instance
-        qApp = QCoreApplication.instance  
+        qApp = QCoreApplication.instance
 
         qt_imported = True
         qt_variant = "PyQt5"
@@ -505,7 +505,7 @@ if qt_variant in ("PyQt4", "PyQt5", "PySide"):
         def __init__(self, orientation=Qt.Horizontal, parent=None):
             super(QSlider, self).__init__(orientation, parent)
             self.decimals = 5
-            self._max_int = 10 ** self.decimals
+            self._max_int = 10**self.decimals
 
             super(QSlider, self).setMinimum(0)
             super(QSlider, self).setMaximum(self._max_int)
@@ -538,14 +538,14 @@ if qt_variant in ("PyQt4", "PyQt5", "PySide"):
                 raise ValueError("Minimum limit cannot be higher than maximum")
 
             self._min_value = value
-            #self.setValue(self.value())
+            # self.setValue(self.value())
 
         def setMaximum(self, value):
             if value < self._min_value:
                 raise ValueError("Minimum limit cannot be higher than maximum")
 
             self._max_value = value
-            #self.setValue(self.value())
+            # self.setValue(self.value())
 
         def minimum(self):
             return self._min_value

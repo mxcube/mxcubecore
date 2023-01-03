@@ -17,7 +17,6 @@
 #   You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import time
 import numpy as np
 from pkg_resources import resource_filename
@@ -36,10 +35,10 @@ class QtVideoMockup(AbstractVideoDevice):
         self.image = None
 
     def init(self):
-        default_image_path = resource_filename('mxcubecore',
-                                               'configuration/mockup/qt/fakeimg.jpg')
+        default_image_path = resource_filename(
+            "mxcubecore", "configuration/mockup/qt/fakeimg.jpg"
+        )
         image_path = self.get_property("file_name", default_image_path)
-
         self.image = QPixmap(image_path)
         self.image_dimensions = (self.image.width(), self.image.height())
         self.painter = QPainter(self.image)
@@ -53,7 +52,6 @@ class QtVideoMockup(AbstractVideoDevice):
         custom_brush.setColor(Qt.lightGray)
         self.painter.setBrush(custom_brush)
 
-        self.update_state(self.STATES.READY)
         AbstractVideoDevice.init(self)
 
     def get_new_image(self):
@@ -74,7 +72,7 @@ class QtVideoMockup(AbstractVideoDevice):
             ptr = qimage.bits()
             ptr.setsize(qimage.byteCount())
 
-            image_array = np.array(ptr).reshape(qimage.height(), qimage.width())
+            image_array = np.array(ptr).reshape(qimage.height(), qimage.width(), 4)
             if bw:
                 return np.dot(image_array[..., :3], [0.299, 0.587, 0.144])
             else:

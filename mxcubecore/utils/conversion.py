@@ -158,6 +158,7 @@ def make_table(column_names, rows):
     #
     return "\n".join(lines)
 
+
 def camel_to_snake(name):
-    pattern = re.compile(r'(?<!^)(?=[A-Z])')
-    return pattern.sub('_', name).lower()
+    pattern = re.compile(r"(?<!^)(?=[A-Z])")
+    return pattern.sub("_", name).lower()

@@ -115,11 +115,11 @@ class AbstractMCA(object):
     def clear_roi(self, **kwargs):
         """Clear ROI settings
 
-         Keyword Args:
-            channel (int): optional output connector channel number (1-8)
+        Keyword Args:
+           channel (int): optional output connector channel number (1-8)
 
-         Returns:
-            None
+        Returns:
+           None
         """
         pass
 

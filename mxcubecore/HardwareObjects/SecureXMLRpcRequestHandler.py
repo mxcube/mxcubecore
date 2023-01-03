@@ -39,8 +39,8 @@ class SecureXMLRpcRequestHandler(SimpleXMLRPCRequestHandler):
 
     def setup(self):
         self.connection = self.request
-        self.rfile = self.connection.makefile('rb', self.rbufsize)
-        self.wfile = self.connection.makefile('wb', self.wbufsize)
+        self.rfile = self.connection.makefile("rb", self.rbufsize)
+        self.wfile = self.connection.makefile("wb", self.wbufsize)
 
     def do_POST(self):
         """
@@ -72,7 +72,7 @@ class SecureXMLRpcRequestHandler(SimpleXMLRPCRequestHandler):
                     chunk = self.rfile.read(chunk_size)
                     if not chunk:
                         break
-                    L.append(chunk.decode('utf-8'))
+                    L.append(chunk.decode("utf-8"))
                     size_remaining -= len(L[-1])
                 data = "".join(L)
                 # In previous versions of SimpleXMLRPCServer, _dispatch
@@ -111,4 +111,3 @@ class SecureXMLRpcRequestHandler(SimpleXMLRPCRequestHandler):
             # Unrecognized token - access unauthorized
             self.send_response(401)
             self.end_headers()
-

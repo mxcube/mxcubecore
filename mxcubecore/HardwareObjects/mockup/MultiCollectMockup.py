@@ -247,7 +247,7 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
         if self.bl_control.machine_current is not None:
             return self.bl_control.machine_current.getFillMode()
         else:
-            ""
+            """"""
 
     def get_cryo_temperature(self):
         if self.bl_control.cryo_stream is not None:

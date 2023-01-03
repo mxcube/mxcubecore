@@ -43,12 +43,12 @@ class ActuatorMockup(AbstractActuator.AbstractActuator):
         self.__move_task = None
 
     def init(self):
-        """ Initialisation method """
+        """Initialisation method"""
         super().init()
         self.update_state(self.STATES.READY)
 
     def _move(self, value):
-        """ Simulated value change - override as needed
+        """Simulated value change - override as needed
 
         Must set specific_state as needed, take a non-zero amount of time
         call update_value for intermediate positions

@@ -128,7 +128,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
             if _container:
                 msg0 = "Error importing class"
                 class_name = class_import
-                print (
+                print(
                     "Encountered Exception (continuing):\n%s" % traceback.format_exc()
                 )
             else:
@@ -142,7 +142,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
         except Exception:
             if _container:
                 msg0 = "Error instantiating %s" % cls.__name__
-                print (
+                print(
                     "Encountered Exception (continuing):\n%s" % traceback.format_exc()
                 )
             else:
@@ -282,9 +282,10 @@ def init_hardware_repository(configuration_path):
             "init_hardware_repository called on already initialised repository"
         )
     if not configuration_path:
-        logging.getLogger("HWR").error("Unable to initialize hardware repository. No cofiguration path passed.")
+        logging.getLogger("HWR").error(
+            "Unable to initialize hardware repository. No cofiguration path passed."
+        )
         return
-
 
     # If configuration_path is a string of combined paths, split it up
     lookup_path = [
@@ -412,9 +413,7 @@ class __HardwareRepositoryClient:
             file_name = (
                 hwobj_name[1:] if hwobj_name.startswith(os.path.sep) else hwobj_name
             )
-            file_path = (
-                os.path.join(xml_files_path, file_name) + os.path.extsep + "xml"
-            )
+            file_path = os.path.join(xml_files_path, file_name) + os.path.extsep + "xml"
             if os.path.exists(file_path):
                 try:
                     xml_data = open(file_path, "r").read()

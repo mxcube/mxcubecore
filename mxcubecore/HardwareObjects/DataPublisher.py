@@ -152,7 +152,8 @@ class DataPublisher(HardwareObject):
                         }
 
                         self.emit(
-                            "data", {"id": _id, "data": data["data"]},
+                            "data",
+                            {"id": _id, "data": data["data"]},
                         )
 
                         self._append_data(
@@ -367,7 +368,9 @@ class DataPublisher(HardwareObject):
 
         if desc["data_dim"] > 1:
             data.update(
-                {"z": self._r.lrange("HWR_DP_%s_DATA_Z" % _id, 0, -1),}
+                {
+                    "z": self._r.lrange("HWR_DP_%s_DATA_Z" % _id, 0, -1),
+                }
             )
 
         return data

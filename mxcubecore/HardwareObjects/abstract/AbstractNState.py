@@ -78,8 +78,7 @@ class AbstractNState(AbstractActuator):
         raise NotImplementedError
 
     def initialise_values(self):
-        """Initialise the ValueEnum with the values from the config.
-        """
+        """Initialise the ValueEnum with the values from the config."""
         try:
             values = ast.literal_eval(self.get_property("values"))
             values_dict = dict(**{item.name: item.value for item in self.VALUES})

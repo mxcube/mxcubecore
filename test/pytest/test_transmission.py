@@ -38,6 +38,7 @@ def test_object(beamline):
 
 class TestTransmission(TestAbstractActuatorBase.TestAbstractActuatorBase):
     """Transmission test suite"""
+
     def test_transmission_attributes(self, beamline, test_object):
         """Test for attributes"""
         assert (

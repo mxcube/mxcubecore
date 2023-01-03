@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from enum import Enum
 
 import pydantic
 from pydantic import Field

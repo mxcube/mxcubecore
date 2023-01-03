@@ -721,8 +721,8 @@ class AbstractOnlineProcessing(HardwareObject):
 
     def align_processing_results(self, start_index, end_index):
         """Realigns all results. Each results (one dimensional numpy array)
-           is converted to 2d numpy array according to diffractometer geometry.
-           Function also extracts 10 (if they exist) best positions
+        is converted to 2d numpy array according to diffractometer geometry.
+        Function also extracts 10 (if they exist) best positions
         """
         # Each result array is realigned
 

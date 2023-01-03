@@ -429,8 +429,10 @@ class ISPyBClient(HardwareObject):
                 lab = {}
 
             try:
-                res_sessions = self._collection.service.findSessionsByProposalAndBeamLine(
-                    proposal_code, proposal_number, os.environ["SMIS_BEAMLINE_NAME"]
+                res_sessions = (
+                    self._collection.service.findSessionsByProposalAndBeamLine(
+                        proposal_code, proposal_number, os.environ["SMIS_BEAMLINE_NAME"]
+                    )
                 )
                 sessions = []
 
@@ -535,8 +537,10 @@ class ISPyBClient(HardwareObject):
 
                     lab = {}
                 try:
-                    res_sessions = self._collection.service.findSessionsByProposalAndBeamLine(
-                        proposal_code, proposal_number, self.beamline_name
+                    res_sessions = (
+                        self._collection.service.findSessionsByProposalAndBeamLine(
+                            proposal_code, proposal_number, self.beamline_name
+                        )
                     )
                     sessions = []
 
@@ -646,8 +650,10 @@ class ISPyBClient(HardwareObject):
                 lab = {}
 
             try:
-                res_sessions = self._collection.service.findSessionsByProposalAndBeamLine(
-                    proposal_code, proposal_number, self.beamline_name
+                res_sessions = (
+                    self._collection.service.findSessionsByProposalAndBeamLine(
+                        proposal_code, proposal_number, self.beamline_name
+                    )
                 )
                 sessions = []
 
@@ -742,9 +748,7 @@ class ISPyBClient(HardwareObject):
         if self.authServerType == "ldap":
             logging.getLogger("HWR").debug("LDAP login")
             ok, msg = self.ldap_login(login_name, psd, ldap_connection)
-            logging.getLogger("HWR").debug(
-                "searching for user %s" % login_name
-            )
+            logging.getLogger("HWR").debug("searching for user %s" % login_name)
         elif self.authServerType == "ispyb":
             logging.getLogger("HWR").debug("ISPyB login")
             ok, msg = self._ispybLogin(login_name, psd)
@@ -795,7 +799,11 @@ class ISPyBClient(HardwareObject):
         session = todays_session["session"]
         session["is_inhouse"] = todays_session["is_inhouse"]
         todays_session_id = session.get("sessionId", None)
-        local_contact = self.get_session_local_contact(todays_session_id) if todays_session_id else {}
+        local_contact = (
+            self.get_session_local_contact(todays_session_id)
+            if todays_session_id
+            else {}
+        )
 
         return {
             "status": {"code": "ok", "msg": msg},
@@ -1181,8 +1189,10 @@ class ISPyBClient(HardwareObject):
 
         if self._tools_ws:
             try:
-                response_samples = self._tools_ws.service.findSampleInfoLightForProposal(
-                    proposal_id, self.beamline_name
+                response_samples = (
+                    self._tools_ws.service.findSampleInfoLightForProposal(
+                        proposal_id, self.beamline_name
+                    )
                 )
 
                 response_samples = [
@@ -1234,8 +1244,10 @@ class ISPyBClient(HardwareObject):
                 sample_references.append(sample_reference)
 
             try:
-                response_samples = self._tools_ws.service.findSampleInfoLightForProposal(
-                    proposal_id, self.beamline_name
+                response_samples = (
+                    self._tools_ws.service.findSampleInfoLightForProposal(
+                        proposal_id, self.beamline_name
+                    )
                 )
 
             except WebFault as e:
@@ -1736,8 +1748,7 @@ class ISPyBClient(HardwareObject):
             return group_id
 
     def _store_data_collection_group(self, group_data):
-        """
-        """
+        """ """
         group_id = self._collection.service.storeOrUpdateDataCollectionGroup(group_data)
 
         return group_id
@@ -1800,8 +1811,10 @@ class ISPyBClient(HardwareObject):
 
                     # sessions
                     try:
-                        res_sessions = self._collection.service.findSessionsByProposalAndBeamLine(
-                            proposal_code, proposal_number, self.beamline_name
+                        res_sessions = (
+                            self._collection.service.findSessionsByProposalAndBeamLine(
+                                proposal_code, proposal_number, self.beamline_name
+                            )
                         )
                         sessions = []
                         for session in res_sessions:
@@ -1841,19 +1854,22 @@ class ISPyBClient(HardwareObject):
         return res_proposal
 
     def store_autoproc_program(self, autoproc_program_dict):
-        """
-        """
+        """ """
         autoproc_program_id = None
         try:
-            autoproc_program_id = self._autoproc_ws.service.storeOrUpdateAutoProcProgram(
-                processingPrograms=autoproc_program_dict["processing_programs"],
-                processingStatus=1,  # make correct
-                processingStartTime=datetime.strptime(
-                    autoproc_program_dict["processing_start_time"], "%Y-%m-%d %H:%M:%S"
-                ),
-                processingEndTime=datetime.strptime(
-                    autoproc_program_dict["processing_end_time"], "%Y-%m-%d %H:%M:%S"
-                ),
+            autoproc_program_id = (
+                self._autoproc_ws.service.storeOrUpdateAutoProcProgram(
+                    processingPrograms=autoproc_program_dict["processing_programs"],
+                    processingStatus=1,  # make correct
+                    processingStartTime=datetime.strptime(
+                        autoproc_program_dict["processing_start_time"],
+                        "%Y-%m-%d %H:%M:%S",
+                    ),
+                    processingEndTime=datetime.strptime(
+                        autoproc_program_dict["processing_end_time"],
+                        "%Y-%m-%d %H:%M:%S",
+                    ),
+                )
             )
         except Exception as e:
             msg = "Could not store autoprocessing program in lims: " + str(e)
@@ -1880,8 +1896,7 @@ class ISPyBClient(HardwareObject):
             return None
 
     def _store_workflow(self, info_dict):
-        """
-        """
+        """ """
         if self._disabled:
             return None, None, None
 
@@ -1964,8 +1979,7 @@ class ISPyBClient(HardwareObject):
         return workflow_step_id
 
     def store_image_quality_indicators(self, image_dict):
-        """Stores image quality indicators
-        """
+        """Stores image quality indicators"""
         quality_ind_id = -1
         quality_ind_dict = {
             "imageId": image_dict["image_id"],
@@ -1977,8 +1991,10 @@ class ISPyBClient(HardwareObject):
             "method1Res": image_dict["spots_resolution"],
         }
         try:
-            quality_ind_id = self._autoproc_ws.service.storeOrUpdateImageQualityIndicators(
-                quality_ind_dict
+            quality_ind_id = (
+                self._autoproc_ws.service.storeOrUpdateImageQualityIndicators(
+                    quality_ind_dict
+                )
             )
         except Exception as e:
             msg = "Could not store image quality indicators in lims: " + str(e)

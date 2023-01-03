@@ -1,11 +1,14 @@
-import sys
 import typing
 import enum
 
 
 from mxcubecore.TaskUtils import task
 from mxcubecore.CommandContainer import CommandObject
-from mxcubecore.HardwareObjects.BeamlineActions import BeamlineActions, ControllerCommand, AnnotatedCommand
+from mxcubecore.HardwareObjects.BeamlineActions import (
+    BeamlineActions,
+    ControllerCommand,
+    AnnotatedCommand,
+)
 from mxcubecore.utils.conversion import camel_to_snake
 
 import gevent
@@ -14,8 +17,8 @@ import logging
 
 class EnumArg(str, enum.Enum):
     centring = "Centring"
-    data_collection = 'DataCollection'
-    beam_location = 'BeamLocation'
+    data_collection = "DataCollection"
+    beam_location = "BeamLocation"
     transfer = "Transfer"
     unknown = "Unknown"
 
@@ -50,7 +53,7 @@ class Anneal2(AnnotatedCommand):
     def __init__(self, *args):
         super().__init__(*args)
 
-    #@argument(ArgMeta("time", "s", "time"))
+    # @argument(ArgMeta("time", "s", "time"))
     def anneal2(self, time: float) -> None:
         print("ANNEAL")
         gevent.sleep(float(time))

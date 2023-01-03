@@ -19,8 +19,10 @@ class SpecScan(Procedure):
         scanCmd.setSpecVersion(specVersion)
 
         if specVersion is not None:
-            self.specConnection = SpecConnectionsManager.SpecConnectionsManager().get_connection(
-                specVersion
+            self.specConnection = (
+                SpecConnectionsManager.SpecConnectionsManager().get_connection(
+                    specVersion
+                )
             )
 
             if self.specConnection is not None:

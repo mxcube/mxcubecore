@@ -493,8 +493,8 @@ class SampleChanger(Container, HardwareObject):
 
     def get_sample_properties(self):
         """
-            Returns:
-                (tuple): With sample properties defined in Sample
+        Returns:
+            (tuple): With sample properties defined in Sample
         """
         return ()
 

@@ -30,7 +30,7 @@ class MicrodiffZoomMockup(AbstractNState):
         if _len > 0:
             # we can only assume that the values are consecutive integers
             # so the limits correspond to the keys
-            limits = (0, _len-1)
+            limits = (0, _len - 1)
             self.set_limits(limits)
         else:
             # Normally we get the limits from the hardware
@@ -76,7 +76,7 @@ class MicrodiffZoomMockup(AbstractNState):
         return self._nominal_value
 
     def _initialise_values(self):
-        """Initialise the ValueEnum """
+        """Initialise the ValueEnum"""
         low, high = self.get_limits()
 
         values = {"LEVEL%s" % str(v): v for v in range(low + 1, high + 2)}

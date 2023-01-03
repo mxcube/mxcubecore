@@ -7,8 +7,6 @@ configuration XML for more information.
 
 import logging
 import sys
-import os
-import shutil
 import inspect
 import pkgutil
 import types
@@ -17,7 +15,6 @@ import socket
 import time
 import json
 import atexit
-import traceback
 import jsonpickle
 
 from functools import reduce
@@ -91,7 +88,7 @@ class XMLRPCServer(HardwareObject):
             del self._server
         except AttributeError:
             pass
-        
+
     def open(self):
         # The value of the member self.port is set in the xml configuration
         # file. The initialization is done by the baseclass HardwareObject.
