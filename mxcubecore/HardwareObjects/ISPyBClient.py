@@ -376,99 +376,6 @@ class ISPyBClient(HardwareObject):
         return answer
 
     @trace
-    def get_proposal_by_username(self, username):
-
-        proposal_code = ""
-        proposal_number = 0
-
-        empty_dict = {
-            "Proposal": {},
-            "Person": {},
-            "Laboratory": {},
-            "Session": {},
-            "status": {"code": "error"},
-        }
-
-        if not self._shipping:
-            logging.getLogger("ispyb_client").warning(
-                "Error in get_proposal: Could not connect to server,"
-                + " returning empty proposal"
-            )
-            return empty_dict
-
-        try:
-            try:
-                person = self._shipping.service.findPersonByLogin(
-                    username, os.environ["SMIS_BEAMLINE_NAME"]
-                )
-            except WebFault as e:
-                logging.getLogger("ispyb_client").warning(e.message)
-                person = {}
-
-            try:
-                proposal = self._shipping.service.findProposalByLoginAndBeamline(
-                    username, os.environ["SMIS_BEAMLINE_NAME"]
-                )
-                if not proposal:
-                    logging.getLogger("ispyb_client").warning(
-                        "Error in get_proposal: No proposal has been found to  the user, returning empty proposal"
-                    )
-                    return empty_dict
-                proposal_code = proposal.code
-                proposal_number = proposal.number
-            except WebFault as e:
-                logging.getLogger("ispyb_client").warning(str(e))
-                proposal = {}
-
-            try:
-                lab = self._shipping.service.findLaboratoryByCodeAndNumber(
-                    proposal_code, proposal_number
-                )
-            except WebFault as e:
-                logging.getLogger("ispyb_client").warning(e.message)
-                lab = {}
-
-            try:
-                res_sessions = (
-                    self._collection.service.findSessionsByProposalAndBeamLine(
-                        proposal_code, proposal_number, os.environ["SMIS_BEAMLINE_NAME"]
-                    )
-                )
-                sessions = []
-
-                # Handels a list of sessions
-                for session in res_sessions:
-                    if session is not None:
-                        try:
-                            session.startDate = datetime.strftime(
-                                session.startDate, "%Y-%m-%d %H:%M:%S"
-                            )
-                            session.endDate = datetime.strftime(
-                                session.endDate, "%Y-%m-%d %H:%M:%S"
-                            )
-                        except Exception:
-                            pass
-
-                        sessions.append(utf_encode(asdict(session)))
-
-            except WebFault as e:
-                logging.getLogger("ispyb_client").warning(str(e))
-                sessions = []
-
-        except URLError:
-            logging.getLogger("ispyb_client").warning(_CONNECTION_ERROR_MSG)
-            return empty_dict
-
-        logging.getLogger("ispyb_client").info(str(sessions))
-        return {
-            "Proposal": utf_encode(asdict(proposal)),
-            "Person": utf_encode(asdict(person)),
-            "Laboratory": utf_encode(asdict(lab)),
-            "Session": sessions,
-            "status": {"code": "ok"},
-        }
-
-    @trace
     def get_proposal(self, proposal_code, proposal_number):
         """
         Returns the tuple (Proposal, Person, Laboratory, Session, Status).
@@ -2553,36 +2460,6 @@ class ISPyBValueFactory:
             raise ISPyBArgumentError(err_msg)
 
         return workflow_mesh_vo
-
-    def grid_info_from_workflow_info(self, workflow_info_dict):
-        """
-        Ceates grid3VO from worflow_info_dict.
-        :rtype: grid3VO
-        """
-        ws_client = None
-        grid_info_vo = None
-
-        try:
-            ws_client = Client(_WS_COLLECTION_URL, cache=None)
-            grid_info_vo = ws_client.factory.create("gridInfoWS3VO")
-        except Exception:
-            raise
-
-        try:
-            if workflow_info_dict.get("grid_info_id"):
-                grid_info_vo.gridInfoId = workflow_info_dict.get("grid_info_id")
-            grid_info_vo.dx_mm = workflow_info_dict.get("dx_mm")
-            grid_info_vo.dy_mm = workflow_info_dict.get("dy_mm")
-            grid_info_vo.meshAngle = workflow_info_dict.get("mesh_angle")
-            grid_info_vo.steps_x = workflow_info_dict.get("steps_x")
-            grid_info_vo.steps_y = workflow_info_dict.get("steps_y")
-            grid_info_vo.xOffset = workflow_info_dict.get("xOffset")
-            grid_info_vo.yOffset = workflow_info_dict.get("yOffset")
-        except KeyError as diag:
-            err_msg = "ISPyBClient: error storing a grid info (%s)" % str(diag)
-            raise ISPyBArgumentError(err_msg)
-
-        return grid_info_vo
 
     def workflow_step_from_workflow_info(self, workflow_info_dict):
         """
