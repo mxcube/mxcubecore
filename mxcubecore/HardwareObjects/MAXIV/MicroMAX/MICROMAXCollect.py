@@ -279,9 +279,8 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
             self.user_log.info("Collection: Setting energy to %.3f",
                                energy)
 
-            checkbeam = self.prepare_set_energy()
             try:
-                self.set_energy(energy, checkbeam)
+                self.set_energy(energy)
             except Exception as ex:
                 self.user_log.error('Collection: cannot set beamline energy.')
                 msg = "[COLLECT] Error setting energy: %s" % ex
@@ -888,9 +887,9 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         new_distance = self.resolution_hwobj.resolution_to_distance(value)
         self.move_detector(new_distance)
 
-    def set_energy(self, value, checkbeam):
+    def set_energy(self, value):
         self.log.info("[COLLECT] Setting beamline energy to %s" %value)
-        self.energy_hwobj.startMoveEnergy(value, checkbeam) # keV
+        self.energy_hwobj.startMoveEnergy(value, True, False) # keV
         self.log.info("[COLLECT] Updating wavelength parameter to %s" %(12.3984/value))
         self.current_dc_parameters["wavelength"] = (12.3984/value)
         self.log.info("[COLLECT] Setting detector energy")
@@ -1207,34 +1206,6 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
             if self.safety_shutter_hwobj is not None and self.safety_shutter_hwobj.getShutterState() == 'opened':
                 self.close_safety_shutter()
         self.move_detector(800)
-
-    def prepare_set_energy(self):
-        """
-        Descript.: figure out if we should check the beam after the energy changes
-        """
-        checkbeam = True
-        try:
-            if float(self.get_machine_current()) < 10.0:
-                checkbeam = False
-                self.log.warning("[COLLECT] Very low ring current")
-                self.user_log.warning("[COLLECT] Very low ring current")
-
-            self.ha = PyTango.DeviceProxy('b311a-fe/vac/ha-01')
-            if self.ha.StatusClosed:
-                checkbeam = False
-                self.log.warning("[COLLECT] Heat Absorber Closed")
-                self.user_log.warning("[COLLECT] Heat Absorber Closed")
-
-            self.aem = PyTango.DeviceProxy('b311a/xbpm/02')
-            if self.aem.S < 1e-7:
-                checkbeam = False
-                self.log.warning("[COLLECT] No beam measured")
-                self.user_log.warning("[COLLECT] No beam measured")
-
-        except Exception as ex:
-            self.log.error("[COLLECT] Cannot prepare_set_energy,checkbeam: %s, error was: %s" % (checkbeam ,ex))
-
-        return checkbeam
 
     def _update_image_to_display(self):
         fname1 = "/mxn/groups/sw/mxsw/albula_autoload/to_display"
