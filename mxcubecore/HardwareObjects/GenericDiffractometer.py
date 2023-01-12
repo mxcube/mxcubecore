@@ -1497,3 +1497,36 @@ class GenericDiffractometer(HardwareObject):
         data["current"] = layout_name
         self.set_head_configuration(json.dumps(data))
         return True
+
+    def get_value_motors(self, motors_list=None):
+        """Get the positions of diffractometer motors. If the motors_list is
+            empty, return the positions of all the available motors.
+        Args:
+            motors_list (list): List of motor roles (optional).
+        Returns:
+            (dict): Dictionary {motor_role: position}
+        """
+        mot_pos_dict = {}
+
+        # use only the available motors
+        mot_hwobj_dict = self.get_motors()
+
+        if not motors_list:
+            for role, motor in mot_hwobj_dict.items():
+                try:
+                    mot_pos_dict[role] = float(motor.get_value())
+                except TypeError:
+                    msg = f"No value for {role}"
+                    logging.getLogger("HWR").warning(msg)
+            return mot_pos_dict
+
+        for motor in motors_list:
+            try:
+                mot_pos_dict[str(motor)] = float(mot_hwobj_dict[motor].get_value())
+            except KeyError:
+                msg = f"Invalid motor name {motor}"
+                logging.getLogger("HWR").error(msg)
+            except TypeError:
+                msg = f"No value for {motor}"
+                logging.getLogger("HWR").warning(msg)
+        return mot_pos_dict
