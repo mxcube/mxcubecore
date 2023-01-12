@@ -860,7 +860,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         # take image from server
-        self.diffractometer_hwobj.complex_hwobj_dict["camera"].take_snapshot(filename)
+        self.diffractometer_hwobj.camera.take_snapshot(filename)
 
     def set_detector_roi(self, value):
         """
