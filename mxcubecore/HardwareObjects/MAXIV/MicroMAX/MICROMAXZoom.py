@@ -73,10 +73,8 @@ class MICROMAXZoom(AbstractNState):
         )
 
     def value_changed(self, value):
-        self._set_value(value)
+        self.update_value(self.VALUES(value))
         self.emit("predefinedPositionChanged", (self.get_value(),0))
 
     def state_changed(self, value):
         self.emit("stateChanged", (self.get_state(),))
-
-
