@@ -33,7 +33,7 @@ class MICROMAXAperture(AbstractActuator):
         self._diameter_size_list = self.aperture_diameters.get_value()
 
         self.current_aperture_diameters = self.add_channel(
-            {"type": "exporter", "name": "CurrentApertureDiameterIndex"}, 
+            {"type": "exporter", "name": "CurrentApertureDiameterIndex"},
             "CurrentApertureDiameterIndex"
         )
         self.connect(
@@ -42,7 +42,7 @@ class MICROMAXAperture(AbstractActuator):
 
         self.diameter_list = self.aperture_diameters.get_value()
         self.set_position = self.move_to_position
-    
+
     def set_diameter_size(self, diameter_size):
         """Setting new size for aperture diameter.
 
@@ -66,7 +66,7 @@ class MICROMAXAperture(AbstractActuator):
 
     def get_diameter_size(self):
         """getting the size of aperture diameter.
-        
+
         Args:
             None
 
@@ -76,10 +76,10 @@ class MICROMAXAperture(AbstractActuator):
         self._diameter_size_list = self.aperture_diameters.get_value()
         self._current_diameter_index = self.current_aperture_diameters.get_value()
         return self._diameter_size_list[self._current_diameter_index]
-    
+
     def get_diameter_size_list(self):
         """getting the list of available diameter sizes for aperture.
-        
+
         Args:
             None
 
@@ -90,7 +90,7 @@ class MICROMAXAperture(AbstractActuator):
 
     def move_to_position(self, position_name):
         """changing to the new position, "BEAM", "OFF" or "PARK".
-        
+
         Args:
             position name
 
@@ -117,7 +117,7 @@ class MICROMAXAperture(AbstractActuator):
 
     def get_position_list(self):
         """getting the available aperture positions.
-        
+
         Args:
             None
 
@@ -136,10 +136,10 @@ class MICROMAXAperture(AbstractActuator):
 
     def position_changed(self, position):
         self.emit("valueChanged", position)
-    
+
     def diameter_changed(self, diameter):
         self._current_diameter_index = diameter
-        self.emit("valueChanged", diameter)
+        self.emit("valueChanged", self._diameter_size_list[self._current_diameter_index] / 1000.0)
         self.emit(
             "diameterIndexChanged",
             self._current_diameter_index,
