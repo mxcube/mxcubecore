@@ -73,7 +73,10 @@ class MICROMAXZoom(AbstractNState):
         )
 
     def value_changed(self, value):
-        self.update_value(self.VALUES(value))
+        if type(value) == int:
+            self.update_value(value)
+        else:
+            self.update_value(self.VALUES(value))
         self.emit("predefinedPositionChanged", (self.get_value(),0))
 
     def state_changed(self, value):
