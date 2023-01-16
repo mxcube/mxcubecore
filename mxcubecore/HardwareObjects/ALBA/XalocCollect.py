@@ -660,7 +660,7 @@ class XalocCollect(AbstractCollect):
                 self.logger.info("    Moving omega to final position = %.4f" % final_pos )
                 self.omega_hwobj.set_value( final_pos )
             except Exception as e:
-                self.data_collection_failed( e, 'Cant open safety shutter for omega speed %.6f' % omega_speed )
+                self.data_collection_failed( e, 'Cant move omega to position %.6f' % final_pos )
         else:
             try:
                 self.open_fast_shutter_for_internal_trigger()
@@ -1034,7 +1034,7 @@ class XalocCollect(AbstractCollect):
         self.logger.debug("  Initiating recovery sequence")
         self.stop_collect() # is it necessary to call this, or is it called through events? If it is not
         #TODO: this fails with list index out of range QueueManager line 149
-        #raise Exception( exception )
+        raise exception
 
     def prepare_acquisition(self):
         """
@@ -1235,7 +1235,8 @@ class XalocCollect(AbstractCollect):
                     cam_state, acq_status, fault_error)
                 logging.getLogger('user_level_log').error("Incomplete data collection")
                 logging.getLogger('user_level_log').error(msg)
-                raise RuntimeError(msg)
+                
+                self.data_collection_failed( RuntimeError(msg), msg )
                 #return False
             #logging.getLogger('user_level_log').error("self._collecting %s" % str(self._collecting) )
             time.sleep(0.2)
@@ -1363,7 +1364,7 @@ class XalocCollect(AbstractCollect):
                 if e.errno != errno.EEXIST:
                     logging.getLogger('user_level_log').error('Directories cannot be made, are the lockdown settings correct?')
                     self.logger.debug("user_level_log').error('Directories cannot be made, are the lockdown settings correct?")
-                    raise
+                    self.data_collection_failed( e, str(e) )
 
     def collect_finished(self, green):
         logging.getLogger('user_level_log').info("Data collection finished")
@@ -1394,7 +1395,7 @@ class XalocCollect(AbstractCollect):
             if time.time() - t0 > timeout or self.aborted_by_user:
                 msg = "Timeout sending supervisor to collect phase"
                 self.logger.debug(msg)
-                self.data_collection_failed(RuntimeError(msg), msg)
+                self.data_collection_failed( RuntimeError(msg), msg )
             gevent.sleep(0.5)
 
         self.logger.debug("New supervisor phase is %s (Collect phase was requested)" % cphase)
@@ -1458,7 +1459,7 @@ class XalocCollect(AbstractCollect):
             if time.time() - t0 > timeout:
                 msg = "Timeout waiting for supervisor ready, call your LC"
                 self.user_logger.error(msg)
-                self.data_collection_failed(RuntimeError("Supervisor cannot be operated (state %s)" % super_state), msg)
+                self.data_collection_failed( RuntimeError("Supervisor cannot be operated (state %s)" % super_state), msg)
                 break
             self.logger.debug("Supervisor state is %s" % super_state)
             gevent.sleep(0.5)
@@ -1771,6 +1772,7 @@ class XalocCollect(AbstractCollect):
         self.detector_hwobj.stop_collection()
         self.logger.info(" Stopping all motors")
         self.omega_hwobj.stop()
+        self.unconfigure_ni()
 
         for helmovemotorname in self.scan_move_motor_names:
             self.scan_motors_hwobj[helmovemotorname].stop()
@@ -1818,7 +1820,7 @@ class XalocCollect(AbstractCollect):
                 import errno
                 if e.errno != errno.EEXIST:
                     logging.getLogger('user_level_log').error('Error in making the directories, has the permission lockdown been setup properly?' )
-                    raise e
+                    self.data_collection_failed( e, str(e) )
             
     def _create_proc_files_directory(self, proc_name):
 
