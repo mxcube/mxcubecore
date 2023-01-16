@@ -877,7 +877,7 @@ class XalocMiniDiff(GenericDiffractometer):
 
     def motor_positions_to_screen(self, centred_positions_dict):
         """
-        Descript. :
+        Descript. : returns the camera pixels of the point corresponding to the given motor positions
         """
         c = centred_positions_dict
 

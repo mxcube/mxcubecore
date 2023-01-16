@@ -4,8 +4,8 @@
   <loginType>proposal</loginType>
   <authServerType>ldap</authServerType>
 
-  <ws_root>https://ispybtest.cells.es/ispyb/ispyb-ws/ispybWS/</ws_root>
-  <!--ws_root>https://ispyb.cells.es/ispyb/ispyb-ws/ispybWS/</ws_root-->
+  <!--ws_root>https://ispybtest.cells.es/ispyb/ispyb-ws/ispybWS/</ws_root-->
+  <ws_root>https://ispyb.cells.es/ispyb/ispyb-ws/ispybWS/</ws_root>
 
   <ws_username>wservice</ws_username>
   <ws_password>jS625Kyg*3DA,;:z</ws_password>

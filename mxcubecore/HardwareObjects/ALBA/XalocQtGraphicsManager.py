@@ -141,7 +141,6 @@ class XalocQtGraphicsManager(QtGraphicsManager):
         elif self.in_beam_define_state:
             self.stop_beam_define()
         else:
-            #TODO: do not move to position when in centering mode
             self.diffractometer_hwobj.move_to_beam(pos_x, pos_y)
         self.emit("imageDoubleClicked", pos_x, pos_y)
 
