@@ -1,0 +1,8 @@
+<device class="XalocCryostream">
+  <username>Cryostream</username>
+  <taurusname>bl13/eh/oxfcryo</taurusname>
+
+  <channel type="sardana" polling="5000" name="gas_temp">GasTemp</channel>
+  <channel type="sardana" polling="5000" name="State">State</channel>
+
+</device>
