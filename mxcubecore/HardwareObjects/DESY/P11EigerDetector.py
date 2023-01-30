@@ -17,10 +17,10 @@ class P11EigerDetector(AbstractDetector):
 
         self._roi_mode = self.get_property("roi_mode", "disabled")
 
-        self.log.debug("EIGER - device name is : %s" % self.eiger_devname)
-        self.log.debug("EIGER - filewriter name is : %s" % self.filewriter_name)
-        self.log.debug("EIGER - detector distance is : %s" % self._distance_motor_hwobj)
-        self.log.debug("EIGER - shutterless : %s" % self.has_shutterless())
+        #self.log.debug("EIGER - device name is : %s" % self.eiger_devname)
+        #self.log.debug("EIGER - filewriter name is : %s" % self.filewriter_name)
+        #self.log.debug("EIGER - detector distance is : %s" % self._distance_motor_hwobj)
+        #self.log.debug("EIGER - shutterless : %s" % self.has_shutterless())
 
         self.eiger_dev = DeviceProxy(self.eiger_devname)
         self.writer_dev = DeviceProxy(self.filewriter_name)

@@ -133,16 +133,17 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                     sample_model.lims_sample_location
                 )
 
-            try:
-                gid = HWR.beamline.lims._store_data_collection_group(group_data)
-                self.get_data_model().lims_group_id = gid
-            except Exception as ex:
-                msg = (
-                    "Could not create the data collection group"
-                    + " in LIMS. Reason: "
-                    + str(ex)
-                )
-                raise QueueExecutionException(msg, self)
+            if HWR.beamline.lims and HWR.beamline.lims.is_connected():
+                try:
+                    gid = HWR.beamline.lims._store_data_collection_group(group_data)
+                    self.get_data_model().lims_group_id = gid
+                except Exception as ex:
+                    msg = (
+                        "Could not create the data collection group"
+                        + " in LIMS. Reason: "
+                        + str(ex)
+                    )
+                    raise QueueExecutionException(msg, self)
 
         self.interleave_items = []
         if init_ref_images:
@@ -1797,7 +1798,8 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
         robot_action_dict["message"] = "Sample was not loaded"
         robot_action_dict["status"] = "ERROR"
 
-    HWR.beamline.lims.store_robot_action(robot_action_dict)
+    if HWR.beamline.lims and HWR.beamline.lims.is_connected():
+        HWR.beamline.lims.store_robot_action(robot_action_dict)
 
     if not sample_mount_device.has_loaded_sample():
         # Disables all related collections

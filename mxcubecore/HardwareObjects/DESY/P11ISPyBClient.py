@@ -26,6 +26,46 @@ class P11ISPyBClient(ISPyBClient):
         mx_collection["beamline_name"] = "P11"
         ISPyBClient.update_data_collection(self, mx_collection, wait)
 
+    def _store_data_collection(self, mx_collection, bl_config=None):
+        self.prepare_collect_for_lims(mx_collection)
+        return ISPyBClient._store_data_collection(self,mx_collection, bl_config)
+
+    def store_image(self, image_dict):
+        self.prepare_image_for_lims(image_dict)
+        return ISPyBClient.store_image(self,image_dict)
+
+    def prepare_collect_for_lims(self, mx_collect_dict):
+        # Attention! directory passed by reference. modified in place
+
+        prop = "EDNA_files_dir"
+        path = mx_collect_dict[prop]
+        ispyb_path = HWR.beamline.session.path_to_ispyb(path)
+        mx_collect_dict[prop] = ispyb_path
+
+        prop = "process_directory"
+        path = mx_collect_dict["fileinfo"][prop]
+        ispyb_path = HWR.beamline.session.path_to_ispyb(path)
+        mx_collect_dict["fileinfo"][prop] = ispyb_path
+
+        for i in range(4):
+            try:
+                prop = "xtalSnapshotFullPath%d" % (i + 1)
+                path = mx_collect_dict[prop]
+                ispyb_path = HWR.beamline.session.path_to_ispyb(path)
+                logging.debug("P11 ISPyBClient - %s is %s " % (prop, ispyb_path))
+                mx_collect_dict[prop] = ispyb_path
+            except Exception:
+                pass
+
+    def prepare_image_for_lims(self, image_dict):
+        for prop in ["jpegThumbnailFileFullPath", "jpegFileFullPath"]:
+            try:
+                path = image_dict[prop]
+                ispyb_path = HWR.beamline.session.path_to_ispyb(path)
+                image_dict[prop] = ispyb_path
+            except Exception:
+                pass
+
     #def _ispybLogin(self, login_id, psd):
     #  site = "DESY"
     #  rest_root = "https://ispybdev.desy.de/ispyb/ispyb-ws/rest/"

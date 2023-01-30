@@ -285,7 +285,7 @@ class P11NanoDiff(GenericDiffractometer):
         self.current_centring_procedure = gevent.spawn(self.manual_centring)
         self.current_centring_procedure.link(self.centring_done)
 
-    def manual_centring(self, phi_range=120, n_points=3):
+    def manual_centring(self, phi_range=20, n_points=3):
         """
         Descript. :
         """
@@ -373,9 +373,9 @@ class P11NanoDiff(GenericDiffractometer):
         y_pos = sampy_mot.get_value() + y_d
         z_pos = phiy_mot.get_value() + z_d
 
+        motor_positions['phiy'] = z_pos
         motor_positions['sampx'] = x_pos
         motor_positions['sampy'] = y_pos
-        motor_positions['phiy'] = z_pos
         return motor_positions
 
     def get_positions(self):
