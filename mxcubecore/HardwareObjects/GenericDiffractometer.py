@@ -1022,6 +1022,7 @@ class GenericDiffractometer(HardwareObject):
 
         for motor in motor_positions.keys():
             position = motor_positions[motor]
+            self.log.debug(f"moving motor {motor} to position {position}")
             """
             if isinstance(motor, (str, unicode)):
                 logging.getLogger("HWR").debug(" Moving %s to %s" % (motor, position))

@@ -285,7 +285,7 @@ class P11NanoDiff(GenericDiffractometer):
         self.current_centring_procedure = gevent.spawn(self.manual_centring)
         self.current_centring_procedure.link(self.centring_done)
 
-    def manual_centring(self, phi_range=20, n_points=3):
+    def manual_centring(self, phi_range=120, n_points=3):
         """
         Descript. :
         """
@@ -297,11 +297,11 @@ class P11NanoDiff(GenericDiffractometer):
         self.log.debug("STARTING Manual Centring")
 
         motor_positions = {
-                'phi': self.centring_phi.motor.get_value(),
-                'sampx': self.centring_sampx.motor.get_value(),
-                'sampy': self.centring_sampy.motor.get_value(),
                 'phiy': self.centring_phiy.motor.get_value(),
                 'phiz': self.centring_phiz.motor.get_value(),
+                'sampx': self.centring_sampx.motor.get_value(),
+                'sampy': self.centring_sampy.motor.get_value(),
+                'phi': self.centring_phi.motor.get_value(),
                 }
 
         phi_mot = self.centring_phi.motor
@@ -317,9 +317,9 @@ class P11NanoDiff(GenericDiffractometer):
             Y.append(y)
             PHI.append(phi_mot.get_value())
 
-        phi_mot.set_value(phi_start_pos)
-        gevent.sleep(2)
-        phi_mot.wait_ready()
+        #phi_mot.set_value(phi_start_pos)
+        #gevent.sleep(2)
+        #phi_mot.wait_ready()
 
         DX = []
         DY = []
@@ -921,3 +921,87 @@ class P11NanoDiff(GenericDiffractometer):
             self.log.error("No transfer positions saved for %s" % position_name)
 
         self.update_phase()
+
+
+    def move_motors(self, motor_positions, timeout=15):
+        """
+        Moves diffractometer motors to the requested positions
+
+        :param motors_dict: dictionary with motor names or hwobj
+                            and target values.
+        :type motors_dict: dict
+        """
+        if not isinstance(motor_positions, dict):
+            motor_positions = motor_positions.as_dict()
+
+        self.wait_device_ready(timeout)
+
+        for motor in ['phiy', 'phiz']:
+            if motor not in motor_positions:
+                continue
+            position = motor_positions[motor]
+            self.log.debug(f"first moving translation motor '{motor}' to position {position}")
+
+            motor_hwobj = self.motor_hwobj_dict.get(motor)
+            if None in (motor_hwobj, position):
+                continue
+            motor_hwobj.set_value(position)
+        gevent.sleep(0.1)
+        self.wait_device_ready(timeout)
+        self.log.debug(f"  translation movements DONE")
+
+        for motor in ['sampx', 'sampy']:
+            if motor not in motor_positions:
+                continue
+            position = motor_positions[motor]
+            self.log.debug(f"then moving alignment motor '{motor}' to position {position}")
+
+            motor_hwobj = self.motor_hwobj_dict.get(motor)
+            if None in (motor_hwobj, position):
+                continue
+            motor_hwobj.set_value(position)
+        gevent.sleep(0.1)
+        self.wait_device_ready(timeout)
+        self.log.debug(f"  alignment movements DONE")
+        
+        if 'phi' in motor_positions:
+            self.log.debug(f"finally moving motor 'phi' to position {position}")
+            position = motor_positions['phi']
+            motor_hwobj = self.motor_hwobj_dict.get('phi')
+            if None not in (motor_hwobj, position):
+                motor_hwobj.set_value(position)
+                gevent.sleep(0.1)
+                self.wait_device_ready(timeout)
+            self.log.debug('   phi move DONE')
+
+        # is there anything left?
+        for motor in motor_positions.keys():
+            if motor in ['phiy', 'phiz', 'phi', 'sampx', 'sampy']:
+                continue
+            position = motor_positions[motor]
+            self.log.debug(f"moving remaining motor {motor} to position {position}")
+            """
+            if isinstance(motor, (str, unicode)):
+                logging.getLogger("HWR").debug(" Moving %s to %s" % (motor, position))
+            else:
+                logging.getLogger("HWR").debug(
+                    " Moving %s to %s" % (str(motor.name()), position)
+                )
+            """
+            if isinstance(motor, (str, unicode)):
+                motor_role = motor
+                motor = self.motor_hwobj_dict.get(motor_role)
+                # del motor_positions[motor_role]
+                if None in (motor, position):
+                    continue
+                # motor_positions[motor] = position
+            motor.set_value(position)
+        self.wait_device_ready(timeout)
+
+        if self.delay_state_polling is not None and self.delay_state_polling > 0:
+            # delay polling for state in the
+            # case of controller not reporting MOVING inmediately after cmd
+            gevent.sleep(self.delay_state_polling)
+
+        self.wait_device_ready(timeout)
+
