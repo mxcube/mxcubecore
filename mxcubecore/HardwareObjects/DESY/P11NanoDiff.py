@@ -17,6 +17,10 @@
 #   You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
+if sys.version_info[0] >= 3:
+    unicode = str
+
 import time
 import math
 import random
