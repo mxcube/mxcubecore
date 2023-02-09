@@ -66,7 +66,7 @@ class XalocQtGraphicsManager(QtGraphicsManager):
                 self.diffractometer_hwobj.image_clicked(pos_x, pos_y)
             else: 
                 self.userlogger.error("Click ignored, not in manual centring. ")
-                self.userlogger.error("\tChange centring procedure in the \"Centring\" pulldown close the ISPyB button if necessary")
+                self.userlogger.error("\tChange centring procedure in the \"Centring\" pulldown close to the ISPyB button if necessary")
         elif self.wait_grid_drawing_click:
             self.in_grid_drawing_state = True
             self.graphics_grid_draw_item.set_draw_mode(True)
@@ -204,3 +204,22 @@ class XalocQtGraphicsManager(QtGraphicsManager):
         self.in_one_click_centering = False
         self.graphics_centring_lines_item.setVisible(False)
         self.emit("centringInProgress", False)
+
+    def create_grid(self, spacing=(0, 0)):
+        """Creates grid
+
+        :param spacing: spacing between beams
+        :type spacing: list with two floats (can be negative)
+        """
+        if not self.wait_grid_drawing_click:
+            self.set_cursor_busy(True)
+            self.graphics_grid_draw_item = GraphicsLib.GraphicsItemGrid(
+                self, self.beam_info_dict, spacing, self.pixels_per_mm
+            )
+            self.graphics_grid_draw_item.set_draw_mode(True)
+            self.graphics_grid_draw_item.index = self.grid_count
+            self.grid_count += 1
+            self.graphics_view.graphics_scene.addItem(self.graphics_grid_draw_item)
+            self.wait_grid_drawing_click = True
+            self.emit('gridDrawn')
+
