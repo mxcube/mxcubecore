@@ -22,7 +22,7 @@ class cleanup:
     def __exit__(self, *args):
         if self.cleanup_funcs:
             for cleanup_func in self.cleanup_funcs:
-                if not isinstance(cleanup_func, collections.Callable):
+                if not isinstance(cleanup_func, collections.abc.Callable):
                     continue
                 try:
                     cleanup_func(**self.keys)
@@ -45,7 +45,7 @@ class error_cleanup:
         if args[0] is not None and self.error_funcs:
             logging.debug("Doing error cleanup")
             for error_func in self.error_funcs:
-                if not isinstance(error_func, collections.Callable):
+                if not isinstance(error_func, collections.abc.Callable):
                     continue
                 try:
                     error_func(**self.keys)
