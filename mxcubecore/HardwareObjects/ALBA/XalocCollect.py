@@ -638,8 +638,6 @@ class XalocCollect(AbstractCollect):
                     )
             #self.finalize_mesh_scan()
 
-        self.data_collection_end()
-
     # Collect images using direct configuration of the ni660 card
     def collect_images(self, omega_speed, start_pos, final_pos, nb_images, first_image_no):
         """
@@ -904,7 +902,6 @@ class XalocCollect(AbstractCollect):
         #total_time = fast_motor_nr_images * fast_motor_nr_images * ( time_interval + deadtime )
         
         #self.wait_collection_done(first_image_no-1, fast_motor_nr_images * slow_motor_nr_images - 1, total_time + 5) # TODO: allow for start at higher image numbers
-        #self.data_collection_end()
         #self.collection_finished()
             
 
@@ -1024,16 +1021,12 @@ class XalocCollect(AbstractCollect):
             
         
         
-    def data_collection_end(self):
-        self.omega_hwobj.set_velocity(60)
-        self.unconfigure_ni()
-
     def data_collection_failed(self, exception, failed_msg="XalocCollect: data_collection_failed"):
         self.user_logger.error(failed_msg)
         self.logger.debug("Data collection failed with error %s" % str( exception ) )
         self.logger.debug("  Initiating recovery sequence")
-        self.stop_collect() # is it necessary to call this, or is it called through events? If it is not
-        #TODO: this fails with list index out of range QueueManager line 149
+        #TODO: this fails with list index out of range QueueManager line 149. 
+        #  This seems to be related with set_sardana_collect_env (see data_path_widget)
         raise exception
 
     def prepare_acquisition(self):
@@ -1314,33 +1307,50 @@ class XalocCollect(AbstractCollect):
 
     def data_collection_cleanup(self):
         # this is called from AbstractCollect.do_collect, so it is always called and will be the last step in the data collection
-        self.logger.debug("Method data_collection_cleanup") 
+        
+        self.logger.debug("XalocCollect data_collection_cleanup") 
+
+        start_wait = time.time()
+        timeout = 100 #TODO set a more educated guess for the timeout, depending on the time needed for the scan 
+
+        if self.aborted_by_user:
+            self.logger.info(" Stopping detector")
+            self.detector_hwobj.stop_collection()
+        # Not sure what the following line does, does it remove any errors??
+        if self.detector_hwobj.get_cam_state() == 'ERROR': self.detector_hwobj.stop_collection()
+
+        for helmovemotorname in self.scan_move_motor_names:
+            self.scan_motors_hwobj[helmovemotorname].stop()
+
+        self._collecting = False
+        
+        self.logger.debug("XalocCollect Unconfiguring the NI") 
+        self.unconfigure_ni()
+
         self.logger.info('Initial velocity %s' % self.scan_init_velocities)
         try:
-            if self.omega_init_vel != None: # Sometimes, data collections fails before the initial velocities are set, eg when supervisor or diff DS are in alarm
-                self.logger.info('  Setting velocity of motor omega')
-                self.logger.info('     to initial velocity %.6f' % self.omega_init_vel ) 
-                self.omega_hwobj.set_velocity( self.omega_init_vel )
+            self.omega_hwobj.stop()
+            self.omega_hwobj.set_velocity(60)
+            #if self.omega_init_vel != None: # Sometimes, data collections fails before the initial velocities are set, eg when supervisor or diff DS are in alarm
+                #self.logger.info('  Setting velocity of motor omega')
+                #self.logger.info('     to initial velocity %.6f' % self.omega_init_vel ) 
+                #self.omega_hwobj.set_velocity( self.omega_init_vel )
         except:
-            self.logger.info('  Setting velocity of motor omega to %.1f failed' % self.omega_init_vel)
+            #self.logger.info('  Setting velocity of motor omega to %.1f failed' % self.omega_init_vel)
+            self.logger.info('  Setting velocity of motor omega to 60 deg/secs failed')
 
         for motorname in self.scan_move_motor_names:
             self.logger.info('  Setting velocity of motor %s' % motorname )
             self.logger.info('     to initial velocity %.6f' % self.scan_init_velocities[motorname] ) 
             #self._motor_persistently_set_velocity( self.scan_motors_hwobj[motorname], self.scan_init_velocities[motorname] )
             self.scan_motors_hwobj[motorname].set_velocity( self.scan_init_velocities[motorname] )
-
-        ## RB: isnt it better that the detetor keeps collecting to not loose images of a collection.Or increase wating time?
-        ## In fact, this is done in stopCollect when a user specifically asks for an Abort
-        if self.detector_hwobj.get_cam_state() == 'ERROR': self.detector_hwobj.stop_collection()
         
-        #self.logger.debug("Cleanup: moving omega to initial position %s" % self.omega_init_pos)
-        self.logger.debug("Cleanup: moving omega to zero")
         try:
             #Move omega to initial position to speed up collection process 
             #if self.omega_init_pos != None: # Sometiemes collection fails before omega_init_pos is set, no need to move in those cases
                 #self.omega_hwobj.set_value( self.omega_init_pos )
             if self.current_dc_parameters['experiment_type'] in ['OSC','Helical']:
+                self.logger.debug("Cleanup: moving omega to zero")
                 self.omega_hwobj.set_value(0)
         except:
             self.logger.debug("Omega needs to be stopped before restoring initial position, will try this now")
@@ -1753,37 +1763,23 @@ class XalocCollect(AbstractCollect):
 
     def stop_collect(self):
         """
-        Stops data collection, either interrupted by user, or due to failure
-        overrides AbstractCollect.stop_collect
+            Stops data collection when interrupted by user
+            overrides AbstractCollect.stop_collect
+            
+            This is called from the queue_entry, from the stop method in the DataCollectionQueueEntry class.
+            The queue_entry stop method is called from the QueueManager when the user clicks stop
         
         """
         self.logger.debug("XalocCollect stopCollect")
         self.aborted_by_user = True
-        start_wait = time.time()
-        timeout = 100 #TODO set a more educated guess for the timeout, depending on the time needed for the scan 
+
+        # Before killing the process, wait for a line scan to stop. self.aborted_by_user is read in the mesh scan methods to decide to go on or not
         while self.mxcube_sardanascan_running == True and (time.time() - start_wait) < timeout:
             time.sleep(0.01)
         if (time.time() - start_wait) > timeout:
             logging.getLogger('user_level_log').error("Timeout waiting for scan to stop. Is the Macroserver ok?")
 
-        self.logger.info(" Closing fast shutter")
-        self.close_fast_shutter()
-        self.logger.info(" Stopping detector")
-        self.detector_hwobj.stop_collection()
-        self.logger.info(" Stopping all motors")
-        self.omega_hwobj.stop()
-        self.unconfigure_ni()
-
-        for helmovemotorname in self.scan_move_motor_names:
-            self.scan_motors_hwobj[helmovemotorname].stop()
-
-        self._collecting = False
-
         AbstractCollect.stop_collect(self) # this kills the collect job
-        #raise Exception("Collect aborted by user")
-        #if self.data_collect_task is not None:
-        #    self.data_collect_task.kill(block = False)
-
 
     @task
     def move_motors(self, motor_position_dict):
