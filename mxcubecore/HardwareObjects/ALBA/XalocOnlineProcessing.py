@@ -52,6 +52,7 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
     def __init__(self, name):
         DozorOnlineProcessing.__init__(self, name)
         self.logger = logging.getLogger("HWR.XalocOnlineProcessing")
+        self.pop_object = None # the subprocess.Popen object returned by subprocess.Popen
 
     def init(self):
         DozorOnlineProcessing.init(self)
@@ -107,7 +108,7 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
             self.logger.debug("Processing DOZOR with command: %s" % line_to_execute)
 
             self.started = True
-            subprocess.Popen(
+            self.pop_object = subprocess.Popen(
                 str(line_to_execute),
                 shell=True,
 #                stdin=None,
@@ -200,6 +201,16 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
         dozor_dir = self._create_proc_files_directory('dozor')
         input_filename = os.path.join(dozor_dir, "dozor_input.xml")
         return input_filename
+
+    def stop_processing(self):
+        """Stops processing"""
+        self.started = False
+        self.set_processing_status("Stopped")
+        try:
+            self.pop_object.terminate()
+        except Exception as e:
+            self.logger.error("Cant stop processing: error is \n%s", e)
+        
 
     #def batch_processed2(self, batch):
         #"""Method called from EDNA via xmlrpc to set results
