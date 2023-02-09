@@ -151,9 +151,10 @@ class XalocOfflineProcessing(HardwareObject):
         spacegroup_number = ''
         unit_cell_constants = ''
 
-        datapath_dir = os.path.abspath(xds_file).replace('PROCESS_DATA', 'RAW_DATA')
-        datapath_dir = os.path.dirname(os.path.dirname(datapath_dir)) + os.path.sep
-
+        #datapath_dir = os.path.abspath(xds_file).replace('PROCESS_DATA', 'RAW_DATA')
+        #datapath_dir = os.path.dirname(os.path.dirname(datapath_dir)) + os.path.sep
+        datapath_dir = fileinfo['directory']+ os.path.sep
+        
         # CREATE XDS.INP FILE
         xds_templ = open(xds_template_path, "r").read()
 
