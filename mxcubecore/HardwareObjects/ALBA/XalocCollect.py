@@ -1194,7 +1194,8 @@ class XalocCollect(AbstractCollect):
         self.wait_save_image(first_image_no)
         if not self.omega_hwobj.is_ready(): 
             self.omega_hwobj.wait_ready( timeout= total_time + 5 )
-        self.wait_save_image( last_image_no ) # TODO: the minus one to fix the fact that first image is 0
+        if last_image_no != first_image_no: 
+            self.wait_save_image( last_image_no ) 
         self.logger.info("  wait_collection_done last image found" )
         for motorname in self.scan_move_motor_names:
             self.logger.info("     Motor %s position = %.2f" % ( motorname, self.scan_motors_hwobj[motorname].get_value() ) )
@@ -1214,7 +1215,7 @@ class XalocCollect(AbstractCollect):
 
         start_wait = time.time()
 
-        self.logger.debug("   waiting for image on disk: %s" % full_path)
+        self.logger.debug("   waiting for first image on disk: %s" % full_path)
 
         while not os.path.exists(full_path) and not self.aborted_by_user: 
             # TODO: review next line for NFTS related issues.
@@ -1482,10 +1483,10 @@ class XalocCollect(AbstractCollect):
             "Configuring NI660 with pars 0, %s, %s, 0, 1" %
             (startang, total_dist))
         #TODO: test if the macro can be executed, if not, abort collection
-        self.cmd_ni_conf(0.0, startang, total_dist, 0, 1)
+        self.cmd_ni_conf(0.0, startang, total_dist, 0, 1, wait = True )
 
     def unconfigure_ni(self):
-        self.cmd_ni_unconf()
+        self.cmd_ni_unconf( wait = True )
         # END of lines for ni660 scans
         #
         #
@@ -1511,7 +1512,7 @@ class XalocCollect(AbstractCollect):
     def open_detector_cover(self):
         self.supervisor_hwobj.open_detector_cover()
 
-    def open_fast_shutter_for_interal_trigger(self):
+    def open_fast_shutter_for_internal_trigger(self):
         # self.fastshut_hwobj.open()
         # this function is empty for Xaloc. we are not opening the fast shutter.
         # on the contrary open_safety_shutter (equivalent to prepare_shutters in
@@ -1851,14 +1852,6 @@ class XalocCollect(AbstractCollect):
         self.logger.debug("dc_pars[%s] = %s" % (key, _directory))
         return _directory
 
-    def set_sardana_collect_env(self, MXCollectDir = None, MXCollectPrefix = None, MXRunNumber = None):
-        if MXCollectDir != None:
-            self.senv('MXCollectDir', MXCollectDir, wait=True)
-        if MXCollectPrefix != None:
-            self.senv('MXCollectPrefix', MXCollectPrefix, wait=True)
-        if MXRunNumber != None:
-            self.senv('MXRunNumber', MXRunNumber, wait=True)
-        
 
     def get_wavelength(self):
         """
