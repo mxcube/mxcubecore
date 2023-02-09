@@ -232,7 +232,7 @@ class XalocCats(Cats90):
             self.state == SampleChangerState.StandBy or \
             self.state == SampleChangerState.Disabled
 
-    def super_send_transfer(self, timeout = 36):
+    def send_beamline_to_transfer(self, timeout = 36):
         """
         Checks if beamline diff is in TRANSFER phase (i.e. sample changer in
         TRANSFER phase too). If it is not the case, It sends the supervisor to TRANSFER
@@ -245,16 +245,17 @@ class XalocCats(Cats90):
             self.logger.debug("Closing detcover.")
             HWR.beamline.supervisor.close_detector_cover()
 
-        
-        if HWR.beamline.supervisor.get_current_phase().upper() == "TRANSFER":
+        if HWR.beamline.supervisor.get_current_phase().upper() == "TRANSFER": # The cover is not taken into account for transfer phase
             self.logger.debug("Supervisor is already in transfer phase")
-            return True
-
-        # First wait till the diff is ready to accept a sample transfer
-        if not self._wait_diff_on(timeout): return False
-        time.sleep(0.1)
- 
-        HWR.beamline.supervisor.set_phase("TRANSFER")
+        else:
+            # First wait till the supervisor is ready to accept a sample transfer
+            try: 
+                HWR.beamline.supervisor.wait_ready(timeout)
+                time.sleep(0.1)
+                HWR.beamline.supervisor.set_phase("TRANSFER")
+            except Exception as e:
+                logging.getLogger("HWR").error("Supervisor cannot get to transfer phase.\n%s" % str(e) )
+                return False # a return False, in order to update the state in case of an Exception
 
         # To improve the speed of sample mounting, the wait for phase done was removed.
         # Rationale: the time it takes the diff to go to transfer phase is about 7-9 seconds. 
@@ -272,6 +273,7 @@ class XalocCats(Cats90):
         ret3 = self._wait_det_safe()
         return ( ret1 and ret2 and ret3 )
 
+    #TODO: remove and replace with diffractometer.wait_ready()
     def _wait_diff_on(self, timeout = 36):
         t0 = time.time()
         while True:
@@ -576,7 +578,7 @@ class XalocCats(Cats90):
 
         self.save_detdist_position()
         self.logger.debug("Sending supervisor to transfer phase.")
-        ret = self.super_send_transfer()
+        ret = self.send_beamline_to_transfer()
 
         if ret is False:
             self.logger.error(
@@ -586,9 +588,11 @@ class XalocCats(Cats90):
                 "Supervisor cannot get to transfer phase. Aborting sample changer operation. Ask LC or floor coordinator to check the supervisor and diff device servers")
 
         if not self._chnPowered.get_value():
+            self._update_state()
             raise Exception(
-                "CATS power is not enabled. Please switch on arm power before "
-                "transferring samples.")
+                "CATS power is not enabled. Please interlock the EH and set the CATS switches to the right position before "
+                "transferring samples."
+            )
 
         self.logger.debug("Sample is %s " % sample.get_address() )
 
@@ -671,6 +675,8 @@ class XalocCats(Cats90):
             allok, msg = self._check_coherence()
             if allok:
                 logging.getLogger('user_level_log').info( 'Sample successfully loaded' )
+                self.logger.info("Opening detcover")
+                HWR.beamline.supervisor.open_detector_cover()
                 self.logger.info("Restoring detector distance")
                 self.restore_detdist_position()
             else:
@@ -805,6 +811,7 @@ class XalocCats(Cats90):
 
         if self.has_loaded_sample():  # has a loaded but it is not an HT
             if self.changing_tool:
+                self._update_state()
                 raise Exception(
                     "This operation requires a tool change. You should unload"
                     "sample first")
@@ -992,11 +999,12 @@ class XalocCats(Cats90):
         if not self._chnPowered.get_value():
             try: self._cmdPowerOn()  # try switching power on
             except Exception as e:
+                self._update_state()
                 raise Exception(e)
 
         #TODO: wait for cats poweron
 
-        ret = self.super_send_transfer()
+        ret = self.send_beamline_to_transfer()
 
         if ret is False:
             self.logger.error(
@@ -1156,6 +1164,7 @@ class XalocCats(Cats90):
             else:
                 return False
         except Exception as e:
+            self._update_state()
             self.logger.debug("Cannot identify sample in hot tool")
             return False
 
@@ -1308,6 +1317,7 @@ class XalocCats(Cats90):
             self.logger.debug("XalocCats exception while executing server task")
             self.logger.debug(traceback.format_exc())
             task_id = None
+            self._update_state()
             raise Exception("The command could not be sent to the robot, check its state.")
             #TODO: why not return with an Exception here to inform there is a problem with the CATS?
 

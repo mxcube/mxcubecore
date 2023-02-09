@@ -111,6 +111,9 @@ class XalocMiniDiff(GenericDiffractometer):
         self.centringAngleRange = None
         self.centring_hwobj = None
 
+        self.cmd_go_transfer = None
+        self.cmd_go_sample_view = None
+
     def init(self):
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
 
@@ -126,6 +129,7 @@ class XalocMiniDiff(GenericDiffractometer):
         self.connect(self.chan_state, "update", self.state_changed)
 
         self.cmd_go_transfer = self.get_command_object("go_transfer")
+        self.cmd_go_sample_view = self.get_command_object("go_sample_view")
 
         self.phi_motor_hwobj = self.get_object_by_role('phi')
         self.phiz_motor_hwobj = self.get_object_by_role('phiz')
@@ -773,6 +777,7 @@ class XalocMiniDiff(GenericDiffractometer):
         #self.logger.debug( "half camera_width_mm %.4f" % half_camera_width_mm )
         hor_mot_hwobj.set_value( hor_mot_hwobj.get_value() + half_camera_width_mm, timeout = 6 ) 
         gevent.sleep(0.1) # wait for zoom update
+        hor_mot_hwobj.wait_end_of_move( timeout = 10 )
 
     def search_pin(self):
         spindle_mot_hwobj = self.phi_motor_hwobj
@@ -807,6 +812,8 @@ class XalocMiniDiff(GenericDiffractometer):
         self.logger.debug("Moving omegax relative %s" % relmovdist)
         hor_mot_hwobj.set_value( hor_mot_hwobj.get_value() - relmovdist )
         spindle_mot_hwobj.set_value( spindle_mot_hwobj.get_value() + 180 )
+        hor_mot_hwobj.wait_end_of_move( timeout = 10 )
+        spindle_mot_hwobj.wait_end_of_move( timeout = 10 )
         
         # Keep  checking the location of the loop. When found, stop the motor movements
         stime = time.time()
@@ -1019,10 +1026,10 @@ class XalocMiniDiff(GenericDiffractometer):
 
         self.saved_zoom_pos = self.zoom_motor_hwobj.get_value()
 
-        if not self.get_current_phase().upper() == "SAMPLE":
-            self.logger.info("Not in sample view phase. Asking supervisor to go")
-            HWR.beamline.supervisor.wait_ready()
-            HWR.beamline.supervisor.set_phase('Centring') # call supervisor centring phase to opendetector cover etc
+        if self.get_current_phase().upper() != "SAMPLE":
+            self.logger.info("Not in sample view phase. Asking diff to go")
+            self.wait_ready()
+            self.set_diff_phase('Centring') # call diffcentring phase to prepare diff for centring
             # TODO: workaround to set omega velocity to 60
             try:
                 self.phi_motor_hwobj.set_velocity(60)
@@ -1280,12 +1287,13 @@ class XalocMiniDiff(GenericDiffractometer):
         time.sleep(0.2)
         self.wait_device_ready()
 
-    # TODO: define phases as enum members.
-    # TODO: this method sets the supervisor phase. Move it to supervisor
     def set_diff_phase(self, phase, timeout=None):
-        #TODO: implement timeout. Current API to fulfill the API.
         """
-        General function to set phase by using supervisor commands.
+            General function to set phase by using supervisor commands.
+            CAUTION: setting the diff phase does not change the position of:
+            -  the detector cover
+            -  the position of the fast shutter.
+            It is better to use the supervisor phases for safety reasons
         """
         if phase.upper() != "TRANSFER" and HWR.beamline.ln2shower.is_pumping():
             msg = "Cannot change to non transfer phase when the lnshower is pumping, turn off the shower first"
@@ -1297,8 +1305,8 @@ class XalocMiniDiff(GenericDiffractometer):
             #self.go_collect()
         #elif phase.upper() == "BEAMVIEW":
             #self.go_beam_view()
-        #elif phase.upper() == "CENTRING":
-            #self.go_sample_view()
+        elif phase.upper() == "CENTRING":
+            self.go_sample_view()
         else:
             self.logger.warning(
                 "Diffractometer set_phase asked for un-handled phase: %s" % phase
@@ -1331,6 +1339,9 @@ class XalocMiniDiff(GenericDiffractometer):
                 
     def go_transfer(self):
         self.cmd_go_transfer()
+
+    def go_sample_view(self):
+        self.cmd_go_sample_view()
 
     # TODO: move to supervisor
     def get_current_phase(self):

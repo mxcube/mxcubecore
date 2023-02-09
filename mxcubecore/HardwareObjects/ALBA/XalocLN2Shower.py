@@ -137,7 +137,7 @@ class XalocLN2Shower(HardwareObject):
         HWR.beamline.diffractometer.wait_device_ready()
         if value == False:
             self.sample_changer_loading = True
-            if self.wash_mounted_crystals and HWR.beamline.diffractometer.get_diff_phase() == 'Transfer':
+            if self.wash_mounted_crystals and HWR.beamline.diffractometer.get_current_phase() == 'Transfer':
                 self.run_ln2shower_wash()
         else: self.sample_changer_loading = False
 
@@ -149,7 +149,7 @@ class XalocLN2Shower(HardwareObject):
         if not self.collecting:
             if HWR.beamline.diffractometer.get_current_phase() != HWR.beamline.diffractometer.PHASE_TRANSFER:
                 HWR.beamline.diffractometer.set_diff_phase( HWR.beamline.diffractometer.PHASE_TRANSFER, timeout = 20 )
-            if HWR.beamline.diffractometer.get_diff_phase() == HWR.beamline.diffractometer.PHASE_TRANSFER:
+            if HWR.beamline.diffractometer.get_current_phase() == HWR.beamline.diffractometer.PHASE_TRANSFER:
                 self.cmd_ln2shower_wash(washflow, wait = False)
                 return True
             else:

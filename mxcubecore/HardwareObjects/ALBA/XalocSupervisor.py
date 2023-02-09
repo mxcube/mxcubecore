@@ -188,6 +188,7 @@ class XalocSupervisor(Device):
         self.logger.debug("Current supervisor phase is %s" % self.current_phase)
         if phase.upper() == self.current_phase.upper():
             self.logger.warning("Suprevisor already in phase %s" % phase)
+            return
         
         if phase.upper() != "TRANSFER" and HWR.beamline.ln2shower.is_pumping():
             msg = "Cannot change to non transfer phase when the lnshower is pumping, turn off the shower first"
@@ -224,17 +225,6 @@ class XalocSupervisor(Device):
             self.logger.debug(
                 "Supervisor phase is %s" % ( self.get_phase() )
             )
-
-    def wait_ready(self):
-        while True:
-            state = self.get_state() 
-            if state == DevState.ON:
-                self.logger.debug("Supervisor is in ON state. Returning")
-                break
-            time.sleep(0.02)
-
-    
-
 
 def test_hwo(hwo):
     print("Supervisor control \"%s\"\n" % hwo.getUserName())
