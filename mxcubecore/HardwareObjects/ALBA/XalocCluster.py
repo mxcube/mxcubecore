@@ -16,6 +16,13 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# Job submission to the ALBA cluster is managed by the slurm_client
+#  The USER / SCRATCH keyword sets if the files are copied first to local disk on the cluster (SCRATCH)
+#    or if the file I/O during the characterization job is done directly on the directorires of the user (USER)
+#
+
 
 """
 [Name] XalocCluster
