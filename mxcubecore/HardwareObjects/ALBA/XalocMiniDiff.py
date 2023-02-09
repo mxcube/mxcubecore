@@ -68,7 +68,7 @@ from taurus.core.tango.enums import DevState
 __credits__ = ["ALBA Synchrotron"]
 __version__ = "3"
 __category__ = "General"
-
+__author__ = "Roeland Boer, Jordi Andreu, Vicente Rey"
 
 class XalocMiniDiff(GenericDiffractometer):
     """
@@ -85,11 +85,9 @@ class XalocMiniDiff(GenericDiffractometer):
         GenericDiffractometer.__init__(self, *args)
         self.logger = logging.getLogger("HWR.XalocMiniDiff")
         self.userlogger = logging.getLogger("user_level_log")
-        self.centring_hwobj = None
-        self.super_hwobj = None
-        self.ln2shower_hwobj = None
-        self.chan_state = None
+
         self.chan_phase = None
+        self.chan_state = None
         self.phi_motor_hwobj = None
         self.phiz_motor_hwobj = None
         self.phiy_motor_hwobj = None
@@ -111,34 +109,27 @@ class XalocMiniDiff(GenericDiffractometer):
         # Number of images and total angle range used in automatic centering, defined in centring-math.xml
         self.numCentringImages = None
         self.centringAngleRange = None
+        self.centring_hwobj = None
 
         self.cmd_go_transfer = None
+        self.cmd_go_sample_view = None
 
     def init(self):
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
 
         self.centring_hwobj = self.get_object_by_role('centring')
-        self.super_hwobj = self.get_object_by_role('beamline-supervisor')
-        self.ln2shower_hwobj = self.get_object_by_role('ln2shower')
 
+        #if HWR.beamline.centring is None:
         if self.centring_hwobj is None:
             self.logger.debug('XalocMinidiff: Centring math is not defined')
 
-        if self.super_hwobj is not None:
-            self.connect(
-                self.super_hwobj,
-                'stateChanged',
-                self.supervisor_state_changed)
-            self.connect(
-                self.super_hwobj,
-                'phaseChanged',
-                self.supervisor_phase_changed)
-
+        self.chan_phase = self.get_channel_object("Phase")
+        self.connect(self.chan_phase, "update", self.phase_changed)
         self.chan_state = self.get_channel_object("State")
-        self.chan_phase = self.get_channel_object("CurrentPhase")
         self.connect(self.chan_state, "update", self.state_changed)
 
         self.cmd_go_transfer = self.get_command_object("go_transfer")
+        self.cmd_go_sample_view = self.get_command_object("go_sample_view")
 
         self.phi_motor_hwobj = self.get_object_by_role('phi')
         self.phiz_motor_hwobj = self.get_object_by_role('phiz')
@@ -152,23 +143,27 @@ class XalocMiniDiff(GenericDiffractometer):
         
         self.omegaz_reference_channel = self.get_channel_object("omegazReference")
         
+        #for axis in HWR.beamline.centring.gonioAxes:
         for axis in self.centring_hwobj.gonioAxes:
             if axis['motor_name'] == 'phi':
                 self.logger.warning('XalocMinidiff: phi rotation direction is %s' % str(axis['direction']) )
                 self.phi_direction = sum( axis['direction'] )
         self.phi_centring_direction = 1
         self.saved_zoom_pos = self.zoom_motor_hwobj.get_value()
-
+        self.logger.warning('XalocMinidiff: digital zoom position %s' % str(self.saved_zoom_pos) )
         
         # For automatic centring
+        #self.numCentringImages = HWR.beamline.centring.get_property('numCentringImages')
         self.numCentringImages = self.centring_hwobj.get_property('numCentringImages')
         if self.numCentringImages < 2: 
           self.logger.warning('XalocMinidiff: numCentringImages should be at least 2, reset to 2')
           self.numCentringImages = 2
+        #self.centringAngleRange = HWR.beamline.centring.get_property('centringAngleRange')
         self.centringAngleRange = self.centring_hwobj.get_property('centringAngleRange')
         if self.centringAngleRange > 360: 
           self.logger.warning('XalocMinidiff: centringAngleRange should be smaller than 360 degrees, reset to 360 degrees')
           self.centringAngleRange = 360
+        #self.numAutoCentringCycles = HWR.beamline.centring.get_property('numAutoCentringCycles')
         self.numAutoCentringCycles = self.centring_hwobj.get_property('numAutoCentringCycles')
         if self.centringAngleRange < 0: 
           self.logger.warning('XalocMinidiff: numAutoCentringCycles should be at least 1, reset to 1')
@@ -466,11 +461,13 @@ class XalocMiniDiff(GenericDiffractometer):
     # overwrite generic diff method to avoid centering when mounting fails
     def start_centring_method(self, method, sample_info=None, wait=False):
         """
+          method is either of the centring methods defined in diff HW object:
+           CENTRING_METHOD_MANUAL = "Manual 3-click", CENTRING_METHOD_AUTO = "Computer automatic", CENTRING_METHOD_MOVE_TO_BEAM = "Move to beam"
         """
 
         if self.current_centring_method is not None:
             logging.getLogger("HWR").error(
-                "Diffractometer: already in centring method %s"
+                "Diffractometer: using centring method %s"
                 % self.current_centring_method
             )
             return
@@ -480,6 +477,9 @@ class XalocMiniDiff(GenericDiffractometer):
             "startTime": curr_time,
             "angleLimit": None,
         }
+        logging.getLogger("HWR").debug(
+            "Diffractometer:  centring method (%s)" % str(self.current_centring_method)
+        )
         self.emit_centring_started(method)
 
         try:
@@ -608,7 +608,7 @@ class XalocMiniDiff(GenericDiffractometer):
         """
         self.automatic_centring_try_count = 0
         
-        self.logger.debug('automatic_centring_try_count, numAutoCentringCycles: %d, %d' % \
+        self.logger.debug('automatic_centring_try_count: %d, numAutoCentringCycles: %d' % \
                           (self.automatic_centring_try_count, self.numAutoCentringCycles) ) 
         
         #TODO: whould the wait_result argument to start_automatic_centring be set to True?
@@ -690,7 +690,7 @@ class XalocMiniDiff(GenericDiffractometer):
             gevent.sleep(1) # wait for motors from previous centrings to start moving
         
         self.wait_device_ready( timeout = 20) # wait for motors from previous centrings to finish
- 
+
         #self.logger.debug('find_loop output %s' % str(self.find_loop_xaloc()) )
 
         # check if loop is there, if not, search
@@ -721,13 +721,16 @@ class XalocMiniDiff(GenericDiffractometer):
             x, y, info, surface_score = self.find_loop_xaloc()
         else: 
             if ( -1 in [x,y] ) or y < image_edge_margin : self.cancel_centring_method()
- 
+
         surface_score_list = []
         self.centring_hwobj.initCentringProcedure()
-        #self.logger.debug("self.numCentringImages %d, self.centringAngleRange %d" % \
-              #(self.numCentringImages, self.centringAngleRange) )
-        for image in range( self.numCentringImages ):
-            if self.current_centring_method == None: break
+        self.logger.debug("self.numCentringImages %d, self.centringAngleRange %d" % \
+              (self.numCentringImages, self.centringAngleRange) )
+        for image in range( int( self.numCentringImages ) ):
+            self.logger.debug("self.current_centring_method %s" % self.current_centring_method ) 
+            if self.current_centring_method == None: 
+                self.logger.debug("No centering method selected, cannot continue" )
+                break
             #self.logger.debug("Harvesting fotos for automatic_centring : x %s, y %s, info %s, surface_score %s" % 
                               #( str(x), str(y), str(info), str(surface_score) ) ) 
             if x > 0 and y > 0:
@@ -737,6 +740,7 @@ class XalocMiniDiff(GenericDiffractometer):
             surface_score_list.append(surface_score)
             # Now rotate and take another point
             if image < self.numCentringImages - 1: # Last rotation is not necessary
+                #self.userlogger.info( "rotating omega" )
                 new_pos = self.motor_hwobj_dict['phi'].get_value() + ( self.phi_centring_direction * \
                     self.centringAngleRange/ ( self.numCentringImages - 1 ) )
                 self.motor_hwobj_dict['phi'].set_value( new_pos, timeout = 5 )
@@ -773,6 +777,7 @@ class XalocMiniDiff(GenericDiffractometer):
         #self.logger.debug( "half camera_width_mm %.4f" % half_camera_width_mm )
         hor_mot_hwobj.set_value( hor_mot_hwobj.get_value() + half_camera_width_mm, timeout = 6 ) 
         gevent.sleep(0.1) # wait for zoom update
+        hor_mot_hwobj.wait_end_of_move( timeout = 10 )
 
     def search_pin(self):
         spindle_mot_hwobj = self.phi_motor_hwobj
@@ -807,6 +812,8 @@ class XalocMiniDiff(GenericDiffractometer):
         self.logger.debug("Moving omegax relative %s" % relmovdist)
         hor_mot_hwobj.set_value( hor_mot_hwobj.get_value() - relmovdist )
         spindle_mot_hwobj.set_value( spindle_mot_hwobj.get_value() + 180 )
+        hor_mot_hwobj.wait_end_of_move( timeout = 10 )
+        spindle_mot_hwobj.wait_end_of_move( timeout = 10 )
         
         # Keep  checking the location of the loop. When found, stop the motor movements
         stime = time.time()
@@ -877,7 +884,7 @@ class XalocMiniDiff(GenericDiffractometer):
 
     def motor_positions_to_screen(self, centred_positions_dict):
         """
-        Descript. :
+        Descript. : returns the camera pixels of the point corresponding to the given motor positions
         """
         c = centred_positions_dict
 
@@ -933,7 +940,7 @@ class XalocMiniDiff(GenericDiffractometer):
                 # msg = ''
                 # for mot, pos in motor_pos.items():
                 #     msg += '%s = %s\n' % (str(mot.name()), pos)
-                logging.getLogger("HWR").debug("Centring finished")#. Moving motors to:\n%s" % msg)
+                self.logger.info("Centring finished")#. Moving motors to:\n%s" % msg)
                 self.move_to_motors_positions(motor_pos, wait=True)
             except:
                 logging.exception("Could not move to centred position")
@@ -952,9 +959,10 @@ class XalocMiniDiff(GenericDiffractometer):
             self.ready_event.set()
             self.centring_time = time.time()
             self.update_centring_status(motor_pos)
-            if self.current_centring_method == GenericDiffractometer.CENTRING_METHOD_AUTO and  \
-                self.automatic_centring_try_count == self.numAutoCentringCycles or \
-                self.current_centring_method != GenericDiffractometer.CENTRING_METHOD_AUTO: 
+            if ( self.current_centring_method == GenericDiffractometer.CENTRING_METHOD_AUTO and  \
+                    self.automatic_centring_try_count == self.numAutoCentringCycles ) or \
+                    self.current_centring_method != GenericDiffractometer.CENTRING_METHOD_AUTO: 
+                self.userlogger.info( "Centring finished" )
                 self.emit_centring_successful()
                 self.emit_progress_message("")
 
@@ -1018,17 +1026,15 @@ class XalocMiniDiff(GenericDiffractometer):
 
         self.saved_zoom_pos = self.zoom_motor_hwobj.get_value()
 
-        if not self.super_hwobj.get_current_phase().upper() == "SAMPLE":
-            self.logger.info("Not in sample view phase. Asking supervisor to go")
-            success = self.go_sample_view()
+        if self.get_current_phase().upper() != "SAMPLE":
+            self.logger.info("Not in sample view phase. Asking diff to go")
+            self.wait_ready()
+            self.set_diff_phase('Centring') # call diffcentring phase to prepare diff for centring
             # TODO: workaround to set omega velocity to 60
             try:
                 self.phi_motor_hwobj.set_velocity(60)
             except:
                 self.logger.error("Cannot apply workaround for omega velocity")
-            if not success:
-                self.logger.error("Cannot set SAMPLE VIEW phase")
-                return False
         # TODO: dynamic omegaz_reference
         if self.omegaz_reference_channel != None:
             if self.use_sample_centring: self.centring_phiz.reference_position = self.omegaz_reference_channel.get_value()
@@ -1126,35 +1132,12 @@ class XalocMiniDiff(GenericDiffractometer):
         
         return self.grid_direction
         
-    def go_sample_view(self):
-        """
-        Go to sample view phase.
-        """
-        self.super_hwobj.go_sample_view()
-
-        while True:
-            super_state = self.super_hwobj.get_state()
-            self.logger.debug('Waiting for go_sample_view done (supervisor state is %s)'
-                              % super_state)
-            if super_state != DevState.MOVING:
-                self.logger.debug('Go_sample_view done (%s)' % super_state)
-                return True
-            time.sleep(0.2)
-
-    def supervisor_state_changed(self, state):
-        """
-        Emit stateChanged signal according to supervisor current state.
-        """
-        return
-        self.current_state = state
-        self.emit('stateChanged', (self.current_state, ))
-
     # TODO: Review override current_state by current_phase
-    def supervisor_phase_changed(self, phase):
+    def phase_changed(self, phase):
         """
         Emit stateChanged signal according to supervisor current phase.
         """
-        #self.current_state = phase
+        #self.current_phase = phase
         self.emit('minidiffPhaseChanged', (phase, ))
 
     def phi_motor_moved(self, pos):
@@ -1304,25 +1287,26 @@ class XalocMiniDiff(GenericDiffractometer):
         time.sleep(0.2)
         self.wait_device_ready()
 
-    # TODO: define phases as enum members.
-    # TODO: this method sets the supervisor phase. Move it to supervisor
     def set_diff_phase(self, phase, timeout=None):
-        #TODO: implement timeout. Current API to fulfill the API.
         """
-        General function to set phase by using supervisor commands.
+            General function to set phase by using supervisor commands.
+            CAUTION: setting the diff phase does not change the position of:
+            -  the detector cover
+            -  the position of the fast shutter.
+            It is better to use the supervisor phases for safety reasons
         """
-        if phase != "Transfer" and self.ln2shower_hwobj.is_pumping():
+        if phase.upper() != "TRANSFER" and HWR.beamline.ln2shower.is_pumping():
             msg = "Cannot change to non transfer phase when the lnshower is pumping, turn off the shower first"
-            self.user_level_log.error(msg)
+            self.userlogger.error(msg)
             raise Exception(msg)
-        if phase == "Transfer":
+        if phase.upper() == "TRANSFER":
             self.go_transfer()
-        #elif phase == "Collect":
+        #elif phase.upper() == "COLLECT":
             #self.go_collect()
-        #elif phase == "BeamView":
+        #elif phase.upper() == "BEAMVIEW":
             #self.go_beam_view()
-        #elif phase == "Centring":
-            #self.go_sample_view()
+        elif phase.upper() == "CENTRING":
+            self.go_sample_view()
         else:
             self.logger.warning(
                 "Diffractometer set_phase asked for un-handled phase: %s" % phase
@@ -1338,44 +1322,9 @@ class XalocMiniDiff(GenericDiffractometer):
             self.wait_ready( timeout = timeout )
             time.sleep(1)
             self.logger.debug(
-                "Diff phase is %s" % ( self.get_diff_phase() )
+                "Diff phase is %s" % ( self.get_current_phase() )
             )
         
-    def set_phase(self, phase, timeout=None):
-        #TODO: implement timeout. Current API to fulfill the API.
-        """
-        General function to set phase by using supervisor commands.
-        """
-        if phase != "Transfer" and self.ln2shower_hwobj.is_pumping():
-            msg = "Cannot change to non transfer phase when the lnshower is pumping, turn off the shower first"
-            self.user_level_log.error(msg)
-            raise Exception(msg)
-        if phase == "Transfer":
-            self.super_hwobj.go_transfer()
-        elif phase == "Collect":
-            self.super_hwobj.go_collect()
-        elif phase == "BeamView":
-            self.super_hwobj.go_beam_view()
-        elif phase == "Centring":
-            self.super_hwobj.go_sample_view()
-        else:
-            self.logger.warning(
-                "Diffractometer set_phase asked for un-handled phase: %s" % phase
-            )
-            return
-
-        self.logger.debug(
-            "Telling supervisor to go to phase %s, with timeout %s" % ( phase, timeout )
-        )
-    
-        if timeout:
-            time.sleep(1)
-            self.super_hwobj.wait_ready( timeout = timeout )
-            time.sleep(1)
-            self.logger.debug(
-                "Supervisor phase is %s" % ( self.super_hwobj.get_phase() )
-            )
-    
     # Copied from GenericDiffractometer just to improve error loggin
     def wait_device_ready(self, timeout=30):
         """ Waits when diffractometer status is ready:
@@ -1388,23 +1337,24 @@ class XalocMiniDiff(GenericDiffractometer):
             while not self.is_ready():
                 time.sleep(0.01)
                 
-    def get_diff_phase(self):
-        """
-        Descript. :
-        """
-        return self.chan_phase.get_value()
-
     def go_transfer(self):
         self.cmd_go_transfer()
 
+    def go_sample_view(self):
+        self.cmd_go_sample_view()
 
     # TODO: move to supervisor
     def get_current_phase(self):
         """
-        Descript. :
+        Descript. : read diff phase
         """
-        return self.super_hwobj.get_current_phase()
-
+        try:
+            _value = self.chan_phase.get_value()
+            #self.logger.debug('get_current_phase: (value={0}, type={1})'.format(_value, type(_value)))
+        except Exception as e:
+            raise RuntimeError('Cannot get diff current phase:\n%s, try to restart the diff DS' % str(e))
+        return _value
+        # return self.chan_phase.get_value()
 
 def test_hwo(hwo):
     print(hwo.get_phase_list())

@@ -199,6 +199,17 @@ class Beamline(ConfiguredObject):
     __content_roles.append("flux")
 
     @property
+    def digital_zoom(self):
+        """Flux Hardware object
+
+        Returns:
+            Optional[AbstractActuator]:
+        """
+        return self._objects.get("digital_zoom")
+
+    __content_roles.append("digital_zoom")
+
+    @property
     def beam(self):
         """Beam Hardware object
 
@@ -542,6 +553,29 @@ class Beamline(ConfiguredObject):
         return self._objects.get("image_tracking")
 
     __content_roles.append("image_tracking")
+
+    @property
+    def supervisor(self):
+        """Imaging tracking object
+
+        Returns:
+            Optional[HardwareObject]:
+        """
+        return self._objects.get("supervisor")
+
+    __content_roles.append("supervisor")
+
+    @property
+    def ln2shower(self):
+        """Imaging tracking object
+
+        Returns:
+            Optional[HardwareObject]:
+        """
+        return self._objects.get("ln2shower")
+
+    __content_roles.append("ln2shower")
+
 
     # Procedures
 

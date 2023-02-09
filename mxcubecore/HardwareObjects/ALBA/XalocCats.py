@@ -39,12 +39,13 @@ import time
 import PyTango
 import gevent
 
-from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.Cats90 import Cats90, SampleChangerState#, TOOL_SPINE
+from mxcubecore import HardwareRepository as HWR
 
 __credits__ = ["ALBA Synchrotron"]
 __version__ = "3"
 __category__ = "General"
+__author__ = "Vicente Rey, Jordi Andreu, Roeland Boer"
 
 TIMEOUT = 3
 DOUBLE_GRIPPER_DRY_WAIT_TIME = 80 # time the double gripper takes in going from home to midway soak during a dry
@@ -71,8 +72,6 @@ class XalocCats(Cats90):
         self.shifts_channel = None
         self.diff_phase_channel = None
         self.diff_state_channel = None
-        self.super_phase_channel = None
-        self.super_state_channel = None
         self.detdist_position_channel = None
         self.omega_position_channel = None
         self.kappa_position_channel = None
@@ -88,7 +87,6 @@ class XalocCats(Cats90):
         self._chnLidSampleOnTool = None
         self._chnNumSampleOnTool = None
         
-        self.go_transfer_cmd = None
         self.diff_go_sampleview_cmd = None
         self.super_go_sampleview_cmd = None
         self.super_abort_cmd = None
@@ -104,9 +102,15 @@ class XalocCats(Cats90):
         self.cats_ri2 = None
 
         self.auto_prepare_diff = None
-        self.mount_and_pick = None
+        self.next_pick_sample_location = [-1,-1]
         self.sample_can_be_centered = None
         
+        self.sample_lid_on_tool = None
+        self.sample_num_on_tool = None
+        self.changing_tool = None
+        
+        self.logger.debug("unipuck_tool property = %s" % self.get_property("unipuck_tool") )
+
     def init(self):
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
         Cats90.init(self)
@@ -114,8 +118,6 @@ class XalocCats(Cats90):
         self.shifts_channel = self.get_channel_object("shifts")
         self.diff_phase_channel = self.get_channel_object("diff_phase")
         self.diff_state_channel = self.get_channel_object("diff_state")
-        self.super_phase_channel = self.get_channel_object("super_phase")
-        self.super_state_channel = self.get_channel_object("super_state")
         self.detdist_position_channel = self.get_channel_object("detdist_position")
         self.super_cryopos_channel = self.get_channel_object("super_cryo_position")
         self.omega_position_channel = self.get_channel_object("omega_position") # position of the omega axis
@@ -132,7 +134,6 @@ class XalocCats(Cats90):
         self._chnLidSampleOnTool = self.get_channel_object( "_chnLidSampleOnTool" )
         self._chnNumSampleOnTool = self.get_channel_object( "_chnNumSampleOnTool" )
         
-        self.go_transfer_cmd = self.get_command_object("go_transfer")
         self.diff_go_sampleview_cmd = self.get_command_object("diff_go_sampleview")
         self.super_go_sampleview_cmd = self.get_command_object("super_go_sampleview")
         self.super_abort_cmd = self.get_command_object("super_abort")
@@ -140,7 +141,8 @@ class XalocCats(Cats90):
         self._cmdLoadHT = self.get_command_object("_cmdLoadHT")
         self._cmdChainedLoadHT = self.get_command_object("_cmdChainedLoadHT")
         self._cmdUnloadHT = self.get_command_object("_cmdUnloadHT")
-        self._cmdChainedLoadPick= self.get_command_object("_cmdChainedLoadPick")
+        self._cmdPick = self.get_command_object("_cmdPick")
+        self._cmdChainedLoadPick = self.get_command_object("_cmdChainedLoadPick")
 
         self._cmdClearMemory = self.get_command_object("_cmdClearMemory")
         self._cmdSetTool = self.get_command_object("_cmdSetTool")
@@ -149,10 +151,15 @@ class XalocCats(Cats90):
         self._cmdCATSRecovery = self.get_command_object("macro_cats_recovery")
 
         self.auto_prepare_diff = self.get_property("auto_prepare_diff")
-        self.mount_and_pick = False 
         self.sample_can_be_centered = True
 
         self.logger.debug("unipuck_tool property = %s" % self.get_property("unipuck_tool") )
+
+        self.sample_lid_on_tool = -1
+        self.sample_num_on_tool = -1
+
+        if self._chnPathRunning is not None:
+            self._chnPathRunning.connect_signal("update", self._update_running_state)
 
         if self._chnIsCatsRI2 is not None:
             self._chnIsCatsRI2.connect_signal("update", self._cats_ri2_changed)
@@ -162,6 +169,12 @@ class XalocCats(Cats90):
 
         #if self._chnPowered is not None:
             #self._chnPowered.connect_signal("update", self._update_powered_state)
+
+        if self._chnLidSampleOnTool is not None:
+            self._chnLidSampleOnTool.connect_signal("update", self.sample_lid_on_tool_changed)
+
+        if self._chnNumSampleOnTool is not None:
+            self._chnNumSampleOnTool.connect_signal("update", self.sample_num_on_tool_changed)
 
         ret,msg = self._check_coherence()
         if not ret: 
@@ -219,24 +232,30 @@ class XalocCats(Cats90):
             self.state == SampleChangerState.StandBy or \
             self.state == SampleChangerState.Disabled
 
-    #TODO: rename this method, it is the supervisor that is sent to transfer
-    def diff_send_transfer(self, timeout = 36):
+    def send_beamline_to_transfer(self, timeout = 36):
         """
         Checks if beamline diff is in TRANSFER phase (i.e. sample changer in
-        TRANSFER phase too). If is not the case, It sends the supervisor to TRANSFER
+        TRANSFER phase too). If it is not the case, It sends the supervisor to TRANSFER
         phase. Then waits for the minimal conditions of the beamline to start the transfer
 
         @return: boolean
         """
-        if self.read_super_phase().upper() == "TRANSFER":
-            #self.logger.error("Supervisor is already in transfer phase")
-            return True
+        
+        if HWR.beamline.supervisor.is_detector_cover_opened():
+            self.logger.debug("Closing detcover.")
+            HWR.beamline.supervisor.close_detector_cover()
 
-        # First wait till the diff is ready to accept a go_transfer_cmd
-        if not self._wait_diff_on(timeout): return False
-        time.sleep(0.1)
- 
-        self.go_transfer_cmd()
+        if HWR.beamline.supervisor.get_current_phase().upper() == "TRANSFER": # The cover is not taken into account for transfer phase
+            self.logger.debug("Supervisor is already in transfer phase")
+        else:
+            # First wait till the supervisor is ready to accept a sample transfer
+            try: 
+                HWR.beamline.supervisor.wait_ready(timeout)
+                time.sleep(0.1)
+                HWR.beamline.supervisor.set_phase("TRANSFER")
+            except Exception as e:
+                logging.getLogger("HWR").error("Supervisor cannot get to transfer phase.\n%s" % str(e) )
+                return False # a return False, in order to update the state in case of an Exception
 
         # To improve the speed of sample mounting, the wait for phase done was removed.
         # Rationale: the time it takes the diff to go to transfer phase is about 7-9 seconds. 
@@ -254,6 +273,7 @@ class XalocCats(Cats90):
         ret3 = self._wait_det_safe()
         return ( ret1 and ret2 and ret3 )
 
+    #TODO: remove and replace with diffractometer.wait_ready()
     def _wait_diff_on(self, timeout = 36):
         t0 = time.time()
         while True:
@@ -278,15 +298,6 @@ class XalocCats(Cats90):
                 break
             time.sleep(0.02)
         return ret
-
-    # TODO: Move to XalocSupervisor 
-    def _wait_super_ready(self):
-        while True:
-            state = str(self.super_state_channel.get_value())
-            if state == "ON":
-                self.logger.debug("Supervisor is in ON state. Returning")
-                break
-            time.sleep(0.2)
 
     def _wait_cats_idle(self):
         while True:
@@ -345,7 +356,7 @@ class XalocCats(Cats90):
     def _wait_super_moving(self):
         allokret = True # No problems
         while allokret:
-            state = str(self.super_state_channel.get_value())
+            state = str( HWR.beamline.supervisor.get_state() )
             if not self._chnCollisionSensorOK.get_value(): 
                 self._update_state()
                 raise Exception ("The robot had a collision, call your LC or floor coordinator")
@@ -397,9 +408,9 @@ class XalocCats(Cats90):
         """
        
         t0 = time.time()
-        while self.read_super_phase().upper() != final_phase:
-            state = str(self.super_state_channel.get_value())
-            phase = self.read_super_phase().upper()
+        while HWR.beamline.supervisor.get_current_phase().upper() != final_phase:
+            state = str( HWR.beamline.supervisor.get_state() )
+            phase = HWR.beamline.supervisor.get_current_phase().upper()
             if not str(state) in [ "MOVING", "ON" ]:
                 self.logger.error("Supervisor is in a funny state %s" % str(state))
                 return False
@@ -409,12 +420,12 @@ class XalocCats(Cats90):
 
         t0 = time.time()
         timeout = 5
-        while self.read_super_phase().upper() != final_phase or timeout > time.time() - t0:
+        while HWR.beamline.supervisor.get_current_phase().upper() != final_phase or timeout > time.time() - t0:
             logging.getLogger("HWR").warning(
                 "Phase changed done. Waiting phase change....")
             time.sleep(0.2)
 
-        if self.read_super_phase().upper() != final_phase:
+        if HWR.beamline.supervisor.get_current_phase().upper() != final_phase:
             self.logger.error("Supervisor is not yet in %s phase. Aborting load" %
                               final_phase)
             return False
@@ -434,66 +445,64 @@ class XalocCats(Cats90):
                 "Restoring det.distance to %s" % self.detdist_saved)
             self.detdist_position_channel.set_value(self.detdist_saved)
 
-    def read_super_phase(self):
-        """
-        Returns supervisor phase (CurrentPhase attribute from Beamline Supervisor
-        TangoDS)
-
-        @return: str
-        """
-        return self.super_phase_channel.get_value()
-
     def read_diff_phase(self):
         """
-        Returns supervisor phase (CurrentPhase attribute from Beamline Supervisor
+        Returns diff phase (CurrentPhase attribute from Beamline Diffractometer
         TangoDS)
 
         @return: str
         """
         return self.diff_phase_channel.get_value()
 
-    def load(self, sample=None, wait=False, wash=False):
+    def load(self, sample=None, wait=False):
         """
         Loads a sample. Overides to include ht basket.
 
-        @sample: sample to load.
+        @sample: sample to load. a string is passed with format "%d:%d" % (basketnr:samplenr)
         @wait:
         @wash: wash dring the load opearation.
         @return:
         """
 
+        sample_location_str = sample
         self.sample_can_be_centered = True
 
         self.logger.debug(
-            "Loading sample %s / type(%s)" %
-            (sample, type(sample)))
+                "Loading sample %s / type(%s)" %
+                ( sample_location_str, type(sample_location_str) )
+            )
 
         ok, msg = self._check_incoherent_sample_info()
         if not ok:
             self.sample_can_be_centered = False
             raise Exception(msg)
 
-        sample_ht = self.is_ht_sample(sample)
+        sample_ht = self.is_ht_sample(sample_location_str) # sample number in HT basket
 
         if not sample_ht:
-            sample = self._resolve_component(sample)
+            sample = self._resolve_component(sample_location_str)
             self.assert_not_charging()
             use_ht = False
         else:
             sample = sample_ht
             use_ht = True
 
+        # end some cancel cases
+
         if self.has_loaded_sample():
-            if (wash is False) and self.get_loaded_sample() == sample:
+            if self.get_loaded_sample() == sample:
                 raise Exception(
                     "The sample %s is already loaded" % sample.get_address())
-            else:
-                # Unload first / do a chained load
-                pass
+
+        self.logger.debug(
+                "Loading sample %s / type(%s)" %
+                ( sample.get_address(), type(sample) )
+            )
+
 
         # This runs the AbstractSampleChanger method!
         ok = self._execute_task(SampleChangerState.Loading,
-                                 wait, self._do_load, sample, None, use_ht)
+                                 wait, self._do_load_xaloc, sample, use_ht)
         #if not ok: self.sample_can_be_centered = False
         
         if ok: HWR.beamline.diffractometer.sample_has_been_centred = False
@@ -526,6 +535,7 @@ class XalocCats(Cats90):
                                  wait, self._do_unload, sample_slot)
         if not ok: self.sample_can_be_centered = False
 
+
         return ok
 
     def _update_running_state(self, value):
@@ -544,14 +554,17 @@ class XalocCats(Cats90):
         """
         self.emit('powerStateChanged', (value, ))
 
-    def _do_load(self, sample=None, shifts=None, use_ht=False, waitsafe=True):
+    def _do_load_xaloc(self, sample=None, use_ht=False):
         """
         Loads a sample on the diffractometer. Performs a simple put operation if the
         diffractometer is empty, and a sample exchange (unmount of old + mount of new
         sample) if a sample is already mounted on the diffractometer.
+        
+        If the pick parameters are true 
+        
         Overides Cats90 method.
         
-        @sample: sample to load.
+        @sample: sample to load. Either a sample object in case of SPINE/UNIPUCK, or an int in case of hot tool sample
         @shifts: mounting point offsets.
         @use_ht: mount a sample from hot tool.
         """
@@ -559,12 +572,13 @@ class XalocCats(Cats90):
             # TODO: implement a wait with timeout method.
             self.logger.debug("CATS power is OFF. Trying to switch the power ON...")
             self._cmdPowerOn()  # try switching power on
-            time.sleep(2) # gevent.sleep(2)??
+            gevent.sleep(2) # gevent.sleep(2)??
 
         current_tool = self.get_current_tool()
 
         self.save_detdist_position()
-        ret = self.diff_send_transfer()
+        self.logger.debug("Sending supervisor to transfer phase.")
+        ret = self.send_beamline_to_transfer()
 
         if ret is False:
             self.logger.error(
@@ -574,24 +588,16 @@ class XalocCats(Cats90):
                 "Supervisor cannot get to transfer phase. Aborting sample changer operation. Ask LC or floor coordinator to check the supervisor and diff device servers")
 
         if not self._chnPowered.get_value():
+            self._update_state()
             raise Exception(
-                "CATS power is not enabled. Please switch on arm power before "
-                "transferring samples.")
+                "CATS power is not enabled. Please interlock the EH and set the CATS switches to the right position before "
+                "transferring samples."
+            )
 
-        # obtain mounting offsets from diffr
-        shifts = self._get_shifts()
+        self.logger.debug("Sample is %s " % sample.get_address() )
 
-        if shifts is None:
-            xshift, yshift, zshift = ["0", "0", "0"]
-        else:
-            xshift, yshift, zshift = map(str, shifts)
-
-        # get sample selection
         selected = self.get_selected_sample()
-
-        self.logger.debug("Selected sample is %s (prev %s)" %
-                          (str(selected), str(sample)))
-
+        self.logger.debug("Selected sample object is %s " % selected )
         if not use_ht:
             if sample is not None:
                 if sample != selected:
@@ -605,16 +611,13 @@ class XalocCats(Cats90):
         else:
             selected = None
 
+        # get sample selection
+        self.logger.debug("Selected sample is %s (prev %s)" %
+                            ( selected.get_address(), sample.get_address() )
+                         )
+
         # some cancel cases
         if not use_ht and self.has_loaded_sample() and selected == self.get_loaded_sample(): # sample on diff is the one loaded
-            self._update_state()
-            raise Exception("The sample " +
-                            str(self.get_loaded_sample().get_address()) +
-                            " is already loaded")
-
-        if not self.has_loaded_sample() and self.cats_sample_on_diffr() == 1:
-            self.logger.warning(
-                "Sample on diffractometer, loading aborted!")
             self._update_state()
             raise Exception("The sample " +
                             str(self.get_loaded_sample().get_address()) +
@@ -626,140 +629,34 @@ class XalocCats(Cats90):
                 "Conflicting info between diffractometer and on-magnet detection."
                 "Consider 'Clear'")
 
-        # end some cancel cases
+        # obtain mounting offsets from diffr
+        shifts = self._get_shifts()
 
-        # if load_ht
-        loaded_ht = self.is_loaded_ht()
-
-        #
-        # Loading HT sample
-        #
-        if use_ht:  # loading HT sample
-
-            if loaded_ht == -1:  # has loaded but it is not HT
-                # first unmount (non HT)
-                self.logger.error("Mixing load/unload dewar vs HT, NOT IMPLEMENTED YET. Unload sample first")
-                return
-
-            tool = self.tool_for_basket(100)  # basketno)
-
-            if tool != current_tool:
-                self.logger.warning("Changing tool from %s to %s" %
-                                    (current_tool, tool))
-                changing_tool = True
-            else:
-                changing_tool = False
-
-            argin = ["2", str(sample), "0", "0", xshift, yshift, zshift]
-            self.logger.warning("Loading HT sample, %s" % str(argin))
-            if loaded_ht == 1:  # has ht loaded
-                cmd_ok = self._execute_server_task(self._cmdChainedLoadHT,
-                                                 argin, waitsafe=True)
-            else:
-                cmd_ok = self._execute_server_task(self._cmdLoadHT, argin, waitsafe=False)
-
-        #
-        # Loading non HT sample
-        #
+        if shifts is None:
+            xshift, yshift, zshift = ["0", "0", "0"]
         else:
-            if loaded_ht == 1:  # has an HT sample mounted
-                # first unmount HT
+            xshift, yshift, zshift = map(str, shifts)
+        
+        if use_ht:  # loading HT sample
+            #
+            # Loading HT sample
+            #
+            if self.is_loaded_ht() == 1: # has an HT sample mounted
+                self._do_load_ht( selected, xshift, yshift, zshift )
+            else: #TODO no execption??
+                self.logger.error("Mixing load/unload dewar vs HT, Unload sample first")
+                return 
+        else:
+            #
+            # Loading non HT sample
+            #
+            if self.is_loaded_ht() == 1:  # has an HT sample mounted
+                # first unmount HT TODO: no exception??
                 self.logger.warning(
-                    "Mixing load/unload dewar vs HT, NOT IMPLEMENTED YET, unload sample first")
+                    "Mixing load/unload dewar vs HT, unload sample first")
                 return
-
-            basketno = selected.get_basket_no()
-            sampleno = selected.get_vial_no()
-
-            lid, sample = self.basketsample_to_lidsample(basketno, sampleno)
-            tool = self.tool_for_basket(basketno)
-            stype = self.get_cassette_type(basketno)
-
-            if tool != current_tool:
-                self.logger.warning("Changing tool from %s to %s" %
-                                    (current_tool, tool))
-                changing_tool = True
-            else:
-                changing_tool = False
-
-            # we should now check basket type on diffr to see if tool is different...
-            # then decide what to do
-
-            if shifts is None:
-                xshift, yshift, zshift = ["0", "0", "0"]
-            else:
-                xshift, yshift, zshift = map(str, shifts)
-
-            # prepare argin values
-            argin = [
-                str(tool),
-                str(lid),
-                str(sample),
-                str(stype),
-                "0",
-                xshift,
-                yshift,
-                zshift]
-
-            if tool == 2:
-                read_barcode = self.read_datamatrix and \
-                               self._cmdChainedLoadBarcode is not None
-            else:
-                if self.read_datamatrix:
-                    self.logger.error("Reading barcode only possible with spine pucks, no barcode will be read")
-                read_barcode = False
-
-            if loaded_ht == -1:  # has a loaded but it is not an HT
-
-                if changing_tool:
-                    raise Exception(
-                        "This operation requires a tool change. You should unload"
-                        "sample first")
-
-                chained_load_command = self._cmdChainedLoad
-                if not self.mount_and_pick and not read_barcode:
-                    self.logger.warning("Chained load sample, sending to cats: %s"
-                            % argin)
-                if read_barcode: 
-                    self.logger.warning(
-                        "Chained load sample (barcode), sending to cats: %s" % argin)
-                    chained_load_command = self._cmdChainedLoadBarcode                    
-                if self.mount_and_pick:
-                    self.logger.warning("Chained load sample with pick function, sending to cats: %s"
-                        % argin)
-                    chained_load_command = self._cmdChainedLoadPick                    
-
-                cmd_ok = self._execute_server_task(
-                        chained_load_command, argin, waitsafe=True)
-            elif loaded_ht == 0: # no loaded sample
-                load_command = self._cmdLoad
-                waitsafe = True
-                if not self.mount_and_pick and not read_barcode:
-                    self.logger.warning("Load sample, sending to cats:  %s" % argin)
-                if read_barcode:
-                    self.logger.warning("Load sample (barcode), sending to cats: %s"
-                        % argin)
-                    load_command = self._cmdLoadBarcode
-                if self.mount_and_pick:
-                    load_command = self._cmdLoad
-                    waitsafe = False # with waitsafe false, the execute_task waits still the path_running is false
-                cmd_ok = self._execute_server_task(
-                    load_command, argin, waitsafe=waitsafe)
-                if self.mount_and_pick:
-                    self.user_level_log.warning("Load a sample first, then use Mount Pick, mount cancelled")
-                    #argin = [
-                        #str(tool),
-                        #str(lid),
-                        #str(sample),
-                        #str(stype),
-                        #"0",
-                        #xshift,
-                        #yshift,
-                        #zshift]
-                    #cmd_ok = self._execute_server_task(
-                        #self._cmdPick, argin, waitsafe=True)
-
-        self.mount_and_pick = False # Dont use pick for the next mounting cycle unless requested
+            else: # either no sample or non HT sample
+              pick_after_mount, cmd_ok = self._do_load_dewar(selected, xshift, yshift, zshift)
 
         # At this point, due to the waitsafe, we can be sure that the robot has left RI2 and will not return
         # TODO: check if the diff should be prepared or not
@@ -768,21 +665,20 @@ class XalocCats(Cats90):
             collision_occurred = True
 
         # A time sleep is needed to get updates on the sample status etc.
-        time.sleep(3)
+        #time.sleep(3)
 
         if not cmd_ok:
             self.logger.info("Load Command failed on device server")
             return False
-        elif self.auto_prepare_diff and not changing_tool and not collision_occurred:
-            self.logger.info(
-                "AUTO_PREPARE_DIFF (On) sample changer is in safe state... "
-                "preparing diff now")
+        elif self.auto_prepare_diff and not self.changing_tool and not collision_occurred:
+            self.logger.info("AUTO_PREPARE_DIFF is on preparing diff now")
             allok, msg = self._check_coherence()
             if allok:
                 logging.getLogger('user_level_log').info( 'Sample successfully loaded' )
+                self.logger.info("Opening detcover")
+                HWR.beamline.supervisor.open_detector_cover()
                 self.logger.info("Restoring detector distance")
                 self.restore_detdist_position()
-                return True
             else:
                 # Now recover failed put for double gripper
                 # : double should be in soak, single should be ??
@@ -792,15 +688,16 @@ class XalocCats(Cats90):
                 # When doing a dry, CATS passes through home, so a double wait_cats_home is necessary, with a time.sleep of a couple of seconds in between so CATS starts drying
                 # An alternative is to abort at arriving home, clear memeory and move to soak
                 if not self._check_incoherent_sample_info()[0] : 
-                    msg = "Your sample was NOT loaded! Click OK to recover, please make sure your sample is there"
+                    msg = "Your sample was NOT loaded! Click OK to recover, please make sure your sample is present in the puck"
                 else:
                     msg = "The CATS device indicates there was a problem in unmounting the sample, click ok to recover from a Fix Fail Get"
                 self.emit("taskFailed", str(msg))
-                
-                logging.getLogger('user_level_log').error( 'There was a problem loading your sample, please wait for the system to recover' )
+                logging.getLogger('user_level_log').error( 
+                    'There was a problem loading your sample, please wait for the system to recover' 
+                )
                 self._wait_cats_home(10) # wait for robot to return from diff
                 time.sleep( 5 ) # give it time to move, if it goes for a dry, the _chnNBSoakings is set to 0
-                #self.logger.info("self._chnNBSoakings  %d " % self._chnNBSoakings.get_value() )
+                #self.logger.debug("self._chnNBSoakings  %d " % self._chnNBSoakings.get_value() )
                 if self.get_current_tool() == TOOL_DOUBLE_GRIPPER: 
                     if self._chnNBSoakings.get_value() == 0: 
                         self.logger.info("A dry will now be done, waiting %d seconds" % DOUBLE_GRIPPER_DRY_WAIT_TIME)
@@ -817,13 +714,13 @@ class XalocCats(Cats90):
                     self._do_recover_failure()
                     msg = "The CATS device indicates there was a problem in unmounting the sample, click ok to recover from a Fix Fail Get"
                 self._update_state()
-                return False
                 #raise Exception( msg )
                 
         else:
             self.logger.info(
-                "AUTO_PREPARE_DIFF (Off) sample loading done / or changing tool (%s)" %
-                changing_tool)
+                                "AUTO_PREPARE_DIFF not activated. sample loading done / or changing tool (%s)" %
+                                self.changing_tool
+                            )
 
         # Check again the collision sensor in case the robot collided after being in a safe position
         if not self._chnCollisionSensorOK.get_value() or collision_occurred:
@@ -832,6 +729,253 @@ class XalocCats(Cats90):
             self.emit("taskFailed", str(msg))
             raise Exception ( msg )
 
+        if pick_after_mount:
+            load_command = self._cmdPick
+            lid, sampleno = self.basketsample_to_lidsample(
+                self.next_pick_sample_location[0], self.next_pick_sample_location[1]
+            )
+            tool = self.tool_for_basket( self.next_pick_sample_location[0] )
+            stype = self.get_cassette_type( self.next_pick_sample_location[0] )
+
+            self.logger.info(
+                                "next_pick_sample_location %s:%s" % 
+                                (self.next_pick_sample_location[0], self.next_pick_sample_location[1])
+                            )
+            argin = [
+                    str(tool),
+                    str(lid),
+                    str(sampleno),
+                    str(stype),
+                ]
+            gevent.spawn (
+                self._execute_server_task,load_command, argin, waitsafe=True
+            )
+
+        self.next_pick_sample_location = [-1,-1] # Dont use pick for the next mounting cycle unless requested
+
+        return cmd_ok
+
+    def _do_load_ht(self, sample, xshift, yshift, zshift):
+
+        tool = self.tool_for_basket(100)  # basketno)
+
+        if tool != self.get_current_tool():
+            self.logger.warning("Changing tool from %s to %s" %
+                                (self.get_current_tool(), tool))
+            self.changing_tool = True
+        else:
+            self.changing_tool = False
+
+        argin = ["2", str(sample), "0", "0", xshift, yshift, zshift]
+        self.logger.warning("Loading HT sample, %s" % str(argin))
+        if loaded_ht == 1:  # has ht loaded
+            cmd_ok = self._execute_server_task(self._cmdChainedLoadHT,
+                                                argin, waitsafe=True)
+        else:
+            cmd_ok = self._execute_server_task(self._cmdLoadHT, argin, waitsafe=False)
+
+    def _do_load_dewar(self, selected, xshift, yshift, zshift):
+        """
+          Load sample from the cold dewar, not the hot tools
+          Selected is of type sample 
+        """
+
+        self.logger.debug("_do_chain_load_dewar, selected sample is %s" % selected.get_address() )
+
+        pick_after_mount = False
+        cmd_ok = False
+
+        basketno = selected.get_basket_no()
+        sampleno = selected.get_vial_no()
+
+        lid, sampleno = self.basketsample_to_lidsample(basketno, sampleno)
+        tool = self.tool_for_basket(basketno)
+        stype = self.get_cassette_type(basketno)
+
+        if tool != self.get_current_tool():
+            self.logger.warning("Changing tool from %s to %s" %
+                                    (self.get_current_tool(), tool)
+                                )
+            self.changing_tool = True
+        else:
+            self.changing_tool = False
+
+        if tool == TOOL_SPINE:
+            read_barcode = self.read_datamatrix and \
+                            self._cmdChainedLoadBarcode is not None
+            self.next_pick_sample_location = [-1,-1] # pick not compatible with SPINE single gripper
+        else:
+            if self.read_datamatrix:
+                self.logger.error("Reading barcode only possible with spine pucks, no barcode will be read")
+            read_barcode = False
+
+        if self.has_loaded_sample():  # has a loaded but it is not an HT
+            if self.changing_tool:
+                self._update_state()
+                raise Exception(
+                    "This operation requires a tool change. You should unload"
+                    "sample first")
+            pick_after_mount, cmd_ok = self._do_chain_load_dewar(
+                selected, 
+                self.next_pick_sample_location, 
+                tool, 
+                read_barcode, 
+                xshift, 
+                yshift, 
+                zshift
+            )
+            
+        else: # no loaded sample
+            cmd_ok = self._do_nochain_load_dewar(selected, tool, read_barcode, xshift, yshift, zshift)
+            pick_after_mount = ( not -1 in self.next_pick_sample_location )
+
+        return pick_after_mount, cmd_ok 
+    
+    def _do_chain_load_dewar(self, selected, pick_sample_location, tool, read_barcode, xshift, yshift, zshift ):
+        """
+          do an unload followd by a load. If requested, followed by a pick
+            pick_sample_location is an array, like location
+          Return pick_required true if the pick needs a separate, consecutive operation
+        """
+        
+        self.logger.debug("_do_chain_load_dewar, pick_sample_location %s" % str(pick_sample_location) )
+        
+        pick_required = False
+        
+        basketno = selected.get_basket_no()
+        sampleno = selected.get_vial_no()
+
+        lid, sampleno = self.basketsample_to_lidsample(basketno, sampleno)
+        tool = self.tool_for_basket(basketno)
+        stype = self.get_cassette_type(basketno)
+
+        # First check if there is a mount request where the sample on tool is not the selected sample
+        if self.sample_lid_on_tool != -1 and self.sample_num_on_tool != -1:
+            if self.sample_lid_on_tool != lid or self.sample_num_on_tool != sampleno:
+                # there is a sample on the tool and it does not match the requested pick sample. 
+                # Unload required, which will return the sample to the dewar
+                # The operation should be waited for, so waitsafe = False
+                argin = [str(tool), "0", xshift, yshift, zshift]
+                cmd_ok = self._execute_server_task( self._cmdUnload, argin, waitsafe=False )
+
+        if self.sample_lid_on_tool == -1 and self.sample_num_on_tool == -1:
+            self.logger.debug("_do_chain_load_dewar, no sample on tool")
+            # no sample on tool, just load the requested sample using a standard chain load
+            #   NOTE, a subsequent pick should still be done if pick_sample_location is not None!
+            if self.has_loaded_sample(): # no picked sample, but sample on diff, just exchange
+                pick_required = ( not -1 in pick_sample_location )
+                self.logger.debug("_do_chain_load_dewar, sample on diff")
+                if read_barcode: 
+                    chained_load_command = self._cmdChainedLoadBarcode                    
+                    self.logger.warning(
+                        "Chained load sample using barcode requested" )
+                else:
+                    chained_load_command = self._cmdChainedLoad
+                argin = [
+                    str(tool),
+                    str(lid),
+                    str(sampleno),
+                    str(stype),
+                    "0",
+                    xshift,
+                    yshift,
+                    zshift]
+            else: # no picked sample, no sample on diff, we got here because the picked sample was not the one requested, so do load
+                if read_barcode: 
+                    chained_load_command = self._cmdLoadBarcode
+                    self.logger.warning(
+                        "Load sample using barcode requested" )
+                else:
+                    chained_load_command = self._cmdLoad
+                argin = [
+                    str(tool),
+                    str(lid),
+                    str(sampleno),
+                    str(stype),
+                    "0",
+                    xshift,
+                    yshift,
+                    zshift]
+        elif self.sample_lid_on_tool == lid or self.sample_num_on_tool == sampleno:
+            # There is a sample on the tool, and it coincides with the requested sample. 
+            # pick is included in the sequence, the robot will pick the smaple in the arguments after loading the requested sample
+            if not -1 in pick_sample_location:
+                # A pick is requested, so do a chainloadpick and pass as sample parameters the pick sample
+                # This is crazy fast, so a sleep is introduced to give the diff and detector time to move
+                #self.logger.debug("Doing sleep before getputpick")
+                gevent.sleep(0.5)
+                #self.logger.debug("Doing getputpick")
+                chained_load_command = self._cmdChainedLoadPick
+                lid, sampleno = self.basketsample_to_lidsample(
+                    pick_sample_location[0], pick_sample_location[1]
+                )
+                argin = [
+                    str(tool),
+                    str(lid),
+                    str(sampleno),
+                    str(stype),
+                    "0",
+                    xshift,
+                    yshift,
+                    zshift]
+            else: 
+                # no pick requested, simply pass the selected sample loaded on the tool as sample arguments to a normal chain load
+                # no subsequent pick required
+                chained_load_command = self._cmdChainedLoad
+                argin = [
+                    str(tool),
+                    str(self.sample_lid_on_tool),
+                    str(self.sample_num_on_tool),
+                    str(stype),
+                    "0",
+                    xshift,
+                    yshift,
+                    zshift]
+
+        self.logger.info("Doing a chained load using command %s" % str( self._cmdChainedLoad.name() ) )
+        self.logger.warning("Arguments for cats: %s" % argin)
+
+        cmd_ok = self._execute_server_task(
+                chained_load_command, argin, waitsafe=True)
+
+        return pick_required, cmd_ok
+
+    def _do_nochain_load_dewar(self, selected, tool, read_barcode, xshift, yshift, zshift ):
+        """
+          Do a simple load, no sample to unload. If a pick is required, this should be done in a subsequent operation
+        """
+        
+        basketno = selected.get_basket_no()
+        sampleno = selected.get_vial_no()
+
+        lid, sampleno = self.basketsample_to_lidsample(basketno, sampleno)
+        tool = self.tool_for_basket(basketno)
+        stype = self.get_cassette_type(basketno)
+
+        # in case that there is a sample on the tool, the sample info in the arguments is ignored by CATS. 
+        # in case that there is no sample on the tool, the selected sample is mounted. 
+        load_command = self._cmdLoad
+
+        if read_barcode:
+            self.logger.info( "Load sample and read barcode" )
+            load_command = self._cmdLoadBarcode
+
+        argin = [
+            str(tool),
+            str(lid),
+            str(sampleno),
+            str(stype),
+            "0",
+            xshift,
+            yshift,
+            zshift]
+
+        # No need to wait for the robot to finish
+        cmd_ok = self._execute_server_task(
+            load_command, argin, waitsafe=True)
+
+        return cmd_ok
+        
     def _wait_device_safe(self,timeout=10):
         """
         Waits until the samle changer HO is safe, aka not returning to diff.
@@ -851,16 +995,16 @@ class XalocCats(Cats90):
         @sample_slot:
         @shifts: mounting position
         """
-        self.logger.error("checking power")
+        self.logger.debug("checking power")
         if not self._chnPowered.get_value():
             try: self._cmdPowerOn()  # try switching power on
             except Exception as e:
+                self._update_state()
                 raise Exception(e)
 
         #TODO: wait for cats poweron
 
-        self.logger.error("diff send transfer")
-        ret = self.diff_send_transfer()
+        ret = self.send_beamline_to_transfer()
 
         if ret is False:
             self.logger.error(
@@ -902,18 +1046,28 @@ class XalocCats(Cats90):
 
         # At this point, due to the waitsafe, we can be sure that the robot has left RI2 and will not return
         # A time sleep is needed to get updates on the sample status etc.
-        time.sleep(3)
+        #gevent.sleep(3)
 
 
         allok = self._check_coherence()[0]
         if not allok:
-                self._wait_super_ready()
+                HWR.beamline.supervisor.wait_ready()
                 if not self.has_loaded_sample() and self.cats_sample_on_diffr():
                       msg = "The CATS device indicates there was a problem in unmounting the sample, click on Fix Fail Get"
                 self._update_state()
                 raise Exception( msg )
 
         return True
+
+    def sample_lid_on_tool_changed(self, value):
+        self.sample_lid_on_tool = value
+
+    def sample_num_on_tool_changed(self, value):
+        self.sample_num_on_tool = value
+
+    def set_next_pick_sample(self, pick_sample_location):
+        self.next_pick_sample_location = pick_sample_location
+        if self.next_pick_sample_location == None: self.next_pick_sample_location = [-1,-1]
 
     def _do_abort(self):
         """
@@ -962,7 +1116,7 @@ class XalocCats(Cats90):
         #self.logger.debug("detected %s, loaded_lid %d, loaded_num %d" % ( str(detected), loaded_lid, loaded_num ) )
 
         if not detected and not ( -1 in [loaded_lid, loaded_num] ):
-            return False, "There is info about a sample but it is not detected on the diffract."
+            return False, "There is info about a sample in CATS but it is not detected on the diffract."
 
         return True, ""
 
@@ -1010,6 +1164,7 @@ class XalocCats(Cats90):
             else:
                 return False
         except Exception as e:
+            self._update_state()
             self.logger.debug("Cannot identify sample in hot tool")
             return False
 
@@ -1153,8 +1308,8 @@ class XalocCats(Cats90):
         :returns: None
         :rtype: None
         """
-        logging.getLogger("HWR").debug("XalocCats. executing method %s " % str(method))
-        self._wait_device_ready(3.0)
+        #logging.getLogger("HWR").debug("XalocCats. executing method %s " % str( method.name() ))
+        self._wait_device_ready(timeout = 60) #TODO adjust time out according to times needed for dries etc?
         try:
             task_id = method(*args)
         except:
@@ -1162,6 +1317,7 @@ class XalocCats(Cats90):
             self.logger.debug("XalocCats exception while executing server task")
             self.logger.debug(traceback.format_exc())
             task_id = None
+            self._update_state()
             raise Exception("The command could not be sent to the robot, check its state.")
             #TODO: why not return with an Exception here to inform there is a problem with the CATS?
 
@@ -1177,15 +1333,28 @@ class XalocCats(Cats90):
             return False
         else:
             # introduced wait because it takes some time before the attribute PathRunning is set
-            # after launching a transfer
-            time.sleep(6.0)
+            # after launching a transfer. This is only necessary if the trajectory is not safe
+            if task_id not in  ['pick']: 
+                self.logger.debug("Going to sleep for 6 seconds, task_id is %s" % task_id)
+                gevent.sleep(6.0)
             while True:
                 if waitsafe:
-                    if self.path_safe():
-                        logging.getLogger("HWR").debug("Cats90. server execution polling finished as path is safe")
+                    #TODO: when a sample is loaded but not present, detect this...
+                    if self.get_loaded_sample() == self.get_selected_sample() and not self.cats_ri2:
+                        logging.getLogger("HWR").debug("Server execution polling finished as requested sample is mounted and cats left diff ")
                         break
+                    #if self.path_safe(): # this doesnt work for getputpick, pathsafe is not handled well for this trajectory in the cats DS
+                        #logging.getLogger("HWR").debug("Server execution polling finished as path is safe")
+                        #break
+                    #if self.get_loaded_sample() == self.get_selected_sample():
+                        #logging.getLogger("HWR").debug("Cats90. server execution polling finished as loaded sample is the requested one")
+                        #gevent.sleep(1) # adjust according to need: this is the time needed for the robot to retreat from the diff
+                        #break
                 elif not self.path_running():
-                        logging.getLogger("HWR").debug("Cats90. server execution polling finished as path is not running")
+                    logging.getLogger("HWR").debug("server execution polling finished as path is not running")
+                    break
+                if not self._check_incoherent_sample_info()[0] and not self.cats_ri2:
+                        logging.getLogger("HWR").debug("server execution polling finished as cats thinks there is a sample on the diff, but there is not")
                         break
                 if not self._chnCollisionSensorOK.get_value(): 
                     # Should the exception be raised here?? It is also done in _do_load
@@ -1196,10 +1365,11 @@ class XalocCats(Cats90):
                     # CATS is blocked in front of diff
                     logging.getLogger("HWR").debug("Cats90. Robot blocked in front of diff, attempting a recovery")
                     self.recover_cats_blocked_in_RI2()
+                    gevent.sleep(2.0)
                 # in case nothing is happening. The check for RI1 is because there is a transient loss of sample info when changing samples
                 #if not self._check_unknown_sample_presence()[0] and not self._chnIsCatsRI1.get_value():
                     #break
-                gevent.sleep(0.1)            
+                gevent.sleep(0.3)            
             ret = True
         return ret
 

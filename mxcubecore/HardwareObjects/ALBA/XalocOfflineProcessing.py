@@ -41,7 +41,7 @@ import logging
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from XSDataCommon import XSDataBoolean, XSDataFile, XSDataString, XSDataInteger, XSDataDouble
 from XalocXSDataAutoprocv1_0 import XalocXSDataAutoprocInput  
-from XalocXSDataControlAutoPROCv1_0 import XalocXSDataInputControlAutoPROC  
+from XalocXSDataControlAutoPROCv1_1 import XSDataInputControlAutoPROC  
 from XalocXSDataControlXia2DIALSv1_0 import XalocXSDataInputXia2DIALS  
 
 __credits__ = ["ALBA Synchrotron"]
@@ -151,9 +151,10 @@ class XalocOfflineProcessing(HardwareObject):
         spacegroup_number = ''
         unit_cell_constants = ''
 
-        datapath_dir = os.path.abspath(xds_file).replace('PROCESS_DATA', 'RAW_DATA')
-        datapath_dir = os.path.dirname(os.path.dirname(datapath_dir)) + os.path.sep
-
+        #datapath_dir = os.path.abspath(xds_file).replace('PROCESS_DATA', 'RAW_DATA')
+        #datapath_dir = os.path.dirname(os.path.dirname(datapath_dir)) + os.path.sep
+        datapath_dir = fileinfo['directory']+ os.path.sep
+        
         # CREATE XDS.INP FILE
         xds_templ = open(xds_template_path, "r").read()
 
@@ -218,6 +219,7 @@ class XalocOfflineProcessing(HardwareObject):
         ednaproc_input.setInput_file(input_file)
         ednaproc_input.setData_collection_id(XSDataInteger(collection_id))
 
+        ednaproc_input.setDoAnomAndNonanom(XSDataBoolean(True))
         ednaproc_input = self.add_user_input_to_xml(ednaproc_input, dc_pars)
         
         ednaproc_input.exportToFile(ednaproc_input_file)
@@ -238,11 +240,17 @@ class XalocOfflineProcessing(HardwareObject):
         last_image_nb = toN
         output_dir = dc_pars['autoproc_dir']
 
-        #autoproc_input = XSDataInputControlAutoPROC()
-        autoproc_input = XalocXSDataInputControlAutoPROC()
+        autoproc_input = XSDataInputControlAutoPROC()
+        #autoproc_input = XalocXSDataInputControlAutoPROC()
+        # Do both anom and no anom
+        autoproc_input.setDoAnomAndNonanom(XSDataBoolean(True))
         # Add specific configuration file by the slurm script
-        try: autoproc_input.setConfigDef(XSDataFile(XSDataString("__configDef")))
-        except: pass
+        try: 
+            autoproc_input.setConfigDef(XSDataFile(XSDataString("__configDef")))
+            #self.logger.debug("Setting configDef path" )
+        except Exception as e: 
+            self.logger.debug("XalocOfflineProcessing Cant set configDef file for AutoPROC processing" )
+            self.logger.debug("Error %s" % e)
 
         if ispyb:
             autoproc_input.setDataCollectionId(XSDataInteger(collection_id))
@@ -256,6 +264,7 @@ class XalocOfflineProcessing(HardwareObject):
         #  the EDNA autoproc plugin does not accept this
         # TODO: dont add cell parameters unless specified by the user
         autoproc_input = self.add_user_input_to_xml(autoproc_input, dc_pars)            
+        autoproc_input.setDoAnomAndNonanom(XSDataBoolean(True))
             
         # Export file
         autoproc_input_filename = os.path.join(output_dir,
@@ -274,6 +283,7 @@ class XalocOfflineProcessing(HardwareObject):
         
         # Create EDNA data model input file
         xia2_input = XalocXSDataInputXia2DIALS()
+        xia2_input.setDoAnomAndNonanom(XSDataBoolean(True))
 
         if ispyb:
             xia2_input.setDiffractionImage(XSDataString(first_image_string))
@@ -299,6 +309,7 @@ class XalocOfflineProcessing(HardwareObject):
         
         # Create EDNA data model input file
         xia2_input = XalocXSDataInputXia2DIALS()
+        xia2_input.setDoAnomAndNonanom(XSDataBoolean(True))
 
         if ispyb:
             xia2_input.setDiffractionImage(XSDataString(first_image_string))

@@ -197,6 +197,12 @@ class SardanaMacro(CommandObject, SardanaObject):
                 self.door.runMacro(fullcmd.split())
                 self.macrostate = SardanaMacro.STARTED
                 self.emit("commandBeginWaitReply", (str(self.name()),))
+
+                if wait:
+                    logging.getLogger("HWR").debug("... start waiting...")
+                    t = gevent.spawn(end_of_macro, self)
+                    t.get()
+                    logging.getLogger("HWR").debug("... end waiting...")
             else:
                 logging.getLogger("HWR").error(
                     "%s. Cannot execute. Door is not READY", str(self.name())
@@ -227,12 +233,6 @@ class SardanaMacro(CommandObject, SardanaObject):
                 self.macro_format,
             )
             self.emit("commandFailed", (-1, self.name()))
-
-        if wait:
-            logging.getLogger("HWR").debug("... start waiting...")
-            t = gevent.spawn(end_of_macro, self)
-            t.get()
-            logging.getLogger("HWR").debug("... end waiting...")
 
         return
 

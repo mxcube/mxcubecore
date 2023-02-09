@@ -235,9 +235,13 @@ class XalocDigitalZoom(Device):
         _zoom_lut[2] = 0.1810
         _zoom_lut[3] = 0.3620
         _zoom_lut[4] = 0.5430
-        _zoom_lut[5] = 0.9088
-        _zoom_lut[6] = 0.9540
-        _zoom_lut[7] = 1.0000
+        #_zoom_lut[5] = 0.9088
+        #_zoom_lut[6] = 0.9540
+        #_zoom_lut[7] = 1.0000
+        # 20230123: XALOC changed the calibration based on motor movements and pin centering on camera
+        _zoom_lut[5] = 0.9147579
+        _zoom_lut[6] = 0.9573539
+        _zoom_lut[7] = 1.0051203277009728
 
         #x = 2.0040 + (-1.8370 * _zoom_lut[int(self.current_position)])
         if self.current_position != None:

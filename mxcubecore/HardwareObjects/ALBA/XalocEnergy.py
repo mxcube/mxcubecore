@@ -52,10 +52,15 @@ class XalocEnergy(Energy):
         self.wavelength_position = None
         
     def init(self):
-        Energy.init(self)
+        #Energy.init(self)
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
         #self.energy_motor = self.get_object_by_role("energy")
         self.wavelength_motor = self.get_object_by_role("wavelength")
+
+        try:
+            self.energy_motor = self.get_object_by_role("energy")
+        except KeyError:
+            logging.getLogger("HWR").warning("Energy: error initializing energy motor")
 
         try:
             self.is_tunable = self.get_property("tunable_energy")
@@ -63,10 +68,12 @@ class XalocEnergy(Energy):
             self.is_tunable = False
             logging.getLogger("HWR").warning("Energy: will be set to fixed energy")
 
-        self.connect(self.wavelength_motor, "valueChanged",
-                     self.energy_position_changed)
-        self.connect(self.energy_motor, "valueChanged",
-                     self.energy_position_changed)
+        if self.energy_motor is not None:
+            self.connect(self.wavelength_motor, "valueChanged",
+                        self.energy_position_changed)
+            self.connect(self.energy_motor, "valueChanged",
+                        self.energy_position_changed)
+            self.energy_motor.connect("stateChanged", self.energyStateChanged)
         
 
     def is_ready(self):
@@ -96,7 +103,7 @@ class XalocEnergy(Energy):
         return self.default_en
 
     def get_wavelength(self):
-        if self.wavelength_position is None:
+        if self.wavelength_motor != None:
             self.wavelength_position = self.wavelength_motor.get_value()
         return self.wavelength_position
 
@@ -111,6 +118,7 @@ class XalocEnergy(Energy):
         self.wavelength_position = self.wavelength_motor.get_value()
         if None not in [self.energy_position, self.wavelength_position]:
             self.emit('energyChanged', self.energy_position, self.wavelength_position)
+            self.emit("valueChanged", (self.energy_position,))
 
     #def wavelength_position_changed(self, value):
         #wavelength_position = value

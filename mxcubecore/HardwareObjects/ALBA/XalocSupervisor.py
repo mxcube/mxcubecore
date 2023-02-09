@@ -36,17 +36,22 @@ import time
 
 from mxcubecore.BaseHardwareObjects import Device
 from taurus.core.tango.enums import DevState
+from mxcubecore.HardwareObjects import GenericDiffractometer
+
+from mxcubecore import HardwareRepository as HWR
 
 __credits__ = ["ALBA"]
 __version__ = "3."
 __category__ = "General"
-
+__author__ = "Roeland Boer, Jordi Andreu"
 
 class XalocSupervisor(Device):
 
     def __init__(self, *args):
         Device.__init__(self, *args)
         self.logger = logging.getLogger("HWR.XalocSupervisor")
+        self.user_level_log = logging.getLogger("user_level_log")
+
         self.cmd_go_collect = None
         self.cmd_go_sample_view = None
         self.cmd_go_transfer = None
@@ -59,6 +64,8 @@ class XalocSupervisor(Device):
         self.current_phase = None
         self.detector_cover_opened = None
 
+        self.phase_list = []
+
     def init(self):
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
         self.cmd_go_collect = self.get_command_object("go_collect")
@@ -70,13 +77,20 @@ class XalocSupervisor(Device):
         self.chan_detector_cover = self.get_channel_object("detector_cover_open")
         #self.chan_fast_shutter_collect_position = self.get_channel_object("FastShutCollectPosition")
 
+        try:
+            self.phase_list = eval(self.get_property("phase_list"))
+        except Exception:
+            self.phase_list = [
+                GenericDiffractometer.PHASE_TRANSFER,
+                GenericDiffractometer.PHASE_CENTRING,
+                GenericDiffractometer.PHASE_COLLECTION,
+                GenericDiffractometer.PHASE_BEAM,
+            ]
+
         self.chan_state.connect_signal("update", self.state_changed)
         self.chan_phase.connect_signal("update", self.phase_changed)
         self.chan_detector_cover.connect_signal("update", self.detector_cover_changed)
 
-
-        self.current_state = self.get_state()
-        self.current_phase = self.get_current_phase()
         self.logger.debug("Supervisor state: {0}".format(self.current_state))
         self.logger.debug("Supervisor phase: {0}".format(self.current_phase))
 
@@ -122,6 +136,14 @@ class XalocSupervisor(Device):
     def get_phase(self):
         return self.current_phase
 
+    def get_phase_list(self):
+        """
+        Returns list of available phases
+
+        :returns: list with str
+        """
+        return self.phase_list
+
     def get_state(self):
         try:
             _value = self.chan_state.get_value()
@@ -156,6 +178,53 @@ class XalocSupervisor(Device):
             if timeout is not None:
                 if time.time() - stime > timeout:
                     raise Exception("Supervisor timed out waiting for ON state")
+
+    def set_phase(self, phase, timeout=None):
+        #TODO: implement timeout. Current API to fulfill the API.
+        """
+        General function to set phase by using supervisor commands.
+        """
+        
+        self.logger.debug("Current supervisor phase is %s" % self.current_phase)
+        if phase.upper() == self.current_phase.upper():
+            self.logger.warning("Suprevisor already in phase %s" % phase)
+            return
+        
+        if phase.upper() != "TRANSFER" and HWR.beamline.ln2shower.is_pumping():
+            msg = "Cannot change to non transfer phase when the lnshower is pumping, turn off the shower first"
+            self.user_level_log.error(msg)
+            raise Exception(msg)
+
+        if self.current_state != DevState.ON:
+            msg = "Cannot change to phase %s, supervisor is not ready, state is %s" % ( phase, self.current_state )
+            self.user_level_log.error(msg)
+            raise Exception(msg)
+
+        if phase.upper() == "TRANSFER":
+            self.go_transfer()
+        elif phase.upper() == "COLLECT":
+            self.go_collect()
+        elif phase.upper() == "BEAMVIEW":
+            self.go_beam_view()
+        elif phase.upper() == "CENTRING":
+            self.go_sample_view()
+        else:
+            self.logger.warning(
+                "Supervisor set_phase asked for un-handled phase: %s" % phase
+            )
+            return
+
+        self.logger.debug(
+            "Telling supervisor to go to phase %s, with timeout %s" % ( phase, timeout )
+        )
+    
+        if timeout:
+            time.sleep(1)
+            self.wait_ready( timeout = timeout )
+            time.sleep(1)
+            self.logger.debug(
+                "Supervisor phase is %s" % ( self.get_phase() )
+            )
 
 def test_hwo(hwo):
     print("Supervisor control \"%s\"\n" % hwo.getUserName())

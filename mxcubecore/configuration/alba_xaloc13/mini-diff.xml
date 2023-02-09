@@ -8,17 +8,14 @@
   <object href="/omega" role="phi"/>
   <object href="/omegaz" role="phiz"/>
   <object href="/omegax" role="phiy"/>
-  <object href="/digital-zoom" role="zoom"/>
   <object href="/omegay" role="focus"/>
   <object href="/centx" role="sampx"/>
   <object href="/centy" role="sampy"/>
   <object href="/kappa" role="kappa"/>
   <object href="/kappaphi" role="kappa_phi"/>
+  <object href="/digital-zoom" role="zoom"/>
 
   <object href="/centring-math" role="centring"/>
-  <object href="/cats" role="sample-changer"/>
-  <object href="/supervisor" role="beamline-supervisor"/>
-  <object href="/ln2shower" role="ln2shower"/>
   <!--object href="/beam-info" role="beam_info"/-->
   
   <sample_centring>False</sample_centring>
@@ -31,10 +28,11 @@
 
   <phase_list>("Transfer", "Centring", "Collect", "BeamView")</phase_list>
 
-  <channel type="sardana" taurusname="bl13/eh/diff" polling="500" name="CurrentPhase">CurrentPhase</channel>
+  <channel type="sardana" taurusname="bl13/eh/diff" polling="500" name="Phase">CurrentPhase</channel>
   <channel type="sardana" taurusname="bl13/eh/diff" polling="500" name="State">State</channel>
   <channel type="sardana" taurusname="bl13/eh/diff" polling="500" name="omegazReference">OmegaZReference</channel>
   <command type="sardana" taurusname="bl13/eh/diff" name="go_transfer">GoTransferPhase</command>
+  <command type="sardana" taurusname="bl13/eh/diff" name="go_sample_view">GoSampleViewPhase</command>
   <used_channels>State,CurrentPhase</used_channels>
 
   <delay_state_polling>0.2</delay_state_polling>

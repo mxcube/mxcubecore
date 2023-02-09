@@ -13,49 +13,48 @@
   <auto_prepare_diff>True</auto_prepare_diff>
 
   <channel type="sardana" taurusname="bl13/eh/diff" name="shifts">MountingPosition</channel>
-  <channel type="sardana" taurusname="bl13/eh/supervisor" name="super_phase">CurrentPhase</channel>
+  <command type="sardana" taurusname="bl13/eh/diff" name="diff_go_sampleview">GoSampleViewPhase</command>
+  <command type="sardana" taurusname="bl13/eh/supervisor" name="super_go_sampleview">GoSampleViewPhase</command>
   <channel type="sardana" taurusname="bl13/eh/diff" name="diff_phase">CurrentPhase</channel>
   <channel type="sardana" taurusname="bl13/eh/diff" name="diff_state">State</channel>
-  <channel type="sardana" taurusname="bl13/eh/diff" name="ApertureInOut">AperturePosition</channel>
-  <channel type="sardana" taurusname="bl13/eh/supervisor" name="DetDistanceSafe">DetDistanceSafe</channel>
-  <channel type="sardana" taurusname="bl13/eh/supervisor" name="super_state">State</channel>
-  <channel type="sardana" taurusname="bl13/eh/supervisor" name="detdist_position">DetDistance</channel>
-  <channel type="sardana" taurusname="bl13/eh/supervisor" name="super_cryo_position">CryoPosition</channel>
+  <channel type="tango" tangoname="bl13/eh/diff" name="ApertureInOut">AperturePosition</channel>
+  <channel type="tango" tangoname="bl13/eh/supervisor" name="DetDistanceSafe">DetDistanceSafe</channel>
+  <command type="tango" tangoname="bl13/eh/supervisor" name="super_abort">Abort</command>
+  <channel type="tango" tangoname="bl13/eh/supervisor" name="detdist_position">DetDistance</channel>
   <channel type="tango" tangoname="omega" name="omega_position" polling="1000">position</channel>
   <channel type="tango" tangoname="kappa" name="kappa_position" polling="1000">position</channel>
-
-  <channel type="sardana" taurusname="bl13/eh/cats" name="_chnState" polling="1000">State</channel>
-  <channel type="sardana" taurusname="bl13/eh/cats" name="_chnStatus" polling="1000">Status</channel>
-  <channel type="sardana" taurusname="bl13/eh/cats" name="_chnPowered" polling="1000">Powered</channel>
-  <channel type="sardana" taurusname="bl13/eh/cats" name="_chnPathSafe" polling="1000">PathSafe</channel>
-
-  <channel type="sardana" taurusname="bl13/eh/cats" name="_chnIsCatsIdle" polling="1000">do_PRO5_IDL</channel>
-  <channel type="sardana" taurusname="bl13/eh/cats" name="_chnIsCatsHome" polling="1000">do_PRO6_RAH</channel>
-  <channel type="sardana" taurusname="bl13/eh/cats" name="_chnNBSoakings" polling="1000">CurrentNumberOfSoaking</channel>
-  <channel type="sardana" taurusname="bl13/eh/cats" name="_chnNumSampleOnTool" polling="1000">NumSampleOnTool</channel>
-  <channel type="sardana" taurusname="bl13/eh/cats" name="_chnLidSampleOnTool" polling="1000">LidSampleOnTool</channel>
-
-  <channel type="sardana" taurusname="bl13/eh/cats" name="_chnRecoveryNeeded" polling="1000">RecoveryNeeded</channel>
-  <channel type="sardana" taurusname="bl13/eh/cats" name="_chnCollisionSensorOK" polling="1000">di_CollisonSensorOK</channel>
-  <channel type="sardana" taurusname="bl13/eh/cats" name="_chnIsCatsRI1" polling="1000">do_PRO7_RI1</channel>
-  <channel type="sardana" taurusname="bl13/eh/cats" name="_chnIsCatsRI2" polling="1000">do_PRO8_RI2</channel>
 
   <command type="sardana" taurusname="bl13/eh/diff" name="diff_go_sampleview">GoSampleViewPhase</command>
   <command type="sardana" taurusname="bl13/eh/supervisor" name="go_transfer">GoTransferPhase</command>
   <command type="sardana" taurusname="bl13/eh/supervisor" name="super_go_sampleview">GoSampleViewPhase</command>
   <command type="sardana" taurusname="bl13/eh/supervisor" name="super_abort">Abort</command>
 
-  <command type="sardana" taurusname="bl13/eh/cats" name="_cmdLoadBarcode">put_bcrd</command>
-  <command type="sardana" taurusname="bl13/eh/cats" name="_cmdChainedLoadBarcode">getput_bcrd</command>
-  <command type="sardana" taurusname="bl13/eh/cats" name="_cmdScanSample">barcode</command>
-  <command type="sardana" taurusname="bl13/eh/cats" name="_cmdLoadHT">put_HT</command>
-  <command type="sardana" taurusname="bl13/eh/cats" name="_cmdUnloadHT">get_HT</command>
-  <command type="sardana" taurusname="bl13/eh/cats" name="_cmdChainedLoadHT">getput_HT</command>
-  <command type="sardana" taurusname="bl13/eh/cats" name="_cmdChainedLoadPick">getputpick</command>
-  <command type="sardana" taurusname="bl13/eh/cats" name="_cmdClearMemory">clear_memory</command>
-  <command type="sardana" taurusname="bl13/eh/cats" name="_cmdSetTool">settool</command>
-  <command type="sardana" taurusname="bl13/eh/cats" name="_cmdSetTool2">settool</command>
-  <command type="sardana" taurusname="bl13/eh/cats" name="_cmdRecoverFailure">recoverFailure</command>
+  <channel type="tango" name="_chnPowered" polling="1000">Powered</channel>
+  <channel type="tango" name="_chnRecoveryNeeded" polling="1000">RecoveryNeeded</channel>
+  <channel type="tango" name="_chnPathSafe" polling="1000">PathSafe</channel>
+  <channel type="tango" name="_chnCollisionSensorOK" polling="1000">di_CollisonSensorOK</channel>
+  <channel type="tango" name="_chnIsCatsIdle" polling="1000">do_PRO5_IDL</channel>
+  <channel type="tango" name="_chnIsCatsHome" polling="1000">do_PRO6_RAH</channel>
+  <channel type="tango" name="_chnIsCatsRI1" polling="1000">do_PRO7_RI1</channel>
+  <channel type="tango" name="_chnIsCatsRI2" polling="1000">do_PRO8_RI2</channel>
+  <channel type="tango" name="_chnNBSoakings" polling="1000">CurrentNumberOfSoaking</channel>
+  <channel type="tango" name="_chnLidSampleOnTool" polling="1000">LidSampleOnTool</channel>
+  <channel type="tango" name="_chnNumSampleOnTool" polling="1000">NumSampleOnTool</channel>
+
+  <command type="tango" name="_cmdLoadHT">put_HT</command>
+  <command type="tango" name="_cmdUnloadHT">get_HT</command>
+  <command type="tango" name="_cmdChainedLoadHT">getput_HT</command>
+  <command type="tango" name="_cmdChainedLoadPick">getpuckpick</command>
+  <command type="tango" name="_cmdClearMemory">clear_memory</command>
+  <command type="tango" name="_cmdSetTool">settool</command>
+  <command type="tango" name="_cmdSetTool2">settool</command>
+  <command type="tango" name="_cmdRecoverFailure">recoverFailure</command>
+  <command type="tango" name="_cmdPick">pick</command>
+
+  <command type="tango" name="_cmdLoadBarcode">put_bcrd</command>
+  <command type="tango" name="_cmdChainedLoadBarcode">getput_bcrd</command>
+
+  <command type="tango" name="_cmdScanSample">barcode</command>
 
   <doorname>bl13/door/05</doorname>           
   <command type="sardana" name="macro_cats_recovery">cats_recover_collision</command>

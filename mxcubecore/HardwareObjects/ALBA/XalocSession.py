@@ -49,10 +49,12 @@ class XalocSession(Session):
     def __init__(self, *args):
         Session.__init__(self, *args)
         self.logger = logging.getLogger("HWR.XalocSession")
+        self.senv = None
 
     def init(self):
         Session.init(self)
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
+        self.senv = self.get_command_object("senv")
 
     def get_base_data_directory(self):
         """
@@ -150,6 +152,16 @@ class XalocSession(Session):
             prefix = "<acronym>-<name>"
         #
         return prefix
+    
+    def set_sardana_collect_env(self, MXCollectDir = None, MXCollectPrefix = None, MXRunNumber = None):
+        if MXCollectDir != None:
+            self.senv('MXCollectDir', MXCollectDir, wait=True)
+        if MXCollectPrefix != None:
+            self.senv('MXCollectPrefix', MXCollectPrefix, wait=True)
+        if MXRunNumber != None:
+            self.senv('MXRunNumber', MXRunNumber, wait=True)
+        
+
 
 def test_hwo(hwo):
     print('Base data directory: %s' % hwo.get_base_data_directory())

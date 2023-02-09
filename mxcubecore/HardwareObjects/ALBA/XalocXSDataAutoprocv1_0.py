@@ -21,7 +21,7 @@
 [Name] XalocXSDataAutoprocInput
  
 [Description]
-Extending XSDataAutoprocInput to allow doAnomNoAnom and xia2 with small molecule
+Extending XSDataAutoprocInput to allow doAnomNonanom and xia2 with small molecule
 
 [Signals]
 - None
@@ -47,7 +47,7 @@ class XalocXSDataAutoprocInput(XSDataAutoprocInput):
         completeness_cutoff=None,
         res_override=None,
         input_file=None,
-        doAnomAndNoanom=None,
+        setDoAnomAndNonanom=None,
     ):
         XSDataAutoprocInput.__init__(
             self, 
@@ -67,35 +67,35 @@ class XalocXSDataAutoprocInput(XSDataAutoprocInput):
             input_file=None,
         )
 
-        if doAnomAndNoanom is None:
-            self._doAnomAndNoanom = None
-        elif doAnomAndNoanom.__class__.__name__ == "XSDataBoolean":
-            self._doAnomAndNoanom = doAnomAndNoanom
+        if setDoAnomAndNonanom is None:
+            self._doAnomAndNonanom = None
+        elif setDoAnomAndNonanom.__class__.__name__ == "XSDataBoolean":
+            self._doAnomAndNonanom = doAnomAndNonanom
         else:
-            strMessage = "ERROR! XSDataInputControlAutoPROC constructor argument 'doAnomAndNoanom' is not XSDataBoolean but %s" % doAnomAndNoanom.__class__.__name__
+            strMessage = "ERROR! XSDataInputControlAutoPROC constructor argument 'doAnomAndNonanom' is not XSDataBoolean but %s" % doAnomAndNonanom.__class__.__name__
             raise BaseException(strMessage)
             
-    # Methods and properties for the 'doAnomAndNoanom' attribute,  recovered from previous mxcube version
-    def getDoAnomAndNoanom(self): return self._doAnomAndNoanom
-    def setDoAnomAndNoanom(self, doAnomAndNoanom):
-        if doAnomAndNoanom is None:
-            self._doAnomAndNoanom = None
-        elif doAnomAndNoanom.__class__.__name__ == "XSDataBoolean":
-            self._doAnomAndNoanom = doAnomAndNoanom
+    # Methods and properties for the 'doAnomAndNonanom' attribute,  recovered from previous mxcube version
+    def getDoAnomAndNonanom(self): return self._doAnomAndNonanom
+    def setDoAnomAndNonanom(self, doAnomAndNonanom):
+        if doAnomAndNonanom is None:
+            self._doAnomAndNonanom = None
+        elif doAnomAndNonanom.__class__.__name__ == "XSDataBoolean":
+            self._doAnomAndNonanom = doAnomAndNonanom
         else:
-            strMessage = "ERROR! XSDataInputControlAutoPROC.setDoAnomAndNoanom argument is not XSDataBoolean but %s" % doAnomAndNoanom.__class__.__name__
+            strMessage = "ERROR! XSDataInputControlAutoPROC.setDoAnomAndNonanom argument is not XSDataBoolean but %s" % doAnomAndNonanom.__class__.__name__
             raise BaseException(strMessage)
-    def delDoAnomAndNoanom(self): self._doAnomAndNoanom = None
+    def delDoAnomAndNonanom(self): self._doAnomAndNonanom = None
 
     #def exportChildren(self, outfile, level, name_="XSDataAutoprocInput"):
-        #if self._doAnomAndNoanom is not None:
-          #self.doAnomAndNoanom.export(outfile, level, name_='doAnomAndNoanom')
+        #if self._doAnomAndNonanom is not None:
+          #self.doAnomAndNonanom.export(outfile, level, name_='doAnomAndNonanom')
         #XSDataAutoprocInput.exportChildren(self, outfile, level, name_)
         
 
     def exportChildren(self, outfile, level, name_="XSDataAutoprocInput"):
         XSDataAutoprocInput.exportChildren(self, outfile, level, name_)        
-        if self._doAnomAndNoanom is not None:
-            self._doAnomAndNoanom.export(outfile, level, name_='doAnomAndNoanom')
+        if self._doAnomAndNonanom is not None:
+            self._doAnomAndNonanom.export(outfile, level, name_='doAnomAndNonanom')
  
-    doAnomAndNoanom = property(getDoAnomAndNoanom, setDoAnomAndNoanom, delDoAnomAndNoanom, "Property for doAnomAndNoanom")
+    doAnomAndNonanom = property(getDoAnomAndNonanom, setDoAnomAndNonanom, delDoAnomAndNonanom, "Property for doAnomAndNonanom")
