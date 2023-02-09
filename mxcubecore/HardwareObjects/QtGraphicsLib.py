@@ -251,49 +251,49 @@ class GraphicsItemBeam(GraphicsItem):
             )
         else:
             painter.drawEllipse(
-                self.beam_position[0] * self.scene().image_scale
-                - self.beam_size_pix[0] / 2 * self.scene().image_scale,
-                self.beam_position[1] * self.scene().image_scale
-                - self.beam_size_pix[1] / 2 * self.scene().image_scale,
-                self.beam_size_pix[0] * self.scene().image_scale,
-                self.beam_size_pix[1] * self.scene().image_scale,
+                int(self.beam_position[0] * self.scene().image_scale
+                - self.beam_size_pix[0] / 2 * self.scene().image_scale),
+                int(self.beam_position[1] * self.scene().image_scale
+                - self.beam_size_pix[1] / 2 * self.scene().image_scale),
+                int(self.beam_size_pix[0] * self.scene().image_scale),
+                int(self.beam_size_pix[1] * self.scene().image_scale),
             )
 
         self.custom_pen.setColor(qt_import.Qt.red)
         painter.setPen(self.custom_pen)
         painter.drawLine(
-            self.beam_position[0] * self.scene().image_scale - 10,
-            self.beam_position[1] * self.scene().image_scale,
-            self.beam_position[0] * self.scene().image_scale + 10,
-            self.beam_position[1] * self.scene().image_scale,
+            int(self.beam_position[0] * self.scene().image_scale - 10),
+            int(self.beam_position[1] * self.scene().image_scale),
+            int(self.beam_position[0] * self.scene().image_scale + 10),
+            int(self.beam_position[1] * self.scene().image_scale),
         )
         painter.drawLine(
-            self.beam_position[0] * self.scene().image_scale,
-            self.beam_position[1] * self.scene().image_scale - 10,
-            self.beam_position[0] * self.scene().image_scale,
-            self.beam_position[1] * self.scene().image_scale + 10,
+            int(self.beam_position[0] * self.scene().image_scale),
+            int(self.beam_position[1] * self.scene().image_scale - 10),
+            int(self.beam_position[0] * self.scene().image_scale),
+            int(self.beam_position[1] * self.scene().image_scale + 10),
         )
         if self.display_beam_size:
             self.custom_pen.setColor(qt_import.Qt.darkGray)
             painter.setPen(self.custom_pen)
             painter.drawText(
-                self.beam_position[0] + self.beam_size_pix[0] / 2 + 2,
-                self.beam_position[1] + self.beam_size_pix[1] / 2 + 10,
+                int(self.beam_position[0] + self.beam_size_pix[0] / 2 + 2),
+                int(self.beam_position[1] + self.beam_size_pix[1] / 2 + 10),
                 "%d x %d %sm"
                 % (self.beam_size_mm[0] * 1000, self.beam_size_mm[1] * 1000, "\u00B5"),
             )
         if None not in self.detected_beam_info_dict:
             painter.drawLine(
-                self.detected_beam_info_dict[0] - 10,
-                self.detected_beam_info_dict[1] - 10,
-                self.detected_beam_info_dict[0] + 10,
-                self.detected_beam_info_dict[1] + 10,
+                int(self.detected_beam_info_dict[0] - 10),
+                int(self.detected_beam_info_dict[1] - 10),
+                int(self.detected_beam_info_dict[0] + 10),
+                int(self.detected_beam_info_dict[1] + 10),
             )
             painter.drawLine(
-                self.detected_beam_info_dict[0] + 10,
-                self.detected_beam_info_dict[1] - 10,
-                self.detected_beam_info_dict[0] - 10,
-                self.detected_beam_info_dict[1] + 10,
+                int(self.detected_beam_info_dict[0] + 10),
+                int(self.detected_beam_info_dict[1] - 10),
+                int(self.detected_beam_info_dict[0] - 10),
+                int(self.detected_beam_info_dict[1] + 10),
             )
 
     def enable_beam_size(self, state):
@@ -617,10 +617,10 @@ class GraphicsItemLine(GraphicsItem):
                     self.__num_images
                 )
                 painter.drawEllipse(
-                    coord_x - self.beam_size_pix[0] / 2,
-                    coord_y - self.beam_size_pix[1] / 2,
-                    self.beam_size_pix[0],
-                    self.beam_size_pix[1],
+                    int(coord_x - self.beam_size_pix[0] / 2),
+                    int(coord_y - self.beam_size_pix[1] / 2),
+                    int(self.beam_size_pix[0]),
+                    int(self.beam_size_pix[1]),
                 )
 
         info_txt = "Line %d (%d->%d)" % (
@@ -641,7 +641,7 @@ class GraphicsItemLine(GraphicsItem):
         self.custom_pen.setWidth(2)
         painter.setPen(self.custom_pen)
 
-        painter.drawLine(start_cp_x, start_cp_y, end_cp_x, end_cp_y)
+        painter.drawLine(int(start_cp_x), int(start_cp_y), int(end_cp_x), int(end_cp_y))
         painter.drawText(mid_x + 5, mid_y, info_txt)
 
     def set_num_images(self, num_images):
@@ -1334,25 +1334,17 @@ class GraphicsItemGrid(GraphicsItem):
                         )
                     else:
                         painter.drawEllipse(
-                            pos_x - self.beam_size_pix[0] / 2,
-                            pos_y - self.beam_size_pix[1] / 2,
-                            self.beam_size_pix[0],
-                            self.beam_size_pix[1],
+                            int(pos_x - self.beam_size_pix[0] / 2),
+                            int(pos_y - self.beam_size_pix[1] / 2),
+                            int(self.beam_size_pix[0]),
+                            int(self.beam_size_pix[1]),
                         )
 
         # Draws x in the middle of the grid
-        painter.drawLine(
-            self.__center_coord.x() - 5,
-            self.__center_coord.y() - 5,
-            self.__center_coord.x() + 5,
-            self.__center_coord.y() + 5,
-        )
-        painter.drawLine(
-            self.__center_coord.x() + 5,
-            self.__center_coord.y() - 5,
-            self.__center_coord.x() - 5,
-            self.__center_coord.y() + 5,
-        )
+        coordx = int(self.__center_coord.x())
+        coordy = int(self.__center_coord.y())
+        painter.drawLine(coordx - 5, coordy - 5, coordx + 5, coordy + 5)
+        painter.drawLine(coordx + 5, coordy - 5, coordx - 5, coordy + 5)
 
         if self.__automatic:
             grid_info = "Auto mesh %d" % (self.index + 1)
@@ -1648,47 +1640,53 @@ class GraphicsItemScale(GraphicsItem):
             vert_text_pos = (12, 7 + self.__scale_len_pix / 2)
 
         x0, y0, x1, y1 = line_horiz_coords
-        painter.drawLine(x0, y0, x1, y1)
+        painter.drawLine(int(x0), int(y0), int(x1), int(y1))
 
         x0, y0 = horiz_text_pos
-        painter.drawText(x0, y0, "%d %s" % (self.__scale_len, self.__scale_unit))
+        painter.drawText(
+            int(x0), int(y0), "%d %s" % (self.__scale_len, self.__scale_unit)
+        )
 
         x0, y0, x1, y1 = line_vert_coords
-        painter.drawLine(x0, y0, x1, y1)
+        painter.drawLine(int(x0), int(y0), int(x1), int(y1))
 
         x0, y0 = vert_text_pos
-        painter.drawText(x0, y0, "%d %s" % (self.__scale_len / 2, self.__scale_unit))
+        painter.drawText(
+            int(x0), int(y0), "%d %s" % (self.__scale_len / 2, self.__scale_unit)
+        )
 
         if self.__display_grid:
             self.custom_pen.setStyle(qt_import.Qt.DotLine)
             self.custom_pen.setWidth(1)
             self.custom_pen.setColor(qt_import.Qt.gray)
             painter.setPen(self.custom_pen)
+            halfwidth = int(scene_width / 2)
+            halfheight = int(scene_height / 2)
             for line in range(1, 3):
                 painter.drawLine(
-                    scene_width / 2 + line * 80,
-                    scene_height / 2 - 20 * line,
-                    scene_width / 2 + line * 80,
-                    scene_height / 2 + 20 * line,
+                    halfwidth + line * 80,
+                    halfheight - 20 * line,
+                    halfwidth + line * 80,
+                    halfheight + 20 * line,
                 )
                 painter.drawLine(
-                    scene_width / 2 - line * 80,
-                    scene_height / 2 - 20 * line,
-                    scene_width / 2 - line * 80,
-                    scene_height / 2 + 20 * line,
+                    halfwidth - line * 80,
+                    halfheight - 20 * line,
+                    halfwidth - line * 80,
+                    halfheight + 20 * line,
                 )
 
                 painter.drawLine(
-                    scene_width / 2 - line * 30,
-                    scene_height / 2 - 50 * line,
-                    scene_width / 2 + line * 30,
-                    scene_height / 2 - 50 * line,
+                    halfwidth - line * 30,
+                    halfheight- 50 * line,
+                    halfwidth + line * 30,
+                    halfheight - 50 * line,
                 )
                 painter.drawLine(
-                    scene_width / 2 - line * 30,
-                    scene_height / 2 + 50 * line,
-                    scene_width / 2 + line * 30,
-                    scene_height / 2 + 50 * line,
+                    halfwidth - line * 30,
+                    halfheight + 50 * line,
+                    halfwidth + line * 30,
+                    halfheight + 50 * line,
                 )
 
             self.custom_pen.setStyle(qt_import.Qt.DashLine)
@@ -1696,16 +1694,10 @@ class GraphicsItemScale(GraphicsItem):
             self.custom_pen.setColor(qt_import.Qt.yellow)
             painter.setPen(self.custom_pen)
             painter.drawLine(
-                scene_width / 2 - 20,
-                scene_height / 2,
-                scene_width / 2 + 20,
-                scene_height / 2,
+                halfwidth - 20, halfheight, halfwidth + 20, halfheight,
             )
             painter.drawLine(
-                scene_width / 2,
-                scene_height / 2 - 20,
-                scene_width / 2,
-                scene_height / 2 + 20,
+                halfwidth, halfheight - 20, halfwidth, halfheight + 20,
             )
 
     def set_pixels_per_mm(self, pixels_per_mm):
@@ -2019,10 +2011,10 @@ class GraphicsItemMoveBeamMark(GraphicsItem):
             self.custom_pen.setStyle(qt_import.Qt.DashLine)
             painter.setPen(self.custom_pen)
             painter.drawEllipse(
-                self.end_coord[0] - self.beam_size_pix[0] / 2,
-                self.end_coord[1] - self.beam_size_pix[1] / 2,
-                self.beam_size_pix[0],
-                self.beam_size_pix[1],
+                int(self.end_coord[0] - self.beam_size_pix[0] / 2),
+                int(self.end_coord[1] - self.beam_size_pix[1] / 2),
+                int(self.beam_size_pix[0]),
+                int(self.beam_size_pix[1]),
             )
 
 
