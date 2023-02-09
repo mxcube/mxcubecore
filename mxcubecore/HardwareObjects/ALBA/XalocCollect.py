@@ -284,171 +284,155 @@ class XalocCollect(AbstractCollect):
 
         self.rescorner = self.get_channel_object("rescorner_position")
 
-    #TODO: there is something wrong with throwing exeptions in do_collect, see data_collection_failed for details
-    #def do_collect(self, owner):
-        #"""
-            #Reimplemented to do ALBA checks
-        #"""
-        
-        #self.user_logger.info("Collection: Preparing to collect")
-        #self.emit("collectReady", (False,))
-        #self.emit(
-            #"collectOscillationStarted",
-            #(owner, None, None, None, self.current_dc_parameters, None),
-        #)
-        #self.emit("progressInit", ("Collection", 100, False))
-        #self.collection_id = None
+    def do_collect(self, owner):
+        """
+        Actual collect sequence
+        """
+        log = logging.getLogger("user_level_log")
+        log.info("Collection: Preparing to collect")
+        self.emit("collectReady", (False,))
+        self.emit(
+            "collectOscillationStarted",
+            (owner, None, None, None, self.current_dc_parameters, None),
+        )
+        self.emit("progressInit", ("Collection", 100, False))
+        self.collection_id = None
 
-        #try:
-            # TODO: the idea here is to detect that the DS is blocked. 
-            #   However, this depends on the Sardana channel throwing an error when a read is tried, which doesnt seem to happen
-            #   see comments in Command/Sardana.py
-            #try:
-                #self.supervisor_hwobj.get_state()
-            #except:
-                #errormsg = "Cannot read state of supervisor. Check bl13/eh/supervisor"
-                #self.data_collection_failed( Exception(errormsg), errormsg )
-            #try:
-                #self.diffractometer_hwobj.get_state()
-            #except:
-                #errormsg = "Cannot read state of diffractometer. Check bl13/eh/diff"
-                #self.data_collection_failed( Exception(errormsg), errormsg )
+        try:
+            #CHECK if files exist, exit if true
+            full_path = self.get_image_file_name( 
+                    self.current_dc_parameters['oscillation_sequence'][0]['start_image_number'] 
+                )
+            if os.path.exists( full_path ):
+                msg = "Filename already exists"
+                self.data_collection_failed( Exception(msg) , msg )
 
             ## ----------------------------------------------------------------
             ## Prepare data collection
 
-            #self.open_detector_cover()
-            #self.open_safety_shutter()
-            #self.open_fast_shutter()
+            self.open_detector_cover()
+            self.open_safety_shutter()
+            #self.open_fast_shutter() # done through trigger for external trigger, open_fast_shutter_for_internal_trigger is used for internal trigger
 
-            ## ----------------------------------------------------------------
-            ## Store information in LIMS
+            self.current_dc_parameters["status"] = "Running"
+            self.current_dc_parameters["collection_start_time"] = time.strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
 
-            #self.current_dc_parameters["status"] = "Running"
-            #self.current_dc_parameters["collection_start_time"] = time.strftime(
-                #"%Y-%m-%d %H:%M:%S"
-            #)
+            # ----------------------------------------------------------------
+            # Set data collection parameters
 
-            #self.user_logger.info("Collection: Storing data collection in LIMS")
-            #self.store_data_collection_in_lims()
+            if "transmission" in self.current_dc_parameters:
+                log.info(
+                    "Collection: Setting transmission to %.2f",
+                    self.current_dc_parameters["transmission"],
+                )
+                self.set_transmission(self.current_dc_parameters["transmission"])
 
-            ##CHECK if files exist, exit if true
-            #full_path = self.get_image_file_name( 
-                    #self.current_dc_parameters['oscillation_sequence'][0]['start_image_number'] 
-                #)
-            #if os.path.exists( full_path ):
-                #msg = "Filename already exists"
-                #self.data_collection_failed( Exception(msg) , msg )
+            if "wavelength" in self.current_dc_parameters:
+                log.info(
+                    "Collection: Setting wavelength to %.4f",
+                    self.current_dc_parameters["wavelength"],
+                )
+                self.set_wavelength(self.current_dc_parameters["wavelength"])
 
-            #self.logger.info(
-                #"Collection parameters: %s" % str(self.current_dc_parameters)
-            #)
+            elif "energy" in self.current_dc_parameters:
+                log.info(
+                    "Collection: Setting energy to %.4f",
+                    self.current_dc_parameters["energy"],
+                )
+                self.set_energy(self.current_dc_parameters["energy"])
 
-            #if (
-                #self.current_dc_parameters['processing_online']
-                #and HWR.beamline.online_processing is not None
-            #):
-                #HWR.beamline.online_processing.params_dict["collection_id"] = self.current_dc_parameters["collection_id"] 
-                #self.online_processing_task = gevent.spawn(
-                    #HWR.beamline.online_processing.run_processing, 
-                    #self.current_dc_parameters
-                #)
+            dd = self.current_dc_parameters.get("resolution")
+            if dd and dd.get('upper'):
+                resolution = dd["upper"]
+                log.info("Collection: Setting resolution to %.3f", resolution)
+                self.set_resolution(resolution)
 
-            #self.user_logger.info(
-                #"Collection: Creating directories for raw images and processing files"
-            #)
-            #self.create_file_directories()
+            elif "detector_distance" in self.current_dc_parameters:
+                log.info(
+                    "Collection: Moving detector to %.2f",
+                    self.current_dc_parameters["detector_distance"],
+                )
+                self.move_detector(self.current_dc_parameters["detector_distance"])
 
-            #self.user_logger.info("Collection: Getting sample info from parameters")
-            #self.get_sample_info()
+            # ----------------------------------------------------------------
+            # Store information in LIMS
 
-            #self.user_logger.info("Collection: Storing sample info in LIMS")
-            #self.store_sample_info_in_lims()
+            log.info("Collection: Storing data collection in LIMS")
+            self.store_data_collection_in_lims()
 
-            #if all(
-                #item is None for item in self.current_dc_parameters["motors"].values()
-            #):
-                ## No centring point defined
-                ## create point based on the current position
-                #current_diffractometer_position = (
-                    #HWR.beamline.diffractometer.get_positions()
-                #)
-                #for motor in self.current_dc_parameters["motors"].keys():
-                    #self.current_dc_parameters["motors"][
-                        #motor
-                    #] = current_diffractometer_position.get(motor)
+            logging.getLogger("HWR").info(
+                "Collection parameters: %s" % str(self.current_dc_parameters)
+            )
 
-            ## ----------------------------------------------------------------
-            ## Move to the centered position and take crystal snapshots
+            if (
+                self.current_dc_parameters['processing_online']
+                and HWR.beamline.online_processing is not None
+            ):
+                HWR.beamline.online_processing.params_dict["collection_id"] = self.current_dc_parameters["collection_id"] 
+                self.online_processing_task = gevent.spawn(
+                    HWR.beamline.online_processing.run_processing, 
+                    self.current_dc_parameters
+                )
 
-            #self.user_logger.info("Collection: Moving to centred position")
-            #self.move_to_centered_position()
-            #self.take_crystal_snapshots()
-            #self.move_to_centered_position()
+            log.info(
+                "Collection: Creating directories for raw images and processing files"
+            )
+            self.create_file_directories()
 
-            ## ----------------------------------------------------------------
-            ## Set data collection parameters
+            log.info("Collection: Getting sample info from parameters")
+            self.get_sample_info()
 
-            #if "transmission" in self.current_dc_parameters:
-                #self.user_logger.info(
-                    #"Collection: Setting transmission to %.2f",
-                    #self.current_dc_parameters["transmission"],
-                #)
-                #self.set_transmission(self.current_dc_parameters["transmission"])
+            log.info("Collection: Storing sample info in LIMS")
+            self.store_sample_info_in_lims()
 
-            #if "wavelength" in self.current_dc_parameters:
-                #self.user_logger.info(
-                    #"Collection: Setting wavelength to %.4f",
-                    #self.current_dc_parameters["wavelength"],
-                #)
-                #self.set_wavelength(self.current_dc_parameters["wavelength"])
+            if all(
+                item is None for item in self.current_dc_parameters["motors"].values()
+            ):
+                # No centring point defined
+                # create point based on the current position
+                current_diffractometer_position = (
+                    HWR.beamline.diffractometer.get_positions()
+                )
+                for motor in self.current_dc_parameters["motors"].keys():
+                    self.current_dc_parameters["motors"][
+                        motor
+                    ] = current_diffractometer_position.get(motor)
 
-            #elif "energy" in self.current_dc_parameters:
-                #self.user_logger.info(
-                    #"Collection: Setting energy to %.4f",
-                    #self.current_dc_parameters["energy"],
-                #)
-                #self.set_energy(self.current_dc_parameters["energy"])
+            # ----------------------------------------------------------------
+            # Move to the centered position and take crystal snapshots
 
-            #dd = self.current_dc_parameters.get("resolution")
-            #if dd and dd.get('upper'):
-                #resolution = dd["upper"]
-                #self.user_logger.info("Collection: Setting resolution to %.3f", resolution)
-                #self.set_resolution(resolution)
+            log.info("Collection: Moving to centred position")
+            self.move_to_centered_position()
+            self.take_crystal_snapshots()
+            self.move_to_centered_position()
 
-            #elif "detector_distance" in self.current_dc_parameters:
-                #self.user_logger.info(
-                    #"Collection: Moving detector to %.2f",
-                    #self.current_dc_parameters["detector_distance"],
-                #)
-                #self.move_detector(self.current_dc_parameters["detector_distance"])
+            self.prepare_acquisition()
 
-            ## ----------------------------------------------------------------
-            ## Site specific implementation of a data collection
+            # ----------------------------------------------------------------
+            # Site specific implementation of a data collection
 
-            ## In order to call the hook with original parameters
-            ## before update_data_collection_in_lims changes them
-            ## TODO check why this happens
+            # In order to call the hook with original parameters
+            # before update_data_collection_in_lims changes them
+            # TODO check why this happens
 
-            #self.data_collection_hook()
+            self.data_collection_hook()
 
-            ## ----------------------------------------------------------------
-            ## Store information in LIMS
+            # ----------------------------------------------------------------
+            # Store information in LIMS
 
-            #self.user_logger.info("Collection: Updating data collection in LIMS")
-            #self.update_data_collection_in_lims()
+            log.info("Collection: Updating data collection in LIMS")
+            self.update_data_collection_in_lims()
 
-        #except:
-            #exc_type, exc_value, exc_tb = sys.exc_info()
-            #failed_msg = "Data collection failed!\n%s" % exc_value
-            #self.collection_failed(failed_msg)
-        #else:
-            #self.collection_finished()
-        #finally:
-            #self.data_collection_cleanup()
-
-
-        #AbstractCollect.do_collect(self,owner)
+        except:
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            failed_msg = "Data collection failed!\n%s" % exc_value
+            self.collection_failed(failed_msg)
+        else:
+            self.collection_finished()
+        finally:
+            self.data_collection_cleanup()
 
     def data_collection_hook(self):
         """Main collection hook, called from do_collect in AbstractCollect
@@ -456,14 +440,6 @@ class XalocCollect(AbstractCollect):
 
         self.logger.info("Running Xaloc data collection hook")
         
-        #CHECK if files exist, exit if true
-        full_path = self.get_image_file_name( 
-                self.current_dc_parameters['oscillation_sequence'][0]['start_image_number'] 
-            )
-        if os.path.exists( full_path ):
-            msg = "Filename already exists"
-            self.data_collection_failed( Exception(msg) , msg )
-
         if not self.resolution_hwobj.is_ready(): 
             self.logger.info("Waiting for resolution ready...")
             self.resolution_hwobj.wait_ready()
@@ -512,6 +488,9 @@ class XalocCollect(AbstractCollect):
             self.aborted_by_user = False
             return
 
+
+        self.prepare_detector_for_acquisition()
+        
         ### EDNA_REF, OSC, MESH, HELICAL
 
         exp_type = self.current_dc_parameters['experiment_type']
@@ -550,7 +529,6 @@ class XalocCollect(AbstractCollect):
             self.data_collection_failed( Exception( msg ), msg )
 
         try:
-            ready = self.prepare_acquisition()
             init_pos, final_pos, total_dist, omega_speed = self.calc_omega_scan_values(
                                                                 omega_pos, 
                                                                 sweep_nb_images 
@@ -572,11 +550,6 @@ class XalocCollect(AbstractCollect):
         self.emit("progressInit", "Collection", osc_seq['number_of_images'])
 
         self.emit("collectStarted", (None, 1)) # parameters required are owner and nr of sweeps
-
-
-        if not ready:
-            msg = "prepare_acquisition not ready"
-            self.data_collection_failed( e, msg )
 
         if exp_type == 'OSC' or (exp_type == 'Characterization' and nb_images == 1) or exp_type == 'Helical':
             # prepare input files for autoprocessing
@@ -1049,6 +1022,14 @@ class XalocCollect(AbstractCollect):
 
         # check fast shutter closed. others opened
 
+        # go to collect phase
+        if not self.is_collect_phase():
+            self.logger.info("Supervisor not in collect phase, asking to go...")
+            success = self.go_to_collect()
+            if not success:
+                msg = "Supervisor cannot set COLLECT phase. Issue an Init in the diff and supervisor devices. Omegax should be between -1 and +1 mm"
+                self.data_collection_failed( Exception(msg), msg )
+
         if self.bypass_shutters:
             logging.getLogger('user_level_log').warning("Shutters BYPASSED")
         else:
@@ -1066,14 +1047,6 @@ class XalocCollect(AbstractCollect):
         self.diffractometer_hwobj.wait_device_ready(timeout=10) # Is an exception generated upon timeout???
         self.logger.info("Diffractometer is now ready.")
 
-        # go to collect phase
-        if not self.is_collect_phase():
-            self.logger.info("Supervisor not in collect phase, asking to go...")
-            success = self.go_to_collect()
-            if not success:
-                msg = "Supervisor cannot set COLLECT phase. Issue an Init in the diff and supervisor devices. Omegax should be between -1 and +1 mm"
-                self.data_collection_failed( Exception(msg), msg )
-
         detok = self.detector_hwobj.get_cam_state() == 'STANDBY'
         self.logger.info( 'Detector ok %s, cam_state = %s' % ( detok, self.detector_hwobj.get_cam_state() ) )
 
@@ -1085,10 +1058,10 @@ class XalocCollect(AbstractCollect):
             else: msg += "The Pilatus is setting the energy, please be patient!!!" 
             self.logger.info( msg )
             self.data_collection_failed( Exception(e), msg )
+            
+        return
 
-        #
-        #
-        # START of 20210218: Lines only necessary for ni660 collects, remove when switching to pure meshct/ascanct scans   
+    def prepare_detector_for_acquisition(self):
 
         detok = False
         try:
@@ -1104,11 +1077,7 @@ class XalocCollect(AbstractCollect):
             self.logger.error( msg )
             self.data_collection_failed( Exception(msg), msg )
 
-        # END of lines for ni660 scans
-        #
-        #
-
-        return ( detok )
+        return detok
 
     def write_image_headers(self, start_angle):
         # maintain for sardana scans?
