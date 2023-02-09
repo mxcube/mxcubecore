@@ -19,4 +19,8 @@
      <archive_folder></archive_folder>
 
   </file_info>
+  
+  <doorname>bl13/door/05</doorname>
+  <command type="sardana" name="senv">senv</command>
+
 </object>
