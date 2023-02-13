@@ -1,3 +1,9 @@
+import xml.etree.cElementTree as et
+
+import requests
+from PIL import Image
+from io import BytesIO
+
 try:
     from urllib import urlopen
 except ImportError:
@@ -9,6 +15,11 @@ def get_image(url):
     img = f.read()
     return img
 
+
+def get_image_size(url):
+    img_data = requests.get(url).content    
+    im = Image.open(BytesIO(img_data))
+    return (im.size)
 
 class CrimsXtal:
     def __init__(self, *args):
@@ -24,6 +35,7 @@ class CrimsXtal:
         self.comments = ""
         self.offset_x = 0.0
         self.offset_y = 0.0
+        self.shape = ""
         self.image_url = ""
         self.image_rotation = 0.0
         self.summary_url = ""
@@ -40,12 +52,16 @@ class CrimsXtal:
                 return image_string
             except Exception:
                 return
+    
+    def get_image_size(self):
+        img_data = requests.get(self.image_url).content    
+        im = Image.open(BytesIO(img_data))
+        return (im.size)
 
     def get_summary_url(self):
         if len(self.summary_url == 0):
             return None
         return self.summary_url
-
 
 class Plate:
     def __init__(self, *args):
@@ -59,17 +75,18 @@ class ProcessingPlan:
         self.plate = Plate()
 
 
-def get_processing_plan(barcode, crims_url):
+def get_processing_plan(barcode, crims_url, harvester_key):
+    processing_plan = None
     try:
+        url = crims_url
         url = (
             crims_url
-            + "/htxlab/index.php?option=com_crimswebservices"
-            + "&format=raw&task=getbarcodextalinfos&barcode=%s&action=insitu" % barcode
+            + barcode
+            + "/plans/xml"
+            + "?harvester-key=%s" % harvester_key
         )
         f = urlopen(url)
         xml = f.read()
-
-        import xml.etree.cElementTree as et
 
         tree = et.fromstring(xml)
 
@@ -78,25 +95,32 @@ def get_processing_plan(barcode, crims_url):
 
         processing_plan.plate.barcode = plate.find("Barcode").text
         processing_plan.plate.plate_type = plate.find("PlateType").text
+        for x in plate.findall("Drop"):
+            if (x.find("Pin")):
+                xtal = CrimsXtal()
+                xtal.pin_id = x.find("Pin").find("PinUUID").text
+                xtal.crystal_uuid = x.find("Pin").find("Xtal").find("CrystalUUID").text
+                # xtal.label = x.find("Label").text
+                # xtal.login = plate.find("Login").text
+                xtal.sample = x.find("Sample").text
+                xtal.id_sample = int(x.find("idSample").text)
+                xtal.column = int(x.find("Column").text)
+                xtal.row = x.find("Row").text
+                xtal.shelf = int(x.find("Shelf").text)
+                # xtal.comments = x.find("Comments").text
+                xtal.offset_x = float(x.find("Pin").find("Xtal").find("X").text) / 100.0
+                xtal.offset_y = float(x.find("Pin").find("Xtal").find("Y").text) / 100.0
+                xtal.shape = x.find("Pin").find("Shape").text
+                xtal.image_url = x.find("IMG_URL").text
 
-        for x in plate.findall("Xtal"):
-            xtal = CrimsXtal()
-            xtal.crystal_uuid = x.find("CrystalUUID").text
-            xtal.label = x.find("Label").text
-            xtal.login = x.find("Login").text
-            xtal.sample = x.find("Sample").text
-            xtal.id_sample = int(x.find("idSample").text)
-            xtal.column = int(x.find("Column").text)
-            xtal.row = x.find("Row").text
-            xtal.shelf = int(x.find("Shelf").text)
-            xtal.comments = x.find("Comments").text
-            xtal.offset_x = float(x.find("offsetX").text) / 100.0
-            xtal.offset_y = float(x.find("offsetY").text) / 100.0
-            xtal.image_url = x.find("IMG_URL").text
-            xtal.image_date = x.find("IMG_Date").text
-            xtal.image_rotation = float(x.find("ImageRotation").text)
-            xtal.summary_url = x.find("SUMMARY_URL").text
-            processing_plan.plate.xtal_list.append(xtal)
+                xtal.image_height = get_image_size(x.find("IMG_URL").text)[0]
+                xtal.image_width = get_image_size(x.find("IMG_URL").text)[1]
+
+                xtal.image_date = x.find("IMG_Date").text
+                xtal.image_rotation = float(x.find("ImageRotation").text)
+                # xtal.summary_url = x.find("SUMMARY_URL").text
+                processing_plan.plate.xtal_list.append(xtal)
         return processing_plan
-    except Exception:
-        return
+    except Exception as ex:
+        print("Error on getting processing plan because of:  %s" %str(ex))
+        return processing_plan
