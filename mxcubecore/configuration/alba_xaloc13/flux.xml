@@ -4,4 +4,6 @@
     <channel type="sardana" taurusname="mbattrans" name="transmission" polling="events">position</channel>
     <channel type="sardana" taurusname="bl13/ct/variables" name="last_flux" polling="events">fluxlast</channel>
     <channel type="sardana" taurusname="bl13/ct/variables" name="last_flux_norm" polling="events">fluxlastnorm</channel>
+    
+    <default_flux>1.5E12</default_flux>
 </object>

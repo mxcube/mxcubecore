@@ -48,12 +48,17 @@ class XalocFlux(AbstractFlux):
         self.transmission_chn = None
         self.last_flux_chn = None
         self.last_flux_norm_chn = None
+        self.default_flux = None
 
     def init(self):
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
         self.transmission_chn = self.get_channel_object("transmission")
         self.last_flux_chn = self.get_channel_object("last_flux")
         self.last_flux_norm_chn = self.get_channel_object("last_flux_norm")
+        self.default_flux = self.get_property('default_flux')
+        if self.default_flux == None:
+            self.default_flux = 1.5E12
+        self.logger.debug("Default flux set to %8.3f" % self.default_flux)
 
     def get_value(self):
         return self.get_flux()
@@ -61,16 +66,23 @@ class XalocFlux(AbstractFlux):
     def get_flux(self):
         last_flux = self.last_flux_chn.get_value()
         try:
-            if last_flux > 1e7:
-                return self.get_flux_from_last_measured() * self.get_transmission()
+            if last_flux != None:
+                if last_flux > 1e7:
+                    return self.get_flux_from_last_measured() * self.get_transmission()
+                else:
+                    self.logger.debug( "Flux value abnormally low" )
+            else:
+                self.logger.debug( "Flux value is None" )
+
+
         except Exception as e:
             self.logger.error("Cannot read flux\n%s" % str(e))
-            logging.getLogger("user_level_log").error("Cannot read flux\n%s" % str(e))
+            #logging.getLogger("user_level_log").error("Cannot read flux\n%s" % str(e))
 
-        default_flux = 6e11 * self.get_transmission()
-        self.logger.debug("Flux value abnormally low, returning default value (%s)" %
-                          default_flux)
-        return default_flux
+        self.logger.debug( "Returning default flux value %8.3f" % self.default_flux )
+
+        return self.default_flux
+
 
     def get_transmission(self):
         """ returns transmission between 0 and 1"""
