@@ -27,11 +27,6 @@ from pydantic import ValidationError
 from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
     PhaseEnum,
-    PhaseModel,
-    HeadTypeEnum,
-    BlockShapeEnum,
-    SampleHolderSectionModel,
-    GonioHeadConfiguration,
 )
 
 from mxcubecore import HardwareObjects, HardwareRepository as HWR
