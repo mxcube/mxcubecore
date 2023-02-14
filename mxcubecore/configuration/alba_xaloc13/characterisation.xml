@@ -1,0 +1,21 @@
+<object class="XalocEDNACharacterisation">
+
+  <!--<edna_command>/users/blissadm/local/bin/edna_script.sh</edna_command>-->
+  <!--<edna_default_file>/homelocal/sicilia/MXCuBE/local/hardware_objects.xml/edna_defaults.xml</edna_default_file>-->
+  <!--<edna_default_file>/homelocal/sicilia/staging/MXCuBE-prod/bl13_config/hardware_objects.xml/edna_defaults.xml</edna_default_file>-->
+  <!--<edna_default_file>/homelocal/sicilia/staging/bl13_processing/edna-mx/XSDataInput_templates/mxcube/edna_defaults.xml</edna_default_file>-->
+  <object href="/mxcollect" role="collect" />
+  <object href="/cluster" role="cluster"/>
+  <edna_default_file>/beamlines/bl13/controls/production/git/bl13_processing/edna-mx/XSDataInput_templates/mxcube/edna_defaults.xml</edna_default_file>
+
+  <use_cluster_queue>False</use_cluster_queue>
+  <ssh_user>opbl13</ssh_user>
+  <ssh_host>cla02</ssh_host>
+  <secondary_ssh_host>hpcnode021</secondary_ssh_host>
+  <!--ssh_bash_script>/beamlines/bl13/inhouse/rboer/edna-mx.strategy.first.ssh</ssh_bash_script-->
+  
+  <!--ssh_cluster_bash_script>/beamlines/bl13/inhouse/rboer/MXCUBE_PROCESSING_FILES/edna-mx/strategy/mxcube/edna-mx.strategy.ssh</ssh_cluster_bash_script-->
+  <ssh_bash_script>/beamlines/bl13/sdm/production/processing_xaloc/edna-mx/strategy/mxcube/edna-mx.strategy.first.ssh</ssh_bash_script>
+  <ssh_cluster_bash_script>/beamlines/bl13/sdm/production/processing_xaloc/edna-mx/strategy/mxcube/edna-mx.strategy.ssh</ssh_cluster_bash_script>
+  
+</object>

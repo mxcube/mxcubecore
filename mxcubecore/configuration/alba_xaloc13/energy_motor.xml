@@ -1,8 +1,12 @@
-<device class="SardanaMotor">
+<device class="XalocSardanaMotor">
   <username>Energy</username>
   <taurusname>ealign</taurusname>
   <actuator_name>energy</actuator_name>
-  <move_threshold>0.0005</move_threshold>
-  <guistep>45</guistep>
+  <!-- move_threshold is currently not used, intended to determine the minimal interval for moving the motor -->
+  <move_threshold>0.0002</move_threshold>
+  <!-- threshold determines the minimal positional difference that will trigger an emit update of the position-->
+  <threshold>0.0001</threshold>
+  <guistep>0.5</guistep>
+  <!-- interval corresponds to the polling interval -->
   <!-- interval>500</interval -->
 </device>

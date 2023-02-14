@@ -1,0 +1,12 @@
+<equipment class="XalocBeam">
+    <taurusname>bl13/ct/variables</taurusname>
+  
+    <channel type="sardana" polling="events" name="BeamPositionHorizontal">ImageCenterX</channel>
+    <channel type="sardana" polling="events" name="BeamPositionVertical">ImageCenterY</channel>
+    <channel type="sardana" polling="events" name="BeamWidth">BeamWidth</channel>
+    <channel type="sardana" polling="events" name="BeamHeight">BeamHeight</channel>
+    
+    <beam_divergence_horizontal>230.0</beam_divergence_horizontal>
+    <beam_divergence_vertical>150.0</beam_divergence_vertical>
+
+</equipment>

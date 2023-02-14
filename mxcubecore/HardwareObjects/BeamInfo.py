@@ -22,9 +22,10 @@ beamPosChanged
 import logging
 from mxcubecore.BaseHardwareObjects import Equipment
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.abstract.AbstractBeam import AbstractBeam
 
 
-class BeamInfo(Equipment):
+class BeamInfo(AbstractBeam):
     """
     Description:
     """
@@ -33,7 +34,7 @@ class BeamInfo(Equipment):
         """
         Descrip. :
         """
-        Equipment.__init__(self, *args)
+        AbstractBeam.__init__(self, *args)
 
         self.aperture_hwobj = None
         self.beam_definer = None
@@ -53,6 +54,7 @@ class BeamInfo(Equipment):
         """
         Descript. :
         """
+        AbstractBeam.init(self)
         self.beam_size_slits = [9999, 9999]
         self.beam_size_aperture = [9999, 9999]
         self.beam_size_definer = [9999, 9999]
@@ -205,11 +207,13 @@ class BeamInfo(Equipment):
         Return    : dictionary,{size_x:0.1, size_y:0.1, shape:"rectangular"}
         """
         size_x = min(
+            self.beam_info_dict["size_x"],
             self.beam_size_aperture[0],
             self.beam_size_slits[0],
             self.beam_size_definer[0],
         )
         size_y = min(
+            self.beam_info_dict["size_y"], 
             self.beam_size_aperture[1],
             self.beam_size_slits[1],
             self.beam_size_definer[1],

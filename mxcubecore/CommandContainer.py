@@ -123,6 +123,10 @@ class ChannelObject(object):
         except Exception:
             pass
         dispatcher.connect(callableFunc, signalName, self)
+        # RB: do not commit
+        # The cats_simple_brick doesnt receive the powered signal, 
+        #    the following line fixes that, but a better solution needs to be found. 
+        self.emit(signalName, self.get_value())
 
     def disconnect_signal(self, signalName, callableFunc):
         try:

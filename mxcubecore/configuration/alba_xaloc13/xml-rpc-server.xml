@@ -9,6 +9,7 @@
   <port>
     8000
   </port>
+  <use_token>False</use_token>
 
   <apis>
     <api>
@@ -17,7 +18,7 @@
    </api>
   </apis>
 
-  <object href="/beamline-setup" role="beamline_setup"/>
-  <object href="/queue" role="queue"/>
-  <object href="/queue-model" role="queue_model"/>
+  <!-- <object href="/beamline-setup" role="beamline_setup"/> -->
+  <!--object href="/queue" role="queue"/> -->
+  <!--object href="/queue-model" role="queue_model"/> -->
 </object>

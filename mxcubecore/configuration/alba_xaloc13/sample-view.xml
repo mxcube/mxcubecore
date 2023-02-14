@@ -1,0 +1,13 @@
+<device class="XalocQtGraphicsManager">
+    
+  <object href="/limavideo" role="camera"/>
+  <object href="/omegay" role="focus"/>
+  <object href="/digital-zoom" role="zoom"/>
+  <object href="/mini-diff" role="diffractometer"/>
+  <object href="/frontlight" role="frontlight"/>
+  <object href="/backlight" role="backlight"/>
+  
+  <hide_grid_threshold>False</hide_grid_threshold>
+
+   <imageScaleList>(1, 1.5, 2.)</imageScaleList>  
+</device>

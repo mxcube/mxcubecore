@@ -1,7 +1,8 @@
-<device class="SardanaMotor">
+<device class="XalocSardanaMotor">
   <username>Omega</username>
   <taurusname>omega</taurusname>
   <actuator_name>Omega</actuator_name>
   <guistep>45</guistep>
   <interval>500</interval>
+  <threshold>0.0001</threshold>
 </device>

@@ -1,27 +1,57 @@
-<object class="ALBAPilatus">
-
+<object class="XalocPilatus">
+  <username>PilatusDetector</username>
+  <!-- object href="/detector-distance" role="distance_motor"/ -->
   <object href="/detector-distance" role="detector_distance"/>
-
-  <tangoname>bl13/eh/pilatuslima</tangoname>
-  <device_specific>bl13/eh/pilatusspecific</device_specific>
+  <taurusname>bl13/eh/pilatuslima</taurusname>
 
   <manufacturer>DECTRIS</manufacturer>
-  <model>6M_F</model>
+  <model>6M_S</model>
   <type>pilatus</type>
+
   <file_suffix>cbf</file_suffix>
 
   <px>0.172</px>
   <py>0.172</py>
+  <width>2463</width>
+  <height>2527</height>
+
 
   <default_exposure_time>0.1</default_exposure_time>
   <minimum_exposure_time>0.08</minimum_exposure_time>
   <exposure_limits>0.08,1000</exposure_limits>
 
-  <latency_time>0.003</latency_time>
+  <command type="sardana" name="prepare_acq">prepareAcq</command>
+  <command type="sardana" name="start_acq">startAcq</command>
+  <command type="sardana" name="abort_acq">abortAcq</command>
+  <command type="sardana" name="reset">reset</command>
+  <command type="sardana" name="reset_common_header">resetCommonHeader</command>
+  <command type="sardana" name="reset_frame_headers">resetFrameHeaders</command>
+  <command type="sardana" name="set_image_header">setImageHeader</command>
 
-  <channel type="tango" tangoname="bl13/ct/variables" name="beamx">beamx</channel>
-  <channel type="tango" tangoname="bl13/ct/variables" name="beamy">beamy</channel>
+  <command type="sardana" name="set_threshold_gain">setThresholdGain</command>
 
-  <channel type="tango" tangoname="Eugap" name="eugap">Position</channel>
+  <channel type="sardana" name="saving_mode">saving_mode</channel>
+  <channel type="sardana" name="saving_prefix">saving_prefix</channel>
+  <channel type="sardana" name="saving_directory">saving_directory</channel>
+  <channel type="sardana" name="saving_format">saving_format</channel>
+  <channel type="sardana" name="saving_next_number">saving_next_number</channel>
+  <channel type="sardana" name="saving_header_delimiter">saving_header_delimiter</channel>
+  <channel type="sardana" name="saving_statistics">saving_statistics</channel>
+
+  <channel type="sardana" name="acq_nb_frames">acq_nb_frames</channel>
+  <channel type="sardana" name="acq_trigger_mode">acq_trigger_mode</channel>
+  <channel type="sardana" name="acq_expo_time">acq_expo_time</channel>
+  <channel type="sardana" name="acq_status">acq_status</channel>
+  <channel type="sardana" name="acq_status_fault_error">acq_status_fault_error</channel>
+  <channel type="sardana" name="latency_time">latency_time</channel>
+
+  <channel type="sardana" taurusname="bl13/eh/pilatusspecific" name="energy">energy_threshold</channel>
+  <channel type="sardana" taurusname="bl13/eh/pilatusspecific" name="threshold">threshold</channel>
+  <channel type="sardana" taurusname="bl13/eh/pilatusspecific" name="gain">threshold_gain</channel>
+  <channel type="sardana" taurusname="bl13/eh/pilatusspecific" name="cam_state">cam_state</channel>
+
+  <channel type="sardana" taurusname="bl13/ct/variables" name="beamx">beamx</channel>
+  <channel type="sardana" taurusname="bl13/ct/variables" name="beamy">beamy</channel>
+  <channel type="sardana" taurusname="Eugap" name="eugap">Position</channel>
 
 </object>

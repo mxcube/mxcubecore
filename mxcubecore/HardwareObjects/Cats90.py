@@ -418,8 +418,11 @@ class Cats90(SampleChanger):
         try:
             self.basket_types = self.cats_device.read_attribute("CassetteType").value
             self.number_of_baskets = len(self.basket_types)
-        except PyTango.DevFailed:
-            pass
+        except PyTango.DevFailed as e:
+            logging.getLogger("HWR").warning(
+                "Device failed with error %s" % (e)
+            )  
+            #pass
 
         # find number of baskets and number of samples per basket
         if self.number_of_baskets is not None:
@@ -588,7 +591,7 @@ class Cats90(SampleChanger):
             datamatrix = None
             present = scanned = loaded = _has_been_loaded = False
             sample._set_info(present, datamatrix, scanned)
-            sample._set_loaded(loaded, has_been_loaded)
+            sample._set_loaded(loaded, _has_been_loaded)
             sample._set_holder_length(spl[4])
 
         logging.getLogger("HWR").warning("Cats90:  initializing contents done")
@@ -643,7 +646,7 @@ class Cats90(SampleChanger):
         :rtype: None
         """
         logging.info(
-            "doUpdateInfo should not be called for cats. only for update timer type of SC"
+            "do_update_info should not be called for cats. only for update timer type of SC"
         )
         return
 
@@ -658,6 +661,7 @@ class Cats90(SampleChanger):
         :returns: None
         :rtype: None
         """
+        pass
 
     def _directly_update_selected_component(self, basket_no, sample_no):
         basket = None
@@ -1010,7 +1014,7 @@ class Cats90(SampleChanger):
 
         if presence != self.basket_presence:
             logging.getLogger("HWR").warning(
-                "Basket presence changed. Updating contents"
+                "cats_basket_presence_changed Basket presence changed. Updating contents"
             )
             self.basket_presence = presence
             self._update_cats_contents()
@@ -1398,7 +1402,7 @@ class Cats90(SampleChanger):
             if (
                 (old_sample is None)
                 or (new_sample is None)
-                or (old_sample.get_address() != new_loaded.get_address())
+                or (old_sample.get_address() != new_sample.get_address())
             ):
                 self._trigger_loaded_sample_changed_event(new_sample)
                 self._trigger_info_changed_event()
@@ -1444,7 +1448,7 @@ class Cats90(SampleChanger):
     def _update_cats_contents(self):
 
         logging.getLogger("HWR").warning(
-            "Updating contents %s" % str(self.basket_presence)
+            "_update_cats_contents Updating contents %s" % str(self.basket_presence)
         )
         for basket_index in range(self.number_of_baskets):
             # get saved presence information from object's internal bookkeeping
@@ -1485,7 +1489,7 @@ class Cats90(SampleChanger):
 
                     # forget about any loaded state in newly mounted or removed basket)
                     loaded = _has_been_loaded = False
-                    sample._set_loaded(loaded, has_been_loaded)
+                    sample._set_loaded(loaded, _has_been_loaded)
 
         self._trigger_contents_updated_event()
         self._update_loaded_sample()

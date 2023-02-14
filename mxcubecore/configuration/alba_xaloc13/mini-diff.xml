@@ -1,49 +1,38 @@
-<equipment class="ALBAMiniDiff">
+<equipment class="XalocMiniDiff">
  
   <taurusname>bl13/eh/diff</taurusname>
 
   <!-- Specific for Xaloc -->
-  <object role="calibration" hwrid="/calibration"></object>
-
-  <!-- doorname>door/mxcube/1</doorname>
-  <command type="sardana" name="startAutoFocus">autofocus</command -->
 
   <object href="/limavideo" role="camera"/>
   <object href="/omega" role="phi"/>
   <object href="/omegaz" role="phiz"/>
   <object href="/omegax" role="phiy"/>
-  <object href="/zoom" role="zoom"/>
   <object href="/omegay" role="focus"/>
   <object href="/centx" role="sampx"/>
   <object href="/centy" role="sampy"/>
   <object href="/kappa" role="kappa"/>
-
-  <!--object href="/kappaphi" role="kappa_phi"/-->
+  <object href="/kappaphi" role="kappa_phi"/>
+  <object href="/digital-zoom" role="zoom"/>
 
   <object href="/centring-math" role="centring"/>
-
-  <object href="/cats" role="sample-changer"/>
-
-  <object href="/supervisor" role="beamline-supervisor"/>
-
-  <object href="/beam-info" role="beam_info"/>
+  <!--object href="/beam-info" role="beam_info"/-->
   
-  <sample_centring>True</sample_centring>
+  <sample_centring>False</sample_centring>
 
   <!--object href="/minikappa-correction" role="minikappa_correction"/-->
-  <!-- beaminfo>/beam-info</beaminfo -->
+  <zoom_centre>{"x": 450,"y": 335}</zoom_centre>
 
-  <!-- zoom_centre>{"x": 348,"y": 260}</zoom_centre -->
-
-  <omegaReference>{"actuator_name": "phiz", "position":-0.0175, "camera_axis":"y","direction": -1}</omegaReference>
   <gridDirection>{"fast": (1, 0), "slow": (0, -1)}</gridDirection>
   <reversingRotation>True</reversingRotation>
 
   <phase_list>("Transfer", "Centring", "Collect", "BeamView")</phase_list>
 
-  <channel type="sardana" taurusname="bl13/eh/supervisor" name="CurrentPhase">CurrentPhase</channel>
-
+  <channel type="sardana" taurusname="bl13/eh/diff" polling="500" name="Phase">CurrentPhase</channel>
   <channel type="sardana" taurusname="bl13/eh/diff" polling="500" name="State">State</channel>
+  <channel type="sardana" taurusname="bl13/eh/diff" polling="500" name="omegazReference">OmegaZReference</channel>
+  <command type="sardana" taurusname="bl13/eh/diff" name="go_transfer">GoTransferPhase</command>
+  <command type="sardana" taurusname="bl13/eh/diff" name="go_sample_view">GoSampleViewPhase</command>
   <used_channels>State,CurrentPhase</used_channels>
 
   <delay_state_polling>0.2</delay_state_polling>

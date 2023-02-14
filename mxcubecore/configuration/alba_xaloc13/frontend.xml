@@ -1,4 +1,4 @@
-<device class="ALBAFrontEnd">
+<device class="XalocFrontEnd">
   <username>Front End</username>
   <taurusname>bl13/ct/eps-plc-01</taurusname>
   <channel type="sardana" polling="events" name="actuator">fe_open</channel>

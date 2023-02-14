@@ -1,12 +1,12 @@
-<object class="ALBACollect">
+<object class="XalocCollect">
 
   <object href="/supervisor" role="supervisor"/>
   <object href="/mini-diff" role="diffractometer"/>
   <object href="/omega" role="omega"/>
-  <object href="/Qt4_graphics-manager" role="graphics_manager"/>
+  <!-- object href="/Qt4_graphics-manager" role="graphics_manager"/ -->
   <object href="/dbconnection" role="lims_client"/>
 
-  <object href="/auto-processing" role="auto_processing"/>
+  <object href="/offline-processing" role="offline_processing"/>
 
   <object href="/fastshut" role="fast_shutter"/>
   <object href="/slowshut" role="slow_shutter"/>
@@ -19,15 +19,21 @@
   <object href="/resolution" role="resolution"/>
 
   <object href="/mach-info" role="machine_info"/>
-  <object href="/beam-info" role="beam_info"/>
+  <object href="/beam" role="beam_info"/>
 
   <doorname>bl13/door/05</doorname>
   <command type="sardana" name="ni_configure">ni660x_configure_collect</command>
   <command type="sardana" name="ni_unconfigure">ni660x_unconfigure_collect</command>
+  <command type="sardana" name="meshct">meshct</command>
+  <command type="sardana" name="ascanct">ascanct</command>
+  <!--command type="sardana" name="set_pilatus_saving_pattern">set_pilatus_saving_pattern</command-->
+  <command type="sardana" name="set_pilatus_saving_pattern">set_meas_conf</command>
+  <command type="sardana" name="senv">senv</command>
 
   <object href="/flux" role="flux"/>
-  <channel type="tango" tangoname="kappa" name="kappapos">position</channel>
-  <channel type="tango" tangoname="phi" name="phipos">position</channel>
+  <channel type="tango" tangoname="kappaalign" name="kappapos">position</channel>
+  <channel type="tango" tangoname="phialign" name="phipos">position</channel>
+  <channel type="tango" tangoname="rescomp" name="rescorner_position">position</channel>
   <channel type="tango" tangoname="bl13/ct/variables" name="beamx">beamx</channel>
   <channel type="tango" tangoname="bl13/ct/variables" name="beamy">beamy</channel>
 

@@ -742,11 +742,11 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
                 if (
                     dc.run_online_processing
-                    and acq_1.acquisition_parameters.num_images > 4
                     and HWR.beamline.online_processing is not None
                 ):
+                    HWR.beamline.online_processing.data_collection = dc
                     self.online_processing_task = gevent.spawn(
-                        HWR.beamline.online_processing.run_processing, dc
+                        HWR.beamline.online_processing.prepare_processing
                     )
 
                 empty_cpos = queue_model_objects.CentredPosition()

@@ -36,7 +36,7 @@ from py4j import clientserver, java_gateway
 from mxcubecore.utils import conversion
 from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
-from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
 
 # NB this is patching the original socket module in to avoid the
@@ -67,7 +67,7 @@ __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
 
-class GphlWorkflowConnection(HardwareObjectYaml):
+class GphlWorkflowConnection(HardwareObject, object):
     """
     This HO acts as a gateway to the Global Phasing workflow engine.
     """
@@ -95,6 +95,10 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         self.connection_parameters = {}
         self.software_paths = {}
         self.software_properties = {}
+        
+        # Properties for GPhL invocation
+        self.java_properties = {}
+
 
     def _init(self):
         super(GphlWorkflowConnection, self)._init()
@@ -109,27 +113,45 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             self.connection_parameters["python_address"] = socket.gethostname()
 
         # Adapt paths and properties to use directory_locations
-        locations = self.directory_locations
-        paths = self.software_paths
-        properties = self.software_properties
+        #locations = self.directory_locations
+        #paths = self.software_paths
+        #properties = self.software_properties
 
-        for tag, val in paths.items():
+        if self.has_object("connection_parameters"):
+            self._connection_parameters.update(
+                self["connection_parameters"].get_properties()
+            )
+        if self.has_object("ssh_options"):
+            # We are running through ssh - so we need python_address
+            # If not, we stick to default, which is localhost (127.0.0.1)
+            self._connection_parameters["python_address"] = socket.gethostname()
+
+        locations = next(self.get_objects("directory_locations")).get_properties()
+        paths = self.software_paths
+        props = self.java_properties
+        dd0 = next(self.get_objects("software_paths")).get_properties()
+        
+        #for tag, val in paths.items():
+        for tag, val in dd0.items():
             val2 = val.format(**locations)
             if not os.path.isabs(val2):
                 val2 = HWR.get_hardware_repository().find_in_repository(val)
                 if val2 is None:
                     raise ValueError("File path %s not recognised" % val)
             paths[tag] = val2
-
-        for tag, val in properties.items():
+        dd0 = next(self.get_objects("software_properties")).get_properties()
+        #for tag, val in properties.items():
+        for tag, val in dd0.items():
             val2 = val.format(**locations)
             if not os.path.isabs(val2):
                 val2 = HWR.get_hardware_repository().find_in_repository(val)
                 if val2 is None:
                     raise ValueError("File path %s not recognised" % val)
-            paths[tag] = properties[tag] = val2
+            #paths[tag] = properties[tag] = val2
+            paths[tag] = props[tag] = val2
 
-        pp0 = properties["co.gphl.wf.bin"] = paths["GPHL_INSTALLATION"]
+        #pp0 = properties["co.gphl.wf.bin"] = paths["GPHL_INSTALLATION"]
+        pp0 = props["co.gphl.wf.bin"] = paths["GPHL_INSTALLATION"]
         paths["BDG_home"] = paths.get("co.gphl.wf.bdg_licence_dir") or pp0
 
         self.update_state(self.STATES.OFF)

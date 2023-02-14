@@ -53,6 +53,8 @@ try:
     from sardana.taurus.core.tango.sardana import registerExtensions
     from taurus import Device, Attribute
     import taurus
+    from taurus.core.tango.enums import DevState
+    from taurus.core.tango.tangoattribute import TangoAttrValue
 except Exception:
     logging.getLogger("HWR").warning("Sardana is not available in this computer.")
 
@@ -191,10 +193,16 @@ class SardanaMacro(CommandObject, SardanaObject):
             import time
 
             self.t0 = time.time()
-            if self.doorstate in ["ON", "ALARM"]:
+            if self.doorstate in [DevState.ON, DevState.ALARM]:
                 self.door.runMacro(fullcmd.split())
                 self.macrostate = SardanaMacro.STARTED
                 self.emit("commandBeginWaitReply", (str(self.name()),))
+
+                if wait:
+                    logging.getLogger("HWR").debug("... start waiting...")
+                    t = gevent.spawn(end_of_macro, self)
+                    t.get()
+                    logging.getLogger("HWR").debug("... end waiting...")
             else:
                 logging.getLogger("HWR").error(
                     "%s. Cannot execute. Door is not READY", str(self.name())
@@ -226,29 +234,24 @@ class SardanaMacro(CommandObject, SardanaObject):
             )
             self.emit("commandFailed", (-1, self.name()))
 
-        if wait:
-            logging.getLogger("HWR").debug("... start waiting...")
-            t = gevent.spawn(end_of_macro, self)
-            t.get()
-            logging.getLogger("HWR").debug("... end waiting...")
-
         return
 
     def update(self, event):
         data = event.event[2]
 
         try:
-            if not isinstance(data, PyTango.DeviceAttribute):
+            if not isinstance(data, PyTango.DeviceAttribute) and \
+               not isinstance(data, TangoAttrValue):
                 # Events different than a value changed on attribute.  Taurus sends an event with attribute info
                 # logging.getLogger('HWR').debug("==========. Got an event, but it is not an attribute . it is %s" % type(data))
                 # logging.getLogger('HWR').debug("doorstate event. type is %s" % str(type(data)))
                 return
 
             # Handling macro state changed event
-            doorstate = str(data.value)
-            logging.getLogger("HWR").debug(
-                "doorstate changed. it is %s" % str(doorstate)
-            )
+            doorstate = data.rvalue
+            #logging.getLogger("HWR").debug(
+                #"doorstate changed. it is %s" % str(doorstate)
+            #)
 
             if doorstate != self.doorstate:
                 self.doorstate = doorstate
@@ -256,24 +259,25 @@ class SardanaMacro(CommandObject, SardanaObject):
                 # logging.getLogger('HWR').debug("self.doorstate is %s" % self.canExecute())
                 self.emit("commandCanExecute", (self.can_execute(),))
 
-                if doorstate in ["ON", "ALARM"]:
+                if doorstate in [DevState.ON, DevState.ALARM]:
                     # logging.getLogger('HWR').debug("Macroserver ready for commands")
                     self.emit("commandReady", ())
                 else:
                     # logging.getLogger('HWR').debug("Macroserver busy ")
                     self.emit("commandNotReady", ())
 
-            if self.macrostate == SardanaMacro.STARTED and doorstate == "RUNNING":
+            if self.macrostate == SardanaMacro.STARTED and \
+                doorstate == DevState.RUNNING:
                 # logging.getLogger('HWR').debug("Macro server is running")
                 self.macrostate = SardanaMacro.RUNNING
-            elif self.macrostate == SardanaMacro.RUNNING and (
-                doorstate in ["ON", "ALARM"]
+            elif self.macrostate == SardanaMacro.RUNNING and (\
+                doorstate in [DevState.ON, DevState.ALARM]
             ):
                 logging.getLogger("HWR").debug("Macro execution finished")
                 self.macrostate = SardanaMacro.DONE
                 self.result = self.door.result
                 self.emit("commandReplyArrived", (self.result, str(self.name())))
-                if doorstate == "ALARM":
+                if doorstate == DevState.ALARM:
                     self.emit("commandAborted", (str(self.name()),))
                 self._reply_arrived_event.set()
             elif (
@@ -412,22 +416,25 @@ class SardanaChannel(ChannelObject, SardanaObject):
             return
 
         # read information
-        try:
-            if taurus.Release.version_info[0] == 3:
-                ranges = self.attribute.getConfig().getRanges()
-                if ranges is not None and ranges[0] != "Not specified":
-                    self.info.minval = float(ranges[0])
-                if ranges is not None and ranges[-1] != "Not specified":
-                    self.info.maxval = float(ranges[-1])
-            elif taurus.Release.version_info[0] > 3:  # taurus 4 and beyond
-                minval, maxval = self.attribute.ranges()
-                self.info.minval = minval.magnitude
-                self.info.maxval = maxval.magnitude
-        except Exception:
-            import traceback
+        if "Position" in str(self.attribute): # RB: quick hack, find a better way to check if this channel is a position channel
+            try:
+                if taurus.Release.version_info[0] == 3:
+                    ranges = self.attribute.getConfig().getRanges()
+                    if ranges is not None and ranges[0] != "Not specified":
+                        self.info.minval = float(ranges[0])
+                    if ranges is not None and ranges[-1] != "Not specified":
+                        self.info.maxval = float(ranges[-1])
+                elif taurus.Release.version_info[0] > 3:  # taurus 4 and beyond
+                    minval, maxval = self.attribute.getRanges()
+                    print self.attribute
+                    print str(self.attribute.getRanges())
+                    self.info.minval = minval.magnitude
+                    self.info.maxval = maxval.magnitude
+            except Exception:
+                import traceback
 
-            logging.getLogger("HWR").info("info initialized. Cannot get limits")
-            logging.getLogger("HWR").info("%s" % traceback.format_exc())
+                logging.getLogger("HWR").info("info initialized for Sardana channel %s. Cannot get limits" % self.model)
+                logging.getLogger("HWR").info("%s" % traceback.format_exc())
 
         # prepare polling
         # if the polling value is a number set it as the taurus polling period
@@ -441,26 +448,54 @@ class SardanaChannel(ChannelObject, SardanaObject):
     def get_value(self):
         return self._read_value()
 
+    def force_get_value(self):
+        return self._force_read_value()
+
     def set_value(self, new_value):
         self._write_value(new_value)
 
     def _write_value(self, new_value):
         self.attribute.write(new_value)
 
+    #TODO improve this: the magnitude is probably only available for certain channels, and the rvalue for others
+    #   Instead of an exception, an if statement should decide which read method is to be applied, 
+    #   and a proper exception should be issued when necessary
     def _read_value(self):
-        value = self.attribute.read().value
+        value = None
+        if taurus.Release.version_info[0] == 3:
+            value = self.attribute.read().value
+        elif taurus.Release.version_info[0] > 3:  # taurus 4 and beyond
+            try:
+                magnitude = getattr(self.attribute.rvalue, 'magnitude')
+                value = magnitude
+            except Exception:
+                value = self.attribute.rvalue
+        return value
+
+    def _force_read_value(self):
+        value = None
+        if taurus.Release.version_info[0] == 3: # not sure if this works in versions of taurus 3 and below
+            value = self.attribute.read(cache=False).value
+        elif taurus.Release.version_info[0] > 3:  # taurus 4 and beyond
+            value = self.attribute.read(cache=False).rvalue
         return value
 
     def get_info(self):
         try:
-            b = dir(self.attribute)
-            (
-                self.info.minval,
-                self.info.maxval,
-            ) = self.attribute._TangoAttribute__attr_config.get_limits()
+            if taurus.Release.version_info[0] == 3:
+                ranges = self.attribute.getConfig().getRanges()
+                if ranges is not None and ranges[0] != "Not specified":
+                    self.info.min_val = float(ranges[0])
+                if ranges is not None and ranges[-1] != "Not specified":
+                    self.info.max_val = float(ranges[-1])
+            elif taurus.Release.version_info[0] > 3:   # taurus 4 and beyond
+                range = getattr(self.attribute, 'range')
+                self.info.min_val = range[0].magnitude
+                self.info.max_val = range[1].magnitude
         except Exception:
             import traceback
 
+            logging.getLogger("HWR").info("info initialized. Cannot get limits")
             logging.getLogger("HWR").info("%s" % traceback.format_exc())
         return self.info
 
@@ -469,7 +504,14 @@ class SardanaChannel(ChannelObject, SardanaObject):
         data = event.event[2]
 
         try:
-            new_value = data.value
+            new_value = None
+            if taurus.Release.version_info[0] == 3:
+                new_value = data.value
+            elif taurus.Release.version_info[0] > 3:  # taurus 4 and beyond
+                try:
+                    new_value = data.rvalue.magnitude
+                except Exception:
+                    new_value = data.rvalue
 
             if new_value is None:
                 new_value = self.get_value()

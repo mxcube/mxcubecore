@@ -1,5 +1,6 @@
-<device class="SardanaMotor">
+<device class="XalocSardanaMotor">
   <username>Center X</username>
   <taurusname>centx</taurusname>
   <actuator_name>CentX</actuator_name>
+  <threshold>0.00</threshold>
 </device>

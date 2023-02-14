@@ -1,5 +1,6 @@
-<device class="SardanaMotor">
+<device class="XalocSardanaMotor">
   <username>Kappa Phi</username>
-  <taurusname>kappaphi</taurusname>
+  <taurusname>phi</taurusname>
   <actuator_name>KappaPhi</actuator_name>
+  <threshold>0.0005</threshold>
 </device>

@@ -1,8 +1,0 @@
-<device class="ALBACalibration">
-  <username>Calibration</username>
-  <taurusname>bl13/ct/variables</taurusname>
-  <channel type="sardana" name="calibx">OAV_PIXELSIZE_X</channel>
-  <channel type="sardana" name="caliby">OAV_PIXELSIZE_Y</channel>
-  <interval>200</interval>
-  <threshold>0.001</threshold>
-</device>

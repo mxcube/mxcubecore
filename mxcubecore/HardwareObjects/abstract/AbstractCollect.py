@@ -171,12 +171,22 @@ class AbstractCollect(HardwareObject, object):
                 "%Y-%m-%d %H:%M:%S"
             )
 
+            log.info("Collection: Storing data collection in LIMS")
+            self.store_data_collection_in_lims()
+
             logging.getLogger("HWR").info(
                 "Collection parameters: %s" % str(self.current_dc_parameters)
             )
 
-            log.info("Collection: Storing data collection in LIMS")
-            self.store_data_collection_in_lims()
+            if (
+                self.current_dc_parameters['processing_online']
+                and HWR.beamline.online_processing is not None
+            ):
+                HWR.beamline.online_processing.params_dict["collection_id"] = self.current_dc_parameters["collection_id"] 
+                self.online_processing_task = gevent.spawn(
+                    HWR.beamline.online_processing.run_processing, 
+                    self.current_dc_parameters
+                )
 
             log.info(
                 "Collection: Creating directories for raw images and processing files"
@@ -610,7 +620,7 @@ class AbstractCollect(HardwareObject, object):
                     i += 1
             params[
                 "resolutionAtCorner"
-            ] = HWR.beamline.resolution.get_value_at_corner()
+            ] = self.get_value_at_corner()
             beam_size_x, beam_size_y = HWR.beamline.beam.get_beam_size()
             params["beamSizeAtSampleX"] = beam_size_x
             params["beamSizeAtSampleY"] = beam_size_y
@@ -828,6 +838,13 @@ class AbstractCollect(HardwareObject, object):
 
     @abc.abstractmethod
     def data_collection_hook(self):
+        """
+        Descript. :
+        """
+        pass
+
+    @abc.abstractmethod
+    def get_value_at_corner(self):
         """
         Descript. :
         """

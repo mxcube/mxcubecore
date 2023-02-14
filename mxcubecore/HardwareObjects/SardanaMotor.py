@@ -59,7 +59,7 @@ class SardanaMotor(AbstractMotor):
         self.limit_lower = None
         self.static_limits = (-1e4, 1e4)
         self.limits = (None, None)
-        self.motor_state = MotorStates.NOTINITIALIZED
+        self.motor_state = MotorStates.INITIALIZING
 
     def init(self):
 
@@ -175,7 +175,7 @@ class SardanaMotor(AbstractMotor):
         if state is None:
             state = self.state_channel.get_value()
 
-        state = str(state)
+        state = str(state).strip("DevState.")
         motor_state = SardanaMotor.state_map[state]
 
         if motor_state != MotorStates.DISABLED:
@@ -184,7 +184,6 @@ class SardanaMotor(AbstractMotor):
             elif self.motor_position <= self.limit_lower:
                 motor_state = MotorStates.LOWLIMIT
 
-        self.set_ready(motor_state > MotorStates.DISABLED)
 
         if motor_state != self.motor_state:
             self.motor_state = motor_state
@@ -216,6 +215,9 @@ class SardanaMotor(AbstractMotor):
                     static_limits is returned
         """
         try:
+            info = self.position_channel.get_info()
+            self.limit_lower = info.minval
+            self.limit_upper = info.maxval
             return (self.limit_lower, self.limit_upper)
         except Exception:
             return (None, None)
