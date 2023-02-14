@@ -22,7 +22,7 @@
 [Description]
 Specific implementation of the collection methods for ALBA synchrotron.
 Basic Flow:
-    do_collect in AbstractCollect: TODO this opens shutters. Is the beamstop always in by then???
+    do_collect in AbstractCollect: 
       data_collection_hook in XalocCollect
         prepare_acquisition in XalocCollect
           detector_hwobj.prepare_acquisition
@@ -30,8 +30,11 @@ Basic Flow:
           detector_hwobj.prepare_collection                     <-- Repeated for each test image in case of characterization
         collect_images                                               
            wait_collection_done
-        collection_finished (AbstractCollect)
-    data_collection_cleanup in XalocCollect (supersedes AbstractCollect method with same name)
+        collection_finished (AbstractCollect) if collection works
+        collection_failed if there is a problem
+    data_collection_cleanup is always called from do_collect (supersedes AbstractCollect method with same name)
+    
+    IMPORTANT: the stop button in mxcube throughs an exception in the queue, so there is no need to throw exceptions in Collect
     
     
 TODO: dc has a parameter run_processing_after which is not used in collection_finished
@@ -709,7 +712,7 @@ class XalocCollect(AbstractCollect):
                                  )
                 # TODO: that should not be here: prepare mesh or sardana instead
                 self.write_image_headers(0)
-                time.sleep(1)
+                time.sleep(0.1)
                 self.run_ascanct(
                         mesh_xaloc_fast_motor_name,
                         local_fast_start_pos,
@@ -881,7 +884,7 @@ class XalocCollect(AbstractCollect):
     def run_ascanct(self, moveable, start_pos, final_pos, deg_interval, time_interval, deadtime, first_image_no, nb_images):
         if self.aborted_by_user: 
                 self.logger.info("User interruption of data collection during mesh scan detected, aborting ascanct" )
-                return # cleanup will be handled in stop_collect
+                return # cleanup will be handled in data_collection_cleanup
 
         self.logger.info( "Collecting images using the ascanct macro" )
         total_time = time_interval * (final_pos - start_pos) / deg_interval
@@ -1165,18 +1168,19 @@ class XalocCollect(AbstractCollect):
             self.omega_hwobj.wait_ready( timeout= total_time + 5 )
         if last_image_no != first_image_no: 
             self.wait_save_image( last_image_no ) 
-        self.logger.info("  wait_collection_done last image found" )
+        #self.logger.info("  wait_collection_done last image found" ) # doesnt make much sense when user aborts collection
         for motorname in self.scan_move_motor_names:
             self.logger.info("     Motor %s position = %.2f" % ( motorname, self.scan_motors_hwobj[motorname].get_value() ) )
 
         # Wait for omega to stop moving, it continues further than necessary
-        if not self.omega_hwobj.is_ready(): self.omega_hwobj.wait_ready(timeout=40)
-        # Wait for any other motors to stop moving
-        for motorname in self.scan_move_motor_names:
-            if not self.scan_motors_hwobj[motorname].is_ready(): 
-                self.scan_motors_hwobj[motorname].wait_ready(timeout=40)
-        # Make sure the detector is ready (in stand by and not moving)
-        self.detector_hwobj.wait_ready()
+        if not self.aborted_by_user:
+            if self.omega_hwobj.is_ready(): self.omega_hwobj.wait_ready(timeout=40)
+            # Wait for any other motors to stop moving
+            for motorname in self.scan_move_motor_names:
+                if not self.scan_motors_hwobj[motorname].is_ready(): 
+                    self.scan_motors_hwobj[motorname].wait_ready(timeout=40)
+            # Make sure the detector is ready (in stand by and not moving)
+            self.detector_hwobj.wait_ready()
 
     def wait_save_image(self, frame_number, timeout=25):
 
@@ -1184,7 +1188,7 @@ class XalocCollect(AbstractCollect):
 
         start_wait = time.time()
 
-        self.logger.debug("   waiting for first image on disk: %s" % full_path)
+        self.logger.debug("   waiting for image on disk: %s" % full_path)
 
         while not os.path.exists(full_path) and not self.aborted_by_user: 
             # TODO: review next line for NFTS related issues.
@@ -1201,7 +1205,7 @@ class XalocCollect(AbstractCollect):
                 
                 self.data_collection_failed( RuntimeError(msg), msg )
                 #return False
-            #logging.getLogger('user_level_log').error("self._collecting %s" % str(self._collecting) )
+            self.logger.debug("self.aborted_by_user %s" % str(self.aborted_by_user) )
             time.sleep(0.2)
 
         self.detector_hwobj.get_saving_statistics()
@@ -1232,7 +1236,7 @@ class XalocCollect(AbstractCollect):
         self.logger.debug("   writing thumbnails info in LIMS")
         self.store_image_in_lims(frame_number)
 
-        self.logger.debug("   Found image on disk: %s" % full_path)
+        if not self.aborted_by_user: self.logger.debug("   Found image on disk: %s" % full_path)
 
         return True
 
@@ -1280,19 +1284,8 @@ class XalocCollect(AbstractCollect):
         
         self.logger.debug("XalocCollect data_collection_cleanup") 
 
-        start_wait = time.time()
-        timeout = 100 #TODO set a more educated guess for the timeout, depending on the time needed for the scan 
-
-        if self.aborted_by_user:
-            self.logger.info(" Stopping detector")
-            self.detector_hwobj.stop_collection()
         # Not sure what the following line does, does it remove any errors??
         if self.detector_hwobj.get_cam_state() == 'ERROR': self.detector_hwobj.stop_collection()
-
-        for helmovemotorname in self.scan_move_motor_names:
-            self.scan_motors_hwobj[helmovemotorname].stop()
-
-        self._collecting = False
         
         self.logger.debug("XalocCollect Unconfiguring the NI") 
         self.unconfigure_ni()
@@ -1331,6 +1324,9 @@ class XalocCollect(AbstractCollect):
 
         self.scan_delete_motor_data()
         self.fastshut_hwobj.close() # RB: not sure if it closes when unconfiguring it, just in case
+
+        self._collecting = False
+        self.mxcube_sardanascan_running = False
         self.aborted_by_user = False
 
         self.logger.debug("Xaloc data_collection_cleanup finished")
@@ -1372,10 +1368,14 @@ class XalocCollect(AbstractCollect):
             
             if super_state == DevState.ON and cphase == "COLLECT":
                 break
-            if time.time() - t0 > timeout or self.aborted_by_user:
+            if time.time() - t0 > timeout:
                 msg = "Timeout sending supervisor to collect phase"
                 self.logger.debug(msg)
                 self.data_collection_failed( RuntimeError(msg), msg )
+            if  self.aborted_by_user:
+                msg = "Collection aborted by user"
+                self.logger.debug(msg)
+                self.data_collection_failed( Exception(msg), msg )
             gevent.sleep(0.5)
 
         self.logger.debug("New supervisor phase is %s (Collect phase was requested)" % cphase)
@@ -1434,14 +1434,17 @@ class XalocCollect(AbstractCollect):
         t0 = time.time()
         while True:
             super_state = self.supervisor_hwobj.get_state()
+            self.logger.debug("Supervisor state is %s" % super_state)
             if super_state == DevState.ON:
+                break
+            elif super_state == None:
+                self.user_level_log.debug("Inform your LC that supervisor state is %s" % super_state)
                 break
             if time.time() - t0 > timeout:
                 msg = "Timeout waiting for supervisor ready, call your LC"
                 self.user_logger.error(msg)
                 self.data_collection_failed( RuntimeError("Supervisor cannot be operated (state %s)" % super_state), msg)
                 break
-            self.logger.debug("Supervisor state is %s" % super_state)
             gevent.sleep(0.5)
 
         #
@@ -1740,14 +1743,25 @@ class XalocCollect(AbstractCollect):
             The queue_entry stop method is called from the QueueManager when the user clicks stop
         
         """
-        self.logger.debug("XalocCollect stopCollect")
+        self.logger.debug("XalocCollect stop_collect")
         self.aborted_by_user = True
 
         # Before killing the process, wait for a line scan to stop. self.aborted_by_user is read in the mesh scan methods to decide to go on or not
+        self.logger.info(" Wait for line scan to finish ")
+        start_wait = time.time()
+        timeout = 100 #TODO set a more educated guess for the timeout, depending on the time needed for the scan 
         while self.mxcube_sardanascan_running == True and (time.time() - start_wait) < timeout:
             time.sleep(0.01)
         if (time.time() - start_wait) > timeout:
             logging.getLogger('user_level_log').error("Timeout waiting for scan to stop. Is the Macroserver ok?")
+        self.logger.debug(" Line scan finished in %s secs " % ( time.time()-start_wait ) )
+
+        self.logger.info(" Stopping detector")
+        self.detector_hwobj.stop_collection()
+        self.logger.info(" Stopping omega motor")
+        self.omega_hwobj.stop()
+        for helmovemotorname in self.scan_move_motor_names:
+            self.scan_motors_hwobj[helmovemotorname].stop()
 
         AbstractCollect.stop_collect(self) # this kills the collect job
 
