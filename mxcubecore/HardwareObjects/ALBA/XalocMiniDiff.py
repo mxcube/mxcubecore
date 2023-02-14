@@ -819,10 +819,12 @@ class XalocMiniDiff(GenericDiffractometer):
         stime = time.time()
         while time.time() - stime < time_for_scan:
             if not ( -1 in self.find_loop_xaloc()[:1] ):
-                hor_mot_hwobj.stop()
-                spindle_mot_hwobj.stop()
                 break
             gevent.sleep(0.1)
+            
+        hor_mot_hwobj.stop()
+        spindle_mot_hwobj.stop()
+        gevent.sleep(0.1)
         
         # reset the velocities
         hor_mot_hwobj.set_velocity(hor_mot_ini_vel)
