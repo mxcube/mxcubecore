@@ -37,20 +37,20 @@ class ExpTimeEnum(float, enum.Enum):
 class SSXUserCollectionParameters(BaseModel):
     sub_sampling: float = Field(6, gt=0, lt=100)
     exp_time: float = Field(100e-6, gt=0, lt=1)
-    motor_top_left_x: float = Field(18, gt=-100, lt=100)
-    motor_top_left_y: float = Field(15.8, gt=-100, lt=100)
-    motor_top_left_z: float = Field(-0.17, gt=-100, lt=100)
+    motor_top_left_x: float = Field(7, gt=-100, lt=100)
+    motor_top_left_y: float = Field(3, gt=-100, lt=100)
+    motor_top_left_z: float = Field(0.08, gt=-100, lt=100)
 
-    motor_top_right_x: float = Field(22, gt=-100, lt=100)
-    motor_top_right_y: float = Field(15.8, gt=-100, lt=100)
-    motor_top_right_z: float = Field(-0.17, gt=-100, lt=100)
+    motor_top_right_x: float = Field(32, gt=-100, lt=100)
+    motor_top_right_y: float = Field(3, gt=-100, lt=100)
+    motor_top_right_z: float = Field(0.08, gt=-100, lt=100)
 
-    motor_bottom_left_x: float = Field(18, gt=-100, lt=100)
-    motor_bottom_left_y: float = Field(24, gt=-100, lt=100)
-    motor_bottom_left_z: float = Field(-0.17, gt=-100, lt=100)
+    motor_bottom_left_x: float = Field(7, gt=-100, lt=100)
+    motor_bottom_left_y: float = Field(28, gt=-100, lt=100)
+    motor_bottom_left_z: float = Field(0.08, gt=-100, lt=100)
 
-    nb_samples_per_line: int = Field(60, gt=0, lt=1000)
-    nb_lines: int = Field(820, gt=0, lt=1000)
+    nb_samples_per_line: int = Field(500, gt=0, lt=1000)
+    nb_lines: int = Field(3000, gt=0, lt=10000)
     take_pedestal: bool = Field(True)
 
     class Config:
@@ -70,14 +70,14 @@ class SsxFoilCollectionQueueModel(DataCollection):
         super().__init__(**kwargs)
 
 
-class SsxFoilCollectionQueueEntry(BaseQueueEntry):
+class SsxBigFoilCollectionQueueEntry(BaseQueueEntry):
     """
     Defines the behaviour of a data collection.
     """
 
     QMO = SsxFoilCollectionQueueModel
     DATA_MODEL = SsxFoilColletionTaskParameters
-    NAME = "SSX Foil Collection (Lima1)"
+    NAME = "SSX Big Foil Collection (Lima1)"
     REQUIRES = ["point", "line", "no_shape", "chip", "mesh"]
 
     # New style queue entry does not take view argument,
@@ -90,8 +90,6 @@ class SsxFoilCollectionQueueEntry(BaseQueueEntry):
         debug(self._data_model._task_data)
         params = self._data_model._task_data.user_collection_parameters
         exp_time = params.exp_time
-
-        MAX_FREQ = 925.0
 
         # if HWR.beamline.control.safshut_oh2.state.name == "DISABLE":
         #    raise RuntimeError(HWR.beamline.control.safshut_oh2.state.value)
@@ -136,7 +134,7 @@ class SsxFoilCollectionQueueEntry(BaseQueueEntry):
                 HWR.beamline.control.jungfrau4m,
                 params.exp_time,
                 1000,
-                MAX_FREQ / params.sub_sampling,
+                500,
                 pedestal_base_path=pedestal_dir,
                 pedestal_filename="pedestal",
             )
