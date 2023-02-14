@@ -1,11 +1,13 @@
 """
 A client for PyISPyB Webservices.
 """
+import urllib3
 import logging
 import datetime
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.model.common import BeamlineParameters
 
 import pyispyb_client
 
@@ -71,7 +73,10 @@ class PyISPyBClient(HardwareObject):
                 request_token = True
 
         if request_token:
-            self.authenticate()
+            try:
+                self.authenticate()
+            except Exception:
+                logging.getLogger("HWR").exception("")
 
     def authenticate(self):
         with pyispyb_client.ApiClient(self._configuration) as api_client:
@@ -93,6 +98,19 @@ class PyISPyBClient(HardwareObject):
                     "Exception when calling AuthenticationApi->login_ispyb_api_v1_auth_login_post: %s\n"
                     % e
                 )
+
+    def get_current_beamline_values(self):
+        return BeamlineParameters(
+            **{
+                "energy": HWR.beamline.energy.get_value(),
+                "wavelength": HWR.beamline.energy.get_wavelength(),
+                "resolution": HWR.beamline.resolution.get_value(),
+                "transmission": HWR.beamline.transmission.get_value(),
+                "detector_distance": HWR.beamline.detector.distance.get_value(),
+                "beam_x": HWR.beamline.detector.get_beam_position()[0],
+                "beam_y": HWR.beamline.detector.get_beam_position()[1],
+            }
+        )
 
     def create_ssx_data_collection_group(self, session_id=None):
         self._update_token()
@@ -162,50 +180,52 @@ class PyISPyBClient(HardwareObject):
                 api_client
             )
             ssx_data_collection_create = {
-                "dataCollectionGroupId":dcg_id,
-                "exposureTime":collection_parameters.user_collection_parameters.exp_time,
-                "transmission":beamline_parameters.transmission,
-                "flux":0.0,
-                "xBeam":beamline_parameters.beam_x,
-                "yBeam":beamline_parameters.beam_y,
-                "wavelength":beamline_parameters.wavelength,
-                "detectorDistance":beamline_parameters.detector_distance,
-                "beamSizeAtSampleX":0.0,
-                "beamSizeAtSampleY":0.0,
-                "average_temperature":0.0,
-                "xtalSnapshotFullPath1":"",
-                "xtalSnapshotFullPath2":"",
-                "xtalSnapshotFullPath3":"",
-                "xtalSnapshotFullPath4":"",
-                "imagePrefix":collection_parameters.path_parameters.prefix,
-                "numberOfPasses":1,
-                "numberOfImages":collection_parameters.user_collection_parameters.num_images,
-                "resolution":beamline_parameters.resolution,
-                "resolutionAtCorner":0.0,
-                "flux_end":0.0,
-                "detector_id":4,
-                "startTime":datetime.datetime.now(),
-                "endTime":datetime.datetime.now(),
-                "repetitionTate":0.0,
-                "energyBandwidth":0.0,
-                "monoStripe":"mono_stripe_example",
-                "jetSize":0,
-                "jetSpeed":0,
-                "laserEnergy":0,
-                "chipModel":"",
-                "chipPattern":"",
-                "beamShape":"",
-                "polarisation":0,
-                "underlator_gap1":0,
-                "event_chains":[{
-                        "name":"name",
-                        "events":[{
-                                "type":"XrayDetection",
-                                "name":"name",
-                                "offset":0.0,
-                                "duration":0.0,
-                                "period":0.0,
-                                "repetition":0.0,
+                "dataCollectionGroupId": dcg_id,
+                "exposureTime": collection_parameters.user_collection_parameters.exp_time,
+                "transmission": beamline_parameters.transmission,
+                "flux": 0.0,
+                "xBeam": beamline_parameters.beam_x,
+                "yBeam": beamline_parameters.beam_y,
+                "wavelength": beamline_parameters.wavelength,
+                "detectorDistance": beamline_parameters.detector_distance,
+                "beamSizeAtSampleX": 0.0,
+                "beamSizeAtSampleY": 0.0,
+                "average_temperature": 0.0,
+                "xtalSnapshotFullPath1": "",
+                "xtalSnapshotFullPath2": "",
+                "xtalSnapshotFullPath3": "",
+                "xtalSnapshotFullPath4": "",
+                "imagePrefix": collection_parameters.path_parameters.prefix,
+                "numberOfPasses": 1,
+                "numberOfImages": collection_parameters.collection_parameters.num_images,
+                "resolution": beamline_parameters.resolution,
+                "resolutionAtCorner": 0.0,
+                "flux_end": 0.0,
+                "detector_id": 4,
+                "startTime": datetime.datetime.now(),
+                "endTime": datetime.datetime.now(),
+                "repetitionTate": 0.0,
+                "energyBandwidth": 0.0,
+                "monoStripe": "mono_stripe_example",
+                "jetSize": 0,
+                "jetSpeed": 0,
+                "laserEnergy": 0,
+                "chipModel": "",
+                "chipPattern": "",
+                "beamShape": "",
+                "polarisation": 0,
+                "underlator_gap1": 0,
+                "event_chains": [
+                    {
+                        "name": "name",
+                        "events": [
+                            {
+                                "type": "XrayDetection",
+                                "name": "name",
+                                "offset": 0.0,
+                                "duration": 0.0,
+                                "period": 0.0,
+                                "repetition": 0.0,
                             },
                         ],
                     },
@@ -227,6 +247,7 @@ class PyISPyBClient(HardwareObject):
                 )
 
     def create_ssx_collection(self, collection_parameters, beamline_parameters):
+        return
         try:
             dcg = self.create_ssx_data_collection_group()
             self.create_ssx_data_collection(
