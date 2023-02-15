@@ -35,7 +35,7 @@ settings:
     # 'configured': set value from calibration and characterisation strategy file
     # 'current': use current value
     starting_beamline_energy: current
-    default_beam_energy_tag: Acquisition
+    default_beam_energy_tag: Main
 
 
     defaults:
