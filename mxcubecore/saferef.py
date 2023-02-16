@@ -27,7 +27,7 @@ def safe_ref(target, on_delete=None):
             )
             reference = BoundMethodWeakref(target=target, on_delete=on_delete)
             return reference
-    if isinstance(on_delete, collections.Callable):
+    if isinstance(on_delete, collections.abc.Callable):
         return weakref.ref(target, on_delete)
     else:
         return weakref.ref(target)
@@ -118,7 +118,7 @@ class BoundMethodWeakref(object):
                 pass
             for function in methods:
                 try:
-                    if isinstance(function, collections.Callable):
+                    if isinstance(function, collections.abc.Callable):
                         function(self)
                 except Exception:
                     try:

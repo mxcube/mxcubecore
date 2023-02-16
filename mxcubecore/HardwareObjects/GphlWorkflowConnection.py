@@ -49,8 +49,8 @@ import socket
 origsocket = sys.modules.pop("socket")
 _origsocket = sys.modules.pop("_socket")
 import socket
-java_gateway.socket = socket #HWR.original_socket
-clientserver.socket = socket #HWR.original_socket
+java_gateway.socket = socket
+clientserver.socket = socket
 sys.modules["socket"] = origsocket
 sys.modules["_socket"] =_origsocket
 del origsocket

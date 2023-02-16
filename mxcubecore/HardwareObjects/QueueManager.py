@@ -8,6 +8,7 @@ container of the queue, note the inheritance from QueueEntryContainer. See the
 documentation for the queue_entry module for more information.
 """
 import logging
+import traceback
 import gevent
 import traceback
 

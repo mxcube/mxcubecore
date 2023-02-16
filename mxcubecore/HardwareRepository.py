@@ -166,7 +166,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
                 raise
 
     if not msg0:
-        # Recursively load contained objects (of any type that the system can supprt)
+        # Recursively load contained objects (of any type that the system can support)
         _objects = configuration.pop("_objects", {})
         if _objects:
             load_time = 1000 * (time.time() - start_time)

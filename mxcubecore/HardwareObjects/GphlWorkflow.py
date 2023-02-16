@@ -44,6 +44,7 @@ from mxcubecore.dispatcher import dispatcher
 from mxcubecore.utils import conversion
 from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
 from mxcubecore.model import queue_model_objects
+from mxcubecore.model import queue_model_enumerables
 from mxcubecore.queue_entry import QUEUE_ENTRY_STATUS
 from mxcubecore.queue_entry import QueueAbortedException
 
@@ -107,9 +108,12 @@ class GphlWorkflow(HardwareObjectYaml):
         # And as a place to get hold of other objects
         self._queue_entry = None
 
-        # Configuration data - set when queried
-        self.workflows = {}
+        # Configuration data - set on load
+        self.workflows = OrderedDict()
         self.settings = {}
+        self.test_crystals = {}
+        # auxiliary data structure from configuration. Set in init
+        self.workflow_strategies = OrderedDict()
 
         # Current data collection task group. Different for characterisation and collection
         self._data_collection_group = None
@@ -137,6 +141,10 @@ class GphlWorkflow(HardwareObjectYaml):
 
         # Configurable file paths
         self.file_paths = {}
+
+        # TEST mxcube3 UI
+        self.gevent_event = gevent.event.Event()
+        self.params_dict = {}
 
     def _init(self):
         super(GphlWorkflow, self)._init()
@@ -200,11 +208,11 @@ class GphlWorkflow(HardwareObjectYaml):
             opt0["beamline"] = beamline_hook
             default_strategy_name = None
             for strategy in workflow["strategies"]:
+                strategy_name = strategy["title"]
+                self.workflow_strategies[strategy_name] = strategy
                 strategy["wftype"] = wftype
                 if default_strategy_name is None:
-                    default_strategy_name = workflow["strategy_name"] = (
-                        strategy["title"]
-                    )
+                    default_strategy_name = workflow["strategy_name"] = strategy_name
                 dd0 = opt0.copy()
                 dd0.update(strategy.get("options", {}))
                 strategy["options"] = dd0
@@ -230,17 +238,266 @@ class GphlWorkflow(HardwareObjectYaml):
         return copy.deepcopy(self.workflows)
 
     def query_pre_strategy_params(self, data_model, choose_lattice=None):
-        """
-        choose_lattice is the Message object, passed in at teh select_lattice stage
-        """
-        #
-        return {}
+        """Query pre_strategy parameters.
+        Used for both characterisation, diffractcal, and acquisition
 
-    def query_pre_collection_params(self, data_model):
+        :param data_model (GphlWorkflow): GphlWorkflow QueueModelObjecy
+        :param choose_lattice (ChooseLattice): GphlMessage.ChooseLattice
+        :return: -> dict
         """
-        """
+        gphl_workflow_hwr = HWR.beamline.gphl_workflow
+        workflow_parameters = data_model.get_workflow_parameters()
+        schema = {
+            "title": "GΦL Pre-strategy parameters",
+            "type": "object",
+            "properties": {},
+            "definitions": {},
+        }
+        fields = schema["properties"]
+        fields["cell_a"] = {
+            "title": "A",
+            "type": "number",
+            "minimum": 0,
+        }
+        fields["cell_b"] = {
+            "title": "B",
+            "type": "number",
+            "minimum": 0,
+        }
+        fields["cell_c"] = {
+            "title": "C",
+            "type": "number",
+            "minimum": 0,
+        }
+        fields["cell_alpha"] = {
+            "title": "α",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 180,
+        }
+        fields["cell_beta"] = {
+            "title": "β",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 180,
+        }
+        fields["cell_gamma"] = {
+            "title": "γ",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 180,
+        }
+        fields[ "lattice"] = {
+            "title": "Lattice",
+            "default": data_model.crystal_system or "",
+            "$ref": "#/definitions/lattice",
+        }
+        fields["point_group"] = {
+            "title": "Point Group",
+            "default": data_model.point_group or "",
+            "$ref": "#/definitions/point_group",
+        }
+        fields["space_group"] = {
+            "title": "Space Group",
+            "default": data_model.space_group or "",
+            "$ref": "#/definitions/space_group",
+        }
+        fields["relative_rad_sensitivity"] = {
+            "title": "Radiation sensitivity",
+            "default": data_model.relative_rad_sensitivity or 1.0,
+            "type": "number",
+            "minimum": 0,
+        }
+        fields["use_cell_for_processing"] = {
+            "title": "Use for indexing",
+            "type": "boolean",
+            "default": False,
+        }
+        fields["resolution"] = {
+            "title": "Resolution",
+            "type": "number",
+            "default": HWR.beamline.resolution.get_value(),
+            "minimum": 0,
+        }
+        fields["decay_limit"] = {
+            "title": "Signal decay limit (%)",
+            "type": "number",
+            "default": 25,
+            "minimum": 1,
+            "maximum": 99,
+        }
+        fields["strategy"] = {
+            "title": "Strategy",
+            "$ref": "#/definitions/strategy",
+
+        }
+        schema["definitions"]["lattice"] = list(
+            {
+                "type": "string",
+                "enum": [tag],
+                "title": tag,
+            }
+            for tag in queue_model_enumerables.lattice2xtal_point_groups
+        )
+        schema["definitions"]["point_group"] = list(
+            {
+                "type": "string",
+                "enum": [tag],
+                "title": tag,
+            }
+            for tag in queue_model_enumerables.xtal_point_groups
+        )
+        schema["definitions"]["space_group"] = list(
+            {
+                "type": "string",
+                "enum": [tag],
+                "title": tag,
+            }
+            for tag in queue_model_enumerables.XTAL_SPACEGROUPS
+        )
+        # Handle strategy fields
+        if data_model.characterisation_done or data_model.get_type() == "diffractcal":
+            strategies = workflow_parameters["variants"]
+            fields["strategy"]["default"] = strategies[0]
+            fields["strategy"]["title"] = "Acquisition strategy"
+            energy_tags = workflow_parameters.get(
+                "beam_energy_tags",
+                (gphl_workflow_hwr.settings["default_beam_energy_tag"],)
+            )
+        else:
+            # Characterisation
+            strategies = gphl_workflow_hwr.settings["characterisation_strategies"]
+            fields["strategy"]["default"] = (
+                gphl_workflow_hwr.settings["defaults"]["characterisation_strategy"]
+            )
+            fields["strategy"]["title"] = "Characterisation strategy"
+            energy_tags = ("Characterisation",)
+        schema["definitions"]["strategy"] = list(
+            {
+                "type": "string",
+                "enum": [tag],
+                "title": tag,
+            }
+            for tag in strategies
+        )
+        # Handle cell parameters
+        cell_parameters = data_model.cell_parameters
+        if cell_parameters:
+            for tag, val in zip(
+                ("cell_a", "cell_b", "cell_c", "cell_alpha", "cell_beta", "cell_gamma"),
+                data_model.cell_parameters
+            ):
+                fields[tag]["default"] = val
+
+        ui_schema = {
+            "ui:order": ["crystal_data", "parameters"],
+            "ui:widget": "vertical_box",
+            "crystal_data": {
+                "ui:title": "Unit Cell",
+                "ui:widget": "column_grid",
+                "ui:order": ["cell_edges", "cell_angles", "symmetry"],
+                "cell_edges": {
+                    "ui:order": ["cell_a", "cell_b", "cell_c"],
+                },
+                "cell_angles": {
+                    "ui:order": ["cell_alpha", "cell_beta", "cell_gamma"],
+                },
+                "symmetry": {
+                    "ui:order": ["lattice", "point_group", "space_group"],
+                    # "lattice":{
+                    #     "ui:widget": "select",
+                    # },
+                    # "point_group":{
+                    #     "ui:widget": "select",
+                    # },
+                    # "space_group":{
+                    #     "ui:widget": "select",
+                    # },
+                },
+            },
+            "parameters": {
+                "ui:title": "Parameters",
+                "ui:widget": "column_grid",
+                "ui:order": ["column1", "column2"],
+                "column1": {
+                    "ui:order": [
+                        "relative_rad_sensitivity",
+                        "strategy",
+                        "decay_limit"
+                    ],
+                    "relative_rad_sensitivity": {
+                        "ui:options": {
+                            "decimals": 2,
+                        }
+                    },
+                    # "strategy":{
+                    #     "ui:widget": "select",
+                    # },
+                    "decay_limit": {
+                        "ui:readonly": True,
+                        "ui:options": {
+                            "decimals": 1,
+                        },
+                    },
+                },
+                "column2": {
+                    "ui:order": [
+                        "use_cell_for_processing",
+                        "resolution",
+                    ],
+                    "resolution": {
+                        "ui:options": {
+                            "decimals": 3,
+                        },
+                    },
+                },
+            },
+        }
+
+        # Handle energies fields
+        # NBNB allow for fixed-energy beamlines
+        energy_limits = HWR.beamline.energy.get_limits()
+        col2 = ui_schema["parameters"]["column2"]
+        tags = ("energy1", "energy2", "energy3", )
+        for ii,energy_tag in enumerate(energy_tags):
+            fields[tags[ii]] = {
+                "title": "%s energy (keV)"  % energy_tag,
+                "type": "number",
+                "default": HWR.beamline.energy.get_value(),
+                "minimum": energy_limits[0],
+                "maximum": energy_limits[1],
+            }
+            col2["ui:order"].append(tags[ii])
+            col2[tags[ii]] = {
+                        "ui:options": {
+                            "decimals": 4,
+                        },
+            }
+        # for ii in range(len(energy_tags), len(tags)):
+        #     ui_schema["parameters"]["column2"][tags[ii]]["hidden"] = True
+
+        self._return_parameters = gevent.event.AsyncResult()
+
+        try:
+            responses = dispatcher.send(
+                "gphlJsonParametersNeeded",
+                self,
+                schema,
+                ui_schema,
+                self._return_parameters,
+            )
+            if not responses:
+                self._return_parameters.set_exception(
+                    RuntimeError("Signal 'gphlJsonParametersNeeded' is not connected")
+                )
+
+            params = self._return_parameters.get()
+            if params is StopIteration:
+                return StopIteration
+        finally:
+            self._return_parameters = None
         #
-        return {}
+        return params
 
 
     def pre_execute(self, queue_entry):
@@ -261,6 +518,20 @@ class GphlWorkflow(HardwareObjectYaml):
             # NB set defaults from data_model
             # NB consider whether to override on None
             params = self.query_pre_strategy_params(data_model)
+            if params is StopIteration:
+                self.workflow_failed()
+
+        print ('@~@~ returned parameters :')
+        for item in sorted(params.items()):
+            print (item)
+        print ('@~@~ end parameters\n\n')
+        cell_tags = (
+            "cell_a", "cell_b", "cell_c", "cell_alpha", "cell_beta", "cell_gamma"
+        )
+        cell_parameters = tuple(params.pop(tag, None) for tag in cell_tags)
+        if None not in cell_parameters:
+            params["cell_parameters"] = cell_parameters
+
         data_model.set_pre_strategy_params(**params)
         if data_model.detector_setting is None:
             resolution = HWR.beamline.resolution.get_value()
@@ -273,6 +544,7 @@ class GphlWorkflow(HardwareObjectYaml):
             # Set detector distance and resolution
             distance = data_model.detector_setting.axisSettings["Distance"]
             HWR.beamline.detector.distance.set_value(distance, timeout=30)
+        # self.test_dialog()
 
     def execute(self):
 
@@ -336,28 +608,22 @@ class GphlWorkflow(HardwareObjectYaml):
         if tag in ("BUSY", "READY", "UNKNOWN", "FAULT"):
             self.update_specific_state(getattr(self.SPECIFIC_STATES, tag))
 
-    def return_parameters(self, queue_entry):
-        self._return_parameters.set(queue_entry)
-
-    # def stop_iteration(self):
-    #     self._return_parameters.set(StopIteration)
-
     def _add_to_queue(self, parent_model_obj, child_model_obj):
         HWR.beamline.queue_model.add_child(parent_model_obj, child_model_obj)
 
     # Message handlers:
 
-    def workflow_aborted(self, payload, correlation_id):
+    def workflow_aborted(self, payload=None, correlation_id=None):
         logging.getLogger("user_level_log").warning("GPhL Workflow aborted.")
         self.update_specific_state(self.SPECIFIC_STATES.ABORTED)
         self._workflow_queue.put_nowait(StopIteration)
 
-    def workflow_completed(self, payload, correlation_id):
+    def workflow_completed(self, payload=None, correlation_id=None):
         logging.getLogger("user_level_log").info("GPhL Workflow completed.")
         self.update_specific_state(self.SPECIFIC_STATES.COMPLETED)
         self._workflow_queue.put_nowait(StopIteration)
 
-    def workflow_failed(self, payload, correlation_id):
+    def workflow_failed(self, payload=None, correlation_id=None):
         logging.getLogger("user_level_log").warning("GPhL Workflow failed.")
         self.update_specific_state(self.SPECIFIC_STATES.FAULT)
         self._workflow_queue.put_nowait(StopIteration)
@@ -390,6 +656,9 @@ class GphlWorkflow(HardwareObjectYaml):
         """Display collection strategy for user approval,
         and query parameters needed"""
 
+        # Number of decimals for rounding use_dose values
+        use_dose_decimals = 4
+
         data_model = self._queue_entry.get_data_model()
         wf_parameters = data_model.get_workflow_parameters()
 
@@ -413,9 +682,12 @@ class GphlWorkflow(HardwareObjectYaml):
             data_model.characterisation_done
             or wf_parameters.get("strategy_type") == "diffractcal"
         ):
-            lines = ["%s strategy" % self._queue_entry.get_data_model().get_type()]
+            title_string = data_model.get_type()
+            lines = [
+                "GΦL workflow %s, strategy '%s'"
+                % (title_string, data_model.strategy_options["variant"])
+            ]
             lines.extend(("-" * len(lines[0]), ""))
-            # Data collection TODO: Use workflow info to distinguish
             beam_energies = OrderedDict()
             energies = [initial_energy, initial_energy + 0.01, initial_energy - 0.01]
             for ii, tag in enumerate(data_model.wavelengths):
@@ -425,10 +697,11 @@ class GphlWorkflow(HardwareObjectYaml):
 
         else:
             # Characterisation
-            lines = ["Characterisation strategy"]
+            title_string = "Characterisation"
+            lines = ["GΦL Characterisation strategy"]
             lines.extend(("=" * len(lines[0]), ""))
             beam_energies = OrderedDict((("Characterisation", initial_energy),))
-            budget_use_fraction = data_model.get_characterisation_budget_fraction()
+            budget_use_fraction = data_model.characterisation_budget_fraction
             dose_label = "Charcterisation dose (MGy)"
             if not self.settings.get("recentre_before_start"):
                 # replace planned orientation with current orientation
@@ -439,6 +712,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     if pos is not None:
                         dd0[tag] = pos
 
+        # Make strategy-description info_text
         if len(beam_energies) > 1:
             lines.append(
                 "Experiment length: %s * %6.1f°" % (len(beam_energies), strategy_length)
@@ -465,7 +739,6 @@ class GphlWorkflow(HardwareObjectYaml):
             spacer = " " * (len(ss0) + 2)
             for ss1 in ll1[1:]:
                 lines.append(spacer + ss1)
-
         info_text = "\n".join(lines)
 
         # Set up image width pulldown
@@ -486,11 +759,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         resolution = HWR.beamline.resolution.get_value()
 
-        dose_budget = self.resolution2dose_budget(
-            resolution,
-            decay_limit=data_model.get_decay_limit(),
-            relative_sensitivity=data_model.get_relative_rad_sensitivity(),
-        )
+        dose_budget = data_model.recommended_dose_budget(resolution)
         default_image_width = float(allowed_widths[default_width_index])
         default_exposure = acq_parameters.exp_time
         exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
@@ -511,115 +780,6 @@ class GphlWorkflow(HardwareObjectYaml):
             std_dose_rate = 0
         transmission = acq_parameters.transmission
 
-        # define update functions
-
-        def update_function(field_widget):
-            """When image_width or exposure_time change,
-             update rotation_rate, experiment_time and either use_dose or transmission
-            In parameter popup"""
-            parameters = field_widget.get_parameters_map()
-            exposure_time = float(parameters.get("exposure", 0))
-            image_width = float(parameters.get("imageWidth", 0))
-            use_dose = float(parameters.get("use_dose", 0))
-            transmission = float(parameters.get("transmission", 0))
-
-            if image_width and exposure_time:
-                rotation_rate = image_width / exposure_time
-                experiment_time = total_strategy_length / rotation_rate
-                dd0 = {
-                    "rotation_rate": rotation_rate,
-                    "experiment_time": experiment_time,
-                }
-
-                if std_dose_rate:
-                    if use_dose:
-                        use_dose -= data_model.get_dose_consumed()
-                        transmission = (
-                            100 * use_dose / (std_dose_rate * experiment_time)
-                        )
-                        if transmission > 100:
-                            dd0["transmission"] = 100
-                            dd0["use_dose"] = (
-                                use_dose * 100 / transmission
-                                + data_model.get_dose_consumed()
-                            )
-                        else:
-                            dd0["transmission"] = transmission
-                    elif transmission:
-                        use_dose = std_dose_rate * experiment_time * transmission / 100
-                        dd0["use_dose"] = use_dose + data_model.get_dose_consumed()
-                field_widget.set_values(**dd0)
-
-        def update_transmission(field_widget):
-            """When transmission changes, update use_dose
-            In parameter popup"""
-            parameters = field_widget.get_parameters_map()
-            exposure_time = float(parameters.get("exposure", 0))
-            image_width = float(parameters.get("imageWidth", 0))
-            transmission = float(parameters.get("transmission", 0))
-            if image_width and exposure_time and std_dose_rate:
-                experiment_time = exposure_time * total_strategy_length / image_width
-                use_dose = std_dose_rate * experiment_time * transmission / 100
-                field_widget.set_values(
-                    use_dose=use_dose + data_model.get_dose_consumed()
-                )
-
-        def update_resolution(field_widget):
-
-            parameters = field_widget.get_parameters_map()
-            resolution = float(parameters.get("resolution"))
-            dbg = self.resolution2dose_budget(
-                resolution,
-                decay_limit=data_model.get_decay_limit(),
-                relative_sensitivity=data_model.get_relative_rad_sensitivity(),
-            )
-            field_widget.set_values(dose_budget=dbg)
-            use_dose = dbg * budget_use_fraction
-            if use_dose < std_dose_rate * experiment_time:
-                field_widget.set_values(use_dose=use_dose)
-                update_dose(field_widget)
-            else:
-                field_widget.set_values(transmission=100)
-                update_transmission(field_widget)
-
-        def update_dose(field_widget):
-            """When use_dose changes, update transmission and/or exposure_time
-            In parameter popup"""
-            parameters = field_widget.get_parameters_map()
-            exposure_time = float(parameters.get("exposure", 0))
-            image_width = float(parameters.get("imageWidth", 0))
-            use_dose = float(parameters.get("use_dose", 0))
-
-            if image_width and exposure_time and std_dose_rate and use_dose:
-                experiment_time = exposure_time * total_strategy_length / image_width
-                # NB set_values causes successive upate calls for changed values
-                use_dose -= data_model.get_dose_consumed()
-                transmission = 100 * use_dose / (std_dose_rate * experiment_time)
-                if transmission <= 100:
-                    field_widget.set_values(transmission=transmission)
-                else:
-                    # Tranmision over max; adjust exposure_time to compensate
-                    exposure_time = exposure_time * transmission / 100
-                    if (
-                        exposure_limits[1] is None
-                        or exposure_time <= exposure_limits[1]
-                    ):
-                        field_widget.set_values(
-                            exposure=exposure_time, transmission=100
-                        )
-                    else:
-                        # exposure_time over max; set does to highest achievable
-                        exposure_time = exposure_limits[1]
-                        experiment_time = (
-                            exposure_time * total_strategy_length / image_width
-                        )
-                        use_dose = std_dose_rate * experiment_time
-                        field_widget.set_values(
-                            exposure=exposure_time,
-                            transmission=100,
-                            use_dose=use_dose + data_model.get_dose_consumed(),
-                        )
-
         reslimits = HWR.beamline.resolution.get_limits()
         if None in reslimits:
             reslimits = (0.5, 5.0)
@@ -633,151 +793,142 @@ class GphlWorkflow(HardwareObjectYaml):
                 "Dose rate cannot be calculated - dose bookkeeping disabled"
             )
 
-        field_list = [
-            {
-                "variableName": "_info",
-                "uiLabel": "Data collection plan",
-                "type": "textarea",
-                "defaultValue": info_text,
-            },
-            {
-                "variableName": "imageWidth",
-                "uiLabel": "Oscillation range",
-                "type": "combo",
-                "defaultValue": str(default_image_width),
-                "textChoices": [str(x) for x in allowed_widths],
-                "update_function": update_function,
-            },
-            {
-                "variableName": "exposure",
-                "uiLabel": "Exposure Time (s)",
-                "type": "floatstring",
-                "defaultValue": default_exposure,
-                "lowerBound": exposure_limits[0],
-                "upperBound": exposure_limits[1],
-                "decimals": 6,
-                "update_function": update_function,
-            },
-            {
-                "variableName": "dose_budget",
-                "uiLabel": "Total dose budget (MGy)",
-                "type": "floatstring",
-                "defaultValue": dose_budget,
-                "lowerBound": 0.0,
-                "decimals": 4,
-                "readOnly": True,
-            },
-            {
-                "variableName": "use_dose",
-                "uiLabel": dose_label,
-                "type": "floatstring",
-                "defaultValue": use_dose_start,
-                "lowerBound": 0.01,
-                "decimals": 4,
-                "update_function": update_dose,
-                "readOnly": use_dose_frozen,
-            },
-            # NB Transmission is in % in UI, but in 0-1 in workflow
-            {
-                "variableName": "transmission",
-                "uiLabel": "Transmission (%)",
-                "type": "floatstring",
-                "defaultValue": transmission,
-                "lowerBound": 0.0001,
-                "upperBound": 100.0,
-                "decimals": 4,
-                "update_function": update_transmission,
-            },
-        ]
-        # Add third column of non-edited values
-        field_list[-1]["NEW_COLUMN"] = "True"
-        field_list.append(
-            {
-                "variableName": "resolution",
-                "uiLabel": "Detector resolution (A)",
-                "type": "floatstring",
-                "defaultValue": resolution,
-                "lowerBound": reslimits[0],
-                "upperBound": reslimits[1],
-                "decimals": 3,
-                "readOnly": False,
-            }
-        )
-        if data_model.characterisation_done:
-            field_list[-1]["readOnly"] = True
-        else:
-            field_list[-1]["update_function"] = update_resolution
-        field_list.extend(
-            [
-                {
-                    "variableName": "experiment_lengh",
-                    "uiLabel": "Experiment length (°)",
-                    "type": "text",
-                    "defaultValue": str(int(total_strategy_length)),
-                    "readOnly": True,
-                },
-                {
-                    "variableName": "experiment_time",
-                    "uiLabel": "Experiment duration (s)",
-                    "type": "floatstring",
-                    "defaultValue": experiment_time,
-                    "decimals": 1,
-                    "readOnly": True,
-                },
-                {
-                    "variableName": "rotation_rate",
-                    "uiLabel": "Rotation speed (°/s)",
-                    "type": "floatstring",
-                    "defaultValue": (float(default_image_width / default_exposure)),
-                    "decimals": 1,
-                    "readOnly": True,
-                },
-            ]
-        )
+        schema = {
+            "title": "GΦL %s parameters" % title_string,
+            "type": "object",
+            "properties": {},
+            "definitions": {},
+        }
+        fields = schema["properties"]
+        fields["total_strategy_length"] = {
+            "title": "Strategy length",
+            "type": "number",
+            "default": total_strategy_length,
+            "hidden": True,
+        }
+        fields["std_dose_rate"] = {
+            "title": "Dose rate",
+            "type": "number",
+            "default": std_dose_rate,
+            "hidden": True,
+        }
+        fields["dose_consumed"] = {
+            "title": "Dose consumeed",
+            "type": "number",
+            "default": data_model.dose_consumed,
+            "hidden": True,
+        }
+        fields["decay_limit"] = {
+            "title": "Decay limit",
+            "type": "number",
+            "default": data_model.decay_limit,
+            "hidden": True,
+        }
+        fields["relative_rad_sensitivity"] = {
+            "title": "Relative radiation sensitivity",
+            "type": "number",
+            "default": data_model.relative_rad_sensitivity,
+            "hidden": True,
+        }
+        fields["budget_use_fraction"] = {
+            "title": "Budget fraction to use",
+            "type": "number",
+            "default": budget_use_fraction,
+            "hidden": True,
+        }
+        fields["maximum_dose_budget"] = {
+            "title": "Maximum dose budget (MGy)",
+            "type": "number",
+            "default": data_model.maximum_dose_budget,
+            "hidden": True,
+        }
+        # From here on visible fields
+        fields["_info"] = {
+            # "title": "Data collection plan",
+            "type": "string",
+            "default": info_text,
+            "readOnly":True,
+        }
+        fields["image_width"] = {
+            "title": "Oscillation range",
+            "type": "string",
+            "default": str(default_image_width),
+            "$ref": "#/definitions/image_width",
+        }
+        fields["exposure"] = {
+            "title": "Exposure Time (s)",
+            "type": "number",
+            "default": default_exposure,
+            "minimum": exposure_limits[0],
+            "maximum": exposure_limits[1],
+        }
+        fields["dose_budget"] = {
+            "title": "Total dose budget (MGy)",
+            "type": "number",
+            "default": dose_budget,
+            "minimum": 0.0,
+            "readOnly": True,
+        }
+        fields["use_dose"] = {
+            "title": dose_label,
+            "type": "number",
+            "default": use_dose_start,
+            "minimum": 0.01,
+            "readOnly": use_dose_frozen,
+        }
+        # NB Transmission is in % in UI, but in 0-1 in workflow
+        fields["transmission"] = {
+            "title": "Transmission (%)",
+            "type": "number",
+            "default": transmission,
+            "minimum": 0.001,
+            "maximum": 100.0,
+        }
+        fields["resolution"] = {
+            "title": "Detector resolution (Å)",
+            "type": "number",
+            "default": resolution,
+            "minimum": reslimits[0],
+            "maximum": reslimits[1],
+            "readOnly": data_model.characterisation_done,
+        }
+        fields["experiment_time"] = {
+            "title": "Experiment duration (s)",
+            "type": "number",
+            "default": experiment_time,
+            "minimum": reslimits[0],
+            "maximum": reslimits[1],
+            "readOnly": True,
+        }
 
-        if data_model.characterisation_done and data_model.get_interleave_order():
+        if data_model.characterisation_done and data_model.interleave_order:
             # NB We do not want the wedgeWdth widget for Diffractcal
-            field_list.append(
-                {
-                    "variableName": "wedgeWidth",
-                    "uiLabel": "Wedge width (deg)",
-                    "type": "text",
-                    "defaultValue": (
-                        "%s" % self.settings.get("default_wedge_width", 15)
-                    ),
-                    "lowerBound": 0.1,
-                    "upperBound": 7200,
-                    "decimals": 2,
-                }
-            )
-
-        field_list[-1]["NEW_COLUMN"] = "True"
-
-        ll0 = []
-        for tag, val in beam_energies.items():
-            ll0.append(
-                {
-                    "variableName": tag,
-                    "uiLabel": "%s beam energy (keV)" % tag,
-                    "type": "floatstring",
-                    "defaultValue": val,
-                    "lowerBound": 2.0,
-                    "upperBound": 30.0,
-                    "decimals": 4,
-                }
-            )
-        ll0[0]["readOnly"] = True
-        field_list.extend(ll0)
-
-        field_list.append(
-            {
-                "variableName": "snapshot_count",
-                "uiLabel": "Number of snapshots",
-                "type": "combo",
-                "defaultValue": str(data_model.get_snapshot_count()),
-                "textChoices": ["0", "1", "2", "4"],
+            fields["wedge_width"] = {
+                "title": "Wedge width (°)",
+                "type": "number",
+                "default": self.settings.get("default_wedge_width", 15),
+                "minimum": 0.1,
+                "maximum": 7200,
             }
-        )
+        readonly = True
+        energy_limits = HWR.beamline.energy.get_limits()
+        for tag, val in beam_energies.items():
+            fields[tag] = {
+                "title": "%s beam energy (keV)" % tag,
+                "type": "number",
+                "default": val,
+                "minimum": energy_limits[0],
+                "maximum": energy_limits[1],
+                "readOnly": readonly,
+            }
+            readonly = False
+
+        fields["snapshot_count"] = {
+            "title": "Number of snapshots",
+            "type": "string",
+            "default": str(data_model.snapshot_count),
+            "$ref": "#/definitions/snapshot_count",
+        }
 
         # recentring mode:
         labels = list(RECENTRING_MODES.keys())
@@ -790,13 +941,13 @@ class GphlWorkflow(HardwareObjectYaml):
         use_modes = ["sweep"]
         if len(orientations) > 1:
             use_modes.append("start")
-        if data_model.get_interleave_order():
+        if data_model.interleave_order:
             use_modes.append("scan")
         if self.load_transcal_parameters() and (
             data_model.characterisation_done
             or wf_parameters.get("strategy_type") == "diffractcal"
         ):
-            # Not Characteisation
+            # Not Characterisation
             use_modes.append("none")
         for indx in range (len(modes) -1, -1, -1):
             if modes[indx] not in use_modes:
@@ -814,150 +965,252 @@ class GphlWorkflow(HardwareObjectYaml):
             default_recentring_mode = "sweep"
         default_label = labels[modes.index(default_recentring_mode)]
         if len(modes) > 1:
-            field_list.append(
-                {
-                    "variableName": "recentring_mode",
-                    "type": "dblcombo",
-                    "defaultValue": default_label,
-                    "textChoices": labels,
+            fields["recentring_mode"] = {
+                # "title": "Recentring mode",
+                "type": "string",
+                "default": default_label,
+                "$ref": "#/definitions/recentring_mode",
+            }
+        schema["definitions"]["recentring_mode"] = list(
+            {
+                "type": "string",
+                "enum": [label],
+                "title": label,
+            }
+            for label in labels
+        )
+        schema["definitions"]["snapshot_count"] = list(
+            {
+                "type": "string",
+                "enum": [tag],
+                "title": tag,
+            }
+            for tag in ("0", "1", "2", "4", )
+        )
+        schema["definitions"]["image_width"] = list(
+            {
+                "type": "string",
+                "enum": [tag],
+                "title": tag,
+            }
+            for tag in allowed_widths
+        )
+
+        ui_schema = {
+            "ui:order": ["_info", "parameters"],
+            "ui:widget": "vertical_box",
+            "_info": {
+                "ui:title": "",
+                "ui:widget": "textarea",
+                "ui:options": {
+                    # 'rows' not used in Qt - gives minimum necessary size.
+                    "rows": len(fields["_info"]["default"].splitlines()) + 1
                 }
-            )
+            },
+            "parameters": {
+                "ui:title": "Parameters",
+                "ui:widget": "column_grid",
+                "ui:order": ["column1", "column2"],
+                "column1": {
+                    "ui:order": [
+                        "use_dose",
+                        "exposure",
+                        "image_width",
+                        "transmission",
+                        "snapshot_count",
+                    ],
+                    "use_dose": {
+                        "ui:options": {
+                            "decimals": 3,
+                        }
+                    },
+                    "transmission": {
+                        "ui:options": {
+                            "decimals": 2,
+                        }
+                    },
+                },
+                "column2": {
+                    "ui:order": [
+                        "dose_budget",
+                        "experiment_time",
+                        "resolution",
+                    ],
+                    "dose_budget": {
+                        "ui:options": {
+                            "decimals": 3,
+                        }
+                    },
+                    "resolution": {
+                        "ui:options": {
+                            "decimals": 3,
+                        }
+                    },
+                },
+            }
+        }
+        if data_model.characterisation_done and data_model.interleave_order:
+            ui_schema["parameters"]["column1"]["ui:order"].append("wedge_width")
+        ll0 =  ui_schema["parameters"]["column2"]["ui:order"]
+        ll0.extend(list(beam_energies))
+        ll0.append("recentring_mode")
 
         self._return_parameters = gevent.event.AsyncResult()
-        responses = dispatcher.send(
-            "gphlParametersNeeded",
-            self,
-            field_list,
-            self._return_parameters,
-            update_function,
-        )
-        if not responses:
-            self._return_parameters.set_exception(
-                RuntimeError("Signal 'gphlParametersNeeded' is not connected")
+        try:
+            responses = dispatcher.send(
+                "gphlJsonParametersNeeded",
+                self,
+                schema,
+                ui_schema,
+                self._return_parameters,
             )
+            if not responses:
+                self._return_parameters.set_exception(
+                    RuntimeError("Signal 'gphlJsonParametersNeeded' is not connected")
+                )
 
-        params = self._return_parameters.get()
-        self._return_parameters = None
+            result = self._return_parameters.get()
+            if result is StopIteration:
+                return StopIteration
+        finally:
+            self._return_parameters = None
+        print ('@~@~ returned parameters 1')
+        for item in result.items():
+            print ('--> %s : %s' % item)
 
-        if params is StopIteration:
-            result = StopIteration
-
+        tag = "image_width"
+        value = result.get(tag)
+        if value:
+            image_width = float(value)
         else:
-            result = {}
-            tag = "imageWidth"
-            value = params.get(tag)
-            if value:
-                image_width = result[tag] = float(value)
-            else:
-                image_width = self.settings.get("default_image_width", 15)
-            tag = "exposure"
-            value = params.get(tag)
-            if value:
-                result[tag] = float(value)
-            tag = "transmission"
-            value = params.get(tag)
-            if value:
-                # Convert from % to fraction
-                result[tag] = float(value) / 100
-            tag = "wedgeWidth"
-            value = params.get(tag)
-            if value:
-                result[tag] = int(float(value) / image_width)
-            else:
-                # If not set is likely not used, but we want a default value anyway
-                result[tag] = 150
-            tag = "resolution"
-            value = params.get(tag)
-            if value:
-                result[tag] = float(value)
+            image_width = self.settings.get("default_image_width", default_image_width)
+        result[tag] = image_width
+        # exposure OK as is
+        tag = "transmission"
+        value = result.get(tag)
+        if value:
+            # Convert from % to fraction
+            result[tag] = value / 100.
+        tag = "wedgeWidth"
+        value = result.get(tag)
+        if value:
+            result[tag] = int(value / image_width)
+        else:
+            # If not set is likely not used, but we want a default value anyway
+            result[tag] = 150
+        # resolution OK as is
 
-            tag = "snapshot_count"
-            value = params.get(tag)
-            if value:
-                result[tag] = int(value)
+        tag = "snapshot_count"
+        value = result.get(tag)
+        if value:
+            result[tag] = int(value)
 
-            if geometric_strategy.isInterleaved:
-                result["interleaveOrder"] = data_model.get_interleave_order()
+        if geometric_strategy.isInterleaved:
+            result["interleave_order"] = data_model.interleave_order
 
-            for tag in beam_energies:
-                beam_energies[tag] = float(params.get(tag, 0))
-            result["beam_energies"] = beam_energies
+        for tag in beam_energies:
+            beam_energies[tag] = result.get(tag, 0)
+        result["beam_energies"] = beam_energies
 
-            tag = "recentring_mode"
-            result[tag] = (
-                RECENTRING_MODES.get(params.get(tag)) or default_recentring_mode
-            )
+        tag = "recentring_mode"
+        result[tag] = (
+            RECENTRING_MODES.get(result.get(tag)) or default_recentring_mode
+        )
 
-            data_model.dose_budget = float(params.get("dose_budget", 0))
-            # Register the dose (about to be) consumed
-            if std_dose_rate:
-                data_model.set_dose_consumed(float(params.get("use_dose", 0)))
+        print ('@~@~ returned parameters 2')
+        for item in result.items():
+            print ('--> %s : %s' % item)
+
+        # data_model.dose_budget = float(params.get("dose_budget", 0))
+        # # Register the dose (about to be) consumed
+        # if std_dose_rate:
+        #     data_model.set_dose_consumed(float(params.get("use_dose", 0)))
+
         #
         return result
 
     def setup_data_collection(self, payload, correlation_id):
+        """Query data collection parameters and return SampleCentred to ASTRA workflow
+
+        :param payload (GphlMessages.GeometricStrategy):
+        :param correlation_id (int) Astra workflow correlation ID
+        :return (GphlMessages.SampleCentred):
+        """
         geometric_strategy = payload
 
+        # Set up
         gphl_workflow_model = self._queue_entry.get_data_model()
         strategy_type = gphl_workflow_model.get_workflow_parameters()[
             "strategy_type"
         ]
         sweeps = geometric_strategy.get_ordered_sweeps()
+
+        # Set strategy_length
         strategy_length = sum(sweep.width for sweep in sweeps)
         gphl_workflow_model.strategy_length = (
             strategy_length * len(gphl_workflow_model.wavelengths)
         )
 
-        # Set recommended dose budget and reset transmission to match
-        dose_budget = gphl_workflow_model.get_default_dose_budget()
-        if gphl_workflow_model.characterisation_done:
-            dose_budget -= gphl_workflow_model.dose_consumed
-        gphl_workflow_model.dose_budget = dose_budget
+        # get params and initial transmission/use_dose
         if gphl_workflow_model.automation_mode:
+            # Get params and transmission/use_dose
             if gphl_workflow_model.characterisation_done:
                 params = gphl_workflow_model.auto_acq_parameters[-1]
             else:
                 params = gphl_workflow_model.auto_acq_parameters[0]
             gphl_workflow_model.set_pre_acquisition_params(**params)
             if "dose_budget" in params:
-                # Reset transmission and if necessary exposure time to match dose budget
-                gphl_workflow_model.apply_dose_budget()
-            elif "transmission" in params:
-                # Reset dose budget to match transmission
-                gphl_workflow_model.apply_transmission()
-            else:
-                gphl_workflow_model.reset_transmission()
-
+                raise ValueError(
+                    "'dose_budget' parameter no longer supported. "
+                    "Use 'use_dose' or 'transmission' instead"
+                )
+            transmission = params.get("transmission")
+            use_dose = params.get("use_dose")
         else:
-            # SiGNAL TO GET Pre-collection parameters here
-            # NB set defaults from data_model
-            # NB consider whether to override on None
-            # NB update functions will be needed in UI
-            gphl_workflow_model.reset_transmission()
+            transmission = None
+            use_dose = None
 
-            params = self.query_pre_collection_params(gphl_workflow_model, geometric_strategy)
-            # Here transmission comes from UI
-            gphl_workflow_model.set_pre_acquisition_params(**params)
-            raise NotImplementedError()
+        # set gphl_workflow_model.transmission (initial value for interactive mode)
+        if transmission is None:
+            # If transmission is already set (automation mode), there is nothing to do
+            if use_dose is None:
+                # Set use_dose from recommended budget
+                use_dose = gphl_workflow_model.recommended_dose_budget()
+                if gphl_workflow_model.characterisation_done:
+                    use_dose -= gphl_workflow_model.dose_consumed
+                elif strategy_type != "diffractcal":
+                    # This is characterisation
+                    use_dose *= gphl_workflow_model.characterisation_budget_fraction
+            transmission = gphl_workflow_model.calculate_transmission(use_dose)
+            if transmission > 100:
+                if (
+                    gphl_workflow_model.characterisation_done
+                    or strategy_type == "diffractcal"
+                ):
+                    # We are not in characterisation.
+                    # Try top reset exposure time to get desired dose
+                    exposure_time = (
+                        gphl_workflow_model.exposure_time * transmission / 100
+                    )
+                    exposure_limits = (
+                        HWR.beamline.detector.get_exposure_time_limits()
+                    )
+                    if exposure_limits[1]:
+                        exposure_time = max (exposure_limits[1], exposure_time)
+                    gphl_workflow_model.exposure_time = exposure_time
+                transmission = 100
+            gphl_workflow_model.transmission = transmission
 
-            # NB from here to end of 'if' we now have old code that needs replacing
+        # If not in automation mode, get params from user query
+        if not gphl_workflow_model.automation_mode:
 
-            # NB for any type of acquisition, energy and resolution are set before this point
-
-            bst = geometric_strategy.defaultBeamSetting
-            if bst and self.settings.get("starting_beamline_energy") == "configured":
-                # Preset energy
-                # First set beam_energy and give it time to settle,
-                # so detector distance will trigger correct resolution later
-                # TODO NBNB put in wait-till ready to make sure value settles
-                HWR.beamline.energy.set_wavelength(bst.wavelength, timeout=30)
             initial_energy = HWR.beamline.energy.get_value()
 
             # NB - now pre-setting of detector has been removed, this gets
             # the current resolution setting, whatever it is
             initial_resolution = HWR.beamline.resolution.get_value()
             # Put resolution value in workflow model object
-            gphl_workflow_model.set_detector_resolution(initial_resolution)
+            # gphl_workflow_model.set_detector_resolution(initial_resolution)
 
             # Get modified parameters from UI and confirm acquisition
             # Run before centring, as it also does confirm/abort
@@ -972,15 +1225,13 @@ class GphlWorkflow(HardwareObjectYaml):
                 )
 
             gphl_workflow_model.exposure_time = parameters.get("exposure" or 0.0)
-            gphl_workflow_model.image_width = parameters.get("imageWidth" or 0.0)
-
-            # Set transmission, detector_disance/resolution to final (unchanging) values
-            # Also set energy to first energy value, necessary to get resolution consistent
+            gphl_workflow_model.image_width = parameters.get("image_width" or 0.0)
 
             # Set beam_energies to match parameters
             # get wavelengths
             HC_OVER_E = conversion.HC_OVER_E
             beam_energies = parameters.pop("beam_energies")
+            print ('@~@~ beam_energies', beam_energies)
             wavelengths = tuple(
                 GphlMessages.PhasingWavelength(wavelength=HC_OVER_E / val, role=tag)
                 for tag, val in beam_energies.items()
@@ -1008,14 +1259,21 @@ class GphlWorkflow(HardwareObjectYaml):
 
             snapshot_count = parameters.pop("snapshot_count", None)
             if snapshot_count is not None:
-                gphl_workflow_model.set_snapshot_count(snapshot_count)
+                gphl_workflow_model.snapshot_count = snapshot_count
 
             gphl_workflow_model.recentring_mode = parameters.pop("recentring_mode")
 
-        # Set (re)centring behaviour and enqueue
+        # From here on same for manual and automation
 
-        recentring_mode = gphl_workflow_model.recentring_mode
+        # Unpdate dose_consumed to include dose (about to be) acquired.
+        gphl_workflow_model.dose_consumed += gphl_workflow_model.calculate_dose()
 
+        format = "--> %s: %s"
+        print ("GPHL workflow. Data collection parameters:")
+        for item in gphl_workflow_model.parameter_summary().items():
+            print (format % item)
+
+        # Enqueue data collection
         if gphl_workflow_model.characterisation_done:
             # Data collection TODO: Use workflow info to distinguish
             new_dcg_name = "GPhL Data Collection"
@@ -1033,6 +1291,10 @@ class GphlWorkflow(HardwareObjectYaml):
         self._data_collection_group = new_dcg_model
         self._add_to_queue(gphl_workflow_model, new_dcg_model)
 
+        #
+        # Set (re)centring behaviour and goniostatTranslations
+        #
+        recentring_mode = gphl_workflow_model.recentring_mode
         recen_parameters = self.load_transcal_parameters()
         goniostatTranslations = []
 
@@ -1046,13 +1308,13 @@ class GphlWorkflow(HardwareObjectYaml):
                 sweepSettingIds.add(sweepSettingId)
                 sweepSettings.append(sweepSetting)
 
-        # For recentring mode start do settings in reverse order
+        # For recentring mode 'start' do settings in reverse order
         if recentring_mode == "start":
             sweepSettings.reverse()
 
+        # Handle centring of first orientation
         pos_dict = HWR.beamline.diffractometer.get_positions()
         sweepSetting = sweepSettings[0]
-
         if (
             self.settings.get("recentre_before_start")
             and not gphl_workflow_model.characterisation_done
@@ -1074,7 +1336,6 @@ class GphlWorkflow(HardwareObjectYaml):
         current_xyz = tuple(
             current_pos_dict[role] for role in self.translation_axis_roles
         )
-
         if recen_parameters:
             # Currrent position is now centred one way or the other
             # Update recentring parameters
@@ -1084,7 +1345,6 @@ class GphlWorkflow(HardwareObjectYaml):
                 "Recentring set-up. Parameters are: %s",
                 sorted(recen_parameters.items()),
             )
-
         if goniostatTranslations:
             # We had recentre_before_start and already have the goniosatTranslation
             # matching the sweepSetting
@@ -1098,6 +1358,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
             if recen_parameters:
                 # recentre first sweep from okp
+                tol = self.settings.get("angular_tolerance", 1.0)
                 translation_settings = self.calculate_recentring(
                     okp, **recen_parameters
                 )
@@ -1107,14 +1368,12 @@ class GphlWorkflow(HardwareObjectYaml):
                 )
             else:
                 # existing centring - take from current position
+                tol = 0.1
                 translation_settings = dict(
                     (role, current_pos_dict.get(role))
                     for role in self.translation_axis_roles
                 )
 
-            tol = (
-                self.settings.get("angular_tolerance", 1.0) if recen_parameters else 0.1
-            )
             if maxdev <= tol:
                 # first orientation matches current, set to current centring
                 # Use sweepSetting as is, recentred or very close
@@ -1216,11 +1475,8 @@ class GphlWorkflow(HardwareObjectYaml):
                     rotation=sweepSetting, **translation_settings
                 )
                 goniostatTranslations.append(translation)
-
+        #
         gphl_workflow_model.goniostat_translations = goniostatTranslations
-
-        # Unpdate dose_consumed to include dose (about to be) acquired.
-        gphl_workflow_model.dose_consumed += gphl_workflow_model.calculate_dose_consumed()
 
         # Return SampleCentred message
         sampleCentred = GphlMessages.SampleCentred(gphl_workflow_model)
@@ -1305,11 +1561,11 @@ class GphlWorkflow(HardwareObjectYaml):
             "--input",
             infile,
             "--init-xyz",
-            "%s %s %s" % ref_xyz,
+            "%s,%s,%s" % ref_xyz,
             "--init-okp",
-            "%s %s %s" % ref_okp,
+            "%s,%s,%s" % ref_okp,
             "--okp",
-            "%s %s %s" % okp,
+            "%s,%s,%s" % okp,
         ]
         # NB the universal_newlines has the NECESSARY side effect of converting
         # output from bytes to string (with default encoding),
@@ -1355,6 +1611,8 @@ class GphlWorkflow(HardwareObjectYaml):
 
     def collect_data(self, payload, correlation_id):
         collection_proposal = payload
+
+        angular_tolerance = float(self.settings.get("angular_tolerance", 1.0))
         queue_manager = self._queue_entry.get_queue_controller()
 
         gphl_workflow_model = self._queue_entry.get_data_model()
@@ -1407,9 +1665,17 @@ class GphlWorkflow(HardwareObjectYaml):
             scans = scans[:1]
 
         sweeps = set()
+        last_orientation = ()
+        maxdev = -1
         snapshotted_rotation_ids = set()
         for scan in scans:
             sweep = scan.sweep
+            goniostatRotation = sweep.goniostatSweepSetting
+            rotation_id = goniostatRotation.id_
+            initial_settings = sweep.get_initial_settings()
+            orientation = tuple(
+                initial_settings.get(tag) for tag in ("kappa", "kappa_phi")
+            )
             acq = queue_model_objects.Acquisition()
 
             # Get defaults, even though we override most of them
@@ -1432,7 +1698,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
             ##
             wavelength = sweep.beamSetting.wavelength
-            acq_parameters.wavelength = wavelength
+            acq_parameters.energy = HWR.beamline.energy.calculate_energy(wavelength)
             detdistance = sweep.detectorSetting.axisSettings["Distance"]
             # not needed when detdistance is set :
             # acq_parameters.resolution = resolution
@@ -1476,19 +1742,28 @@ class GphlWorkflow(HardwareObjectYaml):
             path_template.start_num = acq_parameters.first_image
             path_template.num_files = acq_parameters.num_images
 
-            goniostatRotation = sweep.goniostatSweepSetting
-            rotation_id = goniostatRotation.id_
-            initial_settings = sweep.get_initial_settings()
+            if last_orientation:
+                maxdev = max(
+                    abs(orientation[ind] - last_orientation[ind])
+                    for ind in range(2)
+                )
             if sweeps and (
                 recentring_mode == "scan"
                 or (
                     recentring_mode == "sweep"
-                    and rotation_id != gphl_workflow_model.current_rotation_id
+                    and not (
+                        rotation_id == gphl_workflow_model.current_rotation_id
+                        or (0 <= maxdev < angular_tolerance)
+                    )
                 )
             ):
                 # Put centring on queue and collect using the resulting position
                 # NB this means that the actual translational axis positions
                 # will NOT be known to the workflow
+                #
+                # Done if 1) we centre for each acan
+                # 2) we centre for each sweep unless the rotation ID is unchanged
+                #    or the kappa and phi values are unchanged anyway
                 self.enqueue_sample_centring(
                     motor_settings=initial_settings, in_queue=True
                 )
@@ -1513,6 +1788,7 @@ class GphlWorkflow(HardwareObjectYaml):
             gphl_workflow_model.current_rotation_id = rotation_id
 
             sweeps.add(sweep)
+            last_orientation = orientation
 
             if repeat_count and sweep_offset and self.settings.get("use_multitrigger"):
                 # Multitrigger sweep - add in parameters.
@@ -1538,7 +1814,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         # debug
         format = "--> %s: %s"
-        print ("GPHL workflow. Data collection parameters:")
+        print ("GPHL workflow. Collect with parameters:")
         for item in gphl_workflow_model.parameter_summary().items():
             print (format % item)
         print( format % ("sweep_count", len(sweeps)))
@@ -1565,6 +1841,7 @@ class GphlWorkflow(HardwareObjectYaml):
         return GphlMessages.CollectionDone(
             status=status,
             proposalId=collection_proposal.id_,
+            procWithLatticeParams=gphl_workflow_model.use_cell_for_processing,
         )
 
     def auto_select_solution(self, choose_lattice):
@@ -1612,8 +1889,6 @@ class GphlWorkflow(HardwareObjectYaml):
         data_model = self._queue_entry.get_data_model()
         data_model.characterisation_done = True
 
-        # Add consumed dose to data model
-
         if data_model.automation_mode:
             solution = self.auto_select_solution(choose_lattice)
 
@@ -1625,21 +1900,29 @@ class GphlWorkflow(HardwareObjectYaml):
             data_model.detector_setting = None
             # NB resets detector_setting
             params = data_model.auto_acq_parameters[-1]
-            data_model.set_pre_strategy_params(**params)
-            distance = data_model.detector_setting.axisSettings["Distance"]
-            HWR.beamline.detector.distance.set_value(distance, timeout=30)
-            return GphlMessages.SelectedLattice(
-                data_model,
-                lattice_format=choose_lattice.lattice_format,
-                solution=solution,
-            )
+            if "resolution" not in params:
+                params["resolution"] = (
+                    data_model.aimed_resolution
+                    or HWR.beamline.get_default_acquisition_parameters().resolution
+                )
         else:
             # SIGNAL TO GET Pre-strategy parameters here
             # NB set defaults from data_model
             # NB consider whether to override on None
+
+            # NBNB DISPLAY_ENERGY_DECIMALS
+
             params = self.query_pre_strategy_params(data_model, choose_lattice)
             data_model.set_pre_strategy_params(**params)
             raise NotImplementedError()
+        data_model.set_pre_strategy_params(**params)
+        distance = data_model.detector_setting.axisSettings["Distance"]
+        HWR.beamline.detector.distance.set_value(distance, timeout=30)
+        return GphlMessages.SelectedLattice(
+            data_model,
+            lattice_format=choose_lattice.lattice_format,
+            solution=solution,
+        )
 
 
         # solution_format = choose_lattice.lattice_format
@@ -1975,7 +2258,7 @@ class GphlWorkflow(HardwareObjectYaml):
         """
 
         gphl_workflow_model = self._queue_entry.get_data_model()
-        number_of_snapshots = gphl_workflow_model.get_snapshot_count()
+        number_of_snapshots = gphl_workflow_model.snapshot_count
         if number_of_snapshots:
             filename_template = "%s_%s_%s.jpeg"
             snapshot_directory = os.path.join(
@@ -2029,7 +2312,6 @@ class GphlWorkflow(HardwareObjectYaml):
                 positionsDict,
             )
         else:
-            self.abort()
             raise RuntimeError("Centring gave no result")
 
     def prepare_for_centring(self, payload, correlation_id):
@@ -2046,7 +2328,7 @@ class GphlWorkflow(HardwareObjectYaml):
         image_root = HWR.beamline.session.get_base_image_directory()
 
         if not os.path.isdir(image_root):
-            # This direstory must exist by the time the WF software checks for it
+            # This directory must exist by the time the WF software checks for it
             try:
                 os.makedirs(image_root)
             except Exception:
@@ -2061,22 +2343,49 @@ class GphlWorkflow(HardwareObjectYaml):
 
     # Utility functions
 
-    def resolution2dose_budget(self, resolution, decay_limit, relative_sensitivity=1.0):
+    def resolution2dose_budget(
+        self,
+        resolution,
+        decay_limit=None,
+        maximum_dose_budget=None,
+        relative_rad_sensitivity=1.0):
         """
 
         Args:
             resolution (float): resolution in A
             decay_limit (float): min. intensity at resolution edge at experiment end (%)
-            relative_sensitivity (float) : relative radiation sensitivity of crystal
+            maximum_dose_budget (float): maximum allowed dose budget
+            relative_rad_sensitivity (float) : relative radiation sensitivity of crystal
 
         Returns (float): Dose budget (MGy)
 
+        Get resolution-dependent dose budget that gives intensity decay_limit%
+        at the end of acquisition for reflections at resolution
+        assuming an increase in B factor of 1A^2/MGy
+
         """
-        """Get resolution-dependent dose budget using configured values"""
-        max_budget = self.settings.get("maximum_dose_budget", 20)
+        max_budget = maximum_dose_budget or self.settings.get("maximum_dose_budget", 20)
+        decay_limit = decay_limit or self.settings.get("decay_limit", 25)
         result = 2 * resolution * resolution * math.log(100.0 / decay_limit)
         #
-        return min(result, max_budget) / relative_sensitivity
+        return min(result, max_budget) / relative_rad_sensitivity
+
+    @staticmethod
+    def calculate_dose(duration, energy, flux_density):
+        """ Calculate dose accumulated by sample
+
+        :param duration (s): Duration of radiation
+        :param energy (keV): Energy of ratiation
+        :param flux_density: Flux in photons per second per mm^2
+        :return: Accumulted dose in MGy
+        """
+
+        return (
+            duration
+            * flux_density
+            * HWR.beamline.flux.get_dose_rate_per_photon_per_mmsq(energy)
+            * 1.0e-6  # convert to MGy
+        )
 
     def get_emulation_samples(self):
         """ Get list of lims_sample information dictionaries for mock/emulation
@@ -2191,3 +2500,257 @@ class GphlWorkflow(HardwareObjectYaml):
                 raise ValueError("Emulator hkli file %s does not exist" % hklfile)
         #
         return crystal_data, hklfile
+
+
+    #
+    # Test web dialog functions
+    #
+
+    def test_dialog(self):
+        characterisationExposureTime = 1.0
+        osc_range = 2.0
+        transmission = 29.6
+        resolution = 2.1
+        listDialog = [
+            {
+                "variableName": "no_reference_images",
+                "label": "Number of reference images",
+                "type": "int",
+                "defaultValue": 2,
+                "unit": "",
+                "lowerBound": 1,
+                "upperBound": 4,
+            }, {
+                "variableName": "angle_between_reference_images",
+                "label": "Angle between reference images",
+                "type": "combo",
+                "defaultValue": "90",
+                "textChoices": ["30", "45", "60", "90"],
+            }, {
+                "variableName": "characterisationExposureTime",
+                "label": "Characterisation exposure time",
+                "type": "float",
+                "value": characterisationExposureTime,
+                "unit": "%",
+                "lowerBound": 0.0,
+                "upperBound": 100.0,
+            }, {
+                "variableName": "osc_range",
+                "label": "Total oscillation range",
+                "type": "float",
+                "value": osc_range,
+                "unit": "%",
+                "lowerBound": 0.1,
+                "upperBound": 10.0,
+            }, {
+                "variableName": "transmission",
+                "label": "Transmission",
+                "type": "float",
+                "value": transmission,
+                "unit": "%",
+                "lowerBound": 0,
+                "upperBound": 100.0,
+            }, {
+                "variableName": "resolution",
+                "label": "Resolution",
+                "type": "float",
+                "defaultValue": resolution,
+                "unit": "A",
+                "lowerBound": 0.5,
+                "upperBound": 7.0,
+            }, {
+                "variableName": "do_data_collect",
+                "label": "Do data collection?",
+                "type": "combo",
+                "textChoices": ["true", "false"],
+                "value": "false",
+            }
+        ]
+        # self.emit("parametersNeeded
+        # ", (listDialog,))
+        from mxcubecore.utils import dialog
+        dictDialog = dialog.create_test_dict(listDialog, "GphlTestDialog")
+        print ('@~@~ got dialog dict')
+        for tpl in dictDialog.items():
+            print ('  --> %s: %s' % tpl)
+        return_params = self.open_dialog(dictDialog)
+
+        print ('@~@~ DIALOG TEST DONE')
+        for tpl in return_params.items():
+            print ('  --> %s: %s' % tpl)
+
+    def open_dialog(self, dict_dialog):
+        # If necessary unblock dialog
+        print ('@~@~ open_dialog')
+        for tpl in dict_dialog.items():
+            print ('  --> %s: %s' % tpl)
+        if not self.gevent_event.is_set():
+            self.gevent_event.set()
+        self.params_dict = dict()
+        if "reviewData" in dict_dialog and "inputMap" in dict_dialog:
+            review_data = dict_dialog["reviewData"]
+            for dict_entry in dict_dialog["inputMap"]:
+                if "value" in dict_entry:
+                    value = dict_entry["value"]
+                else:
+                    value = dict_entry["defaultValue"]
+                self.params_dict[dict_entry["variableName"]] = str(value)
+            print ('@~@~ emitting gphlParametersNeeded')
+            self.emit("gphlParametersNeeded", (review_data,))
+            print ('@~@~ DONE emitting gphlParametersNeeded')
+            # self.state.value = "OPEN"
+            self.gevent_event.clear()
+            print ('@~@~ cleared event')
+            ii = 0
+            while not self.gevent_event.is_set():
+                ii += 1
+                self.gevent_event.wait()
+                time.sleep(0.1)
+                print ('@~@~ waiting, ', ii)
+                if ii > 60:
+                    print ('@~@~ TIMED OUT')
+                    return self.params_dict
+            print ('@~@~ event done set, returning')
+        return self.params_dict
+
+    def get_values_map(self):
+        return self.params_dict
+
+    def set_values_map(self, params):
+        print ('@~@~ in set_values_map')
+        self.params_dict = params
+        self.gevent_event.set()
+        print ('@~@~ DONE set_values_map')
+
+
+#
+# Functions for new version of UI handling
+#
+
+
+def update_exposure(field_widget):
+    """When image_width or exposure_time change,
+     update rotation_rate, experiment_time and either use_dose or transmission
+    In parameter popup"""
+    parameters = field_widget.get_parameters_map()
+    exposure_time = float(parameters.get("exposure", 0))
+    image_width = float(parameters.get("imageWidth", 0))
+    use_dose = float(parameters.get("use_dose", 0))
+    transmission = float(parameters.get("transmission", 0))
+
+    std_dose_rate = float(parameters.get("std_dose_rate", 0))
+    total_strategy_length = float(parameters.get("total_strategy_length", 0))
+    dose_consumed = float(parameters.get("dose_consumed", 0))
+
+    if image_width and exposure_time:
+        rotation_rate = image_width / exposure_time
+        experiment_time = total_strategy_length / rotation_rate
+        dd0 = {
+            "rotation_rate": rotation_rate,
+            "experiment_time": experiment_time,
+        }
+
+        if std_dose_rate:
+            if use_dose:
+                use_dose -= dose_consumed
+                transmission = (
+                    100 * use_dose / (std_dose_rate * experiment_time)
+                )
+                if transmission > 100:
+                    dd0["transmission"] = 100
+                    dd0["use_dose"] = (
+                        use_dose * 100 / transmission
+                        + dose_consumed
+                    )
+                else:
+                    dd0["transmission"] = transmission
+            elif transmission:
+                use_dose = std_dose_rate * experiment_time * transmission / 100
+                dd0["use_dose"] = use_dose + dose_consumed
+        field_widget.set_values(**dd0)
+
+def update_transmission(field_widget):
+    """When transmission changes, update use_dose
+    In parameter popup"""
+    parameters = field_widget.get_parameters_map()
+    exposure_time = float(parameters.get("exposure", 0))
+    image_width = float(parameters.get("imageWidth", 0))
+    transmission = float(parameters.get("transmission", 0))
+    std_dose_rate = float(parameters.get("std_dose_rate", 0))
+    total_strategy_length = float(parameters.get("total_strategy_length", 0))
+    dose_consumed = float(parameters.get("dose_consumed", 0))
+
+    if image_width and exposure_time and std_dose_rate:
+        experiment_time = exposure_time * total_strategy_length / image_width
+        use_dose = std_dose_rate * experiment_time * transmission / 100
+        field_widget.set_values(
+            use_dose=use_dose + dose_consumed
+        )
+
+
+def update_dose(field_widget):
+    """When use_dose changes, update transmission and/or exposure_time
+    In parameter popup"""
+    exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
+    parameters = field_widget.get_parameters_map()
+    exposure_time = float(parameters.get("exposure", 0))
+    image_width = float(parameters.get("imageWidth", 0))
+    use_dose = float(parameters.get("use_dose", 0))
+    std_dose_rate = float(parameters.get("std_dose_rate", 0))
+    total_strategy_length = float(parameters.get("total_strategy_length", 0))
+    dose_consumed = float(parameters.get("dose_consumed", 0))
+
+    if image_width and exposure_time and std_dose_rate and use_dose:
+        experiment_time = exposure_time * total_strategy_length / image_width
+        # NB set_values causes successive upate calls for changed values
+        use_dose -= dose_consumed
+        transmission = 100 * use_dose / (std_dose_rate * experiment_time)
+        if transmission <= 100:
+            field_widget.set_values(transmission=transmission)
+        else:
+            # Tranmision over max; adjust exposure_time to compensate
+            exposure_time = exposure_time * transmission / 100
+            if (
+                exposure_limits[1] is None
+                or exposure_time <= exposure_limits[1]
+            ):
+                field_widget.set_values(
+                    exposure=exposure_time, transmission=100
+                )
+            else:
+                # exposure_time over max; set does to highest achievable
+                exposure_time = exposure_limits[1]
+                experiment_time = (
+                    exposure_time * total_strategy_length / image_width
+                )
+                use_dose = std_dose_rate * experiment_time
+                field_widget.set_values(
+                    exposure=exposure_time,
+                    transmission=100,
+                    use_dose=use_dose + dose_consumed,
+                )
+
+def update_resolution(field_widget):
+
+    parameters = field_widget.get_parameters_map()
+    resolution = float(parameters.get("resolution"))
+    decay_limit = float(parameters.get("decay_limit", 0))
+    relative_rad_sensitivity = float(parameters.get("relative_rad_sensitivity", 0))
+    std_dose_rate = float(parameters.get("std_dose_rate", 0))
+    total_strategy_length = float(parameters.get("total_strategy_length", 0))
+    budget_use_fraction = float(parameters.get("budget_use_fraction", 0))
+    exposure_time = float(parameters.get("exposure_time", 0))
+    image_width = float(parameters.get("image_width", 0))
+    maximum_dose_budget = float(parameters.get("maximum_dose_budget", 0))
+    experiment_time = exposure_time * total_strategy_length / image_width
+    dbg = 2 * resolution * resolution * math.log(100.0 / decay_limit)
+    #
+    dbg =  min(dbg, maximum_dose_budget) / relative_rad_sensitivity
+    field_widget.set_values(dose_budget=dbg)
+    use_dose = dbg * budget_use_fraction
+    if use_dose < std_dose_rate * experiment_time:
+        field_widget.set_values(use_dose=use_dose)
+        update_dose(field_widget)
+    else:
+        field_widget.set_values(transmission=100)
+        update_transmission(field_widget)

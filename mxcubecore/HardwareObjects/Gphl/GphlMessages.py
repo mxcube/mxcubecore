@@ -425,10 +425,11 @@ class CollectionDone(MessageData):
 
     INTENT = "EVENT"
 
-    def __init__(self, proposalId, status, imageRoot=None):
+    def __init__(self, proposalId, status, procWithLatticeParams=False, imageRoot=None):
         self._proposalId = proposalId
         self._imageRoot = imageRoot
         self._status = status
+        self._procWithLatticeParams = procWithLatticeParams
 
     @property
     def proposalId(self):
@@ -445,6 +446,11 @@ class CollectionDone(MessageData):
     def status(self):
         """Integer status code for collection result"""
         return self._status
+
+    @property
+    def procWithLatticeParams(self):
+        """Boolean, whether lattice parameters should be used for processing"""
+        return self._procWithLatticeParams
 
 
 # Complex payloads
@@ -1120,7 +1126,6 @@ class PriorInformation(Payload):
 
         self._sampleName = data_model.path_template.base_prefix
         # Draft in API, not currently coded in Java:
-        # self._referenceFile = referenceFile
         self._rootDirectory = image_root
         self._userProvidedInfo = UserProvidedInfo(data_model)
 
@@ -1131,10 +1136,6 @@ class PriorInformation(Payload):
     @property
     def sampleName(self):
         return self._sampleName
-
-    # @property
-    # def referenceFile(self):
-    #     return self._referenceFile
 
     @property
     def rootDirectory(self):
