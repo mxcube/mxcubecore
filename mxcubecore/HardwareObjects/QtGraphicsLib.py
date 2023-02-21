@@ -1890,7 +1890,7 @@ class GraphicsItemCentringLines(GraphicsItem):
         """
         painter.setPen(self.custom_pen)
         painter.drawLine(
-            self.start_coord[0], 0, self.start_coord[0], self.scene().height()
+            self.start_coord[0], 0, self.start_coord[0], int(self.scene().height())
         )
         painter.drawLine(
             0, self.start_coord[1], self.scene().width(), self.start_coord[1]
