@@ -395,7 +395,7 @@ class GphlWorkflow(HardwareObjectYaml):
             "crystal_data": {
                 "ui:title": "Unit Cell",
                 "ui:widget": "column_grid",
-                "ui:order": ["cell_edges", "cell_angles", "symmetry"],
+                "ui:order": [ "symmetry", "cell_edges", "cell_angles",],
                 "cell_edges": {
                     "ui:order": ["cell_a", "cell_b", "cell_c"],
                 },
@@ -403,16 +403,12 @@ class GphlWorkflow(HardwareObjectYaml):
                     "ui:order": ["cell_alpha", "cell_beta", "cell_gamma"],
                 },
                 "symmetry": {
-                    "ui:order": ["lattice", "point_group", "space_group"],
-                    # "lattice":{
-                    #     "ui:widget": "select",
-                    # },
-                    # "point_group":{
-                    #     "ui:widget": "select",
-                    # },
-                    # "space_group":{
-                    #     "ui:widget": "select",
-                    # },
+                    "ui:order": [
+                        "lattice",
+                        "point_group",
+                        "space_group",
+                        "use_cell_for_processing",
+                    ],
                 },
             },
             "parameters": {
@@ -441,10 +437,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     },
                 },
                 "column2": {
-                    "ui:order": [
-                        "use_cell_for_processing",
-                        "resolution",
-                    ],
+                    "ui:order": ["resolution",],
                     "resolution": {
                         "ui:options": {
                             "decimals": 3,
@@ -475,6 +468,40 @@ class GphlWorkflow(HardwareObjectYaml):
             }
         # for ii in range(len(energy_tags), len(tags)):
         #     ui_schema["parameters"]["column2"][tags[ii]]["hidden"] = True
+
+        if choose_lattice is not None:
+            solution_format = choose_lattice.lattice_format
+
+            # Must match bravaisLattices column
+            lattices = choose_lattice.lattices
+
+            # First letter must match first letter of BravaisLattice
+            crystal_system = choose_lattice.crystalSystem
+
+            header, solutions = self.parse_indexing_solution(
+                solution_format, choose_lattice.solutions
+            )
+            fields["indexing_solution"] = {
+                "title": "Select indexing solution:",
+                "type": "string",
+            }
+
+            # Color green (figuratively) if matches lattices,
+            # or otherwise if matches crystalSystem
+            colour_check = lattices or (crystal_system,)
+            colouring = list(
+                bool(any(x in line for x in colour_check)) for line in solutions
+            )
+
+            ui_schema["ui:order"].insert(0,"indexing_solution")
+            ui_schema["indexing_solution"] = {
+                "ui:widget": "selection_table",
+                "ui:options": {
+                    "header": header,
+                    "content": [solutions],
+                    "colouring": colouring,
+                }
+            }
 
         self._return_parameters = gevent.event.AsyncResult()
 
@@ -533,6 +560,11 @@ class GphlWorkflow(HardwareObjectYaml):
             params["cell_parameters"] = cell_parameters
 
         data_model.set_pre_strategy_params(**params)
+        # @~@~ DEBUG:
+        format = "--> %s: %s"
+        print ("GPHL workflow. Pre-execute with parameters:")
+        for item in data_model.parameter_summary().items():
+            print (format % item)
         if data_model.detector_setting is None:
             resolution = HWR.beamline.resolution.get_value()
             distance = HWR.beamline.detector.distance.get_value()
@@ -690,8 +722,8 @@ class GphlWorkflow(HardwareObjectYaml):
             lines.extend(("-" * len(lines[0]), ""))
             beam_energies = OrderedDict()
             energies = [initial_energy, initial_energy + 0.01, initial_energy - 0.01]
-            for ii, tag in enumerate(data_model.wavelengths):
-                beam_energies[tag] = energies[ii]
+            for ii, phasing_energy in enumerate(data_model.wavelengths):
+                beam_energies[phasing_energy.role] = energies[ii]
             budget_use_fraction = 1.0
             dose_label = "Total dose (MGy)"
 
@@ -712,6 +744,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     if pos is not None:
                         dd0[tag] = pos
 
+        print ('@~@~ beam_energies', beam_energies)
         # Make strategy-description info_text
         if len(beam_energies) > 1:
             lines.append(
@@ -1289,7 +1322,7 @@ class GphlWorkflow(HardwareObjectYaml):
             gphl_workflow_model.get_next_number_for_name(new_dcg_name)
         )
         self._data_collection_group = new_dcg_model
-        self._add_to_queue(gphl_workflow_model, new_dcg_model)
+        # self._add_to_queue(gphl_workflow_model, new_dcg_model)
 
         #
         # Set (re)centring behaviour and goniostatTranslations
@@ -1322,6 +1355,7 @@ class GphlWorkflow(HardwareObjectYaml):
             # Sample has never been centred reliably.
             # Centre it at sweepsetting and put it into goniostatTranslations
             settings = dict(sweepSetting.axisSettings)
+            print ('@~@~ enqueue 1')
             qe = self.enqueue_sample_centring(motor_settings=settings)
             translation, current_pos_dict = self.execute_sample_centring(
                 qe, sweepSetting
@@ -1398,6 +1432,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 else:
                     settings.update(translation_settings)
                     qe = self.enqueue_sample_centring(motor_settings=settings)
+                    print ('@~@~ enqueue 2')
                     translation, dummy = self.execute_sample_centring(qe, sweepSetting)
                     goniostatTranslations.append(translation)
                     gphl_workflow_model.current_rotation_id = sweepSetting.id_
@@ -1448,6 +1483,7 @@ class GphlWorkflow(HardwareObjectYaml):
             if recentring_mode == "start":
                 # Recentre now, using updated values if available
                 qe = self.enqueue_sample_centring(motor_settings=settings)
+                print ('@~@~ enqueue 3')
                 translation, dummy = self.execute_sample_centring(qe, sweepSetting)
                 goniostatTranslations.append(translation)
                 gphl_workflow_model.current_rotation_id = sweepSetting.id_
@@ -1477,6 +1513,9 @@ class GphlWorkflow(HardwareObjectYaml):
                 goniostatTranslations.append(translation)
         #
         gphl_workflow_model.goniostat_translations = goniostatTranslations
+
+        # Do it here so that any centring actions are enqueued dfirst
+        self._add_to_queue(gphl_workflow_model, new_dcg_model)
 
         # Return SampleCentred message
         sampleCentred = GphlMessages.SampleCentred(gphl_workflow_model)
@@ -1767,6 +1806,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 self.enqueue_sample_centring(
                     motor_settings=initial_settings, in_queue=True
                 )
+                print ('@~@~ enqueue 4')
             else:
                 # Collect using precalculated centring position
                 initial_settings[goniostatRotation.scanAxis] = scan.start
@@ -1860,16 +1900,18 @@ class GphlWorkflow(HardwareObjectYaml):
             if len(aset) == 1:
                 crystal_system = aset.pop()
 
-        dd0 = self.parse_indexing_solution(solution_format, choose_lattice.solutions)
+        header, solutions = self.parse_indexing_solution(
+            solution_format, choose_lattice.solutions
+        )
         starred = None
         system_fit = None
         lattice_fit = None
-        for line in dd0["solutions"]:
+        for line in solutions:
             if "*" in  line:
                 starred = line
-                if crystal_system and crystal_system in line:
+                if crystal_system and crystal_system in line and not system_fit:
                     system_fit = line
-                if lattices and any(x in line for x in lattices):
+                if lattices and any(x in line for x in lattices) and not lattice_fit:
                     lattice_fit = line
         useline = lattice_fit or system_fit or starred
         if useline:
@@ -1913,9 +1955,17 @@ class GphlWorkflow(HardwareObjectYaml):
             # NBNB DISPLAY_ENERGY_DECIMALS
 
             params = self.query_pre_strategy_params(data_model, choose_lattice)
-            data_model.set_pre_strategy_params(**params)
-            raise NotImplementedError()
+            print ('@~@~ params', list(params))
+            solution = params["indexing_solution"][0].split()
+            print ('@~@~ solution', solution)
+            if solution[0] == "*":
+                del solution[0]
         data_model.set_pre_strategy_params(**params)
+        # @~@~ DEBUG:
+        format = "--> %s: %s"
+        print ("GPHL workflow. Lattice selected with parameters:")
+        for item in data_model.parameter_summary().items():
+            print (format % item)
         distance = data_model.detector_setting.axisSettings["Distance"]
         HWR.beamline.detector.distance.set_value(distance, timeout=30)
         return GphlMessages.SelectedLattice(
@@ -2112,7 +2162,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     break
 
             #
-            return {"header": header, "solutions": solutions}
+            return header, solutions
         else:
             raise ValueError(
                 "GPhL: Indexing format %s is not known" % repr(solution_format)
@@ -2201,6 +2251,7 @@ class GphlWorkflow(HardwareObjectYaml):
         if goniostatTranslation is not None:
             settings.update(goniostatTranslation.axisSettings)
         centring_queue_entry = self.enqueue_sample_centring(motor_settings=settings)
+        print ('@~@~ enqueue 5')
         goniostatTranslation, dummy = self.execute_sample_centring(
             centring_queue_entry, goniostatRotation
         )
