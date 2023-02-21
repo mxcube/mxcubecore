@@ -2403,11 +2403,11 @@ class GphlWorkflow(TaskNode):
                     duration, energy, flux_density
                 )
         msg = (
-            "Dose could not be calculated from:\n"
+            "WARNING: Dose could not be calculated from:\n"
             " energy:%s keV, strategy_length:%s deg, exposure_time:%s s, "
             "image_width:%s deg, transmission: %s  flux_density:%s  photons/mm^2"
         )
-        raise ValueError(
+        print(
             msg % (
                 energy,
                 strategy_length,
@@ -2417,6 +2417,7 @@ class GphlWorkflow(TaskNode):
                 flux_density
             )
         )
+        return 0
 
     def recommended_dose_budget(self, resolution=None):
         """Get resolution-dependent dose budget using current configuration

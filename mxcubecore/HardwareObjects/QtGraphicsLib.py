@@ -124,8 +124,8 @@ class GraphicsItem(qt_import.QGraphicsItem):
         """Sets start position"""
 
         if position_x is not None and position_y is not None:
-            self.start_coord[0] = position_x
-            self.start_coord[1] = position_y
+            self.start_coord[0] = int(position_x)
+            self.start_coord[1] = int(position_y)
         self.scene().update()
 
     def get_start_position(self):
@@ -144,7 +144,7 @@ class GraphicsItem(qt_import.QGraphicsItem):
         :type position_y: int
         """
         if position_x is not None and position_y is not None:
-            self.end_coord = [position_x, position_y]
+            self.end_coord = [int(position_x), int(position_y)]
         self.scene().update()
 
     def get_display_name(self):
