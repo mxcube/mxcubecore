@@ -153,7 +153,7 @@ class P11Collect(AbstractCollect):
 
                 #AG: Create rotational_001, etc the same way as for CC in case of characterisation
                 filepath = os.path.join(basepath, "rotational_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno))
-                filepath = os.path.join(basepath)
+                #filepath = os.path.join(basepath)
                 self.log.debug("======= CURRENT FILEPATH: "+str(filepath)+"=======================================")
                 self.latest_h5_filename = "%s_master.h5" % filepath
                 self.log.debug("======= LATEST H5 FILENAME FILEPATH: "+str(self.latest_h5_filename)+"=======================================")
@@ -167,14 +167,25 @@ class P11Collect(AbstractCollect):
             if collection_type == "Characterization":
                 self.collect_characterisation(start_angle, img_range, nframes, angle_inc, exp_time)
                 self.add_h5_info()
+                #TODO: Add LiveView here
+                os.system("killall albula")
+                os.system("/opt/dectris/albula/4.0/bin/albula "+self.latest_h5_filename +" &")
+                #os.system("adxv "+self.latest_h5_filename +" &")
+                # Create diffraction snapshots
+                for i in range(nframes):
+                    os.system("python3 /gpfs/local/shared/MXCuBE/hdf5tools/albula_api/generate_image.py --input "+ self.latest_h5_filename +" --output "+os.path.join(basepath, "screening_"+str(runno).zfill(3))+"/"+" --image_number "+str(i+1))
+                
 
             else:
                 self.collect_std_collection(start_angle, stop_angle)
                 self.add_h5_info()
                 self.generate_xds_template()
-                self.log.debug("================ running albula /opt/dectris/albula/4.0/bin/albula "+self.latest_h5_filename)
+                #TODO: Add LiveView here
                 os.system("killall albula")
                 os.system("/opt/dectris/albula/4.0/bin/albula "+self.latest_h5_filename +" &")
+                ## Create diffraction snapshots
+                os.system("python3 /gpfs/local/shared/MXCuBE/hdf5tools/albula_api/generate_image.py --input "+ self.latest_h5_filename +" --output "+os.path.join(basepath, "rotational_"+str(runno).zfill(3))+"/"+" --image_number 1")
+                
 
 
 
