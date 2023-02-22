@@ -96,6 +96,7 @@ class ISPyBRestClient(HardwareObject):
         except Exception as ex:
             msg = "POST to %s failed reason %s" % (auth_url, str(ex))
             logging.getLogger("ispyb_client").exception(msg)
+            raise Exception(msg)
         else:
             msg = "Authenticated to LIMS token is: %s" % self.__rest_root
             logging.getLogger("ispyb_client").debug(msg)
