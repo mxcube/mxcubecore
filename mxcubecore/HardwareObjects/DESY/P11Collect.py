@@ -171,6 +171,10 @@ class P11Collect(AbstractCollect):
                 os.system("killall albula")
                 os.system("/opt/dectris/albula/4.0/bin/albula "+self.latest_h5_filename +" &")
                 #os.system("adxv "+self.latest_h5_filename +" &")
+                
+                #Open index_html
+                os.system("firefox /gpfs/current/processed/index.html")
+
                 # Create diffraction snapshots
                 for i in range(nframes):
                     os.system("python3 /gpfs/local/shared/MXCuBE/hdf5tools/albula_api/generate_image.py --input "+ self.latest_h5_filename +" --output "+os.path.join(basepath, "screening_"+str(runno).zfill(3))+"/"+" --image_number "+str(i+1))
@@ -183,6 +187,10 @@ class P11Collect(AbstractCollect):
                 #TODO: Add LiveView here
                 os.system("killall albula")
                 os.system("/opt/dectris/albula/4.0/bin/albula "+self.latest_h5_filename +" &")
+                
+                #Open index_html
+                os.system("firefox /gpfs/current/processed/index.html")              
+          
                 ## Create diffraction snapshots
                 os.system("python3 /gpfs/local/shared/MXCuBE/hdf5tools/albula_api/generate_image.py --input "+ self.latest_h5_filename +" --output "+os.path.join(basepath, "rotational_"+str(runno).zfill(3))+"/"+" --image_number 1")
                 
