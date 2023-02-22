@@ -49,7 +49,7 @@ class BIOMAXEnergy(AbstractEnergy):
         self.emit("stateChanged", (state))
 
     def get_value(self):
-        val = "%.3f" % self.energy_motor.get_value()
+        val = "%.3f" % (self.energy_motor.get_value() / 1000)
         return float(val)
 
     def get_current_energy(self):
@@ -149,8 +149,8 @@ class BIOMAXEnergy(AbstractEnergy):
                     time.sleep(0.1)
         except:
             raise Timeout
-        
-    
+
+
     def cancel_move_energy(self):
         logging.getLogger("user_level_log").info("Cancel Energy move")
         logging.getLogger("HWR").info("Cancel Energy move")
