@@ -30,7 +30,7 @@ class P11Collect(AbstractCollect):
 
         super(P11Collect,self).init()
 
-        self.default_speed = self.get_property("omega_default_speed", 50)
+        self.default_speed = self.get_property("omega_default_speed", 130)
         self.turnback_time = self.get_property("turnback_time", 0.1)
         self.filter_server_name = self.get_property('filterserver')
         self.mono_server_name = self.get_property('monoserver')
