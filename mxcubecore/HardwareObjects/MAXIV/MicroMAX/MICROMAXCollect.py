@@ -378,9 +378,9 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         if float(self.flux_before_collect) < 1:
             self.user_log.error("Collection: Flux is 0, please check the beam!!")
 
-        self.diffractometer_hwobj._wait_ready(5)
+        self.diffractometer_hwobj.wait_ready(20)
         self.move_to_centered_position()
-        self.diffractometer_hwobj._wait_ready(5)
+        self.diffractometer_hwobj.wait_ready(20)
 
         self.log.info("Updating data collection in LIMS with data: %s" % self.current_dc_parameters)
         self.update_data_collection_in_lims()
@@ -429,7 +429,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
             self._collecting = True
             oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
             self.open_detector_cover()
-
+            self.log.debug('data_collection_hook {}'.format(oscillation_parameters))
             # TODO: investigate gevent.timeout exception handing, this wait is
             # to ensure that configuration is done before arming
             time.sleep(2)
@@ -441,6 +441,8 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
                 self.log.error("[COLLECT] Detector Error: %s" % ex)
                 raise RuntimeError("[COLLECT] Detector error while arming.")
 
+            self.log.debug('data_collection_hook detector ready')
+
             try:
                 # Add 3ms into the total acquisition time, to compensate the unsynchronization between
                 # fastshutter and detector, otherwise the last image sample is less radiated.
@@ -451,7 +453,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
 
             for (osc_start, trigger_num, nframes_per_trigger, osc_range) in self.triggers_to_collect:
                 osc_end = osc_start + osc_range * nframes_per_trigger
-                self.display_task = gevent.spawn(self._update_image_to_display)
+                # self.display_task = gevent.spawn(self._update_image_to_display)
                 self.progress_task = gevent.spawn(self._update_task_progress)
 
                 # Actual MD3 oscillation launched here
@@ -461,6 +463,8 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
                                                    1,
                                                    wait=True
                                                    )
+            self.log.debug('data_collection_hook OSC Done')
+
             try:
                 self.detector_hwobj.stop_acquisition()
             except Exception as ex:
@@ -513,7 +517,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
                                                   invert_direction=1,
                                                   wait=wait)
         else:
-            self.diffractometer_hwobj.do_oscillation_scan(start, end, exptime)
+            self.diffractometer_hwobj.do_oscillation_scan(start, end, exptime, wait)
 
     def _update_task_progress(self):
         '''
@@ -592,7 +596,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         if self.char:
             # stop char converter
             self.char = False
-        self.diffractometer_hwobj._wait_ready(5)
+        self.diffractometer_hwobj.wait_ready(5)
 
         # estimate the flux at sample position
         self.estimated_flux_after_collect = self.get_estimated_flux()
@@ -889,7 +893,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
 
     def set_energy(self, value):
         self.log.info("[COLLECT] Setting beamline energy to %s" %value)
-        self.energy_hwobj.startMoveEnergy(value, True, False) # keV
+        self.energy_hwobj.start_move_energy(value, True, False) # keV
         self.log.info("[COLLECT] Updating wavelength parameter to %s" %(12.3984/value))
         self.current_dc_parameters["wavelength"] = (12.3984/value)
         self.log.info("[COLLECT] Setting detector energy")
@@ -906,7 +910,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         """
         Descript. :
         """
-        self.diffractometer_hwobj.set_value_motors(motor_position_dict)
+        self.diffractometer_hwobj.move_to_motors_positions(motor_position_dict)
 
     def create_file_directories(self):
         """
@@ -976,7 +980,8 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
             else:
                 try:
                     if self.dtox_hwobj is not None:
-                        self.dtox_hwobj.syncMove(value, timeout = 50) #30s is not enough for the whole range
+                        self.dtox_hwobj.set_value(value)
+                        self.dtox_hwobj.wait_end_of_move(50)
                 except Exception:
                     self.user_log.error('Cannot move detector, please check the key!!')
                     self.log.exception("Problems when moving detector!!")
@@ -1002,7 +1007,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         if self.dtox_hwobj is not None:
-            return self.dtox_hwobj.getLimits()
+            return self.dtox_hwobj.get_limits()
 
     def prepare_detector(self):
 
