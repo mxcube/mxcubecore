@@ -44,7 +44,8 @@ except Exception:
     binary_type = bytes
 
 # Conversion from kEv to A, wavelength = HC_OVER_E/energy
-HC_OVER_E = h * c / e * 10e6
+# NB This is * 10e7 (and NOT * 10e6), because the unit is A, not nm.
+HC_OVER_E = h * c / e * 10e7
 
 
 # Utility functions:
