@@ -168,8 +168,8 @@ class P11Collect(AbstractCollect):
                 self.collect_characterisation(start_angle, img_range, nframes, angle_inc, exp_time)
                 self.add_h5_info()
                 #TODO: Add LiveView here
-                os.system("killall albula")
-                os.system("/opt/dectris/albula/4.0/bin/albula "+self.latest_h5_filename +" &")
+                #os.system("killall albula")
+                #os.system("/opt/dectris/albula/4.0/bin/albula "+self.latest_h5_filename +" &")
                 #os.system("adxv "+self.latest_h5_filename +" &")
                 
                 #Open index_html
@@ -185,8 +185,8 @@ class P11Collect(AbstractCollect):
                 self.add_h5_info()
                 self.generate_xds_template()
                 #TODO: Add LiveView here
-                os.system("killall albula")
-                os.system("/opt/dectris/albula/4.0/bin/albula "+self.latest_h5_filename +" &")
+                #os.system("killall albula")
+                #os.system("/opt/dectris/albula/4.0/bin/albula "+self.latest_h5_filename +" &")
                 
                 #Open index_html
                 os.system("firefox /gpfs/current/processed/index.html")              
