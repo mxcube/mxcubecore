@@ -1205,7 +1205,7 @@ class XalocCollect(AbstractCollect):
                 
                 self.data_collection_failed( RuntimeError(msg), msg )
                 #return False
-            self.logger.debug("self.aborted_by_user %s" % str(self.aborted_by_user) )
+            #self.logger.debug("self.aborted_by_user %s" % str(self.aborted_by_user) )
             time.sleep(0.2)
 
         self.detector_hwobj.get_saving_statistics()
