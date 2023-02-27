@@ -50,7 +50,6 @@ import PyTango
 # from mxcubecore.TaskUtils import task
 
 try:
-    from sardana.taurus.core.tango.sardana import registerExtensions
     from taurus import Device, Attribute
     import taurus
     from taurus.core.tango.enums import DevState
@@ -426,8 +425,6 @@ class SardanaChannel(ChannelObject, SardanaObject):
                         self.info.maxval = float(ranges[-1])
                 elif taurus.Release.version_info[0] > 3:  # taurus 4 and beyond
                     minval, maxval = self.attribute.getRanges()
-                    print self.attribute
-                    print str(self.attribute.getRanges())
                     self.info.minval = minval.magnitude
                     self.info.maxval = maxval.magnitude
             except Exception:
