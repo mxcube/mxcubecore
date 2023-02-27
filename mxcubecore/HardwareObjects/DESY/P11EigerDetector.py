@@ -14,7 +14,6 @@ class P11EigerDetector(AbstractDetector):
 
         self.eiger_devname = self.get_property("eiger_device")
         self.filewriter_name = self.get_property("filewriter_device")
-
         self._roi_mode = self.get_property("roi_mode", "disabled")
 
         #self.log.debug("EIGER - device name is : %s" % self.eiger_devname)
@@ -24,6 +23,10 @@ class P11EigerDetector(AbstractDetector):
 
         self.eiger_dev = DeviceProxy(self.eiger_devname)
         self.writer_dev = DeviceProxy(self.filewriter_name)
+        
+        #Get the detector distance device
+        detector_tower_dev = DeviceProxy(self.get_property("detector_tower_device"))
+        
 
         self.chan_status = self.get_channel_object("_status")
         self.chan_status.connect_signal("update", self.status_changed) 
@@ -36,7 +39,7 @@ class P11EigerDetector(AbstractDetector):
 
         self.log.debug("EIGER - beamcenter: %s" % str(self._beam_centre))  
         self.log.debug("EIGER - originx: %s" % str(self.originx))  
-        self.log.debug("EIGER - originy: %s" % str(self.originy))  
+        self.log.debug("EIGER - originy: %s" % str(self.originy))
         
 
         self.inited = False
@@ -73,6 +76,12 @@ class P11EigerDetector(AbstractDetector):
         # this value comes from crystalControlMaxwell hardcoded value to
         # estimate resolution
         return 311 / 2.0
+    
+    def get_detector_distance(self):
+        det_tower_distance =  self.detector_tower_dev.read_attribute("DetectorDistance").value
+        self.log.debug("EIGER - current detector distance is : %s" % current_det_tower_distance) 
+        return det_tower_distance
+
 
     def prepare_common(self, exptime, filepath):
         if not self.inited:
@@ -91,17 +100,40 @@ class P11EigerDetector(AbstractDetector):
         #Beam center is depending on the detector distance as for the CrystalControl. 
         #Emulate of the same hardcoded config parameters as before.
         
-        #Beam center params after calibration in October 2022
+        #Beam center params after calibration in October 2022 from CC
         #self.dataCollector.setParameter("beamX", self.beamOriginX + 63.5 * (self.ui.doubleSpinBoxDetectorDistance.value() - 160) / 1000.0)
         #self.dataCollector.setParameter("beamY", self.beamOriginY - 14.2 * (self.ui.doubleSpinBoxDetectorDistance.value() - 160) / 1000.0)
 
-        #TODO Add detector distance related correction
-        corrected_originx = self.originx 
-        corrected_originy = self.originy 
+        current_det_tower_distance =  self.get_detector_distance()
+        corrected_originx = self.originx + 63.5 * (current_det_tower_distance - 160) / 1000.0
+        corrected_originy = self.originy - 14.2 * (current_det_tower_distance - 160) / 1000.0
 
         self.eiger_dev.write_attribute("BeamCenterX", float(corrected_originx))
         self.eiger_dev.write_attribute("BeamCenterY", float(corrected_originy))
         #=================================================
+
+        #============ Other params from CC ===================
+         #Eiger
+            # if(self.petraThread.currentMonoEnergy > (self.eigerThread.photonEnergy + self.DETECTOR_ENERGY_TOLERANCE) or \
+            #     self.petraThread.currentMonoEnergy < (self.eigerThread.photonEnergy - self.DETECTOR_ENERGY_TOLERANCE)):
+            #     if(str(self.eigerThread.proxyEiger.state()) == "ON"):
+            #         print("Setting Eiger threshold")
+            #         self.emit(SIGNAL("logSignal(PyQt_PyObject)"),"Setting Eiger energy threshold.")
+            #         if self.petraThread.currentMonoEnergy > 5500:
+            #             self.eigerThread.setPhotonEnergy(self.petraThread.currentMonoEnergy)
+            #         else:
+            #             self.eigerThread.setPhotonEnergy(5500)
+            #         time.sleep(1.5)
+            #         conditions = False
+            #         self.conditionsList["DetectorThresholdSet"] = False
+            # elif (str(self.eigerThread.proxyEiger.state()) == "ON"):
+            #     self.conditionsList["DetectorThresholdSet"] = True
+            #     self.emit(SIGNAL("waitConditionsUpdate()"))
+            # elif (not (str(self.eigerThread.proxyEiger.state()) == "ON")):
+            #     conditions = False
+            #     self.conditionsList["DetectorThresholdSet"] = False
+            #     self.emit(SIGNAL("waitConditionsUpdate()"))
+        #=====================================================
 
 
     def prepare_characterisation(self, exptime, number_of_images, angle_inc, filepath):
