@@ -26,6 +26,7 @@ class P11EigerDetector(AbstractDetector):
         
         #Get the detector distance device
         self.detector_tower_dev = DeviceProxy(self.get_property("detector_tower_device"))
+        self.dcm_energy_dev = DeviceProxy(self.get_property("dcm_energy_device"))
         
 
         self.chan_status = self.get_channel_object("_status")
@@ -92,6 +93,7 @@ class P11EigerDetector(AbstractDetector):
         #in meters for the detector header info
         self.eiger_dev.write_attribute("DetectorDistance", float(current_det_tower_distance/1000.0))
 
+    #TODO add if needed
     def get_eiger_beam_center(self):
         return True
 
@@ -110,24 +112,18 @@ class P11EigerDetector(AbstractDetector):
         self.eiger_dev.write_attribute("BeamCenterY", float(corrected_originy))
 
         self.log.debug("EIGER - current beamcenter X and Y: %f, %f at detector distance %f mm" % (corrected_originx, corrected_originy, current_det_tower_distance))
-        #=================================================
+    
+    #TODO add if needed
+    def get_eiger_photon_energy(self):
+        return True
+    
+    #FIXME: Add the same conditions as for CC
+    def set_eiger_photon_energy(self):
+        #Sets photon energy in the detector server for the header   
+        current_dcm_energy = float(self.dcm_energy_dev.read_attribute("Position").value)
+        self.eiger_dev.write_attribute("PhotonEnergy", float(current_dcm_energy))
 
-    def prepare_common(self, exptime, filepath):
-        if not self.inited:
-            self.init_acquisition()
-
-        self.eiger_dev.write_attribute("CountTime", float(exptime))
-        self.eiger_dev.write_attribute("FrameTime", float(exptime))
-        self.eiger_dev.write_attribute("TriggerStartDelay", 0.003)
-
-        if filepath.startswith("/gpfs"):
-            filepath = filepath[len("/gpfs"):]
-
-        self.writer_dev.write_attribute("NamePattern", filepath)
-        self.set_eiger_detector_distance() #set detector distance for the header
-        self.set_eiger_beam_center() #set detector beam center for the header
-        
-        #============ Other params from CC ===================
+        # From CC:
          #Eiger
             # if(self.petraThread.currentMonoEnergy > (self.eigerThread.photonEnergy + self.DETECTOR_ENERGY_TOLERANCE) or \
             #     self.petraThread.currentMonoEnergy < (self.eigerThread.photonEnergy - self.DETECTOR_ENERGY_TOLERANCE)):
@@ -148,8 +144,24 @@ class P11EigerDetector(AbstractDetector):
             #     conditions = False
             #     self.conditionsList["DetectorThresholdSet"] = False
             #     self.emit(SIGNAL("waitConditionsUpdate()"))
-        #=====================================================
 
+    def prepare_common(self, exptime, filepath):
+        if not self.inited:
+            self.init_acquisition()
+
+        self.eiger_dev.write_attribute("CountTime", float(exptime))
+        self.eiger_dev.write_attribute("FrameTime", float(exptime))
+        self.eiger_dev.write_attribute("TriggerStartDelay", 0.003)
+
+        if filepath.startswith("/gpfs"):
+            filepath = filepath[len("/gpfs"):]
+
+        self.writer_dev.write_attribute("NamePattern", filepath)
+        self.set_eiger_detector_distance() #set detector distance for the header
+        self.set_eiger_beam_center() #set detector beam center for the header
+        self.set_eiger_photon_energy()
+        
+        
 
     def prepare_characterisation(self, exptime, number_of_images, angle_inc, filepath):
         self.writer_dev.write_attribute("NImagesPerFile", 1) # To write one image per characterisation.
