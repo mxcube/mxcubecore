@@ -29,7 +29,15 @@ class P11EigerDetector(AbstractDetector):
         self.chan_status.connect_signal("update", self.status_changed) 
 
         self._exposure_time_limits = eval(self.get_property("exposure_time_limits"))
+        
         self._beam_centre = eval(self.get_property("beam_centre"))
+        self.originx=self._beam_centre[0]
+        self.originy=self._beam_centre[1]
+
+        self.log.debug("EIGER - beamcenter: %s" % str(self._beam_centre))  
+        self.log.debug("EIGER - originx: %s" % str(self.originx))  
+        self.log.debug("EIGER - originy: %s" % str(self.originy))  
+        
 
         self.inited = False
         
@@ -79,12 +87,32 @@ class P11EigerDetector(AbstractDetector):
 
         self.writer_dev.write_attribute("NamePattern", filepath)
 
+        #==== Setting the beam center ======================
+        #Beam center is depending on the detector distance as for the CrystalControl. 
+        #Emulate of the same hardcoded config parameters as before.
+        
+        #Beam center params after calibration in October 2022
+        #self.dataCollector.setParameter("beamX", self.beamOriginX + 63.5 * (self.ui.doubleSpinBoxDetectorDistance.value() - 160) / 1000.0)
+        #self.dataCollector.setParameter("beamY", self.beamOriginY - 14.2 * (self.ui.doubleSpinBoxDetectorDistance.value() - 160) / 1000.0)
+
+        #TODO Add detector distance related correction
+        corrected_originx = self.originx 
+        corrected_originy = self.originy 
+
+        self.eiger_dev.write_attribute("BeamCenterX", float(corrected_originx))
+        self.eiger_dev.write_attribute("BeamCenterY", float(corrected_originy))
+        #=================================================
+
+
     def prepare_characterisation(self, exptime, number_of_images, angle_inc, filepath):
         self.writer_dev.write_attribute("NImagesPerFile", 1) # To write one image per characterisation.
         self.prepare_common(exptime, filepath)
         self.eiger_dev.write_attribute("Nimages", 1) #Number of images per trigger
         self.log.debug("Eiger. preparing characterization. Number of triggers is: %d" % number_of_images)
         self.eiger_dev.write_attribute("Ntrigger", int(number_of_images))
+        
+        
+
 
     def prepare_std_collection(self, exptime, number_of_images, filepath):  
         self.prepare_common(exptime, filepath)
