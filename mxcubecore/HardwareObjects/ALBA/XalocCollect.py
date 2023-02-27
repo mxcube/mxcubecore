@@ -1182,7 +1182,7 @@ class XalocCollect(AbstractCollect):
             # Make sure the detector is ready (in stand by and not moving)
             self.detector_hwobj.wait_ready()
 
-    def wait_save_image(self, frame_number, timeout=25):
+    def wait_save_image(self, frame_number, timeout=60):
 
         full_path = self.get_image_file_name( frame_number )
 
