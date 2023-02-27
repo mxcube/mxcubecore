@@ -25,7 +25,7 @@ class P11EigerDetector(AbstractDetector):
         self.writer_dev = DeviceProxy(self.filewriter_name)
         
         #Get the detector distance device
-        detector_tower_dev = DeviceProxy(self.get_property("detector_tower_device"))
+        self.detector_tower_dev = DeviceProxy(self.get_property("detector_tower_device"))
         
 
         self.chan_status = self.get_channel_object("_status")
@@ -77,11 +77,40 @@ class P11EigerDetector(AbstractDetector):
         # estimate resolution
         return 311 / 2.0
     
-    def get_detector_distance(self):
+    def get_eiger_detector_distance(self):
+        #Get current detector distance from detector tower server
         det_tower_distance =  self.detector_tower_dev.read_attribute("DetectorDistance").value
-        self.log.debug("EIGER - current detector distance is : %s" % current_det_tower_distance) 
+        self.log.debug("EIGER: DetectorTower distance is : %s" % det_tower_distance) 
         return det_tower_distance
+    
+    def set_eiger_detector_distance(self):
+        #Set detector distance in the Detector server for the header.
+        # It does not set the actual detector distance! 
 
+        # in mm from detector tower server
+        current_det_tower_distance =  self.get_eiger_detector_distance()
+        #in meters for the detector header info
+        self.eiger_dev.write_attribute("DetectorDistance", float(current_det_tower_distance/1000.0))
+
+    def get_eiger_beam_center(self):
+        return True
+
+    def set_eiger_beam_center(self): 
+        #==== Setting the beam center ======================
+        #Beam center is depending on the detector distance as for the CrystalControl. 
+        #Emulate of the same hardcoded config parameters as before.
+        #originx and originy (set in eiger.xml) are the X and Y of the beam mark at the detector distance of 160 mm.
+        
+        #Beam center params after calibration in October 2022 from CC:
+        current_det_tower_distance =  self.get_eiger_detector_distance()
+        corrected_originx = self.originx + 63.5 * (current_det_tower_distance - 160) / 1000.0
+        corrected_originy = self.originy - 14.2 * (current_det_tower_distance - 160) / 1000.0
+
+        self.eiger_dev.write_attribute("BeamCenterX", float(corrected_originx))
+        self.eiger_dev.write_attribute("BeamCenterY", float(corrected_originy))
+
+        self.log.debug("EIGER - current beamcenter X and Y: %f, %f at detector distance %f mm" % (corrected_originx, corrected_originy, current_det_tower_distance))
+        #=================================================
 
     def prepare_common(self, exptime, filepath):
         if not self.inited:
@@ -95,23 +124,9 @@ class P11EigerDetector(AbstractDetector):
             filepath = filepath[len("/gpfs"):]
 
         self.writer_dev.write_attribute("NamePattern", filepath)
-
-        #==== Setting the beam center ======================
-        #Beam center is depending on the detector distance as for the CrystalControl. 
-        #Emulate of the same hardcoded config parameters as before.
+        self.set_eiger_detector_distance() #set detector distance for the header
+        self.set_eiger_beam_center() #set detector beam center for the header
         
-        #Beam center params after calibration in October 2022 from CC
-        #self.dataCollector.setParameter("beamX", self.beamOriginX + 63.5 * (self.ui.doubleSpinBoxDetectorDistance.value() - 160) / 1000.0)
-        #self.dataCollector.setParameter("beamY", self.beamOriginY - 14.2 * (self.ui.doubleSpinBoxDetectorDistance.value() - 160) / 1000.0)
-
-        current_det_tower_distance =  self.get_detector_distance()
-        corrected_originx = self.originx + 63.5 * (current_det_tower_distance - 160) / 1000.0
-        corrected_originy = self.originy - 14.2 * (current_det_tower_distance - 160) / 1000.0
-
-        self.eiger_dev.write_attribute("BeamCenterX", float(corrected_originx))
-        self.eiger_dev.write_attribute("BeamCenterY", float(corrected_originy))
-        #=================================================
-
         #============ Other params from CC ===================
          #Eiger
             # if(self.petraThread.currentMonoEnergy > (self.eigerThread.photonEnergy + self.DETECTOR_ENERGY_TOLERANCE) or \
