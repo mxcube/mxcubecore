@@ -166,7 +166,7 @@ class P11Collect(AbstractCollect):
 
             if collection_type == "Characterization":
                 self.collect_characterisation(start_angle, img_range, nframes, angle_inc, exp_time)
-                self.add_h5_info()
+                #self.add_h5_info(self.latest_h5_filename)
                 #TODO: Add LiveView here
                 #os.system("killall albula")
                 #os.system("/opt/dectris/albula/4.0/bin/albula "+self.latest_h5_filename +" &")
@@ -182,7 +182,7 @@ class P11Collect(AbstractCollect):
 
             else:
                 self.collect_std_collection(start_angle, stop_angle)
-                self.add_h5_info()
+                #self.add_h5_info(self.latest_h5_filename)
                 self.generate_xds_template()
                 #TODO: Add LiveView here
                 #os.system("killall albula")
@@ -262,7 +262,7 @@ class P11Collect(AbstractCollect):
             import traceback
             self.log.error(traceback.format_exc())
 
-    def add_h5_info(self):
+    def add_h5_info(self,h5file):
 
         self.log.debug("========== Writing H5 info ==============")
         h5file = self.latest_h5_filename
@@ -271,7 +271,7 @@ class P11Collect(AbstractCollect):
         start_wait = time.time()
         while not os.path.exists(h5file):
             if time.time() - start_wait > FILE_TIMEOUT:
-                raise BaseException("Cannot add info to H5 file. Timeout waiting for file on diske")
+                raise BaseException("Cannot add info to H5 file. Timeout waiting for file on disk")
             time.sleep(0.5)
 
         try:
@@ -355,7 +355,10 @@ class P11Collect(AbstractCollect):
 
 
     def trigger_auto_processing(self, process_event=None, frame_number=None):
+        self.log.debug("Writing HDF% file header")        
+        self.add_h5_info(self.latest_h5_filename)        
         self.log.debug("Triggering auto processing. NOT IMPLEMENTED YET")
+        
 
         dc_pars = self.current_dc_parameters
         collection_type = dc_pars["experiment_type"]
