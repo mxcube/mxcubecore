@@ -21,8 +21,8 @@ class XalocResolution(Resolution):
         self.rescorner = self.get_channel_object("rescorner_value")
         self.logger("self._hwr_detector %s, type is %s" % ( self._hwr_detector, type(self._hwr_detector) ) )
         
-    def get_beam_centre(self, dtox=None):
-        return self._chnBeamX.get_value(), self._chnBeamY.get_value()
+    #def get_beam_centre(self, dtox=None):
+        #return self._chnBeamX.get_value(), self._chnBeamY.get_value()
 
     #def get_value_at_corner(self):
         #if self.rescorner is not None:

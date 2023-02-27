@@ -198,7 +198,7 @@ class XalocPilatus(AbstractDetector):
         """Return True if has shutterless mode"""
         return True
 
-    def get_beam_centre(self):
+    def get_beam_position(self):
         """Returns beam center coordinates"""
         beam_x = 0
         beam_y = 0

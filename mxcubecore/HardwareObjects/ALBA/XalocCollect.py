@@ -1123,7 +1123,7 @@ class XalocCollect(AbstractCollect):
             self.detector_hwobj.get_distance() / 1000.0)
         self.image_headers["Detector_Voffset"] = '0 m'
 
-        beamx, beamy = self.detector_hwobj.get_beam_centre()
+        beamx, beamy = self.detector_hwobj.get_beam_position()
         self.image_headers["Beam_xy"] = "(%.2f, %.2f) pixels" % (beamx, beamy)
 
         self.image_headers["Filter_transmission"] = "%.4f" % (
