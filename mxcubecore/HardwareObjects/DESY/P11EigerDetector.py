@@ -121,29 +121,11 @@ class P11EigerDetector(AbstractDetector):
     def set_eiger_photon_energy(self):
         #Sets photon energy in the detector server for the header   
         current_dcm_energy = float(self.dcm_energy_dev.read_attribute("Position").value)
-        self.eiger_dev.write_attribute("PhotonEnergy", float(current_dcm_energy))
-
-        # From CC:
-         #Eiger
-            # if(self.petraThread.currentMonoEnergy > (self.eigerThread.photonEnergy + self.DETECTOR_ENERGY_TOLERANCE) or \
-            #     self.petraThread.currentMonoEnergy < (self.eigerThread.photonEnergy - self.DETECTOR_ENERGY_TOLERANCE)):
-            #     if(str(self.eigerThread.proxyEiger.state()) == "ON"):
-            #         print("Setting Eiger threshold")
-            #         self.emit(SIGNAL("logSignal(PyQt_PyObject)"),"Setting Eiger energy threshold.")
-            #         if self.petraThread.currentMonoEnergy > 5500:
-            #             self.eigerThread.setPhotonEnergy(self.petraThread.currentMonoEnergy)
-            #         else:
-            #             self.eigerThread.setPhotonEnergy(5500)
-            #         time.sleep(1.5)
-            #         conditions = False
-            #         self.conditionsList["DetectorThresholdSet"] = False
-            # elif (str(self.eigerThread.proxyEiger.state()) == "ON"):
-            #     self.conditionsList["DetectorThresholdSet"] = True
-            #     self.emit(SIGNAL("waitConditionsUpdate()"))
-            # elif (not (str(self.eigerThread.proxyEiger.state()) == "ON")):
-            #     conditions = False
-            #     self.conditionsList["DetectorThresholdSet"] = False
-            #     self.emit(SIGNAL("waitConditionsUpdate()"))
+        
+        if current_dcm_energy > 5500:
+            self.eiger_dev.write_attribute("PhotonEnergy", float(current_dcm_energy))
+        else:
+            self.eiger_dev.write_attribute("PhotonEnergy", float(5500))
 
     def prepare_common(self, exptime, filepath):
         if not self.inited:
@@ -159,7 +141,40 @@ class P11EigerDetector(AbstractDetector):
         self.writer_dev.write_attribute("NamePattern", filepath)
         self.set_eiger_detector_distance() #set detector distance for the header
         self.set_eiger_beam_center() #set detector beam center for the header
-        self.set_eiger_photon_energy()
+        self.set_eiger_photon_energy() #set detector photon energy 
+
+
+        # Other params from CC:
+        # def setEigerParameters(self):
+        
+        #     self.eigerThread.setMetadataStartAngle(self.parameters["startangle"])
+        #     self.eigerThread.setMetadataAngleIncrement(self.parameters["degreesperframe"])
+
+
+        # def setMetadataStartAngle(self, arg):
+        #     arg = float(arg)
+        #     if self.debugMode:
+        #         print("Eiger thread: setMetadataStartAngle(), arg:", arg)
+        #     try:
+        #         self.proxyEiger.write_attribute("OmegaStart", arg)
+        #         time.sleep(0.1)
+        #     except:
+        #         print(sys.exc_info(), inspect.currentframe())
+        #         self.emit(SIGNAL("errorSignal(PyQt_PyObject)"), sys.exc_info()[1])
+
+        # def setMetadataAngleIncrement(self, arg):
+        #     arg = float(arg)
+        #     if self.debugMode:
+        #         print("Eiger thread: setMetadataAngleIncrement(), arg:", arg)
+        #     try:
+        #         self.proxyEiger.write_attribute("OmegaIncrement", arg)
+        #         time.sleep(0.1)
+        #     except:
+        #         print(sys.exc_info(), inspect.currentframe())
+        #         self.emit(SIGNAL("errorSignal(PyQt_PyObject)"), sys.exc_info()[1])
+       
+  
+
         
         
 
