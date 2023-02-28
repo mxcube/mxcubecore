@@ -226,6 +226,18 @@ class P11Collect(AbstractCollect):
 
         self.omega_mv(final_pos, self.acq_speed)
 
+        #Add start angle 
+        detector = HWR.beamline.detector
+        detector.set_eiger_start_angle(start_angle)
+
+        # Add angle increment to the header
+        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
+        img_range = osc_pars['range']
+        detector.set_eiger_angle_increment(img_range)
+
+
+
+
     def collect_characterisation(self, start_angle, img_range, nimages, angle_inc, exp_time):
         diffr = HWR.beamline.diffractometer
 
