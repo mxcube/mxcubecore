@@ -87,8 +87,6 @@ class P11Collect(AbstractCollect):
         dc_pars = self.current_dc_parameters
         collection_type = dc_pars["experiment_type"]
 
-
-
         self.log.debug("======================= P11Collect. DATA COLLECTION HOOK ==========================================")
         self.log.debug(str(collection_type))
         self.log.debug(str(self.current_dc_parameters))
@@ -110,7 +108,7 @@ class P11Collect(AbstractCollect):
 
         if collection_type == "Characterization":
             self.log.debug("P11Collect.  Characterization")
-            ret = self.prepare_characterization() # Doing nothing, returns true.
+            ret = self.prepare_characterization()
         else:
             stop_angle = start_angle + img_range*nframes
 
@@ -212,15 +210,6 @@ class P11Collect(AbstractCollect):
         self.trigger_auto_processing()
 
     def collect_std_collection(self, start_angle, stop_angle):
-
-        #Add start angle to the header
-        detector = HWR.beamline.detector
-        detector.set_eiger_start_angle(start_angle)
-
-        # Add angle increment to the header
-        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
-        img_range = osc_pars['range']
-        detector.set_eiger_angle_increment(img_range)
 
         self.log.debug("#COLLECT# Running OMEGA through the std acquisition")
         if start_angle < stop_angle:
@@ -660,15 +649,22 @@ class P11Collect(AbstractCollect):
             self.log.debug("#COLLECT# going to collect phase")
             diffr.goto_collect_phase(wait=True)
 
-        time.sleep(0.3)
-
         self.log.debug("#COLLECT# now in collect phase: %s" % diffr.is_collect_phase())
         return diffr.is_collect_phase()
 
     def prepare_std_collection(self, start_angle, img_range):
-        self.log.debug("Preparing for standard data collection.")
-        init_pos = start_angle - self.acq_speed * self.turnback_time
-        self.omega_mv(init_pos, self.default_speed)
+        #Add start angle to the header
+        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
+        start_angle = osc_pars['start']
+        
+        detector = HWR.beamline.detector
+        detector.set_eiger_start_angle(start_angle)
+
+        # Add angle increment to the header
+        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
+        img_range = osc_pars['range']
+        detector.set_eiger_angle_increment(img_range)
+
         return True
 
     def omega_mv(self, target, speed):
@@ -678,6 +674,19 @@ class P11Collect(AbstractCollect):
 
     def prepare_characterization(self):
         self.log.debug("Preparing for characterization data collection.")
+
+        #Add start angle to the header
+        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
+        start_angle = osc_pars['start']
+        
+        detector = HWR.beamline.detector
+        detector.set_eiger_start_angle(start_angle)
+
+        # Add angle increment to the header
+        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
+        img_range = osc_pars['range']
+        detector.set_eiger_angle_increment(img_range)
+
         return True
 
     def get_relative_path(self, path1, path2):
