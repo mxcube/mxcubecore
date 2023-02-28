@@ -154,10 +154,7 @@ class P11EigerDetector(AbstractDetector):
 
         #Sets the metadata for the header
         self.set_metadata()
-        
-
-
-
+ 
     def prepare_characterisation(self, exptime, number_of_images, angle_inc, filepath):
         self.writer_dev.write_attribute("NImagesPerFile", 1) # To write one image per characterisation.
         self.prepare_common(exptime, filepath)
