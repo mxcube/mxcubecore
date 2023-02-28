@@ -138,7 +138,7 @@ class P11Collect(AbstractCollect):
             if collection_type == "Characterization":
 
                 #AG: Create screening_001, etc the same way as for CC in case of characterisation
-                filepath = os.path.join(basepath, "screening_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno)) 
+                filepath = os.path.join(basepath,prefix,"screening_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno)) 
                 # filepath = os.path.join(basepath)
                 self.log.debug("======= CURRENT FILEPATH: "+str(filepath)+"=======================================")
                 self.latest_h5_filename = "%s_master.h5" % filepath
@@ -150,7 +150,7 @@ class P11Collect(AbstractCollect):
             else:
 
                 #AG: Create rotational_001, etc the same way as for CC in case of characterisation
-                filepath = os.path.join(basepath, "rotational_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno))
+                filepath = os.path.join(basepath,prefix,"rotational_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno))
                 #filepath = os.path.join(basepath)
                 self.log.debug("======= CURRENT FILEPATH: "+str(filepath)+"=======================================")
                 self.latest_h5_filename = "%s_master.h5" % filepath
@@ -175,7 +175,7 @@ class P11Collect(AbstractCollect):
 
                 # Create diffraction snapshots
                 for i in range(nframes):
-                    os.system("python3 /gpfs/local/shared/MXCuBE/hdf5tools/albula_api/generate_image.py --input "+ self.latest_h5_filename +" --output "+os.path.join(basepath, "screening_"+str(runno).zfill(3))+"/"+" --image_number "+str(i+1))
+                    os.system("python3 /gpfs/local/shared/MXCuBE/hdf5tools/albula_api/generate_image.py --input "+ self.latest_h5_filename +" --output "+os.path.join(basepath, prefix,"screening_"+str(runno).zfill(3))+"/"+" --image_number "+str(i+1))
                 
 
             else:
@@ -190,7 +190,7 @@ class P11Collect(AbstractCollect):
                 os.system("firefox /gpfs/current/processed/index.html")              
           
                 ## Create diffraction snapshots
-                os.system("python3 /gpfs/local/shared/MXCuBE/hdf5tools/albula_api/generate_image.py --input "+ self.latest_h5_filename +" --output "+os.path.join(basepath, "rotational_"+str(runno).zfill(3))+"/"+" --image_number 1")
+                os.system("python3 /gpfs/local/shared/MXCuBE/hdf5tools/albula_api/generate_image.py --input "+ self.latest_h5_filename +" --output "+os.path.join(basepath, prefix,"rotational_"+str(runno).zfill(3))+"/"+" --image_number 1")
                 
 
 
