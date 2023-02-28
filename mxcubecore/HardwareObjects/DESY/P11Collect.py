@@ -213,6 +213,15 @@ class P11Collect(AbstractCollect):
 
     def collect_std_collection(self, start_angle, stop_angle):
 
+        #Add start angle to the header
+        detector = HWR.beamline.detector
+        detector.set_eiger_start_angle(start_angle)
+
+        # Add angle increment to the header
+        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
+        img_range = osc_pars['range']
+        detector.set_eiger_angle_increment(img_range)
+
         self.log.debug("#COLLECT# Running OMEGA through the std acquisition")
         if start_angle < stop_angle:
                 self.lower_bound_ch.set_value(start_angle)
@@ -226,18 +235,7 @@ class P11Collect(AbstractCollect):
 
         self.omega_mv(final_pos, self.acq_speed)
 
-        #Add start angle 
-        detector = HWR.beamline.detector
-        detector.set_eiger_start_angle(start_angle)
-
-        # Add angle increment to the header
-        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
-        img_range = osc_pars['range']
-        detector.set_eiger_angle_increment(img_range)
-
-
-
-
+       
     def collect_characterisation(self, start_angle, img_range, nimages, angle_inc, exp_time):
         diffr = HWR.beamline.diffractometer
 
@@ -253,8 +251,7 @@ class P11Collect(AbstractCollect):
             self.omega_mv(init_pos, self.default_speed)
             self.collect_std_collection(start_angle, stop_angle)
 
-            #
-            diffr.set_omega_velocity( self.default_speed )
+            diffr.set_omega_velocity(self.default_speed)
             self.acq_window_off_cmd()
             self.acq_off_cmd()
             self.log.debug("======= collect_characterisation  Waiting =======================================")
@@ -342,6 +339,7 @@ class P11Collect(AbstractCollect):
         else:
             return -1
 
+    #TODO: Move to Maxwell completely
     def generate_xds_template(self):
         self.log.debug("============== Generating XDS template.============================")
 
@@ -358,7 +356,7 @@ class P11Collect(AbstractCollect):
         rel_image_dir = self.get_relative_path(process_dir, basedir)
         rel_image_path = os.path.join(rel_image_dir, fname)
 
-        cmd_tpl = "\"sleep 20; module load xdsapp/3.0.8; cd '{processpath:s}'; " + \
+        cmd_tpl = "\"sleep 20; module load xdsapp/3.1.9; cd '{processpath:s}'; " + \
                 "generate_XDS.INP '{imagepath:s}'\" >/dev/null 2>&1\n"
 
         cmd = cmd_tpl.format(imagepath=h5file, processpath=process_dir)
@@ -367,9 +365,9 @@ class P11Collect(AbstractCollect):
 
 
     def trigger_auto_processing(self, process_event=None, frame_number=None):
-        self.log.debug("Writing HDF% file header")        
+        self.log.debug("Writing HDF% file header final information")        
         self.add_h5_info(self.latest_h5_filename)        
-        self.log.debug("Triggering auto processing. NOT IMPLEMENTED YET")
+        self.log.debug("Triggering auto processing")
         
 
         dc_pars = self.current_dc_parameters
