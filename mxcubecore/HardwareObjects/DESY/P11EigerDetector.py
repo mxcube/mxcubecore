@@ -1,5 +1,6 @@
 
 import gevent
+import time
 
 from mxcubecore.Command.Tango import DeviceProxy
 from mxcubecore.HardwareObjects.abstract.AbstractDetector  import (
@@ -150,44 +151,12 @@ class P11EigerDetector(AbstractDetector):
             filepath = filepath[len("/gpfs"):]
 
         self.writer_dev.write_attribute("NamePattern", filepath)
-        self.set_eiger_detector_distance() #set detector distance for the header
-        self.set_eiger_beam_center() #set detector beam center for the header
-        self.set_eiger_photon_energy() #set detector photon energy
 
-
-        # Other params from CC:
-        # def setEigerParameters(self):
+        #Sets the metadata for the header
+        self.set_metadata()
         
-        #     self.eigerThread.setMetadataStartAngle(self.parameters["startangle"])
-        #     self.eigerThread.setMetadataAngleIncrement(self.parameters["degreesperframe"])
 
 
-        # def setMetadataStartAngle(self, arg):
-        #     arg = float(arg)
-        #     if self.debugMode:
-        #         print("Eiger thread: setMetadataStartAngle(), arg:", arg)
-        #     try:
-        #         self.proxyEiger.write_attribute("OmegaStart", arg)
-        #         time.sleep(0.1)
-        #     except:
-        #         print(sys.exc_info(), inspect.currentframe())
-        #         self.emit(SIGNAL("errorSignal(PyQt_PyObject)"), sys.exc_info()[1])
-
-        # def setMetadataAngleIncrement(self, arg):
-        #     arg = float(arg)
-        #     if self.debugMode:
-        #         print("Eiger thread: setMetadataAngleIncrement(), arg:", arg)
-        #     try:
-        #         self.proxyEiger.write_attribute("OmegaIncrement", arg)
-        #         time.sleep(0.1)
-        #     except:
-        #         print(sys.exc_info(), inspect.currentframe())
-        #         self.emit(SIGNAL("errorSignal(PyQt_PyObject)"), sys.exc_info()[1])
-       
-  
-
-        
-        
 
     def prepare_characterisation(self, exptime, number_of_images, angle_inc, filepath):
         self.writer_dev.write_attribute("NImagesPerFile", 1) # To write one image per characterisation.
@@ -196,9 +165,6 @@ class P11EigerDetector(AbstractDetector):
         self.log.debug("Eiger. preparing characterization. Number of triggers is: %d" % number_of_images)
         self.eiger_dev.write_attribute("Ntrigger", int(number_of_images))
         
-        
-
-
     def prepare_std_collection(self, exptime, number_of_images, filepath):  
         self.prepare_common(exptime, filepath)
 
@@ -208,17 +174,11 @@ class P11EigerDetector(AbstractDetector):
 
         self.writer_dev.write_attribute("ImageNrStart", 1) 
 
-        #metadata = {}
-        #metadata["start_angle"] = start
-        #metadata["angle_increment"] = osc_range
-        #metadata["beam_x"] = beam_x
-        #metadata["beam_y"] = beam_y
-        #metadata["detector_distance"] = detdist
-
-        #self.set_medatata(metadata)
-
-    def set_metadata(self, metadata):
-        pass
+        
+    def set_metadata(self):
+        self.set_eiger_detector_distance() #set detector distance for the header
+        self.set_eiger_beam_center() #set detector beam center for the header
+        self.set_eiger_photon_energy() #set detector photon energy
 
     def start_acquisition(self):
         self.eiger_dev.Arm()
