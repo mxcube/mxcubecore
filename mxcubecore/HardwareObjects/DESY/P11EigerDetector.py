@@ -127,6 +127,17 @@ class P11EigerDetector(AbstractDetector):
         else:
             self.eiger_dev.write_attribute("PhotonEnergy", float(5500))
 
+    def set_eiger_start_angle(self, arg):
+        #Sets Detector start angle for the header
+        arg = float(arg)
+        self.eiger_dev.write_attribute("OmegaStart", arg)
+
+    def set_eiger_angle_increment(self, arg):
+        #Sets detector angle increment
+        arg = float(arg)
+        self.eiger_dev.write_attribute("OmegaIncrement", arg)
+
+
     def prepare_common(self, exptime, filepath):
         if not self.inited:
             self.init_acquisition()
@@ -141,7 +152,7 @@ class P11EigerDetector(AbstractDetector):
         self.writer_dev.write_attribute("NamePattern", filepath)
         self.set_eiger_detector_distance() #set detector distance for the header
         self.set_eiger_beam_center() #set detector beam center for the header
-        self.set_eiger_photon_energy() #set detector photon energy 
+        self.set_eiger_photon_energy() #set detector photon energy
 
 
         # Other params from CC:
