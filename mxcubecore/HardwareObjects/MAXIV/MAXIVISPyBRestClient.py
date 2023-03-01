@@ -71,20 +71,19 @@ class MAXIVISPyBRestClient(ISPyBRestClient):
         :returns: tuple on the form (file name  , base64 encoded data)
         """
         self._ISPyBRestClient__update_rest_token()
-        fname, data = ('' ,'')
+        fname, data = ('', '')
         url = "{rest_root}{token}"
         url += "/proposal/{pcode}{pnumber}/mx/energyscan/energyscanId/{escan_id}/jpegchooch"
-        url = url.format(rest_root = self._ISPyBRestClient__rest_root,
-                         token = str(self._ISPyBRestClient__rest_token),
-                         pcode = HWR.beamline.session.proposal_code,
-                         pnumber = HWR.beamline.session.proposal_number,
-                         escan_id = escan_id)
+        url = url.format(rest_root=self._ISPyBRestClient__rest_root,
+                         token=str(self._ISPyBRestClient__rest_token),
+                         pcode=HWR.beamline.session.proposal_code,
+                         pnumber=HWR.beamline.session.proposal_number,
+                         escan_id=escan_id)
         try:
             response = get(url)
             data = response.content
             value, params = cgi.parse_header(response.headers)
             fname = params['filename']
-
         except:
             response = []
             logging.getLogger("ispyb_client").warning("Cannot retrieve Energy Scan plot")
@@ -102,17 +101,16 @@ class MAXIVISPyBRestClient(ISPyBRestClient):
         fname, data = ('', '')
         url = "{rest_root}{token}"
         url += "/proposal/{pcode}{pnumber}/mx/xrfscan/xrfscanId/{xrf_id}/image/jpegScanFileFullPath/get"
-        url = url.format(rest_root = self._ISPyBRestClient__rest_root,
-                         token = str(self._ISPyBRestClient__rest_token),
-                         pcode = HWR.beamline.session.proposal_code,
-                         pnumber = HWR.beamline.session.proposal_number,
-                         xrf_id = xrf_id)
+        url = url.format(rest_root=self._ISPyBRestClient__rest_root,
+                         token=str(self._ISPyBRestClient__rest_token),
+                         pcode=HWR.beamline.session.proposal_code,
+                         pnumber=HWR.beamline.session.proposal_number,
+                         xrf_id=xrf_id)
         try:
             response = get(url)
             data = response.content
             value, params = cgi.parse_header(response.headers)
             fname = params['filename']
-
         except:
             logging.getLogger("ispyb_client").warning("Cannot retrieve XRF plot")
 

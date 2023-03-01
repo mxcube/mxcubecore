@@ -38,14 +38,11 @@ class MaxIVSession(Session):
     # Framework-2 method, inherited from HardwareObject and called
     # by the framework after the object has been initialized.
     def init(self):
+        Session.init(self)
         self.default_precision = "04"
         self.login = ''
         self.is_commissioning = False
-        self.synchrotron_name = self.getProperty('synchrotron_name')
-        self.endstation_name = self.getProperty('endstation_name').lower()
-        self.suffix = self["file_info"].getProperty('file_suffix')
-        self.base_directory = self["file_info"].getProperty('base_directory')
-        self.remote_address = self.getProperty('remote_address')
+        self.remote_address = self.get_property('remote_address')
         self.base_process_directory = self["file_info"].\
             get_property('processed_data_base_directory')
 
@@ -66,10 +63,9 @@ class MaxIVSession(Session):
         except (TypeError, IndexError):
             pass
 
-        self.archive_base_directory = self['file_info'].getProperty('archive_base_directory')
-        if self.archive_base_directory:
+        if self.base_archive_directory:
             # we initialize with an empty archive_folder, to be set once proposal is selected
-            queue_model_objects.PathTemplate.set_archive_path(self.archive_base_directory, '')
+            queue_model_objects.PathTemplate.set_archive_path(self.base_archive_directory, '')
 
         queue_model_objects.PathTemplate.set_path_template_style(self.synchrotron_name)
         queue_model_objects.PathTemplate.set_data_base_path(self.base_directory)
@@ -221,10 +217,10 @@ class MaxIVSession(Session):
                 logging.getLogger("HWR").error(msg)
                 raise Exception(msg)
 
-        if self.archive_base_directory:
+        if self.base_archive_directory:
             archive_folder = "{}/{}".format(category, self.beamline_name.lower())
-            queue_model_objects.PathTemplate.set_archive_path(self.archive_base_directory, archive_folder)
-            _archive_path = os.path.join(self.archive_base_directory, archive_folder)
+            queue_model_objects.PathTemplate.set_archive_path(self.base_archive_directory, archive_folder)
+            _archive_path = os.path.join(self.base_archive_directory, archive_folder)
             logging.getLogger("HWR").info("[MAX IV Session] Archive directory configured: %s" % _archive_path)
 
     def _is_proposal_type(self, proposal_type, proposal_number=None):
@@ -240,7 +236,6 @@ class MaxIVSession(Session):
         :returns: True if the proposal is of the given proposal type, otherwise False.
         :rtype: bool
         """
-        logging.getLogger("HWR").debug("[MAX IV Session] Checking {} proposal for type {}".format(proposal_number, proposal_type))
         if not proposal_number:
             proposal_number = self.proposal_number
 
@@ -268,6 +263,7 @@ class MaxIVSession(Session):
         :returns: True if the proposal is inhouse, otherwise False.
         :rtype: bool
         """
+        logging.getLogger("HWR").debug("[MAX IV Session] Checking if {} proposal is inhouse".format(proposal_number))
         return self._is_proposal_type('in-house', proposal_number=proposal_number)
 
     def is_proprietary(self, proposal_number=None):
@@ -280,6 +276,7 @@ class MaxIVSession(Session):
         :returns: True if the proposal is proprietary, otherwise False.
         :rtype: bool
         """
+        logging.getLogger("HWR").debug("[MAX IV Session] Checking if {} proposal is proprietary".format(proposal_number))
         return self._is_proposal_type('proprietary', proposal_number=proposal_number)
 
     def clear_session(self):
