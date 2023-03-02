@@ -35,6 +35,7 @@ import os
 import time
 import importlib
 import traceback
+from typing import Union, TYPE_CHECKING
 from datetime import datetime
 
 from ruamel.yaml import YAML
@@ -43,6 +44,9 @@ from mxcubecore.utils.conversion import string_types, make_table
 from mxcubecore.dispatcher import dispatcher
 from mxcubecore import BaseHardwareObjects
 from mxcubecore import HardwareObjectFileParser
+
+if TYPE_CHECKING:
+    from mxcubecore.BaseHardwareObjects import HardwareObject
 
 # If you want to write out copies of the file, use typ="rt" instead
 # pure=True uses yaml version 1.2, with fewere gotchas for strange type conversions
@@ -634,16 +638,16 @@ class __HardwareRepositoryClient:
 
         return result
 
-    def get_hardware_object(self, object_name):
-        """Return a Hardware Object given its name
+    def get_hardware_object(self, object_name: str) -> Union["HardwareObject", None]:
+        """Return a Hardware Object given its name.
 
         If the object is not in the Hardware Repository, try to load it.
 
-        Parameters :
-          object_name -- the name of the Hardware Object
+        Args:
+            object_name (str): The name of the Hardware Object
 
-        Return :
-          the required Hardware Object
+        Returns:
+            Union[HardwareObject, None]: The required Hardware Object
         """
 
         if not object_name:

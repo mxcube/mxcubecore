@@ -27,10 +27,14 @@ from collections import OrderedDict
 import logging
 from gevent import event, Timeout
 import pydantic
+from typing import (
+    Iterator, Union, Any, Generator, List, Dict,
+    Tuple, Optional, OrderedDict as TOrderedDict,
+)
+from typing_extensions import Self
 
 from mxcubecore.dispatcher import dispatcher
 from mxcubecore.CommandContainer import CommandContainer
-from mxcubecore.utils.conversion import string_types
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -54,38 +58,43 @@ class DefaultSpecificState(enum.Enum):
     UNKNOWN = "UNKNOWN"
 
 
-class ConfiguredObject(object):
+class ConfiguredObject:
     """Superclass for classes that take configuration from YAML files"""
 
     # Roles of defined objects and the category they belong to
     # NB the double underscore is deliberate - attribute must be hidden from subclasses
-    __content_roles = []
+    __content_roles: List[str] = []
 
     # Procedure names - placeholder.
     # Will be replaced by a set in any subclasses that can contain procedures
     # Note that _procedure_names may *not* be set if it is already set in a superclass
-    _procedure_names = None
+    _procedure_names: Optional[List[str]] = None
 
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
 
         self.name = name
 
-        self._objects = OrderedDict((role, None) for role in self.all_roles)
+        self._objects: TOrderedDict[str, Union[Self, None]] = OrderedDict(
+            (role, None) for role in self.all_roles
+        )
 
-    def _init(self):
+    def _init(self) -> None:
         """Object initialisation - executed *before* loading contents"""
         pass
 
-    def init(self):
+    def init(self) -> None:
         """Object initialisation - executed *after* loading contents"""
         pass
 
-    def replace_object(self, role, new_object):
+    def replace_object(self, role: str, new_object: Self) -> None:
         """Replace already defined Object with a new one - for runtime use
 
         Args:
-            role (text_str): Role name of contained Object
-            new_object (Optional[ConfiguredObject]): New contained Object
+            role (str): Role name of contained Object
+            new_object (Self): New contained Object
+
+        Raises:
+            ValueError: If contained object role is unknown.
         """
         if role in self._objects:
             self._objects[role] = new_object
@@ -94,33 +103,31 @@ class ConfiguredObject(object):
 
     # NB this function must be re-implemented in nested subclasses
     @property
-    def all_roles(self):
+    def all_roles(self) -> Tuple[str]:
         """Tuple of all content object roles, indefinition and loading order
 
         Returns:
-            tuple[text_str, ...]
+            Tuple[str]: Content object roles
         """
         return tuple(self.__content_roles)
 
     @property
-    def all_objects_by_role(self):
+    def all_objects_by_role(self) -> TOrderedDict[str, Union[Self, None]]:
         """All contained Objects mapped by role (in specification order).
 
-            Includes objects defined in subclasses.
+        Includes objects defined in subclasses.
 
         Returns:
-            OrderedDict[text_str, ConfiguredObject]:
-
+            OrderedDict[str, Union[Self, None]]: Contained objects mapped by role.
         """
         return self._objects.copy()
 
     @property
-    def procedures(self):
-        """Procedures attached to this object  mapped by name (in specification order).
+    def procedures(self) -> TOrderedDict[str, Self]:
+        """Procedures attached to this object mapped by name (in specification order).
 
         Returns:
-            OrderedDict[text_str, ConfiguredObject]:
-
+            OrderedDict[str, Self]: Object procedures.
         """
         procedure_names = self.__class__._procedure_names
         result = OrderedDict()
@@ -134,79 +141,132 @@ class ConfiguredObject(object):
 
 
 class PropertySet(dict):
-    def __init__(self):
-        dict.__init__(self)
+    """Property Set"""
 
-        self.__properties_changed = {}
-        self.__properties_path = {}
+    def __init__(self) -> None:
+        super().__init__()
 
-    def set_property_path(self, name, path):
+        self.__properties_changed: Dict[str, Any] = {}
+        self.__properties_path: Dict[str, Any] = {}
+
+    def set_property_path(self, name: Union[str, Any], path: Union[str, Any]) -> None:
+        """Set Property Path.
+
+        Args:
+            name (Union[str, Any]): Name.
+            path (Union[str, Any]): Path.
+        """
         name = str(name)
         self.__properties_path[name] = path
 
-    def get_properties_path(self):
+    def get_properties_path(self) -> Iterator[tuple]:
+        """Get Property Paths.
+
+        Returns:
+            Iterator[tuple]: Iterator for property paths.
+        """
         return iter(self.__properties_path.items())
 
-    def __setitem__(self, name, value):
+    def __setitem__(self, name: Union[str, Any], value: Union[str, Any]) -> None:
         name = str(name)
 
         if name in self and str(value) != str(self[name]):
             self.__properties_changed[name] = str(value)
 
-        dict.__setitem__(self, str(name), value)
+        super().__setitem__(str(name), value)
 
-    def get_changes(self):
+    def get_changes(self) -> Generator[tuple, None, None]:
+        """Get property changes since the last time checked.
+
+        Yields:
+            Generator[tuple, None, None]: _description_
+        """
         for property_name, value in self.__properties_changed.items():
             yield (self.__properties_path[property_name], value)
 
         self.__properties_changed = {}  # reset changes at commit
 
 
-class HardwareObjectNode(object):
-    def __init__(self, node_name):
-        """Constructor"""
+class HardwareObjectNode:
+    """Hardware Object Node"""
+
+    user_file_directory: str
+
+    def __init__(self, node_name: str):
+        """Constructor.
+
+        Args:
+            node_name (str): Node name.
+        """
         self.__dict__["_property_set"] = PropertySet()
-        self.__objects_names = []
-        self.__objects = []
-        self._objects_by_role = {}
-        self._path = ""
-        self.__name = node_name
-        self.__references = []
-        self._xml_path = None
+        self._property_set: PropertySet
+        self.__objects_names: List[Union[str, None]] = []
+        self.__objects: List[List[Union["HardwareObject", None]]] = []
+        self._objects_by_role: Dict[str, "HardwareObject"] = {}
+        self._path: str = ""
+        self.__name: str = node_name
+        self.__references: List[Tuple[str, str, str, int, int, int]] = []
+        self._xml_path: Union[str, None] = None
 
     @staticmethod
-    def set_user_file_directory(user_file_directory):
+    def set_user_file_directory(user_file_directory: str) -> None:
+        """Set user file directory.
+
+        Args:
+            user_file_directory (str): User file directory path.
+        """
         HardwareObjectNode.user_file_directory = user_file_directory
 
-    def name(self):
+    def name(self) -> str:
+        """Get node name.
+
+        Returns:
+            str: Name.
+        """
         return self.__name
 
-    def set_name(self, name):
+    def set_name(self, name: str) -> None:
+        """Set node name
+
+        Args:
+            name (str): Name to set.
+        """
         self.__name = name
 
-    def get_roles(self):
+    def get_roles(self) -> List[str]:
+        """Get hardware object roles.
+
+        Returns:
+            List[str]: List of hardware object roles.
+        """
         return list(self._objects_by_role.keys())
 
-    def set_path(self, path):
+    def set_path(self, path: str) -> None:
         """Set the 'path' of the Hardware Object in the XML file describing it
         (the path follows the XPath syntax)
 
-        Args :
-          path (str): String representing the path of the Hardware Object in its file"""
+        Args:
+            path (str): String representing the path of the Hardware Object in its file
+        """
         self._path = path
 
-    def get_xml_path(self):
+    def get_xml_path(self) -> Union[str, None]:
+        """Get XML file path.
+
+        Returns:
+            Union[str, None]: XML file path.
+        """
         return self._xml_path
 
-    def __iter__(self):
+    def __iter__(self) -> Generator[Union["HardwareObject", None], None, None]:
         for i in range(len(self.__objects_names)):
             for object in self.__objects[i]:
                 yield object
 
-    def __len__(self):
+    def __len__(self) -> int:
         return sum(map(len, self.__objects))
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr: str) -> Any:
         if attr.startswith("__"):
             raise AttributeError(attr)
 
@@ -215,7 +275,7 @@ class HardwareObjectNode(object):
         except KeyError:
             raise AttributeError(attr)
 
-    def __setattr__(self, attr, value):
+    def __setattr__(self, attr: str, value: Any) -> None:
         try:
             if attr not in self.__dict__ and attr in self._property_set:
                 self.set_property(attr, value)
@@ -224,8 +284,11 @@ class HardwareObjectNode(object):
         except AttributeError:
             self.__dict__[attr] = value
 
-    def __getitem__(self, key):
-        if isinstance(key, string_types):
+    def __getitem__(
+        self,
+        key: Union[str, int],
+    ) -> Union["HardwareObject", List[Union["HardwareObject", None]], None]:
+        if isinstance(key, str):
             object_name = key
 
             try:
@@ -252,7 +315,19 @@ class HardwareObjectNode(object):
         else:
             raise TypeError
 
-    def add_reference(self, name, reference, role=None):
+    def add_reference(
+        self,
+        name: str,
+        reference: str,
+        role: Union[str, None] = None,
+    ) -> None:
+        """Add hardware object reference.
+
+        Args:
+            name (str): Name.
+            reference (str): Xpath reference.
+            role (Union[str, None], optional): Role. Defaults to None.
+        """
         role = str(role).lower()
 
         try:
@@ -273,7 +348,8 @@ class HardwareObjectNode(object):
             (reference, name, role, objects_names_index, objects_index, objects_index2)
         )
 
-    def resolve_references(self):
+    def resolve_references(self) -> None:
+        """Resolve hardware objects from defined references."""
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import get_hardware_repository
 
@@ -304,15 +380,27 @@ class HardwareObjectNode(object):
                     del self.__objects[objects_index]
                 else:
                     del self.__objects[objects_index][objects_index2]
-                    if len(self.objects[objects_index]) == 0:
-                        del self.objects[objects_index]
+                    if len(self.__objects[objects_index]) == 0:
+                        del self.__objects[objects_index]
 
         for hw_object in self:
             hw_object.resolve_references()
 
-    def add_object(self, name, hw_object, role=None):
+    def add_object(
+        self,
+        name: str,
+        hw_object: Union["HardwareObject", None],
+        role: Optional[str] = None,
+    ) -> None:
+        """Add hardware object mapped by name.
+
+        Args:
+            name (str): Name.
+            hw_object (Union[HardwareObject, None]): Hardware object.
+            role (Optional[str], optional): Role. Defaults to None.
+        """
         if hw_object is None:
-            return
+            return None
         elif role is not None:
             role = str(role).lower()
             self._objects_by_role[role] = hw_object
@@ -326,10 +414,29 @@ class HardwareObjectNode(object):
         else:
             self.__objects[index].append(hw_object)
 
-    def has_object(self, object_name):
+    def has_object(self, object_name: str) -> bool:
+        """Check if has hardware object by name.
+
+        Args:
+            object_name (str): Name.
+
+        Returns:
+            bool: True if object name in hardware object node, otherwise False.
+        """
         return object_name in self.__objects_names
 
-    def get_objects(self, object_name):
+    def get_objects(
+        self,
+        object_name: str,
+    ) -> Generator[Union["HardwareObject", None], None, None]:
+        """Get hardware objects by name.
+
+        Args:
+            object_name (str): Name.
+
+        Yields:
+            Union[HardwareObject, None]: Hardware object.
+        """
         try:
             index = self.__objects_names.index(object_name)
         except ValueError:
@@ -338,9 +445,17 @@ class HardwareObjectNode(object):
             for obj in self.__objects[index]:
                 yield obj
 
-    def get_object_by_role(self, role):
+    def get_object_by_role(self, role: str) -> Union["HardwareObject", None]:
+        """Get hardware object by role.
+
+        Args:
+            role (str): Role.
+
+        Returns:
+            Union[HardwareObject, None]: Hardware object.
+        """
         object = None
-        obj = self
+        obj: Self = self
         objects = []
         role = str(role).lower()
 
@@ -365,10 +480,21 @@ class HardwareObjectNode(object):
                 else:
                     break
 
-    def objects_names(self):
+    def objects_names(self) -> List[Union[str, None]]:
+        """Return hardware object names.
+
+        Returns:
+            List[Union[str, None]]: List of hardware object names.
+        """
         return self.__objects_names[:]
 
-    def set_property(self, name, value):
+    def set_property(self, name: str, value: Any) -> None:
+        """Set property value.
+
+        Args:
+            name (str): Name.
+            value (Any): Value.
+        """
         name = str(name)
         value = str(value)
 
@@ -392,13 +518,39 @@ class HardwareObjectNode(object):
         self._property_set[name] = value
         self._property_set.set_property_path(name, self._path + "/" + str(name))
 
-    def get_property(self, name, default_value=None):
+    def get_property(self, name: str, default_value: Optional[Any] = None) -> Any:
+        """Get property value.
+
+        Args:
+            name (str): Name
+            default_value (Optional[Any], optional): Default value. Defaults to None.
+
+        Returns:
+            Any: Property value.
+        """
         return self._property_set.get(str(name), default_value)
 
-    def get_properties(self):
+    def get_properties(self) -> PropertySet:
+        """Get properties.
+
+        Returns:
+            PropertySet: Properties.
+        """
         return self._property_set
 
-    def print_log(self, log_type="HWR", level="debug", msg=""):
+    def print_log(
+        self,
+        log_type: str = "HWR",
+        level: str = "debug",
+        msg: str = "",
+    ) -> None:
+        """Print message to logger.
+
+        Args:
+            log_type (str, optional): Logger type. Defaults to "HWR".
+            level (str, optional): Logger level. Defaults to "debug".
+            msg (str, optional): Message to log. Defaults to "".
+        """
         if hasattr(logging.getLogger(log_type), level):
             getattr(logging.getLogger(log_type), level)(msg)
 
@@ -715,7 +867,7 @@ class HardwareObjectMixin(CommandContainer):
         """
 
         if slot is None:
-            if isinstance(sender, string_types):
+            if isinstance(sender, str):
                 slot = signal
                 signal = sender
                 sender = self
@@ -750,7 +902,7 @@ class HardwareObjectMixin(CommandContainer):
             slot (Callable object): In practice a functon or method
         """
         if slot is None:
-            if isinstance(sender, string_types):
+            if isinstance(sender, str):
                 slot = signal
                 signal = sender
                 sender = self
