@@ -19,6 +19,7 @@ import psutil
 
 from mxcubecore.HardwareObjects.TangoLimaVideo import TangoLimaVideo
 
+
 class TangoLimaMpegVideo(TangoLimaVideo):
     def __init__(self, name):
         super(TangoLimaMpegVideo, self).__init__(name)
@@ -87,15 +88,12 @@ class TangoLimaMpegVideo(TangoLimaVideo):
             not self._video_stream_process
             or self._video_stream_process.poll() is not None
         ):
-            python_executable = os.sep.join(
-                os.path.dirname(os.__file__).split(os.sep)[:-2] + ["bin", "python"]
-            )
-
-             self._video_stream_process = subprocess.Popen(
+            self._video_stream_process = subprocess.Popen(
                 [
                     "video-streamer",
                     "-tu",
-                    "-d", self.get_property("tangoname").strip(),
+                    "-d",
+                    self.get_property("tangoname").strip(),
                     "-hs",
                     "localhost",
                     "-p",
@@ -103,7 +101,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
                     "-q",
                     str(self._quality),
                     "-of",
-                    format
+                    format,
                     "-id",
                     self.stream_hash,
                 ],
