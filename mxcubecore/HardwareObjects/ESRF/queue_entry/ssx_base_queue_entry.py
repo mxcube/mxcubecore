@@ -9,7 +9,8 @@ from mxcubecore.queue_entry.base_queue_entry import (
     BaseQueueEntry,
 )
 
-from mxcubecore.utils import nicoproc
+import logging
+import xmlrpc.client
 
 
 class SsxBaseQueueEntry(BaseQueueEntry):
@@ -20,6 +21,9 @@ class SsxBaseQueueEntry(BaseQueueEntry):
     def __init__(self, view, data_model):
         super().__init__(view=view, data_model=data_model)
         self.beamline_values = None
+
+        self._use_nicoproc = False
+        self._processing_host = "http://lid29control-2:9998"
 
     def get_data_path(self):
         data_root_path = HWR.beamline.session.get_image_directory(
@@ -133,8 +137,8 @@ class SsxBaseQueueEntry(BaseQueueEntry):
     def start_processing(self, exp_type):
         data_root_path, _ = self.get_data_path()
 
-        if nicoproc.USE_NICOPROC:
-            nicoproc.start_ssx(
+        if self._use_nicoproc:
+            self._start_ssx_processing(
                 self.beamline_values,
                 self._data_model._task_data,
                 data_root_path,
@@ -142,7 +146,6 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             )
         else:
             logging.getLogger("user_level_log").info(f"NICOPROC False")
-            pass
 
     def prepare_acqiusition(self):
         exp_time = self._data_model._task_data.user_collection_parameters.exp_time
@@ -186,3 +189,56 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             logging.getLogger("user_level_log").info("shutter closed")
 
         HWR.beamline.detector.stop_acquisition()
+
+    def _start_processing(self, dc_parameters, file_paramters):
+        param = {
+            "exposure": dc_parameters["oscillation_sequence"][0]["exposure_time"],
+            "detector_distance": dc_parameters["detectorDistance"],
+            "wavelength": dc_parameters["wavelength"],
+            "orgx": dc_parameters["xBeam"],
+            "orgy": dc_parameters["yBeam"],
+            "oscillation_range": dc_parameters["oscillation_sequence"][0]["range"],
+            "start_angle": dc_parameters["oscillation_sequence"][0]["start"],
+            "number_images": dc_parameters["oscillation_sequence"][0][
+                "number_of_images"
+            ],
+            "image_first": dc_parameters["oscillation_sequence"][0][
+                "start_image_number"
+            ],
+            "fileinfo": file_paramters,
+        }
+
+        logging.getLogger("HWR").info("NICOPROC START")
+
+        with xmlrpc.client.ServerProxy(self._processing_host) as p:
+            p.start(param)
+
+    def _start_ssx_processing(self, beamline_values, params, path, experiment_type=""):
+        param = {
+            "exposure": params.user_collection_parameters.exp_time,
+            "detector_distance": beamline_values.detector_distance,
+            "wavelength": beamline_values.wavelength,
+            "orgx": beamline_values.beam_x,
+            "orgy": beamline_values.beam_y,
+            "oscillation_range": params.collection_parameters.osc_range,
+            "start_angle": params.collection_parameters.osc_start,
+            "number_images": params.user_collection_parameters.num_images,
+            "image_first": params.collection_parameters.first_image,
+            "fileinfo": params.path_parameters.dict(),
+            "root_path": path,
+            "experiment_type": experiment_type,
+        }
+
+        logging.getLogger("HWR").info("NICOPROC START")
+
+        try:
+            with xmlrpc.client.ServerProxy(self._processing_host) as p:
+                p.start(param)
+        except Exception:
+            logging.getLogger("HWR").exception("")
+
+    def _stop_processing(self):
+        logging.getLogger("HWR").info("NICOPROC STOP")
+
+        with xmlrpc.client.ServerProxy(self._processing_host) as p:
+            p.stop()

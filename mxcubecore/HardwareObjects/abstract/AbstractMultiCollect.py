@@ -13,10 +13,6 @@ from mxcubecore.TaskUtils import task, cleanup, error_cleanup
 
 from mxcubecore import HardwareRepository as HWR
 
-# NBNB nicoproc is not found
-from mxcubecore.utils import nicoproc
-
-
 BeamlineControl = collections.namedtuple(
     "BeamlineControl",
     [
@@ -810,11 +806,6 @@ class AbstractMultiCollect(object):
                     logging.getLogger("HWR").exception(
                         "Could not store data collection into LIMS"
                     )
-
-            if nicoproc.USE_NICOPROC:
-                print("AbstractMULTI_NICO")
-                print(data_collect_parameters)
-                nicoproc.start(data_collect_parameters, file_parameters)
 
             if HWR.beamline.lims and self.bl_config.input_files_server:
                 logging.getLogger("user_level_log").info(
