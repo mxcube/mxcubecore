@@ -27,11 +27,6 @@ __license__ = "LGPLv3+"
 __category__ = "General"
 
 
-class ExpTimeEnum(float, enum.Enum):
-    hundred_mirco = 100e-6
-    fifity_micro = 50e-6
-
-
 class InjectorUserCollectionParameters(BaseModel):
     exp_time: float = Field(100e-6, gt=0, lt=1)
     num_images: int = Field(1000, gt=0, lt=10000000)

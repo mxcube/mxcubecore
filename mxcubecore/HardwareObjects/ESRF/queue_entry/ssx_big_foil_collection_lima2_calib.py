@@ -29,11 +29,6 @@ __license__ = "LGPLv3+"
 __category__ = "General"
 
 
-class ExpTimeEnum(float, enum.Enum):
-    hundred_mirco = 100e-6
-    fifity_micro = 50e-6
-
-
 class SSXUserCollectionParameters(BaseModel):
     sub_sampling: float = Field(6, gt=0, lt=100)
     nb_samples_per_line: int = Field(500, gt=0, lt=1000)
