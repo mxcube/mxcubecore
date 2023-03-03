@@ -122,7 +122,6 @@ class Session(HardwareObject):
         process_folder="PROCESSED_DATA",
         archive_folder="ARCHIVE",
     ):
-
         self.base_directory = base_directory
         self.base_process_directory = base_process_directory
         self.base_archive_directory = base_archive_directory
@@ -284,10 +283,10 @@ class Session(HardwareObject):
             sample_name = sample_data.name
             protein_acronym = sample_data.crystals[0].protein_acronym
 
-        #if protein_acronym:
-        #    subdir = "%s/%s-%s/" % (protein_acronym, protein_acronym, sample_name)
-        #else:
-        subdir = "%s/" % sample_name
+        if protein_acronym:
+            subdir = "%s/%s-%s/" % (protein_acronym, protein_acronym, sample_name)
+        else:
+            subdir = "%s/" % sample_name
 
         return subdir.replace(":", "-")
 
