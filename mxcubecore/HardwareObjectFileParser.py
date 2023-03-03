@@ -353,6 +353,9 @@ class HardwareObjectHandler(ContentHandler):
                 self.objects[-1].add_reference(
                     name, self.reference, role=self.element_role
                 )
+                self.objects[0].add_reference(
+                    name, self.reference, role=self.element_role
+                )
         else:
             try:
                 if name == "command":

@@ -1,7 +1,9 @@
 import os
+import subprocess
 
 from pydantic import BaseModel, Field
 from devtools import debug
+from typing_extensions import Literal
 
 from mxcubecore import HardwareRepository as HWR
 
@@ -29,7 +31,13 @@ __category__ = "General"
 class TestUserCollectionParameters(BaseModel):
     sub_sampling: float = Field(2, gt=0, lt=100)
     take_pedestal: bool = Field(True)
+    exp_time: float = Field(100e-6, gt=0, lt=1)
 
+    _chip_name_tuple = tuple(
+        HWR.beamline.diffractometer.get_head_configuration().available.keys()
+    )
+    _current_chip = HWR.beamline.diffractometer.get_head_configuration().current
+    test: Literal[_chip_name_tuple] = Field(_current_chip)
     class Config:
         extra: "ignore"
 
@@ -59,12 +67,41 @@ class TestCollectionQueueEntry(BaseQueueEntry):
 
     # New style queue entry does not take view argument,
     # adding kwargs for compatability, but they are unsued
-    def __init__(self, data_model: TestCollectionQueueModel, view=None):
+    def __init__(self, view, data_model: TestCollectionQueueModel):
         super().__init__(view=view, data_model=data_model)
+
+        TestUserCollectionParameters.__fields__[
+            "test"
+        ].default = data_model.task_data.user_collection_parameters.test
 
     def execute(self):
         super().execute()
         debug(self._data_model._task_data)
+
+        data_root_path = HWR.beamline.session.get_image_directory(
+            os.path.join(
+                self._data_model._task_data.path_parameters.subdir,
+                self._data_model._task_data.path_parameters.experiment_type,
+            )
+        )
+
+        process_path = os.path.join(
+            HWR.beamline.session.get_base_process_directory(),
+            self._data_model._task_data.path_parameters.subdir,
+        )
+
+        import pdb
+
+        pdb.set_trace()
+
+        subprocess.Popen(
+            "mkdir --parents %s" % (data_root_path),
+            shell=True,
+            stdin=None,
+            stdout=None,
+            stderr=None,
+            close_fds=True,
+        ).wait()
 
         dcg = HWR.beamline.lims.pyispyb.create_ssx_data_collection_group()
         HWR.beamline.lims.pyispyb.create_ssx_data_collection(dcg)

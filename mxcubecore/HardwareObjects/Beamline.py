@@ -262,6 +262,17 @@ class Beamline(ConfiguredObject):
     __content_roles.append("transmission")
 
     @property
+    def cryo(self):
+        """Cryo Hardware object
+
+        Returns:
+            Optional[AbstractActuator]:
+        """
+        return self._objects.get("cryo")
+
+    __content_roles.append("cryo")
+
+    @property
     def energy(self):
         """Energy Hardware object
 

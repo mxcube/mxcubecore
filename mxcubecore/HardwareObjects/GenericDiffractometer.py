@@ -32,8 +32,8 @@ import math
 import numpy
 import enum
 
-from typing import List, Tuple, Union
-from pydantic import BaseModel, Field
+from typing import List, Tuple, Union, Dict
+from pydantic import BaseModel, Field, ValidationError
 
 from mxcubecore.HardwareObjects import sample_centring
 from mxcubecore.model import queue_model_objects
@@ -149,7 +149,6 @@ class BlockShapeEnum(str, enum.Enum):
     rectangular = "RECTANGULAR"
     elliptical = "ELLIPTICAL"
 
-
 class SampleHolderSectionModel(BaseModel):
     section_offset: Tuple[int, int] = Field(
         [0, 0], description="Block offset in grid layout system coordinates x, y"
@@ -170,7 +169,19 @@ class SampleHolderSectionModel(BaseModel):
     )
 
 
-class GonioHeadConfiguration(BaseModel):
+class CalibrationData(BaseModel):
+    top_left: Tuple[float, float, float] = Field(
+        [0, 0, 0], description="Top left corner motor position"
+    )
+    top_right: Tuple[float, float, float] = Field(
+        [0, 0, 0], description="Top right corner motor position"
+    )
+    bottom_left: Tuple[float, float, float] = Field(
+        [0, 0, 0], description="Bottom left corner motor position"
+    )
+
+
+class ChipLayout(BaseModel):
     head_type: HeadTypeEnum = HeadTypeEnum.chip
     holder_type: HolderTypeEnum = HolderTypeEnum.known_geometry
     holder_brand: str = Field("", description="Brand/make of sample holder")
@@ -178,6 +189,12 @@ class GonioHeadConfiguration(BaseModel):
         [0, 0], description="Size of sample holder in mm horizontal and vertical"
     )
     sections: List[SampleHolderSectionModel]
+    calibration_data: CalibrationData
+
+
+class GonioHeadConfiguration(BaseModel):
+    current: str = Field("", description="Selected chip layout")
+    available: Dict[str, ChipLayout]
 
 
 class GenericDiffractometer(HardwareObject):
@@ -1453,3 +1470,28 @@ class GenericDiffractometer(HardwareObject):
                     )
 
         return data
+
+    def set_head_configuration(self, str_data: str) -> None:
+        data = json.loads(str_data)
+
+        chip_def_fpath = self.get_property("chip_definition_file", "")
+        chip_def_fpath = HWR.get_hardware_repository().find_in_repository(
+            chip_def_fpath
+        )
+
+        if os.path.isfile(chip_def_fpath):
+            with open(chip_def_fpath, "w+") as _f:
+                try:
+                    GonioHeadConfiguration(**data)
+                except ValidationError:
+                    logging.getLogger("HWR").exception(
+                        "Validation error in %s" % chip_def_fpath
+                    )
+                else:
+                    _f.write(json.dumps(data, indent=4))
+
+    def set_chip_layout(self, layout_name: str) -> bool:
+        data = self.get_head_configuration().dict()
+        data["current"] = layout_name
+        self.set_head_configuration(json.dumps(data))
+        return True

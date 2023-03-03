@@ -1,6 +1,5 @@
 import os
 import logging
-import contextlib
 import enum
 import subprocess
 from pydantic import BaseModel, Field
@@ -8,9 +7,10 @@ from devtools import debug
 
 from mxcubecore import HardwareRepository as HWR
 
-from mxcubecore.queue_entry.base_queue_entry import (
-    BaseQueueEntry,
+from mxcubecore.HardwareObjects.ESRF.queue_entry.ssx_base_queue_entry import (
+    SsxBaseQueueEntry,
 )
+
 
 from mxcubecore.model.queue_model_objects import (
     DataCollection,
@@ -48,42 +48,58 @@ class SsxChipColletionTaskParameters(BaseModel):
     legacy_parameters: LegacyParameters
 
 
-class SsxChipCollectionQueueModel(DataCollection):
+class SsxChipCollectionLima2QueueModel(DataCollection):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
 
-class SsxChipCollectionQueueEntry(BaseQueueEntry):
+class SsxChipCollectionLima2QueueEntry(SsxBaseQueueEntry):
     """
     Defines the behaviour of a data collection.
     """
 
-    QMO = SsxChipCollectionQueueModel
+    QMO = SsxChipCollectionLima2QueueModel
     DATA_MODEL = SsxChipColletionTaskParameters
-    NAME = "SSX Chip Collection (Lima1)"
+    NAME = "SSX Chip Collection (Lima2)"
     REQUIRES = ["point", "line", "no_shape", "chip", "mesh"]
 
     # New style queue entry does not take view argument,
     # adding kwargs for compatability, but they are unsued
-    def __init__(self, view, data_model: SsxChipCollectionQueueModel):
+    def __init__(self, view, data_model: SsxChipCollectionLima2QueueModel):
         super().__init__(view=view, data_model=data_model)
+
+        self.__stop_req = False
+        self.__stop_done = True
 
     def execute(self):
         super().execute()
+
+        self.__stop_req = False
+        self.__stop_done = False
+
+        MAX_FREQ = 925.0
         params = self._data_model._task_data.user_collection_parameters
         self._data_model._task_data.collection_parameters.num_images = 400
         data_root_path, _ = self.get_data_path()
-        self.take_pedestal()
+        fname_prefix = self._data_model._task_data.path_parameters.prefix
+
+        self.take_pedestal_lima2(MAX_FREQ)
+
+        self.start_processing("CHIP")
 
         selected_regions = self._data_model._task_data.collection_parameters.selection
         selected_regions = selected_regions if selected_regions else [[0, 0]]
 
         for region in selected_regions:
+            if self.__stop_req:
+                self.__stop_done = True
+                logging.getLogger("user_level_log").info("Stopped sequence")
+                break
+
             fname_prefix = self._data_model._task_data.path_parameters.prefix
             fname_prefix += f"_block_{region[0]}_{region[1]}_"
 
             HWR.beamline.diffractometer.set_phase("Centring", wait=True, timeout=120)
-            # HWR.beamline.diffractometer.wait_ready()
             logging.getLogger("user_level_log").info(f"Acquiring {region} ...")
 
             if params.align_chip:
@@ -133,4 +149,5 @@ class SsxChipCollectionQueueEntry(BaseQueueEntry):
         super().post_execute()
 
     def stop(self):
+        self.__stop_req = True
         super().stop()

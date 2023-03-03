@@ -6,11 +6,20 @@ import os
 import time
 import copy
 import numpy
+import json
+
+from typing import Union
+from pydantic import ValidationError
+
 from mxcubecore.BaseHardwareObjects import Equipment
 from mxcubecore.TaskUtils import task
 from mxcubecore.HardwareObjects import sample_centring
 from mxcubecore.model import queue_model_objects as qmo
 from mxcubecore import HardwareRepository as HWR
+
+from mxcubecore.HardwareObjects.GenericDiffractometer import (
+    GonioHeadConfiguration,
+)
 
 try:
     from Qub.Tools import QubImageSave
@@ -1039,3 +1048,48 @@ class MiniDiff(Equipment):
 
     def wait_ready(self, timeout=None):
         pass
+
+    def get_head_configuration(self) -> Union[GonioHeadConfiguration, None]:
+        chip_def_fpath = self.get_property("chip_definition_file", "")
+        chip_def_fpath = HWR.get_hardware_repository().find_in_repository(
+            chip_def_fpath
+        )
+
+        data = None
+
+        if os.path.isfile(chip_def_fpath):
+            with open(chip_def_fpath, "r") as _f:
+                chip_def = json.load(_f)
+
+                try:
+                    data = GonioHeadConfiguration(**chip_def)
+                except ValidationError:
+                    logging.getLogger("HWR").exception(
+                        "Validation error in %s" % chip_def_fpath
+                    )
+
+        return data
+
+    def set_head_configuration(self, str_data: str) -> None:
+        data = json.loads(str_data)
+
+        chip_def_fpath = self.get_property("chip_definition_file", "")
+        chip_def_fpath = HWR.get_hardware_repository().find_in_repository(
+            chip_def_fpath
+        )
+
+        if os.path.isfile(chip_def_fpath):
+            with open(chip_def_fpath, "w+") as _f:
+                try:
+                    GonioHeadConfiguration(**data)
+                except ValidationError:
+                    logging.getLogger("HWR").exception(
+                        "Validation error in %s" % chip_def_fpath
+                    )
+
+                _f.write(data)
+
+    def set_chip_layout(self, layout_name: str) -> None:
+        data = self.get_head_configuration().dict()
+        data["current"] = layout_name
+        self.set_head_configuration(json.dumps(data))

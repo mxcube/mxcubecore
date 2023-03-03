@@ -122,7 +122,6 @@ class Session(HardwareObject):
         process_folder="PROCESSED_DATA",
         archive_folder="ARCHIVE",
     ):
-
         self.base_directory = base_directory
         self.base_process_directory = base_process_directory
         self.base_archive_directory = base_archive_directory

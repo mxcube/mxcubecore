@@ -11,6 +11,7 @@ class CommonCollectionParamters(BaseModel):
 class PathParameters(BaseModel):
     prefix: str
     subdir: str
+    experiment_name: str
 
     class Config:
         extra: "ignore"
@@ -27,6 +28,7 @@ class LegacyParameters(BaseModel):
 
 
 class StandardCollectionParameters(BaseModel):
+    num_images: int
     osc_start: float
     osc_range: float
     energy: float

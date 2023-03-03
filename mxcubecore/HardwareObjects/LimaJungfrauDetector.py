@@ -2,6 +2,7 @@ import gevent
 import time
 import subprocess
 import logging
+import os
 
 from mxcubecore.CommandContainer import ConnectionError
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
@@ -88,7 +89,8 @@ class LimaJungfrauDetector(AbstractDetector):
                 "SetImageHeader",
             )
 
-            self.get_command_object("prepare_acq").set_device_timeout(30000)
+            # prepareAcq can block after large data transfers (buffered by GPFS): 2 min timeout
+            self.get_command_object("prepare_acq").set_device_timeout(2 * 60 * 1000)
             self._emit_status()
 
         except ConnectionError:
@@ -132,6 +134,18 @@ class LimaJungfrauDetector(AbstractDetector):
         self.set_channel_value("mask_run_level", 0)
 
         self.set_detector_filenames(data_root_path, prefix)
+
+    def find_next_pedestal_dir(self, data_root_path, subdir):
+        _index = 1
+        _indes_str = "%04d" % _index
+        fpath = os.path.join(data_root_path, f"{subdir}_{_indes_str}")
+
+        while os.path.exists(fpath):
+            _index += 1
+            _indes_str = "%04d" % _index
+            fpath = os.path.join(data_root_path, f"{subdir}_{_indes_str}")
+
+        return fpath
 
     def set_detector_filenames(self, data_root_path, prefix):
         subprocess.Popen(
@@ -196,3 +210,7 @@ class LimaJungfrauDetector(AbstractDetector):
 
     def _emit_status(self):
         self.emit("statusChanged", self.status)
+
+    def restart(self) -> None:
+        self.reset()
+        return None

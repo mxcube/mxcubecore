@@ -12,9 +12,6 @@ from mxcubecore.HardwareObjects.ESRF.ESRFMetadataManagerClient import (
     MXCuBEMetadataClient,
 )
 
-# NBNB nicoproc is not found
-from mxcubecore.utils import nicoproc
-
 try:
     from httplib import HTTPConnection
 except Exception:
@@ -123,9 +120,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     @task
     def data_collection_end_hook(self, data_collect_parameters):
-        if nicoproc.USE_NICOPROC:
-            nicoproc.stop()
-
         self._detector._emit_status()
         self._metadataClient.end(data_collect_parameters)
 
@@ -168,9 +162,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         if shutterless:
             if first_frame:
                 exptime = (exptime + self._detector.get_deadtime()) * number_of_images
-                self.oscillation_task = self.oscil(
-                    start, end, exptime, 1, wait=False
-                )
+                self.oscillation_task = self.oscil(start, end, exptime, 1, wait=False)
 
             if self.oscillation_task.ready():
                 self.oscillation_task.get()
@@ -185,7 +177,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             self.close_fast_shutter()
         else:
             return self.execute_command("do_oscillation", start, end, exptime, npass)
-
 
     def set_wavelength(self, wavelength):
         if HWR.beamline.tunable_wavelength:
@@ -204,8 +195,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             self.close_fast_shutter()
             self.stop_oscillation()
             HWR.beamline.detector.stop_acquisition()
-            if nicoproc.USE_NICOPROC:
-                nicoproc.stop()
         except Exception:
             logging.getLogger("HWR").exception("")
 

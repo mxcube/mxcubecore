@@ -31,21 +31,8 @@ __category__ = "General"
 
 class SSXUserCollectionParameters(BaseModel):
     sub_sampling: float = Field(6, gt=0, lt=100)
-    exp_time: float = Field(100e-6, gt=0, lt=1)
-    motor_top_left_x: float = Field(18, gt=-100, lt=100)
-    motor_top_left_y: float = Field(15.8, gt=-100, lt=100)
-    motor_top_left_z: float = Field(-0.17, gt=-100, lt=100)
-
-    motor_top_right_x: float = Field(22, gt=-100, lt=100)
-    motor_top_right_y: float = Field(15.8, gt=-100, lt=100)
-    motor_top_right_z: float = Field(-0.17, gt=-100, lt=100)
-
-    motor_bottom_left_x: float = Field(18, gt=-100, lt=100)
-    motor_bottom_left_y: float = Field(24, gt=-100, lt=100)
-    motor_bottom_left_z: float = Field(-0.17, gt=-100, lt=100)
-
-    nb_samples_per_line: int = Field(60, gt=0, lt=1000)
-    nb_lines: int = Field(820, gt=0, lt=1000)
+    nb_samples_per_line: int = Field(500, gt=0, lt=1000)
+    nb_lines: int = Field(3000, gt=0, lt=10000)
     take_pedestal: bool = Field(True)
 
     class Config:
@@ -65,14 +52,14 @@ class SsxFoilCollectionQueueModel(DataCollection):
         super().__init__(**kwargs)
 
 
-class SsxFoilCollectionQueueEntry(BaseQueueEntry):
+class SsxBigFoilCollectionLima2CalibQueueEntry(BaseQueueEntry):
     """
     Defines the behaviour of a data collection.
     """
 
     QMO = SsxFoilCollectionQueueModel
     DATA_MODEL = SsxFoilColletionTaskParameters
-    NAME = "SSX Foil Collection (Lima1)"
+    NAME = "SSX Big Foil Collection (Lima2) Calib"
     REQUIRES = ["point", "line", "no_shape", "chip", "mesh"]
 
     # New style queue entry does not take view argument,
@@ -84,9 +71,34 @@ class SsxFoilCollectionQueueEntry(BaseQueueEntry):
         super().execute()
         debug(self._data_model._task_data)
         params = self._data_model._task_data.user_collection_parameters
-        exp_time = params.exp_time
 
-        MAX_FREQ = 925.0
+        MAX_FREQ = 1387.5
+
+        gonio_config = HWR.beamline.diffractometer.get_head_configuration()
+        chip_calibration_data = gonio_config["calibration_data"]
+
+        z = 0.08
+        motor_top_left_x = chip_calibration_data["top_left"][0]
+        motor_top_left_y = chip_calibration_data["top_left"][1]
+        motor_top_left_z = z
+
+        motor_bottom_right_x = chip_calibration_data["bottom_right"][0]
+        motor_bottom_right_y = chip_calibration_data["bottom_right"][1]
+
+        motor_top_right_x: motor_bottom_right_x
+        motor_top_right_y: motor_top_left_y
+        motor_top_right_z: z
+
+        motor_bottom_left_x: motor_top_left_x
+        motor_bottom_left_y: motor_bottom_right_y
+        motor_bottom_left_z: z
+
+        exp_time = self._data_model._task_data.user_collection_parameters.exp_time
+        fname_prefix = self._data_model._task_data.path_parameters.prefix
+        num_images = self._data_model._task_data.user_collection_parameters.num_images
+        sub_sampling = (
+            self._data_model._task_data.user_collection_parameters.sub_sampling
+        )
 
         # if HWR.beamline.control.safshut_oh2.state.name == "DISABLE":
         #    raise RuntimeError(HWR.beamline.control.safshut_oh2.state.value)
@@ -109,8 +121,8 @@ class SsxFoilCollectionQueueEntry(BaseQueueEntry):
 
         if params.take_pedestal:
             HWR.beamline.control.safshut_oh2.close()
-            if not hasattr(HWR.beamline.control, "jungfrau_pedestal_scans"):
-                HWR.beamline.control.load_script("jungfrau.py")
+            if not hasattr(HWR.beamline.control, "lima2_jungfrau_pedestal_scans"):
+                HWR.beamline.control.load_script("id29_lima2.py")
 
             pedestal_dir = HWR.beamline.detector.find_next_pedestal_dir(
                 data_root_path, "pedestal"
@@ -127,30 +139,40 @@ class SsxFoilCollectionQueueEntry(BaseQueueEntry):
                 close_fds=True,
             ).wait()
 
-            HWR.beamline.control.jungfrau_pedestal_scans(
-                HWR.beamline.control.jungfrau4m,
-                params.exp_time,
+            HWR.beamline.control.lima2_jungfrau_pedestal_scans(
+                HWR.beamline.control.lima2_jungfrau4m_rr_smx,
+                exp_time,
+                MAX_FREQ / sub_sampling,
                 1000,
-                MAX_FREQ / params.sub_sampling,
-                pedestal_base_path=pedestal_dir,
-                pedestal_filename="pedestal",
+                pedestal_dir,
+                "pedestal.h5",
+                disable_saving="raw",
+                print_params=True,
             )
 
-        HWR.beamline.control.jungfrau4m.camera.img_src = "GAIN_PED_CORR"
+            subprocess.Popen(
+                "cd %s && rm -f pedestal.h5 && ln -s %s/pedestal.h5"
+                % (data_root_path, pedestal_dir),
+                shell=True,
+                stdin=None,
+                stdout=None,
+                stderr=None,
+                close_fds=True,
+            ).wait()
 
         fname_prefix = self._data_model._task_data.path_parameters.prefix
         fname_prefix += f"_foil_"
 
         region = (
-            params.motor_top_left_x,
-            params.motor_top_left_y,
-            params.motor_top_left_z,
-            params.motor_top_right_x,
-            params.motor_top_right_y,
-            params.motor_top_right_z,
-            params.motor_bottom_left_x,
-            params.motor_bottom_left_y,
-            params.motor_bottom_left_z,
+            motor_top_left_x,
+            motor_top_left_y,
+            motor_top_left_z,
+            motor_top_right_x,
+            motor_top_right_y,
+            motor_top_right_z,
+            motor_bottom_left_x,
+            motor_bottom_left_y,
+            motor_bottom_left_z,
         )
 
         beamline_values = HWR.beamline.lims.pyispyb.get_current_beamline_values()
@@ -171,40 +193,36 @@ class SsxFoilCollectionQueueEntry(BaseQueueEntry):
 
         HWR.beamline.detector.wait_ready()
 
-        jv = jungfrau_visualization(HWR.beamline.control, "jungfrau4m")
-        with jv as monitor:
-            HWR.beamline.detector.start_acquisition()
-            logging.getLogger("user_level_log").info(
-                "Detector ready, waiting for trigger ..."
-            )
+        HWR.beamline.detector.start_acquisition()
+        logging.getLogger("user_level_log").info(
+            "Detector ready, waiting for trigger ..."
+        )
 
+        HWR.beamline.diffractometer.wait_ready()
+        HWR.beamline.diffractometer.set_phase("DataCollection", wait=True, timeout=120)
+        # HWR.beamline.diffractometer.wait_ready()
+
+        if HWR.beamline.control.safshut_oh2.state.name != "OPEN":
+            logging.getLogger("user_level_log").info(f"Opening OH2 safety shutter")
+            HWR.beamline.control.safshut_oh2.open()
+
+        logging.getLogger("user_level_log").info(f"Acquiring {num_images}")
+
+        try:
+            HWR.beamline.diffractometer.start_ssx_scan(params.sub_sampling)
             HWR.beamline.diffractometer.wait_ready()
-            HWR.beamline.diffractometer.set_phase(
-                "DataCollection", wait=True, timeout=120
-            )
-            # HWR.beamline.diffractometer.wait_ready()
-
-            if HWR.beamline.control.safshut_oh2.state.name != "OPEN":
-                logging.getLogger("user_level_log").info(f"Opening OH2 safety shutter")
-                HWR.beamline.control.safshut_oh2.open()
-
-            logging.getLogger("user_level_log").info(f"Acquiring {num_images}")
-
-            try:
-                HWR.beamline.diffractometer.start_ssx_scan(params.sub_sampling)
-                HWR.beamline.diffractometer.wait_ready()
-            except:
-                msg = "Diffractometer failed! Waiting for detector to finish"
-                logging.getLogger("user_level_log").error(msg)
-                HWR.beamline.detector.wait_ready()
-                raise
-
-            if HWR.beamline.control.safshut_oh2.state.name == "OPEN":
-                HWR.beamline.control.safshut_oh2.close()
-                logging.getLogger("user_level_log").info("shutter closed")
-
+        except:
+            msg = "Diffractometer failed! Waiting for detector to finish"
+            logging.getLogger("user_level_log").error(msg)
             HWR.beamline.detector.wait_ready()
-            logging.getLogger("user_level_log").info(f"Acquired {region}")
+            raise
+
+        if HWR.beamline.control.safshut_oh2.state.name == "OPEN":
+            HWR.beamline.control.safshut_oh2.close()
+            logging.getLogger("user_level_log").info("shutter closed")
+
+        HWR.beamline.detector.wait_ready()
+        logging.getLogger("user_level_log").info(f"Acquired {region}")
 
         HWR.beamline.lims.pyispyb.create_ssx_collection(
             self._data_model._task_data,
