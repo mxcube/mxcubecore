@@ -1,12 +1,12 @@
 """Class for cameras connected to framegrabbers run by Taco Device Servers
 """
-from mxcubecore import BaseHardwareObjects
+import psutil
+import subprocess
 import logging
 import time
-from PIL import Image
-import numpy as np
 import gevent
 
+from mxcubecore import BaseHardwareObjects
 from mxcubecore import HardwareRepository as HWR
 
 MAX_TRIES = 3
@@ -18,7 +18,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
         BaseHardwareObjects.Device.__init__(self, name)
 
     def _init(self):
-        self.stream_hash = "#"
+        self.stream_hash = "abc123"
         self.udiffVER_Ok = False
         self.badimg = 0
         self.pollInterval = 500
@@ -26,6 +26,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
         self.image_name = self.get_property("image_name")
         self.image = HWR.get_hardware_repository().find_in_repository(self.image_name)
         self.set_is_ready(True)
+        self._video_stream_process = None
 
     def init(self):
         logging.getLogger("HWR").info("initializing camera object")
@@ -98,3 +99,39 @@ class MDCameraMockup(BaseHardwareObjects.Device):
 
     def get_stream_size(self):
         return self.get_width(), self.get_height(), 1
+
+    def start_video_stream_process(self, format):
+        if (
+            not self._video_stream_process
+            or self._video_stream_process.poll() is not None
+        ):
+            self._video_stream_process = subprocess.Popen(
+                [
+                    "video-streamer",
+                    "-tu",
+                    "test",
+                    "-hs",
+                    "localhost",
+                    "-p",
+                    "8000",
+                    "-of",
+                    format,
+                    "-q",
+                    "4",
+                    "-id",
+                    self.stream_hash,
+                ],
+                close_fds=True,
+            )
+
+    def stop_streaming(self):
+        if self._video_stream_process:
+            ps = [self._video_stream_process] + psutil.Process(
+                self._video_stream_process.pid
+            ).children()
+            for p in ps:
+                p.kill()
+            self._video_stream_process = None
+
+    def start_streaming(self, format="MPEG1"):
+        self.start_video_stream_process(format)

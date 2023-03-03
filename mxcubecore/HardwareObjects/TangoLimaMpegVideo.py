@@ -18,8 +18,6 @@ import uuid
 import psutil
 
 from mxcubecore.HardwareObjects.TangoLimaVideo import TangoLimaVideo
-from mxcubecore.utils.video_utils import streaming_processes
-
 
 class TangoLimaMpegVideo(TangoLimaVideo):
     def __init__(self, name):
@@ -84,7 +82,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
 
         return video_sizes
 
-    def start_video_stream_process(self):
+    def start_video_stream_process(self, format):
         if (
             not self._video_stream_process
             or self._video_stream_process.poll() is not None
@@ -93,19 +91,21 @@ class TangoLimaMpegVideo(TangoLimaVideo):
                 os.path.dirname(os.__file__).split(os.sep)[:-2] + ["bin", "python"]
             )
 
-            self._video_stream_process = subprocess.Popen(
+             self._video_stream_process = subprocess.Popen(
                 [
-                    python_executable,
-                    streaming_processes.__file__,
-                    self.get_property("tangoname"),
-                    "%s, %s" % (self.get_width(), self.get_height()),
-                    self._current_stream_size,
-                    self.stream_hash,
-                    self.video_mode,
-                    self._loopback_device,
-                    str(self._debug),
-                    str(self._sleep_time),
+                    "video-streamer",
+                    "-tu",
+                    "-d", self.get_property("tangoname").strip(),
+                    "-hs",
+                    "localhost",
+                    "-p",
+                    "8000",
+                    "-q",
                     str(self._quality),
+                    "-of",
+                    format
+                    "-id",
+                    self.stream_hash,
                 ],
                 close_fds=True,
             )
@@ -122,14 +122,8 @@ class TangoLimaMpegVideo(TangoLimaVideo):
                 p.kill()
             self._video_stream_process = None
 
-    def start_streaming(self, size=()):
-        if not size:
-            w, h = self.get_width(), self.get_height()
-        else:
-            w, h = size
-
-        self.set_stream_size(w * self._mpeg_scale, h * self._mpeg_scale)
-        self.start_video_stream_process()
+    def start_streaming(self, format):
+        self.start_video_stream_process(format)
 
         return self.video_device
 
