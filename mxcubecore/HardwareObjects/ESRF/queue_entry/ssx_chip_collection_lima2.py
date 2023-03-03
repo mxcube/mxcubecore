@@ -63,8 +63,6 @@ class SsxChipCollectionLima2QueueEntry(SsxBaseQueueEntry):
     NAME = "SSX Chip Collection (Lima2)"
     REQUIRES = ["point", "line", "no_shape", "chip", "mesh"]
 
-    # New style queue entry does not take view argument,
-    # adding kwargs for compatability, but they are unsued
     def __init__(self, view, data_model: SsxChipCollectionLima2QueueModel):
         super().__init__(view=view, data_model=data_model)
 
