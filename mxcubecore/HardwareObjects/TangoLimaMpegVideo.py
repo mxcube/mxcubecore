@@ -125,6 +125,6 @@ class TangoLimaMpegVideo(TangoLimaVideo):
 
         return self.video_device
 
-    def restart_streaming(self, size=()):
+    def restart_streaming(self, format):
         self.stop_streaming()
-        self.start_streaming(size)
+        self.start_streaming(format)
