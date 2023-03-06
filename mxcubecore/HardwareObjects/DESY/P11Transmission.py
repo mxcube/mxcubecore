@@ -20,6 +20,7 @@
 
 import gevent
 import logging
+import time
 
 from mxcubecore.HardwareObjects.abstract.AbstractTransmission import (
     AbstractTransmission,
@@ -103,3 +104,11 @@ class P11Transmission(AbstractTransmission):
     def _set_value(self, value):
         value = value / 100.0
         self.chan_set_value.set_value(value)
+
+        print("============== Setting transmission ==================")
+        
+        while self.get_state() == "MOVING":
+            time.sleep(0.1)
+            print("Changing transmission")
+
+
