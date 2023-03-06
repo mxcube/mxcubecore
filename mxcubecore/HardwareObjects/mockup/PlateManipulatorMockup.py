@@ -163,11 +163,6 @@ class Drop(Container.Container):
         sample = self.get_components()
         return sample[0]
 
-    # def get_index(self):
-    #    """
-    #    Descript. Drop index is relative to the row
-    #    """
-    #    return self._well_no
 
 
 class Cell(Container.Container):
@@ -261,23 +256,23 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         """
         SampleChangerState = AbstractSampleChanger.SampleChangerState
         if state is None:
-            self._set_state(AbstractSampleChanger.SampleChangerState.Unknown)
+            self._set_state(SampleChangerState.Unknown)
         else:
             if state == "Alarm":
-                self._set_state(AbstractSampleChanger.SampleChangerState.Alarm)
+                self._set_state(SampleChangerState.Alarm)
             elif state == "Fault":
-                self._set_state(AbstractSampleChanger.SampleChangerState.Fault)
+                self._set_state(SampleChangerState.Fault)
             elif state == "Moving" or state == "Running":
-                self._set_state(AbstractSampleChanger.SampleChangerState.Moving)
+                self._set_state(SampleChangerState.Moving)
             elif state == "Ready":
                 if self.current_phase == "Transfer":
-                    self._set_state(AbstractSampleChanger.SampleChangerState.Charging)
+                    self._set_state(SampleChangerState.Charging)
                 elif self.current_phase == "Centring":
-                    self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
+                    self._set_state(SampleChangerState.Ready)
                 else:
-                    self._set_state(AbstractSampleChanger.SampleChangerState.StandBy)
+                    self._set_state(SampleChangerState.StandBy)
             elif state == "Initializing":
-                self._set_state(AbstractSampleChanger.SampleChangerState.Initializing)
+                self._set_state(SampleChangerState.Initializing)
 
     def _init_sc_contents(self):
         """
@@ -299,6 +294,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
             for col in range(self.num_cols):
                 cell = Cell(basket, chr(65 + row), col + 1, self.num_drops)
                 basket._add_component(cell)
+        self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
 
     def _do_abort(self):
         """
@@ -512,7 +508,6 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
 
         cell = self.get_component_by_address("%s%d" % (chr(65 + row), col + 1))
         if cell:
-            old_sample = self.get_loaded_sample()
             drop = cell.get_component_by_address(
                 "%s%d:%d" % (chr(65 + row), col + 1, drop_index)
             )
@@ -553,8 +548,6 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         return plate_info_dict
 
     def get_plate_location(self):
-        # if self.chan_plate_location is not None:
-        #    self.plate_location = self.chan_plate_location.get_value()
         return self.plate_location
 
     def sync_with_crims(self, barcode):

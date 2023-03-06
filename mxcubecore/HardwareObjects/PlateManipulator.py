@@ -159,11 +159,6 @@ class Drop(Container):
         sample = self.get_components()
         return sample[0]
 
-    # def get_index(self):
-    #    """
-    #    Descript. Drop index is relative to the row
-    #    """
-    #    return self._well_no
 
 
 class Cell(Container):
@@ -280,14 +275,14 @@ class PlateManipulator(SampleChanger):
         self.chan_drop_location = self.get_channel_object("DropLocation")
         self.chan_plate_location = self.get_channel_object("PlateLocation")
         if self.chan_plate_location is not None:
-            self.chan_plate_location.connectSignal(
+            self.chan_plate_location.connect_signal(
                 "update", self.plate_location_changed
             )
             self.plate_location_changed(self.chan_plate_location.get_value())
 
         self.chan_state = self.get_channel_object("State")
         if self.chan_state is not None:
-            self.chan_state.connectSignal("update", self.state_changed)
+            self.chan_state.connect_signal("update", self.state_changed)
 
         SampleChanger.init(self)
 
@@ -297,7 +292,6 @@ class PlateManipulator(SampleChanger):
             return True
         else:
             raise Exception("barcode unknown")
-            return False
         
 
     def hw_get_loaded_sample_location(self):
@@ -375,7 +369,6 @@ class PlateManipulator(SampleChanger):
         """
         Descript. :
         """
-        # self._abort()
         self.cmd_do_abort()
 
     def _do_change_mode(self, mode):
@@ -576,7 +569,7 @@ class PlateManipulator(SampleChanger):
         """
         self._update_state()
         # TODO remove self._update_loaded_sample and add event to self.chan_plate_location
-        self._update_loaded_sample()
+        # self._update_loaded_sample()
 
     def _read_state(self):
         return self.chan_state.get_value()
@@ -684,8 +677,8 @@ class PlateManipulator(SampleChanger):
         return plate_info_dict
 
     def get_plate_location(self):
-        # if self.chan_plate_location is not None:
-        #    self.plate_location = self.chan_plate_location.get_value()
+        if self.chan_plate_location is not None:
+           self.plate_location = self.chan_plate_location.get_value()
         return self.plate_location
 
     def move_to_crystal_position(self, crystal_uuid):
