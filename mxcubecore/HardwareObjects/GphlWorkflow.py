@@ -24,6 +24,7 @@ along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
+import abc
 import copy
 import logging
 import enum
@@ -41,7 +42,7 @@ import gevent.queue
 import f90nml
 
 from mxcubecore.dispatcher import dispatcher
-from mxcubecore.utils import conversion
+from mxcubecore.utils import conversion, ui_communication
 from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
 from mxcubecore.model import queue_model_objects
 from mxcubecore.model import queue_model_enumerables
@@ -690,6 +691,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         # Number of decimals for rounding use_dose values
         use_dose_decimals = 4
+        is_interleaved = geometric_strategy.isInterleaved
 
         data_model = self._queue_entry.get_data_model()
         wf_parameters = data_model.get_workflow_parameters()
@@ -929,12 +931,11 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "Experiment duration (s)",
             "type": "number",
             "default": experiment_time,
-            "minimum": reslimits[0],
-            "maximum": reslimits[1],
             "readOnly": True,
         }
 
-        if data_model.characterisation_done and data_model.interleave_order:
+        # if data_model.characterisation_done and data_model.interleave_order:
+        if is_interleaved:
             # NB We do not want the wedgeWdth widget for Diffractcal
             fields["wedge_width"] = {
                 "title": "Wedge width (°)",
@@ -974,7 +975,8 @@ class GphlWorkflow(HardwareObjectYaml):
         use_modes = ["sweep"]
         if len(orientations) > 1:
             use_modes.append("start")
-        if data_model.interleave_order:
+        # if data_model.interleave_order:
+        if is_interleaved:
             use_modes.append("scan")
         if self.load_transcal_parameters() and (
             data_model.characterisation_done
@@ -997,13 +999,13 @@ class GphlWorkflow(HardwareObjectYaml):
         else:
             default_recentring_mode = "sweep"
         default_label = labels[modes.index(default_recentring_mode)]
-        if len(modes) > 1:
-            fields["recentring_mode"] = {
-                # "title": "Recentring mode",
-                "type": "string",
-                "default": default_label,
-                "$ref": "#/definitions/recentring_mode",
-            }
+        # if len(modes) > 1:
+        fields["recentring_mode"] = {
+            # "title": "Recentring mode",
+            "type": "string",
+            "default": default_label,
+            "$ref": "#/definitions/recentring_mode",
+        }
         schema["definitions"]["recentring_mode"] = list(
             {
                 "type": "string",
@@ -1023,8 +1025,8 @@ class GphlWorkflow(HardwareObjectYaml):
         schema["definitions"]["image_width"] = list(
             {
                 "type": "string",
-                "enum": [tag],
-                "title": tag,
+                "enum": [str(tag)],
+                "title": str(tag),
             }
             for tag in allowed_widths
         )
@@ -1052,14 +1054,27 @@ class GphlWorkflow(HardwareObjectYaml):
                         "transmission",
                         "snapshot_count",
                     ],
+                    "exposure": {
+                        "ui:options": {
+                            "update_function": "update_exposure",
+                            "decimals": 4,
+                        }
+                    },
                     "use_dose": {
                         "ui:options": {
-                            "decimals": 3,
+                            "decimals": use_dose_decimals,
+                            "update_function": "update_dose",
+                        }
+                    },
+                    "image_width": {
+                        "ui:options": {
+                            "update_function": "update_dose",
                         }
                     },
                     "transmission": {
                         "ui:options": {
                             "decimals": 2,
+                            "update_function": "update_transmission",
                         }
                     },
                 },
@@ -1077,12 +1092,18 @@ class GphlWorkflow(HardwareObjectYaml):
                     "resolution": {
                         "ui:options": {
                             "decimals": 3,
+                            "update_function": "update_resolution",
+                        }
+                    },
+                    "experiment_time": {
+                        "ui:options": {
+                            "decimals": 1,
                         }
                     },
                 },
             }
         }
-        if data_model.characterisation_done and data_model.interleave_order:
+        if data_model.characterisation_done and is_interleaved:
             ui_schema["parameters"]["column1"]["ui:order"].append("wedge_width")
         ll0 =  ui_schema["parameters"]["column2"]["ui:order"]
         ll0.extend(list(beam_energies))
@@ -1114,9 +1135,11 @@ class GphlWorkflow(HardwareObjectYaml):
         tag = "image_width"
         value = result.get(tag)
         if value:
+            print ('@~@~ image_width 1', value, float(value))
             image_width = float(value)
         else:
             image_width = self.settings.get("default_image_width", default_image_width)
+            print ('@~@~ image_width 1', self.settings.get("default_image_width"), default_image_width)
         result[tag] = image_width
         # exposure OK as is
         tag = "transmission"
@@ -1158,6 +1181,9 @@ class GphlWorkflow(HardwareObjectYaml):
         # # Register the dose (about to be) consumed
         # if std_dose_rate:
         #     data_model.set_dose_consumed(float(params.get("use_dose", 0)))
+        print ('@~@~ returned parameters 2')
+        for item in result.items():
+            print ('--> %s : %s' % item)
 
         #
         return result
@@ -2553,255 +2579,266 @@ class GphlWorkflow(HardwareObjectYaml):
         return crystal_data, hklfile
 
 
+    # #
+    # # Test web dialog functions
+    # #
     #
-    # Test web dialog functions
+    # def test_dialog(self):
+    #     characterisationExposureTime = 1.0
+    #     osc_range = 2.0
+    #     transmission = 29.6
+    #     resolution = 2.1
+    #     listDialog = [
+    #         {
+    #             "variableName": "no_reference_images",
+    #             "label": "Number of reference images",
+    #             "type": "int",
+    #             "defaultValue": 2,
+    #             "unit": "",
+    #             "lowerBound": 1,
+    #             "upperBound": 4,
+    #         }, {
+    #             "variableName": "angle_between_reference_images",
+    #             "label": "Angle between reference images",
+    #             "type": "combo",
+    #             "defaultValue": "90",
+    #             "textChoices": ["30", "45", "60", "90"],
+    #         }, {
+    #             "variableName": "characterisationExposureTime",
+    #             "label": "Characterisation exposure time",
+    #             "type": "float",
+    #             "value": characterisationExposureTime,
+    #             "unit": "%",
+    #             "lowerBound": 0.0,
+    #             "upperBound": 100.0,
+    #         }, {
+    #             "variableName": "osc_range",
+    #             "label": "Total oscillation range",
+    #             "type": "float",
+    #             "value": osc_range,
+    #             "unit": "%",
+    #             "lowerBound": 0.1,
+    #             "upperBound": 10.0,
+    #         }, {
+    #             "variableName": "transmission",
+    #             "label": "Transmission",
+    #             "type": "float",
+    #             "value": transmission,
+    #             "unit": "%",
+    #             "lowerBound": 0,
+    #             "upperBound": 100.0,
+    #         }, {
+    #             "variableName": "resolution",
+    #             "label": "Resolution",
+    #             "type": "float",
+    #             "defaultValue": resolution,
+    #             "unit": "A",
+    #             "lowerBound": 0.5,
+    #             "upperBound": 7.0,
+    #         }, {
+    #             "variableName": "do_data_collect",
+    #             "label": "Do data collection?",
+    #             "type": "combo",
+    #             "textChoices": ["true", "false"],
+    #             "value": "false",
+    #         }
+    #     ]
+    #     # self.emit("parametersNeeded
+    #     # ", (listDialog,))
+    #     from mxcubecore.utils import dialog
+    #     dictDialog = dialog.create_test_dict(listDialog, "GphlTestDialog")
+    #     print ('@~@~ got dialog dict')
+    #     for tpl in dictDialog.items():
+    #         print ('  --> %s: %s' % tpl)
+    #     return_params = self.open_dialog(dictDialog)
+    #
+    #     print ('@~@~ DIALOG TEST DONE')
+    #     for tpl in return_params.items():
+    #         print ('  --> %s: %s' % tpl)
+    #
+    # def open_dialog(self, dict_dialog):
+    #     # If necessary unblock dialog
+    #     print ('@~@~ open_dialog')
+    #     for tpl in dict_dialog.items():
+    #         print ('  --> %s: %s' % tpl)
+    #     if not self.gevent_event.is_set():
+    #         self.gevent_event.set()
+    #     self.params_dict = dict()
+    #     if "reviewData" in dict_dialog and "inputMap" in dict_dialog:
+    #         review_data = dict_dialog["reviewData"]
+    #         for dict_entry in dict_dialog["inputMap"]:
+    #             if "value" in dict_entry:
+    #                 value = dict_entry["value"]
+    #             else:
+    #                 value = dict_entry["defaultValue"]
+    #             self.params_dict[dict_entry["variableName"]] = str(value)
+    #         print ('@~@~ emitting gphlParametersNeeded')
+    #         self.emit("gphlParametersNeeded", (review_data,))
+    #         print ('@~@~ DONE emitting gphlParametersNeeded')
+    #         # self.state.value = "OPEN"
+    #         self.gevent_event.clear()
+    #         print ('@~@~ cleared event')
+    #         ii = 0
+    #         while not self.gevent_event.is_set():
+    #             ii += 1
+    #             self.gevent_event.wait()
+    #             time.sleep(0.1)
+    #             print ('@~@~ waiting, ', ii)
+    #             if ii > 60:
+    #                 print ('@~@~ TIMED OUT')
+    #                 return self.params_dict
+    #         print ('@~@~ event done set, returning')
+    #     return self.params_dict
+    #
+    # def get_values_map(self):
+    #     return self.params_dict
+    #
+    # def set_values_map(self, params):
+    #     print ('@~@~ in set_values_map')
+    #     self.params_dict = params
+    #     self.gevent_event.set()
+    #     print ('@~@~ DONE set_values_map')
+
+
+    #
+    # Functions for new version of UI handling
     #
 
-    def test_dialog(self):
-        characterisationExposureTime = 1.0
-        osc_range = 2.0
-        transmission = 29.6
-        resolution = 2.1
-        listDialog = [
-            {
-                "variableName": "no_reference_images",
-                "label": "Number of reference images",
-                "type": "int",
-                "defaultValue": 2,
-                "unit": "",
-                "lowerBound": 1,
-                "upperBound": 4,
-            }, {
-                "variableName": "angle_between_reference_images",
-                "label": "Angle between reference images",
-                "type": "combo",
-                "defaultValue": "90",
-                "textChoices": ["30", "45", "60", "90"],
-            }, {
-                "variableName": "characterisationExposureTime",
-                "label": "Characterisation exposure time",
-                "type": "float",
-                "value": characterisationExposureTime,
-                "unit": "%",
-                "lowerBound": 0.0,
-                "upperBound": 100.0,
-            }, {
-                "variableName": "osc_range",
-                "label": "Total oscillation range",
-                "type": "float",
-                "value": osc_range,
-                "unit": "%",
-                "lowerBound": 0.1,
-                "upperBound": 10.0,
-            }, {
-                "variableName": "transmission",
-                "label": "Transmission",
-                "type": "float",
-                "value": transmission,
-                "unit": "%",
-                "lowerBound": 0,
-                "upperBound": 100.0,
-            }, {
-                "variableName": "resolution",
-                "label": "Resolution",
-                "type": "float",
-                "defaultValue": resolution,
-                "unit": "A",
-                "lowerBound": 0.5,
-                "upperBound": 7.0,
-            }, {
-                "variableName": "do_data_collect",
-                "label": "Do data collection?",
-                "type": "combo",
-                "textChoices": ["true", "false"],
-                "value": "false",
+    @staticmethod
+    def update_exposure(values_map:ui_communication.AbstractValuesMap):
+        """When image_width or exposure_time change,
+         update rotation_rate, experiment_time and either use_dose or transmission
+        In parameter popup"""
+        print ('@~@~ executing update_exposure')
+        parameters = values_map.get_values_map()
+        exposure_time = float(parameters.get("exposure", 0))
+        image_width = float(parameters.get("image_width", 0))
+        use_dose = float(parameters.get("use_dose", 0))
+        transmission = float(parameters.get("transmission", 0))
+
+        std_dose_rate = float(parameters.get("std_dose_rate", 0))
+        total_strategy_length = float(parameters.get("total_strategy_length", 0))
+        dose_consumed = float(parameters.get("dose_consumed", 0))
+
+        if image_width and exposure_time:
+            rotation_rate = image_width / exposure_time
+            experiment_time = total_strategy_length / rotation_rate
+            dd0 = {
+                "experiment_time": experiment_time,
             }
-        ]
-        # self.emit("parametersNeeded
-        # ", (listDialog,))
-        from mxcubecore.utils import dialog
-        dictDialog = dialog.create_test_dict(listDialog, "GphlTestDialog")
-        print ('@~@~ got dialog dict')
-        for tpl in dictDialog.items():
-            print ('  --> %s: %s' % tpl)
-        return_params = self.open_dialog(dictDialog)
 
-        print ('@~@~ DIALOG TEST DONE')
-        for tpl in return_params.items():
-            print ('  --> %s: %s' % tpl)
-
-    def open_dialog(self, dict_dialog):
-        # If necessary unblock dialog
-        print ('@~@~ open_dialog')
-        for tpl in dict_dialog.items():
-            print ('  --> %s: %s' % tpl)
-        if not self.gevent_event.is_set():
-            self.gevent_event.set()
-        self.params_dict = dict()
-        if "reviewData" in dict_dialog and "inputMap" in dict_dialog:
-            review_data = dict_dialog["reviewData"]
-            for dict_entry in dict_dialog["inputMap"]:
-                if "value" in dict_entry:
-                    value = dict_entry["value"]
-                else:
-                    value = dict_entry["defaultValue"]
-                self.params_dict[dict_entry["variableName"]] = str(value)
-            print ('@~@~ emitting gphlParametersNeeded')
-            self.emit("gphlParametersNeeded", (review_data,))
-            print ('@~@~ DONE emitting gphlParametersNeeded')
-            # self.state.value = "OPEN"
-            self.gevent_event.clear()
-            print ('@~@~ cleared event')
-            ii = 0
-            while not self.gevent_event.is_set():
-                ii += 1
-                self.gevent_event.wait()
-                time.sleep(0.1)
-                print ('@~@~ waiting, ', ii)
-                if ii > 60:
-                    print ('@~@~ TIMED OUT')
-                    return self.params_dict
-            print ('@~@~ event done set, returning')
-        return self.params_dict
-
-    def get_values_map(self):
-        return self.params_dict
-
-    def set_values_map(self, params):
-        print ('@~@~ in set_values_map')
-        self.params_dict = params
-        self.gevent_event.set()
-        print ('@~@~ DONE set_values_map')
-
-
-#
-# Functions for new version of UI handling
-#
-
-
-def update_exposure(field_widget):
-    """When image_width or exposure_time change,
-     update rotation_rate, experiment_time and either use_dose or transmission
-    In parameter popup"""
-    parameters = field_widget.get_parameters_map()
-    exposure_time = float(parameters.get("exposure", 0))
-    image_width = float(parameters.get("imageWidth", 0))
-    use_dose = float(parameters.get("use_dose", 0))
-    transmission = float(parameters.get("transmission", 0))
-
-    std_dose_rate = float(parameters.get("std_dose_rate", 0))
-    total_strategy_length = float(parameters.get("total_strategy_length", 0))
-    dose_consumed = float(parameters.get("dose_consumed", 0))
-
-    if image_width and exposure_time:
-        rotation_rate = image_width / exposure_time
-        experiment_time = total_strategy_length / rotation_rate
-        dd0 = {
-            "rotation_rate": rotation_rate,
-            "experiment_time": experiment_time,
-        }
-
-        if std_dose_rate:
-            if use_dose:
-                use_dose -= dose_consumed
-                transmission = (
-                    100 * use_dose / (std_dose_rate * experiment_time)
-                )
-                if transmission > 100:
-                    dd0["transmission"] = 100
-                    dd0["use_dose"] = (
-                        use_dose * 100 / transmission
-                        + dose_consumed
+            if std_dose_rate:
+                if use_dose:
+                    use_dose -= dose_consumed
+                    transmission = (
+                        100 * use_dose / (std_dose_rate * experiment_time)
                     )
-                else:
-                    dd0["transmission"] = transmission
-            elif transmission:
-                use_dose = std_dose_rate * experiment_time * transmission / 100
-                dd0["use_dose"] = use_dose + dose_consumed
-        field_widget.set_values(**dd0)
+                    if transmission > 100:
+                        dd0["transmission"] = 100
+                        dd0["use_dose"] = (
+                            use_dose * 100 / transmission
+                            + dose_consumed
+                        )
+                    else:
+                        dd0["transmission"] = transmission
+                elif transmission:
+                    use_dose = std_dose_rate * experiment_time * transmission / 100
+                    dd0["use_dose"] = use_dose + dose_consumed
+            values_map.set_values(**dd0)
 
-def update_transmission(field_widget):
-    """When transmission changes, update use_dose
-    In parameter popup"""
-    parameters = field_widget.get_parameters_map()
-    exposure_time = float(parameters.get("exposure", 0))
-    image_width = float(parameters.get("imageWidth", 0))
-    transmission = float(parameters.get("transmission", 0))
-    std_dose_rate = float(parameters.get("std_dose_rate", 0))
-    total_strategy_length = float(parameters.get("total_strategy_length", 0))
-    dose_consumed = float(parameters.get("dose_consumed", 0))
+    @staticmethod
+    def update_transmission(values_map:ui_communication.AbstractValuesMap):
+        """When transmission changes, update use_dose
+        In parameter popup"""
+        print ('@~@~ executing update_transmission')
+        parameters = values_map.get_values_map()
+        exposure_time = float(parameters.get("exposure", 0))
+        image_width = float(parameters.get("image_width", 0))
+        transmission = float(parameters.get("transmission", 0))
+        std_dose_rate = float(parameters.get("std_dose_rate", 0))
+        total_strategy_length = float(parameters.get("total_strategy_length", 0))
+        dose_consumed = float(parameters.get("dose_consumed", 0))
 
-    if image_width and exposure_time and std_dose_rate:
-        experiment_time = exposure_time * total_strategy_length / image_width
-        use_dose = std_dose_rate * experiment_time * transmission / 100
-        field_widget.set_values(
-            use_dose=use_dose + dose_consumed
-        )
+        if image_width and exposure_time and std_dose_rate:
+            experiment_time = exposure_time * total_strategy_length / image_width
+            use_dose = std_dose_rate * experiment_time * transmission / 100
+            values_map.set_values(
+                use_dose=use_dose + dose_consumed
+            )
 
+    @staticmethod
+    def update_dose(values_map:ui_communication.AbstractValuesMap):
+        """When use_dose changes, update transmission and/or exposure_time
+        In parameter popup"""
+        print ('@~@~ executing update_dose')
+        exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
+        parameters = values_map.get_values_map()
+        exposure_time = float(parameters.get("exposure", 0))
+        image_width = float(parameters.get("image_width", 0))
+        use_dose = float(parameters.get("use_dose", 0))
+        std_dose_rate = float(parameters.get("std_dose_rate", 0))
+        total_strategy_length = float(parameters.get("total_strategy_length", 0))
+        dose_consumed = float(parameters.get("dose_consumed", 0))
 
-def update_dose(field_widget):
-    """When use_dose changes, update transmission and/or exposure_time
-    In parameter popup"""
-    exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
-    parameters = field_widget.get_parameters_map()
-    exposure_time = float(parameters.get("exposure", 0))
-    image_width = float(parameters.get("imageWidth", 0))
-    use_dose = float(parameters.get("use_dose", 0))
-    std_dose_rate = float(parameters.get("std_dose_rate", 0))
-    total_strategy_length = float(parameters.get("total_strategy_length", 0))
-    dose_consumed = float(parameters.get("dose_consumed", 0))
-
-    if image_width and exposure_time and std_dose_rate and use_dose:
-        experiment_time = exposure_time * total_strategy_length / image_width
-        # NB set_values causes successive upate calls for changed values
-        use_dose -= dose_consumed
-        transmission = 100 * use_dose / (std_dose_rate * experiment_time)
-        if transmission <= 100:
-            field_widget.set_values(transmission=transmission)
-        else:
-            # Tranmision over max; adjust exposure_time to compensate
-            exposure_time = exposure_time * transmission / 100
-            if (
-                exposure_limits[1] is None
-                or exposure_time <= exposure_limits[1]
-            ):
-                field_widget.set_values(
-                    exposure=exposure_time, transmission=100
+        if image_width and exposure_time and std_dose_rate and use_dose:
+            experiment_time = exposure_time * total_strategy_length / image_width
+            # NB set_values causes successive upate calls for changed values
+            use_dose -= dose_consumed
+            transmission = 100 * use_dose / (std_dose_rate * experiment_time)
+            if transmission <= 100:
+                values_map.set_values(
+                    transmission=transmission,
+                    experiment_time=experiment_time,
                 )
             else:
-                # exposure_time over max; set does to highest achievable
-                exposure_time = exposure_limits[1]
-                experiment_time = (
-                    exposure_time * total_strategy_length / image_width
-                )
-                use_dose = std_dose_rate * experiment_time
-                field_widget.set_values(
-                    exposure=exposure_time,
-                    transmission=100,
-                    use_dose=use_dose + dose_consumed,
-                )
+                # Tranmision over max; adjust exposure_time to compensate
+                exposure_time = exposure_time * transmission / 100
+                if (
+                    exposure_limits[1] is None
+                    or exposure_time <= exposure_limits[1]
+                ):
+                    values_map.set_values(
+                        exposure=exposure_time,
+                        transmission=100,
+                        experiment_time=experiment_time,
+                    )
+                else:
+                    # exposure_time over max; set does to highest achievable
+                    exposure_time = exposure_limits[1]
+                    experiment_time = (
+                        exposure_time * total_strategy_length / image_width
+                    )
+                    use_dose = std_dose_rate * experiment_time
+                    values_map.set_values(
+                        exposure=exposure_time,
+                        experiment_time=experiment_time,
+                        transmission=100,
+                        use_dose=use_dose + dose_consumed,
+                    )
 
-def update_resolution(field_widget):
+    @staticmethod
+    def update_resolution(values_map:ui_communication.AbstractValuesMap):
+        print ('@~@~ executing update_resolution')
 
-    parameters = field_widget.get_parameters_map()
-    resolution = float(parameters.get("resolution"))
-    decay_limit = float(parameters.get("decay_limit", 0))
-    relative_rad_sensitivity = float(parameters.get("relative_rad_sensitivity", 0))
-    std_dose_rate = float(parameters.get("std_dose_rate", 0))
-    total_strategy_length = float(parameters.get("total_strategy_length", 0))
-    budget_use_fraction = float(parameters.get("budget_use_fraction", 0))
-    exposure_time = float(parameters.get("exposure_time", 0))
-    image_width = float(parameters.get("image_width", 0))
-    maximum_dose_budget = float(parameters.get("maximum_dose_budget", 0))
-    experiment_time = exposure_time * total_strategy_length / image_width
-    dbg = 2 * resolution * resolution * math.log(100.0 / decay_limit)
-    #
-    dbg =  min(dbg, maximum_dose_budget) / relative_rad_sensitivity
-    field_widget.set_values(dose_budget=dbg)
-    use_dose = dbg * budget_use_fraction
-    if use_dose < std_dose_rate * experiment_time:
-        field_widget.set_values(use_dose=use_dose)
-        update_dose(field_widget)
-    else:
-        field_widget.set_values(transmission=100)
-        update_transmission(field_widget)
+        parameters = values_map.get_values_map()
+        resolution = float(parameters.get("resolution"))
+        decay_limit = float(parameters.get("decay_limit", 0))
+        relative_rad_sensitivity = float(parameters.get("relative_rad_sensitivity", 0))
+        std_dose_rate = float(parameters.get("std_dose_rate", 0))
+        total_strategy_length = float(parameters.get("total_strategy_length", 0))
+        budget_use_fraction = float(parameters.get("budget_use_fraction", 0))
+        exposure_time = float(parameters.get("exposure", 0))
+        image_width = float(parameters.get("image_width", 0))
+        maximum_dose_budget = float(parameters.get("maximum_dose_budget", 0))
+        experiment_time = exposure_time * total_strategy_length / image_width
+        dbg = 2 * resolution * resolution * math.log(100.0 / decay_limit)
+        #
+        dbg =  min(dbg, maximum_dose_budget) / relative_rad_sensitivity
+        values_map.set_values(dose_budget=dbg)
+        use_dose = dbg * budget_use_fraction
+        if use_dose < std_dose_rate * experiment_time:
+            values_map.set_values(use_dose=use_dose)
+            GphlWorkflow.update_dose(values_map)
+        else:
+            values_map.set_values(transmission=100)
+            GphlWorkflow.update_transmission(values_map)

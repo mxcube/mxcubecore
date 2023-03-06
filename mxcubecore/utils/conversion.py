@@ -45,7 +45,7 @@ except Exception:
 
 # Conversion from kEv to A, wavelength = HC_OVER_E/energy
 # NB This is * 10e7 (and NOT * 10e6), because the unit is A, not nm.
-HC_OVER_E = h * c / e * 10e7
+HC_OVER_E = h * c / e * 1.0e7
 
 
 # Utility functions:
