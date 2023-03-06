@@ -28,6 +28,7 @@ import warnings
 import sample_centring
 import gevent
 
+
 from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
     DiffractometerState
@@ -703,7 +704,17 @@ class P11NanoDiff(GenericDiffractometer):
         self.beamstop_hwobj.set_position("In")
         self.yag_hwobj.set_position("Out")
 
-        self.log.debug("  - checking pinhole ")
+        self.log.debug("=========  - checking pinhole ===============")
+
+        # If the pinhole is Down set pinhole to 200
+        if self.pinhole_hwobj.get_position() == "Down":
+            print("Pinhole is down. Setting pinhole to 200.")
+            self.pinhole_hwobj.set_position("200")
+
+
+
+
+
 
         # restore pinhole position is the role of save / restore at mounting
         # time. not of the collect phase
