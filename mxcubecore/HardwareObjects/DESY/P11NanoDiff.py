@@ -28,7 +28,6 @@ import warnings
 import sample_centring
 import gevent
 
-
 from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
     DiffractometerState
@@ -713,9 +712,6 @@ class P11NanoDiff(GenericDiffractometer):
 
 
 
-
-
-
         # restore pinhole position is the role of save / restore at mounting
         # time. not of the collect phase
         # self.pinhole_hwobj.set_position("In")
@@ -840,6 +836,7 @@ class P11NanoDiff(GenericDiffractometer):
 
         if self.phase_goingto == current_phase:
             self.log.debug("PHASE REACHED - %s" % self.phase_goingto)
+            
             self.phase_goingto = None
        
         if current_phase == GenericDiffractometer.PHASE_UNKNOWN:
