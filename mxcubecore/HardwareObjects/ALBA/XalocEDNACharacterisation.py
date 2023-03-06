@@ -63,6 +63,7 @@ class XalocEDNACharacterisation(EDNACharacterisation):
         self.secondary_ssh_host = None
         self.ssh_bash_script = None
         self.ssh_cluster_bash_script = None
+        self.edna_source_dir = None
         
         self.last_processed_dc_id = None
 
@@ -77,6 +78,7 @@ class XalocEDNACharacterisation(EDNACharacterisation):
         self.secondary_ssh_host = self.get_property("secondary_ssh_host")
         self.ssh_bash_script = self.get_property("ssh_bash_script")
         self.ssh_cluster_bash_script = self.get_property("ssh_cluster_bash_script")
+        self.edna_source_dir = self.get_property("edna_source_dir")
 
     def prepare_edna_input(self, input_file, output_dir):
         # used for strategy calculation (characterization) using data analysis cluster
@@ -322,17 +324,6 @@ class XalocEDNACharacterisation(EDNACharacterisation):
                             xds=None,
                             configdef=None)
                                     
-        #self.cluster.run(self.job)
-        ssh_parameters = "%s %s %s %s %s %s %s %s" % (
-                            self.ssh_user, 
-                            self.secondary_ssh_host,
-                            self.ssh_cluster_bash_script,
-                            self.cluster.pipelines['strategy']['plugin'],
-                            input_file,
-                            output_dir,
-                            "SCRATCH",
-                            False
-                        )
 
                 
         #proc_command = "ssh %s@%s %s %s" % (self.ssh_user, self.ssh_host, self.ssh_bash_script, ssh_parameters)
@@ -340,9 +331,35 @@ class XalocEDNACharacterisation(EDNACharacterisation):
         #os.system(proc_command)
         self.last_processed_dc_id = dc_id
             
-        proc_command = "%s %s" % (self.ssh_bash_script, ssh_parameters)
-        self.logger.info( "Executing command: ssh %s@%s %s" % (self.ssh_user, self.ssh_host, proc_command ) )
-        subprocess.call(['ssh', '%s@%s' % (self.ssh_user, self.ssh_host), proc_command])
+        if self.ssh_host != None and self.ssh_host != '':
+            ssh_parameters = "%s %s %s %s %s %s %s %s %s %s" % (
+                                self.ssh_user, 
+                                self.secondary_ssh_host,
+                                self.ssh_cluster_bash_script,
+                                self.cluster.pipelines['strategy']['plugin'],
+                                input_file,
+                                results_file,
+                                output_dir,
+                                "SCRATCH",
+                                False,
+                                self.edna_source_dir
+                            )
+            proc_command = "%s %s" % (self.ssh_bash_script, ssh_parameters)
+            self.logger.info( "Executing command: ssh %s@%s %s" % (self.ssh_user, self.ssh_host, proc_command ) )
+            subprocess.call(['ssh', '%s@%s' % (self.ssh_user, self.ssh_host), proc_command])
+        else:
+            ssh_parameters = "%s %s %s %s %s %s %s %s" % (
+                                self.ssh_cluster_bash_script,
+                                self.cluster.pipelines['strategy']['plugin'],
+                                input_file,
+                                results_file,
+                                output_dir,
+                                "LOCAL",# for pcbl1309
+                                False,
+                                self.edna_source_dir
+            )
+            self.logger.info( "Executing command: ssh %s@%s %s" % (self.ssh_user, self.secondary_ssh_host, ssh_parameters) )
+            subprocess.call(['ssh', '%s@%s' % (self.ssh_user, self.secondary_ssh_host), ssh_parameters])   
 
         #self.logger.info("Characterization Job ID: %s" % job_id)
 
