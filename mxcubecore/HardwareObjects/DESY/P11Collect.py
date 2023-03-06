@@ -91,7 +91,7 @@ class P11Collect(AbstractCollect):
         self.log.debug(str(collection_type))
         self.log.debug(str(self.current_dc_parameters))
 
-
+        
         osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
         file_info = self.current_dc_parameters["fileinfo"]
 
@@ -533,6 +533,7 @@ class P11Collect(AbstractCollect):
                 ))
 
 
+<<<<<<< HEAD
 
 
 
@@ -641,6 +642,8 @@ class P11Collect(AbstractCollect):
 #        ))
 
 
+=======
+>>>>>>> 6c5199a9... Wait for pinhole to reach 200 in case it was selected to be down and phase DataCollection did not change in between.
     def diffractometer_prepare_collection(self):
         diffr = HWR.beamline.diffractometer
 
@@ -650,7 +653,16 @@ class P11Collect(AbstractCollect):
             diffr.goto_collect_phase(wait=True)
 
         self.log.debug("#COLLECT# now in collect phase: %s" % diffr.is_collect_phase())
+        
+        # If the pinhole is Down set pinhole to 200
+        if HWR.beamline.diffractometer.pinhole_hwobj.get_position() == "Down":
+            print("Pinhole is down. Setting pinhole to 200.")
+
+            HWR.beamline.diffractometer.pinhole_hwobj.set_position("200")
+            HWR.beamline.diffractometer.wait_phase()
+       
         return diffr.is_collect_phase()
+
 
     def prepare_std_collection(self, start_angle, img_range):
         #Add start angle to the header
