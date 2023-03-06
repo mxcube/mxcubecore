@@ -539,9 +539,9 @@ class XalocCollect(AbstractCollect):
 
             # RB init_pos and final_pos include the ramp up and run out range for omega
         except Exception as e:
-            logging.getLogger('user_level_log').error("Prepare_acquisition failed")
+            self.user_logger.error("Prepare_acquisition failed")
             self.logger.error('error %s' % str(e) )
-            #logging.getLogger('user_level_log').error('error %s' % repr( e ) )
+            #self.user_logger.error('error %s' % repr( e ) )
             self.data_collection_failed( e, "Prepare_acquisition failed" )
             
         self.logger.debug('  Sweep parameters omega: init %s start %s total dist %s speed %s' % 
@@ -776,7 +776,7 @@ class XalocCollect(AbstractCollect):
             self.detector_hwobj.prepare_collection( nb_images, first_image_no )
         except Exception as e :
             self.logger.error(e)
-            logging.getLogger('user_level_log').error("Cannot prepare the detector, does the image exist? If not, check the detector state" )
+            self.user_logger.error("Cannot prepare the detector, does the image exist? If not, check the detector state" )
             self.data_collection_failed( e, "Cant set the scan velocity of motor %s" % scanmovemotorname)
             
         if self.current_dc_parameters['experiment_type'] != 'Mesh':
@@ -1034,15 +1034,15 @@ class XalocCollect(AbstractCollect):
                 self.data_collection_failed( Exception(msg), msg )
 
         if self.bypass_shutters:
-            logging.getLogger('user_level_log').warning("Shutters BYPASSED")
+            self.user_logger.warning("Shutters BYPASSED")
         else:
             _ok, failed = self.check_shutters()
             if not _ok:
                 msg = "Shutter(s) {} NOT READY".format(failed)
-                logging.getLogger('user_level_log').error(msg)
+                self.user_logger.error(msg)
                 return _ok, msg
             else:
-                logging.getLogger('user_level_log').info("Shutters READY")
+                self.user_logger.info("Shutters READY")
 
         gevent.sleep(1)
         self.logger.info(
@@ -1200,8 +1200,8 @@ class XalocCollect(AbstractCollect):
                 self.detector_hwobj.get_saving_statistics()
                 msg = "cam_state = {}, acq_status = {}, fault_error = {}".format(
                     cam_state, acq_status, fault_error)
-                logging.getLogger('user_level_log').error("Incomplete data collection")
-                logging.getLogger('user_level_log').error(msg)
+                self.user_logger.error("Incomplete data collection")
+                self.user_logger.error(msg)
                 
                 self.data_collection_failed( RuntimeError(msg), msg )
                 #return False
@@ -1338,12 +1338,12 @@ class XalocCollect(AbstractCollect):
             except OSError as e:
                 import errno
                 if e.errno != errno.EEXIST:
-                    logging.getLogger('user_level_log').error('Directories cannot be made, are the lockdown settings correct?')
-                    self.logger.debug("user_level_log').error('Directories cannot be made, are the lockdown settings correct?")
+                    self.user_logger.error('Directories cannot be made, are the lockdown settings correct?')
+                    self.user_logger.error('Directories cannot be made, are the lockdown settings correct?')
                     self.data_collection_failed( e, str(e) )
 
     def collect_finished(self, green):
-        logging.getLogger('user_level_log').info("Data collection finished")
+        self.user_logger.info("Data collection finished")
 
     def go_to_collect(self, timeout=180):
         self.wait_supervisor_ready(timeout=timeout)
@@ -1390,7 +1390,7 @@ class XalocCollect(AbstractCollect):
             #return self.supervisor_hwobj.get_current_phase().upper() == "COLLECT" 
         except Exception as e:
             msg = "Cannot return current phase from supervisor. Please, restart MXCuBE."
-            logging.getLogger('user_level_log').error(msg)
+            self.user_logger.error(msg)
             self.data_collection_failed( e, msg )
 
     def go_to_sampleview(self, timeout=180):
@@ -1438,7 +1438,7 @@ class XalocCollect(AbstractCollect):
             if super_state == DevState.ON:
                 break
             elif super_state == None:
-                self.user_level_log.debug("Inform your LC that supervisor state is %s" % super_state)
+                self.user_logger.debug("Inform your LC that supervisor state is %s" % super_state)
                 break
             if time.time() - t0 > timeout:
                 msg = "Timeout waiting for supervisor ready, call your LC"
@@ -1577,12 +1577,12 @@ class XalocCollect(AbstractCollect):
 
         for motorname in scan_motor_too_fast:
             self.logger.error('Helical collection error: Stop data collection cause %s cant go fast enough. TIP reduce the range or increase the total data collection time' % motorname)
-            logging.getLogger('user_level_log').error('Helical collection error: Stop data collection cause %s cant go fast enough.' % motorname)
-            logging.getLogger('user_level_log').error('    TIP reduce the distance between starting and ending points, or increase the total data collection time' )
+            self.user_logger.error('Helical collection error: Stop data collection cause %s cant go fast enough.' % motorname)
+            self.user_logger.error('    TIP reduce the distance between starting and ending points, or increase the total data collection time' )
         for motorname in scan_motor_too_slow:
             self.logger.error('stop data collection cause %s cant go slow enough. TIP increase the range or reduce the total data collection time' % motorname)
-            logging.getLogger('user_level_log').error('stop data collection cause %s cant go slow enough.' % motorname)
-            logging.getLogger('user_level_log').error('    TIP increase the distance between starting and ending points, or reduce the total data collection time')
+            self.user_logger.error('stop data collection cause %s cant go slow enough.' % motorname)
+            self.user_logger.error('    TIP increase the distance between starting and ending points, or reduce the total data collection time')
 
         return len(scan_motor_too_fast)+len(scan_motor_too_slow)
 
@@ -1691,7 +1691,7 @@ class XalocCollect(AbstractCollect):
         """
         #   program energy
         #   prepare detector for diffraction
-        logging.getLogger('user_level_log').warning("Setting beamline energy it can take a while, please be patient")
+        self.user_logger.warning("Setting beamline energy it can take a while, please be patient")
         self.energy_hwobj.move_energy(value)
         self.energy_hwobj.wait_move_energy_done()
 
@@ -1753,7 +1753,7 @@ class XalocCollect(AbstractCollect):
         while self.mxcube_sardanascan_running == True and (time.time() - start_wait) < timeout:
             time.sleep(0.01)
         if (time.time() - start_wait) > timeout:
-            logging.getLogger('user_level_log').error("Timeout waiting for scan to stop. Is the Macroserver ok?")
+            self.user_logger.error("Timeout waiting for scan to stop. Is the Macroserver ok?")
         self.logger.debug(" Line scan finished in %s secs " % ( time.time()-start_wait ) )
 
         self.logger.info(" Stopping detector")
@@ -1799,7 +1799,7 @@ class XalocCollect(AbstractCollect):
             except OSError as e:
                 import errno
                 if e.errno != errno.EEXIST:
-                    logging.getLogger('user_level_log').error('Error in making the directories, has the permission lockdown been setup properly?' )
+                    self.user_logger.error('Error in making the directories, has the permission lockdown been setup properly?' )
                     self.data_collection_failed( e, str(e) )
             
     def _create_proc_files_directory(self, proc_name):
