@@ -71,14 +71,16 @@ class XalocISPyBClient(ISPyBClient):
         self.logger.debug("ALBA LDAP login success %s (msg: %s)" % (ok, msg))
         if ok:
             vals = ldap_connection.get_field_values()
-            if 'homeDirectory' in vals:
-                home_dir = vals['homeDirectory'][0]
-                self.logger.debug("The homeDirectory for user %s is %s" %
-                    (login_name, home_dir))
+            if vals != None:
+                if 'homeDirectory' in vals:
+                    home_dir = vals['homeDirectory'][0]
+                    self.logger.debug("The homeDirectory for user %s is %s" %
+                        (login_name, home_dir))
+                    HWR.beamline.session.set_ldap_homedir(home_dir)
+            else:
+                self.logger.error( "ALBA LDAP error, no home directory found for proposal %s" % (login_name) )
+                home_dir = '/tmp'
                 HWR.beamline.session.set_ldap_homedir(home_dir)
-        else:
-            home_dir = '/tmp'
-            HWR.beamline.session.set_ldap_homedir(home_dir)
 
         return ok, msg
 

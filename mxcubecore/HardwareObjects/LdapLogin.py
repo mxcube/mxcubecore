@@ -139,7 +139,7 @@ class LdapLogin(Procedure):
         except ldap.LDAPError as err:
             if retry:
                 self.cleanup(ex=err)
-                return self.login(username, password, retry=False)
+                return self.login(username, password, retry=False, fields=fields)
             else:
                 return self.cleanup(ex=err)
 
