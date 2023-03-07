@@ -211,8 +211,10 @@ class P11Collect(AbstractCollect):
 
     def collect_std_collection(self, start_angle, stop_angle):
 
+        self.omega_mv(start_angle, self.default_speed)
+
         self.log.debug("#COLLECT# Running OMEGA through the std acquisition")
-        if start_angle < stop_angle:
+        if start_angle <= stop_angle:
                 self.lower_bound_ch.set_value(start_angle)
                 self.upper_bound_ch.set_value(stop_angle)
         else:
@@ -230,12 +232,26 @@ class P11Collect(AbstractCollect):
 
         self.log.debug("#COLLECT# Running OMEGA through the char acquisition")
 
+        self.omega_mv(start_angle, self.default_speed)
+
+        
         for img_no in range(nimages):
             print("collecting image %s" % img_no)
             start_at = start_angle + angle_inc*img_no
             stop_angle = start_at + img_range * 1.0
 
+<<<<<<< HEAD
             init_pos = start_at - self.acq_speed * self.turnback_time
+=======
+            print("collecting image %s, angle %f" % (img_no, start_at))
+            
+            if start_at >= stop_angle:
+                init_pos = start_at - self.acq_speed * self.turnback_time
+                #init_pos = start_at - 1.5
+            else:
+                init_pos = start_at + self.acq_speed * self.turnback_time
+                #init_pos = start_at + 1.5
+>>>>>>> 06f7f47c... Set the starting angle of the gonio at the beginning of the data collection. Otherwise trigger signal is not send because gonio is confused foth the window limits.
 
             self.omega_mv(init_pos, self.default_speed)
             self.collect_std_collection(start_angle, stop_angle)
