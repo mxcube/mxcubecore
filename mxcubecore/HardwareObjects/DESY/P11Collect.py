@@ -1,5 +1,6 @@
 
 
+import socket
 from mxcubecore.HardwareObjects.abstract.AbstractCollect import (
         AbstractCollect, )
 from mxcubecore import HardwareRepository as HWR
@@ -29,6 +30,8 @@ class P11Collect(AbstractCollect):
     def init(self):
 
         super(P11Collect,self).init()
+
+        os.system("/opt/xray/bin/adxv -socket -colors Gray -rings &")
 
         self.default_speed = self.get_property("omega_default_speed", 130)
         self.turnback_time = self.get_property("turnback_time", 0.1)
@@ -78,6 +81,7 @@ class P11Collect(AbstractCollect):
         HWR.beamline.sample_view.save_snapshot(filename)
 
     def data_collection_hook(self):
+        
         if not self.init_ok:
             raise BaseException("P11Collect. - object initialization failed. COLLECTION not possible")
 
@@ -164,7 +168,6 @@ class P11Collect(AbstractCollect):
 
             if collection_type == "Characterization":
                 self.collect_characterisation(start_angle, img_range, nframes, angle_inc, exp_time)
-                #self.add_h5_info(self.latest_h5_filename)
                 #TODO: Add LiveView here
                 #os.system("killall albula")
                 #os.system("/opt/dectris/albula/4.0/bin/albula "+self.latest_h5_filename +" &")
@@ -175,13 +178,14 @@ class P11Collect(AbstractCollect):
 
                 # Create diffraction snapshots
                 for i in range(nframes):
+
                     os.system("python3 /gpfs/local/shared/MXCuBE/hdf5tools/albula_api/generate_image.py --input "+ self.latest_h5_filename +" --output "+os.path.join(basepath, prefix,"screening_"+str(runno).zfill(3))+"/"+" --image_number "+str(i+1))
                 
 
             else:
                 self.collect_std_collection(start_angle, stop_angle)
-                #self.add_h5_info(self.latest_h5_filename)
                 self.generate_xds_template()
+                self.adxv_notify(self.latest_h5_filename)
                 #TODO: Add LiveView here
                 #os.system("killall albula")
                 #os.system("/opt/dectris/albula/4.0/bin/albula "+self.latest_h5_filename +" &")
@@ -200,13 +204,8 @@ class P11Collect(AbstractCollect):
             self.log.error(traceback.format_exc())
         finally:
             self.acquisition_cleanup()
-
-        #self.add_h5_info()
-
-        #
-        # generate template for XDS
-        #
-
+        
+        # self.add_h5_info(self.latest_h5_filename)
         self.trigger_auto_processing()
 
     def collect_std_collection(self, start_angle, stop_angle):
@@ -225,6 +224,8 @@ class P11Collect(AbstractCollect):
         final_pos = stop_angle + self.acq_speed * self.turnback_time
 
         self.omega_mv(final_pos, self.acq_speed)
+
+        
 
        
     def collect_characterisation(self, start_angle, img_range, nimages, angle_inc, exp_time):
@@ -260,8 +261,34 @@ class P11Collect(AbstractCollect):
             self.acq_window_off_cmd()
             self.acq_off_cmd()
             self.log.debug("======= collect_characterisation  Waiting =======================================")
+<<<<<<< HEAD
+=======
+
+            #Let adxv know whether it is 
+            self.adxv_notify(self.latest_h5_filename,img_no+1)
+            
+>>>>>>> ea548548... Added prototype of LiveView with adxv. Files are needed to be separately written. Works for characterisation. Intermediate solution for the test.
             time.sleep(1)
 
+    def adxv_notify(self,image_filename, image_num=1):
+
+        
+        logging.getLogger("HWR").info(f"ADXV notify {image_filename}")
+        logging.getLogger("HWR").info(f"ADXV notify {image_num}")
+        adxv_host = "localhost"#self.getProperty("adxv_host", "localhost")
+        adxv_port = 8100 #int(self.getProperty("adxv_port", "8100"))
+
+        try:
+            adxv_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+            adxv_socket.connect((adxv_host, adxv_port))
+            adxv_socket.sendall(f"load_image {image_filename}\n slab {image_num}\n".encode())
+            adxv_socket.close()
+        except Exception as ex:
+            logging.getLogger("HWR").exception("")
+        else:
+            pass
+    
+    
     def acquisition_cleanup(self):
         try:
             diffr = HWR.beamline.diffractometer
@@ -290,6 +317,7 @@ class P11Collect(AbstractCollect):
 
         try:
             h5fd = h5py.File(h5file,'r+')
+<<<<<<< HEAD
             g = h5fd.create_group(u'entry/source')
             g.attrs[u'NX_class'] = np.array(u'NXsource', dtype='S')
             g.create_dataset(u'name', data=np.array(u'PETRA III, DESY', dtype='S'))
@@ -297,6 +325,18 @@ class P11Collect(AbstractCollect):
             g.create_dataset(u'name', data=np.array(u'P11', dtype='S'))
             g = h5fd.create_group(u'entry/instrument/attenuator')
             g.attrs[u'NX_class'] = np.array(u'NXattenuator', dtype='S')
+=======
+            # g = h5fd.create_group(u'entry/source')
+            # g.attrs[u'NX_class'] = np.array(u'NXsource', dtype='S')
+            # g.create_dataset(u'name', data=np.array(u'PETRA III, DESY', dtype='S'))
+            
+            # g = h5fd.get(u'entry/instrument')
+            # g.create_dataset(u'name', data=np.array(u'P11', dtype='S'))
+            
+            # g = h5fd.create_group(u'entry/instrument/attenuator')
+            # g.attrs[u'NX_class'] = np.array(u'NXattenuator', dtype='S')
+            
+>>>>>>> ea548548... Added prototype of LiveView with adxv. Files are needed to be separately written. Works for characterisation. Intermediate solution for the test.
             ds = g.create_dataset(u'thickness', dtype='f8',
                     data=self.get_filter_thickness())
             ds.attrs[u'units'] = np.array(u'm', dtype='S')
