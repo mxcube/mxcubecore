@@ -1,6 +1,6 @@
 
 from mxcubecore.HardwareObjects.ISPyBClient import ISPyBClient
-
+from mxcubecore import HardwareRepository as HWR
 from requests import post
 from urllib.parse import urljoin
 import logging
