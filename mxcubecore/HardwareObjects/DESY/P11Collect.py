@@ -1,6 +1,7 @@
 
 
 import socket
+import subprocess
 from mxcubecore.HardwareObjects.abstract.AbstractCollect import (
         AbstractCollect, )
 from mxcubecore import HardwareRepository as HWR
@@ -31,8 +32,9 @@ class P11Collect(AbstractCollect):
 
         super(P11Collect,self).init()
 
-        os.system("/opt/xray/bin/adxv -socket -colors Gray -rings &")
+        # os.system("/opt/xray/bin/adxv -socket -colors Gray -rings &")
 
+        
         self.default_speed = self.get_property("omega_default_speed", 130)
         self.turnback_time = self.get_property("turnback_time", 0.1)
         self.filter_server_name = self.get_property('filterserver')
@@ -81,6 +83,8 @@ class P11Collect(AbstractCollect):
         HWR.beamline.sample_view.save_snapshot(filename)
 
     def data_collection_hook(self):
+
+        
         
         if not self.init_ok:
             raise BaseException("P11Collect. - object initialization failed. COLLECTION not possible")
@@ -125,6 +129,11 @@ class P11Collect(AbstractCollect):
             raise BaseException("Cannot set prepare collection . Aborting")
 
         # writeInfo (is it necessary?)
+
+        # # Separate_instance of the modified Dectris pyqt Viewer. 
+        # print("=============== STARTING THE VIEWER ===============")
+        # new_gui = subprocess.Popen("/bin/bash /gpfs/local/shared/MXCuBE/STRELA/start_viewer.sh")
+        # print("=============== FINISHED STARTING THE VIEWER ===============")
 
         try:
             self.log.debug("############# #COLLECT# Opening detector cover")
@@ -185,7 +194,7 @@ class P11Collect(AbstractCollect):
             else:
                 self.collect_std_collection(start_angle, stop_angle)
                 self.generate_xds_template()
-                self.adxv_notify(self.latest_h5_filename)
+                # self.adxv_notify(self.latest_h5_filename)
                 #TODO: Add LiveView here
                 #os.system("killall albula")
                 #os.system("/opt/dectris/albula/4.0/bin/albula "+self.latest_h5_filename +" &")
@@ -265,7 +274,7 @@ class P11Collect(AbstractCollect):
 =======
 
             #Let adxv know whether it is 
-            self.adxv_notify(self.latest_h5_filename,img_no+1)
+            # self.adxv_notify(self.latest_h5_filename,img_no+1)
             
 >>>>>>> ea548548... Added prototype of LiveView with adxv. Files are needed to be separately written. Works for characterisation. Intermediate solution for the test.
             time.sleep(1)
@@ -318,6 +327,7 @@ class P11Collect(AbstractCollect):
         try:
             h5fd = h5py.File(h5file,'r+')
 <<<<<<< HEAD
+<<<<<<< HEAD
             g = h5fd.create_group(u'entry/source')
             g.attrs[u'NX_class'] = np.array(u'NXsource', dtype='S')
             g.create_dataset(u'name', data=np.array(u'PETRA III, DESY', dtype='S'))
@@ -329,12 +339,17 @@ class P11Collect(AbstractCollect):
             # g = h5fd.create_group(u'entry/source')
             # g.attrs[u'NX_class'] = np.array(u'NXsource', dtype='S')
             # g.create_dataset(u'name', data=np.array(u'PETRA III, DESY', dtype='S'))
+=======
+            g = h5fd.create_group(u'entry/source')
+            g.attrs[u'NX_class'] = np.array(u'NXsource', dtype='S')
+            g.create_dataset(u'name', data=np.array(u'PETRA III, DESY', dtype='S'))
+>>>>>>> 277ae3d2... Removed for now the pinhole NONEMPTY check to the P11NanoDiff diffractometer preparation stage. It was causing pinhole never reaching the True value for some reason.
             
-            # g = h5fd.get(u'entry/instrument')
-            # g.create_dataset(u'name', data=np.array(u'P11', dtype='S'))
+            g = h5fd.get(u'entry/instrument')
+            g.create_dataset(u'name', data=np.array(u'P11', dtype='S'))
             
-            # g = h5fd.create_group(u'entry/instrument/attenuator')
-            # g.attrs[u'NX_class'] = np.array(u'NXattenuator', dtype='S')
+            g = h5fd.create_group(u'entry/instrument/attenuator')
+            g.attrs[u'NX_class'] = np.array(u'NXattenuator', dtype='S')
             
 >>>>>>> ea548548... Added prototype of LiveView with adxv. Files are needed to be separately written. Works for characterisation. Intermediate solution for the test.
             ds = g.create_dataset(u'thickness', dtype='f8',
@@ -706,16 +721,16 @@ class P11Collect(AbstractCollect):
         self.log.debug("#COLLECT# preparing collection ")
         if not diffr.is_collect_phase():
             self.log.debug("#COLLECT# going to collect phase")
+            # # If the pinhole is Down set pinhole to 200
+            # if HWR.beamline.diffractometer.pinhole_hwobj.get_position() == "Down":
+            #     print("Pinhole is down. Setting pinhole to 200.")
+            #     HWR.beamline.diffractometer.pinhole_hwobj.set_position("200")
+            #     HWR.beamline.diffractometer.wait_phase()
             diffr.goto_collect_phase(wait=True)
 
         self.log.debug("#COLLECT# now in collect phase: %s" % diffr.is_collect_phase())
         
-        # If the pinhole is Down set pinhole to 200
-        if HWR.beamline.diffractometer.pinhole_hwobj.get_position() == "Down":
-            print("Pinhole is down. Setting pinhole to 200.")
-
-            HWR.beamline.diffractometer.pinhole_hwobj.set_position("200")
-            HWR.beamline.diffractometer.wait_phase()
+       
        
         return diffr.is_collect_phase()
 
