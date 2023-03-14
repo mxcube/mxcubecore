@@ -55,7 +55,7 @@ class P11EigerDetector(AbstractDetector):
         self.set_eiger_enum("RoiMode", self._roi_mode)
         self.set_eiger_enum("Compression", "bslz4")
         self.set_writer_enum("Mode", "enabled")
-        self.writer_dev.write_attribute("NImagesPerFile", 1000)
+        # self.writer_dev.write_attribute("NImagesPerFile", 1000)
         self.inited = True
 
     def has_shutterless(self):
@@ -165,7 +165,6 @@ class P11EigerDetector(AbstractDetector):
         
     def prepare_std_collection(self, exptime, number_of_images, filepath):  
         self.prepare_common(exptime, filepath)
-
         self.eiger_dev.write_attribute("Nimages", int(number_of_images))
         self.eiger_dev.write_attribute("Ntrigger", 1)
         self.writer_dev.write_attribute("NImagesPerFile", 1000) # Default
