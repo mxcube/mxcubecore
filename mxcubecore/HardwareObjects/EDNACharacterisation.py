@@ -27,6 +27,8 @@ from XSDataCommon import XSDataInteger
 from XSDataCommon import XSDataSize
 from XSDataCommon import XSDataString
 
+import triggerUtils
+
 # from edna_test_data import EDNA_DEFAULT_INPUT
 # from edna_test_data import EDNA_TEST_DATA
 
@@ -73,13 +75,61 @@ class EDNACharacterisation(AbstractCharacterisation):
         logging.getLogger("queue_exec").info(msg)
 
         args = (self.start_edna_command, input_file, results_file, process_directory)
-        subprocess.call("%s %s %s %s" % args, shell=True)
+        # subprocess.call("%s %s %s %s" % args, shell=True)
+
+        # Test run DESY
+        self.edna_maxwell(process_directory,input_file, results_file)
+
+
 
         self.result = None
         if os.path.exists(results_file):
             self.result = XSDataResultMXCuBE.parseFile(results_file)
 
         return self.result
+    
+    def edna_maxwell(self,process_directory,inputxml, outputxml):
+
+        self.log.debug("=======EDNA========== PROCESS DIRECTORY=\"%s\"" % process_directory)
+        self.log.debug("=======EDNA========== IN=\"%s\"" % inputxml)
+        self.log.debug("=======EDNA========== OUT=\"%s\"" % outputxml)
+
+        btHelper = triggerUtils.Trigger()
+        ssh = btHelper.get_ssh_command()
+        sbatch = btHelper.get_sbatch_command(jobname_prefix = "edna",job_dependency='singleton', logfile_path=process_directory.replace("/gpfs","/beamline/p11")+"/edna.log")
+
+        cmd = ("/asap3/petra3/gpfs/common/p11/processing/edna_sbatch.sh " + \
+                    "{inxml:s} {outxml:s} {processpath:s}").format(
+            inxml = inputxml.replace("/gpfs","/beamline/p11"),
+            outxml = outputxml.replace("/gpfs","/beamline/p11"),
+            processpath = process_directory.replace("/gpfs","/beamline/p11")
+        )
+
+        # Check path conversion
+        inxml = inputxml.replace("/gpfs","/beamline/p11")
+        outxml = outputxml.replace("/gpfs","/beamline/p11")
+        processpath = process_directory.replace("/gpfs","/beamline/p11")
+        self.log.debug("=======EDNA========== CLUSTER PROCESS DIRECTORY=\"%s\"" % processpath)
+        self.log.debug("=======EDNA========== CLUSTER IN=\"%s\"" % inxml)
+        self.log.debug("=======EDNA========== CLUSTER OUT=\"%s\"" % outxml)
+
+
+
+        self.log.debug("=======EDNA========== ssh=\"%s\"" % ssh)
+        self.log.debug("=======EDNA========== sbatch=\"%s\"" % sbatch)
+        self.log.debug("=======EDNA========== executing process cmd=\"%s\"" % cmd)
+        self.log.debug("=======EDNA========== {ssh:s} \"{sbatch:s} --wrap \\\"{cmd:s}\\\"\"".format(
+            ssh = ssh,
+            sbatch = sbatch,
+            cmd = cmd
+        ))
+
+
+        os.system("{ssh:s} \"{sbatch:s} --wrap \\\"{cmd:s}\"\\\"".format(
+            ssh = ssh,
+            sbatch = sbatch,
+            cmd = cmd
+        ))
 
     def get_html_report(self, edna_result):
         """
@@ -221,10 +271,18 @@ class EDNACharacterisation(AbstractCharacterisation):
         # Data set
         data_set = XSDataMXCuBEDataSet()
         acquisition_parameters = data_collection.acquisitions[0].acquisition_parameters
-        path_template = data_collection.acquisitions[0].path_template
+        path_template = data_collection.acquisitions[0].path_template 
+
+        image_dir=path_template.directory.replace("/gpfs/current",triggerUtils.get_beamtime_metadata()[2])
         path_str = os.path.join(
-            path_template.directory, path_template.get_image_file_name()
-        )
+           image_dir, path_template.get_image_file_name()
+           )
+
+
+        #path_str = os.path.join(
+        #    path_template.directory, path_template.get_image_file_name()
+        #)
+
 
         for img_num in range(int(acquisition_parameters.num_images)):
             image_file = XSDataFile()
@@ -267,8 +325,11 @@ class EDNACharacterisation(AbstractCharacterisation):
             edna_input.exportToFile(edna_input_file)
             edna_results_file = os.path.join(path, "EDNAOutput_%s.xml" % dc_id)
 
+            self.log.debug("------- %s %s"%(path,os.path.isdir(path)))
             if not os.path.isdir(path):
-                os.makedirs(path)
+                oldmask=os.umask(000)
+                os.makedirs(path,mode=0o777)
+                os.umask(oldmask)
         else:
             raise RuntimeError("No process directory specified in edna_input")
 
