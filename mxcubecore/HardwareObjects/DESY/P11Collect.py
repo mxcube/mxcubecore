@@ -151,7 +151,12 @@ class P11Collect(AbstractCollect):
             if collection_type == "Characterization":
 
                 #AG: Create screening_001, etc the same way as for CC in case of characterisation
+<<<<<<< HEAD
                 filepath = os.path.join(basepath,prefix,"screening_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno)) 
+=======
+                # filepath = os.path.join(basepath,prefix,"screening_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno))
+                filepath = os.path.join(basepath,"%s_%d" % (prefix, runno))
+>>>>>>> 15c10ca4... Changed filepath to original one for tjhe tests with EDNA
                 # filepath = os.path.join(basepath)
                 self.log.debug("======= CURRENT FILEPATH: "+str(filepath)+"=======================================")
                 self.latest_h5_filename = "%s_master.h5" % filepath
@@ -163,8 +168,9 @@ class P11Collect(AbstractCollect):
             else:
 
                 #AG: Create rotational_001, etc the same way as for CC in case of characterisation
-                filepath = os.path.join(basepath,prefix,"rotational_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno))
-                #filepath = os.path.join(basepath)
+                # filepath = os.path.join(basepath,prefix,"rotational_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno))
+                # filepath = os.path.join(basepath)
+                filepath = os.path.join(basepath,"%s_%d" % (prefix, runno))
                 self.log.debug("======= CURRENT FILEPATH: "+str(filepath)+"=======================================")
                 self.latest_h5_filename = "%s_master.h5" % filepath
                 self.log.debug("======= LATEST H5 FILENAME FILEPATH: "+str(self.latest_h5_filename)+"=======================================")
