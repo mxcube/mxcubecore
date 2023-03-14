@@ -88,6 +88,16 @@ class EDNACharacterisation(AbstractCharacterisation):
 
         return self.result
     
+    def mkdir_with_mode(self, directory, mode):
+        if not os.path.isdir(directory):
+            oldmask = os.umask(000)
+            os.makedirs(directory, mode=mode)
+            os.umask(oldmask)
+            #self.checkPath(directory,force=True)
+
+            self.log.debug("local directory created")
+
+    
     def edna_maxwell(self,process_directory,inputxml, outputxml):
 
         self.log.debug("=======EDNA========== PROCESS DIRECTORY=\"%s\"" % process_directory)
@@ -102,13 +112,15 @@ class EDNACharacterisation(AbstractCharacterisation):
                     "{inxml:s} {outxml:s} {processpath:s}").format(
             inxml = inputxml.replace("/gpfs","/beamline/p11"),
             outxml = outputxml.replace("/gpfs","/beamline/p11"),
-            processpath = process_directory.replace("/gpfs","/beamline/p11")
+            processpath = process_directory.replace("/gpfs","/beamline/p11")+"/edna"
         )
+
+        self.mkdir_with_mode(process_directory+"/edna",mode=0o777)
 
         # Check path conversion
         inxml = inputxml.replace("/gpfs","/beamline/p11")
         outxml = outputxml.replace("/gpfs","/beamline/p11")
-        processpath = process_directory.replace("/gpfs","/beamline/p11")
+        processpath = process_directory.replace("/gpfs","/beamline/p11")+"/edna"
         self.log.debug("=======EDNA========== CLUSTER PROCESS DIRECTORY=\"%s\"" % processpath)
         self.log.debug("=======EDNA========== CLUSTER IN=\"%s\"" % inxml)
         self.log.debug("=======EDNA========== CLUSTER OUT=\"%s\"" % outxml)
