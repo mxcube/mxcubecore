@@ -92,9 +92,8 @@ class P11EigerDetector(AbstractDetector):
         # in mm from detector tower server
         current_det_tower_distance =  self.get_eiger_detector_distance()
         #in meters for the detector header info
-        # self.eiger_dev.write_attribute("DetectorDistance", float(current_det_tower_distance/1000.0))
-
-        self.eiger_dev.write_attribute("DetectorDistance", float(current_det_tower_distance))
+        self.eiger_dev.write_attribute("DetectorDistance", float(current_det_tower_distance/1000.0)) #in m
+        # self.eiger_dev.write_attribute("DetectorDistance", float(current_det_tower_distance)) #in mkm
 
     #TODO add if needed
     def get_eiger_beam_center(self):
