@@ -286,7 +286,7 @@ class PlateManipulator(SampleChanger):
 
         SampleChanger.init(self)
 
-    def plate_barcode_change(self, barcode):
+    def change_plate_barcode(self, barcode):
         if self._load_data(barcode):
             self.plate_barcode = barcode
             return True

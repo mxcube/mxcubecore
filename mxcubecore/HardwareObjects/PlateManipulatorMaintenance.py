@@ -42,7 +42,7 @@ class PlateManipulatorMaintenance(Equipment):
         self._sc._do_change_mode(args)
 
     def set_plate_barcode(self, args):
-        ret = self._sc.plate_barcode_change(args)
+        ret = self._sc.change_plate_barcode(args)
         if ret:
             self._update_global_state()
 
