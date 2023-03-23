@@ -151,6 +151,16 @@ class MiniDiff(Equipment):
             MiniDiff.C3D_MODE: self.start_auto_centring,
         }
 
+        self._run_script =  self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "run_script",
+            },
+            "run_script",
+        )
+
+
         sample_centring.NUM_CENTRING_ROUNDS  = self.get_property("num_centering_rounds", 1)
 
         self.cancel_centring_methods = {}
@@ -604,6 +614,54 @@ class MiniDiff(Equipment):
     def getAvailableCentringMethods(self):
         return self.centringMethods.keys()
 
+    def run_custom_centring_script(self, method, sample_info):
+        try:
+            if method == 'Manual 3-click':
+                self.wait_ready(30)
+                fun = self.centringMethods[method]
+            else:
+                logging.getLogger("HWR").error(
+                    "Using change phase for centering in Java script (DN)"
+                )
+                self.run_script("ChangePhase_centring")
+                self.wait_ready(60)
+                self.run_script("sample_centering")
+                time.sleep(0.5)
+                self.wait_ready(120)
+        except KeyError as diag:
+            logging.getLogger("HWR").error(
+                "MiniDiff: unknown centring method (%s)" % str(diag)
+            )
+            self.emitCentringFailed()
+        else:
+            try:
+                if method == 'Manual 3-click':
+                    fun(sample_info)
+                else:
+                    pass
+
+            except Exception:
+                logging.getLogger("HWR").exception("MiniDiff: problem while centring")
+                self.emitCentringFailed()
+
+    def run_standard_centring(self, method, sample_info):
+        self.emitCentringStarted(method)
+
+        try:
+            self.wait_ready(30)
+            fun = self.centringMethods[method]
+        except KeyError as diag:
+            logging.getLogger("HWR").error(
+                "MiniDiff: unknown centring method (%s)" % str(diag)
+            )
+            self.emitCentringFailed()
+        else:
+            try:
+                fun(sample_info)
+            except Exception:
+                logging.getLogger("HWR").exception("MiniDiff: problem while centring")
+                self.emitCentringFailed()
+
     def start_centring_method(self, method, sample_info=None):
         if not self.do_centring:
             self.emitCentringStarted(method)
@@ -624,22 +682,12 @@ class MiniDiff(Equipment):
         curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
         self.centringStatus = {"valid": False, "startTime": curr_time}
 
-        self.emitCentringStarted(method)
+        _use_custom = self.get_property("use_custom_centring_script", False)
 
-        try:
-            self.wait_ready(30)
-            fun = self.centringMethods[method]
-        except KeyError as diag:
-            logging.getLogger("HWR").error(
-                "MiniDiff: unknown centring method (%s)" % str(diag)
-            )
-            self.emitCentringFailed()
+        if _use_custom:
+            self.run_custom_centring_script(method, sample_info)
         else:
-            try:
-                fun(sample_info)
-            except Exception:
-                logging.getLogger("HWR").exception("MiniDiff: problem while centring")
-                self.emitCentringFailed()
+            self.run_standard_centring(method, sample_info)
 
     def cancel_centring_method(self, reject=False):
         if self.current_centring_procedure is not None:
@@ -856,7 +904,6 @@ class MiniDiff(Equipment):
         self.set_phase("centring", wait=True)
 
         self.wait_ready(30)
-
         self.current_centring_procedure = sample_centring.start_auto(
             HWR.beamline.sample_view.camera,
             {
@@ -1033,3 +1080,9 @@ class MiniDiff(Equipment):
 
     def wait_ready(self, timeout=None):
         pass
+
+    def run_script(self, script_cmd, wait=True):
+        self._run_script(script_cmd)
+
+        if wait:
+            self._wait_ready(60)
