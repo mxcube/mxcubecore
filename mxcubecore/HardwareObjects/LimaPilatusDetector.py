@@ -165,11 +165,7 @@ class LimaPilatusDetector(AbstractDetector):
     ):
         if mesh:
             trigger_mode = "EXTERNAL_GATE"
-        #elif osc_range < 1e-4:
-        #    trigger_mode = "INTERNAL_TRIGGER"
         else:
-            #DN all data collections in external gate with MD2S
-            #trigger_mode = "EXTERNAL_TRIGGER"
             trigger_mode = "EXTERNAL_GATE"
         diffractometer_positions = HWR.beamline.diffractometer.get_positions()
         self.start_angles = list()
