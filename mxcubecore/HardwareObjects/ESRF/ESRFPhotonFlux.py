@@ -91,7 +91,7 @@ class ESRFPhotonFlux(AbstractFlux):
             counts = 0.0
 
         egy = HWR.beamline.energy.get_value()
-        calib = self._flux_calc.calc_flux_factor(egy * 1000.0)[self._counter.name]
+        calib = self._flux_calc.calc_flux_factor(egy * 1000.0)[self._counter.diode.name]
 
         try:
             label = self._aperture.get_value().name
