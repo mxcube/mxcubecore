@@ -164,7 +164,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         if shutterless:
             if first_frame:
                 exptime = (exptime + self._detector.get_deadtime()) * number_of_images
-                # DN for gate in detcteor mode
                 self.oscillation_task = self.oscil(
                     start, end, exptime, number_of_images, wait=False
                 )
