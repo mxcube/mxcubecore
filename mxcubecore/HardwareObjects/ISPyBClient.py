@@ -876,6 +876,11 @@ class ISPyBClient(HardwareObject):
             session_id = todays_session["sessionId"]
             logging.getLogger("HWR").debug("getting local contact for %s" % session_id)
             localcontact = self.get_session_local_contact(session_id)
+        elif prop.get("Session", None):
+            logging.getLogger("HWR").debug(
+                "No session for today, reusing previous ! %s" % prop["Session"]
+            )
+            todays_session = prop["Session"][0]
         else:
             todays_session = {}
 
@@ -1722,7 +1727,6 @@ class ISPyBClient(HardwareObject):
         :returns: DataCollectionGroup id
         :rtype: int
         """
-
         if self._collection:
             group = ISPyBValueFactory().dcg_from_dc_params(
                 self._collection, mx_collection
@@ -1996,6 +2000,12 @@ class ISPyBClient(HardwareObject):
         """Stores robot action"""
 
         action_id = None
+
+        logging.getLogger("HWR").debug(
+           "  - storing robot_actions in lims : %s" % str(robot_action_dict)
+        )
+
+
         if True:
             # try:
             robot_action_vo = self._collection.factory.create("robotActionWS3VO")
@@ -2303,7 +2313,7 @@ class ISPyBValueFactory:
 
         try:
             data_collection.dataCollectionId = int(mx_collect_dict["collection_id"])
-        except KeyError:
+        except (TypeError, ValueError, KeyError):
             pass
 
         try:
