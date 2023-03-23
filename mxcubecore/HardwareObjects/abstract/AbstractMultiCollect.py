@@ -724,9 +724,18 @@ class AbstractMultiCollect(object):
                 HWR.beamline.flux.wait_for_beam()
 
             # Wait for cryo
-            while check_cryo and HWR.beamline.diffractometer.cryostream.get_value() > cryo_threshold:
-                logging.getLogger("user_level_log").info("Cryo temperature too high ...")
-                gevent.sleep(0.5)
+            # from time to time cryo does not answer
+            cryo_temp = 999
+            while check_cryo and cryo_temp > cryo_threshold:
+                try:
+                    logging.getLogger("user_level_log").info("Cryo temperature reading ...")
+                    cryo_temp = HWR.beamline.diffractometer.cryostream.get_value()
+                    if cryo_temp > cryo_threshold:
+                        logging.getLogger("user_level_log").info("Cryo temperature too high ...")
+                        gevent.sleep(0.5)
+                except:
+                    break
+
 
             logging.getLogger("user_level_log").info("Preparing intensity monitors")
             self.prepare_intensity_monitors()
