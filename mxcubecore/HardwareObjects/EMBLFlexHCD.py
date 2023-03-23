@@ -517,7 +517,10 @@ class EMBLFlexHCD(SampleChanger):
         except:
             for msg in self.get_robot_exceptions():
                 logging.getLogger("user_level_log").error(msg)
-            raise
+                if msg.find("Collision detected in Dewar during loading"):
+                    pass
+                else:
+                    raise
 
         # Wait for the sample to be loaded, (put on the goniometer)
         err_msg = "Timeout while waiting to sample to be loaded"
@@ -541,7 +544,7 @@ class EMBLFlexHCD(SampleChanger):
         with gevent.Timeout(600, RuntimeError(err_msg)):
             while True:
                 is_safe = self._execute_cmd_exporter(
-                        "getRobotIsSafe", attribute=True
+                    "getRobotIsSafe", attribute=True
                 )
 
                 if is_safe:
