@@ -103,13 +103,9 @@ class MD2MultiCollect(ESRFMultiCollect):
 
     @task
 
-    #DN for gate mode
-    #def oscil(self, start, end, exptime, npass, wait=True):
     def oscil(self, start, end, exptime, number_of_images, wait=True):
         diffr = self.get_object_by_role("diffractometer")
         if self.helical:
-            #DN gate mode
-            #diffr.oscilScan4d(start, end, exptime, self.helical_pos, wait=True)
             diffr.oscilScan4d(start, end, exptime, number_of_images, self.helical_pos, wait=True)
         elif self.mesh:
             det = HWR.beamline.detector
@@ -144,7 +140,6 @@ class MD2MultiCollect(ESRFMultiCollect):
                 start, range, self.nb_frames, exptime, self.nb_scan,
                 self.angle, wait=True)
         else:
-            #DN gate mode
             diffr.oscilScan(start, end, exptime, number_of_images, wait=True)
 
     @task
@@ -229,7 +224,7 @@ class MD2MultiCollect(ESRFMultiCollect):
                         continue
                     shutil.copyfile(
                         os.path.join(
-                            self.get_property(template_file_directory), filename
+                            self.get_property("template_file_directory"), filename
                         ),
                         dest,
                     )
