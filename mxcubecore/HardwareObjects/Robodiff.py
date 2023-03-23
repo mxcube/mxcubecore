@@ -242,7 +242,6 @@ class Robodiff(SampleChanger):
         return True
 
     def prepare_detector(self):
-        # DN to speedup load/unload
         self.robot.detcover.cover_ctrl.set(self.robot.detcover.keys["cover_out_cmd"], 0)
         # move detector to high software limit, without waiting end of move
         self.detector_translation.set_value(self.detector_translation.get_limits()[1])
@@ -250,8 +249,6 @@ class Robodiff(SampleChanger):
             time.sleep(0.5)
 
     def _do_unload(self, sample=None):
-        # DN to speedup load/unload
-        # self.detector_translation.set_value(self.detector_translation.get_limits()[1])
         self.prepare_detector()
 
         loaded_sample = self.get_loaded_sample()
