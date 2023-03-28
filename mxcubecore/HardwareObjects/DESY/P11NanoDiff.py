@@ -502,10 +502,16 @@ class P11NanoDiff(GenericDiffractometer):
         self.log.debug(" PHASE REACHED. NOW WAITING FOR OMEGA")
         self.wait_omega()
         self.log.debug(" PHASE CHANGED COMPLETED")
-        self.waiting_phase = False
+        
         gevent.sleep(0.6) # allow for position events to arrive
         self.update_phase()
         self.motor_state_changed()
+
+
+
+
+
+        
 
     def is_centring_phase(self):
         return self.get_phase() == GenericDiffractometer.PHASE_CENTRING
