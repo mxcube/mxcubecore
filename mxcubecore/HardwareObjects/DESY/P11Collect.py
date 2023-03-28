@@ -156,15 +156,46 @@ class P11Collect(AbstractCollect):
                 self.log.debug("======= CURRENT FILEPATH: "+str(filepath)+"=======================================")
                 self.latest_h5_filename = "%s_master.h5" % filepath
                 self.log.debug("======= LATEST H5 FILENAME FILEPATH: "+str(self.latest_h5_filename)+"=======================================")
+                
+                # Filepath for the presenterd to work
+                filepath = os.path.join(basepath,prefix,"screening_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno))
+                
+                
+                # Filepath to the EDNA processing
+                filepath = os.path.join(basepath,"%s_%d" % (prefix, runno))
+                
+                
+                self.log.debug("======= CURRENT FILEPATH: "+str(filepath)+"=======================================")
+                self.latest_h5_filename = "%s_master.h5" % filepath
+                self.log.debug("======= LATEST H5 FILENAME FILEPATH: "+str(self.latest_h5_filename)+"=======================================")
+                
+                # # === if folder exists - increase run number
+                # print("========CHECKING EXISTING DIRECTORY ===========")
+                # print(os.path.exists(self.latest_h5_filename))
+                # if os.path.exists(self.latest_h5_filename):
+                #     print("======= File exists! Increasing run number ===========")
+                #     self.current_dc_parameters["fileinfo"]["run_number"]=self.current_dc_parameters["fileinfo"]["run_number"]+1
+                #     print("Run number has changed to ", self.current_dc_parameters["fileinfo"]["run_number"])
+                #     runno = self.current_dc_parameters["fileinfo"]["run_number"]
+                #     filepath = os.path.join(basepath,prefix,"screening_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno))
 
+                self.log.debug("======= CURRENT FILEPATH: "+str(filepath)+"=======================================")
+                self.latest_h5_filename = "%s_master.h5" % filepath
+                self.log.debug("======= LATEST H5 FILENAME FILEPATH: "+str(self.latest_h5_filename)+"=======================================")
+                
                 overlap = osc_pars['overlap']
                 angle_inc = 90.0
                 detector.prepare_characterisation(exp_time, nframes, angle_inc, filepath)
             else:
 
                 #AG: Create rotational_001, etc the same way as for CC in case of characterisation
+               
+                # Filepath to work with presenterd
                 filepath = os.path.join(basepath,prefix,"rotational_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno))
-                #filepath = os.path.join(basepath)
+                
+                # Filepath to work with EDNA
+                # filepath = os.path.join(basepath,"%s_%d" % (prefix, runno))
+                
                 self.log.debug("======= CURRENT FILEPATH: "+str(filepath)+"=======================================")
                 self.latest_h5_filename = "%s_master.h5" % filepath
                 self.log.debug("======= LATEST H5 FILENAME FILEPATH: "+str(self.latest_h5_filename)+"=======================================")
@@ -249,10 +280,6 @@ class P11Collect(AbstractCollect):
             print("collecting image %s" % img_no)
             start_at = start_angle + angle_inc*img_no
             stop_angle = start_at + img_range * 1.0
-
-<<<<<<< HEAD
-            init_pos = start_at - self.acq_speed * self.turnback_time
-=======
             print("collecting image %s, angle %f" % (img_no, start_at))
             
             if start_at >= stop_angle:
@@ -261,8 +288,6 @@ class P11Collect(AbstractCollect):
             else:
                 init_pos = start_at + self.acq_speed * self.turnback_time
                 #init_pos = start_at + 1.5
->>>>>>> 06f7f47c... Set the starting angle of the gonio at the beginning of the data collection. Otherwise trigger signal is not send because gonio is confused foth the window limits.
-
             self.omega_mv(init_pos, self.default_speed)
             self.collect_std_collection(start_angle, stop_angle)
 
@@ -270,14 +295,10 @@ class P11Collect(AbstractCollect):
             self.acq_window_off_cmd()
             self.acq_off_cmd()
             self.log.debug("======= collect_characterisation  Waiting =======================================")
-<<<<<<< HEAD
-=======
 
             #Let adxv know whether it is 
             # self.adxv_notify(self.latest_h5_filename,img_no+1)
-            
->>>>>>> ea548548... Added prototype of LiveView with adxv. Files are needed to be separately written. Works for characterisation. Intermediate solution for the test.
-            time.sleep(1)
+
 
     def adxv_notify(self,image_filename, image_num=1):
 
@@ -326,8 +347,6 @@ class P11Collect(AbstractCollect):
 
         try:
             h5fd = h5py.File(h5file,'r+')
-<<<<<<< HEAD
-<<<<<<< HEAD
             g = h5fd.create_group(u'entry/source')
             g.attrs[u'NX_class'] = np.array(u'NXsource', dtype='S')
             g.create_dataset(u'name', data=np.array(u'PETRA III, DESY', dtype='S'))
@@ -335,15 +354,14 @@ class P11Collect(AbstractCollect):
             g.create_dataset(u'name', data=np.array(u'P11', dtype='S'))
             g = h5fd.create_group(u'entry/instrument/attenuator')
             g.attrs[u'NX_class'] = np.array(u'NXattenuator', dtype='S')
-=======
+
             # g = h5fd.create_group(u'entry/source')
             # g.attrs[u'NX_class'] = np.array(u'NXsource', dtype='S')
             # g.create_dataset(u'name', data=np.array(u'PETRA III, DESY', dtype='S'))
-=======
+
             g = h5fd.create_group(u'entry/source')
             g.attrs[u'NX_class'] = np.array(u'NXsource', dtype='S')
             g.create_dataset(u'name', data=np.array(u'PETRA III, DESY', dtype='S'))
->>>>>>> 277ae3d2... Removed for now the pinhole NONEMPTY check to the P11NanoDiff diffractometer preparation stage. It was causing pinhole never reaching the True value for some reason.
             
             g = h5fd.get(u'entry/instrument')
             g.create_dataset(u'name', data=np.array(u'P11', dtype='S'))
@@ -351,7 +369,6 @@ class P11Collect(AbstractCollect):
             g = h5fd.create_group(u'entry/instrument/attenuator')
             g.attrs[u'NX_class'] = np.array(u'NXattenuator', dtype='S')
             
->>>>>>> ea548548... Added prototype of LiveView with adxv. Files are needed to be separately written. Works for characterisation. Intermediate solution for the test.
             ds = g.create_dataset(u'thickness', dtype='f8',
                     data=self.get_filter_thickness())
             ds.attrs[u'units'] = np.array(u'm', dtype='S')
@@ -604,7 +621,6 @@ class P11Collect(AbstractCollect):
                 ))
 
 
-<<<<<<< HEAD
 
 
 
