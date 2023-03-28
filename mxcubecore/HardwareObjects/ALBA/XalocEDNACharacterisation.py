@@ -34,6 +34,7 @@ import subprocess
 
 import logging
 
+from mxcubecore import HardwareRepository as HWR
 from EDNACharacterisation import EDNACharacterisation
 from XSDataMXCuBEv1_3 import XSDataResultMXCuBE
 from XSDataCommon import XSDataFile, XSDataString
@@ -66,6 +67,7 @@ class XalocEDNACharacterisation(EDNACharacterisation):
         self.edna_source_dir = None
         
         self.last_processed_dc_id = None
+        self.proceed = None
 
     def init(self):
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
@@ -79,6 +81,24 @@ class XalocEDNACharacterisation(EDNACharacterisation):
         self.ssh_bash_script = self.get_property("ssh_bash_script")
         self.ssh_cluster_bash_script = self.get_property("ssh_cluster_bash_script")
         self.edna_source_dir = self.get_property("edna_source_dir")
+
+        self.proceed = False
+
+        self.connect(
+            HWR.beamline.collect, "collectOscillationFailed", self.collect_failed
+        )
+        self.connect(
+            HWR.beamline.collect, "collectOscillationStarted", self.collect_started
+        )
+
+    def collect_failed(self, owner, state, message, *args):
+        self.logger.debug( "Collection failed, unsetting event" )
+        self.processing_done_event.clear()
+        self.proceed = False
+
+    def collect_started(self, owner, state, message, *args):
+        self.logger.debug( "Collection started, enabling characterisation" )
+        self.proceed = True
 
     def prepare_edna_input(self, input_file, output_dir):
         # used for strategy calculation (characterization) using data analysis cluster
@@ -183,7 +203,13 @@ class XalocEDNACharacterisation(EDNACharacterisation):
         Returns:
             (str) The Characterisation result
         """
-        self.processing_done_event.set()
+        if self.proceed and self.collect_obj.current_dc_parameters["status"] != "Failed":
+            self.processing_done_event.set()
+        else:
+            self.processing_done_event.clear()
+            self.logger.debug( "Collection failed, not doing the characterisation" )
+            return 'NOT DONE'
+
         self.prepare_input(edna_input)
         path = edna_input.process_directory
 
