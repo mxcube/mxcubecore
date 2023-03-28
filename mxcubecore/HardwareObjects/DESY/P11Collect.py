@@ -152,6 +152,7 @@ class P11Collect(AbstractCollect):
 
                 #AG: Create screening_001, etc the same way as for CC in case of characterisation
 <<<<<<< HEAD
+<<<<<<< HEAD
                 filepath = os.path.join(basepath,prefix,"screening_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno)) 
 =======
                 # filepath = os.path.join(basepath,prefix,"screening_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno))
@@ -162,15 +163,49 @@ class P11Collect(AbstractCollect):
                 self.latest_h5_filename = "%s_master.h5" % filepath
                 self.log.debug("======= LATEST H5 FILENAME FILEPATH: "+str(self.latest_h5_filename)+"=======================================")
 
+=======
+                
+                # Filepath for the presenterd to work
+                filepath = os.path.join(basepath,prefix,"screening_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno))
+                
+                
+                # Filepath to the EDNA processing
+                filepath = os.path.join(basepath,"%s_%d" % (prefix, runno))
+                
+                
+                self.log.debug("======= CURRENT FILEPATH: "+str(filepath)+"=======================================")
+                self.latest_h5_filename = "%s_master.h5" % filepath
+                self.log.debug("======= LATEST H5 FILENAME FILEPATH: "+str(self.latest_h5_filename)+"=======================================")
+                
+                # # === if folder exists - increase run number
+                # print("========CHECKING EXISTING DIRECTORY ===========")
+                # print(os.path.exists(self.latest_h5_filename))
+                # if os.path.exists(self.latest_h5_filename):
+                #     print("======= File exists! Increasing run number ===========")
+                #     self.current_dc_parameters["fileinfo"]["run_number"]=self.current_dc_parameters["fileinfo"]["run_number"]+1
+                #     print("Run number has changed to ", self.current_dc_parameters["fileinfo"]["run_number"])
+                #     runno = self.current_dc_parameters["fileinfo"]["run_number"]
+                #     filepath = os.path.join(basepath,prefix,"screening_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno))
+
+                self.log.debug("======= CURRENT FILEPATH: "+str(filepath)+"=======================================")
+                self.latest_h5_filename = "%s_master.h5" % filepath
+                self.log.debug("======= LATEST H5 FILENAME FILEPATH: "+str(self.latest_h5_filename)+"=======================================")
+                
+                
+>>>>>>> 33d8a491... Returnend back to the file location that work with presenterd
                 overlap = osc_pars['overlap']
                 angle_inc = 90.0
                 detector.prepare_characterisation(exp_time, nframes, angle_inc, filepath)
             else:
 
                 #AG: Create rotational_001, etc the same way as for CC in case of characterisation
-                # filepath = os.path.join(basepath,prefix,"rotational_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno))
-                # filepath = os.path.join(basepath)
-                filepath = os.path.join(basepath,"%s_%d" % (prefix, runno))
+               
+                # Filepath to work with presenterd
+                filepath = os.path.join(basepath,prefix,"rotational_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno))
+                
+                # Filepath to work with EDNA
+                # filepath = os.path.join(basepath,"%s_%d" % (prefix, runno))
+                
                 self.log.debug("======= CURRENT FILEPATH: "+str(filepath)+"=======================================")
                 self.latest_h5_filename = "%s_master.h5" % filepath
                 self.log.debug("======= LATEST H5 FILENAME FILEPATH: "+str(self.latest_h5_filename)+"=======================================")
