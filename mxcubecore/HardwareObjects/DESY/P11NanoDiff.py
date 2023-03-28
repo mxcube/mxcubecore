@@ -587,6 +587,24 @@ class P11NanoDiff(GenericDiffractometer):
         self.update_phase()
         self.motor_state_changed()
 
+
+        # Extra waiting loop for the pinhole did not reached the top bosition because it is blocked.
+        pinhole_states=["200","100", "50", "20", "Down"]
+        timeout=140
+        start_wait = time.time()
+        self.log.debug("================= Wait whiile pinholes are not blocked whille going up. Pinhole now in the position "+str(self.pinhole_hwobj.get_position()))
+        while (time.time() - start_wait < timeout):
+            time.sleep(0.1)
+
+            for st in pinhole_states:
+                if self.pinhole_hwobj.get_position() == st and not self.pinhole_hwobj.is_moving():
+                    self.log.debug("Pinhole has reached position "+str(self.pinhole_hwobj.get_position()))
+                    break
+                else:
+                    self.log.debug("Still waiting for the pinhole")
+                    continue
+            break
+
         self.log.debug(" PHASE CHANGED COMPLETED")
         self.waiting_phase = False
 
@@ -728,22 +746,7 @@ class P11NanoDiff(GenericDiffractometer):
         if wait:
             self.wait_phase()
 
-        # Extra waiting loop for the pinhole did not reached the top bosition because it is blocked.
-        pinhole_states=["200","100", "50", "20"]
-        timeout=140
-        start_wait = time.time()
-        self.log.debug("================= Wait whiile pinholes are not blocked whille going up. Pinhole now in the position "+str(self.pinhole_hwobj.get_position()))
-        while (time.time() - start_wait < timeout):
-            time.sleep(0.1)
-
-            for st in pinhole_states:
-                if self.pinhole_hwobj.get_position() == st and not self.pinhole_hwobj.is_moving():
-                    self.log.debug("Pinhole has reached position "+str(self.pinhole_hwobj.get_position()))
-                    break
-                else:
-                    self.log.debug("Still waiting for the pinhole")
-                    continue
-            break
+        
             
 
         # sampx to 0
