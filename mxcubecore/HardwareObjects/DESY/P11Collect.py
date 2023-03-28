@@ -1,5 +1,6 @@
 
 
+import errno
 import socket
 import subprocess
 from mxcubecore.HardwareObjects.abstract.AbstractCollect import (
@@ -170,7 +171,7 @@ class P11Collect(AbstractCollect):
                 
                 
                 # Filepath to the EDNA processing
-                filepath = os.path.join(basepath,"%s_%d" % (prefix, runno))
+                #filepath = os.path.join(basepath,"%s_%d" % (prefix, runno))
                 
                 
                 self.log.debug("======= CURRENT FILEPATH: "+str(filepath)+"=======================================")
@@ -850,6 +851,18 @@ class P11Collect(AbstractCollect):
             #self.checkPath(directory,force=True)
 
             self.log.debug("local directory created")
+    
+    def create_directories(self, *args):
+        """
+        Descript. :
+        """
+        for directory in args:
+            try:
+                #os.makedirs(directory)
+                self.mkdir_with_mode(directory, mode=0o777)
+            except os.error as e:
+                if e.errno != errno.EEXIST:
+                    raise
 
     def checkPath(self, path=None, force=False):
         path = str(path).replace("\\", "/")

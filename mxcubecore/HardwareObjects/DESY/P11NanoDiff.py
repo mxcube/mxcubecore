@@ -588,7 +588,7 @@ class P11NanoDiff(GenericDiffractometer):
         self.motor_state_changed()
 
 
-        # Extra waiting loop for the pinhole did not reached the top bosition because it is blocked.
+        # Extra waiting loop for the pinhole did not reached the top position because it is blocked.
         pinhole_states=["200","100", "50", "20", "Down"]
         timeout=140
         start_wait = time.time()
