@@ -1,8 +1,6 @@
-<device class="XalocSardanaMotor">
+<device class="XalocResolution">
   <username>Resolution</username>
   <taurusname>rescomp</taurusname>
-  <actuator_name>Resolution</actuator_name>
-  <guistep>45</guistep>
-  <!-- interval>500</interval -->
-  <channel type="tango" tangoname="resedge" name="rescorner_value" polling="1000">position</channel>
+  <actuator_name>resolution</actuator_name>
+  <channel type="sardana" taurusname="rescomp" name="resedge_value" polling="1000">Position</channel>
 </device>
