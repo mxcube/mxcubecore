@@ -287,28 +287,38 @@ class XalocCollect(AbstractCollect):
 
         self.rescorner = self.get_channel_object("rescorner_position")
 
+    def pre_collect_check(self):
+        #CHECK if files exist, exit if true
+        full_path = self.get_image_file_name( 
+                self.current_dc_parameters['oscillation_sequence'][0]['start_image_number'] 
+            )
+        if os.path.exists( full_path ):
+            msg = "Filename already exists"
+            self.data_collection_failed( Exception(msg) , msg )
+
+        if HWR.beamline.session.proposal_id == None:
+            msg = "You are not logged in, log in first"
+            self.data_collection_failed( Exception(msg) , msg )
+        
+
     def do_collect(self, owner):
         """
         Actual collect sequence
         """
         log = logging.getLogger("user_level_log")
         log.info("Collection: Preparing to collect")
-        self.emit("collectReady", (False,))
-        self.emit(
-            "collectOscillationStarted",
-            (owner, None, None, None, self.current_dc_parameters, None),
-        )
-        self.emit("progressInit", ("Collection", 100, False))
-        self.collection_id = None
 
         try:
-            #CHECK if files exist, exit if true
-            full_path = self.get_image_file_name( 
-                    self.current_dc_parameters['oscillation_sequence'][0]['start_image_number'] 
-                )
-            if os.path.exists( full_path ):
-                msg = "Filename already exists"
-                self.data_collection_failed( Exception(msg) , msg )
+
+            self.pre_collect_check()
+
+            self.emit("collectReady", (False,))
+            self.emit(
+                "collectOscillationStarted",
+                (owner, None, None, None, self.current_dc_parameters, None),
+            )
+            self.emit("progressInit", ("Collection", 100, False))
+            self.collection_id = None
 
             ## ----------------------------------------------------------------
             ## Prepare data collection
