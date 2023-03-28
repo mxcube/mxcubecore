@@ -157,6 +157,27 @@ class XalocPilatus(AbstractDetector):
         self.cmd_abort_acq()
         self.cmd_reset()
 
+    def get_radius(self, distance=None):
+        """Get distance from the beam position to the nearest detector edge.
+        Args:
+            distance (float): Distance [mm]
+        Returns:
+            (float): Detector radius [mm]
+        """
+        try:
+            distance = distance or self._distance_motor_hwobj.get_value()
+        except AttributeError:
+            raise RuntimeError("Cannot calculate radius, distance unknown")
+
+        beam_x, beam_y = self.get_beam_position(distance)
+        pixel_x, pixel_y = self.get_pixel_size()
+        rrx = min(self.get_width() - beam_x, beam_x) * pixel_x
+        rry = min(self.get_height() - beam_y, beam_y) * pixel_y
+        radius = min(rrx, rry)
+
+        return radius
+        
+
     def get_distance(self):
         """Returns detector distance in mm"""
         if self._distance_motor_hwobj is not None:
@@ -198,8 +219,11 @@ class XalocPilatus(AbstractDetector):
         """Return True if has shutterless mode"""
         return True
 
-    def get_beam_position(self):
-        """Returns beam center coordinates"""
+    def get_beam_position(self, distance=None, wavelength=None):
+        """
+           Returns beam center coordinates
+           TODO: update values according to distance, see XALOC modules for the calculation and calibration
+        """
         beam_x = 0
         beam_y = 0
         try:
