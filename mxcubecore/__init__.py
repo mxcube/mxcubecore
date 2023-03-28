@@ -80,7 +80,7 @@ def setLogFile(filename):
     #
     # log to rotating files
     #
-    hdlr = RotatingFileHandler(filename, "a", 1048576, 5)  # 1 MB by file, 5 files max.
+    hdlr = RotatingFileHandler(filename, "a", 1048576, 15)  # 1 MB by file, 5 files max.
     hdlr.setFormatter(_hwr_formatter)
 
     setLoggingHandler(hdlr)
