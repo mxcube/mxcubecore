@@ -1989,7 +1989,7 @@ class GphlWorkflow(TaskNode):
         # Pre-strategy attributes
         # Set in  def set_pre_strategy_params(
         self.space_group = str()
-        self.crystal_system = str()
+        self.crystal_family = str()
         self.point_group = None
         self._cell_parameters = ()
         self.detector_setting = None  # from 'resolution' parameter or defaults
@@ -2010,6 +2010,7 @@ class GphlWorkflow(TaskNode):
         self.transmission = 0.0
         self.snapshot_count = 2
         self.recentring_mode = "sweep"
+        self.repetition_count = 1
 
         # Internal / config-only attributes
         # Workflow interleave order (string).
@@ -2020,7 +2021,8 @@ class GphlWorkflow(TaskNode):
         self.goniostat_translations = ()  # Internal only - set by program
         self.current_rotation_id = None
         self.characterisation_done = False
-        self.dose_consumed = 0.0
+        self.characterisation_dose = 0.0
+        self.acquisition_dose = 0.0
         self.strategy_length = 0.0
 
         # # Centring handling and MXCuBE-side flow
@@ -2040,12 +2042,13 @@ class GphlWorkflow(TaskNode):
             "transmission",
             "dose_consumed",
             "space_group",
-            "crystal_system",
+            "crystal_family",
             "point_group",
             "_cell_parameters",
             "use_cell_for_processing",
             "relative_rad_sensitivity",
             "aimed_resolution",
+            "repetition_count",
         ):
             summary[tag] = getattr(self, tag)
         summary["wavelengths"] = tuple(x.wavelength for x in self.wavelengths)
@@ -2066,7 +2069,7 @@ class GphlWorkflow(TaskNode):
     def set_pre_strategy_params(
             self,
             point_group="",
-            crystal_system="",
+            crystal_family="",
             space_group="",
             cell_parameters=(),
             resolution=None,
@@ -2078,7 +2081,7 @@ class GphlWorkflow(TaskNode):
         """
 
         :param point_group (str):
-        :param crystal_system (str):
+        :param crystal_family (str):
         :param space_group (str):
         :param cell_parameters tuple(float):
         :param resolution (Optional[float]):
@@ -2096,18 +2099,18 @@ class GphlWorkflow(TaskNode):
             # Space group overrides point group and crystal_system
             self.space_group = space_group
             self.point_group = None
-            self.crystal_system = None
+            self.crystal_family = None
         else:
             if point_group:
                 # To avoid compatibility problems, reset other parameters
-                # NB Crystal system follows from point group
+                # NB Crystal family follows from point group
                 self.space_group = None
                 self.point_group = point_group
-                self.crystal_system = None
-            elif crystal_system:
+                self.crystal_family = None
+            elif crystal_family:
                 self.space_group = None
                 self.point_group = None
-                self.crystal_system = crystal_system
+                self.crystal_family = crystal_family
         if cell_parameters:
             self.cell_parameters = cell_parameters
 
@@ -2291,7 +2294,7 @@ class GphlWorkflow(TaskNode):
         self.protein_acronym = crystal.protein_acronym
         self.space_group = crystal.space_group
         self.point_group = params.get("point_group")
-        self.crystal_system = params.get("crystal_system")
+        self.crystal_family = params.get("crystal_family")
 
         # Set to current wavelength for now - nothing else available
         wavelength = HWR.beamline.energy.get_wavelength()

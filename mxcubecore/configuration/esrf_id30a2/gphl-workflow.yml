@@ -90,6 +90,7 @@ settings:
         # For acquisition or diffractcal
       - exposure_time: 0.02
         image_width: 1.0
+        repetition_count: 1
         strategy_options:
             # Not really needed in default situation, but to show how it works
             maximum_chi: 48.0

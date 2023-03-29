@@ -704,17 +704,20 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         return GphlMessages.SubprocessStopped()
 
     def _ChooseLattice_to_python(self, py4jChooseLattice):
-        lattice_format = py4jChooseLattice.getFormat().toString()
-        solutions = py4jChooseLattice.getSolutions()
-        lattices = py4jChooseLattice.getLattices()
-        crystalSystem = py4jChooseLattice.getCrystalSystem()
-        if crystalSystem is not None:
-            crystalSystem = crystalSystem.getXdsChar()
+        crystalFamily = py4jChooseLattice.getCrystalFamily()
+        crystalFamilyChar = crystalFamily.getPearsonChar() if crystalFamily else None
         return GphlMessages.ChooseLattice(
-            lattice_format=lattice_format,
-            solutions=solutions,
-            lattices=lattices,
-            crystalSystem=crystalSystem,
+            indexingSolutions=list(
+                self._IndexingSolution_to_python(sol)
+                for sol in py4jChooseLattice.getIndexingSolutions()
+            ),
+            indexingFormat=py4jChooseLattice.getIndexingFormat().toString(),
+            crystalFamilyChar=crystalFamilyChar,
+            lattices=py4jChooseLattice.getLattices(),
+            userProvidedCell=self._UnitCell_to_python(
+                py4jChooseLattice.getUserProvidedCell()
+            ),
+            indexingHeader=py4jChooseLattice.getIndexingHeader(),
         )
 
     def _CollectionProposal_to_python(self, py4jCollectionProposal):
@@ -829,6 +832,23 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             py4jGoniostatSweepSetting, isSweepSetting=True
         )
 
+    def _UnitCell_to_python(self, py4jUnitCell):
+
+        cell_params = tuple(py4jUnitCell.getLengths()) + tuple(py4jUnitCell.getAngles())
+        return GphlMessages.UnitCell(*cell_params)
+
+    def _IndexingSolution_to_python(self, py4jIndexingSolution):
+
+        return  GphlMessages.IndexingSolution(
+            bravaisLattice=py4jIndexingSolution.getBravaisLattice(),
+            cell = self._UnitCell_to_python(
+                py4jIndexingSolution.getCell()
+            ),
+            isConsistent=py4jIndexingSolution.isConsistent(),
+            latticeCharacter=py4jIndexingSolution.getLatticeCharacter(),
+            qualityOfFit=py4jIndexingSolution.getQualityOfFit()
+        )
+
     def _Sweep_to_python(self, py4jSweep):
 
         # NB scans are not set - where scans are present in a message,
@@ -917,85 +937,6 @@ class GphlWorkflowConnection(HardwareObjectYaml):
                 "Payload %s not supported for conversion to java" % payloadType
             )
 
-    def test_lattice_selection(self):
-        """Dummy test of lattice selection UI"""
-
-        # |NB @~@~for test only
-        test_payload = GphlMessages.ChooseLattice(
-            lattice_format="IDXREF",
-            crystalSystem="m",
-            lattices=["tP", "aP"],
-            solutions="""
-*********** DETERMINATION OF LATTICE CHARACTER AND BRAVAIS LATTICE ***********
-
- The CHARACTER OF A LATTICE is defined by the metrical parameters of its
- reduced cell as described in the INTERNATIONAL TABLES FOR CRYSTALLOGRAPHY
- Volume A, p. 746 (KLUWER ACADEMIC PUBLISHERS, DORDRECHT/BOSTON/LONDON, 1989).
- Note that more than one lattice character may have the same BRAVAIS LATTICE.
-
- A lattice character is marked "*" to indicate a lattice consistent with the
- observed locations of the diffraction spots. These marked lattices must have
- low values for the QUALITY OF FIT and their implicated UNIT CELL CONSTANTS
- should not violate the ideal values by more than
- MAXIMUM_ALLOWED_CELL_AXIS_RELATIVE_ERROR=  0.03
- MAXIMUM_ALLOWED_CELL_ANGLE_ERROR=           1.5 (Degrees)
-
-  LATTICE-  BRAVAIS-   QUALITY  UNIT CELL CONSTANTS (ANGSTROEM & DEGREES)
- CHARACTER  LATTICE     OF FIT      a      b      c   alpha  beta gamma
-
- *  44        aP          0.0      56.3   56.3  102.3  90.0  90.0  90.0
- *  31        aP          0.0      56.3   56.3  102.3  90.0  90.0  90.0
- *  33        mP          0.0      56.3   56.3  102.3  90.0  90.0  90.0
- *  35        mP          0.0      56.3   56.3  102.3  90.0  90.0  90.0
- *  34        mP          0.0      56.3  102.3   56.3  90.0  90.0  90.0
- *  32        oP          0.0      56.3   56.3  102.3  90.0  90.0  90.0
- *  14        mC          0.1      79.6   79.6  102.3  90.0  90.0  90.0
- *  10        mC          0.1      79.6   79.6  102.3  90.0  90.0  90.0
- *  13        oC          0.1      79.6   79.6  102.3  90.0  90.0  90.0
- *  11        tP          0.1      56.3   56.3  102.3  90.0  90.0  90.0
-    37        mC        250.0     212.2   56.3   56.3  90.0  90.0  74.6
-    36        oC        250.0      56.3  212.2   56.3  90.0  90.0 105.4
-    28        mC        250.0      56.3  212.2   56.3  90.0  90.0  74.6
-    29        mC        250.0      56.3  125.8  102.3  90.0  90.0  63.4
-    41        mC        250.0     212.3   56.3   56.3  90.0  90.0  74.6
-    40        oC        250.0      56.3  212.2   56.3  90.0  90.0 105.4
-    39        mC        250.0     125.8   56.3  102.3  90.0  90.0  63.4
-    30        mC        250.0      56.3  212.2   56.3  90.0  90.0  74.6
-    38        oC        250.0      56.3  125.8  102.3  90.0  90.0 116.6
-    12        hP        250.1      56.3   56.3  102.3  90.0  90.0  90.0
-    27        mC        500.0     125.8   56.3  116.8  90.0 115.5  63.4
-    42        oI        500.0      56.3   56.3  219.6 104.8 104.8  90.0
-    15        tI        500.0      56.3   56.3  219.6  75.2  75.2  90.0
-    26        oF        625.0      56.3  125.8  212.2  83.2 105.4 116.6
-     9        hR        750.0      56.3   79.6  317.1  90.0 100.2 135.0
-     1        cF        999.0     129.6  129.6  129.6 128.6  75.7 128.6
-     2        hR        999.0      79.6  116.8  129.6 118.9  90.0 109.9
-     3        cP        999.0      56.3   56.3  102.3  90.0  90.0  90.0
-     5        cI        999.0     116.8   79.6  116.8  70.1  39.8  70.1
-     4        hR        999.0      79.6  116.8  129.6 118.9  90.0 109.9
-     6        tI        999.0     116.8  116.8   79.6  70.1  70.1  39.8
-     7        tI        999.0     116.8   79.6  116.8  70.1  39.8  70.1
-     8        oI        999.0      79.6  116.8  116.8  39.8  70.1  70.1
-    16        oF        999.0      79.6   79.6  219.6  90.0 111.2  90.0
-    17        mC        999.0      79.6   79.6  116.8  70.1 109.9  90.0
-    18        tI        999.0     116.8  129.6   56.3  64.3  90.0 118.9
-    19        oI        999.0      56.3  116.8  129.6  61.1  64.3  90.0
-    20        mC        999.0     116.8  116.8   56.3  90.0  90.0 122.4
-    21        tP        999.0      56.3  102.3   56.3  90.0  90.0  90.0
-    22        hP        999.0      56.3  102.3   56.3  90.0  90.0  90.0
-    23        oC        999.0     116.8  116.8   56.3  90.0  90.0  57.6
-    24        hR        999.0     162.2  116.8   56.3  90.0  69.7  77.4
-    25        mC        999.0     116.8  116.8   56.3  90.0  90.0  57.6
-    43        mI        999.0      79.6  219.6   56.3 104.8 135.0  68.8
-
- For protein crystals the possible space group numbers corresponding  to""",
-        )
-        if self.workflow_queue is not None:
-            # Could happen if we have ended the workflow
-            self.workflow_queue.put_nowait(
-                ("ChooseLattice", test_payload, "9999999", None)
-            )
-
     def _response_to_server(self, payload, correlation_id):
         """Create py4j message from py4j wrapper and current ids"""
 
@@ -1078,6 +1019,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             list(sampleCentred.interleaveOrder),
             list(self._PhasingWavelength_to_java(x) for x in sampleCentred.wavelengths),
             self._BcsDetectorSetting_to_java(sampleCentred.detectorSetting),
+            sampleCentred.repetition_count,
         )
 
         beamstopSetting = sampleCentred.beamstopSetting
@@ -1101,17 +1043,36 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             proposalId, collectionDone.imageRoot, collectionDone.status
         )
 
+
     def _SelectedLattice_to_java(self, selectedLattice):
         jvm = self._gateway.jvm
-        frmt = jvm.co.gphl.beamline.v2_unstable.domain_types.IndexingFormat.valueOf(
-            selectedLattice.lattice_format
-        )
+        userPointGroup = selectedLattice.userPointGroup
+        if userPointGroup:
+            userPointGroup =  (
+                jvm.co.gphl.beamline.v2_unstable.domain_types.PointGroup.valueOf(
+                    "PG%s" % selectedLattice.userPointGroup
+                )
+            )
         result = jvm.astra.messagebus.messages.information.SelectedLatticeImpl(
-            frmt,
-            selectedLattice.solution,
+            self._IndexingSolution_to_java(selectedLattice.indexingSolution),
             self._BcsDetectorSetting_to_java(selectedLattice.strategyDetectorSetting),
             self._PhasingWavelength_to_java(selectedLattice.strategyWavelength),
+            userPointGroup,
             selectedLattice.strategyControl,
+        )
+        #
+        return result
+
+    def _IndexingSolution_to_java(self, indexingSolution):
+        jvm = self._gateway.jvm
+        cell = indexingSolution.cell
+        cell = cell and self._UnitCell_to_java(cell)
+        result = jvm.astra.messagebus.messages.information.IndexingSolutionImpl(
+            indexingSolution.bravaisLattice,
+            indexingSolution.latticeCharacter,
+            indexingSolution.isConsistent,
+            indexingSolution.qualityOfFit,
+            cell,
         )
         #
         return result
@@ -1133,10 +1094,10 @@ class GphlWorkflowConnection(HardwareObjectYaml):
 
         for scatterer in userProvidedInfo.scatterers:
             builder = builder.addScatterer(self._AnomalousScatterer_to_java(scatterer))
-        if userProvidedInfo.lattice:
-            builder = builder.lattice(
-                jvm.co.gphl.beamline.v2_unstable.domain_types.CrystalSystem.valueOf(
-                    userProvidedInfo.lattice
+        if userProvidedInfo.crystal_family:
+            builder = builder.crystalFamily(
+                jvm.co.gphl.beamline.v2_unstable.domain_types.CrystalFamily.valueOf(
+                    userProvidedInfo.crystal_family
                 )
             )
         # NB The Java point groups are an enumeration: 'PG1', 'PG422' etc.
