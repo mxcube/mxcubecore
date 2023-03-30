@@ -207,7 +207,7 @@ class XalocEDNACharacterisation(EDNACharacterisation):
             self.processing_done_event.set()
         else:
             self.processing_done_event.clear()
-            self.logger.debug( "Collection failed, not doing the characterisation" )
+            self.userlogger.error( "Collection failed, not doing the characterisation" )
             return 'NOT DONE'
 
         self.prepare_input(edna_input)

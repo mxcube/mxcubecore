@@ -3,6 +3,10 @@ from mxcubecore.HardwareObjects.Resolution import Resolution
 import logging
 import math
 
+from mxcubecore.HardwareObjects.abstract.AbstractMotor import (
+    MotorStates,
+)
+
 class XalocResolution(Resolution):
     
     unit = "A"
@@ -33,6 +37,10 @@ class XalocResolution(Resolution):
         self.connect(self._hwr_detector.distance, "valueChanged", self.update_distance)
 
         
+    def is_ready(self):
+        return self._hwr_detector.distance.get_state() == MotorStates.READY
+
+        
     #def get_beam_centre(self, dtox=None):
         #return self._chnBeamX.get_value(), self._chnBeamY.get_value()
 
@@ -52,19 +60,6 @@ class XalocResolution(Resolution):
             self.distance_to_resolution(_high),
         )
         return self._limits
-
-    def set_value(self, value, timeout=None):
-        """Set the resolution.
-        Args:
-            value(float): target value [Ang]
-            timeout(float): optional - timeout [s],
-                             if timeout is None: wait forever (default).
-        """
-        # The precision depoends on the difference between the current
-        # resolution and the target value - the smaller the difference,
-        # the better the precision.
-        # Reimplemented to remove the double movement
-        super().set_value(value, timeout)
 
     def update_energy(self, energy_pos, wavelength_pos):
         """Update the resolution when energy changed.
@@ -100,7 +95,7 @@ class XalocResolution(Resolution):
 
         return self._nominal_value
 
-    def set_value(self, value):
+    def set_value(self, value, timeout = None):
         distance = self.resolution_to_distance(value)
         msg = "Move resolution to {} ({} mm)".format(value, distance)
         logging.getLogger().info(msg)
