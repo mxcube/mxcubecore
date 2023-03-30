@@ -237,7 +237,7 @@ class GphlWorkflow(HardwareObjectYaml):
         """Get list of workflow description dictionaries."""
         return copy.deepcopy(self.workflows)
 
-    def query_pre_strategy_params(self, data_model, choose_lattice=None):
+    def query_pre_strategy_params(self, choose_lattice=None):
         """Query pre_strategy parameters.
         Used for both characterisation, diffractcal, and acquisition
 
@@ -245,7 +245,7 @@ class GphlWorkflow(HardwareObjectYaml):
         :param choose_lattice (ChooseLattice): GphlMessage.ChooseLattice
         :return: -> dict
         """
-        gphl_workflow_hwr = HWR.beamline.gphl_workflow
+        data_model = self._queue_entry.get_data_model()
         workflow_parameters = data_model.get_workflow_parameters()
         schema = {
             "title": "GΦL Pre-strategy parameters",
@@ -290,7 +290,7 @@ class GphlWorkflow(HardwareObjectYaml):
         fields[ "crystal_family"] = {
             "title": "Prior crystal family",
             "default": data_model.crystal_family or "",
-            "$ref": "#/definitions/lattice",
+            "$ref": "#/definitions/crystal_family",
         }
         fields["point_group"] = {
             "title": "Point Group",
@@ -360,18 +360,19 @@ class GphlWorkflow(HardwareObjectYaml):
             strategies = workflow_parameters["variants"]
             fields["strategy"]["default"] = strategies[0]
             fields["strategy"]["title"] = "Acquisition strategy"
-            energy_tags = workflow_parameters.get(
-                "beam_energy_tags",
-                (gphl_workflow_hwr.settings["default_beam_energy_tag"],)
-            )
+            ll0 = workflow_parameters.get("beam_energy_tags")
+            if ll0:
+                energy_tag = ll0[0]
+            else:
+                energy_tag = self.settings["default_beam_energy_tag"]
         else:
             # Characterisation
-            strategies = gphl_workflow_hwr.settings["characterisation_strategies"]
+            strategies = self.settings["characterisation_strategies"]
             fields["strategy"]["default"] = (
-                gphl_workflow_hwr.settings["defaults"]["characterisation_strategy"]
+                self.settings["defaults"]["characterisation_strategy"]
             )
             fields["strategy"]["title"] = "Characterisation strategy"
-            energy_tags = ("Characterisation",)
+            energy_tag = "Characterisation"
         schema["definitions"]["strategy"] = list(
             {
                 "type": "string",
@@ -447,31 +448,26 @@ class GphlWorkflow(HardwareObjectYaml):
             },
         }
 
-        # Handle energies fields
+        # Handle energy field
         # NBNB allow for fixed-energy beamlines
         energy_limits = HWR.beamline.energy.get_limits()
         col2 = ui_schema["parameters"]["column2"]
-        tags = ("energy1", "energy2", "energy3", )
-        for ii,energy_tag in enumerate(energy_tags):
-            fields[tags[ii]] = {
-                "title": "%s energy (keV)"  % energy_tag,
-                "type": "number",
-                "default": HWR.beamline.energy.get_value(),
-                "minimum": energy_limits[0],
-                "maximum": energy_limits[1],
-            }
-            col2["ui:order"].append(tags[ii])
-            col2[tags[ii]] = {
-                        "ui:options": {
-                            "decimals": 4,
-                        },
-            }
-        # for ii in range(len(energy_tags), len(tags)):
-        #     ui_schema["parameters"]["column2"][tags[ii]]["hidden"] = True
+        tag = "energy"
+        fields[tag] = {
+            "title": "%s energy (keV)"  % energy_tag,
+            "type": "number",
+            "default": HWR.beamline.energy.get_value(),
+            "minimum": energy_limits[0],
+            "maximum": energy_limits[1],
+        }
+        col2["ui:order"].append(tag)
+        col2[tag] = {
+                    "ui:options": {
+                        "decimals": 4,
+                    },
+        }
 
         if choose_lattice is not None:
-            solution_format = choose_lattice.lattice_format
-
             # Must match bravaisLattices column
             lattices = choose_lattice.lattices
 
@@ -502,8 +498,8 @@ class GphlWorkflow(HardwareObjectYaml):
             ui_schema["indexing_solution"] = {
                 "ui:widget": "selection_table",
                 "ui:options": {
-                    "header": header,
-                    "content": list(soldict),
+                    "header": [header],
+                    "content": [list(soldict)],
                     "select_row": select_row,
                     "colouring": colouring,
                 }
@@ -529,9 +525,12 @@ class GphlWorkflow(HardwareObjectYaml):
                 return StopIteration
             solline = params.get("indexing_solution")
             if solline:
-                params["indexing_solution"] = soldict[solline]
+                params["indexing_solution"] = soldict[solline[0]]
         finally:
             self._return_parameters = None
+
+        # Convert energy field to a single tuple
+        params["energies"] = (params.pop("energy"),)
         #
         return params
 
@@ -553,14 +552,15 @@ class GphlWorkflow(HardwareObjectYaml):
             # SIGNAL TO GET Pre-strategy parameters here
             # NB set defaults from data_model
             # NB consider whether to override on None
-            params = self.query_pre_strategy_params(data_model)
+            params = self.query_pre_strategy_params()
             if params is StopIteration:
                 self.workflow_failed()
+                return
 
-        print ('@~@~ returned parameters :')
-        for item in sorted(params.items()):
-            print (item)
-        print ('@~@~ end parameters\n\n')
+        # print ('@~@~ pre_execute returned parameters :')
+        # for item in sorted(params.items()):
+        #     print (item)
+        # print ('@~@~ end parameters\n\n')
         cell_tags = (
             "cell_a", "cell_b", "cell_c", "cell_alpha", "cell_beta", "cell_gamma"
         )
@@ -693,15 +693,22 @@ class GphlWorkflow(HardwareObjectYaml):
     def get_configuration_data(self, payload, correlation_id):
         return GphlMessages.ConfigurationData(self.file_paths["gphl_beamline_config"])
 
-    def query_collection_strategy(self, geometric_strategy, initial_energy):
+    def query_collection_strategy(self, geometric_strategy):
         """Display collection strategy for user approval,
         and query parameters needed"""
+
+        data_model = self._queue_entry.get_data_model()
+        workflow_parameters = data_model.get_workflow_parameters()
 
         # Number of decimals for rounding use_dose values
         use_dose_decimals = 4
         is_interleaved = geometric_strategy.isInterleaved
 
         data_model = self._queue_entry.get_data_model()
+        budget_use_fraction = data_model.characterisation_budget_fraction
+        initial_energy = HWR.beamline.energy.calculate_energy(
+            data_model.wavelengths[0].wavelength
+        )
         wf_parameters = data_model.get_workflow_parameters()
 
         orientations = OrderedDict()
@@ -730,10 +737,14 @@ class GphlWorkflow(HardwareObjectYaml):
                 % (title_string, data_model.strategy_options["variant"])
             ]
             lines.extend(("-" * len(lines[0]), ""))
+            energy_tags = (
+                workflow_parameters.get("beam_energy_tags")
+                or (self.settings["default_beam_energy_tag"],)
+            )
             beam_energies = OrderedDict()
             energies = [initial_energy, initial_energy + 0.01, initial_energy - 0.01]
-            for ii, phasing_energy in enumerate(data_model.wavelengths):
-                beam_energies[phasing_energy.role] = energies[ii]
+            for ii, tag in enumerate(energy_tags):
+                beam_energies[tag] = energies[ii]
             dose_label = "Dose/repetition (MGy)"
 
         else:
@@ -742,7 +753,6 @@ class GphlWorkflow(HardwareObjectYaml):
             lines = ["GΦL Characterisation strategy"]
             lines.extend(("=" * len(lines[0]), ""))
             beam_energies = OrderedDict((("Characterisation", initial_energy),))
-            budget_use_fraction = data_model.characterisation_budget_fraction
             dose_label = "Characterisation dose (MGy)"
             if not self.settings.get("recentre_before_start"):
                 # replace planned orientation with current orientation
@@ -753,7 +763,6 @@ class GphlWorkflow(HardwareObjectYaml):
                     if pos is not None:
                         dd0[tag] = pos
 
-        print ('@~@~ beam_energies', beam_energies)
         # Make strategy-description info_text
         if len(beam_energies) > 1:
             lines.append(
@@ -765,7 +774,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         for rotation_id, sweeps in orientations.items():
             axis_settings = axis_setting_dicts[rotation_id]
-            ss0 = "\nSweep :     " + ",  ".join(
+            ss0 = "\nSweep :  " + ",  ".join(
                 "%s= %6.1f°" % (x, axis_settings.get(x))
                 for x in axis_names
                 if x in axis_settings
@@ -803,7 +812,7 @@ class GphlWorkflow(HardwareObjectYaml):
         resolution = HWR.beamline.resolution.get_value()
         dose_budget = self.resolution2dose_budget(
             resolution,
-            decay_limit=data_model.get_decay_limit(),
+            decay_limit=data_model.decay_limit,
         )
         default_image_width = float(allowed_widths[default_width_index])
         default_exposure = acq_parameters.exp_time
@@ -813,13 +822,13 @@ class GphlWorkflow(HardwareObjectYaml):
         # NB - this is the default starting value, so repetition_count is 1 at this point
         experiment_time = total_strategy_length * default_exposure / default_image_width
         if (
-            data_model.lattice_selected
+            data_model.characterisation_done
             or wf_parameters.get("strategy_type") == "diffractcal"
         ):
-            proposed_dose = dose_budget - data_model.get_characterisation_dose()
+            proposed_dose = dose_budget - data_model.characterisation_dose
         else:
             proposed_dose = (
-                dose_budget * data_model.get_characterisation_budget_fraction()
+                dose_budget * data_model.characterisation_budget_fraction
             )
         proposed_dose = round(max(proposed_dose,0), use_dose_decimals)
 
@@ -865,12 +874,6 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "Dose rate",
             "type": "number",
             "default": std_dose_rate,
-            "hidden": True,
-        }
-        fields["dose_consumed"] = {
-            "title": "Dose consumeed",
-            "type": "number",
-            "default": data_model.dose_consumed,
             "hidden": True,
         }
         fields["decay_limit"] = {
@@ -953,10 +956,9 @@ class GphlWorkflow(HardwareObjectYaml):
             "default": experiment_time,
             "readOnly": True,
         }
-        if data_model.lattice_selected:
+        if data_model.characterisation_done:
             fields["repetition_count"] = {
-                "variableName": "repetition_count",
-                "uiLabel": "Number of repetitions",
+                "title": "Number of repetitions",
                 "type": "spinbox",
                 "defaultValue": 1,
                 "lowerBound": 1,
@@ -1082,7 +1084,6 @@ class GphlWorkflow(HardwareObjectYaml):
                         "exposure",
                         "image_width",
                         "transmission",
-                        "repetirion_count",
                         "snapshot_count",
                     ],
                     "exposure": {
@@ -1106,6 +1107,10 @@ class GphlWorkflow(HardwareObjectYaml):
                         "ui:options": {
                             "decimals": 2,
                             "update_function": "update_transmission",
+                        }
+                    },
+                    "repetition_count": {
+                        "ui:options": {
                         }
                     },
                 },
@@ -1136,6 +1141,9 @@ class GphlWorkflow(HardwareObjectYaml):
         }
         if data_model.characterisation_done and is_interleaved:
             ui_schema["parameters"]["column1"]["ui:order"].append("wedge_width")
+        if data_model.characterisation_done:
+            ui_schema["parameters"]["column1"]["ui:order"].insert(-1, "repetition_count", )
+
         ll0 =  ui_schema["parameters"]["column2"]["ui:order"]
         ll0.extend(list(beam_energies))
         ll0.append("recentring_mode")
@@ -1159,22 +1167,20 @@ class GphlWorkflow(HardwareObjectYaml):
                 return StopIteration
         finally:
             self._return_parameters = None
-        print ('@~@~ returned parameters 1')
-        for item in result.items():
-            print ('--> %s : %s' % item)
+        # print ('@~@~ query_collection_strategy returned parameters 1')
+        # for item in result.items():
+        #     print ('--> %s : %s' % item)
 
         tag = "image_width"
         value = result.get(tag)
         if value:
-            print ('@~@~ image_width 1', value, float(value))
             image_width = float(value)
         else:
             image_width = self.settings.get("default_image_width", default_image_width)
-            print ('@~@~ image_width 1', self.settings.get("default_image_width"), default_image_width)
         result[tag] = image_width
         # exposure OK as is
         tag = "repetition_count"
-        result[tag] = int(result.get(tag, 1))
+        result[tag] = int(result.get(tag) or 1)
         tag = "transmission"
         value = result.get(tag)
         if value:
@@ -1197,33 +1203,28 @@ class GphlWorkflow(HardwareObjectYaml):
         if geometric_strategy.isInterleaved:
             result["interleave_order"] = data_model.interleave_order
 
-        for tag in beam_energies:
-            beam_energies[tag] = result.get(tag, 0)
-        result["beam_energies"] = beam_energies
+        energies = list(result.pop(tag) for tag in beam_energies)
+        del energies[0]
+        result["energies"] = energies
 
         tag = "recentring_mode"
         result[tag] = (
             RECENTRING_MODES.get(result.get(tag)) or default_recentring_mode
         )
 
-        print ('@~@~ returned parameters 2')
-        for item in result.items():
-            print ('--> %s : %s' % item)
-
         # data_model.dose_budget = float(params.get("dose_budget", 0))
         # # Register the dose (about to be) consumed
         if std_dose_rate:
             if (
-                data_model.lattice_selected
+                data_model.characterisation_done
                 or wf_parameters.get("strategy_type") == "diffractcal"
             ):
-                data_model.set_acquisition_dose(float(result.get("use_dose", 0)))
+                data_model.acquisition_dose = float(result.get("use_dose", 0))
             else:
-                data_model.set_characterisation_dose(float(result.get("use_dose", 0)))
-        print ('@~@~ returned parameters 2')
-        for item in result.items():
-            print ('--> %s : %s' % item)
-
+                data_model.characterisation_dose = float(result.get("use_dose", 0))
+        # print ('@~@~ query_collection_strategy returned parameters 3')
+        # for item in result.items():
+        #     print ('--> %s : %s' % item)
         #
         return result
 
@@ -1249,21 +1250,20 @@ class GphlWorkflow(HardwareObjectYaml):
             strategy_length * len(gphl_workflow_model.wavelengths)
         )
 
-        # get params and initial transmission/use_dose
+        # get parameters and initial transmission/use_dose
         if gphl_workflow_model.automation_mode:
-            # Get params and transmission/use_dose
+            # Get parameters and transmission/use_dose
             if gphl_workflow_model.characterisation_done:
-                params = gphl_workflow_model.auto_acq_parameters[-1]
+                parameters = gphl_workflow_model.auto_acq_parameters[-1]
             else:
-                params = gphl_workflow_model.auto_acq_parameters[0]
-            gphl_workflow_model.set_pre_acquisition_params(**params)
-            if "dose_budget" in params:
+                parameters = gphl_workflow_model.auto_acq_parameters[0]
+            if "dose_budget" in parameters:
                 raise ValueError(
                     "'dose_budget' parameter no longer supported. "
                     "Use 'use_dose' or 'transmission' instead"
                 )
-            transmission = params.get("transmission")
-            use_dose = params.get("use_dose")
+            transmission = parameters.get("transmission")
+            use_dose = parameters.get("use_dose")
         else:
             transmission = None
             use_dose = None
@@ -1275,7 +1275,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 # Set use_dose from recommended budget
                 use_dose = gphl_workflow_model.recommended_dose_budget()
                 if gphl_workflow_model.characterisation_done:
-                    use_dose -= gphl_workflow_model.dose_consumed
+                    use_dose -= gphl_workflow_model.characterisation_dose
                 elif strategy_type != "diffractcal":
                     # This is characterisation
                     use_dose *= gphl_workflow_model.characterisation_budget_fraction
@@ -1302,8 +1302,6 @@ class GphlWorkflow(HardwareObjectYaml):
         # If not in automation mode, get params from user query
         if not gphl_workflow_model.automation_mode:
 
-            initial_energy = HWR.beamline.energy.get_value()
-
             # NB - now pre-setting of detector has been removed, this gets
             # the current resolution setting, whatever it is
             initial_resolution = HWR.beamline.resolution.get_value()
@@ -1312,7 +1310,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
             # Get modified parameters from UI and confirm acquisition
             # Run before centring, as it also does confirm/abort
-            parameters = self.query_collection_strategy(geometric_strategy, initial_energy)
+            parameters = self.query_collection_strategy(geometric_strategy)
             if parameters is StopIteration:
                 return StopIteration
             user_modifiable = geometric_strategy.isUserModifiable
@@ -1324,17 +1322,6 @@ class GphlWorkflow(HardwareObjectYaml):
 
             gphl_workflow_model.exposure_time = parameters.get("exposure" or 0.0)
             gphl_workflow_model.image_width = parameters.get("image_width" or 0.0)
-
-            # Set beam_energies to match parameters
-            # get wavelengths
-            HC_OVER_E = conversion.HC_OVER_E
-            beam_energies = parameters.pop("beam_energies")
-            print ('@~@~ beam_energies', beam_energies)
-            wavelengths = tuple(
-                GphlMessages.PhasingWavelength(wavelength=HC_OVER_E / val, role=tag)
-                for tag, val in beam_energies.items()
-            )
-            gphl_workflow_model.wavelengths = wavelengths
 
             transmission = parameters["transmission"]
             logging.getLogger("GUI").info(
@@ -1362,9 +1349,17 @@ class GphlWorkflow(HardwareObjectYaml):
             gphl_workflow_model.recentring_mode = parameters.pop("recentring_mode")
 
         # From here on same for manual and automation
+        gphl_workflow_model.set_pre_acquisition_params(**parameters)
 
-        # Unpdate dose_consumed to include dose (about to be) acquired.
-        gphl_workflow_model.dose_consumed += gphl_workflow_model.calculate_dose()
+        # Update dose consumed to include dose (about to be) acquired.
+        new_dose = gphl_workflow_model.calculate_dose()
+        if (
+            gphl_workflow_model.characterisation_done
+            or gphl_workflow_model.get_type() == "diffractcal"
+        ):
+            gphl_workflow_model.acquisition_dose = new_dose
+        else:
+            gphl_workflow_model.characterisation_dose = new_dose
 
         format = "--> %s: %s"
         print ("GPHL workflow. Data collection parameters:")
@@ -1420,7 +1415,6 @@ class GphlWorkflow(HardwareObjectYaml):
             # Sample has never been centred reliably.
             # Centre it at sweepsetting and put it into goniostatTranslations
             settings = dict(sweepSetting.axisSettings)
-            print ('@~@~ enqueue 1')
             qe = self.enqueue_sample_centring(motor_settings=settings)
             translation, current_pos_dict = self.execute_sample_centring(
                 qe, sweepSetting
@@ -1497,7 +1491,6 @@ class GphlWorkflow(HardwareObjectYaml):
                 else:
                     settings.update(translation_settings)
                     qe = self.enqueue_sample_centring(motor_settings=settings)
-                    print ('@~@~ enqueue 2')
                     translation, dummy = self.execute_sample_centring(qe, sweepSetting)
                     goniostatTranslations.append(translation)
                     gphl_workflow_model.current_rotation_id = sweepSetting.id_
@@ -1548,7 +1541,6 @@ class GphlWorkflow(HardwareObjectYaml):
             if recentring_mode == "start":
                 # Recentre now, using updated values if available
                 qe = self.enqueue_sample_centring(motor_settings=settings)
-                print ('@~@~ enqueue 3')
                 translation, dummy = self.execute_sample_centring(qe, sweepSetting)
                 goniostatTranslations.append(translation)
                 gphl_workflow_model.current_rotation_id = sweepSetting.id_
@@ -1871,7 +1863,6 @@ class GphlWorkflow(HardwareObjectYaml):
                 self.enqueue_sample_centring(
                     motor_settings=initial_settings, in_queue=True
                 )
-                print ('@~@~ enqueue 4')
             else:
                 # Collect using precalculated centring position
                 initial_settings[goniostatRotation.scanAxis] = scan.start
@@ -1981,8 +1972,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
             # NBNB DISPLAY_ENERGY_DECIMALS
 
-            params = self.query_pre_strategy_params(data_model, choose_lattice)
-            print ('@~@~ params', list(params))
+            params = self.query_pre_strategy_params(choose_lattice)
             indexingSolution = params["indexing_solution"]
         data_model.set_pre_strategy_params(**params)
         # @~@~ DEBUG:
@@ -2220,7 +2210,6 @@ class GphlWorkflow(HardwareObjectYaml):
         if goniostatTranslation is not None:
             settings.update(goniostatTranslation.axisSettings)
         centring_queue_entry = self.enqueue_sample_centring(motor_settings=settings)
-        print ('@~@~ enqueue 5')
         goniostatTranslation, dummy = self.execute_sample_centring(
             centring_queue_entry, goniostatRotation
         )
@@ -2585,12 +2574,9 @@ class GphlWorkflow(HardwareObjectYaml):
         use_dose = float(parameters.get("use_dose", 0))
         std_dose_rate = float(parameters.get("std_dose_rate", 0))
         total_strategy_length = float(parameters.get("total_strategy_length", 0))
-        # dose_consumed = float(parameters.get("dose_consumed", 0))
 
         if image_width and exposure_time and std_dose_rate and use_dose:
             experiment_time = exposure_time * total_strategy_length / image_width
-            # NB set_values causes successive upate calls for changed values
-            # use_dose -= dose_consumed
             transmission = 100 * use_dose / (std_dose_rate * experiment_time)
 
             if transmission > 100.:

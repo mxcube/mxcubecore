@@ -26,7 +26,6 @@ the QueueModel.
 import copy
 import os
 import logging
-import math
 
 from mxcubecore.model import queue_model_enumerables
 
@@ -2040,7 +2039,6 @@ class GphlWorkflow(TaskNode):
             "image_width",
             "strategy_length",
             "transmission",
-            "dose_consumed",
             "space_group",
             "crystal_family",
             "point_group",
@@ -2116,38 +2114,40 @@ class GphlWorkflow(TaskNode):
 
         workflow_parameters = self.get_workflow_parameters()
 
-        # NB this is an internal dictionary. DO NOT MODIFY
-        settings = HWR.beamline.gphl_workflow.settings
-        energy_tags = workflow_parameters.get(
-            "beam_energy_tags", (settings["default_beam_energy_tag"],)
-        )
         interleave_order = workflow_parameters.get("interleave_order")
         if interleave_order:
             self.interleave_order = interleave_order
 
+        # NB this is an internal dictionary. DO NOT MODIFY
+        settings = HWR.beamline.gphl_workflow.settings
+
         if energies:
-            if len(energy_tags) != len(energies):
+            # Energies *reset* existing list, and there must be at least one
+            if self.characterisation_done:
+                energy_tags = workflow_parameters.get(
+                    "beam_energy_tags", (settings["default_beam_energy_tag"],)
+                )
+            elif self.get_type() == "diffractcal":
+                energy_tags = ("Main",)
+            else:
+                energy_tags = ("Characterisation",)
+            if len(energies) not in (len(energy_tags), 1):
                 raise ValueError(
-                    "Strategy should have %s energies, value was %s"
-                    % (len(energy_tags), energies)
+                    "Number of energies %s do not match available slots %s"
+                    % (energies, energy_tags)
                 )
             wavelengths = []
-            for iii, role in enumerate(energy_tags):
+            for iii, energy in enumerate(energies):
+                role = energy_tags[iii]
                 wavelengths.append(
                     GphlMessages.PhasingWavelength(
-                        wavelength=HWR.beamline.energy.calculate_wavelength(
-                            energies[iii]
-                        ),
+                        wavelength=HWR.beamline.energy.calculate_wavelength(energy),
                         role=role,
                     )
                 )
             self.wavelengths = tuple(wavelengths)
-        else:
-            if len(energy_tags) != 1:
-                raise ValueError(
-                    "Strategy should have %s explicit energies, values missing"
-                    % len(energy_tags)
-                )
+        if not self.wavelengths:
+            raise ValueError("Value for energy missing. Coding error?")
 
         wavelength = self.wavelengths[0].wavelength
 
@@ -2185,9 +2185,16 @@ class GphlWorkflow(TaskNode):
         transmission=None,
         image_count=None,
         snapshot_count=None,
-        **unused
+        energies = (),
+        **unused,
     ):
         """"""
+        from mxcubecore.HardwareObjects.Gphl import GphlMessages
+
+        workflow_parameters = self.get_workflow_parameters()
+        # NB this is an internal dictionary. DO NOT MODIFY
+        settings = HWR.beamline.gphl_workflow.settings
+
         if exposure_time:
             self.exposure_time = float(exposure_time)
         if image_width:
@@ -2200,6 +2207,31 @@ class GphlWorkflow(TaskNode):
             self.snapshot_count = int(snapshot_count)
         if image_count:
             self.strategy_length = int(image_count) * self.image_width
+        if energies:
+            # Energies are *added* to existing list
+            energy_tags = workflow_parameters.get(
+                "beam_energy_tags", (settings["default_beam_energy_tag"],)
+            )
+            wavelengths = list(self.wavelengths)
+            offset = len(wavelengths)
+            if len(energies) == len(energy_tags) - offset:
+                for iii, energy in enumerate(energies):
+                    role = energy_tags[iii + offset]
+                    wavelengths.append(
+                        GphlMessages.PhasingWavelength(
+                            wavelength=HWR.beamline.energy.calculate_wavelength(
+                                energy
+                            ),
+                            role=role,
+                        )
+                    )
+                self.wavelengths = tuple(wavelengths)
+            else:
+                raise ValueError(
+                    "Number of energies %s do not match remaining slots %s"
+                    % (energies, energy_tags[len(self.wavelengths):])
+                )
+            
 
     def init_from_task_data(self, sample_model, params):
         """
@@ -2374,7 +2406,7 @@ class GphlWorkflow(TaskNode):
         :return (float): transmission in %
         """
         if not use_dose:
-            use_dose = self.recommended_dose_budget() - self.dose_consumed
+            use_dose = self.recommended_dose_budget()
         max_dose = self.calculate_dose(transmission=100.0)
         if max_dose:
             return 100. * use_dose / max_dose
