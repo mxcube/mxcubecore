@@ -23,7 +23,7 @@ bliss implementation of AbstartNState
 Example xml file:
 <device class="BlissNState">
   <username>Detector Cover</username>
-  <object_name>detcover</>
+  <actuator_name>detcover</>
   <object href="/bliss" role="controller"/>
   <values>{"IN": "IN", "OUT": "OUT"}</values>
 </device>
@@ -45,7 +45,7 @@ class BlissNState(AbstractNState):
     SPECIFIC_STATES = MotorStates
 
     def __init__(self, name):
-        AbstractNState.__init__(self, name)
+        super().__init__(name)
         self._bliss_obj = None
         self.device_type = None
         self.__saved_state = None
@@ -54,10 +54,11 @@ class BlissNState(AbstractNState):
     def init(self):
         """Initialise the device"""
 
-        AbstractNState.init(self)
-        _name = self.get_property("object_name")
+        super().init()
         self._prefix = self.get_property("prefix")
-        self._bliss_obj = getattr(self.get_object_by_role("controller"), _name)
+        self._bliss_obj = getattr(
+            self.get_object_by_role("controller"), self.actuator_name
+        )
 
         self.device_type = self.get_property("type", "actuator")
         if "MultiplePositions" in self._bliss_obj.__class__.__name__:
@@ -74,7 +75,7 @@ class BlissNState(AbstractNState):
 
         self.update_state()
 
-    def _update_state(self, state):
+    def _update_state(self):
         self.update_state(self.STATES.READY)
 
     def get_value(self):
@@ -157,7 +158,7 @@ class BlissNState(AbstractNState):
             (Enum): "ValueEnum" with predefined values.
         """
         if self.device_type == "actuator":
-            super(BlissNState, self).initialise_values()
+            super().initialise_values()
         if self.device_type == "motor":
             try:
                 values = {val.upper(): val for val in self._bliss_obj.positions_list}
