@@ -1205,8 +1205,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         """
         self.log.info("[HWR] Preparing beamline for a new sample.")
         if manual_mode:
-            if self.detector_cover_hwobj is not None:
-               self.close_detector_cover()
+            self.close_detector_cover()
             self.diffractometer_hwobj.set_phase("Transfer")
             if self.safety_shutter_hwobj is not None and self.safety_shutter_hwobj.getShutterState() == 'opened':
                 self.close_safety_shutter()
