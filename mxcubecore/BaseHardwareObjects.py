@@ -394,7 +394,8 @@ class HardwareObjectNode(object):
 
     def get_property(self, name, default_value=None):
         return self._property_set.get(str(name), default_value)
-
+    def getProperty(self, name, default_value=None):
+        return self._property_set.get(str(name), default_value)
     def get_properties(self):
         return self._property_set
 
