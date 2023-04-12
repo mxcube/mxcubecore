@@ -24,7 +24,7 @@ class MachCurrent(BaseHardwareObjects.Device):
         try:
             chanCurrent = self.get_channel_object("Current")
             chanCurrent.connectSignal("update", self.valueChanged)
-            self.setIsReady(True)
+            self.set_is_ready(True)
         except Exception as e:
             logging.getLogger("HWR").exception(e)
 

@@ -122,6 +122,12 @@ class ChannelObject(object):
         except Exception:
             pass
         dispatcher.connect(callableFunc, signalName, self)
+    def connectSignal(self, signalName, callableFunc):
+        try:
+            dispatcher.disconnect(callableFunc, signalName, self)
+        except Exception:
+            pass
+        dispatcher.connect(callableFunc, signalName, self)
 
     def disconnect_signal(self, signalName, callableFunc):
         try:
