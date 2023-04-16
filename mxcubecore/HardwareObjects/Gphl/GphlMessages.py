@@ -373,7 +373,7 @@ class ChooseLattice(Payload):
 
     @property
     def indexingHeader(self):
-        """Indeexing table header"""
+        """Indexing table header"""
         return self._indexingHeader
 
 
