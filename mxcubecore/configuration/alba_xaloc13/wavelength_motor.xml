@@ -2,7 +2,7 @@
   <username>Wavelength</username>
   <taurusname>wavelength</taurusname>
   <actuator_name>wavelength</actuator_name>
-  <threshold>0.0</threshold>
+  <threshold>0.00002</threshold>
   <guistep>45</guistep>
   <!-- interval>500</interval -->
 </device>
