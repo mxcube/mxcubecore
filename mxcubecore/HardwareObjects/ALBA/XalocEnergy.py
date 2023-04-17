@@ -69,8 +69,8 @@ class XalocEnergy(Energy):
             logging.getLogger("HWR").warning("Energy: will be set to fixed energy")
 
         if self.energy_motor is not None:
-            self.connect(self.wavelength_motor, "valueChanged",
-                        self.energy_position_changed)
+            #self.connect(self.wavelength_motor, "valueChanged",
+                        #self.energy_position_changed)
             self.connect(self.energy_motor, "valueChanged",
                         self.energy_position_changed)
             self.energy_motor.connect("stateChanged", self.energyStateChanged)
