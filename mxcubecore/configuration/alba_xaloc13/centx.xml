@@ -2,5 +2,5 @@
   <username>Center X</username>
   <taurusname>centx</taurusname>
   <actuator_name>CentX</actuator_name>
-  <threshold>0.00</threshold>
+  <threshold>0.0002</threshold>
 </device>
