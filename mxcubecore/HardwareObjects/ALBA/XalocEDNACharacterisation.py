@@ -178,6 +178,8 @@ class XalocEDNACharacterisation(EDNACharacterisation):
 
     def get_result(self):
 
+        # To test diffraction plan handling, uncomment the nex line
+        # self.results_file = "/beamlines/bl13/projects/cycle2018-I/2018002222-ispybtest/20230329/PROCESSED_DATA/manually-mbounted/characterisation_ref-manually-mbounted_run1_89155/EDNAOutput_89155.xml"
         self.logger.debug("Characterization Job COMPLETED")
         if self.job != None: 
             self.logger.debug("Status: %s" % self.job.status)
