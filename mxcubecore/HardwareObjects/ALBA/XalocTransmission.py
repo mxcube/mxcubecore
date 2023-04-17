@@ -95,7 +95,7 @@ class XalocTransmission(Device):
         self.chan_transmission = self.get_channel_object("transmission")
         self.chan_state = self.get_channel_object("state")
 
-        self.chan_transmission.connect_signal("update", self.transmission_changed)
+        self.chan_transmission.connect_signal("update", self.update_values)
         self.chan_state.connect_signal("update", self.state_changed)
         
         self.update_values()
@@ -121,8 +121,11 @@ class XalocTransmission(Device):
     #def getAttFactor(self):
         #return self.get_value()
 
-    def get_value(self):
-        return self.chan_transmission.get_value()
+    def get_value(self, force=False):
+        if force:
+            return self.chan_transmission.force_get_value()
+        else:
+            return self.chan_transmission.get_value()
 
     def get_state(self):
         return self.chan_state.get_value()
@@ -133,8 +136,8 @@ class XalocTransmission(Device):
     def set_transmission(self, value):
         self.set_value(value)
 
-    def update_values(self):
-        value = self.get_value()
+    def update_values(self, force=False):
+        value = self.get_value(force)
         self.transmission_changed( value )
         state = self.get_state()
         self.state_changed( state )
@@ -143,7 +146,7 @@ class XalocTransmission(Device):
         #self.update_values()
         if HWR.beamline.energy.is_ready():
             self.logger.debug("Reading transmission after energy change")
-            self.emit( 'valueChanged', self.chan_transmission.force_get_value() )
+            self.update_values(force = True)
 
 def test_hwo(hwo):
     print("Transmission is: ", hwo.get_value())
