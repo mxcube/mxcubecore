@@ -73,6 +73,7 @@ class XalocResolution(Resolution):
         self._nominal_value = self.resedge.force_get_value()
         self.value = self._nominal_value
         self.get_limits()
+        self.emit("limitsChanged", (self._limits, ))
         self.emit("valueChanged", (self._nominal_value,))
 
     def update_state(self, state):
