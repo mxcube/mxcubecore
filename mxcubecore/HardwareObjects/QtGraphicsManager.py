@@ -2035,7 +2035,7 @@ class QtGraphicsManager(AbstractSampleView):
         for shape in self.shape_dict.values():
             # for shape in self._shapes.get_all_shapes():
             if isinstance(shape, GraphicsLib.GraphicsItemLine):
-                (start_point, end_point) = shape.get_graphics_points()
+                (start_point, end_point) = shape.get_graphical_points()
                 if min(
                     start_point.start_coord[0], end_point.start_coord[0]
                 ) < select_middle_x < max(
