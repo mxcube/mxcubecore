@@ -396,6 +396,8 @@ class XalocMiniDiff(GenericDiffractometer):
         loc_centred_point['sampx'] = sampxpos + dy
         loc_centred_point['sampy'] = sampypos + dx
 
+        loc_centred_point = self.add_beam_position_to_centering_motors(loc_centred_point)
+
         # 20220706 RB: These lines cause the grid to move to the center of camera, do not use!
         #if return_by_names:
             #loc_centred_point = self.convert_from_obj_to_name(loc_centred_point)
@@ -556,7 +558,7 @@ class XalocMiniDiff(GenericDiffractometer):
     
     def move_to_beam(self, x, y, omega=None):
         """
-        Descript. : function to create a centring point based on all motors
+        Descript. : function to create a centring point based on all current motors
                     positions.
         """
         logging.getLogger("HWR").debug("move_to_beam x %s y %s" % (x,y) )
@@ -566,39 +568,48 @@ class XalocMiniDiff(GenericDiffractometer):
             if omega is not None:
                 pos["phiMotor"] = omega
             self.move_to_motors_positions(pos)
-            self.centring_status["motors"] = self.convert_from_obj_to_name( pos )
+            #self.centring_status["motors"] = self.convert_from_obj_to_name( pos )
             logging.getLogger("HWR").debug("centring_status %s" % self.centring_status)
         except Exception:
             logging.getLogger("HWR").exception(
                 "Diffractometer: could not center to beam, aborting"
             )
 
+    def add_beam_position_to_centering_motors(self, motor_pos):
+        """
+        """
+        logging.getLogger("HWR").debug(
+            "motor_pos %s" % str(motor_pos)
+        )
+        motor_pos["beam_x"] = (
+            self.beam_position[0] - self.zoom_centre["x"]
+        ) / self.pixels_per_mm_y
+        motor_pos["beam_y"] = (
+            self.beam_position[1] - self.zoom_centre["y"]
+        ) / self.pixels_per_mm_x
+        logging.getLogger("HWR").debug(
+            "motors %s" % str(motor_pos)
+        )
+        return motor_pos
 
-
-    #def start_move_to_beam(self, coord_x=None, coord_y=None, omega=None, wait_result=None):
-        #"""
-        #Descript. :
-        #"""
-        
-        ##TODO: add these things to a queue and execute the queue in the end.
-        #try:
-            #self.emit_progress_message("Move to beam...")
-            #self.centring_time = time.time()
-            #curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
-            #self.centring_status = {"valid": True,
-                                    #"startTime": curr_time,
-                                    #"endTime": curr_time}
-            #if (coord_x is None and
-                #coord_y is None):
-                #coord_x = self.beam_position[0]
-                #coord_y = self.beam_position[1]
-
-            #self.start_automatic_centring()
-            
-            ##TODO: should this be in the queue entry mount_sample method, calling XrayCenteringQueueEntry?
-            #self.current_centring_procedure_list = gevent.spawn ( self.start_3d_mesh_centring() )
-        #except Exception as ex:
-            #raise Exception(ex)
+    def convert_from_obj_to_name(self, motor_pos):
+        """
+        """
+        motors = {}
+        for motor_role in self.centring_motors_list:
+            motor_obj = self.get_object_by_role(motor_role)
+            try:
+                motors[motor_role] = motor_pos[motor_role]
+            except KeyError:
+                if motor_obj:
+                    motors[motor_role] = motor_obj.get_value()
+        motors["beam_x"] = (
+            self.beam_position[0] - self.zoom_centre["x"]
+        ) / self.pixels_per_mm_y
+        motors["beam_y"] = (
+            self.beam_position[1] - self.zoom_centre["y"]
+        ) / self.pixels_per_mm_x
+        return motors
 
     # Override GenericDiffractometer to add prepare_centring, which sets omega velocity to 60. 
     def start_automatic_centring(self, sample_info=None, loop_only=False, wait_result=None):
@@ -1247,7 +1258,7 @@ class XalocMiniDiff(GenericDiffractometer):
         Emit kappa_phiMotorMoved signal with position value.
         """
         self.current_motor_positions["kappa_phi"] = pos
-        self.emit("kappa_phiMotorMoved", pos)
+        self.emit("kappaPhiMotorMoved", pos)
 
     def kappa_phi_motor_state_changed(self, state):
         """
