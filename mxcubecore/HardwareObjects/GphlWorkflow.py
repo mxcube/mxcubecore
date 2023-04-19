@@ -2494,7 +2494,9 @@ class GphlWorkflow(HardwareObjectYaml):
                 raise ValueError("Test sample requires gphl_test_samples dir specified")
             sample_dir = os.path.join(sample_dir, sample_name)
             if not os.path.isdir(sample_dir):
-                raise RuntimeError("No emulation data found for ", sample_name)
+                raise RuntimeError(
+                    "No emulation data found for %s at %s " % (sample_name, sample_dir)
+                )
             crystal_file = os.path.join(sample_dir, "crystal.nml")
             if not os.path.isfile(crystal_file):
                 raise ValueError(
