@@ -19,12 +19,20 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 """
 Example xml file:
-<device class="ExporterMotor">
+<object class="ExporterMotor">
   <username>phiy</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <actuator_name>AlignmentY</actuator_name>
   <tolerance>1e-2</tolerance>
-</device>
+</object>
+optional parameters, with default values. To be used only if the values
+differ from the default ones.
+  The position attribute is actuator_name+position_suffix
+  <position_suffix>Position</position_suffix>
+  The state attribute is actuator_name+state_suffix
+  <state_suffix>State</state_suffix>
+  Use the global application state instead of the motor state.
+  <use_global_state>False</use_global_state>
 """
 
 import sys
@@ -44,20 +52,22 @@ class ExporterMotor(AbstractMotor):
     """Motor using the Exporter protocol, based on AbstractMotor"""
 
     def __init__(self, name):
-        AbstractMotor.__init__(self, name)
+        super().__init__(name)
         self._motor_pos_suffix = None
         self._motor_state_suffix = None
         self._exporter = None
         self._exporter_address = None
         self.motor_position_chan = None
         self.motor_state_chan = None
+        self.use_state = None
 
     def init(self):
         """Initialise the motor"""
-        AbstractMotor.init(self)
+        super().init()
 
         self._motor_pos_suffix = self.get_property("position_suffix", "Position")
         self._motor_state_suffix = self.get_property("state_suffix", "State")
+        self.use_state = self.get_property("use_global_state", False)
 
         self._exporter_address = self.get_property("exporter_address")
         _host, _port = self._exporter_address.split(":")
@@ -75,13 +85,17 @@ class ExporterMotor(AbstractMotor):
             self.get_value()
             self.motor_position_chan.connect_signal("update", self.update_value)
 
+        if self.use_state:
+            _name = "State"
+        else:
+            _name = self.actuator_name + self._motor_state_suffix
         self.motor_state_chan = self.add_channel(
             {
                 "type": "exporter",
                 "exporter_address": self._exporter_address,
                 "name": "motor_state",
             },
-            self.actuator_name + self._motor_state_suffix,
+            _name,
         )
 
         if self.motor_state_chan:
@@ -97,14 +111,14 @@ class ExporterMotor(AbstractMotor):
         try:
             _state = self.motor_state_chan.get_value().upper()
             self.specific_state = _state
-            return ExporterStates.__members__[_state].value
+            return ExporterStates[_state].value
         except (KeyError, AttributeError):
             return self.STATES.UNKNOWN
 
     def _update_state(self, state):
         try:
             state = state.upper()
-            state = ExporterStates.__members__[state].value
+            state = ExporterStates[state].value
         except (AttributeError, KeyError):
             state = self.STATES.UNKNOWN
         return self.update_state(state)
@@ -173,13 +187,13 @@ class ExporterMotor(AbstractMotor):
         Returns:
             (float): Motor position.
         """
-        _v = self.motor_position_chan.get_value()
+        _val = self.motor_position_chan.get_value()
 
-        if _v is None or math.isnan(_v):
+        if _val is None or math.isnan(_val):
             logging.getLogger("HWR").debug("Value of %s is NaN" % self.actuator_name)
-            _v = self._nominal_value
+            _val = self._nominal_value
 
-        self._nominal_value = _v
+        self._nominal_value = _val
 
         return self._nominal_value
 
@@ -200,8 +214,8 @@ class ExporterMotor(AbstractMotor):
                 _high = sys.float_info.max
 
             return _low, _high
-        except ValueError:
-            return -1e4, 1e4
+        except Exception:
+            return self._nominal_limits
 
     def get_limits(self):
         """Returns motor low and high limits.
