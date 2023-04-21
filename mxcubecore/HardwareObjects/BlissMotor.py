@@ -76,12 +76,12 @@ class BlissMotor(AbstractMotor):
     }
 
     def __init__(self, name):
-        AbstractMotor.__init__(self, name)
+        super().__init__(name)
         self.motor_obj = None
 
     def init(self):
         """Initialise the motor"""
-        AbstractMotor.init(self)
+        super().init()
         cfg = static.get_config()
         self.motor_obj = cfg.get(self.actuator_name)
 
@@ -114,17 +114,18 @@ class BlissMotor(AbstractMotor):
         """
         state = HardwareObjectState.UNKNOWN
         for stat in self.motor_obj.state.current_states_names:
-            if stat in HardwareObjectState.__members__:
+            try:
                 return HardwareObjectState[stat]
-            if stat == "DISABLED":
-                # we need to treat DISABLED before any other auxillary state
-                return HardwareObjectState.OFF
-            if stat == "MOVING":
-                # MOVING has higher priority than other auxillary states
-                return HardwareObjectState.BUSY
-            # finally the state will corresponf to the last in the list
-            # of the auxillary states.
-            state = self._state2enum(stat)[0]
+            except KeyError:
+                if stat == "DISABLED":
+                    # we need to treat DISABLED before any other auxillary state
+                    return HardwareObjectState.OFF
+                if stat == "MOVING":
+                    # MOVING has higher priority than other auxillary states
+                    return HardwareObjectState.BUSY
+                # finally the state will corresponf to the last in the list
+                # of the auxillary states.
+                state = self._state2enum(stat)[0]
         return state
 
     def get_specific_state(self):
