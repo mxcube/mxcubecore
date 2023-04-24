@@ -155,9 +155,9 @@ class MiniDiff(Equipment):
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
-                "name": "run_script",
+                "name": "runScript",
             },
-            "run_script",
+            "runScript",
         )
 
 
@@ -1085,4 +1085,4 @@ class MiniDiff(Equipment):
         self._run_script(script_cmd)
 
         if wait:
-            self._wait_ready(60)
+            self._wait_ready(300)

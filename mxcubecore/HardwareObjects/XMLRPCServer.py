@@ -161,6 +161,7 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.addXrayCentring)
         self._server.register_function(self.addGphlWorkflow)
         self._server.register_function(self.get_gphl_workflow_status)
+        self._server.register_function(self.clearISPyBClientGroupId)
 
         # Register functions from modules specified in <apis> element
         if self.has_object("apis"):
@@ -698,6 +699,9 @@ class XMLRPCServer(HardwareObject):
     def setToken(self, token):
         SecureXMLRpcRequestHandler.setReferenceToken(token)
 
+    def clearISPyBClientGroupId(self):
+        HWR.beamline.lims.group_id = None
+
     def addXrayCentring(self, parent_node_id, **centring_parameters):
         """Add Xray centring to queue."""
         from mxcubecore.HardwareObjects import queue_model_objects as qmo
@@ -705,8 +709,9 @@ class XMLRPCServer(HardwareObject):
         child_id = HWR.beamline.queue_model.add_child_at_id(parent_node_id, xc_model)
         return child_id
 
-    def addGphlWorkflow(self, parent_node_id, task_dict):
+    def addGphlWorkflow(self, parent_node_id, task_dict, workflow_id):
         """Add GPhL owrkflow to queue."""
+        self.workflow_id = workflow_id
         from mxcubecore.HardwareObjects import queue_model_objects as qmo
         gphl_model = qmo.GphlWorkflow()
         parent_model = HWR.beamline.queue_model.get_node(int(parent_node_id))

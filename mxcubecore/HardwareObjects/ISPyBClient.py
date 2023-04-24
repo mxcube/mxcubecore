@@ -174,6 +174,7 @@ class ISPyBClient(HardwareObject):
         self.ws_password = None
 
         self.base_result_url = None
+        self.group_id = None
 
     def init(self):
         """
@@ -1718,7 +1719,7 @@ class ISPyBClient(HardwareObject):
         """
         Stores or updates a DataCollectionGroup object.
         The entry is updated of the group_id in the
-        mx_collection dictionary is set to an exisitng
+        mx_collection dictionary is set to an exisiting
         DataCollectionGroup id.
 
         :param mx_collection: The dictionary of values to create the object from.
@@ -1728,13 +1729,17 @@ class ISPyBClient(HardwareObject):
         :rtype: int
         """
         if self._collection:
-            group = ISPyBValueFactory().dcg_from_dc_params(
-                self._collection, mx_collection
-            )
+            group_id = None
+            if mx_collection["ispyb_group_data_collections"]:
+                group_id = mx_collection.get("group_id", None)
+            if group_id is None:
+                # Create a new group id
+                group = ISPyBValueFactory().dcg_from_dc_params(
+                    self._collection, mx_collection
+                )
+                self.group_id = self._collection.service.storeOrUpdateDataCollectionGroup(group)
+            mx_collection["group_id"] = self.group_id
 
-            group_id = self._collection.service.storeOrUpdateDataCollectionGroup(group)
-
-            return group_id
 
     def _store_data_collection_group(self, group_data):
         """

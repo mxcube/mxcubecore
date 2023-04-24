@@ -638,6 +638,7 @@ class DataCollection(TaskNode):
         self.processing_msg_list = []
         self.workflow_id = None
         self.center_before_collect = False
+        self.ispyb_group_data_collections = False
 
     @staticmethod
     def set_processing_methods(processing_methods):
@@ -2635,6 +2636,7 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
             ],
             "skip_images": acq_params.skip_existing_images,
             "motors": centred_pos.as_dict() if centred_pos is not None else {},
+            "ispyb_group_data_collections": data_collection.ispyb_group_data_collections
         }
     ]
 

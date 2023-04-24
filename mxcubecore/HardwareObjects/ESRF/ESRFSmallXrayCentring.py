@@ -27,8 +27,6 @@ import time
 import logging
 import requests
 
-from mxcubecore.HardwareObjects import queue_model_objects
-
 from mxcubecore.HardwareObjects.abstract.AbstractXrayCentring import AbstractXrayCentring
 
 from mxcubecore import HardwareRepository as HWR
@@ -50,8 +48,11 @@ class ESRFSmallXrayCentring(AbstractXrayCentring):
         workflow_name = "SmallXrayCentring"
         bes_host = "mxbes2-1707"
         bes_port = 38180
+        task_group_node_id = self._data_collection_group._node_id
         dict_parameters = json.loads(json.dumps(HWR.beamline.workflow.dict_parameters))
+        dict_parameters["sample_node_id"] = task_group_node_id
         dict_parameters["end_workflow_in_mxcube"] = False
+        dict_parameters["workflow_id"] = HWR.beamline.xml_rpc_server.workflow_id
         logging.getLogger("HWR").info("Starting workflow {0}".format(workflow_name))
         logging.getLogger("HWR").info(
             "Starting a workflow on http://%s:%d/BES" % (bes_host, bes_port)
@@ -65,6 +66,7 @@ class ESRFSmallXrayCentring(AbstractXrayCentring):
             logging.getLogger("HWR").info("Workflow started, request id: %r" % request_id)
         else:
             logging.getLogger("HWR").error("Workflow didn't start!")
+            logging.getLogger("HWR").error(response.text)
         status_url = os.path.join(bes_url, "STATUS", str(request_id))
         logging.getLogger("HWR").info("STATUS URL: %r" % status_url)
         start_time = time.time()
