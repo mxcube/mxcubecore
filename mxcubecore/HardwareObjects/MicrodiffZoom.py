@@ -33,7 +33,6 @@ EL6": 6}</values>
 """
 
 from enum import Enum
-from mxcubecore.HardwareObjects.abstract.AbstractNState import BaseValueEnum
 from mxcubecore.HardwareObjects.ExporterNState import ExporterNState
 
 __copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
@@ -43,14 +42,10 @@ __license__ = "LGPLv3+"
 class MicrodiffZoom(ExporterNState):
     """MicrodiffZoom class"""
 
-    def __init__(self, name):
-        super().__init__(name)
-
     def init(self):
         """Initialize the zoom"""
         super().init()
 
-        self.initialise_values()
         # check if we have values other that UNKNOWN
         _len = len(self.VALUES) - 1
         if _len > 0:
@@ -95,10 +90,10 @@ class MicrodiffZoom(ExporterNState):
         """Initialise the ValueEnum from the limits"""
         low, high = self.get_limits()
 
-        values = {"LEVEL%s" % str(v): v for v in range(low, high + 1)}
+        values = {f"LEVEL{v}": v for v in range(low, high + 1)}
         self.VALUES = Enum(
             "ValueEnum",
-            dict(values, **{item.name: item.value for item in BaseValueEnum}),
+            dict(values, **{item.name: item.value for item in self.VALUES}),
         )
 
     def _get_range(self):
