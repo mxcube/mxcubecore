@@ -2050,6 +2050,7 @@ class GphlWorkflow(HardwareObjectYaml):
             data_collections.append(data_collection)
 
             data_collection.set_enabled(True)
+            data_collection.ispyb_group_data_collections = True
             data_collection.set_name(path_template.get_prefix())
             data_collection.set_number(path_template.run_number)
             self._add_to_queue(self._data_collection_group, data_collection)
@@ -2392,6 +2393,7 @@ class GphlWorkflow(HardwareObjectYaml):
             self._add_to_queue(parent, centring_model)
         centring_entry = queue_manager.get_entry_with_model(centring_model)
         centring_entry.in_queue = in_queue
+        centring_entry.set_enabled(True)
 
         return centring_entry
 

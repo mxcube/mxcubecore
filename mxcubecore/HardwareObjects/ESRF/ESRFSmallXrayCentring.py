@@ -27,8 +27,6 @@ import time
 import logging
 import requests
 
-from mxcubecore.model import queue_model_objects
-
 from mxcubecore.HardwareObjects.abstract.AbstractXrayCentring import (
     AbstractXrayCentring,
 )
