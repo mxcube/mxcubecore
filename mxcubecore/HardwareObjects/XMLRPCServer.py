@@ -707,6 +707,7 @@ class XMLRPCServer(HardwareObject):
     def addGphlWorkflow(self, parent_node_id, task_dict, workflow_id):
         """Add GPhL owrkflow to queue."""
         self.workflow_id = workflow_id
+        from mxcubecore.model import queue_model_objects as qmo
         gphl_model = qmo.GphlWorkflow()
         from mxcubecore.model import queue_model_objects as qmo
         parent_model = HWR.beamline.queue_model.get_node(int(parent_node_id))
