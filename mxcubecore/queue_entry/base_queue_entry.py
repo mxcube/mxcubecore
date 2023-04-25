@@ -432,16 +432,16 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                     sample_model.lims_sample_location
                 )
 
-            # try:
-            #     gid = HWR.beamline.lims._store_data_collection_group(group_data)
-            #     self.get_data_model().lims_group_id = gid
-            # except Exception as ex:
-            #     msg = (
-            #         "Could not create the data collection group"
-            #         + " in LIMS. Reason: "
-            #         + str(ex)
-            #     )
-            #     raise QueueExecutionException(msg, self)
+            try:
+                gid = HWR.beamline.lims._store_data_collection_group(group_data)
+                self.get_data_model().lims_group_id = gid
+            except Exception as ex:
+                msg = (
+                    "Could not create the data collection group"
+                    + " in LIMS. Reason: "
+                    + str(ex)
+                )
+                raise QueueExecutionException(msg, self)
 
         self.interleave_items = []
         if init_ref_images:
