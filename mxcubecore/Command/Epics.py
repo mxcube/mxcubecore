@@ -220,9 +220,11 @@ class EpicsChannel(ChannelObject):
 
     def get_value(self):
         return self.command()
-
+    def getValue(self):
+        return self.command()
     def set_value(self, value):
         self.command(value)
-
+    def setValue(self, value):
+        self.command(value)
     def is_connected(self):
         return self.command.is_connected()

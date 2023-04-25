@@ -337,6 +337,8 @@ class HardwareObjectNode(object):
         else:
             for obj in self.__objects[index]:
                 yield obj
+    def getObjectByRole(self, role):
+        self.get_object_by_role(role)
 
     def get_object_by_role(self, role):
         object = None

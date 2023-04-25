@@ -34,7 +34,8 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self._is_stopped = False
 
     def init(self):
-        site_entry_path = self.get_property("site_entry_path", "ESRF")
+        # site_entry_path = self.get_property("site_entry_path", "ESRF")
+        site_entry_path = self.get_property("site_entry_path", "")
         queue_entry.import_queue_entries(site_entry_path.split(","))
 
     def __getstate__(self):

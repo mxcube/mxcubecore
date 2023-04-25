@@ -75,7 +75,7 @@ class Aperture(AbstractAperture):
 
 
         self.chan_position = self.get_channel_object("AperturePosition")
-        print("aperture position is:", self.chan_position)
+        print("aperture position is:", self.chan_position.value)
         if self.chan_position:
             self._current_position_name = self.chan_position.get_value()
             self.current_position_name_changed(self._current_position_name)
