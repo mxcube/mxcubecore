@@ -1,5 +1,5 @@
 <object class="MultiCollectMockup">
-  <object href="/minidiff" role="diffractometer"/>
+  <object href="bl19u/md2.xml" role="diffractometer"/>
   <object href="/mxlocal" role="beamline_configuration"/>
   <object href="/sc" role="sample_changer"/>
   <object href="/energy" role="energy"/>

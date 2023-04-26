@@ -492,3 +492,18 @@ class LNLSPilatusDet(AbstractDetector):
             "Error while setting Pilatus angle increment. Please, check the detector."
         )
         return False
+    def get_pixel_size_x(self):
+        """
+        return sizes of a single pixel along x-axis respectively
+        unit, mm
+        """
+
+        return 0.000172
+
+    def get_pixel_size_y(self):
+        """
+        return sizes of a single pixel along x-axis respectively
+        unit, mm
+        """
+
+        return 0.000172
