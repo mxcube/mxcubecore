@@ -40,7 +40,6 @@ _objects:
     - sample_changer: sc.xml
     #- sample_changer_maintenance: sc_maint.xml
     #- plate_manipulator: plate_manipulator.xml
-    #- diffractometer: bl19u/udiff.xml
     #- diffractometer: minidiff.xml
     - diffractometer: bl19u/md2.xml
 
@@ -52,8 +51,8 @@ _objects:
     # Procedures:
     - beamline_actions: beamline_actions.xml
     - workflow: ednaparams.xml
-    - collect: mxcollect.xml
-    #- collect: bl19u/mxcollect.xml
+    #- collect: mxcollect.xml
+    - collect: bl19u/mxcollect.xml
     - xrf_spectrum: bl19u/xrf.xml
     - energy_scan: bl19u/energyscan.xml
     #- gphl_connection: gphl/gphl-setup.yml

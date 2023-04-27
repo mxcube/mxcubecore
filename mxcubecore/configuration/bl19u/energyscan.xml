@@ -5,7 +5,7 @@
   <theoritical_edge_threshold>0.01</theoritical_edge_threshold>
   <min_integrated_counts>2000</min_integrated_counts>
   <max_integrated_counts>50000</max_integrated_counts>
-  <device hwrid="/fluodet" role="fluodet"/>
+  <device hwrid="bl19u/fluodet" role="fluodet"/>
 
   <elements>
     <element>
