@@ -403,58 +403,6 @@ SPACEGROUP_DATA = [
 ]
 SPACEGROUP_MAP = OrderedDict((info.name, info) for info in SPACEGROUP_DATA)
 
-# laue_group2lattices = {
-#     "-1": "Triclinic",
-#     "2/m": "Monoclinic",
-#     "mmm": "Orthorhombic",
-#     "4/m": "Tetragonal",
-#     "4/mmm": "Tetragonal",
-#     "-3": "Hexagonal",
-#     "-3m": "Hexagonal",
-#     "6/m": "Hexagonal",
-#     "6/mmm": "Hexagonal",
-#     "m-3": "Cubic",
-#     "m-3m": "Cubic",
-# }
-#
-# lattice2letters = {
-#     "Triclinic": "a",
-#     "Monoclinic": "m",
-#     "Orthorhombic": "o",
-#     "Tetragonal": "t",
-#     "Hexagonal": "h",
-#     "Cubic": "c",
-# }
-# lattice2point_groups = {
-#     "Triclinic": [],
-#     "Monoclinic": [],
-#     "Orthorhombic": [],
-#     "Tetragonal": [],
-#     "Hexagonal": [],
-#     "Cubic": [],
-# }
-# lattice2xtal_point_groups = {
-#     "Triclinic": [],
-#     "Monoclinic": [],
-#     "Orthorhombic": [],
-#     "Tetragonal": [],
-#     "Hexagonal": [],
-#     "Cubic": [],
-# }
-# point_groups = []
-# xtal_point_groups = []
-# for sg in SPACEGROUP_DATA:
-#     point_group = sg.point_group
-#     if point_group:
-#         lattice = laue_group2lattices[sg.laue_group]
-#         ll0 =  lattice2point_groups[lattice]
-#         if point_group not in ll0:
-#             ll0.append(point_group)
-#             point_groups.append(point_group)
-#             if point_group.isdigit():
-#                 xtal_point_groups.append(point_group)
-#                 lattice2xtal_point_groups[lattice].append(point_group)
-
 # Space group names for space groups compatible with chiral molecules,
 # i.e. that do not contain mirror planes or centres of symmetry,
 # in order of space group number

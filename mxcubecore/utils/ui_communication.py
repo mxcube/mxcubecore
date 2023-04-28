@@ -32,8 +32,11 @@ class AbstractValuesMap:
 
     __metaclass__ = abc.ABCMeta
 
+    # Override in individual objects to ntemporarioy block update functions
+    block_updates = False
+
     def set_values(self, **kwargs):
-        """For each tag,val in kwargs set gui parametet tag, to value value
+        """For each tag,val in kwargs set gui parameter tag, to value value
 
         Args:
             **kwargs: parameter name:value
@@ -47,6 +50,21 @@ class AbstractValuesMap:
         """
 
         Returns: dict # str:parameter_name: Any:parameter_value
+
+        """
+        raise NotImplementedError()
+
+    def reset_options(self, widget_name, **options):
+        """Function to reset widgets.
+        As of 202304 only the option 'value_dict' is supported
+        - a label:value dictionary that sets the enum for pulldowns.
+        More options may be supported in the future.
+
+        Args:
+            widget_name: Name of widget to modify
+            **options: name and value of options to reset
+
+        Returns: None
 
         """
         raise NotImplementedError()
