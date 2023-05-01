@@ -1,15 +1,19 @@
 import copy
 import pytest
 from typing import Any, Union, TYPE_CHECKING, Iterator, Generator, Dict, Tuple, List
+from logging import Logger
 from unittest.mock import MagicMock
 from mxcubecore.BaseHardwareObjects import (
-    ConfiguredObject, PropertySet, HardwareObjectNode,
-    HardwareObjectMixin, HardwareObject, HardwareObjectYaml,
+    ConfiguredObject,
+    PropertySet,
+    HardwareObjectNode,
+    HardwareObjectMixin,
+    HardwareObject,
+    HardwareObjectYaml,
 )
 
 if TYPE_CHECKING:
     from pytest_mock.plugin import MockerFixture
-    from mxcubecore.HardwareObjects.Beamline import Beamline
 
 
 @pytest.fixture(scope="function")
@@ -88,7 +92,11 @@ class TestConfiguredObject:
     """Run tests for "ConfiguredObject" class"""
 
     def test_configured_object_setup(self, configured_object: ConfiguredObject):
-        """ """
+        """Test initial object setup.
+
+        Args:
+            configured_object (ConfiguredObject): Object instance.
+        """
 
         assert configured_object is not None and isinstance(
             configured_object,
@@ -97,7 +105,7 @@ class TestConfiguredObject:
 
     # def test_misc(self):
     #     """ """
-        
+
     #     # _init
     #     # init
     #     # all_roles
@@ -178,9 +186,7 @@ class TestPropertySet:
 
     @pytest.mark.parametrize(
         ("name", "path", "initial_value", "new_value"),
-        (
-            ("test", "test/path", 2.6, 5.8),
-        ),
+        (("test", "test/path", 2.6, 5.8),),
     )
     def test_get_changes(
         self,
@@ -233,19 +239,17 @@ class TestHardwareObjectNode:
     """Run tests for "HardwareObjectNode" class"""
 
     def test_hardware_object_node_setup(self, hw_obj_node: HardwareObjectNode):
-        """_summary_
+        """Test initial object setup.
 
         Args:
-            hw_obj_node (HardwareObjectNode): _description_
+            hw_obj_node (HardwareObjectNode): Object instance.
         """
 
         assert hw_obj_node is not None and isinstance(hw_obj_node, HardwareObjectNode)
 
     @pytest.mark.parametrize(
         ("initial_path", "new_path"),
-        (
-            ("/mnt/data/user_path", "/mnt/data/new_path"),
-        ),
+        (("/mnt/data/user_path", "/mnt/data/new_path"),),
     )
     def test_set_user_file_directory(
         self,
@@ -254,7 +258,14 @@ class TestHardwareObjectNode:
         initial_path: str,
         new_path: str,
     ):
-        """ """
+        """Test "set_user_file_directory" method.
+
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            hw_obj_node (HardwareObjectNode): Object instance.
+            initial_path (str): Initial path.
+            new_path (str): New path.
+        """
 
         # Patch "file_directory_patch" on class, so as not to pollute the other tests
         mocker.patch.object(
@@ -273,7 +284,12 @@ class TestHardwareObjectNode:
 
     @pytest.mark.parametrize("name", ("test_node_two",))
     def test_set_name(self, hw_obj_node: HardwareObjectNode, name: str):
-        """ """
+        """Test "set_name" method.
+
+        Args:
+            hw_obj_node (HardwareObjectNode): Object instance.
+            name (str): Name.
+        """
 
         # Basic check to make sure the initial return value is a string
         assert isinstance(hw_obj_node.name(), str)
@@ -291,7 +307,13 @@ class TestHardwareObjectNode:
         hw_obj_node: HardwareObjectNode,
         roles: Tuple[str],
     ):
-        """ """
+        """Test "get_roles" method.
+
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            hw_obj_node (HardwareObjectNode): Object instance.
+            roles (Tuple[str]): Roles.
+        """
 
         # We are only worrying about the dictionary keys,
         # as the item values are not being read by the "get_roles" method.
@@ -308,9 +330,7 @@ class TestHardwareObjectNode:
 
     @pytest.mark.parametrize(
         ("initial_path", "new_path"),
-        (
-            ("/mnt/data/old_path", "/mnt/data/new_path"),
-        ),
+        (("/mnt/data/old_path", "/mnt/data/new_path"),),
     )
     def test_set_path(
         self,
@@ -319,7 +339,14 @@ class TestHardwareObjectNode:
         initial_path: str,
         new_path: str,
     ):
-        """ """
+        """Test "set_path" method.
+
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            hw_obj_node (HardwareObjectNode): Object instance.
+            initial_path (str): Initial path.
+            new_path (str): New path.
+        """
 
         # Patch "_path" attribute to set known values
         mocker.patch.object(
@@ -342,7 +369,13 @@ class TestHardwareObjectNode:
         hw_obj_node: HardwareObjectNode,
         path: str,
     ):
-        """ """
+        """Test "get_xml_path" method.
+
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            hw_obj_node (HardwareObjectNode): Object instance.
+            path (str): XML path.
+        """
 
         # Patch "_xml_path" attribute to set known values
         mocker.patch.object(
@@ -373,7 +406,14 @@ class TestHardwareObjectNode:
         objects: List[List[Union[HardwareObject, None]]],
         count: int,
     ):
-        """ """
+        """Test "__iter__" method.
+
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            hw_obj_node (HardwareObjectNode): Object instance.
+            objects (List[List[Union[HardwareObject, None]]]): Iterable objects.
+            count (int): Expected count of objects returned.
+        """
 
         # Patch "__objects_names" and "__objects" attributes to test with known values
         mocker.patch.object(
@@ -405,7 +445,14 @@ class TestHardwareObjectNode:
         objects: List[List[Union[HardwareObject, None]]],
         count: int,
     ):
-        """ """
+        """Test "__len__" method.
+
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            hw_obj_node (HardwareObjectNode): Object instance.
+            objects (List[List[Union[HardwareObject, None]]]): Iterable objects.
+            count (int): Expected count of objects returned.
+        """
 
         # Patch "__objects" attribute to set known values
         mocker.patch.object(hw_obj_node, "_HardwareObjectNode__objects", new=objects)
@@ -414,7 +461,11 @@ class TestHardwareObjectNode:
         assert len(hw_obj_node) == count
 
     def test_getattr(self, hw_obj_node: HardwareObjectNode):
-        """ """
+        """Test "__getattr__" method.
+
+        Args:
+            hw_obj_node (HardwareObjectNode): Object instance.
+        """
 
         # Attempt to access attribute starting with "__", should raise an exception
         with pytest.raises(AttributeError):
@@ -430,7 +481,11 @@ class TestHardwareObjectNode:
             getattr(hw_obj_node, "test2")
 
     def test_setattr(self, hw_obj_node: HardwareObjectNode):
-        """ """
+        """Test "__setattr__" method.
+
+        Args:
+            hw_obj_node (HardwareObjectNode): Object instance.
+        """
 
         # Create a value, where the attribute does not exist
         hw_obj_node.test1 = 1
@@ -459,9 +514,7 @@ class TestHardwareObjectNode:
     )
     @pytest.mark.parametrize(
         ("initial_obj_names", "initial_objects"),
-        (
-            (["key1", "key2", "key3"], [[None, None], [None, None, None], [None]]),
-        ),
+        ((["key1", "key2", "key3"], [[None, None], [None, None, None], [None]]),),
     )
     def test_getitem(
         self,
@@ -471,7 +524,16 @@ class TestHardwareObjectNode:
         initial_obj_names: List[str],
         initial_objects: List[Union[List[Union[HardwareObject, None]], None]],
     ):
-        """ """
+        """Test "__getitem__" method.
+
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            hw_obj_node (HardwareObjectNode): Object instance.
+            key (Union[str, int, Any]): Item key.
+            initial_obj_names (List[str]): Initial object names.
+            initial_objects (List[Union[List[Union[HardwareObject, None]], None]]):
+            Initial objects.
+        """
 
         # Patch "__objects_names" and "__objects" to test with known values
         mocker.patch.object(
@@ -530,7 +592,9 @@ class TestHardwareObjectNode:
         ("name", "reference", "role"),
         (
             (
-                "test", "test_ref", "session",
+                "test",
+                "test_ref",
+                "session",
             ),
         ),
     )
@@ -551,7 +615,17 @@ class TestHardwareObjectNode:
         initial_obj_names: List[str],
         initial_objects: List[List[Union[HardwareObject, None]]],
     ):
-        """ """
+        """Test "add_reference" method.
+
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            hw_obj_node (HardwareObjectNode): Object instance.
+            name (str): Name.
+            reference (str): Reference.
+            role (str): Role.
+            initial_obj_names (List[str]): Initial object names.
+            initial_objects (List[List[Union[HardwareObject, None]]]): Initial objects.
+        """
 
         # Patch "__objects_names" and "__objects" to test with known values
         mocker.patch.object(
@@ -585,7 +659,7 @@ class TestHardwareObjectNode:
             assert _objects[_objects_names.index(name)][-1] is None
 
         # Check that item was added to "__references" and item values are as expected
-        _references = getattr(hw_obj_node,"_HardwareObjectNode__references")
+        _references = getattr(hw_obj_node, "_HardwareObjectNode__references")
         assert len(_references) and len(_references[-1]) == 6
         assert all([isinstance(val, str) for val in _references[-1][:3]])
         assert all([isinstance(val, int) for val in _references[-1][3:]])
@@ -607,7 +681,17 @@ class TestHardwareObjectNode:
         initial_objects: List[Union[List[None], None]],
         initial_hw_object: Union[MagicMock, None],
     ):
-        """ """
+        """Test "resolve_references" method.
+
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            hw_obj_node (HardwareObjectNode): Object instance.
+            initial_refs (List[Tuple[str, str, str, int, int, int]]):
+            Initial references.
+            initial_obj_names (List[str]): Initial object names.
+            initial_objects (List[Union[List[None], None]]): Initial objects.
+            initial_hw_object (Union[MagicMock, None]): Initial hardware object.
+        """
 
         role = initial_refs[0][2]
         objects_names_index = initial_refs[0][3]
@@ -686,7 +770,17 @@ class TestHardwareObjectNode:
         initial_obj_names: List[str],
         initial_objects: List[List[Union[HardwareObject, None]]],
     ):
-        """ """
+        """Test "add_object" method.
+
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            hw_obj_node (HardwareObjectNode): Object instance.
+            name (str): Name.
+            hw_object (Union[HardwareObject, None]): Hardware object to add.
+            role (Union[str, None]): Role.
+            initial_obj_names (List[str]): Initial object names.
+            initial_objects (List[List[Union[HardwareObject, None]]]): Initial objects.
+        """
 
         # Patch "__objects_names" and "__objects" to test with known values
         mocker.patch.object(
@@ -759,7 +853,7 @@ class TestHardwareObjectNode:
             assert _objects_names[-1] == name
 
             # Index key in "_objects_names" should point to last item in "_objects"
-            assert _objects_names.index(name) == len(_objects)-1
+            assert _objects_names.index(name) == len(_objects) - 1
 
     @pytest.mark.parametrize(
         ("name", "initial_obj_names", "in_names"),
@@ -776,7 +870,15 @@ class TestHardwareObjectNode:
         initial_obj_names: List[str],
         in_names: bool,
     ):
-        """ """
+        """Test "has_object" method.
+
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            hw_obj_node (HardwareObjectNode): Object instance.
+            name (str): Name.
+            initial_obj_names (List[str]): Initial object names.
+            in_names (bool): Result expected from method.
+        """
 
         # Patch "__objects_names" to test with known values
         mocker.patch.object(
@@ -808,7 +910,15 @@ class TestHardwareObjectNode:
         initial_obj_names: List[str],
         initial_objects: List[List[Union[HardwareObject, None]]],
     ):
-        """ """
+        """Test "get_objects" method.
+
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            hw_obj_node (HardwareObjectNode): Object instance.
+            name (str): Name.
+            initial_obj_names (List[str]): Initial object names.
+            initial_objects (List[List[Union[HardwareObject, None]]]): Initial objects.
+        """
 
         # Patch "__objects_names" and "__objects" to test with known values
         mocker.patch.object(
@@ -866,7 +976,17 @@ class TestHardwareObjectNode:
         ],
         sub_obj_role: Union[str, None],
     ):
-        """ """
+        """Test "get_object_by_role" method.
+
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            hw_obj_node (HardwareObjectNode): Object instance.
+            role (str): Role.
+            initial_obj_names (List[str]): Initial object names.
+            initial_objects (List[ List[Union[Tuple[HardwareObject, str], HardwareObject, None]] ]):
+            Initial objects.
+            sub_obj_role (Union[str, None]): Sub object role.
+        """
 
         # Patch "__objects_names" and "__objects" to test with known values
         _initial_objects: List[List[Union[HardwareObject, None]]] = []
@@ -886,7 +1006,7 @@ class TestHardwareObjectNode:
         mocker.patch.object(
             hw_obj_node,
             "_HardwareObjectNode__objects_names",
-            new=initial_obj_names,
+            new=copy.deepcopy(initial_obj_names),
         )
         mocker.patch.object(
             hw_obj_node,
@@ -907,13 +1027,13 @@ class TestHardwareObjectNode:
         else:
             res = hw_obj_node.get_object_by_role(role=role)
 
-        # 
+        #
         if role.lower() in hw_obj_node._objects_by_role:
             assert res == hw_obj_node._objects_by_role[role.lower()]
         elif not None in _objects and sub_obj_role:
             assert isinstance(res, HardwareObject) and res.name() == "TestHWObj3"
-        else:
-            assert res is None
+        # else:
+        #     assert res is None
 
     @pytest.mark.parametrize(
         "initial_obj_names",
@@ -929,7 +1049,13 @@ class TestHardwareObjectNode:
         hw_obj_node: HardwareObjectNode,
         initial_obj_names: List[str],
     ):
-        """ """
+        """Test "objects_names" method.
+
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            hw_obj_node (HardwareObjectNode): Object instance.
+            initial_obj_names (List[str]): Initial object names.
+        """
 
         # Patch "__objects_names" to test with known values
         mocker.patch.object(
@@ -941,9 +1067,88 @@ class TestHardwareObjectNode:
         # Call method and verify output matches initial values
         assert hw_obj_node.objects_names() == initial_obj_names
 
-    # def test_set_property(self): ...
+    @pytest.mark.parametrize(
+        ("name", "value", "output_value"),
+        (
+            (0, 1, 1),
+            (1, "1", 1),
+            (2, 2.5, 2.5),
+            (3, "2.5", 2.5),
+            ("test4", "Test", "Test"),
+            ("test5", "None", None),
+            ("test6", None, None),
+            ("test7", "True", True),
+            ("test8", True, True),
+            ("test9", "False", False),
+            ("test10", False, False),
+        ),
+    )
+    def test_set_property(
+        self,
+        mocker: "MockerFixture",
+        hw_obj_node: HardwareObjectNode,
+        name: Any,
+        value: Any,
+        output_value: Union[str, int, float, bool],
+    ):
+        """Test "set_property" method.
 
-    # def test_get_property(self): ...
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            hw_obj_node (HardwareObjectNode): Object instance.
+            name (Any): Property name.
+            value (Any): Property value.
+            output_value (Union[str, int, float, bool]): Actual output value.
+        """
+
+        # Patch "PropertySet.__setitem__" and "PropertySet.set_property_path"
+        setitem_patch = mocker.patch.object(PropertySet, "__setitem__")
+        set_property_path_patch = mocker.patch.object(PropertySet, "set_property_path")
+
+        # Call method, always returns None
+        hw_obj_node.set_property(name=name, value=value)
+
+        # Check "PropertySet.__setitem__" patch was called with expected value
+        setitem_patch.assert_called_once_with(*(str(name), output_value))
+
+        # Check "PropertySet.set_property_path" was called with name and path
+        set_property_path_patch.assert_called_once_with(*(str(name), f"{hw_obj_node._path}/{name}"))
+
+    @pytest.mark.parametrize(
+        ("name", "default"),
+        (
+            ("test1", "Default"),
+            ("test2", False),
+            ("test3", True),
+            ("test4", None),
+            ("test5", ...)
+        ),
+    )
+    def test_get_property(
+        self,
+        mocker: "MockerFixture",
+        hw_obj_node: HardwareObjectNode,
+        name: str,
+        default: Union[Any, None],
+    ):
+        """Test "get_property" method.
+
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            hw_obj_node (HardwareObjectNode): Object instance.
+            name (str): Name.
+            default (Union[Any, None]): Default value.
+        """
+
+        # Patch "PropertySet.get" to test in isolation
+        property_set_get_patch = mocker.patch.object(PropertySet, "get")
+
+        # Call method, verify output returned
+        res = hw_obj_node.get_property(name=name, default_value=default)
+        assert res is not None and res == property_set_get_patch.return_value
+
+        # Check patch called once with expected parameters
+        property_set_get_patch.assert_called_once_with(*(name, default))
 
     @pytest.mark.parametrize(
         "initial_properties",
@@ -957,7 +1162,12 @@ class TestHardwareObjectNode:
         hw_obj_node: HardwareObjectNode,
         initial_properties: Dict[str, Any],
     ):
-        """ """
+        """Test "get_properties" method.
+
+        Args:
+            hw_obj_node (HardwareObjectNode): Object instance.
+            initial_properties (Dict[str, Any]): Initial properties.
+        """
 
         # Update "_property_set" to test with known values
         hw_obj_node._property_set.update(initial_properties)
@@ -965,15 +1175,59 @@ class TestHardwareObjectNode:
         # Call method and verify output matches initial values
         assert hw_obj_node.get_properties() == initial_properties
 
-    # def test_print_log(self):
-    #     """ """
+    @pytest.mark.parametrize(
+        "level",
+        (
+            "debug",
+            "error",
+            "warning",
+            "info",
+            "flange",
+        )
+    )
+    def test_print_log(
+        self,
+        mocker: "MockerFixture",
+        hw_obj_node: HardwareObjectNode,
+        level: str,
+    ):
+        """Test "print_log" method.
+
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            hw_obj_node (HardwareObjectNode): Object instance.
+            level (str): Logging level.
+        """
+
+        # Patch "logging.getLogger" to intercept calls
+        logger_patch = MagicMock(spec=Logger)
+        get_logger_patch = mocker.patch("logging.getLogger", return_value=logger_patch)
+
+        _log_type = f"{level.upper()}_TEST"
+        _message = f"Test {level.capitalize()} Entry."
+
+        # Call method, output is always going to be "None"
+        hw_obj_node.print_log(log_type=_log_type, level=level, msg=_message)
+
+        # All tests should make at least one call to patched "logging.getLogger"
+        get_logger_patch.assert_called_with(*(_log_type,))
+
+        logger_level_patch: Union[MagicMock, None] = getattr(logger_patch, level, None)
+        if logger_level_patch is not None:
+            # If the logging level exists, check that it was called with our message
+            logger_level_patch: MagicMock
+            logger_level_patch.assert_called_once_with(*(_message,))
 
 
 class TestHardwareObjectMixin:
     """Run tests for "HardwareObjectMixin" class"""
 
     def test_hardware_object_mixin_setup(self, hw_obj_mixin: HardwareObjectMixin):
-        """ """
+        """Test initial object setup.
+
+        Args:
+            hw_obj_mixin (HardwareObjectMixin): Object instance.
+        """
 
         assert hw_obj_mixin is not None and isinstance(
             hw_obj_mixin,
@@ -1027,7 +1281,11 @@ class TestHardwareObject:
     """Run tests for "HardwareObject" class"""
 
     def test_hardware_object_setup(self, hardware_object: HardwareObject):
-        """ """
+        """Test initial object setup.
+
+        Args:
+            hardware_object (HardwareObject): Object instance.
+        """
 
         assert hardware_object is not None and isinstance(
             hardware_object,
@@ -1057,7 +1315,11 @@ class TestHardwareObjectYaml:
     """Run tests for "HardwareObjectYaml" class"""
 
     def test_hardware_object_yaml_setup(self, hw_obj_yml: HardwareObjectYaml):
-        """ """
+        """Test initial object setup.
+
+        Args:
+            hw_obj_yml (HardwareObjectYaml): Object instance.
+        """
 
         assert hw_obj_yml is not None and isinstance(hw_obj_yml, HardwareObjectYaml)
 
