@@ -90,7 +90,7 @@ class PyISPyBClient(HardwareObject):
 
                 self._configuration = Configuration(
                     host=self._host,
- #                   access_token=api_response.body.token,
+                    # access_token=api_response.body.token,
                 )
                 self._configuration.access_token = api_response.body.token
             except pyispyb_client.ApiException as e:
@@ -137,18 +137,21 @@ class PyISPyBClient(HardwareObject):
                         "size_Y": -1.0,
                         "size_Z": -1.0,
                         "abundance": -1.0,
-                        "protein":{
-                            "name":"name",
-                            "acronym":"acronym_example",
+                        "protein": {
+                            "name": "name",
+                            "acronym": "acronym_example",
                         },
-                        "components": [{
+                        "components": [
+                            {
                                 "name": "name",
                                 "componentType": "Ligand",
                                 "composition": "composition_example",
                                 "abundance": -1.0,
                             },
                         ],
-                    },"components":[{
+                    },
+                    "components": [
+                        {
                             "name": "name",
                             "componentType": "Ligand",
                             "composition": "composition_example",
@@ -239,6 +242,7 @@ class PyISPyBClient(HardwareObject):
                     ssx_data_collection_create
                 )
                 import pprint
+
                 pprint.pprint(api_response)
             except pyispyb_client.ApiException as e:
                 print(

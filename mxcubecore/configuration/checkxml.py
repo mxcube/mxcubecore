@@ -26,10 +26,13 @@ def check_xml(rpath="."):
 
                 _data_to_validate = data[list(data.keys())[0]]
 
-
                 try:
-                    config_model_class_name = _data_to_validate["@class"].strip("Mockup")
-                    config_model = getattr(configmodel, f"{config_model_class_name}ConfigModel", None)
+                    config_model_class_name = _data_to_validate["@class"].strip(
+                        "Mockup"
+                    )
+                    config_model = getattr(
+                        configmodel, f"{config_model_class_name}ConfigModel", None
+                    )
                 except KeyError:
                     print(f"{Fore.RED}WARNING in: {fpath}")
                     print(f"{Fore.RED}WARNING: no class")
