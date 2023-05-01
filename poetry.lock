@@ -2241,7 +2241,7 @@ files = [
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -2520,4 +2520,4 @@ tango = ["PyTango"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7,<3.11"
-content-hash = "4e3047e6702177c30849cdb98c52623d1ddd2106aba59807edab58c85042977d"
+content-hash = "bd6ac1cc564bdaf4ed53fa87fb8f9c62cd928354f0aa5f893af66fa1324dc374"
