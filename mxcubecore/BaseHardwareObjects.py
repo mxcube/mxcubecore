@@ -168,11 +168,11 @@ class PropertySet(dict):
         self.__properties_changed: Dict[str, Any] = {}
         self.__properties_path: Dict[str, Any] = {}
 
-    def set_property_path(self, name: Union[str, Any], path: Union[str, Any]) -> None:
+    def set_property_path(self, name: str, path: Union[str, Any]) -> None:
         """Set Property Path.
 
         Args:
-            name (Union[str, Any]): Name.
+            name (str): Name.
             path (Union[str, Any]): Path.
         """
         name = str(name)
