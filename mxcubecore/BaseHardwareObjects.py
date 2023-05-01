@@ -28,6 +28,8 @@ import logging
 from gevent import event, Timeout
 import pydantic
 from typing import (
+    TYPE_CHECKING,
+    Callable,
     Iterator,
     Union,
     Any,
@@ -35,13 +37,19 @@ from typing import (
     List,
     Dict,
     Tuple,
+    Type,
     Optional,
     OrderedDict as TOrderedDict,
 )
-from typing_extensions import Self
+from typing_extensions import Self, Literal
 
 from mxcubecore.dispatcher import dispatcher
 from mxcubecore.CommandContainer import CommandContainer
+
+if TYPE_CHECKING:
+    from logging import Logger
+    from pydantic import BaseModel
+    from .CommandContainer import CommandObject
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -78,6 +86,10 @@ class ConfiguredObject:
     _procedure_names: Optional[List[str]] = None
 
     def __init__(self, name: str) -> None:
+        """
+        Args:
+            name (str): Name.
+        """
 
         self.name = name
 
@@ -186,7 +198,7 @@ class PropertySet(dict):
         """Get property changes since the last time checked.
 
         Yields:
-            Generator[tuple, None, None]: _description_
+            Generator[tuple, None, None]: Property changes.
         """
         for property_name, value in self.__properties_changed.items():
             yield (self.__properties_path[property_name], value)
@@ -199,9 +211,8 @@ class HardwareObjectNode:
 
     user_file_directory: str
 
-    def __init__(self, node_name: str):
-        """Constructor.
-
+    def __init__(self, node_name: str) -> None:
+        """
         Args:
             node_name (str): Node name.
         """
@@ -569,7 +580,8 @@ class HardwareObjectMixin(CommandContainer):
 
         - stateChanged
 
-        - specificStateChanged"""
+        - specificStateChanged
+    """
 
     #: enum.Enum: General states, shared between all HardwareObjects. Do *not* overridde
     STATES = HardwareObjectState
@@ -577,52 +589,54 @@ class HardwareObjectMixin(CommandContainer):
     #: enum.Enum: Placeholder for HardwareObject-specific states. To be overridden
     SPECIFIC_STATES = DefaultSpecificState
 
-    def __init__(self):
+    def __init__(self) -> None:
         CommandContainer.__init__(self)
 
         # Container for connections to HardwareObject
-        self.connect_dict = {}
+        self.connect_dict: Dict[str, Dict[str, Any]] = {}
         # event to handle waiting for object to be ready
-        self._ready_event = event.Event()
+        self._ready_event: event.Event = event.Event()
         # Internal general state attribute, used to check for state changes
-        self._state = None
+        self._state: Union[HardwareObjectState, None] = None
         # Internal object-specific state attribute, used to check for state changes
-        self._specific_state = None
+        self._specific_state: Union[Any, None] = None
 
         # Dictionary on the form:
         # key: The exporterd member function name
         # value: The arguments of the exported member
-        self._exports = {}
+        self._exports: Dict[str, Any] = {}
 
         # Dictionary containing list Pydantic models for each of the exported member
         # functions arguemnts. The key is the member name and the value a list of the
         # pydantic models.
-        self._pydantic_models = {}
+        self._pydantic_models: Dict[str, Type["BaseModel"]] = {}
 
         # Dictionary on the form:
         # key: The exporterd member function name
         # value: dictionary on the form {signautre: [<arguments>] schema:<JSONSchema>}
-        self._exported_attributes = {}
+        self._exported_attributes: Dict[str, Any] = {}
 
         # List of member names (methods) to be exported (Set at configuration stage)
         self._exports_config_list = []
 
-    def __bool__(self):
+    def __bool__(self) -> Literal[True]:
         return True
 
-    def __nonzero__(self):
+    def __nonzero__(self) -> Literal[True]:
         return True
 
-    def _init(self):
-        """'protected' post-initialization method. Override as needed
+    def _init(self) -> None:
+        """'protected' post-initialization method. Override as needed.
 
-        For ConfiguredObjects called before loading contained objects"""
+        For ConfiguredObjects called before loading contained objects
+        """
         self.update_state(self.STATES.UNKNOWN)
 
-    def init(self):
-        """'public' post-initialization method. Override as needed
+    def init(self) -> None:
+        """'public' post-initialization method. Override as needed.
 
-        For ConfiguredObjects called after loading contained objects"""
+        For ConfiguredObjects called after loading contained objects.
+        """
         self._exports = dict.fromkeys(self._exports_config_list, {})
 
         # Add methods that are exported programatically
@@ -635,9 +649,8 @@ class HardwareObjectMixin(CommandContainer):
         if self._exports:
             self._get_type_annotations()
 
-    def _get_type_annotations(self):
-        """
-        Retrieve typehints and create pydantic models for each argument
+    def _get_type_annotations(self) -> None:
+        """Retrieve typehints and create pydantic models for each argument.
         """
         _models = {}
 
@@ -676,7 +689,16 @@ class HardwareObjectMixin(CommandContainer):
         model = pydantic.create_model(self.__class__.__name__, **_models)
         self._pydantic_models["all"] = model
 
-    def execute_exported_command(self, cmd_name, args):
+    def execute_exported_command(self, cmd_name: str, args: Dict[str, Any]) -> Any:
+        """Execute exported command.
+
+        Args:
+            cmd_name (str): Command name.
+            args (Dict[str, Any]): Command arguments.
+
+        Returns:
+            Any: Command execution output.
+        """
         if cmd_name in self._exports.keys():
             cmd = getattr(self, cmd_name)
         else:
@@ -687,87 +709,97 @@ class HardwareObjectMixin(CommandContainer):
         return cmd(**args)
 
     @property
-    def pydantic_model(self):
-        """
+    def pydantic_model(self) -> Dict[str, Type["BaseModel"]]:
+        """Get object Pydantic models.
+
         Returns:
-          The pydantic model for method
+            Dict[str, Type[BaseModel]]: Pydantic models for object.
         """
         return self._pydantic_models
 
     @property
-    def exported_attributes(self):
-        """
+    def exported_attributes(self) -> Dict[str, Any]:
+        """Get exported attributes.
+
         Returns:
-           A dictionary containing the method signature and JSONSchema
-           on the format:
+            Dict[str, Any]: Dictionary containing the method signature and JSONSchema.
+            Follows the format;
+            ```python
             {
-                "schema": JSONSchema string
-                "signaure" list of argument names
+                "schema": <JSONSchema string>,
+                "signaure": <list of argument names>,
             }
+            ```
         """
         return self._exported_attributes
 
-    def abort(self):
-        """Immediately terminate HardwareObject action
+    def abort(self) -> None:
+        """Immediately terminate HardwareObject action.
 
-        Should not happen in state READY"""
+        Should not happen in state READY.
+        """
         if self.get_state() is self.STATES.READY:
             return
 
         # When overriding put active code here
 
-    def stop(self):
-        """Gentler (?) alternative to abort
+    def stop(self) -> None:
+        """Gentler (?) alternative to abort.
 
-        Override as necessary to implement"""
+        Override as necessary to implement.
+        """
         self.abort()
 
-    def get_state(self):
-        """Getter for state attribute
+    def get_state(self) -> HardwareObjectState:
+        """Getter for state attribute.
 
-        Implementations must query the hardware directly, to ensure current results
+        Implementations must query the hardware directly, to ensure current results.
 
         Returns:
-            HardwareObjectState
+            HardwareObjectState: Current state.
         """
         return self._state
 
-    def get_specific_state(self):
+    def get_specific_state(self) -> Union[Any, None]:
         """Getter for specific_state attribute. Override if needed.
 
         Returns:
-            HardwareObjectSpecificState or None
+            Union[Any, None]: Specific state enum or None.
         """
         return self._specific_state
 
-    def wait_ready(self, timeout=None):
+    def wait_ready(self, timeout: Optional[float] = None) -> None:
         """Wait timeout seconds till object is ready.
 
-        if timeout is None: wait forever.
+        If timeout is None: wait forever.
 
         Args:
-            timeout (s):
-
-        Returns:
+            timeout (Optional[float], optional): Timeout (seconds). Defaults to None.
         """
         with Timeout(timeout, RuntimeError("Timeout waiting for status ready")):
             self._ready_event.wait(timeout=timeout)
 
-    def is_ready(self):
+    def is_ready(self) -> bool:
         """Convenience function: Check if the object state is READY.
 
-        The same effect could be achieved with 'self.get_state() == self.STATES.READY'
+        The same effect could be achieved with
+        ```python
+        self.get_state() == self.STATES.READY
+        ```
 
         Returns:
-            (bool): True if ready, otherwise False.
+            bool: True if ready, otherwise False.
         """
         return self._ready_event.is_set()
 
-    def update_state(self, state=None):
-        """Update self._state, and emit signal stateChanged if the state has changed
+    def update_state(self, state: Optional[HardwareObjectState] = None) -> None:
+        """Update self._state, and emit signal stateChanged if the state has changed.
 
         Args:
-            state (enum 'HardwareObjectState'): state
+            state (Optional[HardwareObjectState], optional): State. Defaults to None.
+
+        Raises:
+            ValueError: If state specified is invalid.
         """
         if state is None:
             state = self.get_state()
@@ -786,12 +818,15 @@ class HardwareObjectMixin(CommandContainer):
             self._state = state
             self.emit("stateChanged", (self._state,))
 
-    def update_specific_state(self, state=None):
-        """Update self._specific_state, and emit specificStateChanged if appropriate
+    def update_specific_state(self, state: Optional[Any] = None) -> None:
+        """Update self._specific_state, and emit specificStateChanged if appropriate.
 
         Args:
-            state (enum.Enum): specific state - the enumeration will be sepcific for
-            each HardwareObject class
+            state (Optional[Any], optional): Specific state - the enumeration will be
+            specific for each HardwareObject class. Defaults to None.
+
+        Raises:
+            ValueError: If state specified is invalid.
         """
         if state is None:
             state = self.get_specific_state()
@@ -804,7 +839,7 @@ class HardwareObjectMixin(CommandContainer):
             self._specific_state = state
             self.emit("specificStateChanged", (state,))
 
-    def re_emit_values(self):
+    def re_emit_values(self) -> None:
         """Update values for all internal attributes
 
         Should be expanded in subclasse with more updatable attributes
@@ -813,7 +848,7 @@ class HardwareObjectMixin(CommandContainer):
         self.update_state()
         self.update_specific_state()
 
-    def force_emit_signals(self):
+    def force_emit_signals(self) -> None:
         """Emits all hardware object signals
 
         The method is called from the gui via beamline object to ensure that bricks have values
@@ -828,24 +863,26 @@ class HardwareObjectMixin(CommandContainer):
         pass
 
     # Moved from HardwareObjectNode
-    def clear_gevent(self):
+    def clear_gevent(self) -> None:
         """Clear gevent tasks, called when disconnecting a HardwareObject.
 
         Override in subclasses as needed.
-
         """
         self.update_state(self.STATES.UNKNOWN)
 
     # Signal handling functions:
-    def emit(self, signal, *args):
+    def emit(self, signal: Union[str, object, Any], *args) -> None:
         """Emit signal. Accepts both multiple args and a single tuple of args.
 
-        TODO This function would be unnecessary if all callers used
+        TODO: This function would be unnecessary if all callers used
+        ```python
         dispatcher.send(signal, self, *argtuple)
+        ```
 
         Args:
-            signal (hashable object): Signal. In practice a string, or dispatcher.Any
-            *args (tuple): Arguments sent with signal"""
+            signal (Union[str, object, Any]): In practice a string, or dispatcher.
+            *args (tuple): Arguments sent with signal.
+        """
 
         signal = str(signal)
 
@@ -854,23 +891,37 @@ class HardwareObjectMixin(CommandContainer):
                 args = args[0]
         dispatcher.send(signal, self, *args)
 
-    def connect(self, sender, signal, slot=None):
-        """Connect a signal sent by self to a slot
+    def connect(
+        self,
+        sender: Union[str, object, Any],
+        signal: Union[str, Any],
+        slot: Optional[Callable] = None,
+    ) -> None:
+        """Connect a signal sent by self to a slot.
 
         The functions provides syntactic sugar ; Instead of
+        ```python
         self.connect(self, "signal", slot)
+        ```
         it is possible to do
+        ```python
         self.connect("signal", slot)
+        ```
 
-        TODO this would be much nicer if refactored as
-
-            def connect(self, signal, slot, sender=None)
+        TODO: This would be much nicer if refactored as
+        ```python
+        def connect(self, signal, slot, sender=None)
+        ```
 
         Args:
-            sender (object): If a string, interprted as the signal
-            signal (Hashable object): In practice a string, or dispatcher.Any
-                if sender is a string interpreted as the slot
-            slot (Callable object): In practice a functon or method
+            sender (Union[str, object, Any]): If a string, interprted as the signal.
+            signal (Union[str, Any]): In practice a string, or dispatcher.
+            Any if sender is a string interpreted as the slot.
+            slot (Optional[Callable], optional): In practice a functon or method.
+            Defaults to None.
+
+        Raises:
+            ValueError: If slot is None and "sender" parameter is not a string.
         """
 
         if slot is None:
@@ -890,23 +941,37 @@ class HardwareObjectMixin(CommandContainer):
         if hasattr(sender, "connect_notify"):
             sender.connect_notify(signal)
 
-    def disconnect(self, sender, signal, slot=None):
-        """Disconnect a signal sent by self to a slot
+    def disconnect(
+        self,
+        sender: Union[str, object, Any],
+        signal: Union[str, Any],
+        slot: Optional[Callable] = None,
+    ) -> None:
+        """Disconnect a signal sent by self to a slot.
 
         The functions provides syntactic sugar ; Instead of
+        ```python
         self.connect(self, "signal", slot)
+        ```
         it is possible to do
+        ```python
         self.connect("signal", slot)
+        ```
 
-        TODO this would be much nicer if refactored as
-
-            def disconnect(self, signal, slot, sender=None)
+        TODO: This would be much nicer if refactored as
+        ```python
+        def disconnect(self, signal, slot, sender=None): ...
+        ```
 
         Args:
-            sender (object): If a string, interprted as the signal
-            signal (Hashable object): In practice a string, or dispatcher.Any
-            if sender is a string interpreted as the slot
-            slot (Callable object): In practice a functon or method
+            sender (Union[str, object, Any]): If a string, interprted as the signal.
+            signal (Union[str, Any]): In practice a string, or dispatcher.
+            Any if sender is a string interpreted as the slot.
+            slot (Optional[Callable], optional): In practice a functon or method.
+            Defaults to None.
+
+        Raises:
+            ValueError: If slot is None and "sender" parameter is not a string.
         """
         if slot is None:
             if isinstance(sender, str):
@@ -933,37 +998,47 @@ class HardwareObjectMixin(CommandContainer):
 class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
     """Xml-configured hardware object"""
 
-    def __init__(self, rootName):
+    def __init__(self, rootName: str) -> None:
+        """
+        Args:
+            rootName (str): Name.
+        """
         HardwareObjectNode.__init__(self, rootName)
         HardwareObjectMixin.__init__(self)
-        self.log = logging.getLogger("HWR").getChild(self.__class__.__name__)
-        self.user_log = logging.getLogger("user_log_level")
-        self.__exports = {}
-        self.__pydantic_models = {}
-        self._exported_attributes = {}
+        self.log: "Logger" = logging.getLogger("HWR").getChild(self.__class__.__name__)
+        self.user_log: "Logger" = logging.getLogger("user_log_level")
+        self.__exports: Dict[str, Any] = {}
+        self.__pydantic_models: Dict[str, Type["BaseModel"]] = {}
+        self._exported_attributes: Dict[str, Any] = {}
         self._exports_config_list = []
 
     @property
-    def exported_attributes(self):
+    def exported_attributes(self) -> Dict[str, Any]:
+        """Get exported attributes.
+
+        Returns:
+            Dict[str, Any]: Exported attributes.
+        """
         return self._exported_attributes
 
-    def init(self):
+    def init(self) -> None:
+        """Hardware object init."""
         self._exports_config_list.extend(
             ast.literal_eval(self.get_property("exports", "[]").strip())
         )
         HardwareObjectMixin.init(self)
 
-    def __getstate__(self):
+    def __getstate__(self) -> str:
         return self.name()
 
-    def __setstate__(self, name):
+    def __setstate__(self, name: str) -> None:
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import get_hardware_repository
 
         obj = get_hardware_repository().get_hardware_object(name)
         self.__dict__.update(obj.__dict__)
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr: str) -> Union["CommandObject", Any]:
         if attr.startswith("__"):
             raise AttributeError(attr)
 
@@ -975,15 +1050,13 @@ class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
             except AttributeError:
                 raise AttributeError(attr)
 
-    def commit_changes(self):
-        """Commit last changes back to configuration
+    def commit_changes(self) -> None:
+        """Commit last changes back to configuration."""
 
-        NB Must be here - importing at top level leads to circular imports
-        """
-
+        # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import get_hardware_repository
 
-        def get_changes(node):
+        def get_changes(node: Self) -> Union[list, List[tuple], Any]:
             updates = list(node._property_set.get_changes())
             if node:
                 for subnode in node:
@@ -998,18 +1071,26 @@ class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
 
         get_changes(self)
 
-    def rewrite_xml(self, xml):
-        """Rewrite XML conifguration file
+    def rewrite_xml(self, xml: Union[bytes, Any]) -> None:
+        """Rewrite XML conifguration file.
 
-        NB Must be here - importing at top level leads to circular imports"""
+        Args:
+            xml (Union[bytes, Any]): XML source to write to file.
+        """
+
+        # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import get_hardware_repository
 
         get_hardware_repository().rewrite_xml(self.name(), xml)
 
-    def xml_source(self):
-        """Get XML configuration source
+    def xml_source(self) -> Union[str, Any]:
+        """Get XML configuration source.
 
-        NB Must be here - importing at top level leads to circular imports"""
+        Returns:
+            Union[str, Any]: XML source.
+        """
+
+        # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import get_hardware_repository
 
         return get_hardware_repository().xml_source[self.name()]
@@ -1023,23 +1104,38 @@ class HardwareObjectYaml(ConfiguredObject, HardwareObjectMixin):
     The class is needed only to provide a single superclass
     that combines ConfiguredObject and HardwareObjectMixin"""
 
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
+        """
+        Args:
+            name (str): Name.
+        """
         ConfiguredObject.__init__(self, name)
         HardwareObjectMixin.__init__(self)
 
 
 class Procedure(HardwareObject):
-    def __init__(self, name):
+    """Procedure"""
+
+    def __init__(self, name: str) -> None:
+        """
+        Args:
+            name (str): Name.
+        """
         HardwareObject.__init__(self, name)
 
-    def userName(self):
+    def userName(self) -> str:
+        """Get procedure user name.
+
+        Returns:
+            str: Username.
+        """
         uname = self.get_property("username")
         if uname is None:
             return str(self.name())
         else:
             return uname
 
-    def GUI(self, parent):
+    def GUI(self, parent: Any) -> None:
         pass
 
 
