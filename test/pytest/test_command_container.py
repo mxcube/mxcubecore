@@ -1,6 +1,11 @@
 import pytest
 from typing import Generator, TYPE_CHECKING
-from mxcubecore.CommandContainer import ConnectionError, CommandObject, ChannelObject, CommandContainer
+from mxcubecore.CommandContainer import (
+    ConnectionError,
+    CommandObject,
+    ChannelObject,
+    CommandContainer,
+)
 
 if TYPE_CHECKING:
     from pytest_mock.plugin import MockerFixture

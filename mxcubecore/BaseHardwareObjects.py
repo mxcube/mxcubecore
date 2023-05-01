@@ -650,8 +650,7 @@ class HardwareObjectMixin(CommandContainer):
             self._get_type_annotations()
 
     def _get_type_annotations(self) -> None:
-        """Retrieve typehints and create pydantic models for each argument.
-        """
+        """Retrieve typehints and create pydantic models for each argument."""
         _models = {}
 
         for attr_name, _ in self._exports.items():

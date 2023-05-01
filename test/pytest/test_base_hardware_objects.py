@@ -1112,7 +1112,9 @@ class TestHardwareObjectNode:
         setitem_patch.assert_called_once_with(*(str(name), output_value))
 
         # Check "PropertySet.set_property_path" was called with name and path
-        set_property_path_patch.assert_called_once_with(*(str(name), f"{hw_obj_node._path}/{name}"))
+        set_property_path_patch.assert_called_once_with(
+            *(str(name), f"{hw_obj_node._path}/{name}")
+        )
 
     @pytest.mark.parametrize(
         ("name", "default"),
@@ -1121,7 +1123,7 @@ class TestHardwareObjectNode:
             ("test2", False),
             ("test3", True),
             ("test4", None),
-            ("test5", ...)
+            ("test5", ...),
         ),
     )
     def test_get_property(
@@ -1183,7 +1185,7 @@ class TestHardwareObjectNode:
             "warning",
             "info",
             "flange",
-        )
+        ),
     )
     def test_print_log(
         self,
