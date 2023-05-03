@@ -227,8 +227,7 @@ class BIOMAXMD3(GenericDiffractometer):
         """
         Descript. :
         """
-        if self.pixels_per_mm_x is None:
-            self.update_zoom_calibration()
+        self.update_zoom_calibration()
 
         self.centring_hwobj.initCentringProcedure()
         for click in range(3):
