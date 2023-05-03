@@ -44,16 +44,11 @@ from mxcubecore.dispatcher import dispatcher
 from mxcubecore.utils import ui_communication
 from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
 from mxcubecore.model import queue_model_objects
-from mxcubecore.model.queue_model_enumerables import (
-    CRYSTAL_CLASS_MAP,
-    XTAL_SPACEGROUPS,
-    SPACEGROUP_MAP,
-)
+from mxcubecore.model import crystal_symmetry
 from mxcubecore.queue_entry import QUEUE_ENTRY_STATUS
 from mxcubecore.queue_entry import QueueAbortedException
 
 from mxcubecore.HardwareObjects.Gphl import GphlMessages
-
 from mxcubecore import HardwareRepository as HWR
 
 
@@ -98,56 +93,52 @@ RECENTRING_MODES = OrderedDict(
         ("No manual re-centring, rely on calculated values", "none"),
     )
 )
-
+# Lattice to point groups,
+# Used for GPhL UI pulldowns, hence the combined point groups, like '4|422'
 # Note:
 # Values consist of point groups EXCEPT "312" and "321", that are special-cased
 # The first value is the default for the strategy,
 # the last for the set of possibilities.
 # The list for lattice "" contains all point group settings
-_tmpdict = OrderedDict(
-    aP=("1",),
-    mP=("2",),
-    mC=("2",),
-    Monoclinic=("2",),
-    oP=("222",),
-    oC=("222",),
-    oF=("222",),
-    oI=("222",),
-    Orthorhombic=("222",),
-    tP=("4", "422", "4|422"),
-    tI=("4", "422", "4|422"),
-    Tetragonal=("4", "422", "4|422"),
-    hP=("3", "312", "321", "3|32", "6", "622", "6|622", "3|32|6|622"),
-    hR=("3", "32", "3|32"),
-    Hexagonal=(
-        "3",
-        "312",
-        "321",
-        "32",
-        "3|32",
-        "6",
-        "622",
-        "6|622",
-        "3|32|6|622",
-    ),
-    cP=("23", "432", "23|432"),
-    cF=("23", "432", "23|432"),
-    cI=("23", "432", "23|432"),
-    Cubic=("23", "432","23|432"),
+# The keys consist opf the Bravais lattice names, the crystam system names
+# and "" (for 'not set')
+# The list of keys, excluding "", defines the GPhL lattices pulldown.
+lattice2point_group_tags = OrderedDict()
+lattice2point_group_tags[""] = ()
+lattice2point_group_tags.update(
+    OrderedDict(
+        aP=("1",),
+        Triclinic=("2",),
+        mP=("2",),
+        mC=("2",),
+        Monoclinic=("2",),
+        oP=("222",),
+        oC=("222",),
+        oF=("222",),
+        oI=("222",),
+        Orthorhombic=("222",),
+        tP=("4", "422", "4|422"),
+        tI=("4", "422", "4|422"),
+        Tetragonal=("4", "422", "4|422"),
+        hP=("3", "312", "321", "3|32", "6", "622", "6|622", "3|32|6|622"),
+        hR=("3", "32", "3|32"),
+        Hexagonal=(
+            "3",
+            "312",
+            "321",
+            "32",
+            "3|32",
+            "6",
+            "622",
+            "6|622",
+            "3|32|6|622",
+        ),
+        cP=("23", "432", "23|432"),
+        cF=("23", "432", "23|432"),
+        cI=("23", "432", "23|432"),
+        Cubic=("23", "432","23|432"),
+    )
 )
-_ll = []
-for tag in (
-    "aP",
-    "Monoclinic",
-    "Orthorhombic",
-    "Tetragonal",
-    "Hexagonal",
-    "Cubic",
-):
-    _ll.extend(_tmpdict[tag])
-lattice2point_groups = OrderedDict()
-lattice2point_groups[""] = tuple(_ll)
-lattice2point_groups.update(_tmpdict)
 
 
 class GphlWorkflow(HardwareObjectYaml):
@@ -391,6 +382,12 @@ class GphlWorkflow(HardwareObjectYaml):
         """
         data_model = self._queue_entry.get_data_model()
         workflow_parameters = data_model.get_workflow_parameters()
+        space_group = data_model.space_group or ""
+        if space_group:
+            crystal_class = crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
+            lattice = crystal_symmetry.CRYSTAL_CLASS_MAP[crystal_class].bravais_lattice
+        else:
+            lattice = ""
         schema = {
             "title": "GΦL Pre-strategy parameters",
             "type": "object",
@@ -402,48 +399,56 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "A",
             "type": "number",
             "minimum": 0,
+            "readOnly": True,
         }
         fields["cell_b"] = {
             "title": "B",
             "type": "number",
             "minimum": 0,
+            "readOnly": True,
         }
         fields["cell_c"] = {
             "title": "C",
             "type": "number",
             "minimum": 0,
+            "readOnly": True,
         }
         fields["cell_alpha"] = {
             "title": "α",
             "type": "number",
             "minimum": 0,
             "maximum": 180,
+            "readOnly": True,
         }
         fields["cell_beta"] = {
             "title": "β",
             "type": "number",
             "minimum": 0,
             "maximum": 180,
+            "readOnly": True,
         }
         fields["cell_gamma"] = {
             "title": "γ",
             "type": "number",
             "minimum": 0,
             "maximum": 180,
+            "readOnly": True,
         }
         fields["lattice"] = {
             "title": "Crystal lattice",
-            "default": data_model.crystal_family or "",
+            "default": lattice,
             "$ref": "#/definitions/lattice",
+            "hidden": False
         }
         fields["point_groups"] = {
             "title": "Point Groups",
-            "default": data_model.point_group or "",
+            "default": "1",
             "$ref": "#/definitions/point_groups",
+            "hidden": True,
         }
         fields["space_group"] = {
             "title": "Space Group",
-            "default": data_model.space_group or "",
+            "default": space_group,
             "$ref": "#/definitions/space_group",
         }
         fields["relative_rad_sensitivity"] = {
@@ -480,7 +485,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 "enum": [tag],
                 "title": tag,
             }
-            for tag in lattice2point_groups
+            for tag in lattice2point_group_tags
         )
         schema["definitions"]["point_groups"] = list(
             {
@@ -488,7 +493,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 "enum": [tag],
                 "title": tag,
             }
-            for tag in lattice2point_groups[""]
+            for tag in lattice2point_group_tags["aP"]
         )
         schema["definitions"]["space_group"] = list(
             {
@@ -496,7 +501,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 "enum": [tag],
                 "title": tag,
             }
-            for tag in XTAL_SPACEGROUPS
+            for tag in crystal_symmetry.XTAL_SPACEGROUPS
         )
         # Handle strategy fields
         if data_model.characterisation_done or data_model.get_type() == "diffractcal":
@@ -553,7 +558,6 @@ class GphlWorkflow(HardwareObjectYaml):
                 "symmetry": {
                     "ui:order": [
                         "lattice",
-                        "point_groups",
                         "space_group",
                         "use_cell_for_processing",
                     ],
@@ -627,28 +631,60 @@ class GphlWorkflow(HardwareObjectYaml):
             },
         }
 
-        if choose_lattice is not None:
-            # Must match bravaisLattices column
-            lattices = choose_lattice.lattices
+        if data_model.get_type() == "diffractcal":
+            # Diffractcal
+            for tag in (
+                "cell_a", "cell_b", "cell_c", "cell_alpha", "cell_beta", "cell_gamma"
+            ):
+                fields[tag]["readonly"] =  False
 
-            # First letter must match first letter of BravaisLattice
-            crystal_family_char = choose_lattice.crystalFamilyChar
+        elif choose_lattice is None:
+            # Characterisation
+            pass
+
+
+        else:
+            # Acquisition
+            fields["point_groups"]["hidden"] = False
+            fields["lattice"]["hidden"] = True
+            ui_schema["crystal_data"]["symmetry"]["ui:order"][0] = "point_groups"
+
+            # NBNB TBD Redo once ABI has changed
+            crystal_classes = (
+                choose_lattice.crystalClasses or data_model.crystal_classes
+            )
+            # Must match bravaisLattices column
+            lattices = frozenset(
+                crystal_symmetry.CRYSTAL_CLASS_MAP[crystal_class].bravais_lattice
+            for crystal_class in crystal_classes)
 
             header, soldict, select_row = self.parse_indexing_solution(choose_lattice)
-            # header, solutions = self.parse_indexing_solution(
-            #     solution_format, choose_lattice.solutions
-            # )
+            lattice = list(soldict.values())[select_row].bravaisLattice
+            if space_group:
+                info = crystal_symmetry.CRYSTAL_CLASS_MAP[
+                    crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
+                ]
+                point_group = info.point_group
+                if point_group == "32" and info.bravais_lattice == "hP":
+                    point_group = info.crystal_class[:-1]
+            else:
+                point_group = None
+            point_groups = lattice2point_group_tags[lattice]
+            if point_group and point_group not in point_groups:
+                point_group = point_groups[-1]
+            fields["point_groups"]["default"] = point_group
+            fields["point_groups"]["value_dict"] = OrderedDict(
+                (tag, tag) for tag in point_groups
+            )
             fields["indexing_solution"] = {
                 "title": "Select indexing solution:",
                 "type": "string",
             }
 
-            # Color green (figuratively) if matches lattices,
-            # or otherwise if matches crystalSystem
-            colour_check = lattices or crystal_family_char or ()
-            if colour_check:
+            # Color green (figuratively) if matches lattices
+            if lattices:
                 colouring = list(
-                    any(x in solution.bravaisLattice for x in colour_check)
+                    any(x in solution.bravaisLattice for x in lattices)
                     for solution in soldict.values()
                 )
             else:
@@ -665,11 +701,6 @@ class GphlWorkflow(HardwareObjectYaml):
                     "update_function": "update_indexing_solution",
                 },
             }
-
-            for tag in ("cell_a", "cell_b", "cell_c"):
-                ui_schema["crystal_data"]["cell_edges"][tag] = {"ui:readonly": True}
-            for tag in ("cell_alpha", "cell_beta", "cell_gamma"):
-                ui_schema["crystal_data"]["cell_angles"][tag] = {"ui:readonly": True}
 
         self._return_parameters = gevent.event.AsyncResult()
 
@@ -694,6 +725,18 @@ class GphlWorkflow(HardwareObjectYaml):
                 params["indexing_solution"] = soldict[solline[0]]
         finally:
             self._return_parameters = None
+
+        # Convert lattice and pointgroups to crystal class names
+        lattice = params.pop("lattice", None)
+        pgvar = params.pop("point_groups", None)
+        if choose_lattice:
+            point_groups = pgvar.split("|") if pgvar else None
+        else:
+            point_groups = None
+        space_group = params.get("space_group")
+        params["crystal_classes"] = crystal_symmetry.crystal_classes_from_params(
+            lattice, point_groups, space_group
+        )
 
         # Convert energy field to a single tuple
         params["energies"] = (params.pop("energy"),)
@@ -894,11 +937,14 @@ class GphlWorkflow(HardwareObjectYaml):
         ):
             title_string = data_model.get_type()
             lines = [
-                "GΦL workflow %s, strategy '%s', for point group %s'"
+                "GΦL workflow %s, strategy '%s', for point group '%s'"
                 % (
                     title_string,
                     data_model.strategy_options["variant"],
-                    data_model.point_group
+                    crystal_symmetry.strategy_point_group(
+                        data_model.crystal_classes,
+                        phasing=wf_parameters.get("strategy_type") == "phasing"
+                    )
                 )
             ]
             lines.extend(("-" * len(lines[0]), ""))
@@ -2208,7 +2254,15 @@ class GphlWorkflow(HardwareObjectYaml):
                     line_format % (tpl + solution.cell.lengths + solution.cell.angles)
                 ] = solution
 
-            lattices = choose_lattice.lattices or ()
+            crystal_classes = (
+                choose_lattice.crystalClasses
+                or self._queue_entry.get_data_model().crystal_classes
+            )
+            # Must match bravaisLattices column
+            lattices = frozenset(
+                crystal_symmetry.CRYSTAL_CLASS_MAP[crystal_class].bravais_lattice
+                for crystal_class in crystal_classes
+            )
             select_row = None
             if lattices:
                 # Select best solution matching lattices
@@ -2216,20 +2270,6 @@ class GphlWorkflow(HardwareObjectYaml):
                     if solution.bravaisLattice in lattices:
                         select_row = ii
                         break
-            if select_row is None:
-                crystal_family_char = choose_lattice.crystalFamilyChar
-                if lattices and not crystal_family_char:
-                    # NBNB modify? If no lattice match and no crystal family
-                    # filter on having same crystal family
-                    aset = set(lattice[0] for lattice in lattices)
-                    if len(aset) == 1:
-                        crystal_family_char = aset.pop()
-                if crystal_family_char:
-                    # Select best solution based on crystal family
-                    for ii, solution in enumerate(consistent_solutions):
-                        if solution.bravaisLattice.startswith(crystal_family_char):
-                            select_row = ii
-                            break
 
             if select_row is None:
                 # No match found, select on solutions only
@@ -2754,7 +2794,7 @@ class GphlWorkflow(HardwareObjectYaml):
         lattice = state.get("lattice") or ""
         point_groups = state.get("point_groups")
         space_group = state.get("space_group")
-        pglist = lattice2point_groups[lattice]
+        pglist = lattice2point_group_tags[lattice]
         default = (
             point_groups if point_groups and point_groups in pglist else pglist[-1]
         )
@@ -2764,7 +2804,7 @@ class GphlWorkflow(HardwareObjectYaml):
             default=default
         )
         # new_values = {}
-        sglist = [""] + GphlWorkflow.space_groups_from_lattice(lattice)
+        sglist = [""] + crystal_symmetry.space_groups_from_lattice(lattice)
         default = space_group if space_group in sglist else ""
         values_map.reset_options(
             "space_group",
@@ -2781,19 +2821,12 @@ class GphlWorkflow(HardwareObjectYaml):
         lattice = state.get("lattice")
         point_groups = state.get("point_groups") or ""
         space_group = state.get("space_group")
-        new_values = {}
-        # if not lattice:
-        #     # set lattice to match point groups - take last appearing
-        #     for lat, pgs in lattice2point_groups.items():
-        #         if point_groups in pgs:
-        #             lattice = lat
-        #     new_values["lattice"] = lattice
-        sglist = GphlWorkflow.space_groups_from_point_groups(
+        sglist = crystal_symmetry.space_groups_from_point_groups(
             point_groups.split("|")
         )
         sglist= [""] + list(
             name
-            for name in GphlWorkflow.space_groups_from_lattice(lattice)
+            for name in crystal_symmetry.space_groups_from_lattice(lattice)
             if name in sglist
         )
         default = space_group if space_group in sglist else ""
@@ -2817,7 +2850,10 @@ class GphlWorkflow(HardwareObjectYaml):
         point_groups0 = state.get("point_groups")
         if not space_group:
             return
-        info = CRYSTAL_CLASS_MAP[SPACEGROUP_MAP[space_group].crystal_class]
+
+        info = crystal_symmetry.CRYSTAL_CLASS_MAP[
+            crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
+        ]
         lattice = info.bravais_lattice
         if lattice != lattice0:
             values_map.set_values(lattice=lattice)
@@ -2837,7 +2873,7 @@ class GphlWorkflow(HardwareObjectYaml):
             return
         state = values_map.get_values_map()
         solution = state.get("indexing_solution")[0]
-        for lattice in lattice2point_groups:
+        for lattice in crystal_symmetry.BRAVAIS_LATTICES:
             if lattice and lattice in solution:
                 # values_map.set_values(lattice=lattice)
                 values_map.reset_options(
@@ -2847,38 +2883,3 @@ class GphlWorkflow(HardwareObjectYaml):
                 )
                 GphlWorkflow.update_lattice(values_map)
                 break
-
-    @staticmethod
-    def space_groups_from_lattice(lattice: str):
-        converter = {
-            "Monoclinic": "m",
-            "Orthorhombic": "o",
-            "Tetragonal": "t",
-            "Hexagonal": "h",
-            "Cubic": "c",
-        }
-        tst = converter.get(lattice, lattice)
-        result = list(
-            tag
-            for tag in XTAL_SPACEGROUPS
-            if tag
-            and CRYSTAL_CLASS_MAP[
-                SPACEGROUP_MAP[tag].crystal_class
-            ].bravais_lattice.startswith(tst)
-        )
-        #
-        return result
-
-    @staticmethod
-    def space_groups_from_point_groups(point_groups: list):
-        result = []
-        for name, info in SPACEGROUP_MAP.items():
-            ccinfo = CRYSTAL_CLASS_MAP[(info.crystal_class)]
-            for pgp in point_groups:
-                if ccinfo.point_group == pgp or (
-                    pgp in ("312", "321") and ccinfo.name[:3] == pgp
-                ):
-                    result.append(name)
-                    continue
-        #
-        return result

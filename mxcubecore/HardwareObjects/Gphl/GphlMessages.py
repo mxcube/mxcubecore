@@ -29,7 +29,7 @@ from collections import namedtuple
 
 from mxcubecore.utils.conversion import string_types
 
-from mxcubecore.model import queue_model_enumerables
+from mxcubecore.model import crystal_symmetry
 
 __copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"
@@ -350,6 +350,7 @@ class ChooseLattice(Payload):
             self._lattices = frozenset(lattices)
         self._userProvidedCell = userProvidedCell
         self._indexingHeader = indexingHeader
+        self._crystalClasses = frozenset()
 
     @property
     def crystalFamilyChar(self):
@@ -360,6 +361,11 @@ class ChooseLattice(Payload):
     def lattices(self):
         """ set of expected lattices for solution"""
         return self._lattices
+
+    @property
+    def crystalClasses(self):
+        """ set of crystal class names"""
+        return self._crystalClasses
 
     @property
     def indexingSolutions(self):
@@ -870,9 +876,22 @@ class UserProvidedInfo(MessageData):
     def __init__(self, data_model):
 
         self._scatterers = ()
-        self._crystal_family = data_model.crystal_family
-        self._pointGroup = data_model.point_group
-        sg_data = queue_model_enumerables.SPACEGROUP_MAP.get(data_model.space_group)
+        crystal_classes = data_model.crystal_classes
+        strategy_point_group = crystal_symmetry.strategy_point_group(crystal_classes)
+        self._pointGroup = strategy_point_group
+        crystal_systems = set(
+            crystal_symmetry.CRYSTAL_CLASS_MAP[name].crystal_system
+            for name in crystal_classes
+        )
+        if crystal_systems in (set(("Trigonal")), set(("Trigonal", "Hexagonal"))):
+            crystal_family = "Hexagonal"
+        elif len(crystal_systems) == 1:
+            crystal_family = crystal_systems.pop()
+        else:
+            crystal_family = None
+        self._crystal_family = crystal_family.upper()
+
+        sg_data = crystal_symmetry.SPACEGROUP_MAP.get(data_model.space_group)
         self._spaceGroup = sg_data.number if sg_data else None
         cell_parameters = data_model.cell_parameters
         if cell_parameters:
