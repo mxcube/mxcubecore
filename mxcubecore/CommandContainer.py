@@ -28,6 +28,7 @@ for command launchers and channels (see Command package).
 """
 
 from __future__ import absolute_import
+from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 
 import weakref
 import logging
@@ -46,35 +47,61 @@ ARGUMENT_TYPE_JSON_SCHEMA = "JSONSchema"
 
 
 class ConnectionError(Exception):
-    pass
+    """General Connection Error"""
 
 
 class CommandObject:
-    def __init__(self, name, username=None, **kwargs):
-        self._name = name
-        self._username = username
-        self._arguments = []
-        self._combo_arguments_items = {}
+    def __init__(self, name: str, username: Optional[str] = None, **kwargs) -> None:
+        """
+        Args:
+            name (str): Name.
+            username (Optional[str], optional): User name. Defaults to None.
+        """
+        self._name: str = name
+        self._username: Union[str, None] = username
+        self._arguments: Union[List[Tuple[str, str, Any, Any]], Any] = []
+        self._combo_arguments_items: Dict[str, Any] = {}
 
-        self.type = PROCEDURE_COMMAND_T
-        self.argument_type = ARGUMENT_TYPE_LIST
+        self.type: str = PROCEDURE_COMMAND_T
+        self.argument_type: str = ARGUMENT_TYPE_LIST
 
-    def set_argument_json_schema(self, json_schema_str):
-        """Set the JSON Schema"""
+    def set_argument_json_schema(self, json_schema_str: Any) -> None:
+        """Set the JSON Schema.
+
+        Args:
+            json_schema_str (Any): JSON Schema.
+        """
         self.argument_type = ARGUMENT_TYPE_JSON_SCHEMA
         self._arguments = json_schema_str
 
-    def name(self):
+    def name(self) -> str:
+        """Get command name.
+
+        Returns:
+            str: Command name.
+        """
         return self._name
 
-    def connect(self, signal_name, callable_func):
+    def connect(self, signal_name: str, callable_func: Callable) -> None:
+        """Connect to signal.
+
+        Args:
+            signal_name (str): Signal name.
+            callable_func (Callable): Connection method.
+        """
         try:
             dispatcher.disconnect(callable_func, signal_name, self)
         except Exception:
             pass
         dispatcher.connect(callable_func, signal_name, self)
 
-    def emit(self, signal, *args):
+    def emit(self, signal: str, *args) -> None:
+        """Emit signal message.
+
+        Args:
+            signal (str): Signal name.
+            *args (tuple): Message arguments.
+        """
         signal = str(signal)
 
         if len(args) == 1:
@@ -84,56 +111,126 @@ class CommandObject:
         dispatcher.send(signal, self, *args)
 
     def add_argument(
-        self, argName, argType, combo_items=None, onchange=None, valuefrom=None
-    ):
+        self,
+        argName: str,
+        argType: str,
+        combo_items: Optional[Any] = None,
+        onchange: Optional[Any] = None,
+        valuefrom: Optional[Any] = None,
+    ) -> None:
+        """Add command argument.
+
+        Args:
+            argName (str): Name.
+            argType (str): Type.
+            combo_items (Optional[Any], optional): Combo items. Defaults to None.
+            onchange (Optional[Any], optional): On change. Defaults to None.
+            valuefrom (Optional[Any], optional): Value from. Defaults to None.
+        """
         arg_names = [arg[0] for arg in self._arguments]
         if argName not in arg_names:
             self._arguments.append((argName, argType.lower(), onchange, valuefrom))
         if combo_items is not None:
             self._combo_arguments_items[argName] = combo_items
 
-    def get_arguments(self):
+    def get_arguments(self) -> Union[List[Tuple[str, str, Any, Any]], Any]:
+        """Get command arguments.
+
+        Returns:
+            Union[List[Tuple[str, str, Any, Any]], Any]: Command arguments.
+        """
         return self._arguments
 
-    def get_combo_argument_items(self, argName):
+    def get_combo_argument_items(self, argName: str) -> Any:
+        """Get combo argument items.
+
+        Args:
+            argName (str): Combo argument name.
+
+        Returns:
+            Any: Combo argument value.
+        """
         return self._combo_arguments_items[argName]
 
-    def userName(self):
+    def userName(self) -> str:
+        """Get user name.
+
+        Returns:
+            str: User name.
+        """
         return self._username or str(self.name())
 
-    def is_connected(self):
+    def is_connected(self) -> bool:
+        """Check if signal is connected.
+
+        Returns:
+            bool: True if connected, else False.
+        """
         return False
 
 
-class ChannelObject(object):
-    def __init__(self, name, username=None, **kwargs):
-        self._name = name
-        self._username = username
-        self._attributes = kwargs
-        self._on_change = None
-        self.__first_update = True
+class ChannelObject:
+    def __init__(self, name: str, username: Optional[str] = None, **kwargs) -> None:
+        """
+        Args:
+            name (str): Name.
+            username (Optional[str], optional): User name. Defaults to None.
+        """
+        self._name: str = name
+        self._username: Union[str, None] = username
+        self._attributes: Dict[str, Any] = kwargs
+        self._on_change: Union[Any, None] = None
+        self.__first_update: bool = True
 
-    def name(self):
+    def name(self) -> str:
+        """Get channel name.
+
+        Returns:
+            str: Channel name.
+        """
         return self._name
 
-    def connect_signal(self, signalName, callableFunc):
+    def connect_signal(self, signalName: str, callableFunc: Callable) -> None:
+        """Connect signal.
+
+        Args:
+            signalName (str): Signal name.
+            callableFunc (Callable): Connection method.
+        """
         try:
             dispatcher.disconnect(callableFunc, signalName, self)
         except Exception:
             pass
         dispatcher.connect(callableFunc, signalName, self)
 
-    def disconnect_signal(self, signalName, callableFunc):
+    def disconnect_signal(self, signalName: str, callableFunc: Callable) -> None:
+        """Disconnect signal.
+
+        Args:
+            signalName (str): Signal name.
+            callableFunc (Callable): Disconnection method.
+        """
         try:
             dispatcher.disconnect(callableFunc, signalName, self)
         except Exception:
             pass
 
-    def connect_notify(self, signal):
+    def connect_notify(self, signal: str) -> None:
+        """Connection notifier.
+
+        Args:
+            signal (str): Signal name.
+        """
         if signal == "update" and self.is_connected():
             self.emit(signal, self.get_value())
 
-    def emit(self, signal, *args):
+    def emit(self, signal: str, *args) -> None:
+        """Emit signal message.
+
+        Args:
+            signal (str): Signal name.
+            *args (tuple): Message arguments.
+        """
         signal = str(signal)
 
         if len(args) == 1:
@@ -142,13 +239,28 @@ class ChannelObject(object):
 
         dispatcher.send(signal, self, *args)
 
-    def userName(self):
+    def userName(self) -> str:
+        """Get user name.
+
+        Returns:
+            str: User name.
+        """
         return self._username or str(self.name())
 
-    def is_connected(self):
+    def is_connected(self) -> bool:
+        """Check if signal is connected.
+
+        Returns:
+            bool: True if connected, else False.
+        """
         return False
 
-    def update(self, value):
+    def update(self, value: Any) -> None:
+        """Update command object.
+
+        Args:
+            value (Any): Updated value.
+        """
         if self.__first_update:
             self.__first_update = False
             return
@@ -161,7 +273,15 @@ class ChannelObject(object):
                 if cmdobj is not None:
                     cmdobj(value)
 
-    def get_value(self, force=False):
+    def get_value(self, force: bool = False) -> None:
+        """Get channel value.
+
+        Args:
+            force (bool, optional): Force get value. Defaults to False.
+
+        Raises:
+            NotImplementedError: If method has not been implemented for this object.
+        """
         # NBNB INCONSISTENT. funcxtion signature matches only
         # Tine and Mockup, but is inconsistent with other subclasses
         raise NotImplementedError
@@ -170,19 +290,33 @@ class ChannelObject(object):
 class CommandContainer:
     """Mixin class for generic command and channel containers"""
 
-    def __init__(self):
-        self.__commands = {}
-        self.__channels = {}
-        self.__commands_to_add = []
-        self.__channels_to_add = []
+    def __init__(self) -> None:
+        self.__commands: Dict[str, CommandObject] = {}
+        self.__channels: Dict[str, ChannelObject] = {}
+        self.__commands_to_add: List[Tuple[Dict[str, Any], Union[str, None]]] = []
+        self.__channels_to_add: List[Tuple[Dict[str, Any], str]] = []
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr: str) -> CommandObject:
         try:
             return self.__dict__["_CommandContainer__commands"][attr]
         except KeyError:
             raise AttributeError(attr)
 
-    def get_channel_object(self, channel_name, optional=False):
+    def get_channel_object(
+        self,
+        channel_name: str,
+        optional: bool = False,
+    ) -> Union[ChannelObject, None]:
+        """Get channel.
+
+        Args:
+            channel_name (str): Channel name.
+            optional (bool, optional): If a missing channel should be logged
+            as an error. Defaults to False.
+
+        Returns:
+            Union[ChannelObject, None]: Channel object or None if not found.
+        """
         channel = self.__channels.get(channel_name)
         if channel is None and not optional:
             msg = "%s: Unable to get channel %s" % (self.name(), channel_name)
@@ -190,26 +324,50 @@ class CommandContainer:
             # raise Exception(msg)
         return channel
 
-    def get_channel_names_list(self):
+    def get_channel_names_list(self) -> List[str]:
+        """Get a list of all channel names.
+
+        Returns:
+            List[str]: Channel names.
+        """
         return list(self.__channels.keys())
 
-    def add_channel(self, attributes_dict, channel, add_now=True):
+    def add_channel(
+        self,
+        attributes_dict: Dict[str, Any],
+        channel: str,
+        add_now: bool = True,
+    ) -> Union[ChannelObject, None]:
+        """Add channel.
+
+        Args:
+            attributes_dict (Dict[str, Any]): Channel attributes.
+            channel (str): Channel name.
+            add_now (bool, optional): Whether the channel should be added now.
+            Defaults to True.
+
+        Raises:
+            ConnectionError: If a connection error occured while adding the channel.
+
+        Returns:
+            Union[ChannelObject, None]: Channel object or None if adding later.
+        """
         if not add_now:
             self.__channels_to_add.append((attributes_dict, channel))
             return
-        channel_name = attributes_dict["name"]
-        channel_type = attributes_dict["type"]
-        channel_on_change = attributes_dict.get("onchange", None)
+        channel_name: str = attributes_dict["name"]
+        channel_type: str = attributes_dict["type"]
+        channel_on_change: Union[Any, None] = attributes_dict.get("onchange", None)
         if channel_on_change is not None:
             del attributes_dict["onchange"]
-        channel_value_from = attributes_dict.get("valuefrom", None)
+        channel_value_from: Union[Any, None] = attributes_dict.get("valuefrom", None)
         if channel_value_from is not None:
             del attributes_dict["valuefrom"]
         channel_value_from = attributes_dict.get("valuefrom", None)
         del attributes_dict["name"]
         del attributes_dict["type"]
 
-        new_channel = None
+        new_channel: Union[ChannelObject, None] = None
         if self.__channels.get(channel_name) is not None:
             return self.__channels[channel_name]
 
@@ -385,35 +543,93 @@ class CommandContainer:
         else:
             logging.getLogger().exception("Channel is None")
 
-    def set_channel_value(self, channel_name, value):
+    def set_channel_value(self, channel_name: str, value: Any) -> None:
+        """Set channel value.
+
+        Args:
+            channel_name (str): Channel name.
+            value (Any): Value to set.
+        """
         self.__channels[channel_name].set_value(value)
 
-    def get_channel_value(self, channel_name):
+    def get_channel_value(self, channel_name: str) -> Any:
+        """Get channel value.
+
+        Args:
+            channel_name (str): Channel name.
+
+        Returns:
+            Any: Channel value.
+        """
         return self.__channels[channel_name].get_value()
 
-    def get_channels(self):
+    def get_channels(self) -> Generator[ChannelObject, None, None]:
+        """Get object channels.
+
+        Yields:
+            Generator[ChannelObject, None, None]: Object channels.
+        """
         for chan in self.__channels.values():
             yield chan
 
-    def get_command_object(self, cmd_name):
+    def get_command_object(self, cmd_name: str) -> Union[CommandObject, None]:
+        """Get command object.
+
+        Args:
+            cmd_name (str): Command name.
+
+        Returns:
+            Union[CommandObject, None]: Command object or None if not found.
+        """
         try:
             return self.__commands.get(cmd_name)
         except Exception as e:
             return None
 
-    def get_commands(self):
+    def get_commands(self) -> Generator[CommandObject, None, None]:
+        """Get object commands.
+
+        Yields:
+            Generator[CommandObject, None, None]: Command objects.
+        """
         for cmd in self.__commands.values():
             yield cmd
 
-    def get_command_names_list(self):
+    def get_command_names_list(self) -> List[str]:
+        """Get list of command names.
+
+        Returns:
+            List[str]: Command names.
+        """
         return list(self.__commands.keys())
 
-    def add_command(self, arg1, arg2=None, add_now=True):
+    def add_command(
+        self,
+        arg1: Dict[str, Any],
+        arg2: Optional[str] = None,
+        add_now: bool = True,
+    ) -> Union[CommandObject, None]:
+        """Add command.
+
+        Args:
+            arg1 (Dict[str, Any]): Command attributes.
+            arg2 (Optional[str], optional): Command name. Defaults to None.
+            add_now (bool, optional): Whether to add command now. Defaults to True.
+
+        Raises:
+            ConnectionError: If a connection error occured while adding the command.
+
+        Returns:
+            Union[CommandObject, None]: Command object or None if adding later.
+        """
         if not add_now:
             self.__commands_to_add.append((arg1, arg2))
             return
-        new_command = None
+        new_command: Union[CommandObject, None] = None
 
+        cmd_name: str
+        cmd_type: str
+        cmd: Union[str, None]
         if isinstance(arg1, dict):
             attributes_dict = arg1
             cmd = arg2
@@ -749,13 +965,28 @@ class CommandContainer:
 
             return new_command
 
-    def _add_channels_and_commands(self):
+    def _add_channels_and_commands(self) -> None:
+        """Add pending channels and commands."""
         [self.add_channel(*args) for args in self.__channels_to_add]
         [self.add_command(*args) for args in self.__commands_to_add]
         self.__channels_to_add = []
         self.__commands_to_add = []
 
-    def execute_command(self, command_name, *args, **kwargs):
+    def execute_command(self, command_name: str, *args, **kwargs) -> Any:
+        """Execute command.
+
+        Args:
+            command_name (str): Command name.
+            *args (tuple): Arguments to pass through to the command to be executed.
+            **kwargs (Dict[str, Any]): Named arguments to pass through to the
+            command to be executed.
+
+        Raises:
+            AttributeError: If command not found.
+
+        Returns:
+            Any: Execution output.
+        """
         if command_name in self.__commands:
             return self.__commands[command_name](*args, **kwargs)
         else:

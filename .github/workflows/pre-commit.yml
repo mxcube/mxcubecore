@@ -14,7 +14,7 @@ jobs:
         python-version: "3.7"
 
     - name: Install openldap
-      run: sudo apt-get install -y libldap2-dev libsasl2-dev slapd ldap-utils tox lcov valgrind
+      run: sudo apt-get update && sudo apt-get install -y libldap2-dev libsasl2-dev slapd ldap-utils tox lcov valgrind
 
     - name: Install dependencies
       run: |

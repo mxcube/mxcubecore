@@ -1,5 +1,4 @@
 import gevent
-import time
 import logging
 from gevent import subprocess
 import os

@@ -364,7 +364,7 @@ for sg in SPACEGROUP_DATA:
     point_group = sg.point_group
     if point_group:
         lattice = laue_group2lattices[sg.laue_group]
-        ll0 =  lattice2point_groups[lattice]
+        ll0 = lattice2point_groups[lattice]
         if point_group not in ll0:
             ll0.append(point_group)
             point_groups.append(point_group)

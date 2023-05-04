@@ -26,7 +26,8 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
 from test.pytest import TestHardwareObjectBase
-from mxcubecore.HardwareObjects.abstract.AbstractBeam import BeamShape
+from mxcubecore.HardwareObjects.abstract.AbstractBeam import BeamShape, AbstractBeam
+
 
 import pytest
 
@@ -41,6 +42,23 @@ def test_object(beamline):
     yield result
     # Cleanup code here - restores starting state for next call:
     # NBNB TODO
+
+
+@pytest.fixture
+def beam():
+    """ """
+
+    beam = AbstractBeam(name="abstract_beam")
+    yield beam
+
+
+class TestAbstractBeam:
+    """ """
+
+    def test_beam_setup(self, beam: AbstractBeam):
+        """ """
+
+        assert beam is not None
 
 
 class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):

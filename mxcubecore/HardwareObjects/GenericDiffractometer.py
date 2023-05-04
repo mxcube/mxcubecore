@@ -149,6 +149,7 @@ class BlockShapeEnum(str, enum.Enum):
     rectangular = "RECTANGULAR"
     elliptical = "ELLIPTICAL"
 
+
 class SampleHolderSectionModel(BaseModel):
     section_offset: Tuple[int, int] = Field(
         [0, 0], description="Block offset in grid layout system coordinates x, y"
