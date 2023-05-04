@@ -74,7 +74,7 @@ class BIOMAXEiger(AbstractDetector):
             "Compression",
             "RoiMode",
             "State",
-            "Status",
+            # "Status",
             "XPixelsDetector",
             "YPixelsDetector",
             "CollectionUUID",
@@ -134,11 +134,20 @@ class BIOMAXEiger(AbstractDetector):
                     "type": "tango",
                     "name": channel_name,
                     "tangoname": tango_device,
-                    "timeout": 12000,
+                    "polling": 12000,
                 },
                 channel_name,
             )
 
+        self.add_channel(
+            {
+                "type": "tango",
+                "name": "Status",
+                "tangoname": tango_device,
+                "polling": 1000,
+            },
+            "Status",
+        )
         for cmd_name in cmd_list:
             self.add_command(
                 {
@@ -177,6 +186,11 @@ class BIOMAXEiger(AbstractDetector):
 
         frame_time_info = self.frame_time_channel.get_info()
         self.frame_time_min = float(frame_time_info.min_value)
+        _status = self.get_channel_object('Status')
+
+        _status.connect_signal('update', self.status_update)
+        # print(_status.get_value())
+        self.update_state(self.STATES.READY)
 
     #  STATUS , status can be "idle", "ready", "UNKNOWN"
     def get_status(self):
@@ -189,6 +203,10 @@ class BIOMAXEiger(AbstractDetector):
                 return "not_init"
 
         return self.status_chan.get_value().split("\n")[0]
+
+    def status_update(*args):
+        print('eiger satus update', args)
+        print(args)
 
     def is_idle(self):
         return self.get_status()[:4] == "idle"
@@ -672,3 +690,30 @@ class BIOMAXEiger(AbstractDetector):
             logging.getLogger("HWR").error(
                 "[DETECTOR] Couldn't set monitor during init with error {}". format(ex)
                 )
+
+    def get_radius(self, distance=None):
+        """Get distance from the beam position to the nearest detector edge.
+        Args:
+            distance (float): Distance [mm]
+        Returns:
+            (float): Detector radius [mm]
+        """
+        try:
+            distance = (
+                distance
+                if distance is not None
+                else self._distance_motor_hwobj.get_value()
+            )
+        except AttributeError as err:
+            raise RuntimeError("Cannot calculate radius, unknown distance") from err
+
+        beam_x, beam_y = self.get_beam_position(distance)
+        pixel_x, pixel_y = self.get_pixel_size()
+        # Original
+        # rrx = min(self.get_width() - beam_x, beam_x) * pixel_x
+        # rry = min(self.get_height() - beam_y, beam_y) * pixel_y
+        # radius = min(rrx, rry)
+
+        radius = min(self.get_width() - beam_x, self.get_height() - beam_y, beam_x, beam_y) * 0.075
+
+        return radius
