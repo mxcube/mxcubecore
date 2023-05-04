@@ -376,7 +376,16 @@ class P11SampleChanger(SampleChanger):
 
     def wait_sc_ready(self):
         t0 = last_printed = time.time()
+
+        self.emit("progressStep", 20)
+
+        last_elapsed = 0
+
         while True:
+            elapsed = round(time.time() - t0)
+            if elapsed != last_elapsed:
+                self.emit("progressStep", 30 + elapsed * 5)
+                last_elapsed = elapsed
             state = str(self.chan_state.get_value())
             if time.time() - last_printed > 2:
                 self.log.debug("current state is %s" % state)
