@@ -251,10 +251,14 @@ class GraphicsItemBeam(GraphicsItem):
             )
         else:
             painter.drawEllipse(
-                int(self.beam_position[0] * self.scene().image_scale
-                - self.beam_size_pix[0] / 2 * self.scene().image_scale),
-                int(self.beam_position[1] * self.scene().image_scale
-                - self.beam_size_pix[1] / 2 * self.scene().image_scale),
+                int(
+                    self.beam_position[0] * self.scene().image_scale
+                    - self.beam_size_pix[0] / 2 * self.scene().image_scale
+                ),
+                int(
+                    self.beam_position[1] * self.scene().image_scale
+                    - self.beam_size_pix[1] / 2 * self.scene().image_scale
+                ),
                 int(self.beam_size_pix[0] * self.scene().image_scale),
                 int(self.beam_size_pix[1] * self.scene().image_scale),
             )
@@ -1678,7 +1682,7 @@ class GraphicsItemScale(GraphicsItem):
 
                 painter.drawLine(
                     halfwidth - line * 30,
-                    halfheight- 50 * line,
+                    halfheight - 50 * line,
                     halfwidth + line * 30,
                     halfheight - 50 * line,
                 )
@@ -1694,10 +1698,16 @@ class GraphicsItemScale(GraphicsItem):
             self.custom_pen.setColor(qt_import.Qt.yellow)
             painter.setPen(self.custom_pen)
             painter.drawLine(
-                halfwidth - 20, halfheight, halfwidth + 20, halfheight,
+                halfwidth - 20,
+                halfheight,
+                halfwidth + 20,
+                halfheight,
             )
             painter.drawLine(
-                halfwidth, halfheight - 20, halfwidth, halfheight + 20,
+                halfwidth,
+                halfheight - 20,
+                halfwidth,
+                halfheight + 20,
             )
 
     def set_pixels_per_mm(self, pixels_per_mm):

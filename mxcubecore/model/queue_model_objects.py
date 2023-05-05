@@ -2031,7 +2031,7 @@ class GphlWorkflow(TaskNode):
 
     def parameter_summary(self):
         """Main parameter summary, for output purposes"""
-        summary = {"strategy":self.get_type()}
+        summary = {"strategy": self.get_type()}
         for tag in (
             "automation_mode",
             "init_spot_dir",
@@ -2161,7 +2161,6 @@ class GphlWorkflow(TaskNode):
         self.init_spot_dir = init_spot_dir
         self.use_cell_for_processing = use_cell_for_processing
 
-
     def set_pre_acquisition_params(
         self,
         exposure_time=None,
@@ -2216,7 +2215,7 @@ class GphlWorkflow(TaskNode):
                     "Number of energies %s do not match remaining slots %s"
                     % (energies, energy_tags[len(self.wavelengths):])
                 )
-            
+
 
     def init_from_task_data(self, sample_model, params):
         """
@@ -2233,7 +2232,7 @@ class GphlWorkflow(TaskNode):
             "decay_limit",
             "maximum_dose_budget",
             "characterisation_budget_fraction",
-            "characterisation_strategy"
+            "characterisation_strategy",
         ):
             value = params.get(tag)
             if value:
@@ -2250,7 +2249,7 @@ class GphlWorkflow(TaskNode):
         else:
             ll1.append(copy.deepcopy(acq_param_settings[-1]))
         new_acq_params = params.pop("auto_acq_parameters", [{}])
-        ll1[0].update (new_acq_params[0])
+        ll1[0].update(new_acq_params[0])
         ll1[-1].update(new_acq_params[-1])
 
         if "automation_mode" in params:
@@ -2278,14 +2277,11 @@ class GphlWorkflow(TaskNode):
             self.image_width = default_parameters.osc_range
 
         # Path template and prefixes
-        base_prefix = self.path_template.base_prefix = (
-            params.get("prefix")
-            or HWR.beamline.session.get_default_prefix(sample_model)
-        )
+        base_prefix = self.path_template.base_prefix = params.get(
+            "prefix"
+        ) or HWR.beamline.session.get_default_prefix(sample_model)
         self.set_name(base_prefix)
-        self.path_template.suffix = (
-            params.get("suffix") or HWR.beamline.session.suffix
-        )
+        self.path_template.suffix = params.get("suffix") or HWR.beamline.session.suffix
         self.path_template.num_files = 0
 
         self.path_template.directory = os.path.join(
@@ -2381,7 +2377,6 @@ class GphlWorkflow(TaskNode):
             else:
                 raise ValueError("invalid value for cell_parameters: %s" % str(value))
 
-
     def calculate_transmission(self, use_dose=None):
         """Calculate transmission correspoiding to using up a given dose
         NBNB value may be higher than 100%; this must be dealt with by the caller
@@ -2393,10 +2388,9 @@ class GphlWorkflow(TaskNode):
             use_dose = self.recommended_dose_budget()
         max_dose = self.calculate_dose(transmission=100.0)
         if max_dose:
-            return 100. * use_dose / max_dose
+            return 100.0 * use_dose / max_dose
         else:
             raise ValueError("Could not calculate transmission")
-
 
     def calculate_dose(self, transmission=None):
         """Calculate dose consumed with current parameters
@@ -2433,7 +2427,7 @@ class GphlWorkflow(TaskNode):
                 exposure_time,
                 image_width,
                 transmission,
-                flux_density
+                flux_density,
             )
         )
         return 0
@@ -2451,7 +2445,7 @@ class GphlWorkflow(TaskNode):
             resolution,
             decay_limit=self.decay_limit,
             maximum_dose_budget=self.maximum_dose_budget,
-            relative_rad_sensitivity=self.relative_rad_sensitivity
+            relative_rad_sensitivity=self.relative_rad_sensitivity,
         )
 
 

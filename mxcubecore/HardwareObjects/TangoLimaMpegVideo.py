@@ -12,7 +12,6 @@ Example configuration:
   <video_mode>RGB24</video_mode>
 </device>
 """
-import os
 import subprocess
 import uuid
 import psutil

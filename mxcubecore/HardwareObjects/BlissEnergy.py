@@ -23,13 +23,16 @@ Example xml file:
   <object href="/energy" role="energy_motor"/>
   <object href="/bliss" role="bliss"/>
 </object>
-The energy should have methods get_value, get_limits and move.
+The energy should have methods get_value, get_limits, get_state and move.
 If used, the controller should have method moveEnergy.
 
   - for fixed wavelength beamline:
 <object class="Energy">
   <read_only>True</read_only>
   <energy>12.8123</energy>
+  or
+  <object href="/energy" role="energy_motor"/>
+The energy should have methods get_value and get_state
 </object>
 """
 import logging
@@ -46,14 +49,14 @@ class BlissEnergy(AbstractEnergy):
     """Energy and Wavelength with bliss."""
 
     def __init__(self, name):
-        AbstractEnergy.__init__(self, name)
+        super().__init__(name)
         self._energy_motor = None
         self._bliss_session = None
         self._cmd_execution = None
 
     def init(self):
         """Initialisation"""
-        AbstractEnergy.init(self)
+        super().init()
         self._energy_motor = self.get_object_by_role("energy_motor")
         self._bliss_session = self.get_object_by_role("bliss")
         self.update_state(HardwareObjectState.READY)
@@ -63,7 +66,7 @@ class BlissEnergy(AbstractEnergy):
             self._energy_motor.connect("valueChanged", self.update_value)
             self._energy_motor.connect("stateChanged", self.update_state)
 
-        if self.read_only:
+        if self.read_only and not self._energy_motor:
             self._nominal_value = float(self.get_property("energy", 0))
 
     def get_value(self):
@@ -71,7 +74,7 @@ class BlissEnergy(AbstractEnergy):
         Returns:
             (float): Energy [keV]
         """
-        if not self.read_only:
+        if self._energy_motor:
             self._nominal_value = self._energy_motor.get_value()
         return self._nominal_value
 
