@@ -1987,6 +1987,7 @@ class GphlWorkflow(TaskNode):
 
         # Pre-strategy attributes
         # Set in  def set_pre_strategy_params(
+        self.input_space_group = str()
         self.space_group = str()
         self.crystal_classes = ()
         self._cell_parameters = ()
@@ -2038,6 +2039,7 @@ class GphlWorkflow(TaskNode):
             "image_width",
             "strategy_length",
             "transmission",
+            "input_space_group",
             "space_group",
             "crystal_classes",
             "_cell_parameters",
@@ -2065,6 +2067,7 @@ class GphlWorkflow(TaskNode):
     def set_pre_strategy_params(
             self,
             crystal_classes=(),
+            input_space_group="",
             space_group="",
             cell_parameters=(),
             resolution=None,
@@ -2088,6 +2091,7 @@ class GphlWorkflow(TaskNode):
 
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
+        self.input_space_group = input_space_group
         self.space_group = space_group
         self.crystal_classes = tuple(crystal_classes)
         if cell_parameters:
@@ -2305,7 +2309,7 @@ class GphlWorkflow(TaskNode):
         if all(tpl):
             self.cell_parameters = tpl
         self.protein_acronym = crystal.protein_acronym
-        self.space_group = crystal.space_group
+        self.space_group = self.input_space_group = crystal.space_group
         self.crystal_classes = params.get("crystal_classes", ())
 
         # Set to current wavelength for now - nothing else available

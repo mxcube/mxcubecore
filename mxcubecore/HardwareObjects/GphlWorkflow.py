@@ -136,7 +136,7 @@ lattice2point_group_tags.update(
         cP=("23", "432", "23|432"),
         cF=("23", "432", "23|432"),
         cI=("23", "432", "23|432"),
-        Cubic=("23", "432","23|432"),
+        Cubic=("23", "432", "23|432"),
     )
 )
 
@@ -438,7 +438,7 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "Crystal lattice",
             "default": lattice,
             "$ref": "#/definitions/lattice",
-            "hidden": False
+            "hidden": False,
         }
         fields["point_groups"] = {
             "title": "Point Groups",
@@ -450,6 +450,12 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "Space Group",
             "default": space_group,
             "$ref": "#/definitions/space_group",
+        }
+        fields["input_space_group"] = {
+            "title": "Space Group",
+            "default": data_model.input_space_group or "",
+            "type": "string",
+            "readOnly": True,
         }
         fields["relative_rad_sensitivity"] = {
             "title": "Radiation sensitivity",
@@ -474,6 +480,7 @@ class GphlWorkflow(HardwareObjectYaml):
             "default": 25,
             "minimum": 1,
             "maximum": 99,
+            "hidden": True,
         }
         fields["strategy"] = {
             "title": "Strategy",
@@ -529,6 +536,17 @@ class GphlWorkflow(HardwareObjectYaml):
             }
             for tag in strategies
         )
+        # Handle energy field
+        # NBNB allow for fixed-energy beamlines
+        energy_limits = HWR.beamline.energy.get_limits()
+        tag = "energy"
+        fields[tag] = {
+            "title": "%s energy (keV)" % energy_tag,
+            "type": "number",
+            "default": HWR.beamline.energy.get_value(),
+            "minimum": energy_limits[0],
+            "maximum": energy_limits[1],
+        }
         # Handle cell parameters
         cell_parameters = data_model.cell_parameters
         if cell_parameters:
@@ -542,20 +560,37 @@ class GphlWorkflow(HardwareObjectYaml):
             "ui:order": ["crystal_data", "parameters"],
             "ui:widget": "vertical_box",
             "crystal_data": {
-                "ui:title": "Unit Cell",
+                "ui:title": "Input Unit Cell",
                 "ui:widget": "column_grid",
                 "ui:order": [
-                    "symmetry",
-                    "cell_edges",
-                    "cell_angles",
+                    "sgroup",
+                    "cella",
+                    "cellb",
+                    "cellc",
                 ],
-                "cell_edges": {
-                    "ui:order": ["cell_a", "cell_b", "cell_c"],
+                "cella": {
+                    "ui:order": ["cell_a", "cell_alpha"],
                 },
-                "cell_angles": {
-                    "ui:order": ["cell_alpha", "cell_beta", "cell_gamma"],
+                "cellb": {
+                    "ui:order": ["cell_b", "cell_beta"],
                 },
-                "symmetry": {
+                "cellc": {
+                    "ui:order": ["cell_c", "cell_gamma"],
+                },
+                "sgroup": {
+                    "ui:order": ["input_space_group", "relative_rad_sensitivity"],
+                    "relative_rad_sensitivity": {
+                        "ui:options": {
+                            "decimals": 2,
+                        }
+                    },
+                },
+            },
+            "parameters": {
+                "ui:title": "Parameters",
+                "ui:widget": "column_grid",
+                "ui:order": ["column1", "column2"],
+                "column1": {
                     "ui:order": [
                         "lattice",
                         "space_group",
@@ -577,77 +612,48 @@ class GphlWorkflow(HardwareObjectYaml):
                         },
                     },
                 },
-            },
-            "parameters": {
-                "ui:title": "Parameters",
-                "ui:widget": "column_grid",
-                "ui:order": ["column1", "column2"],
-                "column1": {
-                    "ui:order": ["relative_rad_sensitivity", "strategy", "decay_limit"],
-                    "relative_rad_sensitivity": {
-                        "ui:options": {
-                            "decimals": 2,
-                        }
-                    },
-                    # "strategy":{
-                    #     "ui:widget": "select",
-                    # },
-                    "decay_limit": {
-                        "ui:readonly": True,
-                        "ui:options": {
-                            "decimals": 1,
-                        },
-                    },
-                },
                 "column2": {
                     "ui:order": [
-                        "resolution",
+                        "strategy", "resolution", "energy"
                     ],
                     "resolution": {
                         "ui:options": {
                             "decimals": 3,
                         },
                     },
+                    "energy": {
+                        "ui:options": {
+                            "decimals": 4,
+                        },
+                    },
                 },
-            },
-        }
-
-        # Handle energy field
-        # NBNB allow for fixed-energy beamlines
-        energy_limits = HWR.beamline.energy.get_limits()
-        col2 = ui_schema["parameters"]["column2"]
-        tag = "energy"
-        fields[tag] = {
-            "title": "%s energy (keV)" % energy_tag,
-            "type": "number",
-            "default": HWR.beamline.energy.get_value(),
-            "minimum": energy_limits[0],
-            "maximum": energy_limits[1],
-        }
-        col2["ui:order"].append(tag)
-        col2[tag] = {
-            "ui:options": {
-                "decimals": 4,
             },
         }
 
         if data_model.get_type() == "diffractcal":
             # Diffractcal
             for tag in (
-                "cell_a", "cell_b", "cell_c", "cell_alpha", "cell_beta", "cell_gamma"
+                "cell_a",
+                "cell_b",
+                "cell_c",
+                "cell_alpha",
+                "cell_beta",
+                "cell_gamma",
             ):
-                fields[tag]["readonly"] =  False
+                fields[tag]["readOnly"] = False
 
         elif choose_lattice is None:
             # Characterisation
             pass
 
-
         else:
             # Acquisition
             fields["point_groups"]["hidden"] = False
             fields["lattice"]["hidden"] = True
-            ui_schema["crystal_data"]["symmetry"]["ui:order"][0] = "point_groups"
+            fields["relative_rad_sensitivity"]["readOnly"] = True
+            ui_schema["parameters"]["column1"]["ui:order"][
+                0
+            ] = "point_groups"
 
             # NBNB TBD Redo once ABI has changed
             crystal_classes = (
@@ -656,7 +662,8 @@ class GphlWorkflow(HardwareObjectYaml):
             # Must match bravaisLattices column
             lattices = frozenset(
                 crystal_symmetry.CRYSTAL_CLASS_MAP[crystal_class].bravais_lattice
-            for crystal_class in crystal_classes)
+                for crystal_class in crystal_classes
+            )
 
             header, soldict, select_row = self.parse_indexing_solution(choose_lattice)
             lattice = list(soldict.values())[select_row].bravaisLattice
@@ -670,7 +677,7 @@ class GphlWorkflow(HardwareObjectYaml):
             else:
                 point_group = None
             point_groups = lattice2point_group_tags[lattice]
-            if point_group and point_group not in point_groups:
+            if point_group not in point_groups:
                 point_group = point_groups[-1]
             fields["point_groups"]["default"] = point_group
             fields["point_groups"]["value_dict"] = OrderedDict(
@@ -757,9 +764,6 @@ class GphlWorkflow(HardwareObjectYaml):
         if data_model.automation_mode:
             params = data_model.auto_acq_parameters[0]
         else:
-            # SIGNAL TO GET Pre-strategy parameters here
-            # NB set defaults from data_model
-            # NB consider whether to override on None
             params = self.query_pre_strategy_params()
             if params is StopIteration:
                 self.workflow_failed()
@@ -779,6 +783,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         data_model.set_pre_strategy_params(**params)
         if data_model.detector_setting is None:
+            # NB can only happen in automation mode
             resolution = HWR.beamline.resolution.get_value()
             distance = HWR.beamline.detector.distance.get_value()
             orgxy = HWR.beamline.detector.get_beam_position()
@@ -937,14 +942,14 @@ class GphlWorkflow(HardwareObjectYaml):
         ):
             title_string = data_model.get_type()
             lines = [
-                "GΦL workflow %s, strategy '%s', for point group '%s'"
+                "GΦL workflow:   %s, strategy '%s', for point group '%s'."
                 % (
                     title_string,
                     data_model.strategy_options["variant"],
                     crystal_symmetry.strategy_point_group(
                         data_model.crystal_classes,
-                        phasing=wf_parameters.get("strategy_type") == "phasing"
-                    )
+                        phasing=wf_parameters.get("strategy_type") == "phasing",
+                    ),
                 )
             ]
             lines.extend(("-" * len(lines[0]), ""))
@@ -1158,7 +1163,7 @@ class GphlWorkflow(HardwareObjectYaml):
             "default": resolution,
             "minimum": reslimits[0],
             "maximum": reslimits[1],
-            "readOnly": data_model.characterisation_done,
+            "readOnly": True,
         }
         fields["experiment_time"] = {
             "title": "Experiment duration (s)",
@@ -1341,7 +1346,6 @@ class GphlWorkflow(HardwareObjectYaml):
                     "resolution": {
                         "ui:options": {
                             "decimals": 3,
-                            "update_function": "update_resolution",
                         }
                     },
                     "experiment_time": {
@@ -1423,7 +1427,6 @@ class GphlWorkflow(HardwareObjectYaml):
         tag = "recentring_mode"
         result[tag] = RECENTRING_MODES.get(result.get(tag)) or default_recentring_mode
 
-        # data_model.dose_budget = float(params.get("dose_budget", 0))
         # # Register the dose (about to be) consumed
         if std_dose_rate:
             if (
@@ -2759,31 +2762,31 @@ class GphlWorkflow(HardwareObjectYaml):
                 )
 
     @staticmethod
-    def update_resolution(values_map: ui_communication.AbstractValuesMap):
-        if values_map.block_updates:
-            return
-
-        parameters = values_map.get_values_map()
-        resolution = float(parameters.get("resolution"))
-        decay_limit = float(parameters.get("decay_limit", 0))
-        relative_rad_sensitivity = float(parameters.get("relative_rad_sensitivity", 0))
-        maximum_dose_budget = float(parameters.get("maximum_dose_budget", 0))
-        default_exposure = HWR.beamline.get_default_acquisition_parameters().exp_time
-        dbg = 2 * resolution * resolution * math.log(100.0 / decay_limit)
-        #
-        dbg = min(dbg, maximum_dose_budget) / relative_rad_sensitivity
-        characterisation_budget_fraction = float(
-            parameters.get("characterisation_budget_fraction", 0)
-        )
-        characterisation_dose = float(parameters.get("characterisation_dose", 0))
-        if characterisation_dose:
-            use_dose = dbg - characterisation_dose
-        else:
-            use_dose = dbg * characterisation_budget_fraction
-        values_map.set_values(
-            dose_budget=dbg, use_dose=use_dose, exposure=default_exposure
-        )
-        GphlWorkflow.update_dose(values_map)
+    # def update_resolution(values_map: ui_communication.AbstractValuesMap):
+    #     if values_map.block_updates:
+    #         return
+    #
+    #     parameters = values_map.get_values_map()
+    #     resolution = float(parameters.get("resolution"))
+    #     decay_limit = float(parameters.get("decay_limit", 0))
+    #     relative_rad_sensitivity = float(parameters.get("relative_rad_sensitivity", 0))
+    #     maximum_dose_budget = float(parameters.get("maximum_dose_budget", 0))
+    #     default_exposure = HWR.beamline.get_default_acquisition_parameters().exp_time
+    #     dbg = 2 * resolution * resolution * math.log(100.0 / decay_limit)
+    #     #
+    #     dbg = min(dbg, maximum_dose_budget) / relative_rad_sensitivity
+    #     characterisation_budget_fraction = float(
+    #         parameters.get("characterisation_budget_fraction", 0)
+    #     )
+    #     characterisation_dose = float(parameters.get("characterisation_dose", 0))
+    #     if characterisation_dose:
+    #         use_dose = dbg - characterisation_dose
+    #     else:
+    #         use_dose = dbg * characterisation_budget_fraction
+    #     values_map.set_values(
+    #         dose_budget=dbg, use_dose=use_dose, exposure=default_exposure
+    #     )
+    #     GphlWorkflow.update_dose(values_map)
 
     @staticmethod
     def update_lattice(values_map: ui_communication.AbstractValuesMap):
@@ -2801,7 +2804,7 @@ class GphlWorkflow(HardwareObjectYaml):
         values_map.reset_options(
             "point_groups",
             value_dict=OrderedDict((tag, tag) for tag in pglist),
-            default=default
+            default=default,
         )
         # new_values = {}
         sglist = [""] + crystal_symmetry.space_groups_from_lattice(lattice)
@@ -2809,7 +2812,7 @@ class GphlWorkflow(HardwareObjectYaml):
         values_map.reset_options(
             "space_group",
             value_dict=OrderedDict((tag, tag) for tag in sglist),
-            default=default
+            default=default,
         )
 
     @staticmethod
@@ -2824,7 +2827,7 @@ class GphlWorkflow(HardwareObjectYaml):
         sglist = crystal_symmetry.space_groups_from_point_groups(
             point_groups.split("|")
         )
-        sglist= [""] + list(
+        sglist = [""] + list(
             name
             for name in crystal_symmetry.space_groups_from_lattice(lattice)
             if name in sglist
@@ -2833,11 +2836,8 @@ class GphlWorkflow(HardwareObjectYaml):
         values_map.reset_options(
             "space_group",
             value_dict=OrderedDict((tag, tag) for tag in sglist),
-            default=default
+            default=default,
         )
-        # if space_group and space_group not in sglist:
-        #     space_group = ""
-        #     values_map.set_values(space_group=space_group)
 
     @staticmethod
     def update_space_group(values_map: ui_communication.AbstractValuesMap):
@@ -2879,7 +2879,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 values_map.reset_options(
                     "lattice",
                     value_dict=OrderedDict(((lattice, lattice),)),
-                    default=lattice
+                    default=lattice,
                 )
                 GphlWorkflow.update_lattice(values_map)
                 break
