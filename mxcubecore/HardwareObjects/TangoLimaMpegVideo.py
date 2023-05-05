@@ -91,7 +91,6 @@ class TangoLimaMpegVideo(TangoLimaVideo):
                 [
                     "video-streamer",
                     "-tu",
-                    "-d",
                     self.get_property("tangoname").strip(),
                     "-hs",
                     "localhost",
