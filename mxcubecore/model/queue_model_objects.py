@@ -2426,7 +2426,7 @@ class GphlWorkflow(TaskNode):
             " energy:%s keV, strategy_length:%s deg, exposure_time:%s s, "
             "image_width:%s deg, transmission: %s  flux_density:%s  photons/mm^2"
         )
-        print(
+        raise UserWarning(
             msg % (
                 energy,
                 strategy_length,
