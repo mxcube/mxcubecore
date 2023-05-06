@@ -466,7 +466,7 @@ class GphlWorkflow(HardwareObjectYaml):
         fields["use_cell_for_processing"] = {
             "title": "Use for indexing",
             "type": "boolean",
-            "default": False,
+            "default": self.settings["defaults"]["use_cell_for_processing"],
         }
         fields["resolution"] = {
             "title": "Resolution",
