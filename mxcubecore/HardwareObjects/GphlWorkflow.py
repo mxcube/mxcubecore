@@ -941,16 +941,13 @@ class GphlWorkflow(HardwareObjectYaml):
             or wf_parameters.get("strategy_type") == "diffractcal"
         ):
             title_string = data_model.get_type()
+            lauegrp, ptgrp = crystal_symmetry.strategy_laue_group(
+                data_model.crystal_classes,
+                phasing=wf_parameters.get("strategy_type") == "phasing",
+            )
             lines = [
-                "GΦL workflow:   %s, strategy '%s', for point group '%s'."
-                % (
-                    title_string,
-                    data_model.strategy_options["variant"],
-                    crystal_symmetry.strategy_point_group(
-                        data_model.crystal_classes,
-                        phasing=wf_parameters.get("strategy_type") == "phasing",
-                    ),
-                )
+                "GΦL workflow:   %s, strategy '%s', for symmetry '%s'."
+                % (title_string, data_model.strategy_options["variant"], ptgrp)
             ]
             lines.extend(("-" * len(lines[0]), ""))
             energy_tags = workflow_parameters.get("beam_energy_tags") or (

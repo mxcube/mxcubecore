@@ -877,8 +877,8 @@ class UserProvidedInfo(MessageData):
 
         self._scatterers = ()
         crystal_classes = data_model.crystal_classes
-        strategy_point_group = crystal_symmetry.strategy_point_group(crystal_classes)
-        self._pointGroup = strategy_point_group
+        lauegrp, ptgrp = crystal_symmetry.strategy_laue_group(crystal_classes)
+        self._pointGroup = ptgrp
         crystal_systems = set(
             crystal_symmetry.CRYSTAL_CLASS_MAP[name].crystal_system
             for name in crystal_classes

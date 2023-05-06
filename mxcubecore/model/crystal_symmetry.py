@@ -30,85 +30,92 @@ from collections import namedtuple, OrderedDict
 
 CrystalClassInfo = namedtuple(
     "CrystalClassInfo", (
-        "number", "name", "bravais_lattice", "point_group", "crystal_system"
+        "number",
+        "name",
+        "bravais_lattice",
+        "point_group",
+        "crystal_system",
+        "laue_group",
     )
 )
 # Data from https://onlinelibrary.wiley.com/iucr/itc/Cb/ch1o4v0001/
+# Laue group names from http://pd.chem.ucl.ac.uk/pdnn/symm2/laue1.htm
+# Point group names from https://en.wikipedia.org/wiki/Crystallographic_point_group
 CRYSTAL_CLASS_DATA = [
-    CrystalClassInfo(0, "", "", "", ""),  # Null member, so number == index
-    CrystalClassInfo(1, "1P", "aP", "1", "Triclinic"),
-    CrystalClassInfo(2, "-1P", "aP", "-1", "Triclinic"),
-    CrystalClassInfo(3, "2P", "mP", "2", "Monoclinic"),
-    CrystalClassInfo(4, "2C", "mC", "2", "Monoclinic"),
-    CrystalClassInfo(5, "mP", "mP", "m", "Monoclinic"),
-    CrystalClassInfo(6, "mC", "mC", "m", "Monoclinic"),
-    CrystalClassInfo(7, "2/mP", "mP", "2/m", "Monoclinic"),
-    CrystalClassInfo(8, "2/mC", "mC", "2/m", "Monoclinic"),
-    CrystalClassInfo(9, "222P", "oP", "222", "Orthorhombic"),
-    CrystalClassInfo(10, "222C", "oC", "222", "Orthorhombic"),
-    CrystalClassInfo(11, "222F", "oF", "222", "Orthorhombic"),
-    CrystalClassInfo(12, "222I", "oI", "222", "Orthorhombic"),
-    CrystalClassInfo(13, "mm2P", "oP", "mm", "Orthorhombic"),
-    CrystalClassInfo(14, "mm2C", "oC", "mm", "Orthorhombic"),
-    CrystalClassInfo(15, "2mmC", "oC", "mm", "Orthorhombic"),  # NB was2mmC(Amm2)
-    CrystalClassInfo(16, "mm2F", "oF", "mm", "Orthorhombic"),
-    CrystalClassInfo(17, "mm2I", "oI", "mm", "Orthorhombic"),
-    CrystalClassInfo(18, "mmmP", "oP", "mmm", "Orthorhombic"),
-    CrystalClassInfo(19, "mmmC", "oC", "mmm", "Orthorhombic"),
-    CrystalClassInfo(20, "mmmF", "oF", "mmm", "Orthorhombic"),
-    CrystalClassInfo(21, "mmmI", "oI", "mmm", "Orthorhombic"),
-    CrystalClassInfo(22, "4P", "tP", "4", "Tetragonal"),
-    CrystalClassInfo(23, "4I", "tI", "4", "Tetragonal"),
-    CrystalClassInfo(24, "-4P", "tP", "-4", "Tetragonal"),
-    CrystalClassInfo(25, "-4I", "tI", "-4", "Tetragonal"),
-    CrystalClassInfo(26, "4/mP", "tP", "4/m", "Tetragonal"),
-    CrystalClassInfo(27, "4/mI", "tI", "4/m", "Tetragonal"),
-    CrystalClassInfo(28, "422P", "tP", "422", "Tetragonal"),
-    CrystalClassInfo(29, "422I", "tI", "422", "Tetragonal"),
-    CrystalClassInfo(30, "4mmP", "tP", "4mm", "Tetragonal"),
-    CrystalClassInfo(31, "4mmI", "tI", "4mm", "Tetragonal"),
-    CrystalClassInfo(32, "-42mP", "tP", "-4m", "Tetragonal"),
-    CrystalClassInfo(33, "-4m2P", "tP", "-4m", "Tetragonal"),
-    CrystalClassInfo(34, "-4m2I", "tI", "-4m", "Tetragonal"),
-    CrystalClassInfo(35, "-42mI", "tI", "-4m", "Tetragonal"),
-    CrystalClassInfo(36, "4/mmmP", "tP", "4/mmm", "Tetragonal"),
-    CrystalClassInfo(37, "4/mmmI", "tI", "4/mmm", "Tetragonal"),
-    CrystalClassInfo(38, "3P", "hP", "3", "Trigonal"),
-    CrystalClassInfo(39, "3R", "hR", "3", "Trigonal"),
-    CrystalClassInfo(40, "-3P", "hP", "-3", "Trigonal"),
-    CrystalClassInfo(41, "-3R", "hR", "-3", "Trigonal"),
-    CrystalClassInfo(42, "312P", "hP", "32", "Trigonal"),
-    CrystalClassInfo(43, "321P", "hP", "32", "Trigonal"),
-    CrystalClassInfo(44, "32R", "hR", "32", "Trigonal"),
-    CrystalClassInfo(45, "3m1P", "hP", "3m", "Trigonal"),
-    CrystalClassInfo(46, "31mP", "hP", "3m", "Trigonal"),
-    CrystalClassInfo(47, "3mR", "hR", "3m", "Trigonal"),
-    CrystalClassInfo(48, "-31mP", "hP", "-3m", "Trigonal"),
-    CrystalClassInfo(49, "-3m1P", "hP", "-3m", "Trigonal"),
-    CrystalClassInfo(50, "-3mR", "hR", "-3m", "Trigonal"),
-    CrystalClassInfo(51, "6P", "hP", "6", "Hexagonal"),
-    CrystalClassInfo(52, "-6P", "hP", "-6", "Hexagonal"),
-    CrystalClassInfo(53, "6/mP", "hP", "6/m", "Hexagonal"),
-    CrystalClassInfo(54, "622P", "hP", "622", "Hexagonal"),
-    CrystalClassInfo(55, "6mmP", "hP", "6mm", "Hexagonal"),
-    CrystalClassInfo(56, "-6m2P", "hP", "-6m", "Hexagonal"),
-    CrystalClassInfo(57, "-62mP", "hP", "-6m", "Hexagonal"),
-    CrystalClassInfo(58, "6/mmmP", "hP", "6/mmm", "Hexagonal"),
-    CrystalClassInfo(59, "23P", "cP", "23", "Cubic"),
-    CrystalClassInfo(60, "23F", "cF", "23", "Cubic"),
-    CrystalClassInfo(61, "23I", "cI", "23", "Cubic"),
-    CrystalClassInfo(62, "m-3P", "cP", "m-3", "Cubic"),
-    CrystalClassInfo(63, "m-3F", "cF", "m-3", "Cubic"),
-    CrystalClassInfo(64, "m-3I", "cI", "m-3", "Cubic"),
-    CrystalClassInfo(65, "432P", "cP", "432", "Cubic"),
-    CrystalClassInfo(66, "432F", "cF", "432", "Cubic"),
-    CrystalClassInfo(67, "432I", "cI", "432", "Cubic"),
-    CrystalClassInfo(68, "-43mP", "cP", "-43m", "Cubic"),
-    CrystalClassInfo(69, "-43mF", "cF", "-43m", "Cubic"),
-    CrystalClassInfo(70, "-43mI", "cI", "-43m", "Cubic"),
-    CrystalClassInfo(71, "m-3mP", "cP", "m-3m", "Cubic"),
-    CrystalClassInfo(72, "m-3mF", "cF", "m-3m", "Cubic"),
-    CrystalClassInfo(73, "m-3mI", "cI", "m-3m", "Cubic"),
+    CrystalClassInfo(0, "", "", "", "", ""),  # Null member, so number == index
+    CrystalClassInfo(1, "1P", "aP", "1", "Triclinic", "-1"),
+    CrystalClassInfo(2, "-1P", "aP", "-1", "Triclinic", "-1"),
+    CrystalClassInfo(3, "2P", "mP", "2", "Monoclinic", "2/m"),
+    CrystalClassInfo(4, "2C", "mC", "2", "Monoclinic", "2/m"),
+    CrystalClassInfo(5, "mP", "mP", "m", "Monoclinic", "2/m"),
+    CrystalClassInfo(6, "mC", "mC", "m", "Monoclinic", "2/m"),
+    CrystalClassInfo(7, "2/mP", "mP", "2/m", "Monoclinic", "2/m"),
+    CrystalClassInfo(8, "2/mC", "mC", "2/m", "Monoclinic", "2/m"),
+    CrystalClassInfo(9, "222P", "oP", "222", "Orthorhombic", "mmm"),
+    CrystalClassInfo(10, "222C", "oC", "222", "Orthorhombic", "mmm"),
+    CrystalClassInfo(11, "222F", "oF", "222", "Orthorhombic", "mmm"),
+    CrystalClassInfo(12, "222I", "oI", "222", "Orthorhombic", "mmm"),
+    CrystalClassInfo(13, "mm2P", "oP", "mm2", "Orthorhombic", "mmm"),
+    CrystalClassInfo(14, "mm2C", "oC", "mm2", "Orthorhombic", "mmm"),
+    CrystalClassInfo(15, "2mmC", "oC", "mm2", "Orthorhombic", "mmm"),  # NB was2mmC(Amm2)
+    CrystalClassInfo(16, "mm2F", "oF", "mm2", "Orthorhombic", "mmm"),
+    CrystalClassInfo(17, "mm2I", "oI", "mm2", "Orthorhombic", "mmm"),
+    CrystalClassInfo(18, "mmmP", "oP", "mmm", "Orthorhombic", "mmm"),
+    CrystalClassInfo(19, "mmmC", "oC", "mmm", "Orthorhombic", "mmm"),
+    CrystalClassInfo(20, "mmmF", "oF", "mmm", "Orthorhombic", "mmm"),
+    CrystalClassInfo(21, "mmmI", "oI", "mmm", "Orthorhombic", "mmm"),
+    CrystalClassInfo(22, "4P", "tP", "4", "Tetragonal", "4/m"),
+    CrystalClassInfo(23, "4I", "tI", "4", "Tetragonal", "4/m"),
+    CrystalClassInfo(24, "-4P", "tP", "-4", "Tetragonal", "4/m"),
+    CrystalClassInfo(25, "-4I", "tI", "-4", "Tetragonal", "4/m"),
+    CrystalClassInfo(26, "4/mP", "tP", "4/m", "Tetragonal", "4/m"),
+    CrystalClassInfo(27, "4/mI", "tI", "4/m", "Tetragonal", "4/m"),
+    CrystalClassInfo(28, "422P", "tP", "422", "Tetragonal", "4/mmm"),
+    CrystalClassInfo(29, "422I", "tI", "422", "Tetragonal", "4/mmm"),
+    CrystalClassInfo(30, "4mmP", "tP", "4mm", "Tetragonal", "4/mmm"),
+    CrystalClassInfo(31, "4mmI", "tI", "4mm", "Tetragonal", "4/mmm"),
+    CrystalClassInfo(32, "-42mP", "tP", "-42m", "Tetragonal", "4/mmm"),
+    CrystalClassInfo(33, "-4m2P", "tP", "-42m", "Tetragonal", "4/mmm"),
+    CrystalClassInfo(34, "-4m2I", "tI", "-42m", "Tetragonal", "4/mmm"),
+    CrystalClassInfo(35, "-42mI", "tI", "-42m", "Tetragonal", "4/mmm"),
+    CrystalClassInfo(36, "4/mmmP", "tP", "4/mmm", "Tetragonal", "4/mmm"),
+    CrystalClassInfo(37, "4/mmmI", "tI", "4/mmm", "Tetragonal", "4/mmm"),
+    CrystalClassInfo(38, "3P", "hP", "3", "Trigonal", "-3"),
+    CrystalClassInfo(39, "3R", "hR", "3", "Trigonal", "-3"),
+    CrystalClassInfo(40, "-3P", "hP", "-3", "Trigonal", "-3"),
+    CrystalClassInfo(41, "-3R", "hR", "-3", "Trigonal", "-3"),
+    CrystalClassInfo(42, "312P", "hP", "32", "Trigonal", "-3m"),
+    CrystalClassInfo(43, "321P", "hP", "32", "Trigonal", "-3m"),
+    CrystalClassInfo(44, "32R", "hR", "32", "Trigonal", "-3m").
+    CrystalClassInfo(45, "3m1P", "hP", "3m", "Trigonal", "-3m"),
+    CrystalClassInfo(46, "31mP", "hP", "3m", "Trigonal", "-3m"),
+    CrystalClassInfo(47, "3mR", "hR", "3m", "Trigonal", "-3m"),
+    CrystalClassInfo(48, "-31mP", "hP", "-3m", "Trigonal", "-3m"),
+    CrystalClassInfo(49, "-3m1P", "hP", "-3m", "Trigonal", "-3m"),
+    CrystalClassInfo(50, "-3mR", "hR", "-3m", "Trigonal", "-3m"),
+    CrystalClassInfo(51, "6P", "hP", "6", "Hexagonal", "6/m"),
+    CrystalClassInfo(52, "-6P", "hP", "-6", "Hexagonal", "6/m"),
+    CrystalClassInfo(53, "6/mP", "hP", "6/m", "Hexagonal", "6/m"),
+    CrystalClassInfo(54, "622P", "hP", "622", "Hexagonal", "6/mmm"),
+    CrystalClassInfo(55, "6mmP", "hP", "6mm", "Hexagonal", "6/mmm"),
+    CrystalClassInfo(56, "-6m2P", "hP", "-6m2", "Hexagonal", "6/mmm"),
+    CrystalClassInfo(57, "-62mP", "hP", "-6m2", "Hexagonal", "6/mmm"),
+    CrystalClassInfo(58, "6/mmmP", "hP", "6/mmm", "Hexagonal", "6/mmm"),
+    CrystalClassInfo(59, "23P", "cP", "23", "Cubic", "m-3"),
+    CrystalClassInfo(60, "23F", "cF", "23", "Cubic", "m-3"),
+    CrystalClassInfo(61, "23I", "cI", "23", "Cubic", "m-3"),
+    CrystalClassInfo(62, "m-3P", "cP", "m-3", "Cubic", "m-3"),
+    CrystalClassInfo(63, "m-3F", "cF", "m-3", "Cubic", "m-3"),
+    CrystalClassInfo(64, "m-3I", "cI", "m-3", "Cubic", "m-3"),
+    CrystalClassInfo(65, "432P", "cP", "432", "Cubic", "m-3m"),
+    CrystalClassInfo(66, "432F", "cF", "432", "Cubic", "m-3m"),
+    CrystalClassInfo(67, "432I", "cI", "432", "Cubic", "m-3m"),
+    CrystalClassInfo(68, "-43mP", "cP", "-43m", "Cubic", "m-3m"),
+    CrystalClassInfo(69, "-43mF", "cF", "-43m", "Cubic", "m-3m"),
+    CrystalClassInfo(70, "-43mI", "cI", "-43m", "Cubic", "m-3m"),
+    CrystalClassInfo(71, "m-3mP", "cP", "m-3m", "Cubic", "m-3m"),
+    CrystalClassInfo(72, "m-3mF", "cF", "m-3m", "Cubic", "m-3m"),
+    CrystalClassInfo(73, "m-3mI", "cI", "m-3m", "Cubic", "m-3m"),
 ]
 CRYSTAL_CLASS_MAP = OrderedDict((info.name, info) for info in CRYSTAL_CLASS_DATA)
 
@@ -361,32 +368,6 @@ BRAVAIS_LATTICES = (
     "aP", "mP", "mC", "oP", "oC", "oF", "oI", "tP", "tI", "hP", "hR", "cP", "cF", "cI",
 )
 
-# Lattice to point groups,
-# Gives default (strategy_ point groups for lattices adn crystal systems)
-lattice_point_groups = OrderedDict(
-    aP="1",
-    Triclinic="1",
-    mP="2",
-    mC="2",
-    Monoclinic="2",
-    oP="222",
-    oC="222",
-    oF="222",
-    oI="222",
-    Orthorhombic="222",
-    tP="4",
-    tI="4",
-    Tetragonal="4",
-    hP="3",
-    hR="3",
-    Trigonal="3",
-    Hexagonal="6",
-    cP="23",
-    cF="23",
-    cI="23",
-    Cubic="23",
-)
-
 def space_groups_from_lattice(lattice: str):
     """Space group names compatible with lattice,
     in space group number order"""
@@ -488,51 +469,55 @@ def crystal_classes_from_params(
         #
         return result
 
-
-def strategy_point_group(crystal_classes: tuple, phasing=False):
-    """Get point group to use for strategy calculation
+def strategy_laue_group(crystal_classes: tuple, phasing=False):
+    """Get laue group and point-group-like to use for strategy calculation
     for a given set of crystal classes.
-    Note that the function returns a reasonable chiral point_group
-    also if the input contains non-chiral crystal classes.
 
     Args:
         crystal_classes (tuple): Crystal class names
         phasing (bool): Is this for phasing (default is native)
 
-    Returns: (str) point_group
+    Returns: (str, str) laue_group, point_group_like
 
     """
+
+    laue_group_map = {
+        frozenset(("-1",)): ("-1", "1"),
+        frozenset(("2/m",)): ("2/m", "2"),
+        frozenset(("mmm",)): ("mmm", "222"),
+        frozenset(("4/m",)): ("4/m", "4"),
+        frozenset(("4/mmm",)): ("4/mmm", "422"),
+        frozenset(("4/m", "4/mmm")): ("4/m", "4"),
+        frozenset(("-3",)): ("-3", "3"),
+        frozenset(("6/m",)): ("6/m", "6"),
+        frozenset(("6/mmm",)): ("6/mmm", "622"),
+        frozenset(("6/m", "6/mmm")): ("6/m", "6"),
+        frozenset(("m-3",)): ("m-3", "23"),
+        frozenset(("m-3m",)): ("m-3m", "432"),
+        frozenset(("m-3", "m-3m")): ("m-3", "23"),
+    }
+    # NB Other combinations are dealt with separately
+
+    laue_groups = set()
     lattices = set()
-    systems = set()
-    point_groups = set()
     for name in crystal_classes:
         info = CRYSTAL_CLASS_MAP[name]
+        laue_groups.add(info.laue_group)
         lattices.add(info.bravais_lattice)
-        systems.add(info.crystal_system)
-        point_groups.add(info.point_group)
 
-    if len(point_groups) == 1:
-        # A single, chiral pointgroup
-        point_group = point_groups.pop()
-        if point_group.isdigit():
-            if point_group == "32":
-                # We need to distinguish 32, 312, and 321
-                # (even if these are not strictly speaking point groups)
-                if lattices == set(("hR",)):
-                    point_group = "32"
-                elif lattices == set(("hP",)) and len(crystal_classes) == 1:
-                    point_group = crystal_classes[0][:-1]
-                else:
-                    point_group = "3"
-            return point_group
-    if len(systems) == 1:
-        # A single crystal system - take default point_group for that systenm
-        system = systems.pop()
-        return lattice_point_groups[system]
-    elif lattices in (set(("hP",)), set(("hP", "hR"))):
-        # Mixture of trigonal and hexagonal
-        return "3"
-    else:
-        # Mixture of different crystal systems. Not currently supported
-        return "1"
+    result = laue_group_map.get(laue_groups)
+    if result is None:
+        if lattices.issubset(set(("hP", "hR"))):
+            if laue_groups == set(("-3m",)) and lattices == set(("hR",)):
+                # NB Includes non-chiral crystal classes
+                result = ("-3m", "32")
+            elif len(crystal_classes) == 1 and crystal_classes[0] in ("312P", "321P"):
+                # NB excludes non-chiral crystal classes
+                result = ("-3m", crystal_classes[0][:-1])
+            else:
+                result = ("-3", "3")
+        else:
+            result = ("-1", "1")
+    #
+    return result
 

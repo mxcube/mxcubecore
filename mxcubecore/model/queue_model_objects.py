@@ -2154,6 +2154,7 @@ class GphlWorkflow(TaskNode):
             "clip_kappa": settings["angular_tolerance"],
             "maximum_chi": settings["maximum_chi"],
             "variant": workflow_parameters["variants"][0],
+            "crystal_classes": list(crystal_classes),
         }
         if strategy_options:
             self.strategy_options.update(strategy_options)
