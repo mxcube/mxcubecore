@@ -242,12 +242,20 @@ class GraphicsItemBeam(GraphicsItem):
 
         if self.beam_is_rectangle:
             painter.drawRect(
-                self.beam_position[0] * self.scene().image_scale
-                - self.beam_size_pix[0] / 2 * self.scene().image_scale,
-                self.beam_position[1] * self.scene().image_scale
-                - self.beam_size_pix[1] / 2 * self.scene().image_scale,
-                self.beam_size_pix[0] * self.scene().image_scale,
-                self.beam_size_pix[1] * self.scene().image_scale,
+                int(
+                    self.beam_position[0] * self.scene().image_scale
+                    - self.beam_size_pix[0] / 2 * self.scene().image_scale
+                ),
+                int(
+                    self.beam_position[1] * self.scene().image_scale
+                    - self.beam_size_pix[1] / 2 * self.scene().image_scale
+                ),
+                int(
+                    self.beam_size_pix[0] * self.scene().image_scale
+                ),
+                int(
+                    self.beam_size_pix[1] * self.scene().image_scale
+                ),
             )
         else:
             painter.drawEllipse(
@@ -608,8 +616,8 @@ class GraphicsItemLine(GraphicsItem):
         painter.setBrush(self.custom_brush)
         (start_cp_x, start_cp_y) = self.__cp_start.get_start_position()
         (end_cp_x, end_cp_y) = self.__cp_end.get_start_position()
-        mid_x = min(start_cp_x, end_cp_x) + abs((start_cp_x - end_cp_x) / 2.0)
-        mid_y = min(start_cp_y, end_cp_y) + abs((start_cp_y - end_cp_y) / 2.0)
+        mid_x = int(min(start_cp_x, end_cp_x) + abs((start_cp_x - end_cp_x) / 2.0))
+        mid_y = int(min(start_cp_y, end_cp_y) + abs((start_cp_y - end_cp_y) / 2.0))
 
         if self.isSelected() and self.__num_images and self.__display_overlay:
             painter.setPen(qt_import.Qt.NoPen)
@@ -1331,10 +1339,10 @@ class GraphicsItemGrid(GraphicsItem):
                     )
                     if self.beam_is_rectangle:
                         painter.drawRect(
-                            pos_x - self.beam_size_pix[0] / 2,
-                            pos_y - self.beam_size_pix[1] / 2,
-                            self.beam_size_pix[0],
-                            self.beam_size_pix[1],
+                            int(pos_x - self.beam_size_pix[0] / 2),
+                            int(pos_y - self.beam_size_pix[1] / 2),
+                            int(self.beam_size_pix[0]),
+                            int(self.beam_size_pix[1]),
                         )
                     else:
                         painter.drawEllipse(
@@ -1903,7 +1911,7 @@ class GraphicsItemCentringLines(GraphicsItem):
             self.start_coord[0], 0, self.start_coord[0], int(self.scene().height())
         )
         painter.drawLine(
-            0, self.start_coord[1], self.scene().width(), self.start_coord[1]
+            0, self.start_coord[1], int(self.scene().width()), self.start_coord[1]
         )
         """
         if len(self.centring_points) in (0, 1):
@@ -1936,7 +1944,7 @@ class GraphicsItemCentringLines(GraphicsItem):
         :param pos_y:
         :return:
         """
-        self.centring_points.append((pos_x, pos_y))
+        self.centring_points.append((int(pos_x), int(pos_y)))
 
 
 class GraphicsItemHistogram(GraphicsItem):
@@ -2558,16 +2566,16 @@ class GraphicsMagnificationItem(GraphicsItem):
             offset_y = self.area_size / 2.0 + 20
 
         painter.drawRect(
-            self.end_coord[0] - self.area_size / 2.0,
-            self.end_coord[1] - self.area_size / 2.0,
+            int(self.end_coord[0] - self.area_size / 2.0),
+            int(self.end_coord[1] - self.area_size / 2.0),
             self.area_size,
             self.area_size,
         )
         painter.drawPixmap(
             self.end_coord[0] + offset_x,
             self.end_coord[1] + offset_y,
-            self.area_size * self.scale,
-            self.area_size * self.scale,
+            int(self.area_size * self.scale),
+            int(self.area_size * self.scale),
             self.graphics_pixmap,
         )
 

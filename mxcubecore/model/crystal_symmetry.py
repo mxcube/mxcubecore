@@ -86,7 +86,7 @@ CRYSTAL_CLASS_DATA = [
     CrystalClassInfo(41, "-3R", "hR", "-3", "Trigonal", "-3"),
     CrystalClassInfo(42, "312P", "hP", "32", "Trigonal", "-3m"),
     CrystalClassInfo(43, "321P", "hP", "32", "Trigonal", "-3m"),
-    CrystalClassInfo(44, "32R", "hR", "32", "Trigonal", "-3m").
+    CrystalClassInfo(44, "32R", "hR", "32", "Trigonal", "-3m"),
     CrystalClassInfo(45, "3m1P", "hP", "3m", "Trigonal", "-3m"),
     CrystalClassInfo(46, "31mP", "hP", "3m", "Trigonal", "-3m"),
     CrystalClassInfo(47, "3mR", "hR", "3m", "Trigonal", "-3m"),
@@ -410,7 +410,7 @@ def space_groups_from_point_groups(point_groups: list):
 
 
 def crystal_classes_from_params(
-    lattice: str = None, point_groups: list[str] = None, space_group: str = None
+    lattice: str = None, point_groups: list = None, space_group: str = None
 ):
     """
     Get tuple of  crystal class names compatible with input parameters,
@@ -504,7 +504,7 @@ def strategy_laue_group(crystal_classes: tuple, phasing=False):
         info = CRYSTAL_CLASS_MAP[name]
         laue_groups.add(info.laue_group)
         lattices.add(info.bravais_lattice)
-
+    laue_groups = frozenset(laue_groups)
     result = laue_group_map.get(laue_groups)
     if result is None:
         if lattices.issubset(set(("hP", "hR"))):
