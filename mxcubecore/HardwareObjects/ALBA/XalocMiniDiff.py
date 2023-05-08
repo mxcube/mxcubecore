@@ -1258,7 +1258,7 @@ class XalocMiniDiff(GenericDiffractometer):
         Emit kappa_phiMotorMoved signal with position value.
         """
         self.current_motor_positions["kappa_phi"] = pos
-        self.emit("kappaPhiMotorMoved", pos)
+        self.emit("kappa_phiMotorMoved", pos)
 
     def kappa_phi_motor_state_changed(self, state):
         """
