@@ -4,6 +4,8 @@ from mxcubecore import HardwareRepository as HWR
 from requests import post
 from urllib.parse import urljoin
 import logging
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 class P11ISPyBClient(ISPyBClient):
 
@@ -94,3 +96,4 @@ class P11ISPyBClient(ISPyBClient):
             
     #     return authenticated, msg
 
+   
