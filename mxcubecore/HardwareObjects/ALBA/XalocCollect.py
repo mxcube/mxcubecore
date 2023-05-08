@@ -305,6 +305,10 @@ class XalocCollect(AbstractCollect):
         """
         Actual collect sequence
         """
+        if not HWR.beamline.session.proposal_id: 
+            msg = "First log in before starting a data collection"
+            self.data_collection_failed( Exception( msg ), msg )
+
         log = logging.getLogger("user_level_log")
         log.info("Collection: Preparing to collect")
 
@@ -1448,8 +1452,8 @@ class XalocCollect(AbstractCollect):
             if super_state == DevState.ON:
                 break
             elif super_state == None:
-                self.user_logger.debug("Inform your LC that supervisor state is %s" % super_state)
-                break
+                self.logger.debug("Supervisor state is None, probably a temporary problem")
+                #break
             if time.time() - t0 > timeout:
                 msg = "Timeout waiting for supervisor ready, call your LC"
                 self.user_logger.error(msg)
