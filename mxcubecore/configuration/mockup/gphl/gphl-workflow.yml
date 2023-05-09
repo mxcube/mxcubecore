@@ -24,9 +24,10 @@ settings:
     # Characterisation strategies popup.
     # names refer to stategies in  strategylib.nml
     characterisation_strategies:
-        - Char_4_by_10
-#        - Char_24deg
+#        - Char_4_by_10
+      - Char_6_5_multitrigger
 #        - Characterisation_6_5
+#        - Char_24deg
 #        - TEST_Characterisation_12_3
 #        - TEST_Characterisation_12_4
 #        - TEST_Characterisation_12_5
@@ -35,6 +36,7 @@ settings:
     # 'configured': set value from calibration and characterisation strategy file
     # 'current': use current value
     starting_beamline_energy: current
+    display_energy_decimals: 4
     default_beam_energy_tag: Main
 
 
@@ -63,6 +65,8 @@ settings:
         # The formula used is dose_budget =
         #     2 * resolution**2 * log(100. / decay_limit) / relative_sensitivity
         decay_limit: 25
+        # Default use known cell parameters as forced starting point for processing
+        use_cell_for_processing: true
         # Maximum dose budget to propose when converting from resolution, in MGy
         maximum_dose_budget: 20
         # Percentage of dose budget to propose for use in characterisation.
@@ -73,7 +77,7 @@ settings:
         characterisation_strategy: Char_6_5_multitrigger
 
         # For testing only:
-        automation_mode: TEST
+#        automation_mode: TEST
 
     # Default parameters for fully automated strategies
     # Multiple acquisitions in order - characterisation then main
@@ -134,7 +138,51 @@ settings:
         co.gphl.wf.simcal_predict.mosaicity: 0.2
 #        # Testing ONLY:
 #        co.gphl.wf.run_number: 7
-    
+test_crystals:
+    Thaumatin:
+        # From PDB 1RQW
+        space_group: P41212
+        a: 57.847
+        b: 57.847
+        c: 150.125
+        alpha: 90
+        beta: 90
+        gamma: 90
+    Germanate:
+        space_group: Ia-3d
+        a: 51.2487
+        b: 51.2487
+        c: 51.2487
+        alpha: 90
+        beta: 90
+        gamma: 90
+    CubicInsulin:
+        # From PDB 2BN3
+        space_group: I213
+        a: 77.9
+        b: 77.9
+        c: 77.9
+        alpha: 90
+        beta: 90
+        gamma: 90
+    HEWLysozyme:
+        # From PDB 193L
+        space_group: P43212
+        a: 78.54
+        b: 78.54
+        c: 37.70
+        alpha: 90
+        beta: 90
+        gamma: 90
+    Se-Met_FAE:
+        # From PDB 1GKK
+        space_group: P212121
+        a: 65.381
+        b: 108.793
+        c: 113.877
+        alpha: 90
+        beta: 90
+        gamma: 90
 #    Workflows, The options in the top elements are updated with the options
 #    in the individual type, and passed as options to teh workflow application
 # The following options are set elsewhere and can *not* be set here
@@ -179,9 +227,10 @@ workflows:
                       minimal: 1 sweep of 180+ degrees, 1-2 centrings.
                   application: co.gphl.wf.workflows.WFSimpleCharToProcessing
                   variants:
-                      - minimal
                       - full
+                      - minimal
                       - quick
+                      - ultralong
                   options:
                       # Filename pattern name for normal data collections
                       pattern: interleaved

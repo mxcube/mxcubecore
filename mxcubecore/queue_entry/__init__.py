@@ -55,7 +55,7 @@ def get_queue_entry_from_task_name(task_name):
     return getattr(sys.modules[__name__], cls_name, None)
 
 
-def import_queue_entries(site_name_list):
+def import_queue_entries(site_name_list=()):
     """
     Imports queue entries; imports all the native queue entries first and
     then the queue entries in site_name

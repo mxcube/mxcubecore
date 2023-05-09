@@ -335,14 +335,14 @@ class Microdiff(MiniDiff.MiniDiff):
     def set_light_in(self):
         """Set the backlight in - used by the XMLRPC calls"""
         logging.getLogger("HWR").info("Moving backlight in")
-        light_hwobj = self.getObjectByRole("BackLightSwitch")
+        light_hwobj = self.get_object_by_role("BackLightSwitch")
         light_hwobj.set_value(light_hwobj.VALUES.IN)
         self.wait_ready(20)
 
     def set_light_out(self):
         """Set the backlight out - used by the XMLRPC calls"""
         logging.getLogger("HWR").info("Moving backlight out")
-        light_hwobj = self.getObjectByRole("BackLightSwitch")
+        light_hwobj = self.get_object_by_role("BackLightSwitch")
         light_hwobj.set_value(light_hwobj.VALUES.OUT)
         self.wait_ready(20)
 

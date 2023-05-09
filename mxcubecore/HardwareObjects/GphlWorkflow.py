@@ -41,16 +41,16 @@ import gevent.queue
 import f90nml
 
 from mxcubecore.dispatcher import dispatcher
-from mxcubecore.utils import conversion
+from mxcubecore.utils import ui_communication
 from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
 from mxcubecore.model import queue_model_objects
-from mxcubecore.model import queue_model_enumerables
+from mxcubecore.model import crystal_symmetry
 from mxcubecore.queue_entry import QUEUE_ENTRY_STATUS
 from mxcubecore.queue_entry import QueueAbortedException
 
 from mxcubecore.HardwareObjects.Gphl import GphlMessages
-
 from mxcubecore import HardwareRepository as HWR
+
 
 @enum.unique
 class GphlWorkflowStates(enum.Enum):
@@ -69,6 +69,7 @@ class GphlWorkflowStates(enum.Enum):
     ABORTED = 3
     COMPLETED = 4
     UNKNOWN = 5
+
 
 __copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"
@@ -92,11 +93,57 @@ RECENTRING_MODES = OrderedDict(
         ("No manual re-centring, rely on calculated values", "none"),
     )
 )
+# Lattice to point groups,
+# Used for GPhL UI pulldowns, hence the combined point groups, like '4|422'
+# Note:
+# Values consist of point groups EXCEPT "312" and "321", that are special-cased
+# The first value is the default for the strategy,
+# the last for the set of possibilities.
+# The list for lattice "" contains all point group settings
+# The keys consist opf the Bravais lattice names, the crystam system names
+# and "" (for 'not set')
+# The list of keys, excluding "", defines the GPhL lattices pulldown.
+lattice2point_group_tags = OrderedDict()
+lattice2point_group_tags[""] = ()
+lattice2point_group_tags.update(
+    OrderedDict(
+        aP=("1",),
+        Triclinic=("2",),
+        mP=("2",),
+        mC=("2",),
+        Monoclinic=("2",),
+        oP=("222",),
+        oC=("222",),
+        oF=("222",),
+        oI=("222",),
+        Orthorhombic=("222",),
+        tP=("4", "422", "4|422"),
+        tI=("4", "422", "4|422"),
+        Tetragonal=("4", "422", "4|422"),
+        hP=("3", "312", "321", "3|32", "6", "622", "6|622", "3|32|6|622"),
+        hR=("3", "32", "3|32"),
+        Hexagonal=(
+            "3",
+            "312",
+            "321",
+            "32",
+            "3|32",
+            "6",
+            "622",
+            "6|622",
+            "3|32|6|622",
+        ),
+        cP=("23", "432", "23|432"),
+        cF=("23", "432", "23|432"),
+        cI=("23", "432", "23|432"),
+        Cubic=("23", "432", "23|432"),
+    )
+)
 
 
 class GphlWorkflow(HardwareObjectYaml):
-    """Global Phasing workflow runner.
-    """
+    """Global Phasing workflow runner."""
+
     SPECIFIC_STATES = GphlWorkflowStates
 
     TEST_SAMPLE_PREFIX = "emulate"
@@ -141,6 +188,9 @@ class GphlWorkflow(HardwareObjectYaml):
 
         # Configurable file paths
         self.file_paths = {}
+
+        # Configuration data for recentring calculations
+        self.recentring_data = OrderedDict()
 
         # TEST mxcube3 UI
         self.gevent_event = gevent.event.Event()
@@ -195,7 +245,7 @@ class GphlWorkflow(HardwareObjectYaml):
         # Adapt configuration data - must be done after file_paths setting
         if HWR.beamline.gphl_connection.ssh_options:
             # We are running workflow through ssh - set beamline url
-            beamline_hook ="py4j:%s:" % socket.gethostname()
+            beamline_hook = "py4j:%s:" % socket.gethostname()
         else:
             beamline_hook = "py4j::"
 
@@ -225,6 +275,91 @@ class GphlWorkflow(HardwareObjectYaml):
                         )
 
         self.update_state(self.STATES.READY)
+        self.setup_recentring()
+
+    def setup_recentring(self, force=True):
+
+        recen_data = self.recentring_data
+
+        transcal_data = None
+        fp0 = self.file_paths.get("transcal_file")
+        if os.path.isfile(fp0):
+            try:
+                transcal_data = f90nml.read(fp0)["sdcp_instrument_list"]
+            except:
+                logging.getLogger("HWR").warning(
+                    "reading transcal.nml file failed: %s. Continuing", fp0
+                )
+            else:
+                home_position = transcal_data.get("trans_home")
+                cross_sec_of_soc = transcal_data.get("trans_cross_sec_of_soc")
+                if home_position is None or cross_sec_of_soc is None:
+                    logging.getLogger("HWR").warning("load_transcal parameters failed")
+                    transcal_data = None
+
+        minikappa_correction = HWR.beamline.diffractometer.get_object_by_role(
+            "minikappa_correction"
+        )
+        if minikappa_correction and (force or not transcal_data):
+            posk = minikappa_correction.kappa["position"]
+            dirk = minikappa_correction.kappa["direction"]
+            posp = minikappa_correction.phi["position"]
+            dirp = minikappa_correction.phi["direction"]
+            aval = dirk.dot(dirp)
+            bvec = posk - posp
+            kappahome = -posk + (aval * bvec.dot(dirp) - bvec.dot(dirk)) * dirk / (
+                aval * aval - 1
+            )
+            phihome = -posp - (aval * bvec.dot(dirk) - bvec.dot(dirp)) * dirp / (
+                aval * aval - 1
+            )
+            home_position = 0.5 * (kappahome + phihome)
+            # For some reason the original formula gave the wrong sign
+            # # (http://confluence.globalphasing.com/display/SDCP/EMBL+MiniKappaCorrection)
+            home_position = -home_position
+            cross_sec_of_soc = 0.5 * (kappahome - phihome)
+            # Set omega axis to be teh basis vactor most slose to phi axis
+            omega = [0, 0, 0]
+            val = abs(dirp[0])
+            indx = 0
+            for iii in 1, 2:
+                if abs(dirp[iii]) > val:
+                    val = dirp[iii]
+                    indx = iii
+            omega[indx] = 1
+            recen_data["omega_axis"] = omega
+            recen_data["kappa_axis"] = dirk
+            recen_data["phi_axis"] = dirp
+            recen_data["trans_1_axis"] = [1, 0, 0]
+            recen_data["trans_2_axis"] = [0, 1, 0]
+            recen_data["trans_3_axis"] = [0, 0, 1]
+            recen_data["cross_sec_of_soc"] = cross_sec_of_soc
+            recen_data["home"] = home_position
+
+        else:
+            fp0 = self.file_paths.get("instrumentation_file")
+            instrumentation_data = f90nml.read(fp0)["sdcp_instrument_list"]
+            diffractcal_data = instrumentation_data
+
+            fp0 = self.file_paths.get("diffractcal_file")
+            try:
+                diffractcal_data = f90nml.read(fp0)["sdcp_instrument_list"]
+            except:
+                logging.getLogger("HWR").debug(
+                    "diffractcal file not present - using instrumentation.nml %s", fp0
+                )
+            ll0 = diffractcal_data["gonio_axis_dirs"]
+            recen_data["omega_axis"] = ll0[:3]
+            recen_data["kappa_axis"] = ll0[3:6]
+            recen_data["phi_axis"] = ll0[6:]
+            ll0 = instrumentation_data["gonio_centring_axis_dirs"]
+            recen_data["trans_1_axis"] = ll0[:3]
+            recen_data["trans_2_axis"] = ll0[3:6]
+            recen_data["trans_3_axis"] = ll0[6:]
+            recen_data["cross_sec_of_soc"] = cross_sec_of_soc
+            recen_data["home"] = home_position
+
+        indata = {"recen_list": recen_data}
 
     def shutdown(self):
         """Shut down workflow and connection. Triggered on program quit."""
@@ -237,7 +372,7 @@ class GphlWorkflow(HardwareObjectYaml):
         """Get list of workflow description dictionaries."""
         return copy.deepcopy(self.workflows)
 
-    def query_pre_strategy_params(self, data_model, choose_lattice=None):
+    def query_pre_strategy_params(self, choose_lattice=None):
         """Query pre_strategy parameters.
         Used for both characterisation, diffractcal, and acquisition
 
@@ -245,8 +380,14 @@ class GphlWorkflow(HardwareObjectYaml):
         :param choose_lattice (ChooseLattice): GphlMessage.ChooseLattice
         :return: -> dict
         """
-        gphl_workflow_hwr = HWR.beamline.gphl_workflow
+        data_model = self._queue_entry.get_data_model()
         workflow_parameters = data_model.get_workflow_parameters()
+        space_group = data_model.space_group or ""
+        if space_group:
+            crystal_class = crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
+            lattice = crystal_symmetry.CRYSTAL_CLASS_MAP[crystal_class].bravais_lattice
+        else:
+            lattice = ""
         schema = {
             "title": "GΦL Pre-strategy parameters",
             "type": "object",
@@ -258,49 +399,63 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "A",
             "type": "number",
             "minimum": 0,
+            "readOnly": True,
         }
         fields["cell_b"] = {
             "title": "B",
             "type": "number",
             "minimum": 0,
+            "readOnly": True,
         }
         fields["cell_c"] = {
             "title": "C",
             "type": "number",
             "minimum": 0,
+            "readOnly": True,
         }
         fields["cell_alpha"] = {
             "title": "α",
             "type": "number",
             "minimum": 0,
             "maximum": 180,
+            "readOnly": True,
         }
         fields["cell_beta"] = {
             "title": "β",
             "type": "number",
             "minimum": 0,
             "maximum": 180,
+            "readOnly": True,
         }
         fields["cell_gamma"] = {
             "title": "γ",
             "type": "number",
             "minimum": 0,
             "maximum": 180,
+            "readOnly": True,
         }
-        fields[ "lattice"] = {
-            "title": "Lattice",
-            "default": data_model.crystal_system or "",
+        fields["lattice"] = {
+            "title": "Crystal lattice",
+            "default": lattice,
             "$ref": "#/definitions/lattice",
+            "hidden": False,
         }
-        fields["point_group"] = {
-            "title": "Point Group",
-            "default": data_model.point_group or "",
-            "$ref": "#/definitions/point_group",
+        fields["point_groups"] = {
+            "title": "Point Groups",
+            "default": "1",
+            "$ref": "#/definitions/point_groups",
+            "hidden": True,
         }
         fields["space_group"] = {
             "title": "Space Group",
-            "default": data_model.space_group or "",
+            "default": space_group,
             "$ref": "#/definitions/space_group",
+        }
+        fields["input_space_group"] = {
+            "title": "Space Group",
+            "default": data_model.input_space_group or "",
+            "type": "string",
+            "readOnly": True,
         }
         fields["relative_rad_sensitivity"] = {
             "title": "Radiation sensitivity",
@@ -311,7 +466,7 @@ class GphlWorkflow(HardwareObjectYaml):
         fields["use_cell_for_processing"] = {
             "title": "Use for indexing",
             "type": "boolean",
-            "default": False,
+            "default": self.settings["defaults"]["use_cell_for_processing"],
         }
         fields["resolution"] = {
             "title": "Resolution",
@@ -325,11 +480,11 @@ class GphlWorkflow(HardwareObjectYaml):
             "default": 25,
             "minimum": 1,
             "maximum": 99,
+            "hidden": True,
         }
         fields["strategy"] = {
             "title": "Strategy",
             "$ref": "#/definitions/strategy",
-
         }
         schema["definitions"]["lattice"] = list(
             {
@@ -337,15 +492,15 @@ class GphlWorkflow(HardwareObjectYaml):
                 "enum": [tag],
                 "title": tag,
             }
-            for tag in queue_model_enumerables.lattice2xtal_point_groups
+            for tag in lattice2point_group_tags
         )
-        schema["definitions"]["point_group"] = list(
+        schema["definitions"]["point_groups"] = list(
             {
                 "type": "string",
                 "enum": [tag],
                 "title": tag,
             }
-            for tag in queue_model_enumerables.xtal_point_groups
+            for tag in lattice2point_group_tags["aP"]
         )
         schema["definitions"]["space_group"] = list(
             {
@@ -353,25 +508,26 @@ class GphlWorkflow(HardwareObjectYaml):
                 "enum": [tag],
                 "title": tag,
             }
-            for tag in queue_model_enumerables.XTAL_SPACEGROUPS
+            for tag in crystal_symmetry.XTAL_SPACEGROUPS
         )
         # Handle strategy fields
         if data_model.characterisation_done or data_model.get_type() == "diffractcal":
             strategies = workflow_parameters["variants"]
             fields["strategy"]["default"] = strategies[0]
             fields["strategy"]["title"] = "Acquisition strategy"
-            energy_tags = workflow_parameters.get(
-                "beam_energy_tags",
-                (gphl_workflow_hwr.settings["default_beam_energy_tag"],)
-            )
+            ll0 = workflow_parameters.get("beam_energy_tags")
+            if ll0:
+                energy_tag = ll0[0]
+            else:
+                energy_tag = self.settings["default_beam_energy_tag"]
         else:
             # Characterisation
-            strategies = gphl_workflow_hwr.settings["characterisation_strategies"]
-            fields["strategy"]["default"] = (
-                gphl_workflow_hwr.settings["defaults"]["characterisation_strategy"]
-            )
+            strategies = self.settings["characterisation_strategies"]
+            fields["strategy"]["default"] = self.settings["defaults"][
+                "characterisation_strategy"
+            ]
             fields["strategy"]["title"] = "Characterisation strategy"
-            energy_tags = ("Characterisation",)
+            energy_tag = "Characterisation"
         schema["definitions"]["strategy"] = list(
             {
                 "type": "string",
@@ -380,12 +536,23 @@ class GphlWorkflow(HardwareObjectYaml):
             }
             for tag in strategies
         )
+        # Handle energy field
+        # NBNB allow for fixed-energy beamlines
+        energy_limits = HWR.beamline.energy.get_limits()
+        tag = "energy"
+        fields[tag] = {
+            "title": "%s energy (keV)" % energy_tag,
+            "type": "number",
+            "default": HWR.beamline.energy.get_value(),
+            "minimum": energy_limits[0],
+            "maximum": energy_limits[1],
+        }
         # Handle cell parameters
         cell_parameters = data_model.cell_parameters
         if cell_parameters:
             for tag, val in zip(
                 ("cell_a", "cell_b", "cell_c", "cell_alpha", "cell_beta", "cell_gamma"),
-                data_model.cell_parameters
+                data_model.cell_parameters,
             ):
                 fields[tag]["default"] = val
 
@@ -393,26 +560,30 @@ class GphlWorkflow(HardwareObjectYaml):
             "ui:order": ["crystal_data", "parameters"],
             "ui:widget": "vertical_box",
             "crystal_data": {
-                "ui:title": "Unit Cell",
+                "ui:title": "Input Unit Cell",
                 "ui:widget": "column_grid",
-                "ui:order": ["cell_edges", "cell_angles", "symmetry"],
-                "cell_edges": {
-                    "ui:order": ["cell_a", "cell_b", "cell_c"],
+                "ui:order": [
+                    "sgroup",
+                    "cella",
+                    "cellb",
+                    "cellc",
+                ],
+                "cella": {
+                    "ui:order": ["cell_a", "cell_alpha"],
                 },
-                "cell_angles": {
-                    "ui:order": ["cell_alpha", "cell_beta", "cell_gamma"],
+                "cellb": {
+                    "ui:order": ["cell_b", "cell_beta"],
                 },
-                "symmetry": {
-                    "ui:order": ["lattice", "point_group", "space_group"],
-                    # "lattice":{
-                    #     "ui:widget": "select",
-                    # },
-                    # "point_group":{
-                    #     "ui:widget": "select",
-                    # },
-                    # "space_group":{
-                    #     "ui:widget": "select",
-                    # },
+                "cellc": {
+                    "ui:order": ["cell_c", "cell_gamma"],
+                },
+                "sgroup": {
+                    "ui:order": ["input_space_group", "relative_rad_sensitivity"],
+                    "relative_rad_sensitivity": {
+                        "ui:options": {
+                            "decimals": 2,
+                        }
+                    },
                 },
             },
             "parameters": {
@@ -421,60 +592,122 @@ class GphlWorkflow(HardwareObjectYaml):
                 "ui:order": ["column1", "column2"],
                 "column1": {
                     "ui:order": [
-                        "relative_rad_sensitivity",
-                        "strategy",
-                        "decay_limit"
+                        "lattice",
+                        "space_group",
+                        "use_cell_for_processing",
                     ],
-                    "relative_rad_sensitivity": {
+                    "lattice": {
                         "ui:options": {
-                            "decimals": 2,
-                        }
+                            "update_function": "update_lattice",
+                        },
                     },
-                    # "strategy":{
-                    #     "ui:widget": "select",
-                    # },
-                    "decay_limit": {
-                        "ui:readonly": True,
+                    "point_groups": {
                         "ui:options": {
-                            "decimals": 1,
+                            "update_function": "update_point_groups",
+                        },
+                    },
+                    "space_group": {
+                        "ui:options": {
+                            "update_function": "update_space_group",
                         },
                     },
                 },
                 "column2": {
                     "ui:order": [
-                        "use_cell_for_processing",
-                        "resolution",
+                        "strategy", "resolution", "energy"
                     ],
                     "resolution": {
                         "ui:options": {
                             "decimals": 3,
                         },
                     },
+                    "energy": {
+                        "ui:options": {
+                            "decimals": 4,
+                        },
+                    },
                 },
             },
         }
 
-        # Handle energies fields
-        # NBNB allow for fixed-energy beamlines
-        energy_limits = HWR.beamline.energy.get_limits()
-        col2 = ui_schema["parameters"]["column2"]
-        tags = ("energy1", "energy2", "energy3", )
-        for ii,energy_tag in enumerate(energy_tags):
-            fields[tags[ii]] = {
-                "title": "%s energy (keV)"  % energy_tag,
-                "type": "number",
-                "default": HWR.beamline.energy.get_value(),
-                "minimum": energy_limits[0],
-                "maximum": energy_limits[1],
+        if data_model.get_type() == "diffractcal":
+            # Diffractcal
+            for tag in (
+                "cell_a",
+                "cell_b",
+                "cell_c",
+                "cell_alpha",
+                "cell_beta",
+                "cell_gamma",
+            ):
+                fields[tag]["readOnly"] = False
+
+        elif choose_lattice is None:
+            # Characterisation
+            pass
+
+        else:
+            # Acquisition
+            fields["point_groups"]["hidden"] = False
+            fields["lattice"]["hidden"] = True
+            fields["relative_rad_sensitivity"]["readOnly"] = True
+            ui_schema["parameters"]["column1"]["ui:order"][
+                0
+            ] = "point_groups"
+
+            # NBNB TBD Redo once ABI has changed
+            crystal_classes = (
+                choose_lattice.crystalClasses or data_model.crystal_classes
+            )
+            # Must match bravaisLattices column
+            lattices = frozenset(
+                crystal_symmetry.CRYSTAL_CLASS_MAP[crystal_class].bravais_lattice
+                for crystal_class in crystal_classes
+            )
+
+            header, soldict, select_row = self.parse_indexing_solution(choose_lattice)
+            lattice = list(soldict.values())[select_row].bravaisLattice
+            if space_group:
+                info = crystal_symmetry.CRYSTAL_CLASS_MAP[
+                    crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
+                ]
+                point_group = info.point_group
+                if point_group == "32" and info.bravais_lattice == "hP":
+                    point_group = info.crystal_class[:-1]
+            else:
+                point_group = None
+            point_groups = lattice2point_group_tags[lattice]
+            if point_group not in point_groups:
+                point_group = point_groups[-1]
+            fields["point_groups"]["default"] = point_group
+            fields["point_groups"]["value_dict"] = OrderedDict(
+                (tag, tag) for tag in point_groups
+            )
+            fields["indexing_solution"] = {
+                "title": "Select indexing solution:",
+                "type": "string",
             }
-            col2["ui:order"].append(tags[ii])
-            col2[tags[ii]] = {
-                        "ui:options": {
-                            "decimals": 4,
-                        },
+
+            # Color green (figuratively) if matches lattices
+            if lattices:
+                colouring = list(
+                    any(x in solution.bravaisLattice for x in lattices)
+                    for solution in soldict.values()
+                )
+            else:
+                colouring = None
+
+            ui_schema["ui:order"].insert(0, "indexing_solution")
+            ui_schema["indexing_solution"] = {
+                "ui:widget": "selection_table",
+                "ui:options": {
+                    "header": [header],
+                    "content": [list(soldict)],
+                    "select_row": select_row,
+                    "colouring": colouring,
+                    "update_function": "update_indexing_solution",
+                },
             }
-        # for ii in range(len(energy_tags), len(tags)):
-        #     ui_schema["parameters"]["column2"][tags[ii]]["hidden"] = True
 
         self._return_parameters = gevent.event.AsyncResult()
 
@@ -494,11 +727,28 @@ class GphlWorkflow(HardwareObjectYaml):
             params = self._return_parameters.get()
             if params is StopIteration:
                 return StopIteration
+            solline = params.get("indexing_solution")
+            if solline:
+                params["indexing_solution"] = soldict[solline[0]]
         finally:
             self._return_parameters = None
+
+        # Convert lattice and pointgroups to crystal class names
+        lattice = params.pop("lattice", None)
+        pgvar = params.pop("point_groups", None)
+        if choose_lattice:
+            point_groups = pgvar.split("|") if pgvar else None
+        else:
+            point_groups = None
+        space_group = params.get("space_group")
+        params["crystal_classes"] = crystal_symmetry.crystal_classes_from_params(
+            lattice, point_groups, space_group
+        )
+
+        # Convert energy field to a single tuple
+        params["energies"] = (params.pop("energy"),)
         #
         return params
-
 
     def pre_execute(self, queue_entry):
         if self.is_ready():
@@ -514,19 +764,18 @@ class GphlWorkflow(HardwareObjectYaml):
         if data_model.automation_mode:
             params = data_model.auto_acq_parameters[0]
         else:
-            # SIGNAL TO GET Pre-strategy parameters here
-            # NB set defaults from data_model
-            # NB consider whether to override on None
-            params = self.query_pre_strategy_params(data_model)
+            params = self.query_pre_strategy_params()
             if params is StopIteration:
                 self.workflow_failed()
+                return
 
-        print ('@~@~ returned parameters :')
-        for item in sorted(params.items()):
-            print (item)
-        print ('@~@~ end parameters\n\n')
         cell_tags = (
-            "cell_a", "cell_b", "cell_c", "cell_alpha", "cell_beta", "cell_gamma"
+            "cell_a",
+            "cell_b",
+            "cell_c",
+            "cell_alpha",
+            "cell_beta",
+            "cell_gamma",
         )
         cell_parameters = tuple(params.pop(tag, None) for tag in cell_tags)
         if None not in cell_parameters:
@@ -534,6 +783,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         data_model.set_pre_strategy_params(**params)
         if data_model.detector_setting is None:
+            # NB can only happen in automation mode
             resolution = HWR.beamline.resolution.get_value()
             distance = HWR.beamline.detector.distance.get_value()
             orgxy = HWR.beamline.detector.get_beam_position()
@@ -652,14 +902,22 @@ class GphlWorkflow(HardwareObjectYaml):
     def get_configuration_data(self, payload, correlation_id):
         return GphlMessages.ConfigurationData(self.file_paths["gphl_beamline_config"])
 
-    def query_collection_strategy(self, geometric_strategy, initial_energy):
+    def query_collection_strategy(self, geometric_strategy):
         """Display collection strategy for user approval,
         and query parameters needed"""
 
+        data_model = self._queue_entry.get_data_model()
+        workflow_parameters = data_model.get_workflow_parameters()
+
         # Number of decimals for rounding use_dose values
         use_dose_decimals = 4
+        is_interleaved = geometric_strategy.isInterleaved
 
         data_model = self._queue_entry.get_data_model()
+        budget_use_fraction = data_model.characterisation_budget_fraction
+        initial_energy = HWR.beamline.energy.calculate_energy(
+            data_model.wavelengths[0].wavelength
+        )
         wf_parameters = data_model.get_workflow_parameters()
 
         orientations = OrderedDict()
@@ -683,17 +941,23 @@ class GphlWorkflow(HardwareObjectYaml):
             or wf_parameters.get("strategy_type") == "diffractcal"
         ):
             title_string = data_model.get_type()
+            lauegrp, ptgrp = crystal_symmetry.strategy_laue_group(
+                data_model.crystal_classes,
+                phasing=wf_parameters.get("strategy_type") == "phasing",
+            )
             lines = [
-                "GΦL workflow %s, strategy '%s'"
-                % (title_string, data_model.strategy_options["variant"])
+                "GΦL workflow:   %s, strategy '%s', for symmetry '%s'."
+                % (title_string, data_model.strategy_options["variant"], ptgrp)
             ]
             lines.extend(("-" * len(lines[0]), ""))
+            energy_tags = workflow_parameters.get("beam_energy_tags") or (
+                self.settings["default_beam_energy_tag"],
+            )
             beam_energies = OrderedDict()
             energies = [initial_energy, initial_energy + 0.01, initial_energy - 0.01]
-            for ii, tag in enumerate(data_model.wavelengths):
+            for ii, tag in enumerate(energy_tags):
                 beam_energies[tag] = energies[ii]
-            budget_use_fraction = 1.0
-            dose_label = "Total dose (MGy)"
+            dose_label = "Dose/repetition (MGy)"
 
         else:
             # Characterisation
@@ -701,8 +965,7 @@ class GphlWorkflow(HardwareObjectYaml):
             lines = ["GΦL Characterisation strategy"]
             lines.extend(("=" * len(lines[0]), ""))
             beam_energies = OrderedDict((("Characterisation", initial_energy),))
-            budget_use_fraction = data_model.characterisation_budget_fraction
-            dose_label = "Charcterisation dose (MGy)"
+            dose_label = "Characterisation dose (MGy)"
             if not self.settings.get("recentre_before_start"):
                 # replace planned orientation with current orientation
                 current_pos_dict = HWR.beamline.diffractometer.get_positions()
@@ -715,14 +978,15 @@ class GphlWorkflow(HardwareObjectYaml):
         # Make strategy-description info_text
         if len(beam_energies) > 1:
             lines.append(
-                "Experiment length: %s * %6.1f°" % (len(beam_energies), strategy_length)
+                "Experiment length (per repetition): %s * %6.1f°"
+                % (len(beam_energies), strategy_length)
             )
         else:
-            lines.append("Experiment length: %6.1f°" % strategy_length)
+            lines.append("Experiment length (per repetition): %6.1f°" % strategy_length)
 
         for rotation_id, sweeps in orientations.items():
             axis_settings = axis_setting_dicts[rotation_id]
-            ss0 = "\nSweep :     " + ",  ".join(
+            ss0 = "\nSweep :  " + ",  ".join(
                 "%s= %6.1f°" % (x, axis_settings.get(x))
                 for x in axis_names
                 if x in axis_settings
@@ -732,7 +996,9 @@ class GphlWorkflow(HardwareObjectYaml):
                 start = sweep.start
                 width = sweep.width
                 ss1 = "%s= %6.1f°,  sweep width= %6.1f°" % (
-                    sweep.goniostatSweepSetting.scanAxis, start, width
+                    sweep.goniostatSweepSetting.scanAxis,
+                    start,
+                    width,
                 )
                 ll1.append(ss1)
             lines.append(ss0 + ",  " + ll1[0])
@@ -758,15 +1024,25 @@ class GphlWorkflow(HardwareObjectYaml):
         acq_parameters = HWR.beamline.get_default_acquisition_parameters()
 
         resolution = HWR.beamline.resolution.get_value()
-
-        dose_budget = data_model.recommended_dose_budget(resolution)
+        dose_budget = self.resolution2dose_budget(
+            resolution,
+            decay_limit=data_model.decay_limit,
+        )
         default_image_width = float(allowed_widths[default_width_index])
         default_exposure = acq_parameters.exp_time
         exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
         total_strategy_length = strategy_length * len(beam_energies)
         data_model.strategy_length = total_strategy_length
+        # NB - this is the default starting value, so repetition_count is 1 at this point
         experiment_time = total_strategy_length * default_exposure / default_image_width
-        proposed_dose = max(dose_budget * budget_use_fraction, 0.0)
+        if (
+            data_model.characterisation_done
+            or wf_parameters.get("strategy_type") == "diffractcal"
+        ):
+            proposed_dose = dose_budget - data_model.characterisation_dose
+        else:
+            proposed_dose = dose_budget * data_model.characterisation_budget_fraction
+        proposed_dose = round(max(proposed_dose, 0), use_dose_decimals)
 
         # For calculating dose-budget transmission
         flux_density = HWR.beamline.flux.get_average_flux_density(transmission=100.0)
@@ -812,12 +1088,6 @@ class GphlWorkflow(HardwareObjectYaml):
             "default": std_dose_rate,
             "hidden": True,
         }
-        fields["dose_consumed"] = {
-            "title": "Dose consumeed",
-            "type": "number",
-            "default": data_model.dose_consumed,
-            "hidden": True,
-        }
         fields["decay_limit"] = {
             "title": "Decay limit",
             "type": "number",
@@ -837,9 +1107,9 @@ class GphlWorkflow(HardwareObjectYaml):
             "hidden": True,
         }
         fields["maximum_dose_budget"] = {
-            "title": "Maximum dose budget (MGy)",
+            "title": "Default value for exposure",
             "type": "number",
-            "default": data_model.maximum_dose_budget,
+            "default": default_exposure,
             "hidden": True,
         }
         # From here on visible fields
@@ -847,7 +1117,7 @@ class GphlWorkflow(HardwareObjectYaml):
             # "title": "Data collection plan",
             "type": "string",
             "default": info_text,
-            "readOnly":True,
+            "readOnly": True,
         }
         fields["image_width"] = {
             "title": "Oscillation range",
@@ -863,7 +1133,7 @@ class GphlWorkflow(HardwareObjectYaml):
             "maximum": exposure_limits[1],
         }
         fields["dose_budget"] = {
-            "title": "Total dose budget (MGy)",
+            "title": "Dose budget (MGy)",
             "type": "number",
             "default": dose_budget,
             "minimum": 0.0,
@@ -873,7 +1143,7 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": dose_label,
             "type": "number",
             "default": use_dose_start,
-            "minimum": 0.01,
+            "minimum": 0.000001,
             "readOnly": use_dose_frozen,
         }
         # NB Transmission is in % in UI, but in 0-1 in workflow
@@ -890,18 +1160,26 @@ class GphlWorkflow(HardwareObjectYaml):
             "default": resolution,
             "minimum": reslimits[0],
             "maximum": reslimits[1],
-            "readOnly": data_model.characterisation_done,
+            "readOnly": True,
         }
         fields["experiment_time"] = {
             "title": "Experiment duration (s)",
             "type": "number",
             "default": experiment_time,
-            "minimum": reslimits[0],
-            "maximum": reslimits[1],
             "readOnly": True,
         }
+        if data_model.characterisation_done:
+            fields["repetition_count"] = {
+                "title": "Number of repetitions",
+                "type": "spinbox",
+                "defaultValue": 1,
+                "lowerBound": 1,
+                "upperBound": 99,
+                "stepsize": 1,
+            }
 
-        if data_model.characterisation_done and data_model.interleave_order:
+        # if data_model.characterisation_done and data_model.interleave_order:
+        if is_interleaved:
             # NB We do not want the wedgeWdth widget for Diffractcal
             fields["wedge_width"] = {
                 "title": "Wedge width (°)",
@@ -941,15 +1219,16 @@ class GphlWorkflow(HardwareObjectYaml):
         use_modes = ["sweep"]
         if len(orientations) > 1:
             use_modes.append("start")
-        if data_model.interleave_order:
+        # if data_model.interleave_order:
+        if is_interleaved:
             use_modes.append("scan")
-        if self.load_transcal_parameters() and (
+        if self.recentring_data and (
             data_model.characterisation_done
             or wf_parameters.get("strategy_type") == "diffractcal"
         ):
             # Not Characterisation
             use_modes.append("none")
-        for indx in range (len(modes) -1, -1, -1):
+        for indx in range(len(modes) - 1, -1, -1):
             if modes[indx] not in use_modes:
                 del modes[indx]
                 del labels[indx]
@@ -964,13 +1243,13 @@ class GphlWorkflow(HardwareObjectYaml):
         else:
             default_recentring_mode = "sweep"
         default_label = labels[modes.index(default_recentring_mode)]
-        if len(modes) > 1:
-            fields["recentring_mode"] = {
-                # "title": "Recentring mode",
-                "type": "string",
-                "default": default_label,
-                "$ref": "#/definitions/recentring_mode",
-            }
+        # if len(modes) > 1:
+        fields["recentring_mode"] = {
+            # "title": "Recentring mode",
+            "type": "string",
+            "default": default_label,
+            "$ref": "#/definitions/recentring_mode",
+        }
         schema["definitions"]["recentring_mode"] = list(
             {
                 "type": "string",
@@ -985,13 +1264,18 @@ class GphlWorkflow(HardwareObjectYaml):
                 "enum": [tag],
                 "title": tag,
             }
-            for tag in ("0", "1", "2", "4", )
+            for tag in (
+                "0",
+                "1",
+                "2",
+                "4",
+            )
         )
         schema["definitions"]["image_width"] = list(
             {
                 "type": "string",
-                "enum": [tag],
-                "title": tag,
+                "enum": [str(tag)],
+                "title": str(tag),
             }
             for tag in allowed_widths
         )
@@ -1004,8 +1288,9 @@ class GphlWorkflow(HardwareObjectYaml):
                 "ui:widget": "textarea",
                 "ui:options": {
                     # 'rows' not used in Qt - gives minimum necessary size.
-                    "rows": len(fields["_info"]["default"].splitlines()) + 1
-                }
+                    "rows": len(fields["_info"]["default"].splitlines())
+                    + 1
+                },
             },
             "parameters": {
                 "ui:title": "Parameters",
@@ -1019,16 +1304,30 @@ class GphlWorkflow(HardwareObjectYaml):
                         "transmission",
                         "snapshot_count",
                     ],
+                    "exposure": {
+                        "ui:options": {
+                            "update_function": "update_exptime",
+                            "decimals": 4,
+                        }
+                    },
                     "use_dose": {
                         "ui:options": {
-                            "decimals": 3,
+                            "decimals": use_dose_decimals,
+                            "update_function": "update_dose",
+                        }
+                    },
+                    "image_width": {
+                        "ui:options": {
+                            "update_function": "update_dose",
                         }
                     },
                     "transmission": {
                         "ui:options": {
                             "decimals": 2,
+                            "update_function": "update_transmission",
                         }
                     },
+                    "repetition_count": {"ui:options": {}},
                 },
                 "column2": {
                     "ui:order": [
@@ -1046,12 +1345,23 @@ class GphlWorkflow(HardwareObjectYaml):
                             "decimals": 3,
                         }
                     },
+                    "experiment_time": {
+                        "ui:options": {
+                            "decimals": 1,
+                        }
+                    },
                 },
-            }
+            },
         }
-        if data_model.characterisation_done and data_model.interleave_order:
+        if data_model.characterisation_done and is_interleaved:
             ui_schema["parameters"]["column1"]["ui:order"].append("wedge_width")
-        ll0 =  ui_schema["parameters"]["column2"]["ui:order"]
+        if data_model.characterisation_done:
+            ui_schema["parameters"]["column1"]["ui:order"].insert(
+                -1,
+                "repetition_count",
+            )
+
+        ll0 = ui_schema["parameters"]["column2"]["ui:order"]
         ll0.extend(list(beam_energies))
         ll0.append("recentring_mode")
 
@@ -1074,9 +1384,6 @@ class GphlWorkflow(HardwareObjectYaml):
                 return StopIteration
         finally:
             self._return_parameters = None
-        print ('@~@~ returned parameters 1')
-        for item in result.items():
-            print ('--> %s : %s' % item)
 
         tag = "image_width"
         value = result.get(tag)
@@ -1086,11 +1393,13 @@ class GphlWorkflow(HardwareObjectYaml):
             image_width = self.settings.get("default_image_width", default_image_width)
         result[tag] = image_width
         # exposure OK as is
+        tag = "repetition_count"
+        result[tag] = int(result.get(tag) or 1)
         tag = "transmission"
         value = result.get(tag)
         if value:
             # Convert from % to fraction
-            result[tag] = value / 100.
+            result[tag] = value / 100.0
         tag = "wedgeWidth"
         value = result.get(tag)
         if value:
@@ -1108,24 +1417,22 @@ class GphlWorkflow(HardwareObjectYaml):
         if geometric_strategy.isInterleaved:
             result["interleave_order"] = data_model.interleave_order
 
-        for tag in beam_energies:
-            beam_energies[tag] = result.get(tag, 0)
-        result["beam_energies"] = beam_energies
+        energies = list(result.pop(tag) for tag in beam_energies)
+        del energies[0]
+        result["energies"] = energies
 
         tag = "recentring_mode"
-        result[tag] = (
-            RECENTRING_MODES.get(result.get(tag)) or default_recentring_mode
-        )
+        result[tag] = RECENTRING_MODES.get(result.get(tag)) or default_recentring_mode
 
-        print ('@~@~ returned parameters 2')
-        for item in result.items():
-            print ('--> %s : %s' % item)
-
-        # data_model.dose_budget = float(params.get("dose_budget", 0))
         # # Register the dose (about to be) consumed
-        # if std_dose_rate:
-        #     data_model.set_dose_consumed(float(params.get("use_dose", 0)))
-
+        if std_dose_rate:
+            if (
+                data_model.characterisation_done
+                or wf_parameters.get("strategy_type") == "diffractcal"
+            ):
+                data_model.acquisition_dose = float(result.get("use_dose", 0))
+            else:
+                data_model.characterisation_dose = float(result.get("use_dose", 0))
         #
         return result
 
@@ -1140,32 +1447,29 @@ class GphlWorkflow(HardwareObjectYaml):
 
         # Set up
         gphl_workflow_model = self._queue_entry.get_data_model()
-        strategy_type = gphl_workflow_model.get_workflow_parameters()[
-            "strategy_type"
-        ]
+        strategy_type = gphl_workflow_model.get_workflow_parameters()["strategy_type"]
         sweeps = geometric_strategy.get_ordered_sweeps()
 
         # Set strategy_length
         strategy_length = sum(sweep.width for sweep in sweeps)
-        gphl_workflow_model.strategy_length = (
-            strategy_length * len(gphl_workflow_model.wavelengths)
+        gphl_workflow_model.strategy_length = strategy_length * len(
+            gphl_workflow_model.wavelengths
         )
 
-        # get params and initial transmission/use_dose
+        # get parameters and initial transmission/use_dose
         if gphl_workflow_model.automation_mode:
-            # Get params and transmission/use_dose
+            # Get parameters and transmission/use_dose
             if gphl_workflow_model.characterisation_done:
-                params = gphl_workflow_model.auto_acq_parameters[-1]
+                parameters = gphl_workflow_model.auto_acq_parameters[-1]
             else:
-                params = gphl_workflow_model.auto_acq_parameters[0]
-            gphl_workflow_model.set_pre_acquisition_params(**params)
-            if "dose_budget" in params:
+                parameters = gphl_workflow_model.auto_acq_parameters[0]
+            if "dose_budget" in parameters:
                 raise ValueError(
                     "'dose_budget' parameter no longer supported. "
                     "Use 'use_dose' or 'transmission' instead"
                 )
-            transmission = params.get("transmission")
-            use_dose = params.get("use_dose")
+            transmission = parameters.get("transmission")
+            use_dose = parameters.get("use_dose")
         else:
             transmission = None
             use_dose = None
@@ -1177,7 +1481,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 # Set use_dose from recommended budget
                 use_dose = gphl_workflow_model.recommended_dose_budget()
                 if gphl_workflow_model.characterisation_done:
-                    use_dose -= gphl_workflow_model.dose_consumed
+                    use_dose -= gphl_workflow_model.characterisation_dose
                 elif strategy_type != "diffractcal":
                     # This is characterisation
                     use_dose *= gphl_workflow_model.characterisation_budget_fraction
@@ -1192,19 +1496,15 @@ class GphlWorkflow(HardwareObjectYaml):
                     exposure_time = (
                         gphl_workflow_model.exposure_time * transmission / 100
                     )
-                    exposure_limits = (
-                        HWR.beamline.detector.get_exposure_time_limits()
-                    )
+                    exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
                     if exposure_limits[1]:
-                        exposure_time = max (exposure_limits[1], exposure_time)
+                        exposure_time = max(exposure_limits[1], exposure_time)
                     gphl_workflow_model.exposure_time = exposure_time
                 transmission = 100
             gphl_workflow_model.transmission = transmission
 
         # If not in automation mode, get params from user query
         if not gphl_workflow_model.automation_mode:
-
-            initial_energy = HWR.beamline.energy.get_value()
 
             # NB - now pre-setting of detector has been removed, this gets
             # the current resolution setting, whatever it is
@@ -1214,7 +1514,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
             # Get modified parameters from UI and confirm acquisition
             # Run before centring, as it also does confirm/abort
-            parameters = self.query_collection_strategy(geometric_strategy, initial_energy)
+            parameters = self.query_collection_strategy(geometric_strategy)
             if parameters is StopIteration:
                 return StopIteration
             user_modifiable = geometric_strategy.isUserModifiable
@@ -1227,20 +1527,10 @@ class GphlWorkflow(HardwareObjectYaml):
             gphl_workflow_model.exposure_time = parameters.get("exposure" or 0.0)
             gphl_workflow_model.image_width = parameters.get("image_width" or 0.0)
 
-            # Set beam_energies to match parameters
-            # get wavelengths
-            HC_OVER_E = conversion.HC_OVER_E
-            beam_energies = parameters.pop("beam_energies")
-            print ('@~@~ beam_energies', beam_energies)
-            wavelengths = tuple(
-                GphlMessages.PhasingWavelength(wavelength=HC_OVER_E / val, role=tag)
-                for tag, val in beam_energies.items()
-            )
-            gphl_workflow_model.wavelengths = wavelengths
-
             transmission = parameters["transmission"]
             logging.getLogger("GUI").info(
-                "GphlWorkflow: setting transmission to %7.3f %%" % (100.0 * transmission)
+                "GphlWorkflow: setting transmission to %7.3f %%"
+                % (100.0 * transmission)
             )
             HWR.beamline.transmission.set_value(100 * transmission)
             gphl_workflow_model.transmission = transmission
@@ -1264,14 +1554,22 @@ class GphlWorkflow(HardwareObjectYaml):
             gphl_workflow_model.recentring_mode = parameters.pop("recentring_mode")
 
         # From here on same for manual and automation
+        gphl_workflow_model.set_pre_acquisition_params(**parameters)
 
-        # Unpdate dose_consumed to include dose (about to be) acquired.
-        gphl_workflow_model.dose_consumed += gphl_workflow_model.calculate_dose()
+        # Update dose consumed to include dose (about to be) acquired.
+        new_dose = gphl_workflow_model.calculate_dose()
+        if (
+            gphl_workflow_model.characterisation_done
+            or gphl_workflow_model.get_type() == "diffractcal"
+        ):
+            gphl_workflow_model.acquisition_dose = new_dose
+        else:
+            gphl_workflow_model.characterisation_dose = new_dose
 
         format = "--> %s: %s"
-        print ("GPHL workflow. Data collection parameters:")
+        print("GPHL workflow. Data collection parameters:")
         for item in gphl_workflow_model.parameter_summary().items():
-            print (format % item)
+            print(format % item)
 
         # Enqueue data collection
         if gphl_workflow_model.characterisation_done:
@@ -1289,13 +1587,12 @@ class GphlWorkflow(HardwareObjectYaml):
             gphl_workflow_model.get_next_number_for_name(new_dcg_name)
         )
         self._data_collection_group = new_dcg_model
-        self._add_to_queue(gphl_workflow_model, new_dcg_model)
+        # self._add_to_queue(gphl_workflow_model, new_dcg_model)
 
         #
         # Set (re)centring behaviour and goniostatTranslations
         #
         recentring_mode = gphl_workflow_model.recentring_mode
-        recen_parameters = self.load_transcal_parameters()
         goniostatTranslations = []
 
         # Get all sweepSettings, in order
@@ -1336,31 +1633,25 @@ class GphlWorkflow(HardwareObjectYaml):
         current_xyz = tuple(
             current_pos_dict[role] for role in self.translation_axis_roles
         )
-        if recen_parameters:
-            # Currrent position is now centred one way or the other
-            # Update recentring parameters
-            recen_parameters["ref_xyz"] = current_xyz
-            recen_parameters["ref_okp"] = current_okp
-            logging.getLogger("HWR").debug(
-                "Recentring set-up. Parameters are: %s",
-                sorted(recen_parameters.items()),
-            )
+
         if goniostatTranslations:
             # We had recentre_before_start and already have the goniosatTranslation
             # matching the sweepSetting
             pass
 
-        elif gphl_workflow_model.characterisation_done or strategy_type == "diffractcal":
+        elif (
+            gphl_workflow_model.characterisation_done or strategy_type == "diffractcal"
+        ):
             # Acquisition or diffractcal; crystal is already centred
             settings = dict(sweepSetting.axisSettings)
             okp = tuple(settings.get(x, 0) for x in self.rotation_axis_roles)
             maxdev = max(abs(okp[1] - current_okp[1]), abs(okp[2] - current_okp[2]))
 
-            if recen_parameters:
+            if self.recentring_data:
                 # recentre first sweep from okp
                 tol = self.settings.get("angular_tolerance", 1.0)
                 translation_settings = self.calculate_recentring(
-                    okp, **recen_parameters
+                    okp, ref_xyz=current_xyz, ref_okp=current_okp
                 )
                 logging.getLogger("HWR").debug(
                     "GPHL Recentring. okp, motors, %s, %s"
@@ -1386,14 +1677,14 @@ class GphlWorkflow(HardwareObjectYaml):
             else:
 
                 if recentring_mode == "none":
-                    if recen_parameters:
+                    if self.recentring_data:
                         translation = GphlMessages.GoniostatTranslation(
                             rotation=sweepSetting, **translation_settings
                         )
                         goniostatTranslations.append(translation)
                     else:
                         raise RuntimeError(
-                            "Coding error, mode 'none' requires recen_parameters"
+                            "Coding error, mode 'none' requires recentring_data"
                         )
                 else:
                     settings.update(translation_settings)
@@ -1435,10 +1726,12 @@ class GphlWorkflow(HardwareObjectYaml):
             )
         for sweepSetting in sweepSettings[1:]:
             settings = sweepSetting.get_motor_settings()
-            if recen_parameters:
+            if self.recentring_data:
                 # Update settings
                 okp = tuple(settings.get(x, 0) for x in self.rotation_axis_roles)
-                centring_settings = self.calculate_recentring(okp, **recen_parameters)
+                centring_settings = self.calculate_recentring(
+                    okp, ref_xyz=current_xyz, ref_okp=current_okp
+                )
                 logging.getLogger("HWR").debug(
                     "GPHL Recentring. okp, motors, %s, %s"
                     % (okp, sorted(centring_settings.items()))
@@ -1453,7 +1746,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 gphl_workflow_model.current_rotation_id = sweepSetting.id_
                 okp = tuple(int(settings.get(x, 0)) for x in self.rotation_axis_roles)
                 self.collect_centring_snapshots("%s_%s_%s" % okp)
-            elif recen_parameters:
+            elif self.recentring_data:
                 # put recalculated translations back to workflow
                 translation = GphlMessages.GoniostatTranslation(
                     rotation=sweepSetting, **centring_settings
@@ -1478,81 +1771,36 @@ class GphlWorkflow(HardwareObjectYaml):
         #
         gphl_workflow_model.goniostat_translations = goniostatTranslations
 
+        # Do it here so that any centring actions are enqueued dfirst
+        self._add_to_queue(gphl_workflow_model, new_dcg_model)
+
         # Return SampleCentred message
         sampleCentred = GphlMessages.SampleCentred(gphl_workflow_model)
         return sampleCentred
 
-    def load_transcal_parameters(self):
-        """Load home_position and cross_sec_of_soc from transcal.nml"""
-        fp0 = self.file_paths.get("transcal_file")
-        if os.path.isfile(fp0):
-            try:
-                transcal_data = f90nml.read(fp0)["sdcp_instrument_list"]
-            except Exception:
-                logging.getLogger("HWR").error(
-                    "Error reading transcal.nml file: %s", fp0
-                )
-            else:
-                result = {}
-                result["home_position"] = transcal_data.get("trans_home")
-                result["cross_sec_of_soc"] = transcal_data.get("trans_cross_sec_of_soc")
-                if None in result.values():
-                    logging.getLogger("HWR").warning("load_transcal_parameters failed")
-                else:
-                    return result
-        else:
-            logging.getLogger("HWR").warning("transcal.nml file not found: %s", fp0)
-        # If we get here reading failed
-        return {}
-
-    def calculate_recentring(
-        self, okp, home_position, cross_sec_of_soc, ref_okp, ref_xyz
-    ):
+    def calculate_recentring(self, okp, ref_okp, ref_xyz):
         """Add predicted traslation values using recen
         okp is the omega,gamma,phi tuple of the target position,
-        home_position is the translation calibration home position,
-        and cross_sec_of_soc is the cross-section of the sphere of confusion
         ref_okp and ref_xyz are the reference omega,gamma,phi and the
         corresponding x,y,z translation position"""
 
         # Make input file
-        software_paths = HWR.beamline.gphl_connection.software_paths
-        infile = os.path.join(software_paths["GPHL_WDIR"], "temp_recen.in")
-        recen_data = OrderedDict()
-        indata = {"recen_list": recen_data}
-
-        fp0 = self.file_paths.get("instrumentation_file")
-        instrumentation_data = f90nml.read(fp0)["sdcp_instrument_list"]
-        diffractcal_data = instrumentation_data
-
-        fp0 = self.file_paths.get("diffractcal_file")
-        try:
-            diffractcal_data = f90nml.read(fp0)["sdcp_instrument_list"]
-        except BaseException:
-            logging.getLogger("HWR").debug(
-                "diffractcal file not present - using instrumentation.nml %s", fp0
-            )
-        ll0 = diffractcal_data["gonio_axis_dirs"]
-        recen_data["omega_axis"] = ll0[:3]
-        recen_data["kappa_axis"] = ll0[3:6]
-        recen_data["phi_axis"] = ll0[6:]
-        ll0 = instrumentation_data["gonio_centring_axis_dirs"]
-        recen_data["trans_1_axis"] = ll0[:3]
-        recen_data["trans_2_axis"] = ll0[3:6]
-        recen_data["trans_3_axis"] = ll0[6:]
-        recen_data["cross_sec_of_soc"] = cross_sec_of_soc
-        recen_data["home"] = home_position
-        #
+        infile = os.path.join(
+            HWR.beamline.gphl_connection.software_paths["GPHL_WDIR"], "temp_recen.in"
+        )
+        indata = {"recen_list": self.recentring_data}
         f90nml.write(indata, infile, force=True)
 
         # Get program locations
         recen_executable = HWR.beamline.gphl_connection.get_executable("recen")
         # Get environmental variables
         envs = {}
-        GPHL_XDS_PATH =  HWR.beamline.gphl_connection.software_paths.get("GPHL_XDS_PATH")
+        GPHL_XDS_PATH = HWR.beamline.gphl_connection.software_paths.get("GPHL_XDS_PATH")
         if GPHL_XDS_PATH:
             envs["GPHL_XDS_PATH"] = GPHL_XDS_PATH
-        GPHL_CCP4_PATH =  HWR.beamline.gphl_connection.software_paths.get("GPHL_CCP4_PATH")
+        GPHL_CCP4_PATH = HWR.beamline.gphl_connection.software_paths.get(
+            "GPHL_CCP4_PATH"
+        )
         if GPHL_CCP4_PATH:
             envs["GPHL_CCP4_PATH"] = GPHL_CCP4_PATH
         # Run recen
@@ -1606,6 +1854,25 @@ class GphlWorkflow(HardwareObjectYaml):
                 "Recen failed with normal termination=%s. Output was:\n" % terminated_ok
                 + output
             )
+
+        for tag, val in result.items():
+            motor = HWR.beamline.diffractometer.get_object_by_role(tag)
+            limits = motor.get_limits()
+            if limits:
+                limit = limits[0]
+                if limit is not None and val < limit:
+                    logging.getLogger("HWR").warning(
+                        "WARNING, centring motor "
+                        "%s position %s recentred to below minimum limit %s"
+                        % (tag, val, limit)
+                    )
+                limit = limits[1]
+                if limit is not None and val > limit:
+                    logging.getLogger("HWR").warning(
+                        "WARNING, centring motor "
+                        "%s position %s recentred to above maximum limit %s"
+                        % (tag, val, limit)
+                    )
         #
         return result
 
@@ -1726,7 +1993,8 @@ class GphlWorkflow(HardwareObjectYaml):
                     HWR.beamline.session.get_base_image_directory(), relative_image_dir
                 )
                 path_template.process_directory = os.path.join(
-                    HWR.beamline.session.get_base_process_directory(), relative_image_dir
+                    HWR.beamline.session.get_base_process_directory(),
+                    relative_image_dir,
                 )
             acq.path_template = path_template
             filename_params = scan.filenameParams
@@ -1744,8 +2012,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
             if last_orientation:
                 maxdev = max(
-                    abs(orientation[ind] - last_orientation[ind])
-                    for ind in range(2)
+                    abs(orientation[ind] - last_orientation[ind]) for ind in range(2)
                 )
             if sweeps and (
                 recentring_mode == "scan"
@@ -1794,7 +2061,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 # Multitrigger sweep - add in parameters.
                 # NB if we are here ther can be only one scan
                 acq_parameters.num_triggers = scan_count
-                acq_parameters.num_images_per_trigger =  acq_parameters.num_images
+                acq_parameters.num_images_per_trigger = acq_parameters.num_images
                 acq_parameters.num_images *= scan_count
                 # NB this assumes sweepOffset is the offset between starting points
                 acq_parameters.overlap = (
@@ -1814,10 +2081,10 @@ class GphlWorkflow(HardwareObjectYaml):
 
         # debug
         format = "--> %s: %s"
-        print ("GPHL workflow. Collect with parameters:")
+        print("GPHL workflow. Collect with parameters:")
         for item in gphl_workflow_model.parameter_summary().items():
-            print (format % item)
-        print( format % ("sweep_count", len(sweeps)))
+            print(format % item)
+        print(format % ("sweep_count", len(sweeps)))
 
         data_collection_entry = queue_manager.get_entry_with_model(
             self._data_collection_group
@@ -1844,44 +2111,6 @@ class GphlWorkflow(HardwareObjectYaml):
             procWithLatticeParams=gphl_workflow_model.use_cell_for_processing,
         )
 
-    def auto_select_solution(self, choose_lattice):
-        """Select indexing solution automatically"""
-        data_model = self._queue_entry.get_data_model()
-        solution_format = choose_lattice.lattice_format
-
-        # Must match bravaisLattices column
-        lattices = choose_lattice.lattices
-
-        # First letter must match first letter of BravaisLattice
-        crystal_system = choose_lattice.crystalSystem
-        if lattices and not crystal_system:
-            # Get from lattices if not set directly
-            aset = set(lattice[0] for lattice in lattices)
-            if len(aset) == 1:
-                crystal_system = aset.pop()
-
-        dd0 = self.parse_indexing_solution(solution_format, choose_lattice.solutions)
-        starred = None
-        system_fit = None
-        lattice_fit = None
-        for line in dd0["solutions"]:
-            if "*" in  line:
-                starred = line
-                if crystal_system and crystal_system in line:
-                    system_fit = line
-                if lattices and any(x in line for x in lattices):
-                    lattice_fit = line
-        useline = lattice_fit or system_fit or starred
-        if useline:
-            logging.getLogger("user_level_log").info(
-                "Selected indexing solution: %s" % useline
-            )
-            solution = useline.split()
-            if solution[0] == "*":
-                del solution[0]
-            return solution
-        raise ValueError("No indexing solution found")
-
     def select_lattice(self, payload, correlation_id):
 
         choose_lattice = payload
@@ -1890,12 +2119,12 @@ class GphlWorkflow(HardwareObjectYaml):
         data_model.characterisation_done = True
 
         if data_model.automation_mode:
-            solution = self.auto_select_solution(choose_lattice)
+            header, soldict, select_row = self.parse_indexing_solution(choose_lattice)
+
+            indexingSolution = soldict.values()[select_row]
 
             if not data_model.aimed_resolution:
-                raise ValueError(
-                    "aimed_resolution must be set in automation mode"
-                )
+                raise ValueError("aimed_resolution must be set in automation mode")
             # Resets detector_setting to match aimed_resolution
             data_model.detector_setting = None
             # NB resets detector_setting
@@ -1912,114 +2141,24 @@ class GphlWorkflow(HardwareObjectYaml):
 
             # NBNB DISPLAY_ENERGY_DECIMALS
 
-            params = self.query_pre_strategy_params(data_model, choose_lattice)
-            data_model.set_pre_strategy_params(**params)
-            raise NotImplementedError()
+            params = self.query_pre_strategy_params(choose_lattice)
+            indexingSolution = params["indexing_solution"]
         data_model.set_pre_strategy_params(**params)
         distance = data_model.detector_setting.axisSettings["Distance"]
         HWR.beamline.detector.distance.set_value(distance, timeout=30)
         return GphlMessages.SelectedLattice(
-            data_model,
-            lattice_format=choose_lattice.lattice_format,
-            solution=solution,
+            data_model, indexingSolution=indexingSolution
         )
 
+    def parse_indexing_solution(self, choose_lattice):
+        """
 
-        # solution_format = choose_lattice.lattice_format
-        #
-        # # Must match bravaisLattices colu_m
-        # lattices = choose_lattice.lattices
-        #
-        # # First letter must match first letter of BravaisLattice
-        # crystal_system = choose_lattice.crystalSystem
+        Args:
+            choose_lattice GphlMessages.ChooseLattice:
 
-        # # Color green (figuratively) if matches lattices,
-        # # or otherwise if matches crystalSystem
-        #
-        # dd0 = self.parse_indexing_solution(solution_format, choose_lattice.solutions)
-        #
-        # reslimits = HWR.beamline.resolution.get_limits()
-        # resolution = HWR.beamline.resolution.get_value()
-        # if None in reslimits:
-        #     reslimits = (0.5, 5.0)
-        # field_list = [
-        #     {
-        #         "variableName": "_cplx",
-        #         "uiLabel": "Select indexing solution:",
-        #         "type": "selection_table",
-        #         "header": dd0["header"],
-        #         "colours": None,
-        #         "defaultValue": (dd0["solutions"],),
-        #     },
-        #     {
-        #         "variableName": "resolution",
-        #         "uiLabel": "Detector resolution (A)",
-        #         "type": "floatstring",
-        #         "defaultValue":resolution,
-        #         "lowerBound": reslimits[0],
-        #         "upperBound": reslimits[1],
-        #         "decimals": 3,
-        #         "readOnly": False,
-        #     }
-        # ]
-        #
-        # # colour matching lattices green
-        # colour_check = lattices
-        # if crystal_system and not colour_check:
-        #     colour_check = (crystal_system,)
-        # if colour_check:
-        #     colours = [None] * len(dd0["solutions"])
-        #     for ii, line in enumerate(dd0["solutions"]):
-        #         if any(x in line for x in colour_check):
-        #             colours[ii] = "LIGHT_GREEN"
-        #     field_list[0]["colours"] = colours
-        #
-        # self._return_parameters = gevent.event.AsyncResult()
-        # responses = dispatcher.send(
-        #     "gphlParametersNeeded", self, field_list, self._return_parameters, None
-        # )
-        # if not responses:
-        #     self._return_parameters.set_exception(
-        #         RuntimeError("Signal 'gphlParametersNeeded' is not connected")
-        #     )
-        #
-        # params = self._return_parameters.get()
-        # if params is StopIteration:
-        #     return StopIteration
-        #
-        # kwArgs = {}
-        #
-        # # NB We do not reset the wavelength at this point. We could, later
-        # kwArgs["strategyWavelength"] = HWR.beamline.energy.get_wavelength()
-        #
-        # new_resolution = float(params.pop("resolution", 0))
-        # if new_resolution:
-        #     if new_resolution != resolution:
-        #         logging.getLogger("GUI").info(
-        #             "GphlWorkflow: setting detector distance for resolution %7.3f A"
-        #             % new_resolution
-        #         )
-        #         # timeout in seconds: max move is ~2 meters, velocity 4 cm/sec
-        #         HWR.beamline.resolution.set_value(new_resolution, timeout=60)
-        #         resolution = new_resolution
-        # kwArgs["strategyResolution"] = resolution
-        #
-        # ll0 = conversion.text_type(params["_cplx"][0]).split()
-        # if ll0[0] == "*":
-        #     del ll0[0]
-        #
-        # options = {}
-        # maximum_chi = self.settings.get("maximum_chi")
-        # if maximum_chi:
-        #     options["maxmum_chi"] = float(maximum_chi)
-        #
-        # kwArgs["options"] = json.dumps(options, indent=4, sort_keys=True)
-        # #
-        # return GphlMessages.SelectedLattice(
-        #     lattice_format=solution_format, solution=ll0
-        # )
+        Returns: tuple
 
-    def parse_indexing_solution(self, solution_format, text):
+        """
 
         # Solution table. for format IDXREF will look like
         """
@@ -2087,36 +2226,63 @@ class GphlWorkflow(HardwareObjectYaml):
 
  For protein crystals the possible space group numbers corresponding  to"""
 
-        # find headers lines
-        solutions = []
-        if solution_format == "IDXREF":
-            lines = text.splitlines()
-            for indx, line in enumerate(lines):
-                if "BRAVAIS-" in line:
-                    # Used as marker for first header line
-                    header = ["%s\n%s" % (line, lines[indx + 1])]
-                    break
-            else:
-                raise ValueError("Substring 'BRAVAIS-' missing in %s indexing solution")
+        solutions = choose_lattice.indexingSolutions
+        indexing_format = choose_lattice.indexingFormat
+        solutions_dict = OrderedDict()
 
-            for line in lines[indx:]:
-                ss0 = line.strip()
-                if ss0:
-                    # we are skipping blank line at the start
-                    if solutions or ss0[0] == "*":
-                        # First real line will start with a '*
-                        # Subsequent non-empty lines will also be used
-                        solutions.append(line)
-                elif solutions:
-                    # we have finished - empty non-initial line
-                    break
+        if indexing_format == "IDXREF":
+            header = """  LATTICE-  BRAVAIS-   QUALITY  UNIT CELL CONSTANTS (ANGSTROEM & DEGREES)
+ CHARACTER  LATTICE     OF FIT      a      b      c   alpha  beta gamma"""
 
-            #
-            return {"header": header, "solutions": solutions}
-        else:
-            raise ValueError(
-                "GPhL: Indexing format %s is not known" % repr(solution_format)
+            line_format = (
+                " %s  %2i        %s %12.1f    %6.1f %6.1f %6.1f %5.1f %5.1f %5.1f"
             )
+            consistent_solutions = []
+            for solution in solutions:
+                if solution.isConsistent:
+                    char1 = "*"
+                    consistent_solutions.append(solution)
+                else:
+                    char1 = " "
+                tpl = (
+                    char1,
+                    solution.latticeCharacter,
+                    solution.bravaisLattice,
+                    solution.qualityOfFit,
+                )
+                solutions_dict[
+                    line_format % (tpl + solution.cell.lengths + solution.cell.angles)
+                ] = solution
+
+            crystal_classes = (
+                choose_lattice.crystalClasses
+                or self._queue_entry.get_data_model().crystal_classes
+            )
+            # Must match bravaisLattices column
+            lattices = frozenset(
+                crystal_symmetry.CRYSTAL_CLASS_MAP[crystal_class].bravais_lattice
+                for crystal_class in crystal_classes
+            )
+            select_row = None
+            if lattices:
+                # Select best solution matching lattices
+                for ii, solution in enumerate(consistent_solutions):
+                    if solution.bravaisLattice in lattices:
+                        select_row = ii
+                        break
+
+            if select_row is None:
+                # No match found, select on solutions only
+                lattice = consistent_solutions[-1].bravaisLattice
+                for ii, solution in enumerate(consistent_solutions):
+                    if solution.bravaisLattice == lattice:
+                        select_row = ii
+                        break
+
+        else:
+            raise RuntimeError("Indexing format %s not supported" % indexing_format)
+        #
+        return header, solutions_dict, select_row
 
     def process_centring_request(self, payload, correlation_id):
         # Used for transcal only - anything else is data collection related
@@ -2233,12 +2399,9 @@ class GphlWorkflow(HardwareObjectYaml):
         )
         if data_model.automation_mode:
             # Either TEST or MASSIF1
-            #m NB Negotiate different location with Olof Svensson
+            # NB Negotiate different location with Olof Svensson
             centring_model = queue_model_objects.addXrayCentring(
-                parent,
-                name=task_label,
-                motor_positions=motor_settings,
-                grid_size=None
+                parent, name=task_label, motor_positions=motor_settings, grid_size=None
             )
         else:
             centring_model = queue_model_objects.SampleCentring(
@@ -2348,7 +2511,8 @@ class GphlWorkflow(HardwareObjectYaml):
         resolution,
         decay_limit=None,
         maximum_dose_budget=None,
-        relative_rad_sensitivity=1.0):
+        relative_rad_sensitivity=1.0,
+    ):
         """
 
         Args:
@@ -2372,7 +2536,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
     @staticmethod
     def calculate_dose(duration, energy, flux_density):
-        """ Calculate dose accumulated by sample
+        """Calculate dose accumulated by sample
 
         :param duration (s): Duration of radiation
         :param energy (keV): Energy of ratiation
@@ -2388,7 +2552,7 @@ class GphlWorkflow(HardwareObjectYaml):
         )
 
     def get_emulation_samples(self):
-        """ Get list of lims_sample information dictionaries for mock/emulation
+        """Get list of lims_sample information dictionaries for mock/emulation
 
         Returns: LIST[DICT]
 
@@ -2485,7 +2649,9 @@ class GphlWorkflow(HardwareObjectYaml):
                 raise ValueError("Test sample requires gphl_test_samples dir specified")
             sample_dir = os.path.join(sample_dir, sample_name)
             if not os.path.isdir(sample_dir):
-                raise RuntimeError("No emulation data found for ", sample_name)
+                raise RuntimeError(
+                    "No emulation data found for %s at %s " % (sample_name, sample_dir)
+                )
             crystal_file = os.path.join(sample_dir, "crystal.nml")
             if not os.path.isfile(crystal_file):
                 raise ValueError(
@@ -2501,256 +2667,216 @@ class GphlWorkflow(HardwareObjectYaml):
         #
         return crystal_data, hklfile
 
-
     #
-    # Test web dialog functions
+    # Functions for new version of UI handling
     #
 
-    def test_dialog(self):
-        characterisationExposureTime = 1.0
-        osc_range = 2.0
-        transmission = 29.6
-        resolution = 2.1
-        listDialog = [
-            {
-                "variableName": "no_reference_images",
-                "label": "Number of reference images",
-                "type": "int",
-                "defaultValue": 2,
-                "unit": "",
-                "lowerBound": 1,
-                "upperBound": 4,
-            }, {
-                "variableName": "angle_between_reference_images",
-                "label": "Angle between reference images",
-                "type": "combo",
-                "defaultValue": "90",
-                "textChoices": ["30", "45", "60", "90"],
-            }, {
-                "variableName": "characterisationExposureTime",
-                "label": "Characterisation exposure time",
-                "type": "float",
-                "value": characterisationExposureTime,
-                "unit": "%",
-                "lowerBound": 0.0,
-                "upperBound": 100.0,
-            }, {
-                "variableName": "osc_range",
-                "label": "Total oscillation range",
-                "type": "float",
-                "value": osc_range,
-                "unit": "%",
-                "lowerBound": 0.1,
-                "upperBound": 10.0,
-            }, {
-                "variableName": "transmission",
-                "label": "Transmission",
-                "type": "float",
-                "value": transmission,
-                "unit": "%",
-                "lowerBound": 0,
-                "upperBound": 100.0,
-            }, {
-                "variableName": "resolution",
-                "label": "Resolution",
-                "type": "float",
-                "defaultValue": resolution,
-                "unit": "A",
-                "lowerBound": 0.5,
-                "upperBound": 7.0,
-            }, {
-                "variableName": "do_data_collect",
-                "label": "Do data collection?",
-                "type": "combo",
-                "textChoices": ["true", "false"],
-                "value": "false",
+    @staticmethod
+    def update_exptime(values_map: ui_communication.AbstractValuesMap):
+        """When image_width or exposure_time change,
+         update rotation_rate, experiment_time and either use_dose or transmission
+        In parameter popup"""
+        if values_map.block_updates:
+            return
+        parameters = values_map.get_values_map()
+        exposure_time = float(parameters.get("exposure", 0))
+        image_width = float(parameters.get("image_width", 0))
+        transmission = float(parameters.get("transmission", 0))
+        repetition_count = int(parameters.get("repetition_count") or 1)
+        total_strategy_length = float(parameters.get("total_strategy_length", 0))
+        std_dose_rate = float(parameters.get("std_dose_rate", 0))
+
+        if image_width and exposure_time:
+            rotation_rate = image_width / exposure_time
+            dd0 = {
+                "rotation_rate": rotation_rate,
             }
-        ]
-        # self.emit("parametersNeeded
-        # ", (listDialog,))
-        from mxcubecore.utils import dialog
-        dictDialog = dialog.create_test_dict(listDialog, "GphlTestDialog")
-        print ('@~@~ got dialog dict')
-        for tpl in dictDialog.items():
-            print ('  --> %s: %s' % tpl)
-        return_params = self.open_dialog(dictDialog)
+            experiment_time = total_strategy_length / rotation_rate
+            if std_dose_rate and transmission:
+                # NB - dose is calculated for *one* repetition
+                dd0["use_dose"] = std_dose_rate * experiment_time * transmission / 100.0
+            dd0["experiment_time"] = experiment_time * repetition_count
+            values_map.set_values(**dd0)
 
-        print ('@~@~ DIALOG TEST DONE')
-        for tpl in return_params.items():
-            print ('  --> %s: %s' % tpl)
+    @staticmethod
+    def update_transmission(values_map: ui_communication.AbstractValuesMap):
+        """When transmission changes, update use_dose
+        In parameter popup"""
+        if values_map.block_updates:
+            return
+        parameters = values_map.get_values_map()
+        exposure_time = float(parameters.get("exposure", 0))
+        image_width = float(parameters.get("image_width", 0))
+        transmission = float(parameters.get("transmission", 0))
+        total_strategy_length = float(parameters.get("total_strategy_length", 0))
+        std_dose_rate = float(parameters.get("std_dose_rate", 0))
+        if image_width and exposure_time and std_dose_rate and transmission:
+            # If we get here, Adjust dose
+            # NB dose is calculated for *one* repetition
+            experiment_time = exposure_time * total_strategy_length / image_width
+            use_dose = std_dose_rate * experiment_time * transmission / 100
+            values_map.set_values(use_dose=use_dose, exposure=exposure_time)
 
-    def open_dialog(self, dict_dialog):
-        # If necessary unblock dialog
-        print ('@~@~ open_dialog')
-        for tpl in dict_dialog.items():
-            print ('  --> %s: %s' % tpl)
-        if not self.gevent_event.is_set():
-            self.gevent_event.set()
-        self.params_dict = dict()
-        if "reviewData" in dict_dialog and "inputMap" in dict_dialog:
-            review_data = dict_dialog["reviewData"]
-            for dict_entry in dict_dialog["inputMap"]:
-                if "value" in dict_entry:
-                    value = dict_entry["value"]
-                else:
-                    value = dict_entry["defaultValue"]
-                self.params_dict[dict_entry["variableName"]] = str(value)
-            print ('@~@~ emitting gphlParametersNeeded')
-            self.emit("gphlParametersNeeded", (review_data,))
-            print ('@~@~ DONE emitting gphlParametersNeeded')
-            # self.state.value = "OPEN"
-            self.gevent_event.clear()
-            print ('@~@~ cleared event')
-            ii = 0
-            while not self.gevent_event.is_set():
-                ii += 1
-                self.gevent_event.wait()
-                time.sleep(0.1)
-                print ('@~@~ waiting, ', ii)
-                if ii > 60:
-                    print ('@~@~ TIMED OUT')
-                    return self.params_dict
-            print ('@~@~ event done set, returning')
-        return self.params_dict
+    @staticmethod
+    def update_dose(values_map: ui_communication.AbstractValuesMap):
+        """When use_dose changes, update transmission and/or exposure_time
+        In parameter popup"""
+        if values_map.block_updates:
+            return
+        exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
+        parameters = values_map.get_values_map()
+        exposure_time = float(parameters.get("exposure", 0))
+        image_width = float(parameters.get("image_width", 0))
+        use_dose = float(parameters.get("use_dose", 0))
+        std_dose_rate = float(parameters.get("std_dose_rate", 0))
+        total_strategy_length = float(parameters.get("total_strategy_length", 0))
 
-    def get_values_map(self):
-        return self.params_dict
+        if image_width and exposure_time and std_dose_rate and use_dose:
+            experiment_time = exposure_time * total_strategy_length / image_width
+            transmission = 100 * use_dose / (std_dose_rate * experiment_time)
 
-    def set_values_map(self, params):
-        print ('@~@~ in set_values_map')
-        self.params_dict = params
-        self.gevent_event.set()
-        print ('@~@~ DONE set_values_map')
-
-
-#
-# Functions for new version of UI handling
-#
-
-
-def update_exposure(field_widget):
-    """When image_width or exposure_time change,
-     update rotation_rate, experiment_time and either use_dose or transmission
-    In parameter popup"""
-    parameters = field_widget.get_parameters_map()
-    exposure_time = float(parameters.get("exposure", 0))
-    image_width = float(parameters.get("imageWidth", 0))
-    use_dose = float(parameters.get("use_dose", 0))
-    transmission = float(parameters.get("transmission", 0))
-
-    std_dose_rate = float(parameters.get("std_dose_rate", 0))
-    total_strategy_length = float(parameters.get("total_strategy_length", 0))
-    dose_consumed = float(parameters.get("dose_consumed", 0))
-
-    if image_width and exposure_time:
-        rotation_rate = image_width / exposure_time
-        experiment_time = total_strategy_length / rotation_rate
-        dd0 = {
-            "rotation_rate": rotation_rate,
-            "experiment_time": experiment_time,
-        }
-
-        if std_dose_rate:
-            if use_dose:
-                use_dose -= dose_consumed
-                transmission = (
-                    100 * use_dose / (std_dose_rate * experiment_time)
-                )
-                if transmission > 100:
-                    dd0["transmission"] = 100
-                    dd0["use_dose"] = (
-                        use_dose * 100 / transmission
-                        + dose_consumed
-                    )
-                else:
-                    dd0["transmission"] = transmission
-            elif transmission:
-                use_dose = std_dose_rate * experiment_time * transmission / 100
-                dd0["use_dose"] = use_dose + dose_consumed
-        field_widget.set_values(**dd0)
-
-def update_transmission(field_widget):
-    """When transmission changes, update use_dose
-    In parameter popup"""
-    parameters = field_widget.get_parameters_map()
-    exposure_time = float(parameters.get("exposure", 0))
-    image_width = float(parameters.get("imageWidth", 0))
-    transmission = float(parameters.get("transmission", 0))
-    std_dose_rate = float(parameters.get("std_dose_rate", 0))
-    total_strategy_length = float(parameters.get("total_strategy_length", 0))
-    dose_consumed = float(parameters.get("dose_consumed", 0))
-
-    if image_width and exposure_time and std_dose_rate:
-        experiment_time = exposure_time * total_strategy_length / image_width
-        use_dose = std_dose_rate * experiment_time * transmission / 100
-        field_widget.set_values(
-            use_dose=use_dose + dose_consumed
-        )
-
-
-def update_dose(field_widget):
-    """When use_dose changes, update transmission and/or exposure_time
-    In parameter popup"""
-    exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
-    parameters = field_widget.get_parameters_map()
-    exposure_time = float(parameters.get("exposure", 0))
-    image_width = float(parameters.get("imageWidth", 0))
-    use_dose = float(parameters.get("use_dose", 0))
-    std_dose_rate = float(parameters.get("std_dose_rate", 0))
-    total_strategy_length = float(parameters.get("total_strategy_length", 0))
-    dose_consumed = float(parameters.get("dose_consumed", 0))
-
-    if image_width and exposure_time and std_dose_rate and use_dose:
-        experiment_time = exposure_time * total_strategy_length / image_width
-        # NB set_values causes successive upate calls for changed values
-        use_dose -= dose_consumed
-        transmission = 100 * use_dose / (std_dose_rate * experiment_time)
-        if transmission <= 100:
-            field_widget.set_values(transmission=transmission)
-        else:
-            # Tranmision over max; adjust exposure_time to compensate
-            exposure_time = exposure_time * transmission / 100
-            if (
-                exposure_limits[1] is None
-                or exposure_time <= exposure_limits[1]
-            ):
-                field_widget.set_values(
-                    exposure=exposure_time, transmission=100
+            if transmission > 100.0:
+                # Transmission too high. Try max transmission and longer exposure
+                transmission = 100.0
+                experiment_time = use_dose / std_dose_rate
+                exposure_time = experiment_time * image_width / total_strategy_length
+            max_exposure = exposure_limits[1]
+            if max_exposure and exposure_time > max_exposure:
+                # exposure_time over max; set dose to highest achievable dose
+                experiment_time = max_exposure * total_strategy_length / image_width
+                use_dose = std_dose_rate * experiment_time
+                values_map.set_values(
+                    exposure=max_exposure,
+                    transmission=100,
+                    use_dose=use_dose,
+                    experiment_time=experiment_time,
                 )
             else:
-                # exposure_time over max; set does to highest achievable
-                exposure_time = exposure_limits[1]
-                experiment_time = (
-                    exposure_time * total_strategy_length / image_width
-                )
-                use_dose = std_dose_rate * experiment_time
-                field_widget.set_values(
+                values_map.set_values(
                     exposure=exposure_time,
-                    transmission=100,
-                    use_dose=use_dose + dose_consumed,
+                    transmission=transmission,
+                    experiment_time=experiment_time,
                 )
 
-def update_resolution(field_widget):
-
-    parameters = field_widget.get_parameters_map()
-    resolution = float(parameters.get("resolution"))
-    decay_limit = float(parameters.get("decay_limit", 0))
-    relative_rad_sensitivity = float(parameters.get("relative_rad_sensitivity", 0))
-    std_dose_rate = float(parameters.get("std_dose_rate", 0))
-    total_strategy_length = float(parameters.get("total_strategy_length", 0))
-    budget_use_fraction = float(parameters.get("budget_use_fraction", 0))
-    exposure_time = float(parameters.get("exposure_time", 0))
-    image_width = float(parameters.get("image_width", 0))
-    maximum_dose_budget = float(parameters.get("maximum_dose_budget", 0))
-    experiment_time = exposure_time * total_strategy_length / image_width
-    dbg = 2 * resolution * resolution * math.log(100.0 / decay_limit)
+    @staticmethod
+    # def update_resolution(values_map: ui_communication.AbstractValuesMap):
+    #     if values_map.block_updates:
+    #         return
     #
-    dbg =  min(dbg, maximum_dose_budget) / relative_rad_sensitivity
-    field_widget.set_values(dose_budget=dbg)
-    use_dose = dbg * budget_use_fraction
-    if use_dose < std_dose_rate * experiment_time:
-        field_widget.set_values(use_dose=use_dose)
-        update_dose(field_widget)
-    else:
-        field_widget.set_values(transmission=100)
-        update_transmission(field_widget)
+    #     parameters = values_map.get_values_map()
+    #     resolution = float(parameters.get("resolution"))
+    #     decay_limit = float(parameters.get("decay_limit", 0))
+    #     relative_rad_sensitivity = float(parameters.get("relative_rad_sensitivity", 0))
+    #     maximum_dose_budget = float(parameters.get("maximum_dose_budget", 0))
+    #     default_exposure = HWR.beamline.get_default_acquisition_parameters().exp_time
+    #     dbg = 2 * resolution * resolution * math.log(100.0 / decay_limit)
+    #     #
+    #     dbg = min(dbg, maximum_dose_budget) / relative_rad_sensitivity
+    #     characterisation_budget_fraction = float(
+    #         parameters.get("characterisation_budget_fraction", 0)
+    #     )
+    #     characterisation_dose = float(parameters.get("characterisation_dose", 0))
+    #     if characterisation_dose:
+    #         use_dose = dbg - characterisation_dose
+    #     else:
+    #         use_dose = dbg * characterisation_budget_fraction
+    #     values_map.set_values(
+    #         dose_budget=dbg, use_dose=use_dose, exposure=default_exposure
+    #     )
+    #     GphlWorkflow.update_dose(values_map)
+
+    @staticmethod
+    def update_lattice(values_map: ui_communication.AbstractValuesMap):
+        """Update pulldowns when crystal lattice changes"""
+        if values_map.block_updates:
+            return
+        state = values_map.get_values_map()
+        lattice = state.get("lattice") or ""
+        point_groups = state.get("point_groups")
+        space_group = state.get("space_group")
+        pglist = lattice2point_group_tags[lattice]
+        default = (
+            point_groups if point_groups and point_groups in pglist else pglist[-1]
+        )
+        values_map.reset_options(
+            "point_groups",
+            value_dict=OrderedDict((tag, tag) for tag in pglist),
+            default=default,
+        )
+        # new_values = {}
+        sglist = [""] + crystal_symmetry.space_groups_from_lattice(lattice)
+        default = space_group if space_group in sglist else ""
+        values_map.reset_options(
+            "space_group",
+            value_dict=OrderedDict((tag, tag) for tag in sglist),
+            default=default,
+        )
+
+    @staticmethod
+    def update_point_groups(values_map: ui_communication.AbstractValuesMap):
+        """Update pulldowns when pointgroups change"""
+        if values_map.block_updates:
+            return
+        state = values_map.get_values_map()
+        lattice = state.get("lattice")
+        point_groups = state.get("point_groups") or ""
+        space_group = state.get("space_group")
+        sglist = crystal_symmetry.space_groups_from_point_groups(
+            point_groups.split("|")
+        )
+        sglist = [""] + list(
+            name
+            for name in crystal_symmetry.space_groups_from_lattice(lattice)
+            if name in sglist
+        )
+        default = space_group if space_group in sglist else ""
+        values_map.reset_options(
+            "space_group",
+            value_dict=OrderedDict((tag, tag) for tag in sglist),
+            default=default,
+        )
+
+    @staticmethod
+    def update_space_group(values_map: ui_communication.AbstractValuesMap):
+        """Update pulldowns when crystal lattice changes"""
+        if values_map.block_updates:
+            return
+        state = values_map.get_values_map()
+        space_group = state.get("space_group")
+        lattice0 = state.get("lattice")
+        point_groups0 = state.get("point_groups")
+        if not space_group:
+            return
+
+        info = crystal_symmetry.CRYSTAL_CLASS_MAP[
+            crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
+        ]
+        lattice = info.bravais_lattice
+        if lattice != lattice0:
+            values_map.set_values(lattice=lattice)
+            GphlWorkflow.update_lattice(values_map)
+        point_groups = info.point_group
+        if point_groups == "32" and lattice == "hP":
+            point_groups = info.name[:-1]
+        if point_groups != point_groups0:
+            values_map.set_values(point_groups=point_groups)
+        # Following is necessary because previous commands reset space_group
+        values_map.set_values(space_group=space_group)
+
+    @staticmethod
+    def update_indexing_solution(values_map: ui_communication.AbstractValuesMap):
+        """Update pulldowns when selected indexing solution changes"""
+        if values_map.block_updates:
+            return
+        state = values_map.get_values_map()
+        solution = state.get("indexing_solution")[0]
+        for lattice in crystal_symmetry.BRAVAIS_LATTICES:
+            if lattice and lattice in solution:
+                # values_map.set_values(lattice=lattice)
+                values_map.reset_options(
+                    "lattice",
+                    value_dict=OrderedDict(((lattice, lattice),)),
+                    default=lattice,
+                )
+                GphlWorkflow.update_lattice(values_map)
+                break

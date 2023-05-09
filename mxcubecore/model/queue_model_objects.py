@@ -1987,9 +1987,9 @@ class GphlWorkflow(TaskNode):
 
         # Pre-strategy attributes
         # Set in  def set_pre_strategy_params(
+        self.input_space_group = str()
         self.space_group = str()
-        self.crystal_system = str()
-        self.point_group = None
+        self.crystal_classes = ()
         self._cell_parameters = ()
         self.detector_setting = None  # from 'resolution' parameter or defaults
         self.aimed_resolution = None  # from 'resolution' parameter or defaults
@@ -2009,6 +2009,7 @@ class GphlWorkflow(TaskNode):
         self.transmission = 0.0
         self.snapshot_count = 2
         self.recentring_mode = "sweep"
+        self.repetition_count = 1
 
         # Internal / config-only attributes
         # Workflow interleave order (string).
@@ -2019,7 +2020,8 @@ class GphlWorkflow(TaskNode):
         self.goniostat_translations = ()  # Internal only - set by program
         self.current_rotation_id = None
         self.characterisation_done = False
-        self.dose_consumed = 0.0
+        self.characterisation_dose = 0.0
+        self.acquisition_dose = 0.0
         self.strategy_length = 0.0
 
         # # Centring handling and MXCuBE-side flow
@@ -2037,14 +2039,14 @@ class GphlWorkflow(TaskNode):
             "image_width",
             "strategy_length",
             "transmission",
-            "dose_consumed",
+            "input_space_group",
             "space_group",
-            "crystal_system",
-            "point_group",
+            "crystal_classes",
             "_cell_parameters",
             "use_cell_for_processing",
             "relative_rad_sensitivity",
             "aimed_resolution",
+            "repetition_count",
         ):
             summary[tag] = getattr(self, tag)
         summary["wavelengths"] = tuple(x.wavelength for x in self.wavelengths)
@@ -2063,22 +2065,20 @@ class GphlWorkflow(TaskNode):
                 setattr(self, dict_item[0], dict_item[1])
 
     def set_pre_strategy_params(
-        self,
-        point_group="",
-        crystal_system="",
-        space_group="",
-        cell_parameters=(),
-        resolution=None,
-        energies=(),
-        strategy_options=None,
-        init_spot_dir=None,
-        use_cell_for_processing=False,
-        **unused
-    ):
+            self,
+            crystal_classes=(),
+            input_space_group="",
+            space_group="",
+            cell_parameters=(),
+            resolution=None,
+            energies=(),
+            strategy_options=None,
+            init_spot_dir=None,
+            use_cell_for_processing=False,
+            **unused):
         """
 
-        :param point_group (str):
-        :param crystal_system (str):
+        :param crystal_classes (tuple(str)):
         :param space_group (str):
         :param cell_parameters tuple(float):
         :param resolution (Optional[float]):
@@ -2091,60 +2091,48 @@ class GphlWorkflow(TaskNode):
 
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
-        # Order of precedence: space_group, point_group, crystal_system.
-        if space_group:
-            # Space group overrides point group and crystal_system
-            self.space_group = space_group
-            self.point_group = None
-            self.crystal_system = None
-        else:
-            if point_group:
-                # To avoid compatibility problems, reset other parameters
-                # NB Crystal system follows from point group
-                self.space_group = None
-                self.point_group = point_group
-                self.crystal_system = None
-            elif crystal_system:
-                self.space_group = None
-                self.point_group = None
-                self.crystal_system = crystal_system
+        self.input_space_group = input_space_group
+        self.space_group = space_group
+        self.crystal_classes = tuple(crystal_classes)
         if cell_parameters:
             self.cell_parameters = cell_parameters
 
         workflow_parameters = self.get_workflow_parameters()
 
-        # NB this is an internal dictionary. DO NOT MODIFY
-        settings = HWR.beamline.gphl_workflow.settings
-        energy_tags = workflow_parameters.get(
-            "beam_energy_tags", (settings["default_beam_energy_tag"],)
-        )
         interleave_order = workflow_parameters.get("interleave_order")
         if interleave_order:
             self.interleave_order = interleave_order
 
+        # NB this is an internal dictionary. DO NOT MODIFY
+        settings = HWR.beamline.gphl_workflow.settings
+
         if energies:
-            if len(energy_tags) != len(energies):
+            # Energies *reset* existing list, and there must be at least one
+            if self.characterisation_done:
+                energy_tags = workflow_parameters.get(
+                    "beam_energy_tags", (settings["default_beam_energy_tag"],)
+                )
+            elif self.get_type() == "diffractcal":
+                energy_tags = ("Main",)
+            else:
+                energy_tags = ("Characterisation",)
+            if len(energies) not in (len(energy_tags), 1):
                 raise ValueError(
-                    "Strategy should have %s energies, value was %s"
-                    % (len(energy_tags), energies)
+                    "Number of energies %s do not match available slots %s"
+                    % (energies, energy_tags)
                 )
             wavelengths = []
-            for iii, role in enumerate(energy_tags):
+            for iii, energy in enumerate(energies):
+                role = energy_tags[iii]
                 wavelengths.append(
                     GphlMessages.PhasingWavelength(
-                        wavelength=HWR.beamline.energy.calculate_wavelength(
-                            energies[iii]
-                        ),
+                        wavelength=HWR.beamline.energy.calculate_wavelength(energy),
                         role=role,
                     )
                 )
             self.wavelengths = tuple(wavelengths)
-        else:
-            if len(energy_tags) != 1:
-                raise ValueError(
-                    "Strategy should have %s explicit energies, values missing"
-                    % len(energy_tags)
-                )
+        if not self.wavelengths:
+            raise ValueError("Value for energy missing. Coding error?")
 
         wavelength = self.wavelengths[0].wavelength
 
@@ -2166,6 +2154,7 @@ class GphlWorkflow(TaskNode):
             "clip_kappa": settings["angular_tolerance"],
             "maximum_chi": settings["maximum_chi"],
             "variant": workflow_parameters["variants"][0],
+            "crystal_classes": list(crystal_classes),
         }
         if strategy_options:
             self.strategy_options.update(strategy_options)
@@ -2181,9 +2170,16 @@ class GphlWorkflow(TaskNode):
         transmission=None,
         image_count=None,
         snapshot_count=None,
-        **unused
+        energies = (),
+        **unused,
     ):
         """"""
+        from mxcubecore.HardwareObjects.Gphl import GphlMessages
+
+        workflow_parameters = self.get_workflow_parameters()
+        # NB this is an internal dictionary. DO NOT MODIFY
+        settings = HWR.beamline.gphl_workflow.settings
+
         if exposure_time:
             self.exposure_time = float(exposure_time)
         if image_width:
@@ -2196,6 +2192,31 @@ class GphlWorkflow(TaskNode):
             self.snapshot_count = int(snapshot_count)
         if image_count:
             self.strategy_length = int(image_count) * self.image_width
+        if energies:
+            # Energies are *added* to existing list
+            energy_tags = workflow_parameters.get(
+                "beam_energy_tags", (settings["default_beam_energy_tag"],)
+            )
+            wavelengths = list(self.wavelengths)
+            offset = len(wavelengths)
+            if len(energies) == len(energy_tags) - offset:
+                for iii, energy in enumerate(energies):
+                    role = energy_tags[iii + offset]
+                    wavelengths.append(
+                        GphlMessages.PhasingWavelength(
+                            wavelength=HWR.beamline.energy.calculate_wavelength(
+                                energy
+                            ),
+                            role=role,
+                        )
+                    )
+                self.wavelengths = tuple(wavelengths)
+            else:
+                raise ValueError(
+                    "Number of energies %s do not match remaining slots %s"
+                    % (energies, energy_tags[len(self.wavelengths):])
+                )
+
 
     def init_from_task_data(self, sample_model, params):
         """
@@ -2285,9 +2306,8 @@ class GphlWorkflow(TaskNode):
         if all(tpl):
             self.cell_parameters = tpl
         self.protein_acronym = crystal.protein_acronym
-        self.space_group = crystal.space_group
-        self.point_group = params.get("point_group")
-        self.crystal_system = params.get("crystal_system")
+        self.space_group = self.input_space_group = crystal.space_group
+        self.crystal_classes = params.get("crystal_classes", ())
 
         # Set to current wavelength for now - nothing else available
         wavelength = HWR.beamline.energy.get_wavelength()
@@ -2366,7 +2386,7 @@ class GphlWorkflow(TaskNode):
         :return (float): transmission in %
         """
         if not use_dose:
-            use_dose = self.recommended_dose_budget() - self.dose_consumed
+            use_dose = self.recommended_dose_budget()
         max_dose = self.calculate_dose(transmission=100.0)
         if max_dose:
             return 100.0 * use_dose / max_dose
@@ -2397,13 +2417,12 @@ class GphlWorkflow(TaskNode):
                     duration, energy, flux_density
                 )
         msg = (
-            "Dose could not be calculated from:\n"
+            "WARNING: Dose could not be calculated from:\n"
             " energy:%s keV, strategy_length:%s deg, exposure_time:%s s, "
             "image_width:%s deg, transmission: %s  flux_density:%s  photons/mm^2"
         )
-        raise ValueError(
-            msg
-            % (
+        raise UserWarning(
+            msg % (
                 energy,
                 strategy_length,
                 exposure_time,
@@ -2412,6 +2431,7 @@ class GphlWorkflow(TaskNode):
                 flux_density,
             )
         )
+        return 0
 
     def recommended_dose_budget(self, resolution=None):
         """Get resolution-dependent dose budget using current configuration

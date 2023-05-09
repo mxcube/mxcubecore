@@ -33,7 +33,7 @@ class LNLSEnergy(EPICSActuator, AbstractEnergy):
         """Initialise default properties"""
         super(LNLSEnergy, self).init()
         self.update_state(self.STATES.READY)
-        self.detector = self.getObjectByRole("detector")
+        self.detector = self.get_object_by_role("detector")
 
     def set_value(self):
         """Override method."""

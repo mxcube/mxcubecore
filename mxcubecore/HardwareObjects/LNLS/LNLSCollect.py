@@ -23,23 +23,23 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
 
     def init(self):
         self.setControlObjects(
-            diffractometer=self.getObjectByRole("diffractometer"),
-            sample_changer=self.getObjectByRole("sample_changer"),
-            lims=self.getObjectByRole("dbserver"),
-            safety_shutter=self.getObjectByRole("safety_shutter"),
-            machine_current=self.getObjectByRole("machine_current"),
-            cryo_stream=self.getObjectByRole("cryo_stream"),
+            diffractometer=self.get_object_by_role("diffractometer"),
+            sample_changer=self.get_object_by_role("sample_changer"),
+            lims=self.get_object_by_role("dbserver"),
+            safety_shutter=self.get_object_by_role("safety_shutter"),
+            machine_current=self.get_object_by_role("machine_current"),
+            cryo_stream=self.get_object_by_role("cryo_stream"),
             energy=HWR.beamline.energy,
-            resolution=self.getObjectByRole("resolution"),
-            detector_distance=self.getObjectByRole("detector_distance"),
-            transmission=self.getObjectByRole("transmission"), # Returns attenuators.
-            undulators=self.getObjectByRole("undulators"),
-            flux=self.getObjectByRole("flux"),
-            detector=self.getObjectByRole("detector"),
-            beam_info=self.getObjectByRole("beam_info"),
+            resolution=self.get_object_by_role("resolution"),
+            detector_distance=self.get_object_by_role("detector_distance"),
+            transmission=self.get_object_by_role("transmission"), # Returns attenuators.
+            undulators=self.get_object_by_role("undulators"),
+            flux=self.get_object_by_role("flux"),
+            detector=self.get_object_by_role("detector"),
+            beam_info=self.get_object_by_role("beam_info"),
         )
         # Adding this line to get transmission value:
-        self.filter_transmission = self.getObjectByRole('filter_transmission')
+        self.filter_transmission = self.get_object_by_role('filter_transmission')
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True,))
 

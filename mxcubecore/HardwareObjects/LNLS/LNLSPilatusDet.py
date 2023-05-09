@@ -50,7 +50,7 @@ class LNLSPilatusDet(AbstractDetector):
         self.default_beam_x = float(self.getProperty("default_beam_x"))
         self.default_beam_y = float(self.getProperty("default_beam_y"))
 
-        self._distance_motor_hwobj = self.getObjectByRole("detector_distance")
+        self._distance_motor_hwobj = self.get_object_by_role("detector_distance")
         self.threshold = self.get_threshold_energy()
 
     def set_roi_mode(self, roi_mode):
