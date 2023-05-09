@@ -149,8 +149,8 @@ class AbstractResolution(AbstractMotor):
         Returns:
             (float): distance [mm].
         """
-        resolution = resolution or self._nominal_value
-        wavelength = wavelength or HWR.beamline.energy.get_wavelength()
+        resolution = float(resolution or self._nominal_value)
+        wavelength = float(wavelength or HWR.beamline.energy.get_wavelength())
 
         try:
             distance = self._hwr_detector.get_radius() / (
