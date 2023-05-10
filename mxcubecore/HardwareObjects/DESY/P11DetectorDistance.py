@@ -23,6 +23,7 @@ __license__ = "LGPLv3+"
 __category__ = "Motor"
 
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+import time
 
 class P11DetectorDistance(AbstractMotor):
 
@@ -59,6 +60,10 @@ class P11DetectorDistance(AbstractMotor):
         self.interlock_state_changed()
 
         self.cmd_stop = self.get_command_object("stopAxis")
+        
+        self.chan_actual_value = self.get_channel_object('DistanceLaser')
+
+
         #if self.cmd_stop:
             #self.cmd_stop.connect_signal("connected", self.connected)
             #self.cmd_stop.connect_signal("disconnected", self.disconnected)
@@ -137,6 +142,11 @@ class P11DetectorDistance(AbstractMotor):
             #self.update_state(self.STATES.BUSY)
             
         self.chan_position.set_value(value)
+
+        # Wait until motor is reachiung the actual distance within tolerance.
+        tolerance = 1.0 #mm Actual tolerance is within 0.3 range.
+        while abs(self.get_value() - value) >= tolerance:
+            time.sleep(0.5)
 
     def get_limits(self):  
         min_value = self.chan_min_value.get_value()
