@@ -35,6 +35,8 @@ class P11Collect(AbstractCollect):
 
         # os.system("/opt/xray/bin/adxv -socket -colors Gray -rings &")
 
+        # os.system("/bin/bash /gpfs/local/shared/MXCuBE/STRELA/start_viewer_zmq.sh")
+
         
         self.default_speed = self.get_property("omega_default_speed", 130)
         self.turnback_time = self.get_property("turnback_time", 0.1)
