@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <object class="mxcubecore.HardwareObjects.SampleView">
-  <object hwrid="bl19u/ova_camera" role="camera"/>
+  <object hwrid="/bl19u/oav-camera" role="camera"/>
 
   <hide_grid_threshold>5</hide_grid_threshold>
 </object>

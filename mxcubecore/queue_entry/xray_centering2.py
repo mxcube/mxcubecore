@@ -74,6 +74,7 @@ class XrayCentering2QueueEntry(BaseQueueEntry):
         # Create a centred position object of the current position
         # and put it in the data model for future access.
         pos_dict = HWR.beamline.diffractometer.get_positions()
+
         cpos = queue_model_objects.CentredPosition(pos_dict)
         self._data_model.set_centring_result(cpos)
 

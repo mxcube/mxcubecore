@@ -38,7 +38,7 @@ class BL19U1MD2Camera(Device):
 
     def __init__(self, name):
         Device.__init__(self, name)
-        self.setIsReady(True)
+        self.set_is_ready(True)
         self.stream_hash = str(uuid.uuid1())
         print("stream hash:", self.stream_hash)
 
@@ -62,6 +62,7 @@ class BL19U1MD2Camera(Device):
         thread = Thread(target=self.poll)
         thread.daemon = True
         thread.start()
+        #self.poll()
 
     def getImage(self):
         return self.image_attr.getValue()
@@ -78,10 +79,11 @@ class BL19U1MD2Camera(Device):
             if count % 100 == 0:
                 print("polling", datetime.datetime.now().strftime("%H:%M:%S.%f"))
             try:
-                img = self.image_attr.getValue()
+                img = self.image_attr.get_value()
+                #print(img)
                 #img = self.image_attr.value
                 imgArray = array.array("b", img)
-                imgStr = imgArray.tostring()
+                imgStr = imgArray.tobytes()
                 # self.emit("imageReceived", self.imageaux,1360,1024)
                 #self.emit("imageReceived", imgStr, 768, 576)
                 #print(imgStr)
@@ -91,14 +93,14 @@ class BL19U1MD2Camera(Device):
                 #img = im.open(io.BytesIO(imgArray))
                 #img.save('1.jpg')
 
-                self.emit("imageReceived", imgStr, 659, 453)
+                self.emit("imageReceived", imgStr, 659, 493)
                 count = count + 1
             except KeyboardInterrupt:
                 self.connected = False
                 self.stopper = True
                 logging.getLogger("HWR").info("poll images stopped")
                 return
-            except Exception:
+            except Exception as ex:
                 logging.getLogger("HWR").exception("Could not read image")
                 self.image_attr = self.add_channel(
                     {"type": "exporter", "name": "image"}, "ImageJPG"
@@ -169,7 +171,7 @@ class BL19U1MD2Camera(Device):
             # python_executable = os.sep.join(
             #     os.path.dirname(os.__file__).split(os.sep)[:-2] + ["bin", "python"]
             # )
-            python_executable = " /usr/bin/python3.6"
+            python_executable = "/home/mxcube19u1/anaconda3/envs/mxcubeweb/bin/python"
 
             self._video_stream_process = subprocess.Popen(
                 [

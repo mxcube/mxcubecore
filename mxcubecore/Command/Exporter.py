@@ -254,8 +254,11 @@ class ExporterChannel(ChannelObject):
         Returns:
             (str): The value
         """
-        value = self.__exporter.read_property(self.attribute_name)
-        return value
+        try:
+            value = self.__exporter.read_property(self.attribute_name)
+            return value
+        except Exception as ex:
+            logging.getLogger("HWR").debug(str(ex))
 
     def set_value(self, value):
         """Set a value
