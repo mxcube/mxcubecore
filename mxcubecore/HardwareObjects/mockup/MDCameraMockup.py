@@ -18,6 +18,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
         BaseHardwareObjects.Device.__init__(self, name)
 
     def _init(self):
+        self._format = "MPEG1"
         self.stream_hash = "abc123"
         self.udiffVER_Ok = False
         self.badimg = 0
@@ -95,12 +96,18 @@ class MDCameraMockup(BaseHardwareObjects.Device):
     take_snapshot = takeSnapshot
 
     def get_available_stream_sizes(self):
-        return [(self.get_width(), self.get_height())]
+        try:
+            w, h = self.get_width(), self.get_height()
+            video_sizes = [(w, h), (int(w / 2), int(h / 2)), (int(w / 4), int(h / 4))]
+        except (ValueError, AttributeError):
+            video_sizes = []
+
+        return video_sizes
 
     def get_stream_size(self):
         return self.get_width(), self.get_height(), 1
 
-    def start_video_stream_process(self, format):
+    def start_video_stream_process(self, fmt, size):
         if (
             not self._video_stream_process
             or self._video_stream_process.poll() is not None
@@ -115,9 +122,11 @@ class MDCameraMockup(BaseHardwareObjects.Device):
                     "-p",
                     "8000",
                     "-of",
-                    format,
+                    fmt,
                     "-q",
                     "4",
+                    "-s",
+                    "%s,%s" % size,
                     "-id",
                     self.stream_hash,
                 ],
@@ -126,12 +135,25 @@ class MDCameraMockup(BaseHardwareObjects.Device):
 
     def stop_streaming(self):
         if self._video_stream_process:
-            ps = [self._video_stream_process] + psutil.Process(
-                self._video_stream_process.pid
-            ).children()
+            ps = psutil.Process(self._video_stream_process.pid).children() + [
+                self._video_stream_process
+            ]
+
             for p in ps:
                 p.kill()
+
             self._video_stream_process = None
 
-    def start_streaming(self, format="MPEG1"):
-        self.start_video_stream_process(format)
+    def start_streaming(self, fmt="MPEG1", size=(0, 0)):
+        self._format = fmt
+
+        if not size[0]:
+            _s = int(self.get_width()), int(self.get_height())
+        else:
+            _s = size
+
+        self.start_video_stream_process(self._format, _s)
+
+    def restart_streaming(self, size):
+        self.stop_streaming()
+        self.start_streaming(self._format, size)
