@@ -35,11 +35,16 @@ class ControllerCommand(CommandObject):
 
     @task
     def __call__(self, *args, **kwargs):
+        """Call the command"""
         self.emit("commandBeginWaitReply", (str(self.name()),))
         self._cmd_execution = gevent.spawn(self._cmd, *args, **kwargs)
         self._cmd_execution.link(self._cmd_done)
 
     def _cmd_done(self, cmd_execution):
+        """Handle the command execution.
+        Args:
+            (obj): Command execution greenlet.
+        """
         try:
             try:
                 res = cmd_execution.get()
@@ -59,6 +64,7 @@ class ControllerCommand(CommandObject):
             self.emit("commandReady", (str(self.name()), ""))
 
     def abort(self):
+        """Abort the execution."""
         if self._cmd_execution and not self._cmd_execution.ready():
             self._cmd_execution.kill()
 
