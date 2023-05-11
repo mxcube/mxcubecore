@@ -202,7 +202,7 @@ class BeamCmds(HardwareObject):
     """Beam action commands"""
 
     def __init__(self, name):
-        super(BeamCmds, self).__init__(name)
+        super().__init__(name)
         self.ctrl_list = []
         self.hwobj_list = []
 
@@ -210,25 +210,34 @@ class BeamCmds(HardwareObject):
         """Initialise the controller commands and the actuator object
            to be used.
         """
-        ctrl_cmds = self["controller_commands"].get_properties().items()
+        try:
+            ctrl_cmds = self["controller_commands"].get_properties().items()
 
-        if ctrl_cmds:
-            controller = self.get_object_by_role("controller")
-            for key, name in ctrl_cmds:
-                # name = self.get_property(cmd)
-                action = getattr(controller, key)
-                self.ctrl_list.append(ControllerCommand(name, action))
+            if ctrl_cmds:
+                controller = self.get_object_by_role("controller")
+                for key, name in ctrl_cmds:
+                    # name = self.get_property(cmd)
+                    action = getattr(controller, key)
+                    self.ctrl_list.append(ControllerCommand(name, action))
+        except KeyError:
+            pass
 
-        hwobj_cmd_roles = ast.literal_eval(
-            self.get_property("hwobj_command_roles").strip()
-        )
+        try:
+            hwobj_cmd_roles = ast.literal_eval(
+                self.get_property("hwobj_command_roles").strip()
+            )
 
-        if hwobj_cmd_roles:
-            for role in hwobj_cmd_roles:
-                hwobj_cmd = self.get_object_by_role(role)
-                self.hwobj_list.append(
-                    HWObjActuatorCommand(hwobj_cmd.username, hwobj_cmd)
-                )
+            if hwobj_cmd_roles:
+                for role in hwobj_cmd_roles:
+                    try:
+                        hwobj_cmd = self.get_object_by_role(role)
+                        self.hwobj_list.append(
+                            HWObjActuatorCommand(hwobj_cmd.username, hwobj_cmd)
+                        )
+                    except:
+                        pass
+        except AttributeError:
+            pass
 
     def get_commands(self):
         """Get which objects to be used in the GUI
