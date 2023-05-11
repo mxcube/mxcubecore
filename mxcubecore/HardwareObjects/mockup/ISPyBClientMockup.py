@@ -130,7 +130,7 @@ class ISPyBClientMockup(HardwareObject):
             "Laboratory": prop["Laboratory"],
         }
 
-    def get_todays_session(self, prop):
+    def get_todays_session(self, prop, create_session=True):
         try:
             sessions = prop["Session"]
         except KeyError:

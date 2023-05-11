@@ -175,6 +175,7 @@ class ISPyBClient(HardwareObject):
         self.ws_password = None
 
         self.base_result_url = None
+        self.group_id = None
 
     def init(self):
         """
@@ -794,6 +795,11 @@ class ISPyBClient(HardwareObject):
             session_id = todays_session["sessionId"]
             logging.getLogger("HWR").debug("getting local contact for %s" % session_id)
             localcontact = self.get_session_local_contact(session_id)
+        elif prop.get("Session", None):
+            logging.getLogger("HWR").debug(
+                "No session for today, reusing previous ! %s" % prop["Session"]
+            )
+            todays_session = prop["Session"][0]
         else:
             todays_session = {}
 
@@ -1635,7 +1641,7 @@ class ISPyBClient(HardwareObject):
         """
         Stores or updates a DataCollectionGroup object.
         The entry is updated of the group_id in the
-        mx_collection dictionary is set to an exisitng
+        mx_collection dictionary is set to an exisiting
         DataCollectionGroup id.
 
         :param mx_collection: The dictionary of values to create the object from.
@@ -1644,15 +1650,20 @@ class ISPyBClient(HardwareObject):
         :returns: DataCollectionGroup id
         :rtype: int
         """
-
         if self._collection:
-            group = ISPyBValueFactory().dcg_from_dc_params(
-                self._collection, mx_collection
-            )
+            group_id = None
+            if mx_collection["ispyb_group_data_collections"]:
+                group_id = mx_collection.get("group_id", None)
+            if group_id is None:
+                # Create a new group id
+                group = ISPyBValueFactory().dcg_from_dc_params(
+                    self._collection, mx_collection
+                )
+                self.group_id = (
+                    self._collection.service.storeOrUpdateDataCollectionGroup(group)
+                )
+            mx_collection["group_id"] = self.group_id
 
-            group_id = self._collection.service.storeOrUpdateDataCollectionGroup(group)
-
-            return group_id
 
     def _store_data_collection_group(self, group_data):
         """ """
@@ -1922,6 +1933,11 @@ class ISPyBClient(HardwareObject):
         """Stores robot action"""
 
         action_id = None
+
+        logging.getLogger("HWR").debug(
+            "  - storing robot_actions in lims : %s" % str(robot_action_dict)
+        )
+
         if True:
             # try:
             robot_action_vo = self._collection.factory.create("robotActionWS3VO")
@@ -2229,7 +2245,7 @@ class ISPyBValueFactory:
 
         try:
             data_collection.dataCollectionId = int(mx_collect_dict["collection_id"])
-        except KeyError:
+        except (TypeError, ValueError, KeyError):
             pass
 
         try:
