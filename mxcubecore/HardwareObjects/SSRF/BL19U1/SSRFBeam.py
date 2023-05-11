@@ -393,3 +393,9 @@ class SSRFBeam(AbstractBeam):
             focus_mode = self._definer.get_focus_mode()
 
         return focus_mode
+    def get_value(self):
+        return list(self.get_beam_info_dict().values())
+
+    def get_available_size(self):
+        aperture_list = self._aperture.get_diameter_size_list()
+        return {"type": "enum", "values": aperture_list}

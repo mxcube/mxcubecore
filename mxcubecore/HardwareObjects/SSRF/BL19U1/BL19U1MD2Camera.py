@@ -101,6 +101,7 @@ class BL19U1MD2Camera(Device):
                 logging.getLogger("HWR").info("poll images stopped")
                 return
             except Exception as ex:
+                logging.getLogger("HWR").error(str(ex))
                 logging.getLogger("HWR").exception("Could not read image")
                 self.image_attr = self.add_channel(
                     {"type": "exporter", "name": "image"}, "ImageJPG"
