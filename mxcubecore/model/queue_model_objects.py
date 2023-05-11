@@ -622,6 +622,7 @@ class DataCollection(TaskNode):
         self.processing_msg_list = []
         self.workflow_id = None
         self.center_before_collect = False
+        self.ispyb_group_data_collections = False
 
     @staticmethod
     def set_processing_methods(processing_methods):
@@ -1676,6 +1677,9 @@ class PathTemplate(object):
 
         return file_locations
 
+    def get_first_and_last_file(self):
+        return HWR.beamline.detector.get_first_and_last_file(self)
+
     def is_part_of(self, path_template):
         result = False
 
@@ -2644,6 +2648,7 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
             ],
             "skip_images": acq_params.skip_existing_images,
             "motors": centred_pos.as_dict() if centred_pos is not None else {},
+            "ispyb_group_data_collections": data_collection.ispyb_group_data_collections,
         }
     ]
 
