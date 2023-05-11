@@ -983,7 +983,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
                         self.dtox_hwobj.set_value(value)
                         self.dtox_hwobj.wait_end_of_move(50)
                 except Exception:
-                    self.user_log.error('Cannot move detector, please check the key!!')
+                    self.user_log.error('Cannot move detector.')
                     self.log.exception("Problems when moving detector!!")
                     self.stop_collect()
         else:
