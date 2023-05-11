@@ -1,3 +1,5 @@
+from datetime import datetime
+from typing import Optional, Union
 from pydantic import BaseModel, Field
 
 
@@ -11,7 +13,10 @@ class CommonCollectionParamters(BaseModel):
 class PathParameters(BaseModel):
     prefix: str
     subdir: str
-    experiment_name: str
+    experiment_name: Optional[str]
+    use_experiment_name: bool = Field(
+        False, description="Whether to use the experiment name in the data path"
+    )
 
     class Config:
         extra: "ignore"
@@ -29,17 +34,18 @@ class LegacyParameters(BaseModel):
 
 class StandardCollectionParameters(BaseModel):
     num_images: int
-    osc_start: float
-    osc_range: float
+    osc_start: Optional[float]
+    osc_range: Optional[float]
     energy: float
     transmission: float
     resolution: float
     first_image: int
-    kappa: float
-    kappa_phi: float
+    kappa: Optional[float]
+    kappa_phi: Optional[float]
     beam_size: float
     shutterless: bool
     selection: list = Field([])
+    shape: str = ""
 
     class Config:
         extra: "ignore"
@@ -53,3 +59,16 @@ class BeamlineParameters(BaseModel):
     detector_distance: float
     beam_x: float
     beam_y: float
+    beam_size_x: float
+    beam_size_y: float
+    beam_shape: str
+    energy_bandwidth: float
+
+
+class ISPYBCollectionPrameters(BaseModel):
+    flux_start: float
+    flux_end: float
+    start_time: datetime
+    end_time: datetime
+    chip_model: str
+    mono_stripe: str
