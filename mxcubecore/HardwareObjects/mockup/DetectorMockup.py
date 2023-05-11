@@ -1,6 +1,9 @@
+import time
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import (
     AbstractDetector,
 )
+
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
 
 class DetectorMockup(AbstractDetector):
@@ -62,4 +65,6 @@ class DetectorMockup(AbstractDetector):
         return
 
     def restart(self) -> None:
-        pass
+        self.update_state(HardwareObjectState.BUSY)
+        time.sleep(2)
+        self.update_state(HardwareObjectState.READY)
