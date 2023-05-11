@@ -62,6 +62,9 @@ class MotorMockup(ActuatorMockup, AbstractMotor):
         """Initialisation method"""
         # get username, actuator_name and tolerance
         super().init()
+        global DEFAULT_VALUE
+
+        DEFAULT_VALUE = self.default_value if self.default_value else DEFAULT_VALUE
 
         # local properties
         if not self.get_velocity():
