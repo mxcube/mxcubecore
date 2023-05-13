@@ -5,8 +5,6 @@ settings:
     # Controls for MXCuBE UI and behaviour
     # Use configured multitrigger collection, default: false, any value is true
 #    use_multitrigger: true
-    # Pass path_template.prefix to workflow as prefix. Any value is True Do not change
-    use_path_template_prefix: true
     # Use advanced_mode for adidtional UI options. Default is false, any value is true
     advanced_mode: true
     # Maximum allowed value of Chi, for strategy calculation
@@ -24,8 +22,8 @@ settings:
     # Characterisation strategies popup.
     # names refer to stategies in  strategylib.nml
     characterisation_strategies:
-#        - Char_4_by_10
       - Char_6_5_multitrigger
+      - Char_4_by_10
 #        - Characterisation_6_5
 #        - Char_24deg
 #        - TEST_Characterisation_12_3
@@ -74,7 +72,6 @@ settings:
         # Radiation sensitivity relative to standard crystal
         relative_rad_sensitivity: 1.0
         interleave_order: gs
-        characterisation_strategy: Char_6_5_multitrigger
 
         # For testing only:
 #        automation_mode: TEST
@@ -89,12 +86,13 @@ settings:
       - exposure_time: 0.02
         image_width: 0.1
 #        resolution: 1.920
-#        image_count: 90
         # strategy_options: # Not currently used
         # For acquisition or diffractcal
+        strategy: Char_6_5_multitrigger
       - exposure_time: 0.02
         image_width: 1.0
         repetition_count: 1
+        strategy: full
         strategy_options:
             # Not really needed in default situation, but to show how it works
             maximum_chi: 48.0
@@ -115,7 +113,7 @@ settings:
     workflow_properties:
 
         # Set to false to switch off pre-start checks for directory existence
-        # in cases where the directories are are created after the workflow starts
+        # in cases where the directories are created after the workflow starts
         # Checks for data directory tree
         co.gphl.wf.blRootCheck: false
         # Chcks for data processing directory tree
@@ -349,22 +347,19 @@ workflows:
                   strategy_type: diffractcal
                   application: co.gphl.wf.workflows.WFDiffractCal
                   variants:
-                      - full
-                      - short
+                      - DiffractCal_long
+                      - DiffractCal_short
                   documentation: |
                       Diffractometer calibration.
                       Designed for use by beamline personnel.
                       Calibrates axis directions, detector pane orientation, and beam centre.
-                      Long data collectoin and processing, requiring a high-quality, high-symmetry
+                      Long data collection and processing, requiring a high-quality, high-symmetry
                       crystal of precisely known cell parameters.
                       Variants:
                       full: 22 60-deg sweeps, 11 orientations
                       short: 6 60-deg sweeps, 3 orientations
 
                   options:
-                      #                wfprefix: Dcalib2_
-                      # Name of strategy from library to use. Variant name is appended-->
-                      strategy: DiffractCal_
                       # File name for diffractometer calibration output
                       calibration: diffractcal
                       # Pattern name for characterisation collections - used for all data here-->

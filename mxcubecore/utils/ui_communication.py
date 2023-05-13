@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # encoding: utf-8
-# 
+#
 """
 License:
 
@@ -26,14 +26,55 @@ __author__ = "rhfogh"
 __date__ = "01/03/2023"
 
 import abc
+import importlib
+
+# These are the Qt.Colors supprted colors. Only a few are used.
+# NB, LINE_EDIT_ARNING is *not* supported by Qt and is treated as a special case
+WIDGET_COLOURS = [
+    "BLUE",
+    "WHITE",
+    "GRAY",
+    "LIGHT_GRAY",
+    "DARK_BLUE",
+    "DARK_GRAY",
+    "GREEN",
+    "DARK_GREEN",
+    "RED",
+    "LIGHT_GREEN",
+    "LIGHT_RED",
+    "LIGHT_YELLOW",
+    "LIGHT_BLUE",
+    "LIGHT_2_GRAY",
+    "LIGHT_ORANGE",
+    "SKY_BLUE",
+    "PLUM",
+    "LINE_EDIT_ORIGINAL",
+    "LINE_EDIT_ACTIVE",
+    "LINE_EDIT_CHANGED",
+    "LINE_EDIT_ERROR",
+    "LINE_EDIT_WARNING",
+]
+
 
 class AbstractValuesMap:
     """Abstract class for communicating with Qui Dialog"""
 
     __metaclass__ = abc.ABCMeta
 
-    # Override in individual objects to ntemporarioy block update functions
-    block_updates = False
+    def __init__(self, import_module_name=None):
+        """
+
+        Args:
+            import_module_name (str): Path to import module containing pdate functions
+        """
+        # Override in individual objects to temporary block update functions
+        self.block_updates = False
+        # Function to execute whenever individual widget update functions are called
+        self.update_function = None
+        if import_module_name:
+            self.import_module = importlib.import_module(import_module_name)
+        else:
+            self.import_module = None
 
     def set_values(self, **kwargs):
         """For each tag,val in kwargs set gui parameter tag, to value value
@@ -67,4 +108,17 @@ class AbstractValuesMap:
         Returns: None
 
         """
+        raise NotImplementedError()
+
+    def colour_widget(self, widget_name, colour):
+        """
+
+        Args:
+            widget_name (str):
+            colour (str): One of WIDGET_COLOURS
+
+        Returns: None
+
+        """
+
         raise NotImplementedError()

@@ -29,14 +29,15 @@ import operator
 from collections import namedtuple, OrderedDict
 
 CrystalClassInfo = namedtuple(
-    "CrystalClassInfo", (
+    "CrystalClassInfo",
+    (
         "number",
         "name",
         "bravais_lattice",
         "point_group",
         "crystal_system",
         "laue_group",
-    )
+    ),
 )
 # Data from https://onlinelibrary.wiley.com/iucr/itc/Cb/ch1o4v0001/
 # Laue group names from http://pd.chem.ucl.ac.uk/pdnn/symm2/laue1.htm
@@ -57,7 +58,7 @@ CRYSTAL_CLASS_DATA = [
     CrystalClassInfo(12, "222I", "oI", "222", "Orthorhombic", "mmm"),
     CrystalClassInfo(13, "mm2P", "oP", "mm2", "Orthorhombic", "mmm"),
     CrystalClassInfo(14, "mm2C", "oC", "mm2", "Orthorhombic", "mmm"),
-    CrystalClassInfo(15, "2mmC", "oC", "mm2", "Orthorhombic", "mmm"),  # NB was2mmC(Amm2)
+    CrystalClassInfo(15, "2mmC", "oC", "mm2", "Orthorhombic", "mmm"), #NB was2mmC(Amm2)
     CrystalClassInfo(16, "mm2F", "oF", "mm2", "Orthorhombic", "mmm"),
     CrystalClassInfo(17, "mm2I", "oI", "mm2", "Orthorhombic", "mmm"),
     CrystalClassInfo(18, "mmmP", "oP", "mmm", "Orthorhombic", "mmm"),
@@ -365,30 +366,45 @@ XTAL_SPACEGROUPS = [""] + [
 ]
 
 BRAVAIS_LATTICES = (
-    "aP", "mP", "mC", "oP", "oC", "oF", "oI", "tP", "tI", "hP", "hR", "cP", "cF", "cI",
+    "aP",
+    "mP",
+    "mC",
+    "oP",
+    "oC",
+    "oF",
+    "oI",
+    "tP",
+    "tI",
+    "hP",
+    "hR",
+    "cP",
+    "cF",
+    "cI",
 )
+
 
 def space_groups_from_lattice(lattice: str):
     """Space group names compatible with lattice,
     in space group number order"""
-    converter = {
-        "Triclinic": "a",
-        "Monoclinic": "m",
-        "Orthorhombic": "o",
-        "Tetragonal": "t",
-        "Trigonal": "h",
-        "Hexagonal": "h",
-        "Cubic": "c",
-    }
-    tst = converter.get(lattice, lattice)
-    result = list(
-        tag
-        for tag in XTAL_SPACEGROUPS
-        if tag
-        and CRYSTAL_CLASS_MAP[
-            SPACEGROUP_MAP[tag].crystal_class
-        ].bravais_lattice.startswith(tst)
-    )
+    result = list(XTAL_SPACEGROUPS)[1:]
+    if lattice:
+        converter = {
+            "Triclinic": "a",
+            "Monoclinic": "m",
+            "Orthorhombic": "o",
+            "Tetragonal": "t",
+            "Trigonal": "h",
+            "Hexagonal": "h",
+            "Cubic": "c",
+        }
+        tst = converter.get(lattice, lattice)
+        result = list(
+            tag
+            for tag in result
+            if CRYSTAL_CLASS_MAP[
+                SPACEGROUP_MAP[tag].crystal_class
+            ].bravais_lattice.startswith(tst)
+        )
     #
     return result
 
@@ -429,21 +445,8 @@ def crystal_classes_from_params(
     Returns: tuple(str) of crystal class names
 
     """
-
-    if lattice is None and point_groups is None:
-        if space_group is None:
-            # Return only chiral crystal classes, and exclude Null member
-            result = tuple(
-                tag
-                for tag, val in CRYSTAL_CLASS_MAP.items()
-                if val.point_group.isdigit()
-            )
-        else:
-            result = (SPACEGROUP_MAP[space_group].crystal_class,)
-        #
-        return result
-    else:
-        sgs1 = space_groups_from_lattice(lattice) if lattice else []
+    if lattice or point_groups:
+        sgs1 = space_groups_from_lattice(lattice)
         sgs2 = space_groups_from_point_groups(point_groups) if point_groups else []
         if sgs1 and sgs2:
             space_groups = set(sgs1).intersection(sgs2)
@@ -466,8 +469,14 @@ def crystal_classes_from_params(
         result = tuple(
             info.name for info in sorted(infos, key=operator.attrgetter("number"))
         )
-        #
-        return result
+    elif space_group:
+        result = (SPACEGROUP_MAP[space_group].crystal_class,)
+    else:
+        # Return empty list (nothing is set)
+        result = ()
+    #
+    return result
+
 
 def strategy_laue_group(crystal_classes: tuple, phasing=False):
     """Get laue group and point-group-like to use for strategy calculation
@@ -520,4 +529,3 @@ def strategy_laue_group(crystal_classes: tuple, phasing=False):
             result = ("-1", "1")
     #
     return result
-

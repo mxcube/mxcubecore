@@ -269,10 +269,10 @@ class CollectEmulator(CollectMockup):
         data_collect_parameters = self.current_dc_parameters
 
         if not HWR.beamline.gphl_workflow:
-            raise ValueError("Emulator requires GPhL workflow installation")
+            raise ValueError("Emulator requires GΦL workflow installation")
         gphl_connection = HWR.beamline.gphl_connection
         if not gphl_connection:
-            raise ValueError("Emulator requires GPhL connection installation")
+            raise ValueError("Emulator requires GΦL connection installation")
 
         # Get program locations
         simcal_executive = gphl_connection.get_executable("simcal")
@@ -330,7 +330,7 @@ class CollectEmulator(CollectMockup):
             command_list.extend(conversion.command_option(tag, val, prefix="--"))
         logging.getLogger("HWR").info("Executing command: %s", " ".join(command_list))
         logging.getLogger("HWR").info(
-            "Executing environment: %s" % sorted(envs.items())
+            "Executing environment: %s", sorted(envs.items())
         )
 
         if compress_data:
@@ -361,7 +361,7 @@ class CollectEmulator(CollectMockup):
             # NBNB TODO put in time-out, somehow
             return_code = running_process.wait()
         except Exception:
-            logging.getLogger("HWR").error("Error in GPhL collection emulation")
+            logging.getLogger("HWR").error("Error in GΦL collection emulation")
             raise
         finally:
             fp1.close()
@@ -376,5 +376,5 @@ class CollectEmulator(CollectMockup):
         else:
             logging.getLogger("HWR").info("Simcal collection emulation successful")
         self.ready_event.set()
-
+        #
         return

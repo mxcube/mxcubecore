@@ -33,33 +33,33 @@ __category__ = "queue"
 
 
 class GphlWorkflowQueueEntry(BaseQueueEntry):
-
     def execute(self):
         BaseQueueEntry.execute(self)
 
-        msg = "Starting workflow (%s), please wait." % (self.get_data_model()._type)
+        msg = "Starting GΦL workflow (%s), please wait." % (
+            self.get_data_model().strategy_name
+        )
         logging.getLogger("user_level_log").info(msg)
-        # TODO add parameter and data transfer.
-        # workflow_params = self.get_data_model().params_list
-        # Add the current node id to workflow parameters
-        #group_node_id = self._parent_container._data_model._node_id
-        #workflow_params.append("group_node_id")
-        #workflow_params.append("%d" % group_node_id)
         HWR.beamline.gphl_workflow.execute()
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
+        if not HWR.beamline.gphl_workflow.is_ready():
+            logging.getLogger("user_level_log").warning(
+                "WARNING: GΦL workflow was not ready - cleaning up"
+            )
+            HWR.beamline.gphl_workflow.post_execute()
         HWR.beamline.gphl_workflow.pre_execute(self)
-        logging.getLogger('HWR').debug("Done GphlWorkflowQueueEntry.pre_execute")
+        logging.getLogger("HWR").debug("Done GphlWorkflowQueueEntry.pre_execute")
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
-        msg = "Finishing workflow %s" % (self.get_data_model()._type)
+        msg = "Finishing GΦL workflow (%s)" % (self.get_data_model().strategy_name)
         logging.getLogger("user_level_log").info(msg)
         HWR.beamline.gphl_workflow.post_execute()
 
     def stop(self):
-        HWR.beamline.gphl_workflow.workflow_aborted('Dummy', 'Dummy')
+        HWR.beamline.gphl_workflow.workflow_aborted("Dummy", "Dummy")
         BaseQueueEntry.stop(self)
-        logging.getLogger("HWR").info("MXCuBE aborting current GPhL workflow")
-        self.get_view().setText(1, 'Stopped')
+        logging.getLogger("HWR").info("MXCuBE aborting current GΦL workflow")
+        self.get_view().setText(1, "Stopped")
