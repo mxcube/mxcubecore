@@ -1,0 +1,302 @@
+{
+    "SCHEMA": {
+        "definitions": {
+            "image_width": [
+                {
+                    "enum": [
+                        "0.05"
+                    ],
+                    "title": "0.05",
+                    "type": "string"
+                },
+                {
+                    "enum": [
+                        "0.1"
+                    ],
+                    "title": "0.1",
+                    "type": "string"
+                },
+                {
+                    "enum": [
+                        "0.2"
+                    ],
+                    "title": "0.2",
+                    "type": "string"
+                }
+            ],
+            "recentring_mode": [
+                {
+                    "enum": [
+                        "Re-centre when orientation changes"
+                    ],
+                    "title": "Re-centre when orientation changes",
+                    "type": "string"
+                },
+                {
+                    "enum": [
+                        "Re-centre at the start of each wedge"
+                    ],
+                    "title": "Re-centre at the start of each wedge",
+                    "type": "string"
+                },
+                {
+                    "enum": [
+                        "Re-centre all before acquisition start"
+                    ],
+                    "title": "Re-centre all before acquisition start",
+                    "type": "string"
+                },
+                {
+                    "enum": [
+                        "No manual re-centring, rely on calculated values"
+                    ],
+                    "title": "No manual re-centring, rely on calculated values",
+                    "type": "string"
+                }
+            ],
+            "snapshot_count": [
+                {
+                    "enum": [
+                        "0"
+                    ],
+                    "title": "0",
+                    "type": "string"
+                },
+                {
+                    "enum": [
+                        "1"
+                    ],
+                    "title": "1",
+                    "type": "string"
+                },
+                {
+                    "enum": [
+                        "2"
+                    ],
+                    "title": "2",
+                    "type": "string"
+                },
+                {
+                    "enum": [
+                        "4"
+                    ],
+                    "title": "4",
+                    "type": "string"
+                }
+            ]
+        },
+        "properties": {
+            "Main": {
+                "default": 12.4,
+                "maximum": 20,
+                "minimum": 4,
+                "readOnly": true,
+                "title": "Main beam energy (keV)",
+                "type": "number"
+            },
+            "_info": {
+                "default": "Experiment length (per repetition):  790.0\u00b0\n\nSweep :  kappa=    0.0\u00b0,  kappa_phi=    0.0\u00b0,  phi=  -30.0\u00b0,  sweep width=  360.0\u00b0\n\nSweep :  kappa=  141.5\u00b0,  kappa_phi= -111.9\u00b0,  phi=  -51.8\u00b0,  sweep width=  215.0\u00b0\n\nSweep :  kappa=  141.5\u00b0,  kappa_phi= -173.7\u00b0,  phi=  -33.9\u00b0,  sweep width=  215.0\u00b0",
+                "readOnly": true,
+                "type": "string"
+            },
+            "budget_use_fraction": {
+                "default": 0.05,
+                "hidden": true,
+                "title": "Budget fraction to use",
+                "type": "number"
+            },
+            "decay_limit": {
+                "default": 25,
+                "hidden": true,
+                "title": "Decay limit",
+                "type": "number"
+            },
+            "dose_budget": {
+                "default": 7.4752707974371395,
+                "minimum": 0.0,
+                "readOnly": true,
+                "title": "Dose budget (MGy)",
+                "type": "number"
+            },
+            "experiment_time": {
+                "default": 316.0,
+                "readOnly": true,
+                "title": "Experiment duration (s)",
+                "type": "number"
+            },
+            "exposure": {
+                "default": 0.04,
+                "maximum": 60000,
+                "minimum": 0.04,
+                "title": "Exposure Time (s)",
+                "type": "number"
+            },
+            "image_width": {
+                "$ref": "#/definitions/image_width",
+                "default": "0.1",
+                "title": "Oscillation range",
+                "type": "string"
+            },
+            "maximum_dose_budget": {
+                "default": 0.04,
+                "hidden": true,
+                "title": "Default value for exposure",
+                "type": "number"
+            },
+            "recentring_mode": {
+                "$ref": "#/definitions/recentring_mode",
+                "default": "Re-centre when orientation changes",
+                "type": "string"
+            },
+            "relative_rad_sensitivity": {
+                "default": 1.0,
+                "hidden": true,
+                "title": "Relative radiation sensitivity",
+                "type": "number"
+            },
+            "repetition_count": {
+                "default": 1,
+                "lowerBound": 1,
+                "stepsize": 1,
+                "title": "Number of repetitions",
+                "type": "spinbox",
+                "upperBound": 99
+            },
+            "resolution": {
+                "default": 1.6419908730535508,
+                "maximum": 2.942352157399316,
+                "minimum": 0.9035138162988328,
+                "readOnly": true,
+                "title": "Detector resolution (\u00c5)",
+                "type": "number"
+            },
+            "snapshot_count": {
+                "$ref": "#/definitions/snapshot_count",
+                "default": "2",
+                "title": "Number of snapshots",
+                "type": "string"
+            },
+            "std_dose_rate": {
+                "default": 3.861175888607226,
+                "hidden": true,
+                "title": "Dose rate",
+                "type": "number"
+            },
+            "total_strategy_length": {
+                "default": 790.0,
+                "hidden": true,
+                "title": "Strategy length",
+                "type": "number"
+            },
+            "transmission": {
+                "default": 0.6123519887176347,
+                "maximum": 100.0,
+                "minimum": 0.001,
+                "title": "Transmission (%)",
+                "type": "number"
+            },
+            "use_dose": {
+                "default": 7.4715,
+                "minimum": 1e-06,
+                "readOnly": false,
+                "title": "Dose/repetition (MGy)",
+                "type": "number"
+            },
+            "wedge_width": {
+                "default": 15,
+                "maximum": 7200,
+                "minimum": 0.1,
+                "title": "Wedge width (\u00b0)",
+                "type": "number"
+            }
+        },
+        "title": "G\u03a6L Native data collection parameters",
+        "type": "object"
+    },
+    "UI_SCHEMA": {
+        "_info": {
+            "ui:options": {
+                "rows": 8
+            },
+            "ui:title": "G\u03a6L workflow:   Native data collection, strategy 'full', for symmetry '4'.",
+            "ui:widget": "textarea"
+        },
+        "parameters": {
+            "column1": {
+                "exposure": {
+                    "ui:options": {
+                        "decimals": 4,
+                        "update_function": "update_exptime"
+                    }
+                },
+                "image_width": {
+                    "ui:options": {
+                        "update_function": "update_dose"
+                    }
+                },
+                "repetition_count": {
+                    "ui:options": {}
+                },
+                "transmission": {
+                    "ui:options": {
+                        "decimals": 3,
+                        "update_function": "update_transmission"
+                    }
+                },
+                "ui:order": [
+                    "use_dose",
+                    "exposure",
+                    "image_width",
+                    "transmission",
+                    "snapshot_count",
+                    "repetition_count",
+                    "wedge_width"
+                ],
+                "use_dose": {
+                    "ui:options": {
+                        "decimals": 4,
+                        "update_function": "update_dose"
+                    }
+                }
+            },
+            "column2": {
+                "dose_budget": {
+                    "ui:options": {
+                        "decimals": 3
+                    }
+                },
+                "experiment_time": {
+                    "ui:options": {
+                        "decimals": 1
+                    }
+                },
+                "resolution": {
+                    "ui:options": {
+                        "decimals": 3
+                    }
+                },
+                "ui:order": [
+                    "dose_budget",
+                    "experiment_time",
+                    "resolution",
+                    "Main",
+                    "recentring_mode"
+                ]
+            },
+            "ui:order": [
+                "column1",
+                "column2"
+            ],
+            "ui:title": "Parameters",
+            "ui:widget": "column_grid"
+        },
+        "ui:options": {
+            "import_module_name": "mxcubecore.HardwareObjects.GphlWorkflow"
+        },
+        "ui:order": [
+            "_info",
+            "parameters"
+        ],
+        "ui:widget": "vertical_box"
+    }
+}
