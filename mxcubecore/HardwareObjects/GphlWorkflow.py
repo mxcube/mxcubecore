@@ -102,43 +102,42 @@ RECENTRING_MODES = OrderedDict(
 # The list for lattice "" contains all point group settings
 # The keys consist opf the Bravais lattice names, the crystam system names
 # and "" (for 'not set')
-# The list of keys, excluding "", defines the GPhL lattices pulldown.
-lattice2point_group_tags = OrderedDict()
-lattice2point_group_tags[""] = ()
-lattice2point_group_tags.update(
-    OrderedDict(
-        aP=("1",),
-        Triclinic=("2",),
-        mP=("2",),
-        mC=("2",),
-        Monoclinic=("2",),
-        oP=("222",),
-        oC=("222",),
-        oF=("222",),
-        oI=("222",),
-        Orthorhombic=("222",),
-        tP=("4", "422", "4|422"),
-        tI=("4", "422", "4|422"),
-        Tetragonal=("4", "422", "4|422"),
-        hP=("3", "312", "321", "3|32", "6", "622", "6|622", "3|32|6|622"),
-        hR=("3", "32", "3|32"),
-        Hexagonal=(
-            "3",
-            "312",
-            "321",
-            "32",
-            "3|32",
-            "6",
-            "622",
-            "6|622",
-            "3|32|6|622",
-        ),
-        cP=("23", "432", "23|432"),
-        cF=("23", "432", "23|432"),
-        cI=("23", "432", "23|432"),
-        Cubic=("23", "432", "23|432"),
-    )
+# The list of keys, plus "", defines the GPhL lattices pulldown.
+lattice2point_group_tags = OrderedDict(
+    aP=("1",),
+    Triclinic=("2",),
+    mP=("2",),
+    mC=("2",),
+    mI=("2",),
+    Monoclinic=("2",),
+    oP=("222",),
+    oC=("222",),
+    oF=("222",),
+    oI=("222",),
+    Orthorhombic=("222",),
+    tP=("4", "422", "4|422"),
+    tI=("4", "422", "4|422"),
+    Tetragonal=("4", "422", "4|422"),
+    hP=("3", "312", "321", "3|32", "6", "622", "6|622", "3|32|6|622"),
+    hR=("3", "32", "3|32"),
+    Hexagonal=(
+        "3",
+        "312",
+        "321",
+        "32",
+        "3|32",
+        "6",
+        "622",
+        "6|622",
+        "3|32|6|622",
+    ),
+    cP=("23", "432", "23|432"),
+    cF=("23", "432", "23|432"),
+    cI=("23", "432", "23|432"),
+    Cubic=("23", "432", "23|432"),
 )
+
+all_point_group_tags = []
 for tag in (
     "Triclinic",
     "Monoclinic",
@@ -147,7 +146,20 @@ for tag in (
     "Hexagonal",
     "Cubic",
 ):
-    lattice2point_group_tags[""] += lattice2point_group_tags[tag]
+    all_point_group_tags += lattice2point_group_tags[tag]
+
+# Allowed altervative lattices for a given lattice
+alternative_lattices = {}
+for ll0 in (
+    ["aP", "Triclinic"],
+    ["mP", "mC", "mI", "Monoclinic"],
+    ["oP", "oC", "oF", "oI", "Orthorhombic"],
+    ["tP", "tI", "Tetragonal"],
+    ["hP", "hR", "Hexagonal"],
+    ["cP", "cF", "cI", "Cubic"],
+):
+    for tag in ll0:
+        alternative_lattices[tag] = ll0
 
 
 class GphlWorkflow(HardwareObjectYaml):
@@ -389,27 +401,35 @@ class GphlWorkflow(HardwareObjectYaml):
         strategy_settings = data_model.strategy_settings
         space_group = data_model.space_group or ""
         if choose_lattice:
-            # NBNB TBD Redo once ABI has changed
-
             header, soldict, select_row = self.parse_indexing_solution(choose_lattice)
             lattice = list(soldict.values())[select_row].bravaisLattice
+            point_groups = lattice2point_group_tags[lattice]
+            point_group = point_groups[-1]
+            lattice_tags = alternative_lattices[lattice]
             if space_group:
                 info = crystal_symmetry.CRYSTAL_CLASS_MAP[
                     crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
                 ]
-                point_group = info.point_group
-                if point_group == "32" and info.bravais_lattice == "hP":
-                    point_group = info.crystal_class[:-1]
-            else:
-                point_group = None
-            point_groups = lattice2point_group_tags[lattice]
-            if point_group not in point_groups:
-                point_group = point_groups[-1]
+                if info.bravais_lattice == lattice:
+                    point_group = info.point_group
+                    if point_group == "32" and info.bravais_lattice == "hP":
+                        point_group = info.crystal_class[:-1]
+                    # if point_group not in point_groups:
+                    #     point_group = point_groups[-1]
+                else:
+                    space_group = ""
         elif space_group:
             crystal_class = crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
-            lattice = crystal_symmetry.CRYSTAL_CLASS_MAP[crystal_class].bravais_lattice
+            info = crystal_symmetry.CRYSTAL_CLASS_MAP[crystal_class]
+            lattice = info.bravais_lattice
+            point_group = info.point_group
+            point_groups = lattice2point_group_tags[lattice]
+            lattice_tags = [""] + list(lattice2point_group_tags)
         else:
             lattice = ""
+            point_group = ""
+            lattice_tags = [""] + list(lattice2point_group_tags)
+            point_groups = [""] + all_point_group_tags
         schema = {
             "title": "GΦL Pre-strategy parameters",
             "type": "object",
@@ -456,22 +476,23 @@ class GphlWorkflow(HardwareObjectYaml):
             "maximum": 180,
             "readOnly": True,
         }
+        lattice_dict = OrderedDict((tag, tag) for tag in lattice_tags)
         fields["lattice"] = {
             "title": "Crystal lattice",
             "default": lattice,
-            "$ref": "#/definitions/lattice",
+            # "$ref": "#/definitions/lattice",
+            "value_dict": lattice_dict,
             "hidden": False,
         }
-        pglist = lattice2point_group_tags[lattice]
-        pg_dict = OrderedDict((tag, tag) for tag in pglist)
+        pg_dict = OrderedDict((tag, tag) for tag in point_groups)
         fields["point_groups"] = {
             "title": "Point Groups",
-            "default": pglist[0],
+            "default": point_group,
             "value_dict": pg_dict,
-            "hidden": True,
+            "hidden": not choose_lattice,
         }
-        sglist = [""] + list(
-            name for name in crystal_symmetry.space_groups_from_lattice(lattice)
+        sglist = [""] + crystal_symmetry.space_groups_from_params(
+            point_groups=point_groups
         )
         sg_dict = OrderedDict((tag, tag) for tag in sglist)
         fields["space_group"] = {
@@ -518,14 +539,15 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "Strategy",
             "$ref": "#/definitions/strategy",
         }
-        schema["definitions"]["lattice"] = list(
-            {
-                "type": "string",
-                "enum": [tag],
-                "title": tag,
-            }
-            for tag in lattice2point_group_tags
-        )
+        # tags = [""] + list(lattice2point_group_tags)
+        # schema["definitions"]["lattice"] = list(
+        #     {
+        #         "type": "string",
+        #         "enum": [tag],
+        #         "title": tag,
+        #     }
+        #     for tag in tags
+        # )
         # Handle strategy fields
         if data_model.characterisation_done or data_model.wftype == "diffractcal":
             strategies = strategy_settings["variants"]
@@ -608,6 +630,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 "column1": {
                     "ui:order": [
                         "lattice",
+                        "point_groups",
                         "space_group",
                         "use_cell_for_processing",
                     ],
@@ -653,21 +676,16 @@ class GphlWorkflow(HardwareObjectYaml):
                 "cell_gamma",
             ):
                 fields[tag]["readOnly"] = False
+            ui_schema["parameters"]["column1"]["ui:order"].remove("point_groups")
 
         elif choose_lattice is None:
             # Characterisation
+            ui_schema["parameters"]["column1"]["ui:order"].remove("point_groups")
             pass
 
         else:
             # Acquisition
-            fields["point_groups"]["hidden"] = False
-            fields["lattice"]["hidden"] = True
             fields["relative_rad_sensitivity"]["readOnly"] = True
-            ui_schema["parameters"]["column1"]["ui:order"][0] = "point_groups"
-            fields["point_groups"]["default"] = point_group
-            fields["point_groups"]["value_dict"] = OrderedDict(
-                (tag, tag) for tag in point_groups
-            )
             fields["indexing_solution"] = {
                 "title": "Select indexing solution:",
                 "type": "string",
@@ -679,10 +697,13 @@ class GphlWorkflow(HardwareObjectYaml):
                 choose_lattice.crystalClasses or data_model.crystal_classes
             )
             # Must match bravaisLattices column
-            lattices = frozenset(
+            lattices = set(
                 crystal_symmetry.CRYSTAL_CLASS_MAP[crystal_class].bravais_lattice
                 for crystal_class in crystal_classes
             )
+            if "mC" in lattices:
+                # NBNB special case. mI non-standard but supported in XDS
+                lattices.add("mI")
             if lattices:
                 colouring = list(
                     any(x == solution.bravaisLattice for x in lattices)
@@ -729,15 +750,18 @@ class GphlWorkflow(HardwareObjectYaml):
 
         # Convert lattice and pointgroups to crystal class names
         lattice = params.pop("lattice", None)
+        lattices = (lattice,) if lattice else ()
         pgvar = params.pop("point_groups", None)
+        space_group = params.get("space_group")
         if choose_lattice:
             point_groups = pgvar.split("|") if pgvar else None
+            params["crystal_classes"] = crystal_symmetry.crystal_classes_from_params(
+                lattices, point_groups, space_group
+            )
         else:
-            point_groups = None
-        space_group = params.get("space_group")
-        params["crystal_classes"] = crystal_symmetry.crystal_classes_from_params(
-            lattice, point_groups, space_group
-        )
+            params["crystal_classes"] = crystal_symmetry.crystal_classes_from_params(
+                lattices=lattices, space_group=space_group
+            )
 
         # Convert energy field to a single tuple
         params["energies"] = (params.pop("energy"),)
@@ -1511,7 +1535,7 @@ class GphlWorkflow(HardwareObjectYaml):
             ):
                 logging.getLogger("GUI").info(
                     "GphlWorkflow: setting detector distance for resolution %7.3f A",
-                    new_resolution
+                    new_resolution,
                 )
                 # timeout in seconds: max move is ~2 meters, velocity 4 cm/sec
                 HWR.beamline.resolution.set_value(new_resolution, timeout=60)
@@ -2185,10 +2209,8 @@ class GphlWorkflow(HardwareObjectYaml):
         solutions_dict = OrderedDict()
 
         if indexing_format == "IDXREF":
-            header = (
-"""  LATTICE-  BRAVAIS-   QUALITY  UNIT CELL CONSTANTS (ANGSTROEM & DEGREES)
+            header = """  LATTICE-  BRAVAIS-   QUALITY  UNIT CELL CONSTANTS (ANGSTROEM & DEGREES)
  CHARACTER  LATTICE     OF FIT      a      b      c   alpha  beta gamma"""
-            )
 
             line_format = (
                 " %s  %2i        %s %12.1f    %6.1f %6.1f %6.1f %5.1f %5.1f %5.1f"
@@ -2637,24 +2659,29 @@ def update_exptime(values_map: ui_communication.AbstractValuesMap):
     In parameter popup"""
     if values_map.block_updates:
         return
-    parameters = values_map.get_values_map()
-    exposure_time = float(parameters.get("exposure", 0))
-    image_width = float(parameters.get("image_width", 0))
-    transmission = float(parameters.get("transmission", 0))
-    repetition_count = int(parameters.get("repetition_count") or 1)
-    total_strategy_length = float(parameters.get("total_strategy_length", 0))
-    std_dose_rate = float(parameters.get("std_dose_rate", 0))
+    values_map.block_updates = True
+    try:
+        parameters = values_map.get_values_map()
+        exposure_time = float(parameters.get("exposure", 0))
+        image_width = float(parameters.get("image_width", 0))
+        transmission = float(parameters.get("transmission", 0))
+        repetition_count = int(parameters.get("repetition_count") or 1)
+        total_strategy_length = float(parameters.get("total_strategy_length", 0))
+        std_dose_rate = float(parameters.get("std_dose_rate", 0))
 
-    if image_width and exposure_time:
-        rotation_rate = image_width / exposure_time
-        dd0 = {}
-        experiment_time = total_strategy_length / rotation_rate
-        if std_dose_rate and transmission:
-            # NB - dose is calculated for *one* repetition
-            dd0["use_dose"] = std_dose_rate * experiment_time * transmission / 100.0
-        dd0["experiment_time"] = experiment_time * repetition_count
-        values_map.set_values(**dd0)
-        update_dose(values_map)
+        if image_width and exposure_time:
+            rotation_rate = image_width / exposure_time
+            dd0 = {}
+            experiment_time = total_strategy_length / rotation_rate
+            if std_dose_rate and transmission:
+                # NB - dose is calculated for *one* repetition
+                dd0["use_dose"] = std_dose_rate * experiment_time * transmission / 100.0
+            dd0["experiment_time"] = experiment_time * repetition_count
+            values_map.set_values(**dd0)
+            values_map.block_updates = False
+            update_dose(values_map)
+    finally:
+        values_map.block_updates = False
 
 
 def update_transmission(values_map: ui_communication.AbstractValuesMap):
@@ -2662,19 +2689,24 @@ def update_transmission(values_map: ui_communication.AbstractValuesMap):
     In parameter popup"""
     if values_map.block_updates:
         return
-    parameters = values_map.get_values_map()
-    exposure_time = float(parameters.get("exposure", 0))
-    image_width = float(parameters.get("image_width", 0))
-    transmission = float(parameters.get("transmission", 0))
-    total_strategy_length = float(parameters.get("total_strategy_length", 0))
-    std_dose_rate = float(parameters.get("std_dose_rate", 0))
-    if image_width and exposure_time and std_dose_rate and transmission:
-        # If we get here, Adjust dose
-        # NB dose is calculated for *one* repetition
-        experiment_time = exposure_time * total_strategy_length / image_width
-        use_dose = std_dose_rate * experiment_time * transmission / 100
-        values_map.set_values(use_dose=use_dose, exposure=exposure_time)
-        update_dose(values_map)
+    values_map.block_updates = True
+    try:
+        parameters = values_map.get_values_map()
+        exposure_time = float(parameters.get("exposure", 0))
+        image_width = float(parameters.get("image_width", 0))
+        transmission = float(parameters.get("transmission", 0))
+        total_strategy_length = float(parameters.get("total_strategy_length", 0))
+        std_dose_rate = float(parameters.get("std_dose_rate", 0))
+        if image_width and exposure_time and std_dose_rate and transmission:
+            # If we get here, Adjust dose
+            # NB dose is calculated for *one* repetition
+            experiment_time = exposure_time * total_strategy_length / image_width
+            use_dose = std_dose_rate * experiment_time * transmission / 100
+            values_map.set_values(use_dose=use_dose, exposure=exposure_time)
+            values_map.block_updates = False
+            update_dose(values_map)
+    finally:
+        values_map.block_updates = False
 
 
 def update_dose(values_map: ui_communication.AbstractValuesMap):
@@ -2682,133 +2714,158 @@ def update_dose(values_map: ui_communication.AbstractValuesMap):
     In parameter popup"""
     if values_map.block_updates:
         return
-    exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
-    parameters = values_map.get_values_map()
-    exposure_time = float(parameters.get("exposure", 0))
-    image_width = float(parameters.get("image_width", 0))
-    use_dose = float(parameters.get("use_dose", 0))
-    dose_budget = float(parameters.get("dose_budget", 0))
-    std_dose_rate = float(parameters.get("std_dose_rate", 0))
-    total_strategy_length = float(parameters.get("total_strategy_length", 0))
+    values_map.block_updates = True
+    try:
+        exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
+        parameters = values_map.get_values_map()
+        exposure_time = float(parameters.get("exposure", 0))
+        image_width = float(parameters.get("image_width", 0))
+        use_dose = float(parameters.get("use_dose", 0))
+        dose_budget = float(parameters.get("dose_budget", 0))
+        std_dose_rate = float(parameters.get("std_dose_rate", 0))
+        total_strategy_length = float(parameters.get("total_strategy_length", 0))
 
-    if image_width and exposure_time and std_dose_rate and use_dose:
-        experiment_time = exposure_time * total_strategy_length / image_width
-        transmission = 100 * use_dose / (std_dose_rate * experiment_time)
+        if image_width and exposure_time and std_dose_rate and use_dose:
+            experiment_time = exposure_time * total_strategy_length / image_width
+            transmission = 100 * use_dose / (std_dose_rate * experiment_time)
 
-        if transmission > 100.0:
-            # Transmission too high. Try max transmission and longer exposure
-            transmission = 100.0
-            experiment_time = use_dose / std_dose_rate
-            exposure_time = experiment_time * image_width / total_strategy_length
-        max_exposure = exposure_limits[1]
-        if max_exposure and exposure_time > max_exposure:
-            # exposure_time over max; set dose to highest achievable dose
-            experiment_time = max_exposure * total_strategy_length / image_width
-            use_dose = std_dose_rate * experiment_time
-            values_map.set_values(
-                exposure=max_exposure,
-                transmission=100,
-                use_dose=use_dose,
-                experiment_time=experiment_time,
-            )
-        else:
-            values_map.set_values(
-                exposure=exposure_time,
-                transmission=transmission,
-                experiment_time=experiment_time,
-            )
-        if use_dose and dose_budget and use_dose > dose_budget:
-            values_map.colour_widget("use_dose", "LINE_EDIT_WARNING")
-            values_map.colour_widget("dose_budget", "LINE_EDIT_WARNING")
+            if transmission > 100.0:
+                # Transmission too high. Try max transmission and longer exposure
+                transmission = 100.0
+                experiment_time = use_dose / std_dose_rate
+                exposure_time = experiment_time * image_width / total_strategy_length
+            max_exposure = exposure_limits[1]
+            if max_exposure and exposure_time > max_exposure:
+                # exposure_time over max; set dose to highest achievable dose
+                experiment_time = max_exposure * total_strategy_length / image_width
+                use_dose = std_dose_rate * experiment_time
+                values_map.set_values(
+                    exposure=max_exposure,
+                    transmission=100,
+                    use_dose=use_dose,
+                    experiment_time=experiment_time,
+                )
+            else:
+                values_map.set_values(
+                    exposure=exposure_time,
+                    transmission=transmission,
+                    experiment_time=experiment_time,
+                )
+            if use_dose and dose_budget and use_dose > dose_budget:
+                values_map.colour_widget("use_dose", "LINE_EDIT_WARNING")
+                values_map.colour_widget("dose_budget", "LINE_EDIT_WARNING")
+    finally:
+        values_map.block_updates = False
 
 
 def update_lattice(values_map: ui_communication.AbstractValuesMap):
     """Update pulldowns when crystal lattice changes"""
     if values_map.block_updates:
         return
-    state = values_map.get_values_map()
-    lattice = state.get("lattice") or ""
-    point_groups = state.get("point_groups")
-    space_group = state.get("space_group")
-    pglist = lattice2point_group_tags[lattice]
-    default = point_groups if point_groups and point_groups in pglist else pglist[-1]
-    values_map.reset_options(
-        "point_groups",
-        value_dict=OrderedDict((tag, tag) for tag in pglist),
-        default=default,
-    )
-    # new_values = {}
-    sglist = [""] + crystal_symmetry.space_groups_from_lattice(lattice)
-    default = space_group if space_group in sglist else ""
-    values_map.reset_options(
-        "space_group",
-        value_dict=OrderedDict((tag, tag) for tag in sglist),
-        default=default,
-    )
-
+    values_map.block_updates = True
+    try:
+        state = values_map.get_values_map()
+        lattice = state.get("lattice") or ""
+        pgvar = state.get("point_groups")
+        space_group = state.get("space_group")
+        if lattice:
+            pglist = lattice2point_group_tags[lattice]
+            pgdefault = pgvar if pgvar and pgvar in pglist else pglist[-1]
+            sgoptions = [""] + crystal_symmetry.space_groups_from_params(
+                point_groups=pglist[-1].split("|")
+            )
+        else:
+            pglist = all_point_group_tags
+            pgdefault = ""
+            sgoptions = [""] + crystal_symmetry.space_groups_from_params()
+        values_map.reset_options(
+            "point_groups",
+            value_dict=OrderedDict((tag, tag) for tag in pglist),
+            default=pgdefault,
+        )
+        sgdefault = space_group if space_group in sgoptions else ""
+        values_map.reset_options(
+            "space_group",
+            value_dict=OrderedDict((tag, tag) for tag in sgoptions),
+            default=sgdefault,
+        )
+    finally:
+        values_map.block_updates = False
 
 def update_point_groups(values_map: ui_communication.AbstractValuesMap):
     """Update pulldowns when pointgroups change"""
     if values_map.block_updates:
         return
-    state = values_map.get_values_map()
-    lattice = state.get("lattice")
-    point_groups = state.get("point_groups") or ""
-    space_group = state.get("space_group")
-    sglist = crystal_symmetry.space_groups_from_point_groups(point_groups.split("|"))
-    sglist = [""] + list(
-        name
-        for name in crystal_symmetry.space_groups_from_lattice(lattice)
-        if name in sglist
-    )
-    default = space_group if space_group in sglist else ""
-    values_map.reset_options(
-        "space_group",
-        value_dict=OrderedDict((tag, tag) for tag in sglist),
-        default=default,
-    )
+    values_map.block_updates = True
+    try:
+        state = values_map.get_values_map()
+        pgvar = state.get("point_groups") or ""
+        space_group = state.get("space_group")
+        sglist = [""] + crystal_symmetry.space_groups_from_params(
+            point_groups=pgvar.split("|")
+        )
+        default = space_group if space_group in sglist else ""
+        lattice = state.get("lattice")
+        values_map.reset_options(
+            "space_group",
+            value_dict=OrderedDict((tag, tag) for tag in sglist),
+            default=default,
+        )
+    finally:
+        values_map.block_updates = False
 
 
 def update_space_group(values_map: ui_communication.AbstractValuesMap):
     """Update pulldowns when crystal lattice changes"""
     if values_map.block_updates:
         return
-    state = values_map.get_values_map()
-    space_group = state.get("space_group")
-    lattice0 = state.get("lattice")
-    point_groups0 = state.get("point_groups")
-    if not space_group:
-        return
-
-    info = crystal_symmetry.CRYSTAL_CLASS_MAP[
-        crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
-    ]
-    lattice = info.bravais_lattice
-    if lattice != lattice0:
-        values_map.set_values(lattice=lattice)
-        update_lattice(values_map)
-    point_groups = info.point_group
-    if point_groups == "32" and lattice == "hP":
-        point_groups = info.name[:-1]
-    if point_groups != point_groups0:
-        values_map.set_values(point_groups=point_groups)
-    # Following is necessary because previous commands reset space_group
-    values_map.set_values(space_group=space_group)
+    values_map.block_updates = True
+    try:
+        state = values_map.get_values_map()
+        space_group = state.get("space_group")
+        lattice0 = state.get("lattice")
+        point_groups0 = state.get("point_groups")
+        if space_group:
+            info = crystal_symmetry.CRYSTAL_CLASS_MAP[
+                crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
+            ]
+            lattice = info.bravais_lattice
+            if lattice != lattice0:
+                values_map.set_values(lattice=lattice)
+                values_map.block_updates = False
+                update_lattice(values_map)
+                values_map.block_updates = True
+            point_groups = info.point_group
+            if point_groups == "32" and lattice == "hP":
+                point_groups = info.name[:-1]
+            if point_groups != point_groups0:
+                values_map.set_values(point_groups=point_groups)
+        # Following is necessary because previous commands reset space_group
+        values_map.set_values(space_group=space_group)
+    finally:
+        values_map.block_updates = False
 
 
 def update_indexing_solution(values_map: ui_communication.AbstractValuesMap):
     """Update pulldowns when selected indexing solution changes"""
     if values_map.block_updates:
         return
-    state = values_map.get_values_map()
-    solution = state.get("indexing_solution")[0]
-    for lattice in crystal_symmetry.BRAVAIS_LATTICES:
-        if lattice and lattice in solution:
-            # values_map.set_values(lattice=lattice)
-            values_map.reset_options(
-                "lattice",
-                value_dict=OrderedDict(((lattice, lattice),)),
-                default=lattice,
-            )
-            update_lattice(values_map)
-            break
+    values_map.block_updates = True
+    try:
+        state = values_map.get_values_map()
+        solution = state.get("indexing_solution")[0]
+        for lattice in crystal_symmetry.UI_LATTICES:
+            if lattice and lattice in solution:
+                # values_map.set_values(lattice=lattice)
+                values_map.reset_options(
+                    "lattice",
+                    value_dict=OrderedDict(
+                        ((tag, tag) for tag in alternative_lattices[lattice])
+                    ),
+                    default=lattice,
+                )
+                values_map.block_updates = False
+                update_lattice(values_map)
+                break
+    finally:
+        values_map.block_updates = False
