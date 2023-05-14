@@ -1,0 +1,379 @@
+{
+    "SCHEMA": {
+        "definitions": {
+            "strategy": [
+                {
+                    "enum": [
+                        "full"
+                    ],
+                    "title": "full",
+                    "type": "string"
+                },
+                {
+                    "enum": [
+                        "minimal"
+                    ],
+                    "title": "minimal",
+                    "type": "string"
+                },
+                {
+                    "enum": [
+                        "quick"
+                    ],
+                    "title": "quick",
+                    "type": "string"
+                },
+                {
+                    "enum": [
+                        "ultralong"
+                    ],
+                    "title": "ultralong",
+                    "type": "string"
+                }
+            ]
+        },
+        "properties": {
+            "cell_a": {
+                "default": 86.75,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "a",
+                "type": "number"
+            },
+            "cell_alpha": {
+                "default": 90.0,
+                "maximum": 180,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "\u03b1",
+                "type": "number"
+            },
+            "cell_b": {
+                "default": 86.75,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "b",
+                "type": "number"
+            },
+            "cell_beta": {
+                "default": 90.0,
+                "maximum": 180,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "\u03b2",
+                "type": "number"
+            },
+            "cell_c": {
+                "default": 85.6276,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "c",
+                "type": "number"
+            },
+            "cell_gamma": {
+                "default": 90.0,
+                "maximum": 180,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "\u03b3",
+                "type": "number"
+            },
+            "decay_limit": {
+                "default": 25,
+                "hidden": true,
+                "maximum": 99,
+                "minimum": 1,
+                "title": "Signal decay limit (%)",
+                "type": "number"
+            },
+            "energy": {
+                "default": 12.4,
+                "maximum": 20,
+                "minimum": 4,
+                "title": "Main energy (keV)",
+                "type": "number"
+            },
+            "indexing_solution": {
+                "title": "Select indexing solution:",
+                "type": "string"
+            },
+            "input_space_group": {
+                "default": "I4",
+                "readOnly": true,
+                "title": "Space Group",
+                "type": "string"
+            },
+            "lattice": {
+                "default": "tI",
+                "hidden": false,
+                "title": "Crystal lattice",
+                "value_dict": {
+                    "Tetragonal": "Tetragonal",
+                    "tI": "tI",
+                    "tP": "tP"
+                }
+            },
+            "point_groups": {
+                "default": "4",
+                "hidden": false,
+                "title": "Point Groups",
+                "value_dict": {
+                    "4": "4",
+                    "422": "422",
+                    "4|422": "4|422"
+                }
+            },
+            "relative_rad_sensitivity": {
+                "default": 1.0,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "Radiation sensitivity",
+                "type": "number"
+            },
+            "resolution": {
+                "default": 1.6419908730535508,
+                "maximum": 2.942352157399316,
+                "minimum": 0.9035138162988328,
+                "title": "Resolution",
+                "type": "number"
+            },
+            "space_group": {
+                "default": "I4",
+                "title": "Space Group",
+                "value_dict": {
+                    "": "",
+                    "I4": "I4",
+                    "I41": "I41",
+                    "I4122": "I4122",
+                    "I422": "I422",
+                    "P4": "P4",
+                    "P41": "P41",
+                    "P41212": "P41212",
+                    "P4122": "P4122",
+                    "P42": "P42",
+                    "P4212": "P4212",
+                    "P422": "P422",
+                    "P42212": "P42212",
+                    "P4222": "P4222",
+                    "P43": "P43",
+                    "P43212": "P43212",
+                    "P4322": "P4322"
+                }
+            },
+            "strategy": {
+                "$ref": "#/definitions/strategy",
+                "default": "full",
+                "title": "Acquisition strategy"
+            },
+            "use_cell_for_processing": {
+                "default": true,
+                "title": "Use for indexing",
+                "type": "boolean"
+            }
+        },
+        "title": "G\u03a6L Pre-strategy parameters",
+        "type": "object"
+    },
+    "UI_SCHEMA": {
+        "crystal_data": {
+            "cella": {
+                "ui:order": [
+                    "cell_a",
+                    "cell_alpha"
+                ]
+            },
+            "cellb": {
+                "ui:order": [
+                    "cell_b",
+                    "cell_beta"
+                ]
+            },
+            "cellc": {
+                "ui:order": [
+                    "cell_c",
+                    "cell_gamma"
+                ]
+            },
+            "sgroup": {
+                "relative_rad_sensitivity": {
+                    "ui:options": {
+                        "decimals": 2
+                    }
+                },
+                "ui:order": [
+                    "input_space_group",
+                    "relative_rad_sensitivity"
+                ]
+            },
+            "ui:order": [
+                "sgroup",
+                "cella",
+                "cellb",
+                "cellc"
+            ],
+            "ui:title": "Input Unit Cell",
+            "ui:widget": "column_grid"
+        },
+        "indexing_solution": {
+            "ui:options": {
+                "colouring": [
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    true,
+                    false,
+                    false,
+                    true,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    true,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    true,
+                    false
+                ],
+                "content": [
+                    [
+                        " *  44        aP          0.0      74.8   74.8   74.9 109.1 109.1 110.2",
+                        " *  43        mI          0.5      85.7  122.9   74.8  90.0 124.9  90.0",
+                        " *  14        mC          0.7      85.7  122.7   74.9  90.0 124.9  90.0",
+                        " *  17        mC          0.9     122.7   85.7   86.8  90.0 135.0  90.0",
+                        " *  16        oF          1.0     122.7  122.9   85.7  90.0  90.0  90.0",
+                        " *  25        mC          1.1      85.7  122.9   74.8  90.0 124.9  90.0",
+                        " *   8        oI          1.5      86.8   86.8   85.7  89.9  90.0  90.0",
+                        " *   6        tI          1.6      86.8   86.8   85.7  90.0  90.0  89.9",
+                        " *  24        hR          4.4     122.0  122.9   74.8  90.0  89.4 120.2",
+                        " *   4        hR          9.8     122.7  122.0   74.9  90.7  90.0 120.2",
+                        " *   7        tI         10.1      86.8   85.7   86.8  90.0  89.9  90.0",
+                        " *   5        cI         12.5      86.8   85.7   86.8  90.0  89.9  90.0",
+                        "    31        aP        163.7      74.8   74.9   74.9  69.8  70.9 109.1",
+                        "    10        mC        172.9      85.7  122.7   74.9  90.0 124.9  90.0",
+                        "    20        mC        173.1      86.8  122.0   74.8  90.6 125.4  90.0",
+                        "     3        cP        173.8      74.8   74.8   74.9 109.1 109.1 110.2",
+                        "    39        mC        241.2     142.4   74.8   74.9 109.1 121.1  80.6",
+                        "    41        mC        241.5     142.4   74.9   74.8 109.1 121.1  80.7",
+                        "    37        mC        241.6     142.4   74.8   74.9 109.1 121.1  80.6",
+                        "    42        oI        327.6      74.9  122.0   74.8  89.4  90.6 109.1",
+                        "    34        mP        327.6      74.8   74.9   74.8 109.1 110.2 109.1",
+                        "    15        tI        328.0      74.8   74.9  122.0  90.6  89.4 109.1",
+                        "    33        mP        328.0      74.8   74.9   74.8 109.1 110.2 109.1",
+                        "    13        oC        328.0      85.7  122.7   74.9  90.0 124.9  90.0",
+                        "    35        mP        328.2      74.9   74.8   74.9 109.1 110.2 109.1",
+                        "    23        oC        328.4      85.7  122.9   74.8  90.0 124.9  90.0",
+                        "    38        oC        405.2      74.8  142.4   74.9  58.9 109.1  99.4",
+                        "    40        oC        405.4      74.9  142.4   74.8  58.9 109.1  99.3",
+                        "    36        oC        405.6      74.8  142.4   74.9  58.9 109.1  99.4",
+                        "    12        hP        405.6      74.8   74.8   74.9 109.1 109.1 110.2",
+                        "    22        hP        405.6      74.9   74.9   74.8 109.1 109.1 110.2",
+                        "    30        mC        486.6      74.9  142.4   74.8  58.9  70.9  80.7",
+                        "    29        mC        487.0      74.8  142.4   74.9  58.9  70.9  80.6",
+                        "    28        mC        487.4      74.8  142.4   74.9  58.9  70.9  80.6",
+                        "    32        oP        500.1      74.8   74.9   74.8 109.1 109.1 110.2",
+                        "    21        tP        500.5      74.8   74.9   74.8 109.1 110.2 109.1",
+                        "    11        tP        500.5      74.8   74.8   74.9 109.1 109.1 110.2",
+                        "     2        hR        501.2      85.7   86.8  143.7  72.5 107.3  90.0",
+                        "     1        cF        578.3     142.4   74.8  143.8 100.3 116.9  99.4",
+                        "    27        mC        654.9     142.4   74.8   86.8  54.6 107.8  80.6",
+                        "    19        oI        655.2      86.8  142.4   74.8  72.3  58.9  54.6",
+                        "    26        oF        693.9     142.4  188.0   74.8  61.6 131.2  99.4",
+                        "    18        tI        694.2      86.8  142.4   74.8  58.9 125.4 107.7",
+                        "     9        hR        741.0      74.8  121.9  188.1  89.2  82.9 144.5"
+                    ]
+                ],
+                "header": [
+                    "  LATTICE-  BRAVAIS-   QUALITY  UNIT CELL CONSTANTS (ANGSTROEM & DEGREES)\n CHARACTER  LATTICE     OF FIT      a      b      c   alpha  beta gamma"
+                ],
+                "select_row": 7,
+                "update_function": "update_indexing_solution"
+            },
+            "ui:widget": "selection_table"
+        },
+        "parameters": {
+            "column1": {
+                "lattice": {
+                    "ui:options": {
+                        "update_function": "update_lattice"
+                    }
+                },
+                "point_groups": {
+                    "ui:options": {
+                        "update_function": "update_point_groups"
+                    }
+                },
+                "space_group": {
+                    "ui:options": {
+                        "update_function": "update_space_group"
+                    }
+                },
+                "ui:order": [
+                    "lattice",
+                    "point_groups",
+                    "space_group",
+                    "use_cell_for_processing"
+                ]
+            },
+            "column2": {
+                "energy": {
+                    "ui:options": {
+                        "decimals": 4
+                    }
+                },
+                "resolution": {
+                    "ui:options": {
+                        "decimals": 3
+                    }
+                },
+                "ui:order": [
+                    "strategy",
+                    "resolution",
+                    "energy"
+                ]
+            },
+            "ui:order": [
+                "column1",
+                "column2"
+            ],
+            "ui:title": "Parameters",
+            "ui:widget": "column_grid"
+        },
+        "ui:options": {
+            "import_module_name": "mxcubecore.HardwareObjects.GphlWorkflow"
+        },
+        "ui:order": [
+            "indexing_solution",
+            "crystal_data",
+            "parameters"
+        ],
+        "ui:widget": "vertical_box"
+    }
+}
