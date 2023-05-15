@@ -46,6 +46,25 @@ length_deg= 1.2
 start_deg= 0.0
 /
 
+! ################### 4 * 1deg/10 characteristation strategy
+
+&sdcp_strategy_list
+strategy_name= 'Char_4_by_10'
+type= 'geometric'
+allowed_widths= 0.1
+default_width_idx= 0
+/
+
+&stratcal_sweep_list
+repeat= 4
+offset= 90.0
+goniostat_setting_id= 'gset01'
+detector_setting_id= 'dset01'
+beam_setting_id= 'bset01'
+length_deg= 1.0
+start_deg= 0.0
+/
+
 ! ################### One 24deg sweep
 
 &sdcp_strategy_list
@@ -322,7 +341,7 @@ goniostat_axis_settings= 0.0 225.0 270.0
 !################## Short diffractometer calibration ################
 
 &sdcp_strategy_list
-strategy_name= 'DiffractCal'
+strategy_name= 'DiffractCal_short'
 type= 'geometric'
 allowed_widths= 0.05 0.1 0.15 0.2
 default_width_idx= 0
@@ -387,7 +406,7 @@ length_deg= 60
 !################## Long diffractometer calibration ################
 
 &sdcp_strategy_list
-strategy_name= 'DiffractCal_ex'
+strategy_name= 'DiffractCal_long'
 type= 'geometric'
 allowed_widths= 0.05 0.1 0.15 0.2
 default_width_idx= 0

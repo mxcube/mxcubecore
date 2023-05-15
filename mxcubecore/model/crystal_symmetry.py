@@ -29,14 +29,15 @@ import operator
 from collections import namedtuple, OrderedDict
 
 CrystalClassInfo = namedtuple(
-    "CrystalClassInfo", (
+    "CrystalClassInfo",
+    (
         "number",
         "name",
         "bravais_lattice",
         "point_group",
         "crystal_system",
         "laue_group",
-    )
+    ),
 )
 # Data from https://onlinelibrary.wiley.com/iucr/itc/Cb/ch1o4v0001/
 # Laue group names from http://pd.chem.ucl.ac.uk/pdnn/symm2/laue1.htm
@@ -57,7 +58,9 @@ CRYSTAL_CLASS_DATA = [
     CrystalClassInfo(12, "222I", "oI", "222", "Orthorhombic", "mmm"),
     CrystalClassInfo(13, "mm2P", "oP", "mm2", "Orthorhombic", "mmm"),
     CrystalClassInfo(14, "mm2C", "oC", "mm2", "Orthorhombic", "mmm"),
-    CrystalClassInfo(15, "2mmC", "oC", "mm2", "Orthorhombic", "mmm"),  # NB was2mmC(Amm2)
+    CrystalClassInfo(
+        15, "2mmC", "oC", "mm2", "Orthorhombic", "mmm"
+    ),  # NB was2mmC(Amm2)
     CrystalClassInfo(16, "mm2F", "oF", "mm2", "Orthorhombic", "mmm"),
     CrystalClassInfo(17, "mm2I", "oI", "mm2", "Orthorhombic", "mmm"),
     CrystalClassInfo(18, "mmmP", "oP", "mmm", "Orthorhombic", "mmm"),
@@ -365,109 +368,122 @@ XTAL_SPACEGROUPS = [""] + [
 ]
 
 BRAVAIS_LATTICES = (
-    "aP", "mP", "mC", "oP", "oC", "oF", "oI", "tP", "tI", "hP", "hR", "cP", "cF", "cI",
+    "aP",
+    "mP",
+    "mC",
+    "oP",
+    "oC",
+    "oF",
+    "oI",
+    "tP",
+    "tI",
+    "hP",
+    "hR",
+    "cP",
+    "cF",
+    "cI",
 )
+UI_LATTICES = BRAVAIS_LATTICES + ("mI",)
 
-def space_groups_from_lattice(lattice: str):
-    """Space group names compatible with lattice,
-    in space group number order"""
-    converter = {
-        "Triclinic": "a",
-        "Monoclinic": "m",
-        "Orthorhombic": "o",
-        "Tetragonal": "t",
-        "Trigonal": "h",
-        "Hexagonal": "h",
-        "Cubic": "c",
-    }
-    tst = converter.get(lattice, lattice)
-    result = list(
-        tag
-        for tag in XTAL_SPACEGROUPS
-        if tag
-        and CRYSTAL_CLASS_MAP[
-            SPACEGROUP_MAP[tag].crystal_class
-        ].bravais_lattice.startswith(tst)
-    )
+
+def space_groups_from_params(lattices=(), point_groups=(), chiral_only=True):
+    """list of names sfo space groups compatible with lattices and point groups
+    Given in space group number order
+
+    Args:
+        lattices:
+        point_groups:
+
+    Returns:
+
+    """
+    if chiral_only:
+        space_groups = XTAL_SPACEGROUPS[1:]
+    else:
+        space_groups = list(SPACEGROUP_MAP)
+    if lattices or point_groups:
+        sgs1 = []
+        if lattices:
+            converter = {
+                "Triclinic": "a",
+                "Monoclinic": "m",
+                "Orthorhombic": "o",
+                "Tetragonal": "t",
+                "Trigonal": "h",
+                "Hexagonal": "h",
+                "Cubic": "c",
+            }
+            tsts = set(converter.get(tag, tag) for tag in lattices)
+            if "mI" in tsts:
+                # Special case. mI is supported in XDS and UI but is not official
+                tsts.add("mC")
+            for spg in space_groups:
+                blattice = CRYSTAL_CLASS_MAP[
+                    SPACEGROUP_MAP[spg].crystal_class
+                ].bravais_lattice
+                if any(blattice.startswith(tst) for tst in tsts):
+                    sgs1.append(spg)
+
+        sgs2 = []
+        if point_groups:
+            for spg in space_groups:
+                info = SPACEGROUP_MAP[spg]
+                ccinfo = CRYSTAL_CLASS_MAP[(info.crystal_class)]
+                for pgp in point_groups:
+                    if ccinfo.point_group == pgp or (
+                        pgp in ("312", "321") and ccinfo.name[:3] == pgp
+                    ):
+                        sgs2.append(spg)
+                        break
+        if sgs1 and sgs2:
+            tstset = set(sgs1)
+            space_groups = list(spg for spg in sgs2 if spg in tstset)
+        else:
+            space_groups = sgs1 + sgs2
     #
-    return result
-
-
-def space_groups_from_point_groups(point_groups: list):
-    """Space group names compatible with point group names,
-    in space group number order"""
-    result = []
-    for name, info in SPACEGROUP_MAP.items():
-        ccinfo = CRYSTAL_CLASS_MAP[(info.crystal_class)]
-        for pgp in point_groups:
-            if ccinfo.point_group == pgp or (
-                pgp in ("312", "321") and ccinfo.name[:3] == pgp
-            ):
-                result.append(name)
-                break
-    #
-    return result
+    return space_groups
 
 
 def crystal_classes_from_params(
-    lattice: str = None, point_groups: list = None, space_group: str = None
+    lattices: list = (), point_groups: list = (), space_group: str = None
 ):
     """
-    Get tuple of  crystal class names compatible with input parameters,
+    Get tuple of crystal class names compatible with input parameters,
     in crystal class number order
     Raises error for incompatible data.
-    NB If lattice or point_groups are set will return relevant tuple
+    NB If lattices or point_groups are set will return relevant tuple
     even if space_group is also set
 
-    NB We call the space_groups_from... functions to avoid duplicate functionality
-
     Args:
-        lattice: lattice string (Bravais Lattice or 'Monoclinic' etc.
+        lattices: list of lattice strings (Bravais Lattice or 'Monoclinic' etc.
         point_groups: list(str) List of point group names (or '312', '321')
         space_group:  Space group name
 
     Returns: tuple(str) of crystal class names
 
     """
-
-    if lattice is None and point_groups is None:
-        if space_group is None:
-            # Return only chiral crystal classes, and exclude Null member
+    if lattices or point_groups:
+        space_groups = space_groups_from_params(
+            lattices=lattices, point_groups=point_groups
+        )
+        if not space_groups or (space_group and space_group not in space_groups):
+            result = ()
+        else:
+            infos = frozenset(
+                CRYSTAL_CLASS_MAP[SPACEGROUP_MAP[space_group].crystal_class]
+                for space_group in space_groups
+            )
             result = tuple(
-                tag
-                for tag, val in CRYSTAL_CLASS_MAP.items()
-                if val.point_group.isdigit()
+                info.name for info in sorted(infos, key=operator.attrgetter("number"))
             )
-        else:
-            result = (SPACEGROUP_MAP[space_group].crystal_class,)
-        #
-        return result
+    elif space_group:
+        result = (SPACEGROUP_MAP[space_group].crystal_class,)
     else:
-        sgs1 = space_groups_from_lattice(lattice) if lattice else []
-        sgs2 = space_groups_from_point_groups(point_groups) if point_groups else []
-        if sgs1 and sgs2:
-            space_groups = set(sgs1).intersection(sgs2)
-        else:
-            space_groups = sgs1 + sgs2
-        if not space_groups:
-            raise ValueError(
-                "No space groups found for lattice %s, point groups %s"
-                % (lattice, point_groups)
-            )
-        if space_group and space_group not in space_groups:
-            raise ValueError(
-                "Space group %s incompatible with lattice %s and point_groups %s"
-                % (space_group, lattice, point_groups)
-            )
-        infos = frozenset(
-            CRYSTAL_CLASS_MAP[SPACEGROUP_MAP[space_group].crystal_class]
-            for space_group in space_groups
-        )
-        result = tuple(
-            info.name for info in sorted(infos, key=operator.attrgetter("number"))
-        )
-        #
-        return result
+        # Return empty list (nothing is set)
+        result = ()
+    #
+    return result
+
 
 def strategy_laue_group(crystal_classes: tuple, phasing=False):
     """Get laue group and point-group-like to use for strategy calculation
@@ -520,4 +536,3 @@ def strategy_laue_group(crystal_classes: tuple, phasing=False):
             result = ("-1", "1")
     #
     return result
-

@@ -191,12 +191,11 @@ class Payload(MessageData):
         if intent not in MESSAGE_INTENTS:
             if intent is None:
                 raise RuntimeError("Attempt to instantiate abstract class Payload")
-            else:
-                raise RuntimeError(
-                    "Programming error - "
-                    "Payload subclass %s intent %s must be one of: %s"
-                    % (self.__class__.__name__, intent, sorted(MESSAGE_INTENTS))
-                )
+            raise RuntimeError(
+                "Programming error - "
+                "Payload subclass %s intent %s must be one of: %s"
+                % (self.__class__.__name__, intent, sorted(MESSAGE_INTENTS))
+            )
 
     @property
     def intent(self):
@@ -287,7 +286,7 @@ class ConfigurationData(Payload):
     # (but raises MalformedUrlException) in Java.
 
     def __init__(self, location):
-        super(ConfigurationData, self).__init__()
+        super().__init__()
         self._location = location
 
     @property
@@ -303,7 +302,7 @@ class SubprocessStarted(Payload):
     INTENT = "EVENT"
 
     def __init__(self, name):
-        super(SubprocessStarted, self).__init__()
+        super().__init__()
         self._name = name
 
     @property
@@ -324,7 +323,7 @@ class ChooseLattice(Payload):
         crystalFamilyChar=None,
         lattices=None,
         userProvidedCell=None,
-        indexingHeader=None
+        indexingHeader=None,
     ):
         """
 
@@ -336,7 +335,7 @@ class ChooseLattice(Payload):
             userProvidedCell (UnitCell):
             indexingHeader (str):
         """
-        super(ChooseLattice, self).__init__()
+        super().__init__()
 
         self._indexingSolutions = indexingSolutions
         self._indexingFormat = indexingFormat
@@ -359,12 +358,12 @@ class ChooseLattice(Payload):
 
     @property
     def lattices(self):
-        """ set of expected lattices for solution"""
+        """set of expected lattices for solution"""
         return self._lattices
 
     @property
     def crystalClasses(self):
-        """ set of crystal class names"""
+        """set of crystal class names"""
         return self._crystalClasses
 
     @property
@@ -397,9 +396,7 @@ class SelectedLattice(MessageData):
         self._indexingSolution = indexingSolution
         self._strategyDetectorSetting = data_model.detector_setting
         self._strategyWavelength = data_model.wavelengths[0]
-        self._strategyControl = json.dumps(
-            data_model.strategy_options, sort_keys=True
-        )
+        self._strategyControl = json.dumps(data_model.strategy_options, sort_keys=True)
         self._userPointGroup = userPointGroup
 
     @property
@@ -420,13 +417,14 @@ class SelectedLattice(MessageData):
     @property
     def strategyControl(self):
         """JSON string of command line options (*without* prefix)
-        to use for startcal wrapper call"""
+        to use for stratcal wrapper call"""
         return self._strategyControl
 
     @property
     def userPointGroup(self):
         """Point group given by user for strategy calculation"""
         return self._userPointGroup
+
 
 class IndexingSolution(MessageData):
     """Indexing solution data"""
@@ -437,7 +435,7 @@ class IndexingSolution(MessageData):
         cell,
         isConsistent=None,
         latticeCharacter=None,
-        qualityOfFit=None
+        qualityOfFit=None,
     ):
         """
 
@@ -455,13 +453,14 @@ class IndexingSolution(MessageData):
         self._qualityOfFit = qualityOfFit
 
     def bravaisLattice(self):
-        """One of the 14 Bravais lattices ('aP' etc.) """
+        """One of the 14 Bravais lattices ('aP' etc.)"""
         return self._bravaisLattice
 
     @property
     def bravaisLattice(self):
         """"""
         return self._bravaisLattice
+
     @property
     def cell(self):
         """Unit ce;;"""
@@ -469,12 +468,12 @@ class IndexingSolution(MessageData):
 
     @property
     def isConsistent(self):
-        """ Is solution consistent with know symmetry? """
+        """Is solution consistent with know symmetry?"""
         return self._isConsistent
 
     @property
     def latticeCharacter(self):
-        """Integer 1-44 """
+        """Integer 1-44"""
         return self._latticeCharacter
 
     @property
@@ -526,7 +525,7 @@ class WorkflowDone(Payload):
 
     def __init__(self, issues=None):
 
-        super(WorkflowDone, self).__init__()
+        super().__init__()
 
         if self.__class__.__name__ == "WorkflowDone":
             raise RuntimeError("Attempt to instantiate abstract class WorkflowDone")
@@ -738,7 +737,7 @@ class PositionerSetting(IdentifiedElement):
 
     def __init__(self, id_=None, **axisSettings):
 
-        super(PositionerSetting, self).__init__(id_=id_)
+        super().__init__(id_=id_)
 
         if self.__class__.__name__ == "PositionerSetting":
             # This class is abstract
@@ -778,7 +777,7 @@ class BcsDetectorSetting(DetectorSetting):
 
     @property
     def orgxy(self):
-        """Tuple, empty or of two floats; beam centre on detector """
+        """Tuple, empty or of two floats; beam centre on detector"""
         return self._orgxy
 
 
@@ -884,12 +883,11 @@ class UserProvidedInfo(MessageData):
             for name in crystal_classes
         )
         if crystal_systems in (set(("Trigonal")), set(("Trigonal", "Hexagonal"))):
-            crystal_family = "Hexagonal"
+            self._crystal_family = "HEXAGONAL"
         elif len(crystal_systems) == 1:
-            crystal_family = crystal_systems.pop()
+            self._crystal_family = crystal_systems.pop().upper()
         else:
-            crystal_family = None
-        self._crystal_family = crystal_family.upper()
+            self._crystal_family = None
 
         sg_data = crystal_symmetry.SPACEGROUP_MAP.get(data_model.space_group)
         self._spaceGroup = sg_data.number if sg_data else None
@@ -1012,7 +1010,7 @@ class Scan(IdentifiedElement):
         self, width, exposure, imageStartNum, start, sweep, filenameParams, id_=None
     ):
 
-        super(Scan, self).__init__(id_=id_)
+        super().__init__(id_=id_)
 
         self._filenameParams = dict(filenameParams)
 
@@ -1050,7 +1048,7 @@ class Scan(IdentifiedElement):
 
 
 class GeometricStrategy(IdentifiedElement, Payload):
-    """Geometric strategy """
+    """Geometric strategy"""
 
     INTENT = "COMMAND"
 
@@ -1068,7 +1066,7 @@ class GeometricStrategy(IdentifiedElement, Payload):
         id_=None,
     ):
 
-        super(GeometricStrategy, self).__init__(id_=id_)
+        super().__init__(id_=id_)
 
         self._isInterleaved = isInterleaved
         self._isUserModifiable = isUserModifiable
@@ -1141,13 +1139,13 @@ class GeometricStrategy(IdentifiedElement, Payload):
 
 
 class CollectionProposal(IdentifiedElement, Payload):
-    """Collection proposal """
+    """Collection proposal"""
 
     INTENT = "COMMAND"
 
     def __init__(self, relativeImageDir, strategy, scans, id_=None):
 
-        super(CollectionProposal, self).__init__(id_=id_)
+        super().__init__(id_=id_)
 
         self._relativeImageDir = relativeImageDir
         self._strategy = strategy
@@ -1173,7 +1171,7 @@ class PriorInformation(Payload):
 
     def __init__(self, data_model, image_root):
 
-        super(PriorInformation, self).__init__()
+        super().__init__()
 
         # Look for existing uuid
         sample_model = data_model.get_sample_node()
@@ -1181,7 +1179,7 @@ class PriorInformation(Payload):
             if text:
                 try:
                     sampleId = uuid.UUID(text)
-                except Exception:
+                except:
                     # The error expected if this goes wrong is ValueError.
                     # But whatever the error we want to continue
                     pass
@@ -1247,7 +1245,7 @@ class CentringDone(Payload):
     INTENT = "DOCUMENT"
 
     def __init__(self, status, timestamp, goniostatTranslation):
-        super(CentringDone, self).__init__()
+        super().__init__()
         self._status = status
         self._timestamp = timestamp
         self._goniostatTranslation = goniostatTranslation
@@ -1272,7 +1270,7 @@ class SampleCentred(Payload):
 
     def __init__(self, data_model):
 
-        super(SampleCentred, self).__init__()
+        super().__init__()
         self._imageWidth = data_model.image_width
         self._transmission = 0.01 * data_model.transmission
         self._exposure = data_model.exposure_time
@@ -1328,6 +1326,7 @@ class SampleCentred(Payload):
     @property
     def wavelengths(self):
         return self._wavelengths
+
     @property
     def repetition_count(self):
         return self._repetition_count

@@ -1604,7 +1604,7 @@ class PathTemplate(object):
             archive_directory = os.path.join(
                 PathTemplate.archive_base_directory,
                 PathTemplate.archive_folder,
-                *folders[4:]
+                *folders[4:],
             )
         elif PathTemplate.synchrotron_name == "ALBA":
             logging.getLogger("HWR").debug(
@@ -1971,13 +1971,13 @@ class GphlWorkflow(TaskNode):
 
         # Workflow start attributes
         self.path_template = PathTemplate()
-        self._type = str()
+        self._name = str()
+        self.strategy_settings = {}
         self.shape = str()
-        self.characterisation_strategy = str()
+        self.initial_strategy = str()  # From strategy. characterisation or diffreactcal
         self.maximum_dose_budget = 20.0
         self.decay_limit = 25
         self.characterisation_budget_fraction = 0.05
-        self.relative_rad_sensitivity = 1.0
 
         # string. Only active mode currently is 'MASSIF1'
         self.automation_mode = None
@@ -1995,7 +1995,9 @@ class GphlWorkflow(TaskNode):
         self.aimed_resolution = None  # from 'resolution' parameter or defaults
         self.wavelengths = ()  # from 'energies' parametes
         self.use_cell_for_processing = False
-        self.strategy_options = {}  # includes variant. Overrides config/defuault
+        self.strategy_variant = None  # from 'strategy' Used for acquisition
+        self.strategy_options = {}  # Overrides config/default
+        self.relative_rad_sensitivity = 1.0
         # Directory containing SPOT.XDS file
         # For cases where characterisation and XDS processing are done
         # before workflow is started
@@ -2007,17 +2009,18 @@ class GphlWorkflow(TaskNode):
         self.image_width = 0.0
         self.wedge_width = 0.0
         self.transmission = 0.0
+        self.repetition_count = 1
         self.snapshot_count = 2
         self.recentring_mode = "sweep"
-        self.repetition_count = 1
 
-        # Internal / config-only attributes
         # Workflow interleave order (string).
         # Slowest changing first, characters 'g' (Goniostat position);
         # 's' (Scan number), 'b' (Beam wavelength), 'd' (Detector position)
         self.interleave_order = "gs"  # from workflow strategy
+
+        # Internal attributes - set only by program
         self.beamstop_setting = None  # Not currently set or used
-        self.goniostat_translations = ()  # Internal only - set by program
+        self.goniostat_translations = ()
         self.current_rotation_id = None
         self.characterisation_done = False
         self.characterisation_dose = 0.0
@@ -2031,7 +2034,7 @@ class GphlWorkflow(TaskNode):
 
     def parameter_summary(self):
         """Main parameter summary, for output purposes"""
-        summary = {"strategy": self.get_type()}
+        summary = {"strategy": self.strategy_name}
         for tag in (
             "automation_mode",
             "init_spot_dir",
@@ -2065,41 +2068,43 @@ class GphlWorkflow(TaskNode):
                 setattr(self, dict_item[0], dict_item[1])
 
     def set_pre_strategy_params(
-            self,
-            crystal_classes=(),
-            input_space_group="",
-            space_group="",
-            cell_parameters=(),
-            resolution=None,
-            energies=(),
-            strategy_options=None,
-            init_spot_dir=None,
-            use_cell_for_processing=False,
-            **unused):
+        self,
+        space_group="",
+        crystal_classes=(),
+        cell_parameters=(),
+        resolution=None,
+        energies=(),
+        strategy="",
+        strategy_options=None,
+        init_spot_dir=None,
+        relative_rad_sensitivity=1.0,
+        use_cell_for_processing=False,
+        **unused,
+    ):
         """
 
-        :param crystal_classes (tuple(str)):
         :param space_group (str):
+        :param crystal_classes (tuple(str)):
         :param cell_parameters tuple(float):
         :param resolution (Optional[float]):
         :param energies tuple(float):
+        :param strategy (str):
         :param strategy_options (dict):
         :param init_spot_dir (str):
+        :param relative_rad_sensitivity (float):
+        :param use_cell_for_processing (bool):
         :param unused (dict):
         :return (None):
         """
 
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
-        self.input_space_group = input_space_group
         self.space_group = space_group
         self.crystal_classes = tuple(crystal_classes)
         if cell_parameters:
             self.cell_parameters = cell_parameters
 
-        workflow_parameters = self.get_workflow_parameters()
-
-        interleave_order = workflow_parameters.get("interleave_order")
+        interleave_order = self.strategy_settings.get("interleave_order")
         if interleave_order:
             self.interleave_order = interleave_order
 
@@ -2109,10 +2114,10 @@ class GphlWorkflow(TaskNode):
         if energies:
             # Energies *reset* existing list, and there must be at least one
             if self.characterisation_done:
-                energy_tags = workflow_parameters.get(
+                energy_tags = self.strategy_settings.get(
                     "beam_energy_tags", (settings["default_beam_energy_tag"],)
                 )
-            elif self.get_type() == "diffractcal":
+            elif self.wftype == "diffractcal":
                 energy_tags = ("Main",)
             else:
                 energy_tags = ("Characterisation",)
@@ -2149,17 +2154,28 @@ class GphlWorkflow(TaskNode):
             )
 
         self.strategy_options = {
-            "strategy_type": workflow_parameters["strategy_type"],
+            "strategy_type": self.strategy_type,
             "angular_tolerance": settings["angular_tolerance"],
             "clip_kappa": settings["angular_tolerance"],
             "maximum_chi": settings["maximum_chi"],
-            "variant": workflow_parameters["variants"][0],
+            "variant": self.strategy_settings["variants"][0],
             "crystal_classes": list(crystal_classes),
         }
         if strategy_options:
             self.strategy_options.update(strategy_options)
 
+        if self.characterisation_done:
+            strategy = strategy or self.strategy_settings["variants"][0]
+            self.strategy_options["variant"] = self.strategy_variant = strategy
+        elif self.wftype == "diffractcal":
+            strategy = strategy or self.strategy_settings["variants"][0]
+            self.initial_strategy = strategy
+        elif self.wftype != "transcal":
+            # This must be characterisation - here we do not accept defaults
+            self.initial_strategy = strategy
+
         self.init_spot_dir = init_spot_dir
+        self.relative_rad_sensitivity = relative_rad_sensitivity
         self.use_cell_for_processing = use_cell_for_processing
 
     def set_pre_acquisition_params(
@@ -2168,15 +2184,30 @@ class GphlWorkflow(TaskNode):
         image_width=None,
         wedge_width=None,
         transmission=None,
-        image_count=None,
+        repetition_count=None,
         snapshot_count=None,
-        energies = (),
+        recentring_mode=None,
+        energies=(),
         **unused,
     ):
-        """"""
+        """
+
+        Args:
+            exposure_time:
+            image_width:
+            wedge_width:
+            transmission:
+            repetition_count:
+            snapshot_count:
+            recentring_mode:
+            energies:
+            **unused:
+
+        Returns:
+
+        """
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
-        workflow_parameters = self.get_workflow_parameters()
         # NB this is an internal dictionary. DO NOT MODIFY
         settings = HWR.beamline.gphl_workflow.settings
 
@@ -2188,13 +2219,15 @@ class GphlWorkflow(TaskNode):
             self.wedge_width = float(wedge_width)
         if transmission:
             self.transmission = float(transmission)
+        if repetition_count:
+            self.repetition_count = int(repetition_count)
         if snapshot_count:
             self.snapshot_count = int(snapshot_count)
-        if image_count:
-            self.strategy_length = int(image_count) * self.image_width
+        if recentring_mode:
+            self.recentring_mode = recentring_mode
         if energies:
             # Energies are *added* to existing list
-            energy_tags = workflow_parameters.get(
+            energy_tags = self.strategy_settings.get(
                 "beam_energy_tags", (settings["default_beam_energy_tag"],)
             )
             wavelengths = list(self.wavelengths)
@@ -2204,9 +2237,7 @@ class GphlWorkflow(TaskNode):
                     role = energy_tags[iii + offset]
                     wavelengths.append(
                         GphlMessages.PhasingWavelength(
-                            wavelength=HWR.beamline.energy.calculate_wavelength(
-                                energy
-                            ),
+                            wavelength=HWR.beamline.energy.calculate_wavelength(energy),
                             role=role,
                         )
                     )
@@ -2214,9 +2245,8 @@ class GphlWorkflow(TaskNode):
             else:
                 raise ValueError(
                     "Number of energies %s do not match remaining slots %s"
-                    % (energies, energy_tags[len(self.wavelengths):])
+                    % (energies, energy_tags[len(self.wavelengths) :])
                 )
-
 
     def init_from_task_data(self, sample_model, params):
         """
@@ -2227,13 +2257,19 @@ class GphlWorkflow(TaskNode):
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
         # Set attributes directly from params
-        self.set_type(params["strategy_name"])
+        self.strategy_settings = HWR.beamline.gphl_workflow.workflow_strategies.get(
+            params["strategy_name"]
+        )
+        if not self.strategy_settings:
+            raise ValueError(
+                "No GΦL workflow strategy named %s found" % params["strategy_name"]
+            )
+
         self.shape = params.get("shape", "")
         for tag in (
             "decay_limit",
             "maximum_dose_budget",
             "characterisation_budget_fraction",
-            "characterisation_strategy",
         ):
             value = params.get(tag)
             if value:
@@ -2337,28 +2373,34 @@ class GphlWorkflow(TaskNode):
             if resolution:
                 self.aimed_resolution = resolution
 
-    def get_workflow_parameters(self):
-        """Get parameters dictionary for workflow strategy"""
-        name = self.get_type()
-        result = HWR.beamline.gphl_workflow.workflow_strategies.get(name)
-        if result is None:
-            raise ValueError("No GPhL workflow strategy named %s found" % name)
-        #
-        return result
-
     # Parameters for start of workflow
     def get_path_template(self):
+        # Required to conform to TaskNode
         return self.path_template
 
-    # Strategy type (string); e.g. 'phasing'
-    def get_type(self):
-        return self._type
+    @property
+    def wftype(self):
+        """ "Workflow type: ("acquisition", "diffractcal", "transcal" """
+        return self.strategy_settings["wftype"]
 
-    def set_type(self, value):
-        self._type = value
+    @property
+    def wfname(self):
+        """ "Workflow full name, e.g. "GΦL Diffractometer calibration" """
+        return self.strategy_settings["wfname"]
+
+    @property
+    def strategy_type(self):
+        """ "Workflow type: ("native", "phasing", "diffractcal", "transcal" """
+        return self.strategy_settings["strategy_type"]
+
+    @property
+    def strategy_name(self):
+        """ "Strategy full name, e.g. "Two-wavelength MAD" """
+        return self.strategy_settings["title"]
 
     # Run name equal to base_prefix
     def get_name(self):
+        # Required to conform to TaskNode
         return self._name
 
     def set_name(self, value):
@@ -2400,19 +2442,19 @@ class GphlWorkflow(TaskNode):
         :return:
         """
 
-        result = None
         if transmission is None:
             transmission = self.transmission
         energy = HWR.beamline.energy.calculate_energy(self.wavelengths[0].wavelength)
         flux_density = HWR.beamline.flux.get_average_flux_density(
             transmission=transmission
         )
-        strategy_length = self.strategy_length
         exposure_time = self.exposure_time
         image_width = self.image_width
+        strategy_length = self.strategy_length
         if flux_density:
             if strategy_length and exposure_time and image_width:
-                duration = exposure_time * strategy_length / image_width
+                total_strategy_length = strategy_length * len(self.wavelengths)
+                duration = exposure_time * total_strategy_length / image_width
                 return HWR.beamline.gphl_workflow.calculate_dose(
                     duration, energy, flux_density
                 )
@@ -2422,7 +2464,8 @@ class GphlWorkflow(TaskNode):
             "image_width:%s deg, transmission: %s  flux_density:%s  photons/mm^2"
         )
         raise UserWarning(
-            msg % (
+            msg
+            % (
                 energy,
                 strategy_length,
                 exposure_time,
