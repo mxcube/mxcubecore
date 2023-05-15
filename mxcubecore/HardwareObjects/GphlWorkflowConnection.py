@@ -35,6 +35,7 @@ from py4j import clientserver, java_gateway
 
 from mxcubecore.utils import conversion
 from mxcubecore.HardwareObjects.Gphl import GphlMessages
+from mxcubecore.model import crystal_symmetry
 
 from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
 from mxcubecore import HardwareRepository as HWR
@@ -703,21 +704,94 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         return GphlMessages.SubprocessStopped()
 
     def _ChooseLattice_to_python(self, py4jChooseLattice):
-        crystalFamily = py4jChooseLattice.getCrystalFamily()
-        crystalFamilyChar = crystalFamily.getPearsonChar() if crystalFamily else None
+        """ 20230515
+        Temporarily input java class has attributes:
+        solutions (str) # solutions table as a text block
+        format (str), lattices (set(str)), and crystalSystem (CrystalSystem)
+        """
+        lattices = tuple(py4jChooseLattice.getLattices())
+        java_crystal_system = py4jChooseLattice.getCrystalSystem()
+        if lattices:
+            crystalClasses = crystal_symmetry.crystal_classes_from_params(
+                lattices=lattices
+            )
+        elif java_crystal_system:
+            crystalClasses = crystal_symmetry.crystal_classes_from_params(
+                lattices= (java_crystal_system.name().capitalize(),),
+            )
+        else:
+            crystalClasses = None
+        indexingFormat = py4jChooseLattice.getFormat().toString()
         return GphlMessages.ChooseLattice(
-            indexingSolutions=list(
-                self._IndexingSolution_to_python(sol)
-                for sol in py4jChooseLattice.getIndexingSolutions()
+            indexingSolutions=self.parse_indexing_solution_text(
+                indexingFormat,
+                py4jChooseLattice.getSolutions(),
             ),
-            indexingFormat=py4jChooseLattice.getIndexingFormat().toString(),
-            crystalFamilyChar=crystalFamilyChar,
-            lattices=py4jChooseLattice.getLattices(),
-            userProvidedCell=self._UnitCell_to_python(
-                py4jChooseLattice.getUserProvidedCell()
-            ),
-            indexingHeader=py4jChooseLattice.getIndexingHeader(),
+            indexingFormat=indexingFormat,
+            crystalClasses=crystalClasses,
         )
+
+    def parse_indexing_solution_text(self, solution_format, text):
+        """CONvert indexing solutions as a block fo text to a list of IndexingSolution
+
+        Args:
+            solution_format (str)
+            text (str):
+
+        Returns: list(GphlMessages.indexingSolution)
+
+        """
+        # find headers lines
+        solutions = []
+        if solution_format == "IDXREF":
+            lines = text.splitlines()
+            for indx, line in enumerate(lines):
+                if "BRAVAIS-" in line:
+                    # Used as marker for first header line
+                    header = ["%s\n%s" % (line, lines[indx + 1])]
+                    break
+            else:
+                raise ValueError("Substring 'BRAVAIS-' missing in %s indexing solution")
+
+            for line in lines[indx:]:
+                ss0 = line.strip()
+                if ss0:
+                    # we are skipping blank line at the start
+                    if solutions or ss0[0] == "*":
+                        # First real line will start with a '*
+                        # Subsequent non-empty lines will also be used
+                        fields = ss0.split()
+                        if fields[0] == "*":
+                            del fields[0]
+                            isConsistent = True
+                        else:
+                            isConsistent = False
+                        latticeCharacter = int(fields[0])
+                        bravaisLattice = fields[1]
+                        qualityOfFit = float(fields[2])
+                        cell = GphlMessages.UnitCell(*(float(x) for x in fields[3:]))
+                        solutions.append(
+                            GphlMessages.IndexingSolution(
+                                isConsistent=isConsistent,
+                                latticeCharacter=latticeCharacter,
+                                bravaisLattice=bravaisLattice,
+                                qualityOfFit=qualityOfFit,
+                                cell=cell,
+                            )
+                        )
+
+
+                elif solutions:
+                    # we have finished - empty non-initial line
+                    break
+
+            #
+            return solutions
+        else:
+            raise ValueError(
+                "GPhL: Indexing format %s is not known" % repr(solution_format)
+            )
+
 
     def _CollectionProposal_to_python(self, py4jCollectionProposal):
         uuidString = py4jCollectionProposal.getId().toString()
@@ -1049,11 +1123,23 @@ class GphlWorkflowConnection(HardwareObjectYaml):
                     "PG%s" % selectedLattice.userPointGroup
                 )
             )
+        # solution = self._IndexingSolution_to_java(selectedLattice.indexingSolution)
+        solution = list(
+            str(
+                getattr(selectedLattice.indexingSolution, tag))
+                for tag in ("latticeCharacter", "bravaisLattice", "qualityOfFit")
+        ) + list(
+            str(getattr(selectedLattice.indexingSolution.cell, tag) )
+            for tag in ("a", "b", "c", "alpha", "beta", "gamma")
+        )
         result = jvm.astra.messagebus.messages.information.SelectedLatticeImpl(
-            self._IndexingSolution_to_java(selectedLattice.indexingSolution),
+            jvm.co.gphl.beamline.v2_unstable.domain_types.IndexingFormat.valueOf(
+                selectedLattice.indexingFormat
+            ),
+            solution,
             self._BcsDetectorSetting_to_java(selectedLattice.strategyDetectorSetting),
             self._PhasingWavelength_to_java(selectedLattice.strategyWavelength),
-            userPointGroup,
+            # userPointGroup,
             selectedLattice.strategyControl,
         )
         #
@@ -1090,10 +1176,10 @@ class GphlWorkflowConnection(HardwareObjectYaml):
 
         for scatterer in userProvidedInfo.scatterers:
             builder = builder.addScatterer(self._AnomalousScatterer_to_java(scatterer))
-        if userProvidedInfo.crystal_family:
-            builder = builder.crystalFamily(
-                jvm.co.gphl.beamline.v2_unstable.domain_types.CrystalFamily.valueOf(
-                    userProvidedInfo.crystal_family
+        if userProvidedInfo.lattice:
+            builder = builder.lattice(
+                jvm.co.gphl.beamline.v2_unstable.domain_types.CrystalSystem.valueOf(
+                    userProvidedInfo.lattice
                 )
             )
         # NB The Java point groups are an enumeration: 'PG1', 'PG422' etc.
