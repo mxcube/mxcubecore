@@ -39,8 +39,6 @@ __category__ = "General"
 
 class XalocEnergy(Energy):
 
-    #energy_change_threshold = 0.0002
-
     def __init__(self, name):
         Energy.__init__(self, name)
         self.logger = logging.getLogger("HWR.XalocEnergy")
@@ -171,6 +169,13 @@ class XalocEnergy(Energy):
     def stop(self):
         self.energy_motor.stop()
         self.energy_motor.update_values()
+
+    def energyStateChanged(self, state):
+        """
+          state is a MotorState
+          state.value[0] retrieves HardwareObjectState from MotorState
+        """
+        self.emit("stateChanged", (state.value[0],))
 
 def test_hwo(hwo):
     print("Energy is: ", hwo.get_energy())
