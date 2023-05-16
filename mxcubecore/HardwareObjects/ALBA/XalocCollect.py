@@ -305,14 +305,15 @@ class XalocCollect(AbstractCollect):
         """
         Actual collect sequence
         """
-        if not HWR.beamline.session.proposal_id: 
-            msg = "First log in before starting a data collection"
-            self.data_collection_failed( Exception( msg ), msg )
 
         log = logging.getLogger("user_level_log")
         log.info("Collection: Preparing to collect")
 
         try:
+
+            if not HWR.beamline.session.proposal_id: 
+                msg = "First log in before starting a data collection"
+                self.data_collection_failed( Exception( msg ), msg )
 
             self.pre_collect_check()
 
