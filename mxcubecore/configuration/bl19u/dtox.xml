@@ -1,7 +1,7 @@
 <device class="mxcubecore.HardwareObjects.SSRF.BL19U1.EpicsMotor">
   <username>Detector Distance</username>
   <actuator_name>dtox</actuator_name>
-    <channel type="epics" name="detectorDistance">19U:TABLE:DETH</channel>
+    <channel type="epics" name="detectorDistance">19U:TABLE:DETH.VAL</channel>
 <!--    <channel type="epics" name="detectorDistance_VAL">19U:TABLE:DETH.VAL</channel>-->
     <channel type="epics" name="detectorDistance_RBV">19U:TABLE:DETH.RBV</channel>
 

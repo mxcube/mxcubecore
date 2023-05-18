@@ -64,6 +64,8 @@ class SSRFBeam(AbstractBeam):
                 "diameterIndexChanged",
                 self.aperture_diameter_changed,
             )
+
+            self._beam_info_dict["label"] =  self._aperture.get_diameter_size()
         else:
             logging.getLogger("HWR").debug("BeamInfo: Aperture hwobj not defined")
 

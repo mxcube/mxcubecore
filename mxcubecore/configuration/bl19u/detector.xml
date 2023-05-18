@@ -91,12 +91,12 @@
   <humidityThreshold>20.0</humidityThreshold>
   <tolerance>0.2</tolerance>
   <type>pilatus</type>
-  <model>2M</model>
+  <model>6M</model>
   <manufacturer>DECTRIS</manufacturer>
   <px>0.172</px>
   <py>0.172</py>
-  <width>1475</width>
-  <height>1679</height>
+  <width>2463</width>
+  <height>2527</height>
   <hasShutterless>True</hasShutterless>
   <file_suffix>cbf</file_suffix>
   <trigger_mode>exts</trigger_mode>
@@ -108,10 +108,10 @@
   <beam>
     <ax>0.000336</ax>
     <ay>0.001161</ay>
-    <!--bx>738</bx>
-    <by>840</by-->
-    <bx>0</bx>
-    <by>0</by>
+    <bx>1232</bx>
+    <by>1264</by>
+    <!--bx>0</bx>
+    <by>0</by-->
   </beam>
   <minE>6</minE>
 </equipment>

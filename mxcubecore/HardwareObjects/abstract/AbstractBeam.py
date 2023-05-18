@@ -165,6 +165,9 @@ class AbstractBeam(HardwareObject):
             (tuple): Position (x, y) [pixel]
         """
         # TODO move this method to AbstractSampleView
+        if self._beam_position_on_screen == [None, None]:
+            self._beam_position_on_screen = (0, 0)
+            # self.init()
         return self._beam_position_on_screen
 
     def set_beam_position_on_screen(self, beam_x_y):

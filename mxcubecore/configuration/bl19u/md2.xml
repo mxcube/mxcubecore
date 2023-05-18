@@ -26,7 +26,10 @@
   <object href="/bl19u/eh1/diff-kappaphi" role="kappa_phi"/>
   <object href="/bl19u/centring-math" role="centring"/>
 <!--  <object href="/bl19u/minikappa-correction" role="minikappa_correction"/>-->
-
+  <object role="frontlightswitch" href="/bl19u/udiff/udiff_frontlightswitch"/>
+  <object role="backlightswitch" href="/bl19u/udiff/udiff_backlightswitch"/>
+  <device role="frontlight" hwrid="/bl19u/udiff/udiff_frontlight"/>
+  <device role="backlight" hwrid="/bl19u/udiff/udiff_backlight"/>
   <use_sample_changer>True</use_sample_changer> 
   <zoom_centre>{"x": 605,"y": 652}</zoom_centre>
 

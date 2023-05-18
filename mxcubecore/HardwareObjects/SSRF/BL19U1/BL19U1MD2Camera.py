@@ -5,7 +5,8 @@ import math
 import logging
 import time
 import gevent
-from threading import Event, Thread
+from gevent import threadpool
+#from threading import Event, Thread
 import base64
 import array
 import datetime
@@ -59,10 +60,12 @@ class BL19U1MD2Camera(Device):
         if self.getProperty("interval"):
             self.pollInterval = self.getProperty("interval")
         self.stopper = False  # self.pollingTimer(self.pollInterval, self.poll)
-        thread = Thread(target=self.poll)
-        thread.daemon = True
-        thread.start()
+        # thread = Thread(target=self.poll)
+        # thread.daemon = True
+        # thread.start()
         #self.poll()
+        # pool = threadpool.ThreadPool(5)
+        # pool.spawn(self.poll)
 
     def getImage(self):
         return self.image_attr.getValue()
@@ -74,7 +77,8 @@ class BL19U1MD2Camera(Device):
         )
         count = 1
         while not self.stopper:
-            time.sleep(float(self.pollInterval) / 1000)
+            #time.sleep(float(self.pollInterval) / 1000)
+            gevent.sleep(float(self.pollInterval) / 1000)
             # time.sleep(1)
             if count % 100 == 0:
                 print("polling", datetime.datetime.now().strftime("%H:%M:%S.%f"))

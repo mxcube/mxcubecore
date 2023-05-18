@@ -186,6 +186,8 @@ class CommandContainer:
         try:
             return self.__dict__["_CommandContainer__commands"][attr]
         except KeyError:
+            if attr == "get_elements":
+                logging.getLogger("user_level_log").debug("debug")
             raise AttributeError(attr)
 
     def get_channel_object(self, channel_name, optional=False):
